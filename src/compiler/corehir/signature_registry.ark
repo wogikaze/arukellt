@@ -2,6 +2,7 @@ use corehir::kinds
 use corehir::mir_value_type
 use corehir::signature_entry
 use corehir::type_id
+use corehir::core_op_id
 
 struct SignatureRegistry {
     entries: Vec<SignatureEntry>,
@@ -60,7 +61,8 @@ fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) 
         0 - 1,
         0 - 1,
         0 - 1,
-        kinds::ABI_KIND_NORMAL()
+        kinds::ABI_KIND_NORMAL(),
+        core_op_id::CORE_OP_ID_NONE()
     )
 }
 

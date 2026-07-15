@@ -1,0 +1,68 @@
+use wasm::effective_lowering_decision
+use wasm::ctx_record
+use mir::inst_record
+
+fn core_op_shadow_observe_call(ctx: SelfEmitCtx, inst: MirInst, callee: String) {
+    if !ctx_record::SelfEmitCtx_spine_populated(ctx) {
+        return
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_inc_candidates(ctx)
+    let legacy = effective_lowering_decision::effective_lowering_from_callee(clone(callee))
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let modern = effective_lowering_decision::effective_lowering_from_function_id(inst, registry)
+    if len(legacy.core_op_canonical_id) == 0 || len(modern.core_op_canonical_id) == 0 {
+        return
+    }
+    if effective_lowering_decision::effective_lowering_decisions_match(legacy, modern) {
+        ctx_record::SelfEmitCtx_core_op_shadow_inc_matched(ctx)
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_inc_mismatched(ctx)
+    core_op_shadow_log_mismatch(ctx, callee, legacy, modern)
+}
+
+fn core_op_shadow_log_mismatch(
+    ctx: SelfEmitCtx,
+    callee: String,
+    legacy: EffectiveLoweringDecision,
+    modern: EffectiveLoweringDecision
+) {
+    if ctx_record::SelfEmitCtx_core_op_shadow_mismatch_budget(ctx) <= 0 {
+        return
+    }
+    ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
+    stdio::eprintln(
+        concat(
+            String_from("core-op-shadow mismatch callee="),
+            concat(
+                clone(callee),
+                concat(
+                    String_from(" legacy="),
+                    concat(
+                        clone(legacy.core_op_canonical_id),
+                        concat(
+                            String_from(" modern="),
+                            clone(modern.core_op_canonical_id)
+                        )
+                    )
+                )
+            )
+        )
+    )
+}
+
+fn core_op_shadow_matched_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
+}
+
+fn core_op_shadow_mismatched_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
+}
+
+fn core_op_shadow_candidate_count(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+}

@@ -38,6 +38,10 @@ pub struct SelfEmitCtx {
     registry_audit_matched: i32,
     registry_audit_mismatched: i32,
     registry_audit_mismatch_budget: i32,
+    core_op_shadow_candidates: i32,
+    core_op_shadow_matched: i32,
+    core_op_shadow_mismatched: i32,
+    core_op_shadow_mismatch_budget: i32,
     gc_layout_table: GcLayoutTable,
 }
 
@@ -107,6 +111,10 @@ fn SelfEmitCtx_new(
         registry_audit_matched: 0,
         registry_audit_mismatched: 0,
         registry_audit_mismatch_budget: 128,
+        core_op_shadow_candidates: 0,
+        core_op_shadow_matched: 0,
+        core_op_shadow_mismatched: 0,
+        core_op_shadow_mismatch_budget: 128,
         gc_layout_table: layout
     }
 }
@@ -285,6 +293,38 @@ fn SelfEmitCtx_registry_audit_inc_mismatched(ctx: SelfEmitCtx) {
 
 fn SelfEmitCtx_registry_audit_dec_mismatch_budget(ctx: SelfEmitCtx) {
     ctx.registry_audit_mismatch_budget = ctx.registry_audit_mismatch_budget - 1
+}
+
+fn SelfEmitCtx_core_op_shadow_candidates(ctx: SelfEmitCtx) -> i32 {
+    ctx.core_op_shadow_candidates
+}
+
+fn SelfEmitCtx_core_op_shadow_matched(ctx: SelfEmitCtx) -> i32 {
+    ctx.core_op_shadow_matched
+}
+
+fn SelfEmitCtx_core_op_shadow_mismatched(ctx: SelfEmitCtx) -> i32 {
+    ctx.core_op_shadow_mismatched
+}
+
+fn SelfEmitCtx_core_op_shadow_mismatch_budget(ctx: SelfEmitCtx) -> i32 {
+    ctx.core_op_shadow_mismatch_budget
+}
+
+fn SelfEmitCtx_core_op_shadow_inc_candidates(ctx: SelfEmitCtx) {
+    ctx.core_op_shadow_candidates = ctx.core_op_shadow_candidates + 1
+}
+
+fn SelfEmitCtx_core_op_shadow_inc_matched(ctx: SelfEmitCtx) {
+    ctx.core_op_shadow_matched = ctx.core_op_shadow_matched + 1
+}
+
+fn SelfEmitCtx_core_op_shadow_inc_mismatched(ctx: SelfEmitCtx) {
+    ctx.core_op_shadow_mismatched = ctx.core_op_shadow_mismatched + 1
+}
+
+fn SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx: SelfEmitCtx) {
+    ctx.core_op_shadow_mismatch_budget = ctx.core_op_shadow_mismatch_budget - 1
 }
 
 fn SelfEmitCtx_gc_layout_table(ctx: SelfEmitCtx) -> GcLayoutTable {

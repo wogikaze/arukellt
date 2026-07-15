@@ -4,16 +4,10 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::call_fallback
-use wasm::call_hash
-use wasm::call_host
 use wasm::call_indirect
-use wasm::call_parse
-use wasm::call_scalar
-use wasm::call_seq
-use wasm::call_simd
-use wasm::call_text
-use wasm::call_vec
 use wasm::call_wit
+use wasm::core_op_dispatch
+use wasm::core_op_shadow
 
 fn try_emit_call_inst(
     w: WasmWriter,
@@ -37,29 +31,22 @@ fn try_emit_call_inst(
         return true
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-        let callee = normalize_callee_name(clone(inst_accessors_literals::MirInst_str_val(inst)))
-        if call_host::try_emit_host_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_seq::try_emit_seq_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_text::try_emit_text_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_scalar::try_emit_scalar_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_hash::try_emit_hash_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, len(bindings)) {
-            return true
-        }
-        if call_parse::try_emit_parse_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_vec::try_emit_vec_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-            return true
-        }
-        if call_simd::try_emit_simd_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        let callee = callee_name_for_diagnostics(clone(inst_accessors_literals::MirInst_str_val(inst)))
+        core_op_shadow::core_op_shadow_observe_call(ctx, inst, clone(callee))
+        if core_op_dispatch::try_emit_call_via_core_op_registry(
+            w,
+            inst,
+            ctx,
+            prev_op,
+            prev_arg0,
+            prev_arg1,
+            prev_callee,
+            next_op,
+            next_arg0,
+            next_arg1,
+            next2_op,
+            len(bindings)
+        ) {
             return true
         }
         call_fallback::emit_fallback_call(w, callee, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_callee, next_op, next_arg0, next_arg1, next2_op, len(bindings))
@@ -68,7 +55,7 @@ fn try_emit_call_inst(
     false
 }
 
-fn normalize_callee_name(raw_callee: String) -> String {
+fn callee_name_for_diagnostics(raw_callee: String) -> String {
     let callee_n = len(raw_callee)
     if callee_n > 12 && starts_with(clone(raw_callee), String_from("__intrinsic_")) {
         return substring(clone(raw_callee), 12, callee_n)

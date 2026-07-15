@@ -1,0 +1,103 @@
+use corehir::core_op_id
+use corehir::core_op_registry
+use corehir::core_op_binding_generated
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::function_id
+use mir::inst_record
+
+struct EffectiveLoweringDecision {
+    core_op_canonical_id: String,
+    lowering_kind: i32,
+    handler_id: String,
+    runtime_symbol: String,
+    target_id: String,
+    mir_operation: String,
+}
+
+fn EffectiveLoweringDecision_empty() -> EffectiveLoweringDecision {
+    EffectiveLoweringDecision {
+        core_op_canonical_id: String_new(),
+        lowering_kind: 0,
+        handler_id: String_new(),
+        runtime_symbol: String_new(),
+        target_id: String_new(),
+        mir_operation: String_new(),
+    }
+}
+
+fn effective_lowering_from_core_op_index(index: i32) -> EffectiveLoweringDecision {
+    let entry = core_op_registry::CoreOpRegistry_entry_at(index)
+    let canonical = clone(entry.canonical_id)
+    let handler = effective_lowering_handler_id(
+        clone(entry.target_id),
+        clone(entry.runtime_symbol),
+        clone(entry.mir_operation),
+        clone(canonical)
+    )
+    EffectiveLoweringDecision {
+        core_op_canonical_id: canonical,
+        lowering_kind: entry.lowering_kind,
+        handler_id: handler,
+        runtime_symbol: clone(entry.runtime_symbol),
+        target_id: clone(entry.target_id),
+        mir_operation: clone(entry.mir_operation),
+    }
+}
+
+fn effective_lowering_handler_id(target_id: String, runtime_symbol: String, mir_operation: String, canonical: String) -> String {
+    if len(target_id) > 0 {
+        return clone(target_id)
+    }
+    if len(runtime_symbol) > 0 {
+        return clone(runtime_symbol)
+    }
+    if len(mir_operation) > 0 {
+        return clone(mir_operation)
+    }
+    clone(canonical)
+}
+
+fn effective_lowering_from_callee(callee: String) -> EffectiveLoweringDecision {
+    let canonical_id = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
+    if len(canonical_id) == 0 {
+        return EffectiveLoweringDecision_empty()
+    }
+    let coid = core_op_registry::CoreOpRegistry_lookup_by_canonical(clone(canonical_id))
+    let raw = core_op_id::CoreOpId_raw(coid)
+    if raw < 0 {
+        return EffectiveLoweringDecision_empty()
+    }
+    effective_lowering_from_core_op_index(raw)
+}
+
+fn effective_lowering_from_function_id(inst: MirInst, registry: SignatureRegistry) -> EffectiveLoweringDecision {
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return EffectiveLoweringDecision_empty()
+    }
+    let sig = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
+    let coid = signature_entry::signature_entry_core_op_id(sig)
+    let raw = core_op_id::CoreOpId_raw(coid)
+    if raw < 0 {
+        return EffectiveLoweringDecision_empty()
+    }
+    effective_lowering_from_core_op_index(raw)
+}
+
+fn effective_lowering_decisions_match(a: EffectiveLoweringDecision, b: EffectiveLoweringDecision) -> bool {
+    if a.lowering_kind != b.lowering_kind {
+        return false
+    }
+    if !eq(clone(a.core_op_canonical_id), clone(b.core_op_canonical_id)) {
+        return false
+    }
+    if !eq(clone(a.handler_id), clone(b.handler_id)) {
+        return false
+    }
+    true
+}
+
+fn effective_lowering_decision_lowering_name(decision: EffectiveLoweringDecision) -> String {
+    core_op_registry::core_op_lowering_kind_name(decision.lowering_kind)
+}

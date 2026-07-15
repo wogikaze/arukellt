@@ -37,7 +37,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
-| Intrinsic layer | ADR-042: ACCEPTED | 現行 owner は manifest と compiler-local registration。`core-ops.toml` は scaffold、#798 で移行中 |
+| Intrinsic layer | ADR-042: ACCEPTED | `CoreOpRegistry` compiler 消費・`SignatureEntry.core_op_id`・FunctionId dispatch cutover 実装済み（#798）。`data/core-ops.toml` は全 legacy key mapping 完了、router の callee 文字列意味判定は削除済み |
 
 ### Proposed migration gaps（normative ではない）
 

@@ -8,6 +8,7 @@ use mir::lower::mono_instance_table
 use mir::lower::signature_registry_build_mono
 use mir::lower::signature_registry_entry
 use mir::lower::signature_registry_host
+use mir::lower::signature_registry_core_op
 use mir::lower::signature_spine
 
 fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, expected_fn_names: Vec<String>) -> MirSignatureSpine {
@@ -31,6 +32,7 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
         d = d + 1
     }
     signature_registry_host::sig_reg_register_host_intrinsics(table, registry)
+    signature_registry_core_op::signature_registry_apply_core_op_bindings(registry)
     sig_reg_log_count_match(expected_fn_names, registry)
     signature_spine::MirSignatureSpine_new(table, registry, mono_table)
 }

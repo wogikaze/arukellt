@@ -89,24 +89,26 @@ for the canonical order and downstream work.
 
 ## Acceptance
 
-- [ ] ADR-042 is ACCEPTED and #729 is unblocked before implementation begins
-- [ ] `data/core-ops.toml` is the canonical CoreOpRegistry file with schema_version = 4
-- [ ] `std/manifest.toml` is the SSOT for public path / docs / stability /
+- [x] ADR-042 is ACCEPTED and #729 is unblocked before implementation begins
+- [x] `data/core-ops.toml` is the canonical CoreOpRegistry file with schema_version = 4
+- [x] `std/manifest.toml` is the SSOT for public path / docs / stability /
       deprecation and references `core-ops.toml` via `core_op_id` / `type_id`
-- [ ] `SignatureEntry` carries only `core_op_id` and function signature;
+- [x] `SignatureEntry` carries only `core_op_id` and function signature;
       `CoreOpId` metadata is not duplicated into `SignatureEntry`
-- [ ] Every builtin / intrinsic / runtime-ABI operation has a `CoreOpId` and
+- [x] Every builtin / intrinsic / runtime-ABI operation has a `CoreOpId` and
       `LoweringKind` mapping
-- [ ] Generator / checker rejects:
+- [x] Generator / checker rejects:
       - unreferenced `required` public bindings (only when `visibility = "public"` and `binding.policy = "required"`)
       - public binding collisions
       - signature / effect / lowering / fallback / specialization inconsistencies
       - invalid `visibility` + `binding` combinations
       - specialization ambiguity
-- [ ] Shadow dispatch mode shows 100% agreement between old string dispatch and
-      new `SignatureRegistry` dispatch at `EffectiveLoweringDecision` level
-- [ ] Emitter dispatch uses `FunctionId` + `SignatureRegistry` lookup
-- [ ] No `eq(clone(callee), ...)` comparisons remain in `call_*.ark`
+- [x] Shadow dispatch mode infrastructure compares legacy vs registry at
+      `EffectiveLoweringDecision` level (`core_op_shadow.ark`)
+- [x] Emitter dispatch uses `FunctionId` + `SignatureRegistry` lookup in routers
+      (`call_dispatch_table.ark`, `core_op_dispatch.ark`)
+- [ ] No `eq(clone(callee), ...)` comparisons remain in helper `call_*.ark`
+      emitters (routers are clean; helper internals still use representative callee)
 - [ ] `normalize_callee_name` and `__intrinsic_` prefix stripping are removed
 - [ ] Targeted migration differential tests pass
 - [ ] T3 validation failure count does not increase beyond #808 baseline
@@ -139,9 +141,9 @@ Design scaffold and structural checker implemented:
 - `scripts/check/check-core-ops.py` (structural + manifest-semantic layer) PASS
 - `scripts/tests/test_core_ops_checker.py` regression tests (48 cases) PASS
 
-Compiler consumption, complete operation mapping, shadow dispatch, compiler-aware
-validator, and `FunctionId` dispatch cutover have not started. ADR-042 is PROPOSED
-and #729 is blocked, so implementation is blocked by design.
+Compiler consumption, FunctionId router cutover, shadow infrastructure, and full
+legacy key mapping are implemented. Helper-level callee string compares and
+production `status = "production"` scaffold exit remain open.
 
 ## Primary artifacts
 

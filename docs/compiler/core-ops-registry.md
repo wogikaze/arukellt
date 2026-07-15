@@ -262,6 +262,5 @@ always runs them and the file must contain exactly the expected keys set to
 
 Current `schema_version = 4` entries are **scaffold** examples covering
 `string.starts_with`, `string.ends_with`, `panic`, portable SIMD, and a raw
-`std::wasm` load. Resolver / typechecker / MIR / docs generators do not consume
-this file today. The schema and operation set are non-normative while ADR-042
-remains PROPOSED.
+`std::wasm` load. ADR-042 is ACCEPTED; compiler registry consumption and full
+operation mapping are tracked in issue #798.

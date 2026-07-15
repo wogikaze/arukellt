@@ -4517,6 +4517,26 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-ark-code-quality.py",
         ),
         (
+            "core-ops registry schema (#798)",
+            "python3 scripts/check/check-core-ops.py",
+        ),
+        (
+            "core-op compiler validator (#798)",
+            "python3 scripts/check/check-core-op-compiler-validator.py",
+        ),
+        (
+            "callee-string dispatch freeze (#798)",
+            "python3 scripts/check/check-no-new-callee-string-dispatch.py",
+        ),
+        (
+            "legacy dispatch inventory (#798)",
+            "python3 scripts/check/check-legacy-dispatch-inventory.py",
+        ),
+        (
+            "call router semantic dispatch (#798)",
+            "python3 scripts/check/check-call-router-semantic-dispatch.py",
+        ),
+        (
             "orphan/stale file inventory (advisory, #418)",
             "bash scripts/check/check-orphan-inventory.sh",
         ),

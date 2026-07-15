@@ -1,5 +1,6 @@
 use corehir::function_id
 use corehir::mir_value_type
+use corehir::core_op_id
 
 struct SignatureEntry {
     id: FunctionId,
@@ -12,6 +13,7 @@ struct SignatureEntry {
     impl_id: i32,
     mono_instance_id: i32,
     abi_kind: i32,
+    core_op_id: CoreOpId,
 }
 
 fn SignatureEntry_new(
@@ -24,7 +26,8 @@ fn SignatureEntry_new(
     trait_id: i32,
     impl_id: i32,
     mono_instance_id: i32,
-    abi_kind: i32
+    abi_kind: i32,
+    core_op_id: CoreOpId
 ) -> SignatureEntry {
     SignatureEntry {
         id: id,
@@ -36,7 +39,8 @@ fn SignatureEntry_new(
         trait_id: trait_id,
         impl_id: impl_id,
         mono_instance_id: mono_instance_id,
-        abi_kind: abi_kind
+        abi_kind: abi_kind,
+        core_op_id: core_op_id,
     }
 }
 
@@ -78,4 +82,12 @@ fn signature_entry_impl_id(entry: SignatureEntry) -> i32 {
 
 fn signature_entry_mono_instance_id(entry: SignatureEntry) -> i32 {
     entry.mono_instance_id
+}
+
+fn signature_entry_core_op_id(entry: SignatureEntry) -> CoreOpId {
+    entry.core_op_id
+}
+
+fn signature_entry_set_core_op_id(entry: SignatureEntry, core_op_id: CoreOpId) {
+    entry.core_op_id = core_op_id
 }

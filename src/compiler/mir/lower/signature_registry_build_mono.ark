@@ -9,6 +9,7 @@ use mir::lower::fn_index_source
 use mir::lower::mono_instance_build
 use mir::lower::signature_registry_entry
 use mir::mono
+use corehir::core_op_id
 
 fn sig_reg_index_mono_variants(
     table: TypeTable,
@@ -56,7 +57,7 @@ fn sig_reg_register_mono_fn(
     let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
     let mono_id = mono_instance_build::mono_instance_table_register_from_instances(mono_table, table, mono_instances, clone(mangled), params, returns)
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 0, String_new())
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, false, receiver, 0 - 1, decl_index, mono_id, kinds::ABI_KIND_NORMAL())
+    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, false, receiver, 0 - 1, decl_index, mono_id, kinds::ABI_KIND_NORMAL(), core_op_id::CORE_OP_ID_NONE())
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
