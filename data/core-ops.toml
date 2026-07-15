@@ -21,8 +21,10 @@ planned_outputs = [
 ]
 
 [validation]
-# Conditions a generator/checker must satisfy before the registry can lose
-# status = "scaffold".
+# Validation invariant declarations. These are not on/off toggles; the checker
+# always runs them and requires the keys to match the expected set.
+
+[validation.python]
 check_unreferenced_required_bindings = true
 check_public_binding_collisions = true
 check_signature_compat = true
@@ -30,9 +32,11 @@ check_effect_lowering_consistency = true
 check_binding_field_consistency = true
 check_forbidden_bindings = true
 check_fallback_resolvable = true
+check_specialization_ambiguity = true
+
+[validation.compiler]
 check_fallback_no_cycle = true
 check_fallback_signature_compat = true
-check_specialization_ambiguity = true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types

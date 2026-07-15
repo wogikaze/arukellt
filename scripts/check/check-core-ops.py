@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """CoreOps registry schema and manifest-semantic checker.
 
-Validates data/core-ops.toml structure and cross-references std/manifest.toml.
+Validates `data/core-ops.toml` structure and cross-references `std/manifest.toml`.
 This is the structural + manifest-semantic layer. Compiler-aware validation
 (fallback symbol resolution, call cycle detection, full signature compatibility
 against Ark types, effect consistency, target handler registry) is intentionally
@@ -45,30 +45,36 @@ VALID_NAN_VALUES = {"none", "canonical", "preserve_nan_class_payload_unspecified
 VALID_EQUIVALENCE_VALUES = {"exact_bool", "exact_bitwise", "float_value_nan_payload_ignored", "noreturn", "set_order_agnostic"}
 VALID_MEMORY_VALUES = {"none", "read", "write", "read-write"}
 VALID_NONDETERMINISM_VALUES = {"deterministic", "clock", "random", "external"}
+VALID_OVERFLOW_VALUES = {"none", "wrap", "saturate", "ieee754"}
+VALID_TRAP_VALUES = {"none", "memory", "arithmetic", "unreachable"}
 VALID_TYPE_KINDS = {"string", "vec", "simd", "mask", "wasm_v128"}
 VALID_LANE_TYPES = {"i8", "i16", "i32", "i64", "f32", "f64"}
-VALID_CAPABILITY_NAMES = {"wasm_raw_v128", "wasm_relaxed_simd", "portable_simd_lowering"}
+VALID_CAPABILITY_NAMES = {"wasm_raw_v128", "wasm_relaxed_simd"}
 VALID_TARGET_FEATURES = {"simd128"}  # extend as target features are added
 VALID_WHEN_VALUES = {
     "backend": {"wasm", "native", "llvm", "interpreter"},
-    "target_family": {"wasm", "native", "llvm", "interpreter"},
-    "portable_simd_lowering": {"NativeSimd", "ScalarFallback", "Direct", "Default"},
-    "wasm_raw_v128": {"true", "false"},
-    "wasm_relaxed_simd": {"true", "false"},
+    "target_family": {"wasm", "native", "llvm"},
+    "portable_simd_lowering": {"NativeSimd", "Scalar", "Unsupported"},
+    "wasm_raw_v128": {"Enabled", "Disabled"},
+    "wasm_relaxed_simd": {"Enabled", "Disabled"},
+}
+VALID_RUNTIME_FIELDS = {
+    "internal": {"symbol", "abi_version"},
+    "wit": {"package", "interface", "function", "version"},
+    "native": {"backend", "symbol", "abi_version"},
+}
+VALID_EFFECT_BOOL_FIELDS = {"allocates", "may_trap", "noreturn", "external_io", "atomic", "volatile"}
+VALID_SEMANTICS_ENUM_FIELDS = {
+    "overflow": VALID_OVERFLOW_VALUES,
+    "trap": VALID_TRAP_VALUES,
+    "nan": VALID_NAN_VALUES,
+    "equivalence": VALID_EQUIVALENCE_VALUES,
 }
 
-# Public type names in std/manifest.toml -> canonical type_id in core-ops.toml.
-# `v128` is context-dependent; the default below is used for std::wasm.
-PUBLIC_TYPE_ALIASES = {
-    "String": "string",
-    "Vec": "vec",
-    "HashMap": "hashmap",
-    "Result": "result",
-    "Option": "option",
-    "v128": "wasm.v128",
-}
+# Contextual alias for v128 in std::wasm. std::simd uses explicit SIMD types (i32x4 etc.).
+V128_ALIAS = "wasm.v128"
 
-EXPECTED_VALIDATION_KEYS = {
+EXPECTED_PYTHON_VALIDATION_KEYS = {
     "check_unreferenced_required_bindings",
     "check_public_binding_collisions",
     "check_signature_compat",
@@ -76,9 +82,11 @@ EXPECTED_VALIDATION_KEYS = {
     "check_binding_field_consistency",
     "check_forbidden_bindings",
     "check_fallback_resolvable",
+    "check_specialization_ambiguity",
+}
+EXPECTED_COMPILER_VALIDATION_KEYS = {
     "check_fallback_no_cycle",
     "check_fallback_signature_compat",
-    "check_specialization_ambiguity",
 }
 
 
@@ -93,7 +101,7 @@ class TypeParseError(Exception):
 class TypeParser:
     """Recursive-descent parser for Arukellt type strings."""
 
-    def __init__(self, text: str, generic_params: frozenset[str], aliases: dict[str, str]):
+    def __init__(self, text: str, generic_params: set[str], aliases: dict[str, str]):
         self.text = text
         self.pos = 0
         self.generic_params = generic_params
@@ -187,7 +195,7 @@ class TypeParser:
             return {"kind": "function", "params": params, "result": result}
 
         ident = self._parse_ident()
-        # Primitive? Lowercase-only identifiers that are in the primitive set.
+        # Primitive: lowercase-only identifier in the primitive set.
         if ident.islower() and ident in VALID_PRIMITIVE_NAMES:
             return {"kind": "primitive", "name": ident}
 
@@ -195,10 +203,11 @@ class TypeParser:
         if ident in self.generic_params:
             return {"kind": "var", "name": ident}
 
-        # Public name alias
-        canonical = self.aliases.get(ident)
-        if not canonical:
-            canonical = ident.lower()
+        # Public name alias (must be declared in manifest types or context)
+        if ident in self.aliases:
+            canonical = self.aliases[ident]
+        else:
+            raise TypeParseError(f"unknown type identifier {ident!r}")
         args = []
         self._skip_ws()
         if self._peek() == "<":
@@ -216,8 +225,8 @@ class TypeParser:
         return {"kind": "ref", "name": canonical, "args": args}
 
 
-def parse_manifest_type(text: str, generic_params: frozenset[str] = frozenset(), aliases: dict[str, str] | None = None) -> dict:
-    parser = TypeParser(text, generic_params, aliases or {})
+def parse_manifest_type(text: str, generic_params: set[str], aliases: dict[str, str]) -> dict:
+    parser = TypeParser(text, generic_params, aliases)
     return parser.parse()
 
 
@@ -254,6 +263,27 @@ def type_expr_to_key(expr: dict) -> str:
     return repr(expr)
 
 
+def _type_guard_dict(value, path: str, errors: list[str]) -> bool:
+    if not isinstance(value, dict):
+        errors.append(f"{path}: expected a table, got {type(value).__name__}")
+        return False
+    return True
+
+
+def _type_guard_list(value, path: str, errors: list[str]) -> bool:
+    if not isinstance(value, list):
+        errors.append(f"{path}: expected a list, got {type(value).__name__}")
+        return False
+    return True
+
+
+def _type_guard_str(value, path: str, errors: list[str]) -> bool:
+    if not isinstance(value, str):
+        errors.append(f"{path}: expected a string, got {type(value).__name__}")
+        return False
+    return True
+
+
 def validate_type_expr(
     expr,
     generic_params: set[str],
@@ -265,14 +295,16 @@ def validate_type_expr(
     if not isinstance(expr, dict):
         errors.append(f"{path}: TypeExpr must be a table")
         return
+    if len(set(expr.keys()) - {"kind", "name", "args", "elements", "params", "result"}) > 0:
+        unknown = set(expr.keys()) - {"kind", "name", "args", "elements", "params", "result"}
+        errors.append(f"{path}: unknown TypeExpr fields {sorted(unknown)}")
     kind = expr.get("kind")
     if kind not in VALID_TYPEEXPR_KINDS:
         errors.append(f"{path}: unknown TypeExpr kind {kind!r}")
         return
     if kind == "ref":
         name = expr.get("name")
-        if not isinstance(name, str):
-            errors.append(f"{path}: ref TypeExpr needs a string name")
+        if not _type_guard_str(name, f"{path}.name", errors):
             return
         if name in primitive_names:
             errors.append(f"{path}: ref {name!r} is a primitive name; use kind = primitive")
@@ -283,12 +315,10 @@ def validate_type_expr(
         entry = type_entries[name]
         expected_arity = len(entry.get("generic_params", []))
         args = expr.get("args", [])
-        if not isinstance(args, list):
-            errors.append(f"{path}: ref args must be a list")
-        elif len(args) != expected_arity:
-            errors.append(
-                f"{path}: ref {name!r} expects {expected_arity} generic args, got {len(args)}"
-            )
+        if not _type_guard_list(args, f"{path}.args", errors):
+            return
+        if len(args) != expected_arity:
+            errors.append(f"{path}: ref {name!r} expects {expected_arity} generic args, got {len(args)}")
         else:
             for i, arg in enumerate(args):
                 validate_type_expr(arg, generic_params, type_entries, primitive_names, f"{path}.args[{i}]", errors)
@@ -298,22 +328,22 @@ def validate_type_expr(
             errors.append(f"{path}: primitive {name!r} is not in canonical set {sorted(primitive_names)}")
     elif kind == "var":
         name = expr.get("name")
+        if not _type_guard_str(name, f"{path}.name", errors):
+            return
         if name not in generic_params:
-            errors.append(f"{path}: var {name!r} is not in generic_params {generic_params}")
+            errors.append(f"{path}: var {name!r} is not in generic_params {sorted(generic_params)}")
     elif kind == "tuple":
         elements = expr.get("elements", [])
-        if not isinstance(elements, list):
-            errors.append(f"{path}: tuple elements must be a list")
-        else:
-            for i, elem in enumerate(elements):
-                validate_type_expr(elem, generic_params, type_entries, primitive_names, f"{path}.elements[{i}]", errors)
+        if not _type_guard_list(elements, f"{path}.elements", errors):
+            return
+        for i, elem in enumerate(elements):
+            validate_type_expr(elem, generic_params, type_entries, primitive_names, f"{path}.elements[{i}]", errors)
     elif kind == "function":
         params = expr.get("params", [])
-        if not isinstance(params, list):
-            errors.append(f"{path}: function params must be a list")
-        else:
-            for i, p in enumerate(params):
-                validate_type_expr(p, generic_params, type_entries, primitive_names, f"{path}.params[{i}]", errors)
+        if not _type_guard_list(params, f"{path}.params", errors):
+            return
+        for i, p in enumerate(params):
+            validate_type_expr(p, generic_params, type_entries, primitive_names, f"{path}.params[{i}]", errors)
         result = expr.get("result")
         if result is None:
             errors.append(f"{path}: function TypeExpr needs a result")
@@ -322,25 +352,26 @@ def validate_type_expr(
 
 
 def validate_type_definition(t: dict, errors: list[str]) -> None:
-    if not isinstance(t.get("id"), str):
-        errors.append("types entry missing id")
+    if not isinstance(t, dict):
+        errors.append("types entry must be a table")
+        return
+    if not _type_guard_str(t.get("id"), "types[].id", errors):
         return
     type_id = t["id"]
     kind = t.get("kind")
     if kind not in VALID_TYPE_KINDS:
         errors.append(f"type {type_id}: kind {kind!r} is invalid")
         return
+    if not _type_guard_list(t.get("generic_params", []), f"type {type_id}.generic_params", errors):
+        return
     generics = t.get("generic_params", [])
-    if not isinstance(generics, list):
-        errors.append(f"type {type_id}: generic_params must be a list")
-    else:
-        seen = set()
-        for g in generics:
-            if not isinstance(g, str):
-                errors.append(f"type {type_id}: generic_params must be strings")
-            elif g in seen:
-                errors.append(f"type {type_id}: duplicate generic_param {g!r}")
-            seen.add(g)
+    seen = set()
+    for i, g in enumerate(generics):
+        if not isinstance(g, str):
+            errors.append(f"type {type_id}: generic_params[{i}] must be a string")
+        elif g in seen:
+            errors.append(f"type {type_id}: duplicate generic_param {g!r}")
+        seen.add(g)
     if kind == "simd":
         lane_type = t.get("lane_type")
         if lane_type not in VALID_LANE_TYPES:
@@ -359,65 +390,78 @@ def validate_type_definition(t: dict, errors: list[str]) -> None:
 
 def validate_signature(op: dict, type_entries: dict[str, dict], primitive_names: set[str], errors: list[str]) -> None:
     sig = op.get("signature", {})
-    generic_params = set(sig.get("generic_params", []))
-    if not isinstance(generic_params, set):
-        errors.append(f"{op['id']}: generic_params must be a list")
-    else:
-        seen = set()
-        for g in sig.get("generic_params", []):
-            if g in seen:
-                errors.append(f"{op['id']}: duplicate generic_param {g!r}")
-            seen.add(g)
+    if not _type_guard_dict(sig, f"{op['id']}.signature", errors):
+        return
+
+    generics_raw = sig.get("generic_params", [])
+    if not _type_guard_list(generics_raw, f"{op['id']}.signature.generic_params", errors):
+        return
+    generic_params = set()
+    seen = set()
+    for i, g in enumerate(generics_raw):
+        if not isinstance(g, str):
+            errors.append(f"{op['id']}: generic_params[{i}] must be a string")
+        elif g in seen:
+            errors.append(f"{op['id']}: duplicate generic_param {g!r}")
+        else:
+            generic_params.add(g)
+        seen.add(g)
+
     inputs = sig.get("inputs", [])
-    if not isinstance(inputs, list):
-        errors.append(f"{op['id']}: signature.inputs must be a list")
+    if not _type_guard_list(inputs, f"{op['id']}.signature.inputs", errors):
         return
     for i, inp in enumerate(inputs):
-        if not isinstance(inp, dict):
-            errors.append(f"{op['id']}: signature.inputs[{i}] must be a table")
+        if not _type_guard_dict(inp, f"{op['id']}.signature.inputs[{i}]", errors):
             continue
-        if not isinstance(inp.get("name"), str):
-            errors.append(f"{op['id']}: signature.inputs[{i}] needs a name")
-        validate_type_expr(inp.get("type"), generic_params, type_entries, primitive_names, f"{op['id']}.inputs[{i}].type", errors)
+        if not _type_guard_str(inp.get("name"), f"{op['id']}.signature.inputs[{i}].name", errors):
+            pass
+        validate_type_expr(inp.get("type"), generic_params, type_entries, primitive_names, f"{op['id']}.signature.inputs[{i}].type", errors)
 
     outputs = sig.get("outputs", [])
-    if not isinstance(outputs, list):
-        errors.append(f"{op['id']}: signature.outputs must be a list")
-    else:
-        for i, out in enumerate(outputs):
-            validate_type_expr(out.get("type") if isinstance(out, dict) else out, generic_params, type_entries, primitive_names, f"{op['id']}.outputs[{i}]", errors)
+    if not _type_guard_list(outputs, f"{op['id']}.signature.outputs", errors):
+        return
+    for i, out in enumerate(outputs):
+        if isinstance(out, dict):
+            validate_type_expr(out.get("type"), generic_params, type_entries, primitive_names, f"{op['id']}.signature.outputs[{i}]", errors)
+        else:
+            validate_type_expr(out, generic_params, type_entries, primitive_names, f"{op['id']}.signature.outputs[{i}]", errors)
 
     receiver_index = sig.get("receiver_index")
     if receiver_index is not None:
         if not isinstance(receiver_index, int) or receiver_index < 0 or receiver_index >= len(inputs):
             errors.append(f"{op['id']}: receiver_index {receiver_index} is out of range for {len(inputs)} inputs")
 
-    for i, c in enumerate(sig.get("constraints", [])):
-        if not isinstance(c, dict):
-            errors.append(f"{op['id']}: signature.constraints[{i}] must be a table")
+    constraints = sig.get("constraints", [])
+    if not _type_guard_list(constraints, f"{op['id']}.signature.constraints", errors):
+        return
+    for i, c in enumerate(constraints):
+        if not _type_guard_dict(c, f"{op['id']}.signature.constraints[{i}]", errors):
             continue
+        if len(set(c.keys()) - {"kind", "trait", "params", "lhs", "rhs", "capability"}) > 0:
+            unknown = set(c.keys()) - {"kind", "trait", "params", "lhs", "rhs", "capability"}
+            errors.append(f"{op['id']}: signature.constraints[{i}] has unknown fields {sorted(unknown)}")
         kind = c.get("kind")
         if kind not in VALID_CONSTRAINT_KINDS:
             errors.append(f"{op['id']}: signature.constraints[{i}] has unknown kind {kind!r}")
             continue
         if kind == "trait":
-            if not isinstance(c.get("trait"), str):
-                errors.append(f"{op['id']}: signature.constraints[{i}].trait must be a string")
+            if not _type_guard_str(c.get("trait"), f"{op['id']}.signature.constraints[{i}].trait", errors):
+                pass
             params = c.get("params", [])
-            if not isinstance(params, list):
-                errors.append(f"{op['id']}: signature.constraints[{i}].params must be a list")
+            if not _type_guard_list(params, f"{op['id']}.signature.constraints[{i}].params", errors):
+                pass
             else:
                 for j, p in enumerate(params):
-                    validate_type_expr(p, generic_params, type_entries, primitive_names, f"{op['id']}.constraints[{i}].params[{j}]", errors)
+                    validate_type_expr(p, generic_params, type_entries, primitive_names, f"{op['id']}.signature.constraints[{i}].params[{j}]", errors)
         elif kind == "type_eq":
             for side in ("lhs", "rhs"):
                 if c.get(side) is None:
                     errors.append(f"{op['id']}: signature.constraints[{i}].type_eq needs {side}")
                 else:
-                    validate_type_expr(c.get(side), generic_params, type_entries, primitive_names, f"{op['id']}.constraints[{i}].{side}", errors)
+                    validate_type_expr(c.get(side), generic_params, type_entries, primitive_names, f"{op['id']}.signature.constraints[{i}].{side}", errors)
         elif kind == "capability":
-            if not isinstance(c.get("capability"), str):
-                errors.append(f"{op['id']}: signature.constraints[{i}].capability must be a string")
+            if not _type_guard_str(c.get("capability"), f"{op['id']}.signature.constraints[{i}].capability", errors):
+                pass
 
 
 def validate_runtime_payload(op_id: str, runtime: dict, errors: list[str]) -> None:
@@ -425,29 +469,25 @@ def validate_runtime_payload(op_id: str, runtime: dict, errors: list[str]) -> No
     if kind not in VALID_RUNTIME_KIND:
         errors.append(f"{op_id}: runtime_call runtime.kind {kind!r} is invalid")
         return
-    if kind == "internal":
-        if not isinstance(runtime.get("symbol"), str):
-            errors.append(f"{op_id}: runtime internal lowering needs symbol")
-        if not isinstance(runtime.get("abi_version"), str):
-            errors.append(f"{op_id}: runtime internal lowering needs abi_version")
-    elif kind == "wit":
-        for key in ("package", "interface", "function", "version"):
-            if not isinstance(runtime.get(key), str):
-                errors.append(f"{op_id}: runtime wit lowering needs {key}")
-    elif kind == "native":
-        for key in ("backend", "symbol", "abi_version"):
-            if not isinstance(runtime.get(key), str):
-                errors.append(f"{op_id}: runtime native lowering needs {key}")
+    allowed = VALID_RUNTIME_FIELDS[kind]
+    for key in runtime:
+        if key == "kind":
+            continue
+        if key not in allowed:
+            errors.append(f"{op_id}: runtime.kind = {kind} must not contain field {key!r}")
+    for key in allowed:
+        if not isinstance(runtime.get(key), str):
+            errors.append(f"{op_id}: runtime {kind} requires string field {key!r}")
 
 
 def validate_target_payload(op_id: str, target: dict, errors: list[str]) -> None:
-    if not isinstance(target.get("target_family"), str):
-        errors.append(f"{op_id}: target_intrinsic needs target_family")
-    if not isinstance(target.get("target_id"), str):
-        errors.append(f"{op_id}: target_intrinsic needs target_id (backend handler key)")
+    if not _type_guard_str(target.get("target_family"), f"{op_id}.lowering.target.target_family", errors):
+        pass
+    if not _type_guard_str(target.get("target_id"), f"{op_id}.lowering.target.target_id", errors):
+        pass
     caps = target.get("required_capabilities", [])
-    if not isinstance(caps, list):
-        errors.append(f"{op_id}: target_intrinsic required_capabilities must be a list")
+    if not _type_guard_list(caps, f"{op_id}.lowering.target.required_capabilities", errors):
+        pass
     else:
         for i, c in enumerate(caps):
             if not isinstance(c, str):
@@ -455,8 +495,8 @@ def validate_target_payload(op_id: str, target: dict, errors: list[str]) -> None
             elif c not in VALID_CAPABILITY_NAMES:
                 errors.append(f"{op_id}: required_capabilities[{i}] {c!r} is not a known capability")
     feats = target.get("required_target_features", [])
-    if not isinstance(feats, list):
-        errors.append(f"{op_id}: target_intrinsic required_target_features must be a list")
+    if not _type_guard_list(feats, f"{op_id}.lowering.target.required_target_features", errors):
+        pass
     else:
         for i, f in enumerate(feats):
             if not isinstance(f, str):
@@ -467,15 +507,13 @@ def validate_target_payload(op_id: str, target: dict, errors: list[str]) -> None
 
 def validate_lowering(op: dict, errors: list[str]) -> None:
     lowering = op.get("lowering", {})
-    if not isinstance(lowering, dict):
-        errors.append(f"{op['id']}: lowering must be a table")
+    if not _type_guard_dict(lowering, f"{op['id']}.lowering", errors):
         return
     kind = lowering.get("kind")
     if kind not in VALID_LOWERING_KIND:
         errors.append(f"{op['id']}: lowering.kind {kind!r} is invalid")
         return
 
-    # Only the sub-table matching kind is allowed.
     allowed_sub = {"normal_call": set(), "mir_op": {"mir"}, "runtime_call": {"runtime"}, "target_intrinsic": {"target"}}[kind]
     for key in lowering:
         if key == "kind":
@@ -485,24 +523,23 @@ def validate_lowering(op: dict, errors: list[str]) -> None:
 
     if kind == "mir_op":
         mir = lowering.get("mir", {})
-        if not isinstance(mir, dict):
-            errors.append(f"{op['id']}: mir_op lowering needs lowering.mir table")
+        if not _type_guard_dict(mir, f"{op['id']}.lowering.mir", errors):
+            pass
         elif not mir.get("opcode") and not mir.get("operation"):
             errors.append(f"{op['id']}: mir_op lowering needs lowering.mir.opcode or operation")
     elif kind == "runtime_call":
         runtime = lowering.get("runtime", {})
-        if not isinstance(runtime, dict):
-            errors.append(f"{op['id']}: runtime_call lowering needs lowering.runtime table")
+        if not _type_guard_dict(runtime, f"{op['id']}.lowering.runtime", errors):
+            pass
         else:
             validate_runtime_payload(op["id"], runtime, errors)
     elif kind == "target_intrinsic":
         target = lowering.get("target", {})
-        if not isinstance(target, dict):
-            errors.append(f"{op['id']}: target_intrinsic lowering needs lowering.target table")
+        if not _type_guard_dict(target, f"{op['id']}.lowering.target", errors):
+            pass
         else:
             validate_target_payload(op["id"], target, errors)
 
-    # normal_call requires a fallback.
     if kind == "normal_call":
         fallback = op.get("fallback", {})
         if not isinstance(fallback, dict):
@@ -511,7 +548,7 @@ def validate_lowering(op: dict, errors: list[str]) -> None:
             errors.append(f"{op['id']}: normal_call requires fallback.required = true")
 
 
-def validate_fallback(op: dict, status: str, strict: bool, errors: list[str], warnings: list[str]) -> None:
+def validate_fallback(op: dict, status: str, strict: bool, public_symbols: set[str], errors: list[str], warnings: list[str]) -> None:
     fallback = op.get("fallback", {})
     if not isinstance(fallback, dict):
         return
@@ -526,13 +563,12 @@ def validate_fallback(op: dict, status: str, strict: bool, errors: list[str], wa
                 errors.append(msg)
             else:
                 warnings.append(msg)
-        elif symbol.startswith("std::") or symbol.startswith("prelude::"):
-            warnings.append(f"{op['id']}: fallback implementation_symbol looks like a public path: {symbol}")
+        elif symbol in public_symbols or symbol.startswith("std::") or symbol.startswith("prelude::"):
+            errors.append(f"{op['id']}: fallback implementation_symbol must not be a public path: {symbol}")
 
 
 def validate_when(op_id: str, when: dict, index: int, errors: list[str]) -> None:
-    if not isinstance(when, dict):
-        errors.append(f"{op_id}.specializations[{index}]: when must be a table")
+    if not _type_guard_dict(when, f"{op_id}.specializations[{index}].when", errors):
         return
     for key, value in when.items():
         if key not in VALID_WHEN_KEYS:
@@ -543,21 +579,51 @@ def validate_when(op_id: str, when: dict, index: int, errors: list[str]) -> None
             continue
         if key in VALID_WHEN_VALUES and value not in VALID_WHEN_VALUES[key]:
             errors.append(f"{op_id}.specializations[{index}]: when.{key} value {value!r} is not in known set {sorted(VALID_WHEN_VALUES[key])}")
+    # cross-axis constraint: if both backend and target_family are present, they must be compatible
+    if "backend" in when and "target_family" in when:
+        backend = when["backend"]
+        target_family = when["target_family"]
+        if backend == "wasm" and target_family != "wasm":
+            errors.append(f"{op_id}.specializations[{index}]: when backend = wasm requires target_family = wasm")
+        if backend == "native" and target_family not in {"native", "llvm"}:
+            errors.append(f"{op_id}.specializations[{index}]: when backend = native requires target_family = native or llvm")
+        if backend == "llvm" and target_family != "llvm":
+            errors.append(f"{op_id}.specializations[{index}]: when backend = llvm requires target_family = llvm")
+        if backend == "interpreter" and target_family != "interpreter":
+            errors.append(f"{op_id}.specializations[{index}]: when backend = interpreter cannot target a different family")
 
 
 def validate_specialization(op: dict, spec: dict, index: int, errors: list[str]) -> None:
     op_id = op["id"]
     prefix = f"{op_id}.specializations[{index}]"
+    if not _type_guard_dict(spec, prefix, errors):
+        return
     if not isinstance(spec.get("priority"), int):
         errors.append(f"{prefix}: priority must be an integer")
     when = spec.get("when", {})
     validate_when(op_id, when, index, errors)
     lowering = spec.get("lowering", {})
-    if not isinstance(lowering, dict):
-        errors.append(f"{prefix}: lowering must be a table")
-    else:
-        fake_op = {"id": prefix, "lowering": lowering}
-        validate_lowering(fake_op, errors)
+    if not _type_guard_dict(lowering, f"{prefix}.lowering", errors):
+        return
+    fake_op = {"id": prefix, "lowering": lowering}
+    validate_lowering(fake_op, errors)
+
+
+def _when_domains(specs: list[dict]) -> dict[str, set[str]]:
+    """Build a minimal domain for each when-key that is actually used.
+
+    Unused keys are omitted to avoid false-positive ambiguity reports.
+    """
+    domains: dict[str, set[str]] = {}
+    used_keys = set()
+    for spec in specs:
+        when = spec.get("when", {})
+        if isinstance(when, dict):
+            for key in when:
+                used_keys.add(key)
+    for key in used_keys:
+        domains[key] = set(VALID_WHEN_VALUES.get(key, set()))
+    return domains
 
 
 def specialization_matches(when: dict, config: dict[str, str]) -> bool:
@@ -569,17 +635,11 @@ def specialization_matches(when: dict, config: dict[str, str]) -> bool:
 
 def validate_specialization_ambiguity(op: dict, errors: list[str]) -> None:
     specs = op.get("specializations", [])
-    if not specs:
+    if not specs or not isinstance(specs, list):
         return
-    # Build a small domain from known values and values actually used.
-    domains = {}
-    for key in VALID_WHEN_KEYS:
-        domains[key] = set(VALID_WHEN_VALUES.get(key, set()))
-    for spec in specs:
-        when = spec.get("when", {})
-        for key, value in when.items():
-            domains.setdefault(key, set()).add(value)
-    # For each concrete configuration, determine the highest priority matching specs.
+    domains = _when_domains(specs)
+    if not domains:
+        return
     keys = list(domains.keys())
     for values in itertools.product(*[sorted(domains[k]) for k in keys]):
         config = dict(zip(keys, values))
@@ -595,54 +655,76 @@ def validate_specialization_ambiguity(op: dict, errors: list[str]) -> None:
             )
 
 
-def validate_binding_and_lowering(op: dict, errors: list[str], warnings: list[str]) -> None:
+def validate_binding_and_lowering(op: dict, manifest_refs: dict[str, list[str]], errors: list[str]) -> None:
+    op_id = op["id"]
     visibility = op.get("visibility")
-    classification = op.get("classification", {})
     binding = op.get("binding", {})
+    if not _type_guard_dict(binding, f"{op_id}.binding", errors):
+        return
     policy = binding.get("policy")
 
+    # Unknown binding fields
+    if len(set(binding.keys()) - {"policy", "reason", "tracking_issue"}) > 0:
+        unknown = set(binding.keys()) - {"policy", "reason", "tracking_issue"}
+        errors.append(f"{op_id}: binding has unknown fields {sorted(unknown)}")
+
     if visibility == "public" and policy == "forbidden":
-        errors.append(f"{op['id']}: public operation cannot have binding.policy = forbidden")
+        errors.append(f"{op_id}: public operation cannot have binding.policy = forbidden")
     if visibility == "internal" and policy == "required":
-        errors.append(f"{op['id']}: internal operation cannot have binding.policy = required")
+        errors.append(f"{op_id}: internal operation cannot have binding.policy = required")
     if visibility == "internal" and policy == "optional":
-        warnings.append(f"{op['id']}: internal operation with binding.policy = optional should be documented")
+        errors.append(f"{op_id}: internal operation cannot have binding.policy = optional")
     if policy == "optional":
         if not isinstance(binding.get("reason"), str):
-            errors.append(f"{op['id']}: binding.optional must include reason")
+            errors.append(f"{op_id}: binding.optional must include reason")
         if not isinstance(binding.get("tracking_issue"), str):
-            warnings.append(f"{op['id']}: binding.optional should include a tracking_issue or RFC reference")
+            errors.append(f"{op_id}: binding.optional must include tracking_issue or RFC reference")
 
     if op.get("inline", {}).get("policy") not in VALID_INLINE_POLICY:
-        errors.append(f"{op['id']}: inline.policy is invalid")
+        errors.append(f"{op_id}: inline.policy is invalid")
 
-    for field in VALID_SEMANTICS_FIELDS:
-        if field not in op.get("semantics", {}):
-            errors.append(f"{op['id']}: semantics.{field} is missing")
+    # semantics
     semantics = op.get("semantics", {})
-    if semantics.get("nan") not in VALID_NAN_VALUES:
-        errors.append(f"{op['id']}: semantics.nan {semantics.get('nan')!r} is invalid")
-    if semantics.get("equivalence") not in VALID_EQUIVALENCE_VALUES:
-        errors.append(f"{op['id']}: semantics.equivalence {semantics.get('equivalence')!r} is invalid")
+    if not _type_guard_dict(semantics, f"{op_id}.semantics", errors):
+        semantics = {}
+    else:
+        unknown_semantics = set(semantics.keys()) - VALID_SEMANTICS_FIELDS
+        if unknown_semantics:
+            errors.append(f"{op_id}: semantics has unknown fields {sorted(unknown_semantics)}")
+        for field in VALID_SEMANTICS_FIELDS:
+            if field not in semantics:
+                errors.append(f"{op_id}: semantics.{field} is missing")
+        for field, allowed in VALID_SEMANTICS_ENUM_FIELDS.items():
+            if semantics.get(field) not in allowed:
+                errors.append(f"{op_id}: semantics.{field} {semantics.get(field)!r} is invalid")
+        if not isinstance(semantics.get("const_evaluable"), bool):
+            errors.append(f"{op_id}: semantics.const_evaluable must be a boolean")
 
+    # effect
     effect = op.get("effect", {})
-    for field in VALID_EFFECT_FIELDS:
-        if field not in effect:
-            errors.append(f"{op['id']}: effect.{field} is missing")
-    if effect.get("memory") not in VALID_MEMORY_VALUES:
-        errors.append(f"{op['id']}: effect.memory {effect.get('memory')!r} is invalid")
-    if effect.get("nondeterminism") not in VALID_NONDETERMINISM_VALUES:
-        errors.append(f"{op['id']}: effect.nondeterminism {effect.get('nondeterminism')!r} is invalid")
+    if not _type_guard_dict(effect, f"{op_id}.effect", errors):
+        effect = {}
+    else:
+        unknown_effect = set(effect.keys()) - VALID_EFFECT_FIELDS
+        if unknown_effect:
+            errors.append(f"{op_id}: effect has unknown fields {sorted(unknown_effect)}")
+        for field in VALID_EFFECT_FIELDS:
+            if field not in effect:
+                errors.append(f"{op_id}: effect.{field} is missing")
+        for field in VALID_EFFECT_BOOL_FIELDS:
+            if not isinstance(effect.get(field), bool):
+                errors.append(f"{op_id}: effect.{field} must be a boolean")
+        if effect.get("memory") not in VALID_MEMORY_VALUES:
+            errors.append(f"{op_id}: effect.memory {effect.get('memory')!r} is invalid")
+        if effect.get("nondeterminism") not in VALID_NONDETERMINISM_VALUES:
+            errors.append(f"{op_id}: effect.nondeterminism {effect.get('nondeterminism')!r} is invalid")
 
-    # lowering variant already checked separately; here we just ensure consistency with effect.
+    # lowering/effect consistency
     lowering = op.get("lowering", {})
     if lowering.get("kind") == "normal_call" and effect.get("noreturn"):
-        errors.append(f"{op['id']}: normal_call with noreturn = true is inconsistent")
-    if lowering.get("kind") == "runtime_call" and effect.get("noreturn"):
-        # Panic is a runtime call and noreturn. That is allowed. Nothing to check.
-        pass
+        errors.append(f"{op_id}: normal_call with noreturn = true is inconsistent")
     if lowering.get("kind") == "target_intrinsic" and effect.get("noreturn"):
-        errors.append(f"{op['id']}: target_intrinsic with noreturn = true is inconsistent (use runtime_call)")
+        errors.append(f"{op_id}: target_intrinsic with noreturn = true is inconsistent (use runtime_call)")
 
 
 def validate_operation(
@@ -651,22 +733,30 @@ def validate_operation(
     primitive_names: set[str],
     status: str,
     strict: bool,
+    public_symbols: set[str],
+    manifest_refs: dict[str, list[str]],
     errors: list[str],
     warnings: list[str],
 ) -> None:
-    if not isinstance(op.get("id"), str):
+    if not isinstance(op, dict) or not isinstance(op.get("id"), str):
         errors.append("operation entry missing id")
         return
     op_id = op["id"]
 
+    classification = op.get("classification", {})
+    if not _type_guard_dict(classification, f"{op_id}.classification", errors):
+        classification = {}
+    else:
+        if len(set(classification.keys()) - {"layer"}) > 0:
+            unknown = set(classification.keys()) - {"layer"}
+            errors.append(f"{op_id}: classification has unknown fields {sorted(unknown)}")
+        layer = classification.get("layer")
+        if layer not in VALID_CLASSIFICATION:
+            errors.append(f"{op_id}: classification.layer {layer!r} is invalid")
+
     visibility = op.get("visibility")
     if visibility not in VALID_VISIBILITY:
         errors.append(f"{op_id}: visibility {visibility!r} is invalid")
-
-    classification = op.get("classification", {})
-    layer = classification.get("layer")
-    if layer not in VALID_CLASSIFICATION:
-        errors.append(f"{op_id}: classification.layer {layer!r} is invalid")
 
     binding = op.get("binding", {})
     policy = binding.get("policy")
@@ -675,10 +765,13 @@ def validate_operation(
 
     validate_signature(op, type_entries, primitive_names, errors)
     validate_lowering(op, errors)
-    validate_fallback(op, status, strict, errors, warnings)
-    validate_binding_and_lowering(op, errors, warnings)
+    validate_fallback(op, status, strict, public_symbols, errors, warnings)
+    validate_binding_and_lowering(op, manifest_refs, errors)
 
-    for i, spec in enumerate(op.get("specializations", [])):
+    specs = op.get("specializations", [])
+    if not _type_guard_list(specs, f"{op_id}.specializations", errors):
+        return
+    for i, spec in enumerate(specs):
         validate_specialization(op, spec, i, errors)
     validate_specialization_ambiguity(op, errors)
 
@@ -687,40 +780,40 @@ def validate_manifest_type_compat(
     fn: dict,
     op: dict,
     type_entries: dict[str, dict],
+    manifest_type_aliases: dict[str, str],
     errors: list[str],
 ) -> None:
     op_id = op["id"]
     fn_name = f"{fn.get('module') or fn.get('kind')}::{fn.get('name')}"
 
-    # Build aliases for this function. v128 in std::wasm maps to wasm.v128.
-    aliases = dict(PUBLIC_TYPE_ALIASES)
-    if op_id.startswith("wasm."):
-        aliases["v128"] = "wasm.v128"
-    elif op_id.startswith("simd."):
-        # v128 in std::simd should not appear in a simd core-op signature; map to none.
-        aliases.pop("v128", None)
-
     sig = op.get("signature", {})
+    if not isinstance(sig, dict):
+        return
+
+    aliases = dict(manifest_type_aliases)
+    if op_id.startswith("wasm."):
+        aliases["v128"] = V128_ALIAS
+    elif op_id.startswith("simd."):
+        aliases.pop("v128", None)
     core_inputs = sig.get("inputs", [])
     manifest_params = fn.get("params", [])
-    if not isinstance(manifest_params, list):
-        errors.append(f"{fn_name}: params must be a list")
+    if not _type_guard_list(manifest_params, f"{fn_name}.params", errors):
         return
     if len(manifest_params) != len(core_inputs):
         errors.append(
             f"{fn_name}: param count mismatch for {op_id}: manifest {len(manifest_params)} vs core-ops {len(core_inputs)}"
         )
     else:
-        for i, (param_text, core_inp) in enumerate(zip(manifest_params, core_inputs)):
-            if not isinstance(param_text, str):
-                errors.append(f"{fn_name}: params[{i}] must be a string")
+        for i, param_text in enumerate(manifest_params):
+            if not _type_guard_str(param_text, f"{fn_name}.params[{i}]", errors):
                 continue
+            core_inp = core_inputs[i]
+            core_type = core_inp.get("type") if isinstance(core_inp, dict) else core_inp
             try:
-                manifest_type = parse_manifest_type(param_text, frozenset(), aliases)
+                manifest_type = parse_manifest_type(param_text, set(fn.get("generic_params") or []), aliases)
             except TypeParseError as e:
                 errors.append(f"{fn_name}: params[{i}] parse error: {e}")
                 continue
-            core_type = core_inp.get("type") if isinstance(core_inp, dict) else core_inp
             if not compare_type_expr(manifest_type, core_type, errors):
                 errors.append(
                     f"{fn_name}: params[{i}] type mismatch for {op_id}: "
@@ -744,16 +837,16 @@ def validate_manifest_type_compat(
                 f"{fn_name}: return count mismatch for {op_id}: manifest {len(returns_texts)} vs core-ops {len(core_outputs)}"
             )
         else:
-            for i, (ret_text, core_out) in enumerate(zip(returns_texts, core_outputs)):
-                if not isinstance(ret_text, str):
-                    errors.append(f"{fn_name}: returns[{i}] must be a string")
+            for i, ret_text in enumerate(returns_texts):
+                if not _type_guard_str(ret_text, f"{fn_name}.returns[{i}]", errors):
                     continue
+                core_out = core_outputs[i]
+                core_type = core_out.get("type") if isinstance(core_out, dict) else core_out
                 try:
-                    manifest_type = parse_manifest_type(ret_text, frozenset(), aliases)
+                    manifest_type = parse_manifest_type(ret_text, set(fn.get("generic_params") or []), aliases)
                 except TypeParseError as e:
                     errors.append(f"{fn_name}: returns[{i}] parse error: {e}")
                     continue
-                core_type = core_out.get("type") if isinstance(core_out, dict) else core_out
                 if not compare_type_expr(manifest_type, core_type, errors):
                     errors.append(
                         f"{fn_name}: returns[{i}] type mismatch for {op_id}: "
@@ -798,22 +891,46 @@ def compare_type_expr(a: dict, b: dict, errors: list[str]) -> bool:
 
 def validate_validation_section(core_ops: dict, errors: list[str]) -> None:
     validation = core_ops.get("validation", {})
-    if not isinstance(validation, dict):
-        errors.append("validation must be a table")
+    if not _type_guard_dict(validation, "validation", errors):
         return
-    keys = set(validation.keys())
-    missing = EXPECTED_VALIDATION_KEYS - keys
-    extra = keys - EXPECTED_VALIDATION_KEYS
-    for key in sorted(missing):
-        errors.append(f"validation.{key} is missing")
-    for key in sorted(extra):
-        errors.append(f"validation.{key} is unknown")
-    for key in keys & EXPECTED_VALIDATION_KEYS:
-        if validation[key] is not True:
-            errors.append(f"validation.{key} must be true (invariant)")
+    python = validation.get("python", {})
+    compiler = validation.get("compiler", {})
+    if not _type_guard_dict(python, "validation.python", errors):
+        pass
+    else:
+        python_keys = set(python.keys())
+        missing = EXPECTED_PYTHON_VALIDATION_KEYS - python_keys
+        extra = python_keys - EXPECTED_PYTHON_VALIDATION_KEYS
+        for key in sorted(missing):
+            errors.append(f"validation.python.{key} is missing")
+        for key in sorted(extra):
+            errors.append(f"validation.python.{key} is unknown")
+        for key in python_keys & EXPECTED_PYTHON_VALIDATION_KEYS:
+            if python[key] is not True:
+                errors.append(f"validation.python.{key} must be true")
+    if not _type_guard_dict(compiler, "validation.compiler", errors):
+        pass
+    else:
+        compiler_keys = set(compiler.keys())
+        missing = EXPECTED_COMPILER_VALIDATION_KEYS - compiler_keys
+        extra = compiler_keys - EXPECTED_COMPILER_VALIDATION_KEYS
+        for key in sorted(missing):
+            errors.append(f"validation.compiler.{key} is missing")
+        for key in sorted(extra):
+            errors.append(f"validation.compiler.{key} is unknown")
+        for key in compiler_keys & EXPECTED_COMPILER_VALIDATION_KEYS:
+            if compiler[key] is not True:
+                errors.append(f"validation.compiler.{key} must be true")
 
 
-def validate_core_ops_and_manifest(core_ops: dict, manifest: dict, status: str, strict: bool, errors: list[str], warnings: list[str]) -> None:
+def validate_core_ops_and_manifest(
+    core_ops: dict,
+    manifest: dict,
+    status: str,
+    strict: bool,
+    errors: list[str],
+    warnings: list[str],
+) -> None:
     validate_validation_section(core_ops, errors)
 
     schema_version = core_ops.get("schema_version")
@@ -824,77 +941,89 @@ def validate_core_ops_and_manifest(core_ops: dict, manifest: dict, status: str, 
         errors.append(f"status {status!r} is invalid")
 
     types = core_ops.get("types", [])
-    if not isinstance(types, list):
-        errors.append("types must be a list")
+    if not _type_guard_list(types, "types", errors):
         return
 
     type_entries: dict[str, dict] = {}
     type_ids = set()
-    for t in types:
-        if not isinstance(t, dict):
-            errors.append("types entry must be a table")
-            continue
-        type_id = t.get("id")
-        if not isinstance(type_id, str):
-            errors.append("types entry missing id")
-            continue
-        if type_id in type_ids:
-            errors.append(f"type id {type_id!r} is duplicated")
-        type_ids.add(type_id)
-        type_entries[type_id] = t
+    for i, t in enumerate(types):
         validate_type_definition(t, errors)
+        if isinstance(t, dict):
+            type_id = t.get("id")
+            if isinstance(type_id, str):
+                if type_id in type_ids:
+                    errors.append(f"type id {type_id!r} is duplicated")
+                type_ids.add(type_id)
+                type_entries[type_id] = t
 
     primitive_names = set(VALID_PRIMITIVE_NAMES)
 
     operations = core_ops.get("operations", [])
-    if not isinstance(operations, list):
-        errors.append("operations must be a list")
+    if not _type_guard_list(operations, "operations", errors):
         return
 
-    op_ids = set()
-    for op in operations:
-        if not isinstance(op, dict):
-            errors.append("operations entry must be a table")
-            continue
-        op_id = op.get("id")
-        if not isinstance(op_id, str):
-            errors.append("operations entry missing id")
-            continue
-        if op_id in op_ids:
-            errors.append(f"operation id {op_id!r} is duplicated")
-        op_ids.add(op_id)
-        validate_operation(op, type_entries, primitive_names, status, strict, errors, warnings)
+    # Build manifest type aliases from manifest [[types]] entries with type_id
+    manifest_type_aliases: dict[str, str] = {}
+    for t in manifest.get("types", []):
+        if isinstance(t, dict):
+            name = t.get("name")
+            type_id = t.get("type_id")
+            if isinstance(name, str) and isinstance(type_id, str):
+                if name in manifest_type_aliases and manifest_type_aliases[name] != type_id:
+                    errors.append(f"std/manifest.toml type alias {name!r} maps to both {manifest_type_aliases[name]!r} and {type_id!r}")
+                manifest_type_aliases[name] = type_id
 
-    # Manifest reference checks.
+    # Precompute manifest public symbols and core_op_id references
+    public_symbols = set()
     manifest_core_op_refs: dict[str, list[str]] = {}
     public_symbol_map: dict[str, str] = {}
     for fn in manifest.get("functions", []):
         if not isinstance(fn, dict):
             continue
+        symbol = public_symbol(fn)
+        if symbol:
+            public_symbols.add(symbol)
         core_op_id = fn.get("core_op_id")
         if core_op_id:
-            if core_op_id not in op_ids:
-                errors.append(f"std/manifest.toml function {fn.get('name')!r}: core_op_id {core_op_id!r} not found in core-ops")
-            manifest_core_op_refs.setdefault(core_op_id, []).append(public_symbol(fn))
-        type_id = fn.get("type_id")
-        if type_id and type_id not in type_ids:
-            errors.append(f"std/manifest.toml function {fn.get('name')!r}: type_id {type_id!r} not found in core-ops")
+            if isinstance(core_op_id, str):
+                manifest_core_op_refs.setdefault(core_op_id, []).append(symbol)
+            if symbol:
+                existing = public_symbol_map.get(symbol)
+                if existing is not None and existing != core_op_id:
+                    errors.append(f"std/manifest.toml public symbol {symbol!r} maps to both {existing!r} and {core_op_id!r}")
+                else:
+                    public_symbol_map[symbol] = core_op_id
 
-        symbol = public_symbol(fn)
-        if symbol and core_op_id:
-            existing = public_symbol_map.get(symbol)
-            if existing is not None and existing != core_op_id:
-                errors.append(
-                    f"std/manifest.toml public symbol {symbol!r} maps to both {existing!r} and {core_op_id!r}"
-                )
-            else:
-                public_symbol_map[symbol] = core_op_id
+    op_ids = set()
+    op_by_id: dict[str, dict] = {}
+    for op in operations:
+        if isinstance(op, dict):
+            op_id = op.get("id")
+            if isinstance(op_id, str):
+                if op_id in op_ids:
+                    errors.append(f"operation id {op_id!r} is duplicated")
+                op_ids.add(op_id)
+                op_by_id[op_id] = op
+
+    for op in operations:
+        validate_operation(op, type_entries, primitive_names, status, strict, public_symbols, manifest_core_op_refs, errors, warnings)
+
+    # type_id reference checks
+    for fn in manifest.get("functions", []):
+        if not isinstance(fn, dict):
+            continue
+        type_id = fn.get("type_id")
+        if isinstance(type_id, str) and type_id not in type_ids:
+            errors.append(f"std/manifest.toml function {fn.get('name')!r}: type_id {type_id!r} not found in core-ops")
+        core_op_id = fn.get("core_op_id")
+        if isinstance(core_op_id, str) and core_op_id not in op_ids:
+            errors.append(f"std/manifest.toml function {fn.get('name')!r}: core_op_id {core_op_id!r} not found in core-ops")
 
     for typ in manifest.get("types", []):
         if not isinstance(typ, dict):
             continue
         type_id = typ.get("type_id")
-        if type_id and type_id not in type_ids:
+        if isinstance(type_id, str) and type_id not in type_ids:
             errors.append(f"std/manifest.toml type {typ.get('name')!r}: type_id {type_id!r} not found in core-ops")
 
     # required binding / optional binding consistency
@@ -905,33 +1034,32 @@ def validate_core_ops_and_manifest(core_ops: dict, manifest: dict, status: str, 
         visibility = op.get("visibility")
         binding = op.get("binding", {})
         policy = binding.get("policy")
-        if visibility == "public" and policy == "required":
-            refs = manifest_core_op_refs.get(op_id, [])
-            if not refs:
-                errors.append(f"{op_id}: public required binding has no manifest reference")
+        if visibility == "public" and policy == "required" and not manifest_core_op_refs.get(op_id):
+            errors.append(f"{op_id}: public required binding has no manifest reference")
         if visibility == "public" and policy == "forbidden":
             errors.append(f"{op_id}: public binding cannot be forbidden")
         if visibility == "internal" and policy == "required":
             errors.append(f"{op_id}: internal binding cannot be required")
+        if visibility == "internal" and (policy == "forbidden" or policy == "optional") and manifest_core_op_refs.get(op_id):
+            errors.append(f"{op_id}: internal operation must not be referenced from manifest")
 
     # signature compatibility for core_op_id functions in manifest
-    op_by_id = {op["id"]: op for op in operations if isinstance(op, dict) and isinstance(op.get("id"), str)}
     for fn in manifest.get("functions", []):
         if not isinstance(fn, dict):
             continue
         core_op_id = fn.get("core_op_id")
-        if not core_op_id:
+        if not isinstance(core_op_id, str):
             continue
         op = op_by_id.get(core_op_id)
         if not op:
             continue
-        validate_manifest_type_compat(fn, op, type_entries, errors)
+        validate_manifest_type_compat(fn, op, type_entries, manifest_type_aliases, errors)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate core-ops.toml schema and manifest references")
     parser.add_argument("--strict", action="store_true", help="fail on example.invalid fallback symbols")
-    parser.add_argument("--production-readiness", action="store_true", help="production cutover gate (also implies --strict)")
+    parser.add_argument("--production-structural-readiness", action="store_true", help="production structural gate (also implies --strict)")
     args = parser.parse_args()
 
     errors: list[str] = []
@@ -950,7 +1078,7 @@ def main() -> int:
         return 1
 
     status = core_ops.get("status", "scaffold")
-    strict = args.strict or args.production_readiness
+    strict = args.strict or args.production_structural_readiness
 
     validate_core_ops_and_manifest(core_ops, manifest, status, strict, errors, warnings)
 
@@ -963,11 +1091,11 @@ def main() -> int:
         print(f"core-ops エラー {len(errors)} 件", file=sys.stderr)
         return 1
 
-    if args.production_readiness:
+    if args.production_structural_readiness:
         if status != "production":
-            print(f"production readiness: status is {status!r}, not production", file=sys.stderr)
+            print(f"production-structural-readiness: status is {status!r}, not production", file=sys.stderr)
             return 1
-        print("core-ops production readiness structural check OK")
+        print("core-ops production structural readiness check OK")
     else:
         print("core-ops structural + manifest-semantic check OK")
     print("保留中の compiler-aware 検査: fallback symbol 解決、call cycle、Ark signature 互換、effect/lowering 整合、target handler registry、differential tests")

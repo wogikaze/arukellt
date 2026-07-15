@@ -193,7 +193,7 @@ Empty `constraints = []` is allowed for non-generic operations.
 Validation is split into three layers. `data/core-ops.toml` and
 `scripts/check/check-core-ops.py` cover the first layer. The second and third
 layers require compiler or runtime support and are documented as requirements
-for `check-core-ops.py --production-readiness`.
+for `check-core-ops.py --production-structural-readiness`.
 
 | Layer | Owner | Scope |
 |-------|-------|-------|
@@ -203,28 +203,38 @@ for `check-core-ops.py --production-readiness`.
 
 ### Validation
 
-`[validation]` lists the invariant checks the Python schema checker runs. These
-are not user-configurable toggles; the checker always runs them and the file
-must contain all required keys set to `true`.
+`[validation.python]` lists the invariant checks the Python schema checker runs;
+`[validation.compiler]` lists the checks that must be implemented by the
+compiler-aware validator. These are not user-configurable toggles; the checker
+always runs them and the file must contain exactly the expected keys set to
+`true`.
 
 - `check_unreferenced_required_bindings` — `visibility = "public"` かつ
   `binding.policy = "required"` の operation が `std/manifest.toml` から `core_op_id` で参照される。
 - `check_public_binding_collisions` — 同じ public symbol が複数の `CoreOpId` に対応しない。
 - `check_signature_compat` — manifest `params` / `returns` を `TypeExpr` に parse し、
   `data/core-ops.toml` の `signature` と位置・型で対応する。
-- `check_effect_lowering_consistency` — `lowering.kind` と `effect` が矛盾しない。
+- `check_effect_lowering_consistency` — `lowering.kind` と `effect` が明らかに矛盾しない。
 - `check_binding_field_consistency` — `visibility` / `binding.policy` / `classification` の
   組合せが上記の表に合う。
 - `check_forbidden_bindings` — `public` + `forbidden` や `internal` + `required` など
   無効な組合せを検出する。
 - `check_fallback_resolvable` — `fallback.required = true` な operation に
-  `fallback.implementation_symbol` が設定されている。`example.invalid.*` 接頭辞は解決できない。
+  `fallback.implementation_symbol` が設定されている。`example.invalid.*` 接頭辞は scaffold では警告、strict ではエラー。
 - `check_fallback_no_cycle` — fallback 呼び出しグラフに閉路がない（compiler-aware validator）。
 - `check_fallback_signature_compat` — fallback のシグネチャが CoreOp の signature と
   互換である（compiler-aware validator）。
 - `check_specialization_ambiguity` — 同じ target configuration に対して最も高い priority の
   specialization が一意である。`when` 内の key は閉じた集合（`backend`, `target_family`,
   `portable_simd_lowering`, `wasm_raw_v128`, `wasm_relaxed_simd`）に限定する。
+
+`when` 条件で使う値の正本は ADR-037 である:
+
+- `portable_simd_lowering` = `NativeSimd` | `Scalar` | `Unsupported`
+- `wasm_raw_v128` = `Enabled` | `Disabled`
+- `wasm_relaxed_simd` = `Enabled` | `Disabled`
+- `backend` = `wasm` | `native` | `llvm` | `interpreter`
+- `target_family` = `wasm` | `native` | `llvm`
 
 ### Scaffold-exit criteria
 
@@ -236,7 +246,7 @@ must contain all required keys set to `true`.
 - compiler-aware validator により全 `required` fallback が解決可能
 - `std/manifest.toml` の全 `core_op_id` / `type_id` 参照が有効
 - compiler が `CoreOpRegistry` を消費する
-- `python3 scripts/check/check-core-ops.py --production-readiness` が PASS
+- `python3 scripts/check/check-core-ops.py --production-structural-readiness` が PASS
 
 ### Checker commands
 
@@ -244,9 +254,9 @@ must contain all required keys set to `true`.
   (allows `example.invalid.*` placeholders when `status = "scaffold"`).
 - `python3 scripts/check/check-core-ops.py --strict` — structural + manifest-semantic check
   that rejects `example.invalid.*` placeholders.
-- `python3 scripts/check/check-core-ops.py --production-readiness` — strict check plus
-  `status = "production"` gate and explicit acknowledgement that compiler-aware
-  validator receipts are still required.
+- `python3 scripts/check/check-core-ops.py --production-structural-readiness` — strict check plus
+  `status = "production"` gate. This is only the structural gate; compiler-aware
+  validator receipts are required before full production readiness.
 
 ## Status
 

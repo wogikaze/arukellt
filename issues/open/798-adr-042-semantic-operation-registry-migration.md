@@ -119,6 +119,7 @@ for the canonical order and downstream work.
 
 - `python3 scripts/check/check-core-ops.py`
 - `python3 scripts/check/check-core-ops.py --strict`
+- `python3 scripts/check/check-core-ops.py --production-structural-readiness`
 - `python3 scripts/manager.py docs regenerate`
 - `python3 scripts/manager.py docs check`
 - `python3 scripts/manager.py quality structure`
@@ -131,8 +132,12 @@ for the canonical order and downstream work.
 Design scaffold and structural checker implemented:
 
 - `data/core-ops.toml` schema_version = 4 with `visibility` / `classification` / `binding` axes
-- `TypeExpr` grammar, manifest type-string parser, `core_op_id` / `type_id` references
+- `TypeExpr` grammar, manifest type-string parser with `generic_params` support, `core_op_id` / `type_id` references
+- Binding contract enforcement (`public`/`internal`/`optional`/`forbidden`/`required`), public fallback path check
+- Lowering variant closure, ADR-037-aligned capability/when values, specialization ambiguity detection
+- `[validation]` split into `python` / `compiler` ownership
 - `scripts/check/check-core-ops.py` (structural + manifest-semantic layer) PASS
+- `scripts/tests/test_core_ops_checker.py` regression tests (48 cases) PASS
 
 Compiler consumption, complete operation mapping, shadow dispatch, compiler-aware
 validator, and `FunctionId` dispatch cutover have not started. ADR-042 is PROPOSED
