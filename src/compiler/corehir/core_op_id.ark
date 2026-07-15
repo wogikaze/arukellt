@@ -17,7 +17,3 @@ fn CORE_OP_ID_NONE() -> CoreOpId {
 fn core_op_id_is_some(id: CoreOpId) -> bool {
     CoreOpId_raw(id) >= 0
 }
-
-fn core_op_id_from_registry_index(index: i32) -> CoreOpId {
-    CoreOpId_new(index)
-}

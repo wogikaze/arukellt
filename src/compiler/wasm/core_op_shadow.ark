@@ -76,32 +76,19 @@ fn core_op_shadow_log_mismatch(
     )
 }
 
-fn core_op_shadow_matched_count(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
-}
-
-fn core_op_shadow_mismatched_count(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
-}
-
-fn core_op_shadow_unresolved_count(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
-}
-
-fn core_op_shadow_candidate_count(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
-}
-
 fn core_op_shadow_receipt_ok(ctx: SelfEmitCtx) -> bool {
-    let candidates = core_op_shadow_candidate_count(ctx)
-    let matched = core_op_shadow_matched_count(ctx)
-    let mismatched = core_op_shadow_mismatched_count(ctx)
-    let unresolved = core_op_shadow_unresolved_count(ctx)
+    let candidates = ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+    let matched = ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
+    let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
+    let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
     candidates == matched + mismatched + unresolved && mismatched == 0 && unresolved == 0
 }
 
 fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
-    let candidates = core_op_shadow_candidate_count(ctx)
+    let candidates = ctx_record::SelfEmitCtx_core_op_shadow_candidates(ctx)
+    let matched = ctx_record::SelfEmitCtx_core_op_shadow_matched(ctx)
+    let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
+    let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
     let line = concat(
         String_from("core-op-shadow: summary candidates="),
         concat(
@@ -109,14 +96,14 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
             concat(
                 String_from(" matched="),
                 concat(
-                    i32_to_string(core_op_shadow_matched_count(ctx)),
+                    i32_to_string(matched),
                     concat(
                         String_from(" mismatched="),
                         concat(
-                            i32_to_string(core_op_shadow_mismatched_count(ctx)),
+                            i32_to_string(mismatched),
                             concat(
                                 String_from(" unresolved="),
-                                i32_to_string(core_op_shadow_unresolved_count(ctx))
+                                i32_to_string(unresolved)
                             )
                         )
                     )

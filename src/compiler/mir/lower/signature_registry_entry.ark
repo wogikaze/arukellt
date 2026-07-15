@@ -27,7 +27,19 @@ fn sig_reg_register_fn(
     let return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
     let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, false, receiver, 0 - 1, impl_id, mono_id, abi, core_op_id::CORE_OP_ID_NONE())
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(mangled),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        impl_id,
+        mono_id,
+        abi,
+        core_op_id::CORE_OP_ID_NONE()
+    )
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
@@ -45,7 +57,19 @@ fn sig_reg_register_method(
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, String_from(""))
     push(returns, type_info_to_mir_value::vt_to_mir_value(table, fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1), clone(mrvt_name)))
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 5, String_from("String"))
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, true, receiver, 0 - 1, impl_decl_index, 0 - 1, kinds::ABI_KIND_TRAIT_DISPATCH(), core_op_id::CORE_OP_ID_NONE())
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(mangled),
+        params,
+        returns,
+        true,
+        receiver,
+        0 - 1,
+        impl_decl_index,
+        0 - 1,
+        kinds::ABI_KIND_TRAIT_DISPATCH(),
+        core_op_id::CORE_OP_ID_NONE()
+    )
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 

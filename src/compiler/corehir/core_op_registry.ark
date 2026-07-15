@@ -1,6 +1,5 @@
 use corehir::core_op_id
 use corehir::core_op_registry_generated
-use corehir::kinds
 
 struct CoreOpEntry {
     id: CoreOpId,
@@ -13,25 +12,17 @@ struct CoreOpEntry {
     legacy_handler_id: String,
 }
 
-fn CoreOpRegistry_entry_count() -> i32 {
-    core_op_registry_generated::core_op_registry_entry_count()
-}
-
-fn CoreOpRegistry_canonical_id_at(index: i32) -> String {
-    core_op_registry_generated::core_op_registry_canonical_id_at(index)
-}
-
 fn CoreOpRegistry_lookup_by_canonical(canonical_id: String) -> CoreOpId {
     let index = core_op_registry_generated::core_op_registry_lookup_index(clone(canonical_id))
     if index < 0 {
         return core_op_id::CORE_OP_ID_NONE()
     }
-    core_op_id::core_op_id_from_registry_index(index)
+    core_op_id::CoreOpId_new(index)
 }
 
 fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
     CoreOpEntry {
-        id: core_op_id::core_op_id_from_registry_index(index),
+        id: core_op_id::CoreOpId_new(index),
         canonical_id: core_op_registry_generated::core_op_registry_canonical_id_at(index),
         lowering_kind: core_op_registry_generated::core_op_registry_lowering_kind_at(index),
         layer: core_op_registry_generated::core_op_registry_layer_at(index),
@@ -58,27 +49,4 @@ fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
         }
     }
     CoreOpRegistry_entry_at(raw)
-}
-
-fn CoreOpRegistry_entry_lowering_kind_name(entry: CoreOpEntry) -> String {
-    core_op_lowering_kind_name(entry.lowering_kind)
-}
-
-fn core_op_lowering_kind_name(kind: i32) -> String {
-    if kind == kinds::CORE_OP_LOWERING_NORMAL_CALL() {
-        return String_from("normal_call")
-    }
-    if kind == kinds::CORE_OP_LOWERING_MIR_OP() {
-        return String_from("mir_op")
-    }
-    if kind == kinds::CORE_OP_LOWERING_RUNTIME_CALL() {
-        return String_from("runtime_call")
-    }
-    if kind == kinds::CORE_OP_LOWERING_TARGET_INTRINSIC() {
-        return String_from("target_intrinsic")
-    }
-    if kind == kinds::CORE_OP_LOWERING_LEGACY_EMITTER() {
-        return String_from("legacy_emitter")
-    }
-    return String_from("unknown")
 }

@@ -57,7 +57,19 @@ fn sig_reg_register_mono_fn(
     let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
     let mono_id = mono_instance_build::mono_instance_table_register_from_instances(mono_table, table, mono_instances, clone(mangled), params, returns)
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 0, String_new())
-    let entry = signature_entry::SignatureEntry_new(function_id::FunctionId_new(0), clone(mangled), params, returns, false, receiver, 0 - 1, decl_index, mono_id, kinds::ABI_KIND_NORMAL(), core_op_id::CORE_OP_ID_NONE())
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(mangled),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        decl_index,
+        mono_id,
+        kinds::ABI_KIND_NORMAL(),
+        core_op_id::CORE_OP_ID_NONE()
+    )
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 

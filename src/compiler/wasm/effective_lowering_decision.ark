@@ -1,5 +1,6 @@
 use corehir::core_op_id
 use corehir::core_op_registry
+use corehir::core_op_registry_generated
 use corehir::core_op_binding_generated
 use corehir::signature_entry
 use corehir::signature_registry
@@ -66,7 +67,7 @@ fn effective_lowering_from_function_id(inst: MirInst, registry: SignatureRegistr
     if raw < 0 {
         return EffectiveLoweringDecision_empty()
     }
-    let canonical = core_op_registry::CoreOpRegistry_canonical_id_at(raw)
+    let canonical = core_op_registry_generated::core_op_registry_canonical_id_at(raw)
     effective_lowering_from_core_op_canonical(canonical)
 }
 
@@ -81,8 +82,4 @@ fn effective_lowering_decisions_match(a: EffectiveLoweringDecision, b: Effective
         return false
     }
     true
-}
-
-fn effective_lowering_decision_lowering_name(decision: EffectiveLoweringDecision) -> String {
-    core_op_registry::core_op_lowering_kind_name(decision.lowering_kind)
 }
