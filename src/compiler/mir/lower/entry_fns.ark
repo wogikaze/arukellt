@@ -1,6 +1,7 @@
 use mir::lower::entry_body_source
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn
+use mir::lower::stdlib_body_defer
 
 fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySource, decl_index: i32, decl_name: String, fn_idx: i32, entry_main_decl_index: i32, midx: MonoIndex, mir_tr: i32) -> i32 {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
@@ -16,7 +17,8 @@ fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySourc
         is_entry_main = entry_view_fn::mir_entry_fn_is_entry_main_at(entry_view, fn_info_index, is_entry_main)
     }
     let skip_shadow_main = eq(clone(decl_name), String_from("main")) && !is_entry_main
-    if !skip_shadow_main {
+    let defer_stdlib_body = stdlib_body_defer::mir_should_defer_stdlib_body(clone(decl_name))
+    if !skip_shadow_main && !defer_stdlib_body {
         let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, decl_index, fn_info_index, body_idx)
         entry_fns_mono::mir_emit_top_level_fn_mono_bodies(ctx, body_input, decl_name, typed_index, param_count, entry_view, fn_info_index, midx, mir_tr)
     }

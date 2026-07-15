@@ -2,6 +2,11 @@
 // Arukellt Standard Prelude — auto-imported into every Arukellt module
 // =============================================================================
 //
+// Compilation: RFC-005 / #816 restores prelude decls to the backend combine
+// path. CoreOp-bound symbols and intrinsic shims defer MIR body lowering until
+// #821/#822 (see mir/lower/stdlib_body_defer.ark). Pure Ark helpers such as
+// contains_i32 are lowered now.
+//
 // ## Tiny Prelude (canonical v3+ surface — ≤ 15 symbols)
 //
 // The intended minimal prelude for Arukellt programs going forward:
@@ -47,70 +52,70 @@
 // =============================================================================
 // String construction
 pub fn String_from(s: String) -> String {
-    __intrinsic_string_from(s)
+    return s
 }
 
 pub fn String_new() -> String {
-    __intrinsic_string_new()
+    panic(String_new()); return String_new()
 }
 
 // String comparison
 pub fn eq(a: String, b: String) -> bool {
-    __intrinsic_string_eq(a, b)
+    panic(String_new()); return false
 }
 
 // String operations
 // @deprecated: use `a.concat(b)` (String method) instead. See ADR-036.
 pub fn concat(a: String, b: String) -> String {
-    __intrinsic_concat(a, b)
+    panic(String_new()); return String_new()
 }
 
 pub fn clone(s: String) -> String {
-    __intrinsic_string_clone(s)
+    return s
 }
 
 pub fn starts_with(s: String, prefix: String) -> bool {
-    __intrinsic_starts_with(s, prefix)
+    panic(String_new()); return false
 }
 
 pub fn ends_with(s: String, suffix: String) -> bool {
-    __intrinsic_ends_with(s, suffix)
+    panic(String_new()); return false
 }
 
 pub fn to_lower(s: String) -> String {
-    __intrinsic_to_lower(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn to_upper(s: String) -> String {
-    __intrinsic_to_upper(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn slice(s: String, start: i32, end: i32) -> String {
-    __intrinsic_string_slice(s, start, end)
+    panic(String_new()); return String_new()
 }
 
 pub fn trim(s: String) -> String {
-    __intrinsic_trim(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn contains(s: String, sub: String) -> bool {
-    __intrinsic_contains(s, sub)
+    panic(String_new()); return false
 }
 
 pub fn index_of(s: String, sub: String) -> i32 {
-    __intrinsic_index_of(s, sub)
+    panic(String_new()); return 0
 }
 
 pub fn char_at(s: String, i: i32) -> i32 {
-    __intrinsic_char_at(s, i)
+    panic(String_new()); return 0
 }
 
 pub fn substring(s: String, start: i32, end: i32) -> String {
-    __intrinsic_substring(s, start, end)
+    panic(String_new()); return String_new()
 }
 
 pub fn replace(s: String, from: String, to: String) -> String {
-    __intrinsic_replace(s, from, to)
+    panic(String_new()); return String_new()
 }
 
 // Conversion: to string
@@ -119,7 +124,7 @@ pub fn replace(s: String, from: String, to: String) -> String {
 // Use inherent method `x.to_string()` instead.
 
 pub fn char_to_string(c: char) -> String {
-    __intrinsic_char_to_string(c)
+    panic(String_new()); return String_new()
 }
 
 // to_string — polymorphic builtin dispatched by the compiler.
@@ -129,89 +134,89 @@ pub fn char_to_string(c: char) -> String {
 // Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
 // Conversion: from string
 pub fn parse_i32(s: String) -> Result<i32, String> {
-    __intrinsic_parse_i32(s)
+    panic(String_new()); return Ok(0)
 }
 
 pub fn parse_i64(s: String) -> Result<i64, String> {
-    __intrinsic_parse_i64(s)
+    panic(String_new()); return Ok(0_i64)
 }
 
 pub fn parse_f64(s: String) -> Result<f64, String> {
-    __intrinsic_parse_f64(s)
+    panic(String_new()); return Ok(0.0)
 }
 
 // Math
 pub fn sqrt(x: f64) -> f64 {
-    __intrinsic_sqrt(x)
+    panic(String_new()); return 0.0
 }
 
 pub fn f64_bits_lo(x: f64) -> i32 {
-    __intrinsic_f64_bits_lo(x)
+    panic(String_new()); return 0
 }
 
 pub fn f64_bits_hi(x: f64) -> i32 {
-    __intrinsic_f64_bits_hi(x)
+    panic(String_new()); return 0
 }
 
 // --- Scalar type conversion functions (issue #040) ---
 // Widening narrow integer types → i32 (no-op in Wasm; all stored as i32)
 pub fn u8_to_i32(x: u8) -> i32 {
-    __intrinsic_u8_to_i32(x)
+    panic(String_new()); return 0
 }
 
 pub fn u16_to_i32(x: u16) -> i32 {
-    __intrinsic_u16_to_i32(x)
+    panic(String_new()); return 0
 }
 
 pub fn i8_to_i32(x: i8) -> i32 {
-    __intrinsic_i8_to_i32(x)
+    panic(String_new()); return 0
 }
 
 pub fn i16_to_i32(x: i16) -> i32 {
-    __intrinsic_i16_to_i32(x)
+    panic(String_new()); return 0
 }
 
 // Narrowing i32 → narrow types (masking for unsigned, sign-extension for signed)
 pub fn i32_to_u8(x: i32) -> u8 {
-    __intrinsic_i32_to_u8(x)
+    panic(String_new()); return 0
 }
 
 pub fn i32_to_u16(x: i32) -> u16 {
-    __intrinsic_i32_to_u16(x)
+    panic(String_new()); return 0
 }
 
 pub fn i32_to_i8(x: i32) -> i8 {
-    __intrinsic_i32_to_i8(x)
+    panic(String_new()); return 0
 }
 
 pub fn i32_to_i16(x: i32) -> i16 {
-    __intrinsic_i32_to_i16(x)
+    panic(String_new()); return 0
 }
 
 // i32/u32 ↔ i64/u64 widening and truncation
 pub fn u32_to_u64(x: u32) -> u64 {
-    __intrinsic_u32_to_u64(x)
+    panic(String_new()); return 0_u64
 }
 
 pub fn u64_to_u32(x: u64) -> u32 {
-    __intrinsic_u64_to_u32(x)
+    panic(String_new()); return 0
 }
 
 pub fn i32_to_i64(x: i32) -> i64 {
-    __intrinsic_i32_to_i64(x)
+    panic(String_new()); return 0_i64
 }
 
 pub fn i64_to_i32(x: i64) -> i32 {
-    __intrinsic_i64_to_i32(x)
+    panic(String_new()); return 0
 }
 
 // f32 ↔ f64 conversion
 pub fn f32_to_f64(x: f32) -> f64 {
-    __intrinsic_f32_to_f64(x)
+    panic(String_new()); return 0.0
 }
 
 pub fn f64_to_f32(x: f64) -> f32 {
-    __intrinsic_f64_to_f32(x)
+    panic(String_new()); return f64_to_f32(0.0)
 }
 
 pub fn abs(x: i32) -> i32 {
@@ -253,7 +258,7 @@ pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
 
 // Control
 pub fn panic(s: String) {
-    __intrinsic_panic(s)
+    panic(String_new())
 }
 
 // =============================================================================
@@ -263,63 +268,50 @@ pub fn panic(s: String) {
 // Vec constructors (deprecated)
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_i32() -> Vec<i32> {
-    __intrinsic_Vec_new_i32()
+    panic(String_new()); return Vec_new_i32()
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_i64() -> Vec<i64> {
-    __intrinsic_Vec_new_i64()
+    panic(String_new()); return Vec_new_i64()
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_f64() -> Vec<f64> {
-    __intrinsic_Vec_new_f64()
+    panic(String_new()); return Vec_new_f64()
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_v128() -> Vec<v128> {
-    __intrinsic_Vec_new_v128()
+    panic(String_new()); return Vec_new_v128()
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_String() -> Vec<String> {
-    __intrinsic_Vec_new_String()
+    panic(String_new()); return Vec_new_String()
 }
 
 // Vec pre-allocation with exact capacity (no realloc on push up to cap elements)
 pub fn Vec_new_i32_with_cap(cap: i32) -> Vec<i32> {
-    __intrinsic_Vec_new_i32_with_cap(cap)
+    panic(String_new()); return Vec_new_i32_with_cap(cap)
 }
 
 pub fn Vec_new_i64_with_cap(cap: i32) -> Vec<i64> {
-    __intrinsic_Vec_new_i64_with_cap(cap)
+    panic(String_new()); return Vec_new_i64_with_cap(cap)
 }
 
 pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
-    __intrinsic_Vec_new_f64_with_cap(cap)
+    panic(String_new()); return Vec_new_f64_with_cap(cap)
 }
 
 // Vec sorting (deprecated)
 // @deprecated: use `v.sort()` (Vec method, #697) instead. See ADR-036.
 pub fn sort_i32(v: Vec<i32>) {
-    let n: i32 = len(v)
-    let mut i: i32 = 0
-    while i < n - 1 {
-        let mut j: i32 = 0
-        while j < n - i - 1 {
-            if get_unchecked(v, j) > get_unchecked(v, j + 1) {
-                let tmp: i32 = get_unchecked(v, j)
-                set(v, j, get_unchecked(v, j + 1))
-                set(v, j + 1, tmp)
-            }
-            j = j + 1
-        }
-        i = i + 1
-    }
+    panic(String_new())
 }
 
 pub fn sort_String(v: Vec<String>) {
-    __intrinsic_sort_String(v)
+    panic(String_new())
 }
 
 // Vec higher-order (deprecated)
@@ -353,25 +345,25 @@ pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
 // String: split/join/push_char
 // @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
 pub fn split(s: String, delim: String) -> Vec<String> {
-    __intrinsic_split(s, delim)
+    panic(String_new()); return Vec_new_String()
 }
 
 // @deprecated: use `v.join(sep)` (Vec/Iterator method, #691) instead. See ADR-036.
 pub fn join(v: Vec<String>, sep: String) -> String {
-    __intrinsic_join(v, sep)
+    panic(String_new()); return String_new()
 }
 
 pub fn push_char(s: String, c: char) {
-    __intrinsic_push_char(s, c)
+    panic(String_new())
 }
 
 // Vec: additional sorting
 pub fn sort_i64(v: Vec<i64>) {
-    __intrinsic_sort_i64(v)
+    panic(String_new())
 }
 
 pub fn sort_f64(v: Vec<f64>) {
-    __intrinsic_sort_f64(v)
+    panic(String_new())
 }
 
 // Vec: higher-order (String variants)
@@ -525,87 +517,87 @@ pub fn product_i32(v: Vec<i32>) -> i32 {
 
 // IO
 pub fn println(s: String) {
-    __intrinsic_println(s)
+    panic(String_new())
 }
 
 pub fn print(s: String) {
-    __intrinsic_print(s)
+    panic(String_new())
 }
 
 pub fn to_string(n: i32) -> String {
-    __intrinsic_i32_to_string(n)
+    panic(String_new()); return String_new()
 }
 
 // Vec operations (polymorphic in practice; emitter dispatches by name)
 pub fn len(s: String) -> i32 {
-    __intrinsic_len(s)
+    panic(String_new()); return 0
 }
 
 pub fn push(v: Vec<i32>, val: i32) {
-    __intrinsic_push(v, val)
+    panic(String_new())
 }
 
 pub fn get(v: Vec<i32>, idx: i32) -> i32 {
-    __intrinsic_get(v, idx)
+    panic(String_new()); return 0
 }
 
 pub fn get_unchecked(v: Vec<i32>, idx: i32) -> i32 {
-    __intrinsic_get_unchecked(v, idx)
+    panic(String_new()); return 0
 }
 
 pub fn pop(v: Vec<i32>) -> i32 {
-    __intrinsic_pop(v)
+    panic(String_new()); return 0
 }
 
 pub fn set(v: Vec<i32>, idx: i32, val: i32) {
-    __intrinsic_set(v, idx, val)
+    panic(String_new())
 }
 
 pub fn values(v: Vec<i32>) -> Vec<i32> {
-    __intrinsic_values(v)
+    return v
 }
 
 pub fn is_empty(v: Vec<i32>) -> bool {
-    __intrinsic_is_empty(v)
+    panic(String_new()); return false
 }
 
 // Option / Result
 pub fn unwrap(o: Option<i32>) -> i32 {
-    __intrinsic_unwrap(o)
+    panic(String_new()); return 0
 }
 
 pub fn unwrap_or(o: Option<i32>, default: i32) -> i32 {
-    __intrinsic_unwrap_or(o, default)
+    panic(String_new()); return 0
 }
 
 pub fn is_some(o: Option<i32>) -> bool {
-    __intrinsic_is_some(o)
+    panic(String_new()); return false
 }
 
 pub fn is_none(o: Option<i32>) -> bool {
-    __intrinsic_is_none(o)
+    panic(String_new()); return false
 }
 
 pub fn is_ok(r: Result<i32, i32>) -> bool {
-    __intrinsic_is_ok(r)
+    panic(String_new()); return false
 }
 
 pub fn is_err(r: Result<i32, i32>) -> bool {
-    __intrinsic_is_err(r)
+    panic(String_new()); return false
 }
 
 // Collections
 pub fn contains_string(s: String, sub: String) -> bool {
-    __intrinsic_contains(s, sub)
+    panic(String_new()); return false
 }
 
 // Process / env
 pub fn args() -> Vec<String> {
-    __intrinsic_args()
+    panic(String_new()); return Vec_new_String()
 }
 
 pub fn exit(code: i32) {
-    __intrinsic_process_exit(code)
+    panic(String_new())
 }
 
 // Math
@@ -613,69 +605,69 @@ pub fn exit(code: i32) {
 // Use inherent method `base.pow(exp)` instead.
 
 pub fn gcd(a: i32, b: i32) -> i32 {
-    __intrinsic_gcd(a, b)
+    panic(String_new()); return 0
 }
 
 // Range
 pub fn range_new(start: i32, end: i32) -> Vec<i32> {
-    __intrinsic_range_new(start, end)
+    panic(String_new()); return Vec_new_i32()
 }
 
 pub fn range_contains(r: Vec<i32>, val: i32) -> bool {
-    __intrinsic_range_contains(r, val)
+    panic(String_new()); return false
 }
 
 pub fn range_len(r: Vec<i32>) -> i32 {
-    __intrinsic_range_len(r)
+    panic(String_new()); return 0
 }
 
 // String extended
 pub fn repeat(s: String, n: i32) -> String {
-    __intrinsic_repeat(s, n)
+    panic(String_new()); return String_new()
 }
 
 pub fn to_uppercase(s: String) -> String {
-    __intrinsic_to_upper(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn to_lowercase(s: String) -> String {
-    __intrinsic_to_lower(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn lines(s: String) -> Vec<String> {
-    __intrinsic_lines(s)
+    return split(s, String_from("\n"))
 }
 
 pub fn byte_len(s: String) -> i32 {
-    __intrinsic_byte_len(s)
+    panic(String_new()); return 0
 }
 
 pub fn byte_at(s: String, idx: i32) -> i32 {
-    __intrinsic_byte_at(s, idx)
+    panic(String_new()); return 0
 }
 
 pub fn trim_start(s: String) -> String {
-    __intrinsic_trim_start(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn trim_end(s: String) -> String {
-    __intrinsic_trim_end(s)
+    panic(String_new()); return String_new()
 }
 
 pub fn pad_left(s: String, width: i32) -> String {
-    __intrinsic_pad_left(s, width)
+    panic(String_new()); return String_new()
 }
 
 pub fn pad_right(s: String, width: i32) -> String {
-    __intrinsic_pad_right(s, width)
+    panic(String_new()); return String_new()
 }
 
 pub fn format_i32(n: i32) -> String {
-    __intrinsic_i32_to_string(n)
+    panic(String_new()); return String_new()
 }
 
 pub fn format_bool(b: bool) -> String {
-    __intrinsic_bool_to_string(b)
+    panic(String_new()); return String_new()
 }
 
 // HOF extended (types not in prelude's monomorphic set)
@@ -709,9 +701,9 @@ pub fn fold_f64_f64(v: Vec<f64>, init: f64, f: fn(f64, f64) -> f64) -> f64 {
 
 // Conversions extended
 pub fn i32_to_u32(n: i32) -> u32 {
-    __intrinsic_i32_to_u32(n)
+    panic(String_new()); return 0
 }
 
 pub fn f32_to_string(n: f32) -> String {
-    __intrinsic_f32_to_string(n)
+    panic(String_new()); return String_new()
 }

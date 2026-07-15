@@ -12,26 +12,26 @@ Scoring criteria (0-5 each, total 25):
 | Rank | ID | Title | Track | Blocker | Release | Readiness | Strategic | MA-Suit | Total |
 |------|----|-------|-------|---------|---------|-----------|-----------|---------|-------|
 | 1 | 686 | Wasm GC Selfhost Implementation | main | 4 | 0 | 4 | 5 | 4 | 17 |
-| 2 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 5 | 5 | 4 | 15 |
-| 3 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
-| 4 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 1 | 0 | 4 | 5 | 4 | 14 |
-| 5 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
-| 6 | 724 | ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業 | compiler-internal | 2 | 0 | 3 | 5 | 3 | 13 |
-| 7 | 725 | ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth) | compiler-internal | 0 | 0 | 4 | 5 | 4 | 13 |
-| 8 | 816 | 816 — Prelude compilation restoration | compiler-internal | 4 | 0 | 1 | 5 | 3 | 13 |
-| 9 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
-| 10 | 800 | 800 — Batch multi-file fmt to amortize wasmtime cold-start | tooling-contract | 0 | 0 | 5 | 3 | 4 | 12 |
-| 11 | 820 | 820 — Bounded stdlib-only inliner | compiler-internal | 3 | 0 | 1 | 5 | 3 | 12 |
-| 12 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 3 | 11 |
-| 13 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 5 | 3 | 3 | 11 |
-| 14 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
-| 15 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 4 | 0 | 1 | 3 | 3 | 11 |
-| 16 | 809 | 809 — WAT roundtrip failure | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 17 | 810 | 810 — Component interop failures | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
-| 18 | 811 | 811 — Selfhost CLI parity drift | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 19 | 812 | 812 — Selfhost diagnostic parity drift | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 20 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
-| 21 | 817 | 817 — Sealed raw API module for Vec/String internal represe... | compiler-internal | 2 | 0 | 1 | 5 | 3 | 11 |
+| 2 | 816 | 816 — Prelude compilation restoration | compiler-internal | 4 | 0 | 4 | 5 | 4 | 17 |
+| 3 | 690 | 690 — `?` operator and `From<E>` error conversion | language-design | 1 | 0 | 5 | 5 | 4 | 15 |
+| 4 | 698 | 698 — std::simd explicit SIMD library API and v128 first-cl... | wasm-feature | 1 | 0 | 5 | 5 | 3 | 14 |
+| 5 | 726 | T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ） | compiler-internal | 1 | 0 | 4 | 5 | 4 | 14 |
+| 6 | 817 | 817 — Sealed raw API module for Vec/String internal represe... | compiler-internal | 2 | 0 | 3 | 5 | 4 | 14 |
+| 7 | 715 | 715 — In-file test coverage targets for compiler and stdlib | testing | 2 | 0 | 3 | 5 | 3 | 13 |
+| 8 | 724 | ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業 | compiler-internal | 2 | 0 | 3 | 5 | 3 | 13 |
+| 9 | 725 | ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth) | compiler-internal | 0 | 0 | 4 | 5 | 4 | 13 |
+| 10 | 646 | 646 — T5 wasm32-wasi-p3 target scaffold | wasm-feature | 0 | 0 | 5 | 3 | 4 | 12 |
+| 11 | 800 | 800 — Batch multi-file fmt to amortize wasmtime cold-start | tooling-contract | 0 | 0 | 5 | 3 | 4 | 12 |
+| 12 | 820 | 820 — Bounded stdlib-only inliner | compiler-internal | 3 | 0 | 1 | 5 | 3 | 12 |
+| 13 | 30 | 036-jco-javascript-interop | component-model | 0 | 0 | 5 | 3 | 3 | 11 |
+| 14 | 60 | 074-wasi-p2-native-component | wasi-feature | 0 | 0 | 5 | 3 | 3 | 11 |
+| 15 | 687 | 687 — HashMap / HashSet Rust parity gap audit and closure | stdlib-api | 0 | 0 | 4 | 3 | 4 | 11 |
+| 16 | 691 | 691 — `Iterator` trait, lazy adapters, and `FromIterator` /... | stdlib-api | 4 | 0 | 1 | 3 | 3 | 11 |
+| 17 | 809 | 809 — WAT roundtrip failure | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 18 | 810 | 810 — Component interop failures | compiler | 0 | 0 | 1 | 5 | 5 | 11 |
+| 19 | 811 | 811 — Selfhost CLI parity drift | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
+| 20 | 812 | 812 — Selfhost diagnostic parity drift | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
+| 21 | 815 | 815 — Diagnostic/T3 compile skips | selfhost | 0 | 0 | 1 | 5 | 5 | 11 |
 | 22 | 695 | 695 — `Ord` / `PartialOrd` traits and comparison-based algo... | stdlib-api | 3 | 0 | 1 | 3 | 3 | 10 |
 | 23 | 709 | 709 — Stdlib trait-first API policy and free-function eradi... | stdlib-api | 4 | 0 | 1 | 3 | 2 | 10 |
 | 24 | 716 | GC target intrinsic stub completion (silent-wrong-result ba... | gc-native | 0 | 0 | 5 | 1 | 4 | 10 |

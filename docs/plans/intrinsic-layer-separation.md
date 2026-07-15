@@ -205,11 +205,15 @@ portable `std::simd` の固定 SIMD 算術（`I32x4.add` 等）は `normal_call`
 別 child として進め、#798 の dispatch-spine 完了条件には含めない。
 
 - **prelude のコンパイル対象復帰**: `combine_loaded_and_main_decls_skip_prelude` の
-  廃止と prelude 本体の backend 通過。専用 RFC 依存の子 issue として追跡する。
-- **sealed raw API のモジュール名と公開面**: `core::raw` / `core::intrinsics` / `core::rt`
-  等の最終決定。専用 RFC 依存の子 issue として追跡する。
+  廃止と prelude 本体の backend 通過。詳細は
+  [RFC-005](../rfcs/005-prelude-compilation-restoration.md)（ACCEPTED）。
+  実装は [#816](../../issues/open/816-prelude-compilation-restoration.md)。
+- **sealed raw API のモジュール名と公開面**: [RFC-006](../rfcs/006-sealed-raw-api.md)
+  で `core::raw` を採択。実装は
+  [#817](../../issues/open/817-sealed-raw-api-module.md)。
 - **GC/LM 二重 intrinsic ファイルの cleanup**: sealed raw API の実装後に
-  [#817](../../issues/open/817-sealed-raw-api-module.md) で実施する。
+  [#817](../../issues/open/817-sealed-raw-api-module.md) で実施する（`*_lm`
+  二重ファイルは #817 で parent へ吸収済み。残 GC helper は raw 層所有）。
 
 ---
 

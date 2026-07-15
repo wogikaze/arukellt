@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T12:14:28Z",
+  "generated_at": "2026-07-15T18:34:06Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -995,12 +995,12 @@
         "822"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 6
+        "checked": 8,
+        "unchecked": 3
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "prelude-restoration-rfc"
+        "class": "ready",
+        "upstream_notes": "none"
       }
     },
     {
@@ -1017,12 +1017,12 @@
         "822"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 7
+        "checked": 9,
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "sealed-raw-api-rfc"
+        "class": "ready",
+        "upstream_notes": "none"
       }
     },
     {
@@ -1414,8 +1414,8 @@
         "unchecked": 5
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816"
+        "class": "ready",
+        "upstream_notes": "none"
       }
     },
     {

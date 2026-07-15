@@ -1,17 +1,17 @@
-//! Vec sub-module — minimal stub for issue #039 slice-2 resolver wiring.
-//!
-//! Exposes basic vector construction helpers under the `vec::` qualifier.
+//! Vec sub-module — construction helpers use sealed raw API (#817 / RFC-006).
+use std::core::raw
+
 /// Creates a new empty `Vec<i32>`.
 pub fn new_i32() -> Vec<i32> {
-    __intrinsic_Vec_new_i32()
+    raw::raw_array_new(0)
 }
 
 // ---------------------------------------------------------------------------
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
 //
-// Generic inherent impl (`impl Vec<T>`) with type parameters propagated to
-// method signatures. Method bodies delegate to existing prelude free
-// functions / bare intrinsics that are handled directly by the WASM emitter.
+// Method bodies still call representation-sensitive free functions / CoreOps.
+// Those lower through the same handlers that `std::core::raw` wraps; full
+// generic raw_array_* migration is owned by #822.
 // ---------------------------------------------------------------------------
 
 impl Vec<T> {

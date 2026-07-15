@@ -235,8 +235,8 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 812 | [812 — Selfhost diagnostic parity drift](812-selfhost-diagnostic-parity-drift.md) | selfhost | none | none | 0 checked / 0 open | ready | None | |
 | 813 | [813 — Selfhost fixpoint not reached](813-selfhost-fixpoint-not-reached.md) | selfhost | 459, framework) | none | 0 checked / 0 open | ready | None | |
 | 815 | [815 — Diagnostic/T3 compile skips](815-diagnostic-t3-compile-skips.md) | selfhost | none | none | 0 checked / 0 open | ready | None | |
-| 816 | [816 — Prelude compilation restoration](816-prelude-compilation-restoration.md) | compiler-internal | 798 | 818, 820, 821, 822 | 0 checked / 6 open | blocked | prelude-restoration-rfc | |
-| 817 | [817 — Sealed raw API module for Vec/String internal representation](817-sealed-raw-api-module.md) | compiler-internal | 798 | 818, 822 | 0 checked / 7 open | blocked | sealed-raw-api-rfc | |
+| 816 | [816 — Prelude compilation restoration](816-prelude-compilation-restoration.md) | compiler-internal | 798 | 818, 820, 821, 822 | 8 checked / 3 open | ready | none | |
+| 817 | [817 — Sealed raw API module for Vec/String internal representation](817-sealed-raw-api-module.md) | compiler-internal | 798 | 818, 822 | 9 checked / 4 open | ready | none | |
 | 646 | [646 — T5 wasm32-wasi-p3 target scaffold](646-t5-wasm32-wasi-p3-target-scaffold.md) | wasm-feature | 474 | none | 3 checked / 0 open | design-ready | — | |
 | 673 | [673 — Component export aggregate expansion (Tier 2 blocked shapes)](673-component-export-aggregate-expansion.md) | component-model | 648, 660, 667 | none | 0 checked / 12 open | implementation-ready | None | |
 | 682 | [682 — Component / WIT product-claim verification audit](682-component-wit-product-claim-audit.md) | docs-audit | 679, 680 | 683 | 0 checked / 6 open | audit-ready | wasm-tools (CI install policy) | |
@@ -255,7 +255,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 729 | [729 — Intrinsic layer separation (unblocked epic)](729-intrinsic-layer-separation.md) | compiler-internal | 724 | none | 0 checked / 11 open | unblocked | none | |
 | 800 | [800 — Batch multi-file fmt to amortize wasmtime cold-start](800-fmt-multi-file-batching.md) | tooling-contract | 791 | none | 6 checked / 0 open | ready | None | |
 | 814 | [814 — Formatter/parser exceptions (23 files)](814-formatter-parser-exceptions.md) | code-quality | 791 | none | 0 checked / 0 open | ready | None | |
-| 820 | [820 — Bounded stdlib-only inliner](820-stdlib-only-inliner.md) | compiler-internal | 798, 816 | 818, 821, 822 | 0 checked / 5 open | blocked | 816 | |
+| 820 | [820 — Bounded stdlib-only inliner](820-stdlib-only-inliner.md) | compiler-internal | 798, 816 | 818, 821, 822 | 0 checked / 5 open | ready | none | |
 | 683 | [683 — User-facing executable example audit (Quickstart / skip-doc-check)](683-user-facing-executable-example-audit.md) | docs-audit | 679, 682 | none | 0 checked / 6 open | audit-ready | None | |
 | 699 | [699 — T4 LLVM native SIMD lowering for std::simd](699-t4-llvm-native-simd-lowering.md) | native-feature | 649, 698 | none | 0 checked / 9 open | design-ready | None | |
 | 709 | [709 — Stdlib trait-first API policy and free-function eradication](709-stdlib-trait-first-api-policy.md) | stdlib-api | 691, 695, 697, 703 | 710, 711, 712, 713 | 0 checked / 11 open | blocked-by-upstream | #691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover | |

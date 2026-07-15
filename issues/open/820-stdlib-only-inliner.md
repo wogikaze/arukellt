@@ -7,8 +7,8 @@ Parent: 729
 Track: compiler-internal
 Depends on: "798, 816"
 Related: "818, 821, 822, ADR-042, docs/plans/intrinsic-layer-separation"
-Orchestration class: blocked
-Orchestration upstream: "816"
+Orchestration class: ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 2
 Source: ADR-042 bounded stdlib inliner ownership split

@@ -1,0 +1,55 @@
+use corehir::core_op_binding
+use corehir::core_op_id
+
+// RFC-005 D3: CoreOp-bound and intrinsic-shim stdlib symbols keep call-site
+// CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
+// #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
+// are not listed here and are lowered normally.
+fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
+    let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
+    if core_op_id::core_op_id_is_some(coid) {
+        return true
+    }
+    mir_is_unbound_prelude_intrinsic_shim(decl_name)
+}
+
+fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
+    if eq(clone(decl_name), String_from("eq")) { return true }
+    if eq(clone(decl_name), String_from("contains")) { return true }
+    if eq(clone(decl_name), String_from("contains_string")) { return true }
+    if eq(clone(decl_name), String_from("i32_to_u16")) { return true }
+    if eq(clone(decl_name), String_from("i32_to_i16")) { return true }
+    if eq(clone(decl_name), String_from("u64_to_u32")) { return true }
+    if eq(clone(decl_name), String_from("sort_String")) { return true }
+    if eq(clone(decl_name), String_from("map_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("filter_i32")) { return true }
+    if eq(clone(decl_name), String_from("fold_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("map_option_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("any_i32")) { return true }
+    if eq(clone(decl_name), String_from("find_i32")) { return true }
+    if eq(clone(decl_name), String_from("map_String_String")) { return true }
+    if eq(clone(decl_name), String_from("filter_String")) { return true }
+    if eq(clone(decl_name), String_from("map_i64_i64")) { return true }
+    if eq(clone(decl_name), String_from("filter_i64")) { return true }
+    if eq(clone(decl_name), String_from("fold_i64_i64")) { return true }
+    if eq(clone(decl_name), String_from("map_f64_f64")) { return true }
+    if eq(clone(decl_name), String_from("filter_f64")) { return true }
+    if eq(clone(decl_name), String_from("get")) { return true }
+    if eq(clone(decl_name), String_from("pop")) { return true }
+    if eq(clone(decl_name), String_from("set")) { return true }
+    if eq(clone(decl_name), String_from("values")) { return true }
+    if eq(clone(decl_name), String_from("exit")) { return true }
+    if eq(clone(decl_name), String_from("lines")) { return true }
+    if eq(clone(decl_name), String_from("byte_len")) { return true }
+    if eq(clone(decl_name), String_from("byte_at")) { return true }
+    if eq(clone(decl_name), String_from("format_i32")) { return true }
+    if eq(clone(decl_name), String_from("format_bool")) { return true }
+    if eq(clone(decl_name), String_from("any_i64")) { return true }
+    if eq(clone(decl_name), String_from("any_f64")) { return true }
+    if eq(clone(decl_name), String_from("any_String")) { return true }
+    if eq(clone(decl_name), String_from("find_i64")) { return true }
+    if eq(clone(decl_name), String_from("find_f64")) { return true }
+    if eq(clone(decl_name), String_from("find_String")) { return true }
+    if eq(clone(decl_name), String_from("fold_f64_f64")) { return true }
+    false
+}

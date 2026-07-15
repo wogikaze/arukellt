@@ -17,3 +17,5 @@
 | [002-semantic-type-spine.md](002-semantic-type-spine.md) | RFC-002: Semantic Type Spine（詳細設計） | DRAFT | 関連 plan: typed-mir-signature-registry.md |
 | [003-portable-simd-semantics.md](003-portable-simd-semantics.md) | RFC-003: Portable SIMD operation semantics（NativeSimd ↔ Scalar） | DRAFT | 提案日: 2026-07-11 |
 | [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・associated function・coherence） | DRAFT | 提案日: 2026-07-11 |
+| [005-prelude-compilation-restoration.md](005-prelude-compilation-restoration.md) | RFC-005: Prelude compilation restoration | ACCEPTED | 関連 issue: #816 関連 plan: intrinsic-layer-separation.md |
+| [006-sealed-raw-api.md](006-sealed-raw-api.md) | RFC-006: Sealed raw API for Vec/String representation | ACCEPTED | 関連 issue: #817 関連 plan: intrinsic-layer-separation.md |

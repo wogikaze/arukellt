@@ -415,10 +415,12 @@ linear-memory 規則を直接露出する場合に限る。
 
 以下は本 ADR のスコープ外とし、別文書で決定する:
 
-- **prelude のコンパイル対象復帰**: `combine_loaded_and_main_decls_skip_prelude` の
-  廃止と prelude 本体の backend 通過。型チェック専用スタブからの移行は
-  破壊的変更を伴うため、専用 ADR / RFC が必要。
-- **sealed raw API のモジュール名と公開面**（D4 候補の最終決定）
+- **prelude のコンパイル対象復帰**: 詳細は
+  [RFC-005](../rfcs/005-prelude-compilation-restoration.md)（ACCEPTED）。
+  実装は [#816](../../issues/open/816-prelude-compilation-restoration.md)。
+- **sealed raw API のモジュール名と公開面**（D4）: 詳細は
+  [RFC-006](../rfcs/006-sealed-raw-api.md)（ACCEPTED、モジュール名 `core::raw`）。
+  実装は [#817](../../issues/open/817-sealed-raw-api-module.md)。
 
 ## 等価性検証
 

@@ -1506,6 +1506,12 @@ stability = "stable"
 params = ["Error"]
 returns = "String"
 
+[[modules]]
+name = "std::core::raw"
+stability = "internal"
+doc = "Sealed Vec/String representation API (RFC-006 / #817). Not importable from user code."
+availability = { t1 = true, t3 = true }
+
 [[functions]]
 name = "combine"
 module = "std::core::hash"

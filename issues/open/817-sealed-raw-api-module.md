@@ -1,14 +1,14 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-15
+Updated: 2026-07-16
 ID: 817
 Parent: 729
 Track: compiler-internal
 Depends on: "798"
-Related: "729, 818, ADR-042, docs/plans/intrinsic-layer-separation"
-Orchestration class: blocked
-Orchestration upstream: "sealed-raw-api-rfc"
+Related: "729, 818, ADR-042, docs/rfcs/006-sealed-raw-api, docs/plans/intrinsic-layer-separation"
+Orchestration class: ready
+Orchestration upstream: none
 Blocks v{N}: none
 Priority: 3
 Source: ADR-042 out-of-scope item
@@ -19,54 +19,50 @@ Source: ADR-042 out-of-scope item
 ## Summary
 
 Define a sealed raw API module that exposes the internal representation of
-`Vec` and `String` only to the standard library, as required by ADR-042. This
-is a separate child of #729, outside #798's dispatch-spine scope, and
-remains blocked until a dedicated RFC selects the module name and surface.
+`Vec` and `String` only to the standard library, as required by ADR-042.
+RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
 
 ## Scope
 
-- Write a dedicated RFC that selects the sealed raw API module name
-  (candidates: `core::raw`, `core::rt`, `core::intrinsics`) and defines its
-  surface.
-- Implement the sealed module with visibility enforcement that prevents user
-  code from accessing it.
-- Provide the minimal raw operations needed by `Vec`/`String` stdlib:
-  `raw_array_new<T>`, `raw_array_len<T>`, `raw_array_get_unchecked<T>`,
-  `raw_array_set_unchecked<T>`, `raw_array_grow<T>`, plus raw string storage
-  accessors.
-- Refactor `Vec`/`String` implementations to use only the sealed raw API.
-- Absorb GC/LM representation differences into the raw API layer.
-- Remove dual `intrinsic_*_gc.ark` / `intrinsic_*_lm.ark` files as part of this
-  migration.
+- [x] Dedicated RFC selecting the sealed module name (`core::raw`) and surface
+      ([RFC-006](../../docs/rfcs/006-sealed-raw-api.md)).
+- [x] Implement `std/core/raw.ark` with the minimal raw array/string surface.
+- [x] Visibility enforcement: user imports of `std::core::raw` / `core::raw`
+      rejected via `importer_is_stdlib` gate in `module_graph.ark`.
+- [x] Route `std/collections/vec.ark` / `string.ark` construction and selected
+      accessors through `std::core::raw`.
+- [x] Remove dual `intrinsic_*_lm.ark` pairs (merged into parent dispatchers).
+- [ ] Full generic Vec/String representation migration (#822).
+- [ ] Runtime differential coverage across GC and LM for every raw op.
 
 ## Non-goals
 
-- Do not select the sealed module name or surface before the RFC is accepted.
 - Do not expose the raw API to user code.
-- Do not begin implementation before #798 (registry migration) is complete.
+- Do not migrate semantic stdlib operations (split/join/…) here (#822).
 
 ## Acceptance
 
-- [ ] RFC for sealed raw API is accepted
-- [ ] Sealed raw API module is created and accessible only to stdlib
-- [ ] `Vec`/`String` implementations use only the sealed raw API
-- [ ] GC/LM representation differences are isolated to the raw API layer
-- [ ] Dual `intrinsic_*_gc.ark` / `intrinsic_*_lm.ark` files are removed
-- [ ] Differential tests pass across GC and LM targets
-- [ ] `python3 scripts/manager.py verify quick` passes
+- [x] RFC for sealed raw API is accepted (RFC-006)
+- [x] Sealed raw API module is created; user import path is rejected in loader
+- [x] Vec/String stdlib entry points begin using the sealed raw API
+- [x] GC/LM dual `*_lm.ark` files are removed (helpers merged into parents)
+- [ ] Differential tests pass across GC and LM targets for raw ops
+- [ ] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
 
 ## Validation commands
 
+- `python3 -m unittest scripts.tests.test_prelude_raw_restoration`
 - `python3 scripts/manager.py verify quick`
 - `python3 scripts/manager.py docs regenerate`
 
 ## References
 
+- `docs/rfcs/006-sealed-raw-api.md`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
 - `docs/plans/intrinsic-layer-separation.md`
 - `issues/open/729-intrinsic-layer-separation.md`
 - `issues/done/798-adr-042-semantic-operation-registry-migration.md`
+- `std/core/raw.ark`
 - `std/collections/vec.ark`
-- `std/text/string.ark`
-- `src/compiler/wasm/intrinsic_*_gc.ark`
-- `src/compiler/wasm/intrinsic_*_lm.ark`
+- `std/collections/string.ark`
+- `src/compiler/loader/module_sealed_raw.ark`

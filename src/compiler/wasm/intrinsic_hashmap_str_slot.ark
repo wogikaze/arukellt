@@ -1,3 +1,4 @@
+use wasm::intrinsic_hashmap_str
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
@@ -6,7 +7,6 @@ use wasm::writer_core
 use wasm::ctx_gc_type
 use wasm::inst_store
 use wasm::intrinsic_hashmap_str_gc
-use wasm::intrinsic_hashmap_str_lm
 
 fn emit_hm_si_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
@@ -18,7 +18,7 @@ fn emit_hm_si_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
+        intrinsic_hashmap_str::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -45,7 +45,7 @@ fn emit_hm_si_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         writer_core::emit_leb128_u(w, s_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
+        intrinsic_hashmap_str::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }
@@ -73,7 +73,7 @@ fn emit_hm_is_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
+        intrinsic_hashmap_str::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -107,7 +107,7 @@ fn emit_hm_is_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         writer_core::emit_leb128_u(w, s_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
+        intrinsic_hashmap_str::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }
@@ -127,7 +127,7 @@ fn emit_hm_ss_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
+        intrinsic_hashmap_str::emit_lm_slot_get(w, ctx, s_map, s_idx, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
 }
@@ -159,7 +159,7 @@ fn emit_hm_ss_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         writer_core::emit_leb128_u(w, s_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, s_map)
-        intrinsic_hashmap_str_lm::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
+        intrinsic_hashmap_str::emit_lm_slot_set(w, ctx, s_map, s_idx, s_val, region)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, false)
 }

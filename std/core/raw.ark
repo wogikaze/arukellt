@@ -1,0 +1,56 @@
+//! Sealed raw representation API for Vec/String (RFC-006 / #817).
+//!
+//! User code must not import this module. Only compiler-shipped stdlib modules
+//! may depend on `std::core::raw`. Public Vec/String APIs stay method-shaped.
+//!
+//! GC/LM representation differences are absorbed by the CoreOp / target
+//! intrinsic handlers behind these entry points (see RFC-006 D5).
+
+/// Allocates a new empty raw array (capacity hint is currently ignored).
+pub fn raw_array_new(cap: i32) -> Vec<i32> {
+    let _cap = cap
+    __intrinsic_Vec_new_i32()
+}
+
+/// Returns the number of elements in a raw array.
+pub fn raw_array_len(a: Vec<i32>) -> i32 {
+    len(a)
+}
+
+/// Returns the element at `i` without bounds checking.
+pub fn raw_array_get_unchecked(a: Vec<i32>, i: i32) -> i32 {
+    get_unchecked(a, i)
+}
+
+/// Writes `v` at index `i` without bounds checking.
+pub fn raw_array_set_unchecked(a: Vec<i32>, i: i32, v: i32) {
+    set(a, i, v)
+}
+
+/// Grows a raw array to at least `new_cap` elements. Current runtime ignores
+/// capacity and returns the same buffer; representation-specific grow lands
+/// with #822.
+pub fn raw_array_grow(a: Vec<i32>, new_cap: i32) -> Vec<i32> {
+    let _new_cap = new_cap
+    a
+}
+
+/// Creates an empty raw string.
+pub fn raw_string_new() -> String {
+    __intrinsic_string_new()
+}
+
+/// Returns the byte length of a raw string.
+pub fn raw_string_len_bytes(s: String) -> i32 {
+    len(s)
+}
+
+/// Returns the byte at `i` without bounds checking.
+pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
+    char_at(s, i)
+}
+
+/// Clones raw string storage.
+pub fn raw_string_clone(s: String) -> String {
+    clone(s)
+}
