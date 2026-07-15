@@ -78,7 +78,12 @@ jobs:
       - name: Run quick verification
         env:
           ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: python3 scripts/manager.py verify quick
+        run: |
+          # Use merge-base to avoid false positives when the PR base SHA
+          # is stale (base branch advanced after PR creation).
+          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.head.sha || github.sha }} ${{ github.event.pull_request.base.sha || github.event.before }} 2>/dev/null || echo "${ARUKELLT_QUALITY_BASE}")
+          echo "Using quality base: $MERGE_BASE (PR base: ${ARUKELLT_QUALITY_BASE})"
+          ARUKELLT_QUALITY_BASE="$MERGE_BASE" python3 scripts/manager.py verify quick
 
   verification:
     name: "Verification harness"
