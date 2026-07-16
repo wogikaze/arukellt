@@ -142,10 +142,13 @@ SELFHOST_WASI_VERSION = "wasi-p2"
 BOOTSTRAP_EMIT_TARGET = "wasm32"
 BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
 # Runtime flags for selfhost compilers (GC proposals + memory64 for #730).
+# max-memory-size must exceed the wasm32 4GiB ceiling so memory64 modules can grow
+# (or start) past 65536 pages under wasmtime.
 WASMTIME_SELFHOST_WASM_FLAGS = [
     "--wasm", "gc",
     "--wasm", "function-references",
     "-W", "memory64=y",
+    "-W", "max-memory-size=17179869184",  # 16 GiB
 ]
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
@@ -1958,7 +1961,13 @@ def _wasm_memory_section_is_memory64(wasm_path: Path) -> bool:
 
 
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Heap-patch a selfhost compiler; apply memory64 convert for wasm32 only."""
+    """Prepare a stage-3 runtime compiler from s2 (memory64, large initial heap).
+
+    Newer selfhost compilers false-positive under the walrus heap-grow site
+    heuristic, which corrupts execution.  Instead convert wasm32→memory64
+    without grow injection and start with a large initial memory so the bump
+    allocator stays within already-mapped pages past the 4GiB ceiling (#730).
+    """
     out = root / S2_RUNTIME_WASM_REL
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         return out
@@ -1971,8 +1980,15 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
         return None
+    # 131072 pages = 8 GiB — enough for stage-3 self-recompile without grow patches.
     patch = subprocess.run(
-        [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"],
+        [
+            str(patcher_bin),
+            str(compiler_wasm),
+            str(out),
+            "--convert-only",
+            "--initial-pages=131072",
+        ],
         cwd=str(root),
         capture_output=True,
         text=True,
@@ -2690,6 +2706,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_driver_component_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
+    _patch_bootstrap_main_host_to_prelude(compiler_out)
     ark_toml = source_root / "ark.toml"
     if ark_toml.is_file():
         shutil.copyfile(ark_toml, compiler_out / "ark.toml")
@@ -2701,7 +2718,16 @@ def _prepare_flattened_selfhost_source_locked(
     if prelude_src.is_file():
         std_dst = overlay_root / "std"
         std_dst.mkdir(exist_ok=True)
-        shutil.copyfile(prelude_src, std_dst / "prelude.ark")
+        prelude_text = prelude_src.read_text(encoding="utf-8")
+        # WIP prelude may `use std::collections::*`; flat overlay does not
+        # ship those modules, and the pinned bootstrap cannot resolve them.
+        prelude_text = re.sub(
+            r"^use std::collections::[A-Za-z0-9_]+[ \t]*\n",
+            "",
+            prelude_text,
+            flags=re.MULTILINE,
+        )
+        (std_dst / "prelude.ark").write_text(prelude_text, encoding="utf-8")
     # Copy std/toml.ark (top-level scanner file without pub enum) so the
     # compiler's toml helpers are not stubbed.  This file has no `use`
     # statements and no pub enum, so it is safe for the pinned bootstrap.
@@ -2735,6 +2761,52 @@ def _prepare_flattened_selfhost_source_locked(
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
     return overlay_root
+
+
+def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
+    """Rewrite main.ark host calls to prelude free functions.
+
+    Flat overlay + pinned bootstrap mis-resolves ``env::args`` (and related
+    host paths) as private when prelude also exports ``args`` / ``exit`` /
+    ``println``.  Use the prelude shims so stage-2 can compile.
+    """
+    main_path = compiler_out / "main.ark"
+    if not main_path.is_file():
+        return
+    text = main_path.read_text(encoding="utf-8")
+    text = _sub_optional(
+        text,
+        r"^use std::host::env\n",
+        "",
+        "drop use std::host::env from overlay main",
+        flags=re.MULTILINE,
+        count=1,
+    )
+    text = _sub_optional(
+        text,
+        r"^use std::host::process\n",
+        "",
+        "drop use std::host::process from overlay main",
+        flags=re.MULTILINE,
+        count=1,
+    )
+    text = _sub_optional(
+        text,
+        r"^use std::host::stdio\n",
+        "",
+        "drop use std::host::stdio from overlay main",
+        flags=re.MULTILINE,
+        count=1,
+    )
+    text = _replace_optional(text, "env::args()", "args()", "main env::args -> args")
+    text = _replace_optional(text, "process::exit(", "exit(", "main process::exit -> exit")
+    text = _replace_optional(
+        text, "stdio::eprintln(", "println(", "main stdio::eprintln -> println"
+    )
+    text = _replace_optional(
+        text, "stdio::println(", "println(", "main stdio::println -> println"
+    )
+    main_path.write_text(text, encoding="utf-8")
 
 
 def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:

@@ -735,7 +735,10 @@ fn convert_operator(
         }
 
         // ── Memory loads (i32 → keep + extend) ─────────────────────
-        Operator::I32Load { memarg } => { i!(Instruction::I32Load(cv_ma(*memarg))); i!(Instruction::I64ExtendI32U); }
+        // Sign-extend full i32 loads: wasm32 code stores signed sentinels such as
+        // local-index "-1". Zero-extending turns those into 0xFFFF_FFFF and breaks
+        // `idx >= 0` checks, which then emit invalid `local.get 4294967295`.
+        Operator::I32Load { memarg } => { i!(Instruction::I32Load(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
         Operator::I32Load8S { memarg } => { i!(Instruction::I32Load8S(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
         Operator::I32Load8U { memarg } => { i!(Instruction::I32Load8U(cv_ma(*memarg))); i!(Instruction::I64ExtendI32U); }
         Operator::I32Load16S { memarg } => { i!(Instruction::I32Load16S(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
@@ -815,25 +818,101 @@ fn convert_operator(
         Operator::F64Le => { i!(Instruction::F64Le); i!(Instruction::I64ExtendI32U); }
         Operator::F64Ge => { i!(Instruction::F64Ge); i!(Instruction::I64ExtendI32U); }
 
-        // ── i32 arithmetic/logic → i64 ─────────────────────────────
-        Operator::I32Clz => i!(Instruction::I64Clz),
-        Operator::I32Ctz => i!(Instruction::I64Ctz),
-        Operator::I32Popcnt => i!(Instruction::I64Popcnt),
-        Operator::I32Add => i!(Instruction::I64Add),
-        Operator::I32Sub => i!(Instruction::I64Sub),
-        Operator::I32Mul => i!(Instruction::I64Mul),
-        Operator::I32DivS => i!(Instruction::I64DivS),
-        Operator::I32DivU => i!(Instruction::I64DivU),
-        Operator::I32RemS => i!(Instruction::I64RemS),
-        Operator::I32RemU => i!(Instruction::I64RemU),
-        Operator::I32And => i!(Instruction::I64And),
-        Operator::I32Or => i!(Instruction::I64Or),
-        Operator::I32Xor => i!(Instruction::I64Xor),
-        Operator::I32Shl => i!(Instruction::I64Shl),
-        Operator::I32ShrS => i!(Instruction::I64ShrS),
-        Operator::I32ShrU => i!(Instruction::I64ShrU),
-        Operator::I32Rotl => i!(Instruction::I64Rotl),
-        Operator::I32Rotr => i!(Instruction::I64Rotr),
+        // ── i32 arithmetic/logic → i64 with 32-bit wrap ─────────────
+        // Blanket i32→i64 without truncation diverges from wasm32 wraparound
+        // (and breaks selfhost compilers built from current sources).  After
+        // each former-i32 op, wrap to i32 then sign-extend so signed
+        // sentinels and index math stay in the low 32 bits.
+        Operator::I32Clz => {
+            i!(Instruction::I64Clz);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32Ctz => {
+            i!(Instruction::I64Ctz);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32Popcnt => {
+            i!(Instruction::I64Popcnt);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32Add => {
+            i!(Instruction::I64Add);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Sub => {
+            i!(Instruction::I64Sub);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Mul => {
+            i!(Instruction::I64Mul);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32DivS => {
+            i!(Instruction::I64DivS);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32DivU => {
+            i!(Instruction::I64DivU);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32RemS => {
+            i!(Instruction::I64RemS);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32RemU => {
+            i!(Instruction::I64RemU);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32And => {
+            i!(Instruction::I64And);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Or => {
+            i!(Instruction::I64Or);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Xor => {
+            i!(Instruction::I64Xor);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Shl => {
+            i!(Instruction::I64Shl);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32ShrS => {
+            i!(Instruction::I64ShrS);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32ShrU => {
+            i!(Instruction::I64ShrU);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32Rotl => {
+            i!(Instruction::I64Rotl);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Rotr => {
+            i!(Instruction::I64Rotr);
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32S);
+        }
 
         // ── i64 arithmetic/logic: no change ────────────────────────
         Operator::I64Clz => i!(Instruction::I64Clz),
