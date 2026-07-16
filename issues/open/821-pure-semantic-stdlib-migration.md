@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-15
+Updated: 2026-07-16
 ID: 821
 Parent: 729
 Track: stdlib
@@ -36,11 +36,27 @@ bodies while retaining CoreOp meaning for optimization and validation.
 
 ## Acceptance
 
-- [ ] The assigned pure CoreOps have Ark implementation symbols and `normal_call` lowering
-- [ ] No assigned operation retains a `legacy_emitter` lowering
-- [ ] Public bindings follow ADR-044/ADR-046 trait/method/associated forms
-- [ ] Differential tests pass for every migrated CoreOp
+- [x] The assigned pure CoreOps have Ark implementation symbols and `normal_call` lowering
+- [x] No assigned operation retains a `legacy_emitter` lowering
+- [x] Public bindings follow ADR-044/ADR-046 trait/method/associated forms
+- [x] Differential tests pass for every migrated CoreOp
 - [ ] `python3 scripts/manager.py verify quick` passes
+
+## Migration progress
+
+- Assigned pure set: `math.abs`, `math.min`, `math.max`, `math.clamp`,
+  `math.gcd`, `math.pow_i32`, `core.range_contains`, and `core.range_len`.
+  Each uses a non-public Ark implementation symbol, `normal_call` lowering,
+  and a bounded inline hint. O0/O1 differential execution is covered by
+  `scripts/tests/test_stdlib_inline.py`.
+- The public canonical forms are the existing `i32` methods and the new
+  `Range.contains` / `Range.len` methods. Free functions remain only as
+  compatibility entry points tracked by #718.
+- The remaining legacy-emitter inventory is intentionally not treated as one
+  homogeneous pure set: Vec search/fold/sort and String/parse operations are
+  representation-dependent and belong to #822; `sqrt` and f64 bit extraction
+  are backend primitives; portable SIMD remains governed by ADR-037; host
+  operations belong to #819.
 
 ## References
 

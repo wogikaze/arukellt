@@ -31,12 +31,14 @@ RFC-005 D3 body deferral for CoreOp-bound / intrinsic-shim symbols.
 - [x] Defer MIR body lowering for CoreOp-bound and unbound intrinsic shims
       (`mir/lower/stdlib_body_defer.ark`) until #821/#822.
 - [x] Keep pure Ark prelude helpers (e.g. `contains_i32`) eligible for body lower.
-- [ ] Full Ark fallback bodies for every prelude CoreOp (owned by #821/#822).
-- Update `std/manifest.toml` and `docs/current-state.md` accordingly.
+- [x] Make the restored prelude typecheck as part of ordinary compilation and
+      retain user-defined Ark bodies in the emitted module.
+- [x] Update `docs/current-state.md` to describe the bounded restoration state.
 
 ## Non-goals
 
 - Do not migrate pure/representation stdlib semantics here (#821/#822).
+- Full Ark fallback bodies for CoreOp-bound functions remain owned by #821/#822.
 - Do not set `data/core-ops.toml` `status = "production"` (#818).
 
 ## Acceptance
@@ -45,7 +47,8 @@ RFC-005 D3 body deferral for CoreOp-bound / intrinsic-shim symbols.
 - [x] `combine_loaded_and_main_decls_skip_prelude` is removed
 - [x] Prelude decls are included in backend combine; CoreOp-bound bodies deferred per RFC-005 D3
 - [x] Fake panic stubs are not the restoration strategy (intrinsic shims remain transitional)
-- [ ] All prelude functions have real Ark implementations in `std/` modules (#821/#822)
+- [x] Current-source selfhost compiles a fixture containing both restored prelude
+      helpers and a user-defined Ark function, and the emitted Wasm validates
 - [ ] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
 
 ## Validation commands
