@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-16
+Updated: 2026-07-17
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
@@ -56,10 +56,29 @@ Wrong cwd / missing `--` produces a **parser** OOB red herring.
 `lower_checked_program` → `lower_to_mir*` / opt / verify (almost certainly MIR lower
 allocating ~10GiB then CPU-bound). Not the wasm32 4GiB ceiling anymore.
 
-**Note:** `is_t3_wasm_emit` still keys off `target` containing `"-p2"`, so
-`--target wasm32-gc` takes the non-T3 `session_lower_mir` branch. Component emit
-still hung, so fixing that gate alone is not sufficient; lower of the flat
-selfhost graph is the bottleneck.
+**Note:** `is_t3_wasm_emit` previously keyed off `target` containing `"-p2"`, so
+`--target wasm32-gc` took the non-T3 `session_lower_mir` branch. Component emit
+still hung, so fixing that gate alone was not sufficient; lower of the flat
+selfhost graph was the bottleneck.
+
+### Fix: prune-before-sync (2026-07-17)
+
+Root cause of the stage-3 hang: `lower_entry_input_to_mir` ran
+`ctx_sync_typed_value_types` (full-module sync + propagate + re-sync) on the
+**unpruned** flat selfhost MIR. Sync is roughly O(locals²) per function, so the
+mega-module CPU-spun after ~10GiB emit.
+
+Changes:
+
+1. `lower_to_mir_with_roots` — prune with export-surface roots **before** typed sync.
+2. `session_lower_mir` / `session_lower_mir_component` call that path (no late prune).
+3. `is_t3_wasm_emit` treats `wasm32-gc` as T3 even when `"-p2"` is not in the target string.
+
+Verification with a rebuilt s2 (fix baked in) + convert-only Memory64
+(`--initial-pages=131072`): full selfhost `compile` reaches
+`compilation succeeded (phase 6)` in ~10–11 minutes (hang gone). Prefer
+convert-only 8GiB over `--to-memory64` for stage-3 runtime until grow-site
+OOB is fully settled.
 
 ## Root Cause
 

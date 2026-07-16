@@ -21,8 +21,14 @@ fn session_validate(sess: CompileSession) -> String {
     session_corehir::session_validate_corehir(sess.core_program)
 }
 
-fn session_lower_mir(sess: CompileSession, all_decls: Vec<AstNode>, wit_paths: Vec<String>, target: String) -> MirModule {
-    session_corehir::session_lower_mir(sess.core_program, all_decls, wit_paths, target)
+fn session_lower_mir(
+    sess: CompileSession,
+    all_decls: Vec<AstNode>,
+    export_roots: Vec<String>,
+    wit_paths: Vec<String>,
+    target: String
+) -> MirModule {
+    session_corehir::session_lower_mir(sess.core_program, all_decls, export_roots, wit_paths, target)
 }
 
 fn session_lower_mir_component(sess: CompileSession, all_decls: Vec<AstNode>, export_roots: Vec<String>, wit_paths: Vec<String>, target: String) -> MirModule {

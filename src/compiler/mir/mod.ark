@@ -14,6 +14,10 @@ pub fn lower_to_mir_no_prune(input: MirLowerInput) -> MirModule {
     lower::lower_to_mir_no_prune(input)
 }
 
+pub fn lower_to_mir_with_roots(input: MirLowerInput, export_roots: Vec<String>) -> MirModule {
+    lower::lower_to_mir_with_roots(input, export_roots)
+}
+
 pub fn dump_mir(m: MirModule) {
     dump_core::dump_mir(m)
 }

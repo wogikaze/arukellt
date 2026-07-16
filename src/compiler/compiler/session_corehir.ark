@@ -14,18 +14,24 @@ fn session_lower_mir_fallback(all_decls: Vec<AstNode>) -> MirLowerFallbackSource
     mir::mir_fallback_source_from_decls(legacy_decls)
 }
 
-fn session_lower_mir(program: CoreHirRawProgram, all_decls: Vec<AstNode>, wit_paths: Vec<String>, target: String) -> MirModule {
+fn session_lower_mir(
+    program: CoreHirRawProgram,
+    all_decls: Vec<AstNode>,
+    export_roots: Vec<String>,
+    wit_paths: Vec<String>,
+    target: String
+) -> MirModule {
     let view = mod::mir_view_from_program(program)
     let input = mir::mir_lower_input_new(view, session_lower_mir_fallback(all_decls), wit_paths, all_decls, target)
-    mir::lower_to_mir(input)
+    // Prune with export roots before typed sync (inside lower). A second prune
+    // after return is unnecessary; sync on the full flat graph hangs/selfhost (#730).
+    mir::lower_to_mir_with_roots(input, export_roots)
 }
 
 fn session_lower_mir_component(program: CoreHirRawProgram, all_decls: Vec<AstNode>, export_roots: Vec<String>, wit_paths: Vec<String>, target: String) -> MirModule {
     let view = mod::mir_view_from_program(program)
     let input = mir::mir_lower_input_new(view, session_lower_mir_fallback(all_decls), wit_paths, all_decls, target)
-    let mir_module = mir::lower_to_mir_no_prune(input)
-    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)
-    mir_module
+    mir::lower_to_mir_with_roots(input, export_roots)
 }
 
 fn session_validate_corehir(program: CoreHirRawProgram) -> String {

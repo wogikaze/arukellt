@@ -1,6 +1,5 @@
 use compiler::session
 use corehir::export_surface
-use corehir::raw_record
 use driver::checked_program
 use driver::config_record
 
@@ -13,31 +12,39 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirMo
     if is_t3_wasm_emit(config, clone(emit_mode)) {
         return lower_t3_wasm_program(program, config)
     }
-    let decls = checked_program::checked_program_wit_decls(program)
-    session::session_lower_mir(checked_program::checked_program_session(program), decls, config_record::config_wit_paths(config), config_record::config_target(config))
+    let decls = checked_program::checked_program_all_decls(program)
+    let export_roots = export_surface::export_surface_names(
+        checked_program::checked_program_export_surface(program)
+    )
+    session::session_lower_mir(
+        checked_program::checked_program_session(program),
+        decls,
+        export_roots,
+        config_record::config_wit_paths(config),
+        config_record::config_target(config)
+    )
 }
 
 fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
     if !eq(clone(emit_mode), "wasm") && !eq(clone(emit_mode), "core-wasm") {
         return false
     }
-    contains(config_record::config_target(config), String_from("-p2"))
+    let target = config_record::config_target(config)
+    // Primary GC target is T3 even when wasi-version is a separate CLI flag
+    // (config_target is often just "wasm32-gc", without "-p2" in the string).
+    eq(clone(target), String_from("wasm32-gc"))
+    || contains(clone(target), String_from("wasm32-gc"))
+    || contains(clone(target), String_from("-p2"))
 }
 
 fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
-    let core_program = checked_program::checked_program_core_program(program)
-    let decls = checked_program::checked_program_wit_decls(program)
-    let export_roots = export_surface_names_from_program(core_program)
+    let decls = checked_program::checked_program_all_decls(program)
+    let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
     session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
 }
 
 fn lower_component_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
-    let core_program = checked_program::checked_program_core_program(program)
-    let decls = checked_program::checked_program_wit_decls(program)
-    let export_roots = export_surface_names_from_program(core_program)
+    let decls = checked_program::checked_program_all_decls(program)
+    let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
     session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
-}
-
-fn export_surface_names_from_program(program: CoreHirRawProgram) -> Vec<String> {
-    export_surface::export_surface_names(raw_record::raw_program_export_surface(program))
 }

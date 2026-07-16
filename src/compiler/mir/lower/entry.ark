@@ -11,12 +11,13 @@ use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
 use mir::module_factory
+use mir::reachability
 
 // Bootstrap flat overlay may inject mir_dedupe_functions_by_name into monolithic
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
 // Export-only dedupe (wasm/sections_exports.ark) handles overlay name collisions.
 
-fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> MirModule {
+fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
     let view = entry_input::mir_entry_input_view(input)
     let body_source = entry_input::mir_entry_input_body_source(input)
     let m = module_factory::MirModule_new()
@@ -33,18 +34,25 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, prune_enabled: bool) -> M
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
     if prune_enabled {
-        let _mono_pruned = ctx_api_module::ctx_prune_unreachable(ctx)
+        // Sync/propagate is O(locals^2) per function; prune with export roots first
+        // so selfhost-scale modules do not sync the full emitter graph (#730).
+        let module = ctx_api_module::ctx_current_module(ctx)
+        let _pruned = reachability::mir_prune_unreachable_with_roots(module, export_roots)
     }
     ctx_api_module::ctx_sync_typed_value_types(ctx)
     ctx_api_module::ctx_current_module(ctx)
 }
 
 fn lower_program_to_mir(input: MirLowerInput) -> MirModule {
-    // Selfhost and large programs must keep the full emitter graph; T3 export
-    // pruning is applied explicitly from driver component lowering when needed.
-    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), false)
+    // Callers without an export surface keep the full graph through sync.
+    // Driver/session T3 paths use lower_program_to_mir_with_roots instead.
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec_new_String(), false)
 }
 
 fn lower_program_to_mir_no_prune(input: MirLowerInput) -> MirModule {
-    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), false)
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec_new_String(), false)
+}
+
+fn lower_program_to_mir_with_roots(input: MirLowerInput, export_roots: Vec<String>) -> MirModule {
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), export_roots, true)
 }
