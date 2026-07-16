@@ -2,7 +2,7 @@ use wasm::constants
 use wasm::ctx_string_view
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
-use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_io_const
 
 // Handler for: process::exit, host::process::exit, __intrinsic_process_exit
 fn emit_process_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -13,7 +13,8 @@ fn emit_process_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: process::abort, host::process::abort, __intrinsic_process_abort
 fn emit_process_abort(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32::emit_i32_const(w, 134)
+    // proc_exit takes a true i32 status even under Memory64.
+    helpers_io_const::emit_i32_const(w, 134)
     helpers_core::emit_call(w, constants::WASI_IMPORT_PROC_EXIT())
     helpers_core::emit_unreachable(w)
     return false
@@ -21,7 +22,7 @@ fn emit_process_abort(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for panic: write the message separately, then exit non-zero.
 fn emit_panic_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_io_const::emit_i32_const(w, 1)
     helpers_core::emit_call(w, constants::WASI_IMPORT_PROC_EXIT())
     helpers_core::emit_unreachable(w)
     return false

@@ -72,10 +72,16 @@ RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
   fix (MIR i32 const/arith/compare, GC wrap/extend at array/struct edges,
   WASI pointer narrowing, and `string_from_bytes` using Vec logical length).
 - GC array smoke (`tests/fixtures/t3/array_gc.ark`) passes on the rebuilt s2.
+- Follow-up Memory64 boundary work restored many T3 validates: compare results
+  widen + branch narrow, enum tag gets as `VT_I32`, VT_VOID i32 field
+  get/set widen/narrow, `neg`/`eqz`/`bool_to_string`, and WASI `fd_write` /
+  `proc_exit` true-i32 operands. `check-t3-wasm-validate.py --no-cache` moved
+  from ~71 pass / ~305 validate-fail to **131 pass / 245 validate-fail**
+  (49 compile-fail unchanged). Residuals cluster in `stdlib_vec` /
+  `stdlib_option_result` and remaining `structref`/`i32` edges.
 - `verify quick` still has residual failures outside the sealed-raw differential
-  (LSP lifecycle snapshot drift, debug smoke, and remaining T3 fixture
-  validation/compile cases). Those are tracked separately from the raw API
-  surface itself.
+  (LSP lifecycle snapshot drift, debug smoke, and remaining T3 cases). Those
+  are tracked separately from the raw API surface itself.
 
 ## References
 

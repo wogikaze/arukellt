@@ -6,6 +6,7 @@ use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::string_gc_helpers
 use wasm::writer_core
 
@@ -33,6 +34,7 @@ fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     helpers_core::emit_local_set(w, s_tmp)
     helpers_core::emit_local_get(w, s_tmp)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_i32(w)
     let true_offset = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
     helpers_numeric_i32::emit_i32_const(w, true_offset)
@@ -50,6 +52,7 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     helpers_core::emit_local_set(w, s_tmp)
     helpers_core::emit_local_get(w, s_tmp)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_true_string_offset(ctx), 4, dest, string_type, s_i)
     helpers_control::emit_else(w)
@@ -70,12 +73,16 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
     string_gc_helpers::emit_gc_br_if(w, 1)
     string_gc_helpers::emit_gc_local_get(w, dest)
     string_gc_helpers::emit_gc_local_get(w, s_i)
+    // array.set index is true i32; Memory64 loop counters are widened.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     string_gc_helpers::emit_gc_i32_const(w, data_offset)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_add(w)
     writer_core::emit_byte(w, 45)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
+    // i32.load8_u leaves a true i32; array.set_i32 path expects a widened scalar.
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     string_gc_helpers::emit_gc_array_set(w, string_type)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)

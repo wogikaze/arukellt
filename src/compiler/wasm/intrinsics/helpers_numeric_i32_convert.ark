@@ -1,8 +1,28 @@
 use wasm::opcodes
 use wasm::writer_core
+use mir::value_types
 
 fn emit_i32_wrap_i64(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64()) }
 fn emit_i32_trunc_f64_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_TRUNC_F64_S()) }
+
+// True when a GC struct i32 field should widen/narrow under Memory64.
+// VT_VOID is a MIR placeholder: trust the local's concrete VT / ref-ness.
+// Callers must already know the writer is Memory64.
+fn is_memory64_i32_field_scalar(val_type: i32, local_vt: i32, local_is_ref: bool) -> bool {
+    if val_type == value_types::VT_I32() {
+        return true
+    }
+    if val_type == value_types::VT_I64() || val_type == value_types::VT_F64() || val_type == value_types::VT_F32() || val_type == value_types::VT_V128() || val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF() {
+        return false
+    }
+    if local_is_ref {
+        return false
+    }
+    if local_vt == value_types::VT_GC_REF() || local_vt == value_types::VT_REF() || local_vt == value_types::VT_I64() || local_vt == value_types::VT_F64() || local_vt == value_types::VT_F32() || local_vt == value_types::VT_V128() {
+        return false
+    }
+    true
+}
 
 // Memory64 scalar widen: GC/packed i32 results become i64 locals/params.
 fn emit_widen_i32_result(w: WasmWriter) {
@@ -24,4 +44,15 @@ fn emit_i32_or_widened_op(w: WasmWriter, i32_op: i32, i64_op: i32) {
         return
     }
     writer_core::emit_byte(w, i32_op)
+}
+
+// Wasm compares always push i32 (0/1). Under Memory64 scalar widen the
+// result must become i64 before local.set / later narrow-for-branch.
+fn emit_widen_compare_result(w: WasmWriter) {
+    emit_widen_i32_result(w)
+}
+
+// br_if / if consume i32; Memory64 bool/i32 locals are stored as i64.
+fn emit_narrow_branch_condition(w: WasmWriter) {
+    emit_narrow_i64_operand(w)
 }

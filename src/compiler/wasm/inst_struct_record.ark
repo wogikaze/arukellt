@@ -16,10 +16,25 @@ use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_ref_locals
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32_convert
+use mir::function_local_queries
 use mir::value_types
 
-fn is_memory64_i32_scalar_val_type(val_type: i32) -> bool {
-    val_type == value_types::VT_I32()
+fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type: i32, local_idx: i32) -> bool {
+    if !writer_core::writer_memory64(w) {
+        return false
+    }
+    if local_idx < 0 {
+        // Stack-leaving get/set with unknown dest: VT_I32 always; VT_VOID
+        // treated as i32 scalar (common for untyped field loads into arith).
+        return helpers_numeric_i32_convert::is_memory64_i32_field_scalar(
+            val_type, value_types::VT_VOID(), false
+        )
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let local_vt = function_local_queries::mir_local_vt_for_function(f, local_idx)
+    let local_is_ref = code_ref_locals::local_has_any_ref_assignment(f, local_idx)
+    helpers_numeric_i32_convert::is_memory64_i32_field_scalar(val_type, local_vt, local_is_ref)
 }
 
 fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
@@ -66,8 +81,9 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         }
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)
-        // Memory64 widens scalar i32 locals; only skip widen for non-i32 Wasm types.
-        if is_memory64_i32_scalar_val_type(val_type) {
+        // This path leaves the field on the stack (no local.set here), so do
+        // not consult MirInst_dest — it may name an unrelated SSA local.
+        if memory64_struct_local_is_i32_field(w, ctx, val_type, 0 - 1) {
             writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
         } else {
             writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
@@ -114,10 +130,11 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, base_local)
+        let value_local = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
+        writer_core::emit_leb128_u(w, value_local)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)
-        if is_memory64_i32_scalar_val_type(val_type) {
+        if memory64_struct_local_is_i32_field(w, ctx, val_type, value_local) {
             writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
         } else {
             writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)

@@ -2,15 +2,23 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::opcodes
+use mir::function_local_queries
+use mir::value_types
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
-use mir::value_types
+use wasm::ctx_record
+use wasm::code_ref_locals
+use wasm::intrinsics::helpers_numeric_i32_convert
 
-fn is_memory64_i32_scalar_val_type(val_type: i32) -> bool {
-    // Only known i32 scalars. VT_VOID is used as a placeholder on some
-    // struct sets and must not force wrap/extend of ref payloads.
-    val_type == value_types::VT_I32()
+fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type: i32, local_idx: i32) -> bool {
+    if !writer_core::writer_memory64(w) {
+        return false
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let local_vt = function_local_queries::mir_local_vt_for_function(f, local_idx)
+    let local_is_ref = local_idx >= 0 && code_ref_locals::local_has_any_ref_assignment(f, local_idx)
+    helpers_numeric_i32_convert::is_memory64_i32_field_scalar(val_type, local_vt, local_is_ref)
 }
 
 fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -34,7 +42,7 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
-    if is_memory64_i32_scalar_val_type(val_type) {
+    if memory64_struct_local_is_i32_field(w, ctx, val_type, dest) {
         writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
     } else {
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
@@ -57,7 +65,7 @@ fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, value_local)
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
-    if is_memory64_i32_scalar_val_type(val_type) {
+    if memory64_struct_local_is_i32_field(w, ctx, val_type, value_local) {
         writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
     } else {
         writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)

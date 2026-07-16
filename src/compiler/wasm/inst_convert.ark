@@ -10,6 +10,7 @@ use wasm::code_ref_locals
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::opcodes as mir_opcodes
 
 fn emit_return(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -68,11 +69,16 @@ fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EQZ())
+        helpers_numeric_i32_convert::emit_widen_compare_result(w)
+        return
+    }
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
 }
 
 fn emit_eqz_dup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    emit_eqz(w, inst, ctx)
 }
 
 fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -83,7 +89,8 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if vt == value_types::VT_F32() {
             writer_core::emit_byte(w, opcodes::OP_F32_NEG())
         } else {
-            if vt == value_types::VT_I64() {
+            // Memory64 widens former i32 scalars to i64 locals.
+            if vt == value_types::VT_I64() || writer_core::writer_memory64(w) {
                 let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
                 writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
                 writer_core::emit_leb128_u(w, scratch)

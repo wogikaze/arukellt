@@ -6,10 +6,12 @@ use wasm::constants
 use wasm::intrinsics::helpers_io_iov
 
 fn emit_fd_write_call(w: WasmWriter, fd: i32) {
+    // WASI fd_write pointer operands stay true i32; only the in-memory
+    // iov stores use Memory64 heap addresses via emit_iov_from_*.
     helpers_io_const::emit_i32_const(w, fd)
-    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_IOV())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
     helpers_io_const::emit_i32_const(w, 1)
-    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_NWRITTEN())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_NWRITTEN())
     helpers_io_calls::emit_call_drop(w, 0)
 }
 
