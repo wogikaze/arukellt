@@ -14,6 +14,7 @@ use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -117,9 +118,10 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_tee(w, arr_tmp)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_array_get(w, i32_array_type)
+    // Widen i32 element into Memory64 scalar scratch before Option::Some.
+    writer_gc::emit_gc_array_get_i32(w, i32_array_type)
 
-    // Save value from array.get to i32 scratch (s_newlen is done with)
+    // Save value from array.get to scalar scratch (s_newlen is done with)
     helpers_core::emit_local_set(w, s_newlen)
 
     // Allocate Option::Some as GC struct using the Some variant type.
@@ -129,6 +131,8 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     helpers_core::emit_local_get(w, s_newlen)
+    // Option::Some(i32) payload field is true i32 under Memory64 widen.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core::emit_local_set(w, s_optptr)
 }

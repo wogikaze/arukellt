@@ -19,6 +19,7 @@ use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_access_gc
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -187,6 +188,10 @@ fn emit_vec_get_gc_some_scalar(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, s_va
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     helpers_core::emit_local_get(w, s_val)
+    // Option::Some(i32) fields stay true i32; Memory64 scratch locals hold i64.
+    if eq(clone(suffix), String_from("_f1_i32")) {
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    }
     writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core::emit_local_set(w, s_opt)
 }
