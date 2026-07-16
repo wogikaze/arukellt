@@ -39,6 +39,28 @@ Chosen path: **Memory64** (ADR-007 already lists it as `wasm32-gc` default emit 
    - Observed stage-3 RSS past **10GiB** without the old 4GiB OOB; compile still
      may hang in lower/emit (separate from the hard 4GiB ceiling).
 
+### Stage-3 hang bisect (2026-07-16 evening)
+
+Invocation must match fixpoint (`wasmtime … --dir flat-src --dir root -- compile …`).
+Wrong cwd / missing `--` produces a **parser** OOB red herring.
+
+| Probe | Result |
+|-------|--------|
+| `check` (through typecheck) | **OK ~54s**, RSS ~230MB |
+| Forced E0200 in `main.ark` | **OK ~15s** |
+| `compile --dump-phases mir` | **TIMEOUT ≥10min**, RSS rises ~0.7→10GB in ~1min then plateaus; **no `=== MIR` dump** |
+| `--emit component` (forces `session_lower_mir_component`) | Same hang pattern |
+| `--target wasm32-wasi-p2` (alias with `-p2`) | Same hang pattern |
+
+**Conclusion:** hang is **after typecheck, before MIR dump** — inside
+`lower_checked_program` → `lower_to_mir*` / opt / verify (almost certainly MIR lower
+allocating ~10GiB then CPU-bound). Not the wasm32 4GiB ceiling anymore.
+
+**Note:** `is_t3_wasm_emit` still keys off `target` containing `"-p2"`, so
+`--target wasm32-gc` takes the non-T3 `session_lower_mir` branch. Component emit
+still hung, so fixing that gate alone is not sufficient; lower of the flat
+selfhost graph is the bottleneck.
+
 ## Root Cause
 
 The compiler uses a bump allocator (global 0 = heap pointer, monotonic,
