@@ -66,11 +66,11 @@ def _replace_required(text, old, new, label):
 
 
 def _sub_optional(text, pattern, repl, label, *, flags=0, count=0):
-    """re.sub that prints a labelled skip notice on zero matches (no raise).
+    """re.sub that optionally records a skip notice on zero matches (no raise).
 
-    The notice goes to **stderr** so it does not flood stdout and obscure
-    fixpoint/parity output.  Set ``ARUKELLT_OVERLAY_VERBOSE=1`` to also
-    print to stdout for interactive debugging.
+    Notices are silent unless ``ARUKELLT_OVERLAY_VERBOSE=1`` (see
+    ``_overlay_skip``); optional skips are the common case and must not flood
+    logs.
     """
     out, n = re.subn(pattern, repl, text, flags=flags, count=count)
     if n == 0:
@@ -87,13 +87,15 @@ def _replace_optional(text, old, new, label):
 
 
 def _overlay_skip(label: str) -> None:
-    """Emit an overlay skip notice to stderr (stdout if verbose)."""
-    import sys as _sys
-    msg = f"[bootstrap-overlay] optional patch skipped: {label}"
-    if os.environ.get("ARUKELLT_OVERLAY_VERBOSE"):
-        print(msg)
-    else:
-        print(msg, file=_sys.stderr)
+    """Emit an overlay skip notice only when ``ARUKELLT_OVERLAY_VERBOSE=1``.
+
+    Optional skips are the common case (hundreds of thousands per overlay
+    rebuild). Printing them by default floods logs and dominates wall time
+    when stderr is captured or teed.
+    """
+    if not os.environ.get("ARUKELLT_OVERLAY_VERBOSE"):
+        return
+    print(f"[bootstrap-overlay] optional patch skipped: {label}")
 
 
 def _remove_tree(path: Path) -> None:
@@ -3371,11 +3373,114 @@ def _load_manifest_fixtures(root: Path, kind: str) -> tuple[list[str], str]:
 
 # ── Current-selfhost wasm helper ──────────────────────────────────────────────
 
+def rebuild_current_s2(
+    root: Path,
+    *,
+    force: bool = True,
+) -> tuple[Path | None, str, float]:
+    """Rebuild ``.build/selfhost/arukellt-s2.wasm`` via stage-2 only.
+
+    Unlike ``selfhost fixpoint --build``, this skips stage-3 (s2→s3) and the
+    fixpoint hash compare. With a warm flat-overlay disk cache, stage-2 from
+    the pinned bootstrap typically finishes in under a minute.
+
+    Returns ``(runtime_compiler_or_None, error_or_empty, elapsed_seconds)``.
+    """
+    started = time.time()
+    build_dir = root / ".build" / "selfhost"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    out = build_dir / "arukellt-s2.wasm"
+    fingerprint = _selfhost_source_fingerprint(root)
+
+    if not force and out.is_file():
+        s2_hash_file = build_dir / "s2-hash.txt"
+        s2_source_file = build_dir / "s2-source-hash.txt"
+        if s2_hash_file.is_file() and s2_source_file.is_file():
+            try:
+                if (
+                    s2_source_file.read_text(encoding="utf-8").strip() == fingerprint
+                    and _sha256(out) == s2_hash_file.read_text(encoding="utf-8").strip()
+                ):
+                    pinned = _find_pinned_wasm(root)
+                    if pinned is None:
+                        return None, (
+                            f"{RED}error: pinned-reference selfhost wasm not found at "
+                            f"{PINNED_WASM_REL}{NC}"
+                        ), time.time() - started
+                    runtime = _parity_runtime_compiler(root, pinned, out)
+                    if runtime is None:
+                        return None, (
+                            f"{RED}error: failed to prepare runtime compiler wasm "
+                            f"from {out.name}{NC}"
+                        ), time.time() - started
+                    return runtime, "", time.time() - started
+            except OSError:
+                pass
+
+    pinned = _find_pinned_wasm(root)
+    if pinned is None:
+        return None, (
+            f"{RED}error: pinned-reference selfhost wasm not found at "
+            f"{PINNED_WASM_REL}{NC}"
+        ), time.time() - started
+
+    wasmtime = _find_wasmtime()
+    if not wasmtime:
+        return None, f"{RED}error: wasmtime not found in PATH{NC}", time.time() - started
+
+    bootstrap = _ensure_bootstrap_compiler_wasm(root, pinned)
+    if bootstrap is None:
+        return None, (
+            f"{RED}error: failed to prepare bootstrap compiler wasm from "
+            f"{PINNED_WASM_REL}{NC}"
+        ), time.time() - started
+
+    out_rel = str(out.relative_to(root))
+    # Drop stale outputs so a failed rebuild cannot leave a half-written s2.
+    for stale in (out, build_dir / "arukellt-s2-runtime.wasm"):
+        try:
+            if stale.is_file():
+                stale.unlink()
+        except OSError:
+            pass
+    # Invalidate AOT cache for the previous s2 binary.
+    for cwasm in build_dir.glob("arukellt-s2*.cwasm"):
+        try:
+            cwasm.unlink()
+        except OSError:
+            pass
+
+    try:
+        r = _compile_selfhost_bootstrap_chain(wasmtime, root, out_rel, bootstrap)
+    except BootstrapOverlayError as e:
+        return None, (
+            f"{RED}error: bootstrap overlay patch failed:{NC}\n  {e}"
+        ), time.time() - started
+    if r.returncode != 0 or not out.is_file():
+        return None, (
+            f"{RED}error: stage-2 s2 rebuild failed{NC}\n"
+            + ((r.stderr or "")[:500])
+        ), time.time() - started
+
+    try:
+        (build_dir / "s2-hash.txt").write_text(_sha256(out), encoding="utf-8")
+        (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
+    except OSError:
+        pass
+
+    runtime = _parity_runtime_compiler(root, pinned, out)
+    if runtime is None:
+        return None, (
+            f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
+        ), time.time() - started
+    return runtime, "", time.time() - started
+
+
 def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[Path | None, str]:
     """Return path to current-source selfhost wasm, building it from pinned if needed.
 
     Output is ``.build/selfhost/arukellt-s2.wasm``. If it already exists, it is
-    reused (callers may invoke ``run_fixpoint`` first to refresh it).
+    reused (callers may invoke ``run_fixpoint`` / ``rebuild_current_s2`` to refresh).
     """
     build_dir = root / ".build" / "selfhost"
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -3387,29 +3492,8 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
                 f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
             )
         return runtime, ""
-    out_rel = str(out.relative_to(root))
-    bootstrap = _ensure_bootstrap_compiler_wasm(root, pinned)
-    if bootstrap is None:
-        return None, (
-            f"{RED}error: failed to prepare bootstrap compiler wasm from {PINNED_WASM_REL}{NC}"
-        )
-    try:
-        r = _compile_selfhost_bootstrap_chain(wasmtime, root, out_rel, bootstrap)
-    except BootstrapOverlayError as e:
-        return None, (
-            f"{RED}error: bootstrap overlay patch failed:{NC}\n  {e}"
-        )
-    if r.returncode != 0:
-        return None, (
-            f"{RED}error: failed to bootstrap current-selfhost wasm from pinned wasm{NC}\n"
-            + (r.stderr[:500] if r.stderr else "")
-        )
-    runtime = _parity_runtime_compiler(root, pinned, out)
-    if runtime is None:
-        return None, (
-            f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
-        )
-    return runtime, ""
+    runtime, err, _elapsed = rebuild_current_s2(root, force=True)
+    return runtime, err
 
 
 # ── Fixture parity skip list ─────────────────────────────────────────────────

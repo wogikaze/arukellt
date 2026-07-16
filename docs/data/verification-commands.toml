@@ -145,6 +145,14 @@ purpose = "Check selfhost bootstrap fixpoint"
 coverage = ["s2", "s3"]
 
 [[commands]]
+id = "selfhost_rebuild_s2"
+canonical = "python3 scripts/manager.py selfhost rebuild-s2"
+aliases = []
+alias_status = "none"
+purpose = "Stage-2 only s2 rebuild for emitter iteration (skip stage-3; warm overlay cache ~50s)"
+coverage = ["s2"]
+
+[[commands]]
 id = "selfhost_fixture_parity"
 canonical = "python3 scripts/manager.py selfhost fixture-parity"
 aliases = []

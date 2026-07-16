@@ -47,6 +47,7 @@ from selfhost.checks import (  # noqa: E402
     _ensure_bootstrap_compiler_wasm,
     _ensure_runtime_compiler_wasm,
     _find_pinned_wasm,
+    rebuild_current_s2,
     run_diag_parity,
     run_fixpoint,
     run_fixture_parity,
@@ -6579,6 +6580,17 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     p.add_argument("--build", action="store_true", default=False, help="Build before check")
     p.add_argument("--no-cache", action="store_true", default=False,
                    help="Bypass fixpoint content-hash cache (force rebuild)")
+    p_rs = sub.add_parser(
+        "rebuild-s2",
+        help="Stage-2 only s2 rebuild (skip stage-3 fixpoint; typically <60s with warm overlay cache)",
+    )
+    p_rs.add_argument("--dry-run", action="store_true")
+    p_rs.add_argument(
+        "--if-stale",
+        action="store_true",
+        default=False,
+        help="Skip rebuild when s2 already matches the current source fingerprint",
+    )
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -6814,6 +6826,7 @@ def main() -> int:
     if args.domain == "selfhost":
         _sh_dispatch = {
             "fixpoint":       cmd_selfhost_fixpoint,
+            "rebuild-s2":     cmd_selfhost_rebuild_s2,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
             "fmt-parity":     cmd_selfhost_fmt_parity,
@@ -6910,6 +6923,47 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         for line in res.output.splitlines()[-30:]:
             print(line)
 
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+def cmd_selfhost_rebuild_s2(args: argparse.Namespace) -> int:
+    """Stage-2 only rebuild for emitter iteration (skip stage-3 fixpoint)."""
+    root = _repo_root()
+    dry_run: bool = args.dry_run
+    force = not getattr(args, "if_stale", False)
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[selfhost] Rebuilding s2 (stage-2 only)...{NC}")
+    if dry_run:
+        h.check_pass("selfhost rebuild-s2 (dry-run)")
+        return h.exit_code()
+
+    runtime, err, elapsed = rebuild_current_s2(root, force=force)
+    if runtime is None:
+        h.check_fail(
+            "selfhost rebuild-s2 failed",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost rebuild-s2",
+            primary_path="src/compiler/main.ark",
+        )
+        if err:
+            print(err)
+        return h.exit_code()
+
+    print(f"{GREEN}✓ s2 runtime ready:{NC} {runtime}")
+    print(f"  elapsed: {elapsed:.1f}s")
+    if elapsed > 60.0:
+        print(
+            f"{YELLOW}warning: rebuild exceeded 60s "
+            f"(overlay cache miss or machine load){NC}"
+        )
+    h.check_pass(f"selfhost rebuild-s2 ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
     print(f"Total checks: {total}")

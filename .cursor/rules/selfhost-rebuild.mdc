@@ -1,0 +1,43 @@
+---
+description: Fast selfhost s2 rebuild and non-interactive copy
+alwaysApply: true
+---
+
+# Selfhost rebuild and copy
+
+## Do not use interactive `cp`
+
+Shells may alias `cp` to `cp -iv`. Overwrite prompts hang agent sessions.
+
+Always copy with:
+
+```bash
+/bin/cp -f SRC DST
+```
+
+Never bare `cp` when overwriting existing files.
+
+## Rebuild s2 in under a minute
+
+For emitter/stdlib iteration, **do not** run:
+
+```bash
+python3 scripts/manager.py selfhost fixpoint --build --no-cache
+```
+
+That runs stage-2 **and** stage-3, often 5–10+ minutes, and is a common
+Connection stalled trigger under parallel agents.
+
+Use stage-2 only:
+
+```bash
+python3 scripts/manager.py selfhost rebuild-s2
+```
+
+- Keeps the flat-overlay disk cache (do not delete `.build/selfhost/flat-src`
+  unless overlay patches themselves changed).
+- Skips s2→s3 fixpoint compare.
+- Typical warm-cache time: ~50s.
+
+Reserve `selfhost fixpoint --build` for ADR-029 fixpoint checks, not routine
+emitter validation.
