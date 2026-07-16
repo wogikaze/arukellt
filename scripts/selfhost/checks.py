@@ -2367,7 +2367,8 @@ def _flatten_compiler_imports(text: str) -> str:
 
 _FLAT_OVERLAY_CACHE: tuple[float, Path] | None = None
 _FLAT_OVERLAY_DISK_CACHE_REL = ".build/selfhost/flat-overlay-cache.json"
-_FLAT_OVERLAY_DISK_CACHE_VERSION = 1
+# v2: stage-2 bootstrap skips full MIR verify (see _patch_bootstrap_skip_mir_verify).
+_FLAT_OVERLAY_DISK_CACHE_VERSION = 2
 
 
 def _bootstrap_overlay_root(root: Path) -> Path:
@@ -2382,6 +2383,33 @@ def _bootstrap_overlay_root(root: Path) -> Path:
     if env:
         return Path(env)
     return root / ".build" / "selfhost" / "flat-src"
+
+
+def _patch_bootstrap_skip_mir_verify(compiler_out: Path) -> None:
+    """Skip full MIR verify during pinned→s2 bootstrap compiles.
+
+    Stage-2 rebuilds the entire selfhost compiler; warn-level MIR verify walks
+    every function and dominates wall time (tens of thousands of checks) without
+    improving the bootstrap artifact for emitter iteration. Fixture/T3 gates
+    remain the validation path for the resulting s2.
+    """
+    path = compiler_out / "mir_verify.ark"
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    text = _replace_optional(
+        text,
+        "pub fn verify_mir_pipeline(m: MirModule) -> i32 {\n    verify_mir(m)\n}",
+        "pub fn verify_mir_pipeline(m: MirModule) -> i32 {\n    0\n}",
+        "skip mir verify_mir_pipeline during bootstrap stage-2",
+    )
+    text = _replace_optional(
+        text,
+        "fn verify_mir_pipeline(m: MirModule) -> i32 {\n    verify_mir(m)\n}",
+        "fn verify_mir_pipeline(m: MirModule) -> i32 {\n    0\n}",
+        "skip mir verify_mir_pipeline (pre-pub) during bootstrap stage-2",
+    )
+    path.write_text(text, encoding="utf-8")
 
 
 def _patch_bootstrap_stub_static_dispatch(compiler_out: Path) -> None:
@@ -2729,6 +2757,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_mir_host_call_delegates(compiler_out)
     _patch_bootstrap_mir_module_host_needs(compiler_out)
     _patch_bootstrap_stub_static_dispatch(compiler_out)
+    _patch_bootstrap_skip_mir_verify(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
     _patch_bootstrap_component_wit_bridge(compiler_out)
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)

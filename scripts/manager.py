@@ -7001,6 +7001,11 @@ def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
 
     print(f"{GREEN}✓ compiler wasm ready:{NC} {runtime}")
     print(f"  elapsed: {elapsed:.1f}s")
+    print(
+        f"  tip: ~45–50s is the pinned→s2 full-compile floor. "
+        f"Batch src/compiler edits, rebuild once, then validate many fixtures "
+        f"— do not rebuild per single-line try."
+    )
     if elapsed > 60.0:
         print(
             f"{YELLOW}warning: build-compiler exceeded 60s "

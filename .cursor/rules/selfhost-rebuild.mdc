@@ -21,7 +21,7 @@ Never bare `cp` when overwriting (zsh may alias `cp -iv` and hang).
 | ADR-029 check `sha256(s2)==sha256(s3)` | `python3 scripts/manager.py selfhost fixpoint` |
 | Full s2+s3 rebuild for that gate only | `python3 scripts/manager.py selfhost fixpoint --build` |
 
-**Default for agents:** always `build-compiler` (~50s, stage-2 only).
+**Default for agents:** `build-compiler` (~45–50s floor, stage-2 only).
 
 **Forbidden for routine emitter work:**
 
@@ -31,4 +31,15 @@ python3 scripts/manager.py selfhost fixpoint --build --no-cache
 
 Aliases of `build-compiler`: `build-s2`, `rebuild-s2` (same handler).
 
-See `docs/compiler/bootstrap.md` → “Which command?”.
+## Iteration discipline (important)
+
+`build-compiler` fully recompiles the selfhost compiler. **Do not** call it
+after every one-line edit — that makes the agent `45s × N` latency-bound.
+
+1. Diagnose with the existing s2 (compile fixtures / WAT / validate).
+2. Batch `src/compiler/**` edits.
+3. Run **one** `build-compiler`.
+4. Validate many fixtures against that s2.
+5. Parallel lanes: parent rebuilds once; lanes must not each rebuild.
+
+See `docs/compiler/bootstrap.md` → “Which command?” / “Why ~45s”.

@@ -152,7 +152,7 @@ aliases = [
   "python3 scripts/manager.py selfhost rebuild-s2",
 ]
 alias_status = "compatibility"
-purpose = "Refresh arukellt-s2.wasm after src/compiler edits (stage-2 only; ~50s warm cache). Default for emitter/T3 work."
+purpose = "Refresh arukellt-s2.wasm after src/compiler edits (stage-2 only; ~45-50s full-compile floor). Batch edits — do not rebuild per one-line try."
 coverage = ["s2"]
 
 [[commands]]

@@ -14,7 +14,7 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | ~50s (warm overlay cache) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~45–50s** (warm overlay) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
 | Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | several minutes | **Not** for routine iteration |
 
@@ -25,6 +25,27 @@ runs stage-3, floods long builds, and has caused Connection stalled under
 parallel agents.
 
 Copy files with `/bin/cp -f` (never interactive `cp -iv`).
+
+### Why ~45s, and how to iterate without dying
+
+`build-compiler` is a **full pinned→s2 compile of the entire selfhost compiler**
+(typecheck + MIR lower + wasm emit). Overlay cache hits only skip the flat-src
+rewrite (~0.1s); they do **not** skip that compile. That ~45s is the practical
+floor today — not a fixpoint/stage-3 tax.
+
+**Do not rebuild once per one-line hypothesis.** That makes agents
+latency-bound (`45s × N` tries).
+
+Recommended loop:
+
+1. Classify failures / read WAT with the **current** s2 (no rebuild).
+2. Batch all planned `src/compiler/**` edits.
+3. **One** `selfhost build-compiler`.
+4. Re-validate **many** fixtures / the whole lane list against that s2.
+5. Only rebuild again after the next batch of source edits.
+
+Parallel agents must **share** one rebuilt s2 (parent rebuilds once); each lane
+must not run its own `build-compiler`.
 
 ## Trust model
 
