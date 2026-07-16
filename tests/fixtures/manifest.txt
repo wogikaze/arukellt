@@ -31,6 +31,7 @@
 # try_emit_let_call_tail_return detects and emits return_call instead.
 # via typed GC function references (FnRef local in tail position, #492).
 bench:../../benchmarks/bench_parse_tree_distance.ark
+check-only:stdlib_inline/abs_probe.ark
 check-only:wit_import/ark_manifest/main.ark
 check-only:wit_import/check/call_add.ark
 check-only:wit_import/check/record_enum_general.ark
@@ -467,6 +468,7 @@ run:scalar/u32_arithmetic.ark
 run:scalar/u64_basic.ark
 run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
+run:sealed_raw/raw_storage_differential.ark
 run:selfhost/analysis_clean.ark
 run:selfhost/comprehension_as_arg.ark
 run:selfhost/comprehension_empty_iter.ark
@@ -2415,6 +2417,7 @@ t3-run:question_mark/basic_propagate.ark
 t3-run:question_mark/from_error.ark
 t3-run:question_mark/nested_result.ark
 t3-run:scalar/gc_hint_short_lived.ark
+t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark
 t3-run:stdlib_filter/filter_string.ark
@@ -2717,6 +2720,9 @@ t4-compile:t4/native_scaffold.ark
 # ADR-041 in-file test syntax fixtures
 t3-compile:test_syntax/basic.ark
 compile-error:test_syntax/body_type_error.ark
+
+# RFC-005 / #816: restored prelude and a user Ark body both reach Wasm.
+t3-compile:prelude_compiled_user_body/main.ark
 
 # Quickstart fixtures (docs/quickstart.md)
 run:quickstart/hello.ark

@@ -1,0 +1,31 @@
+use std::seq
+
+pub fn user_add_seven(x: i32) -> i32 {
+    x + 7
+}
+
+pub fn user_search() -> i32 {
+    let values = Vec_new_i32()
+    push(values, 2)
+    push(values, 5)
+    push(values, 9)
+    seq::binary_search(values, 5)
+}
+
+pub fn user_sequence_checks() -> bool {
+    let values = Vec_new_i32()
+    push(values, 4)
+    push(values, 2)
+    push(values, 4)
+    seq::count_eq(values, 4) == 2 &&
+        seq::min_i32(values) == 2 &&
+        seq::max_i32(values) == 4
+}
+
+fn main() -> i32 {
+    if user_sequence_checks() {
+        user_add_seven(user_search())
+    } else {
+        0
+    }
+}

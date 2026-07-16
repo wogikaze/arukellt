@@ -1,0 +1,221 @@
+pub fn probe_abs(x: i32) -> i32 {
+    abs(x)
+}
+
+pub fn probe_min(a: i32, b: i32) -> i32 {
+    min(a, b)
+}
+
+pub fn probe_max(a: i32, b: i32) -> i32 {
+    max(a, b)
+}
+
+pub fn probe_clamp(x: i32, lo: i32, hi: i32) -> i32 {
+    clamp_i32(x, lo, hi)
+}
+
+pub fn probe_gcd(a: i32, b: i32) -> i32 {
+    a.gcd(b)
+}
+
+pub fn probe_pow(base: i32, exponent: i32) -> i32 {
+    base.pow(exponent)
+}
+
+pub fn probe_range_contains(value: i32) -> bool {
+    let range: Range = core::range_new(3, 8)
+    range.contains(value)
+}
+
+pub fn probe_range_len() -> i32 {
+    let range: Range = core::range_new(3, 8)
+    range.len()
+}
+
+pub fn probe_string_starts_with() -> bool {
+    "semantic-spine".starts_with("semantic")
+}
+
+pub fn probe_string_ends_with() -> bool {
+    "semantic-spine".ends_with("spine")
+}
+
+pub fn probe_string_contains() -> bool {
+    "semantic-spine".contains("tic-sp")
+}
+
+pub fn probe_string_index_of() -> i32 {
+    "semantic-spine".index_of("spine")
+}
+
+pub fn probe_string_len() -> i32 {
+    "semantic-spine".len()
+}
+
+pub fn probe_string_char_at() -> i32 {
+    "semantic-spine".char_at(9)
+}
+
+pub fn probe_string_slice() -> bool {
+    let result = "semantic-spine".slice(9, 14)
+    result.len() == 5 && result.char_at(0) == 115 && result.char_at(4) == 101
+}
+
+pub fn probe_string_to_lower() -> bool {
+    let result = "SeMaNtIc".to_lower()
+    result.len() == 8 && result.char_at(0) == 115 && result.char_at(7) == 99
+}
+
+pub fn probe_string_to_upper() -> bool {
+    let result = "SeMaNtIc".to_upper()
+    result.len() == 8 && result.char_at(0) == 83 && result.char_at(7) == 67
+}
+
+pub fn probe_string_trim() -> bool {
+    let result = " \tsemantic\r\n".trim()
+    result.len() == 8 && result.char_at(0) == 115 && result.char_at(7) == 99
+}
+
+pub fn probe_string_trim_start() -> bool {
+    let result = trim_start(" \tsemantic ")
+    result.len() == 9 && result.char_at(0) == 115 && result.char_at(8) == 32
+}
+
+pub fn probe_string_trim_end() -> bool {
+    let result = trim_end(" semantic\r\n")
+    result.len() == 9 && result.char_at(0) == 32 && result.char_at(8) == 99
+}
+
+pub fn probe_string_repeat() -> bool {
+    let result = "ab".repeat(3)
+    result.len() == 6 && result.char_at(0) == 97 && result.char_at(5) == 98
+}
+
+pub fn probe_string_padding() -> bool {
+    let left = "x".pad_left(3)
+    let right = "x".pad_right(3)
+    let left_fill = "x".pad_left_with(4, "ab")
+    let right_fill = "x".pad_right_with(4, "ab")
+    left.len() == 3 &&
+        left.char_at(0) == 32 &&
+        left.char_at(2) == 120 &&
+        right.char_at(0) == 120 &&
+        right.char_at(2) == 32 &&
+        left_fill.char_at(0) == 98 &&
+        left_fill.char_at(3) == 120 &&
+        right_fill.char_at(0) == 120 &&
+        right_fill.char_at(3) == 97
+}
+
+pub fn probe_string_replace() -> bool {
+    let result = "ab-ab-ab".replace("ab", "xyz")
+    result.len() == 11 && result.char_at(0) == 120 && result.char_at(10) == 122
+}
+
+pub fn probe_string_split() -> bool {
+    let parts = "a--b--".split("--")
+    len(parts) == 3 && len(get_unchecked(parts, 0)) == 1 && len(get_unchecked(parts, 2)) == 0
+}
+
+pub fn probe_string_lines() -> bool {
+    let parts = "a\r\nb\n".lines()
+    len(parts) == 3 &&
+        get_unchecked(parts, 0).len() == 1 &&
+        get_unchecked(parts, 1).char_at(0) == 98 &&
+        get_unchecked(parts, 2).len() == 0
+}
+
+pub fn probe_string_storage_ops() -> bool {
+    let bytes = Vec_new_i32()
+    push(bytes, 79)
+    push(bytes, 75)
+    let text = __intrinsic_string_from_bytes(bytes)
+    let copied = text.clone()
+    let chars = copied.chars()
+    String_new().is_empty() &&
+        copied.len_bytes() == 2 &&
+        string::eq(text, copied) &&
+        len(chars) == 2 &&
+        get_unchecked(chars, 0).char_at(0) == 79 &&
+        get_unchecked(chars, 1).char_at(0) == 75
+}
+
+pub fn probe_scalar_format_ops() -> bool {
+    let i32_text = (0 - 2147483647 - 1).to_string()
+    let i64_text = (0_i64 - 9223372036854775807_i64 - 1_i64).to_string()
+    i32_text.len() == 11 &&
+        i32_text.char_at(0) == 45 &&
+        i32_text.char_at(10) == 56 &&
+        i64_text.len() == 20 &&
+        i64_text.char_at(0) == 45 &&
+        i64_text.char_at(19) == 56
+}
+
+pub fn probe_string_join() -> bool {
+    let result = join("a--b--".split("--"), ".")
+    result.len() == 4 && result.char_at(0) == 97 && result.char_at(3) == 46
+}
+
+pub fn probe_string_concat() -> bool {
+    let result = "semantic".concat("-spine")
+    result.len() == 14 && result.char_at(8) == 45 && result.char_at(13) == 101
+}
+
+pub fn probe_vec_read_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 4)
+    push(values, 7)
+    set(values, 0, 9)
+    reverse_i32(values)
+    len(values) == 2 && !is_empty(values) && get_unchecked(values, 0) == 7 && get_unchecked(values, 1) == 9
+}
+
+pub fn probe_vec_string_mutation() -> bool {
+    let values = "left,right".split(",")
+    reverse_String(values)
+    let first = get_unchecked(values, 0)
+    let second = get_unchecked(values, 1)
+    first.len() == 5 &&
+        first.char_at(0) == 114 &&
+        second.len() == 4 &&
+        second.char_at(0) == 108
+}
+
+pub fn probe_seq_read_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 2)
+    push(values, 3)
+    push(values, 3)
+    push(values, 7)
+    sum_i32(values) == 15 && product_i32(values) == 126
+}
+
+pub fn probe_seq_allocation_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 2)
+    push(values, 3)
+    push(values, 3)
+    push(values, 7)
+    let taken = seq::take_i32(values, 3)
+    let skipped = seq::skip_i32(values, 2)
+    let unique_values = seq::unique(values)
+    len(taken) == 3 &&
+        get_unchecked(taken, 2) == 3 &&
+        len(skipped) == 2 &&
+        get_unchecked(skipped, 0) == 3 &&
+        len(unique_values) == 3 &&
+        get_unchecked(unique_values, 2) == 7
+}
+
+pub fn probe_seq_sort_i32() -> bool {
+    let i32_values = Vec_new_i32()
+    push(i32_values, 7)
+    push(i32_values, 2)
+    push(i32_values, 4)
+    sort_i32(i32_values)
+    get_unchecked(i32_values, 0) == 2 && get_unchecked(i32_values, 2) == 7
+}
+
+fn main() {}
+use std::core
+use std::seq
