@@ -25,11 +25,10 @@ fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type:
         return false
     }
     if local_idx < 0 {
-        // Stack-leaving get/set with unknown dest: VT_I32 always; VT_VOID
-        // treated as i32 scalar (common for untyped field loads into arith).
-        return helpers_numeric_i32_convert::is_memory64_i32_field_scalar(
-            val_type, value_types::VT_VOID(), false
-        )
+        // Unknown dest: only VT_I32 is a definite scalar. VT_VOID must not
+        // imply i32 — many string/struct/enum payload fields still use VT_VOID
+        // and must stay structref on the stack (structref<-i64 otherwise).
+        return val_type == value_types::VT_I32()
     }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     let local_vt = function_local_queries::mir_local_vt_for_function(f, local_idx)
@@ -81,9 +80,10 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         }
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)
-        // This path leaves the field on the stack (no local.set here), so do
-        // not consult MirInst_dest — it may name an unrelated SSA local.
-        if memory64_struct_local_is_i32_field(w, ctx, val_type, 0 - 1) {
+        // Prefer MirInst_dest when set (field gets / get_to). Fall back to
+        // val_type-only gating when dest is absent (true stack-leave).
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if memory64_struct_local_is_i32_field(w, ctx, val_type, dest) {
             writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
         } else {
             writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)

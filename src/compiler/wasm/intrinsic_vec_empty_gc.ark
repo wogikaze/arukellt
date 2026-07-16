@@ -2,11 +2,11 @@
 // GC target: is_empty → struct.get vec_type 1 (len) → eqz
 // For String arguments: is_empty → array.len → eqz
 
-use wasm::opcodes
-use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_record
 use wasm::intrinsic_vec_type
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -18,13 +18,14 @@ use mir::opcodes as mir_opcodes
 
 fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Stack: [vec_ref or string_ref]
-    // After: [i32]  (1 if empty, 0 if not)
+    // After: widened bool (i64 under Memory64, i32 otherwise)
     // String is a GC array — use array.len instead of struct.get.
     // MIR_CALL stores arg0=-1, so look at the preceding MIR_LOCAL_GET
     // in the block to find the source local and check its type_name.
     if is_empty_arg_is_string(inst, ctx) {
         writer_gc::emit_gc_array_len(w)
-        writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+        helpers_numeric_i32::emit_i32_eqz(w)
+        helpers_numeric_i32_convert::emit_widen_compare_result(w)
         return true
     }
     // Determine vec type per-operation from the vec local.
@@ -32,8 +33,9 @@ fn emit_is_empty_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
 
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)  // len
-    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)  // len (widened under Memory64)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     return true
 }
 

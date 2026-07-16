@@ -72,7 +72,9 @@ fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i3
     let dest_vt = mir_field_access_dest_vt(ctx, clone(base_type), clone(field_name), field_idx, is_f64_field)
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
     let mut field_off = field_idx * 4
-    let mut field_vt = value_types::VT_VOID()
+    // Default to dest_vt so Memory64 struct.get widen/narrow sees REF vs i32.
+    // Previously VOID left the emitter treating String/struct fields as i32.
+    let mut field_vt = dest_vt
     if len(base_type) > 0 {
         field_off = ctx_struct_layout::ctx_struct_field_offset(ctx, clone(base_type), field_idx)
         if is_f64_field {

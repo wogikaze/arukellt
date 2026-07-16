@@ -49,6 +49,13 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
 fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix: String, has_mono_map: bool) -> bool {
     if starts_with(clone(ty_name), String_from("vec:")) {
         let type_var = substring(clone(ty_name), 4, len(ty_name))
+        // Concrete elems (vec:i32, vec:String, vec:Point, ...) must keep their
+        // annotation. Only type-variable elems (vec:T, vec:?t0, ...) are
+        // rewritten from the mono suffix — otherwise "__core_*" / accidental
+        // "__" names force structref-array Vec layouts (i64<-structref).
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(type_var)) {
+            return true
+        }
         let mut concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         if len(concrete) == 0 {
             concrete = resolve_nested_vec_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
@@ -60,6 +67,9 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
     }
     if starts_with(clone(ty_name), String_from("option:")) || starts_with(clone(ty_name), String_from("Option:")) {
         let type_var = substring(clone(ty_name), 7, len(ty_name))
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(type_var)) {
+            return true
+        }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         if len(concrete) > 0 {
             mono_set_param_gc_type(ctx, p, concat(String_from("option:"), concrete))
@@ -68,6 +78,9 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
     }
     if starts_with(clone(ty_name), String_from("?Option:")) {
         let type_var = substring(clone(ty_name), 8, len(ty_name))
+        if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(type_var)) {
+            return true
+        }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
         if len(concrete) > 0 {
             mono_set_param_gc_type(ctx, p, concat(String_from("option:"), concrete))

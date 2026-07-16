@@ -69,8 +69,46 @@ fn extract_mono_suffix(fn_name: String) -> String {
         }
         si = si + 1
     }
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(fn_name, first_sep + 2, name_len)
+    // No valid mono type-key suffix. Do not fall back to an arbitrary "__"
+    // split: names like "__core_vec_contains_i32_impl" and "foo__scan" are
+    // not monomorphizations, and treating them as such rewrites concrete
+    // Vec<i32> params into structref-array Vec layouts.
+    String_new()
+}
+
+// True when a vec:/option: element name is a type variable that still needs
+// concrete substitution from the mono suffix / mono map.
+fn mono_elem_is_substitutable_type_var(elem: String) -> bool {
+    if len(elem) == 0 {
+        return false
+    }
+    if starts_with(clone(elem), String_from("?")) {
+        return mono_elem_is_substitutable_type_var(substring(elem, 1, len(elem)))
+    }
+    if len(elem) == 1 {
+        let c = char_at(elem, 0)
+        if c >= 65 && c <= 90 {
+            return true
+        }
+        return false
+    }
+    // Ordinal placeholders: t0, T0, t12, ...
+    let c0 = char_at(elem, 0)
+    if c0 == 116 || c0 == 84 {
+        let mut i = 1
+        let mut all_digit = true
+        while i < len(elem) {
+            let c = char_at(elem, i)
+            if c < 48 || c > 57 {
+                all_digit = false
+            }
+            i = i + 1
+        }
+        if all_digit {
+            return true
+        }
+    }
+    false
 }
 
 fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {

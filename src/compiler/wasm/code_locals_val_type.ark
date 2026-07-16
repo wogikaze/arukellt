@@ -28,15 +28,11 @@ fn val_type_to_wasm_width(vt: i32, memory64: bool) -> i32 {
         return constants::WASM_FUNCREF()
     }
     if vt == value_types::VT_REF() {
-        if memory64 {
-            return constants::WASM_I64()
-        }
+        // Linear-memory ref encoding stays i32; GC targets emit typed refs
+        // via emit_gc_local_val_type before this fallback. Never widen to i64.
         return constants::WASM_I32()
     }
     if vt == value_types::VT_GC_REF() {
-        if memory64 {
-            return constants::WASM_I64()
-        }
         return constants::WASM_I32()
     }
     if memory64 {

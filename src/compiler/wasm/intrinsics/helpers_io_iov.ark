@@ -2,11 +2,14 @@ use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_locals
 use wasm::intrinsics::helpers_io_memory
 use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::constants
 
 fn emit_iov_from_string_local(w: WasmWriter, string_local: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_IOV())
     helpers_io_locals::emit_local_get(w, string_local)
+    // Heap pointers are i64 under Memory64; WASI iov ptr fields are i32.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_io_memory::emit_i32_store_default(w)
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_IOV() + 4)
     helpers_io_locals::emit_local_get(w, string_local)
@@ -17,6 +20,7 @@ fn emit_iov_from_string_local(w: WasmWriter, string_local: i32) {
 fn emit_store_string_local_to_scratch(w: WasmWriter, string_local: i32, ptr_offset: i32, len_offset: i32) {
     helpers_io_layout::emit_scratch_addr(w, ptr_offset)
     helpers_io_locals::emit_local_get(w, string_local)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_io_memory::emit_i32_store_default(w)
     helpers_io_layout::emit_scratch_addr(w, len_offset)
     helpers_io_locals::emit_local_get(w, string_local)

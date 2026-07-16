@@ -11,6 +11,7 @@ use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::intrinsic_vec_type
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use mir::function_locals_view
@@ -78,11 +79,18 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 
     // Step 3: array.set data[idx] = value
+    // Memory64 keeps idx/i32 values as i64 locals; GC array.set wants true i32
+    // index (always) and true i32 element (for the i32-backed data array).
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_idx)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64))
-    writer_gc::emit_gc_array_set(w, array_type)
+    if !is_vec_string && !is_vec_i64 && !is_vec_f64 {
+        writer_gc::emit_gc_array_set_i32(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_set(w, array_type)
+    }
 
     // Step 4: Return vec_ref only when the call result is consumed.
     if is_void_set {

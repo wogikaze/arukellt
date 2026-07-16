@@ -169,10 +169,14 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
     let mut field_vt = value_types::VT_VOID()
     if effective_vt == value_types::VT_F64() {
         field_vt = value_types::VT_F64()
-    } else {
-        if effective_vt == value_types::VT_I64() {
-            field_vt = value_types::VT_I64()
-        }
+    } else if effective_vt == value_types::VT_I64() {
+        field_vt = value_types::VT_I64()
+    } else if effective_vt == value_types::VT_GC_REF() || effective_vt == value_types::VT_REF() {
+        // Ref payloads must not stay VT_VOID: Memory64 widen gating treats
+        // VOID as an i32 scalar when the bind local is not yet marked ref.
+        field_vt = value_types::VT_GC_REF()
+    } else if effective_vt == value_types::VT_I32() {
+        field_vt = value_types::VT_I32()
     }
     if emit_payload_field_bind_gc(ctx, clone(variant_name), field_idx, effective_vt, bind_local, scrut_idx, field_vt) {
         return

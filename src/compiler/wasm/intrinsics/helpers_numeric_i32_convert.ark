@@ -7,21 +7,31 @@ fn emit_i32_trunc_f64_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I
 
 // True when a GC struct i32 field should widen/narrow under Memory64.
 // VT_VOID is a MIR placeholder: trust the local's concrete VT / ref-ness.
+// When both val_type and local_vt are unknown (VOID) and the local is not a
+// known ref, default to false — ref fields must never get i32→i64 widen.
+// Under Memory64, MIR i32 locals are stored as wasm i64, so local_vt==I64 is a
+// scalar candidate (Option/enum i32 payloads often keep VT_VOID on struct.set).
 // Callers must already know the writer is Memory64.
 fn is_memory64_i32_field_scalar(val_type: i32, local_vt: i32, local_is_ref: bool) -> bool {
     if val_type == value_types::VT_I32() {
         return true
     }
+    // True i64/float/ref fields must not be narrowed/widened as i32 scalars.
     if val_type == value_types::VT_I64() || val_type == value_types::VT_F64() || val_type == value_types::VT_F32() || val_type == value_types::VT_V128() || val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF() {
         return false
     }
     if local_is_ref {
         return false
     }
-    if local_vt == value_types::VT_GC_REF() || local_vt == value_types::VT_REF() || local_vt == value_types::VT_I64() || local_vt == value_types::VT_F64() || local_vt == value_types::VT_F32() || local_vt == value_types::VT_V128() {
+    if local_vt == value_types::VT_GC_REF() || local_vt == value_types::VT_REF() || local_vt == value_types::VT_F64() || local_vt == value_types::VT_F32() || local_vt == value_types::VT_V128() {
         return false
     }
-    true
+    // Concrete scalar slot (MIR i32, or Memory64-widened i64 storage).
+    if local_vt == value_types::VT_I32() || local_vt == value_types::VT_I64() {
+        return true
+    }
+    // VT_VOID / unknown: do not widen (protects ref fields).
+    false
 }
 
 // Memory64 scalar widen: GC/packed i32 results become i64 locals/params.

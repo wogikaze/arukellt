@@ -8,10 +8,18 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_locals_struct
+use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
+
+fn is_string_byte_vec_fn(f: MirFunction) -> bool {
+    let name = function_identity::MirFunction_name(f)
+    eq(clone(name), String_from("__core_string_push_range")) ||
+    eq(clone(name), String_from("__core_string_push_byte")) ||
+    eq(clone(name), String_from("__core_string_ascii_case_impl"))
+}
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
     let body_local_count = local_count - param_count
@@ -50,6 +58,13 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         return true
     }
     if starts_with(clone(type_name), String_from("vec:")) {
+        // String byte-buffer helpers must keep Vec<i32> even if MIR type_name
+        // was mis-resolved to a structref-element vec.
+        if is_string_byte_vec_fn(f) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+            return true
+        }
         if emit_explicit_vec_gc_type(body, clone(type_name), ctx) {
             return true
         }

@@ -10,6 +10,7 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::block_inst_access
 use mir::function_block_queries
+use mir::function_identity
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
@@ -24,6 +25,15 @@ fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     intrinsic_vec_type_new::resolve_array_type_for_new_dest(ctx, dest_local)
 }
 
+fn is_string_byte_vec_push_context(ctx: SelfEmitCtx) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    eq(clone(name), String_from("__core_string_push_range")) ||
+    eq(clone(name), String_from("__core_string_push_byte")) ||
+    eq(clone(name), String_from("__core_string_ascii_case_impl"))
+}
+
 fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
     // Callee name is authoritative for monomorphic push/pop helpers when
     // mixed Vec locals would otherwise make vec_type_for_ctx prefer String
@@ -31,6 +41,10 @@ fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) ->
     let by_callee = vec_type_from_callee_name(ctx, clone(callee))
     if by_callee >= 0 {
         return by_callee
+    }
+    // __core_string_push_range/byte always push i32 bytes into Vec<i32>.
+    if is_string_byte_vec_push_context(ctx) {
+        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
     }
     let src_local = find_call_source_local(ctx, callee, inst)
     let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, src_local)
@@ -44,6 +58,9 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
     let by_callee = array_type_from_callee_name(ctx, clone(callee))
     if by_callee >= 0 {
         return by_callee
+    }
+    if is_string_byte_vec_push_context(ctx) {
+        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
     let src_local = find_call_source_local(ctx, callee, inst)
     let tname = local_type_name(ctx, src_local)
@@ -90,6 +107,9 @@ fn array_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
 }
 
 fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> String {
+    if is_string_byte_vec_push_context(ctx) {
+        return String_from("i32")
+    }
     let src_local = find_call_source_local(ctx, clone(callee), inst)
     let tname = local_type_name(ctx, src_local)
     if !starts_with(clone(tname), String_from("vec:")) {

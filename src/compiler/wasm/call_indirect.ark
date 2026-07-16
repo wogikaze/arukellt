@@ -5,6 +5,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::value_types
 use wasm::ctx_record
+use wasm::emit_target
 use wasm::inst_store
 use wasm::opcodes
 use wasm::writer_core
@@ -46,22 +47,37 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
-    // Unary HOF (map/filter): when element and result are i32, use the stable
-    // WASI host sig i32_1i32 (type index 3). Searching MirFunctions can falsely
-    // match Vec→Iter helpers whose wasm type is GC-ref based.
-    // Binary HOF (fold): prefer (i32,i32)->i32 over (Vec,i32)->Vec.
+    let memory64 = emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
+    // Unary HOF (map/filter): on wasm32 use stable WASI i32_1i32 (type 3).
+    // Under Memory64, pick a MirFunction with MIR (i32)->i32; its fn_type_map
+    // entry is the widened (i64)->i64 wasm type (not a Vec-returning helper).
+    // Binary HOF (fold): same split for (i32,i32)->i32 → (i64,i64)->i64.
     if arg_count == 1 {
         if dest_vt == value_types::VT_I32() && (first_arg_vt < 0 || first_arg_vt == value_types::VT_I32()) {
-            let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
-            if named >= 0 {
-                return named
+            if memory64 {
+                let named_m64 = find_unary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+                if named_m64 >= 0 {
+                    return named_m64
+                }
+            } else {
+                let named = find_unary_i32_callback_type(functions, fn_type_map, fn_count)
+                if named >= 0 {
+                    return named
+                }
             }
         }
     }
     if arg_count == 2 {
-        let named2 = find_binary_i32_callback_type(functions, fn_type_map, fn_count)
-        if named2 >= 0 {
-            return named2
+        if memory64 {
+            let named2_m64 = find_binary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+            if named2_m64 >= 0 {
+                return named2_m64
+            }
+        } else {
+            let named2 = find_binary_i32_callback_type(functions, fn_type_map, fn_count)
+            if named2 >= 0 {
+                return named2
+            }
         }
     }
     let mut fi = 0
@@ -112,6 +128,44 @@ fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i
         let _m = fn_type_map
     }
     1
+}
+
+fn find_unary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        if function_param_view::MirFunction_param_count(f) == 1 {
+            if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
+                if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
+                    if fi < len(fn_type_map) {
+                        return get_unchecked(fn_type_map, fi)
+                    }
+                }
+            }
+        }
+        fi = fi + 1
+    }
+    0 - 1
+}
+
+fn find_binary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        if function_param_view::MirFunction_param_count(f) == 2 {
+            if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
+                if function_param_view::MirFunction_param_val_type(f, 1) == value_types::VT_I32() {
+                    if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
+                        if fi < len(fn_type_map) {
+                            return get_unchecked(fn_type_map, fi)
+                        }
+                    }
+                }
+            }
+        }
+        fi = fi + 1
+    }
+    0 - 1
 }
 
 fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {

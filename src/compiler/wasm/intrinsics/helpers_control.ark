@@ -50,6 +50,16 @@ fn emit_if_i32(w: WasmWriter) {
     writer_core::emit_byte(w, constants::WASM_I32())
 }
 
+// if with i32 result, or i64 under Memory64 scalar widen (bool/i32 payloads).
+fn emit_if_widened_i32(w: WasmWriter) {
+    emit_if(w)
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, constants::WASM_I64())
+        return
+    }
+    writer_core::emit_byte(w, constants::WASM_I32())
+}
+
 fn emit_if_empty(w: WasmWriter) {
     emit_if(w)
     writer_core::emit_byte(w, 64)
