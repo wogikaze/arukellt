@@ -30,7 +30,7 @@ fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         let callee = inst_accessors_literals::MirInst_str_val(inst)
         let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
         writer_gc::emit_gc_ref_cast(w, vec_gc_type)
-        writer_gc::emit_gc_struct_get(w, vec_gc_type, 1)
+        writer_gc::emit_gc_struct_get_i32(w, vec_gc_type, 1)
     } else {
         // Linear-memory Vec: i32.load at offset 0 (len field)
         writer_core::emit_byte(w, opcodes::OP_I32_LOAD())

@@ -76,7 +76,7 @@ fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void:
     // Get len: struct.get vec_type 1
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
 
     // Growth check: if len >= cap then grow
@@ -113,7 +113,7 @@ fn emit_push_numeric_gc_store(w: WasmWriter, s_vec: i32, s_len: i32, s_val: i32,
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 }
 
 // Value scratch: i64 scratch (offset 15) or f64 scratch (offset 12).

@@ -135,7 +135,7 @@ fn emit_split_gc_finalize(w: WasmWriter, s_vec: i32, s_segidx: i32, vec_type: i3
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_segidx)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
 }

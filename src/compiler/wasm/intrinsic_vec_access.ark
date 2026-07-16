@@ -18,6 +18,7 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_access_gc
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 use mir::inst_accessors_literals
 
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -77,8 +78,8 @@ fn emit_vec_get_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     helpers_core::emit_local_get(w, s_idx)
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)  // vec.len
-    writer_core::emit_byte(w, 73)  // I32_LT_U
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)  // vec.len
+    helpers_numeric_i32::emit_i32_lt_u(w)
     writer_core::emit_byte(w, 4)   // IF (void)
     writer_core::emit_byte(w, 64)  // void block type (0x40)
 
@@ -105,7 +106,11 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)  // data array ref
     helpers_core::emit_local_get(w, s_idx)
-    writer_gc::emit_gc_array_get(w, array_type)
+    if !is_vec_string && !is_struct_ref_elem && !is_i64_elem && !is_f64_elem {
+        writer_gc::emit_gc_array_get_i32(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_get(w, array_type)
+    }
     if is_vec_string || is_struct_ref_elem {
         emit_vec_get_gc_some_ref(w, ctx, s_opt, is_struct_ref_elem, is_vec_string, enum_type, callee, inst)
         return

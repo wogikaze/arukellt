@@ -3,3 +3,25 @@ use wasm::writer_core
 
 fn emit_i32_wrap_i64(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64()) }
 fn emit_i32_trunc_f64_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_TRUNC_F64_S()) }
+
+// Memory64 scalar widen: GC/packed i32 results become i64 locals/params.
+fn emit_widen_i32_result(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    }
+}
+
+// Memory64 scalar widen: GC ops still consume true i32 sizes/indices/fields.
+fn emit_narrow_i64_operand(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
+}
+
+fn emit_i32_or_widened_op(w: WasmWriter, i32_op: i32, i64_op: i32) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, i64_op)
+        return
+    }
+    writer_core::emit_byte(w, i32_op)
+}

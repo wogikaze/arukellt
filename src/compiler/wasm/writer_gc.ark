@@ -1,5 +1,6 @@
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_gc_prefix(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
@@ -24,6 +25,11 @@ fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
     writer_core::emit_leb128_u(w, field_idx)
 }
 
+fn emit_gc_struct_get_i32(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    emit_gc_struct_get(w, type_idx, field_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
+}
+
 fn emit_gc_struct_set(w: WasmWriter, type_idx: i32, field_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_SET())
@@ -31,28 +37,51 @@ fn emit_gc_struct_set(w: WasmWriter, type_idx: i32, field_idx: i32) {
     writer_core::emit_leb128_u(w, field_idx)
 }
 
+fn emit_gc_struct_set_i32(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    emit_gc_struct_set(w, type_idx, field_idx)
+}
+
 fn emit_gc_array_len(w: WasmWriter) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_LEN())
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_gc_array_get_u(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_GET_U())
     writer_core::emit_leb128_u(w, type_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
+    // Size on top must already be a true i32 (raw i32.const or narrowed scalar).
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
     writer_core::emit_leb128_u(w, type_idx)
 }
 
+fn emit_gc_array_new_from_widened(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    emit_gc_array_new(w, type_idx)
+}
+
 fn emit_gc_array_get(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_GET())
     writer_core::emit_leb128_u(w, type_idx)
 }
+
+fn emit_gc_array_get_i32(w: WasmWriter, type_idx: i32) {
+    emit_gc_array_get(w, type_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
+}
+
+// Narrow a widened index that is already under a value on the stack is not
+// possible here; callers must narrow indices before pushing non-scalar values.
 
 fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
@@ -60,7 +89,16 @@ fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
     writer_core::emit_leb128_u(w, type_idx)
 }
 
+// i32/packed element set: value on top is a widened scalar and must narrow.
+// Callers must leave a true i32 index under that value.
+fn emit_gc_array_set_i32(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    emit_gc_array_set(w, type_idx)
+}
+
 fn emit_gc_array_copy(w: WasmWriter, dst_type_idx: i32, src_type_idx: i32) {
+    // Length on top is often a Memory64-widened scalar; GC copy wants i32.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_COPY())
     writer_core::emit_leb128_u(w, dst_type_idx)
@@ -73,6 +111,7 @@ fn emit_gc_ref_i31(w: WasmWriter) {
 }
 
 fn emit_gc_i31_new(w: WasmWriter) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_I31_NEW())
 }
@@ -80,6 +119,7 @@ fn emit_gc_i31_new(w: WasmWriter) {
 fn emit_gc_i31_get_s(w: WasmWriter) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_I31_GET_S())
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {

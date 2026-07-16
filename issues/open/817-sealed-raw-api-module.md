@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-16
+Updated: 2026-07-17
 ID: 817
 Parent: 729
 Track: compiler-internal
@@ -33,7 +33,8 @@ RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
       accessors through `std::core::raw`.
 - [x] Remove dual `intrinsic_*_lm.ark` pairs (merged into parent dispatchers).
 - [ ] Full generic Vec/String representation migration (#822).
-- [ ] Runtime differential coverage across GC and LM for every raw op.
+- [x] Runtime differential coverage across GC and LM for the raw Vec/String
+      construction, access, clone, and byte-conversion paths.
 
 ## Non-goals
 
@@ -46,14 +47,35 @@ RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
 - [x] Sealed raw API module is created; user import path is rejected in loader
 - [x] Vec/String stdlib entry points begin using the sealed raw API
 - [x] GC/LM dual `*_lm.ark` files are removed (helpers merged into parents)
-- [ ] Differential tests pass across GC and LM targets for raw ops
+- [x] Differential tests pass across GC and LM targets for raw ops
 - [ ] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
 
 ## Validation commands
 
 - `python3 -m unittest scripts.tests.test_prelude_raw_restoration`
+- `scripts/run/arukellt-selfhost.sh test std/core/raw.ark --target wasm32`
+- `scripts/run/arukellt-selfhost.sh test std/core/raw.ark --target wasm32-gc`
+- Compile, validate, and run
+  `tests/fixtures/sealed_raw/raw_storage_differential.ark` for both `wasm32`
+  and `wasm32-gc`; both outputs must equal `7920`.
 - `python3 scripts/manager.py verify quick`
 - `python3 scripts/manager.py docs regenerate`
+
+## Current evidence
+
+- The sealed import rejection is exercised through the current-source
+  selfhost compiler for both `core::raw` and `std::core::raw`.
+- `std/core/raw.ark` discovers and typechecks two raw-storage tests on both
+  targets.
+- The tracked differential fixture compiles, validates, and produces `7920` on
+  both `wasm32` and `wasm32-gc` after the Memory64 scalar-widen / GC-boundary
+  fix (MIR i32 const/arith/compare, GC wrap/extend at array/struct edges,
+  WASI pointer narrowing, and `string_from_bytes` using Vec logical length).
+- GC array smoke (`tests/fixtures/t3/array_gc.ark`) passes on the rebuilt s2.
+- `verify quick` still has residual failures outside the sealed-raw differential
+  (LSP lifecycle snapshot drift, debug smoke, and remaining T3 fixture
+  validation/compile cases). Those are tracked separately from the raw API
+  surface itself.
 
 ## References
 

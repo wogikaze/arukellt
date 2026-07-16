@@ -15,6 +15,7 @@ use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
 use mir::inst_accessors_operands
+use mir::inst_accessors_literals
 use wasm::intrinsic_vec_type
 
 fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
@@ -49,10 +50,18 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     }
 
-    // Step 1-2: Create backing array with initial capacity 8, save ref
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 8)
-    writer_gc::emit_gc_array_new(w, array_type)
+    // Step 1-2: Create backing array with the requested capacity. Constructors
+    // without a capacity argument retain the established default of eight.
+    if inst_accessors_literals::MirInst_int_val(inst) > 0 {
+        let capacity = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+        helpers_core::emit_local_set(w, capacity)
+        helpers_core::emit_local_get(w, capacity)
+        writer_gc::emit_gc_array_new_from_widened(w, array_type)
+    } else {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_core::emit_leb128_s(w, 8)
+        writer_gc::emit_gc_array_new(w, array_type)
+    }
     writer_gc::emit_gc_ref_cast(w, array_type)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, arr_tmp)

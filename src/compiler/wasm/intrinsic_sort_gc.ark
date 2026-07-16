@@ -58,7 +58,7 @@ fn emit_sort_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_outer
     helpers_core::emit_local_set(w, s_arr)
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_core::emit_local_set(w, s_outer)

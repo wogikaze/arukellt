@@ -37,7 +37,7 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Step 2: Get len, save to s_newlen
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_tee(w, s_newlen)
 
     // Step 3: Check if len > 0
@@ -109,7 +109,7 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 
     // Read last element: data[new_len]
     helpers_core::emit_local_get(w, vec_local)
@@ -146,7 +146,7 @@ fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_t
     helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 
     // Read last element: data[new_len] → String ref on stack
     helpers_core::emit_local_get(w, vec_local)

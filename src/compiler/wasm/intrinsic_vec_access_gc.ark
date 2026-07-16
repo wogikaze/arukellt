@@ -127,7 +127,11 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_get(w, s_idx)
-    writer_gc::emit_gc_array_get(w, array_type)
+    if array_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+        writer_gc::emit_gc_array_get_i32(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_get(w, array_type)
+    }
     // If array element type is abstract structref, cast to concrete struct type.
     // Prefer dest local's type (vec:String) over bare "Vec" (#726 csv_perf).
     let struct_ref_array_type = ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)

@@ -24,3 +24,8 @@ fn emit_i32_const(w: WasmWriter, value: i32) { helpers_numeric_i32_const::emit_i
 use wasm::intrinsics::helpers_numeric_i32_convert
 fn emit_i32_wrap_i64(w: WasmWriter) { helpers_numeric_i32_convert::emit_i32_wrap_i64(w) }
 fn emit_i32_trunc_f64_s(w: WasmWriter) { helpers_numeric_i32_convert::emit_i32_trunc_f64_s(w) }
+fn emit_widen_i32_result(w: WasmWriter) { helpers_numeric_i32_convert::emit_widen_i32_result(w) }
+fn emit_narrow_i64_operand(w: WasmWriter) { helpers_numeric_i32_convert::emit_narrow_i64_operand(w) }
+fn emit_i32_or_widened_op(w: WasmWriter, i32_op: i32, i64_op: i32) {
+    helpers_numeric_i32_convert::emit_i32_or_widened_op(w, i32_op, i64_op)
+}

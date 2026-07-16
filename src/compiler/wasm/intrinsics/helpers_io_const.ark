@@ -1,6 +1,7 @@
 use wasm::opcodes
 use wasm::writer_core
 
+// WASI import params stay true i32 even under Memory64.
 fn emit_i32_const(w: WasmWriter, value: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, value)

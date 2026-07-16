@@ -45,7 +45,7 @@ fn emit_map_option_some_result_i32(ctx: LowerCtx, mopt_new_local: i32, mopt_resu
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(mopt_new_local, some_slot))
         let mopt_tag_zero = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, mopt_tag_zero))
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(mopt_new_local, mopt_tag_zero, some_slot, 0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(mopt_new_local, mopt_tag_zero, some_slot, 0, value_types::VT_I32()))
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(mopt_new_local, mopt_result_local, some_slot, 1, value_types::VT_VOID()))
         return
     }
@@ -62,7 +62,7 @@ fn emit_map_option_none_i32(ctx: LowerCtx, mopt_new_local: i32) {
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_new(mopt_new_local, none_slot))
         let mopt_tag_one = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(1, mopt_tag_one))
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(mopt_new_local, mopt_tag_one, none_slot, 0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(mopt_new_local, mopt_tag_one, none_slot, 0, value_types::VT_I32()))
         return
     }
     let mopt_tag_one = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())

@@ -3,6 +3,10 @@
 
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_gc_block_loop(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
@@ -27,32 +31,31 @@ fn emit_gc_br(w: WasmWriter, depth: i32) {
 }
 
 fn emit_gc_i32_ge_s(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32_compare::emit_i32_ge_s(w)
 }
 
 fn emit_gc_i32_eq(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+    helpers_numeric_i32_compare::emit_i32_eq(w)
 }
 
 fn emit_gc_i32_ne(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+    helpers_numeric_i32_compare::emit_i32_ne(w)
 }
 
 fn emit_gc_i32_gt_s(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    helpers_numeric_i32_compare::emit_i32_gt_s(w)
 }
 
 fn emit_gc_i32_add(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_numeric_i32_arith::emit_i32_add(w)
 }
 
 fn emit_gc_i32_sub(w: WasmWriter) {
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    helpers_numeric_i32_arith::emit_i32_sub(w)
 }
 
 fn emit_gc_i32_const(w: WasmWriter, value: i32) {
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, value)
+    helpers_numeric_i32_const::emit_i32_const(w, value)
 }
 
 fn emit_gc_local_set(w: WasmWriter, local: i32) {
@@ -73,21 +76,29 @@ fn emit_gc_local_tee(w: WasmWriter, local: i32) {
 fn emit_gc_array_len(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_LEN())
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
+    // emit_gc_i32_const may push a widened i64 size under Memory64.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
     writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_array_get_u(w: WasmWriter, type_idx: i32) {
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_GET_U())
     writer_core::emit_leb128_u(w, type_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
+    // Packed byte/i32 element: value on top may be widened; index under it must
+    // already be a true i32 (narrow before pushing the value).
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_SET())
     writer_core::emit_leb128_u(w, type_idx)
@@ -112,14 +123,19 @@ fn emit_gc_end(w: WasmWriter) {
 }
 
 fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GC_PREFIX())
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
     writer_core::emit_leb128_u(w, type_idx)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
-    writer_core::emit_byte(w, opcodes::OP_GC_PREFIX())
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_GET())
     writer_core::emit_leb128_u(w, type_idx)
     writer_core::emit_leb128_u(w, field_idx)
+}
+
+fn emit_gc_struct_get_i32(w: WasmWriter, type_idx: i32, field_idx: i32) {
+    emit_gc_struct_get(w, type_idx, field_idx)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }

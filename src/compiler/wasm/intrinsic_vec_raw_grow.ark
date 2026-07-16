@@ -1,0 +1,272 @@
+//! Target lowering for the sealed `raw_array_grow` primitive.
+use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::emit_target
+use wasm::intrinsic_vec_type
+use wasm::intrinsic_vec_push_gc
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use mir::inst_accessors_literals
+
+fn emit_raw_array_grow(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_raw_array_grow_gc(w, inst, ctx)
+    } else {
+        emit_raw_array_grow_lm(w, ctx)
+    }
+    true
+}
+
+fn emit_raw_array_grow_lm(w: WasmWriter, ctx: SelfEmitCtx) {
+    let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let vec = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let old_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let old_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let grown_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let old_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let new_data = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+
+    helpers_core::emit_local_set(w, new_len)
+    helpers_core::emit_local_set(w, vec)
+    emit_lm_load_field(w, vec, 0)
+    helpers_core::emit_local_set(w, old_len)
+
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_get(w, old_len)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+
+    emit_lm_load_field(w, vec, 4)
+    helpers_core::emit_local_set(w, old_cap)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_get(w, old_cap)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    emit_raw_array_grow_lm_storage(
+        w,
+        vec,
+        new_len,
+        old_len,
+        old_cap,
+        grown_cap,
+        old_data,
+        new_data
+    )
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    emit_lm_store_field_from_local(w, vec, 0, new_len)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    helpers_core::emit_local_get(w, vec)
+}
+
+fn emit_raw_array_grow_lm_storage(
+    w: WasmWriter,
+    vec: i32,
+    new_len: i32,
+    old_len: i32,
+    old_cap: i32,
+    grown_cap: i32,
+    old_data: i32,
+    new_data: i32
+) {
+    helpers_core::emit_local_get(w, old_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 2)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_core::emit_local_set(w, grown_cap)
+    helpers_core::emit_local_get(w, grown_cap)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_set(w, grown_cap)
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, 0)
+    helpers_core::emit_local_set(w, new_data)
+    helpers_core::emit_local_get(w, new_data)
+    helpers_core::emit_local_get(w, grown_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+
+    emit_lm_load_field(w, vec, 8)
+    helpers_core::emit_local_set(w, old_data)
+    helpers_core::emit_local_get(w, new_data)
+    helpers_core::emit_local_get(w, old_data)
+    helpers_core::emit_local_get(w, old_len)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_memory::emit_memory_copy(w)
+
+    emit_lm_store_field_from_local(w, vec, 4, grown_cap)
+    emit_lm_store_field_from_local(w, vec, 8, new_data)
+}
+
+fn emit_lm_load_field(w: WasmWriter, vec: i32, offset: i32) {
+    helpers_core::emit_local_get(w, vec)
+    if offset > 0 {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_core::emit_leb128_s(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_lm_store_field_from_local(w: WasmWriter, vec: i32, offset: i32, value: i32) {
+    helpers_core::emit_local_get(w, vec)
+    if offset > 0 {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_core::emit_leb128_s(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    }
+    helpers_core::emit_local_get(w, value)
+    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+}
+
+fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let new_len = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let old_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let old_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let grown_cap = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let i32_old_array = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let i32_new_array = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
+    let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let is_vec_v128 = vec_type == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+    let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    let old_array = intrinsic_vec_push_gc::push_gc_array_scratch(
+        ctx,
+        0,
+        i32_old_array,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref
+    )
+    let new_array = intrinsic_vec_push_gc::push_gc_array_scratch(
+        ctx,
+        1,
+        i32_new_array,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref
+    )
+
+    helpers_core::emit_local_set(w, new_len)
+    helpers_core::emit_local_set(w, vec)
+    helpers_core::emit_local_get(w, vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
+    helpers_core::emit_local_set(w, old_len)
+
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_get(w, old_len)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+
+    helpers_core::emit_local_get(w, vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, old_array)
+    helpers_core::emit_local_get(w, old_array)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, old_cap)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_get(w, old_cap)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    emit_raw_array_grow_gc_storage(
+        w,
+        vec,
+        new_len,
+        old_len,
+        old_cap,
+        grown_cap,
+        old_array,
+        new_array,
+        vec_type,
+        array_type
+    )
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    helpers_core::emit_local_get(w, vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core::emit_local_get(w, new_len)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    helpers_core::emit_local_get(w, vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+}
+
+fn emit_raw_array_grow_gc_storage(
+    w: WasmWriter,
+    vec: i32,
+    new_len: i32,
+    old_len: i32,
+    old_cap: i32,
+    grown_cap: i32,
+    old_array: i32,
+    new_array: i32,
+    vec_type: i32,
+    array_type: i32
+) {
+    helpers_core::emit_local_get(w, old_cap)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 2)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_core::emit_local_set(w, grown_cap)
+    helpers_core::emit_local_get(w, grown_cap)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_core::emit_local_get(w, new_len)
+    helpers_core::emit_local_set(w, grown_cap)
+    writer_core::emit_byte(w, opcodes::OP_END())
+
+    helpers_core::emit_local_get(w, grown_cap)
+    writer_gc::emit_gc_array_new_from_widened(w, array_type)
+    writer_gc::emit_gc_ref_cast(w, array_type)
+    helpers_core::emit_local_set(w, new_array)
+    helpers_core::emit_local_get(w, new_array)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, old_array)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, old_len)
+    writer_gc::emit_gc_array_copy(w, array_type, array_type)
+    helpers_core::emit_local_get(w, vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core::emit_local_get(w, new_array)
+    writer_gc::emit_gc_ref_cast(w, array_type)
+    writer_gc::emit_gc_struct_set(w, vec_type, 0)
+}

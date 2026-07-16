@@ -231,7 +231,7 @@ fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))
     if type_slot >= 0 {
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, tag_tmp, type_slot, 0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, tag_tmp, type_slot, 0, value_types::VT_I32()))
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, tag_tmp, 0, value_types::VT_VOID()))
     }

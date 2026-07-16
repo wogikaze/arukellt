@@ -6,6 +6,7 @@ use wasm::emit_target
 use wasm::intrinsic_math
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -22,7 +23,9 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                     // String comparison on GC target: delegate to byte-by-byte intrinsic
                     intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
                 } else {
-                    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+                    helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                        w, opcodes::OP_I32_EQ(), opcodes::OP_I64_EQ()
+                    )
                 }
             }
         }
@@ -45,7 +48,9 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                     intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
                     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
                 } else {
-                    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+                    helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                        w, opcodes::OP_I32_NE(), opcodes::OP_I64_NE()
+                    )
                 }
             }
         }
@@ -79,7 +84,7 @@ fn emit_order_compare_by_type(w: WasmWriter, inst: MirInst, f64_op: i32, f32_op:
             if val_type == value_types::VT_I64() {
                 writer_core::emit_byte(w, i64_op)
             } else {
-                writer_core::emit_byte(w, i32_op)
+                helpers_numeric_i32_convert::emit_i32_or_widened_op(w, i32_op, i64_op)
             }
         }
     }

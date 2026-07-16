@@ -2,15 +2,18 @@ use wasm::constants
 use wasm::intrinsics::helpers_io_calls
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
-use wasm::intrinsics::helpers_io_locals
 use wasm::intrinsics::helpers_io_memory
+use wasm::writer_core
+use wasm::opcodes
 
 fn emit_p2_write_string_local(w: WasmWriter, string_local: i32, write_import_idx: i32) {
-    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_I32BUF())
-    helpers_io_locals::emit_local_get(w, string_local)
-    helpers_io_locals::emit_local_get(w, string_local)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
+    helpers_io_layout::emit_wasi_ptr_from_heap_local(w, string_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, string_local)
     helpers_io_layout::emit_string_len_from_stack(w)
-    helpers_io_locals::emit_local_get(w, string_local)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, string_local)
     helpers_io_layout::emit_string_len_from_stack(w)
     helpers_io_calls::emit_call_drop(w, write_import_idx)
 }
@@ -19,8 +22,8 @@ fn emit_p2_write_newline(w: WasmWriter, write_import_idx: i32) {
     helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_NEWLINE())
     helpers_io_const::emit_i32_const(w, 10)
     helpers_io_memory::emit_i32_store8_default(w)
-    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_I32BUF())
-    helpers_io_const::emit_i32_const(w, constants::SCRATCH_NEWLINE())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_NEWLINE())
     helpers_io_const::emit_i32_const(w, 1)
     helpers_io_const::emit_i32_const(w, 1)
     helpers_io_calls::emit_call_drop(w, write_import_idx)

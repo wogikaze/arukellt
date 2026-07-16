@@ -2,22 +2,29 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn emit_i32_sub(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_SUB())
+        return
+    }
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
 }
 
 fn emit_i32_store_default(w: WasmWriter) {
+    // Callers must leave [addr, val:i32]. Under Memory64 addr is i64.
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
 }
 
 fn emit_i32_load_default(w: WasmWriter) {
+    // Address on top must already match memory index type.
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_core::emit_byte(w, 0)
 }
 
 fn emit_i32_store8_default(w: WasmWriter) {
+    // Callers must leave [addr, val:i32]. Under Memory64 addr is i64.
     writer_core::emit_byte(w, opcodes::OP_I32_STORE8())
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)

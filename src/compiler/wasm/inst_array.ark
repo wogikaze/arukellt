@@ -18,6 +18,7 @@ use mir::local_access
 fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        // GC array size is always a true i32 operand.
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_gc::emit_gc_array_new(w, gc_type_idx)
@@ -50,8 +51,9 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             writer_gc::emit_gc_array_get(w, ctx_gc_type::SelfEmitCtx_v128_array_type(ctx))
             return
         }
+        // Default MIR arrays are i32-backed; widen the element under Memory64.
         let gc_type_idx = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-        writer_gc::emit_gc_array_get(w, gc_type_idx)
+        writer_gc::emit_gc_array_get_i32(w, gc_type_idx)
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, 4)
@@ -88,11 +90,12 @@ fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_leb128_u(w, val_tmp)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        // GC array index is a true i32; element value may be Memory64-widened.
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, val_tmp)
-        writer_gc::emit_gc_array_set(w, gc_type_idx)
+        writer_gc::emit_gc_array_set_i32(w, gc_type_idx)
     } else {
         let arr_val = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())

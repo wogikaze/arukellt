@@ -55,7 +55,7 @@ fn emit_remove_gc_setup(w: WasmWriter, s_idx: i32, s_vec: i32, s_arr: i32, s_len
     helpers_core::emit_local_set(w, s_arr)
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
     // i = idx
     helpers_core::emit_local_get(w, s_idx)
@@ -96,7 +96,7 @@ fn emit_remove_gc_finish(w: WasmWriter, s_vec: i32, s_len: i32, vec_type: i32) {
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_sub(w)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
     // push vec ref back
     helpers_core::emit_local_get(w, s_vec)
 }

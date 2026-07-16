@@ -5,6 +5,13 @@ use mir::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use mir::value_types
+
+fn is_memory64_i32_scalar_val_type(val_type: i32) -> bool {
+    // Only known i32 scalars. VT_VOID is used as a placeholder on some
+    // struct sets and must not force wrap/extend of ref payloads.
+    val_type == value_types::VT_I32()
+}
 
 fn emit_gc_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let dest = inst_accessors_shape::MirInst_dest(inst)
@@ -26,7 +33,12 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if type_slot >= 0 {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     }
-    writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if is_memory64_i32_scalar_val_type(val_type) {
+        writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
+    } else {
+        writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)
 }
@@ -44,5 +56,10 @@ fn emit_gc_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, value_local)
-    writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
+    let val_type = inst_accessors_shape::MirInst_val_type(inst)
+    if is_memory64_i32_scalar_val_type(val_type) {
+        writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
+    } else {
+        writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
+    }
 }
