@@ -558,7 +558,7 @@ fn main() {
         .memory_size(memory_id)
         .i32_const(16)
         .binop(walrus::ir::BinaryOp::I32Shl)
-        .binop(walrus::ir::BinaryOp::I32GtU)
+        .binop(walrus::ir::BinaryOp::I32GeU)
         .if_else(
             None,
             |then_| {
@@ -568,7 +568,7 @@ fn main() {
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32Shl)
                     .binop(walrus::ir::BinaryOp::I32Sub)
-                    .i32_const(65535)
+                    .i32_const(65536)
                     .binop(walrus::ir::BinaryOp::I32Add)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32ShrU)

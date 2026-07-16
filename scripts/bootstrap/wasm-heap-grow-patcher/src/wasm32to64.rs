@@ -181,6 +181,7 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
         .collect::<Result<_, _>>()
         .map_err(|e| format!("wasm parse error: {e}"))?;
 
+
     // Phase 2: pre-process — collect type, import, and function info.
     // all_func_types[i] = (params, results) for type index i.
     let mut all_func_types: Vec<(Vec<WValType>, Vec<WValType>)> = Vec::new();
@@ -188,6 +189,7 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
     let mut import_funcs: Vec<(String, String, u32, bool)> = Vec::new();
     let mut import_global_types: Vec<WGlobalType> = Vec::new();
     let mut local_func_types: Vec<u32> = Vec::new();
+    let mut local_global_count: u32 = 0;
 
     for p in &payloads {
         match p {
@@ -228,6 +230,12 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
                     local_func_types.push(ti);
                 }
             }
+            Payload::GlobalSection(r) => {
+                for g in r.clone() {
+                    let _ = g.map_err(|e| format!("global: {e}"))?;
+                    local_global_count += 1;
+                }
+            }
             _ => {}
         }
     }
@@ -236,6 +244,11 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
     let num_local_funcs = local_func_types.len() as u32;
     let num_import_globals = import_global_types.len() as u32;
     let num_types = all_func_types.len() as u32;
+    // Scratch globals: i64, i64, f32, f64 for mem op address canon / value park.
+    let scratch_global = num_import_globals + local_global_count;
+    let scratch_global2 = scratch_global + 1;
+    let scratch_f32 = scratch_global + 2;
+    let scratch_f64 = scratch_global + 3;
 
     // Phase 3: build type mapping.
     //
@@ -322,6 +335,10 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
             &wasi_wrapper_map,
             num_import_globals,
             &import_global_types,
+            scratch_global,
+            scratch_global2,
+            scratch_f32,
+            scratch_f64,
         )?;
         code_section.function(&func);
     }
@@ -492,6 +509,23 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
                         &cv_ce(&g.init_expr),
                     );
                 }
+                // Scratch globals for memory64 address canonization around stores/bulk.
+                gs.global(
+                    GlobalType { val_type: ValType::I64, mutable: true, shared: false },
+                    &ConstExpr::i64_const(0),
+                );
+                gs.global(
+                    GlobalType { val_type: ValType::I64, mutable: true, shared: false },
+                    &ConstExpr::i64_const(0),
+                );
+                gs.global(
+                    GlobalType { val_type: ValType::F32, mutable: true, shared: false },
+                    &ConstExpr::f32_const(0.0),
+                );
+                gs.global(
+                    GlobalType { val_type: ValType::F64, mutable: true, shared: false },
+                    &ConstExpr::f64_const(0.0),
+                );
                 result.section(&gs);
             }
 
@@ -619,6 +653,10 @@ fn convert_function(
     wasi_wrapper_map: &HashMap<u32, u32>,
     nig: u32,
     igt: &[WGlobalType],
+    scratch_global: u32,
+    scratch_global2: u32,
+    scratch_f32: u32,
+    scratch_f64: u32,
 ) -> Result<Function, String> {
     // Locals: i32 → i64.
     let lr = body.get_locals_reader().map_err(|e| format!("locals: {e}"))?;
@@ -632,7 +670,16 @@ fn convert_function(
     // Instructions.
     let mut ops = body.get_operators_reader().map_err(|e| format!("ops: {e}"))?;
     while let Ok(op) = ops.read() {
-        for insn in convert_operator(&op, wasi_wrapper_map, nig, igt) {
+        for insn in convert_operator(
+            &op,
+            wasi_wrapper_map,
+            nig,
+            igt,
+            scratch_global,
+            scratch_global2,
+            scratch_f32,
+            scratch_f64,
+        ) {
             func.instruction(&insn);
         }
     }
@@ -647,11 +694,33 @@ fn convert_operator(
     wwm: &HashMap<u32, u32>,
     nig: u32,
     igt: &[WGlobalType],
+    scratch_global: u32,
+    scratch_global2: u32,
+    scratch_f32: u32,
+    scratch_f64: u32,
 ) -> Vec<Instruction<'static>> {
     let mut r = Vec::new();
 
     macro_rules! i {
         ($x:expr) => { r.push($x) };
+    }
+
+    // Canonize a memory address: negative (sign-extended 2..4GiB) → unsigned
+    // low 32 bits; non-negative (including >4GiB heap) kept as full i64.
+    macro_rules! canon_addr {
+        () => {{
+            i!(Instruction::GlobalSet(scratch_global2));
+            i!(Instruction::GlobalGet(scratch_global2));
+            i!(Instruction::I64Const(0));
+            i!(Instruction::I64LtS);
+            i!(Instruction::If(BlockType::Result(ValType::I64)));
+            i!(Instruction::GlobalGet(scratch_global2));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U);
+            i!(Instruction::Else);
+            i!(Instruction::GlobalGet(scratch_global2));
+            i!(Instruction::End);
+        }};
     }
 
     match op {
@@ -734,43 +803,159 @@ fn convert_operator(
             }
         }
 
-        // ── Memory loads (i32 → keep + extend) ─────────────────────
-        // Sign-extend full i32 loads: wasm32 code stores signed sentinels such as
-        // local-index "-1". Zero-extending turns those into 0xFFFF_FFFF and breaks
-        // `idx >= 0` checks, which then emit invalid `local.get 4294967295`.
-        Operator::I32Load { memarg } => { i!(Instruction::I32Load(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
-        Operator::I32Load8S { memarg } => { i!(Instruction::I32Load8S(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
-        Operator::I32Load8U { memarg } => { i!(Instruction::I32Load8U(cv_ma(*memarg))); i!(Instruction::I64ExtendI32U); }
-        Operator::I32Load16S { memarg } => { i!(Instruction::I32Load16S(cv_ma(*memarg))); i!(Instruction::I64ExtendI32S); }
-        Operator::I32Load16U { memarg } => { i!(Instruction::I32Load16U(cv_ma(*memarg))); i!(Instruction::I64ExtendI32U); }
-        Operator::I64Load { memarg } => i!(Instruction::I64Load(cv_ma(*memarg))),
-        Operator::F32Load { memarg } => i!(Instruction::F32Load(cv_ma(*memarg))),
-        Operator::F64Load { memarg } => i!(Instruction::F64Load(cv_ma(*memarg))),
-        Operator::I64Load8S { memarg } => i!(Instruction::I64Load8S(cv_ma(*memarg))),
-        Operator::I64Load8U { memarg } => i!(Instruction::I64Load8U(cv_ma(*memarg))),
-        Operator::I64Load16S { memarg } => i!(Instruction::I64Load16S(cv_ma(*memarg))),
-        Operator::I64Load16U { memarg } => i!(Instruction::I64Load16U(cv_ma(*memarg))),
-        Operator::I64Load32S { memarg } => i!(Instruction::I64Load32S(cv_ma(*memarg))),
-        Operator::I64Load32U { memarg } => i!(Instruction::I64Load32U(cv_ma(*memarg))),
+        // ── Memory loads ───────────────────────────────────────────
+        Operator::I32Load { memarg } => {
+            canon_addr!();
+            i!(Instruction::I32Load(cv_ma(*memarg)));
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Load8S { memarg } => {
+            canon_addr!();
+            i!(Instruction::I32Load8S(cv_ma(*memarg)));
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Load8U { memarg } => {
+            canon_addr!();
+            i!(Instruction::I32Load8U(cv_ma(*memarg)));
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I32Load16S { memarg } => {
+            canon_addr!();
+            i!(Instruction::I32Load16S(cv_ma(*memarg)));
+            i!(Instruction::I64ExtendI32S);
+        }
+        Operator::I32Load16U { memarg } => {
+            canon_addr!();
+            i!(Instruction::I32Load16U(cv_ma(*memarg)));
+            i!(Instruction::I64ExtendI32U);
+        }
+        Operator::I64Load { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load(cv_ma(*memarg)));
+        }
+        Operator::F32Load { memarg } => {
+            canon_addr!();
+            i!(Instruction::F32Load(cv_ma(*memarg)));
+        }
+        Operator::F64Load { memarg } => {
+            canon_addr!();
+            i!(Instruction::F64Load(cv_ma(*memarg)));
+        }
+        Operator::I64Load8S { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load8S(cv_ma(*memarg)));
+        }
+        Operator::I64Load8U { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load8U(cv_ma(*memarg)));
+        }
+        Operator::I64Load16S { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load16S(cv_ma(*memarg)));
+        }
+        Operator::I64Load16U { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load16U(cv_ma(*memarg)));
+        }
+        Operator::I64Load32S { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load32S(cv_ma(*memarg)));
+        }
+        Operator::I64Load32U { memarg } => {
+            canon_addr!();
+            i!(Instruction::I64Load32U(cv_ma(*memarg)));
+        }
 
-        // ── Memory stores (i32 → wrap before) ──────────────────────
-        Operator::I32Store { memarg } => { i!(Instruction::I32WrapI64); i!(Instruction::I32Store(cv_ma(*memarg))); }
-        Operator::I32Store8 { memarg } => { i!(Instruction::I32WrapI64); i!(Instruction::I32Store8(cv_ma(*memarg))); }
-        Operator::I32Store16 { memarg } => { i!(Instruction::I32WrapI64); i!(Instruction::I32Store16(cv_ma(*memarg))); }
-        Operator::I64Store { memarg } => i!(Instruction::I64Store(cv_ma(*memarg))),
-        Operator::F32Store { memarg } => i!(Instruction::F32Store(cv_ma(*memarg))),
-        Operator::F64Store { memarg } => i!(Instruction::F64Store(cv_ma(*memarg))),
-        Operator::I64Store8 { memarg } => i!(Instruction::I64Store8(cv_ma(*memarg))),
-        Operator::I64Store16 { memarg } => i!(Instruction::I64Store16(cv_ma(*memarg))),
-        Operator::I64Store32 { memarg } => i!(Instruction::I64Store32(cv_ma(*memarg))),
+        // ── Memory stores ([addr, val]) ────────────────────────────
+        Operator::I32Store { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I32Store(cv_ma(*memarg)));
+        }
+        Operator::I32Store8 { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I32Store8(cv_ma(*memarg)));
+        }
+        Operator::I32Store16 { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I32Store16(cv_ma(*memarg)));
+        }
+        Operator::I64Store { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I64Store(cv_ma(*memarg)));
+        }
+        Operator::F32Store { memarg } => {
+            i!(Instruction::GlobalSet(scratch_f32));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_f32));
+            i!(Instruction::F32Store(cv_ma(*memarg)));
+        }
+        Operator::F64Store { memarg } => {
+            i!(Instruction::GlobalSet(scratch_f64));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_f64));
+            i!(Instruction::F64Store(cv_ma(*memarg)));
+        }
+        Operator::I64Store8 { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I64Store8(cv_ma(*memarg)));
+        }
+        Operator::I64Store16 { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I64Store16(cv_ma(*memarg)));
+        }
+        Operator::I64Store32 { memarg } => {
+            i!(Instruction::GlobalSet(scratch_global));
+            canon_addr!();
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I64Store32(cv_ma(*memarg)));
+        }
 
         // ── Memory bulk ops ────────────────────────────────────────
-        // In memory64 mode, memory.size returns i64 and memory.grow
-        // takes i64 and returns i64 — no wrap/extend needed.
         Operator::MemorySize { mem } => i!(Instruction::MemorySize(*mem)),
         Operator::MemoryGrow { mem } => i!(Instruction::MemoryGrow(*mem)),
-        Operator::MemoryCopy { dst_mem, src_mem } => i!(Instruction::MemoryCopy { src_mem: *src_mem, dst_mem: *dst_mem }),
-        Operator::MemoryFill { mem } => i!(Instruction::MemoryFill(*mem)),
+        // memory.copy: [dst, src, len] — unsigned-canon each (copy stays within wasm32 ranges).
+        Operator::MemoryCopy { dst_mem, src_mem } => {
+            i!(Instruction::GlobalSet(scratch_global)); // len
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U); // src
+            i!(Instruction::GlobalSet(scratch_global2)); // src canon
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U); // dst
+            i!(Instruction::GlobalGet(scratch_global2));
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U); // len
+            i!(Instruction::MemoryCopy { src_mem: *src_mem, dst_mem: *dst_mem });
+        }
+        // memory.fill: [dst, val, len]
+        Operator::MemoryFill { mem } => {
+            i!(Instruction::GlobalSet(scratch_global)); // len
+            i!(Instruction::GlobalSet(scratch_global2)); // val
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U); // dst
+            i!(Instruction::GlobalGet(scratch_global2));
+            i!(Instruction::I32WrapI64); // val as i32 lane
+            i!(Instruction::I64ExtendI32U);
+            i!(Instruction::GlobalGet(scratch_global));
+            i!(Instruction::I32WrapI64);
+            i!(Instruction::I64ExtendI32U); // len
+            i!(Instruction::MemoryFill(*mem));
+        }
         Operator::MemoryInit { data_index, mem } => i!(Instruction::MemoryInit { mem: *mem, data_index: *data_index }),
         Operator::DataDrop { data_index } => i!(Instruction::DataDrop(*data_index)),
 
@@ -818,11 +1003,9 @@ fn convert_operator(
         Operator::F64Le => { i!(Instruction::F64Le); i!(Instruction::I64ExtendI32U); }
         Operator::F64Ge => { i!(Instruction::F64Ge); i!(Instruction::I64ExtendI32U); }
 
-        // ── i32 arithmetic/logic → i64 with 32-bit wrap ─────────────
-        // Blanket i32→i64 without truncation diverges from wasm32 wraparound
-        // (and breaks selfhost compilers built from current sources).  After
-        // each former-i32 op, wrap to i32 then sign-extend so signed
-        // sentinels and index math stay in the low 32 bits.
+        // ── i32 arithmetic/logic → i64 ─────────────────────────────
+        // Add/Sub stay full i64 so the bump heap can pass 4GiB (#730).
+        // Other ops keep wasm32 wrap + sign-extend for sentinel/index math.
         Operator::I32Clz => {
             i!(Instruction::I64Clz);
             i!(Instruction::I32WrapI64);
@@ -838,16 +1021,8 @@ fn convert_operator(
             i!(Instruction::I32WrapI64);
             i!(Instruction::I64ExtendI32U);
         }
-        Operator::I32Add => {
-            i!(Instruction::I64Add);
-            i!(Instruction::I32WrapI64);
-            i!(Instruction::I64ExtendI32S);
-        }
-        Operator::I32Sub => {
-            i!(Instruction::I64Sub);
-            i!(Instruction::I32WrapI64);
-            i!(Instruction::I64ExtendI32S);
-        }
+        Operator::I32Add => i!(Instruction::I64Add),
+        Operator::I32Sub => i!(Instruction::I64Sub),
         Operator::I32Mul => {
             i!(Instruction::I64Mul);
             i!(Instruction::I32WrapI64);

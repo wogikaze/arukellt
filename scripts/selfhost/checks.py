@@ -1961,12 +1961,12 @@ def _wasm_memory_section_is_memory64(wasm_path: Path) -> bool:
 
 
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Prepare a stage-3 runtime compiler from s2 (memory64, large initial heap).
+    """Prepare a stage-3 runtime compiler from s2 (heap-grow + memory64).
 
-    Newer selfhost compilers false-positive under the walrus heap-grow site
-    heuristic, which corrupts execution.  Instead convert wasm32→memory64
-    without grow injection and start with a large initial memory so the bump
-    allocator stays within already-mapped pages past the 4GiB ceiling (#730).
+    Stage-2 wasm32 modules often omit ``memory.grow``; the patcher injects grow
+    sites, then ``wasm32to64`` widens the module.  Address canonization in the
+    converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
+    leaves non-negative addresses (including past 4GiB) as full i64 (#730).
     """
     out = root / S2_RUNTIME_WASM_REL
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
@@ -1980,15 +1980,8 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
         return None
-    # 131072 pages = 8 GiB — enough for stage-3 self-recompile without grow patches.
     patch = subprocess.run(
-        [
-            str(patcher_bin),
-            str(compiler_wasm),
-            str(out),
-            "--convert-only",
-            "--initial-pages=131072",
-        ],
+        [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"],
         cwd=str(root),
         capture_output=True,
         text=True,

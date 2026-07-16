@@ -23,12 +23,21 @@ the wasm32 4GB linear memory limit.
 Chosen path: **Memory64** (ADR-007 already lists it as `wasm32-gc` default emit OK).
 
 1. **Bootstrap unblock**: `wasm-heap-grow-patcher --to-memory64` converts pinned/s2
-   wasm32 modules; selfhost runners pass `-W memory64=y`.
+   wasm32 modules; selfhost runners pass `-W memory64=y` and
+   `-W max-memory-size=16GiB`.
 2. **Native emit**: `wasm32-gc` emits Memory64 memory + i64 heap and widens former
    i32 LM values via emitter helpers (`uses_memory64` = GC target).
 3. **Selfhost retarget**: stage-2 still emits `wasm32` from pinned bootstrap;
    stage-3+ uses `--target wasm32-gc --wasi-version wasi-p2`. GC Memory64 modules
    skip `wasm32to64` (preserves GC types).
+4. **Converter hardening (in progress)**:
+   - Stage-2 often has **zero** `memory.grow` sites → heap-grow patch is required.
+   - Grow injection uses `ge_u` + `65536` (was `gt_u` / `65535`).
+   - `wasm32to64` keeps load sign-extend for sentinels, leaves `i32.add`/`sub` as
+     full i64 (past 4GiB), and **canonizes** negative addresses before mem ops
+     so sign-extended pointers in `[2GiB, 4GiB)` stay valid.
+   - Observed stage-3 RSS past **10GiB** without the old 4GiB OOB; compile still
+     may hang in lower/emit (separate from the hard 4GiB ceiling).
 
 ## Root Cause
 
