@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-10
+Updated: 2026-07-16
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
@@ -15,13 +15,20 @@ Blocks v4 exit: True
 ## Summary
 
 The pinned bootstrap wasm (`bootstrap/arukellt-selfhost.wasm`) cannot compile
-the current `src/compiler/` source (106K lines, 1894 files) because the
-compiler's bump allocator exceeds the wasm32 4GB linear memory limit.
+the current `src/compiler/` source because the compiler's bump allocator exceeds
+the wasm32 4GB linear memory limit.
 
-This blocks:
-- `selfhost fixpoint --build` (can't produce s2/s3 wasm)
-- `verify quick` (9 checks fail due to wasm crashes or stale pinned wasm)
-- Pinned wasm refresh (can't rebuild with current source)
+## Progress (2026-07-16)
+
+Chosen path: **Memory64** (ADR-007 already lists it as `wasm32-gc` default emit OK).
+
+1. **Bootstrap unblock**: `wasm-heap-grow-patcher --to-memory64` converts pinned/s2
+   wasm32 modules; selfhost runners pass `-W memory64=y`.
+2. **Native emit**: `wasm32-gc` emits Memory64 memory + i64 heap and widens former
+   i32 LM values via emitter helpers (`uses_memory64` = GC target).
+3. **Selfhost retarget**: stage-2 still emits `wasm32` from pinned bootstrap;
+   stage-3+ uses `--target wasm32-gc --wasi-version wasi-p2`. GC Memory64 modules
+   skip `wasm32to64` (preserves GC types).
 
 ## Root Cause
 

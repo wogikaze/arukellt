@@ -5,23 +5,32 @@ use wasm::writer_sections
 use wasm::emit_target
 
 fn emit_memory_section(out: WasmWriter, target: String) {
-    let mem_sec = writer_core::WasmWriter_new()
+    let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
-        emit_memory_entry(mem_sec, 1)
+        emit_memory_entry(mem_sec, 1, emit_target::uses_memory64(clone(target)))
     } else {
-        emit_memory_entry(mem_sec, initial_memory_pages())
+        emit_memory_entry(mem_sec, initial_memory_pages(), false)
     }
     writer_sections::emit_section(out, opcodes::SEC_MEMORY(), mem_sec)
 }
 
 fn emit_global_section(out: WasmWriter, data_offset: i32) {
-    let global_sec = writer_core::WasmWriter_new()
-    emit_heap_global_entry(global_sec, data_offset)
+    let global_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    emit_heap_global_entry(global_sec, data_offset, writer_core::writer_memory64(out))
     writer_sections::emit_section(out, opcodes::SEC_GLOBAL(), global_sec)
 }
 
-fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32) {
+fn emit_heap_global_entry(global_sec: WasmWriter, data_offset: i32, memory64: bool) {
     writer_core::emit_leb128_u(global_sec, 1)
+    if memory64 {
+        writer_core::emit_byte(global_sec, constants::WASM_I64())
+        writer_core::emit_byte(global_sec, 1)
+        writer_core::emit_byte(global_sec, opcodes::OP_I64_CONST())
+        let heap_start = heap_start_from_data_offset(data_offset)
+        writer_core::emit_leb128_s_i64(global_sec, i32_to_i64(heap_start))
+        writer_core::emit_byte(global_sec, opcodes::OP_END())
+        return
+    }
     writer_core::emit_byte(global_sec, constants::WASM_I32())
     writer_core::emit_byte(global_sec, 1)
     writer_core::emit_byte(global_sec, opcodes::OP_I32_CONST())
@@ -34,9 +43,14 @@ fn heap_start_from_data_offset(data_offset: i32) -> i32 {
     (data_offset + 7) / 8 * 8
 }
 
-fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32) {
+// Memory limits: flag 0x00 = i32 min only; 0x04 = memory64 min only (ADR-007).
+fn emit_memory_entry(mem_sec: WasmWriter, initial_pages: i32, memory64: bool) {
     writer_core::emit_leb128_u(mem_sec, 1)
-    writer_core::emit_byte(mem_sec, 0)
+    if memory64 {
+        writer_core::emit_byte(mem_sec, 4)
+    } else {
+        writer_core::emit_byte(mem_sec, 0)
+    }
     writer_core::emit_leb128_u(mem_sec, initial_pages)
 }
 

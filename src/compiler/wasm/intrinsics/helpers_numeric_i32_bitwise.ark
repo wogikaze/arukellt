@@ -1,5 +1,17 @@
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_i32_and(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_AND()) }
-fn emit_i32_or(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_OR()) }
+fn emit_i32_and(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_AND())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
+}
+fn emit_i32_or(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_OR())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_OR())
+}

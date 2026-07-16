@@ -115,9 +115,13 @@ fn OP_I64_EQZ() -> i32 { 80 }
 fn OP_I64_EQ() -> i32 { 81 }
 fn OP_I64_NE() -> i32 { 82 }
 fn OP_I64_LT_S() -> i32 { 83 }
+fn OP_I64_LT_U() -> i32 { 84 }
 fn OP_I64_GT_S() -> i32 { 85 }
+fn OP_I64_GT_U() -> i32 { 86 }
 fn OP_I64_LE_S() -> i32 { 87 }
+fn OP_I64_LE_U() -> i32 { 88 }
 fn OP_I64_GE_S() -> i32 { 89 }
+fn OP_I64_GE_U() -> i32 { 90 }
 
 // f64 comparison opcodes.
 fn OP_F64_EQ() -> i32 { 97 }

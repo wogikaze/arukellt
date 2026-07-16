@@ -2,6 +2,7 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
 use wasm::code_scratch_locals
+use wasm::code_locals_val_type
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
@@ -34,7 +35,10 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
             return
         }
     }
-    writer_core::emit_byte(body, val_type_to_wasm(vt))
+    writer_core::emit_byte(body, code_locals_val_type::val_type_to_wasm_width(
+            vt,
+            writer_core::writer_memory64(body)
+        ))
 }
 
 // GC-target local val type emission. Returns true if emitted as a GC ref.

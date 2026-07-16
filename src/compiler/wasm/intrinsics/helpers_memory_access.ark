@@ -6,9 +6,15 @@ fn emit_i32_load(w: WasmWriter, offset: i32) {
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
     writer_leb::emit_leb128_u(w, offset)
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    }
 }
 
 fn emit_i32_store(w: WasmWriter, offset: i32) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     writer_core::emit_byte(w, opcodes::OP_I32_STORE())
     writer_core::emit_byte(w, 2)
     writer_leb::emit_leb128_u(w, offset)
@@ -26,9 +32,15 @@ fn emit_i32_load8_u_default(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_U())
+    }
 }
 
 fn emit_i32_store8_default(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     writer_core::emit_byte(w, opcodes::OP_I32_STORE8())
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)

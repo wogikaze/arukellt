@@ -4,13 +4,17 @@ use mir::function_locals_view
 use mir::local_access
 use wasm::ctx_scratch
 use wasm::ctx_vec_locals
+use wasm::ctx_record
 use wasm::host_intrinsic_adapter
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
+use wasm::emit_target
 
 fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> WasmWriter {
-    let body = writer_core::WasmWriter_new()
+    let body = writer_core::WasmWriter_with_memory64(
+        emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
+    )
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
     code_locals::emit_local_decls(body, f, local_count, param_count, ctx)

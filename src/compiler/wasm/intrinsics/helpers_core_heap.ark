@@ -15,6 +15,10 @@ fn emit_heap_get(w: WasmWriter) {
 // Reads global 0 (already updated) and grows memory when the heap pointer
 // passed the current memory size. Stack-neutral: safe right after global.set.
 fn emit_heap_ensure_grown(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        emit_heap_ensure_grown_i64(w)
+        return
+    }
     emit_heap_get(w)
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
     writer_leb::emit_leb128_u(w, 0)
@@ -25,6 +29,20 @@ fn emit_heap_ensure_grown(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_heap_grow_pages(w)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_heap_ensure_grown_i64(w: WasmWriter) {
+    emit_heap_get(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I64_SHL())
+    writer_core::emit_byte(w, opcodes::OP_I64_GT_U())
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    emit_heap_grow_pages_i64(w)
     writer_core::emit_byte(w, opcodes::OP_END())
 }
 
@@ -47,6 +65,25 @@ fn emit_heap_grow_pages(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_DROP())
 }
 
+fn emit_heap_grow_pages_i64(w: WasmWriter) {
+    emit_heap_get(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I64_SHL())
+    writer_core::emit_byte(w, opcodes::OP_I64_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_leb::emit_leb128_s(w, 65535)
+    writer_core::emit_byte(w, opcodes::OP_I64_ADD())
+    writer_core::emit_byte(w, opcodes::OP_I64_CONST())
+    writer_leb::emit_leb128_s(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I64_SHR_U())
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_GROW())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+}
+
 fn emit_heap_set(w: WasmWriter) {
     writer_core::emit_byte(w, opcodes::OP_GLOBAL_SET())
     writer_leb::emit_leb128_u(w, 0)
@@ -55,6 +92,10 @@ fn emit_heap_set(w: WasmWriter) {
 
 // Pre-grow linear memory when heap_top + headroom would exceed current size.
 fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) {
+    if writer_core::writer_memory64(w) {
+        emit_heap_pre_grow_headroom_i64(w, headroom)
+        return
+    }
     emit_heap_get(w)
     helpers_numeric_i32_const::emit_i32_const(w, headroom)
     helpers_numeric_i32_arith::emit_i32_add(w)
@@ -71,6 +112,34 @@ fn emit_heap_pre_grow_headroom(w: WasmWriter, headroom: i32) {
     helpers_numeric_i32_arith::emit_i32_add(w)
     helpers_numeric_i32_const::emit_i32_const(w, 16)
     writer_core::emit_byte(w, opcodes::OP_I32_SHR_U())
+    helpers_numeric_i32_const::emit_i32_const(w, 2)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    helpers_numeric_i32_arith::emit_i32_sub(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_GROW())
+    writer_leb::emit_leb128_u(w, 0)
+    helpers_core_stack::emit_drop(w)
+    helpers_control_structured::emit_end(w)
+}
+
+fn emit_heap_pre_grow_headroom_i64(w: WasmWriter, headroom: i32) {
+    emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, headroom)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I64_SHR_U())
+    helpers_numeric_i32_const::emit_i32_const(w, 2)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())
+    writer_leb::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I64_GT_U())
+    helpers_control_structured::emit_if_i32(w)
+    emit_heap_get(w)
+    helpers_numeric_i32_const::emit_i32_const(w, headroom)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_numeric_i32_const::emit_i32_const(w, 16)
+    writer_core::emit_byte(w, opcodes::OP_I64_SHR_U())
     helpers_numeric_i32_const::emit_i32_const(w, 2)
     helpers_numeric_i32_arith::emit_i32_add(w)
     writer_core::emit_byte(w, opcodes::OP_MEMORY_SIZE())

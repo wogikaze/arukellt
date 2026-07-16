@@ -17,6 +17,8 @@ fn emit_i32_lt_s(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_lt_s(w) 
 fn emit_i32_gt_s(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_gt_s(w) }
 fn emit_i32_ge_s(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_ge_s(w) }
 fn emit_i32_ge_u(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_ge_u(w) }
+fn emit_i32_gt_u(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_gt_u(w) }
+fn emit_i32_lt_u(w: WasmWriter) { helpers_numeric_i32_compare::emit_i32_lt_u(w) }
 use wasm::intrinsics::helpers_numeric_i32_const
 fn emit_i32_const(w: WasmWriter, value: i32) { helpers_numeric_i32_const::emit_i32_const(w, value) }
 use wasm::intrinsics::helpers_numeric_i32_convert

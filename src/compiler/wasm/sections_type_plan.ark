@@ -181,6 +181,10 @@ fn val_type_to_target_sig(vt: i32, is_gc_target: bool) -> String {
     if vt == 5 && !is_gc_target {
         return String_from("i32")
     }
+    // wasm32-gc default Memory64: widen former i32 Wasm values to i64.
+    if is_gc_target && (vt == 1 || vt == 8 || vt == 30) {
+        return String_from("i64")
+    }
     val_type_to_sig(vt)
 }
 

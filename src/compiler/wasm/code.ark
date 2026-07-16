@@ -4,10 +4,11 @@ use wasm::writer_sections
 use wasm::code_body
 use wasm::function_indices
 use wasm::ctx_record
+use wasm::emit_target
 use mir::module_wit_imports
 
 fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
-    let code_sec = writer_core::WasmWriter_new()
+    let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
@@ -31,7 +32,9 @@ fn emit_code_body_entry(code_sec: WasmWriter, body: WasmWriter) {
 }
 
 fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i32) -> WasmWriter {
-    let wrapper_body = writer_core::WasmWriter_new()
+    let wrapper_body = writer_core::WasmWriter_with_memory64(
+        emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
+    )
     writer_core::emit_leb128_u(wrapper_body, 0)
     writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())
     writer_core::emit_leb128_u(

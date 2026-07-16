@@ -442,7 +442,7 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
                     fs.function(ti);
                 }
                 // WASI wrapper functions — use converted WASI types.
-                for (_, _, ti, is_wasi) in import_funcs.iter().enumerate() {
+                for (_, _, ti, is_wasi) in &import_funcs {
                     if *is_wasi {
                         let converted_ti = wasi_converted_type_map.get(ti).copied().unwrap_or(*ti);
                         fs.function(converted_ti);
@@ -466,9 +466,11 @@ pub fn convert_to_memory64(data: &[u8]) -> Result<Vec<u8>, String> {
                 let mut mems = MemorySection::new();
                 for m in r.clone() {
                     let m = m.map_err(|e| format!("memory: {e}"))?;
+                    // Drop the wasm32 4GiB page cap so memory.grow can exceed
+                    // 65536 pages under memory64.
                     mems.memory(MemoryType {
-                        minimum: m.initial,
-                        maximum: m.maximum,
+                        minimum: m.initial.max(256),
+                        maximum: None,
                         memory64: true,
                         shared: m.shared,
                         page_size_log2: m.page_size_log2,

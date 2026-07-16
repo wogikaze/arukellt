@@ -4,6 +4,11 @@ fn is_gc_target(target: String) -> bool {
     eq(clone(target), String_from("wasm32-gc"))
 }
 
+// ADR-007: Memory64 is default emit OK for wasm32-gc only (not wasm32/iwasm).
+fn uses_memory64(target: String) -> bool {
+    is_gc_target(clone(target))
+}
+
 fn is_simd_target(target: String) -> bool {
     // SIMD is available on both canonical Wasm targets; host profile does not
     // change the value representation.

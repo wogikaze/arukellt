@@ -375,18 +375,26 @@ fn patch_vec_new(
     *patched += 1;
 }
 
+mod wasm32to64;
+
 fn main() {
     let path = env::args().nth(1).expect("input wasm");
     let out = env::args().nth(2).expect("output wasm");
-    let dedupe_only = env::args().nth(3).as_deref() == Some("--dedupe-exports");
-    let mut module = load_module(&path);
+    let extra: Vec<String> = env::args().skip(3).collect();
+    let dedupe_only = extra.iter().any(|a| a == "--dedupe-exports");
+    let to_memory64 = extra.iter().any(|a| a == "--to-memory64");
 
     if dedupe_only {
+        let mut module = load_module(&path);
         let removed = dedupe_export_names(&mut module);
         module.emit_wasm_file(&out).expect("write wasm");
         eprintln!("removed {} duplicate exports (no GC); wrote {}", removed, out);
         return;
     }
+
+    // Heap-grow patch while still memory32, then optionally widen to memory64
+    // so the bump allocator can pass the wasm32 4GiB ceiling (#730).
+    let mut module = load_module(&path);
 
     for mem in module.memories.iter_mut() {
         mem.initial = 65535;
@@ -461,6 +469,28 @@ fn main() {
     }
 
     let _ = dedupe_export_names(&mut module);
+
+    if to_memory64 {
+        let tmp = format!("{}.pre64.wasm", out);
+        module.emit_wasm_file(&tmp).expect("write pre-memory64 wasm");
+        let bytes = std::fs::read(&tmp).expect("read pre-memory64 wasm");
+        match wasm32to64::convert_to_memory64(&bytes) {
+            Ok(converted) => {
+                std::fs::write(&out, &converted).expect("write memory64 wasm");
+                let _ = std::fs::remove_file(&tmp);
+                eprintln!(
+                    "patched {} heap growth sites; converted to memory64; wrote {}",
+                    total_patched, out
+                );
+            }
+            Err(err) => {
+                let _ = std::fs::remove_file(&tmp);
+                eprintln!("memory64 conversion failed: {err}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
 
     module.emit_wasm_file(&out).expect("write wasm");
     eprintln!(

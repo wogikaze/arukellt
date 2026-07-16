@@ -6,7 +6,7 @@ use wasm::writer_sections
 fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
     let final_str_count = len(strings)
     if final_str_count > 0 {
-        let data_sec = writer_core::WasmWriter_new()
+        let data_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
         writer_core::emit_leb128_u(data_sec, 1)
         emit_active_data_offset_expr(data_sec)
         let total_data = total_string_data_size(strings)
@@ -18,7 +18,11 @@ fn emit_data_section(out: WasmWriter, strings: Vec<String>) {
 
 fn emit_active_data_offset_expr(data_sec: WasmWriter) {
     writer_core::emit_byte(data_sec, 0)
-    writer_core::emit_byte(data_sec, opcodes::OP_I32_CONST())
+    if writer_core::writer_memory64(data_sec) {
+        writer_core::emit_byte(data_sec, opcodes::OP_I64_CONST())
+    } else {
+        writer_core::emit_byte(data_sec, opcodes::OP_I32_CONST())
+    }
     writer_core::emit_leb128_s(data_sec, constants::DATA_START())
     writer_core::emit_byte(data_sec, opcodes::OP_END())
 }

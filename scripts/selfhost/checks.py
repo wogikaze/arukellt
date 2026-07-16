@@ -135,8 +135,18 @@ PATCHER_DIR_REL = "scripts/bootstrap/wasm-heap-grow-patcher"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 SELFHOST_COMPILE_TIMEOUT = 900
-SELFHOST_TARGET = "wasm32"
-SELFHOST_WASI_VERSION = "wasi-p1"
+# Stage-2+ artifacts: primary target (ADR-007 Memory64 default).
+SELFHOST_TARGET = "wasm32-gc"
+SELFHOST_WASI_VERSION = "wasi-p2"
+# Pinned bootstrap still emits wasm32; convert with --to-memory64 for #730.
+BOOTSTRAP_EMIT_TARGET = "wasm32"
+BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
+# Runtime flags for selfhost compilers (GC proposals + memory64 for #730).
+WASMTIME_SELFHOST_WASM_FLAGS = [
+    "--wasm", "gc",
+    "--wasm", "function-references",
+    "-W", "memory64=y",
+]
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
@@ -577,7 +587,7 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
     if not wasmtime:
         return wasm_path
     r = subprocess.run(
-        [wasmtime, "compile", "--wasm", "gc", "--wasm", "function-references",
+        [wasmtime, "compile", *WASMTIME_SELFHOST_WASM_FLAGS,
          "-o", str(cwasm), str(wasm_path)],
         capture_output=True, text=True,
     )
@@ -593,10 +603,10 @@ def _wasm_run_cmd(
     cwasm = _ensure_aot_cwasm(compiler_wasm)
     if cwasm.suffix == ".cwasm":
         return [wasmtime, "run", "--allow-precompiled",
-                "--wasm", "gc", "--wasm", "function-references",
+                *WASMTIME_SELFHOST_WASM_FLAGS,
                 "--wasm", "max-wasm-stack=16777216",
                 "--dir", str(root), str(cwasm), "--", *args]
-    return [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
+    return [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS,
             "--wasm", "max-wasm-stack=16777216",
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
@@ -608,7 +618,7 @@ def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
         if hosted.is_file():
             return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", "--wasm", "gc", "--wasm", "function-references",
+    return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
             "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
 
 
@@ -646,6 +656,8 @@ def _wasm_compile(
     root: Path,
     timeout: int | None = None,
     workspace_root: Path | None = None,
+    target: str | None = None,
+    wasi_version: str | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime.
 
@@ -653,6 +665,8 @@ def _wasm_compile(
     Passes --cache-dir to enable per-module parse caching (only for selfhost
     compilers that support the flag; skipped for pinned bootstrap).
     """
+    emit_target = target if target is not None else SELFHOST_TARGET
+    emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
     dirs: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
@@ -670,12 +684,12 @@ def _wasm_compile(
     run_wasm = _ensure_aot_cwasm(compiler_wasm)
     run_flags: list[str]
     if run_wasm.suffix == ".cwasm":
-        run_flags = ["--allow-precompiled", "--wasm", "gc", "--wasm", "function-references"]
+        run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
     else:
-        run_flags = ["--wasm", "gc", "--wasm", "function-references"]
+        run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
     result = _run(
         [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", SELFHOST_TARGET, "--wasi-version", SELFHOST_WASI_VERSION, "-o", guest_out, *cache_args],
+         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out, *cache_args],
         root,
         timeout=timeout,
     )
@@ -1776,14 +1790,23 @@ def _ensure_wasm_patcher_binary(root: Path) -> Path | None:
     """Build the walrus heap/export patcher when sources are newer than the binary."""
     patcher_dir = root / PATCHER_DIR_REL
     patcher_src = patcher_dir / "src" / "main.rs"
-    patcher_bin = root / "target" / "release" / "wasm-heap-grow-patcher"
+    patcher_to64 = patcher_dir / "src" / "wasm32to64.rs"
+    # Prefer repo-root target (workspace .cargo config) then crate-local target.
+    candidates = [
+        root / "target" / "release" / "wasm-heap-grow-patcher",
+        patcher_dir / "target" / "release" / "wasm-heap-grow-patcher",
+    ]
     if not patcher_src.is_file():
         return None
-    source_mtime = max(
+    mtimes = [
         patcher_src.stat().st_mtime,
         patcher_dir.joinpath("Cargo.toml").stat().st_mtime,
         Path(__file__).stat().st_mtime,
-    )
+    ]
+    if patcher_to64.is_file():
+        mtimes.append(patcher_to64.stat().st_mtime)
+    source_mtime = max(mtimes)
+    patcher_bin = next((p for p in candidates if p.is_file()), candidates[0])
     if not patcher_bin.is_file() or patcher_bin.stat().st_mtime < source_mtime:
         build = subprocess.run(
             ["cargo", "build", "--release", "--quiet"],
@@ -1791,7 +1814,10 @@ def _ensure_wasm_patcher_binary(root: Path) -> Path | None:
             capture_output=True,
             text=True,
         )
-        if build.returncode != 0 or not patcher_bin.is_file():
+        if build.returncode != 0:
+            return None
+        patcher_bin = next((p for p in candidates if p.is_file()), None)
+        if patcher_bin is None:
             return None
     return patcher_bin
 
@@ -1834,32 +1860,21 @@ def _patch_bootstrap_disable_selfhost_mir_prune(wasm_path: Path) -> bool:
 
 
 def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
-    """Return a bootstrap-capable copy of the pinned wasm (4GiB + heap grow)."""
+    """Return a bootstrap-capable copy of the pinned wasm (heap grow + memory64)."""
     out = root / BOOTSTRAP_WASM_REL
-    patcher_dir = root / PATCHER_DIR_REL
-    patcher_src = patcher_dir / "src" / "main.rs"
-    patcher_bin = root / "target" / "release" / "wasm-heap-grow-patcher"
-    if not patcher_src.is_file():
+    patcher_bin = _ensure_wasm_patcher_binary(root)
+    if patcher_bin is None:
         return None
     source_mtime = max(
         pinned.stat().st_mtime,
-        patcher_src.stat().st_mtime,
-        patcher_dir.joinpath("Cargo.toml").stat().st_mtime,
+        patcher_bin.stat().st_mtime,
         Path(__file__).stat().st_mtime,
     )
     if out.is_file() and out.stat().st_mtime >= source_mtime:
         return out
     out.parent.mkdir(parents=True, exist_ok=True)
-    build = subprocess.run(
-        ["cargo", "build", "--release", "--quiet"],
-        cwd=str(patcher_dir),
-        capture_output=True,
-        text=True,
-    )
-    if build.returncode != 0:
-        return None
     patch = subprocess.run(
-        [str(patcher_bin), str(pinned), str(out)],
+        [str(patcher_bin), str(pinned), str(out), "--to-memory64"],
         cwd=str(root),
         capture_output=True,
         text=True,
@@ -1903,17 +1918,61 @@ def _parity_runtime_compiler(root: Path, pinned: Path, built_s2: Path) -> Path |
     return built_s2 if built_s2.is_file() else None
 
 
+def _wasm_memory_section_is_memory64(wasm_path: Path) -> bool:
+    """Return True if the first memory type uses the memory64 limits flag."""
+    try:
+        data = wasm_path.read_bytes()
+    except OSError:
+        return False
+    if len(data) < 8 or data[0:4] != b"\0asm":
+        return False
+    offset = 8
+    while offset < len(data):
+        section_id = data[offset]
+        offset += 1
+        size = 0
+        shift = 0
+        while offset < len(data):
+            byte = data[offset]
+            offset += 1
+            size |= (byte & 0x7F) << shift
+            if byte & 0x80 == 0:
+                break
+            shift += 7
+            if shift > 35:
+                return False
+        payload_end = offset + size
+        if payload_end > len(data):
+            return False
+        if section_id == 5 and size > 0:
+            # memory section: count LEB, then flags for first memory
+            pos = offset
+            while pos < payload_end and data[pos] & 0x80:
+                pos += 1
+            pos += 1
+            if pos < payload_end:
+                return (data[pos] & 0x04) != 0
+            return False
+        offset = payload_end
+    return False
+
+
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Heap-patch a selfhost compiler wasm for stage-3 and parity compile runs."""
+    """Heap-patch a selfhost compiler; apply memory64 convert for wasm32 only."""
     out = root / S2_RUNTIME_WASM_REL
-    patcher_bin = root / PATCHER_DIR_REL / "target" / "release" / "wasm-heap-grow-patcher"
-    if not patcher_bin.is_file():
-        return None
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         return out
     out.parent.mkdir(parents=True, exist_ok=True)
+    # Native Memory64 modules (wasm32-gc) already grow past 4GiB; do not run
+    # wasm32to64 (it does not preserve GC type sections).
+    if _wasm_memory_section_is_memory64(compiler_wasm):
+        shutil.copyfile(compiler_wasm, out)
+        return out
+    patcher_bin = _ensure_wasm_patcher_binary(root)
+    if patcher_bin is None:
+        return None
     patch = subprocess.run(
-        [str(patcher_bin), str(compiler_wasm), str(out)],
+        [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"],
         cwd=str(root),
         capture_output=True,
         text=True,
@@ -2135,16 +2194,18 @@ def _should_try_flat_overlay(stderr: str) -> bool:
 def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | None:
     """Build a hop compiler (pinned -> a56+unify) for oversized modular sources."""
     out = root / HOP_BOOTSTRAP_WASM_REL
-    patcher_bin = root / PATCHER_DIR_REL / "target" / "release" / "wasm-heap-grow-patcher"
+    patcher_bin = _ensure_wasm_patcher_binary(root)
     patch_marker = root / ".build" / "selfhost" / f"hop-bootstrap-patch-rev{HOP_BOOTSTRAP_PATCH_REV}"
     if (
         out.is_file()
         and out.stat().st_mtime >= bootstrap.stat().st_mtime
         and patch_marker.is_file()
+        and patcher_bin is not None
+        and out.stat().st_mtime >= patcher_bin.stat().st_mtime
     ):
         return out
     wasmtime = _find_wasmtime()
-    if not wasmtime:
+    if not wasmtime or patcher_bin is None:
         return None
     work_dir = root / ".build" / "hop-bootstrap-work"
     if work_dir.exists():
@@ -2175,8 +2236,8 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
     shutil.copyfile(bootstrap, work_dir / "hop-compiler.wasm")
     hop_s2 = work_dir / "hop-s2.wasm"
     compile = subprocess.run(
-        [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", ".", "hop-compiler.wasm", "--",
-         "compile", "src/compiler/main.ark", "--target", SELFHOST_TARGET, "--wasi-version", SELFHOST_WASI_VERSION, "-o", "hop-s2.wasm"],
+        [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", ".", "hop-compiler.wasm", "--",
+         "compile", "src/compiler/main.ark", "--target", BOOTSTRAP_EMIT_TARGET, "--wasi-version", BOOTSTRAP_EMIT_WASI_VERSION, "-o", "hop-s2.wasm"],
         cwd=str(work_dir),
         capture_output=True,
         text=True,
@@ -2186,7 +2247,7 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
         return None
     out.parent.mkdir(parents=True, exist_ok=True)
     patch = subprocess.run(
-        [str(patcher_bin), str(hop_s2), str(out)],
+        [str(patcher_bin), str(hop_s2), str(out), "--to-memory64"],
         cwd=str(root),
         capture_output=True,
         text=True,
@@ -2831,6 +2892,8 @@ def _wasm_compile_selfhost_source(
     root: Path,
     timeout: int | None = None,
     use_s3_cache: bool = False,
+    target: str | None = None,
+    wasi_version: str | None = None,
 ) -> subprocess.CompletedProcess:
     """Compile current selfhost source, falling back to a flat bootstrap overlay.
 
@@ -2840,6 +2903,8 @@ def _wasm_compile_selfhost_source(
     3. If cache miss, proceed with full compilation and store result
     """
     compile_timeout = SELFHOST_COMPILE_TIMEOUT if timeout is None else timeout
+    emit_target = target if target is not None else SELFHOST_TARGET
+    emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
     needs_overlay = _needs_flat_bootstrap_overlay(root)
     workspace = _prepare_bootstrap_workspace(root) if needs_overlay else None
 
@@ -2859,9 +2924,18 @@ def _wasm_compile_selfhost_source(
                 root,
                 timeout=compile_timeout,
                 workspace_root=workspace,
+                target=emit_target,
+                wasi_version=emit_wasi,
             )
         result = _wasm_compile(
-            wasmtime, compiler_wasm, SELFHOST_SOURCE_REL, out_rel, root, timeout=compile_timeout,
+            wasmtime,
+            compiler_wasm,
+            SELFHOST_SOURCE_REL,
+            out_rel,
+            root,
+            timeout=compile_timeout,
+            target=emit_target,
+            wasi_version=emit_wasi,
         )
         if result.returncode == 0:
             return result
@@ -2876,6 +2950,8 @@ def _wasm_compile_selfhost_source(
             root,
             timeout=compile_timeout,
             workspace_root=ws,
+            target=emit_target,
+            wasi_version=emit_wasi,
         )
 
     result = _do_compile()
@@ -2897,7 +2973,14 @@ def _compile_selfhost_bootstrap_chain(
         compilers.append(hop)
     last: subprocess.CompletedProcess | None = None
     for compiler in compilers:
-        last = _wasm_compile_selfhost_source(wasmtime, compiler, out_rel, root)
+        last = _wasm_compile_selfhost_source(
+            wasmtime,
+            compiler,
+            out_rel,
+            root,
+            target=BOOTSTRAP_EMIT_TARGET,
+            wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+        )
         if last.returncode == 0:
             out = root / out_rel
             if out.is_file():
@@ -3789,7 +3872,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
     fail_count = 0
 
     def run_self_with_dirs(dirs: list[Path], *args: str) -> tuple[int, str]:
-        cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references"]
+        cmd = [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS]
         for mount in dirs:
             cmd.extend(["--dir", str(mount)])
         cmd.extend([str(current), "--", *args])
@@ -3870,7 +3953,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
         tmp = Path(tmpdir)
         (tmp / "test_project" / "src").mkdir(parents=True)
         r = _run(
-            [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", ".", str(current), "--", "init", "test_project"],
+            [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", ".", str(current), "--", "init", "test_project"],
             tmp,
         )
         rc_i, out_i = r.returncode, (r.stdout + r.stderr)
@@ -3915,7 +3998,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
                         dirs_exist_ok=True)
         project_dir = tmp / "basic-project"
         r = _run(
-            [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "--dir", str(project_dir), str(current), "--", "script"],
+            [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", str(project_dir), str(current), "--", "script"],
             project_dir,
         )
         rc_s, out_s = r.returncode, (r.stdout + r.stderr)

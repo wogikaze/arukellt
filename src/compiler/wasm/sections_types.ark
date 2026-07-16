@@ -53,7 +53,7 @@ fn emit_type_section(
     }
     let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
     let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, enum_variant_count)
-    let type_sec = writer_core::WasmWriter_new()
+    let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(type_sec, len(canon_types))
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)

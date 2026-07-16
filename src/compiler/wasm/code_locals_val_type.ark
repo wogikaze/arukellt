@@ -2,7 +2,14 @@ use wasm::constants
 use mir::value_types
 
 fn val_type_to_wasm(vt: i32) -> i32 {
+    val_type_to_wasm_width(vt, false)
+}
+
+fn val_type_to_wasm_width(vt: i32, memory64: bool) -> i32 {
     if vt == value_types::VT_I32() {
+        if memory64 {
+            return constants::WASM_I64()
+        }
         return constants::WASM_I32()
     }
     if vt == value_types::VT_I64() {
@@ -21,10 +28,19 @@ fn val_type_to_wasm(vt: i32) -> i32 {
         return constants::WASM_FUNCREF()
     }
     if vt == value_types::VT_REF() {
+        if memory64 {
+            return constants::WASM_I64()
+        }
         return constants::WASM_I32()
     }
     if vt == value_types::VT_GC_REF() {
+        if memory64 {
+            return constants::WASM_I64()
+        }
         return constants::WASM_I32()
+    }
+    if memory64 {
+        return constants::WASM_I64()
     }
     constants::WASM_I32()
 }

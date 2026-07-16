@@ -111,7 +111,11 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
 fn emit_i32_scratch_local_decls(body: WasmWriter, count: i32) {
     if count > 0 {
         writer_core::emit_leb128_u(body, count)
-        writer_core::emit_byte(body, constants::WASM_I32())
+        if writer_core::writer_memory64(body) {
+            writer_core::emit_byte(body, constants::WASM_I64())
+        } else {
+            writer_core::emit_byte(body, constants::WASM_I32())
+        }
     }
 }
 
