@@ -1,3 +1,8 @@
+use typechecker::kinds
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::contract_typevar
+use typechecker::contract_env_vars_record
 use typechecker::unify
 
 fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeInfo> {
@@ -8,4 +13,46 @@ fn resolve_type_args(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> Vec<TypeIn
         push(resolved_type_args, resolved_tv)
     }
     resolved_type_args
+}
+
+// Field access and other untyped receivers leave Vec element types as UNKNOWN, so
+// get_unchecked<T> cannot bind T. Unresolved fresh vars must not escape as "t0"
+// into return-type checks — treat them as UNKNOWN (pre-prelude polymorphic builtin
+// behavior). Outer function type params (e.g. T) are not fresh vars here and are kept.
+fn resolve_call_return_type(infer_env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    let resolved = unify::resolve_type(infer_env, ty)
+    if is_unresolved_fresh_type_var(infer_env, resolved) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    resolved
+}
+
+fn has_unresolved_fresh_type_arg(infer_env: TypeEnv, var_types: Vec<TypeInfo>) -> bool {
+    let count = len(var_types)
+    let mut i = 0
+    while i < count {
+        let resolved = unify::resolve_type(infer_env, get_unchecked(var_types, i))
+        if is_unresolved_fresh_type_var(infer_env, resolved) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn is_unresolved_fresh_type_var(infer_env: TypeEnv, ty: TypeInfo) -> bool {
+    if contract_type_access::TypeInfo_tag(ty) != commands::TY_TYPE_VAR() {
+        return false
+    }
+    let name = contract_type_access::TypeInfo_name(ty)
+    let count = contract_env_vars_record::type_env_var_count(infer_env)
+    let mut i = 0
+    while i < count {
+        let tv = contract_env_vars_record::type_env_var_at(infer_env, i)
+        if eq(contract_typevar::TypeVar_name(tv), clone(name)) {
+            return !contract_typevar::TypeVar_is_bound(tv)
+        }
+        i = i + 1
+    }
+    false
 }

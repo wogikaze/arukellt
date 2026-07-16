@@ -34,7 +34,7 @@ fn mir_inst_val_type(inst: MirInst) -> i32 {
 }
 
 fn mir_inst_result_types(inst: MirInst) -> Vec<MirValueType> {
-    clone(inst.result_types)
+    inst.result_types
 }
 
 fn mir_inst_result_type_count(inst: MirInst) -> i32 {
@@ -103,7 +103,7 @@ fn mir_inst_with_func_id_raw(inst: MirInst, func_id_raw: i32) -> MirInst {
         float_val: inst.float_val,
         str_val: clone(inst.str_val),
         val_type: inst.val_type,
-        result_types: clone(inst.result_types),
+        result_types: inst.result_types,
         func_id_raw: func_id_raw,
     }
 }

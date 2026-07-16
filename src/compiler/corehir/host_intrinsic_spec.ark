@@ -23,7 +23,7 @@ fn host_intrinsic_spec_abi_kind(spec: HostIntrinsicSpec) -> i32 {
 }
 
 fn host_intrinsic_spec_return_types(spec: HostIntrinsicSpec) -> Vec<MirValueType> {
-    clone(spec.return_types)
+    spec.return_types
 }
 
 fn host_intrinsic_spec_placeholder(name: String) -> HostIntrinsicSpec {

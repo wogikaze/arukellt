@@ -35,7 +35,7 @@ fn dap_state_output(state: DapState) -> String {
 }
 
 fn dap_state_take_next_seq(state: DapState) -> i32 {
-    let s = clone(state.seq)
+    let s = state.seq
     state.seq = state.seq + 1
     s
 }

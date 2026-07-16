@@ -711,7 +711,12 @@ pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
 
 pub fn json_get_index(v: JsonValue, index: i32) -> Option<JsonValue> {
     match v {
-        JsonValue::Array(items) => get(items, index),
+        JsonValue::Array(items) => {
+            if index < 0 || index >= len(items) {
+                return None
+            }
+            Some(get_unchecked(items, index))
+        },
         _ => None,
     }
 }

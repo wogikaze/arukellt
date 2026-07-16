@@ -69,7 +69,7 @@ fn signature_entry_return_at(entry: SignatureEntry, index: i32) -> MirValueType 
 }
 
 fn signature_entry_return_types(entry: SignatureEntry) -> Vec<MirValueType> {
-    clone(entry.return_types)
+    entry.return_types
 }
 
 fn signature_entry_abi_kind(entry: SignatureEntry) -> i32 {
