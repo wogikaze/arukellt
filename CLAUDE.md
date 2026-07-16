@@ -149,8 +149,12 @@
 
 - 高速ゲート: `python3 scripts/manager.py verify quick`
 - fixture: `python3 scripts/manager.py verify fixtures`
+- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ。別名 `build-s2` / `rebuild-s2`）
+- **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（日常の s2 再ビルドには使わない）
 - docs 再生成: `python3 scripts/manager.py docs regenerate`
 - docs 検査: `python3 scripts/manager.py docs check`
 - 全体: `python3 scripts/manager.py verify full`
+
+`selfhost fixpoint --build --no-cache` を emitter 作業の再ビルドに使わない。詳細は `docs/compiler/bootstrap.md`。
 
 変更範囲に応じた追加コマンドは `docs/data/verification-commands.toml` と対象 issue を確認して選ぶ。

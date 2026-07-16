@@ -6575,17 +6575,47 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     sh.add_argument("--dry-run", action="store_true")
     sub = sh.add_subparsers(dest="subcommand", metavar="<subcommand>")
     sub.required = True
-    p = sub.add_parser("fixpoint", help="Run selfhost fixpoint check")
-    p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--build", action="store_true", default=False, help="Build before check")
-    p.add_argument("--no-cache", action="store_true", default=False,
-                   help="Bypass fixpoint content-hash cache (force rebuild)")
-    p_rs = sub.add_parser(
-        "rebuild-s2",
-        help="Stage-2 only s2 rebuild (skip stage-3 fixpoint; typically <60s with warm overlay cache)",
+    p = sub.add_parser(
+        "fixpoint",
+        help="ADR-029 gate: check sha256(s2)==sha256(s3) (NOT for refreshing the compiler after edits)",
+        description=(
+            "Selfhost fixpoint gate (ADR-029). Compares stage-2 and stage-3 wasm hashes.\n"
+            "For refreshing .build/selfhost/arukellt-s2.wasm after emitter/stdlib edits, use:\n"
+            "  python3 scripts/manager.py selfhost build-compiler\n"
+            "Do not use fixpoint --build --no-cache for routine iteration."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    p_rs.add_argument("--dry-run", action="store_true")
-    p_rs.add_argument(
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument(
+        "--build",
+        action="store_true",
+        default=False,
+        help="Also rebuild s2+s3 before comparing (slow; emitter work should use build-compiler)",
+    )
+    p.add_argument(
+        "--no-cache",
+        action="store_true",
+        default=False,
+        help="Bypass fixpoint content-hash cache (forces full s2+s3 rebuild; slow)",
+    )
+    p_bc = sub.add_parser(
+        "build-compiler",
+        aliases=["build-s2", "rebuild-s2"],
+        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only, ~50s; USE THIS by default)",
+        description=(
+            "Rebuild .build/selfhost/arukellt-s2.wasm from current src/compiler (stage-2 only).\n"
+            "Skips stage-3 and the s2==s3 fixpoint compare. Typical warm-cache time: ~50s.\n"
+            "\n"
+            "Use this after editing src/compiler/** or when T3/validate needs a fresh emitter.\n"
+            "Do NOT use `selfhost fixpoint --build` for that — fixpoint also builds s3 and is much slower.\n"
+            "\n"
+            "Aliases: build-s2, rebuild-s2"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_bc.add_argument("--dry-run", action="store_true")
+    p_bc.add_argument(
         "--if-stale",
         action="store_true",
         default=False,
@@ -6826,7 +6856,9 @@ def main() -> int:
     if args.domain == "selfhost":
         _sh_dispatch = {
             "fixpoint":       cmd_selfhost_fixpoint,
-            "rebuild-s2":     cmd_selfhost_rebuild_s2,
+            "build-compiler": cmd_selfhost_build_compiler,
+            "build-s2":       cmd_selfhost_build_compiler,
+            "rebuild-s2":     cmd_selfhost_build_compiler,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
             "fmt-parity":     cmd_selfhost_fmt_parity,
@@ -6906,6 +6938,14 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         os.environ["ARUKELLT_FIXPOINT_NO_CACHE"] = "1"
     h = Harness(repo_root=root, dry_run=dry_run)
 
+    if getattr(args, "build", False) or getattr(args, "no_cache", False):
+        print(
+            f"{YELLOW}[selfhost] note: fixpoint --build/--no-cache rebuilds s2 AND s3 "
+            f"(often several minutes).{NC}\n"
+            f"  For refreshing the emitter after src/compiler edits, prefer:\n"
+            f"    python3 scripts/manager.py selfhost build-compiler\n"
+        )
+
     print(f"\n{YELLOW}[selfhost] Running selfhost fixpoint check...{NC}")
     res: SelfhostFixpointResult = run_fixpoint(root, dry_run, no_build=no_build)
 
@@ -6932,38 +6972,41 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
     return h.exit_code()
 
 
-def cmd_selfhost_rebuild_s2(args: argparse.Namespace) -> int:
-    """Stage-2 only rebuild for emitter iteration (skip stage-3 fixpoint)."""
+def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
+    """Stage-2 only rebuild for emitter iteration (canonical: selfhost build-compiler)."""
     root = _repo_root()
     dry_run: bool = args.dry_run
     force = not getattr(args, "if_stale", False)
     h = Harness(repo_root=root, dry_run=dry_run)
 
-    print(f"\n{YELLOW}[selfhost] Rebuilding s2 (stage-2 only)...{NC}")
+    print(
+        f"\n{YELLOW}[selfhost] build-compiler: refreshing s2 (stage-2 only; "
+        f"not a fixpoint check)...{NC}"
+    )
     if dry_run:
-        h.check_pass("selfhost rebuild-s2 (dry-run)")
+        h.check_pass("selfhost build-compiler (dry-run)")
         return h.exit_code()
 
     runtime, err, elapsed = rebuild_current_s2(root, force=force)
     if runtime is None:
         h.check_fail(
-            "selfhost rebuild-s2 failed",
+            "selfhost build-compiler failed",
             category="bootstrap",
-            command="python3 scripts/manager.py selfhost rebuild-s2",
+            command="python3 scripts/manager.py selfhost build-compiler",
             primary_path="src/compiler/main.ark",
         )
         if err:
             print(err)
         return h.exit_code()
 
-    print(f"{GREEN}✓ s2 runtime ready:{NC} {runtime}")
+    print(f"{GREEN}✓ compiler wasm ready:{NC} {runtime}")
     print(f"  elapsed: {elapsed:.1f}s")
     if elapsed > 60.0:
         print(
-            f"{YELLOW}warning: rebuild exceeded 60s "
+            f"{YELLOW}warning: build-compiler exceeded 60s "
             f"(overlay cache miss or machine load){NC}"
         )
-    h.check_pass(f"selfhost rebuild-s2 ({elapsed:.1f}s)")
+    h.check_pass(f"selfhost build-compiler ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
     print(f"Total checks: {total}")

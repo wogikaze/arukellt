@@ -141,15 +141,18 @@ id = "selfhost_fixpoint"
 canonical = "python3 scripts/manager.py selfhost fixpoint"
 aliases = []
 alias_status = "none"
-purpose = "Check selfhost bootstrap fixpoint"
+purpose = "ADR-029 gate: check sha256(s2)==sha256(s3). Not for refreshing the emitter after edits."
 coverage = ["s2", "s3"]
 
 [[commands]]
-id = "selfhost_rebuild_s2"
-canonical = "python3 scripts/manager.py selfhost rebuild-s2"
-aliases = []
-alias_status = "none"
-purpose = "Stage-2 only s2 rebuild for emitter iteration (skip stage-3; warm overlay cache ~50s)"
+id = "selfhost_build_compiler"
+canonical = "python3 scripts/manager.py selfhost build-compiler"
+aliases = [
+  "python3 scripts/manager.py selfhost build-s2",
+  "python3 scripts/manager.py selfhost rebuild-s2",
+]
+alias_status = "compatibility"
+purpose = "Refresh arukellt-s2.wasm after src/compiler edits (stage-2 only; ~50s warm cache). Default for emitter/T3 work."
 coverage = ["s2"]
 
 [[commands]]

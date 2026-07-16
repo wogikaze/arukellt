@@ -5,15 +5,34 @@
 > [`../history/reports/bootstrap-rust-era-compiler-guide.md`](../history/reports/bootstrap-rust-era-compiler-guide.md).
 
 Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](../adr/ADR-029-selfhost-native-verification-contract.md).  
-Status summary: [`../state/compiler.md`](../state/compiler.md).
+Status summary: [`../state/compiler.md`](../state/compiler.md).  
+Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
+
+## Which command?
+
+Agents and humans confuse these two. Use the table:
+
+| Goal | Command | Typical time | Notes |
+|------|---------|--------------|-------|
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | ~50s (warm overlay cache) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
+| Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | several minutes | **Not** for routine iteration |
+
+Aliases for `build-compiler`: `build-s2`, `rebuild-s2`.
+
+Do **not** use `fixpoint --build --no-cache` to “just rebuild s2” — that also
+runs stage-3, floods long builds, and has caused Connection stalled under
+parallel agents.
+
+Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 
 ## Trust model
 
 | Stage | Artifact / check | Command |
 |-------|------------------|---------|
 | **0 (trust base)** | `bootstrap/arukellt-selfhost.wasm` (pinned; see `bootstrap/PROVENANCE.md`) | — |
-| **Build current selfhost** | pinned compiles `src/compiler/main.ark` → `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost fixpoint --build` |
-| **Fixpoint** | `sha256(s2) == sha256(s3)` | same command / `selfhost fixpoint` |
+| **Build current selfhost** | pinned compiles `src/compiler/main.ark` → `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost build-compiler` |
+| **Fixpoint** | `sha256(s2) == sha256(s3)` | `python3 scripts/manager.py selfhost fixpoint` |
 | **Parity** | fixture / CLI / diag | `python3 scripts/manager.py selfhost fixture-parity`, `… parity --mode --cli`, `… diag-parity` |
 
 Stage 0 is **the pinned wasm**. There is no Rust Stage 0. Setting
