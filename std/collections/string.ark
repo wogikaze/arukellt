@@ -4,43 +4,399 @@
 use std::core::raw
 
 pub fn concat(a: String, b: String) -> String {
-    __intrinsic_concat(a, b)
+    __core_string_concat_impl(a, b)
 }
 
 pub fn eq(a: String, b: String) -> bool {
-    __intrinsic_eq(a, b)
+    __core_string_eq_impl(a, b)
 }
 
 pub fn clone(s: String) -> String {
-    raw::raw_string_clone(s)
+    __core_string_clone_impl(s)
 }
 
 pub fn slice(s: String, start: i32, end: i32) -> String {
-    __intrinsic_slice(s, start, end)
+    __core_string_slice_impl(s, start, end)
+}
+
+fn __core_string_len_impl(s: String) -> i32 {
+    raw::raw_string_len_bytes(s)
+}
+
+fn __core_string_char_at_impl(s: String, index: i32) -> i32 {
+    raw::raw_string_byte_at_unchecked(s, index)
+}
+
+fn __core_string_new_impl() -> String {
+    raw::raw_string_new()
+}
+
+fn __core_string_clone_impl(s: String) -> String {
+    raw::raw_string_clone(s)
+}
+
+fn __core_string_from_bytes_impl(bytes: Vec<i32>) -> String {
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_len_bytes_impl(s: String) -> i32 {
+    raw::raw_string_len_bytes(s)
+}
+
+fn __core_string_is_empty_impl(s: String) -> bool {
+    raw::raw_string_len_bytes(s) == 0
+}
+
+fn __core_string_eq_impl(a: String, b: String) -> bool {
+    let string_len = raw::raw_string_len_bytes(a)
+    if string_len != raw::raw_string_len_bytes(b) {
+        return false
+    }
+    let mut index = 0
+    while index < string_len {
+        if raw::raw_string_byte_at_unchecked(a, index) !=
+        raw::raw_string_byte_at_unchecked(b, index) {
+            return false
+        }
+        index = index + 1
+    }
+    true
+}
+
+fn __core_string_push_range(bytes: Vec<i32>, s: String, start: i32, end: i32) {
+    let mut index = start
+    while index < end {
+        push(bytes, raw::raw_string_byte_at_unchecked(s, index))
+        index = index + 1
+    }
+}
+
+fn __core_string_push_byte(bytes: Vec<i32>, byte: i32) {
+    push(bytes, byte)
+}
+
+fn __core_string_slice_impl(s: String, start: i32, end: i32) -> String {
+    let string_len = raw::raw_string_len_bytes(s)
+    if start < 0 || end < start || end > string_len {
+        return raw::raw_string_new()
+    }
+    let bytes = raw::raw_array_new(end - start)
+    __core_string_push_range(bytes, s, start, end)
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_concat_impl(a: String, b: String) -> String {
+    let a_len = raw::raw_string_len_bytes(a)
+    let b_len = raw::raw_string_len_bytes(b)
+    let bytes = raw::raw_array_new(a_len + b_len)
+    __core_string_push_range(bytes, a, 0, a_len)
+    __core_string_push_range(bytes, b, 0, b_len)
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_ascii_case_impl(s: String, to_lowercase: bool) -> String {
+    let string_len = raw::raw_string_len_bytes(s)
+    let bytes = raw::raw_array_new(string_len)
+    let mut index = 0
+    while index < string_len {
+        let mut byte = raw::raw_string_byte_at_unchecked(s, index)
+        if to_lowercase && byte >= 65 && byte <= 90 {
+            byte = byte + 32
+        }
+        if !to_lowercase && byte >= 97 && byte <= 122 {
+            byte = byte - 32
+        }
+        push(bytes, byte)
+        index = index + 1
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_to_lowercase_impl(s: String) -> String {
+    __core_string_ascii_case_impl(s, true)
+}
+
+fn __core_string_to_uppercase_impl(s: String) -> String {
+    __core_string_ascii_case_impl(s, false)
+}
+
+fn __core_string_is_ascii_whitespace(byte: i32) -> bool {
+    byte == 32 || byte == 9 || byte == 10 || byte == 13
+}
+
+fn __core_string_trim_start_index(s: String) -> i32 {
+    let string_len = raw::raw_string_len_bytes(s)
+    let mut index = 0
+    while index < string_len {
+        if !__core_string_is_ascii_whitespace(raw::raw_string_byte_at_unchecked(s, index)) {
+            return index
+        }
+        index = index + 1
+    }
+    string_len
+}
+
+fn __core_string_trim_end_index(s: String) -> i32 {
+    let mut index = raw::raw_string_len_bytes(s)
+    while index > 0 {
+        if !__core_string_is_ascii_whitespace(raw::raw_string_byte_at_unchecked(s, index - 1)) {
+            return index
+        }
+        index = index - 1
+    }
+    0
+}
+
+fn __core_string_trim_start_impl(s: String) -> String {
+    __core_string_slice_impl(s, __core_string_trim_start_index(s), raw::raw_string_len_bytes(s))
+}
+
+fn __core_string_trim_end_impl(s: String) -> String {
+    __core_string_slice_impl(s, 0, __core_string_trim_end_index(s))
+}
+
+fn __core_string_trim_impl(s: String) -> String {
+    __core_string_slice_impl(s, __core_string_trim_start_index(s), __core_string_trim_end_index(s))
+}
+
+fn __core_string_repeat_impl(s: String, count: i32) -> String {
+    if count <= 0 {
+        return raw::raw_string_new()
+    }
+    let string_len = raw::raw_string_len_bytes(s)
+    let bytes = raw::raw_array_new(string_len * count)
+    let mut repetition = 0
+    while repetition < count {
+        __core_string_push_range(bytes, s, 0, string_len)
+        repetition = repetition + 1
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_pad_left_impl(s: String, width: i32) -> String {
+    __core_string_pad_left_fill_impl(s, width, " ")
+}
+
+fn __core_string_pad_right_impl(s: String, width: i32) -> String {
+    __core_string_pad_right_fill_impl(s, width, " ")
+}
+
+fn __core_string_pad_left_fill_impl(s: String, width: i32, fill: String) -> String {
+    let string_len = raw::raw_string_len_bytes(s)
+    if string_len >= width {
+        return s
+    }
+    let padding = __core_string_repeat_impl(fill, width - string_len)
+    let padded = __core_string_concat_impl(padding, s)
+    let padded_len = raw::raw_string_len_bytes(padded)
+    __core_string_slice_impl(padded, padded_len - width, padded_len)
+}
+
+fn __core_string_pad_right_fill_impl(s: String, width: i32, fill: String) -> String {
+    let string_len = raw::raw_string_len_bytes(s)
+    if string_len >= width {
+        return s
+    }
+    let padding = __core_string_repeat_impl(fill, width - string_len)
+    __core_string_slice_impl(__core_string_concat_impl(s, padding), 0, width)
+}
+
+fn __core_string_replace_impl(s: String, from: String, replacement: String) -> String {
+    let string_len = raw::raw_string_len_bytes(s)
+    let pattern_len = raw::raw_string_len_bytes(from)
+    if pattern_len == 0 {
+        return __core_string_slice_impl(s, 0, string_len)
+    }
+    let replacement_len = raw::raw_string_len_bytes(replacement)
+    let bytes = raw::raw_array_new(string_len)
+    let mut index = 0
+    while index < string_len {
+        if index + pattern_len <= string_len && __core_string_region_matches(s, from, index) {
+            __core_string_push_range(bytes, replacement, 0, replacement_len)
+            index = index + pattern_len
+        } else {
+            __core_string_push_byte(bytes, raw::raw_string_byte_at_unchecked(s, index))
+            index = index + 1
+        }
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_push_part(parts: Vec<String>, part: String) {
+    push(parts, part)
+}
+
+fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
+    let parts = Vec_new_String()
+    let string_len = raw::raw_string_len_bytes(s)
+    let delimiter_len = raw::raw_string_len_bytes(delimiter)
+    if delimiter_len == 0 {
+        let mut index = 0
+        while index < string_len {
+            __core_string_push_part(parts, __core_string_slice_impl(s, index, index + 1))
+            index = index + 1
+        }
+        return parts
+    }
+    let mut part_start = 0
+    let mut index = 0
+    while index + delimiter_len <= string_len {
+        if __core_string_region_matches(s, delimiter, index) {
+            __core_string_push_part(parts, __core_string_slice_impl(s, part_start, index))
+            index = index + delimiter_len
+            part_start = index
+        } else {
+            index = index + 1
+        }
+    }
+    __core_string_push_part(parts, __core_string_slice_impl(s, part_start, string_len))
+    parts
+}
+
+fn __core_string_join_impl(parts: Vec<String>, separator: String) -> String {
+    let part_count = len(parts)
+    let separator_len = raw::raw_string_len_bytes(separator)
+    let bytes = raw::raw_array_new(0)
+    let mut index = 0
+    while index < part_count {
+        if index > 0 {
+            __core_string_push_range(bytes, separator, 0, separator_len)
+        }
+        let part = get_unchecked(parts, index)
+        __core_string_push_range(bytes, part, 0, raw::raw_string_len_bytes(part))
+        index = index + 1
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_string_lines_impl(s: String) -> Vec<String> {
+    __core_string_split_impl(__core_string_replace_impl(s, "\r\n", "\n"), "\n")
+}
+
+fn __core_string_chars_impl(s: String) -> Vec<String> {
+    __core_string_split_impl(s, "")
+}
+
+fn __core_string_region_matches(s: String, needle: String, start: i32) -> bool {
+    let needle_len = raw::raw_string_len_bytes(needle)
+    let mut index = 0
+    while index < needle_len {
+        if raw::raw_string_byte_at_unchecked(s, start + index) !=
+        raw::raw_string_byte_at_unchecked(needle, index) {
+            return false
+        }
+        index = index + 1
+    }
+    true
+}
+
+fn __core_string_starts_with_impl(s: String, prefix: String) -> bool {
+    if raw::raw_string_len_bytes(prefix) > raw::raw_string_len_bytes(s) {
+        return false
+    }
+    __core_string_region_matches(s, prefix, 0)
+}
+
+fn __core_string_ends_with_impl(s: String, suffix: String) -> bool {
+    if raw::raw_string_len_bytes(suffix) > raw::raw_string_len_bytes(s) {
+        return false
+    }
+    __core_string_region_matches(
+        s,
+        suffix,
+        raw::raw_string_len_bytes(s) - raw::raw_string_len_bytes(suffix)
+    )
+}
+
+fn __core_string_index_of_impl(s: String, needle: String) -> i32 {
+    let string_len = raw::raw_string_len_bytes(s)
+    let needle_len = raw::raw_string_len_bytes(needle)
+    if needle_len == 0 {
+        return 0
+    }
+    if needle_len > string_len {
+        return 0 - 1
+    }
+    let mut index = 0
+    while index <= string_len - needle_len {
+        if __core_string_region_matches(s, needle, index) {
+            return index
+        }
+        index = index + 1
+    }
+    0 - 1
+}
+
+fn __core_string_contains_impl(s: String, needle: String) -> bool {
+    __core_string_index_of_impl(s, needle) >= 0
 }
 
 pub fn starts_with(s: String, prefix: String) -> bool {
-    __intrinsic_starts_with(s, prefix)
+    __core_string_starts_with_impl(s, prefix)
 }
 
 pub fn ends_with(s: String, suffix: String) -> bool {
-    __intrinsic_ends_with(s, suffix)
+    __core_string_ends_with_impl(s, suffix)
+}
+
+pub fn index_of(s: String, needle: String) -> i32 {
+    __core_string_index_of_impl(s, needle)
+}
+
+pub fn contains(s: String, needle: String) -> bool {
+    __core_string_contains_impl(s, needle)
 }
 
 pub fn to_lower(s: String) -> String {
-    __intrinsic_to_lower(s)
+    __core_string_to_lowercase_impl(s)
 }
 
 pub fn to_upper(s: String) -> String {
-    __intrinsic_to_upper(s)
+    __core_string_to_uppercase_impl(s)
+}
+
+pub fn trim(s: String) -> String {
+    __core_string_trim_impl(s)
+}
+
+pub fn trim_start(s: String) -> String {
+    __core_string_trim_start_impl(s)
+}
+
+pub fn trim_end(s: String) -> String {
+    __core_string_trim_end_impl(s)
+}
+
+pub fn repeat(s: String, count: i32) -> String {
+    __core_string_repeat_impl(s, count)
+}
+
+pub fn pad_left(s: String, width: i32) -> String {
+    __core_string_pad_left_impl(s, width)
+}
+
+pub fn pad_right(s: String, width: i32) -> String {
+    __core_string_pad_right_impl(s, width)
+}
+
+pub fn replace(s: String, from: String, replacement: String) -> String {
+    __core_string_replace_impl(s, from, replacement)
 }
 
 pub fn split(s: String, delim: String) -> Vec<String> {
-    __intrinsic_split(s, delim)
+    __core_string_split_impl(s, delim)
 }
 
 pub fn join(parts: Vec<String>, sep: String) -> String {
-    __intrinsic_join(parts, sep)
+    __core_string_join_impl(parts, sep)
+}
+
+pub fn lines(s: String) -> Vec<String> {
+    __core_string_lines_impl(s)
+}
+
+pub fn chars(s: String) -> Vec<String> {
+    __core_string_chars_impl(s)
 }
 
 pub fn push_char(s: String, c: char) {
@@ -55,66 +411,116 @@ pub fn push_char(s: String, c: char) {
 impl String {
     /// Returns the length of the string in bytes.
     fn len(self: String) -> i32 {
-        raw::raw_string_len_bytes(self)
+        __core_string_len_impl(self)
+    }
+
+    /// Returns the length of the string in bytes.
+    fn len_bytes(self: String) -> i32 {
+        __core_string_len_bytes_impl(self)
+    }
+
+    /// Returns true when the string has no bytes.
+    fn is_empty(self: String) -> bool {
+        __core_string_is_empty_impl(self)
     }
 
     /// Returns the byte value at index `i` (no bounds check).
     fn char_at(self: String, i: i32) -> i32 {
-        raw::raw_string_byte_at_unchecked(self, i)
+        __core_string_char_at_impl(self, i)
     }
 
     /// Returns the byte index of the first occurrence of `sub`, or -1.
     fn index_of(self: String, sub: String) -> i32 {
-        index_of(self, sub)
+        __core_string_index_of_impl(self, sub)
     }
 
     /// Returns a substring `[start, end)`.
     fn slice(self: String, start: i32, end: i32) -> String {
-        slice(self, start, end)
+        __core_string_slice_impl(self, start, end)
     }
 
     /// Concatenates `other` onto the end of `self`.
     fn concat(self: String, other: String) -> String {
-        concat(self, other)
+        __core_string_concat_impl(self, other)
     }
 
     /// Returns a copy of the string.
     fn clone(self: String) -> String {
-        raw::raw_string_clone(self)
+        __core_string_clone_impl(self)
     }
 
     /// Returns true if the string starts with `prefix`.
     fn starts_with(self: String, prefix: String) -> bool {
-        starts_with(self, prefix)
+        __core_string_starts_with_impl(self, prefix)
     }
 
     /// Returns true if the string ends with `suffix`.
     fn ends_with(self: String, suffix: String) -> bool {
-        ends_with(self, suffix)
+        __core_string_ends_with_impl(self, suffix)
     }
 
     /// Returns true if the string contains `sub`.
     fn contains(self: String, sub: String) -> bool {
-        contains(self, sub)
+        __core_string_contains_impl(self, sub)
     }
 
     /// Returns a lowercased copy of the string.
     fn to_lower(self: String) -> String {
-        to_lower(self)
+        __core_string_to_lowercase_impl(self)
     }
 
     /// Returns an uppercased copy of the string.
     fn to_upper(self: String) -> String {
-        to_upper(self)
+        __core_string_to_uppercase_impl(self)
     }
 
     /// Returns a copy with leading/trailing whitespace removed.
     fn trim(self: String) -> String {
-        trim(self)
+        __core_string_trim_impl(self)
     }
 
     /// Returns a copy with all occurrences of `from` replaced by `to`.
     fn replace(self: String, from: String, to: String) -> String {
-        replace(self, from, to)
+        __core_string_replace_impl(self, from, to)
+    }
+
+    /// Returns `self` repeated `count` times.
+    fn repeat(self: String, count: i32) -> String {
+        __core_string_repeat_impl(self, count)
+    }
+
+    /// Left-pads `self` with spaces until `width` bytes are reached.
+    fn pad_left(self: String, width: i32) -> String {
+        __core_string_pad_left_impl(self, width)
+    }
+
+    /// Right-pads `self` with spaces until `width` bytes are reached.
+    fn pad_right(self: String, width: i32) -> String {
+        __core_string_pad_right_impl(self, width)
+    }
+
+    /// Left-pads `self` with `fill` until `width` bytes are reached.
+    fn pad_left_with(self: String, width: i32, fill: String) -> String {
+        __core_string_pad_left_fill_impl(self, width, fill)
+    }
+
+    /// Right-pads `self` with `fill` until `width` bytes are reached.
+    fn pad_right_with(self: String, width: i32, fill: String) -> String {
+        __core_string_pad_right_fill_impl(self, width, fill)
+    }
+
+    /// Splits `self` around each non-overlapping delimiter.
+    fn split(self: String, delimiter: String) -> Vec<String> {
+        __core_string_split_impl(self, delimiter)
+    }
+
+    /// Splits `self` into lines after normalizing CRLF to LF.
+    fn lines(self: String) -> Vec<String> {
+        __core_string_lines_impl(self)
+    }
+
+    /// Splits `self` into one-byte Strings.
+    fn chars(self: String) -> Vec<String> {
+        __core_string_chars_impl(self)
     }
 }

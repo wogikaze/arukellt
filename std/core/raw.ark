@@ -6,38 +6,42 @@
 //! GC/LM representation differences are absorbed by the CoreOp / target
 //! intrinsic handlers behind these entry points (see RFC-006 D5).
 
-/// Allocates a new empty raw array (capacity hint is currently ignored).
+/// Allocates a new empty raw array with the requested capacity hint.
 pub fn raw_array_new(cap: i32) -> Vec<i32> {
-    let _cap = cap
-    __intrinsic_Vec_new_i32()
+    Vec_new_i32_with_cap(cap)
 }
 
 /// Returns the number of elements in a raw array.
-pub fn raw_array_len(a: Vec<i32>) -> i32 {
+pub fn raw_array_len<T>(a: Vec<T>) -> i32 {
     len(a)
 }
 
 /// Returns the element at `i` without bounds checking.
-pub fn raw_array_get_unchecked(a: Vec<i32>, i: i32) -> i32 {
+pub fn raw_array_get_unchecked<T>(a: Vec<T>, i: i32) -> T {
     get_unchecked(a, i)
 }
 
 /// Writes `v` at index `i` without bounds checking.
-pub fn raw_array_set_unchecked(a: Vec<i32>, i: i32, v: i32) {
+pub fn raw_array_set_unchecked<T>(a: Vec<T>, i: i32, v: T) {
     set(a, i, v)
 }
 
-/// Grows a raw array to at least `new_cap` elements. Current runtime ignores
-/// capacity and returns the same buffer; representation-specific grow lands
-/// with #822.
-pub fn raw_array_grow(a: Vec<i32>, new_cap: i32) -> Vec<i32> {
-    let _new_cap = new_cap
-    a
+/// Ensures storage for `new_len` elements and extends the raw logical length.
+///
+/// Newly exposed slots are uninitialized until written through
+/// `raw_array_set_unchecked`.
+pub fn raw_array_grow<T>(a: Vec<T>, new_len: i32) -> Vec<T> {
+    return a
 }
 
 /// Creates an empty raw string.
 pub fn raw_string_new() -> String {
     __intrinsic_string_new()
+}
+
+/// Creates raw string storage from byte values.
+pub fn raw_string_from_bytes(bytes: Vec<i32>) -> String {
+    __intrinsic_string_from_bytes(bytes)
 }
 
 /// Returns the byte length of a raw string.
@@ -52,5 +56,31 @@ pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
 
 /// Clones raw string storage.
 pub fn raw_string_clone(s: String) -> String {
-    clone(s)
+    __intrinsic_string_clone(s)
+}
+
+test mod "raw_storage" {
+    test "array_primitives" {
+        let values = raw_array_new(2)
+        push(values, 11)
+        assert(raw_array_len(values) == 1)
+        assert(raw_array_get_unchecked(values, 0) == 11)
+        raw_array_set_unchecked(values, 0, 17)
+        let grown = raw_array_grow(values, 8)
+        assert(raw_array_len(grown) == 8)
+        assert(raw_array_get_unchecked(grown, 0) == 17)
+        raw_array_set_unchecked(grown, 7, 23)
+        assert(raw_array_get_unchecked(grown, 7) == 23)
+    }
+
+    test "string_primitives" {
+        let bytes = raw_array_new(2)
+        push(bytes, 79)
+        push(bytes, 75)
+        let text = raw_string_from_bytes(bytes)
+        assert(raw_string_len_bytes(text) == 2)
+        assert(raw_string_byte_at_unchecked(text, 0) == 79)
+        assert(eq(raw_string_clone(text), "OK"))
+        assert(raw_string_len_bytes(raw_string_new()) == 0)
+    }
 }

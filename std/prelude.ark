@@ -28,6 +28,9 @@
 // **deprecated** and will be removed via **bold cutover** (ADR-036 D2) once
 // issues #688–#697 (trait-based stdlib redesign) are complete.
 //
+use std::collections::string
+use std::core::scalar_format
+
 // The correct migration target is **trait-based method syntax**, not the
 // intermediate `std::text` / `std::seq` explicit-import style:
 //
@@ -74,14 +77,6 @@ pub fn clone(s: String) -> String {
     return s
 }
 
-pub fn starts_with(s: String, prefix: String) -> bool {
-    panic(String_new()); return false
-}
-
-pub fn ends_with(s: String, suffix: String) -> bool {
-    panic(String_new()); return false
-}
-
 pub fn to_lower(s: String) -> String {
     panic(String_new()); return String_new()
 }
@@ -96,14 +91,6 @@ pub fn slice(s: String, start: i32, end: i32) -> String {
 
 pub fn trim(s: String) -> String {
     panic(String_new()); return String_new()
-}
-
-pub fn contains(s: String, sub: String) -> bool {
-    panic(String_new()); return false
-}
-
-pub fn index_of(s: String, sub: String) -> i32 {
-    panic(String_new()); return 0
 }
 
 pub fn char_at(s: String, i: i32) -> i32 {
@@ -219,7 +206,7 @@ pub fn f64_to_f32(x: f64) -> f32 {
     panic(String_new()); return f64_to_f32(0.0)
 }
 
-pub fn abs(x: i32) -> i32 {
+fn __core_math_abs_impl(x: i32) -> i32 {
     if x < 0 {
         0 - x
     } else {
@@ -227,7 +214,11 @@ pub fn abs(x: i32) -> i32 {
     }
 }
 
-pub fn min(a: i32, b: i32) -> i32 {
+pub fn abs(x: i32) -> i32 {
+    __core_math_abs_impl(x)
+}
+
+fn __core_math_min_impl(a: i32, b: i32) -> i32 {
     if a < b {
         a
     } else {
@@ -235,7 +226,11 @@ pub fn min(a: i32, b: i32) -> i32 {
     }
 }
 
-pub fn max(a: i32, b: i32) -> i32 {
+pub fn min(a: i32, b: i32) -> i32 {
+    __core_math_min_impl(a, b)
+}
+
+fn __core_math_max_impl(a: i32, b: i32) -> i32 {
     if a > b {
         a
     } else {
@@ -243,17 +238,23 @@ pub fn max(a: i32, b: i32) -> i32 {
     }
 }
 
+pub fn max(a: i32, b: i32) -> i32 {
+    __core_math_max_impl(a, b)
+}
+
 // Math: clamp (i32)
-pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
+fn __core_math_clamp_impl(x: i32, lo: i32, hi: i32) -> i32 {
     if x < lo {
         lo
+    } else if x > hi {
+        hi
     } else {
-        if x > hi {
-            hi
-        } else {
-            x
-        }
+        x
     }
+}
+
+pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
+    __core_math_clamp_impl(x, lo, hi)
 }
 
 // Control
@@ -306,8 +307,22 @@ pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
 
 // Vec sorting (deprecated)
 // @deprecated: use `v.sort()` (Vec method, #697) instead. See ADR-036.
+fn __core_seq_sort_i32_impl(v: Vec<i32>) {
+    let mut index = 1
+    while index < len(v) {
+        let value = get_unchecked(v, index)
+        let mut insertion = index
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            set(v, insertion, get_unchecked(v, insertion - 1))
+            insertion = insertion - 1
+        }
+        set(v, insertion, value)
+        index = index + 1
+    }
+}
+
 pub fn sort_i32(v: Vec<i32>) {
-    panic(String_new())
+    __core_seq_sort_i32_impl(v)
 }
 
 pub fn sort_String(v: Vec<String>) {
@@ -428,7 +443,7 @@ pub fn filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64> {
     __intrinsic_filter_f64(v, f)
 }
 
-pub fn contains_i32(v: Vec<i32>, x: i32) -> bool {
+fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     let mut i: i32 = 0
     while i < len(v) {
         if get_unchecked(v, i) == x {
@@ -437,6 +452,10 @@ pub fn contains_i32(v: Vec<i32>, x: i32) -> bool {
         i = i + 1
     }
     false
+}
+
+pub fn contains_i32(v: Vec<i32>, x: i32) -> bool {
+    __core_vec_contains_i32_impl(v, x)
 }
 
 pub fn contains_String(v: Vec<String>, x: String) -> bool {
@@ -450,7 +469,7 @@ pub fn contains_String(v: Vec<String>, x: String) -> bool {
     false
 }
 
-pub fn reverse_i32(v: Vec<i32>) {
+fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
     let n: i32 = len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
@@ -463,7 +482,11 @@ pub fn reverse_i32(v: Vec<i32>) {
     }
 }
 
-pub fn reverse_String(v: Vec<String>) {
+pub fn reverse_i32(v: Vec<i32>) {
+    __core_vec_reverse_i32_impl(v)
+}
+
+fn __core_vec_reverse_string_impl(v: Vec<String>) {
     let n: i32 = len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
@@ -476,6 +499,10 @@ pub fn reverse_String(v: Vec<String>) {
     }
 }
 
+pub fn reverse_String(v: Vec<String>) {
+    __core_vec_reverse_string_impl(v)
+}
+
 pub fn remove_i32(v: Vec<i32>, index: i32) {
     let n: i32 = len(v)
     let mut i: i32 = index
@@ -483,11 +510,11 @@ pub fn remove_i32(v: Vec<i32>, index: i32) {
         set(v, i, get_unchecked(v, i + 1))
         i = i + 1
     }
-    let _last: Option<i32> = pop(v)
+    pop(v)
 }
 
 // Vec aggregation (Ark-native)
-pub fn sum_i32(v: Vec<i32>) -> i32 {
+fn __core_seq_sum_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 0
     let mut i: i32 = 0
     while i < len(v) {
@@ -497,7 +524,11 @@ pub fn sum_i32(v: Vec<i32>) -> i32 {
     total
 }
 
-pub fn product_i32(v: Vec<i32>) -> i32 {
+pub fn sum_i32(v: Vec<i32>) -> i32 {
+    __core_seq_sum_i32_impl(v)
+}
+
+fn __core_seq_product_i32_impl(v: Vec<i32>) -> i32 {
     let mut total: i32 = 1
     let mut i: i32 = 0
     while i < len(v) {
@@ -507,12 +538,14 @@ pub fn product_i32(v: Vec<i32>) -> i32 {
     total
 }
 
+pub fn product_i32(v: Vec<i32>) -> i32 {
+    __core_seq_product_i32_impl(v)
+}
+
 // =============================================================================
-// Extended prelude functions (previously compiler builtins)
-// These functions are handled by the MIR/WASM emitter by callee name.
-// The function bodies below are never compiled (prelude decls are excluded
-// from all_decls during typecheck/lower/emit), but are provided for
-// documentation and future self-compilation.
+// Extended prelude compatibility functions.
+// CoreOp-bound and transitional intrinsic bodies are typechecked but deferred
+// during MIR lowering under RFC-005 D3. Pure Ark helpers above lower normally.
 // =============================================================================
 
 // IO
@@ -541,15 +574,15 @@ pub fn get(v: Vec<i32>, idx: i32) -> i32 {
     panic(String_new()); return 0
 }
 
-pub fn get_unchecked(v: Vec<i32>, idx: i32) -> i32 {
-    panic(String_new()); return 0
+pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
+    return v[idx]
 }
 
 pub fn pop(v: Vec<i32>) -> i32 {
     panic(String_new()); return 0
 }
 
-pub fn set(v: Vec<i32>, idx: i32, val: i32) {
+pub fn set<T>(v: Vec<T>, idx: i32, val: T) {
     panic(String_new())
 }
 
@@ -604,21 +637,35 @@ pub fn exit(code: i32) {
 // Deprecated prelude free function pow_i32 has been removed per ADR-036.
 // Use inherent method `base.pow(exp)` instead.
 
+fn __core_math_gcd_impl(a: i32, b: i32) -> i32 {
+    let mut x = a
+    let mut y = b
+    if x < 0 {
+        x = 0 - x
+    }
+    if y < 0 {
+        y = 0 - y
+    }
+    while y != 0 {
+        let next = y
+        y = x - x / y * y
+        x = next
+    }
+    x
+}
+
+fn __core_math_pow_i32_impl(base: i32, exponent: i32) -> i32 {
+    let mut result = 1
+    let mut index = 0
+    while index < exponent {
+        result = result * base
+        index = index + 1
+    }
+    result
+}
+
 pub fn gcd(a: i32, b: i32) -> i32 {
-    panic(String_new()); return 0
-}
-
-// Range
-pub fn range_new(start: i32, end: i32) -> Vec<i32> {
-    panic(String_new()); return Vec_new_i32()
-}
-
-pub fn range_contains(r: Vec<i32>, val: i32) -> bool {
-    panic(String_new()); return false
-}
-
-pub fn range_len(r: Vec<i32>) -> i32 {
-    panic(String_new()); return 0
+    __core_math_gcd_impl(a, b)
 }
 
 // String extended
@@ -635,7 +682,7 @@ pub fn to_lowercase(s: String) -> String {
 }
 
 pub fn lines(s: String) -> Vec<String> {
-    return split(s, String_from("\n"))
+    string::lines(s)
 }
 
 pub fn byte_len(s: String) -> i32 {

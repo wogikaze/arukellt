@@ -37,7 +37,7 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 }
 
 /// Return the first `n` elements of `v`.
-pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+fn __core_seq_take_i32_impl(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
     let result: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
@@ -53,8 +53,12 @@ pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
     result
 }
 
+pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    __core_seq_take_i32_impl(v, n)
+}
+
 /// Return all elements of `v` after skipping the first `n`.
-pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+fn __core_seq_skip_i32_impl(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
     let result: Vec<i32> = Vec_new_i32()
     let start: i32 = if n < sz {
@@ -70,6 +74,10 @@ pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
     result
 }
 
+pub fn skip_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
+    __core_seq_skip_i32_impl(v, n)
+}
+
 /// Reduce `v` to a single value using `f`, starting from `init`.
 pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     let n: i32 = len(v)
@@ -83,7 +91,7 @@ pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
 }
 
 // ─── Query operations ────────────────────────────────────────────────────────
-pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
+fn __core_seq_binary_search_impl(v: Vec<i32>, target: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = len(v) - 1
     let mut result: i32 = 0 - 1
@@ -104,7 +112,11 @@ pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
     result
 }
 
-pub fn min_i32(v: Vec<i32>) -> i32 {
+pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
+    __core_seq_binary_search_impl(v, target)
+}
+
+fn __core_seq_min_i32_impl(v: Vec<i32>) -> i32 {
     let n: i32 = len(v)
     let mut result: i32 = get_unchecked(v, 0)
     let mut i: i32 = 1
@@ -118,7 +130,11 @@ pub fn min_i32(v: Vec<i32>) -> i32 {
     result
 }
 
-pub fn max_i32(v: Vec<i32>) -> i32 {
+pub fn min_i32(v: Vec<i32>) -> i32 {
+    __core_seq_min_i32_impl(v)
+}
+
+fn __core_seq_max_i32_impl(v: Vec<i32>) -> i32 {
     let n: i32 = len(v)
     let mut result: i32 = get_unchecked(v, 0)
     let mut i: i32 = 1
@@ -130,6 +146,10 @@ pub fn max_i32(v: Vec<i32>) -> i32 {
         i = i + 1
     }
     result
+}
+
+pub fn max_i32(v: Vec<i32>) -> i32 {
+    __core_seq_max_i32_impl(v)
 }
 
 pub fn sum_i32(v: Vec<i32>) -> i32 {
@@ -167,7 +187,7 @@ pub fn seq_contains(v: Vec<i32>, target: i32) -> bool {
     found
 }
 
-pub fn unique(v: Vec<i32>) -> Vec<i32> {
+fn __core_seq_unique_i32_impl(v: Vec<i32>) -> Vec<i32> {
     let result: Vec<i32> = Vec_new_i32()
     let n: i32 = len(v)
     let mut i: i32 = 0
@@ -190,7 +210,11 @@ pub fn unique(v: Vec<i32>) -> Vec<i32> {
     result
 }
 
-pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
+pub fn unique(v: Vec<i32>) -> Vec<i32> {
+    __core_seq_unique_i32_impl(v)
+}
+
+fn __core_seq_count_eq_impl(v: Vec<i32>, target: i32) -> i32 {
     let n: i32 = len(v)
     let mut count: i32 = 0
     let mut i: i32 = 0
@@ -201,6 +225,10 @@ pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
         i = i + 1
     }
     count
+}
+
+pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
+    __core_seq_count_eq_impl(v, target)
 }
 
 // ── binary search variants (generic) ────────────────────────────────────────
