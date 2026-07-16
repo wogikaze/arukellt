@@ -6,6 +6,7 @@ use wasm::intrinsic_vec_remove
 use wasm::intrinsic_vec_reverse
 use wasm::intrinsic_vec_contains
 use wasm::intrinsic_vec_numeric
+use wasm::intrinsic_vec_raw_grow
 use wasm::ctx_record
 use wasm::emit_target
 use mir::inst_accessors_operands
@@ -40,6 +41,11 @@ fn try_emit_vec_core_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
 }
 
 fn try_emit_vec_access_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_array_get_unchecked(){
+        let _result_on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_get_unchecked(){
         let _result_on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
@@ -50,10 +56,41 @@ fn try_emit_vec_access_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: 
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_array_set_unchecked(){
+        let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx, true)
+        inst_store::emit_store_result_if_needed(
+            w,
+            inst,
+            next_op,
+            next_arg0,
+            next_arg1,
+            next2_op,
+            _result_on_stack
+        )
+        return true
+    }
     false
 }
 
 fn try_emit_vec_base_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_array_len(){
+        let _result_on_stack = intrinsic_vec::emit_vec_len(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_array_grow(){
+        let _result_on_stack = intrinsic_vec_raw_grow::emit_raw_array_grow(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(
+            w,
+            inst,
+            next_op,
+            next_arg0,
+            next_arg1,
+            next2_op,
+            _result_on_stack
+        )
+        return true
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_Vec_new_f64(){
         let _result_on_stack = intrinsic_vec::emit_Vec_new_i64(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)

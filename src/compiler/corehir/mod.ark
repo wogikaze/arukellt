@@ -11,7 +11,7 @@ pub fn build_from_frontend_bundle(bundle: FrontendBundle) -> CoreHirRawProgram {
     frontend_checked::build_checked_program_from_bundle(bundle)
 }
 
-fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
+pub fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
     frontend_export_surface::build_export_surface(decls)
 }
 

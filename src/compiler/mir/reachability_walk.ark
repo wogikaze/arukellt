@@ -3,17 +3,18 @@ use mir::inst_accessors_literals
 use mir::block_inst_access
 use mir::opcodes
 use mir::function_block_queries
+use mir::core_op_call
 use mir::reachability_names
 use mir::types
 
-fn mir_mark_reachable_calls(functions: Vec<MirFunction>, reachable: Vec<i32>) -> bool {
+fn mir_mark_reachable_calls(m: MirModule, functions: Vec<MirFunction>, reachable: Vec<i32>) -> bool {
     let fn_count = len(functions)
     let mut changed = false
     let mut fi = 0
     while fi < fn_count {
         if get_unchecked(reachable, fi) != 0 {
             let f = get_unchecked(functions, fi)
-            if mir_mark_function_call_targets(functions, reachable, f) {
+            if mir_mark_function_call_targets(m, functions, reachable, f) {
                 changed = true
             }
         }
@@ -22,7 +23,12 @@ fn mir_mark_reachable_calls(functions: Vec<MirFunction>, reachable: Vec<i32>) ->
     changed
 }
 
-fn mir_mark_function_call_targets(functions: Vec<MirFunction>, reachable: Vec<i32>, f: MirFunction) -> bool {
+fn mir_mark_function_call_targets(
+    m: MirModule,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    f: MirFunction
+) -> bool {
     let mut changed = false
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
@@ -35,6 +41,14 @@ fn mir_mark_function_call_targets(functions: Vec<MirFunction>, reachable: Vec<i3
             let op = inst_accessors_shape::MirInst_op(inst)
             if op == opcodes::MIR_CALL() {
                 if reachability_names::mir_mark_reachable_name(functions, reachable, inst_accessors_literals::MirInst_str_val(inst)) {
+                    changed = true
+                }
+                let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
+                if len(fallback) > 0 && reachability_names::mir_mark_reachable_name(
+                    functions,
+                    reachable,
+                    fallback
+                ) {
                     changed = true
                 }
             }

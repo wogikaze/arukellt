@@ -17,7 +17,20 @@ fn emit_fallback_call(
     next2_op: i32,
     wit_import_count: i32
 ) {
-    if call_fallback_resolved::try_emit_resolved_fallback_call(w, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
+    if call_fallback_resolved::try_emit_resolved_fallback_call(
+        w,
+        callee,
+        inst,
+        ctx,
+        prev_op,
+        prev_arg0,
+        prev_arg1,
+        next_op,
+        next_arg0,
+        next_arg1,
+        next2_op,
+        wit_import_count
+    ) {
         return
     }
     emit_unresolved_fallback_call(w, inst)

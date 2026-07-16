@@ -22,7 +22,7 @@ fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i
     }
     let mut changed = true
     while changed {
-        changed = reachability_walk::mir_mark_reachable_calls(functions, reachable)
+        changed = reachability_walk::mir_mark_reachable_calls(m, functions, reachable)
     }
     reachability_prune::mir_prune_unmarked_functions(m, reachable)
 }

@@ -21,6 +21,7 @@ use wasm::inst_locals
 
 fn try_emit_resolved_fallback_call(
     w: WasmWriter,
+    callee: String,
     inst: MirInst,
     ctx: SelfEmitCtx,
     prev_op: i32,
@@ -34,16 +35,19 @@ fn try_emit_resolved_fallback_call(
 ) -> bool {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let fid_raw = inst_record::mir_inst_func_id_raw(inst)
-    if fid_raw < 0 {
-        return false
+    let mut resolved_name = callee
+    let mut has_signature = false
+    if fid_raw >= 0 {
+        let signature = signature_registry::signature_registry_lookup_by_id(
+            registry,
+            function_id::FunctionId_new(fid_raw)
+        )
+        resolved_name = signature_entry::signature_entry_base_name(signature)
+        has_signature = true
     }
-    let signature = signature_registry::signature_registry_lookup_by_id(
-        registry,
-        function_id::FunctionId_new(fid_raw)
-    )
     let fn_idx = inst_ctx::resolve_fn_index(
         ctx,
-        signature_entry::signature_entry_base_name(signature)
+        clone(resolved_name)
     )
     if fn_idx < 0 {
         return false
@@ -79,13 +83,19 @@ fn try_emit_resolved_fallback_call(
         )
     )
     let fn_ret_vt = registry_return_resolve::resolve_call_fn_ret_vt(ctx, inst, called)
-    registry_return_audit::registry_audit_observe_call(
-        ctx,
-        inst,
-        signature_entry::signature_entry_base_name(signature),
-        fn_ret_vt
-    )
-    if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
+    if has_signature {
+        let signature = signature_registry::signature_registry_lookup_by_id(
+            registry,
+            function_id::FunctionId_new(fid_raw)
+        )
+        registry_return_audit::registry_audit_observe_call(
+            ctx,
+            inst,
+            signature_entry::signature_entry_base_name(signature),
+            fn_ret_vt
+        )
+    }
+    if !has_signature || !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
         if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)

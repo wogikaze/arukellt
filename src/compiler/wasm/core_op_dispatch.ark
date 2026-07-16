@@ -1,4 +1,5 @@
 use corehir::core_op_id
+use corehir::core_op_registry_generated
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::function_id
@@ -47,6 +48,9 @@ fn try_emit_call_via_core_op_registry(
         return false
     }
     let handler_id = core_op_id::CoreOpId_raw(coid)
+    if core_op_registry_generated::core_op_registry_lowering_kind_at(handler_id) == 1 {
+        return false
+    }
     let prev_handler_id = handler_id_for_function_id_raw(registry, prev_func_id_raw)
     if call_host::try_emit_host_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_handler_id, next_op, next_arg0, next_arg1, next2_op) {
         return true

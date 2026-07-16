@@ -1,0 +1,82 @@
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_identity
+use mir::function_param_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::opcodes
+
+fn stdlib_inline_instruction_budget() -> i32 { 24 }
+
+fn stdlib_inline_code_size_budget() -> i32 { 192 }
+
+fn stdlib_inline_candidate_body_block(f: MirFunction) -> i32 {
+    let mut body_index = 0 - 1
+    let mut instruction_count = 0
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, block_index)
+        let count = block_inst_access::MirBlock_inst_count(block)
+        if count > 0 {
+            if body_index >= 0 {
+                return 0 - 1
+            }
+            body_index = block_index
+            instruction_count = count
+        }
+        block_index = block_index + 1
+    }
+    if instruction_count <= 0 || instruction_count > stdlib_inline_instruction_budget() {
+        return 0 - 1
+    }
+    if instruction_count * 8 > stdlib_inline_code_size_budget() {
+        return 0 - 1
+    }
+    body_index
+}
+
+fn stdlib_inline_body_is_straight_line(f: MirFunction, body_index: i32) -> bool {
+    if body_index < 0 {
+        return false
+    }
+    let block = function_block_queries::MirFunction_block_at(f, body_index)
+    let count = block_inst_access::MirBlock_inst_count(block)
+    let mut index = 0
+    while index < count {
+        let op = inst_accessors_shape::MirInst_op(block_inst_access::MirBlock_inst_at(block, index))
+        if op == opcodes::MIR_RETURN() {
+            return index == count - 1
+        }
+        if op == opcodes::MIR_CALL() || op == opcodes::MIR_CALL_INDIRECT() || op == opcodes::MIR_WIT_CALL() {
+            return false
+        }
+        if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() || op == opcodes::MIR_BR_TABLE() {
+            return false
+        }
+        if op >= opcodes::MIR_FUTURE_NEW() {
+            return false
+        }
+        index = index + 1
+    }
+    false
+}
+
+fn stdlib_inline_candidate_is_eligible(
+    caller: MirFunction,
+    callee: MirFunction,
+    call: MirInst,
+    fallback_symbol: String
+) -> bool {
+    if len(fallback_symbol) == 0 {
+        return false
+    }
+    if eq(function_identity::MirFunction_name(caller), function_identity::MirFunction_name(callee)) {
+        return false
+    }
+    if inst_accessors_literals::MirInst_int_val(call) != function_param_view::MirFunction_param_count(callee) {
+        return false
+    }
+    let body_index = stdlib_inline_candidate_body_block(callee)
+    stdlib_inline_body_is_straight_line(callee, body_index)
+}

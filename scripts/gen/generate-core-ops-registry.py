@@ -32,6 +32,12 @@ LAYER_TO_INT = {
     "target_raw": 4,
 }
 
+INLINE_POLICY_TO_INT = {
+    "never": 0,
+    "hint": 1,
+    "always": 2,
+}
+
 
 def _ark_string(s: str) -> str:
     escaped = s.replace("\\", "\\\\").replace('"', '\\"')
@@ -69,6 +75,24 @@ def render(ops: list[dict]) -> str:
         lines.append("}")
         lines.append("")
 
+    def emit_sparse_i32_table(name: str, values: list[int], default: int) -> None:
+        lines.append(f"fn {name}_at(index: i32) -> i32 {{")
+        for i, value in enumerate(values):
+            if value != default:
+                lines.append(f"    if index == {i} {{ return {value} }}")
+        lines.append(f"    return {default}")
+        lines.append("}")
+        lines.append("")
+
+    def emit_sparse_string_table(name: str, values: list[str]) -> None:
+        lines.append(f"fn {name}_at(index: i32) -> String {{")
+        for i, value in enumerate(values):
+            if value:
+                lines.append(f"    if index == {i} {{ return {_ark_string(value)} }}")
+        lines.append("    return String_new()")
+        lines.append("}")
+        lines.append("")
+
     ids = [op["id"] for op in ops]
     lowering = [
         LOWERING_KIND_TO_INT.get(op.get("lowering", {}).get("kind", "normal_call"), 1)
@@ -78,10 +102,15 @@ def render(ops: list[dict]) -> str:
         LAYER_TO_INT.get(op.get("classification", {}).get("layer", "semantic_stdlib"), 3)
         for op in ops
     ]
+    inline_policies = [
+        INLINE_POLICY_TO_INT.get(op.get("inline", {}).get("policy", "never"), 0)
+        for op in ops
+    ]
     target_ids: list[str] = []
     runtime_symbols: list[str] = []
     mir_ops: list[str] = []
     legacy_handler_ids: list[str] = []
+    fallback_symbols: list[str] = []
     for op in ops:
         lowering_kind = op.get("lowering", {}).get("kind", "normal_call")
         if lowering_kind == "target_intrinsic":
@@ -104,14 +133,33 @@ def render(ops: list[dict]) -> str:
             legacy_handler_ids.append(legacy.get("handler_id", ""))
         else:
             legacy_handler_ids.append("")
+        fallback_symbols.append(op.get("fallback", {}).get("implementation_symbol", ""))
 
     emit_string_table("core_op_registry_canonical_id", ids)
     emit_i32_table("core_op_registry_lowering_kind", lowering)
     emit_i32_table("core_op_registry_layer", layers)
+    emit_sparse_i32_table("core_op_registry_inline_policy", inline_policies, 0)
     emit_string_table("core_op_registry_target_id", target_ids)
     emit_string_table("core_op_registry_runtime_symbol", runtime_symbols)
     emit_string_table("core_op_registry_mir_operation", mir_ops)
     emit_string_table("core_op_registry_legacy_handler_id", legacy_handler_ids)
+    emit_sparse_string_table("core_op_registry_fallback_symbol", fallback_symbols)
+    lines.extend(
+        [
+            "fn core_op_registry_has_fallback_symbol(symbol: String) -> bool {",
+            "    let count = core_op_registry_entry_count()",
+            "    let mut index = 0",
+            "    while index < count {",
+            "        if eq(clone(symbol), core_op_registry_fallback_symbol_at(index)) {",
+            "            return true",
+            "        }",
+            "        index = index + 1",
+            "    }",
+            "    false",
+            "}",
+            "",
+        ]
+    )
 
     for index, op_id in enumerate(ids):
         lines.append(f"fn {_handler_symbol(op_id)}() -> i32 {{")

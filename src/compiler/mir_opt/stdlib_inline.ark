@@ -1,0 +1,143 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::block_inst_access
+use mir::block_inst_mutation
+use mir::core_op_call
+use mir::function_block_queries
+use mir::function_identity
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::module_functions
+use mir::module_spine
+use mir::opcodes
+use mir_opt::stdlib_inline_eligibility
+use mir_opt::stdlib_inline_rewrite
+
+fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
+    let count = module_functions::MirModule_function_count(m)
+    let mut index = 0
+    while index < count {
+        let candidate = module_functions::MirModule_function_at(m, index)
+        if eq(function_identity::MirFunction_name(candidate), clone(name)) {
+            return index
+        }
+        index = index + 1
+    }
+    0 - 1
+}
+
+fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBlock) -> i32 {
+    let output = Vec_new_MirInst()
+    let count = block_inst_access::MirBlock_inst_count(block)
+    let mut inlined = 0
+    let mut index = 0
+    while index < count {
+        let inst = block_inst_access::MirBlock_inst_at(block, index)
+        if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+            let fallback = core_op_call::mir_call_inline_fallback_symbol(m, inst)
+            let callee_index = stdlib_inline_find_function(m, clone(fallback))
+            if callee_index >= 0 {
+                let callee = module_functions::MirModule_function_at(m, callee_index)
+                if stdlib_inline_eligibility::stdlib_inline_candidate_is_eligible(
+                    caller,
+                    callee,
+                    inst,
+                    clone(fallback)
+                ) && stdlib_inline_rewrite::stdlib_inline_append_call(
+                    caller,
+                    block,
+                    index,
+                    inst,
+                    callee,
+                    output
+                ) {
+                    inlined = inlined + 1
+                    index = index + 1
+                    continue
+                }
+            }
+        }
+        push(output, inst)
+        index = index + 1
+    }
+    if inlined > 0 {
+        block_inst_mutation::MirBlock_set_instructions(block, output)
+    }
+    inlined
+}
+
+fn stdlib_inline_module(m: MirModule) -> i32 {
+    let function_count = module_functions::MirModule_function_count(m)
+    let mut total = 0
+    let mut function_index = 0
+    while function_index < function_count {
+        let caller = module_functions::MirModule_function_at(m, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(caller)
+        let mut block_index = 0
+        while block_index < block_count {
+            total = total + stdlib_inline_rewrite_block(
+                m,
+                caller,
+                function_block_queries::MirFunction_block_at(caller, block_index)
+            )
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
+    total
+}
+
+fn stdlib_resolve_normal_call_block(m: MirModule, block: MirBlock) -> i32 {
+    let output = Vec_new_MirInst()
+    let registry = module_spine::MirModule_signature_registry(m)
+    let count = block_inst_access::MirBlock_inst_count(block)
+    let mut resolved = 0
+    let mut index = 0
+    while index < count {
+        let inst = block_inst_access::MirBlock_inst_at(block, index)
+        let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
+        if len(fallback) > 0 {
+            let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fallback))
+            let fallback_raw = function_id::FunctionId_raw(fallback_id)
+            if fallback_raw >= 0 {
+                let resolved = inst_record::mir_inst_with_call_target(inst, fallback, fallback_raw)
+                let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
+                inst_record::mir_inst_set_result_types(
+                    resolved,
+                    signature_entry::signature_entry_return_types(fallback_entry)
+                )
+                push(output, resolved)
+                resolved = resolved + 1
+                index = index + 1
+                continue
+            }
+        }
+        push(output, inst)
+        index = index + 1
+    }
+    if resolved > 0 {
+        block_inst_mutation::MirBlock_set_instructions(block, output)
+    }
+    resolved
+}
+
+fn stdlib_resolve_normal_calls(m: MirModule) -> i32 {
+    let function_count = module_functions::MirModule_function_count(m)
+    let mut total = 0
+    let mut function_index = 0
+    while function_index < function_count {
+        let f = module_functions::MirModule_function_at(m, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut block_index = 0
+        while block_index < block_count {
+            total = total + stdlib_resolve_normal_call_block(
+                m,
+                function_block_queries::MirFunction_block_at(f, block_index)
+            )
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
+    total
+}

@@ -107,3 +107,33 @@ fn mir_inst_with_func_id_raw(inst: MirInst, func_id_raw: i32) -> MirInst {
         func_id_raw: func_id_raw,
     }
 }
+
+fn mir_inst_with_call_target(inst: MirInst, callee: String, func_id_raw: i32) -> MirInst {
+    MirInst {
+        op: inst.op,
+        dest: inst.dest,
+        arg0: inst.arg0,
+        arg1: inst.arg1,
+        int_val: inst.int_val,
+        float_val: inst.float_val,
+        str_val: callee,
+        val_type: inst.val_type,
+        result_types: inst.result_types,
+        func_id_raw: func_id_raw,
+    }
+}
+
+fn mir_inst_copy_with_locals(inst: MirInst, dest: i32, arg0: i32, arg1: i32) -> MirInst {
+    MirInst {
+        op: inst.op,
+        dest: dest,
+        arg0: arg0,
+        arg1: arg1,
+        int_val: inst.int_val,
+        float_val: inst.float_val,
+        str_val: clone(inst.str_val),
+        val_type: inst.val_type,
+        result_types: inst.result_types,
+        func_id_raw: inst.func_id_raw,
+    }
+}

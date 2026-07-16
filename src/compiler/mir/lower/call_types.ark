@@ -62,6 +62,7 @@ fn mir_callee_returns_string(callee_name: String) -> bool {
     eq(clone(callee_name), "text::join") ||
     eq(clone(callee_name), "__intrinsic_join") ||
     eq(clone(callee_name), "string_from_bytes") ||
+    eq(clone(callee_name), "__intrinsic_string_from_bytes") ||
     eq(clone(callee_name), "bytes::string_from_bytes") {
         return true
     }

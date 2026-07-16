@@ -1,0 +1,118 @@
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_param_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_local_set
+use mir::inst_misc_control
+use mir::inst_record
+use mir::opcodes
+use mir_opt::stdlib_inline_eligibility
+use mir_opt::stdlib_inline_locals
+
+fn stdlib_inline_find_single_arg_local(block: MirBlock, call_index: i32) -> i32 {
+    let mut index = call_index - 1
+    while index >= 0 {
+        let inst = block_inst_access::MirBlock_inst_at(block, index)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 {
+            return dest
+        }
+        index = index - 1
+    }
+    0 - 1
+}
+
+fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst) -> Vec<i32> {
+    let args = Vec_new_i32()
+    let count = inst_accessors_literals::MirInst_int_val(call)
+    if count == 1 {
+        push(args, stdlib_inline_find_single_arg_local(block, call_index))
+        return args
+    }
+    let mut index = 0
+    while index < count {
+        let staged_index = call_index - count + index
+        if staged_index < 0 {
+            return Vec_new_i32()
+        }
+        let staged = block_inst_access::MirBlock_inst_at(block, staged_index)
+        if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
+            return Vec_new_i32()
+        }
+        push(args, inst_accessors_operands::MirInst_arg0(staged))
+        index = index + 1
+    }
+    args
+}
+
+fn stdlib_inline_append_call(
+    caller: MirFunction,
+    caller_block: MirBlock,
+    call_index: i32,
+    call: MirInst,
+    callee: MirFunction,
+    output: Vec<MirInst>
+) -> bool {
+    let args = stdlib_inline_call_arg_locals(caller_block, call_index, call)
+    let param_count = function_param_view::MirFunction_param_count(callee)
+    if len(args) != param_count {
+        return false
+    }
+    let local_map = stdlib_inline_locals::stdlib_inline_build_local_map(caller, callee)
+    if inst_accessors_literals::MirInst_int_val(call) > 1 {
+        let mut drop_index = 0
+        while drop_index < len(args) {
+            push(output, inst_misc_control::MirInst_drop())
+            drop_index = drop_index + 1
+        }
+    }
+    let mut param_index = 0
+    while param_index < param_count {
+        push(
+            output,
+            inst_local_set::MirInst_local_set_from(
+                stdlib_inline_locals::stdlib_inline_remap_local(local_map, param_index),
+                get_unchecked(args, param_index)
+            )
+        )
+        param_index = param_index + 1
+    }
+    let body_index = stdlib_inline_eligibility::stdlib_inline_candidate_body_block(callee)
+    let body = function_block_queries::MirFunction_block_at(callee, body_index)
+    let instruction_count = block_inst_access::MirBlock_inst_count(body)
+    let mut instruction_index = 0
+    while instruction_index < instruction_count - 1 {
+        let source = block_inst_access::MirBlock_inst_at(body, instruction_index)
+        push(
+            output,
+            inst_record::mir_inst_copy_with_locals(
+                source,
+                stdlib_inline_locals::stdlib_inline_remap_local(
+                    local_map,
+                    inst_accessors_operands::MirInst_dest(source)
+                ),
+                stdlib_inline_locals::stdlib_inline_remap_local(
+                    local_map,
+                    inst_accessors_operands::MirInst_arg0(source)
+                ),
+                stdlib_inline_locals::stdlib_inline_remap_local(
+                    local_map,
+                    inst_accessors_operands::MirInst_arg1(source)
+                )
+            )
+        )
+        instruction_index = instruction_index + 1
+    }
+    let return_inst = block_inst_access::MirBlock_inst_at(body, instruction_count - 1)
+    let return_local = stdlib_inline_locals::stdlib_inline_remap_local(
+        local_map,
+        inst_accessors_operands::MirInst_arg0(return_inst)
+    )
+    let call_dest = inst_accessors_operands::MirInst_dest(call)
+    if return_local >= 0 && call_dest >= 0 {
+        push(output, inst_local_set::MirInst_local_set_from(call_dest, return_local))
+    }
+    true
+}

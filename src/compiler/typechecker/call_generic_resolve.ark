@@ -49,7 +49,7 @@ fn is_unresolved_fresh_type_var(infer_env: TypeEnv, ty: TypeInfo) -> bool {
     let mut i = 0
     while i < count {
         let tv = contract_env_vars_record::type_env_var_at(infer_env, i)
-        if eq(contract_typevar::TypeVar_name(tv), clone(name)) {
+        if eq(contract_typevar::TypeVar_name(tv), name) {
             return !contract_typevar::TypeVar_is_bound(tv)
         }
         i = i + 1

@@ -8,10 +8,15 @@ use mir_opt::async_lower
 use mir_opt::gc_hint
 use mir_opt::licm
 use mir_opt::loop_unroll
+use mir_opt::stdlib_inline
 use mir_opt::target_gate
 
 fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     let m = async_lower::async_lower_optimize_module(m)
+    if opt_level >= 1 {
+        stdlib_inline::stdlib_inline_module(m)
+    }
+    stdlib_inline::stdlib_resolve_normal_calls(m)
     if opt_level < 2 {
         return m
     }

@@ -184,6 +184,13 @@ BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "parser.ark",
 )
 
+BOOTSTRAP_REQUIRED_MIR_OPT_SOURCES = (
+    "mir_opt/stdlib_inline.ark",
+    "mir_opt/stdlib_inline_eligibility.ark",
+    "mir_opt/stdlib_inline_locals.ark",
+    "mir_opt/stdlib_inline_rewrite.ark",
+)
+
 # Bootstrap overlay: freeze wasm/mir gc_hint files at pre-ff8f8ded (selfhost trap).
 BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {}
 
@@ -193,8 +200,14 @@ BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
 BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
     ("mir_opt", "optimize_module"): "mir_opt",
 }
-BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — full MIR opt excluded (ff8f8ded traps in selfhost wasm).
+BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — retain only the bounded stdlib pass.
+use mir_opt_stdlib_inline
+
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+    if opt_level >= 1 {
+        mir_opt_stdlib_inline::stdlib_inline_module(m)
+    }
+    mir_opt_stdlib_inline::stdlib_resolve_normal_calls(m)
     m
 }
 """
@@ -1645,6 +1658,7 @@ def _write_worktree_namespace_overlay(
 
 def _write_bootstrap_stub_namespace_overlays(
     compiler_out: Path,
+    source_root: Path,
     write_order: list[str],
 ) -> set[str]:
     """Write passthrough stubs for namespaces that trap when fully overlaid."""
@@ -1657,6 +1671,20 @@ def _write_bootstrap_stub_namespace_overlays(
         (compiler_out / out_name).write_text(BOOTSTRAP_MIR_OPT_STUB, encoding="utf-8")
         written.add(out_name)
         write_order.append(out_name)
+        for rel_name in BOOTSTRAP_REQUIRED_MIR_OPT_SOURCES:
+            source_path = source_root / rel_name
+            flat_name = _flat_overlay_module_name(Path(rel_name))
+            output_name = f"{flat_name}.ark"
+            text = source_path.read_text(encoding="utf-8")
+            text = _promote_top_level_fns_public(text)
+            text = _rename_overlay_publish_symbols(text, rel_name)
+            text = _rewrite_overlay_call_sites(text)
+            (compiler_out / output_name).write_text(
+                _flatten_compiler_imports(text),
+                encoding="utf-8",
+            )
+            written.add(output_name)
+            write_order.append(output_name)
     return written
 
 
@@ -2515,12 +2543,9 @@ pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: St
     sess_path = compiler_out / "compiler_session_corehir.ark"
     if sess_path.is_file():
         text = sess_path.read_text(encoding="utf-8")
-        text = _replace_required(
-            text,
-            "    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)\n",
-            "    let _t3_pruned = 0\n",
-            "stub mir_prune_unreachable_for_t3 call for bootstrap",
-        )
+        prune_call = "    let _t3_pruned = mir::mir_prune_unreachable_for_t3(mir_module, export_roots)\n"
+        if prune_call in text:
+            text = text.replace(prune_call, "    let _t3_pruned = 0\n", 1)
         sess_path.write_text(text, encoding="utf-8")
 
 
@@ -2658,7 +2683,11 @@ def _prepare_flattened_selfhost_source_locked(
     compiler_out.mkdir(parents=True, exist_ok=True)
     write_order: list[str] = []
     monolithic_written = _write_monolithic_overlay_fallbacks(compiler_out, root, write_order)
-    monolithic_written |= _write_bootstrap_stub_namespace_overlays(compiler_out, write_order)
+    monolithic_written |= _write_bootstrap_stub_namespace_overlays(
+        compiler_out,
+        source_root,
+        write_order,
+    )
     for ns in sorted(WORKTREE_OVERLAY_NAMESPACES):
         monolithic_written |= _write_worktree_namespace_overlay(
             ns, compiler_out, source_root, root, write_order,
@@ -2687,6 +2716,13 @@ def _prepare_flattened_selfhost_source_locked(
         out_name = f"{flat_name}.ark"
         out_path.write_text(_flatten_compiler_imports(text), encoding="utf-8")
         write_order.append(out_name)
+    for required_rel in BOOTSTRAP_REQUIRED_MIR_OPT_SOURCES:
+        required_flat = _flat_overlay_module_name(Path(required_rel))
+        required_output = compiler_out / f"{required_flat}.ark"
+        if not required_output.is_file():
+            raise BootstrapOverlayError(
+                f"bootstrap overlay omitted required MIR optimization source: {required_rel}"
+            )
     _reapply_global_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_mir_host_call_delegates(compiler_out)
     _patch_bootstrap_mir_module_host_needs(compiler_out)
@@ -3216,27 +3252,22 @@ def _run_fixpoint_locked(
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
     # Stage 2: bootstrap wasm compiles current selfhost source → s2.wasm
-    # Skip stage2 if s2.wasm exists and its hash matches the last successful
-    # build's s2 hash (from fixpoint cache or s2-hash sidecar).  This avoids
-    # the ~22s wasmtime recompile when the source hasn't changed since the
-    # last fixpoint run but the fixpoint cache key changed.
+    # Skip stage2 only when both the binary hash and the source fingerprint
+    # match the last successful stage2 build. A binary-only sidecar cannot
+    # prove freshness after the compiler source changes.
     skip_stage2 = False
     if s2.is_file() and fingerprint is not None:
-        # Try fixpoint cache first
-        cached_s2_sha = None
-        if cached is not None:
-            cached_s2_sha = cached.get("s2_sha")
-        # Fall back to s2-hash sidecar (written after every successful stage2)
-        if not cached_s2_sha:
-            s2_hash_file = build_dir / "s2-hash.txt"
-            if s2_hash_file.is_file():
-                try:
-                    cached_s2_sha = s2_hash_file.read_text(encoding="utf-8").strip()
-                except OSError:
-                    pass
-        if cached_s2_sha and _sha256(s2) == cached_s2_sha:
-            skip_stage2 = True
-            emit(f"{GREEN}✓ s2.wasm unchanged from last build — skipping stage 2{NC}")
+        s2_hash_file = build_dir / "s2-hash.txt"
+        s2_source_file = build_dir / "s2-source-hash.txt"
+        if s2_hash_file.is_file() and s2_source_file.is_file():
+            try:
+                cached_s2_sha = s2_hash_file.read_text(encoding="utf-8").strip()
+                cached_source_sha = s2_source_file.read_text(encoding="utf-8").strip()
+                if cached_source_sha == fingerprint and _sha256(s2) == cached_s2_sha:
+                    skip_stage2 = True
+                    emit(f"{GREEN}✓ s2.wasm matches current source — skipping stage 2{NC}")
+            except OSError:
+                pass
 
     if (build or not s2.is_file()) and not skip_stage2:
         emit(f"{YELLOW}[selfhost] Building stage 2 (bootstrap wasm → s2.wasm)...{NC}")
@@ -3252,9 +3283,11 @@ def _run_fixpoint_locked(
                 emit(r.stderr[:500])
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         emit(f"{GREEN}✓ s2.wasm built{NC}")
-        # Write s2-hash sidecar for stage2 skip on next run
+        # Write binary and source sidecars for a freshness-safe stage2 skip.
         try:
             (build_dir / "s2-hash.txt").write_text(_sha256(s2), encoding="utf-8")
+            if fingerprint is not None:
+                (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
         except OSError:
             pass
 

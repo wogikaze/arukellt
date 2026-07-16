@@ -49,7 +49,8 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     let program = checked_program::build_checked_program(
         all_decls,
         backend_typecheck::typecheck_result_check_result(checked),
-        backend_resolve::resolve_result_loaded_modules(resolved)
+        backend_resolve::resolve_result_loaded_modules(resolved),
+        decls
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let mir_lowered = lower::lower_checked_program(program, config)
