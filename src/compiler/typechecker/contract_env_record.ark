@@ -5,6 +5,7 @@ use typechecker::contract_trait_impl_record
 use typechecker::contract_trait_method_record
 use typechecker::contract_type_param_bounds
 use typechecker::contract_typevar_record
+use collections::name_index
 use diagnostics::mod as diag_mod
 
 struct TypeEnv {
@@ -22,6 +23,7 @@ struct TypeEnv {
     mono_call_sites: Vec<MonoCallSite>,
     trait_impls: Vec<TraitImplInfo>,
     trait_methods: Vec<TraitMethodEntry>,
+    fn_sig_index: NameIndex,
     current_fn_type_params: Vec<String>,
     current_fn_bounds: Vec<TypeParamBounds>,
 }
@@ -42,6 +44,7 @@ fn TypeEnv_new() -> TypeEnv {
         mono_call_sites: Vec_new_MonoCallSite(),
         trait_impls: Vec_new_TraitImplInfo(),
         trait_methods: Vec_new_TraitMethodEntry(),
+        fn_sig_index: name_index::NameIndex_new(0),
         current_fn_type_params: Vec_new_String(),
         current_fn_bounds: Vec_new_TypeParamBounds()
     }

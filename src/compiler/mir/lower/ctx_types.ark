@@ -1,4 +1,5 @@
 use mir::types
+use collections::name_index
 
 pub struct LowerCtx {
     module: MirModule,
@@ -8,6 +9,7 @@ pub struct LowerCtx {
     local_indices: Vec<i32>,
     fn_names: Vec<String>,
     fn_name_lengths: Vec<i32>,
+    fn_name_index: NameIndex,
     fn_indices: Vec<i32>,
     fn_return_vts: Vec<i32>,
     fn_return_type_names: Vec<String>,

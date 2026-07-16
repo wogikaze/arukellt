@@ -93,7 +93,7 @@ def _overlay_skip(label: str) -> None:
     rebuild). Printing them by default floods logs and dominates wall time
     when stderr is captured or teed.
     """
-    if not os.environ.get("ARUKELLT_OVERLAY_VERBOSE"):
+    if os.environ.get("ARUKELLT_OVERLAY_VERBOSE") != "1":
         return
     print(f"[bootstrap-overlay] optional patch skipped: {label}")
 
@@ -3244,8 +3244,9 @@ def _run_fixpoint_locked(
     no_cache = os.environ.get("ARUKELLT_FIXPOINT_NO_CACHE", "") == "1"
     fingerprint: str | None = None
     cached: dict | None = None
-    if build and not no_cache:
+    if build:
         fingerprint = _selfhost_source_fingerprint(root)
+    if build and not no_cache:
         cached = _fixpoint_cache_read(root)
         if cached is not None:
             hit = _fixpoint_cache_hit(root, cached, fingerprint)

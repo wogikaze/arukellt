@@ -26,13 +26,13 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     let recv_type_name = type_name_for_mangling(recv_ty)
     if len(recv_type_name) > 0 {
         let mangled = concat(clone(recv_type_name), concat(String_from("::"), clone(method_name)))
-        let mangled_sig = sigs::lookup_fn_sig(fn_sigs, mangled)
+        let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
         }
     }
     // Fall back to bare-name lookup (free functions / prelude builtins).
-    let sig = sigs::lookup_fn_sig(fn_sigs, method_name)
+    let sig = sigs::lookup_fn_sig(env, fn_sigs, method_name)
     if !contract_fn_sig::FnSig_has_name(sig) {
         // Fallback: receiver might be a type variable bounded by a trait.
         // Try to resolve the method via trait bounds.

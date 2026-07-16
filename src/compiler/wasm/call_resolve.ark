@@ -5,6 +5,7 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::opcodes
 use resolver
+use collections::name_index
 
 fn mir_function_inst_count(f: MirFunction) -> i32 {
     let mut total = 0
@@ -35,18 +36,12 @@ fn mir_module_stem_from_qualified(name: String) -> String {
     substring(name, 0, last_colon)
 }
 
-fn mir_count_functions_named(functions: Vec<MirFunction>, short_name: String) -> i32 {
-    let count = len(functions)
-    let mut total = 0
-    let mut i = 0
-    while i < count {
-        let f = get_unchecked(functions, i)
-        if eq(function_identity::MirFunction_name(f), clone(short_name)) {
-            total = total + 1
-        }
-        i = i + 1
+fn mir_count_functions_named(function_name_counts: NameIndex, short_name: String) -> i32 {
+    let count = name_index::name_index_get(function_name_counts, short_name)
+    if count < 0 {
+        return 0
     }
-    total
+    count
 }
 
 fn mir_function_sole_call_target(f: MirFunction) -> String {
@@ -134,19 +129,28 @@ fn mir_pick_largest_non_forwarder_index(functions: Vec<MirFunction>, short_name:
     best_idx
 }
 
-fn mir_resolve_duplicate_call_target(functions: Vec<MirFunction>, callee_name: String) -> i32 {
-    mir_resolve_duplicate_call_target_depth(functions, callee_name, 0)
+fn mir_resolve_duplicate_call_target(
+    functions: Vec<MirFunction>,
+    function_name_counts: NameIndex,
+    callee_name: String
+) -> i32 {
+    mir_resolve_duplicate_call_target_depth(functions, function_name_counts, callee_name, 0)
 }
 
 // Depth-guarded resolution: forwarder chains can form cycles (a facade
 // forwarding to a same-short-name function that resolves back to the facade),
 // which would otherwise recurse until the wasm stack is exhausted.
-fn mir_resolve_duplicate_call_target_depth(functions: Vec<MirFunction>, callee_name: String, depth: i32) -> i32 {
+fn mir_resolve_duplicate_call_target_depth(
+    functions: Vec<MirFunction>,
+    function_name_counts: NameIndex,
+    callee_name: String,
+    depth: i32
+) -> i32 {
     if depth > 8 {
         return 0 - 1
     }
     let short_name = resolver::use_module_short_name(clone(callee_name))
-    if mir_count_functions_named(functions, clone(short_name)) <= 1 {
+    if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
         for i in 0..len(functions) {
             let f = get_unchecked(functions, i)
             if eq(function_identity::MirFunction_name(f), clone(short_name)) {
@@ -167,7 +171,12 @@ fn mir_resolve_duplicate_call_target_depth(functions: Vec<MirFunction>, callee_n
         if eq(function_identity::MirFunction_name(f), clone(short_name)) {
             if mir_function_is_single_call_forwarder(f) {
                 let sole = mir_function_sole_call_target(f)
-                let resolved = mir_resolve_duplicate_call_target_depth(functions, sole, depth + 1)
+                let resolved = mir_resolve_duplicate_call_target_depth(
+                    functions,
+                    function_name_counts,
+                    sole,
+                    depth + 1
+                )
                 if resolved >= 0 {
                     return resolved
                 }
@@ -179,12 +188,17 @@ fn mir_resolve_duplicate_call_target_depth(functions: Vec<MirFunction>, callee_n
     0 - 1
 }
 
-fn mir_resolve_self_delegate_collision(functions: Vec<MirFunction>, candidate_idx: i32, name: String) -> i32 {
+fn mir_resolve_self_delegate_collision(
+    functions: Vec<MirFunction>,
+    function_name_counts: NameIndex,
+    candidate_idx: i32,
+    name: String
+) -> i32 {
     let short_name = resolver::use_module_short_name(clone(name))
-    if mir_count_functions_named(functions, clone(short_name)) <= 1 {
+    if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
         return candidate_idx
     }
-    let resolved = mir_resolve_duplicate_call_target(functions, clone(name))
+    let resolved = mir_resolve_duplicate_call_target(functions, function_name_counts, clone(name))
     if resolved >= 0 {
         return resolved
     }

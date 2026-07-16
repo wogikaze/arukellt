@@ -7,6 +7,20 @@ use typechecker::module
 use typechecker::module_env_merge
 use typechecker::module_wit
 use typechecker::resolver_errors
+use typechecker::contract_fn_sig
+use collections::name_index
+
+fn build_fn_sig_index(fn_sigs: Vec<FnSig>) -> NameIndex {
+    let count = len(fn_sigs)
+    let index = name_index::NameIndex_new(count)
+    let mut i = 0
+    while i < count {
+        let sig = get_unchecked(fn_sigs, i)
+        name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(sig), i)
+        i = i + 1
+    }
+    index
+}
 
 fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
     let result = contract_result_state::TypeCheckResult_new()
@@ -15,6 +29,7 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls), module_wit::collect_wit_fn_sigs(wit_paths, decls))
+    env.fn_sig_index = build_fn_sig_index(fn_sigs)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {

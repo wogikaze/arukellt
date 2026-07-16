@@ -1793,6 +1793,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff694f02a8d7a50b6922b197ae03883fbf18cdb2ae9fbee7b6148456f5f44041"
 dependencies = [
  "leb128",
+ "wasmparser 0.214.0",
 ]
 
 [[package]]
@@ -1820,6 +1821,8 @@ name = "wasm-heap-grow-patcher"
 version = "0.1.0"
 dependencies = [
  "walrus",
+ "wasm-encoder 0.214.0",
+ "wasmparser 0.214.0",
 ]
 
 [[package]]

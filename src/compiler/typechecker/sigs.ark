@@ -2,8 +2,8 @@ use typechecker::sig_bounds
 use typechecker::sig_decl
 use typechecker::sig_lookup
 
-fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
-    sig_lookup::lookup_fn_sig(fn_sigs, name)
+fn lookup_fn_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    sig_lookup::lookup_fn_sig(env, fn_sigs, name)
 }
 
 fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {

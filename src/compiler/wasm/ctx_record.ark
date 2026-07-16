@@ -4,10 +4,13 @@ use corehir::type_table
 use mir::function_identity
 use mir::lower::mono_instance_table
 use wasm::gc_layout_table
+use collections::name_index
 
 pub struct SelfEmitCtx {
     functions: Vec<MirFunction>,
     function_name_lengths: Vec<i32>,
+    function_name_index: NameIndex,
+    function_name_counts: NameIndex,
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,
     string_values: Vec<String>,
@@ -60,10 +63,14 @@ fn SelfEmitCtx_new(
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
     let mut name_lengths = Vec_new_i32()
+    let function_name_index = name_index::NameIndex_new(fn_count)
+    let function_name_counts = name_index::NameIndex_new(fn_count)
     let mut fi = 0
     while fi < fn_count {
         let fname = function_identity::MirFunction_name(get_unchecked(functions, fi))
-        push(name_lengths, len(fname))
+        push(name_lengths, len(clone(fname)))
+        name_index::name_index_insert_first(function_name_index, clone(fname), fi)
+        name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
     }
     let empty_i32 = Vec_new_i32()
@@ -82,6 +89,8 @@ fn SelfEmitCtx_new(
     SelfEmitCtx {
         functions: functions,
         function_name_lengths: name_lengths,
+        function_name_index: function_name_index,
+        function_name_counts: function_name_counts,
         string_offsets: string_offsets,
         string_lengths: string_lengths,
         string_values: string_values,

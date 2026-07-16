@@ -19,11 +19,11 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     }
     let callee_name = ast_access::node_text(callee)
     let mut mono_fn_name = clone(callee_name)
-    let mut sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         let stripped = tc_strip_module_prefix(clone(callee_name))
         if !eq(clone(stripped), clone(callee_name)) {
-            let bare_sig = sigs::lookup_fn_sig(fn_sigs, clone(stripped))
+            let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(stripped))
             // Module-qualified stdlib generic calls (e.g. fmt::format_debug) register
             // mono instances under the bare decl name. Only rewrite when the bare sig
             // is generic so compiler-local qualified calls (fmt::format_source,

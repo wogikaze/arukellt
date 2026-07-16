@@ -1,6 +1,7 @@
 use mir::function_factory
 use mir::lower::ctx_types
 use wasm::emit_target
+use collections::name_index
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
     LowerCtx_new_for_target(m, String_new())
@@ -16,7 +17,10 @@ fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
         func: function_factory::MirFunction_new(String_from("")),
         cur_block: 0,
         local_names: Vec_new_String(), local_indices: Vec_new_i32(),
-        fn_names: Vec_new_String(), fn_name_lengths: Vec_new_i32(), fn_indices: Vec_new_i32(),
+        fn_names: Vec_new_String(),
+        fn_name_lengths: Vec_new_i32(),
+        fn_name_index: name_index::NameIndex_new(0),
+        fn_indices: Vec_new_i32(),
         fn_return_vts: Vec_new_i32(), fn_return_type_names: Vec_new_String(),
         loop_exit_block: 0 - 1, loop_cond_block: 0 - 1, nesting_depth: 0,
         loop_break_depth: 0 - 1, loop_continue_depth: 0 - 1, loop_break_local: 0 - 1,
