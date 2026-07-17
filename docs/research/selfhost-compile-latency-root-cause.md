@@ -85,9 +85,9 @@ pinned compiler + flat overlay + AOTで測定。
 
 （旧）`reachability_entry` は変化がなくなるまで全体walkを反復し、`reachability_names` は call targetごとに全関数を文字列比較していた。
 
-（2026-07-17 / #823 P1）queue BFS + 明示 `FunctionId.raw → Mir index`（`reachability_index.ark`）へ置換。CALL/REF_FUNC は `func_id_raw` 優先、未解決時のみ名前 / normal-call fallback。`--time` で `lower.reachability_fns: before=N after=M` を出力。
+（2026-07-17 / #823 P1）queue BFS + 明示 `FunctionId.raw → Mir index`（`reachability_index.ark`）へ置換。CALL/REF_FUNC は `func_id_raw` 優先、未解決時のみ名前 / normal-call fallback。`--time` で fns/blocks/insts before/after を出力。legacy fixpoint は `MIR_REACHABILITY_LEGACY_FIXPOINT=1`。
 
-計測（clock stub 付き `arukellt-s2-runtime.wasm`、full selfhost、`--time`）: wall ~102 s、peak RSS ~1.32 GiB、`before=8737 after=7980`。phase ms は overlay の `clock::monotonic_now` stub により 0ms。KEEP_CLOCK 経路は wasm-validate 失敗のため未採用。残存ボトルネックは **decl_emit（未到達 body の先行 lower）** → #824。
+同一 stubbed s2-runtime・full selfhost A/B: BFS wall 124 s vs legacy 134 s（Δ −10 s）、RSS ほぼ同値、prune 結果一致（8748→7991）。phase ms は clock stub で 0ms。`ARUKELLT_OVERLAY_KEEP_CLOCK=1` は Memory64 clock intrinsic の `expected i64, found i32` validate 失敗で未解決。**decl_emit が壁時間の主因とはまだ断定しない**。phase ms 取得後に #824 vs sync/propagate/emit を再判定する。
 
 ## 原因3: type propagationの反復走査
 
