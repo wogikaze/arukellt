@@ -1,6 +1,3 @@
-// When a local receives values from more than one enum variant slot,
-// clear variant_slot and keep an open enum type_name so local declaration
-// (enum_open) matches stores without ref.cast to a specific variant.
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_locals_view
@@ -8,15 +5,18 @@ use mir::function_local_mutation
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::local_access
-use mir::local_mutation
 use mir::opcodes
 use mir::post_pass_stack_scan
-fn mir_function_normalize_multi_variant_locals(f: MirFunction) -> MirFunction {
+use mir::typed_mir_sync_module
+// When a local receives values from more than one enum variant slot,
+// clear variant_slot and keep an open enum type_name so local declaration
+// (enum_open) matches stores without ref.cast to a specific variant.
+fn mir_function_normalize_multi_variant_locals(f: MirFunction, table: TypeTable) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
     while li < local_count {
         if local_receives_multiple_variant_slots(f, li) {
-            normalize_local_to_open_enum(f, li)
+            normalize_local_to_open_enum(f, li, table)
         }
         li = li + 1
     }
@@ -225,14 +225,14 @@ fn merge_variant_slot(first_slot: i32, slot: i32) -> i32 {
     first_slot
 }
 
-fn normalize_local_to_open_enum(f: MirFunction, local_idx: i32) {
+fn normalize_local_to_open_enum(f: MirFunction, local_idx: i32, table: TypeTable) {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
     let open_name = normalize_type_name_to_open_enum(clone(type_name))
     let mut new_loc = loc
     local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
     if len(open_name) > 0 {
-        new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, open_name)
+        new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, open_name, table)
     }
     function_local_mutation::MirFunction_set_local(f, local_idx, new_loc)
 }

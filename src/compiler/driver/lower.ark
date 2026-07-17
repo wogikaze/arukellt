@@ -3,6 +3,13 @@ use corehir::export_surface
 use driver::checked_program
 use driver::config_record
 
+fn lower_report_phase_timing(config: DriverConfig) -> i32 {
+    if config_record::config_show_timing(config) {
+        return 1
+    }
+    0
+}
+
 fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)
     let component_mode = eq(clone(emit_mode), "component") || eq(clone(emit_mode), "wit")
@@ -21,7 +28,8 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirMo
         decls,
         export_roots,
         config_record::config_wit_paths(config),
-        config_record::config_target(config)
+        config_record::config_target(config),
+        lower_report_phase_timing(config)
     )
 }
 
@@ -40,11 +48,25 @@ fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
 fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
-    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
+    session::session_lower_mir_component(
+        checked_program::checked_program_session(program),
+        decls,
+        export_roots,
+        config_record::config_wit_paths(config),
+        config_record::config_target(config),
+        lower_report_phase_timing(config)
+    )
 }
 
 fn lower_component_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
-    session::session_lower_mir_component(checked_program::checked_program_session(program), decls, export_roots, config_record::config_wit_paths(config), config_record::config_target(config))
+    session::session_lower_mir_component(
+        checked_program::checked_program_session(program),
+        decls,
+        export_roots,
+        config_record::config_wit_paths(config),
+        config_record::config_target(config),
+        lower_report_phase_timing(config)
+    )
 }

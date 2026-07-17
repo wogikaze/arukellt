@@ -1,6 +1,3 @@
-//
-// Extracted from post_pass_type_propagate.ark to reduce import fan-out.
-
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_identity
@@ -10,14 +7,16 @@ use mir::function_return_view
 use mir::inst_accessors_operands
 use mir::inst_record
 use mir::local_access
-use mir::local_mutation
 use mir::module_functions
 use mir::opcodes
 use mir::post_pass_enum_normalize
+use mir::typed_mir_sync_module
+//
+// Extracted from post_pass_type_propagate.ark to reduce import fan-out.
 
 // Set type_name / variant_slot on dest based on the producer instruction type.
 // For CALL, looks up the callee's return metadata from the module.
-fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op: i32, dest: i32) -> bool {
+fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op: i32, dest: i32, table: TypeTable) -> bool {
     if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
         return false
     }
@@ -38,7 +37,7 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
     }
     if op == opcodes::MIR_CONST_STRING() {
         if len(dst_type_name) == 0 {
-            new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, String_from("string"))
+            new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, String_from("string"), table)
             updated = true
         }
     }
@@ -46,7 +45,7 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
         if len(dst_type_name) == 0 {
             let struct_name = inst_record::mir_inst_str_val(inst)
             if len(struct_name) > 0 {
-                new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, struct_name)
+                new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, struct_name, table)
                 updated = true
             }
         }
@@ -62,7 +61,7 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
                 ret_name = lookup_intrinsic_return_type_name(callee)
             }
             if len(ret_name) > 0 {
-                new_loc = local_mutation::MirLocal_copy_with_type_name(new_loc, ret_name)
+                new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, ret_name, table)
                 updated = true
             }
         }

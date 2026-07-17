@@ -6,6 +6,7 @@ struct MirLowerEntryInput {
     wit_paths: Vec<String>,
     decl_nodes: Vec<AstNode>,
     target: String,
+    report_phase_timing: i32,
 }
 
 fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput {
@@ -16,7 +17,8 @@ fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput 
         body_source: body_source,
         wit_paths: input::mir_lower_input_wit_paths(input),
         decl_nodes: input::mir_lower_input_decl_nodes(input),
-        target: input::mir_lower_input_target(input)
+        target: input::mir_lower_input_target(input),
+        report_phase_timing: input.report_phase_timing
     }
 }
 

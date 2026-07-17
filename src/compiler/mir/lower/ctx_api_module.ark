@@ -10,10 +10,8 @@ fn ctx_current_module(ctx: LowerCtx) -> MirModule { ctx_module::ctx_current_modu
 fn ctx_sync_typed_value_types(ctx: LowerCtx) {
     let m = ctx_module::ctx_current_module(ctx)
     typed_mir_sync_module::mir_module_sync_all_value_types(m)
+    // Propagate applies TypeTable re-sync on each type_name write (#823), so a
+    // second full-module sync is not required.
     post_pass_type_propagate::mir_module_propagate_local_types(m)
-    // Re-sync value_types after propagation, since setting type_name
-    // recalculates value_type via mvt_from_legacy_vt (without TypeTable
-    // access).  The second sync restores TypeTable-derived value_types.
-    typed_mir_sync_module::mir_module_sync_all_value_types(m)
 }
 fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) { ctx.mono_instances = instances }

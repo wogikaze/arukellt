@@ -1,5 +1,12 @@
 use mir::lower::input
 
-fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>, target: String) -> MirLowerInput {
-    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes, target)
+fn mir_lower_input_new(
+    view: CoreHirMirView,
+    fallback_source: MirLowerFallbackSource,
+    wit_paths: Vec<String>,
+    decl_nodes: Vec<AstNode>,
+    target: String,
+    report_phase_timing: i32
+) -> MirLowerInput {
+    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes, target, report_phase_timing)
 }

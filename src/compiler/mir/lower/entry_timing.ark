@@ -1,0 +1,44 @@
+use std::host::clock
+use std::host::env
+use std::host::stdio
+
+fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
+    if report_flag != 0 {
+        return 1
+    }
+    match env::var(String_from("MIR_LOWER_PHASE_TIMING")) {
+        Some(v) => {
+            if eq(clone(v), String_from("1")) || eq(clone(v), String_from("true")) {
+                return 1
+            }
+            0
+        }
+        None => 0
+    }
+}
+
+fn mir_lower_phase_now() -> i64 {
+    clock::monotonic_now()
+}
+
+fn mir_lower_phase_ms(t_start: i64, t_end: i64) -> i32 {
+    // Inline ns→ms: `time::duration_ms` lowers to unreachable under pinned→s2 (#823).
+    let diff = t_end - t_start
+    if diff < 0i64 {
+        return 0
+    }
+    i64_to_i32(diff / 1000000i64)
+}
+
+fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
+    if enabled == 0 {
+        return
+    }
+    let ms = mir_lower_phase_ms(t_start, t_end)
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower."),
+            concat(clone(label), concat(String_from(": "), concat(to_string(ms), String_from("ms"))))
+        )
+    )
+}

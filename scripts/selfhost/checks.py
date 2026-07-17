@@ -1397,6 +1397,17 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
             f"driver_timing: {field} i64→i32 struct field",
             flags=re.M,
         )
+    # The field rewrite above also matches multi-line function parameters. Emit
+    # timing APIs must stay i64 so call sites that pass run_backend timestamps
+    # and i32_to_i64(...) wrappers remain type-correct (#823).
+    for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
+        text = _sub_optional(
+            text,
+            rf"(fn emit_(?:output|timing_if_enabled|native_output|wasm_output|wat_output|wit_output|component_output|phase_timing)\([\s\S]*?)(    {field}: )i32,",
+            rf"\1\2i64,",
+            f"driver_timing: restore emit fn param {field} i32→i64",
+            flags=re.M,
+        )
     text = _replace_optional(
         text,
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64)",
@@ -1475,6 +1486,13 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
         "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
+    # Split backend timestamps (lower / mir_opt / mir_verify) before emit (#823).
+    text = _replace_optional(
+        text,
+        "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
+        "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
+        "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
+    )
     text = _replace_optional(
         text,
         "typecheck_result_t_typecheck(checked)), t_lower)",
@@ -1493,7 +1511,24 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
         "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
         "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
+    # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
+    text = _replace_optional(
+        text,
+        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
+        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
+        "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
+    )
     return text
+
+
+def _patch_bootstrap_mir_lower_phase_timing(text: str) -> str:
+    """Pinned bootstrap lacks clock intrinsics in mir lower (#823)."""
+    return _replace_optional(
+        text,
+        "clock::monotonic_now()",
+        "i32_to_i64(0)",
+        "mir_lower_timing: stub clock::monotonic_now",
+    )
 
 
 def _patch_bootstrap_wasm_sections_data_only(text: str) -> str:
@@ -1671,6 +1706,8 @@ def _write_worktree_namespace_overlay(
             text = _patch_bootstrap_wasm_sections_data_only(text)
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text)
+        if rel_name == "mir/lower/entry_timing.ark":
+            text = _patch_bootstrap_mir_lower_phase_timing(text)
         text = _promote_top_level_fns_public(text)
         text = _rename_overlay_publish_symbols(text, rel_name)
         text = _rewrite_overlay_call_sites(text)

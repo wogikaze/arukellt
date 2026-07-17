@@ -6,18 +6,23 @@ use mir::lower::entry_context
 use mir::lower::entry_decls
 use mir::lower::entry_input
 use mir::lower::entry_fn_index_facade
+use mir::lower::entry_timing
 use mir::lower::entry_trace
 use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
 use mir::module_factory
+use mir::post_pass_type_propagate
 use mir::reachability
+use mir::typed_mir_sync_module
 
 // Bootstrap flat overlay may inject mir_dedupe_functions_by_name into monolithic
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
 // Export-only dedupe (wasm/sections_exports.ark) handles overlay name collisions.
 
 fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>, prune_enabled: bool) -> MirModule {
+    let timing = entry_timing::mir_lower_phase_timing_enabled(input.report_phase_timing)
+    let t_enter = entry_timing::mir_lower_phase_now()
     let view = entry_input::mir_entry_input_view(input)
     let body_source = entry_input::mir_entry_input_body_source(input)
     let m = module_factory::MirModule_new()
@@ -33,14 +38,29 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
+    let t_after_decl = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, String_from("decl_emit"), t_enter, t_after_decl)
+
+    let module = ctx_api_module::ctx_current_module(ctx)
     if prune_enabled {
         // Sync/propagate is O(locals^2) per function; prune with export roots first
         // so selfhost-scale modules do not sync the full emitter graph (#730).
-        let module = ctx_api_module::ctx_current_module(ctx)
         let _pruned = reachability::mir_prune_unreachable_with_roots(module, export_roots)
     }
-    ctx_api_module::ctx_sync_typed_value_types(ctx)
-    ctx_api_module::ctx_current_module(ctx)
+    let t_after_reach = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, String_from("reachability"), t_after_decl, t_after_reach)
+
+    typed_mir_sync_module::mir_module_sync_all_value_types(module)
+    let t_after_sync = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, String_from("sync"), t_after_reach, t_after_sync)
+
+    // TypeTable re-sync is fused into type_name writes during propagate (#823).
+    post_pass_type_propagate::mir_module_propagate_local_types(module)
+    let t_after_prop = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, String_from("propagate"), t_after_sync, t_after_prop)
+    entry_timing::mir_lower_phase_note(timing, String_from("total"), t_enter, t_after_prop)
+
+    module
 }
 
 fn lower_program_to_mir(input: MirLowerInput) -> MirModule {

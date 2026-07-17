@@ -55,6 +55,13 @@ fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
     synced
 }
 
+// Propagate writes type_name via mvt_from_legacy_vt (no TypeTable). Re-sync
+// immediately so callers can drop the full-module second sync pass (#823).
+fn mir_local_with_type_name_synced(loc: MirLocal, type_name: String, table: TypeTable) -> MirLocal {
+    let named = local_mutation::MirLocal_copy_with_type_name(loc, type_name)
+    mir_local_sync_value_type(named, table)
+}
+
 fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
     // In-place: per-element Vec rebuild is Θ(L²) across a full sync (#823).
     set(f.params, idx, local)

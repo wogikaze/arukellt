@@ -12,9 +12,21 @@ use driver::checked_program
 use driver::debug
 use resolver::wit_import_bind
 
-fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_output(
+    mir_module: MirModule,
+    program: CheckedProgram,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     if driver::target::is_native_target_pub(config_record::config_target(config)) {
-        return emit_native_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_native_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     let emit_mode = normalize_emit_mode(config_record::config_emit_mode(config))
     let world_error = world_target_error(config, clone(emit_mode))
@@ -26,21 +38,44 @@ fn emit_output(mir_module: MirModule, program: CheckedProgram, config: DriverCon
         return result_record::CompileResult_err(phases::PHASE_EMIT(), component_error)
     }
     if eq(clone(emit_mode), "wit") {
-        return emit_wit_output(checked_program::checked_program_wit_decls(program), config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_wit_output(
+            checked_program::checked_program_wit_decls(program),
+            config,
+            t0,
+            t_lex,
+            t_parse,
+            t_resolve,
+            t_typecheck,
+            t_lower,
+            t_mir_opt,
+            t_mir_verify
+        )
     }
     if eq(clone(emit_mode), "wat") {
-        return emit_wat_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_wat_output(mir_module, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     if eq(clone(emit_mode), "wasm") {
-        return emit_wasm_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_wasm_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     if eq(clone(emit_mode), "component") {
-        return emit_component_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+        return emit_component_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
     result_record::CompileResult_err(phases::PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
 }
 
-fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_component_output(
+    mir_module: MirModule,
+    program: CheckedProgram,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
     let core_wasi = emit_component_core_wasi_version(config, mir_module)
     let core_wasm = wasm::emit_wasm(mir_module, config_record::config_target(config), core_wasi, config_record::config_opt_level(config), bindings)
@@ -50,7 +85,7 @@ fn emit_component_output(mir_module: MirModule, program: CheckedProgram, config:
     let comp_bytes = component::emit_component(core_wasm, mir_module, config_record::config_target(config), config_record::config_wasi_version(config), config_record::config_world(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, comp_bytes)
-    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }
 
@@ -82,21 +117,64 @@ fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
     String_new()
 }
 
-fn emit_timing_if_enabled(config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) {
+fn emit_timing_if_enabled(
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) {
     if config_record::config_show_timing(config) {
-        debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, clock::monotonic_now())
+        debug::emit_phase_timing(
+            t0,
+            t_lex,
+            t_parse,
+            t_resolve,
+            t_typecheck,
+            t_lower,
+            t_mir_opt,
+            t_mir_verify,
+            clock::monotonic_now()
+        )
     }
 }
 
-fn emit_native_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_native_output(
+    mir_module: MirModule,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     let native_bytes = driver::native::emit_native_scaffold(mir_module, config_record::config_target(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, native_bytes)
-    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }
 
-fn emit_wasm_output(mir_module: MirModule, program: CheckedProgram, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_wasm_output(
+    mir_module: MirModule,
+    program: CheckedProgram,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
     let wasm_bytes = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_wasi_version(config), config_record::config_opt_level(config), bindings)
     if config_record::config_dump_wasm(config) {
@@ -105,11 +183,22 @@ fn emit_wasm_output(mir_module: MirModule, program: CheckedProgram, config: Driv
     }
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, wasm_bytes)
-    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }
 
-fn emit_wat_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_wat_output(
+    mir_module: MirModule,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     let wat_text = wasm::emit_wat(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     let wat_len = len(wat_text)
@@ -120,14 +209,25 @@ fn emit_wat_output(mir_module: MirModule, config: DriverConfig, t0: i64, t_lex: 
         wi = wi + 1
     }
     result_record::compile_result_set_output_bytes(result, wat_bytes)
-    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }
 
-fn emit_wit_output(all_decls: Vec<AstNode>, config: DriverConfig, t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64) -> CompileResult {
+fn emit_wit_output(
+    all_decls: Vec<AstNode>,
+    config: DriverConfig,
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64
+) -> CompileResult {
     let wit_output = component::emit_wit_text_from_decls_with_world(all_decls, config_record::config_world(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, component::string_to_bytes(wit_output))
-    debug::emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower)
+    emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     result
 }

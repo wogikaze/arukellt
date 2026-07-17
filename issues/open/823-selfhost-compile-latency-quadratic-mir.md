@@ -48,3 +48,17 @@ Research: [`docs/research/selfhost-compile-latency-root-cause.md`](../../docs/re
 - Do not treat lean-bootstrap or Memory64 page size as the primary latency fix.
 - `docs/compiler/bootstrap.md` ~45s stage-2 vs #730 ~10–11 min stage-3 are
   different pipelines; keep receipts labeled by artifact/target.
+
+## Progress (2026-07-17)
+
+P0.1–P0.2: in-place MIR `Vec` updates (prior commits).
+
+P0.3 typed sync fuse: propagate / enum-normalize / callee-lookup write
+`type_name` via `mir_local_with_type_name_synced` (TypeTable re-sync on write).
+Lower entry runs one full `mir_module_sync_all_value_types` then propagate;
+`ctx_sync_typed_value_types` no longer does a second full-module sync.
+
+P0.4 phase timers:
+- `--show-timing` / `MIR_LOWER_PHASE_TIMING=1` →
+  `lower.decl_emit` / `lower.reachability` / `lower.sync` / `lower.propagate`
+- `--show-timing` pipeline → `lower` / `mir_opt` / `mir_verify` / `emit`
