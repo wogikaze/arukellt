@@ -183,3 +183,35 @@
 コピーは `/bin/cp -f`（対話的 `cp -iv` 禁止）。詳細は `docs/compiler/bootstrap.md`。
 
 変更範囲に応じた追加コマンドは `docs/data/verification-commands.toml` と対象 issue を確認して選ぶ。
+
+## エージェント運用の効率化
+
+AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツール呼び出しのラウンドトリップ・認証・再試行ループ・無駄な再構築に消えているケースがある。次の運用を徹底する。
+
+### ツール呼び出しのバッチ化
+
+- 独立な `read` / `grep` / `exec` は可能な限り 1 回のターンでまとめて実行する。
+- 関連ファイルは個別に `read` せず、`wc -l file1 file2 ...` や `sed`/`grep` でまとめて取得してから解析する。
+- 長い `exec` 結果は `get_output` で待つ間、同じファイルへの書き込みを伴わない他の調査を並列化する。
+
+### selfhost 再構築の抑制
+
+- `src/compiler/**` の emitter 編集後は `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ）を **1 回**実行する。
+- 多数の fixture をその s2 で検証する。
+- `python3 scripts/manager.py selfhost fixpoint --build --no-cache` は日常の再構築に使わない。fixpoint は s2==s3 を確認する ADR-029 ゲートのみ。
+- 詳細は `.cursor/rules/selfhost-rebuild.mdc` と `docs/research/selfhost-compile-latency-root-cause.md` を参照。
+
+### 認証・ネットワーク・インデックス問題の監視
+
+- Devin 起動時に `Team settings refresh timed out`、`failed to fetch plan info`、`PKCE callback invoked more than once` が出る場合、バックエンド認証・テレメトリー問い合わせに時間を取られている。無限リトライせず、発生を報告する。
+- Cursor worker ログで `unauthenticated`、`Indexing failed`、`TypeScript installation` エラーが繰り返される場合、インデックス再試行ループが発生している。エディタ設定・認証状態・プロキシを確認するか、ユーザに報告する。
+
+### 作業時間の自己監視
+
+- 10 分を超える作業では、最終報告に「何に時間がかかったか・何を短縮できたか」を含める。
+- 長時間沈黙している場合は、モデル推論待ち・コマンド実行待ち・認証待ちのいずれかを想定して、現状と次の短縮策を明示する。
+
+### 参考
+
+- 調査詳細: `docs/research/agent-tooling-latency.md`
+- Devin 生成 wiki: 同梱 `Agent Tooling Efficiency` ページ（`~/.local/share/devin/cli/wiki/.../wiki.md`）
