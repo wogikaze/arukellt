@@ -48,9 +48,12 @@ fn build_return_type_sig(uf: MirFunction, return_type: i32, return_type_name: St
 }
 
 fn is_string_byte_vec_param_fn(fn_name: String) -> bool {
+    // Only byte-buffer helpers whose first parameter is actually Vec<i32>
+    // should be forced to the vec structref type. ascii_case_impl takes a
+    // String (an i8 array) as its source parameter, so it must keep the
+    // string GC array signature.
     eq(clone(fn_name), String_from("__core_string_push_range")) ||
-    eq(clone(fn_name), String_from("__core_string_push_byte")) ||
-    eq(clone(fn_name), String_from("__core_string_ascii_case_impl"))
+    eq(clone(fn_name), String_from("__core_string_push_byte"))
 }
 
 fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, mir: MirModule) -> String {
