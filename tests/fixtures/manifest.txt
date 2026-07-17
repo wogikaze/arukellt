@@ -2298,6 +2298,7 @@ t3-compile:t3/string_gc.ark
 t3-compile:t3/string_intern.ark
 t3-compile:t3/wasm_dead_fn_elim.ark
 t3-compile:reachability/call_export_roots.ark
+mir-dump:reachability/ref_func_only_target.ark
 t3-compile:trait/basic_impl.ark
 t3-compile:trait/builtin_method.ark
 t3-compile:trait/method_chain.ark
