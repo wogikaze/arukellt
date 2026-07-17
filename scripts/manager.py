@@ -4356,11 +4356,16 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         """Run a bash command string; return (rc, combined output)."""
         if dry_run:
             return (0, f"DRY-RUN: {cmd_str}")
+        env = {**os.environ}
+        cargo_bin = str(Path.home() / ".cargo" / "bin")
+        if cargo_bin not in env.get("PATH", ""):
+            env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
         result = subprocess.run(
             ["bash", "-lc", cmd_str],
             cwd=str(root),
             capture_output=True,
             text=True,
+            env=env,
         )
         return (result.returncode, result.stdout + result.stderr)
 
@@ -4586,7 +4591,7 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     bg_results: list[tuple[str, str, int, str]] = []
     if not dry_run and os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") != "0":
         _prime_quick_file_digest_cache(root)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         futures = {
             executor.submit(_cached_quick_check, root, label, cmd_str, _shell): (label, cmd_str)
             for label, cmd_str in bg_checks

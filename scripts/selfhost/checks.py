@@ -451,7 +451,11 @@ def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
         return 2, "wasm-tools not found in PATH"
     try:
         abs_path = wasm_path.resolve()
-        result = _run([tool, "validate", str(abs_path)], wasm_path.parent, timeout=60)
+        result = _run(
+            [tool, "validate", "--features", "gc,function-references,memory64", str(abs_path)],
+            wasm_path.parent,
+            timeout=60,
+        )
     except Exception as exc:  # timeout or other failure
         return 3, f"wasm-tools validate crashed: {exc}"
     if result.returncode != 0:
