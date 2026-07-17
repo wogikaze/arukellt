@@ -1,4 +1,6 @@
 use mir::inst_accessors_literals
+use wasm::opcodes
+use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_f64
 use wasm::intrinsics::helpers_numeric_sign_extend
 use wasm::intrinsics::helpers_numeric_i32
@@ -6,6 +8,10 @@ use wasm::intrinsics::helpers_numeric_i64_convert
 
 // Handler for: i32_to_i64
 fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Under Memory64 the source i32 is already i64 on the wasm stack.
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
     return true
 }
@@ -35,6 +41,10 @@ fn emit_i32_to_u8(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: u32_to_u64
 fn emit_u32_to_u64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Under Memory64 the source u32 is already i64 on the wasm stack.
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
     return true
 }

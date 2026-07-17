@@ -6,6 +6,7 @@ use wasm::writer_gc
 use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC target sort: in-place insertion sort on the vec's data array.
 fn emit_sort_gc_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -126,13 +127,13 @@ fn emit_sort_gc_shift_i32(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, a
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32::emit_i32_lt_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
     writer_gc::emit_gc_array_get(w, arr_type)
     helpers_core::emit_local_get(w, s_val)
-    writer_core::emit_byte(w, opcodes::OP_I32_LE_S())
+    helpers_numeric_i32::emit_i32_le_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
     emit_sort_gc_shift_body(w, s_arr, s_inner, arr_type)
     string_gc_helpers::emit_gc_br(w, 0)
@@ -144,7 +145,7 @@ fn emit_sort_gc_shift_i64(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, a
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32::emit_i32_lt_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
@@ -162,7 +163,7 @@ fn emit_sort_gc_shift_f64(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, a
     string_gc_helpers::emit_gc_block_loop(w)
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    helpers_numeric_i32::emit_i32_lt_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
@@ -181,6 +182,7 @@ fn emit_sort_gc_shift_body(w: WasmWriter, s_arr: i32, s_inner: i32, arr_type: i3
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_inner)
     writer_gc::emit_gc_array_get(w, arr_type)
@@ -197,6 +199,7 @@ fn emit_sort_gc_store_val(w: WasmWriter, s_arr: i32, s_inner: i32, s_val: i32, a
     helpers_core::emit_local_get(w, s_inner)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_val)
     writer_gc::emit_gc_array_set(w, arr_type)
 }

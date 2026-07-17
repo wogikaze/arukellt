@@ -61,6 +61,11 @@ fn emit_unreachable(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    // Under Memory64 the source "i32" is already an i64 on the wasm stack.
+    // Convert it to a true i64 by wrapping to i32 then sign-extending.
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    }
     writer_core::emit_byte(w, opcodes::OP_I64_EXTEND_I32_S())
 }
 

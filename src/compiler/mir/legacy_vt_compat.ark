@@ -23,6 +23,12 @@ fn legacy_vt_from_mir_value_type(table: TypeTable, mvt: MirValueType) -> i32 {
         return value_types::VT_REF()
     }
     if kind == kinds::TYPE_KIND_VEC() {
+        if repr == kinds::VALUE_REPR_GC_REF() {
+            return value_types::VT_GC_REF()
+        }
+        if repr == kinds::VALUE_REPR_LINEAR_PTR() {
+            return value_types::VT_REF()
+        }
         return value_types::VT_I32()
     }
     if kind == kinds::TYPE_KIND_TUPLE() || kind == kinds::TYPE_KIND_STRUCT() || kind == kinds::TYPE_KIND_ENUM() {

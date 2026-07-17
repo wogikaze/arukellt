@@ -8,6 +8,8 @@ use wasm::ctx_gc_type
 use wasm::intrinsic_vec_type
 use wasm::intrinsic_vec_push
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
 fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i64: bool) -> bool {
@@ -85,7 +87,7 @@ fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void:
     helpers_core::emit_local_set(w, s_cap)
     helpers_core::emit_local_get(w, s_len)
     helpers_core::emit_local_get(w, s_cap)
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32::emit_i32_ge_s(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
     emit_push_numeric_gc_grow(w, s_vec, s_len, s_cap, arr_tmp, arr_old, vec_type, array_type)
@@ -101,18 +103,18 @@ fn emit_push_numeric_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void:
 
 // Store the value at arr[len] and bump the vec length field.
 fn emit_push_numeric_gc_store(w: WasmWriter, s_vec: i32, s_len: i32, s_val: i32, arr_tmp: i32, vec_type: i32, array_type: i32) {
-    // array.set arr[len] = value
+    // array.set arr[len] = value (len is widened under memory64; narrow index)
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_val)
     writer_gc::emit_gc_array_set(w, array_type)
     // struct.set vec_type 1 = len + 1
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
     writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 }
 
@@ -137,10 +139,9 @@ fn emit_push_numeric_gc_grow(w: WasmWriter, s_vec: i32, s_len: i32, s_cap: i32, 
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_set(w, arr_old)
     helpers_core::emit_local_get(w, s_cap)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 2)
-    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
-    writer_gc::emit_gc_array_new(w, array_type)
+    helpers_numeric_i32::emit_i32_const(w, 2)
+    helpers_numeric_i32::emit_i32_mul(w)
+    writer_gc::emit_gc_array_new_from_widened(w, array_type)
     writer_gc::emit_gc_ref_cast(w, array_type)
     helpers_core::emit_local_set(w, arr_tmp)
     helpers_core::emit_local_get(w, arr_tmp)
