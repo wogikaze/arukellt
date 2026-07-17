@@ -2,7 +2,7 @@
 // Do not edit by hand.
 
 fn core_op_binding_count() -> i32 {
-    468
+    469
 }
 
 fn core_op_binding_callee_at(index: i32) -> String {
@@ -467,13 +467,14 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if index == 458 { return String_from("vec_get_unchecked") }
     if index == 459 { return String_from("vec_get_unchecked_f64") }
     if index == 460 { return String_from("vec_get_unchecked_i64") }
-    if index == 461 { return String_from("vec_len") }
-    if index == 462 { return String_from("vec_pop") }
-    if index == 463 { return String_from("vec_push") }
-    if index == 464 { return String_from("vec_push_i64") }
-    if index == 465 { return String_from("vec_set") }
-    if index == 466 { return String_from("write_bytes") }
-    if index == 467 { return String_from("write_string") }
+    if index == 461 { return String_from("vec_is_empty") }
+    if index == 462 { return String_from("vec_len") }
+    if index == 463 { return String_from("vec_pop") }
+    if index == 464 { return String_from("vec_push") }
+    if index == 465 { return String_from("vec_push_i64") }
+    if index == 466 { return String_from("vec_set") }
+    if index == 467 { return String_from("write_bytes") }
+    if index == 468 { return String_from("write_string") }
     return String_new()
 }
 
@@ -939,13 +940,14 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
     if index == 458 { return String_from("vec.get_unchecked") }
     if index == 459 { return String_from("vec.get_unchecked_f64") }
     if index == 460 { return String_from("vec.get_unchecked_i64") }
-    if index == 461 { return String_from("vec.len") }
-    if index == 462 { return String_from("vec.pop") }
-    if index == 463 { return String_from("vec.push") }
-    if index == 464 { return String_from("vec.push_i64") }
-    if index == 465 { return String_from("vec.set") }
-    if index == 466 { return String_from("runtime.write_bytes") }
-    if index == 467 { return String_from("runtime.write_string") }
+    if index == 461 { return String_from("vec.is_empty") }
+    if index == 462 { return String_from("vec.len") }
+    if index == 463 { return String_from("vec.pop") }
+    if index == 464 { return String_from("vec.push") }
+    if index == 465 { return String_from("vec.push_i64") }
+    if index == 466 { return String_from("vec.set") }
+    if index == 467 { return String_from("runtime.write_bytes") }
+    if index == 468 { return String_from("runtime.write_string") }
     return String_new()
 }
 

@@ -34,6 +34,10 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
+    if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+    }
     if eq(clone(callee_name), "vec_get_unchecked") || eq(clone(callee_name), "get_unchecked") || eq(clone(callee_name), "__intrinsic_get_unchecked") {
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }

@@ -37,6 +37,9 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
     if eq(clone(rewritten), "get") {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
     }
+    if eq(clone(rewritten), "is_empty") {
+        rewritten = mir_rewrite_vec_is_empty(ctx, rewritten, first_arg_idx)
+    }
     rewritten = mir_rewrite_vec_basic(rewritten)
     mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
 }
@@ -46,6 +49,16 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if eq(clone(arg_type_len), String_from("Vec")) || starts_with(clone(arg_type_len), "vec:") {
             return String_from("vec_len")
+        }
+    }
+    callee_name
+}
+
+fn mir_rewrite_vec_is_empty(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx >= 0 {
+        let arg_type_empty = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if eq(clone(arg_type_empty), String_from("Vec")) || starts_with(clone(arg_type_empty), "vec:") {
+            return String_from("vec_is_empty")
         }
     }
     callee_name
