@@ -45,6 +45,12 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
             return MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
         }
     }
+    if eq(clone(callee_name), String_from("is_empty")) {
+        let is_empty_local = call_rewrite_vec::mir_rewrite_vec_is_empty_to_local(ctx, first_arg_idx)
+        if is_empty_local >= 0 {
+            return MirCallRewrite_new(callee_name, is_empty_local, push_i64_needs_extend)
+        }
+    }
     if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }

@@ -1,7 +1,13 @@
 use mir::lower::call_rewrite_vec_access
 use mir::lower::call_rewrite_vec_push
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::inst_call
+use mir::inst_local_get
+use mir::inst_misc_control
+use mir::value_types
 
 struct MirVecCallRewrite {
     callee_name: String,
@@ -26,7 +32,6 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
     eq(clone(callee_name), String_from("vec_get_unchecked_f64")) ||
     eq(clone(callee_name), String_from("vec_len")) ||
-    eq(clone(callee_name), String_from("vec_is_empty")) ||
     eq(clone(callee_name), String_from("vec_push")) ||
     eq(clone(callee_name), String_from("push_i64")) ||
     eq(clone(callee_name), String_from("push_f64")) ||
@@ -63,9 +68,6 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
     if is_vec_get_callee(clone(rewritten)) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
     }
-    if eq(clone(rewritten), "is_empty") {
-        rewritten = mir_rewrite_vec_is_empty(ctx, rewritten, first_arg_idx)
-    }
     rewritten = mir_rewrite_vec_basic(rewritten)
     mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
 }
@@ -86,14 +88,25 @@ fn is_vec_get_callee(name: String) -> bool {
     contains(name, String_from("::get__"))
 }
 
-fn mir_rewrite_vec_is_empty(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
-    if first_arg_idx >= 0 {
-        let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(clone(first_arg_type), String_from("Vec")) || starts_with(clone(first_arg_type), "vec:") {
-            return String_from("vec_is_empty")
-        }
+fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
+    if first_arg_idx < 0 {
+        return 0 - 1
     }
-    callee_name
+    let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    if !eq(clone(first_arg_type), String_from("Vec")) && !starts_with(clone(first_arg_type), "vec:") {
+        return 0 - 1
+    }
+    // Emit: local.get first_arg_idx; call vec_len 1; eqz dest
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(first_arg_idx))
+    let len_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, len_dest))
+    ctx_api_local_types::ctx_set_local_type(ctx, len_dest, String_from("i32"))
+    ctx_api_local_types::ctx_set_local_vt(ctx, len_dest, value_types::VT_I32())
+    let eqz_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_emit::ctx_emit(ctx, inst_misc_control::MirInst_eqz(eqz_dest, len_dest))
+    ctx_api_local_types::ctx_set_local_type(ctx, eqz_dest, String_from("bool"))
+    ctx_api_local_types::ctx_set_local_vt(ctx, eqz_dest, value_types::VT_I32())
+    eqz_dest
 }
 
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
