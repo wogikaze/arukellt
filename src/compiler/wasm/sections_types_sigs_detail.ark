@@ -131,7 +131,7 @@ fn build_generic_type_var_sig(fn_name: String, type_name: String, pi: i32, targe
     if starts_with(clone(type_name), String_from("?")) {
         let mono_type = sections_types_sigs_mono::resolve_mono_param_type_from_fn_name(clone(fn_name), clone(type_name), pi)
         if len(mono_type) > 0 {
-            return mono_type
+            return widen_i32_sig_for_memory64(mono_type, clone(target))
         }
         // Fallback: check if the mono type key from the function name is a
         // registered gc_struct (e.g. "Point" in "show__Point").  This handles
@@ -143,6 +143,16 @@ fn build_generic_type_var_sig(fn_name: String, type_name: String, pi: i32, targe
         return String_from("gcref")
     }
     String_new()
+}
+
+// wasm32-gc uses Memory64: i32/bool/char scalar values are stored and passed
+// as i64 in wasm. Generic-mono type-key resolution currently returns "i32"
+// for those keys, so widen the signature when the target needs it.
+fn widen_i32_sig_for_memory64(sig: String, target: String) -> String {
+    if emit_target::is_gc_target(clone(target)) && eq(clone(sig), String_from("i32")) {
+        return String_from("i64")
+    }
+    sig
 }
 
 // Extract the mono type suffix from a function name.
@@ -196,7 +206,7 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if emit_target::is_gc_target(clone(target)) {
         let mono_method_ret = sections_types_sigs_mono::resolve_mono_method_return_value_sig(clone(uf.name), clone(return_type_name), mir)
         if len(mono_method_ret) > 0 {
-            return mono_method_ret
+            return widen_i32_sig_for_memory64(mono_method_ret, clone(target))
         }
     }
     if emit_target::is_gc_target(clone(target)) && (eq(clone(return_type_name), String_from("string")) || eq(clone(return_type_name), String_from("String"))) {
@@ -222,7 +232,7 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     }
     let generic_ret_sig = build_generic_type_var_sig(clone(uf.name), clone(return_type_name), 0 - 1, clone(target), mir)
     if len(generic_ret_sig) > 0 {
-        return generic_ret_sig
+        return widen_i32_sig_for_memory64(generic_ret_sig, clone(target))
     }
     sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
 }
