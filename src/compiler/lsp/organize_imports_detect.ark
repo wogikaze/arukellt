@@ -4,6 +4,6 @@ pub fn pruned_import_block(input: String) -> Option<String> {
     prune_imports::pruned_import_block(input)
 }
 
-pub fn import_block_span(input: String) -> i64 {
+pub fn import_block_span(input: String) -> i32 {
     prune_imports::import_block_span_value(input)
 }

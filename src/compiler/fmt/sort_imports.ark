@@ -72,11 +72,13 @@ fn fmt_import_entry_sort_group(entry: FmtImportEntry) -> i32 {
     entry.sort_group
 }
 
-fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i64 {
-    let base: i64 = i32_to_i64(1000000)
+fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i32 {
+    let en = len(entries)
+    if en == 0 {
+        return 0 - 1
+    }
     let mut first_start = fmt_import_entry_line_start(get_unchecked(entries, 0))
     let mut last_end = fmt_import_entry_line_end(get_unchecked(entries, 0))
-    let en = len(entries)
     let mut i = 1
     while i < en {
         let entry = get_unchecked(entries, i)
@@ -88,17 +90,17 @@ fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i64 {
         }
         i = i + 1
     }
-    i32_to_i64(first_start) * base + i32_to_i64(last_end)
+    first_start * 1000000 + last_end
 }
 
-fn fmt_import_block_start(span: i64) -> i32 {
-    if span < i32_to_i64(0) { return 0 }
-    i64_to_i32(span / i32_to_i64(1000000))
+fn fmt_import_block_start(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span / 1000000
 }
 
-fn fmt_import_block_end(span: i64) -> i32 {
-    if span < i32_to_i64(0) { return 0 }
-    i64_to_i32(span % i32_to_i64(1000000))
+fn fmt_import_block_end(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span % 1000000
 }
 
 fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String {
@@ -150,7 +152,7 @@ fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> Strin
         return clone(text)
     }
     let span = fmt_import_block_bounds(entries)
-    if span < i32_to_i64(0) {
+    if span < 0 {
         return clone(text)
     }
     let first = fmt_import_block_start(span)
@@ -183,14 +185,11 @@ fn fmt_sorted_import_block(input: String) -> Option<String> {
     Option::Some(fmt_sorted_import_text(input, entries))
 }
 
-fn fmt_import_block_span_value(input: String) -> i64 {
+fn fmt_import_block_span_value(input: String) -> i32 {
     let gate = parse_gate::fmt_parse_gate(clone(input))
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
-        return i32_to_i64(0 - 1)
+        return 0 - 1
     }
     let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
-    if len(entries) == 0 {
-        return i32_to_i64(0 - 1)
-    }
     fmt_import_block_bounds(entries)
 }

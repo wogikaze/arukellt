@@ -3,17 +3,17 @@ use lsp::json_escape
 use lsp::organize_imports_detect
 use lsp::positions
 
-fn import_block_start(span: i64) -> i32 {
-    if span < i32_to_i64(0) { return 0 }
-    i64_to_i32(span / i32_to_i64(1000000))
+fn import_block_start(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span / 1000000
 }
 
-fn import_block_end(span: i64) -> i32 {
-    if span < i32_to_i64(0) { return 0 }
-    i64_to_i32(span % i32_to_i64(1000000))
+fn import_block_end(span: i32) -> i32 {
+    if span < 0 { return 0 }
+    span % 1000000
 }
 
-fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: String, fixed_block: String, span: i64) -> String {
+fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: String, fixed_block: String, span: i32) -> String {
     let first_start = import_block_start(span)
     let last_end = import_block_end(span)
     let start_pos = positions::offset_to_position(clone(text), first_start)
@@ -46,7 +46,7 @@ fn build_semantic_fix_action(uri: String, text: String, title: String, kind: Str
         },
         Option::Some(fixed_block) => {
             let span = organize_imports_detect::import_block_span(clone(text))
-            if span < i32_to_i64(0) {
+            if span < 0 {
                 return String_new()
             }
             let first_start = import_block_start(span)
