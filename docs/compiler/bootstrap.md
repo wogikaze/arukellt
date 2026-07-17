@@ -56,6 +56,12 @@ must not run its own `build-compiler`.
 | **Fixpoint** | `sha256(s2) == sha256(s3)` | `python3 scripts/manager.py selfhost fixpoint` |
 | **Parity** | fixture / CLI / diag | `python3 scripts/manager.py selfhost fixture-parity`, `… parity --mode --cli`, `… diag-parity` |
 
+Stage-3 / runtime compiler wasms are validated with `wasm-tools validate` after
+build (and when reused). An invalid artifact — for example Memory64 GC output
+that does `struct.set` of an i32 field without `i32.wrap_i64` — is deleted and
+must not remain as a selectable `arukellt-s3.wasm`. The day-to-day wrapper
+prefers `.build/selfhost/arukellt-s2-runtime.wasm` over s3 for this reason.
+
 Stage 0 is **the pinned wasm**. There is no Rust Stage 0. Setting
 `ARUKELLT_USE_RUST=1` hard-fails in [`scripts/run/arukellt-selfhost.sh`](../../scripts/run/arukellt-selfhost.sh).
 

@@ -1989,6 +1989,7 @@ t3-compile:match_extensions/match_guard.ark
 t3-compile:match_extensions/or_pattern.ark
 t3-compile:match_extensions/struct_field_update.ark
 t3-compile:match_extensions/struct_pattern.ark
+t3-compile:memory64_struct_i32/default_fields.ark
 t3-compile:modules/import_basic/main.ark
 t3-compile:modules/multi_import/main.ark
 t3-compile:operator_overload/add_complex.ark

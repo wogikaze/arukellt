@@ -459,6 +459,30 @@ def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
     return 0, ""
 
 
+def _reject_invalid_compiler_wasm(wasm_path: Path) -> str:
+    """Validate a compiler wasm; delete it and return an error if invalid.
+
+    ``wasm-tools`` missing (exit 2) is treated as skip — CI images that lack
+    the tool should not hard-fail bootstrap. Translation traps such as
+    ``expected i32, found i64`` in Memory64 GC modules are exit 1 and must
+    never remain as selectable ``arukellt-s3.wasm`` / runtime artifacts.
+    """
+    rc, msg = _wasm_tools_validate(wasm_path)
+    if rc == 0 or rc == 2:
+        return ""
+    try:
+        wasm_path.unlink()
+    except OSError:
+        pass
+    for stale in wasm_path.parent.glob(wasm_path.stem + "*.cwasm"):
+        try:
+            stale.unlink()
+        except OSError:
+            pass
+    detail = msg if msg else f"wasm-tools validate exit {rc}"
+    return f"invalid compiler wasm {wasm_path.name}: {detail}"
+
+
 def _find_pinned_wasm(root: Path) -> Path | None:
     """Return the committed pinned-reference selfhost wasm, honouring override."""
     env_override = os.environ.get("ARUKELLT_PINNED_WASM", "")
@@ -2000,12 +2024,15 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     """
     out = root / S2_RUNTIME_WASM_REL
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
-        return out
+        if not _reject_invalid_compiler_wasm(out):
+            return out
     out.parent.mkdir(parents=True, exist_ok=True)
     # Native Memory64 modules (wasm32-gc) already grow past 4GiB; do not run
     # wasm32to64 (it does not preserve GC type sections).
     if _wasm_memory_section_is_memory64(compiler_wasm):
         shutil.copyfile(compiler_wasm, out)
+        if _reject_invalid_compiler_wasm(out):
+            return None
         return out
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
@@ -2017,6 +2044,8 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
         text=True,
     )
     if patch.returncode != 0 or not out.is_file():
+        return None
+    if _reject_invalid_compiler_wasm(out):
         return None
     return out
 
@@ -3328,6 +3357,13 @@ def _run_fixpoint_locked(
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
     # Stage 3: s2 compiles current selfhost source → s3.wasm
+    # Drop stale invalid s3 (e.g. pre-wrap Memory64 struct.set) so fixpoint
+    # cannot treat a non-loadable module as a byte-equal peer of s2.
+    if s3.is_file():
+        stale_s3 = _reject_invalid_compiler_wasm(s3)
+        if stale_s3:
+            emit(f"{YELLOW}discarding {stale_s3}{NC}")
+
     if build or not s3.is_file():
         emit(f"{YELLOW}[selfhost] Building stage 3 (s2.wasm → s3.wasm)...{NC}")
         stage3_compiler = _stage3_compiler_wasm(root, pinned, s2)
@@ -3355,6 +3391,14 @@ def _run_fixpoint_locked(
             )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         _postprocess_selfhost_compiler_wasm(s3, root)
+        invalid_s3 = _reject_invalid_compiler_wasm(s3)
+        if invalid_s3:
+            emit(f"{RED}✗ stage 3 wasm failed validation{NC}")
+            emit(f"  {invalid_s3}")
+            _fixpoint_cache_try_write(
+                root, fingerprint, 2, False, True, "\n".join(lines), s2=s2,
+            )
+            return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         emit(f"{GREEN}✓ s3.wasm built{NC}")
 
     if not s3.is_file():
