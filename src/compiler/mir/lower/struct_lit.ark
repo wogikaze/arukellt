@@ -1,37 +1,15 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::inst_struct_new
 use mir::inst_struct_set
 use mir::lower::struct_lit_copy
 use mir::value_types
 
-fn mir_last_double_colon(name: String) -> i32 {
-    let n = len(name)
-    if n < 2 {
-        return -1
-    }
-    let mut i = n - 2
-    while i >= 0 {
-        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
-            return i
-        }
-        i = i - 1
-    }
-    -1
-}
-
-fn mir_struct_name_for_layout(struct_name: String) -> String {
-    let pos = mir_last_double_colon(clone(struct_name))
-    if pos < 0 {
-        return clone(struct_name)
-    }
-    substring(struct_name, pos + 2, len(struct_name))
-}
-
 fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
-    let canon = mir_struct_name_for_layout(struct_name)
+    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     let dest = ctx_fresh_local(ctx, value_types::VT_GC_REF())
     ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(canon), ctx_struct_byte_size(ctx, clone(canon))))
     ctx_set_local_type(ctx, dest, clone(canon))
@@ -39,12 +17,12 @@ fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
 }
 
 fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
-    let canon = mir_struct_name_for_layout(struct_name)
+    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     struct_lit_copy::mir_copy_struct_base_fields(ctx, canon, dest, base_idx)
 }
 
 fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {
-    let canon = mir_struct_name_for_layout(struct_name)
+    let canon = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, struct_name)
     let fi_idx = ctx_field_index(ctx, clone(canon), clone(field_name))
     let mut field_vt = value_types::VT_VOID()
     if ctx_struct_field_is_f64(ctx, clone(canon), fi_idx) {
