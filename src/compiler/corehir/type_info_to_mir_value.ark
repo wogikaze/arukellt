@@ -13,8 +13,11 @@ fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
 }
 
 fn type_info_repr_approx(tag: i32) -> i32 {
-    if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
+    if tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
         return kinds::VALUE_REPR_GC_REF()
+    }
+    if tag == 5 {
+        return kinds::VALUE_REPR_LINEAR_PTR()
     }
     kinds::VALUE_REPR_SCALAR()
 }
@@ -45,9 +48,9 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
 }
 
 fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
-    if eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("struct:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec_new_TypeId())

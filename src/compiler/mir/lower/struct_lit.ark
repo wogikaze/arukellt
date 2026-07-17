@@ -39,7 +39,8 @@ fn mir_emit_struct_new(ctx: LowerCtx, struct_name: String) -> i32 {
 }
 
 fn mir_copy_struct_base_fields(ctx: LowerCtx, struct_name: String, dest: i32, base_idx: i32) {
-    struct_lit_copy::mir_copy_struct_base_fields(ctx, struct_name, dest, base_idx)
+    let canon = mir_struct_name_for_layout(struct_name)
+    struct_lit_copy::mir_copy_struct_base_fields(ctx, canon, dest, base_idx)
 }
 
 fn mir_emit_struct_field_set(ctx: LowerCtx, struct_name: String, dest: i32, field_name: String, val_idx: i32) {

@@ -1,9 +1,6 @@
 use std::host::clock
 use std::host::env
 use std::host::stdio
-use std::host::clock
-use std::host::env
-use std::host::stdio
 
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     if report_flag != 0 {

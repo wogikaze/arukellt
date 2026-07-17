@@ -50,18 +50,23 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         // → "option:i32"). Also handles generic T→Point → "struct:Point:8".
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
-            ctx_api_local_types::ctx_set_local_type(
-                ctx,
-                dest,
-                strip_module_double_colon(mono_rtn)
-            )
+            let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, mono_rtn)
+            if len(resolved) > 0 {
+                ctx_api_local_types::ctx_set_local_type(
+                    ctx,
+                    dest,
+                    ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
+                )
+            }
         } else if len(rtn) > 1 && !is_mono_type_var_name(clone(rtn)) {
-            let bare = strip_module_double_colon(clone(rtn))
-            ctx_api_local_types::ctx_set_local_type(
-                ctx,
-                dest,
-                ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, bare)
-            )
+            let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, rtn)
+            if len(resolved) > 0 {
+                ctx_api_local_types::ctx_set_local_type(
+                    ctx,
+                    dest,
+                    ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
+                )
+            }
         }
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {

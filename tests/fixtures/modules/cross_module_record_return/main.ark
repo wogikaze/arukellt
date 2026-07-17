@@ -1,0 +1,11 @@
+use std::host::stdio
+import span
+
+fn main() {
+    let s = span::make_span(10, 20)
+    if s.end == 20 {
+        stdio::println("ok")
+    } else {
+        stdio::println("bad")
+    }
+}
