@@ -2,7 +2,8 @@
 // GC target: emits struct.new + array.new_default for Vec<T> GC representation.
 //   Vec<T> = (struct (field (mut (ref null (array (mut i32))))  ;; data array
 //                     (field (mut i32)))                         ;; len
-// Linear-memory target: bump-allocated vec header + data (unchanged).
+// Linear-memory target: bump-allocated vec header + data with u32
+// wraparound detection on the total allocation size.
 
 use wasm::opcodes
 use wasm::writer_core
@@ -14,16 +15,17 @@ use wasm::emit_target
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::intrinsic_vec_type
 
-fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
+fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, _result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_vec_new_layout_gc(w, inst, ctx)
     } else {
-        emit_vec_new_write_header(w)
-        emit_vec_new_finish_allocation(w, heap_bump, result_back_delta)
+        emit_vec_new_layout_lm(w, heap_bump, inst, ctx)
     }
 }
 
@@ -84,55 +86,76 @@ fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {
     ctx_gc_type_locals::ctx_has_vec_string_local(ctx)
 }
 
-fn emit_vec_new_write_header(w: WasmWriter) {
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 12)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+fn emit_vec_new_layout_lm(w: WasmWriter, heap_bump: i32, inst: MirInst, ctx: SelfEmitCtx) {
+    // Constructors with a capacity argument pass that value on the stack.
+    // The linear-memory path currently reserves a fixed default-capacity buffer
+    // (heap_bump bytes) and consumes the argument only to keep the stack clean.
+    if inst_accessors_literals::MirInst_int_val(inst) > 0 {
+        helpers_core::emit_drop(w)
+    }
+    let total_size = heap_bump + 12
+
+    let old_result = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let new_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+
+    // old_result = current heap pointer
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, old_result)
+
+    // new_end = old_result + total_size (may wrap around 2^32)
+    helpers_core::emit_local_get(w, old_result)
+    helpers_numeric_i32::emit_i32_const(w, total_size)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, new_end)
+
+    // result = (new_end < old_result) ? 0 : old_result
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_get(w, old_result)
+    helpers_core::emit_local_get(w, new_end)
+    helpers_core::emit_local_get(w, old_result)
+    helpers_numeric_i32::emit_i32_lt_u(w)
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+    helpers_core::emit_local_set(w, result)
+
+    // new_end = (new_end < old_result) ? total_size : new_end
+    helpers_numeric_i32::emit_i32_const(w, total_size)
+    helpers_core::emit_local_get(w, new_end)
+    helpers_core::emit_local_get(w, new_end)
+    helpers_core::emit_local_get(w, old_result)
+    helpers_numeric_i32::emit_i32_lt_u(w)
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+    helpers_core::emit_local_set(w, new_end)
+
+    // Advance the heap to new_end and ensure memory is grown if needed.
+    helpers_core::emit_local_get(w, new_end)
     helpers_core::emit_heap_set(w)
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 12)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 8)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
+
+    // Write the Vec header at the result pointer.
+    emit_vec_new_store_i32(w, result, 0, 0)
+    emit_vec_new_store_i32(w, result, 4, 8)
+    emit_vec_new_store_data_pointer(w, result)
+
+    // Leave the result pointer on the stack for the caller.
+    helpers_core::emit_local_get(w, result)
 }
 
-fn emit_vec_new_finish_allocation(w: WasmWriter, heap_bump: i32, result_back_delta: i32) {
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, heap_bump)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core::emit_heap_set(w)
-    writer_core::emit_byte(w, 35)
-    writer_core::emit_leb128_u(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, result_back_delta)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+fn emit_vec_new_store_i32(w: WasmWriter, base_local: i32, offset: i32, value: i32) {
+    helpers_core::emit_local_get(w, base_local)
+    if offset != 0 {
+        helpers_numeric_i32::emit_i32_const(w, offset)
+        helpers_numeric_i32::emit_i32_add(w)
+    }
+    helpers_numeric_i32::emit_i32_const(w, value)
+    helpers_memory::emit_i32_store(w, 0)
+}
+
+fn emit_vec_new_store_data_pointer(w: WasmWriter, base_local: i32) {
+    helpers_core::emit_local_get(w, base_local)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, base_local)
+    helpers_numeric_i32::emit_i32_const(w, 12)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store(w, 0)
 }
