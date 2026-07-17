@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T18:34:06Z",
+  "generated_at": "2026-07-17T02:24:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -995,8 +995,8 @@
         "822"
       ],
       "acceptance": {
-        "checked": 8,
-        "unchecked": 3
+        "checked": 11,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "ready",
@@ -1017,8 +1017,8 @@
         "822"
       ],
       "acceptance": {
-        "checked": 9,
-        "unchecked": 4
+        "checked": 11,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "ready",
@@ -1410,8 +1410,8 @@
         "822"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 5
+        "checked": 4,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "ready",
@@ -1516,9 +1516,11 @@
       "depends_on": [
         "726"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "823"
+      ],
       "acceptance": {
-        "checked": 0,
+        "checked": 1,
         "unchecked": 3
       },
       "orchestration": {
@@ -1541,8 +1543,8 @@
         "818"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 5
+        "checked": 4,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "blocked",
@@ -1596,6 +1598,25 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      }
+    },
+    {
+      "id": "823",
+      "path": "823-selfhost-compile-latency-quadratic-mir.md",
+      "title": "Selfhost compile latency: remove quadratic MIR vector rebuilds",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
       }
     },
     {

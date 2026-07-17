@@ -56,33 +56,12 @@ fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
 }
 
 fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
-    let out = Vec_new_MirLocal()
-    let n = function_param_view::MirFunction_param_count(f)
-    let mut i = 0
-    while i < n {
-        if i == idx {
-            push(out, local)
-        } else {
-            push(out, function_param_view::MirFunction_param_at(f, i))
-        }
-        i = i + 1
-    }
-    f.params = out
+    // In-place: per-element Vec rebuild is Θ(L²) across a full sync (#823).
+    set(f.params, idx, local)
     f
 }
 
 fn mir_function_set_local_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
-    let out = Vec_new_MirLocal()
-    let n = function_locals_view::MirFunction_local_count(f)
-    let mut i = 0
-    while i < n {
-        if i == idx {
-            push(out, local)
-        } else {
-            push(out, function_locals_view::MirFunction_local_at(f, i))
-        }
-        i = i + 1
-    }
-    f.locals = out
+    set(f.locals, idx, local)
     f
 }

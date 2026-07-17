@@ -24,18 +24,9 @@ fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
 }
 
 fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
-    let out = Vec_new_MirFunction()
-    let n = len(m.functions)
-    let mut i = 0
-    while i < n {
-        if i == idx {
-            push(out, f)
-        } else {
-            push(out, get_unchecked(m.functions, i))
-        }
-        i = i + 1
-    }
-    m.functions = out
+    // In-place slot update: rebuilding the whole functions Vec per call is
+    // Θ(F) alloc+copy and compounds under bump allocation (#823 / #730).
+    set(m.functions, idx, f)
 }
 
 fn MirModule_push_function(m: MirModule, f: MirFunction) {

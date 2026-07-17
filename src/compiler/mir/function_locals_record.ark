@@ -25,16 +25,5 @@ fn mir_function_alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
 }
 
 fn mir_function_set_local(f: MirFunction, local_id: i32, local: MirLocal) {
-    let out = Vec_new_MirLocal()
-    let n = len(f.locals)
-    let mut i = 0
-    while i < n {
-        if i == local_id {
-            push(out, local)
-        } else {
-            push(out, get_unchecked(f.locals, i))
-        }
-        i = i + 1
-    }
-    f.locals = out
+    set(f.locals, local_id, local)
 }

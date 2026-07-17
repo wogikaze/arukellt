@@ -84,6 +84,7 @@ graph LR
   I821["821 821 — Pure semantic stdlib migration"]
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
+  I823["823 Selfhost compile latency: remove quadratic MIR vector rebuilds"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
@@ -129,6 +130,7 @@ graph LR
   I691 --> I710
   I697 --> I710
   I709 --> I710
+  I730 --> I823
   I816 --> I818
   I817 --> I818
   I819 --> I818
@@ -222,10 +224,11 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **819** depends on: 727, 798; blocks: 818
-- **730** depends on: 726; blocks: none
+- **730** depends on: 726; blocks: 823
 - **821** depends on: 798, 816, 820; blocks: 818
 - **822** depends on: 798, 816, 817, 820; blocks: 818
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
+- **823** depends on: 730; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713

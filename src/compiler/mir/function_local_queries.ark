@@ -3,18 +3,8 @@ use mir::local_access
 use mir::value_types
 
 fn mir_locals_replace_at(locals: Vec<MirLocal>, at: i32, new_l: MirLocal) -> Vec<MirLocal> {
-    let out = Vec_new_MirLocal()
-    let n = len(locals)
-    let mut i = 0
-    while i < n {
-        if i == at {
-            push(out, new_l)
-        } else {
-            push(out, get_unchecked(locals, i))
-        }
-        i = i + 1
-    }
-    out
+    set(locals, at, new_l)
+    locals
 }
 
 fn mir_local_vt_for_function(f: MirFunction, local_id: i32) -> i32 {

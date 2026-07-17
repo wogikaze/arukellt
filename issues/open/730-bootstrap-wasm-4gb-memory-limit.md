@@ -5,7 +5,7 @@ Updated: 2026-07-17
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
-Related: "#727, #686"
+Related: "#727, #686, #823"
 Orchestration class: architecture-investigation
 Blocks v4 exit: True
 ---
