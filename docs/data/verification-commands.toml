@@ -258,3 +258,15 @@ aliases = []
 alias_status = "none"
 purpose = "Run reproducible build gate"
 coverage = ["reproducibility"]
+
+[[commands]]
+id = "no_prune_invariant"
+canonical = "python3 scripts/check/gate-no-prune-invariant.py"
+aliases = []
+alias_status = "none"
+purpose = "Verify MIR reachability pruning preserves export-root reachability and ref.func targets"
+coverage = [
+    "tests/fixtures/reachability/call_export_roots.ark",
+    "tests/fixtures/reachability/ref_func_only_target.ark",
+    "tests/fixtures/hello/hello.ark",
+]
