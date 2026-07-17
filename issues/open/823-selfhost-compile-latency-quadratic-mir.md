@@ -58,7 +58,11 @@ P0.3 typed sync fuse: propagate / enum-normalize / callee-lookup write
 Lower entry runs one full `mir_module_sync_all_value_types` then propagate;
 `ctx_sync_typed_value_types` no longer does a second full-module sync.
 
-P0.4 phase timers:
-- `--show-timing` / `MIR_LOWER_PHASE_TIMING=1` →
+P0.4 phase timers (CLI flag is `--time`):
+- `--time` / `MIR_LOWER_PHASE_TIMING=1` →
   `lower.decl_emit` / `lower.reachability` / `lower.sync` / `lower.propagate`
-- `--show-timing` pipeline → `lower` / `mir_opt` / `mir_verify` / `emit`
+- `--time` pipeline → `lower` / `mir_opt` / `mir_verify` / `emit`
+- pinned→s2 overlay stubs `clock::monotonic_now` to 0, so stage-2 receipts
+  print labels with `0ms`; use a clock-capable artifact for wall numbers.
+- Do not call `time::duration_ms` from driver/mir timing paths under pinned→s2
+  (lowers to `unreachable`); inline ns→ms with `i64_to_i32`.
