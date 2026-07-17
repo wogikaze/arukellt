@@ -180,11 +180,6 @@ fn try_emit_vec_numeric_access_call(w: WasmWriter, handler_id: i32, inst: MirIns
 
 fn try_emit_vec_numeric_push_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_push_i64(){
-        let _result_on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, false)
-        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        return true
-    }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_push_i64(){
         let _result_on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, true)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
