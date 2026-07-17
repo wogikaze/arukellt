@@ -64,7 +64,7 @@ pub fn run_until_breakpoint(
         .func_wrap(
             "arukellt_debug",
             "breakpoint",
-            |line: i32, value: i32| -> Result<(), wasmtime::Error> {
+            |line: i32, value: i64| -> Result<(), wasmtime::Error> {
                 let mut guard = DEBUG_CAPTURE
                     .lock()
                     .map_err(|_| wasmtime::Error::msg("debug capture mutex poisoned"))?;

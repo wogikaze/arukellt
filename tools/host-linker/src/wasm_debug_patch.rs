@@ -196,7 +196,7 @@ fn inject_breakpoint_hook(
     let hook_func_index = info.imported_funcs;
     let local_x = info
         .start_first_local_get
-        .ok_or_else(|| "no local.get in _start (no i32 local)".to_string())?;
+        .ok_or_else(|| "no local.get in _start".to_string())?;
     let start_defined_index = info.start_func - info.imported_funcs;
 
     let mut shift = ShiftFuncs {
@@ -217,7 +217,7 @@ fn inject_breakpoint_hook(
                 shift
                     .parse_type_section(&mut types, reader)
                     .map_err(|e| format!("reencode types: {}", e))?;
-                types.ty().function([wasm_encoder::ValType::I32; 2], []);
+                types.ty().function([wasm_encoder::ValType::I32, wasm_encoder::ValType::I64], []);
                 module.section(&types);
             }
             Payload::ImportSection(reader) => {
@@ -242,6 +242,7 @@ fn inject_breakpoint_hook(
                         "breakpoint",
                         EntityType::Function(hook_type_index),
                     );
+
                     module.section(&imports);
                     saw_import_section = true;
                 }
@@ -357,8 +358,20 @@ fn inject_breakpoint_hook(
     Ok(module.finish())
 }
 
+fn local_type_at(locals: &[(u32, wasm_encoder::ValType)], index: u32) -> Option<wasm_encoder::ValType> {
+    let mut idx = 0;
+    for (count, ty) in locals {
+        if index < idx + count {
+            return Some(*ty);
+        }
+        idx += count;
+    }
+    None
+}
+
 /// Reencode `_start`, inserting `i32.const line; local.get x; call hook`
 /// before its last `call` instruction (or at the end when it has no calls).
+/// The debug hook accepts an i64 value, so an i32 local is sign-extended.
 fn rewrite_start_body(
     shift: &mut ShiftFuncs,
     body: &wasmparser::FunctionBody,
@@ -374,6 +387,12 @@ fn rewrite_start_body(
         let (count, ty) = local.map_err(|e| format!("wasm parse: {}", e))?;
         let ty = shift.val_type(ty).map_err(|e| e.to_string())?;
         locals.push((count, ty));
+    }
+    let local_ty = local_type_at(&locals, local_x)
+        .ok_or_else(|| format!("local {} not found in _start", local_x))?;
+    let local_is_i32 = local_ty == wasm_encoder::ValType::I32;
+    if !local_is_i32 && local_ty != wasm_encoder::ValType::I64 {
+        return Err(format!("local {} has unsupported type for breakpoint value", local_x));
     }
     let mut func = Function::new(locals);
 
@@ -405,6 +424,9 @@ fn rewrite_start_body(
         if idx == insert_at {
             func.instruction(&Instruction::I32Const(breakpoint_line as i32));
             func.instruction(&Instruction::LocalGet(local_x));
+            if local_is_i32 {
+                func.instruction(&Instruction::I64ExtendI32S);
+            }
             func.instruction(&Instruction::Call(hook_func_index));
         }
         let mapped = shift
