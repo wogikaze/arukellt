@@ -1,0 +1,35 @@
+---
+description: Forbid semantic-debt workarounds (packed encodings, ABI lies, permanent "temporaries")
+alwaysApply: true
+---
+
+# No semantic-debt workarounds
+
+Do not ship workarounds that encode meaning into opaque scalars, silent truncations,
+or ABI mismatches when the correct fix is a type, return path, or lowering bug.
+
+## Forbidden patterns
+
+1. **Packed encodings** — packing two or more logical fields into one integer
+   (e.g. `first * 1_000_000 + last`) because a record/tuple return is broken.
+2. **ABI papering** — truncating/widening, wrong Wasm types, or stub clocks that
+   make timers always-zero while pretending the API works.
+3. **Forever temporary** — "とりあえず" / hack / workaround left without an
+   open issue, removal condition, and allowlist entry.
+4. **Layer dodge** — fixing a parser/type/ABI bug by guessing in MIR/Wasm instead
+   of repairing the owning layer (`docs/process/coding-conventions.md`).
+
+## Required alternative
+
+1. Fix the root cause in the owning layer, **or**
+2. Leave a failing test + open issue and do not land the broken path, **or**
+3. If a bridge is truly unavoidable for unblock:
+   - open a tracking issue with removal condition
+   - add `docs/data/semantic-debt-allowlist.toml` entry
+   - put a structured `TODO(#N owner=... removal=... recheck=YYYY-MM-DD)` at the site
+   - prefer keeping the correct API type nearby so the pack can be deleted later
+
+## Gate
+
+`python3 scripts/check/check-semantic-debt.py` runs in `quality quick` / `verify quick`.
+New matches of known anti-patterns fail unless allowlisted.

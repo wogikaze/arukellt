@@ -1,5 +1,4 @@
 use std::text
-use fmt::import_block
 use fmt::parse_gate
 use resolver
 use resolver::ast_access
@@ -147,7 +146,9 @@ fn pruned_import_text(text: String, entries: Vec<PruneImportEntry>) -> String {
     out
 }
 
-fn import_block_bounds(entries: Vec<PruneImportEntry>) -> import_block::ImportBlockSpan {
+// TODO(#828 owner=compiler-tooling removal="restore ImportBlockSpan record return" recheck=2026-08-17)
+fn import_block_bounds(entries: Vec<PruneImportEntry>) -> i64 {
+    let base: i64 = i32_to_i64(1000000)
     let en = len(entries)
     let mut first_start = get_unchecked(entries, 0).line_start
     let mut last_end = get_unchecked(entries, 0).line_end
@@ -162,13 +163,28 @@ fn import_block_bounds(entries: Vec<PruneImportEntry>) -> import_block::ImportBl
         }
         i = i + 1
     }
-    import_block::ImportBlockSpan_new(first_start, last_end)
+    i32_to_i64(first_start) * base + i32_to_i64(last_end)
+}
+
+fn import_block_start(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span / i32_to_i64(1000000))
+}
+
+fn import_block_end(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span % i32_to_i64(1000000))
 }
 
 fn apply_pruned_imports(text: String, entries: Vec<PruneImportEntry>) -> String {
     let span = import_block_bounds(entries)
+    if span < i32_to_i64(0) {
+        return clone(text)
+    }
+    let first = import_block_start(span)
+    let last = import_block_end(span)
     let pruned = pruned_import_text(clone(text), entries)
-    concat(concat(substring(clone(text), 0, span.start), pruned), substring(text, span.end, len(text)))
+    concat(concat(substring(clone(text), 0, first), pruned), substring(text, last, len(text)))
 }
 
 fn pruned_import_block(input: String) -> Option<String> {
@@ -183,16 +199,16 @@ fn pruned_import_block(input: String) -> Option<String> {
     Option::Some(pruned_import_text(input, entries))
 }
 
-fn import_block_span_value(input: String) -> Option<import_block::ImportBlockSpan> {
+fn import_block_span_value(input: String) -> i64 {
     let gate = parse_gate::fmt_parse_gate(clone(input))
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
-        return Option::None
+        return i32_to_i64(0 - 1)
     }
     let entries = collect_prune_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
     if len(entries) == 0 {
-        return Option::None
+        return i32_to_i64(0 - 1)
     }
-    Option::Some(import_block_bounds(entries))
+    import_block_bounds(entries)
 }
 
 fn prune_imports_source(input: String) -> Option<String> {

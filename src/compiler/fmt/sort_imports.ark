@@ -1,5 +1,4 @@
 use std::text
-use fmt::import_block
 use fmt::parse_gate
 use resolver::ast_access
 use resolver::ast_decl_predicates
@@ -73,10 +72,12 @@ fn fmt_import_entry_sort_group(entry: FmtImportEntry) -> i32 {
     entry.sort_group
 }
 
-fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> import_block::ImportBlockSpan {
-    let en = len(entries)
+// TODO(#828 owner=compiler-tooling removal="restore ImportBlockSpan record return" recheck=2026-08-17)
+fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> i64 {
+    let base: i64 = i32_to_i64(1000000)
     let mut first_start = fmt_import_entry_line_start(get_unchecked(entries, 0))
     let mut last_end = fmt_import_entry_line_end(get_unchecked(entries, 0))
+    let en = len(entries)
     let mut i = 1
     while i < en {
         let entry = get_unchecked(entries, i)
@@ -88,7 +89,17 @@ fn fmt_import_block_bounds(entries: Vec<FmtImportEntry>) -> import_block::Import
         }
         i = i + 1
     }
-    import_block::ImportBlockSpan_new(first_start, last_end)
+    i32_to_i64(first_start) * base + i32_to_i64(last_end)
+}
+
+fn fmt_import_block_start(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span / i32_to_i64(1000000))
+}
+
+fn fmt_import_block_end(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span % i32_to_i64(1000000))
 }
 
 fn fmt_sorted_import_text(text: String, entries: Vec<FmtImportEntry>) -> String {
@@ -139,9 +150,14 @@ fn fmt_apply_sorted_imports(text: String, entries: Vec<FmtImportEntry>) -> Strin
     if !fmt_import_entries_are_contiguous(clone(text), entries) {
         return clone(text)
     }
-    let block = fmt_import_block_bounds(entries)
+    let span = fmt_import_block_bounds(entries)
+    if span < i32_to_i64(0) {
+        return clone(text)
+    }
+    let first = fmt_import_block_start(span)
+    let last = fmt_import_block_end(span)
     let sorted = fmt_sorted_import_text(clone(text), entries)
-    concat(concat(substring(clone(text), 0, block.start), sorted), substring(text, block.end, len(text)))
+    concat(concat(substring(clone(text), 0, first), sorted), substring(text, last, len(text)))
 }
 
 fn fmt_sort_imports_text(input: String) -> Option<String> {
@@ -168,14 +184,14 @@ fn fmt_sorted_import_block(input: String) -> Option<String> {
     Option::Some(fmt_sorted_import_text(input, entries))
 }
 
-fn fmt_import_block_span_value(input: String) -> Option<import_block::ImportBlockSpan> {
+fn fmt_import_block_span_value(input: String) -> i64 {
     let gate = parse_gate::fmt_parse_gate(clone(input))
     if parse_gate::fmt_parse_gate_error_count(gate) > 0 {
-        return Option::None
+        return i32_to_i64(0 - 1)
     }
     let entries = fmt_collect_import_entries(clone(input), parse_gate::fmt_parse_gate_decls(gate))
     if len(entries) == 0 {
-        return Option::None
+        return i32_to_i64(0 - 1)
     }
-    Option::Some(fmt_import_block_bounds(entries))
+    fmt_import_block_bounds(entries)
 }

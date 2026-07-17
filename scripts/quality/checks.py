@@ -637,6 +637,7 @@ def run_quality(
         root, ["python3", "scripts/check/check-code-quality-contract.py"], True,
     )
     failures += _run_command(root, ["python3", "scripts/check/check-comment-policy.py"], dry_run)
+    failures += _run_command(root, ["python3", "scripts/check/check-semantic-debt.py"], dry_run)
     failures += run_fmt(
         root,
         ark_selected if mode in {"changed", "quick"} else [],

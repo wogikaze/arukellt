@@ -120,6 +120,7 @@
 - issue 番号だけを根拠にしたコメントを残さない。コード単体で理解できる理由を書き、必要なら末尾に issue 番号を添える。
 - 修正履歴、過去の不具合の症状、デバッグ時の経緯を長期間コードコメントとして蓄積しない。現在も必要な制約だけを残す。
 - 一時処理には追跡 issue だけでなく、何が解決したら削除できるかを記載する。
+- 壊れた record 戻り値や ABI を、整数への pack（例: `first * 1_000_000 + last`）、黙殺 truncate、偽の成功 API で回避しない。回避が不可避なら open issue・削除条件・`docs/data/semantic-debt-allowlist.toml` 登録が必須。機械検査は `python3 scripts/check/check-semantic-debt.py`（`quality quick` / `verify quick`）。エージェント向け正本は `.cursor/rules/no-semantic-debt-workarounds.mdc`。
 
 ### データと constructor
 

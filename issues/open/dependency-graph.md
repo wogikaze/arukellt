@@ -57,6 +57,7 @@ graph LR
   I815["815 815 — Diagnostic/T3 compile skips"]
   I816["816 816 — Prelude compilation restoration"]
   I817["817 817 — Sealed raw API module for Vec/String internal representation"]
+  I828["828 828 — Restore ImportBlockSpan record return (delete packed i64)"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -210,6 +211,7 @@ graph LR
 - **815** depends on: none; blocks: none
 - **816** depends on: 798; blocks: 818, 820, 821, 822
 - **817** depends on: 798; blocks: 818, 822
+- **828** depends on: none; blocks: none
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683

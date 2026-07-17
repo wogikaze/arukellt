@@ -1,12 +1,24 @@
 use std::text
-use fmt::import_block
 use lsp::json_escape
 use lsp::organize_imports_detect
 use lsp::positions
 
-fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: String, fixed_block: String, span: import_block::ImportBlockSpan) -> String {
-    let start_pos = positions::offset_to_position(clone(text), span.start)
-    let end_pos = positions::offset_to_position(text, span.end)
+// TODO(#828 owner=compiler-tooling removal="restore ImportBlockSpan record return" recheck=2026-08-17)
+fn import_block_start(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span / i32_to_i64(1000000))
+}
+
+fn import_block_end(span: i64) -> i32 {
+    if span < i32_to_i64(0) { return 0 }
+    i64_to_i32(span % i32_to_i64(1000000))
+}
+
+fn build_semantic_fix_edit(title: String, kind: String, uri: String, text: String, fixed_block: String, span: i64) -> String {
+    let first_start = import_block_start(span)
+    let last_end = import_block_end(span)
+    let start_pos = positions::offset_to_position(clone(text), first_start)
+    let end_pos = positions::offset_to_position(text, last_end)
     let mut out = String_from("{\"title\":")
     out = text::builder_append(out, json_escape::quote_string(title))
     out = text::builder_append(out, String_from(",\"kind\":"))
@@ -34,19 +46,17 @@ fn build_semantic_fix_action(uri: String, text: String, title: String, kind: Str
             return String_new()
         },
         Option::Some(fixed_block) => {
-            let span_opt = organize_imports_detect::import_block_span(clone(text))
-            match span_opt {
-                Option::None => {
-                    return String_new()
-                },
-                Option::Some(span) => {
-                    let current_block = substring(clone(text), span.start, span.end)
-                    if eq(clone(current_block), clone(fixed_block)) {
-                        return String_new()
-                    }
-                    build_semantic_fix_edit(title, kind, uri, text, fixed_block, span)
-                },
+            let span = organize_imports_detect::import_block_span(clone(text))
+            if span < i32_to_i64(0) {
+                return String_new()
             }
+            let first_start = import_block_start(span)
+            let last_end = import_block_end(span)
+            let current_block = substring(clone(text), first_start, last_end)
+            if eq(clone(current_block), clone(fixed_block)) {
+                return String_new()
+            }
+            build_semantic_fix_edit(title, kind, uri, text, fixed_block, span)
         },
     }
 }

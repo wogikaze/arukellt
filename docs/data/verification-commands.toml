@@ -73,6 +73,14 @@ purpose = "Check structured comments and derived A/B public API documentation co
 coverage = ["CQ-API-001", "CQ-DOC-001", "CQ-DOC-003", "CQ-DOC-004", "CQ-DOC-005", "CQ-DOC-006"]
 
 [[commands]]
+id = "semantic_debt"
+canonical = "python3 scripts/check/check-semantic-debt.py"
+aliases = []
+alias_status = "none"
+purpose = "Forbid new packed-encoding / untracked workaround debt; allowlist must shrink"
+coverage = ["semantic-debt-allowlist"]
+
+[[commands]]
 id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]
