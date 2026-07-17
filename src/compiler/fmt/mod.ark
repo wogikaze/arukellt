@@ -17,7 +17,7 @@ pub fn sorted_import_block(input: String) -> Option<String> {
     sort_imports::fmt_sorted_import_block(input)
 }
 
-pub fn import_block_span(input: String) -> i32 {
+pub fn import_block_span(input: String) -> i64 {
     sort_imports::fmt_import_block_span_value(input)
 }
 
