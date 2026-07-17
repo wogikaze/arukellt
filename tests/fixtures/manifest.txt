@@ -282,6 +282,7 @@ module-diag:modules/use_not_found/main.ark
 module-diag:modules/visibility_enforce/main.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 module-diag:selfhost/resolver_visibility_error/main.ark
+module-run:mir_struct_qualified_field/main.ark
 module-run:modules/import_basic/main.ark
 module-run:modules/module_alias/main.ark
 module-run:modules/multi_import/main.ark

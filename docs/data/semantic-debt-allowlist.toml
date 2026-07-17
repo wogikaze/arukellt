@@ -2,42 +2,4 @@
 # New occurrences of check-semantic-debt.py rules fail CI unless listed here
 # with issue + removal + recheck. Prefer deleting entries by fixing root cause.
 
-[[debt]]
-id = "import-block-span-pack-base"
-rule = "i32-pair-pack-million"
-path = "src/compiler/fmt/sort_imports.ark"
-issue = 828
-removal = "Restore working ImportBlockSpan (or equivalent record) return and delete pack/unpack helpers"
-recheck = "2026-08-17"
-
-[[debt]]
-id = "import-block-span-pack-base-prune"
-rule = "i32-pair-pack-million"
-path = "src/compiler/fmt/prune_imports.ark"
-issue = 828
-removal = "Restore working ImportBlockSpan (or equivalent record) return and delete pack/unpack helpers"
-recheck = "2026-08-17"
-
-[[debt]]
-id = "import-block-span-unpack-sort"
-rule = "i32-pair-unpack-million"
-path = "src/compiler/fmt/sort_imports.ark"
-issue = 828
-removal = "Restore working ImportBlockSpan (or equivalent record) return and delete pack/unpack helpers"
-recheck = "2026-08-17"
-
-[[debt]]
-id = "import-block-span-unpack-prune"
-rule = "i32-pair-unpack-million"
-path = "src/compiler/fmt/prune_imports.ark"
-issue = 828
-removal = "Restore working ImportBlockSpan (or equivalent record) return and delete pack/unpack helpers"
-recheck = "2026-08-17"
-
-[[debt]]
-id = "import-block-span-unpack-lsp"
-rule = "i32-pair-unpack-million"
-path = "src/compiler/lsp/organize_imports.ark"
-issue = 828
-removal = "Restore working ImportBlockSpan (or equivalent record) return and delete pack/unpack helpers"
-recheck = "2026-08-17"
+# (empty — import-block i64 pack removed in #828)

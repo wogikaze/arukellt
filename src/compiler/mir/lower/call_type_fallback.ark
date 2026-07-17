@@ -8,6 +8,25 @@ use mir::lower::mono_return_vt
 use mir::lower::mono_suffix_parse
 use mir::lower::call_type_fallback_stdlib
 use mir::value_types
+
+// Layout / local-type tables use bare struct names. Strip only `::` qualifiers
+// so `import_block::ImportBlockSpan` → `ImportBlockSpan`, without touching
+// single-colon encodings like `struct:Name:8` or `option:i32`.
+fn strip_module_double_colon(type_name: String) -> String {
+    let n = len(type_name)
+    if n < 2 {
+        return type_name
+    }
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+            return substring(type_name, i + 2, n)
+        }
+        i = i - 1
+    }
+    type_name
+}
+
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
     if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
@@ -31,9 +50,18 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         // → "option:i32"). Also handles generic T→Point → "struct:Point:8".
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, mono_rtn)
+            ctx_api_local_types::ctx_set_local_type(
+                ctx,
+                dest,
+                strip_module_double_colon(mono_rtn)
+            )
         } else if len(rtn) > 1 && !is_mono_type_var_name(clone(rtn)) {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rtn))
+            let bare = strip_module_double_colon(clone(rtn))
+            ctx_api_local_types::ctx_set_local_type(
+                ctx,
+                dest,
+                ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, bare)
+            )
         }
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {

@@ -16,24 +16,6 @@ use mir::module_functions
 use mir::post_pass_type_propagate
 use mir::reachability
 use mir::typed_mir_sync_module
-use mir::lower::ctx_api_module
-use mir::lower::ctx_gc_enum
-use mir::lower::ctx_gc_struct
-use mir::lower::decl_source
-use mir::lower::entry_context
-use mir::lower::entry_decls
-use mir::lower::entry_input
-use mir::lower::entry_fn_index_facade
-use mir::lower::entry_timing
-use mir::lower::entry_trace
-use mir::lower::mono_view
-use mir::lower::registry_view
-use mir::lower::trace
-use mir::module_factory
-use mir::module_functions
-use mir::post_pass_type_propagate
-use mir::reachability
-use mir::typed_mir_sync_module
 
 // Bootstrap flat overlay may inject mir_dedupe_functions_by_name into monolithic
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.

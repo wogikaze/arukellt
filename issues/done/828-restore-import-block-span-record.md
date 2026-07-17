@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-17
 Updated: 2026-07-17
 ID: 828
@@ -53,3 +53,19 @@ python3 scripts/manager.py quality quick
 
 Close when pack/unpack helpers are gone and allowlist entries for #828 are
 deleted.
+
+## Resolution
+
+Root cause: cross-module field access kept local type names like
+`import_block::ImportBlockSpan`, so struct layout lookup missed the bare
+`ImportBlockSpan` registration and `.start`/`.end` read wrong offsets.
+
+Fix:
+1. Canonicalize `module::Type` (and `struct:Name:size`) before layout lookup in
+   MIR field get/set and call-result typing.
+2. Restore `ImportBlockSpan` with same-module accessors for fmt/lsp call sites.
+3. Delete i64 pack; clear semantic-debt allowlist for #828.
+
+Evidence: `fmt` on clean entry.ark is idempotent (use count stable);
+`mir_struct_qualified_field` prints `10`; `check-semantic-debt.py` ok.
+
