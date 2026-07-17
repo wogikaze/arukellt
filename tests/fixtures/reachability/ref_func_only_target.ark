@@ -1,0 +1,23 @@
+// REF_FUNC-only keep (#823): ref_only_target is never CALLed from an export root.
+// exported_entry → via_ref → REF_FUNC(ref_only_target). truly_dead must prune.
+// funcref emit may fail wasm-tools validate; gate asserts MIR dump, not wasm.
+
+pub fn exported_entry(x: i32) -> i32 {
+    via_ref(x)
+}
+
+fn via_ref(x: i32) -> i32 {
+    let f = ref_only_target
+    f(x)
+}
+
+fn ref_only_target(x: i32) -> i32 {
+    x + 1
+}
+
+fn truly_dead() -> i32 {
+    99
+}
+
+fn main() {
+}

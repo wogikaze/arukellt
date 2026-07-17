@@ -6,6 +6,14 @@ use mir::block_inst_access
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::opcodes
+use mir::function_core_record
+use mir::module_record
+use mir::types
+use mir::function_block_queries
+use mir::block_inst_access
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::opcodes
 
 fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
     m.functions
@@ -31,6 +39,36 @@ fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
 
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
+}
+
+fn MirModule_block_count(m: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(m)
+    let mut total = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(m, fi)
+        total = total + function_block_queries::MirFunction_block_count(f)
+        fi = fi + 1
+    }
+    total
+}
+
+fn MirModule_inst_count(m: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(m)
+    let mut total = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(m, fi)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            total = total + block_inst_access::MirBlock_inst_count(block)
+            bi = bi + 1
+        }
+        fi = fi + 1
+    }
+    total
 }
 
 fn mir_call_is_arukellt_host(callee: String) -> bool {

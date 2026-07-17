@@ -2,10 +2,21 @@ use mir::reachability_prune
 use mir::reachability_roots
 use mir::reachability_walk
 use mir::reachability_index
+use mir::reachability_legacy
+use mir::module_functions
+use mir::types
+use mir::reachability_prune
+use mir::reachability_roots
+use mir::reachability_walk
+use mir::reachability_index
+use mir::reachability_legacy
 use mir::module_functions
 use mir::types
 
 fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
+    if reachability_legacy::mir_reachability_legacy_enabled() {
+        return reachability_legacy::mir_prune_unreachable_legacy_fixpoint(m, extra_roots)
+    }
     let fn_count = module_functions::MirModule_function_count(m)
     if fn_count == 0 {
         return 0

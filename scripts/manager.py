@@ -4577,6 +4577,10 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "T3 fixture WASM validation gate (#686)",
             "python3 scripts/check/check-t3-wasm-validate.py",
         ),
+        (
+            "MIR reachability queue-BFS gate (#823)",
+            "python3 scripts/check/check-mir-reachability-bfs.py",
+        ),
     ]
 
     bg_results: list[tuple[str, str, int, str]] = []

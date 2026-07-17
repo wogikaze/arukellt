@@ -57,3 +57,33 @@ fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
         )
     )
 }
+
+fn mir_lower_phase_mir_size(
+    enabled: i32,
+    blocks_before: i32,
+    blocks_after: i32,
+    insts_before: i32,
+    insts_after: i32
+) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_blocks: before="),
+            concat(
+                to_string(blocks_before),
+                concat(String_from(" after="), to_string(blocks_after))
+            )
+        )
+    )
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_insts: before="),
+            concat(
+                to_string(insts_before),
+                concat(String_from(" after="), to_string(insts_after))
+            )
+        )
+    )
+}

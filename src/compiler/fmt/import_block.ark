@@ -1,0 +1,8 @@
+pub struct ImportBlockSpan {
+    start: i32,
+    end: i32,
+}
+
+pub fn ImportBlockSpan_new(start: i32, end: i32) -> ImportBlockSpan {
+    ImportBlockSpan { start: start, end: end }
+}

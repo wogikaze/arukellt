@@ -130,6 +130,7 @@ def _remove_tree(path: Path) -> None:
 PINNED_WASM_REL = "bootstrap/arukellt-selfhost.wasm"
 BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-pinned-bootstrap.wasm"
 S2_RUNTIME_WASM_REL = ".build/selfhost/arukellt-s2-runtime.wasm"
+CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
 HOP_BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-hop-bootstrap.wasm"
 HOP_BOOTSTRAP_COMMIT = "a56d6d53"
 HOP_BOOTSTRAP_PATCH_REV = 2
@@ -1388,11 +1389,26 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
     every pattern, so all substitutions are *optional* — a skip notice is printed
     when a pattern does not match, making source drift visible without raising.
 
-    When ``keep_clock`` is true (clock-capable host compiling stage-3 for
-    measurement), leave ``clock::monotonic_now`` intact but still apply the
-    i64/i32 overlay compatibility rewrites (#823).
+    When ``keep_clock`` is true, keep the i32 timestamp field rewrites (GC i64
+    struct fields still miscompile under current s2) but replace
+    ``clock::monotonic_now()`` with millisecond ``i32`` reads so ``--time`` is
+    non-zero without ``expected i32, found i64`` validate failures (#823).
     """
-    if not keep_clock:
+    if keep_clock:
+        # Milliseconds as i32: matches overlay i32 timestamp slots.
+        text = _replace_optional(
+            text,
+            "clock::monotonic_now()",
+            "i64_to_i32(clock::monotonic_now() / 1000000i64)",
+            "driver_timing: keep_clock monotonic_now → i32 ms",
+        )
+        text = _replace_optional(
+            text,
+            "i64_to_i32(diff / 1000000i64)",
+            "i64_to_i32(diff)",
+            "driver_timing: keep_clock phase_timing_ms already ms",
+        )
+    else:
         text = _replace_optional(text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now")
     for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
         text = _sub_optional(
@@ -1492,53 +1508,56 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
     # Split backend timestamps (lower / mir_opt / mir_verify) before emit (#823).
-    # With keep_clock, t_lower/t_mir_opt/t_mir_verify are already i64 from
-    # clock::monotonic_now — only wrap the i32 getter results.
-    if keep_clock:
-        text = _replace_optional(
-            text,
-            "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
-            "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
-            "driver_timing: emit_output keep_clock timestamp wrap",
-        )
-    else:
-        text = _replace_optional(
-            text,
-            "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
-            "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
-            "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
-        )
-        text = _replace_optional(
-            text,
-            "typecheck_result_t_typecheck(checked)), t_lower)",
-            "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
-            "driver_timing: t_lower i32_to_i64 wrapping",
-        )
-        text = _replace_optional(
-            text,
-            "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-            "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-            "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
-        )
-        text = _replace_optional(
-            text,
-            "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-            "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-            "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
-        )
-        # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
-        text = _replace_optional(
-            text,
-            "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
-            "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
-            "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
-        )
+    text = _replace_optional(
+        text,
+        "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
+        "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
+        "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
+    )
+    text = _replace_optional(
+        text,
+        "typecheck_result_t_typecheck(checked)), t_lower)",
+        "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
+        "driver_timing: t_lower i32_to_i64 wrapping",
+    )
+    text = _replace_optional(
+        text,
+        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
+        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+        "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
+    )
+    text = _replace_optional(
+        text,
+        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
+        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+        "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
+    )
+    # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
+    text = _replace_optional(
+        text,
+        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
+        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
+        "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
+    )
     return text
 
 
 def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics in mir lower (#823)."""
     if keep_clock:
+        # Store ms in i64; mir_lower_phase_ms must not divide by 1e6 again.
+        text = _replace_optional(
+            text,
+            "clock::monotonic_now()",
+            "i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))",
+            "mir_lower_timing: keep_clock monotonic_now → i64 ms",
+        )
+        text = _replace_optional(
+            text,
+            "i64_to_i32(diff / 1000000i64)",
+            "i64_to_i32(diff)",
+            "mir_lower_timing: keep_clock phase_ms already ms",
+        )
         return text
     return _replace_optional(
         text,
@@ -1722,8 +1741,8 @@ def _write_worktree_namespace_overlay(
         if rel_name == "wasm/wasm_sections_facade.ark":
             text = _patch_bootstrap_wasm_sections_data_only(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
-        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps monotonic_now for measurement builds
-        # while retaining i64/i32 overlay rewrites (#823).
+        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i64 clocks and skips i32 field
+        # rewrites — compile that overlay with s2-runtime, not pinned (#823).
         keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text, keep_clock=keep_clock)
@@ -2674,6 +2693,10 @@ def _compiler_source_content_hash(root: Path) -> str:
     """
     digest = hashlib.sha256()
     digest.update(b"v2\n")
+    # KEEP_CLOCK changes overlay patches without touching .ark sources (#823).
+    digest.update(
+        f"keep_clock={1 if os.environ.get('ARUKELLT_OVERLAY_KEEP_CLOCK') == '1' else 0}\n".encode()
+    )
     # Hash checks.py itself (overlay logic depends on it)
     try:
         with open(__file__, "rb") as f:
@@ -3626,6 +3649,88 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
         return runtime, ""
     runtime, err, _elapsed = rebuild_current_s2(root, force=True)
     return runtime, err
+
+
+def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | None, str]:
+    """Build ``arukellt-s2-clock.wasm`` with real clock reads for ``--time``.
+
+    Steps:
+    1. Ensure a normal (clock-stubbed) ``arukellt-s2-runtime.wasm`` host exists.
+    2. Prepare flat overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i32 ms timestamps).
+    3. Compile current selfhost source with that host into the clock artifact.
+    4. ``wasm-tools validate``; reject on failure.
+
+    Keep-clock uses millisecond i32 slots (not raw i64 ns) because GC i64 struct
+    fields still miscompile under the current host. Prefer s2-runtime as host;
+    pinned may work but is slower and more fragile.
+    """
+    global _FLAT_OVERLAY_CACHE
+    out = root / CLOCK_S2_WASM_REL
+    host = root / S2_RUNTIME_WASM_REL
+    if (
+        not force
+        and out.is_file()
+        and host.is_file()
+        and out.stat().st_mtime >= host.stat().st_mtime
+        and out.stat().st_mtime >= _compiler_source_mtime(root)
+    ):
+        invalid = _reject_invalid_compiler_wasm(out)
+        if not invalid:
+            return out, ""
+    # Host must be the stubbed runtime, never a keep-clock overlay compile via pinned.
+    prev_keep = os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK", None)
+    try:
+        _FLAT_OVERLAY_CACHE = None
+        runtime, err, _elapsed = rebuild_current_s2(root, force=not host.is_file())
+        if runtime is None:
+            return None, err or "failed to rebuild stubbed s2-runtime host"
+        host = runtime if runtime.is_file() else host
+        if not host.is_file():
+            return None, f"missing host compiler wasm: {S2_RUNTIME_WASM_REL}"
+    finally:
+        if prev_keep is not None:
+            os.environ["ARUKELLT_OVERLAY_KEEP_CLOCK"] = prev_keep
+
+    os.environ["ARUKELLT_OVERLAY_KEEP_CLOCK"] = "1"
+    try:
+        _FLAT_OVERLAY_CACHE = None
+        # Drop disk cache entry so keep_clock hash rebuilds the overlay.
+        cache_path = root / _FLAT_OVERLAY_DISK_CACHE_REL
+        try:
+            if cache_path.is_file():
+                cache_path.unlink()
+        except OSError:
+            pass
+        workspace = _prepare_bootstrap_workspace(root)
+        wasmtime = _find_wasmtime()
+        if not wasmtime:
+            return None, "wasmtime not found in PATH"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        if out.is_file():
+            try:
+                out.unlink()
+            except OSError:
+                pass
+        result = _wasm_compile(
+            wasmtime,
+            host,
+            SELFHOST_SOURCE_REL,
+            CLOCK_S2_WASM_REL,
+            root,
+            workspace_root=workspace,
+            target=SELFHOST_TARGET,
+            wasi_version=SELFHOST_WASI_VERSION,
+        )
+        if not out.is_file():
+            detail = ((result.stderr or "") + (result.stdout or ""))[-800:]
+            return None, f"clock-capable s2 compile failed:\n{detail}"
+        invalid = _reject_invalid_compiler_wasm(out)
+        if invalid:
+            return None, invalid
+        return out, ""
+    finally:
+        os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK", None)
+        _FLAT_OVERLAY_CACHE = None
 
 
 # ── Fixture parity skip list ─────────────────────────────────────────────────

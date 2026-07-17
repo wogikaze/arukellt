@@ -1,7 +1,8 @@
-# MIR queue-BFS reachability (#823): prune counts via --time; REF_FUNC edge kept.
+# MIR queue-BFS reachability (#823): CALL prune + REF_FUNC-only keep via MIR dump.
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -10,36 +11,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CALL_FIXTURE = "tests/fixtures/reachability/call_export_roots.ark"
-REF_FIXTURE_BODY = """\
-// Temporary source for REF_FUNC edge keep (#823). Not a T3 validate fixture:
-// funcref emit still fails wasm-tools validate (same class as tail_call_ref).
-
-pub fn exported_entry(x: i32) -> i32 {
-    via_call(x) + via_ref(x)
-}
-
-fn via_call(x: i32) -> i32 {
-    x + 1
-}
-
-fn via_ref(x: i32) -> i32 {
-    let f = via_call
-    f(x)
-}
-
-fn truly_dead() -> i32 {
-    99
-}
-
-fn main() {
-}
-"""
+REF_FIXTURE = "tests/fixtures/reachability/ref_func_only_target.ark"
+RECEIPT_PATH = ROOT / ".build" / "selfhost" / "reachability-bfs-receipt.json"
 
 
 def _compiler_wasm() -> Path | None:
+    env = os.environ.get("ARUKELLT_SELFHOST_WASM", "").strip()
+    if env:
+        path = Path(env)
+        if not path.is_absolute():
+            path = ROOT / path
+        if path.is_file():
+            return path
     for rel in (
         ".build/selfhost/arukellt-s2-runtime.wasm",
         ".build/selfhost/arukellt-s2.wasm",
+        ".build/selfhost/arukellt-s2-clock.wasm",
     ):
         path = ROOT / rel
         if path.is_file():
@@ -54,29 +41,41 @@ def _parse_reachability_fns(text: str) -> tuple[int, int] | None:
     return int(match.group(1)), int(match.group(2))
 
 
+def _mir_has_fn(mir_text: str, name: str) -> bool:
+    return re.search(rf"^\s*fn {re.escape(name)}\b", mir_text, re.M) is not None
+
+
 class MirReachabilityBfsTests(unittest.TestCase):
-    def compile_with_time(self, source_rel: str, out_rel: str) -> str:
-        compiler = _compiler_wasm()
-        if compiler is None:
-            self.skipTest("selfhost compiler wasm is not built")
-        wasmtime = shutil.which("wasmtime")
-        if wasmtime is None:
-            self.skipTest("wasmtime is required")
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.compiler = _compiler_wasm()
+        cls.skip_reason = ""
+        if cls.compiler is None:
+            cls.skip_reason = "selfhost compiler wasm missing (gate must build it first)"
+        cls.wasmtime = shutil.which("wasmtime")
+        if cls.wasmtime is None and not cls.skip_reason:
+            cls.skip_reason = "wasmtime not found in PATH"
+
+    def _require_compiler(self) -> Path:
+        if self.skip_reason:
+            self.fail(self.skip_reason)
+        assert self.compiler is not None
+        return self.compiler
+
+    def compile(
+        self,
+        source_rel: str,
+        out_rel: str,
+        *,
+        dump_mir: bool = False,
+        extra_env: dict[str, str] | None = None,
+    ) -> tuple[int, str]:
+        compiler = self._require_compiler()
         out_path = ROOT / out_rel
         out_path.parent.mkdir(parents=True, exist_ok=True)
         if out_path.exists():
             out_path.unlink()
-        cmd = [
-            wasmtime,
-            "run",
-            "-W",
-            "memory64=y",
-            "--dir",
-            str(ROOT),
-            "--dir",
-            str(out_path.parent),
-            str(compiler),
-            "--",
+        args = [
             "compile",
             source_rel,
             "--target",
@@ -87,25 +86,50 @@ class MirReachabilityBfsTests(unittest.TestCase):
             "-o",
             out_rel,
         ]
-        result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+        if dump_mir:
+            args.extend(["--dump-phases", "mir"])
+        cmd = [
+            self.wasmtime,
+            "run",
+            "-W",
+            "memory64=y",
+            "--dir",
+            str(ROOT),
+            "--dir",
+            str(out_path.parent),
+            str(compiler),
+            "--",
+            *args,
+        ]
+        env = {**os.environ, **(extra_env or {})}
+        result = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+        )
         text = (result.stderr or "") + "\n" + (result.stdout or "")
-        self.assertIn("compilation succeeded", text, text)
-        return text
+        return result.returncode, text
 
     def test_call_export_roots_prunes_dead_keeps_export_chain(self):
-        text = self.compile_with_time(
+        rc, text = self.compile(
             CALL_FIXTURE,
             ".build/tests/reachability_call_export_roots.wasm",
+            dump_mir=True,
         )
+        self.assertEqual(rc, 0, text)
+        self.assertIn("compilation succeeded", text, text)
         counts = _parse_reachability_fns(text)
         self.assertIsNotNone(counts, text)
         before, after = counts
         self.assertGreater(before, after)
-        # main + exported_entry + via_call (prelude/stdlib may add more roots).
-        self.assertGreaterEqual(after, 3)
+        self.assertTrue(_mir_has_fn(text, "exported_entry"), text)
+        self.assertTrue(_mir_has_fn(text, "via_call"), text)
+        self.assertFalse(_mir_has_fn(text, "truly_dead"), text)
         wasm_tools = shutil.which("wasm-tools")
-        if wasm_tools is None:
-            self.skipTest("wasm-tools is required for validate")
+        self.assertIsNotNone(wasm_tools, "wasm-tools is required")
         validate = subprocess.run(
             [
                 wasm_tools,
@@ -121,20 +145,24 @@ class MirReachabilityBfsTests(unittest.TestCase):
         )
         self.assertEqual(validate.returncode, 0, validate.stdout + validate.stderr)
 
-    def test_ref_func_edge_keeps_via_call_from_export(self):
-        src = ROOT / ".build/tests/reachability_ref_func_edge.ark"
-        src.parent.mkdir(parents=True, exist_ok=True)
-        src.write_text(REF_FIXTURE_BODY, encoding="utf-8")
-        text = self.compile_with_time(
-            ".build/tests/reachability_ref_func_edge.ark",
-            ".build/tests/reachability_ref_func_edge.wasm",
+    def test_ref_func_only_target_survives_and_truly_dead_is_pruned(self):
+        rc, text = self.compile(
+            REF_FIXTURE,
+            ".build/tests/reachability_ref_func_only.wasm",
+            dump_mir=True,
         )
-        counts = _parse_reachability_fns(text)
-        self.assertIsNotNone(counts, text)
-        before, after = counts
-        self.assertGreater(before, after)
-        # main + exported_entry + via_call + via_ref at minimum.
-        self.assertGreaterEqual(after, 4)
+        self.assertEqual(rc, 0, text)
+        self.assertIn("compilation succeeded", text, text)
+        self.assertTrue(
+            _mir_has_fn(text, "ref_only_target"),
+            "ref_only_target must remain via REF_FUNC edge:\n" + text,
+        )
+        self.assertTrue(_mir_has_fn(text, "via_ref"), text)
+        self.assertTrue(_mir_has_fn(text, "exported_entry"), text)
+        self.assertFalse(
+            _mir_has_fn(text, "truly_dead"),
+            "truly_dead must be pruned:\n" + text,
+        )
 
 
 if __name__ == "__main__":

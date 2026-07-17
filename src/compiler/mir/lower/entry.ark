@@ -62,15 +62,20 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
 
     let module = ctx_api_module::ctx_current_module(ctx)
     let fns_before = module_functions::MirModule_function_count(module)
+    let blocks_before = module_functions::MirModule_block_count(module)
+    let insts_before = module_functions::MirModule_inst_count(module)
     if prune_enabled {
         // Sync/propagate is O(locals^2) per function; prune with export roots first
         // so selfhost-scale modules do not sync the full emitter graph (#730).
         let _pruned = reachability::mir_prune_unreachable_with_roots(module, export_roots)
     }
     let fns_after = module_functions::MirModule_function_count(module)
+    let blocks_after = module_functions::MirModule_block_count(module)
+    let insts_after = module_functions::MirModule_inst_count(module)
     let t_after_reach = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, String_from("reachability"), t_after_decl, t_after_reach)
     entry_timing::mir_lower_phase_fns(timing, fns_before, fns_after)
+    entry_timing::mir_lower_phase_mir_size(timing, blocks_before, blocks_after, insts_before, insts_after)
 
     typed_mir_sync_module::mir_module_sync_all_value_types(module)
     let t_after_sync = entry_timing::mir_lower_phase_now()
