@@ -8,6 +8,9 @@ fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String) -> i32 {
     // Direct calls take the callee's return value type as-is (f64 included);
     // narrowing to i32/i64 only mistypes f64-returning call destinations.
     let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
+    if dest_vt == value_types::VT_VOID() {
+        return 0 - 1
+    }
     if ends_with(clone(callee_name), String_from("::to_string")) && ctx_gc_enum::ctx_is_gc_target(ctx) {
         dest_vt = value_types::VT_GC_REF()
     }

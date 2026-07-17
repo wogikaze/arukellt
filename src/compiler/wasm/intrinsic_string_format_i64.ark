@@ -69,6 +69,7 @@ fn emit_i64_zero_digit(w: WasmWriter, s_wpos64: i32) {
 
 fn emit_i64_minus_if_needed(w: WasmWriter, s_wpos64: i32, s_neg64: i32) {
     helpers_core::emit_local_get(w, s_neg64)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_if_empty(w)
     helpers_core::emit_local_get(w, s_wpos64)
     helpers_numeric_i32::emit_i32_const(w, 1)
@@ -113,6 +114,7 @@ fn emit_gc_i64_digit_copy_loop(w: WasmWriter, s_gc: i32, s_wpos: i32, s_len: i32
     // gc_arr[i] = scratch_buf[s_wpos + i]
     helpers_core::emit_local_get(w, s_gc)
     helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_wpos)
     helpers_core::emit_local_get(w, s_i)
     helpers_numeric_i32::emit_i32_add(w)

@@ -95,7 +95,7 @@ fn try_emit_resolved_fallback_call(
             fn_ret_vt
         )
     }
-    if !has_signature || !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
+    if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
         if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)

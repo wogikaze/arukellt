@@ -147,6 +147,7 @@ fn emit_f64_extract_digits(w: WasmWriter, f_work: i32, f_temp: i32, s_di: i32, s
     helpers_numeric_f64::emit_f64_mul(w)
     helpers_numeric_f64::emit_f64_sub(w)
     helpers_numeric_i32::emit_i32_trunc_f64_s(w)
+    helpers_numeric_i32::emit_widen_i32_result(w)
     helpers_core::emit_local_set(w, s_j)
     // buf[digit_buf + s_di] = '0' + digit
     helpers_numeric_i32::emit_i32_const(w, digit_buf)

@@ -169,5 +169,16 @@ fn is_void_returning_builtin(bare_name: String) -> bool {
     eq(clone(bare_name), "hashset_insert") ||
     eq(clone(bare_name), "hashset_remove") ||
     eq(clone(bare_name), "hashset_str_insert") ||
-    eq(clone(bare_name), "hashset_str_remove")
+    eq(clone(bare_name), "hashset_str_remove") ||
+    eq(clone(bare_name), "assert_true") ||
+    eq(clone(bare_name), "assert_false") ||
+    eq(clone(bare_name), "assert_eq_i32") ||
+    eq(clone(bare_name), "assert_eq_f64") ||
+    eq(clone(bare_name), "assert_eq_string") ||
+    eq(clone(bare_name), "assert_eq_bool") ||
+    eq(clone(bare_name), "assert_ne_i32") ||
+    eq(clone(bare_name), "assert_ne_string") ||
+    eq(clone(bare_name), "assert_contains") ||
+    eq(clone(bare_name), "assert_eq_snapshot") ||
+    eq(clone(bare_name), "assert_msg")
 }

@@ -38,6 +38,7 @@ fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_local_set(w, s_gc)
     string_gc_helpers::emit_gc_local_get(w, s_gc)
     string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
     // Leave the gc array ref on the stack; finish_text_call handles dest store.
@@ -81,9 +82,8 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
     // Create new array with len+1 elements
     helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, s_new)
 
@@ -100,6 +100,7 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Set new char at index s_len
     helpers_core::emit_local_get(w, s_new)
     helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
 
