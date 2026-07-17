@@ -1,18 +1,43 @@
 use mir::reachability_names
+use mir::reachability_index
 use mir::types
 
-fn mir_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
+fn mir_mark_roots(
+    index: MirReachabilityIndex,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    extra_roots: Vec<String>
+) -> i32 {
     let mut root_count = 0
-    if reachability_names::mir_mark_reachable_name(functions, reachable, String_from("main")) {
+    if reachability_names::mir_enqueue_reachable_name(
+        index,
+        functions,
+        reachable,
+        queue,
+        String_from("main")
+    ) {
         root_count = root_count + 1
     }
-    if reachability_names::mir_mark_reachable_name(functions, reachable, String_from("_start")) {
+    if reachability_names::mir_enqueue_reachable_name(
+        index,
+        functions,
+        reachable,
+        queue,
+        String_from("_start")
+    ) {
         root_count = root_count + 1
     }
     let extra_count = len(extra_roots)
     let mut ei = 0
     while ei < extra_count {
-        if reachability_names::mir_mark_reachable_name(functions, reachable, clone(get_unchecked(extra_roots, ei))) {
+        if reachability_names::mir_enqueue_reachable_name(
+            index,
+            functions,
+            reachable,
+            queue,
+            clone(get_unchecked(extra_roots, ei))
+        ) {
             root_count = root_count + 1
         }
         ei = ei + 1

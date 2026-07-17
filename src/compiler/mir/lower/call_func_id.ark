@@ -9,19 +9,19 @@ use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
 
-fn mir_call_inst_attach_func_id(ctx: LowerCtx, inst: MirInst, callee_name: String) -> MirInst {
+fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: String) -> MirInst {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
         return inst
     }
     let registry = module_spine::MirModule_signature_registry(m)
-    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee_name))
+    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
     if !function_id::function_id_is_valid(fid) {
-        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee_name))
+        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
         if core_op_id::core_op_id_is_some(coid) {
             fid = signature_registry::signature_registry_register_core_op_alias(
                 registry,
-                clone(callee_name),
+                clone(symbol),
                 coid
             )
         }
@@ -33,8 +33,9 @@ fn mir_call_inst_attach_func_id(ctx: LowerCtx, inst: MirInst, callee_name: Strin
 }
 
 fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, inst: MirInst) -> MirInst {
-    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op != opcodes::MIR_CALL() && op != opcodes::MIR_REF_FUNC() {
         return inst
     }
-    mir_call_inst_attach_func_id(ctx, inst, inst_accessors_literals::MirInst_str_val(inst))
+    mir_inst_attach_func_id_for_symbol(ctx, inst, inst_accessors_literals::MirInst_str_val(inst))
 }

@@ -1,6 +1,9 @@
 use std::host::clock
 use std::host::env
 use std::host::stdio
+use std::host::clock
+use std::host::env
+use std::host::stdio
 
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
     if report_flag != 0 {
@@ -39,6 +42,18 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
         concat(
             String_from("[arukellt] lower."),
             concat(clone(label), concat(String_from(": "), concat(to_string(ms), String_from("ms"))))
+        )
+    )
+}
+
+fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_fns: before="),
+            concat(to_string(before), concat(String_from(" after="), to_string(after)))
         )
     )
 }

@@ -12,6 +12,25 @@ use mir::lower::mono_view
 use mir::lower::registry_view
 use mir::lower::trace
 use mir::module_factory
+use mir::module_functions
+use mir::post_pass_type_propagate
+use mir::reachability
+use mir::typed_mir_sync_module
+use mir::lower::ctx_api_module
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_struct
+use mir::lower::decl_source
+use mir::lower::entry_context
+use mir::lower::entry_decls
+use mir::lower::entry_input
+use mir::lower::entry_fn_index_facade
+use mir::lower::entry_timing
+use mir::lower::entry_trace
+use mir::lower::mono_view
+use mir::lower::registry_view
+use mir::lower::trace
+use mir::module_factory
+use mir::module_functions
 use mir::post_pass_type_propagate
 use mir::reachability
 use mir::typed_mir_sync_module
@@ -42,13 +61,16 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, String_from("decl_emit"), t_enter, t_after_decl)
 
     let module = ctx_api_module::ctx_current_module(ctx)
+    let fns_before = module_functions::MirModule_function_count(module)
     if prune_enabled {
         // Sync/propagate is O(locals^2) per function; prune with export roots first
         // so selfhost-scale modules do not sync the full emitter graph (#730).
         let _pruned = reachability::mir_prune_unreachable_with_roots(module, export_roots)
     }
+    let fns_after = module_functions::MirModule_function_count(module)
     let t_after_reach = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, String_from("reachability"), t_after_decl, t_after_reach)
+    entry_timing::mir_lower_phase_fns(timing, fns_before, fns_after)
 
     typed_mir_sync_module::mir_module_sync_all_value_types(module)
     let t_after_sync = entry_timing::mir_lower_phase_now()

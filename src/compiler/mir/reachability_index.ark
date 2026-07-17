@@ -1,0 +1,112 @@
+use collections::name_index
+use corehir::function_id
+use corehir::signature_registry
+use mir::function_identity
+use mir::module_spine
+use mir::types
+use resolver
+
+// Explicit FunctionId.raw → MirFunction index. Never assume raw == mir index:
+// SignatureRegistry also holds core-op aliases without Mir bodies (#823).
+struct MirReachabilityIndex {
+    name_to_mir: NameIndex,
+    fid_to_mir: Vec<i32>,
+}
+
+fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
+    let fn_count = len(functions)
+    let name_to_mir = name_index::NameIndex_new(fn_count)
+    let fid_to_mir = Vec_new_i32()
+    let mut registry_count = 0
+    if module_spine::MirModule_signature_spine_populated(m) {
+        registry_count = signature_registry::signature_registry_entry_count(
+            module_spine::MirModule_signature_registry(m)
+        )
+    }
+    let mut si = 0
+    while si < registry_count {
+        push(fid_to_mir, 0 - 1)
+        si = si + 1
+    }
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        let fname = function_identity::MirFunction_name(f)
+        name_index::name_index_insert_first(name_to_mir, clone(fname), fi)
+        if module_spine::MirModule_signature_spine_populated(m) {
+            let registry = module_spine::MirModule_signature_registry(m)
+            let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fname))
+            if function_id::function_id_is_valid(fid) {
+                let raw = function_id::FunctionId_raw(fid)
+                if raw >= 0 && raw < len(fid_to_mir) {
+                    // First MirFunction wins if aliases collide.
+                    if get_unchecked(fid_to_mir, raw) < 0 {
+                        set(fid_to_mir, raw, fi)
+                    }
+                }
+            }
+        }
+        fi = fi + 1
+    }
+    MirReachabilityIndex { name_to_mir: name_to_mir, fid_to_mir: fid_to_mir }
+}
+
+fn mir_reachability_lookup_by_func_id(index: MirReachabilityIndex, func_id_raw: i32) -> i32 {
+    if func_id_raw < 0 || func_id_raw >= len(index.fid_to_mir) {
+        return 0 - 1
+    }
+    get_unchecked(index.fid_to_mir, func_id_raw)
+}
+
+fn mir_reachability_try_enqueue(reachable: Vec<i32>, queue: Vec<i32>, mir_index: i32) -> bool {
+    if mir_index < 0 || mir_index >= len(reachable) {
+        return false
+    }
+    if get_unchecked(reachable, mir_index) != 0 {
+        return false
+    }
+    set(reachable, mir_index, 1)
+    push(queue, mir_index)
+    true
+}
+
+fn mir_reachability_enqueue_by_func_id(
+    index: MirReachabilityIndex,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    func_id_raw: i32
+) -> bool {
+    let mir_index = mir_reachability_lookup_by_func_id(index, func_id_raw)
+    mir_reachability_try_enqueue(reachable, queue, mir_index)
+}
+
+// Exact NameIndex hit first; short-name fallback scans all Mir names (rare path).
+fn mir_reachability_enqueue_by_name(
+    index: MirReachabilityIndex,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    name: String
+) -> bool {
+    let exact = name_index::name_index_get(index.name_to_mir, clone(name))
+    if exact >= 0 {
+        return mir_reachability_try_enqueue(reachable, queue, exact)
+    }
+    let short = resolver::use_module_short_name(clone(name))
+    if eq(clone(short), clone(name)) {
+        return false
+    }
+    let mut changed = false
+    let count = len(functions)
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(functions, i)
+        if eq(function_identity::MirFunction_name(f), clone(short)) {
+            if mir_reachability_try_enqueue(reachable, queue, i) {
+                changed = true
+            }
+        }
+        i = i + 1
+    }
+    changed
+}

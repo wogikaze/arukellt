@@ -1,6 +1,7 @@
 use mir::reachability_prune
 use mir::reachability_roots
 use mir::reachability_walk
+use mir::reachability_index
 use mir::module_functions
 use mir::types
 
@@ -10,19 +11,24 @@ fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i
         return 0
     }
     let functions = module_functions::MirModule_functions(m)
+    let index = reachability_index::mir_reachability_index_build(m, functions)
     let reachable = Vec_new_i32()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)
         i = i + 1
     }
-    let root_count = reachability_roots::mir_mark_roots(functions, reachable, extra_roots)
+    let queue = Vec_new_i32()
+    let root_count = reachability_roots::mir_mark_roots(index, functions, reachable, queue, extra_roots)
     if root_count == 0 {
         return 0
     }
-    let mut changed = true
-    while changed {
-        changed = reachability_walk::mir_mark_reachable_calls(m, functions, reachable)
+    let mut qhead = 0
+    while qhead < len(queue) {
+        let fi = get_unchecked(queue, qhead)
+        qhead = qhead + 1
+        let f = get_unchecked(functions, fi)
+        reachability_walk::mir_enqueue_call_edges(m, index, functions, reachable, queue, f)
     }
     reachability_prune::mir_prune_unmarked_functions(m, reachable)
 }

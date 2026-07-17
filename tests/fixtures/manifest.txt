@@ -2295,6 +2295,7 @@ t3-compile:t3/println_string.ark
 t3-compile:t3/string_gc.ark
 t3-compile:t3/string_intern.ark
 t3-compile:t3/wasm_dead_fn_elim.ark
+t3-compile:reachability/call_export_roots.ark
 t3-compile:trait/basic_impl.ark
 t3-compile:trait/builtin_method.ark
 t3-compile:trait/method_chain.ark

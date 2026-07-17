@@ -1381,14 +1381,19 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
         path.write_text(text, encoding="utf-8")
 
 
-def _patch_bootstrap_driver_timing(text: str) -> str:
+def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32.
 
     Applied to every file in the ``driver`` namespace; not every file contains
     every pattern, so all substitutions are *optional* — a skip notice is printed
     when a pattern does not match, making source drift visible without raising.
+
+    When ``keep_clock`` is true (clock-capable host compiling stage-3 for
+    measurement), leave ``clock::monotonic_now`` intact but still apply the
+    i64/i32 overlay compatibility rewrites (#823).
     """
-    text = _replace_optional(text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now")
+    if not keep_clock:
+        text = _replace_optional(text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now")
     for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
         text = _sub_optional(
             text,
@@ -1487,42 +1492,54 @@ def _patch_bootstrap_driver_timing(text: str) -> str:
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
     # Split backend timestamps (lower / mir_opt / mir_verify) before emit (#823).
-    text = _replace_optional(
-        text,
-        "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
-        "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
-        "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
-    )
-    text = _replace_optional(
-        text,
-        "typecheck_result_t_typecheck(checked)), t_lower)",
-        "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
-        "driver_timing: t_lower i32_to_i64 wrapping",
-    )
-    text = _replace_optional(
-        text,
-        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-        "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-        "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
-    )
-    text = _replace_optional(
-        text,
-        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
-        "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
-        "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
-    )
-    # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
-    text = _replace_optional(
-        text,
-        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
-        "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
-        "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
-    )
+    # With keep_clock, t_lower/t_mir_opt/t_mir_verify are already i64 from
+    # clock::monotonic_now — only wrap the i32 getter results.
+    if keep_clock:
+        text = _replace_optional(
+            text,
+            "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
+            "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
+            "driver_timing: emit_output keep_clock timestamp wrap",
+        )
+    else:
+        text = _replace_optional(
+            text,
+            "backend_resolve::resolve_result_t_resolve(resolved),\n        t_typecheck,\n        t_lower,\n        t_mir_opt,\n        t_mir_verify\n    )",
+            "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),\n        i32_to_i64(t_typecheck),\n        i32_to_i64(t_lower),\n        i32_to_i64(t_mir_opt),\n        i32_to_i64(t_mir_verify)\n    )",
+            "driver_timing: emit_output backend timestamps i32_to_i64 wrapping",
+        )
+        text = _replace_optional(
+            text,
+            "typecheck_result_t_typecheck(checked)), t_lower)",
+            "typecheck_result_t_typecheck(checked)), i32_to_i64(t_lower))",
+            "driver_timing: t_lower i32_to_i64 wrapping",
+        )
+        text = _replace_optional(
+            text,
+            "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
+            "driver_debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+            "driver_timing: driver_debug::emit_phase_timing i32_to_i64(0)",
+        )
+        text = _replace_optional(
+            text,
+            "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, 0)",
+            "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
+            "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
+        )
+        # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
+        text = _replace_optional(
+            text,
+            "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            0\n        )",
+            "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
+            "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
+        )
     return text
 
 
-def _patch_bootstrap_mir_lower_phase_timing(text: str) -> str:
+def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics in mir lower (#823)."""
+    if keep_clock:
+        return text
     return _replace_optional(
         text,
         "clock::monotonic_now()",
@@ -1704,10 +1721,14 @@ def _write_worktree_namespace_overlay(
             text = _patch_bootstrap_wasm_sections_data_only(text)
         if rel_name == "wasm/wasm_sections_facade.ark":
             text = _patch_bootstrap_wasm_sections_data_only(text)
+        # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
+        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps monotonic_now for measurement builds
+        # while retaining i64/i32 overlay rewrites (#823).
+        keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
         if namespace == "driver":
-            text = _patch_bootstrap_driver_timing(text)
+            text = _patch_bootstrap_driver_timing(text, keep_clock=keep_clock)
         if rel_name == "mir/lower/entry_timing.ark":
-            text = _patch_bootstrap_mir_lower_phase_timing(text)
+            text = _patch_bootstrap_mir_lower_phase_timing(text, keep_clock=keep_clock)
         text = _promote_top_level_fns_public(text)
         text = _rename_overlay_publish_symbols(text, rel_name)
         text = _rewrite_overlay_call_sites(text)
