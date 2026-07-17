@@ -1287,10 +1287,6 @@ alias = "is_empty"
 core_op_id = "vec.is_empty"
 
 [[legacy_bindings]]
-alias = "vec_is_empty"
-core_op_id = "vec.is_empty"
-
-[[legacy_bindings]]
 alias = "is_err"
 core_op_id = "runtime.is_err"
 
