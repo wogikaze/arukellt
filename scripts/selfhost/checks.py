@@ -2664,21 +2664,6 @@ pub fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String
             encoding="utf-8",
         )
 
-    # 2. Stub out trait method registry (static dispatch)
-    tr_path = compiler_out / "typechecker_trait_method_registry.ark"
-    if tr_path.is_file():
-        tr_path.write_text(
-            """// Arukellt Selfhost - Bootstrap stub: trait method registry disabled.
-pub fn register_trait_method_sigs(env: TypeEnv, decls: Vec<AstNode>) {
-}
-
-pub fn lookup_trait_method_sig(env: TypeEnv, trait_name: String, method_name: String) -> FnSig {
-    typechecker_contract_fn_sig::FnSig_empty(typechecker_commands::TY_UNKNOWN())
-}
-""",
-            encoding="utf-8",
-        )
-
     # 3. Stub out mir_prune_unreachable_for_t3 in session_corehir
     sess_path = compiler_out / "compiler_session_corehir.ark"
     if sess_path.is_file():

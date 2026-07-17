@@ -1,24 +1,33 @@
-use typechecker::kinds
 use typechecker::ast_access
+use typechecker::contract_fn_sig
 use typechecker::scope
-use typechecker::sigs
-use typechecker::types
 
-fn bind_fn_params(scope: LocalScope, fn_node: AstNode) {
-    let type_param_bounds = sigs::collect_type_param_bounds(ast_access::node_type_ann(fn_node))
-    let type_params = sigs::collect_type_param_names(type_param_bounds)
+fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
     let child_count = ast_access::node_child_count(fn_node)
-    if child_count > 1 {
-        let mut p = 0
-        while p < child_count - 1 {
-            let param = ast_access::node_child_at(fn_node, p)
-            let mut param_ty = TypeInfo_simple(commands::TY_UNKNOWN())
-            if ast_access::node_type_ann_count(param) > 0 {
-                let type_node = ast_access::node_type_ann_at(param, 0)
-                param_ty = types::resolve_type_ann_node_generic(type_node, type_params)
-            }
-            scope::scope_define(scope, ast_access::node_text(param), param_ty)
-            p = p + 1
-        }
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    let mut param_index = 0
+    while param_index < child_count - 1 && param_index < param_count {
+        let param = ast_access::node_child_at(fn_node, param_index)
+        scope::scope_define(scope, ast_access::node_text(param), contract_fn_sig::FnSig_param_at(sig, param_index))
+        param_index = param_index + 1
     }
+}
+
+fn set_fn_type_params_from_sig(env: TypeEnv, sig: FnSig) {
+    let type_params = Vec_new_String()
+    let type_param_count = contract_fn_sig::FnSig_type_param_count(sig)
+    let mut type_param_index = 0
+    while type_param_index < type_param_count {
+        push(type_params, contract_fn_sig::FnSig_type_param_at(sig, type_param_index))
+        type_param_index = type_param_index + 1
+    }
+    let bounds = Vec_new_TypeParamBounds()
+    let bound_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
+    let mut bound_index = 0
+    while bound_index < bound_count {
+        push(bounds, contract_fn_sig::FnSig_type_param_bound_at(sig, bound_index))
+        bound_index = bound_index + 1
+    }
+    env.current_fn_type_params = type_params
+    env.current_fn_bounds = bounds
 }

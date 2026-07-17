@@ -17,7 +17,10 @@ pub fn arg_count() -> i32 {
 /// Returns the argument at `index`, or `None` when out of range.
 pub fn arg_at(index: i32) -> Option<String> {
     let v = __intrinsic_args()
-    get(v, index)
+    if index < 0 || index >= len(v) {
+        return None
+    }
+    Some(get_unchecked(v, index))
 }
 
 /// Returns `true` when the process argument vector contains `flag` verbatim.

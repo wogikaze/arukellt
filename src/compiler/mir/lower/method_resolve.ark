@@ -152,6 +152,15 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
             return method_mono_candidate
         }
     }
+    // A nested generic receiver call can share its source span with the
+    // surrounding method expression. Resolve non-generic String builtins
+    // before span-based mono lookup so `get_unchecked(v, i).len()` does not
+    // reuse the receiver call's `get_unchecked__String` specialization.
+    let bare_builtin = mir_bare_method_name(clone(callee_name))
+    if eq(mir_type_prefix(clone(callee_name)), String_from("String")) &&
+    (eq(clone(bare_builtin), String_from("len")) || eq(clone(bare_builtin), String_from("char_at"))) {
+        return bare_builtin
+    }
     let mono_target = ctx_mono_lookup_call(ctx, span_start)
     if len(mono_target) > 0 {
         return mono_target

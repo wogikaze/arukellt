@@ -2,6 +2,7 @@ use collections::vec_extend
 use typechecker::contract_mono
 use typechecker::contract_env_mono_record
 use typechecker::contract_env_record
+use typechecker::contract_type_access
 
 fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
     let src_instances = contract_env_mono_record::type_env_mono_instances(src)
@@ -9,6 +10,11 @@ fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
     let mut i = 0
     while i < count {
         let incoming = get_unchecked(src_instances, i)
+        if is_mono_call_site_marker(incoming) {
+            push(dst.mono_instances, incoming)
+            i = i + 1
+            continue
+        }
         let incoming_mangled = contract_mono::MonoInstance_mangled_name(incoming)
         let dst_instances = contract_env_mono_record::type_env_mono_instances(dst)
         let dst_count = len(dst_instances)
@@ -26,6 +32,13 @@ fn merge_mono_instances(dst: TypeEnv, src: TypeEnv) {
         }
         i = i + 1
     }
+}
+
+fn is_mono_call_site_marker(instance: MonoInstance) -> bool {
+    if contract_mono::MonoInstance_type_arg_count(instance) < 1 {
+        return false
+    }
+    contract_type_access::TypeInfo_tag(contract_mono::MonoInstance_type_arg_at(instance, 0)) < 0
 }
 
 fn merge_type_env(dst: TypeEnv, src: TypeEnv) {

@@ -20,6 +20,32 @@ fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> boo
     rewrite.push_i64_needs_extend
 }
 
+fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
+    eq(clone(callee_name), String_from("vec_get")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked_f64")) ||
+    eq(clone(callee_name), String_from("vec_len")) ||
+    eq(clone(callee_name), String_from("vec_is_empty")) ||
+    eq(clone(callee_name), String_from("vec_push")) ||
+    eq(clone(callee_name), String_from("push_i64")) ||
+    eq(clone(callee_name), String_from("push_f64")) ||
+    eq(clone(callee_name), String_from("vec_push_i64")) ||
+    eq(clone(callee_name), String_from("vec_push_f64")) ||
+    eq(clone(callee_name), String_from("vec_set")) ||
+    eq(clone(callee_name), String_from("vec_pop"))
+}
+
+fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if is_vec_get_unchecked_callee(clone(callee_name)) {
+        return call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, callee_name, first_arg_idx)
+    }
+    if is_vec_get_callee(clone(callee_name)) {
+        return call_rewrite_vec_access::mir_rewrite_vec_get(ctx, callee_name, first_arg_idx)
+    }
+    callee_name
+}
+
 fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
     let mut rewritten = callee_name
     let mut push_i64_needs_extend = false
@@ -31,14 +57,43 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
         rewritten = call_rewrite_vec_push::mir_vec_push_rewrite_callee_name(push_rewrite)
         push_i64_needs_extend = call_rewrite_vec_push::mir_vec_push_rewrite_push_i64_needs_extend(push_rewrite)
     }
-    if eq(clone(rewritten), "get_unchecked") {
+    if is_vec_get_unchecked_callee(clone(rewritten)) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, rewritten, first_arg_idx)
     }
-    if eq(clone(rewritten), "get") {
+    if is_vec_get_callee(clone(rewritten)) {
         rewritten = call_rewrite_vec_access::mir_rewrite_vec_get(ctx, rewritten, first_arg_idx)
+    }
+    if eq(clone(rewritten), "is_empty") {
+        rewritten = mir_rewrite_vec_is_empty(ctx, rewritten, first_arg_idx)
     }
     rewritten = mir_rewrite_vec_basic(rewritten)
     mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
+}
+
+fn is_vec_get_unchecked_callee(name: String) -> bool {
+    eq(clone(name), String_from("get_unchecked")) ||
+    eq(clone(name), String_from("__intrinsic_get_unchecked")) ||
+    ends_with(clone(name), String_from("::get_unchecked")) ||
+    starts_with(clone(name), String_from("get_unchecked__")) ||
+    contains(name, String_from("::get_unchecked__"))
+}
+
+fn is_vec_get_callee(name: String) -> bool {
+    eq(clone(name), String_from("get")) ||
+    eq(clone(name), String_from("__intrinsic_get")) ||
+    ends_with(clone(name), String_from("::get")) ||
+    starts_with(clone(name), String_from("get__")) ||
+    contains(name, String_from("::get__"))
+}
+
+fn mir_rewrite_vec_is_empty(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    if first_arg_idx >= 0 {
+        let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        if eq(clone(first_arg_type), String_from("Vec")) || starts_with(clone(first_arg_type), "vec:") {
+            return String_from("vec_is_empty")
+        }
+    }
+    callee_name
 }
 
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {

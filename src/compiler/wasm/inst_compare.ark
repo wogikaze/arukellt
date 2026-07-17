@@ -53,9 +53,11 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             } else {
                 if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                     // String comparison on GC target: delegate to eq intrinsic, then invert.
-                    // The intrinsic leaves a true i32 compare result.
+                    // Memory64 stores the intrinsic's boolean scratch value as i64.
                     intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
-                    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+                    helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                        w, opcodes::OP_I32_EQZ(), opcodes::OP_I64_EQZ()
+                    )
                     helpers_numeric_i32_convert::emit_widen_compare_result(w)
                 } else {
                     helpers_numeric_i32_convert::emit_i32_or_widened_op(

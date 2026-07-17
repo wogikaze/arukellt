@@ -1,15 +1,19 @@
 use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::value_types
 
-fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String) -> i32 {
+fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
     // Direct calls take the callee's return value type as-is (f64 included);
     // narrowing to i32/i64 only mistypes f64-returning call destinations.
     let mut dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name))
     if dest_vt == value_types::VT_VOID() {
-        return 0 - 1
+        dest_vt = mir_vec_call_dest_vt(ctx, clone(callee_name), first_arg_idx)
+        if dest_vt == value_types::VT_VOID() {
+            return 0 - 1
+        }
     }
     if ends_with(clone(callee_name), String_from("::to_string")) && ctx_gc_enum::ctx_is_gc_target(ctx) {
         dest_vt = value_types::VT_GC_REF()
@@ -21,4 +25,37 @@ fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String) -> i32 {
         dest_vt = value_types::VT_F64()
     }
     ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
+}
+
+fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
+    if first_arg_idx < 0 {
+        return value_types::VT_VOID()
+    }
+    if eq(clone(callee_name), String_from("vec_get")) {
+        return value_types::VT_GC_REF()
+    }
+    if !eq(clone(callee_name), String_from("vec_get_unchecked")) {
+        return value_types::VT_VOID()
+    }
+    let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    if !starts_with(clone(vec_type), String_from("vec:")) {
+        return value_types::VT_VOID()
+    }
+    let elem_type = substring(vec_type, 4, len(vec_type))
+    if eq(clone(elem_type), String_from("i64")) || eq(clone(elem_type), String_from("I64")) {
+        return value_types::VT_I64()
+    }
+    if eq(clone(elem_type), String_from("f64")) || eq(clone(elem_type), String_from("F64")) {
+        return value_types::VT_F64()
+    }
+    if eq(clone(elem_type), String_from("i32")) ||
+    eq(clone(elem_type), String_from("I32")) ||
+    eq(clone(elem_type), String_from("bool")) ||
+    eq(clone(elem_type), String_from("char")) {
+        return value_types::VT_I32()
+    }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_REF()
 }

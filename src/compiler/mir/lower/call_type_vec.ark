@@ -34,6 +34,10 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
+    if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+    }
     if eq(clone(callee_name), "vec_get_unchecked") || eq(clone(callee_name), "get_unchecked") || eq(clone(callee_name), "__intrinsic_get_unchecked") {
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }
@@ -187,13 +191,23 @@ fn vec_string_producer_base_matches(name: String) -> bool {
     eq(clone(name), "split") ||
     eq(clone(name), "text::split") ||
     eq(clone(name), "string::split") ||
+    eq(clone(name), "lines") ||
+    eq(clone(name), "text::lines") ||
+    eq(clone(name), "string::lines") ||
     eq(clone(name), "__intrinsic_split") {
         return true
     }
-    if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) {
+    if ends_with(clone(name), String_from("::split")) ||
+    ends_with(clone(name), String_from("::chars")) ||
+    ends_with(clone(name), String_from("::lines")) ||
+    ends_with(clone(name), String_from("__split")) ||
+    ends_with(clone(name), String_from("__chars")) ||
+    ends_with(clone(name), String_from("__lines")) {
         return true
     }
-    if starts_with(clone(name), String_from("split__")) || starts_with(clone(name), String_from("chars__")) {
+    if starts_with(clone(name), String_from("split__")) ||
+    starts_with(clone(name), String_from("chars__")) ||
+    starts_with(clone(name), String_from("lines__")) {
         return true
     }
     false

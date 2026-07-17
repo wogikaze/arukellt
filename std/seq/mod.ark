@@ -234,6 +234,7 @@ pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
 // ── binary search variants (generic) ────────────────────────────────────────
 
 use std::core
+use std::core::cmp
 
 /// Binary search on a sorted `Vec<T>` using a key function.
 /// Returns the index of the first element whose key equals `target_key`,

@@ -27,7 +27,7 @@ fn mir_lower_indirect_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     let mut dest = 0 - 1
     let mut dest_vt = value_types::VT_VOID()
     if arg_count != 0 {
-        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
+        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
         call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
@@ -53,7 +53,7 @@ fn mir_lower_ast_indirect_call(ctx: LowerCtx, node: AstNode, child_count: i32, c
     let mut dest = 0 - 1
     let mut dest_vt = value_types::VT_VOID()
     if arg_count != 0 {
-        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"))
+        dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, String_from("__indirect"), 0 - 1)
         call_types::mir_mark_call_result_type(ctx, String_from("__indirect"), dest, 0 - 1)
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }

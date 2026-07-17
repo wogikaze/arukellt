@@ -25,24 +25,29 @@ fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
 }
 
 fn collect_impl_method_sigs(fn_sigs: Vec<FnSig>, node: AstNode) {
-    let impl_target = impl_self_type_name(node)
-    let impl_type_params = extract_impl_type_params(node)
-    let has_impl_type_params = len(impl_type_params) > 0
     let impl_child_count = ast_access::node_child_count(node)
     let mut ic = 0
     while ic < impl_child_count {
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
-            let bare_sig = if has_impl_type_params {
-                sigs::fn_sig_from_fn_decl_with_impl_type_params(meth, impl_type_params)
-            } else {
-                sigs::fn_sig_from_fn_decl(meth)
-            }
-            let mangled_name = concat(clone(impl_target), concat(String_from("::"), contract_fn_sig::FnSig_name(bare_sig)))
-            push(fn_sigs, contract_fn_sig::FnSig_with_name(bare_sig, mangled_name))
+            push(fn_sigs, impl_method_sig(node, meth))
         }
         ic = ic + 1
     }
+}
+
+fn impl_method_sig(impl_decl: AstNode, method_decl: AstNode) -> FnSig {
+    let impl_type_params = extract_impl_type_params(impl_decl)
+    let bare_sig = if len(impl_type_params) > 0 {
+        sigs::fn_sig_from_fn_decl_with_impl_type_params(method_decl, impl_type_params)
+    } else {
+        sigs::fn_sig_from_fn_decl(method_decl)
+    }
+    let mangled_name = concat(
+        impl_self_type_name(impl_decl),
+        concat(String_from("::"), contract_fn_sig::FnSig_name(bare_sig))
+    )
+    contract_fn_sig::FnSig_with_name(bare_sig, mangled_name)
 }
 
 // Extract type parameter names from an impl block's head type.
@@ -67,10 +72,26 @@ fn extract_impl_type_params(decl: AstNode) -> Vec<String> {
     let mut k = 1
     while k < child_count {
         let type_arg = ast_access::node_child_at(head_type, k)
-        push(params, ast_access::node_text(type_arg))
+        let type_arg_name = ast_access::node_text(type_arg)
+        if is_impl_type_param_name(clone(type_arg_name)) {
+            push(params, type_arg_name)
+        }
         k = k + 1
     }
     params
+}
+
+fn is_impl_type_param_name(name: String) -> bool {
+    eq(clone(name), String_from("T")) ||
+    eq(clone(name), String_from("E")) ||
+    eq(clone(name), String_from("U")) ||
+    eq(clone(name), String_from("V")) ||
+    eq(clone(name), String_from("W")) ||
+    eq(clone(name), String_from("K")) ||
+    eq(clone(name), String_from("A")) ||
+    eq(clone(name), String_from("B")) ||
+    eq(clone(name), String_from("C")) ||
+    eq(clone(name), String_from("D"))
 }
 
 // Extract the impl target type name from an impl declaration.

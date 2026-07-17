@@ -38,7 +38,13 @@ fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
 fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let tag = mir_return_tag_from_type_info(ty)
     match tag {
-        5 => typeinfo_shape::mir_type_info_name(ty),
+        5 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) == 0 {
+                return String_from("String")
+            }
+            name
+        },
         10 => return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty),
         11 => return_typeinfo_names::mir_option_return_type_name_from_type_info(ty),
         12 => return_typeinfo_names::mir_result_return_type_name_from_type_info(ty),

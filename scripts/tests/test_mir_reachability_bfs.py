@@ -45,6 +45,13 @@ def _mir_has_fn(mir_text: str, name: str) -> bool:
     return re.search(rf"^\s*fn {re.escape(name)}\b", mir_text, re.M) is not None
 
 
+def _wasm_tools() -> str | None:
+    cargo_tool = Path.home() / ".cargo" / "bin" / "wasm-tools"
+    if cargo_tool.is_file():
+        return str(cargo_tool)
+    return shutil.which("wasm-tools")
+
+
 class MirReachabilityBfsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -128,7 +135,7 @@ class MirReachabilityBfsTests(unittest.TestCase):
         self.assertTrue(_mir_has_fn(text, "exported_entry"), text)
         self.assertTrue(_mir_has_fn(text, "via_call"), text)
         self.assertFalse(_mir_has_fn(text, "truly_dead"), text)
-        wasm_tools = shutil.which("wasm-tools")
+        wasm_tools = _wasm_tools()
         self.assertIsNotNone(wasm_tools, "wasm-tools is required")
         validate = subprocess.run(
             [

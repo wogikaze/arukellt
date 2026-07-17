@@ -5,6 +5,7 @@ use typechecker::contract_result_state
 use typechecker::context
 use typechecker::module
 use typechecker::module_env_merge
+use typechecker::module_fns
 use typechecker::module_wit
 use typechecker::resolver_errors
 use typechecker::contract_fn_sig
@@ -66,7 +67,8 @@ fn check_impl_methods(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
             let meth_env = module_env_merge::type_env_for_fn_check(env)
-            body::check_fn_body(meth_env, fn_sigs, enum_defs, meth)
+            let method_sig = module_fns::impl_method_sig(node, meth)
+            body::check_fn_body_with_sig(meth_env, fn_sigs, enum_defs, meth, method_sig)
             module_env_merge::merge_type_env(env, meth_env)
         }
         ic = ic + 1

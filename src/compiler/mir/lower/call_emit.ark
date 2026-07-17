@@ -1,4 +1,3 @@
-use mir::lower::ctx_fn_return_vt
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::inst_call
@@ -7,7 +6,6 @@ use mir::lower::call_emit_dest
 use mir::lower::call_emit_staged
 use mir::lower::call_rewrite
 use mir::lower::call_types
-use mir::value_types
 
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
     if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
@@ -42,7 +40,7 @@ fn mir_emit_direct_call(
         return return_local
     }
     let callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
-    let dest = call_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name))
+    let dest = call_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
     call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     if stage_call_args {
         call_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
@@ -54,7 +52,7 @@ fn mir_emit_direct_call(
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(callee_name), arg_count, dest))
     }
-    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name)) == value_types::VT_VOID() {
+    if dest < 0 {
         return 0 - 1
     }
     dest

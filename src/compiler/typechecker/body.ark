@@ -10,18 +10,19 @@ use typechecker::scope
 use typechecker::sigs
 
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
+    let sig = sigs::lookup_fn_sig(env, fn_sigs, ast_access::node_text(fn_node))
+    check_fn_body_with_sig(env, fn_sigs, enum_defs, fn_node, sig)
+}
+
+fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode, sig: FnSig) {
     let scope = scope::LocalScope_new()
-    body_params::bind_fn_params(scope, fn_node)
-    let bounds = sigs::collect_type_param_bounds(ast_access::node_type_ann(fn_node))
-    let type_param_names = sigs::collect_type_param_names(bounds)
-    env.current_fn_bounds = bounds
-    env.current_fn_type_params = type_param_names
+    body_params::bind_fn_params_from_sig(scope, fn_node, sig)
+    body_params::set_fn_type_params_from_sig(env, sig)
     let child_count = ast_access::node_child_count(fn_node)
     if child_count > 0 {
         let body = ast_access::node_child_at(fn_node, child_count - 1)
         infer::check_stmt(env, scope, fn_sigs, enum_defs, body)
         contract_env_record::type_env_finalize_unused_bindings(env)
-        let sig = sigs::lookup_fn_sig(env, fn_sigs, ast_access::node_text(fn_node))
         let return_tag = contract_type_access::TypeInfo_tag(contract_fn_sig::FnSig_return_type(sig))
         if return_tag != commands::TY_UNKNOWN() && return_tag != commands::TY_UNIT() {
             body_returns::check_fn_body_return_contract(env, scope, fn_sigs, enum_defs, sig, body)

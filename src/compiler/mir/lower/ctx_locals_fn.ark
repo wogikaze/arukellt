@@ -3,6 +3,7 @@ use mir::function_return_mutation
 use mir::function_param_mutation
 use mir::function_param_view
 use mir::lower::ctx_current_storage
+use mir::lower::ctx_gc_enum
 use mir::value_types
 
 fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
@@ -21,7 +22,11 @@ fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_nam
 
 fn ctx_set_current_return_type(ctx: LowerCtx, vt: i32) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
-    function_return_mutation::MirFunction_set_return_type(f, vt)
+    let mut target_vt = vt
+    if target_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
+        target_vt = value_types::VT_GC_REF()
+    }
+    function_return_mutation::MirFunction_set_return_type(f, target_vt)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }
 
@@ -62,10 +67,8 @@ fn return_vt_for_rt_tag(rt_tag: i32) -> i32 {
 }
 
 fn ctx_apply_fn_return_type_for_rt_tag(ctx: LowerCtx, rt_tag: i32) {
-    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let vt = return_vt_for_rt_tag(rt_tag)
     if vt >= 0 {
-        function_return_mutation::MirFunction_set_return_type(f, vt)
+        ctx_set_current_return_type(ctx, vt)
     }
-    ctx_current_storage::ctx_set_current_func_value(ctx, f)
 }

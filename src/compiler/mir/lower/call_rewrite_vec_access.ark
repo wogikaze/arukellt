@@ -1,9 +1,10 @@
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::lower::mono_suffix_parse
 
 fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
-        let arg_type_get2 = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        let arg_type_get2 = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
         if starts_with(clone(arg_type_get2), "vec:") {
             return String_from("vec_get")
         }
@@ -13,7 +14,7 @@ fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 
 fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
-        let arg_type_get = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+        let arg_type_get = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
         if eq(clone(arg_type_get), "vec:i64") {
             return String_from("vec_get_unchecked_i64")
         } else {
@@ -27,4 +28,18 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
         }
     }
     callee_name
+}
+
+fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
+    let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    if starts_with(clone(receiver_type), String_from("vec:")) {
+        return receiver_type
+    }
+    let mono_suffix = mono_suffix_parse::extract_mono_suffix(callee_name)
+    if len(mono_suffix) == 0 || contains(clone(mono_suffix), String_from("__")) {
+        return receiver_type
+    }
+    let inferred = concat(String_from("vec:"), mono_suffix)
+    ctx_api_local_types::ctx_set_local_type(ctx, first_arg_idx, clone(inferred))
+    inferred
 }

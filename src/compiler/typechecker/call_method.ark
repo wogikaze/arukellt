@@ -1,11 +1,13 @@
 use typechecker::kinds
 use typechecker::ast_access
+use typechecker::call_args
 use typechecker::call_method_args
 use typechecker::call_generic
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::contract_type_param_bounds
 use typechecker::contract_type_constructors
+use typechecker::contract_types_record
 use typechecker::sigs
 use typechecker::trait_method_registry
 
@@ -21,6 +23,19 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     let method_name = ast_access::node_text(node)
     let recv_node = ast_access::node_child_at(node, 0)
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
+    // Primitive .to_string() always returns String and does not require an
+    // inherent impl block to be present in the prelude.
+    if eq(clone(method_name), String_from("to_string")) {
+        let tag = contract_type_access::TypeInfo_tag(recv_ty)
+        if tag == commands::TY_I32() || tag == commands::TY_I64() || tag == commands::TY_F64() ||
+        tag == commands::TY_BOOL() || tag == commands::TY_CHAR() || tag == commands::TY_STRING() {
+            return simple_type(commands::TY_STRING())
+        }
+    }
+    if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRING() &&
+    eq(clone(method_name), String_from("lines")) && child_count == 1 {
+        return string_vec_type()
+    }
     // Try mangled name lookup first (e.g. "String::len", "i32::to_string")
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
@@ -30,6 +45,19 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
         }
+    }
+    let builtin_vec_return = infer_builtin_vec_method(
+        env,
+        scope,
+        fn_sigs,
+        enum_defs,
+        node,
+        recv_ty,
+        method_name,
+        child_count
+    )
+    if contract_type_access::TypeInfo_tag(builtin_vec_return) != commands::TY_UNKNOWN() {
+        return builtin_vec_return
     }
     // Fall back to bare-name lookup (free functions / prelude builtins).
     let sig = sigs::lookup_fn_sig(env, fn_sigs, method_name)
@@ -53,6 +81,61 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
     }
     infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, child_count)
+}
+
+fn string_vec_type() -> TypeInfo {
+    let type_args = Vec_new_TypeInfo()
+    push(type_args, simple_type(commands::TY_STRING()))
+    contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
+}
+
+fn infer_builtin_vec_method(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    recv_ty: TypeInfo,
+    method_name: String,
+    child_count: i32
+) -> TypeInfo {
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    let explicit_args = child_count - 1
+    if !is_vec_method_with_arity(clone(method_name), explicit_args) {
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
+    if eq(clone(method_name), String_from("len")) {
+        return simple_type(commands::TY_I32())
+    }
+    if eq(clone(method_name), String_from("is_empty")) {
+        return simple_type(commands::TY_BOOL())
+    }
+    if eq(clone(method_name), String_from("get")) || eq(clone(method_name), String_from("get_unchecked")) {
+        if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
+            return contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
+        }
+        return simple_type(commands::TY_UNKNOWN())
+    }
+    simple_type(commands::TY_UNIT())
+}
+
+fn is_vec_method_with_arity(method_name: String, explicit_args: i32) -> bool {
+    if explicit_args == 0 {
+        return eq(clone(method_name), String_from("len")) ||
+        eq(clone(method_name), String_from("is_empty"))
+    }
+    if explicit_args == 1 {
+        return eq(clone(method_name), String_from("push")) ||
+        eq(clone(method_name), String_from("get")) ||
+        eq(clone(method_name), String_from("get_unchecked"))
+    }
+    if explicit_args == 2 {
+        return eq(clone(method_name), String_from("set"))
+    }
+    false
 }
 
 fn infer_resolved_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode, sig: FnSig, recv_ty: TypeInfo, child_count: i32) -> TypeInfo {
@@ -155,6 +238,14 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     // Self substitution: if the trait method's return type is a TY_TYPE_VAR
     // named "Self", substitute the receiver's concrete type (#707).
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_TYPE_VAR() {
+        let ret_name = contract_type_access::TypeInfo_name(ret_ty)
+        if eq(clone(ret_name), String_from("Self")) {
+            return recv_ty
+        }
+    }
+    // Some trait methods are parsed with `Self` as a concrete struct name;
+    // treat that the same as a type variable named Self.
+    if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_STRUCT() {
         let ret_name = contract_type_access::TypeInfo_name(ret_ty)
         if eq(clone(ret_name), String_from("Self")) {
             return recv_ty

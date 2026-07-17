@@ -54,7 +54,7 @@ path = "src/compiler/typechecker/infer_compound.ark"
 sha256 = "7659160d0dacde35449e41936661b8614c8275aaea70814115fe1554d077f74e"
 [[exceptions]]
 path = "src/compiler/typechecker/returns.ark"
-sha256 = "49dd76cebbc19e13e0301e16c2f8f8c1e6532f9a8f1a83ca99bf8af97ce4949c"
+sha256 = "42b8c2b3e83346f3b99baa9a26510a63344939a11456a48b661b20863e94d2c9"
 [[exceptions]]
 path = "src/compiler/wasm/wat.ark"
 sha256 = "0ad0c1cd8c0f13212ca534fdda3b699b9a71768935c0603968e98f7557992649"
@@ -69,7 +69,7 @@ path = "std/core/iter.ark"
 sha256 = "cfd891d9cb5bfc66c2ebbf391bc130320a1f8391845daff6bfe121239383fe89"
 [[exceptions]]
 path = "std/seq/mod.ark"
-sha256 = "ea680153cda14bc9777bc6dd4e3c4585361d04b8b7539477d06961a20d80a008"
+sha256 = "72d005bb30ccbfabc283cc7844fa5c9903719afa73f4609724fd9b4ae79c2ed6"
 [[exceptions]]
 path = "std/toml.ark"
 sha256 = "a247c67f95d82f2427f74a3beb56d1d72898736b91a87eb9b8c36ba6760c3bd1"

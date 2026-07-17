@@ -578,8 +578,8 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
     return v[idx]
 }
 
-pub fn pop(v: Vec<i32>) -> i32 {
-    panic(String_new()); return 0
+pub fn pop(v: Vec<i32>) -> Option<i32> {
+    panic(String_new()); return None
 }
 
 pub fn set<T>(v: Vec<T>, idx: i32, val: T) {
@@ -622,6 +622,22 @@ pub fn is_err(r: Result<i32, i32>) -> bool {
 // Collections
 pub fn contains_string(s: String, sub: String) -> bool {
     panic(String_new()); return false
+}
+
+pub fn contains(s: String, sub: String) -> bool {
+    panic(String_new()); return false
+}
+
+pub fn starts_with(s: String, prefix: String) -> bool {
+    panic(String_new()); return false
+}
+
+pub fn ends_with(s: String, suffix: String) -> bool {
+    panic(String_new()); return false
+}
+
+pub fn index_of(s: String, sub: String) -> i32 {
+    panic(String_new()); return -1
 }
 
 // Process / env
