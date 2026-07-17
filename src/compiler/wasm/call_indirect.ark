@@ -4,10 +4,14 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::value_types
+use wasm::code_ref_locals_scan
+use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::inst_store
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::opcodes
+use wasm::sections_types_sigs_detail
 use wasm::writer_core
 
 fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
@@ -15,6 +19,9 @@ fn emit_call_indirect_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
     let dest_vt = inst_accessors_shape::MirInst_val_type(inst)
     let first_arg_vt = parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(inst))
     let type_idx = resolve_indirect_type_idx(ctx, inst_accessors_operands::MirInst_arg1(inst), arg_count, dest_vt, first_arg_vt)
+    // Under Memory64, the funcref table index is stored as a widened i64
+    // scalar but the call_indirect instruction requires an i32 index.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_CALL_INDIRECT())
     writer_core::emit_leb128_u(w, type_idx)
     writer_core::emit_leb128_u(w, 0)
@@ -55,7 +62,7 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     if arg_count == 1 {
         if dest_vt == value_types::VT_I32() && (first_arg_vt < 0 || first_arg_vt == value_types::VT_I32()) {
             if memory64 {
-                let named_m64 = find_unary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+                let named_m64 = find_unary_i32_callback_type_memory64(ctx, functions, fn_type_map, fn_count)
                 if named_m64 >= 0 {
                     return named_m64
                 }
@@ -69,7 +76,7 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     }
     if arg_count == 2 {
         if memory64 {
-            let named2_m64 = find_binary_i32_callback_type_memory64(functions, fn_type_map, fn_count)
+            let named2_m64 = find_binary_i32_callback_type_memory64(ctx, functions, fn_type_map, fn_count)
             if named2_m64 >= 0 {
                 return named2_m64
             }
@@ -85,8 +92,11 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
         let f = get_unchecked(functions, fi)
         let pc = function_param_view::MirFunction_param_count(f)
         if pc == arg_count {
-            let rt = function_return_view::MirFunction_return_type(f)
-            if match_matches_return(rt, dest_vt) {
+            // The MIR return VT may be widened/aliased under Memory64; use the
+            // effective wasm return type derived from the type name when it
+            // resolves to a GC reference (e.g. Vec/String/Option/Result).
+            let effective_rt = effective_return_vt(ctx, f)
+            if match_matches_return(effective_rt, dest_vt) {
                 if fi < len(fn_type_map) {
                     if first_arg_vt >= 0 && pc > 0 {
                         let p0 = function_param_view::MirFunction_param_val_type(f, 0)
@@ -130,32 +140,17 @@ fn find_binary_i32_callback_type(functions: Vec<MirFunction>, fn_type_map: Vec<i
     1
 }
 
-fn find_unary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+fn find_unary_i32_callback_type_memory64(ctx: SelfEmitCtx, functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
     let mut fi = 0
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
         if function_param_view::MirFunction_param_count(f) == 1 {
             if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
                 if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
-                    if fi < len(fn_type_map) {
-                        return get_unchecked(fn_type_map, fi)
-                    }
-                }
-            }
-        }
-        fi = fi + 1
-    }
-    0 - 1
-}
-
-fn find_binary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
-    let mut fi = 0
-    while fi < fn_count {
-        let f = get_unchecked(functions, fi)
-        if function_param_view::MirFunction_param_count(f) == 2 {
-            if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
-                if function_param_view::MirFunction_param_val_type(f, 1) == value_types::VT_I32() {
-                    if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
+                    // A MIR VT_I32 return may still be a Vec/String/Option/Result
+                    // GC reference under Memory64; do not select it as a scalar
+                    // i32 callback.
+                    if !return_type_name_is_gc_ref(ctx, function_return_view::MirFunction_return_type_name(f)) {
                         if fi < len(fn_type_map) {
                             return get_unchecked(fn_type_map, fi)
                         }
@@ -166,6 +161,58 @@ fn find_binary_i32_callback_type_memory64(functions: Vec<MirFunction>, fn_type_m
         fi = fi + 1
     }
     0 - 1
+}
+
+fn find_binary_i32_callback_type_memory64(ctx: SelfEmitCtx, functions: Vec<MirFunction>, fn_type_map: Vec<i32>, fn_count: i32) -> i32 {
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(functions, fi)
+        if function_param_view::MirFunction_param_count(f) == 2 {
+            if function_param_view::MirFunction_param_val_type(f, 0) == value_types::VT_I32() {
+                if function_param_view::MirFunction_param_val_type(f, 1) == value_types::VT_I32() {
+                    if function_return_view::MirFunction_return_type(f) == value_types::VT_I32() {
+                        if !return_type_name_is_gc_ref(ctx, function_return_view::MirFunction_return_type_name(f)) {
+                            if fi < len(fn_type_map) {
+                                return get_unchecked(fn_type_map, fi)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        fi = fi + 1
+    }
+    0 - 1
+}
+
+// The MIR return VT may be widened or aliased (e.g. Vec/String/Option/Result
+// functions sometimes carry VT_I32 after lowering). Resolve the effective wasm
+// return kind from the return type name when it maps to a known GC reference.
+fn effective_return_vt(ctx: SelfEmitCtx, f: MirFunction) -> i32 {
+    let rt_name = function_return_view::MirFunction_return_type_name(f)
+    if return_type_name_is_gc_ref(ctx, rt_name) {
+        return value_types::VT_GC_REF()
+    }
+    function_return_view::MirFunction_return_type(f)
+}
+
+fn return_type_name_is_gc_ref(ctx: SelfEmitCtx, type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    // Prefer the typed-spine / GcLayoutTable lookup; it covers registered
+    // structs, enums, String, vec:*, hashmap:*, and option/result variants.
+    if ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name)) >= 0 {
+        return true
+    }
+    // Fallback for bare collection names used before typed sync.
+    if sections_types_sigs_detail::is_hash_container_type_name(clone(type_name)) {
+        return true
+    }
+    if code_ref_locals_scan::type_name_is_ref(type_name) {
+        return true
+    }
+    false
 }
 
 fn match_matches_param0(p0: i32, first_arg_vt: i32) -> bool {
