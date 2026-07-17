@@ -5,7 +5,7 @@ Updated: 2026-07-17
 ID: 823
 Track: selfhost-infra
 Depends on: "730"
-Related: "#730"
+Related: "#730, #824, #825, #826, #827"
 Orchestration class: implementation
 Blocks v4 exit: False
 ---
@@ -31,10 +31,19 @@ Research: [`docs/research/selfhost-compile-latency-root-cause.md`](../../docs/re
 4. Phase timers for lower/reachability/sync/propagate/emit (or a linked slice)
    so the next regression has a receipt.
 
-### P1+ (track here or child issues)
+### P1 (MIR reachability queue BFS — landed under this issue)
 
-- Early reachability before MIR emit; FnId/index reachability walk.
-- AST cache restore; phase arena / interning (ties to #730 heap model).
+1. Explicit `FunctionId.raw → MirFunction index` map (never assume raw == mir index).
+2. Queue BFS reachability (each function body walked once).
+3. `MIR_CALL` / `MIR_REF_FUNC` prefer `func_id_raw`; name + normal-call fallback retained.
+4. `--time` prints `lower.reachability_fns: before=N after=M`.
+
+### P1+ (child issues — do not implement under #823)
+
+- Early body lowering: #824
+- AST cache format repair: #825
+- Intern + clone audit: #826
+- Phase arena (after ADR-002 / #730 ownership): #827
 
 ## Required verification
 
@@ -66,3 +75,47 @@ P0.4 phase timers (CLI flag is `--time`):
   print labels with `0ms`; use a clock-capable artifact for wall numbers.
 - Do not call `time::duration_ms` from driver/mir timing paths under pinned→s2
   (lowers to `unreachable`); inline ns→ms with `i64_to_i32`.
+
+### P1 reachability queue BFS (2026-07-17)
+
+Landed:
+- `mir/reachability_index.ark`: `NameIndex` + `fid_to_mir` (core-op aliases unmapped)
+- `reachability_entry` / `walk` / `roots` / `names`: queue BFS; CALL/REF_FUNC prefer
+  `func_id_raw`; normal-call fallback via `mir_call_normal_fallback_symbol`
+- `lower/call_func_id.ark`: attach `func_id_raw` for CALL and REF_FUNC
+- fixture: `tests/fixtures/reachability/call_export_roots.ark`
+- REF_FUNC keep smoke: `scripts/tests/test_mir_reachability_bfs.py`
+
+### Measurement receipt (2026-07-17) — clock-stubbed s2-runtime full compile
+
+Artifact / runner:
+- Compiler: `.build/selfhost/arukellt-s2-runtime.wasm` (valid, overlay clock stub)
+- Workload: overlay workspace full selfhost (`src/compiler/main.ark` → wasm32-gc / wasi-p2)
+- Flags: `--time`; outer `/usr/bin/time -v`
+- `ARUKELLT_OVERLAY_KEEP_CLOCK=1` keep_clock builds fail `wasm-validate`
+  (`func 10: expected i32, found i64`), so **phase ms remain 0** on this path.
+  Wall / RSS / `reachability_fns` are the reliable numbers.
+
+| Metric | Value |
+|--------|------:|
+| Wall (`Elapsed`) | 1:42.18 (~102 s) |
+| User time | 100.08 s |
+| Peak RSS | 1,379,560 KiB (~1.32 GiB) |
+| `lower.reachability_fns` | before=8737 after=7980 (Δ −757) |
+| Phase `--time` labels | all `0ms` (clock stub) |
+
+Smaller smokes (same stubbed s2, `--time`):
+- hello: `before=81 after=1`
+- `wasm_dead_fn_elim`: `before=83 after=3`
+- reachability CALL fixture: `before≈84 after≥3` (keeps export CALL chain; prunes `truly_dead`)
+- REF_FUNC edge keep: see `test_mir_reachability_bfs` (`after≥4`)
+
+### Bottleneck conclusion (after P1 BFS)
+
+Prune still runs **after** full MIR decl emit (`8737` bodies already lowered).
+Queue BFS + FunctionId maps make reachability itself cheaper, but the remaining
+selfhost wall is dominated by **lowering unreached bodies** (and subsequent
+sync/propagate/emit on the still-large kept set ~7980). Next implementation
+target is **early body lowering** (#824), not further MIR-only name-scan tweaks.
+AST cache (#825) / intern (#826) / arena (#827) stay deferred; no product code
+for AST cache or arena under this slice.

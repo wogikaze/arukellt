@@ -87,6 +87,10 @@ graph LR
   I823["823 Selfhost compile latency: remove quadratic MIR vector rebuilds"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
+  I824["824 Early body lowering (worklist; design first)"]
+  I825["825 AST cache format repair (not “re-enable as-is”)"]
+  I826["826 P2a: symbol / path interning + hot-path clone audit"]
+  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -140,6 +144,11 @@ graph LR
   I681 --> I711
   I709 --> I711
   I710 --> I711
+  I823 --> I824
+  I823 --> I825
+  I823 --> I826
+  I730 --> I827
+  I823 --> I827
   I709 --> I712
   I711 --> I712
   I709 --> I713
@@ -224,13 +233,17 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **819** depends on: 727, 798; blocks: 818
-- **730** depends on: 726; blocks: 823
+- **730** depends on: 726; blocks: 823, 827
 - **821** depends on: 798, 816, 820; blocks: 818
 - **822** depends on: 798, 816, 817, 820; blocks: 818
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
-- **823** depends on: 730; blocks: none
+- **823** depends on: 730; blocks: 824, 825, 826, 827
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
+- **824** depends on: 823; blocks: none
+- **825** depends on: 823; blocks: none
+- **826** depends on: 823; blocks: none
+- **827** depends on: 730, 823; blocks: none
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none
 

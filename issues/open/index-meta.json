@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-17T02:24:10Z",
+  "generated_at": "2026-07-17T03:47:25Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1517,7 +1517,8 @@
         "726"
       ],
       "blocks_issue_ids": [
-        "823"
+        "823",
+        "827"
       ],
       "acceptance": {
         "checked": 1,
@@ -1609,7 +1610,12 @@
       "depends_on": [
         "730"
       ],
-      "blocks_issue_ids": [],
+      "blocks_issue_ids": [
+        "824",
+        "825",
+        "826",
+        "827"
+      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
@@ -1666,6 +1672,83 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
+      }
+    },
+    {
+      "id": "824",
+      "path": "824-early-body-lowering-worklist.md",
+      "title": "Early body lowering (worklist; design first)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "825",
+      "path": "825-ast-cache-format-repair.md",
+      "title": "AST cache format repair (not “re-enable as-is”)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "826",
+      "path": "826-symbol-path-intern-clone-audit.md",
+      "title": "P2a: symbol / path interning + hot-path clone audit",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "827",
+      "path": "827-phase-arena-after-heap-model.md",
+      "title": "P2b: phase arena (only after heap lifetime / ownership)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730",
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
+        "upstream_notes": null
       }
     },
     {

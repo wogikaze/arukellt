@@ -83,11 +83,11 @@ pinned compiler + flat overlay + AOTで測定。
 
 ## 原因2: 到達可能性解析が全体固定点 × 線形名前検索
 
-`reachability_entry` は変化がなくなるまで全体walkを反復する。`reachability_walk` は各反復で到達済み全関数の全block・全instructionを走査する。`reachability_names` は call target名を解決するたびに全関数を文字列比較で線形走査する。
+（旧）`reachability_entry` は変化がなくなるまで全体walkを反復し、`reachability_names` は call targetごとに全関数を文字列比較していた。
 
-概算は `反復回数 × call/ref命令数 × F`。Fが約10,000なので、call edgeごとの線形探索は不適切。
+（2026-07-17 / #823 P1）queue BFS + 明示 `FunctionId.raw → Mir index`（`reachability_index.ark`）へ置換。CALL/REF_FUNC は `func_id_raw` 優先、未解決時のみ名前 / normal-call fallback。`--time` で `lower.reachability_fns: before=N after=M` を出力。
 
-必要なのは、lower時点で安定した`FnId → function index`を持ち、名前→index表を一度構築し、queue-based BFS/DFSで各function/edgeを原則一度だけ処理する方式。
+計測（clock stub 付き `arukellt-s2-runtime.wasm`、full selfhost、`--time`）: wall ~102 s、peak RSS ~1.32 GiB、`before=8737 after=7980`。phase ms は overlay の `clock::monotonic_now` stub により 0ms。KEEP_CLOCK 経路は wasm-validate 失敗のため未採用。残存ボトルネックは **decl_emit（未到達 body の先行 lower）** → #824。
 
 ## 原因3: type propagationの反復走査
 
@@ -124,16 +124,16 @@ AST cache は `AST cache disabled - needs heap investigation` として常にpar
 
 ### P1: 全体処理を避ける
 
-1. CoreHIR/typed graphで到達可能集合を作り、未到達関数をMIR化しない。
-2. reachabilityをFnId/index + queue-based traversalへ。
-3. AST cache修復。
+1. CoreHIR/typed graphで到達可能集合を作り、未到達関数をMIR化しない → **#824**（設計）。
+2. reachabilityをFnId/index + queue-based traversalへ → **#823 に landed**。
+3. AST cache format repair → **#825**（再有効化ではない; 計測後に優先度）。
 4. 長期: module単位キャッシュと依存invalidate。
 
 ### P2: 割り当て量を下げる
 
-1. identifier/path/literal の intern。
-2. deep `clone` 監査。
-3. phase arena。
+1. identifier/path/literal の intern → **#826**。
+2. deep `clone` 監査 → **#826**。
+3. phase arena → **#827**（ADR-002 / #730 の lifetime・所有権が決まるまで試作禁止）。
 4. self-build時のwarning抑制（効果は小さい）。
 
 ### P3: 固定費と運用
