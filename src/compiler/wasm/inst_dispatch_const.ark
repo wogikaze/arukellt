@@ -7,6 +7,7 @@ use wasm::inst_const
 use wasm::inst_dispatch_result
 use wasm::inst_locals
 use wasm::inst_store
+use wasm::intrinsics::helpers_numeric_i32_const
 use wasm::opcodes
 use wasm::writer_core
 
@@ -59,12 +60,13 @@ fn try_emit_ref_func_inst(
         }
         i = i + 1
     }
+    // Function-pointer table indices are i32 at the call_indirect boundary,
+    // but funcref locals are widened to i64 under Memory64. Emit the value
+    // through the i32-const helper so it matches the local storage width.
     if found == 0 {
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, 0)
+        helpers_numeric_i32_const::emit_i32_const(w, 0)
     } else {
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, table_idx)
+        helpers_numeric_i32_const::emit_i32_const(w, table_idx)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
     true
