@@ -65,6 +65,14 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx)
 }
 
+fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx)
+}
+
+fn local_gc_struct_new_variant_slot(f: MirFunction, local_idx: i32) -> i32 {
+    code_ref_locals_scan::local_gc_struct_new_variant_slot(f, local_idx)
+}
+
 fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_feeds_return(f, local_idx)
 }

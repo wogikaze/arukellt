@@ -21,7 +21,8 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
         emit_gc_enum_open_local(body, ctx)
         return true
     }
-    if variant_slot >= 0 && enum_payload_type_name(clone(type_name)) {
+    let is_variant_constructor_dest = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx)
+    if variant_slot >= 0 && (enum_payload_type_name(clone(type_name)) || is_variant_constructor_dest) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
