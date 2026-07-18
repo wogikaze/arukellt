@@ -17,9 +17,22 @@ fn emit_type_section(
     wasi_version: String,
     needs_arukellt_host: bool,
     needs_wasi_http_outgoing: bool,
-    bindings: Vec<resolver::wit_import_bind::WitImportBinding>
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    gc_layout: GcLayoutTable
 ) -> TypeSectionPlan {
-    sections_types::emit_type_section(out, mir, functions, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+    sections_types::emit_type_section(
+        out,
+        mir,
+        functions,
+        fn_count,
+        needs_wrapper,
+        target,
+        wasi_version,
+        needs_arukellt_host,
+        needs_wasi_http_outgoing,
+        bindings,
+        gc_layout
+    )
 }
 
 fn emit_import_section(

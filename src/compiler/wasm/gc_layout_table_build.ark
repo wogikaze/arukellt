@@ -5,8 +5,14 @@ use mir::module_gc_enum
 use mir::module_gc_struct
 use wasm::gc_layout_table
 
-fn build_gc_layout_table_for_emit(tt: TypeTable, mir: MirModule, gc_type_base: i32, gc_enum_variant_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) -> GcLayoutTable {
-    let table = gc_layout_table::GcLayoutTable_new()
+fn populate_gc_layout_table_for_emit(
+    table: GcLayoutTable,
+    tt: TypeTable,
+    mir: MirModule,
+    gc_type_base: i32,
+    gc_enum_variant_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>
+) {
     // Use find_existing instead of intern to avoid mutating the TypeTable
     // during emit — interning new entries shifts type IDs and corrupts
     // downstream emit phases.
@@ -22,7 +28,6 @@ fn build_gc_layout_table_for_emit(tt: TypeTable, mir: MirModule, gc_type_base: i
     gc_layout_table::gc_layout_table_populate_from_type_table(table, tt, gc_type_base)
     gc_layout_table::gc_layout_table_register_enum_variant_names(table, tt, module_gc_enum::MirModule_gc_enum_variant_names(mir), gc_enum_variant_type_map)
     gc_layout_table::gc_layout_table_register_struct_names(table, tt, module_gc_struct::MirModule_gc_struct_names(mir), gc_struct_type_map)
-    table
 }
 
 fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String, type_idx: i32) {

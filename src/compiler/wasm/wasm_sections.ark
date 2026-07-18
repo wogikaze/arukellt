@@ -3,7 +3,7 @@ use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
 use wasm::wasm_sections_facade
-use wasm::gc_layout_table_build
+use wasm::gc_layout_table
 use wasm::registry_return_audit
 use wasm::core_op_shadow
 use mir::module_functions
@@ -11,7 +11,6 @@ use mir::module_wit_imports
 use mir::module_gc_struct
 use mir::module_gc_enum
 use mir::module_spine
-use wasm::gc_layout_table_build
 
 fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -19,10 +18,30 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     let strings = strings::prepare_string_table(mir)
     let needs_arukellt_host = module_functions::mir_module_needs_arukellt_host(mir)
     let needs_wasi_http_outgoing = module_functions::mir_module_needs_wasi_http_outgoing_if_p2(mir, clone(wasi_version))
-    let mut ctx = wasm_context::emit_wasm_context_new(functions, strings, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
+    let gc_layout = gc_layout_table::GcLayoutTable_new()
     let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    let type_plan = wasm_sections_facade::emit_type_section(out, mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+    let type_plan = wasm_sections_facade::emit_type_section(
+        out,
+        mir,
+        functions,
+        fn_count,
+        needs_wrapper,
+        clone(target),
+        clone(wasi_version),
+        needs_arukellt_host,
+        needs_wasi_http_outgoing,
+        bindings,
+        gc_layout
+    )
+    let mut ctx = wasm_context::emit_wasm_context_new(
+        functions,
+        strings,
+        clone(target),
+        clone(wasi_version),
+        needs_arukellt_host,
+        needs_wasi_http_outgoing
+    )
     wasm_context::emit_wasm_context_set_gc_type_base(ctx, wasm_sections_facade::type_plan_gc_type_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_base(ctx, wasm_sections_facade::type_plan_gc_enum_variant_base(type_plan))
     wasm_context::emit_wasm_context_set_gc_enum_variant_type_map(ctx, wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan))
@@ -38,13 +57,6 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
         module_spine::MirModule_type_table(mir),
         module_spine::MirModule_mono_instance_table(mir),
         module_spine::MirModule_signature_spine_populated(mir)
-    )
-    let gc_layout = gc_layout_table_build::build_gc_layout_table_for_emit(
-        module_spine::MirModule_type_table(mir),
-        mir,
-        wasm_sections_facade::type_plan_gc_type_base(type_plan),
-        wasm_sections_facade::type_plan_gc_enum_variant_type_map(type_plan),
-        wasm_sections_facade::type_plan_gc_struct_type_map(type_plan)
     )
     wasm_context::emit_wasm_context_set_gc_layout_table(ctx, gc_layout)
     wasm_sections_facade::emit_import_section(
