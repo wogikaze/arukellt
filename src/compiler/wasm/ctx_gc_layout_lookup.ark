@@ -41,19 +41,31 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    // Payload locals (string, vec, hashmap, struct) may carry a stray
+    // variant_slot from enum/Option/Result payload propagation. Prefer the
+    // declared type_name so the local is typed as its payload/container
+    // rather than the enclosing enum variant.
+    let local_type_name = local_access::MirLocal_type_name(loc)
+    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
+        return 0 - 1
+    }
+    if len(local_type_name) > 0 {
+        let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
+        if type_name_gc >= 0 {
+            return type_name_gc
+        }
+    }
     // ADR-040 Phase 5e: variant_slot direct lookup (structured type ID)
+    // Only used when the local lacks an explicit GC container type_name.
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if variant_slot >= 0 {
+    if variant_slot >= 0 && len(local_type_name) == 0 {
         let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             return variant_gc
         }
     }
-    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
-        return 0 - 1
-    }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
+    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_type_name)
     SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
 }
 

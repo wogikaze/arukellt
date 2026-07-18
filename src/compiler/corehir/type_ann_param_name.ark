@@ -1,12 +1,24 @@
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::type_ann_node
+use corehir::type_info_to_mir_value
 
 fn type_ann_shape_param_type_name(ty: AstNode) -> String {
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ty)) {
         return String_from("fnref")
     }
     if type_ann_node::type_ann_is_generic(ty) {
+        if type_ann_node::type_ann_is_name(ty, String_from("Vec")) && type_ann_node::type_ann_child_count(ty) >= 2 {
+            let elem = type_ann_node::type_ann_child_at(ty, 1)
+            return concat(String_from("vec:"), type_ann_node::type_ann_name(elem))
+        }
+        if type_ann_node::type_ann_is_name(ty, String_from("HashMap")) && type_ann_node::type_ann_child_count(ty) >= 3 {
+            let key = type_ann_node::type_ann_child_at(ty, 1)
+            let val = type_ann_node::type_ann_child_at(ty, 2)
+            let k_name = type_ann_node::type_ann_name(key)
+            let v_name = type_ann_node::type_ann_name(val)
+            return concat(String_from("hashmap:"), type_info_to_mir_value::hashmap_type_alias(k_name, v_name))
+        }
         if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
             return concat(String_from("Option:"), type_ann_node::type_ann_name(elem))

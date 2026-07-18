@@ -1,4 +1,5 @@
 use corehir::type_ann_node
+use corehir::type_info_to_mir_value
 
 fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
@@ -9,6 +10,16 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
             }
             return String_from("vec")
+        }
+        if eq(clone(ann_name), String_from("HashMap")) {
+            if type_ann_node::type_ann_child_count(ann) >= 3 {
+                let key = type_ann_node::type_ann_child_at(ann, 1)
+                let val = type_ann_node::type_ann_child_at(ann, 2)
+                let k_name = type_ann_node::type_ann_name(key)
+                let v_name = type_ann_node::type_ann_name(val)
+                return concat(String_from("hashmap:"), type_info_to_mir_value::hashmap_type_alias(k_name, v_name))
+            }
+            return String_from("hashmap:")
         }
         if eq(clone(ann_name), String_from("Result")) {
             if type_ann_node::type_ann_child_count(ann) >= 2 {

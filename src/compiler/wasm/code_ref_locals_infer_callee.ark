@@ -1,4 +1,5 @@
 use mir::function_return_view
+use mir::post_pass_callee_lookup
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
@@ -9,31 +10,7 @@ use wasm::inst_ctx
 
 // Infer GC type for string-returning callees. Returns -1 if not a string callee.
 fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(clone(callee), "String_new") ||
-    eq(clone(callee), "String_from") ||
-    eq(clone(callee), "concat") ||
-    eq(clone(callee), "clone") ||
-    eq(clone(callee), "to_string") ||
-    eq(clone(callee), "char_to_string") ||
-    eq(clone(callee), "bool_to_string") ||
-    eq(clone(callee), "f64_to_string") ||
-    eq(clone(callee), "__intrinsic_i32_to_string") ||
-    eq(clone(callee), "__intrinsic_i64_to_string") ||
-    eq(clone(callee), "__intrinsic_f64_to_string") ||
-    eq(clone(callee), "__intrinsic_bool_to_string") ||
-    eq(clone(callee), "__intrinsic_char_to_string") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if ends_with(clone(callee), String_from("::to_string")) || ends_with(clone(callee), String_from("::to_string__1")) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if eq(clone(callee), "__hm_si_get_key") ||
-    eq(clone(callee), "__hm_is_get_val") ||
-    eq(clone(callee), "__hm_ss_get_key") ||
-    eq(clone(callee), "__hm_ss_get_val") ||
-    eq(clone(callee), "hash_string::hashmap_str_str_get_key") ||
-    eq(clone(callee), "hash_string::hashmap_str_str_get_val") ||
-    eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
+    if post_pass_callee_lookup::is_string_returning_intrinsic(callee) {
         return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     0 - 1
@@ -200,28 +177,8 @@ fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     eq(clone(callee), "convert::parse_u64") {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") || eq(clone(callee), "__intrinsic_split") {
+    if post_pass_callee_lookup::is_vec_string_returning_intrinsic(callee) {
         return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
-    }
-    if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if eq(clone(callee), "trim") ||
-    eq(clone(callee), "trim_start") ||
-    eq(clone(callee), "trim_end") ||
-    eq(clone(callee), "to_uppercase") ||
-    eq(clone(callee), "to_lowercase") ||
-    eq(clone(callee), "replace") ||
-    eq(clone(callee), "replace_all") ||
-    eq(clone(callee), "repeat") ||
-    eq(clone(callee), "slice") ||
-    eq(clone(callee), "substring") ||
-    eq(clone(callee), "reverse") ||
-    eq(clone(callee), "pad_left") ||
-    eq(clone(callee), "pad_right") ||
-    eq(clone(callee), "pad_start") ||
-    eq(clone(callee), "pad_end") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     0 - 1
 }

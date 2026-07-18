@@ -2,6 +2,7 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::call_fallback
+use wasm::call_hash
 use wasm::call_indirect
 use wasm::call_wit
 use wasm::core_op_dispatch
@@ -102,6 +103,9 @@ fn try_emit_call_inst(
         next2_op,
         len(bindings)
     ) {
+        return true
+    }
+    if call_hash::try_emit_hash_call(w, callee, inst, ctx, next_op, next_arg0, next_arg1, next2_op, len(bindings)) {
         return true
     }
     call_fallback::emit_fallback_call(

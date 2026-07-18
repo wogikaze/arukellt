@@ -44,15 +44,9 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
-    // 1. variant_slot direct lookup (structured type ID)
-    let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if variant_slot >= 0 {
-        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
-        if variant_gc >= 0 {
-            return variant_gc
-        }
-    }
-    // 2. type_name → GcLayoutTable lookup, then string-prefix fallback
+    // 1. type_name → GcLayoutTable lookup, then string-prefix fallback.
+    // Prefer the declared container type over a stray variant_slot so
+    // payload locals (string, vec, etc.) are not declared as enum variants.
     if len(type_name) > 0 {
         let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
         if tn_gc >= 0 {
@@ -65,6 +59,15 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     }
     if code_ref_locals_types::is_option_type_name(clone(type_name)) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    }
+    // 2. variant_slot direct lookup (structured type ID) only when the
+    // local lacks an explicit container type_name.
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    if variant_slot >= 0 && len(type_name) == 0 {
+        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            return variant_gc
+        }
     }
     // 3. function parameter type_name lookup
     let param_count = function_param_view::MirFunction_param_count(f)
