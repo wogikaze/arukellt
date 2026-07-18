@@ -117,10 +117,8 @@ fn try_emit_vec_core_mutation_call(w: WasmWriter, handler_id: i32, inst: MirInst
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_set(){
-        // GC statement-form `set` must not leave the vec ref on the stack
-        // (same void convention as vec_push on GC; see #726 reader_read_exact).
-        let is_void_set = emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx))
-        let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx, is_void_set)
+        // `set` returns unit; never leave the vec ref on the stack.
+        let _result_on_stack = intrinsic_vec::emit_vec_set(w, inst, ctx, true)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
@@ -148,10 +146,8 @@ fn try_emit_vec_push_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
 }
 
 fn vec_push_is_void(ctx: SelfEmitCtx, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return true
-    }
-    false
+    // `push` returns unit; always drop the vec ref after storing the element.
+    true
 }
 
 fn try_emit_vec_numeric_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {

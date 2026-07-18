@@ -5,7 +5,6 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
 use mir::inst_call
-use mir::inst_local_get
 use mir::inst_misc_control
 use mir::value_types
 
@@ -96,8 +95,8 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
     if !eq(clone(first_arg_type), String_from("Vec")) && !starts_with(clone(first_arg_type), "vec:") {
         return 0 - 1
     }
-    // Emit: local.get first_arg_idx; call vec_len 1; eqz dest
-    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(first_arg_idx))
+    // The receiver value is already on the stack from lower_expr.
+    // Emit: call vec_len 1; eqz dest
     let len_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, len_dest))
     ctx_api_local_types::ctx_set_local_type(ctx, len_dest, String_from("i32"))
