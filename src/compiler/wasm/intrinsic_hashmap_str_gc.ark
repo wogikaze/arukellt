@@ -9,7 +9,7 @@ fn emit_gc_slot_get(w: WasmWriter, s_idx: i32, region: i32, ctx: SelfEmitCtx) {
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     let field_idx = gc_slot_field(region)
     let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
-    emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_idx)
+    emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, i32_array_type, s_idx)
 }
 
 fn emit_gc_slot_set(w: WasmWriter, s_idx: i32, s_val: i32, region: i32, ctx: SelfEmitCtx) {
@@ -18,25 +18,48 @@ fn emit_gc_slot_set(w: WasmWriter, s_idx: i32, s_val: i32, region: i32, ctx: Sel
     let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     let field_idx = gc_slot_field(region)
     let array_type = gc_slot_array_type_si(region, i32_array_type, string_ref_array_type)
-    emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_idx, s_val)
+    emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, i32_array_type, s_idx, s_val)
 }
 
-fn emit_hm_slot_get_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_idx: i32) {
+fn emit_hm_slot_get_gc(
+    w: WasmWriter,
+    hm_type: i32,
+    field_idx: i32,
+    array_type: i32,
+    i32_array_type: i32,
+    s_idx: i32
+) {
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_idx)
-    writer_gc::emit_gc_array_get(w, array_type)
+    if array_type == i32_array_type {
+        writer_gc::emit_gc_array_get_i32(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_get(w, array_type)
+    }
 }
 
-fn emit_hm_slot_set_gc(w: WasmWriter, hm_type: i32, field_idx: i32, array_type: i32, s_idx: i32, s_val: i32) {
+fn emit_hm_slot_set_gc(
+    w: WasmWriter,
+    hm_type: i32,
+    field_idx: i32,
+    array_type: i32,
+    i32_array_type: i32,
+    s_idx: i32,
+    s_val: i32
+) {
     writer_gc::emit_gc_ref_cast(w, hm_type)
     writer_gc::emit_gc_struct_get(w, hm_type, field_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_val)
-    writer_gc::emit_gc_array_set(w, array_type)
+    if array_type == i32_array_type {
+        writer_gc::emit_gc_array_set_i32(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_set(w, array_type)
+    }
 }
 
 fn gc_slot_field(region: i32) -> i32 {

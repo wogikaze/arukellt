@@ -68,7 +68,14 @@ fn emit_hm_is_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
         let field_idx = intrinsic_hashmap_str_gc::gc_slot_field(region)
         let array_type = intrinsic_hashmap_str_gc::gc_slot_array_type_is(region, i32_array_type, string_ref_array_type)
-        intrinsic_hashmap_str_gc::emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_idx)
+        intrinsic_hashmap_str_gc::emit_hm_slot_get_gc(
+            w,
+            hm_type,
+            field_idx,
+            array_type,
+            i32_array_type,
+            s_idx
+        )
     } else {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -97,7 +104,15 @@ fn emit_hm_is_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
         let field_idx = intrinsic_hashmap_str_gc::gc_slot_field(region)
         let array_type = intrinsic_hashmap_str_gc::gc_slot_array_type_is(region, i32_array_type, string_ref_array_type)
-        intrinsic_hashmap_str_gc::emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_idx, s_val)
+        intrinsic_hashmap_str_gc::emit_hm_slot_set_gc(
+            w,
+            hm_type,
+            field_idx,
+            array_type,
+            i32_array_type,
+            s_idx,
+            s_val
+        )
     } else {
         let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -122,7 +137,14 @@ fn emit_hm_ss_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
         let field_idx = intrinsic_hashmap_str_gc::gc_slot_field(region)
         let array_type = intrinsic_hashmap_str_gc::gc_slot_array_type_ss(region, i32_array_type, string_ref_array_type)
-        intrinsic_hashmap_str_gc::emit_hm_slot_get_gc(w, hm_type, field_idx, array_type, s_idx)
+        intrinsic_hashmap_str_gc::emit_hm_slot_get_gc(
+            w,
+            hm_type,
+            field_idx,
+            array_type,
+            i32_array_type,
+            s_idx
+        )
     } else {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -149,7 +171,15 @@ fn emit_hm_ss_slot_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
         let string_ref_array_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
         let field_idx = intrinsic_hashmap_str_gc::gc_slot_field(region)
         let array_type = intrinsic_hashmap_str_gc::gc_slot_array_type_ss(region, i32_array_type, string_ref_array_type)
-        intrinsic_hashmap_str_gc::emit_hm_slot_set_gc(w, hm_type, field_idx, array_type, s_idx, s_val)
+        intrinsic_hashmap_str_gc::emit_hm_slot_set_gc(
+            w,
+            hm_type,
+            field_idx,
+            array_type,
+            i32_array_type,
+            s_idx,
+            s_val
+        )
     } else {
         let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
