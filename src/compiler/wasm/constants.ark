@@ -130,3 +130,11 @@ fn LIB_WIT_F32() -> i32 { 0x76 }
 fn STORE_ACTION_SKIP() -> i32 { 0 }
 fn STORE_ACTION_TEE() -> i32 { 1 }
 fn STORE_ACTION_SET() -> i32 { 2 }
+
+// GC layout member kinds and storage lowering contexts.
+fn GC_MEMBER_AGGREGATE() -> i32 { 0 }
+fn GC_MEMBER_ENUM_BASE() -> i32 { 1 }
+fn GC_MEMBER_ENUM_VARIANT() -> i32 { 2 }
+fn STORAGE_CONTEXT_AGGREGATE_FIELD() -> i32 { 1 }
+fn STORAGE_CONTEXT_VEC_BACKING() -> i32 { 2 }
+fn STORAGE_CONTEXT_DEFAULT_LOCAL() -> i32 { 3 }

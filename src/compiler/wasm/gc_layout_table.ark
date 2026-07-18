@@ -50,20 +50,16 @@ struct GcLayoutTable {
     conflict_count: i32,
 }
 
-fn GC_MEMBER_AGGREGATE() -> i32 { 0 }
-fn GC_MEMBER_ENUM_BASE() -> i32 { 1 }
-fn GC_MEMBER_ENUM_VARIANT() -> i32 { 2 }
-
 fn GcMemberKey_aggregate() -> GcMemberKey {
-    GcMemberKey { kind: GC_MEMBER_AGGREGATE(), variant_id: 0 - 1 }
+    GcMemberKey { kind: constants::GC_MEMBER_AGGREGATE(), variant_id: 0 - 1 }
 }
 
 fn GcMemberKey_enum_base() -> GcMemberKey {
-    GcMemberKey { kind: GC_MEMBER_ENUM_BASE(), variant_id: 0 - 1 }
+    GcMemberKey { kind: constants::GC_MEMBER_ENUM_BASE(), variant_id: 0 - 1 }
 }
 
 fn GcMemberKey_enum_variant(variant_id: i32) -> GcMemberKey {
-    GcMemberKey { kind: GC_MEMBER_ENUM_VARIANT(), variant_id: variant_id }
+    GcMemberKey { kind: constants::GC_MEMBER_ENUM_VARIANT(), variant_id: variant_id }
 }
 
 fn GcLayoutKey_new(type_id: TypeId, member: GcMemberKey) -> GcLayoutKey {
