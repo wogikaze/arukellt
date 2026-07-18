@@ -64,13 +64,13 @@ pub fn String_new() -> String {
 
 // String comparison
 pub fn eq(a: String, b: String) -> bool {
-    panic(String_new()); return false
+    string::eq(a, b)
 }
 
 // String operations
 // @deprecated: use `a.concat(b)` (String method) instead. See ADR-036.
 pub fn concat(a: String, b: String) -> String {
-    panic(String_new()); return String_new()
+    string::concat(a, b)
 }
 
 pub fn clone(s: String) -> String {

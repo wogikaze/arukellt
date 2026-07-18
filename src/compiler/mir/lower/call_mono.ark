@@ -93,6 +93,9 @@ fn resolve_format_debug_mono_target(ctx: LowerCtx, resolved: String, first_arg_i
         if starts_with(clone(key), String_from("option:")) || starts_with(clone(key), String_from("Option_")) {
             key = substring(clone(key), 7, len(key))
         }
+        if eq(clone(key), String_from("string")) {
+            key = String_from("String")
+        }
         if len(key) == 0 || starts_with(clone(key), String_from("?")) || eq(clone(key), String_from("enum:open")) {
             let vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
             if vt == value_types::VT_I32() {

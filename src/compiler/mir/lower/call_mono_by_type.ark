@@ -57,6 +57,9 @@ fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String
         if len(key) == 0 || starts_with(clone(key), String_from("?")) {
             key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
+        if eq(clone(key), String_from("string")) {
+            key = String_from("String")
+        }
         if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
             let trait_method = concat(clone(key), String_from("::fmt_debug"))
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
