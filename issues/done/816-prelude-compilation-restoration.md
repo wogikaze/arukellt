@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-16
+Updated: 2026-07-18
 ID: 816
 Parent: 729
 Track: compiler-internal
@@ -49,7 +49,7 @@ RFC-005 D3 body deferral for CoreOp-bound / intrinsic-shim symbols.
 - [x] Fake panic stubs are not the restoration strategy (intrinsic shims remain transitional)
 - [x] Current-source selfhost compiles a fixture containing both restored prelude
       helpers and a user-defined Ark function, and the emitted Wasm validates
-- [ ] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
+- [x] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
 
 ## Validation commands
 

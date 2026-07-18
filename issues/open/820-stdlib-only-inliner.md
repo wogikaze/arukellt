@@ -59,6 +59,6 @@ fallbacks without creating a general user-code optimizer contract.
 ## References
 
 - `issues/open/729-intrinsic-layer-separation.md`
-- `issues/open/816-prelude-compilation-restoration.md`
+- `issues/done/816-prelude-compilation-restoration.md`
 - `issues/open/818-core-op-production-scaffold-exit.md`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`

@@ -417,10 +417,10 @@ linear-memory 規則を直接露出する場合に限る。
 
 - **prelude のコンパイル対象復帰**: 詳細は
   [RFC-005](../rfcs/005-prelude-compilation-restoration.md)（ACCEPTED）。
-  実装は [#816](../../issues/open/816-prelude-compilation-restoration.md)。
+  実装は [#816](../../issues/done/816-prelude-compilation-restoration.md)。
 - **sealed raw API のモジュール名と公開面**（D4）: 詳細は
   [RFC-006](../rfcs/006-sealed-raw-api.md)（ACCEPTED、モジュール名 `core::raw`）。
-  実装は [#817](../../issues/open/817-sealed-raw-api-module.md)。
+  実装は [#817](../../issues/done/817-sealed-raw-api-module.md)。
 
 ## 等価性検証
 

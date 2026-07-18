@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-17
+Updated: 2026-07-18
 ID: 817
 Parent: 729
 Track: compiler-internal
@@ -32,7 +32,7 @@ RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
 - [x] Route `std/collections/vec.ark` / `string.ark` construction and selected
       accessors through `std::core::raw`.
 - [x] Remove dual `intrinsic_*_lm.ark` pairs (merged into parent dispatchers).
-- [ ] Full generic Vec/String representation migration (#822).
+- Full generic Vec/String representation migration remains tracked in #822.
 - [x] Runtime differential coverage across GC and LM for the raw Vec/String
       construction, access, clone, and byte-conversion paths.
 
@@ -48,7 +48,7 @@ RFC-006 is ACCEPTED and selects `core::raw` (load path `std::core::raw`).
 - [x] Vec/String stdlib entry points begin using the sealed raw API
 - [x] GC/LM dual `*_lm.ark` files are removed (helpers merged into parents)
 - [x] Differential tests pass across GC and LM targets for raw ops
-- [ ] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
+- [x] `python3 scripts/manager.py verify quick` passes with a selfhost wasm rebuilt from this tree
 
 ## Validation commands
 

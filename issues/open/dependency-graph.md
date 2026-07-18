@@ -55,8 +55,7 @@ graph LR
   I812["812 812 — Selfhost diagnostic parity drift"]
   I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
-  I816["816 816 — Prelude compilation restoration"]
-  I817["817 817 — Sealed raw API module for Vec/String internal representation"]
+  I820["820 820 — Bounded stdlib-only inliner"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -75,17 +74,16 @@ graph LR
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
-  I820["820 820 — Bounded stdlib-only inliner"]
+  I821["821 821 — Pure semantic stdlib migration"]
+  I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
-  I821["821 821 — Pure semantic stdlib migration"]
-  I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
-  I823["823 Selfhost compile latency: remove quadratic MIR vector rebuilds"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
+  I823["823 Selfhost compile latency: remove quadratic MIR vector rebuilds"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
@@ -116,7 +114,8 @@ graph LR
   I724 --> I729
   I791 --> I800
   I791 --> I814
-  I816 --> I820
+  I820 --> I821
+  I820 --> I822
   I682 --> I683
   I649 --> I699
   I698 --> I699
@@ -126,21 +125,14 @@ graph LR
   I703 --> I709
   I727 --> I819
   I726 --> I730
-  I816 --> I821
-  I820 --> I821
-  I816 --> I822
-  I817 --> I822
-  I820 --> I822
   I691 --> I710
   I697 --> I710
   I709 --> I710
-  I730 --> I823
-  I816 --> I818
-  I817 --> I818
   I819 --> I818
   I820 --> I818
   I821 --> I818
   I822 --> I818
+  I730 --> I823
   I681 --> I711
   I709 --> I711
   I710 --> I711
@@ -208,8 +200,7 @@ graph LR
 - **812** depends on: none; blocks: none
 - **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
-- **816** depends on: 798; blocks: 818, 820, 821, 822
-- **817** depends on: 798; blocks: 818, 822
+- **820** depends on: 798, 816; blocks: 818, 821, 822
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
@@ -228,17 +219,16 @@ graph LR
 - **729** depends on: 724; blocks: none
 - **800** depends on: 791; blocks: none
 - **814** depends on: 791; blocks: none
-- **820** depends on: 798, 816; blocks: 818, 821, 822
+- **821** depends on: 798, 816, 820; blocks: 818
+- **822** depends on: 798, 816, 817, 820; blocks: 818
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **819** depends on: 727, 798; blocks: 818
 - **730** depends on: 726; blocks: 823, 827
-- **821** depends on: 798, 816, 820; blocks: 818
-- **822** depends on: 798, 816, 817, 820; blocks: 818
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
-- **823** depends on: 730; blocks: 824, 825, 826, 827
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
+- **823** depends on: 730; blocks: 824, 825, 826, 827
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **824** depends on: 823; blocks: none
 - **825** depends on: 823; blocks: none

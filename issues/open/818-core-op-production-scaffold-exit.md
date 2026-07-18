@@ -68,7 +68,7 @@ to `production` only after every production gate is satisfied.
 
 - `issues/open/729-intrinsic-layer-separation.md`
 - `issues/done/798-adr-042-semantic-operation-registry-migration.md`
-- `issues/open/816-prelude-compilation-restoration.md`
-- `issues/open/817-sealed-raw-api-module.md`
+- `issues/done/816-prelude-compilation-restoration.md`
+- `issues/done/817-sealed-raw-api-module.md`
 - `data/core-ops.toml`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`

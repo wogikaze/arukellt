@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-17T05:49:36Z",
+  "generated_at": "2026-07-18T01:03:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -980,45 +980,23 @@
       }
     },
     {
-      "id": "816",
-      "path": "816-prelude-compilation-restoration.md",
-      "title": "816 — Prelude compilation restoration",
+      "id": "820",
+      "path": "820-stdlib-only-inliner.md",
+      "title": "820 — Bounded stdlib-only inliner",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "798"
+        "798",
+        "816"
       ],
       "blocks_issue_ids": [
         "818",
-        "820",
         "821",
         "822"
       ],
       "acceptance": {
-        "checked": 11,
+        "checked": 4,
         "unchecked": 1
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "817",
-      "path": "817-sealed-raw-api-module.md",
-      "title": "817 — Sealed raw API module for Vec/String internal representation",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798"
-      ],
-      "blocks_issue_ids": [
-        "818",
-        "822"
-      ],
-      "acceptance": {
-        "checked": 11,
-        "unchecked": 2
       },
       "orchestration": {
         "class": "ready",
@@ -1395,27 +1373,50 @@
       }
     },
     {
-      "id": "820",
-      "path": "820-stdlib-only-inliner.md",
-      "title": "820 — Bounded stdlib-only inliner",
-      "track": "compiler-internal",
+      "id": "821",
+      "path": "821-pure-semantic-stdlib-migration.md",
+      "title": "821 — Pure semantic stdlib migration",
+      "track": "stdlib",
       "status": "open",
       "depends_on": [
         "798",
-        "816"
+        "816",
+        "820"
       ],
       "blocks_issue_ids": [
-        "818",
-        "821",
-        "822"
+        "818"
       ],
       "acceptance": {
         "checked": 4,
         "unchecked": 1
       },
       "orchestration": {
-        "class": "ready",
-        "upstream_notes": "none"
+        "class": "blocked",
+        "upstream_notes": "816, 820"
+      }
+    },
+    {
+      "id": "822",
+      "path": "822-representation-dependent-stdlib-migration.md",
+      "title": "822 — Representation-dependent and allocating stdlib migration",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817",
+        "820"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 817, 820"
       }
     },
     {
@@ -1530,53 +1531,6 @@
       }
     },
     {
-      "id": "821",
-      "path": "821-pure-semantic-stdlib-migration.md",
-      "title": "821 — Pure semantic stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 820"
-      }
-    },
-    {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
-      }
-    },
-    {
       "id": "710",
       "path": "710-stdlib-linear-collections-type-surface.md",
       "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
@@ -1602,30 +1556,6 @@
       }
     },
     {
-      "id": "823",
-      "path": "823-selfhost-compile-latency-quadratic-mir.md",
-      "title": "Selfhost compile latency: remove quadratic MIR vector rebuilds",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [
-        "824",
-        "825",
-        "826",
-        "827"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "818",
       "path": "818-core-op-production-scaffold-exit.md",
       "title": "818 — CoreOpRegistry production scaffold exit",
@@ -1648,6 +1578,30 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "816, 817, 819, 820, 821, 822"
+      }
+    },
+    {
+      "id": "823",
+      "path": "823-selfhost-compile-latency-quadratic-mir.md",
+      "title": "Selfhost compile latency: remove quadratic MIR vector rebuilds",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [
+        "824",
+        "825",
+        "826",
+        "827"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
       }
     },
     {
