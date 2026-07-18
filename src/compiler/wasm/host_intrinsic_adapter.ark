@@ -20,6 +20,8 @@ use mir::host_intrinsic_stub_names
 use mir::function_identity
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
 
 // Classify a host intrinsic name by its ABI sub-kind.
 // Returns HOST_ABI_SCALAR for intrinsics that return plain i32/i64/f64,
@@ -69,7 +71,25 @@ fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
         let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
         push(returns, i32_mvt)
     }
-    host_intrinsic_spec::HostIntrinsicSpec_new(name, abi, Vec_new_MirValueType(), returns, 0 - 1)
+    host_intrinsic_spec::HostIntrinsicSpec_new(
+        name,
+        abi,
+        Vec_new_MirValueType(),
+        returns,
+        Vec_new_MirValueType(),
+        Vec_new_MirValueType(),
+        32,
+        0 - 1,
+        0 - 1
+    )
+}
+
+// Canonical memory32 addresses are boundary values even when the guest uses
+// Memory64. Known static scratch addresses are emitted directly as i32 so the
+// ordinary Memory64 scalar lowering never owns this width conversion.
+fn emit_canonical_memory32_static_address(w: WasmWriter, address: i32) {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, address)
 }
 
 fn host_intrinsic_should_emit_unreachable_gc_stub(f: MirFunction, ctx: SelfEmitCtx) -> bool {

@@ -7,11 +7,35 @@ struct HostIntrinsicSpec {
     abi_kind: i32,
     param_types: Vec<MirValueType>,
     return_types: Vec<MirValueType>,
+    boundary_param_types: Vec<MirValueType>,
+    boundary_return_types: Vec<MirValueType>,
+    canonical_memory_index_type: i32,
+    adapter_function_id: i32,
     signature_id: i32,
 }
 
-fn HostIntrinsicSpec_new(name: String, abi_kind: i32, param_types: Vec<MirValueType>, return_types: Vec<MirValueType>, signature_id: i32) -> HostIntrinsicSpec {
-    HostIntrinsicSpec { name: name, abi_kind: abi_kind, param_types: param_types, return_types: return_types, signature_id: signature_id }
+fn HostIntrinsicSpec_new(
+    name: String,
+    abi_kind: i32,
+    param_types: Vec<MirValueType>,
+    return_types: Vec<MirValueType>,
+    boundary_param_types: Vec<MirValueType>,
+    boundary_return_types: Vec<MirValueType>,
+    canonical_memory_index_type: i32,
+    adapter_function_id: i32,
+    signature_id: i32
+) -> HostIntrinsicSpec {
+    HostIntrinsicSpec {
+        name: name,
+        abi_kind: abi_kind,
+        param_types: param_types,
+        return_types: return_types,
+        boundary_param_types: boundary_param_types,
+        boundary_return_types: boundary_return_types,
+        canonical_memory_index_type: canonical_memory_index_type,
+        adapter_function_id: adapter_function_id,
+        signature_id: signature_id,
+    }
 }
 
 fn host_intrinsic_spec_name(spec: HostIntrinsicSpec) -> String {
@@ -30,5 +54,15 @@ fn host_intrinsic_spec_placeholder(name: String) -> HostIntrinsicSpec {
     let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     let returns = Vec_new_MirValueType()
     push(returns, string_mvt)
-    HostIntrinsicSpec_new(name, kinds::ABI_KIND_HOST_INTRINSIC(), Vec_new_MirValueType(), returns, 0 - 1)
+    HostIntrinsicSpec_new(
+        name,
+        kinds::ABI_KIND_HOST_INTRINSIC(),
+        Vec_new_MirValueType(),
+        returns,
+        Vec_new_MirValueType(),
+        Vec_new_MirValueType(),
+        32,
+        0 - 1,
+        0 - 1
+    )
 }

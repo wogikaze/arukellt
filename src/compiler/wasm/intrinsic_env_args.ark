@@ -9,10 +9,11 @@ use wasm::ctx_record
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::host_intrinsic_adapter
 
 fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
     helpers_core::emit_call(w, 1)
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
@@ -72,8 +73,8 @@ fn emit_env_args_prepare_vec(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_env_args_load_argc(w: WasmWriter, ctx: SelfEmitCtx) {
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
     helpers_core::emit_call(w, 1)
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
