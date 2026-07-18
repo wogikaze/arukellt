@@ -15,6 +15,7 @@
 | [agent-tooling-latency.md](agent-tooling-latency.md) | Agent tooling latency — Devin / Cursor (2026-07-17) | Archive | Devin CLI のログと Cursor worker ログを読み取り、AI agent タスクで何に時間がかかっているかを調査した。結論として、コンパイルそのものよりも「ツール呼び出しのラウンドトリップ」「selfhost の無駄な再構築」「認証・インデックスの再試行ループ」が時間を圧迫しているケースが多い。 |
 | [code-quality-practices.md](code-quality-practices.md) | 良いコード実務の調査 — Arukellt への取り込み判定 | Archive | 関連提案: ADR-047、ADR-048 |
 | [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | 本ファイルは計測表・環境・スクリプト一覧の正本。ADR-002 には判定要旨のみ残す。 |
+| [memory64-validate-fail-10.md](memory64-validate-fail-10.md) | Research: 10 remaining Memory64 T3 WASM validation failures | Archive | Generated: 2026-07-18 Target: wasm32-gc with Memory64 Compiler: .build/selfhost/arukellt-s2-runtime.wasm |
 | [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17) | Archive | 遅さの主因は Wasmtime の起動や構文解析ではない。次の三つが相互に増幅している。 |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
 | [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | 本ファイルは Wasm GC Post-MVP 提案の調査記録である。言語仕様の前提にはしない。 採択済みの方針は ADR-043 を参照する。 |

@@ -1,7 +1,8 @@
 # Wasm GC 実装計画
 
 ステータス: 実装計画（決定記録ではない）
-関連 ADR: ADR-035
+関連 ADR: ADR-035 / ADR-040
+詳細設計: [RFC-007](../rfcs/007-memory64-gc-layout-and-wasi-boundary.md)
 
 ---
 
@@ -90,16 +91,38 @@ Phase 4: 最適化・検証・移行
   — GC struct + GC array backing (capacity tracking)
   - `intrinsic_vec_push_gc.ark`, `intrinsic_vec_empty_gc.ark`,
     `intrinsic_vec_set_gc.ark`, `intrinsic_vec_pop_gc.ark` 等
-- Enum: subtype hierarchy + `br_on_cast` dispatch（ADR-002 合意済み）
-  - 基本型: `(struct (field (mut i32)))` (discriminant tag)
-  - variant: `(sub final (struct (field (mut i32) (field (mut $payload)))))`
+- Enum: 具象 `TypeId` ごとの base + variant subtype hierarchy
+  - base: discriminant field を持つ共通 supertype
+  - variant: base を明示的に継承し、具象 `MirValueType` から得た型付き payload field を持つ
+  - `Option` / `Result` も同じ layout 規則を使い、null や linear pointer の特例表現を作らない
+  - match: tag dispatch 後にだけ `br_on_cast` / `ref.cast` で variant へ narrow する
   - `ctx_gc_enum.ark`, `ctx_gc_enum_sig.ark`, `module_gc_enum.ark`
   - `inst_gc_struct.ark`: enum variant 用 GC struct 命令
   - `match` の Wasm lowering (`br_on_cast` + `br_on_cast_fail`)
 - `HashMap<K,V>`: GC struct with parallel arrays + occupancy tracking
   - `intrinsic_hashmap_str_gc.ark`
-- GcLayoutTable: `gc_layout_table.ark` で ADR-040 Phase 4 の
-  MirValueType → WasmValueType lowering spine
+- GcLayoutTable: type section より先に module-wide plan を構築し、ADR-040 Phase 4 の
+  `MirValueType -> WasmValueType` lowering spineとする
+  - 同じ具象 `TypeId` の type index は一度だけ割り当てる
+  - type section、signature、local、constructor、field access が同じ entry を参照する
+  - 名前 prefix、固定 `gc_type_base + offset`、stack scan fallback を段階的にゼロにする
+
+## Phase 3.5: Typed MIR / layout verifier
+
+- Wasm body emit 前に local assignment、call signature、field access、nullability、
+  lowering recipe の stack effect を検査する
+- missing `TypeId` / layout は `i32` や enum-open type に fallback せず internal compiler error
+- `hash_trait` のような stack underflow を invalid Wasm の validation まで遅延させない
+- verifier の expected / actual には `TypeId`、repr、nullability、function / instruction を含める
+
+## Phase 3.6: WASI P2 canonical boundary
+
+- `HostIntrinsicSpec` に Ark-side signature と canonical boundary signature を持たせる
+- pointer width は canonical memory の index type から導出する
+- Memory64 から memory32 への変換が必要な場合は adapter 内で range check または copy を行う
+- 通常 call site に無条件 `i32.wrap_i64` を追加しない
+- pseudo core import は #714 の component-correct interface / resource adapter へ移行する
+- `host_module_contract` は GC layout lane とは別に検証する
 
 ## Phase 4: 最適化・検証・移行
 
@@ -111,21 +134,43 @@ Phase 4: 最適化・検証・移行
 - gc_hint custom section の充実 (`ctx_gc_hint.ark`, `sections_gc_hint.ark`)
 - WASI P3 対応は `wasm32-gc` の `--wasi p3` フラグで切り替え（WASI P3 仕様確定後）
 
+## 実装順序と PR 境界
+
+1. **Verifier observe**: 10 fixture の expected / actual 型を Typed MIR verifier で再現する。
+2. **Type owner**: module-wide GcLayoutTable plan を先に作り、type identity / nullability 5 件を直す。
+3. **Verifier hard gate**: production fallback の利用をゼロにして missing type を hard error にする。
+4. **Enum family**: enum / `Option` / `Result` constructor、match、call、return を GC subtype layout へ揃える。
+5. **WASI boundary**: #714 と同じ canonical adapter spineで Memory64 pointer width を扱う。
+6. **Cleanup**: name / offset / stack-scan fallback を削除し、全 gate を更新する。
+
+同じ emitter source を変更する PR は直列化する。WASI component adapter と enum semantic
+lowering は、共通の TypeId / SignatureRegistry 契約が入った後は並行に進められる。
+compiler Wasm の再構築は編集をまとめて 1 回だけ行い、その成果物で対象 fixture をまとめて検証する。
+
 ---
 
 ## 検証コマンド
 
 ```bash
+python3 scripts/manager.py fmt --check
 python3 scripts/check/check-t3-wasm-validate.py
 wasm-tools validate --features gc <output.wasm>
+python3 scripts/manager.py verify component-interop
 python3 scripts/manager.py verify quick
+python3 scripts/manager.py selfhost fixpoint
 ```
+
+emitter を変更した作業単位では、先に
+`python3 scripts/manager.py selfhost build-compiler` を 1 回だけ実行する。
+`selfhost fixpoint` は targeted fixture が通った後の ADR-029 gate として使い、日常の rebuild に使わない。
 
 ## リスクと依存
 
 1. **wasmtime GC perf**: fixture parity と benchmark で監視する。
 2. **Migration cost**: MIR lowering の広範な影響。段階移行が難しい場合は flag day も検討。
 3. **`wasm32` / `wasm32-gc` の二重 lowering コスト**（意味論は単一、ADR-002）。
+4. **Component boundary との競合**: pseudo P2 import の局所修正は #714 の最終設計と競合する。
+   canonical adapter を共通 owner とし、validation 専用 truncate を入れない。
 
 jco の Wasm GC 対応は調査で確認済み（`docs/research/target-runtime-verification.md`）。
 「jco GC 待ち」は現行ブロッカーではない。
@@ -142,3 +187,4 @@ jco の Wasm GC 対応は調査で確認済み（`docs/research/target-runtime-v
 - [ADR-035: Wasm GC Implementation Plan](../adr/ADR-035-wasm-gc-implementation.md)
 - [ADR-002: Memory Model](../adr/ADR-002-memory-model.md)
 - [ADR-040: Semantic Type Spine](../adr/ADR-040-typed-mir-signature-registry.md)
+- [RFC-007: Memory64 GC レイアウトと WASI P2 境界](../rfcs/007-memory64-gc-layout-and-wasi-boundary.md)

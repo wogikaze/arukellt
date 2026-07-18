@@ -55,7 +55,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 use std::collections::hash
 use std::collections::hash_map
 use std::test
@@ -160,7 +160,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 // Issue #693: BufRead trait for buffered reading.
 //
 // Verifies that the BufRead trait's fill_buf returns remaining bytes
@@ -258,7 +258,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 use std::host::stdio
 
 /// User-defined Hash trait demonstrating the trait-based hashing protocol.
@@ -362,7 +362,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 // Issue #693: io::copy generic helper via Read/Write traits.
 //
 // Verifies that the trait-based copy moves bytes between two different
@@ -464,7 +464,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 use std::host::stdio
 use std::seq
 
@@ -529,7 +529,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 use std::host::stdio
 use std::wit::types
 
@@ -591,7 +591,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 // Issue #705: Full TOML 1.0 inline tables and dotted keys.
 use std::host::stdio
 use std::toml
@@ -693,7 +693,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 // Issue #705: Full TOML 1.0 table header parsing.
 use std::host::stdio
 use std::toml
@@ -796,7 +796,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 // Fixture: host_module_contract.ark
 // Verifies the std::host module contracts:
 //   - clock: monotonic_now and now_ms return non-negative values
@@ -887,7 +887,7 @@ Caused by:
 ```
 
 ### Fixture source (first 50 lines)
-```ark
+```text
 use std::host::stdio
 use std::json
 

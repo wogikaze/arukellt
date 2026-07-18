@@ -18,5 +18,5 @@
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |
-| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | wasm32-gc ターゲットで既存フィクスチャスイートが全通過すること。 wasm-tools validate --features gc を検証ゲートとする。 |
+| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | 詳細設計: RFC-007 |
 | [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | wasm32（AtCoder / 非 GC ランタイム向け）への lowering 実装方針。 言語仕様の正本は ADR-002（Wasm GC）。本ファイルは backend 実装計画のみ。 |

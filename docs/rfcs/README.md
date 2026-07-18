@@ -19,3 +19,4 @@
 | [004-trait-expressiveness.md](004-trait-expressiveness.md) | RFC-004: Trait expressiveness（Self・型引数・associated function・coherence） | DRAFT | 提案日: 2026-07-11 |
 | [005-prelude-compilation-restoration.md](005-prelude-compilation-restoration.md) | RFC-005: Prelude compilation restoration | ACCEPTED | 関連 issue: #816 関連 plan: intrinsic-layer-separation.md |
 | [006-sealed-raw-api.md](006-sealed-raw-api.md) | RFC-006: Sealed raw API for Vec/String representation | ACCEPTED | 関連 issue: #817 関連 plan: intrinsic-layer-separation.md |
+| [007-memory64-gc-layout-and-wasi-boundary.md](007-memory64-gc-layout-and-wasi-boundary.md) | RFC-007: Memory64 GC レイアウトと WASI P2 境界 | DRAFT | ADR-040（ACCEPTED） |
