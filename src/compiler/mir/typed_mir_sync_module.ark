@@ -29,7 +29,7 @@ fn mir_function_sync_all_value_types(f: MirFunction, table: TypeTable) -> MirFun
     let mut pi = 0
     while pi < pc {
         let loc = function_param_view::MirFunction_param_at(f, pi)
-        let synced = mir_local_sync_value_type(loc, table)
+        let synced = mir_local_sync_value_type_preserving(loc, table)
         f = mir_function_set_param_at(f, pi, synced)
         pi = pi + 1
     }
@@ -37,7 +37,7 @@ fn mir_function_sync_all_value_types(f: MirFunction, table: TypeTable) -> MirFun
     let mut li = 0
     while li < lc {
         let loc = function_locals_view::MirFunction_local_at(f, li)
-        let synced = mir_local_sync_value_type(loc, table)
+        let synced = mir_local_sync_value_type_preserving(loc, table)
         f = mir_function_set_local_at(f, li, synced)
         li = li + 1
     }
@@ -53,6 +53,19 @@ fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, mvt))
     }
     synced
+}
+
+// Preserve an already-typed value_type when it is concrete (no open type
+// variables). This is used by the full-module sync pass after lowering has
+// written known value_type values from the signature spine.
+fn mir_local_sync_value_type_preserving(loc: MirLocal, table: TypeTable) -> MirLocal {
+    let existing = local_access::MirLocal_value_type(loc)
+    if type_info_to_mir_value::mvt_is_concrete(table, existing) {
+        let synced = local_mutation::MirLocal_copy_with_value_type(loc, existing)
+        local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, existing))
+        return synced
+    }
+    mir_local_sync_value_type(loc, table)
 }
 
 // Propagate writes type_name via mvt_from_legacy_vt (no TypeTable). Re-sync

@@ -1,6 +1,7 @@
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_contracts
+use corehir::type_id
 use corehir::type_info_kind
 use corehir::type_info_to_type_id
 use corehir::type_table
@@ -111,4 +112,128 @@ fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType
     let result = Vec_new_MirValueType()
     push(result, type_info_to_mir_value(table, ty))
     result
+}
+
+// True when a MirValueType is fully concrete (contains no open type variables).
+// Concreteness is checked by attempting to produce a type alias string: if the
+// type tree contains a TYPE_VAR entry, mvt_to_type_name returns empty.
+fn mvt_is_concrete(table: TypeTable, mvt: MirValueType) -> bool {
+    len(mvt_to_type_name(table, mvt)) > 0
+}
+
+// Convert a concrete MirValueType back to the GC-layout alias string used by
+// the emitter (e.g. "vec:String", "hashmap:strstr", "option:i32"). Returns an
+// empty string when the type is invalid or contains an open type variable.
+fn mvt_to_type_name(table: TypeTable, mvt: MirValueType) -> String {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return String_new()
+    }
+    type_id_to_type_name(table, tid, 0)
+}
+
+fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
+    if depth > 6 {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    let name = type_table::type_entry_name(entry)
+    if kind == kinds::TYPE_KIND_TYPE_VAR() {
+        return String_new()
+    }
+    if string_contains_char(name, 63) {
+        return String_new()
+    }
+    if kind == kinds::TYPE_KIND_PRIMITIVE() {
+        return name
+    }
+    if kind == kinds::TYPE_KIND_STRING() {
+        return String_from("String")
+    }
+    if kind == kinds::TYPE_KIND_STRUCT() || kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_HASHSET() || kind == kinds::TYPE_KIND_TUPLE() {
+        if !type_params_are_concrete(table, entry, depth) {
+            return String_new()
+        }
+        return name
+    }
+    let arg_count = type_table::type_entry_type_param_count(entry)
+    if kind == kinds::TYPE_KIND_VEC() && arg_count == 1 {
+        let elem = type_table::type_entry_type_param_at(entry, 0)
+        let elem_name = type_id_to_type_name(table, elem, depth + 1)
+        if len(elem_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("vec:"), elem_name)
+    }
+    if kind == kinds::TYPE_KIND_OPTION() && arg_count == 1 {
+        let inner = type_table::type_entry_type_param_at(entry, 0)
+        let inner_name = type_id_to_type_name(table, inner, depth + 1)
+        if len(inner_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("option:"), inner_name)
+    }
+    if kind == kinds::TYPE_KIND_RESULT() && arg_count == 2 {
+        let ok = type_table::type_entry_type_param_at(entry, 0)
+        let err = type_table::type_entry_type_param_at(entry, 1)
+        let ok_name = type_id_to_type_name(table, ok, depth + 1)
+        let err_name = type_id_to_type_name(table, err, depth + 1)
+        if len(ok_name) == 0 || len(err_name) == 0 {
+            return String_new()
+        }
+        return concat(concat(String_from("result:"), ok_name), concat(String_from(":"), err_name))
+    }
+    if kind == kinds::TYPE_KIND_HASHMAP() && arg_count == 2 {
+        let k = type_table::type_entry_type_param_at(entry, 0)
+        let v = type_table::type_entry_type_param_at(entry, 1)
+        let k_name = type_id_to_type_name(table, k, depth + 1)
+        let v_name = type_id_to_type_name(table, v, depth + 1)
+        if len(k_name) == 0 || len(v_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("hashmap:"), hashmap_type_alias(k_name, v_name))
+    }
+    name
+}
+
+fn type_params_are_concrete(table: TypeTable, entry: TypeEntry, depth: i32) -> bool {
+    let arg_count = type_table::type_entry_type_param_count(entry)
+    let mut ai = 0
+    while ai < arg_count {
+        let arg = type_table::type_entry_type_param_at(entry, ai)
+        if len(type_id_to_type_name(table, arg, depth + 1)) == 0 {
+            return false
+        }
+        ai = ai + 1
+    }
+    true
+}
+
+fn hashmap_type_alias(k_name: String, v_name: String) -> String {
+    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("i32")) {
+        return String_from("si32")
+    }
+    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("String")) {
+        return String_from("i32str")
+    }
+    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("String")) {
+        return String_from("strstr")
+    }
+    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("i32")) {
+        return String_from("i32i32")
+    }
+    concat(concat(k_name, String_from(":")), v_name)
+}
+
+fn string_contains_char(s: String, c: i32) -> bool {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        if char_at(s, i) == c {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
