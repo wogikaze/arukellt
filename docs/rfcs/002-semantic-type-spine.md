@@ -293,20 +293,23 @@ struct FieldLayout {
 }
 ```
 
-**lowering関数**: `lower_mir_value_type(MirValueType) -> WasmValueType`
+**lowering関数**:
+
+- `lower_value_type(MirValueType) -> WasmValueType`
+- `lower_storage_type(MirValueType, StorageContext) -> WasmValueType`
 
 ```
 MirValueType { repr: Scalar, ... }     → WasmI32 / WasmI64 / WasmF64
 MirValueType { repr: GcRef, type_id, nullability }
-    → GcLayoutTable[type_id].wasm_ref_type
+    → GcLayoutTable[GcLayoutKey(type_id, member)].wasm_ref_type
       (nullability が Nullable なら nullable=true で上書き)
 MirValueType { repr: LinearPtr, ... }  → WasmI32
 ```
 
-**効果**: `String` → `(ref null $A_i8)`、`Vec<i64>` → `(ref null $A_i64)`、
-`Point` → `(ref null $struct:Point)` の対応が明示的になる。
-emitter は `MirValueType` を `lower_mir_value_type` に渡すだけで
-`WasmValueType` が得られる。
+value lowering は signature、call、semantic local を扱う。storage lowering は aggregate field、
+Vec backing element、default initialization が必要な local を扱い、利用文脈を明示する。
+特に `Vec<non-null ref>` の backing element は同じ heap type の nullable ref とし、semantic value の
+non-null invariant は bounds check 後の `ref.as_non_null` で復元する。詳細は ADR-035 / RFC-007 に従う。
 
 ### D6: HostIntrinsicSpec — host境界のABI明示的定義
 

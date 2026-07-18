@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-19
 ID: 808
 Track: compiler
 Depends on: "686"
@@ -16,15 +16,15 @@ Source: CQ-18 audit — unresolved verify full failures need open owner
 
 ## Summary
 
-`verify quick` reports 1 aggregate failure: "T3 fixture WASM validation
-gate (#686)". This expands to 213 individual fixture validation failures
-where the selfhost compiler produces Wasm that fails `wasm-tools validate`.
+`verify quick` reports one aggregate failure: "T3 fixture WASM validation
+gate (#686)". The current selfhost compiler still produces invalid Wasm for
+the fixture set reported by the canonical validation command.
 
 ## Exact failure scope
 
-213 fixtures fail T3 WASM validation. The selfhost compiler emits invalid
-Wasm for these fixtures. The `check-t3-wasm-validate.py` script aggregates
-these into a single failure for `verify quick`.
+The 2026-07-19 observation is 412 pass, 14 validate-fail, 1 compile-fail,
+and 23 skip out of 450 fixtures. The `check-t3-wasm-validate.py` script
+aggregates these into a single failure for `verify quick`.
 
 ## Machine-readable baseline
 
@@ -55,7 +55,20 @@ python3 scripts/check/check-t3-wasm-validate.py
 
 ## Current count
 
-213 validation failures (1 aggregate in verify quick)
+14 validation failures and 1 compile failure (1 aggregate in `verify quick`).
+
+## Implementation order
+
+The canonical sequence is maintained in
+[`docs/plans/wasm-gc-implementation.md`](../../docs/plans/wasm-gc-implementation.md):
+
+1. Make `TypeSectionPlan` the module-wide owner of all defined type indices.
+2. Split value/storage lowering and migrate Vec backing storage.
+3. Migrate enum / `Option` / `Result` families using `VariantId`.
+4. Implement the WASI P2 canonical boundary adapter.
+5. Turn the Typed MIR verifier into a hard gate and remove production fallbacks.
+
+Verifier observation runs throughout phases 1–4. Hard gating waits until phase 5.
 
 ## New-failure ratchet
 

@@ -28,13 +28,14 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
-### Accepted ADR contract gaps（2026-07-13）
+### Accepted ADR contract gaps（2026-07-18）
 
 採択済み ADR / research と食い違う現行コード・記述（公開契約との差）:
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
 | Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
+| Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
 | Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816 で backend 結合対象に復帰し、#820 の bounded stdlib-only inliner と #821/#822 の Ark body 移行を開始した。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 294 CoreOp（`normal_call` 52、`legacy_emitter` 31、`runtime_call` 45、`target_intrinsic` 164、`mir_op` 2）で、`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
@@ -168,7 +169,7 @@ shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
 locals, params, and struct/enum returns. This is an implementation slice, not the
 complete GC-native data model: strings, Vec, enums, options/results, and generic
 payloads may still use linear-memory or fixed-shape representation in places.
-Layout policy (compiler-private) is proposed in ADR-035; phases live in
+Layout policy (compiler-private) is accepted in ADR-035; implementation phases live in
 `docs/plans/wasm-gc-implementation.md`.
 
 The data model across all targets:

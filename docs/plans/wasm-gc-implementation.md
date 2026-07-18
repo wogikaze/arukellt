@@ -1,190 +1,198 @@
 # Wasm GC 実装計画
 
 ステータス: 実装計画（決定記録ではない）
-関連 ADR: ADR-035 / ADR-040
+関連 ADR: ADR-035（ACCEPTED） / ADR-040（ACCEPTED）
 詳細設計: [RFC-007](../rfcs/007-memory64-gc-layout-and-wasi-boundary.md)
 
 ---
 
 ## ゴール
 
-`wasm32-gc` ターゲットで既存フィクスチャスイートが全通過すること。
-`wasm-tools validate --features gc` を検証ゲートとする。
+`wasm32-gc` ターゲットで既存 fixture suite が全通過し、生成物を
+`wasm-tools validate --features gc` が受理すること。
 
-## フェーズ概要
+現行実装には GC 命令、部分的な GC String / Vec / struct、Typed MIR spine が既にある。
+以下はそれらを作り直す計画ではなく、ADR-035 の ownership と型安全性へ移行する順序である。
 
+## 正規の実装順序
+
+```text
+Phase 1: TypeSectionPlan を全 defined type index の owner にする
+  ↓
+Phase 2: value/storage lowering を分離し、Vec backing を移行する
+  ↓
+Phase 3: enum / Option / Result family を VariantId ベースへ移行する
+  ↓
+Phase 4: WASI P2 canonical boundary adapter を整備する
+  ↓
+Phase 5: Typed MIR verifier を hard gate 化し、fallback を削除する
 ```
-Phase 0: GC 命令基盤
-  ↓
-Phase 1: Value Representation の GC 化（MIR type system + struct/array 命令）
-  ↓
-Phase 2: 文字列の GC 表現
-  ↓
-Phase 3: Vec/Enum/Struct の GC 表現
-  ↓
-Phase 4: 最適化・検証・移行
-```
 
----
+Typed MIR / layout verifier の observation は Phase 1 から全フェーズで有効にする。
+ただし missing layout を hard error にするのは、production fallback を除去する Phase 5 とする。
 
-## Phase 0: GC 命令基盤
+## 前提として維持する既存基盤
 
-- GC オペコード定義 (`opcodes.ark`)
-- GC 型セクション出力 (`sections_types_gc.ark`)
-- GC 命令ヘルパー (`writer_gc.ark`)
-- struct/array 発行の target dispatch (`inst_struct_record.ark`, `inst_array.ark`)
-- メモリセクションの条件付き削減 (`sections_memory.ark`)
-- GC shape registry (`gc_shape_registry.ark`)
-- Debug runner GC feature 有効化
+- `MirValueType`、`TypeId`、`SignatureRegistry`、`MonoInstanceTable` を semantic spine とする。
+- GC opcode / writer、struct / array 命令、target dispatch を再利用する。
+- String heap type は packed UTF-8 byte array とする。
+- `wasm32` は同じ言語意味論の linear lowering を維持する。
+- GC layout を stable ABI にせず、公開相互運用は WIT / Canonical ABI を維持する。
+- emitter 内で `TypeTable` に新しい `TypeId` を intern しない。
 
-## Phase 1: Value Representation の GC 化
+## Phase 1: TypeSectionPlan owner
 
-**本質的な変更。MIR の値表現を `i32-as-pointer` から GC reference type に変更する。**
+function type、struct、array、enum family、recursive group を含む全 defined type index を、
+module-wide の `TypeSectionPlan` が一度だけ割り当てる。
 
-### 1a: MIR type system に GC reference type を追加
+### 実装内容
 
-- `value_types.ark`: `VT_GC_REF` (値5) を定義
-  - `src/compiler/corehir/value_types.ark:27-29`
-  - `src/compiler/mir/value_types.ark:28-30` (ファサード)
-- `MirLocal`: reference type のローカル変数をサポート
-- 関数シグニチャ: パラメータ/戻り値に reference type を使用可能に
+- `TypeTable`、`SignatureRegistry`、instantiated `TypeId`、aggregate definition から依存グラフを作る。
+- SCC ごとに recursive group を作り、依存先 SCC を先に出力する。
+- explicit supertype を subtype より先にする。
+- 残りを canonical `TypeId` key と `GcMemberKey` で安定順序化する。
+- `GcLayoutTable` は `TypeSectionPlan` が割り当てた aggregate index の materialized view にする。
+- `GcLayoutKey { type_id, member }` を導入し、aggregate 本体、enum base、variant を区別する。
+- signature、local、constructor、field access が plan 由来の同じ entry を参照できるようにする。
+- 現行経路と plan の expected / actual type を observation verifier へ記録する。
 
-### 1b: sig_to_wasm_type で GC type を出力
+### このフェーズでは残すもの
 
-- `sections_type_plan.ark`: `"ref"` sig を reference type encoding にマッピング
-- 関数タイプエントリに reference type を含められるように
+- 名前 / fixed offset fallback は観測付きで残す。
+- enum payload の linear representation は変更しない。
+- WASI import pointer width は変更しない。
 
-### 1c: struct/array 命令の Wasm 出力を修正
+### 完了条件
 
-- `emit_struct_new` (`inst_struct_record.ark:20-45`): GC target で
-  `writer_gc::emit_gc_struct_new_default` を使用
-  - dest が `VT_GC_REF` の場合のみ。それ以外は線形メモリパス
-- `emit_struct_get` (`inst_struct_record.ark:47-95`): GC target で
-  `writer_gc::emit_gc_struct_get` を使用
-- `emit_struct_set` (`inst_struct_record.ark:97-137`): 同様
-- `emit_array_new` (`inst_array.ark:19-39`): GC target で
-  `writer_gc::emit_gc_array_new` を使用
-- `emit_array_get` (`inst_array.ark:41-65`): GC target で
-  `writer_gc::emit_gc_array_get` を使用
-- `emit_array_set` (`inst_array.ark:84-114`): GC target で
-  `writer_gc::emit_gc_array_set` を使用
+- 同じ module input から defined type index と recursive group が決定的に再現される。
+- 同じ `GcLayoutKey` への同一 layout 再登録は同じ entry を返す。
+- 同じ key への異なる layout 要求は diagnostic context を持つ internal compiler error になる。
+- type identity / nullability lane の対象 fixture が regression なく改善する。
 
-### 1d: 関数シグニチャに GC type を反映
+## Phase 2: value/storage lowering と Vec
 
-- 関数が struct/array 参照を取る場合、Wasm シグニチャで `(ref null $T)` を使用
-- `wasm-tools validate --features gc` が通ること
+semantic value の型と、default initializationを必要とする storage の型を分離する。
 
-## Phase 2: 文字列の GC 表現
+### 実装内容
 
-- 文字列: `(ref null (array (mut i8)))` — GC バイト配列（ADR-035 提案の layout 方針）
-- `string_gc_helpers.ark`: GC array 操作の共通ヘルパー
-- `intrinsic_string_basic.ark`:
-  - `emit_len`: GC target で `emit_gc_array_len` を使用
-  - `emit_concat`: GC target で `emit_concat_gc` を使用
-  - `emit_bool_to_string`: GC target で `emit_bool_to_string_gc` を使用
-  - `emit_gc_data_string`: GC array にデータをコピーするループ実装
-- GC 文字列 intrinsics (`intrinsic_string_*_gc.ark`) を整備
+- `lower_value_type` を function signature、call、return、semantic local の入口にする。
+- context-aware な `lower_storage_type` を aggregate field、Vec backing、scratch local の入口にする。
+- context は bool ではなく、利用目的を表す分類値にする。
+- String の heap type と use-site nullability を分離する。
+- `Vec<T>` を `{ buffer: ref Array<StorageT>, len: i32 }` に統一する。
+- capacity は `array.len(buffer)` から取得し、独立した `cap` field を追加しない。
+- `T` が non-null ref のとき、`StorageT` は同じ heap type の nullable ref にする。
+- `Vec::get` は bounds check 後に `ref.as_non_null` で semantic `T` を復元する。
+- `push` / `set` は semantic non-null `T` だけを受け入れる。
 
-## Phase 3: Vec/Enum/Struct の GC 表現
+### 完了条件
 
-- `Vec<T>`: `(ref null (struct (field (mut (ref null $array_T))) (field (mut i32))))`
-  — GC struct + GC array backing (capacity tracking)
-  - `intrinsic_vec_push_gc.ark`, `intrinsic_vec_empty_gc.ark`,
-    `intrinsic_vec_set_gc.ark`, `intrinsic_vec_pop_gc.ark` 等
-- Enum: 具象 `TypeId` ごとの base + variant subtype hierarchy
-  - base: discriminant field を持つ共通 supertype
-  - variant: base を明示的に継承し、具象 `MirValueType` から得た型付き payload field を持つ
-  - `Option` / `Result` も同じ layout 規則を使い、null や linear pointer の特例表現を作らない
-  - match: tag dispatch 後にだけ `br_on_cast` / `ref.cast` で variant へ narrow する
-  - `ctx_gc_enum.ark`, `ctx_gc_enum_sig.ark`, `module_gc_enum.ark`
-  - `inst_gc_struct.ark`: enum variant 用 GC struct 命令
-  - `match` の Wasm lowering (`br_on_cast` + `br_on_cast_fail`)
-- `HashMap<K,V>`: GC struct with parallel arrays + occupancy tracking
-  - `intrinsic_hashmap_str_gc.ark`
-- GcLayoutTable: type section より先に module-wide plan を構築し、ADR-040 Phase 4 の
-  `MirValueType -> WasmValueType` lowering spineとする
-  - 同じ具象 `TypeId` の type index は一度だけ割り当てる
-  - type section、signature、local、constructor、field access が同じ entry を参照する
-  - 名前 prefix、固定 `gc_type_base + offset`、stack scan fallback を段階的にゼロにする
+- `array.new_default` を default 値のない non-null ref element typeへ発行しない。
+- `[0, len)` と `[len, capacity)` の invariant を verifier observation で区別できる。
+- signature、semantic local、Vec backing が同じ lowering context を誤用していない。
+- String / Vec / HashMap lane の対象 fixture が regression なく改善する。
 
-## Phase 3.5: Typed MIR / layout verifier
+## Phase 3: enum family
 
-- Wasm body emit 前に local assignment、call signature、field access、nullability、
-  lowering recipe の stack effect を検査する
-- missing `TypeId` / layout は `i32` や enum-open type に fallback せず internal compiler error
-- `hash_trait` のような stack underflow を invalid Wasm の validation まで遅延させない
-- verifier の expected / actual には `TypeId`、repr、nullability、function / instruction を含める
+enum / `Option` / `Result` を、base と final variant subtype からなる一つの familyへ移行する。
 
-## Phase 3.6: WASI P2 canonical boundary
+### 実装内容
 
-- `HostIntrinsicSpec` に Ark-side signature と canonical boundary signature を持たせる
-- pointer width は canonical memory の index type から導出する
-- Memory64 から memory32 への変換が必要な場合は adapter 内で range check または copy を行う
-- 通常 call site に無条件 `i32.wrap_i64` を追加しない
-- pseudo core import は #714 の component-correct interface / resource adapter へ移行する
-- `host_module_contract` は GC layout lane とは別に検証する
+- `GcMemberKey::EnumBase` と `GcMemberKey::EnumVariant(VariantId)` を plan に登録する。
+- base の immutable discriminant field と variant の immutable exact payload field を定義する。
+- payload-free variant も non-null object として生成する。`None = null` は採用しない。
+- constructor、call、return、match bind が同じ variant layout を参照する。
+- match は tag 確認後だけ、静的に既知の enum family 内で `ref.cast` / `br_on_cast` を行う。
+- ref payload を linear address に変換せず、scalarを一律 `anyref` box に格納しない。
 
-## Phase 4: 最適化・検証・移行
+### 完了条件
 
-- t3 fixture が `wasm32-gc` target でコンパイル＆
-  `wasm-tools validate --features gc` で検証
-- `check-t3-wasm-validate.py` で検証ゲート
-- `--target wasm32` は従来の linear memory パスを維持
-- 型安全性のための WIT-level GC reference checking (W0004 gate)
-- gc_hint custom section の充実 (`ctx_gc_hint.ark`, `sections_gc_hint.ark`)
-- WASI P3 対応は `wasm32-gc` の `--wasi p3` フラグで切り替え（WASI P3 仕様確定後）
+- enum payload lane の対象 fixture で `i64 payload ↔ GC ref` の混同がなくなる。
+- variant identity が名前や discovery order に依存しない。
+- user enum、`Option`、`Result` が同じ layout 規則を使う。
+- 一般 nominal downcast に Wasm type index を流用していない。
 
-## 実装順序と PR 境界
+## Phase 4: WASI P2 canonical boundary
 
-1. **Verifier observe**: 10 fixture の expected / actual 型を Typed MIR verifier で再現する。
-2. **Type owner**: module-wide GcLayoutTable plan を先に作り、type identity / nullability 5 件を直す。
-3. **Verifier hard gate**: production fallback の利用をゼロにして missing type を hard error にする。
-4. **Enum family**: enum / `Option` / `Result` constructor、match、call、return を GC subtype layout へ揃える。
-5. **WASI boundary**: #714 と同じ canonical adapter spineで Memory64 pointer width を扱う。
-6. **Cleanup**: name / offset / stack-scan fallback を削除し、全 gate を更新する。
+GC layout laneとは分離し、ADR-035 が固定した「幅変換の owner」を component adapter に実装する。
 
-同じ emitter source を変更する PR は直列化する。WASI component adapter と enum semantic
-lowering は、共通の TypeId / SignatureRegistry 契約が入った後は並行に進められる。
-compiler Wasm の再構築は編集をまとめて 1 回だけ行い、その成果物で対象 fixture をまとめて検証する。
+### 実装内容
 
----
+- `HostIntrinsicSpec` に Ark-side signature と canonical boundary signature を持たせる。
+- pointer width を target 名ではなく、adapter が使用する canonical memory の index type から決める。
+- Memory64 から memory32 への narrowing は adapter 内で range check または adapter-owned buffer copy を行う。
+- pseudo core import を issue #714 の component-correct interface / resource adapterへ移行する。
+- 通常の MIR call site には無条件 `i32.wrap_i64` を追加しない。
+
+### 完了条件
+
+- `host_module_contract` が core Wasm と component の両方で validate される。
+- pointer narrowing が canonical adapter 外に存在しない。
+- `python3 scripts/manager.py verify component-interop` が通る。
+
+## Phase 5: verifier hard gate と cleanup
+
+Phase 1–4 の observation 結果を使い、invalid Wasm を生成する前に型不一致を止める。
+
+### 実装内容
+
+- local assignment、call signature、field access、nullability、lowering context を検証する。
+- lowering recipe の input / output arity と stack effect を検証する。
+- expected / actual に function、instruction、`TypeId`、repr、nullability、storage context を含める。
+- missing `TypeId` / layout、layout conflict、unchecked pointer narrowing を hard error にする。
+- 名前 prefix、`gc_type_base + offset`、string signature canonicalization、stack scan fallback を削除する。
+- invalid type の `i32` / open ref fallback を production path から削除する。
+
+### 完了条件
+
+- fallback observation count が全対象 fixture でゼロになる。
+- `hash_trait` のような stack underflow を Wasm validation 前に検出する。
+- T3 Wasm validation gate と `verify quick` が通る。
+- targeted fixture 通過後に `selfhost fixpoint` で stage-2 / stage-3 の一致を確認する。
+
+## PR 境界と依存関係
+
+- Phase 1–3 は同じ type section / emitter ownerを変更するため直列化する。
+- Phase 4 は Phase 1 の typed signature契約後なら別レーンで進められるが、正規順序では Phase 3 後に統合する。
+- Phase 5 の observation 実装は先行できるが、hard gate と fallback削除は Phase 1–4 完了後に行う。
+- 一つの PR で複数フェーズの完了を主張しない。各フェーズの完了条件を個別に記録する。
+- compiler Wasm の再構築は編集をまとめて一回行い、その成果物で対象 fixture をまとめて検証する。
 
 ## 検証コマンド
 
 ```bash
 python3 scripts/manager.py fmt --check
+python3 scripts/manager.py selfhost build-compiler
 python3 scripts/check/check-t3-wasm-validate.py
-wasm-tools validate --features gc <output.wasm>
 python3 scripts/manager.py verify component-interop
 python3 scripts/manager.py verify quick
 python3 scripts/manager.py selfhost fixpoint
 ```
 
-emitter を変更した作業単位では、先に
-`python3 scripts/manager.py selfhost build-compiler` を 1 回だけ実行する。
-`selfhost fixpoint` は targeted fixture が通った後の ADR-029 gate として使い、日常の rebuild に使わない。
+`build-compiler` は emitter の編集をまとめた後に一回だけ実行する。`selfhost fixpoint` は targeted
+fixture が通った後の ADR-029 gate として使い、日常の rebuild に使わない。
 
-## リスクと依存
+## リスクと未決事項
 
-1. **wasmtime GC perf**: fixture parity と benchmark で監視する。
-2. **Migration cost**: MIR lowering の広範な影響。段階移行が難しい場合は flag day も検討。
-3. **`wasm32` / `wasm32-gc` の二重 lowering コスト**（意味論は単一、ADR-002）。
-4. **Component boundary との競合**: pseudo P2 import の局所修正は #714 の最終設計と競合する。
-   canonical adapter を共通 owner とし、validation 専用 truncate を入れない。
-
-jco の Wasm GC 対応は調査で確認済み（`docs/research/target-runtime-verification.md`）。
-「jco GC 待ち」は現行ブロッカーではない。
+1. recursive group の binary encoding 実装は既存 type signature canonicalization と広く競合する。
+2. `wasm32` / `wasm32-gc` は lowering を分けるが、言語意味論を分岐させてはならない。
+3. canonical memory を guest Memory64 と共有する範囲は RFC-007 / issue #714 に残る。
+4. non-null function local の最適化は型安全な baseline の後に行う。
+5. Wasm GC performance は fixture parity 達成後に benchmark gate で評価する。
 
 ## スコープ外
 
-- Post-MVP GC features（ADR-043）: static fields、weak references、generics
-- `Weak<T>` / finalizer（言語未採択、ADR-002 / ADR-043）
-- LLVM backend（ADR-045）
+- stable raw Wasm GC ABI
+- `Any` / trait object の一般 nominal downcast
+- Post-MVP GC features、`Weak<T>`、finalizer
 - WASI P3 async-first
+- native backend ABI
 
 ## 関連
 
-- [ADR-035: Wasm GC Implementation Plan](../adr/ADR-035-wasm-gc-implementation.md)
-- [ADR-002: Memory Model](../adr/ADR-002-memory-model.md)
+- [ADR-035: Wasm GC 内部レイアウト方針](../adr/ADR-035-wasm-gc-implementation.md)
 - [ADR-040: Semantic Type Spine](../adr/ADR-040-typed-mir-signature-registry.md)
 - [RFC-007: Memory64 GC レイアウトと WASI P2 境界](../rfcs/007-memory64-gc-layout-and-wasi-boundary.md)
+- [残存 validation failure 調査](../research/memory64-validate-fail-10.md)
+- [Issue #808](../../issues/open/808-t3-wasm-validation-failures.md)
+- [Issue #714](../../issues/open/714-wasi-p2-emitter-native-component-output.md)

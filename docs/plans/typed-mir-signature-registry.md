@@ -61,7 +61,9 @@ subst を保存し、Phase 3 で Typed MIR がそれを参照する。
 ## Phase 4: GcLayoutTable
 
 - `src/compiler/wasm/gc_layout_table.ark` — GcLayoutTable, GcLayoutEntry, WasmRefType, WasmValueType
-- `src/compiler/wasm/lower_value_type.ark` — `lower_mir_value_type(MirValueType) -> WasmValueType`
+- `src/compiler/wasm/sections_type_plan.ark` — 全 defined type index と recursive group の owner
+- `src/compiler/wasm/lower_value_type.ark` — semantic value 用の `lower_value_type`
+- storage lowering — context-aware な `lower_storage_type`。Vec backing と aggregate field を区別
 - `src/compiler/wasm/sections_types_gc.ark` — 型セクションエミッション時に GcLayoutTable を参照
 - `src/compiler/wasm/ctx_gc_type.ark` — MirValueType から GcLayoutId をルックアップ
 
