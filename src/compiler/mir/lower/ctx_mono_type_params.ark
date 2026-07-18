@@ -107,9 +107,6 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 }
 
 fn ctx_extract_type_var_name(ty_name: String) -> String {
-    if !starts_with(clone(ty_name), String_from("?")) {
-        return String_new()
-    }
     // Composite types: "?Option:T" → "T", "?Result:T:U" → "T"
     if starts_with(clone(ty_name), String_from("?Option:")) {
         return substring(clone(ty_name), 8, len(ty_name))
@@ -127,8 +124,23 @@ fn ctx_extract_type_var_name(ty_name: String) -> String {
         }
         return rest
     }
-    // Plain type variable: "?T" → "T"
-    substring(clone(ty_name), 1, len(ty_name))
+    // Prefixed type variable: "?T" → "T"
+    if starts_with(clone(ty_name), String_from("?")) {
+        return substring(clone(ty_name), 1, len(ty_name))
+    }
+    // Plain type variable names like "K" / "V" / "T"
+    if is_plain_type_var_name(clone(ty_name)) {
+        return ty_name
+    }
+    String_new()
+}
+
+fn is_plain_type_var_name(name: String) -> bool {
+    if len(name) != 1 {
+        return false
+    }
+    let c = char_at(name, 0)
+    c >= 65 && c <= 90
 }
 
 // Setup type parameter mapping by collecting type variable names from
