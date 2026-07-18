@@ -138,3 +138,7 @@ fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
     writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
     writer_core::emit_leb128_u(w, type_idx)
 }
+
+fn emit_gc_ref_as_non_null(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_REF_AS_NON_NULL())
+}

@@ -144,6 +144,11 @@ fn emit_type_result_entry(type_sec: WasmWriter, result_seg: String, gc_type_base
 }
 
 fn emit_sig_val_type(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+    if eq(clone(sig), String_from("structref")) {
+        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+        writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
+        return
+    }
     if starts_with(clone(sig), String_from("gcsref")) && gc_type_base >= 0 {
         let slot = sections_types_sig_parse::parse_type_sig_int(substring(sig, 6, len(sig)))
         let type_idx = get_unchecked(gc_struct_type_map, slot)

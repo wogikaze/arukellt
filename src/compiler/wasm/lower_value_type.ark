@@ -15,6 +15,27 @@ fn lower_mir_value_type(layout: GcLayoutTable, tt: TypeTable, mvt: MirValueType)
     lower_scalar_value_type(tt, mvt)
 }
 
+fn STORAGE_CONTEXT_AGGREGATE_FIELD() -> i32 { 1 }
+fn STORAGE_CONTEXT_VEC_BACKING() -> i32 { 2 }
+fn STORAGE_CONTEXT_DEFAULT_LOCAL() -> i32 { 3 }
+
+fn lower_storage_type(
+    layout: GcLayoutTable,
+    tt: TypeTable,
+    mvt: MirValueType,
+    context: i32
+) -> WasmValueType {
+    let value_type = lower_mir_value_type(layout, tt, mvt)
+    if !gc_layout_table::wasm_value_type_is_ref(value_type) {
+        return value_type
+    }
+    let ref_type = gc_layout_table::wasm_value_type_ref_type(value_type)
+    if context == STORAGE_CONTEXT_VEC_BACKING() || context == STORAGE_CONTEXT_DEFAULT_LOCAL() {
+        return gc_layout_table::WasmValueType_ref(gc_layout_table::wasm_ref_type_idx(ref_type), 1)
+    }
+    value_type
+}
+
 fn lower_scalar_value_type(tt: TypeTable, mvt: MirValueType) -> WasmValueType {
     let tid = mir_value_type::mir_value_type_type_id(mvt)
     if !type_id::type_id_is_valid(tid) {

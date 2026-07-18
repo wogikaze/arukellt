@@ -32,7 +32,7 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
     let entry = type_table::TypeTable_lookup(table, tid)
     let kind = type_table::type_entry_kind(entry)
     if kind == kinds::TYPE_KIND_TYPE_VAR() {
-        return String_from("gcref")
+        return String_from("structref")
     }
     if kind == kinds::TYPE_KIND_STRING() {
         return sections_types_gc::gc_string_type_sig()
@@ -41,7 +41,7 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
         return sections_types_gc::gc_enum_open_type_sig()
     }
     if kind == kinds::TYPE_KIND_STRUCT() && is_legacy_generic_struct_name(type_table::type_entry_name(entry)) {
-        return String_from("gcref")
+        return String_from("structref")
     }
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
     if len(alias) > 0 {

@@ -63,6 +63,15 @@ fn build_param_type_sig(uf: MirFunction, p: MirLocal, pi: i32, target: String, m
     if emit_target::is_gc_target(clone(target)) && pi == 0 && is_string_byte_vec_param_fn(clone(uf.name)) {
         return sections_types_gc::gc_vec_type_sig()
     }
+    let typed_sig = sections_types_gc_plan::typed_function_param_sig(
+        mir,
+        clone(uf.name),
+        pi,
+        clone(target)
+    )
+    if len(typed_sig) > 0 {
+        return typed_sig
+    }
     if starts_with(clone(p_type_name), String_from("enum:")) && emit_target::is_gc_target(clone(target)) {
         return sections_types_gc::gc_enum_open_type_sig()
     }
@@ -140,7 +149,7 @@ fn build_generic_type_var_sig(fn_name: String, type_name: String, pi: i32, targe
         if len(gc_struct_sig) > 0 {
             return gc_struct_sig
         }
-        return String_from("gcref")
+        return String_from("structref")
     }
     String_new()
 }
@@ -162,6 +171,10 @@ fn widen_i32_sig_for_memory64(sig: String, target: String) -> String {
 // position is the correct separator.
 
 fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
+    let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, clone(uf.name), clone(target))
+    if len(typed_sig) > 0 {
+        return typed_sig
+    }
     // vec:/hashmap: return types use the same mapping as params.
     let coll_sig = sections_types_gc_plan::collection_type_sig(clone(return_type_name), clone(target))
     if len(coll_sig) > 0 {

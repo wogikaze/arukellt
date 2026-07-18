@@ -178,6 +178,7 @@ fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_stru
             }
         }
     }
+    writer_gc::emit_gc_ref_as_non_null(w)
     writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core::emit_local_set(w, s_opt)
 }
