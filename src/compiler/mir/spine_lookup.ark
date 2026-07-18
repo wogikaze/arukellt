@@ -34,6 +34,17 @@ fn function_param_mvt(m: MirModule, func_name: String, param_idx: i32) -> MirVal
         return mvt_invalid()
     }
     let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    let mono_id = signature_entry::signature_entry_mono_instance_id(entry)
+    if mono_id >= 0 {
+        let mono_table = module_spine::MirModule_mono_instance_table(m)
+        if mono_id < mono_instance_table::mono_instance_table_entry_count(mono_table) {
+            let mono_entry = mono_instance_table::mono_instance_table_entry_at(mono_table, mono_id)
+            let mono_params = mono_instance_table::mono_instance_entry_param_types(mono_entry)
+            if param_idx >= 0 && param_idx < len(mono_params) {
+                return typed_mir_compat::mvt_copy(get_unchecked(mono_params, param_idx))
+            }
+        }
+    }
     if param_idx < 0 || param_idx >= signature_entry::signature_entry_param_count(entry) {
         return mvt_invalid()
     }

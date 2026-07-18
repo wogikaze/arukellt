@@ -56,21 +56,7 @@ fn emit_type_section(
     }
     let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
     let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, enum_variant_count)
-    if emit_target::is_gc_target(clone(target)) {
-        gc_layout_table_build::populate_gc_layout_table_for_emit(
-            gc_layout,
-            module_spine::MirModule_type_table(mir),
-            mir,
-            gc_type_base,
-            gc_enum_variant_type_map,
-            gc_struct_type_map
-        )
-    }
-    let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-    writer_core::emit_leb128_u(type_sec, len(canon_types))
-    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
-    writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    sections_type_plan::build_type_section_plan(
+    let plan = sections_type_plan::build_type_section_plan(
         type_map,
         num_host_types,
         wit_import_count,
@@ -83,6 +69,21 @@ fn emit_type_section(
         gc_struct_base,
         gc_struct_type_map
     )
+    if emit_target::is_gc_target(clone(target)) {
+        gc_layout_table_build::populate_gc_layout_table_for_emit(
+            gc_layout,
+            module_spine::MirModule_type_table(mir),
+            mir,
+            sections_type_plan::TypeSectionPlan_gc_type_base(plan),
+            sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),
+            sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
+        )
+    }
+    let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
+    writer_core::emit_leb128_u(type_sec, len(canon_types))
+    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
+    writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
+    plan
 }
 
 fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {

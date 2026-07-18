@@ -7,6 +7,16 @@ struct GcLayoutId {
     raw: i32,
 }
 
+struct GcMemberKey {
+    kind: i32,
+    variant_id: i32,
+}
+
+struct GcLayoutKey {
+    type_id: TypeId,
+    member: GcMemberKey,
+}
+
 struct WasmRefType {
     type_idx: i32,
     nullable: i32,
@@ -26,7 +36,7 @@ struct FieldLayout {
 
 struct GcLayoutEntry {
     id: GcLayoutId,
-    type_id: TypeId,
+    key: GcLayoutKey,
     wasm_ref_type: WasmRefType,
     struct_type_idx: i32,
     field_layouts: Vec<FieldLayout>,
@@ -35,6 +45,37 @@ struct GcLayoutEntry {
 struct GcLayoutTable {
     entries: Vec<GcLayoutEntry>,
     next_id: i32,
+    typed_lookup_count: i32,
+    fallback_lookup_count: i32,
+    conflict_count: i32,
+}
+
+fn GC_MEMBER_AGGREGATE() -> i32 { 0 }
+fn GC_MEMBER_ENUM_BASE() -> i32 { 1 }
+fn GC_MEMBER_ENUM_VARIANT() -> i32 { 2 }
+
+fn GcMemberKey_aggregate() -> GcMemberKey {
+    GcMemberKey { kind: GC_MEMBER_AGGREGATE(), variant_id: 0 - 1 }
+}
+
+fn GcMemberKey_enum_base() -> GcMemberKey {
+    GcMemberKey { kind: GC_MEMBER_ENUM_BASE(), variant_id: 0 - 1 }
+}
+
+fn GcMemberKey_enum_variant(variant_id: i32) -> GcMemberKey {
+    GcMemberKey { kind: GC_MEMBER_ENUM_VARIANT(), variant_id: variant_id }
+}
+
+fn GcLayoutKey_new(type_id: TypeId, member: GcMemberKey) -> GcLayoutKey {
+    GcLayoutKey { type_id: type_id, member: member }
+}
+
+fn gc_member_key_eq(a: GcMemberKey, b: GcMemberKey) -> bool {
+    a.kind == b.kind && a.variant_id == b.variant_id
+}
+
+fn gc_layout_key_eq(a: GcLayoutKey, b: GcLayoutKey) -> bool {
+    type_id::type_id_eq(a.type_id, b.type_id) && gc_member_key_eq(a.member, b.member)
 }
 
 fn GC_LAYOUT_ID_INVALID() -> GcLayoutId {
@@ -82,27 +123,75 @@ fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
 }
 
 fn GcLayoutTable_new() -> GcLayoutTable {
-    GcLayoutTable { entries: Vec_new_GcLayoutEntry(), next_id: 0 }
+    GcLayoutTable {
+        entries: Vec_new_GcLayoutEntry(),
+        next_id: 0,
+        typed_lookup_count: 0,
+        fallback_lookup_count: 0,
+        conflict_count: 0
+    }
 }
 
-fn gc_layout_table_register(table: GcLayoutTable, type_id: TypeId, wasm_ref_type: WasmRefType, struct_type_idx: i32) -> GcLayoutId {
-    let existing = gc_layout_table_find_by_type_id(table, type_id)
+fn gc_layout_table_observe_typed_lookup(table: GcLayoutTable) {
+    table.typed_lookup_count = table.typed_lookup_count + 1
+}
+
+fn gc_layout_table_observe_fallback_lookup(table: GcLayoutTable) {
+    table.fallback_lookup_count = table.fallback_lookup_count + 1
+}
+
+fn gc_layout_table_typed_lookup_count(table: GcLayoutTable) -> i32 {
+    table.typed_lookup_count
+}
+
+fn gc_layout_table_fallback_lookup_count(table: GcLayoutTable) -> i32 {
+    table.fallback_lookup_count
+}
+
+fn gc_layout_table_conflict_count(table: GcLayoutTable) -> i32 {
+    table.conflict_count
+}
+
+fn gc_layout_table_register_key(
+    table: GcLayoutTable,
+    key: GcLayoutKey,
+    wasm_ref_type: WasmRefType,
+    struct_type_idx: i32
+) -> GcLayoutId {
+    let existing = gc_layout_table_find_by_key(table, key)
     if gc_layout_id_is_valid(existing) {
+        let entry = gc_layout_table_entry_by_id(table, existing)
+        if wasm_ref_type_idx(entry.wasm_ref_type) != wasm_ref_type_idx(wasm_ref_type) ||
+        wasm_ref_type_nullable(entry.wasm_ref_type) != wasm_ref_type_nullable(wasm_ref_type) ||
+        entry.struct_type_idx != struct_type_idx {
+            table.conflict_count = table.conflict_count + 1
+            return GC_LAYOUT_ID_INVALID()
+        }
         return existing
     }
     let id = GcLayoutId { raw: table.next_id }
     table.next_id = table.next_id + 1
-    let entry = GcLayoutEntry { id: id, type_id: type_id, wasm_ref_type: wasm_ref_type, struct_type_idx: struct_type_idx, field_layouts: Vec_new_FieldLayout() }
+    let entry = GcLayoutEntry {
+        id: id,
+        key: key,
+        wasm_ref_type: wasm_ref_type,
+        struct_type_idx: struct_type_idx,
+        field_layouts: Vec_new_FieldLayout()
+    }
     push(table.entries, entry)
     id
 }
 
 fn gc_layout_table_find_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutId {
+    gc_layout_table_find_by_key(table, GcLayoutKey_new(type_id, GcMemberKey_aggregate()))
+}
+
+fn gc_layout_table_find_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLayoutId {
     let count = len(table.entries)
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
-        if type_id::type_id_eq(entry.type_id, type_id) {
+        if gc_layout_key_eq(entry.key, key) {
             return entry.id
         }
         i = i + 1
@@ -111,16 +200,42 @@ fn gc_layout_table_find_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcL
 }
 
 fn gc_layout_table_entry_by_type_id(table: GcLayoutTable, type_id: TypeId) -> GcLayoutEntry {
+    gc_layout_table_entry_by_key(table, GcLayoutKey_new(type_id, GcMemberKey_aggregate()))
+}
+
+fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLayoutEntry {
     let count = len(table.entries)
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
-        if type_id::type_id_eq(entry.type_id, type_id) {
+        if gc_layout_key_eq(entry.key, key) {
             return entry
         }
         i = i + 1
     }
-    GcLayoutEntry { id: GC_LAYOUT_ID_INVALID(), type_id: type_id::TYPE_ID_INVALID(), wasm_ref_type: WasmRefType_new(0, 1), struct_type_idx: 0 - 1, field_layouts: Vec_new_FieldLayout() }
+    GcLayoutEntry {
+        id: GC_LAYOUT_ID_INVALID(),
+        key: GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate()),
+        wasm_ref_type: WasmRefType_new(0, 1),
+        struct_type_idx: 0 - 1,
+        field_layouts: Vec_new_FieldLayout()
+    }
+}
+
+fn gc_layout_table_entry_by_id(table: GcLayoutTable, id: GcLayoutId) -> GcLayoutEntry {
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
+        let entry = get_unchecked(table.entries, i)
+        if entry.id.raw == id.raw {
+            return entry
+        }
+        i = i + 1
+    }
+    gc_layout_table_entry_by_key(
+        table,
+        GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate())
+    )
 }
 
 fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {
@@ -202,7 +317,12 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
     if type_idx < 0 {
         return GC_LAYOUT_ID_INVALID()
     }
-    gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), st_idx)
+    gc_layout_table_register_key(
+        table,
+        GcLayoutKey_new(tid, GcMemberKey_aggregate()),
+        WasmRefType_new(type_idx, 1),
+        st_idx
+    )
 }
 
 fn gc_layout_table_populate_from_type_table(table: GcLayoutTable, tt: TypeTable, gc_type_base: i32) {
@@ -226,7 +346,12 @@ fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, st
         let type_idx = get_unchecked(struct_type_map, i)
         let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
         if type_id::type_id_is_valid(tid) {
-            gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+            gc_layout_table_register_key(
+                table,
+                GcLayoutKey_new(tid, GcMemberKey_aggregate()),
+                WasmRefType_new(type_idx, 1),
+                type_idx
+            )
         }
         i = i + 1
     }
@@ -244,7 +369,12 @@ fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTab
         let type_idx = get_unchecked(variant_type_map, i)
         let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
         if type_id::type_id_is_valid(tid) {
-            gc_layout_table_register(table, tid, WasmRefType_new(type_idx, 1), type_idx)
+            gc_layout_table_register_key(
+                table,
+                GcLayoutKey_new(tid, GcMemberKey_enum_variant(i)),
+                WasmRefType_new(type_idx, 1),
+                type_idx
+            )
         }
         i = i + 1
     }

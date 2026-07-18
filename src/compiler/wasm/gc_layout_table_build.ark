@@ -35,5 +35,10 @@ fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String
     if !type_id::type_id_is_valid(tid) {
         return
     }
-    gc_layout_table::gc_layout_table_register(table, tid, gc_layout_table::WasmRefType_new(type_idx, 1), 0 - 1)
+    gc_layout_table::gc_layout_table_register_key(
+        table,
+        gc_layout_table::GcLayoutKey_new(tid, gc_layout_table::GcMemberKey_aggregate()),
+        gc_layout_table::WasmRefType_new(type_idx, 1),
+        0 - 1
+    )
 }

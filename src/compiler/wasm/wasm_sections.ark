@@ -4,6 +4,7 @@ use wasm::wasm_start
 use wasm::strings
 use wasm::wasm_sections_facade
 use wasm::gc_layout_table
+use wasm::gc_layout_audit
 use wasm::registry_return_audit
 use wasm::core_op_shadow
 use mir::module_functions
@@ -80,4 +81,5 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)
     registry_return_audit::registry_audit_print_summary(ctx)
     core_op_shadow::core_op_shadow_print_summary(ctx)
+    gc_layout_audit::gc_layout_audit_print_summary(ctx)
 }

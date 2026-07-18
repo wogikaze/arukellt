@@ -1,0 +1,26 @@
+use wasm::ctx_record
+use wasm::gc_layout_table
+
+fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
+    let table = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+    let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
+    let fallback_count = gc_layout_table::gc_layout_table_fallback_lookup_count(table)
+    let conflict_count = gc_layout_table::gc_layout_table_conflict_count(table)
+    if typed_count <= 0 && fallback_count <= 0 && conflict_count <= 0 {
+        return
+    }
+    let line = concat(
+        String_from("gc-layout-audit: summary typed="),
+        concat(
+            i32_to_string(typed_count),
+            concat(
+                String_from(" fallback="),
+                concat(
+                    i32_to_string(fallback_count),
+                    concat(String_from(" conflict="), i32_to_string(conflict_count))
+                )
+            )
+        )
+    )
+    stdio::eprintln(line)
+}

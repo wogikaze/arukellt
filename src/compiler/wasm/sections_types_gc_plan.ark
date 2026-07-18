@@ -1,0 +1,103 @@
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_info_to_mir_value
+use corehir::type_table
+use mir::module_spine
+use mir::spine_lookup
+use wasm::emit_target
+use wasm::sections_types_gc
+use wasm::sections_types_gc_phase7
+
+fn typed_function_param_sig(mir: MirModule, fn_name: String, param_idx: i32, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    typed_mvt_sig(mir, spine_lookup::function_param_mvt(mir, fn_name, param_idx), target)
+}
+
+fn typed_function_return_sig(mir: MirModule, fn_name: String, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    typed_mvt_sig(mir, spine_lookup::function_return_mvt(mir, fn_name), target)
+}
+
+fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return String_new()
+    }
+    let table = module_spine::MirModule_type_table(mir)
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    if kind == kinds::TYPE_KIND_TYPE_VAR() {
+        return String_from("gcref")
+    }
+    if kind == kinds::TYPE_KIND_STRING() {
+        return sections_types_gc::gc_string_type_sig()
+    }
+    if kind == kinds::TYPE_KIND_OPTION() || kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_ENUM() {
+        return sections_types_gc::gc_enum_open_type_sig()
+    }
+    if kind == kinds::TYPE_KIND_STRUCT() && is_legacy_generic_struct_name(type_table::type_entry_name(entry)) {
+        return String_from("gcref")
+    }
+    let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
+    if len(alias) > 0 {
+        return collection_type_sig(alias, target)
+    }
+    String_new()
+}
+
+fn is_legacy_generic_struct_name(name: String) -> bool {
+    if len(name) == 1 {
+        let first = char_at(name, 0)
+        return first >= 65 && first <= 90
+    }
+    if starts_with(clone(name), String_from("struct:")) && len(name) >= 9 {
+        let marker = char_at(name, 7)
+        return marker >= 65 && marker <= 90 && char_at(name, 8) == 58
+    }
+    false
+}
+
+fn collection_type_sig(type_name: String, target: String) -> String {
+    if !emit_target::is_gc_target(clone(target)) {
+        return String_new()
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
+            return sections_types_gc::gc_vec_string_type_sig()
+        }
+        if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+            return sections_types_gc::gc_vec_i64_type_sig()
+        }
+        if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+            return sections_types_gc::gc_vec_f64_type_sig()
+        }
+        if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+            return sections_types_gc::gc_vec_v128_type_sig()
+        }
+        let elem = substring(clone(type_name), 4, len(type_name))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
+        eq(clone(elem), String_from("Vec")) ||
+        starts_with(clone(elem), String_from("vec:")) {
+            return sections_types_gc_phase7::gc_vec_struct_ref_type_sig()
+        }
+        return sections_types_gc::gc_vec_type_sig()
+    }
+    if starts_with(clone(type_name), String_from("hashmap:")) {
+        if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+            return sections_types_gc::gc_hashmap_i32_str_type_sig()
+        }
+        if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+            return sections_types_gc::gc_hashmap_str_str_type_sig()
+        }
+        if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
+            return sections_types_gc::gc_vec_type_sig()
+        }
+        return sections_types_gc::gc_hashmap_str_i32_type_sig()
+    }
+    String_new()
+}
