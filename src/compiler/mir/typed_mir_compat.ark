@@ -11,6 +11,10 @@ fn mvt_invalid() -> MirValueType {
     mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0)
 }
 
+fn mvt_is_invalid(vt: MirValueType) -> bool {
+    !type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(vt))
+}
+
 fn mvt_copy(vt: MirValueType) -> MirValueType {
     mir_value_type::mir_value_type_copy(vt)
 }

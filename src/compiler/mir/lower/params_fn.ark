@@ -1,11 +1,15 @@
 use corehir::param
+use mir::function_identity
 use mir::lower::binary_type_names
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
+use mir::spine_lookup
+use mir::typed_mir_compat
 use mir::types
 use mir::value_types
 
@@ -66,6 +70,13 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let func_name = function_identity::MirFunction_name(func)
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    if !typed_mir_compat::mvt_is_invalid(param_mvt) {
+        ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
+    }
 }
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {

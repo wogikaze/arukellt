@@ -24,6 +24,38 @@ fn mvt_invalid() -> MirValueType {
     typed_mir_compat::mvt_invalid()
 }
 
+fn function_param_mvt(m: MirModule, func_name: String, param_idx: i32) -> MirValueType {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return mvt_invalid()
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, func_name)
+    if !function_id::function_id_is_valid(fid) {
+        return mvt_invalid()
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    if param_idx < 0 || param_idx >= signature_entry::signature_entry_param_count(entry) {
+        return mvt_invalid()
+    }
+    typed_mir_compat::mvt_copy(signature_entry::signature_entry_param_at(entry, param_idx))
+}
+
+fn function_return_mvt(m: MirModule, func_name: String) -> MirValueType {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return mvt_invalid()
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, func_name)
+    if !function_id::function_id_is_valid(fid) {
+        return mvt_invalid()
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return mvt_invalid()
+    }
+    typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, 0))
+}
+
 fn legacy_vt_to_mvt(m: MirModule, val_type: i32, type_name: String) -> MirValueType {
     if module_spine::MirModule_signature_spine_populated(m) {
         return type_info_to_mir_value::vt_to_mir_value(module_spine::MirModule_type_table(m), val_type, clone(type_name))

@@ -66,6 +66,24 @@ fn mir_fn_index_source_typed_return_type(source: MirLowerFnIndexSource, typed_in
     type_contracts::TypeInfo_simple(0)
 }
 
+fn mir_fn_index_source_typed_param_count(source: MirLowerFnIndexSource, typed_index: i32) -> i32 {
+    let type_source = source.type_source
+    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+        let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
+        return len(tf.param_types)
+    }
+    0
+}
+
+fn mir_fn_index_source_typed_param_type_at(source: MirLowerFnIndexSource, typed_index: i32, param_index: i32) -> TypeInfo {
+    let type_source = source.type_source
+    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+        let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
+        return get_unchecked(tf.param_types, param_index)
+    }
+    type_contracts::TypeInfo_simple(0)
+}
+
 fn mir_fn_index_source_mono_instances(source: MirLowerFnIndexSource) -> Vec<MonoInstance> {
     type_source::mir_type_source_mono_instances(source.type_source)
 }
