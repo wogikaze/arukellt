@@ -1,5 +1,7 @@
 use corehir::param
+use corehir::type_info_to_mir_value
 use mir::function_identity
+use mir::legacy_vt_compat
 use mir::lower::binary_type_names
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -8,6 +10,7 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
+use mir::module_spine
 use mir::spine_lookup
 use mir::typed_mir_compat
 use mir::types
@@ -73,9 +76,17 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let func_name = function_identity::MirFunction_name(func)
     let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let table = module_spine::MirModule_type_table(m)
     let param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
     if !typed_mir_compat::mvt_is_invalid(param_mvt) {
         ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
+        let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
+        if len(alias) > 0 {
+            let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
+            ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
+            ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
+            ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+        }
     }
 }
 
