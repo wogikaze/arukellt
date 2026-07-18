@@ -84,8 +84,7 @@ fn mir_core_callee_expects_i64(callee_name: String) -> bool {
     if contains(clone(callee_name), String_from("i64")) {
         return true
     }
-    if eq(clone(callee_name), String_from("get_unchecked")) ||
-    eq(clone(callee_name), String_from("vec_get_unchecked")) {
+    if contains(clone(callee_name), String_from("get_unchecked")) {
         return true
     }
     if ends_with(clone(callee_name), String_from("seek_to")) {

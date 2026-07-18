@@ -86,8 +86,7 @@ fn mir_callee_expects_i64(callee_name: String) -> bool {
     // wasm32-gc Vec access recipes stage indices in the Memory64 scalar lane.
     // Force integer literals, including zero, into that lane before staging so
     // the recipe always receives both operands with the declared stack types.
-    if eq(clone(callee_name), String_from("get_unchecked")) ||
-    eq(clone(callee_name), String_from("vec_get_unchecked")) {
+    if contains(clone(callee_name), String_from("get_unchecked")) {
         return true
     }
     // Seek APIs take i64 positions; force int literals to i64 so staged
