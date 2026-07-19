@@ -40,7 +40,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module_info)
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
-            let module_name = raw_dto::CoreHirModuleInfo_name(module_info)
+            let module_name = clone(module_info.name)
             if !eq(clone(module_name), String_from("<main>")) {
                 return concat(module_name, concat(String_from("::"), fn_name))
             }
@@ -78,7 +78,7 @@ fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<C
             typed_fn_index = typed_fn_index + 1
         }
         // Note: impl methods do NOT get TypedFn entries (the typechecker only
-        // appends TypedFn for top-level fn decls).  We must NOT increment
+            // appends TypedFn for top-level fn decls).  We must NOT increment
         // typed_fn_index for impl methods, otherwise the typed_fn_index stored
         // in CoreHirFnInfo will not match the actual index in the TypedFn array.
         i = i + 1

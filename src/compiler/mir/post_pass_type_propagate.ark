@@ -134,7 +134,12 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
             updated = true
         } else if dst_variant_slot < 0 && src_variant_slot >= 0 {
-            if (len(src_type_name) == 0 || post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name))) && !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+            if (
+                len(src_type_name) == 0 ||
+                post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name))
+            ) &&
+            !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) &&
+            !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
                 local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
                 updated = true
             }

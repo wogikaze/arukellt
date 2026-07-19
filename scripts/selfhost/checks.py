@@ -2038,9 +2038,19 @@ def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | No
 
 
 def resolve_ide_gate_compiler_wasm(root: Path) -> Path | None:
-    """Compiler wasm for LSP/DAP/analysis quick gates."""
+    """Compiler wasm for LSP/DAP/analysis quick gates.
+
+    Prefer heap-patched s2-runtime (Memory64-ready) over bare s2, matching
+    the CLI wrapper and T3 validation gate.
+    """
+    runtime = root / ".build" / "selfhost" / "arukellt-s2-runtime.wasm"
+    if runtime.is_file():
+        return runtime
     s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
     if s2.is_file():
+        ensured = _ensure_runtime_compiler_wasm(root, s2)
+        if ensured is not None:
+            return ensured
         return s2
     s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
     if s3.is_file():

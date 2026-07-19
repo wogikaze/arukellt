@@ -28,7 +28,7 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
     }
     let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(name))
     if qualified >= 0 {
-        let qualified_vt = ctx_fn_index::ctx_qualified_fn_return_vt_at(ctx, qualified)
+        let qualified_vt = get_unchecked(ctx.qualified_fn_return_vts, qualified)
         if qualified_vt == value_types::VT_REF() && ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }

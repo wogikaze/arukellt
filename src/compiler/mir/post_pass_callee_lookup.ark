@@ -196,7 +196,14 @@ fn is_string_returning_intrinsic(name: String) -> bool {
 }
 
 fn is_vec_string_returning_intrinsic(name: String) -> bool {
-    if eq(clone(name), "split") || eq(clone(name), "text::split") || eq(clone(name), "string::split") || eq(clone(name), "__intrinsic_split") || eq(clone(name), "chars") || eq(clone(name), "text::chars") || eq(clone(name), "__intrinsic_chars") || eq(clone(name), "lines") {
+    if eq(clone(name), "split")
+    || eq(clone(name), "text::split")
+    || eq(clone(name), "string::split")
+    || eq(clone(name), "__intrinsic_split")
+    || eq(clone(name), "chars")
+    || eq(clone(name), "text::chars")
+    || eq(clone(name), "__intrinsic_chars")
+    || eq(clone(name), "lines") {
         return true
     }
     if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) || ends_with(clone(name), String_from("::lines")) {
@@ -242,7 +249,12 @@ fn is_string_from_like(name: String) -> bool {
 }
 
 fn is_to_string_name(name: String) -> bool {
-    if eq(clone(name), "to_string") || eq(clone(name), "char_to_string") || eq(clone(name), "bool_to_string") || eq(clone(name), "f64_to_string") || eq(clone(name), "i32_to_string") || eq(clone(name), "i64_to_string") {
+    if eq(clone(name), "to_string")
+    || eq(clone(name), "char_to_string")
+    || eq(clone(name), "bool_to_string")
+    || eq(clone(name), "f64_to_string")
+    || eq(clone(name), "i32_to_string")
+    || eq(clone(name), "i64_to_string") {
         return true
     }
     if starts_with(clone(name), String_from("__intrinsic_")) && ends_with(clone(name), String_from("_to_string")) {
@@ -255,10 +267,29 @@ fn is_to_string_name(name: String) -> bool {
 }
 
 fn is_common_string_method(name: String) -> bool {
-    if eq(clone(name), "concat") || eq(clone(name), "clone") || eq(clone(name), "trim") || eq(clone(name), "trim_start") || eq(clone(name), "trim_end") || eq(clone(name), "to_lower") || eq(clone(name), "to_upper") {
+    if eq(clone(name), "concat")
+    || eq(clone(name), "clone")
+    || eq(clone(name), "trim")
+    || eq(clone(name), "trim_start")
+    || eq(clone(name), "trim_end")
+    || eq(clone(name), "to_lower")
+    || eq(clone(name), "to_upper") {
         return true
     }
-    if eq(clone(name), "to_lowercase") || eq(clone(name), "to_uppercase") || eq(clone(name), "replace") || eq(clone(name), "replace_all") || eq(clone(name), "repeat") || eq(clone(name), "slice") || eq(clone(name), "slice_bytes") || eq(clone(name), "substring") || eq(clone(name), "reverse") || eq(clone(name), "pad_left") || eq(clone(name), "pad_right") || eq(clone(name), "pad_start") || eq(clone(name), "pad_end") || eq(clone(name), "join") {
+    if eq(clone(name), "to_lowercase")
+    || eq(clone(name), "to_uppercase")
+    || eq(clone(name), "replace")
+    || eq(clone(name), "replace_all")
+    || eq(clone(name), "repeat")
+    || eq(clone(name), "slice")
+    || eq(clone(name), "slice_bytes")
+    || eq(clone(name), "substring")
+    || eq(clone(name), "reverse")
+    || eq(clone(name), "pad_left")
+    || eq(clone(name), "pad_right")
+    || eq(clone(name), "pad_start")
+    || eq(clone(name), "pad_end")
+    || eq(clone(name), "join") {
         return true
     }
     false
@@ -328,7 +359,24 @@ fn is_core_string_impl_returning_string(name: String) -> bool {
         return false
     }
     let middle = substring(name, prefix_len, n - suffix_len)
-    if eq(clone(middle), String_from("concat")) || eq(clone(middle), String_from("clone")) || eq(clone(middle), String_from("from_bytes")) || eq(clone(middle), String_from("new")) || eq(clone(middle), String_from("slice")) || eq(clone(middle), String_from("push_range")) || eq(clone(middle), String_from("join")) || eq(clone(middle), String_from("pad_left")) || eq(clone(middle), String_from("pad_left_fill")) || eq(clone(middle), String_from("pad_right")) || eq(clone(middle), String_from("pad_right_fill")) || eq(clone(middle), String_from("repeat")) || eq(clone(middle), String_from("replace")) || eq(clone(middle), String_from("to_lowercase")) || eq(clone(middle), String_from("to_uppercase")) || eq(clone(middle), String_from("trim")) || eq(clone(middle), String_from("trim_end")) || eq(clone(middle), String_from("trim_start")) {
+    if eq(clone(middle), String_from("concat"))
+    || eq(clone(middle), String_from("clone"))
+    || eq(clone(middle), String_from("from_bytes"))
+    || eq(clone(middle), String_from("new"))
+    || eq(clone(middle), String_from("slice"))
+    || eq(clone(middle), String_from("push_range"))
+    || eq(clone(middle), String_from("join"))
+    || eq(clone(middle), String_from("pad_left"))
+    || eq(clone(middle), String_from("pad_left_fill"))
+    || eq(clone(middle), String_from("pad_right"))
+    || eq(clone(middle), String_from("pad_right_fill"))
+    || eq(clone(middle), String_from("repeat"))
+    || eq(clone(middle), String_from("replace"))
+    || eq(clone(middle), String_from("to_lowercase"))
+    || eq(clone(middle), String_from("to_uppercase"))
+    || eq(clone(middle), String_from("trim"))
+    || eq(clone(middle), String_from("trim_end"))
+    || eq(clone(middle), String_from("trim_start")) {
         return true
     }
     false
@@ -338,14 +386,34 @@ fn is_raw_string_intrinsic_returning_string(name: String) -> bool {
     if is_direct_string_intrinsic(clone(name)) {
         return true
     }
-    if eq(clone(name), "raw.string_new") || eq(clone(name), "raw.string_clone") || eq(clone(name), "raw.string_from_bytes") || eq(clone(name), "raw::raw_string_new") || eq(clone(name), "raw::raw_string_clone") || eq(clone(name), "raw::raw_string_from_bytes") || eq(clone(name), "std::core::raw::raw_string_new") || eq(clone(name), "std::core::raw::raw_string_clone") || eq(clone(name), "std::core::raw::raw_string_from_bytes") {
+    if eq(clone(name), "raw.string_new")
+    || eq(clone(name), "raw.string_clone")
+    || eq(clone(name), "raw.string_from_bytes")
+    || eq(clone(name), "raw::raw_string_new")
+    || eq(clone(name), "raw::raw_string_clone")
+    || eq(clone(name), "raw::raw_string_from_bytes")
+    || eq(clone(name), "std::core::raw::raw_string_new")
+    || eq(clone(name), "std::core::raw::raw_string_clone")
+    || eq(clone(name), "std::core::raw::raw_string_from_bytes") {
         return true
     }
     false
 }
 
 fn is_direct_string_intrinsic(name: String) -> bool {
-    if eq(clone(name), "__intrinsic_string_new") || eq(clone(name), "__intrinsic_string_clone") || eq(clone(name), "__intrinsic_string_from") || eq(clone(name), "__intrinsic_string_from_bytes") || eq(clone(name), "__intrinsic_string_slice") || eq(clone(name), "__intrinsic_concat") || eq(clone(name), "__intrinsic_substring") || eq(clone(name), "__intrinsic_replace") || eq(clone(name), "__intrinsic_trim") || eq(clone(name), "__intrinsic_to_lower") || eq(clone(name), "__intrinsic_to_upper") || eq(clone(name), "__intrinsic_join") || eq(clone(name), "__intrinsic_char_to_string") {
+    if eq(clone(name), "__intrinsic_string_new")
+    || eq(clone(name), "__intrinsic_string_clone")
+    || eq(clone(name), "__intrinsic_string_from")
+    || eq(clone(name), "__intrinsic_string_from_bytes")
+    || eq(clone(name), "__intrinsic_string_slice")
+    || eq(clone(name), "__intrinsic_concat")
+    || eq(clone(name), "__intrinsic_substring")
+    || eq(clone(name), "__intrinsic_replace")
+    || eq(clone(name), "__intrinsic_trim")
+    || eq(clone(name), "__intrinsic_to_lower")
+    || eq(clone(name), "__intrinsic_to_upper")
+    || eq(clone(name), "__intrinsic_join")
+    || eq(clone(name), "__intrinsic_char_to_string") {
         return true
     }
     false
@@ -355,7 +423,10 @@ fn is_hashmap_string_accessor(name: String) -> bool {
     if eq(clone(name), "__hm_si_get_key") || eq(clone(name), "__hm_is_get_val") || eq(clone(name), "__hm_ss_get_key") || eq(clone(name), "__hm_ss_get_val") {
         return true
     }
-    if eq(clone(name), "hash_string::hashmap_str_str_get_key") || eq(clone(name), "hash_string::hashmap_str_str_get_val") || eq(clone(name), "hash_string::hashmap_i32_str_get_val") || eq(clone(name), "hash_string::hashmap_str_i32_get_key") {
+    if eq(clone(name), "hash_string::hashmap_str_str_get_key") ||
+    eq(clone(name), "hash_string::hashmap_str_str_get_val") ||
+    eq(clone(name), "hash_string::hashmap_i32_str_get_val") ||
+    eq(clone(name), "hash_string::hashmap_str_i32_get_key") {
         return true
     }
     false

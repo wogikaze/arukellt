@@ -19,10 +19,6 @@ fn CoreHirModuleInfo_new(name: String, decl_start: i32, decl_count: i32) -> Core
     CoreHirModuleInfo { name: name, decl_start: decl_start, decl_count: decl_count }
 }
 
-fn CoreHirModuleInfo_name(info: CoreHirModuleInfo) -> String {
-    clone(info.name)
-}
-
 fn CoreHirModuleInfo_decl_start(info: CoreHirModuleInfo) -> i32 {
     info.decl_start
 }
