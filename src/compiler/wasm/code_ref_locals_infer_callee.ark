@@ -39,6 +39,13 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
     let ret_name = function_return_view::MirFunction_return_type_name(called)
+    // Prefer a registered gc_struct when the return type names one. Typed-spine
+    // / layout lookup can still report enum-open for user structs
+    // (WitParsedInterface), which then types call-result locals incorrectly.
+    let named_struct = resolve_named_struct_gc_type(ctx, clone(ret_name))
+    if named_struct >= 0 {
+        return named_struct
+    }
     // Phase 5e: structured lookup (GcLayoutTable + centralized name→offset
     // fallback) handles vec/string/hashmap/option/result/enum.
     if len(ret_name) > 0 {
@@ -48,6 +55,39 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
         }
     }
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
+}
+
+fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> i32 {
+    if len(ret_name) == 0 {
+        return 0 - 1
+    }
+    if starts_with(clone(ret_name), String_from("struct:")) {
+        let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        }
+        return 0 - 1
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
+    }
+    let name_len = len(ret_name)
+    let mut colon_pos = 0 - 1
+    let mut ci = name_len - 1
+    while ci >= 0 {
+        if char_at(ret_name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        let bare = substring(ret_name, colon_pos + 1, name_len)
+        if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare)
+        }
+    }
+    0 - 1
 }
 
 // Struct/enum-oriented tail of infer_call_result_gc_type_from_fn.
@@ -69,15 +109,15 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
         if is_option_type_name(clone(ret_name)) || starts_with(clone(ret_name), String_from("enum:")) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
-        if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
+        let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
+        if named >= 0 {
+            return named
         }
-        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
+        // Unknown GC ref without a registered struct name: do not guess the
+        // 1-field size-class (collides with enum-open at base+2).
+        return 0 - 1
     }
-    if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
-    }
-    0 - 1
+    resolve_named_struct_gc_type(ctx, ret_name)
 }
 
 // Extract struct name from "struct:TypeName:byte_size" format.

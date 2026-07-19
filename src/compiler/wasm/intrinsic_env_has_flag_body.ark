@@ -96,6 +96,7 @@ fn emit_has_flag_loop_body(w: WasmWriter, s_flag: i32, s_flen: i32, s_argc: i32,
     helpers_numeric_i32::emit_i32_ge_s(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, s_found)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, s_argv)
     helpers_core::emit_local_get(w, s_i)

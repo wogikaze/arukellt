@@ -31,6 +31,7 @@ pub struct SelfEmitCtx {
     gc_struct_base: i32,
     gc_struct_type_map: Vec<i32>,
     gc_struct_names: Vec<String>,
+    gc_struct_sigs: Vec<String>,
     current_func_idx: i32,
     fn_type_map: Vec<i32>,
     signature_registry: SignatureRegistry,
@@ -81,6 +82,7 @@ fn SelfEmitCtx_new(
     let empty_string_c = Vec_new_String()
     let empty_i32_d = Vec_new_i32()
     let empty_string_d = Vec_new_String()
+    let empty_string_e = Vec_new_String()
     let empty_i32_e = Vec_new_i32()
     let sig = signature_registry::SignatureRegistry_new()
     let types = type_table::TypeTable_new()
@@ -111,6 +113,7 @@ fn SelfEmitCtx_new(
         gc_struct_base: 0 - 1,
         gc_struct_type_map: empty_i32_d,
         gc_struct_names: empty_string_d,
+        gc_struct_sigs: empty_string_e,
         current_func_idx: 0,
         fn_type_map: empty_i32_e,
         signature_registry: sig,
@@ -224,6 +227,14 @@ fn SelfEmitCtx_gc_struct_names(ctx: SelfEmitCtx) -> Vec<String> {
 
 fn SelfEmitCtx_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx.gc_struct_names = gc_struct_names
+}
+
+fn SelfEmitCtx_gc_struct_sigs(ctx: SelfEmitCtx) -> Vec<String> {
+    ctx.gc_struct_sigs
+}
+
+fn SelfEmitCtx_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
+    ctx.gc_struct_sigs = gc_struct_sigs
 }
 
 fn SelfEmitCtx_set_current_func_idx(ctx: SelfEmitCtx, current_func_idx: i32) {

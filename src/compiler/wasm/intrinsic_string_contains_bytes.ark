@@ -52,6 +52,7 @@ fn emit_contains_position_loop(w: WasmWriter, s0: i32, s1: i32, s2: i32, s3: i32
     helpers_control::emit_br_if(w, 1)
     emit_contains_match_at_position(w, s0, s1, s3, s4, s5, s7)
     helpers_core::emit_local_get(w, s7)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_if_empty(w)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_core::emit_local_set(w, s6)

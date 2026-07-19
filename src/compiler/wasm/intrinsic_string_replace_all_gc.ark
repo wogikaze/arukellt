@@ -91,6 +91,7 @@ fn emit_replace_gc_count_loop(w: WasmWriter, g_src: i32, g_pat: i32, s_src_len: 
     // Check match at s_pos
     emit_replace_gc_match_at(w, g_src, g_pat, s_pat_len, s_pos, s_matched, s_j, string_type)
     helpers_core::emit_local_get(w, s_matched)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_if_empty(w)
     // Match: s_count++, s_pos += s_pat_len
     helpers_core::emit_local_get(w, s_count)
@@ -140,6 +141,7 @@ fn emit_replace_gc_copy_loop(
     // Check match at s_pos
     emit_replace_gc_match_at(w, g_src, g_pat, s_pat_len, s_pos, s_matched, s_j, string_type)
     helpers_core::emit_local_get(w, s_matched)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_if_empty(w)
     emit_replace_gc_copy_match(w, g_rep, g_result, s_pat_len, s_rep_len, s_pos, s_dst, string_type)
     helpers_control::emit_else(w)

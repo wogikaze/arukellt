@@ -6,6 +6,7 @@ use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_slice(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -59,6 +60,9 @@ fn emit_slice_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_br_if(w, 1)
     string_gc_helpers::emit_gc_local_get(w, dest)
     string_gc_helpers::emit_gc_local_get(w, s_i)
+    // Memory64 widens loop counters; array.set index must be true i32 before
+    // the source ref / get are pushed on top.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     string_gc_helpers::emit_gc_local_get(w, s_gc0)
     string_gc_helpers::emit_gc_local_get(w, s_start)
     string_gc_helpers::emit_gc_local_get(w, s_i)

@@ -49,6 +49,10 @@ fn emit_wasm_context_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<
     ctx_record::SelfEmitCtx_set_gc_struct_names(ctx, gc_struct_names)
 }
 
+fn emit_wasm_context_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_gc_struct_sigs(ctx, gc_struct_sigs)
+}
+
 fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx_record::SelfEmitCtx_set_fn_type_map(ctx, fn_type_map)
 }

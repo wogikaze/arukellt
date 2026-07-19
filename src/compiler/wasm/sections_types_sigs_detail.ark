@@ -173,6 +173,18 @@ fn widen_i32_sig_for_memory64(sig: String, target: String) -> String {
 fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_name: String, target: String, mir: MirModule) -> String {
     let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, clone(uf.name), clone(target))
     if len(typed_sig) > 0 {
+        // Typed spine may classify a registered user struct as ENUM/RESULT open
+        // (e.g. WitParsedInterface on some return paths). Prefer the concrete
+        // gc_struct slot when the MIR return type name names that struct.
+        if emit_target::is_gc_target(clone(target)) &&
+        eq(clone(typed_sig), sections_types_gc::gc_enum_open_type_sig()) {
+            let concrete = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
+            if len(concrete) > 0 {
+                return concrete
+            }
+        } else {
+            return typed_sig
+        }
         return typed_sig
     }
     // vec:/hashmap: return types use the same mapping as params.
@@ -203,18 +215,52 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     if emit_target::is_gc_target(clone(target)) && starts_with(clone(return_type_name), String_from("struct:")) {
         return gc_struct_return_sig_from_name(clone(return_type_name), mir)
     }
-    // Check if the return type name is a registered gc_struct (raw name without "struct:" prefix).
-    if emit_target::is_gc_target(clone(target)) && len(return_type_name) > 0 {
-        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
-        if slot >= 0 {
-            return concat(String_from("gcsref"), i32_to_string(slot))
-        }
+    let registered = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
+    if len(registered) > 0 {
+        return registered
     }
     let generic_ret_sig = build_generic_type_var_sig(clone(uf.name), clone(return_type_name), 0 - 1, clone(target), mir)
     if len(generic_ret_sig) > 0 {
         return widen_i32_sig_for_memory64(generic_ret_sig, clone(target))
     }
     sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
+}
+
+// Resolve a registered gc_struct for a return type name. Accepts raw names,
+// module::Name, and struct:Name:size (slot hit only — not size fallback).
+fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule) -> String {
+    if len(return_type_name) == 0 {
+        return String_new()
+    }
+    if starts_with(clone(return_type_name), String_from("struct:")) {
+        let from_struct = gc_struct_return_sig_from_name(clone(return_type_name), mir)
+        if starts_with(clone(from_struct), String_from("gcsref")) {
+            return from_struct
+        }
+        return String_new()
+    }
+    let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
+    if slot >= 0 {
+        return concat(String_from("gcsref"), i32_to_string(slot))
+    }
+    let name_len = len(return_type_name)
+    let mut colon_pos = 0 - 1
+    let mut ci = name_len - 1
+    while ci >= 0 {
+        if char_at(return_type_name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        let bare = substring(return_type_name, colon_pos + 1, name_len)
+        let bare_slot = module_gc_struct::MirModule_gc_struct_slot(mir, bare)
+        if bare_slot >= 0 {
+            return concat(String_from("gcsref"), i32_to_string(bare_slot))
+        }
+    }
+    String_new()
 }
 
 fn gc_struct_return_sig_from_name(type_name: String, mir: MirModule) -> String {
