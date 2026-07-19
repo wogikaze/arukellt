@@ -28,6 +28,9 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         if len(src_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
         }
+        // Never inherit the producer variant slot onto payload saves; the
+        // payload value is the field contents, not the enum variant itself.
+        ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
         push(payload_locals, save_local)
         push(payload_vts, p_vt)

@@ -8,7 +8,7 @@ fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     emit_target::is_gc_target(clone(ctx.lower_target))
 }
 
-fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String) {
+fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String) -> i32 {
     let canon = ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let count = len(ctx.gc_enum_variant_sigs)
     let mut i = 0
@@ -19,13 +19,14 @@ fn ctx_register_gc_enum_variant(ctx: LowerCtx, variant_name: String, sig: String
             if eq(existing_canon, clone(canon)) || eq(existing, clone(variant_name)) {
                 push(ctx.gc_enum_variant_alias_names, variant_name)
                 push(ctx.gc_enum_variant_alias_slots, i)
-                return
+                return i
             }
         }
         i = i + 1
     }
     push(ctx.gc_enum_variant_names, variant_name)
     push(ctx.gc_enum_variant_sigs, sig)
+    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {

@@ -20,6 +20,18 @@ fn ctx_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
     name_index::name_index_get(ctx.fn_name_index, name)
 }
 
+fn ctx_qualified_fn_index_find(ctx: LowerCtx, name: String) -> i32 {
+    name_index::name_index_get(ctx.qualified_fn_name_index, name)
+}
+
+fn ctx_qualified_fn_return_vt_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.qualified_fn_return_vts, index)
+}
+
+fn ctx_qualified_fn_return_type_name_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.qualified_fn_return_type_names, index))
+}
+
 fn ctx_fn_index_replace(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>) {
     ctx.fn_names = fn_names
     ctx.fn_return_vts = fn_return_vts
@@ -36,6 +48,25 @@ fn ctx_fn_index_replace(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec
     }
     ctx.fn_name_lengths = lengths
     ctx.fn_name_index = index
+}
+
+fn ctx_qualified_fn_index_replace(
+    ctx: LowerCtx,
+    names: Vec<String>,
+    return_vts: Vec<i32>,
+    return_type_names: Vec<String>
+) {
+    ctx.qualified_fn_names = names
+    ctx.qualified_fn_return_vts = return_vts
+    ctx.qualified_fn_return_type_names = return_type_names
+    let count = len(names)
+    let index = name_index::NameIndex_new(count)
+    let mut i = 0
+    while i < count {
+        name_index::name_index_insert_first(index, clone(get_unchecked(names, i)), i)
+        i = i + 1
+    }
+    ctx.qualified_fn_name_index = index
 }
 
 fn ctx_fn_index_push(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {

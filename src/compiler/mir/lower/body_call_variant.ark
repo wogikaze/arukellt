@@ -21,9 +21,19 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         if len(src_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
         }
+        // Copy enum-valued payloads' slots only when the payload itself is an
+        // enum/Option/Result. String/struct field payloads must stay unslotted
+        // so emit does not cast them to the enclosing variant type.
         let src_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, p_idx)
-        if src_slot >= 0 {
+        if src_slot >= 0 &&
+        (starts_with(clone(src_type), String_from("enum:")) ||
+            starts_with(clone(src_type), String_from("Option")) ||
+            starts_with(clone(src_type), String_from("option")) ||
+            starts_with(clone(src_type), String_from("Result")) ||
+            starts_with(clone(src_type), String_from("result"))) {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, src_slot)
+        } else {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
         }
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
         push(payload_locals, save_local)

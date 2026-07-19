@@ -1,5 +1,6 @@
 use wasm::ctx_record
 use wasm::gc_layout_table
+use wasm::code_ref_locals_scan
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_table
@@ -60,20 +61,28 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
     if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
         return 0 - 1
     }
+    let variant_slot = local_access::MirLocal_variant_slot(loc)
+    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx)
+    let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
     if len(local_type_name) > 0 {
         let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
         if type_name_gc >= 0 {
-            return type_name_gc
+            // Non-constructor locals must not adopt concrete enum-variant
+            // storage from a misleading type_name (payload field values).
+            if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
+                return type_name_gc
+            }
         }
     }
-    // ADR-040 Phase 5e: variant_slot direct lookup (structured type ID)
-    // Only used when the local lacks an explicit GC container type_name.
-    let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if variant_slot >= 0 && len(local_type_name) == 0 {
+    // ADR-040 Phase 5e: variant_slot only for GC_STRUCT_NEW destinations.
+    if variant_slot >= 0 && is_struct_new_dest {
         let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             return variant_gc
         }
+    }
+    if is_payload_with_stray_variant {
+        return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
     let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_type_name)
@@ -91,6 +100,21 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot
         return get_unchecked(map, variant_slot)
     }
     0 - 1
+}
+
+fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -> bool {
+    if wasm_type_idx < 0 {
+        return false
+    }
+    let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let mut i = 0
+    while i < len(map) {
+        if get_unchecked(map, i) == wasm_type_idx {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 // ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.

@@ -21,8 +21,14 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
         emit_gc_enum_open_local(body, ctx)
         return true
     }
+    // Only the GC_STRUCT_NEW destination is the variant object. Payload field
+    // locals may still carry a stray variant_slot / enum: type_name from
+    // lowering; typing them as the variant makes struct.set field stores fail
+    // (expected string/ref, found variant).
     let is_variant_constructor_dest = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx)
-    if variant_slot >= 0 && (enum_payload_type_name(clone(type_name)) || is_variant_constructor_dest) {
+    if variant_slot >= 0 &&
+    is_variant_constructor_dest &&
+    !local_has_container_type_name(clone(type_name)) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -146,12 +152,18 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
         return true
     }
     // Try gc_layout table lookup for raw struct names (e.g. "Point") not in gc_struct_names.
+    // Skip concrete enum-variant types unless this local is the GC_STRUCT_NEW dest;
+    // payload field locals often carry the variant's type_name by mistake.
     if len(type_name) > 0 {
         let layout_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
         if layout_gc >= 0 {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, layout_gc)
-            return true
+            let allow_layout = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx) ||
+            !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, layout_gc)
+            if allow_layout {
+                writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                writer_core::emit_leb128_s(body, layout_gc)
+                return true
+            }
         }
     }
     // Fallback: scan function for MIR_STRUCT_NEW with this struct name to determine byte_size.

@@ -18,10 +18,19 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
-    // Phase 5e: variant_slot set → structured type known, cast needed
+    // String / vec / hashmap payload locals must cast to their container type,
+    // never to a stray enclosing enum variant_slot.
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        return true
+    }
+    // Phase 5e: variant_slot on a GC_STRUCT_NEW dest → cast to variant type.
+    // Payload locals with stray slots must not cast string → variant.
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     if variant_slot >= 0 {
-        return !eq(clone(type_name), String_from("string")) && !eq(clone(type_name), String_from("String"))
+        if !local_is_direct_gc_struct_new_dest(f, local_idx) {
+            return false
+        }
+        return !code_ref_locals_types::is_gc_container_type_name(clone(type_name))
     }
     if code_ref_locals_types::is_gc_container_type_name(clone(type_name)) {
         return false
@@ -33,9 +42,6 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     starts_with(clone(type_name), String_from("result:")) ||
     starts_with(clone(type_name), String_from("Result:")) ||
     starts_with(clone(type_name), String_from("Result<")) {
-        return true
-    }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
         return true
     }
     if starts_with(clone(type_name), String_from("struct:")) {

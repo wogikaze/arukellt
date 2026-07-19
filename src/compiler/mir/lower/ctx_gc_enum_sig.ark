@@ -29,24 +29,53 @@ fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, ty
     let mut sig = String_new()
     for i in 0..len(payload_vts) {
         let vt = get_unchecked(payload_vts, i)
-        if i == 0 &&
-        len(type_name) > 0 &&
-        (vt == value_types::VT_GC_REF() ||
-            vt == value_types::VT_REF() ||
-            eq(clone(type_name), String_from("String")) ||
-            eq(clone(type_name), String_from("string")) ||
-            starts_with(clone(type_name), String_from("vec:")) ||
-            starts_with(clone(type_name), String_from("hashmap:")) ||
-            starts_with(clone(type_name), String_from("option:")) ||
-            starts_with(clone(type_name), String_from("result:")) ||
-            starts_with(clone(type_name), String_from("Result_")) ||
-            starts_with(clone(type_name), String_from("Option_"))) {
+        if i == 0 && should_use_typed_payload_field_sig(vt, clone(type_name)) {
             sig = text::builder_append(sig, gc_enum_field_sig_for_type_ctx(ctx, clone(type_name)))
         } else {
             sig = text::builder_append(sig, gc_enum_field_sig_for_vt(vt))
         }
     }
     sig
+}
+
+// Prefer the type name over a stale VT_I32 when the payload is a named
+// aggregate (JsonValue, TomlValue, enum:*, Option/Result, containers).
+// Scalar names still follow the MIR value type so i32/i64/f64 stay exact.
+fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        return true
+    }
+    if typed_payload_type_name_is_scalar(clone(type_name)) {
+        return false
+    }
+    true
+}
+
+fn typed_payload_type_name_is_scalar(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("I32")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("F32")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("Bool")) {
+        return true
+    }
+    if eq(clone(type_name), String_from("char")) || eq(clone(type_name), String_from("u8")) ||
+    eq(clone(type_name), String_from("u16")) || eq(clone(type_name), String_from("u32")) ||
+    eq(clone(type_name), String_from("u64")) || eq(clone(type_name), String_from("i16")) {
+        return true
+    }
+    false
 }
 
 fn gc_enum_payload_suffix_after_prefix(s: String, prefix: String) -> String {

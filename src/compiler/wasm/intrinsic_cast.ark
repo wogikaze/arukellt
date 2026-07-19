@@ -4,6 +4,7 @@ use wasm::writer_core
 use wasm::intrinsics::helpers_numeric_f64
 use wasm::intrinsics::helpers_numeric_sign_extend
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::intrinsics::helpers_numeric_i64_convert
 
 // Handler for: i32_to_i64
@@ -18,7 +19,9 @@ fn emit_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 // Handler for: i64_to_i32
 fn emit_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Truncate to i32 bits. Under Memory64 MIR i32 results stay in i64 locals.
     helpers_numeric_i32::emit_i32_wrap_i64(w)
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     return true
 }
 

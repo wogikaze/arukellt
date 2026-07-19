@@ -28,7 +28,6 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
@@ -42,7 +41,6 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
     }
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String, layout_field_sigs: String) -> String {
@@ -119,7 +117,14 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
                     }
                 }
             }
-            if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
+            // Never reuse a scalar builtin Some/Ok slot for a ref payload
+            // (or the reverse). Compatible() alone is not enough when the
+            // first name hit is Option::Some/_f1_i32 and want is _f1_ref14.
+            if len(field_sigs) > 0 &&
+            !ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(field_sigs)) &&
+            ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(existing_payload)) {
+                // fall through
+            } else if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
                 return name_slot
             }
         }

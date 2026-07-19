@@ -4,6 +4,7 @@ use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::fn_info
 use corehir::param_shape
+use corehir::raw_dto
 
 fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
     let mut entry_main_decl_index = 0 - 1
@@ -31,7 +32,26 @@ fn build_fn_params(decl: AstNode, param_count: i32) -> Vec<CoreHirParam> {
     params
 }
 
-fn build_fn_infos(decls: Vec<AstNode>) -> Vec<CoreHirFnInfo> {
+fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn_name: String) -> String {
+    let module_count = len(modules)
+    let mut module_index = 0
+    while module_index < module_count {
+        let module_info = get_unchecked(modules, module_index)
+        let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module_info)
+        let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
+        if decl_index >= decl_start && decl_index < decl_end {
+            let module_name = raw_dto::CoreHirModuleInfo_name(module_info)
+            if !eq(clone(module_name), String_from("<main>")) {
+                return concat(module_name, concat(String_from("::"), fn_name))
+            }
+            return String_new()
+        }
+        module_index = module_index + 1
+    }
+    String_new()
+}
+
+fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<CoreHirFnInfo> {
     let infos = Vec_new_CoreHirFnInfo()
     let entry_main_decl_index = find_entry_main_decl_index(decls)
     let decl_count = len(decls)
@@ -43,7 +63,17 @@ fn build_fn_infos(decls: Vec<AstNode>) -> Vec<CoreHirFnInfo> {
             let body_index = decl_children::decl_body_index(decl)
             let param_count = decl_children::decl_param_count(decl)
             let params = build_fn_params(decl, param_count)
-            let info = fn_info::CoreHirFnInfo_new(i, typed_fn_index, decl_node_identity::decl_name(decl), param_count, params, body_index, i == entry_main_decl_index)
+            let fn_name = decl_node_identity::decl_name(decl)
+            let info = fn_info::CoreHirFnInfo_new(
+                i,
+                typed_fn_index,
+                clone(fn_name),
+                module_qualified_fn_name(modules, i, fn_name),
+                param_count,
+                params,
+                body_index,
+                i == entry_main_decl_index
+            )
             push(infos, info)
             typed_fn_index = typed_fn_index + 1
         }

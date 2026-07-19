@@ -120,13 +120,32 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
     let dst_type_name = local_access::MirLocal_type_name(dst_loc)
     let mut updated = false
     let mut new_loc = dst_loc
-    if dst_variant_slot < 0 && src_variant_slot >= 0 {
-        if (len(src_type_name) == 0 || post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name))) && !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), String_from("_t"))
+    // String/vec/hashmap payload locals must not inherit enum variant slots;
+    // that makes emit cast field values to the enclosing Ok/Some/String variant.
+    let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) ||
+    eq(clone(dst_type_name), String_from("string")) ||
+    eq(clone(dst_type_name), String_from("String"))
+    let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(src_type_name)) ||
+    eq(clone(src_type_name), String_from("string")) ||
+    eq(clone(src_type_name), String_from("String"))
+    if !dst_is_payload_container && !src_is_payload_container {
+        if destination_is_temporary && dst_variant_slot != src_variant_slot {
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
             updated = true
+        } else if dst_variant_slot < 0 && src_variant_slot >= 0 {
+            if (len(src_type_name) == 0 || post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name))) && !post_pass_enum_normalize::is_open_enum_container_type_name(clone(dst_type_name)) && !post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) {
+                local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
+                updated = true
+            }
         }
+    } else if dst_variant_slot >= 0 && dst_is_payload_container {
+        local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
+        updated = true
     }
-    if len(dst_type_name) == 0 && len(src_type_name) > 0 {
+    if len(src_type_name) > 0 &&
+    (len(dst_type_name) == 0 ||
+        (destination_is_temporary && !eq(clone(dst_type_name), clone(src_type_name)))) {
         new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, clone(src_type_name), table)
         if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name)) {
             local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)

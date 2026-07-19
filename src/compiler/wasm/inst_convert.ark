@@ -70,7 +70,10 @@ fn emit_extend_i32_to_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_wrap_i64_to_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    // Truncate to i32 bits. Under Memory64 the MIR i32 result is still stored
+    // as a wasm i64 local, so widen immediately after wrap.
     writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
 fn emit_eqz(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {

@@ -2,31 +2,87 @@ use mir::lower::ctx_fn_exists
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_mono_rewrites
 
-fn ctx_replace_fn_index(ctx: LowerCtx, fn_names: Vec<String>, fn_return_vts: Vec<i32>, fn_return_type_names: Vec<String>) {
+fn ctx_replace_fn_index(
+    ctx: LowerCtx,
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>,
+    qualified_names: Vec<String>,
+    qualified_return_vts: Vec<i32>,
+    qualified_return_type_names: Vec<String>
+) {
     ctx_fn_index::ctx_fn_index_replace(ctx, fn_names, fn_return_vts, fn_return_type_names)
+    ctx_fn_index::ctx_qualified_fn_index_replace(
+        ctx,
+        qualified_names,
+        qualified_return_vts,
+        qualified_return_type_names
+    )
 }
 
 fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return_type_name: String) {
     ctx_fn_index::ctx_fn_index_push(ctx, name, return_vt, return_type_name)
 }
 
-fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32) -> String {
+fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {
     let count = ctx_mono_rewrites::ctx_mono_span_rewrite_count(ctx)
     let mut i = 0
     while i < count {
-        if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start {
-            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+        let candidate_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
+        let candidate_target = ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, i)
+        if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start &&
+        mono_sources_match(clone(candidate_source), clone(source)) &&
+        mono_target_matches_source(clone(candidate_target), clone(source)) {
+            return candidate_target
         }
         i = i + 1
     }
     String_from("")
 }
 
-fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, target: String) {
+fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
     if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
         return
     }
-    ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, target)
+    ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, source, target)
+}
+
+fn mono_sources_match(candidate: String, requested: String) -> bool {
+    if eq(clone(candidate), clone(requested)) {
+        return true
+    }
+    eq(mono_bare_source(candidate), mono_bare_source(requested))
+}
+
+fn mono_bare_source(source: String) -> String {
+    let source_len = len(source)
+    let mut index = source_len - 1
+    while index >= 0 {
+        if char_at(source, index) == 58 {
+            return substring(source, index + 1, source_len)
+        }
+        index = index - 1
+    }
+    source
+}
+
+fn mono_target_matches_source(target: String, source: String) -> bool {
+    let bare_source = mono_bare_source(source)
+    let prefix = concat(clone(bare_source), String_from("__"))
+    if starts_with(clone(target), clone(prefix)) {
+        let rest = substring(target, len(prefix), len(target))
+        // Reject opaque numeric stubs like eq__1; accept type keys
+        // such as eq__Person / pair_first__i32__String.
+        if len(rest) == 0 {
+            return false
+        }
+        let first = char_at(rest, 0)
+        if first >= 48 && first <= 57 {
+            return false
+        }
+        return true
+    }
+    contains(target, concat(String_from("__"), concat(bare_source, String_from("__"))))
 }
 
 fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
@@ -44,9 +100,13 @@ fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
     let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
     let mut i = 0
     while i < count {
-        if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 && eq(ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i), clone(source)) {
+        let candidate_source = ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i)
+        let candidate_target = ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
+        if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 &&
+        mono_sources_match(candidate_source, clone(source)) &&
+        mono_target_matches_source(clone(candidate_target), clone(source)) {
             ctx_mono_rewrites::ctx_mono_mark_name_rewrite_used(ctx, i)
-            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+            return candidate_target
         }
         i = i + 1
     }
@@ -57,8 +117,11 @@ fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
     let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
     let mut i = 0
     while i < count {
-        if eq(ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i), clone(source)) {
-            return ctx_mono_rewrites::ctx_mono_rewrite_target_at(ctx, i)
+        let candidate_source = ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i)
+        let candidate_target = ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
+        if mono_sources_match(candidate_source, clone(source)) &&
+        mono_target_matches_source(clone(candidate_target), clone(source)) {
+            return candidate_target
         }
         i = i + 1
     }

@@ -20,10 +20,12 @@ fn GC_REF_CAST() -> i32 { 23 }
 fn GC_BR_ON_CAST() -> i32 { 24 }
 fn GC_BR_ON_CAST_FAIL() -> i32 { 25 }
 
-// Reference type opcodes.
+// Reference type opcodes (Wasm MVP reference-types / GC).
 fn OP_REF_NULL() -> i32 { 208 }
-fn OP_REF_AS_NON_NULL() -> i32 { 209 }
+fn OP_REF_IS_NULL() -> i32 { 209 }
+fn OP_REF_FUNC() -> i32 { 210 }
 fn OP_REF_EQ() -> i32 { 211 }
+fn OP_REF_AS_NON_NULL() -> i32 { 212 }
 
 // Type section discriminators.
 fn SEC_TYPE_FUNCTYPE() -> i32 { 96 }
@@ -69,7 +71,6 @@ fn OP_RETURN() -> i32 { 15 }
 // Call and stack opcodes.
 fn OP_CALL() -> i32 { 16 }
 fn OP_CALL_INDIRECT() -> i32 { 17 }
-fn OP_REF_FUNC() -> i32 { 210 }
 fn OP_DROP() -> i32 { 26 }
 fn OP_SELECT() -> i32 { 27 }
 

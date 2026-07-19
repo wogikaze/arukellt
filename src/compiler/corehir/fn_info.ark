@@ -2,14 +2,40 @@ struct CoreHirFnInfo {
     decl_index: i32,
     typed_fn_index: i32,
     name: String,
+    qualified_name: String,
     param_count: i32,
     params: Vec<CoreHirParam>,
     body_index: i32,
     is_entry_main: bool,
 }
 
-fn CoreHirFnInfo_new(decl_index: i32, typed_fn_index: i32, name: String, param_count: i32, params: Vec<CoreHirParam>, body_index: i32, is_entry_main: bool) -> CoreHirFnInfo {
-    CoreHirFnInfo { decl_index: decl_index, typed_fn_index: typed_fn_index, name: name, param_count: param_count, params: params, body_index: body_index, is_entry_main: is_entry_main }
+fn CoreHirFnInfo_new(
+    decl_index: i32,
+    typed_fn_index: i32,
+    name: String,
+    qualified_name: String,
+    param_count: i32,
+    params: Vec<CoreHirParam>,
+    body_index: i32,
+    is_entry_main: bool
+) -> CoreHirFnInfo {
+    CoreHirFnInfo {
+        decl_index: decl_index,
+        typed_fn_index: typed_fn_index,
+        name: name,
+        qualified_name: qualified_name,
+        param_count: param_count,
+        params: params,
+        body_index: body_index,
+        is_entry_main: is_entry_main,
+    }
+}
+
+fn fn_info_qualified_name_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: String) -> String {
+    if info_index >= 0 && info_index < len(fn_infos) {
+        return clone(get_unchecked(fn_infos, info_index).qualified_name)
+    }
+    fallback
 }
 
 fn fn_info_index_for_decl(fn_infos: Vec<CoreHirFnInfo>, decl_index: i32) -> i32 {

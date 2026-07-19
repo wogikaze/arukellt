@@ -40,5 +40,76 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
         signature_spine::mir_signature_spine_mono_table(spine),
         signature_spine::mir_signature_spine_type_table(spine)
     )
-    fn_index::MirLowerFnIndex_new(fn_names, synced_vts, fn_return_type_names, entry_main_decl_index, typed_fn_count)
+    let qualified_names = Vec_new_String()
+    let qualified_return_vts = Vec_new_i32()
+    let qualified_return_type_names = Vec_new_String()
+    mir_collect_qualified_fn_aliases(
+        decl_source,
+        source,
+        qualified_names,
+        qualified_return_vts,
+        qualified_return_type_names
+    )
+    fn_index::MirLowerFnIndex_new(
+        fn_names,
+        synced_vts,
+        fn_return_type_names,
+        qualified_names,
+        qualified_return_vts,
+        qualified_return_type_names,
+        entry_main_decl_index,
+        typed_fn_count
+    )
+}
+
+fn mir_collect_qualified_fn_aliases(
+    decl_source: CoreHirMirDeclSource,
+    source: MirLowerFnIndexSource,
+    fn_names: Vec<String>,
+    fn_return_vts: Vec<i32>,
+    fn_return_type_names: Vec<String>
+) {
+    let decl_count = decl_source::mir_decl_source_count(decl_source)
+    let mut decl_index = 0
+    while decl_index < decl_count {
+        if decl_source::mir_decl_source_is_fn_at(decl_source, decl_index) {
+            let info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
+            if info_index >= 0 {
+                let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, info_index)
+                if len(qualified_name) > 0 {
+                    let typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, info_index, info_index)
+                    let return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
+                    let return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
+                    push(fn_names, clone(qualified_name))
+                    push(fn_return_vts, return_vt)
+                    push(fn_return_type_names, clone(return_type_name))
+                    let import_name = mir_import_facing_qualified_name(qualified_name)
+                    if len(import_name) > 0 {
+                        push(fn_names, import_name)
+                        push(fn_return_vts, return_vt)
+                        push(fn_return_type_names, return_type_name)
+                    }
+                }
+            }
+        }
+        decl_index = decl_index + 1
+    }
+}
+
+fn mir_import_facing_qualified_name(qualified_name: String) -> String {
+    let name_len = len(qualified_name)
+    let separators = Vec_new_i32()
+    let mut index = 0
+    while index < name_len - 1 {
+        if char_at(qualified_name, index) == 58 && char_at(qualified_name, index + 1) == 58 {
+            push(separators, index)
+            index = index + 2
+        } else {
+            index = index + 1
+        }
+    }
+    if len(separators) < 2 {
+        return String_new()
+    }
+    substring(qualified_name, get_unchecked(separators, len(separators) - 2) + 2, name_len)
 }

@@ -149,6 +149,17 @@ fn mir_resolve_duplicate_call_target_depth(
     if depth > 8 {
         return 0 - 1
     }
+    // Prefer an exact full-name hit before short-name collision logic.
+    // Otherwise Person::eq is rewritten through bare "eq" forwarders to
+    // __core_string_eq_impl and validate fails on struct vs string refs.
+    let mut exact_i = 0
+    while exact_i < len(functions) {
+        let exact_f = get_unchecked(functions, exact_i)
+        if eq(function_identity::MirFunction_name(exact_f), clone(callee_name)) {
+            return exact_i
+        }
+        exact_i = exact_i + 1
+    }
     let short_name = resolver::use_module_short_name(clone(callee_name))
     if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
         for i in 0..len(functions) {
@@ -194,6 +205,14 @@ fn mir_resolve_self_delegate_collision(
     candidate_idx: i32,
     name: String
 ) -> i32 {
+    // Keep Type::method exact matches; bare-name collisions among prelude
+    // `eq` forwarders must not steal Person::eq / Point::eq call sites.
+    if candidate_idx >= 0 && candidate_idx < len(functions) {
+        let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
+        if eq(clone(candidate_name), clone(name)) && contains(clone(name), String_from("::")) {
+            return candidate_idx
+        }
+    }
     let short_name = resolver::use_module_short_name(clone(name))
     if mir_count_functions_named(function_name_counts, clone(short_name)) <= 1 {
         return candidate_idx

@@ -27,6 +27,89 @@ fn strip_module_double_colon(type_name: String) -> String {
     type_name
 }
 
+// Strip every `Module::` prefix inside a type encoding so
+// `Result_parser::JsonValue_parser::JsonParseError` becomes
+// `Result_JsonValue_JsonParseError`. Layout basename resolution would
+// otherwise collapse the Result to the trailing enum name.
+// Underscore is a Result_/Option_ encoding separator, not an ident char.
+fn strip_embedded_module_path_prefixes(type_name: String) -> String {
+    let mut result = clone(type_name)
+    let mut guard = 0
+    while guard < 16 {
+        let n = len(result)
+        let mut sep = 0 - 1
+        let mut i = 0
+        while i < n - 1 {
+            if char_at(result, i) == 58 && char_at(result, i + 1) == 58 {
+                sep = i
+                i = n
+            } else {
+                i = i + 1
+            }
+        }
+        if sep < 0 {
+            return result
+        }
+        let mut start = sep - 1
+        while start >= 0 {
+            let ch = char_at(result, start)
+            let is_ident = (ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122)
+            if !is_ident {
+                start = start + 1
+                break
+            }
+            if start == 0 {
+                break
+            }
+            start = start - 1
+        }
+        if start < 0 {
+            start = 0
+        }
+        result = concat(substring(result, 0, start), substring(result, sep + 2, n))
+        guard = guard + 1
+    }
+    result
+}
+
+fn is_option_or_result_type_name(type_name: String) -> bool {
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("option:"))
+}
+
+fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
+    let cleaned = strip_embedded_module_path_prefixes(type_name)
+    if len(cleaned) == 0 {
+        return
+    }
+    // Result/Option encodings must not go through layout basename resolve:
+    // `Result_JsonValue_JsonParseError` would become `JsonParseError`.
+    if is_option_or_result_type_name(clone(cleaned)) {
+        ctx_api_local_types::ctx_set_local_type(
+            ctx,
+            dest,
+            ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, cleaned)
+        )
+        return
+    }
+    let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, cleaned)
+    if len(resolved) > 0 {
+        let marked = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(marked))
+        // Struct results must not keep a stray enum variant_slot from an
+        // earlier payload; Ok(TomlValStep) would otherwise become enum:open.
+        if !starts_with(clone(marked), String_from("enum:")) &&
+        !starts_with(clone(marked), String_from("option:")) &&
+        !starts_with(clone(marked), String_from("Option")) &&
+        !starts_with(clone(marked), String_from("result:")) &&
+        !starts_with(clone(marked), String_from("Result")) {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, 0 - 1)
+        }
+    }
+}
+
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
     if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
@@ -50,23 +133,9 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         // → "option:i32"). Also handles generic T→Point → "struct:Point:8".
         let mono_rtn = mono_return_vt::mono_return_type_name(ctx, clone(callee_name), clone(rtn))
         if len(mono_rtn) > 0 {
-            let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, mono_rtn)
-            if len(resolved) > 0 {
-                ctx_api_local_types::ctx_set_local_type(
-                    ctx,
-                    dest,
-                    ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
-                )
-            }
+            mark_call_result_from_return_type_name(ctx, dest, mono_rtn)
         } else if len(rtn) > 1 && !is_mono_type_var_name(clone(rtn)) {
-            let resolved = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, rtn)
-            if len(resolved) > 0 {
-                ctx_api_local_types::ctx_set_local_type(
-                    ctx,
-                    dest,
-                    ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, resolved)
-                )
-            }
+            mark_call_result_from_return_type_name(ctx, dest, rtn)
         }
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
@@ -177,6 +246,18 @@ fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest:
             let struct_cand = substring(cn_stripped, 0, cn_len - 4)
             if ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, dest, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, struct_cand))
+                ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, 0 - 1)
+            }
+        }
+    }
+    // TomlValStep_ok / similar Type_ok helpers return the named struct.
+    if cn_len > 3 {
+        let ok_suffix = substring(cn_stripped, cn_len - 3, cn_len)
+        if eq(clone(ok_suffix), "_ok") {
+            let struct_cand = substring(cn_stripped, 0, cn_len - 3)
+            if ctx_struct_lookup::ctx_struct_field_count(ctx, clone(struct_cand)) > 0 {
+                ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(struct_cand))
+                ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, 0 - 1)
             }
         }
     }

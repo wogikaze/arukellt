@@ -78,7 +78,12 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
             }
         }
     }
-    if !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) {
+    // write_debug_to is specialized on arg1 (value), not arg0 (buffer).
+    let skip_first_arg_mono = eq(clone(rewritten), String_from("write_debug_to")) ||
+    starts_with(clone(rewritten), String_from("write_debug_to__")) ||
+    ends_with(clone(rewritten), String_from("::write_debug_to")) ||
+    contains(clone(rewritten), String_from("write_debug_to__"))
+    if !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     }
     rewritten = call_rewrite_vec::mir_rewrite_vec_access_after_mono(ctx, rewritten, first_arg_idx)
@@ -93,10 +98,15 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     // write_debug_to<T>(buf, value) is monomorphized on the *value* (2nd arg),
     // not the buffer. Without this, write_debug_to__?t0 stays unresolved and
     // the emitter emits drop/drop/unreachable (#726 debug_trait).
+    // Strip any first-arg (buffer) specialization such as write_debug_to__String
+    // before resolving on the value arg — otherwise i32 sites stay stuck on
+    // the String specialization and get pruned wrongly.
     if eq(clone(rewritten), String_from("write_debug_to")) ||
     starts_with(clone(rewritten), String_from("write_debug_to__")) ||
     ends_with(clone(rewritten), String_from("::write_debug_to")) ||
-    contains(clone(rewritten), String_from("write_debug_to__")) {
+    contains(clone(rewritten), String_from("write_debug_to__")) ||
+    contains(clone(rewritten), String_from("::write_debug_to")) {
+        rewritten = String_from("write_debug_to")
         let mono_arg = if second_arg_idx >= 0 { second_arg_idx } else { first_arg_idx }
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, mono_arg, span_start)
         rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, mono_arg)

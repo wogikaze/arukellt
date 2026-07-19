@@ -11,23 +11,30 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
     if first_arg_idx >= 0 {
         let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         let mut mono_type_key = normalize_mono_type_key(mono_arg_type)
+        // Int/float literals often have empty type_name; derive from VT so
+        // write_debug_to(buf, 42) resolves to write_debug_to__i32 rather than
+        // the first unused write_debug_to__String specialization.
+        if len(mono_type_key) == 0 {
+            mono_type_key = mono_type_key_from_local_vt(ctx, first_arg_idx)
+        }
         if len(mono_type_key) > 0 {
-            let mono_candidate = mono::mono_safe_name(concat(clone(resolved), concat(String_from("__"), mono_type_key)))
-            if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
-                resolved = mono_candidate
+            let type_resolve = mir_try_resolve_mono_by_type_key(ctx, clone(resolved), clone(mono_type_key), clone(mono_arg_type))
+            if len(type_resolve) > 0 {
+                resolved = type_resolve
                 mono_resolved_by_type = true
             } else {
-                let type_method = concat(clone(mono_type_key), concat(String_from("::"), clone(resolved)))
-                if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
-                    resolved = type_method
-                    mono_resolved_by_type = true
-                } else {
-                    if eq(clone(mono_type_key), String_from("string")) {
-                        let mono_candidate_string = mono::mono_safe_name(concat(clone(resolved), String_from("__String")))
-                        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
-                            resolved = mono_candidate_string
-                            mono_resolved_by_type = true
-                        }
+                // Memory64 int literals are i64 locals while mono keys stay i32
+                // (write_debug_to__i32). Retry i32 before falling to name rewrite.
+                if eq(clone(mono_type_key), String_from("i64")) {
+                    let i32_resolve = mir_try_resolve_mono_by_type_key(
+                        ctx,
+                        clone(resolved),
+                        String_from("i32"),
+                        String_from("i32")
+                    )
+                    if len(i32_resolve) > 0 {
+                        resolved = i32_resolve
+                        mono_resolved_by_type = true
                     }
                 }
             }
@@ -39,7 +46,7 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
         // Names with "::" (e.g. "Picker::echo") still need span-based and
         // name-based mono lookup for generic method calls.
         if !contains(clone(resolved), String_from("__")) || contains(clone(resolved), String_from("::")) {
-            let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start)
+            let mono_target = ctx_fn_mono::ctx_mono_lookup_call(ctx, span_start, clone(resolved))
             if len(mono_target) > 0 {
                 resolved = mono_target
             } else {
@@ -58,6 +65,22 @@ fn mir_resolve_mono_call_target(ctx: LowerCtx, rewritten: String, first_arg_idx:
     resolved
 }
 
+fn mono_vec_element_candidate(callee: String, mono_arg_type: String) -> String {
+    if !starts_with(clone(mono_arg_type), String_from("vec:")) {
+        return String_new()
+    }
+    let element_type = substring(mono_arg_type, 4, len(mono_arg_type))
+    if len(element_type) == 0 {
+        return String_new()
+    }
+    mono::mono_safe_name(
+        concat(
+            mir_strip_callee_module_prefix(callee),
+            concat(String_from("__"), element_type)
+        )
+    )
+}
+
 fn mir_strip_callee_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1
@@ -70,11 +93,81 @@ fn mir_strip_callee_module_prefix(name: String) -> String {
     clone(name)
 }
 
+fn mono_type_key_from_local_vt(ctx: LowerCtx, local_idx: i32) -> String {
+    let vt = ctx_api_local_types::ctx_local_vt(ctx, local_idx)
+    if vt == value_types::VT_I32() {
+        return String_from("i32")
+    }
+    if vt == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if vt == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    if vt == value_types::VT_V128() {
+        return String_from("v128")
+    }
+    String_new()
+}
+
+fn mir_try_resolve_mono_by_type_key(
+    ctx: LowerCtx,
+    resolved: String,
+    mono_type_key: String,
+    mono_arg_type: String
+) -> String {
+    let mono_candidate = mono::mono_safe_name(concat(clone(resolved), concat(String_from("__"), clone(mono_type_key))))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
+        return mono_candidate
+    }
+    let bare_candidate = mono::mono_safe_name(
+        concat(
+            mir_strip_callee_module_prefix(clone(resolved)),
+            concat(String_from("__"), clone(mono_type_key))
+        )
+    )
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(bare_candidate)) {
+        return bare_candidate
+    }
+    let vec_element_candidate = mono_vec_element_candidate(clone(resolved), clone(mono_arg_type))
+    if len(vec_element_candidate) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, clone(vec_element_candidate)) {
+        return vec_element_candidate
+    }
+    let method_leaf = mir_strip_callee_module_prefix(clone(resolved))
+    let type_method = concat(clone(mono_type_key), concat(String_from("::"), clone(method_leaf)))
+    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
+        return type_method
+    }
+    if eq(clone(mono_type_key), String_from("string")) {
+        let mono_candidate_string = mono::mono_safe_name(concat(clone(method_leaf), String_from("__String")))
+        if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
+            return mono_candidate_string
+        }
+    }
+    String_new()
+}
+
 fn normalize_mono_type_key(mono_arg_type: String) -> String {
     let mut mono_type_key = clone(mono_arg_type)
     // Nested containers: vec:vec:i32 → Vec<i32> (same as call_mono_by_type).
     if starts_with(clone(mono_arg_type), String_from("vec:")) {
         mono_type_key = call_mono_nested_vec_type_key(substring(mono_arg_type, 4, len(mono_arg_type)))
+    }
+    // struct:Person:8 → Person so eq resolves to Person::eq (#808 eq_trait_*).
+    if starts_with(clone(mono_type_key), String_from("struct:")) {
+        let rest = substring(clone(mono_type_key), 7, len(mono_type_key))
+        let rest_len = len(rest)
+        let mut cut = rest_len
+        let mut i = 0
+        while i < rest_len {
+            if char_at(rest, i) == 58 {
+                cut = i
+                i = rest_len
+            } else {
+                i = i + 1
+            }
+        }
+        mono_type_key = substring(rest, 0, cut)
     }
     if starts_with(clone(mono_type_key), String_from("Option:")) {
         mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))

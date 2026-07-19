@@ -82,7 +82,8 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         starts_with(clone(bind_type_name), String_from("result:")) ||
         starts_with(clone(bind_type_name), String_from("option:")) ||
         eq(clone(bind_type_name), String_from("string")) ||
-        eq(clone(bind_type_name), String_from("String")) {
+        eq(clone(bind_type_name), String_from("String")) ||
+        ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(bind_type_name)) {
             eff_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }

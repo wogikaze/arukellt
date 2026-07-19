@@ -39,9 +39,13 @@ fn mir_fn_index_source_fn_typed_index_at(source: MirLowerFnIndexSource, info_ind
     signature_fn::mir_signature_fn_typed_index_at(source.signature_source, info_index, fallback)
 }
 
+fn mir_fn_index_source_fn_qualified_name_at(source: MirLowerFnIndexSource, info_index: i32) -> String {
+    signature_fn::mir_signature_fn_qualified_name_at(source.signature_source, info_index, String_new())
+}
+
 fn mir_fn_index_source_typed_return_vt(source: MirLowerFnIndexSource, typed_index: i32) -> i32 {
     let type_source = source.type_source
-    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+    if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return return_types::mir_return_vt_from_typed_fn(tf)
     }
@@ -50,7 +54,7 @@ fn mir_fn_index_source_typed_return_vt(source: MirLowerFnIndexSource, typed_inde
 
 fn mir_fn_index_source_typed_return_type_name(source: MirLowerFnIndexSource, typed_index: i32) -> String {
     let type_source = source.type_source
-    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+    if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return return_types::mir_return_type_name_from_typed_fn(tf)
     }
@@ -59,7 +63,7 @@ fn mir_fn_index_source_typed_return_type_name(source: MirLowerFnIndexSource, typ
 
 fn mir_fn_index_source_typed_return_type(source: MirLowerFnIndexSource, typed_index: i32) -> TypeInfo {
     let type_source = source.type_source
-    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+    if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return typeinfo_shape::mir_typed_fn_return_type(tf)
     }
@@ -68,7 +72,7 @@ fn mir_fn_index_source_typed_return_type(source: MirLowerFnIndexSource, typed_in
 
 fn mir_fn_index_source_typed_param_count(source: MirLowerFnIndexSource, typed_index: i32) -> i32 {
     let type_source = source.type_source
-    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+    if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return len(tf.param_types)
     }
@@ -77,7 +81,7 @@ fn mir_fn_index_source_typed_param_count(source: MirLowerFnIndexSource, typed_in
 
 fn mir_fn_index_source_typed_param_type_at(source: MirLowerFnIndexSource, typed_index: i32, param_index: i32) -> TypeInfo {
     let type_source = source.type_source
-    if typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
+    if typed_index >= 0 && typed_index < type_source::mir_type_source_typed_fn_count(type_source) {
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return get_unchecked(tf.param_types, param_index)
     }

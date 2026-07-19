@@ -5,6 +5,10 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
     if found >= 0 {
         return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, found)
     }
+    let qualified = ctx_fn_index::ctx_qualified_fn_index_find(ctx, clone(name))
+    if qualified >= 0 {
+        return ctx_fn_index::ctx_qualified_fn_return_type_name_at(ctx, qualified)
+    }
     let base_name = mono_strip_suffix_for_lookup(clone(name))
     if !eq(clone(base_name), clone(name)) {
         let base_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(base_name))

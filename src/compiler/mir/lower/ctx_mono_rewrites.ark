@@ -6,13 +6,18 @@ fn ctx_mono_span_rewrite_start_at(ctx: LowerCtx, index: i32) -> i32 {
     get_unchecked(ctx.mono_call_starts, index)
 }
 
-fn ctx_mono_rewrite_target_at(ctx: LowerCtx, index: i32) -> String {
-    clone(get_unchecked(ctx.mono_call_targets, index))
+fn ctx_mono_span_rewrite_target_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.mono_call_span_targets, index))
 }
 
-fn ctx_mono_push_span_rewrite(ctx: LowerCtx, span_start: i32, target: String) {
+fn ctx_mono_span_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.mono_call_span_sources, index))
+}
+
+fn ctx_mono_push_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
     push(ctx.mono_call_starts, span_start)
-    push(ctx.mono_call_targets, target)
+    push(ctx.mono_call_span_sources, source)
+    push(ctx.mono_call_span_targets, target)
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
@@ -21,6 +26,10 @@ fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {
 
 fn ctx_mono_name_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
     clone(get_unchecked(ctx.mono_call_sources, index))
+}
+
+fn ctx_mono_name_rewrite_target_at(ctx: LowerCtx, index: i32) -> String {
+    clone(get_unchecked(ctx.mono_call_name_targets, index))
 }
 
 fn ctx_mono_name_rewrite_used_at(ctx: LowerCtx, index: i32) -> i32 {
@@ -33,6 +42,6 @@ fn ctx_mono_mark_name_rewrite_used(ctx: LowerCtx, index: i32) {
 
 fn ctx_mono_push_name_rewrite(ctx: LowerCtx, source: String, target: String) {
     push(ctx.mono_call_sources, source)
-    push(ctx.mono_call_targets, target)
+    push(ctx.mono_call_name_targets, target)
     push(ctx.mono_call_used, 0)
 }

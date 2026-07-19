@@ -14,7 +14,6 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
-    if eq(clone(decl_name), String_from("eq")) { return true }
     if eq(clone(decl_name), String_from("contains")) { return true }
     if eq(clone(decl_name), String_from("contains_string")) { return true }
     if eq(clone(decl_name), String_from("i32_to_u16")) { return true }

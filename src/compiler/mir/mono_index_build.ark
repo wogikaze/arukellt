@@ -8,13 +8,20 @@ fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
     let mut i = 0
     while i < count {
         let mi = get_unchecked(instances, i)
-        if !mono_index_instance_is_marker(mi) {
+        // Index concrete instances and markers. Markers alone used to be skipped,
+        // but concrete multi-param rows (pair_first__i32__String) must appear in
+        // fn_names so span/name rewrite registration and body emit agree.
+        // Skip duplicate mangled names (marker + concrete share one mangled).
+        if mono_instance_shape::mir_mono_instance_type_arg_count(mi) > 0 {
             let fn_name = mono_instance_shape::mir_mono_instance_fn_name(mi)
-            let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
-            if found_at >= 0 {
-                mono_index_types::mono_index_increment_name(idx, found_at, mono_instance_shape::mir_mono_instance_mangled_name(mi))
-            } else {
-                mono_index_types::mono_index_push_name(idx, fn_name, mono_instance_shape::mir_mono_instance_mangled_name(mi))
+            let mangled = mono_instance_shape::mir_mono_instance_mangled_name(mi)
+            if !mono_index_has_mangled(idx, clone(fn_name), clone(mangled)) {
+                let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
+                if found_at >= 0 {
+                    mono_index_types::mono_index_increment_name(idx, found_at, mangled)
+                } else {
+                    mono_index_types::mono_index_push_name(idx, fn_name, mangled)
+                }
             }
         }
         i = i + 1
@@ -22,6 +29,24 @@ fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
     idx
 }
 
-fn mono_index_instance_is_marker(mi: MonoInstance) -> bool {
-    mono_instance_shape::mir_mono_instance_is_marker(mi)
+fn mono_index_has_mangled(idx: MonoIndex, fn_name: String, mangled: String) -> bool {
+    let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
+    if found_at < 0 {
+        return false
+    }
+    let count = mono_index_types::mono_index_count_at(idx, found_at)
+    let mut name_start = 0
+    let mut i = 0
+    while i < found_at {
+        name_start = name_start + mono_index_types::mono_index_count_at(idx, i)
+        i = i + 1
+    }
+    let mut ordinal = 0
+    while ordinal < count {
+        if eq(mono_index_types::mono_index_mangled_at_offset(idx, name_start + ordinal), clone(mangled)) {
+            return true
+        }
+        ordinal = ordinal + 1
+    }
+    false
 }

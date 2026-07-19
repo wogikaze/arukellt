@@ -19,6 +19,18 @@ fn CoreHirModuleInfo_new(name: String, decl_start: i32, decl_count: i32) -> Core
     CoreHirModuleInfo { name: name, decl_start: decl_start, decl_count: decl_count }
 }
 
+fn CoreHirModuleInfo_name(info: CoreHirModuleInfo) -> String {
+    clone(info.name)
+}
+
+fn CoreHirModuleInfo_decl_start(info: CoreHirModuleInfo) -> i32 {
+    info.decl_start
+}
+
+fn CoreHirModuleInfo_decl_count(info: CoreHirModuleInfo) -> i32 {
+    info.decl_count
+}
+
 fn CoreHirResolvedCall_new(callee_name: String, is_method: bool, span_start: i32) -> CoreHirResolvedCall {
     CoreHirResolvedCall { callee_name: callee_name, is_method: is_method, span_start: span_start }
 }

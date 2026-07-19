@@ -161,7 +161,7 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     (eq(clone(bare_builtin), String_from("len")) || eq(clone(bare_builtin), String_from("char_at"))) {
         return bare_builtin
     }
-    let mono_target = ctx_mono_lookup_call(ctx, span_start)
+    let mono_target = ctx_mono_lookup_call(ctx, span_start, clone(callee_name))
     if len(mono_target) > 0 {
         return mono_target
     }

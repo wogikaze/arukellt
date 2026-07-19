@@ -10,7 +10,15 @@ use mir::lower::mono_view
 
 fn mir_prepare_lower_ctx(m: MirModule, fn_index_info: MirLowerFnIndex, mono_view: MirLowerMonoView, mir_tr: i32, wit_paths: Vec<String>, decls: Vec<AstNode>, target: String) -> LowerCtx {
     let mut ctx = ctx_api_init::LowerCtx_new_for_target(m, clone(target))
-    ctx_fn_mono::ctx_replace_fn_index(ctx, fn_index::mir_fn_index_names(fn_index_info), fn_index::mir_fn_index_return_vts(fn_index_info), fn_index::mir_fn_index_return_type_names(fn_index_info))
+    ctx_fn_mono::ctx_replace_fn_index(
+        ctx,
+        fn_index::mir_fn_index_names(fn_index_info),
+        fn_index::mir_fn_index_return_vts(fn_index_info),
+        fn_index::mir_fn_index_return_type_names(fn_index_info),
+        fn_index::mir_fn_index_qualified_names(fn_index_info),
+        fn_index::mir_fn_index_qualified_return_vts(fn_index_info),
+        fn_index::mir_fn_index_qualified_return_type_names(fn_index_info)
+    )
     mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     ctx_api_module::ctx_set_mono_instances(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     wit_ctx_init::mir_init_wit_bindings(ctx, wit_paths, decls)

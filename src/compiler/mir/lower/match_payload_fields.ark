@@ -10,6 +10,7 @@ use mir::lower::ctx_struct_layout
 use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_bind_gc_resolve
 use mir::lower::match_payload_field_type
+use mir::lower::ctx_struct_field_type
 use mir::value_types
 fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool) {
     let variant_name = ast_node::node_text(pat)
@@ -33,6 +34,28 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
     }
 }
 // Extract the concrete payload element type from the scrutinee type name.
+fn mir_payload_bind_type_is_weak(current_type: String, is_err: bool) -> bool {
+    if len(current_type) == 0 {
+        return true
+    }
+    if eq(clone(current_type), String_from("enum:open")) {
+        return true
+    }
+    if starts_with(clone(current_type), String_from("enum:")) {
+        return true
+    }
+    if match_payload_field_type::mir_payload_scalar_type_name(clone(current_type)) {
+        return true
+    }
+    if eq(clone(current_type), String_from("string")) || eq(clone(current_type), String_from("String")) {
+        return true
+    }
+    if is_err && eq(clone(current_type), String_from("string")) {
+        return true
+    }
+    false
+}
+
 fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> String {
     if is_some_or_ok {
         // Ok/Some payload is the first type parameter.
@@ -94,18 +117,15 @@ fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: 
         return
     }
     let current_type = ctx_get_local_type(ctx, bind_local)
-    // Override when type is empty, "enum:open", or contains an
-    // unresolved type variable (e.g. "enum:T" where T is a generic
-    // type parameter name, not a concrete type).
-    // Also override the "string" fallback set by
-    // set_gc_payload_bind_type_if_needed for Err variants, so that
-    // non-String Err payloads (e.g. AppError) get the correct type.
-    if !(len(current_type) == 0 || eq(current_type, String_from("enum:open")) || starts_with(current_type, String_from("enum:")) || (is_err && eq(current_type, String_from("string")))) {
-        return
-    }
     let scrut_type = ctx_get_local_type(ctx, scrut_idx)
     let elem_ty = mir_payload_elem_type_from_scrut(scrut_type, is_some_or_ok)
     if len(elem_ty) == 0 {
+        return
+    }
+    // Override empty / unresolved / stale scalar placeholders. Generic
+    // Option/Result lowering often leaves bind locals as "i32" or "string"
+    // before the scrutinee type (e.g. result:JsonValue:…) is known.
+    if !mir_payload_bind_type_is_weak(clone(current_type), is_err) {
         return
     }
     let mut set_type = mir_infer_payload_set_type(ctx, clone(elem_ty))
@@ -213,7 +233,8 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, field_idx: i3
         starts_with(clone(bind_type_name), String_from("result:")) ||
         starts_with(clone(bind_type_name), String_from("option:")) ||
         eq(clone(bind_type_name), String_from("string")) ||
-        eq(clone(bind_type_name), String_from("String")) {
+        eq(clone(bind_type_name), String_from("String")) ||
+        ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(bind_type_name)) {
             eff_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
