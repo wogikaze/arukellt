@@ -5,42 +5,14 @@
 
 use wasm::opcodes
 use wasm::ctx_scratch
-use wasm::ctx_record
-use wasm::emit_target
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
+use wasm::intrinsic_vec_set_gc_layout
 use wasm::intrinsics::helpers_numeric_i32_convert
-use mir::inst_accessors_operands
 use mir::inst_accessors_literals
-use mir::function_locals_view
-use mir::function_param_view
-use mir::local_access
-
-fn emit_vec_set_gc_save_value(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool) {
-    if is_vec_string {
-        let s_val = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_core::emit_leb128_u(w, s_val)
-    } else {
-        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-        writer_core::emit_leb128_u(w, s_val)
-    }
-}
-
-fn emit_vec_set_gc_load_value(w: WasmWriter, ctx: SelfEmitCtx, is_vec_string: bool) {
-    if is_vec_string {
-        let s_val = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, s_val)
-    } else {
-        let s_val = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, s_val)
-    }
-}
 
 fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     // GC Vec set
@@ -61,11 +33,13 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     let is_vec_string = vec_type == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
-    let array_type = vec_set_array_type(ctx, is_vec_string, is_vec_i64, is_vec_f64)
+    let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    let array_type = intrinsic_vec_set_gc_layout::vec_set_array_type(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
+    let s_val = intrinsic_vec_set_gc_layout::vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64, is_vec_sref)
 
     // Step 1: Save value, idx, vec_ref → scratches (do not drop vec).
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
-    writer_core::emit_leb128_u(w, vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64))
+    writer_core::emit_leb128_u(w, s_val)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_idx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -79,17 +53,17 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
 
     // Step 3: array.set data[idx] = value
-    // Memory64 keeps idx/i32 values as i64 locals; GC array.set wants true i32
-    // index (always) and true i32 element (for the i32-backed data array).
+    // Memory64 keeps idx as i64; GC array.set wants a true i32 index.
+    // i32-backed elements also need the value narrowed; ref/i64/f64 do not.
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_idx)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, vec_set_val_scratch(ctx, is_vec_string, is_vec_i64, is_vec_f64))
-    if !is_vec_string && !is_vec_i64 && !is_vec_f64 {
-        writer_gc::emit_gc_array_set_i32(w, array_type)
-    } else {
+    writer_core::emit_leb128_u(w, s_val)
+    if is_vec_sref || is_vec_string || is_vec_i64 || is_vec_f64 {
         writer_gc::emit_gc_array_set(w, array_type)
+    } else {
+        writer_gc::emit_gc_array_set_i32(w, array_type)
     }
 
     // Step 4: Return vec_ref only when the call result is consumed.
@@ -100,57 +74,4 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     writer_core::emit_leb128_u(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     return true
-}
-
-fn vec_set_array_type(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
-    if is_vec_string {
-        return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
-    }
-    if is_vec_i64 {
-        return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
-    }
-    if is_vec_f64 {
-        return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
-    }
-    ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
-}
-
-// Value scratch local matching the vec element type.
-fn vec_set_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_i64: bool, is_vec_f64: bool) -> i32 {
-    if is_vec_string {
-        return ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    }
-    if is_vec_i64 {
-        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
-    }
-    if is_vec_f64 {
-        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
-    }
-    ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-}
-
-fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if local_idx < 0 {
-        return false
-    }
-    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    if local_idx < function_locals_view::MirFunction_local_count(f) {
-        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
-            return true
-        }
-    }
-    // Fallback: check the function's parameter list.  Parameters are pushed
-    // to f.params with the correct type_name, but SSA renaming or other
-    // passes may leave f.locals with an empty type_name for the same index.
-    if local_idx < function_param_view::MirFunction_param_count(f) {
-        let param = function_param_view::MirFunction_param_at(f, local_idx)
-        let pname = local_access::MirLocal_type_name(param)
-        if eq(clone(pname), String_from("vec:String")) || eq(clone(pname), String_from("vec:string")) {
-            return true
-        }
-    }
-    false
 }

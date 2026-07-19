@@ -1,0 +1,56 @@
+// Name-based intrinsic fallback when a Call-kind core_op has no linked
+// impl symbol (clone/len DCE'd in large GC modules).
+
+use wasm::inst_store
+use wasm::intrinsic_string_basic
+
+fn try_emit_name_intrinsic_fallback(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if is_clone_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_len_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    false
+}
+
+fn is_clone_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("clone")) ||
+    eq(clone(callee), String_from("__intrinsic_clone")) ||
+    ends_with(clone(callee), String_from("::clone")) ||
+    ends_with(clone(callee), String_from("__clone"))
+}
+
+fn is_len_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("len")) ||
+    eq(clone(callee), String_from("len_bytes")) ||
+    eq(clone(callee), String_from("__intrinsic_len")) ||
+    ends_with(clone(callee), String_from("::len")) ||
+    ends_with(clone(callee), String_from("__len")) ||
+    ends_with(clone(callee), String_from("::len_bytes")) ||
+    ends_with(clone(callee), String_from("__len_bytes"))
+}
+
+fn finish_intrinsic_fallback(
+    w: WasmWriter,
+    inst: MirInst,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32,
+    result_on_stack: bool
+) -> bool {
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    true
+}

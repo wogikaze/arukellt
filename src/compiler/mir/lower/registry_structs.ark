@@ -16,10 +16,22 @@ fn mir_register_struct_layout(ctx: LowerCtx, decl: CoreHirLayoutDecl) {
         ctx_struct_storage::ctx_struct_push_field(ctx, layout_field::layout_field_name(field), layout_field::layout_field_type_name(field))
         fi = fi + 1
     }
-    if ctx_gc_struct::ctx_is_gc_target(ctx) {
+}
+
+// Second pass after every struct layout is pushed so nested fields (AstNode.span
+// → Span) resolve to gcsref even when the parent decl appears first.
+fn mir_register_struct_gc_types(ctx: LowerCtx) {
+    if !ctx_gc_struct::ctx_is_gc_target(ctx) {
+        return
+    }
+    let layout_count = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut li = 0
+    while li < layout_count {
+        let name = ctx_struct_storage::ctx_struct_layout_name_at(ctx, li)
+        let fc = ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
         if ctx_gc_struct::gc_struct_needs_named_type(ctx, clone(name), fc) {
-            let sig = ctx_gc_struct::gc_struct_build_sig(ctx, clone(name), fc)
-            ctx_gc_struct::ctx_register_gc_struct(ctx, clone(name), sig)
+            let _slot = ctx_gc_struct::ctx_ensure_gc_struct_registered(ctx, clone(name))
         }
+        li = li + 1
     }
 }

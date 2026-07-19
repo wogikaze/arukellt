@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
+use mir::lower::ctx_gc_struct_order
 use mir::lower::decl_source
 use mir::lower::entry_context
 use mir::lower::entry_decls
@@ -37,6 +38,9 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target)
     registry_view::mir_register_view_layouts(ctx, view)
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
+    // Nested struct fields register parents before children; reorder so gcsref
+    // type indices are never forward references in the Wasm type section.
+    ctx_gc_struct_order::ctx_reorder_gc_structs_deps_first(ctx)
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
     let t_after_decl = entry_timing::mir_lower_phase_now()

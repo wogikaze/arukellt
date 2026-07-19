@@ -1,6 +1,7 @@
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::opcodes
+use mir::value_types
 use wasm::constants
 
 fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> i32 {
@@ -52,9 +53,9 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
         return true
     }
     if is_direct_consumer_op(next_op) {
-        if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 >= 0 {
-            return false
-        }
+        // Do not force-SET before a CALL just because it has a first-arg
+        // local: char_at; char_at; ne relies on leaving both results on the
+        // stack. Discarded results are handled below via LOCAL_GET(other)+CALL.
         return true
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() || inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() {
@@ -67,6 +68,20 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
     if next_op == opcodes::MIR_LOCAL_GET() {
         if next_arg0 != inst_accessors_operands::MirInst_dest(inst) {
             if is_load_followed_by_consumer(next2_op) {
+                // Discarded GC/ref CALL results must not sit under the next
+                // call's local.get args (expect_token then skip_newlines).
+                // Scalar CALL results (len/len/ne, float_val/make_float_lit)
+                // stay on the stack for composition.
+                let cur = inst_accessors_shape::MirInst_op(inst)
+                if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
+                    if next2_op == opcodes::MIR_CALL() || next2_op == opcodes::MIR_WIT_CALL() || next2_op == opcodes::MIR_CALL_INDIRECT() {
+                        let vt = inst_accessors_shape::MirInst_val_type(inst)
+                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+                            return false
+                        }
+                        return true
+                    }
+                }
                 return true
             }
         }

@@ -1,11 +1,12 @@
 use mir::lower::ctx_api_emit
-use mir::lower::ctx_types
+use mir::lower::ctx_api_local_types
 use mir::inst_call
 use mir::lower::call_args
 use mir::lower::call_emit_dest
 use mir::lower::call_emit_staged
 use mir::lower::call_rewrite
 use mir::lower::call_types
+use mir::value_types
 
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
     if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
@@ -40,17 +41,21 @@ fn mir_emit_direct_call(
         return return_local
     }
     let callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
-    let dest = call_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
     call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+    let mut dest_vt = value_types::VT_VOID()
+    if dest >= 0 {
+        dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
+    }
     if stage_call_args {
-        call_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
+        call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
     }
     if first_arg_idx >= 0 && call_args::mir_is_printlike_callee(clone(callee_name)) {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg(clone(callee_name), arg_count, dest, first_arg_idx))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
     } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane(clone(callee_name), arg_count, dest, lane_immediate))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(clone(callee_name), arg_count, dest, lane_immediate, dest_vt))
     } else {
-        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(callee_name), arg_count, dest))
+        ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_val_type(clone(callee_name), arg_count, dest, dest_vt))
     }
     if dest < 0 {
         return 0 - 1

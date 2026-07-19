@@ -1,0 +1,157 @@
+use mir::lower::ctx_types
+
+// Nested ensure registers parents before children, so gcsref fields can point at
+// higher slots. Wasm type indices forbid those forward refs outside a rec group.
+// Reorder deps-first and rewrite gcsref slot numbers before flush.
+
+fn ctx_reorder_gc_structs_deps_first(ctx: LowerCtx) {
+    let count = len(ctx.gc_struct_names)
+    if count <= 1 {
+        return
+    }
+    let order = gc_struct_deps_first_order(ctx.gc_struct_sigs)
+    let mut remap = Vec_new_i32()
+    let mut ri = 0
+    while ri < count {
+        push(remap, 0)
+        ri = ri + 1
+    }
+    let mut new_i = 0
+    while new_i < count {
+        let old_i = get_unchecked(order, new_i)
+        set(remap, old_i, new_i)
+        new_i = new_i + 1
+    }
+    let mut new_names = Vec_new_String()
+    let mut new_sigs = Vec_new_String()
+    new_i = 0
+    while new_i < count {
+        let old_i = get_unchecked(order, new_i)
+        push(new_names, clone(get_unchecked(ctx.gc_struct_names, old_i)))
+        push(new_sigs, gc_struct_rewrite_gcsref_slots(clone(get_unchecked(ctx.gc_struct_sigs, old_i)), remap))
+        new_i = new_i + 1
+    }
+    ctx.gc_struct_names = new_names
+    ctx.gc_struct_sigs = new_sigs
+    let enum_count = len(ctx.gc_enum_variant_sigs)
+    let mut ei = 0
+    while ei < enum_count {
+        let rewritten = gc_struct_rewrite_gcsref_slots(clone(get_unchecked(ctx.gc_enum_variant_sigs, ei)), remap)
+        set(ctx.gc_enum_variant_sigs, ei, rewritten)
+        ei = ei + 1
+    }
+}
+
+fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
+    let count = len(sigs)
+    let mut placed = Vec_new_i32()
+    let mut pi = 0
+    while pi < count {
+        push(placed, 0)
+        pi = pi + 1
+    }
+    let mut order = Vec_new_i32()
+    while len(order) < count {
+        let mut progress = false
+        let mut i = 0
+        while i < count {
+            if get_unchecked(placed, i) == 0 {
+                if gc_struct_sig_deps_placed(clone(get_unchecked(sigs, i)), placed, i) {
+                    push(order, i)
+                    set(placed, i, 1)
+                    progress = true
+                }
+            }
+            i = i + 1
+        }
+        if !progress {
+            let mut rest = 0
+            while rest < count {
+                if get_unchecked(placed, rest) == 0 {
+                    push(order, rest)
+                    set(placed, rest, 1)
+                }
+                rest = rest + 1
+            }
+        }
+    }
+    order
+}
+
+fn gc_struct_sig_deps_placed(sig: String, placed: Vec<i32>, self_slot: i32) -> bool {
+    let n = len(sig)
+    let mut i = 0
+    while i + 6 <= n {
+        if gc_struct_at_gcsref_marker(clone(sig), i) {
+            let parsed = gc_struct_parse_gcsref_slot(clone(sig), i + 6)
+            let slot = get_unchecked(parsed, 0)
+            let end = get_unchecked(parsed, 1)
+            if end > i + 6 {
+                if slot != self_slot && slot >= 0 && slot < len(placed) {
+                    if get_unchecked(placed, slot) == 0 {
+                        return false
+                    }
+                }
+                i = end
+                continue
+            }
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
+    let n = len(sig)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        if i + 6 <= n && gc_struct_at_gcsref_marker(clone(sig), i) {
+            let parsed = gc_struct_parse_gcsref_slot(clone(sig), i + 6)
+            let slot = get_unchecked(parsed, 0)
+            let end = get_unchecked(parsed, 1)
+            if end > i + 6 && slot >= 0 && slot < len(remap) {
+                out = concat(out, concat(String_from("gcsref"), i32_to_string(get_unchecked(remap, slot))))
+                i = end
+                continue
+            }
+        }
+        out = concat(out, substring(clone(sig), i, i + 1))
+        i = i + 1
+    }
+    out
+}
+
+fn gc_struct_at_gcsref_marker(sig: String, i: i32) -> bool {
+    if i + 6 > len(sig) {
+        return false
+    }
+    eq(substring(clone(sig), i, i + 6), String_from("gcsref"))
+}
+
+// Returns [slot, end_index] after parsing digits at `start`.
+fn gc_struct_parse_gcsref_slot(sig: String, start: i32) -> Vec<i32> {
+    let n = len(sig)
+    let mut j = start
+    let mut slot = 0
+    let mut has_digit = false
+    while j < n {
+        let c = char_at(clone(sig), j)
+        if c >= 48 && c <= 57 {
+            slot = slot * 10 + (c - 48)
+            has_digit = true
+            j = j + 1
+        } else {
+            break
+        }
+    }
+    let mut out = Vec_new_i32()
+    if has_digit {
+        push(out, slot)
+        push(out, j)
+    } else {
+        push(out, 0 - 1)
+        push(out, start)
+    }
+    out
+}

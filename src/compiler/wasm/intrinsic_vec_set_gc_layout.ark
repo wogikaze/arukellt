@@ -19,8 +19,9 @@ fn vec_set_array_type(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_i64: bool, i
 }
 
 fn vec_set_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_i64: bool, is_vec_f64: bool, is_vec_sref: bool) -> i32 {
+    // Distinct from scratch_gc_vec_local (holds the Vec handle during set).
     if is_vec_sref {
-        return ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+        return ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
     }
     if is_vec_string {
         return ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)

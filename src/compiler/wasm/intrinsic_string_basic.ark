@@ -11,8 +11,12 @@ use wasm::string_gc_helpers
 use wasm::writer_core
 
 fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let _nop = 0
-    return true
+    // GC strings are immutable array refs: clone is identity (arg already
+    // on stack from the call's local.get). Linear-memory clone is the
+    // same handle copy. Keep the value for finish_text_call / store.
+    let _ctx = ctx
+    let _inst = inst
+    true
 }
 
 // Handler for: len

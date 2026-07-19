@@ -134,9 +134,18 @@ fn is_valid_mono_type_key(key: String) -> bool {
     eq(clone(key), String_from("string")) {
         return true
     }
+    // Nominal keys are PascalCase type names (Point). Reject snake_case
+    // tails from module__FnName exports (Token_float_val).
     if len(key) > 0 {
         let first = char_at(key, 0)
         if first >= 65 && first <= 90 {
+            let mut ki = 1
+            while ki < len(key) {
+                if char_at(key, ki) == 95 {
+                    return false
+                }
+                ki = ki + 1
+            }
             return true
         }
     }

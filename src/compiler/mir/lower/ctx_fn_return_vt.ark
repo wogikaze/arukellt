@@ -1,4 +1,5 @@
 use mir::lower::ctx_fn_index
+use mir::lower::ctx_fn_return_type
 use mir::lower::ctx_fn_return_vt_simd
 use mir::lower::ctx_gc_enum
 use mir::lower::mono_return_vt
@@ -49,6 +50,15 @@ fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
         let short_found = ctx_fn_index::ctx_fn_index_find(ctx, short)
         if short_found >= 0 {
             return ctx_fn_index::ctx_fn_index_return_vt_at(ctx, short_found)
+        }
+    }
+    // Same as ctx_fn_return_type_name: module__FnName export mangling.
+    let dunder_short = ctx_fn_return_type::short_name_after_last_dunder(clone(name))
+    if len(dunder_short) > 0 {
+        let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(dunder_short))
+        if dunder_found >= 0 {
+            let dunder_vt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, dunder_found)
+            return mono_return_vt::mono_return_vt(ctx, clone(name), dunder_vt)
         }
     }
     let bare_name = ctx_bare_builtin_name(name)

@@ -1,6 +1,7 @@
 use wasm::opcodes
 use wasm::writer_core
 use wasm::call_fallback_resolved
+use wasm::call_fallback_intrinsics
 use mir::inst_accessors_literals
 
 fn emit_fallback_call(
@@ -30,6 +31,18 @@ fn emit_fallback_call(
         next_arg1,
         next2_op,
         wit_import_count
+    ) {
+        return
+    }
+    if call_fallback_intrinsics::try_emit_name_intrinsic_fallback(
+        w,
+        callee,
+        inst,
+        ctx,
+        next_op,
+        next_arg0,
+        next_arg1,
+        next2_op
     ) {
         return
     }

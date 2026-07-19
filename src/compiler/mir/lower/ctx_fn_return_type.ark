@@ -33,7 +33,28 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, short_found)
         }
     }
+    // Export-style mangling: module_path__FnName (not a mono suffix).
+    let dunder_short = short_name_after_last_dunder(clone(name))
+    if len(dunder_short) > 0 {
+        let dunder_found = ctx_fn_index::ctx_fn_index_find(ctx, clone(dunder_short))
+        if dunder_found >= 0 {
+            return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, dunder_found)
+        }
+    }
     String_from("")
+}
+
+// Bare name after the last "__" (parser_token_state__Token_float_val → Token_float_val).
+fn short_name_after_last_dunder(name: String) -> String {
+    let name_len = len(name)
+    let mut i = name_len - 2
+    while i >= 0 {
+        if char_at(name, i) == 95 && char_at(name, i + 1) == 95 {
+            return substring(name, i + 2, name_len)
+        }
+        i = i - 1
+    }
+    String_new()
 }
 
 // Strip mono type suffix from a mangled function name for fn_index lookup.
@@ -60,8 +81,10 @@ fn mono_strip_suffix_for_lookup(name: String) -> String {
         }
         si = si + 1
     }
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(name, 0, first_sep)
+    // Module-qualified exports (parser_token_state__Token_float_val) are not
+    // mono suffixes — leave the name unchanged so callers can resolve the
+    // bare FnName via short_name_after_last_dunder.
+    name
 }
 
 fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
@@ -100,9 +123,18 @@ fn mono_type_key_looks_valid(key: String) -> bool {
     eq(clone(key), String_from("string")) {
         return true
     }
+    // Nominal mono keys are PascalCase type names (Point), not snake_case
+    // function tails (Token_float_val).
     if len(key) > 0 {
         let first = char_at(key, 0)
         if first >= 65 && first <= 90 {
+            let mut ki = 1
+            while ki < len(key) {
+                if char_at(key, ki) == 95 {
+                    return false
+                }
+                ki = ki + 1
+            }
             return true
         }
     }
