@@ -22,6 +22,42 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     push(ctx.gc_struct_names, struct_name)
     push(ctx.gc_struct_sigs, sig)
 }
+
+fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {
+    let count = len(ctx.gc_struct_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+            set(ctx.gc_struct_sigs, i, sig)
+            return
+        }
+        i = i + 1
+    }
+    push(ctx.gc_struct_names, struct_name)
+    push(ctx.gc_struct_sigs, sig)
+}
+
+// Ensure a nested struct field has a named GC slot before the parent sig is
+// sealed. Decl order can register AstNode before Span; without this the field
+// falls through to _ref14 (enum open) and struct.get fails validation.
+fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
+    let existing = ctx_gc_struct_slot(ctx, clone(struct_name))
+    if existing >= 0 {
+        return existing
+    }
+    if !ctx_struct_field_type::ctx_struct_layout_exists(ctx, clone(struct_name)) {
+        return 0 - 1
+    }
+    let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, clone(struct_name))
+    if field_count <= 0 || !gc_struct_needs_named_type(ctx, clone(struct_name), field_count) {
+        return 0 - 1
+    }
+    // Placeholder slot breaks cycles (A→B→A) while nested fields resolve.
+    ctx_register_gc_struct(ctx, clone(struct_name), String_from("GS"))
+    let sig = gc_struct_build_sig(ctx, clone(struct_name), field_count)
+    ctx_set_gc_struct_sig(ctx, clone(struct_name), sig)
+    ctx_gc_struct_slot(ctx, clone(struct_name))
+}
 fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
@@ -90,24 +126,11 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     if gc_struct_field_type_is_container(clone(type_name)) {
         return concat(prefix, gc_struct_container_ref_suffix(clone(type_name)))
     }
-    // Struct-typed field: resolve the correct GC type offset.
-    // If the referenced struct is a named GC struct (has ref/v128/f64/i64
-    // fields), use gcsref<slot> so the type section builder can resolve it.
-    // Otherwise (all-i32 fields), compute the generic struct type offset
-    // from byte_size so it matches what the emitter uses.
-    let struct_slot = ctx_gc_struct_slot(ctx, clone(type_name))
+    // Struct-typed field: ensure the nested layout has a named GC slot even
+    // when decl order registers the parent first (AstNode before Span).
+    let struct_slot = ctx_ensure_gc_struct_registered(ctx, clone(type_name))
     if struct_slot >= 0 {
         return concat(prefix, concat(String_from("_gcsref"), i32_to_string(struct_slot)))
-    }
-    // Check if it's a registered struct layout with only i32 fields
-    let byte_size = ctx_struct_size::ctx_struct_byte_size(ctx, clone(type_name))
-    if byte_size > 0 {
-        let field_count = (byte_size + 3) / 4
-        let mut offset = field_count + 1
-        if offset > 9 {
-            offset = 9
-        }
-        return concat(prefix, concat(String_from("_ref"), i32_to_string(offset)))
     }
     concat(prefix, String_from("_ref14"))
 }

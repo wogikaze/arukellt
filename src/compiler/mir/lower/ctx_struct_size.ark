@@ -1,5 +1,17 @@
 use mir::lower::ctx_struct_storage
 
+fn ctx_struct_layout_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    let mut si = 0
+    while si < sc {
+        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
+            return ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si)
+        }
+        si = si + 1
+    }
+    0
+}
+
 fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut offset = 0
