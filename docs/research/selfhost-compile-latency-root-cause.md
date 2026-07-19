@@ -1,4 +1,4 @@
-# Selfhost compile latency — root cause (2026-07-17)
+# Selfhost compile latency — root cause (2026-07-17, live addendum 2026-07-20)
 
 ステータス: 調査メモ（決定記録ではない）  
 関連: [#730](../../issues/open/730-bootstrap-wasm-4gb-memory-limit.md)、実装追跡 issue は open index を参照
@@ -109,9 +109,64 @@ AST cache は `AST cache disabled - needs heap investigation` として常にpar
 
 `build-compiler` は pinned→s2 の全compiler build。`fixpoint --build` はさらに s2→s3。並列 agent の runtime lock は破損防止に必要だが待ち時間が加算される。
 
+## Live profile (2026-07-20, WSL2, 12 cores / 23 GiB)
+
+Host wall times via `/usr/bin/time -v`. Compiler host:
+`.build/selfhost/arukellt-s2-runtime.cwasm` (AOT). Overlay warm cache hit.
+`--time` prints `0ms` for every phase on this artifact (clock stubbed in
+bootstrap overlay); `arukellt-s2-clock.wasm` fails wasmtime compile, so
+sub-phase ms is unavailable until keep-clock rebuild is fixed.
+
+### Scale (current tree)
+
+| Target | `.ark` | Lines | Bytes | `fn` | `use` | `clone(` |
+|---|---:|---:|---:|---:|---:|---:|
+| `src/compiler` | 1,923 | 118,043 | 4,593,559 | 10,814 | 8,505 | 7,264 |
+| `std` | 83 | 19,007 | 587,886 | 1,545 | 36 | 62 |
+
+### Host fixed costs (not the bottleneck)
+
+| Step | Wall | Peak RSS |
+|---|---:|---:|
+| `wasmtime --help` | ~0.005 s | — |
+| AOT ensure (s2-runtime hit) | ~0.000 s | — |
+| `prepare_bootstrap_workspace` (warm) | ~0.11 s | — |
+| source fingerprint | ~0.07 s | — |
+
+### Progressive stops (same host, flat overlay)
+
+| Probe | Wall | Peak RSS | Notes |
+|---|---:|---:|---|
+| `compile docs/examples/hello.ark` | **0.03 s** | 28 MiB | User-scale “build” is already sub-second |
+| `check src/compiler/main.ark` | **9.14 s** | 341 MiB | Frontend only; **~194k** `warning[` lines on stderr |
+| Stage-3 `compile` (fixpoint `--build`, s2 skip) | **~23.5 min** | **~2.4 GiB** and still climbing near end | `wasmtime` etime 23:27; then s3 failed validate (`func 1231` i32 vs ref) |
+
+RSS during the last ~6 minutes of that stage-3 run grew roughly linearly
+(~1.37 → 2.40 GiB). That matches bump-allocator accumulation in lower/emit,
+not frontend.
+
+### Command mapping (why “45s” and “several minutes” both appear)
+
+| Command | What it compiles | Emit target | Observed |
+|---|---|---|---|
+| `selfhost build-compiler` | pinned → s2 (stage-2 only) | `wasm32` / wasi-p1 | Historical local: **43–78 s** |
+| `selfhost fixpoint --build` (s2 fresh) | stage-2 **+** stage-3 | s2: wasm32; s3: `wasm32-gc` | Stage-2 floor + stage-3 **tens of minutes** |
+| `selfhost fixpoint --build` (s2 fingerprint hit) | stage-3 only | `wasm32-gc` | **~23.5 min** (this run) |
+
+So the 5–10 s intuition matches **small user programs**, not **self-compiling
+~11k functions**. Frontend (`check`) alone already consumes ~9 s; nearly all
+remaining wall is MIR lower / sync / propagate / wasm emit on the bump heap.
+
+### Instrumentation gaps (block accurate phase %)
+
+1. Overlay stubs `clock::monotonic_now` → `--time` and `lower.*` notes are `0ms`.
+2. `MIR_LOWER_TRACE=1` prints per-function lines (flood); unsuitable for full selfhost.
+3. Concurrent agent `fixpoint --build` / flat-src rebuilds inflate wall and race
+   overlay writes; profile receipts must note concurrent compile count.
+
 ## 文書と実態のずれ
 
-`docs/compiler/bootstrap.md` は warm overlay の `build-compiler` を約45〜50秒とする一方、#730 は stage-3 full compile を約10〜11分とする。pinned→s2 と current s2→s3 など条件が混在している。コマンド・artifact・target・AOT/cache・peak heap を同じ receipt に記録しない限り、性能回帰を正しく追えない。
+`docs/compiler/bootstrap.md` は warm overlay の `build-compiler` を約45〜50秒とする一方、#730 は stage-3 full compile を約10〜11分とする。2026-07-20 の stage-3 単独は約23.5分まで伸びた。pinned→s2 と current s2→s3 など条件が混在している。コマンド・artifact・target・AOT/cache・peak heap を同じ receipt に記録しない限り、性能回帰を正しく追えない。
 
 ## 優先順位
 
