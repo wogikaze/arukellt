@@ -23,7 +23,20 @@ This issue is the next theme: restore real `--time` receipts, identify the
 dominant phase, and remove that hotspot. It is **not** “implement #824 by
 default.”
 
-Research: [`docs/research/selfhost-compile-latency-root-cause.md`](../../docs/research/selfhost-compile-latency-root-cause.md).
+Research: [`docs/research/selfhost-compile-latency-root-cause.md`](../../docs/research/selfhost-compile-latency-root-cause.md).  
+Executable plan: [`docs/plans/selfhost-latency-phase-reprofile.md`](../../docs/plans/selfhost-latency-phase-reprofile.md).
+
+## Start gate (2026-07-20 probe)
+
+Do **not** start Works 2–5 until all are true:
+
+* `selfhost fixpoint --build` produces validating s2 **and** s3
+* Memory64 runner flags are the formal path
+* No concurrent selfhost compile / flat-src writers
+
+Probe same day: s2 / s2-runtime validate OK; **s3 missing**; another
+`fixpoint --build` was running; `arukellt-s2-clock.wasm` fails validate
+(`func 4697`: expected i64, found i32). Status: **BLOCKED** on start gate + Work 1.
 
 ## Sequence (do not skip)
 
