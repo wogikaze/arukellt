@@ -9,7 +9,10 @@ use corehir::mir_value_type
 use corehir::type_info_to_mir_value
 use corehir::core_op_id
 use corehir::param
+use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
+use mir::lower::mono_suffix_parse
+use mir::value_types
 
 fn sig_reg_register_fn(
     table: TypeTable,
@@ -83,6 +86,15 @@ fn sig_reg_register_method(
 }
 
 fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
+    sig_reg_params_from_fn_info_mono(sig_source, fn_info_index, table, String_new())
+}
+
+fn sig_reg_params_from_fn_info_mono(
+    sig_source: CoreHirMirSignatureSource,
+    fn_info_index: i32,
+    table: TypeTable,
+    mangled: String
+) -> Vec<MirValueType> {
     let result = Vec_new_MirValueType()
     if fn_info_index < 0 {
         return result
@@ -91,23 +103,95 @@ fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_in
     let mut pi = 0
     while pi < pc {
         let p = mir_signature_fn::mir_signature_fn_param_at(sig_source, fn_info_index, pi)
-        push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), param::param_type_name(p)))
-        pi = pi + 1
+        let mut type_name = param::param_type_name(p)
+        let local_name = param::param_local_type_name(p)
+        if len(local_name) > 0 {
+            type_name = local_name
+        }
+        if len(mangled) > 0 {
+            type_name = sig_reg_subst_mono_param_type_name(clone(type_name), clone(mangled))
+        }
+        let mut vt = param::param_value_type(p)
+        if starts_with(clone(type_name), String_from("vec:")) ||
+        starts_with(clone(type_name), String_from("option:")) ||
+        starts_with(clone(type_name), String_from("struct:")) {
+            vt = value_types::VT_GC_REF()
+        } else if !fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) &&
+            len(type_name) > 0 {
+                vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(type_name))
+            }
+            push(result, type_info_to_mir_value::vt_to_mir_value(table, vt, type_name))
+            pi = pi + 1
+        }
+        result
     }
-    result
-}
 
-fn sig_reg_params_from_method_info(sig_source: CoreHirMirSignatureSource, method_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
-    let result = Vec_new_MirValueType()
-    if method_info_index < 0 {
-        return result
+    fn sig_reg_subst_mono_param_type_name(type_name: String, mangled: String) -> String {
+        let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))
+        if len(suffix) == 0 {
+            return type_name
+        }
+        if starts_with(clone(type_name), String_from("vec:")) {
+            let elem = substring(clone(type_name), 4, len(type_name))
+            if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+                return type_name
+            }
+            let concrete = sig_reg_resolve_mono_type_key(clone(elem), clone(suffix))
+            if len(concrete) == 0 {
+                return type_name
+            }
+            return concat(String_from("vec:"), concrete)
+        }
+        if starts_with(clone(type_name), String_from("option:")) {
+            let elem = substring(clone(type_name), 7, len(type_name))
+            if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(elem)) {
+                return type_name
+            }
+            let concrete = sig_reg_resolve_mono_type_key(clone(elem), clone(suffix))
+            if len(concrete) == 0 {
+                return type_name
+            }
+            return concat(String_from("option:"), concrete)
+        }
+        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
+            let concrete = sig_reg_resolve_mono_type_key(clone(type_name), clone(suffix))
+            if len(concrete) > 0 {
+                return concrete
+            }
+        }
+        type_name
     }
-    let pc = mir_signature_method::mir_signature_method_param_count_at(sig_source, method_info_index, 0)
-    let mut pi = 0
-    while pi < pc {
-        let p = mir_signature_method::mir_signature_method_param_at(sig_source, method_info_index, pi)
-        push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), param::param_type_name(p)))
-        pi = pi + 1
+
+    fn sig_reg_resolve_mono_type_key(type_var: String, mono_suffix: String) -> String {
+        if starts_with(clone(mono_suffix), String_from("Vec")) {
+            return mono_suffix
+        }
+        let keys = mono_suffix_parse::split_mono_suffix(clone(mono_suffix))
+        let key_count = len(keys)
+        if key_count <= 0 {
+            return String_new()
+        }
+        if key_count == 1 {
+            return get_unchecked(keys, 0)
+        }
+        let idx = mono_suffix_parse::mono_type_var_to_index(clone(type_var))
+        if idx >= 0 && idx < key_count {
+            return get_unchecked(keys, idx)
+        }
+        get_unchecked(keys, 0)
     }
-    result
-}
+
+    fn sig_reg_params_from_method_info(sig_source: CoreHirMirSignatureSource, method_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
+        let result = Vec_new_MirValueType()
+        if method_info_index < 0 {
+            return result
+        }
+        let pc = mir_signature_method::mir_signature_method_param_count_at(sig_source, method_info_index, 0)
+        let mut pi = 0
+        while pi < pc {
+            let p = mir_signature_method::mir_signature_method_param_at(sig_source, method_info_index, pi)
+            push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), param::param_type_name(p)))
+            pi = pi + 1
+        }
+        result
+    }

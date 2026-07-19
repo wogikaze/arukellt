@@ -2,11 +2,13 @@ use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
+use corehir::type_contracts
 use corehir::type_info_to_mir_value
 use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
 use mir::lower::mono_instance_build
 use mir::lower::signature_registry_entry
+use mir::lower_kinds
 use mir::mono
 use corehir::core_op_id
 
@@ -56,14 +58,22 @@ fn sig_reg_register_mono_fn(
     mono_instances: Vec<MonoInstance>,
     decl_index: i32
 ) {
-    let params = signature_registry_entry::sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
+    let params = signature_registry_entry::sig_reg_params_from_fn_info_mono(
+        sig_source,
+        fn_info_index,
+        table,
+        clone(mangled)
+    )
     let returns = Vec_new_MirValueType()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
     let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-    // Concrete mono returns from mangled suffix when the generic return is T
-    // (avoids interned scalar placeholders for check_eq__Point etc.).
-    if len(return_type_name) == 0 ||
-    fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) {
+    // Only substitute mangled keys when the generic return is a type variable.
+    // Empty names also appear for concrete scalars (i32 → ""), and rewriting
+    // those from count_items__Vec_i32_ would incorrectly claim a Vec return.
+    let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
+    let return_is_type_var = type_contracts::TypeInfo_tag(generic_return_ty) == lower_kinds::TY_TYPE_VAR() ||
+    fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name))
+    if return_is_type_var {
         let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
             clone(mangled),
             clone(return_type_name)

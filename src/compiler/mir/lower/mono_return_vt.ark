@@ -17,14 +17,15 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
-        // Scalar spine VT often comes from a generic T default (i32) while the
-        // mangled name already names a GC struct (check_eq__Point). Prefer the
-        // mangled / fn_index type in that case.
-        let rtn = mono_return_type_name(ctx, clone(name), String_new())
-        if len(rtn) > 0 {
-            let mangled_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
-            if mangled_vt == value_types::VT_GC_REF() || mangled_vt == value_types::VT_REF() {
-                return mangled_vt
+        // When fn_index already knows a concrete nominal return (Point), prefer
+        // its VT over a scalar spine placeholder left from generic T.
+        let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
+        let rtn = mono_return_type_name(ctx, clone(name), base_rtn)
+        if len(rtn) > 0 &&
+        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(rtn)) {
+            let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
+            if resolved_vt == value_types::VT_GC_REF() || resolved_vt == value_types::VT_REF() {
+                return resolved_vt
             }
         }
         return table_vt
@@ -56,14 +57,13 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
         !starts_with(clone(fallback_name), String_from("?")) {
             return fallback_name
         }
-        let mut var_hint = clone(fallback_name)
-        if len(var_hint) == 0 {
-            var_hint = String_from("T")
-        }
-        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(var_hint)) {
+        // Only mangled-substitute when fn_index says the return is a type var.
+        // Empty names are also used for concrete i32/bool and must not become
+        // Vec_* / String from the mono suffix.
+        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) {
             let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
                 clone(name),
-                clone(var_hint)
+                clone(fallback_name)
             )
             if len(from_mangled) > 0 {
                 return from_mangled
