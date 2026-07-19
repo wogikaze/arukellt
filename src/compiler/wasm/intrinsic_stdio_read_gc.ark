@@ -3,6 +3,8 @@ use wasm::ctx_scratch
 use wasm::intrinsic_stdio_read_buffer
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
@@ -15,10 +17,11 @@ fn emit_gc_wasi_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV() + 4)
     helpers_numeric_i32::emit_i32_const(w, constants::FS_BUF_SIZE())
     helpers_memory::emit_i32_store_default(w)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
-    helpers_numeric_i32::emit_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_NREAD())
+    // WASI stdin.read keeps true i32 operands under Memory64.
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
+    helpers_io_const::emit_i32_const(w, 1)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_NREAD())
     helpers_core::emit_call(w, 4)
     helpers_core::emit_drop(w)
     intrinsic_stdio_read_buffer::emit_advance_stdin_buffer_or_break(w)
@@ -56,6 +59,8 @@ fn emit_gc_array_from_stdin_buffer(w: WasmWriter, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_arr)
     helpers_core::emit_local_get(w, s_i)
+    // array.set index stays true i32; Memory64 scratch locals are i64.
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_ptr)
     helpers_core::emit_local_get(w, s_i)
     helpers_numeric_i32::emit_i32_add(w)

@@ -1,5 +1,6 @@
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
@@ -59,8 +60,8 @@ fn emit_env_args_alloc_argv_buffer(w: WasmWriter, s_bufsize: i32, s_argv_buf: i3
 }
 
 fn emit_env_args_call_args_get(w: WasmWriter, s_argv: i32, s_argv_buf: i32) {
-    helpers_core::emit_local_get(w, s_argv)
-    helpers_core::emit_local_get(w, s_argv_buf)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv_buf)
     helpers_core::emit_call(w, 2)
     helpers_core::emit_drop(w)
 }

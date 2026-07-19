@@ -5,6 +5,7 @@ use wasm::writer_core
 use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::emit_target
@@ -47,16 +48,16 @@ fn emit_has_flag_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, s_flen)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGC())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGV_SIZE())
     helpers_core::emit_call(w, 1)
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, s_argc)
     emit_has_flag_alloc_argv(w, s_argc, s_argv, s_argv_buf, s_bufsize)
-    helpers_core::emit_local_get(w, s_argv)
-    helpers_core::emit_local_get(w, s_argv_buf)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv_buf)
     helpers_core::emit_call(w, 2)
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, 0)

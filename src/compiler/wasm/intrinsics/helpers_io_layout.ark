@@ -19,6 +19,19 @@ fn emit_scratch_addr_wasi(w: WasmWriter, offset: i32) {
     helpers_io_const::emit_i32_const(w, offset)
 }
 
+// Load a scratch i32 without Memory64 widen — for WASI i32 operands.
+fn emit_load_scratch_wasi_i32(w: WasmWriter, offset: i32) {
+    emit_scratch_addr(w, offset)
+    helpers_io_memory::emit_i32_load_default(w)
+}
+
+// Narrow a Memory64-widened local to a true i32 WASI operand.
+fn emit_wasi_i32_from_local(w: WasmWriter, local: i32) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, local)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+}
+
 fn emit_string_len_from_stack(w: WasmWriter) {
     // Stack top is a Memory64-widened heap pointer to the string bytes;
     // length lives in the i32 word immediately before that pointer.
