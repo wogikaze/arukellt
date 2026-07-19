@@ -6,11 +6,23 @@ use mir::block_inst_access
 use mir::opcodes
 use mir::value_types
 use mir::function_locals_view
+use mir::function_return_view
 use mir::local_access
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
+
+fn is_get_unchecked_callee_name(name: String) -> bool {
+    if eq(clone(name), "vec_get_unchecked") ||
+    eq(clone(name), "get_unchecked") ||
+    eq(clone(name), "__intrinsic_get_unchecked") {
+        return true
+    }
+    starts_with(clone(name), String_from("get_unchecked__")) ||
+    starts_with(clone(name), String_from("vec_get_unchecked__")) ||
+    starts_with(clone(name), String_from("__intrinsic_get_unchecked__"))
+}
 
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
     let mut first_variant_slot = 0 - 1
@@ -58,7 +70,17 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
     }
     if op == opcodes::MIR_CALL() {
-        let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, inst_record::mir_inst_str_val(inst))
+        let callee = inst_record::mir_inst_str_val(inst)
+        // get_unchecked from Vec<Struct> must not inherit a string-returning
+        // mono callee lookup; prefer the function return / registered struct.
+        if is_get_unchecked_callee_name(clone(callee)) {
+            let ret_name = function_return_view::MirFunction_return_type_name(f)
+            let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(ret_name))
+            if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return named
+            }
+        }
+        let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, clone(callee))
         if call_type >= 0 {
             return call_type
         }

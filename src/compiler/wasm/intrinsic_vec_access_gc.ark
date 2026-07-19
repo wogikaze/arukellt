@@ -6,6 +6,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
+use mir::function_return_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
@@ -19,9 +20,20 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     if starts_with(clone(struct_name), String_from("enum:")) {
         return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     }
-    let container = resolve_container_elem_gc_type(ctx, clone(struct_name))
+    // Accept "struct:Name:byte_size" / module::Name / bare Name.
+    let mut bare = strip_module_prefix_type_name(clone(struct_name))
+    if starts_with(clone(bare), String_from("struct:")) {
+        bare = parse_struct_name_from_encoding(clone(bare))
+    }
+    if len(bare) == 0 {
+        bare = clone(struct_name)
+    }
+    let container = resolve_container_elem_gc_type(ctx, clone(bare))
     if container >= 0 {
         return container
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(bare))
     }
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
@@ -31,7 +43,7 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let ev_count = len(ev_names)
     let mut ei = 0
-    let prefix = concat(clone(struct_name), String_from("::"))
+    let prefix = concat(clone(bare), String_from("::"))
     while ei < ev_count {
         let nm = clone(get_unchecked(ev_names, ei))
         if starts_with(clone(nm), clone(prefix)) {
@@ -42,11 +54,44 @@ fn resolve_concrete_struct_type(ctx: SelfEmitCtx, struct_name: String) -> i32 {
     // Look up byte_size from the current function's MIR_STRUCT_NEW instructions.
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    let byte_size = lookup_struct_byte_size_in_func(f, clone(struct_name))
+    let byte_size = lookup_struct_byte_size_in_func(f, clone(bare))
     if byte_size > 0 {
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
     }
     0 - 1
+}
+
+fn strip_module_prefix_type_name(type_name: String) -> String {
+    let n = len(type_name)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+            return substring(type_name, i + 2, n)
+        }
+        i = i - 1
+    }
+    type_name
+}
+
+// "struct:TypeName:byte_size" → TypeName
+fn parse_struct_name_from_encoding(type_name: String) -> String {
+    let n = len(type_name)
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(type_name, i) == 58 {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
+        return String_new()
+    }
+    substring(type_name, first_colon + 1, last_colon)
 }
 
 fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
@@ -142,6 +187,12 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
             let dest_tname = intrinsic_vec_type::local_type_name(ctx, dest)
             if len(dest_tname) > 0 {
                 elem_gc_type = resolve_concrete_struct_type(ctx, clone(dest_tname))
+                // Mis-typed dest locals (e.g. String) must not steal the cast;
+                // structref elems need the vec's element struct type.
+                if elem_gc_type == ctx_gc_type::SelfEmitCtx_string_type(ctx) ||
+                elem_gc_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+                    elem_gc_type = 0 - 1
+                }
             }
         }
         if elem_gc_type < 0 {
@@ -150,11 +201,38 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
                 elem_gc_type = resolve_concrete_struct_type(ctx, clone(elem_name))
             }
         }
+        // structref arrays never store String / i32-array elems; a poisoned
+        // vec:String type_name must not produce a string cast (or skip cast).
+        if elem_gc_type == ctx_gc_type::SelfEmitCtx_string_type(ctx) ||
+        elem_gc_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+            elem_gc_type = 0 - 1
+        }
+        if elem_gc_type < 0 {
+            elem_gc_type = resolve_get_unchecked_elem_from_func_return(ctx)
+        }
         if elem_gc_type >= 0 {
             writer_gc::emit_gc_ref_cast(w, elem_gc_type)
         }
     }
     return true
+}
+
+// When vec elem typing was poisoned (vec:String) but the array is structref,
+// the enclosing function return is often the concrete struct (wit_find).
+fn resolve_get_unchecked_elem_from_func_return(ctx: SelfEmitCtx) -> i32 {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let ret_name = function_return_view::MirFunction_return_type_name(f)
+    if len(ret_name) == 0 {
+        return 0 - 1
+    }
+    let resolved = resolve_concrete_struct_type(ctx, clone(ret_name))
+    if resolved >= 0 &&
+    resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+    resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+        return resolved
+    }
+    0 - 1
 }
 
 // Map a named GC struct to `_f1_gcsref<slot>` for Option::Some payloads.

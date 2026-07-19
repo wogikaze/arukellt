@@ -38,7 +38,10 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
-    if eq(clone(callee_name), "vec_get_unchecked") || eq(clone(callee_name), "get_unchecked") || eq(clone(callee_name), "__intrinsic_get_unchecked") {
+    if is_get_unchecked_callee(clone(callee_name)) {
+        // Prefer the vec argument's element type over a mono suffix
+        // (get_unchecked__String). Shared spans can attach the wrong
+        // specialization while the receiver is Vec<Struct> (wit_find).
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }
     if eq(clone(callee_name), "vec_get_unchecked_i64") {
@@ -54,11 +57,35 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     }
 }
 
+fn is_get_unchecked_callee(callee_name: String) -> bool {
+    if eq(clone(callee_name), "vec_get_unchecked") ||
+    eq(clone(callee_name), "get_unchecked") ||
+    eq(clone(callee_name), "__intrinsic_get_unchecked") {
+        return true
+    }
+    starts_with(clone(callee_name), String_from("get_unchecked__")) ||
+    starts_with(clone(callee_name), String_from("vec_get_unchecked__")) ||
+    starts_with(clone(callee_name), String_from("__intrinsic_get_unchecked__"))
+}
+
+fn strip_module_prefix_elem_name(elem_ty: String) -> String {
+    let n = len(elem_ty)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(elem_ty, i) == 58 && char_at(elem_ty, i + 1) == 58 {
+            return substring(elem_ty, i + 2, n)
+        }
+        i = i - 1
+    }
+    elem_ty
+}
+
 fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") {
-            let elem_ty = substring(vec_type, 4, len(vec_type))
+            let raw_elem = substring(vec_type, 4, len(vec_type))
+            let elem_ty = strip_module_prefix_elem_name(clone(raw_elem))
             // Normalize mono names: Vec_String → vec:String so emitter casts
             // structref elems to the string-vec GC type (#726 csv_perf).
             let mut set_ty = clone(elem_ty)

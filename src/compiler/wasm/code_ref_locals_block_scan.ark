@@ -52,6 +52,16 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     // over the actual producer (string/call); otherwise storage becomes the
     // enclosing variant and struct.set field stores fail to validate.
     let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
+    // Sticky String type_name from a wrong get_unchecked__String mono must not
+    // beat a structref-vec producer (wit_find_interface → WitParsedInterface).
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        let scanned_over_string = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
+        if scanned_over_string >= 0 &&
+        scanned_over_string != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+        scanned_over_string != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+            return scanned_over_string
+        }
+    }
     // 1. type_name → GcLayoutTable lookup, then string-prefix fallback.
     // Reject concrete enum-variant types unless this local is the STRUCT_NEW dest.
     if len(type_name) > 0 {

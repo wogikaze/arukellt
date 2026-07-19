@@ -53,12 +53,19 @@ fn propagate_from_producer_inst(m: MirModule, f: MirFunction, inst: MirInst, op:
         if propagate_call_variant_slot(m, callee, dst_variant_slot, dst_type_name, new_loc) {
             updated = true
         }
-        let mut ret_name = lookup_callee_return_type_name(m, callee)
-        if len(ret_name) == 0 {
-            if is_generic_clone_intrinsic(clone(callee)) {
-                ret_name = type_name_of_call_arg(f, inst)
-            } else {
-                ret_name = lookup_intrinsic_return_type_name(callee)
+        // get_unchecked dest type is set from the vec element's type during
+        // lowering. A wrong mono name (get_unchecked__String) would otherwise
+        // overwrite WitParsedInterface/etc. with string here.
+        let skip_ret_sync = is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0
+        let mut ret_name = String_new()
+        if !skip_ret_sync {
+            ret_name = lookup_callee_return_type_name(m, callee)
+            if len(ret_name) == 0 {
+                if is_generic_clone_intrinsic(clone(callee)) {
+                    ret_name = type_name_of_call_arg(f, inst)
+                } else {
+                    ret_name = lookup_intrinsic_return_type_name(callee)
+                }
             }
         }
         if len(ret_name) > 0 {
@@ -140,6 +147,17 @@ fn lookup_callee_return_variant_slot(m: MirModule, callee: String) -> i32 {
 
 fn is_generic_clone_intrinsic(name: String) -> bool {
     eq(name, "__intrinsic_clone")
+}
+
+fn is_get_unchecked_callee(name: String) -> bool {
+    if eq(clone(name), "vec_get_unchecked") ||
+    eq(clone(name), "get_unchecked") ||
+    eq(clone(name), "__intrinsic_get_unchecked") {
+        return true
+    }
+    starts_with(clone(name), String_from("get_unchecked__")) ||
+    starts_with(clone(name), String_from("vec_get_unchecked__")) ||
+    starts_with(clone(name), String_from("__intrinsic_get_unchecked__"))
 }
 
 fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {

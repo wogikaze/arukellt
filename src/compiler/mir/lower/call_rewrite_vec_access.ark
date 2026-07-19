@@ -39,7 +39,8 @@ fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i
     if len(mono_suffix) == 0 || contains(clone(mono_suffix), String_from("__")) {
         return receiver_type
     }
-    let inferred = concat(String_from("vec:"), mono_suffix)
-    ctx_api_local_types::ctx_set_local_type(ctx, first_arg_idx, clone(inferred))
-    inferred
+    // Infer only for rewrite decisions. Do not overwrite the receiver local:
+    // a wrong mono suffix (get_unchecked__String) would poison Vec<Struct>
+    // params as vec:String and break structref array.get casts (wit_find).
+    concat(String_from("vec:"), mono_suffix)
 }
