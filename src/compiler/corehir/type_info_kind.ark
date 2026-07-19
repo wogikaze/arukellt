@@ -35,3 +35,24 @@ fn type_info_display_name(ty: TypeInfo) -> String {
     }
     String_from("i32")
 }
+
+fn type_info_display_name_from_tag(tag: i32) -> String {
+    if tag == 1 { return String_from("i32") }
+    if tag == 2 { return String_from("i64") }
+    if tag == 3 { return String_from("f64") }
+    if tag == 9 { return String_from("f32") }
+    if tag == 4 { return String_from("bool") }
+    if tag == 6 { return String_from("char") }
+    if tag == 5 { return String_from("String") }
+    if tag == 7 { return String_from("()") }
+    if tag == 0 { return String_from("void") }
+    if tag == 10 { return String_from("Vec") }
+    if tag == 11 { return String_from("Option") }
+    if tag == 12 { return String_from("Result") }
+    if tag == 13 { return String_from("HashMap") }
+    if tag == 21 { return String_from("struct") }
+    if tag == 22 { return String_from("enum") }
+    if tag == 23 { return String_from("tuple") }
+    if tag == 30 { return String_from("typevar") }
+    concat(String_from("ty"), to_string(tag))
+}

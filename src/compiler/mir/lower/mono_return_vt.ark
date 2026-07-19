@@ -3,25 +3,32 @@
 // registers the variant with the base return type (i32 for T). This
 // module looks up the concrete return type from the MonoInstance.
 
-use mir::lower::return_typeinfo
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_return_type
-use mir::lower_kinds
+use mir::lower::fn_index_method_return_type
 use mir::module_spine
+use mir::value_types
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
-use mir::type_contracts
 
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
+        // Scalar spine VT often comes from a generic T default (i32) while the
+        // mangled name already names a GC struct (check_eq__Point). Prefer the
+        // mangled / fn_index type in that case.
+        let rtn = mono_return_type_name(ctx, clone(name), String_new())
+        if len(rtn) > 0 {
+            let mangled_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
+            if mangled_vt == value_types::VT_GC_REF() || mangled_vt == value_types::VT_REF() {
+                return mangled_vt
+            }
+        }
         return table_vt
     }
-    // Legacy path removed — spine lookup is the primary path.
-    // If spine lookup fails, return fallback_vt.
     fallback_vt
 }
 
@@ -39,17 +46,49 @@ fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
 }
 
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
+    // Nominal / type-var returns: prefer fn_index or mangled suffix over the
+    // mono spine. Generic T was often interned as a scalar placeholder (i32)
+    // when TypedFn TypeInfo could not be read safely, which then stole
+    // check_eq__Point → Point resolution and rewrote eq(p, ...) to i32::eq.
+    if !is_container_mono_return_type_name(clone(fallback_name)) {
+        if len(fallback_name) > 0 &&
+        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) &&
+        !starts_with(clone(fallback_name), String_from("?")) {
+            return fallback_name
+        }
+        let mut var_hint = clone(fallback_name)
+        if len(var_hint) == 0 {
+            var_hint = String_from("T")
+        }
+        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(var_hint)) {
+            let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+                clone(name),
+                clone(var_hint)
+            )
+            if len(from_mangled) > 0 {
+                return from_mangled
+            }
+        }
+    }
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
-    if len(spine_name) > 0 {
+    if is_concrete_mono_return_type_name(clone(spine_name)) {
         return spine_name
     }
-    // Legacy path removed — spine lookup is the primary path.
-    // If spine lookup fails, return fallback_name.
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
     }
     fallback_name
+}
+
+fn is_container_mono_return_type_name(type_name: String) -> bool {
+    starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result")) ||
+    starts_with(clone(type_name), String_from("hashmap:")) ||
+    starts_with(clone(type_name), String_from("HashMap"))
 }
 
 fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {

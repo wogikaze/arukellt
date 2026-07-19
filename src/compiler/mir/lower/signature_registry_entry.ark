@@ -1,29 +1,40 @@
 use corehir::kinds
 use corehir::function_id
 use corehir::mir_signature_method
+use corehir::mir_signature_fn
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_id
 use corehir::mir_value_type
 use corehir::type_info_to_mir_value
 use corehir::core_op_id
+use corehir::param
 use mir::lower::fn_index_source
 
 fn sig_reg_register_fn(
     table: TypeTable,
     registry: SignatureRegistry,
     source: MirLowerFnIndexSource,
-    _sig_source: CoreHirMirSignatureSource,
-    _fn_info_index: i32,
+    sig_source: CoreHirMirSignatureSource,
+    fn_info_index: i32,
     typed_index: i32,
     mangled: String,
     impl_id: i32,
     mono_id: i32,
     abi: i32
 ) {
-    let params = sig_reg_params_from_fn_info(source, typed_index, table)
-    let return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
-    let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
+    // CoreHir params/VT only — TypedFn.TypeInfo values are unsafe across the
+    // duplicate TypeInfo/TypedFn structs in the flat selfhost overlay.
+    let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
+    let returns = Vec_new_MirValueType()
+    push(
+        returns,
+        type_info_to_mir_value::vt_to_mir_value(
+            table,
+            fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index),
+            fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
+        )
+    )
     let receiver = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
@@ -71,16 +82,16 @@ fn sig_reg_register_method(
     signature_registry::signature_registry_register(registry, entry, mangled)
 }
 
-fn sig_reg_params_from_fn_info(source: MirLowerFnIndexSource, typed_index: i32, table: TypeTable) -> Vec<MirValueType> {
+fn sig_reg_params_from_fn_info(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
     let result = Vec_new_MirValueType()
-    if typed_index < 0 {
+    if fn_info_index < 0 {
         return result
     }
-    let pc = fn_index_source::mir_fn_index_source_typed_param_count(source, typed_index)
+    let pc = mir_signature_fn::mir_signature_fn_param_count_at(sig_source, fn_info_index, 0)
     let mut pi = 0
     while pi < pc {
-        let pty = fn_index_source::mir_fn_index_source_typed_param_type_at(source, typed_index, pi)
-        push(result, type_info_to_mir_value::type_info_to_mir_value(table, pty))
+        let p = mir_signature_fn::mir_signature_fn_param_at(sig_source, fn_info_index, pi)
+        push(result, type_info_to_mir_value::vt_to_mir_value(table, param::param_value_type(p), param::param_type_name(p)))
         pi = pi + 1
     }
     result

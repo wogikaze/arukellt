@@ -2,9 +2,8 @@ use corehir::kinds
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
-use corehir::type_contracts
 use corehir::type_info_to_mir_value
-use mir::lower::fn_index_mono
+use mir::lower::fn_index_method_return_type
 use mir::lower::fn_index_source
 use mir::lower::mono_instance_build
 use mir::lower::signature_registry_entry
@@ -25,12 +24,22 @@ fn sig_reg_index_mono_variants(
 ) {
     let mono_count = mono::mono_index_count(midx, clone(base_name))
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
-    let generic_return = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let mut mono_i = 0
     while mono_i < mono_count {
         let mono_name = mono::mono_index_mangled_at(midx, clone(base_name), mono_i)
         let safe_name = mono::mono_safe_name(mono_name)
-        sig_reg_register_mono_fn(table, registry, mono_table, source, sig_source, fn_info_index, typed_index, clone(safe_name), mono_instances, generic_return, decl_index)
+        sig_reg_register_mono_fn(
+            table,
+            registry,
+            mono_table,
+            source,
+            sig_source,
+            fn_info_index,
+            typed_index,
+            clone(safe_name),
+            mono_instances,
+            decl_index
+        )
         mono_i = mono_i + 1
     }
 }
@@ -45,17 +54,37 @@ fn sig_reg_register_mono_fn(
     typed_index: i32,
     mangled: String,
     mono_instances: Vec<MonoInstance>,
-    generic_return: TypeInfo,
     decl_index: i32
 ) {
-    let concrete = fn_index_mono::mir_mono_concrete_return_type(mono_instances, clone(mangled), generic_return)
-    let mut return_ty = generic_return
-    if type_contracts::TypeInfo_tag(concrete) != 0 {
-        return_ty = concrete
-    }
     let params = signature_registry_entry::sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
-    let returns = type_info_to_mir_value::mir_value_type_vec_single(table, return_ty)
-    let mono_id = mono_instance_build::mono_instance_table_register_from_instances(mono_table, table, mono_instances, clone(mangled), params, returns)
+    let returns = Vec_new_MirValueType()
+    let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
+    let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
+    // Concrete mono returns from mangled suffix when the generic return is T
+    // (avoids interned scalar placeholders for check_eq__Point etc.).
+    if len(return_type_name) == 0 ||
+    fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) {
+        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+            clone(mangled),
+            clone(return_type_name)
+        )
+        if len(concrete) > 0 {
+            return_type_name = concrete
+            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+        }
+    }
+    push(
+        returns,
+        type_info_to_mir_value::vt_to_mir_value(table, return_vt, return_type_name)
+    )
+    let mono_id = mono_instance_build::mono_instance_table_register_from_instances(
+        mono_table,
+        table,
+        mono_instances,
+        clone(mangled),
+        params,
+        returns
+    )
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 0, String_new())
     let entry = signature_entry::SignatureEntry_new(
         function_id::FunctionId_new(0),
@@ -89,7 +118,15 @@ fn sig_reg_index_method_mono(
     while mono_i < mono_count {
         let mono_name = mono::mono_index_mangled_at(midx, clone(mangled), mono_i)
         let safe_name = mono::mono_safe_name(mono_name)
-        signature_registry_entry::sig_reg_register_method(table, registry, source, sig_source, method_info_index, clone(safe_name), impl_decl_index)
+        signature_registry_entry::sig_reg_register_method(
+            table,
+            registry,
+            source,
+            sig_source,
+            method_info_index,
+            clone(safe_name),
+            impl_decl_index
+        )
         mono_i = mono_i + 1
     }
 }

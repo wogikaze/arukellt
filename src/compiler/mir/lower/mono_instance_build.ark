@@ -1,8 +1,10 @@
 use corehir::function_id
 use corehir::mir_value_type
-use corehir::type_info_to_type_id
 use corehir::type_table
+use corehir::kinds
+use mir::lower::fn_index_method_return_type
 use mir::lower::mono_instance_table
+use mir::lower::mono_suffix_parse
 use mir::mono_names
 use mir::type_contracts
 
@@ -20,16 +22,52 @@ fn mono_instance_table_register_from_instances(
     }
     let subst_names = Vec_new_String()
     let subst_ids = Vec_new_TypeId()
+    // Prefer mangled mono keys over MonoInstance TypeInfo args — those can
+    // carry invalid handles across the flat-overlay TypeInfo duplicate.
+    let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))
+    let keys = mono_suffix_parse::split_mono_suffix(clone(suffix))
     let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
     let mut ai = 0
     while ai < arg_count {
-        push(subst_names, mono_type_var_name_at(ai))
-        push(subst_ids, type_info_to_type_id::type_info_to_type_id(type_table, type_contracts::MonoInstance_type_arg_at(inst, ai)))
+        let mut var_name = mono_type_var_name_at(ai)
+        let mut type_name = clone(var_name)
+        if ai < len(keys) {
+            type_name = get_unchecked(keys, ai)
+        }
+        push(subst_names, clone(var_name))
+        let kind = mono_subst_kind_for_type_name(clone(type_name))
+        push(subst_ids, type_table::TypeTable_intern(type_table, kind, type_name, Vec_new_TypeId()))
         ai = ai + 1
     }
-    let entry = mono_instance_table::MonoInstanceEntry_new(clone(mangled), subst_names, subst_ids, param_types, return_types, function_id::FUNCTION_ID_INVALID(), function_id::FUNCTION_ID_INVALID())
+    let entry = mono_instance_table::MonoInstanceEntry_new(
+        clone(mangled),
+        subst_names,
+        subst_ids,
+        param_types,
+        return_types,
+        function_id::FUNCTION_ID_INVALID(),
+        function_id::FUNCTION_ID_INVALID()
+    )
     let mono_id = mono_instance_table::mono_instance_table_register(table, entry)
     mono_instance_table::MonoInstanceId_raw(mono_id)
+}
+
+fn mono_subst_kind_for_type_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("char")) {
+        return kinds::TYPE_KIND_PRIMITIVE()
+    }
+    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) {
+        return kinds::TYPE_KIND_PRIMITIVE()
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return kinds::TYPE_KIND_STRING()
+    }
+    if fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
+        return kinds::TYPE_KIND_TYPE_VAR()
+    }
+    kinds::TYPE_KIND_STRUCT()
 }
 
 fn mono_type_var_name_at(index: i32) -> String {

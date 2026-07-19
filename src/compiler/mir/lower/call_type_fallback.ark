@@ -209,7 +209,10 @@ fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if eq(clone(suffix), "f64") || eq(clone(suffix), "F64") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
+        return
     }
+    // User struct mono returns (check_eq__Point → Point).
+    mark_call_result_from_return_type_name(ctx, dest, suffix)
 }
 
 fn mono_suffix_is_single_type_key(suffix: String) -> bool {
