@@ -65,17 +65,27 @@ fn sig_reg_register_mono_fn(
     let returns = Vec_new_MirValueType()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
     let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-    // Substitute mangled keys only when the typed return name is an explicit
-    // type variable. Avoid TypedFn.TypeInfo tag reads (flat-overlay traps).
-    if fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) {
-        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
-            clone(mangled),
-            clone(return_type_name)
+    // Substitute mangled keys for type-var returns. Avoid TypedFn.TypeInfo tag
+    // reads (flat-overlay traps). Empty typed names are also used for bool/i32,
+    // so only float mangled keys are applied on the empty-name path
+    // (add_any__f64); Point/String recovery stays on fn_index_mono.
+    let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+        clone(mangled),
+        clone(return_type_name)
+    )
+    let apply_concrete = fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) ||
+    (
+        len(return_type_name) == 0 &&
+        (
+            eq(clone(concrete), String_from("f64")) ||
+            eq(clone(concrete), String_from("f32")) ||
+            eq(clone(concrete), String_from("F64")) ||
+            eq(clone(concrete), String_from("F32"))
         )
-        if len(concrete) > 0 {
-            return_type_name = concrete
-            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
-        }
+    )
+    if apply_concrete && len(concrete) > 0 {
+        return_type_name = concrete
+        return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
     }
     push(
         returns,

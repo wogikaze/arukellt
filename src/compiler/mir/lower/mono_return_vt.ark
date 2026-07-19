@@ -17,15 +17,32 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
-        // When fn_index already knows a concrete nominal return (Point), prefer
-        // its VT over a scalar spine placeholder left from generic T.
+        // Prefer concrete fn_index / mangled returns over spine placeholders
+        // left from generic T (add_any__f64 must not keep an i64 spine VT).
         let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
-        let rtn = mono_return_type_name(ctx, clone(name), base_rtn)
+        let mut rtn = mono_return_type_name(ctx, clone(name), base_rtn)
+        if len(rtn) == 0 {
+            let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+                clone(name),
+                String_from("T")
+            )
+            if is_concrete_mono_return_type_name(clone(from_mangled)) {
+                rtn = from_mangled
+            }
+        }
         if len(rtn) > 0 &&
         !fn_index_method_return_type::method_return_type_name_is_type_var(clone(rtn)) {
             let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
             if resolved_vt == value_types::VT_GC_REF() || resolved_vt == value_types::VT_REF() {
                 return resolved_vt
+            }
+            if resolved_vt != table_vt {
+                if resolved_vt == value_types::VT_F64() ||
+                resolved_vt == value_types::VT_F32() ||
+                resolved_vt == value_types::VT_I32() ||
+                resolved_vt == value_types::VT_I64() {
+                    return resolved_vt
+                }
             }
         }
         return table_vt
