@@ -1,204 +1,152 @@
-# Selfhost compile latency — root cause (2026-07-17, live addendum 2026-07-20)
+# Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20)
 
 ステータス: 調査メモ（決定記録ではない）  
-関連: [#730](../../issues/open/730-bootstrap-wasm-4gb-memory-limit.md)、実装追跡 issue は open index を参照
+関連:
 
-遅さの主因は Wasmtime の起動や構文解析ではない。次の三つが相互に増幅している。
+- [#730](../../issues/open/730-bootstrap-wasm-4gb-memory-limit.md) — Memory64 / fixpoint green（計測入口を含む）
+- [#823](../../issues/open/823-selfhost-compile-latency-quadratic-mir.md) — quadratic MIR P0 + reachability BFS（コード landed）
+- [#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md) — **次テーマ**: phase re-profile と dominant hotspot 除去
+- 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)、[#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/open/827-phase-arena-after-heap-model.md)
 
-1. 約1,900モジュール・約10,500関数をほぼ全体処理してから到達不能関数を削る。
-2. MIR同期と到達可能性解析に二乗級の配列再構築・線形探索がある。
-3. コンパイラ実行時の線形メモリが解放不能な bump allocator で、上記の一時配列・deep cloneがすべて累積する。
+## 方針（2026-07-20）
 
-このため、計算時間だけでなく必要ヒープも数GiB〜約10GiBへ膨張する。Memory64はクラッシュを回避するが、アルゴリズムと割り当て量を改善しないため、速度問題の解決にはならない。
+次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。  
+ただし順序は次で固定する。
 
-## 規模
+```text
+mem64 / fixpoint green
+  → KEEP_CLOCK 付き s2 が validate でき --time が実時間を出す
+  → 同一 artifact・同一 target で phase receipt
+  → 最大フェーズを1つ潰す
+```
+
+次マイルストーンの名称は **「#824 early body lowering」ではない**。  
+正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829）。  
+#824 は計測結果から選ばれる候補の一つに留める。
+
+### Acceptance を分ける
+
+| 段階 | 目標 | 備考 |
+|---|---|---|
+| Cold full selfhost（stage-3） | まず **5 分未満**、次に **2 分未満** | 11.8 万行の全コンパイル |
+| Incremental self-build（通常の編集反復） | 最終的に **5〜10 秒** | module cache 等が別段階 |
+| ユーザープログラム | すでに sub-second（hello ≈ 0.03 s） | 速度問題の主戦場ではない |
+
+**5〜10 秒を cold full selfhost の直近 acceptance にしてはいけない。**
+
+## #823 以降の事実（文書のずれ修正）
+
+次は **すでに実装済み**（#823 Progress）。二乗コピー仮説だけで現在の 23.5 分を説明してはならない。
+
+| 項目 | 状態 |
+|---|---|
+| `mir_function_set_local_at` / `set_param_at` in-place | landed |
+| `MirModule_set_function_at` in-place | landed |
+| 2 回目の full typed sync 削除（propagate 時に type_name sync） | landed |
+| reachability queue BFS + `FunctionId.raw → Mir index` | landed |
+| lower / pipeline の `--time` ラベル配線 | landed（**値が 0ms** — clock stub） |
+| `ARUKELLT_OVERLAY_KEEP_CLOCK=1` 生成物の validate | **未解決**（Memory64 clock intrinsic） |
+
+したがって研究メモの旧「P0 をやれ」節は履歴である。  
+現在の作業は **「P0 後も残るボトルネックを再測定し、最大フェーズを潰す」**。
+
+### #824 の期待値（上限の目安）
+
+Post-MIR prune（#823 A/B、同一 stubbed s2-runtime）:
+
+| 量 | before → after | 削減 |
+|---|---:|---:|
+| functions | 8748 → 7991 | ≈ **8.7%** |
+| blocks | 17496 → 15982 | ≈ **8.7%** |
+| instructions | 373771 → 358123 | ≈ **4.2%** |
+
+現行パイプラインは **prune 後** に sync・propagate・wasm emit を行う。  
+#824（early body lowering）が直接省けるのは、主に削除される ≈4% 命令を生成するまでの `decl_emit` と、その一時 allocation である。
+
+**`decl_emit` が壁時間の圧倒的多数と判明しない限り、23 分を数分へ落とす主役にはならない。**
+
+## 規模（2026-07-20）
 
 | 対象 | `.ark` | 行数 | バイト | 関数 | `use` | `clone(` |
-|---|---:|---:|---:|---:|---:|---:|
-| `src/compiler` | 1,914 | 114,137 | 4,453,393 | 10,645 | 8,345 | 6,803 |
-| bootstrap flat overlay | 1,889 | 112,611 | 4,996,939 | 10,472 | 8,229 | 6,791 |
-| `std` | 83 | 18,981 | 587,283 | 1,541 | 35 | 62 |
-
-pinned compilerは2,224,789 bytes。Wasmのメモリ節はmemory32、初期8,192 pages、すなわち512 MiB。
-
-## 実測
-
-### Wasmtime固定費
-
-| 条件 | wall | 最大RSS |
-|---|---:|---:|
-| cold JIT、`--help` | 約1.59 s | 約414 MiB |
-| Wasmtime cache hit | 約0.07 s | 約151 MiB |
-| AOT `.cwasm` 実行 | 約0.06 s | 同程度 |
-| AOT生成 | 約1.69 s | 約253 MiB |
-
-AOT化で短い反復は約25倍速くなる。ただし10分級のセルフコンパイルに占める割合は1%未満。
-
-### flat overlay
-
-| 条件 | wall | 最大RSS |
-|---|---:|---:|
-| cold再生成 | 約11.85 s | 約306 MiB |
-| disk cache hit | 約1.26 s | 約301 MiB |
-
-cold時には無視できないが、10分級の主因ではない。
-
-### frontendとcompile
-
-pinned compiler + flat overlay + AOTで測定。
-
-| 処理 | wall | 最大RSS | 備考 |
-|---|---:|---:|---|
-| entry単体 `parse` | 約0.05 s | 約131 MiB | import graph全体の測定ではない |
-| resolveで故意に停止 | 約1.34 s | 約224 MiB | module load + parse + resolveの近似 |
-| type errorで故意に停止 | 約3.54 s | 約319 MiB | typecheckまでの近似 |
-| full `check` | 3.92 s | 328,236 KiB | 3,772 warnings、326 KiB stderr |
-| raw pinned `compile` | 10.30 sでOOB | 644,552 KiB | 出力前にlinear-memory OOB |
-
-`check`の警告内訳はW0007=3,340、W0006=286、W0005=108、W0003=20、W0001=16、W0009=2。警告整形は余計な負荷だが、秒未満級であり主因ではない。
-
-最新のリポジトリ内記録 `issues/open/730-bootstrap-wasm-4gb-memory-limit.md` では、current s2によるstage-3について、typecheckまで約54秒、修正前lowerは10分以上timeout・RSS約0.7→10GB、prune-before-sync修正後もfull compileは約10〜11分と記録されている。これはpinned frontend測定と同一条件ではないが、遅延がcurrent compilerのlower/backendとメモリ挙動に集中していることを示す。
-
-## 原因1: MIR同期の二乗コピー
-
-`src/compiler/mir/typed_mir_sync_module.ark`:
-
-- 全関数を巡回し、各関数更新後に `MirModule_set_function_at`。
-- 全param・localについてsetterを呼ぶ。
-- param/local 1個の更新ごとにvector全体を新規作成・コピー。
-
-ローカル数をLとすると、1関数の同期は概ねΘ(L²)個の要素移動と新規vector生成になる。
-
-さらに `src/compiler/mir/module_functions.ark` では、関数1個を更新するごとに全関数vectorを再構築する。関数数をFとすると、module-levelにもΘ(F²)の要素移動が発生する。
-
-`src/compiler/mir/lower/ctx_api_module.ark` では、
-
-1. 全value type同期
-2. type propagation
-3. 全value type再同期
-
-を行う。propagation自身も各関数更新時に全関数vectorを再構築するため、module vectorの全再構築は少なくとも3系列ある。
-
-`src/compiler/mir/lower/entry.ark` には「sync/propagate is O(locals²) per function」と明記され、#730修正では同期前にpruneするよう変更された。これはハングを解消したが、到達不能関数を含むCoreHIRからMIR関数を生成する前半コストは残る。
-
-## 原因2: 到達可能性解析が全体固定点 × 線形名前検索
-
-（旧）`reachability_entry` は変化がなくなるまで全体walkを反復し、`reachability_names` は call targetごとに全関数を文字列比較していた。
-
-（2026-07-17 / #823 P1）queue BFS + 明示 `FunctionId.raw → Mir index`（`reachability_index.ark`）へ置換。CALL/REF_FUNC は `func_id_raw` 優先、未解決時のみ名前 / normal-call fallback。`--time` で fns/blocks/insts before/after を出力。legacy fixpoint は `MIR_REACHABILITY_LEGACY_FIXPOINT=1`。
-
-同一 stubbed s2-runtime・full selfhost A/B: BFS wall 124 s vs legacy 134 s（Δ −10 s）、RSS ほぼ同値、prune 結果一致（8748→7991）。phase ms は clock stub で 0ms。`ARUKELLT_OVERLAY_KEEP_CLOCK=1` は Memory64 clock intrinsic の `expected i64, found i32` validate 失敗で未解決。**decl_emit が壁時間の主因とはまだ断定しない**。phase ms 取得後に #824 vs sync/propagate/emit を再判定する。
-
-## 原因3: type propagationの反復走査
-
-`post_pass_type_propagate` は各関数について最大8回、全block・全instructionを固定点走査する。この処理の前後に二乗同期があり、「更新→vector再構築→再同期」の組み合わせが重い。
-
-## 原因4: 解放しないbump allocatorがコピーを累積
-
-#730 では、global 0をheap pointerとして単調増加し、解放しないことが根本原因として明記されている。二乗アルゴリズムとbump allocatorは独立原因ではなく、同じ一時データを「大量に作る」「一度も回収しない」という増幅関係にある。
-
-## 原因5: 全体処理が早すぎ、pruneが遅すぎる
-
-function index構築・全decl emitの後で初めてpruneする。prune-before-syncにより最悪の同期は避けたが、全関数のMIR生成自体は先に行われる。stage-2 overlay は prune を意図的に無効化する経路があり、`build-compiler` は全グラフ処理を避けにくい。
-
-## 原因6: incremental/cacheが実質無効
-
-AST cache は `AST cache disabled - needs heap investigation` として常にparseしている。`--cache-dir` は効かない。fixpoint の content-hash cache は「sourceが全く変わっていない場合にビルドを丸ごとスキップ」するだけで、module単位incrementalではない。
-
-## 原因7: workflow上の倍率
-
-`build-compiler` は pinned→s2 の全compiler build。`fixpoint --build` はさらに s2→s3。並列 agent の runtime lock は破損防止に必要だが待ち時間が加算される。
-
-## Live profile (2026-07-20, WSL2, 12 cores / 23 GiB)
-
-Host wall times via `/usr/bin/time -v`. Compiler host:
-`.build/selfhost/arukellt-s2-runtime.cwasm` (AOT). Overlay warm cache hit.
-`--time` prints `0ms` for every phase on this artifact (clock stubbed in
-bootstrap overlay); `arukellt-s2-clock.wasm` fails wasmtime compile, so
-sub-phase ms is unavailable until keep-clock rebuild is fixed.
-
-### Scale (current tree)
-
-| Target | `.ark` | Lines | Bytes | `fn` | `use` | `clone(` |
 |---|---:|---:|---:|---:|---:|---:|
 | `src/compiler` | 1,923 | 118,043 | 4,593,559 | 10,814 | 8,505 | 7,264 |
 | `std` | 83 | 19,007 | 587,886 | 1,545 | 36 | 62 |
 
-### Host fixed costs (not the bottleneck)
+（2026-07-17 時点の表は履歴。上表を現行とする。）
 
-| Step | Wall | Peak RSS |
-|---|---:|---:|
-| `wasmtime --help` | ~0.005 s | — |
-| AOT ensure (s2-runtime hit) | ~0.000 s | — |
-| `prepare_bootstrap_workspace` (warm) | ~0.11 s | — |
-| source fingerprint | ~0.07 s | — |
+## Live profile (2026-07-20, WSL2, 12 cores / 23 GiB)
 
-### Progressive stops (same host, flat overlay)
+Host wall via `/usr/bin/time -v`。Host:
+`.build/selfhost/arukellt-s2-runtime.cwasm`（AOT）。Overlay warm。
+
+`--time` は全 phase `0ms`（clock stub）。`arukellt-s2-clock.wasm` は wasmtime compile 失敗。
 
 | Probe | Wall | Peak RSS | Notes |
 |---|---:|---:|---|
-| `compile docs/examples/hello.ark` | **0.03 s** | 28 MiB | User-scale “build” is already sub-second |
-| `check src/compiler/main.ark` | **9.14 s** | 341 MiB | Frontend only; **~194k** `warning[` lines on stderr |
-| Stage-3 `compile` (fixpoint `--build`, s2 skip) | **~23.5 min** | **~2.4 GiB** and still climbing near end | `wasmtime` etime 23:27; then s3 failed validate (`func 1231` i32 vs ref) |
+| `compile docs/examples/hello.ark` | **0.03 s** | 28 MiB | ユーザー規模は sub-second |
+| `check src/compiler/main.ark` | **9.14 s** | 341 MiB | frontend; stderr に ~194k `warning[` |
+| Stage-3（fixpoint、s2 fingerprint hit） | **~23.5 min** | **~2.4 GiB**（終盤も増加） | etime 23:27; その後 s3 validate 失敗 |
 
-RSS during the last ~6 minutes of that stage-3 run grew roughly linearly
-(~1.37 → 2.40 GiB). That matches bump-allocator accumulation in lower/emit,
-not frontend.
+Stage-3 終盤 6 分で RSS ≈ 1.37 → 2.40 GiB（線形増加）。時間の大半は frontend ではなく lower/backend + bump 蓄積側。
 
-### Command mapping (why “45s” and “several minutes” both appear)
+| Command | Pipeline | Observed |
+|---|---|---|
+| `selfhost build-compiler` | pinned → s2（`wasm32`） | 歴史的 **43–78 s** |
+| `fixpoint --build`（s2 hit） | s2-runtime → s3（`wasm32-gc`） | **~23.5 min**（本計測） |
 
-| Command | What it compiles | Emit target | Observed |
-|---|---|---|---|
-| `selfhost build-compiler` | pinned → s2 (stage-2 only) | `wasm32` / wasi-p1 | Historical local: **43–78 s** |
-| `selfhost fixpoint --build` (s2 fresh) | stage-2 **+** stage-3 | s2: wasm32; s3: `wasm32-gc` | Stage-2 floor + stage-3 **tens of minutes** |
-| `selfhost fixpoint --build` (s2 fingerprint hit) | stage-3 only | `wasm32-gc` | **~23.5 min** (this run) |
+### 次に取るべき receipt（同一 artifact・同一 target）
 
-So the 5–10 s intuition matches **small user programs**, not **self-compiling
-~11k functions**. Frontend (`check`) alone already consumes ~9 s; nearly all
-remaining wall is MIR lower / sync / propagate / wasm emit on the bump heap.
+壁時間:
 
-### Instrumentation gaps (block accurate phase %)
+`frontend / lower.decl_emit / reachability / sync / propagate / mir_opt / mir_verify / wasm emit`
 
-1. Overlay stubs `clock::monotonic_now` → `--time` and `lower.*` notes are `0ms`.
-2. `MIR_LOWER_TRACE=1` prints per-function lines (flood); unsuitable for full selfhost.
-3. Concurrent agent `fixpoint --build` / flat-src rebuilds inflate wall and race
-   overlay writes; profile receipts must note concurrent compile count.
+可能なら **各境界で RSS** も取る（最終 RSS だけでは「遅いフェーズ」と「メモリを積んだフェーズ」が一致しない）。
 
-## 文書と実態のずれ
+結果ごとの次手:
 
-`docs/compiler/bootstrap.md` は warm overlay の `build-compiler` を約45〜50秒とする一方、#730 は stage-3 full compile を約10〜11分とする。2026-07-20 の stage-3 単独は約23.5分まで伸びた。pinned→s2 と current s2→s3 など条件が混在している。コマンド・artifact・target・AOT/cache・peak heap を同じ receipt に記録しない限り、性能回帰を正しく追えない。
+| 最大フェーズ | 次手 |
+|---|---|
+| `decl_emit` | #824 |
+| `propagate` | 8 回固定点走査・stack producer 探索の修正 |
+| `wasm emit` | section/function 単位の再構築・clone・名前検索監査 |
+| 複数フェーズで RSS だけ増 | #826 clone/intern |
+| `mir_opt` / `mir_verify` | それぞれ別 issue |
 
-## 優先順位
+## 歴史的原因メモ（#823 以前の仮説）
 
-### P0: 直接原因を除去
+以下は 2026-07-17 調査時点の構造説明。P0/P1 適用後も壁が残ることは 2026-07-20 で確認済み。  
+**未修正のまま残っている記述を「現在の主因」と読んではいけない。**
 
-1. `mir_function_set_local_at` / `mir_function_set_param_at` を in-place update にする。
-2. `MirModule_set_function_at` を in-place update にする。
-3. 2回のtyped syncを融合・差分化する。
-4. phase内計測を追加する（`lower-decl-emit` / `reachability` / `sync1` / `propagate` / `sync2` / `verify` / `wasm-emit`）。
+1. **（旧）MIR sync の二乗コピー** — in-place 化で緩和済み。残コストは再計測が必要。
+2. **（旧）reachability 全体固定点** — queue BFS 化済み（≈ −10 s / 134 s）。
+3. **type propagation の反復走査** — 各関数最大 8 回。まだ候補。
+4. **bump allocator** — 未回収。Memory64 は OOM 回避のみ。
+5. **全体 MIR 化が prune より先** — #824 候補。ただし削減幅は上表のとおり限定的。
+6. **incremental/cache 無効** — cold と編集反復は別マイルストーン。
+7. **workflow 倍率** — `fixpoint --build` = s2+s3。並列 agent は flat-src 競合と壁時間悪化。
 
-### P1: 全体処理を避ける
+### 旧 frontend / Wasmtime 固定費（2026-07-17、pinned）
 
-1. CoreHIR/typed graphで到達可能集合を作り、未到達関数をMIR化しない → **#824**（設計）。
-2. reachabilityをFnId/index + queue-based traversalへ → **#823 に landed**。
-3. AST cache format repair → **#825**（再有効化ではない; 計測後に優先度）。
-4. 長期: module単位キャッシュと依存invalidate。
+| 条件 | wall | 最大 RSS |
+|---|---:|---:|
+| Wasmtime cold `--help` | ≈ 1.59 s | ≈ 414 MiB |
+| AOT `.cwasm` | ≈ 0.06 s | — |
+| flat overlay cold / hit | ≈ 11.85 s / ≈ 1.26 s | ≈ 300 MiB |
+| pinned `check` | ≈ 3.92 s | ≈ 320 MiB |
 
-### P2: 割り当て量を下げる
+AOT/overlay は秒〜十数秒級。十〜二十分級 stage-3 の主因ではない。
 
-1. identifier/path/literal の intern → **#826**。
-2. deep `clone` 監査 → **#826**。
-3. phase arena → **#827**（ADR-002 / #730 の lifetime・所有権が決まるまで試作禁止）。
-4. self-build時のwarning抑制（効果は小さい）。
+## マイルストーン（#829）
 
-### P3: 固定費と運用
+1. mem64 / `selfhost fixpoint --build` を green にする（#730 / #813）
+2. `ARUKELLT_OVERLAY_KEEP_CLOCK=1` で生成した s2 が `wasm-tools validate` に通り、`--time` が実時間を出す（#730 完了条件に含める）
+3. 23.5 分級 workload の **phase receipt** を確定する（壁 + 境界 RSS）
+4. 最大フェーズを半減させる（候補は計測後に選ぶ。既定で #824 にしない）
+5. stage-3 cold をまず **5 分未満**、その後 **2 分未満**
+6. （別段階）module cache 等で通常の編集反復を数秒へ
 
-1. `.cwasm` 常時利用。
-2. overlay の mtime manifest 判定。
-3. routine iteration は stage-2 を1回共有。
+## 計測ギャップ
 
-## 期待できる効果
-
-- AOT / overlay cache / warning抑制: 秒〜十数秒級。10分buildの主因ではない。
-- in-place MIR update + sync差分化: 二乗コピーと未回収vectorを同時に除去するため最大の改善候補。
-- early reachability / phase arena: CPU・MIRメモリ・emit全体と4GiB/10GiB問題の根治側。
+1. Overlay が `clock::monotonic_now` を stub → `--time` が 0ms
+2. `MIR_LOWER_TRACE=1` は関数ごと出力で selfhost には不適
+3. 並列 `fixpoint --build` は receipt を汚染する（同時コンパイル数を記録すること）

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-18T15:42:04Z",
+  "generated_at": "2026-07-19T19:50:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1519,11 +1519,12 @@
       ],
       "blocks_issue_ids": [
         "823",
-        "827"
+        "827",
+        "829"
       ],
       "acceptance": {
         "checked": 1,
-        "unchecked": 3
+        "unchecked": 5
       },
       "orchestration": {
         "class": "architecture-investigation",
@@ -1590,7 +1591,6 @@
         "730"
       ],
       "blocks_issue_ids": [
-        "824",
         "825",
         "826",
         "827"
@@ -1601,6 +1601,27 @@
       },
       "orchestration": {
         "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "829",
+      "path": "829-selfhost-latency-phase-reprofile-hotspot.md",
+      "title": "Selfhost latency: phase re-profile and dominant-hotspot removal",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [
+        "824"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
         "upstream_notes": null
       }
     },
@@ -1626,25 +1647,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
-    },
-    {
-      "id": "824",
-      "path": "824-early-body-lowering-worklist.md",
-      "title": "Early body lowering (worklist; design first)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design",
-        "upstream_notes": null
       }
     },
     {
@@ -1702,6 +1704,25 @@
       },
       "orchestration": {
         "class": "architecture-investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "824",
+      "path": "824-early-body-lowering-worklist.md",
+      "title": "Early body lowering (worklist; design first)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "829"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design",
         "upstream_notes": null
       }
     },

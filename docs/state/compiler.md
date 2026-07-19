@@ -61,7 +61,11 @@ MIR に永続化済み。残作業は #724。
 emitter / Memory64 / T3 作業で s2 を更新するときは
 `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、~50s）。
 `selfhost fixpoint --build` は ADR-029 ゲート用（s2+s3）であり、日常の再ビルドには使わない。
-詳細は [`../compiler/bootstrap.md`](../compiler/bootstrap.md) の “Which command?”。
+stage-3 単独でも現状は数十分かかり得る（2026-07-20 ≈ 23.5 min）。速度改善の次テーマは
+[#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md)
+（phase re-profile → dominant hotspot。既定で #824 ではない）。
+詳細は [`../compiler/bootstrap.md`](../compiler/bootstrap.md) の “Which command?” と
+[`../research/selfhost-compile-latency-root-cause.md`](../research/selfhost-compile-latency-root-cause.md)。
 
 信頼ベースは pinned selfhost wasm。Rust CLI フォールバックは廃止（#583）。
 

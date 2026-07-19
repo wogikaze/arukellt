@@ -1,12 +1,12 @@
 ---
 Status: open
 Created: 2026-07-17
-Updated: 2026-07-17
+Updated: 2026-07-20
 ID: 824
-Parent: 823
+Parent: 829
 Track: selfhost-infra
-Depends on: "823"
-Related: "#730, #823, docs/research/selfhost-compile-latency-root-cause.md"
+Depends on: "829"
+Related: "#730, #823, #829, docs/research/selfhost-compile-latency-root-cause.md"
 Orchestration class: design
 Blocks v4 exit: False
 ---
@@ -16,10 +16,19 @@ Blocks v4 exit: False
 ## Summary
 
 Post-MIR prune (#823) still runs after every body is lowered
-(`fns before≈8748 after≈7991`, ~8.7% omitted). Early body lowering would skip
-MIR body emit for FunctionIds never reached from roots. **Implementation is
-blocked** until #823 has real phase-ms evidence that `decl_emit` dominates wall
-time (KEEP_CLOCK / clock intrinsic validate is currently broken).
+(`fns before≈8748 after≈7991`, ~8.7% omitted; blocks ~8.7%; insts ~4.2%).
+Early body lowering would skip MIR body emit for FunctionIds never reached from
+roots.
+
+**This is a candidate under [#829](829-selfhost-latency-phase-reprofile-hotspot.md),
+not the default next theme.** Sync / propagate / wasm emit already run on the
+pruned graph, so #824 mainly saves omitted-body `decl_emit` (+ temps). It will
+not alone turn ~23 min stage-3 into a few minutes unless `decl_emit` dominates
+the phase receipt.
+
+**Implementation is blocked** until #829 has real phase-ms evidence that
+`decl_emit` dominates wall time (KEEP_CLOCK / clock intrinsic validate is
+currently broken under #730).
 
 ## Design (acceptance for this issue = design lock + no premature impl)
 
@@ -70,7 +79,7 @@ Register all signatures / FunctionIds / layouts / types
     keep-all so overlay completeness does not regress.
 11. **Separate state from MIR prune map.** `FunctionId → body-lowered?` is not
     the post-MIR `FunctionId → Mir index` map.
-12. **Measurement gate.** Land code only after #823 phase-ms receipt shows
+12. **Measurement gate.** Land code only after #829 phase-ms receipt shows
     `decl_emit` (or equivalent body-lower time) as the dominant share; then
     re-run wall / RSS / fns/blocks/insts before→after.
 
@@ -87,17 +96,18 @@ Register all signatures / FunctionIds / layouts / types
 - [ ] Implementation plan lists root seeding, deterministic order, mono/closure
       rules, fallback edges, keep-reason counters, prune safety net,
       prune-disabled + stage-2 overlay keep-all behavior
-- [ ] Implementation starts only after #823 phase-ms re-judge selects decl_emit
+- [ ] Implementation starts only after #829 phase-ms re-judge selects decl_emit
 - [ ] `python3 scripts/manager.py verify quick` + selfhost build-compiler smoke
       when code lands
 
 ## Evidence / parent receipt
 
 See #823 A/B: BFS wall 124 s vs legacy 134 s on stubbed s2-runtime; prune
-8748→7991 with matching block/inst deltas; phase ms still 0ms (KEEP_CLOCK
-blocked). No decl_emit majority claim yet.
+8748→7991 / blocks 17496→15982 / insts 373771→358123; phase ms still 0ms
+(KEEP_CLOCK blocked). No decl_emit majority claim yet. Umbrella: #829.
 
 ## References
 
+- `issues/open/829-selfhost-latency-phase-reprofile-hotspot.md`
 - `issues/open/823-selfhost-compile-latency-quadratic-mir.md`
-- `docs/research/selfhost-compile-latency-root-cause.md` (原因5 / P1.1)
+- `docs/research/selfhost-compile-latency-root-cause.md`

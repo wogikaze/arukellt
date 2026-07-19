@@ -1,11 +1,11 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-17
+Updated: 2026-07-20
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
-Related: "#727, #686, #823"
+Related: "#727, #686, #823, #829"
 Orchestration class: architecture-investigation
 Blocks v4 exit: True
 ---
@@ -111,10 +111,20 @@ Binary patches help slightly but do not remove the 4GB ceiling.
 - [ ] `verify quick` passes (0 failures)
 - [ ] Pinned wasm can be refreshed with current source
 - [x] Stage-3 no longer hangs in MIR lower after typecheck (`471661a3`)
+- [ ] `ARUKELLT_OVERLAY_KEEP_CLOCK=1` produces a compiler wasm that
+      `wasm-tools validate` accepts (Memory64 / GC clock intrinsic ABI fixed)
+- [ ] That clock-capable artifact prints non-zero `--time` / `lower.*` phase ms on
+      a short smoke and on full selfhost (latency entry for [#829](829-selfhost-latency-phase-reprofile-hotspot.md))
+
+KEEP_CLOCK is part of Memory64 completion, not a optional latency nicety: without
+real clocks, post-#823 hotspot selection is guesswork.
 
 ## Next (remaining for close)
 
 1. Stabilize stage-3 runtime path in `scripts/selfhost/checks.py` (convert-only 8GiB
    vs `--to-memory64`) and avoid flat-src races during fixpoint.
 2. Clear remaining `verify quick` failures (validate `func 10/11`, docs regenerate).
-3. Refresh pinned bootstrap once fixpoint is green.
+3. Fix KEEP_CLOCK / clock intrinsic lowering so validate + `--time` work.
+4. Refresh pinned bootstrap once fixpoint is green.
+5. Hand off to [#829](829-selfhost-latency-phase-reprofile-hotspot.md) for phase
+   re-profile (do not start #824 from this issue).

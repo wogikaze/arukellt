@@ -1,11 +1,11 @@
 ---
 Status: open
 Created: 2026-07-17
-Updated: 2026-07-17
+Updated: 2026-07-20
 ID: 823
 Track: selfhost-infra
 Depends on: "730"
-Related: "#730, #824, #825, #826, #827"
+Related: "#730, #824, #825, #826, #827, #829"
 Orchestration class: implementation
 Blocks v4 exit: False
 ---
@@ -14,10 +14,16 @@ Blocks v4 exit: False
 
 ## Summary
 
-Selfhost full compile latency is dominated by MIR sync/propagate and
-reachability that rebuild `Vec` on every element update, amplified by the
-bump allocator (no free). Memory64 avoids OOM but does not fix wall time.
+Selfhost full compile latency was hypothesized to be dominated by MIR
+sync/propagate and reachability that rebuild `Vec` on every element update,
+amplified by the bump allocator (no free). Memory64 avoids OOM but does not
+fix wall time.
 Research: [`docs/research/selfhost-compile-latency-root-cause.md`](../../docs/research/selfhost-compile-latency-root-cause.md).
+
+**2026-07-20 status:** P0 in-place updates, typed-sync fuse, and P1 queue-BFS
+are **landed**. Stage-3 can still take ~23.5 min with those fixes, so remaining
+work is **not** “finish P0” — it is phase re-profile under [#829](829-selfhost-latency-phase-reprofile-hotspot.md)
+after KEEP_CLOCK works (#730).
 
 ## Acceptance
 
@@ -127,5 +133,10 @@ Known facts only:
 3. Remaining wall could still be sync, propagate, emit, or decl_emit — unknown
    until KEEP_CLOCK / clock-intrinsic validate is fixed and real phase ms exist.
 
-Next: fix Memory64 clock intrinsic lowering (or equivalent timer ABI), re-run
-`--time`, then choose #824 vs sync/propagate/emit from actual ms shares.
+Next: finish KEEP_CLOCK under #730, then continue under **#829** (phase
+re-profile + dominant hotspot). Do **not** treat remaining wall as proof that
+P0 was insufficiently applied, and do **not** start #824 until a receipt shows
+`decl_emit` dominance (prune savings are only ~8.7% fns / ~4.2% insts).
+
+Close criteria for #823 itself: P0/P1 code + A/B receipt + reachability gate
+green; KEEP_CLOCK / stage-3 minute-scale work tracks #730 / #829.
