@@ -436,19 +436,59 @@ def _find_wasmtime() -> str | None:
     return shutil.which("wasmtime")
 
 
+def _wasm_tools_is_bytecodealliance(tool: str) -> bool:
+    """True when ``tool`` is the bytecodealliance CLI (supports ``validate``).
+
+    Login shells often put ``~/.local/bin`` ahead of ``~/.cargo/bin``. A
+    different Python ``wasm-tools`` objdump utility can then shadow the real
+    validator and make ``validate --features ...`` fail with "unrecognized
+    arguments", which must not be treated as an invalid module.
+    """
+    try:
+        result = subprocess.run(
+            [tool, "validate", "--help"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    help_text = (result.stdout or "") + (result.stderr or "")
+    return result.returncode == 0 and "--features" in help_text
+
+
 def _find_wasm_tools() -> str | None:
-    """Return path to ``wasm-tools`` binary or None."""
-    return shutil.which("wasm-tools")
+    """Return path to bytecodealliance ``wasm-tools``, or None."""
+    candidates: list[str] = []
+    cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
+    if cargo.is_file():
+        candidates.append(str(cargo))
+    which = shutil.which("wasm-tools")
+    if which and which not in candidates:
+        candidates.append(which)
+    path_env = os.environ.get("PATH", "")
+    for entry in path_env.split(os.pathsep):
+        if not entry:
+            continue
+        candidate = str(Path(entry) / "wasm-tools")
+        if candidate not in candidates and Path(candidate).is_file():
+            candidates.append(candidate)
+    for candidate in candidates:
+        if _wasm_tools_is_bytecodealliance(candidate):
+            return candidate
+    return None
 
 
 def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
     """Validate a wasm binary with ``wasm-tools validate``.
 
     Returns ``(exit_code, error_message)``.  exit_code 0 means valid.
+    exit_code 2 means the validator tool is unavailable / unusable.
     """
     tool = _find_wasm_tools()
     if tool is None:
-        return 2, "wasm-tools not found in PATH"
+        return 2, "bytecodealliance wasm-tools not found in PATH"
     try:
         abs_path = wasm_path.resolve()
         result = _run(
@@ -460,6 +500,9 @@ def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
         return 3, f"wasm-tools validate crashed: {exc}"
     if result.returncode != 0:
         msg = (result.stderr or result.stdout or "").strip()[-800:]
+        # Wrong shadow binary or too-old CLI: do not treat as module invalid.
+        if "unrecognized arguments" in msg or "invalid choice" in msg:
+            return 2, msg
         return 1, msg
     return 0, ""
 
@@ -467,8 +510,9 @@ def _wasm_tools_validate(wasm_path: Path) -> tuple[int, str]:
 def _reject_invalid_compiler_wasm(wasm_path: Path) -> str:
     """Validate a compiler wasm; delete it and return an error if invalid.
 
-    ``wasm-tools`` missing (exit 2) is treated as skip — CI images that lack
-    the tool should not hard-fail bootstrap. Translation traps such as
+    ``wasm-tools`` missing / unusable (exit 2) is treated as skip — CI images
+    that lack the tool, or login PATH shadows with a different ``wasm-tools``,
+    must not delete shared runtime artifacts. Translation traps such as
     ``expected i32, found i64`` in Memory64 GC modules are exit 1 and must
     never remain as selectable ``arukellt-s3.wasm`` / runtime artifacts.
     """
