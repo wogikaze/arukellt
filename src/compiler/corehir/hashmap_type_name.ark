@@ -1,0 +1,19 @@
+// HashMap type-name aliases shared by CoreHir annotation shaping and
+// MirValueType encoding. Kept free of TypeInfo/TypeTable so type_ann_* can
+// call it without pulling the typed-spine overlay into annotation lowering.
+
+fn hashmap_type_alias(k_name: String, v_name: String) -> String {
+    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("i32")) {
+        return String_from("si32")
+    }
+    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("String")) {
+        return String_from("i32str")
+    }
+    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("String")) {
+        return String_from("strstr")
+    }
+    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("i32")) {
+        return String_from("i32i32")
+    }
+    concat(concat(k_name, String_from(":")), v_name)
+}

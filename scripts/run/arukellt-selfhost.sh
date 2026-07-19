@@ -20,6 +20,15 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
+# Match scripts/selfhost/checks.py WASMTIME_SELFHOST_WASM_FLAGS so Memory64
+# s2-runtime modules can grow past the wasm32 4GiB ceiling.
+WASMTIME_SELFHOST_FLAGS=(
+  --wasm gc
+  --wasm function-references
+  -W memory64=y
+  -W max-memory-size=17179869184
+)
+
 is_truthy() {
   case "${1:-}" in
     1|true|TRUE|True|yes|YES|on|ON) return 0 ;;
@@ -107,7 +116,7 @@ if [[ "${1:-}" == "run" ]]; then
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
-  wasmtime run --wasm gc --wasm function-references -W memory64=y --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then
@@ -128,7 +137,7 @@ if [[ "${1:-}" == "run" ]]; then
   if grep -aqE 'arukellt_host|wasi:' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
-  exec wasmtime run --wasm gc --wasm function-references -W memory64=y --dir="$REPO_ROOT" "$out_path"
+  exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
 
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
@@ -143,7 +152,7 @@ if [[ "${1:-}" == "compose" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run --wasm gc --wasm function-references -W memory64=y --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
     cat "$tmpdir/stdout"
@@ -192,7 +201,7 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
-    exec wasmtime run --wasm gc --wasm function-references -W memory64=y --dir="$REPO_ROOT" "$wasm" -- "$@"
+    exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
   DEBUG_ADAPTER="$REPO_ROOT/target/release/arukellt-debug-adapter"
   if [[ ! -x "$DEBUG_ADAPTER" ]]; then
@@ -204,4 +213,4 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   fi
 fi
 
-exec wasmtime run --wasm gc --wasm function-references -W memory64=y --dir="$REPO_ROOT" "$wasm" -- "$@"
+exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"

@@ -6,6 +6,7 @@ use corehir::type_info_kind
 use corehir::type_info_to_type_id
 use corehir::type_table
 use corehir::value_types
+use corehir::hashmap_type_name
 
 fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
     let type_id = type_info_to_type_id::type_info_to_type_id(table, ty)
@@ -210,7 +211,7 @@ fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
         if len(k_name) == 0 || len(v_name) == 0 {
             return String_new()
         }
-        return concat(String_from("hashmap:"), hashmap_type_alias(k_name, v_name))
+        return concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
     }
     name
 }
@@ -226,22 +227,6 @@ fn type_params_are_concrete(table: TypeTable, entry: TypeEntry, depth: i32) -> b
         ai = ai + 1
     }
     true
-}
-
-fn hashmap_type_alias(k_name: String, v_name: String) -> String {
-    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("i32")) {
-        return String_from("si32")
-    }
-    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("String")) {
-        return String_from("i32str")
-    }
-    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("String")) {
-        return String_from("strstr")
-    }
-    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("i32")) {
-        return String_from("i32i32")
-    }
-    concat(concat(k_name, String_from(":")), v_name)
 }
 
 fn string_contains_char(s: String, c: i32) -> bool {
