@@ -122,21 +122,26 @@ fn emit_gc_i31_get_s(w: WasmWriter) {
     helpers_numeric_i32_convert::emit_widen_i32_result(w)
 }
 
+fn emit_gc_heap_type_idx(w: WasmWriter, type_idx: i32) {
+    // Heap types use signed LEB128 so indices >= 64 are not read as negatives.
+    writer_core::emit_leb128_s(w, type_idx)
+}
+
 fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-    writer_core::emit_leb128_u(w, type_idx)
+    emit_gc_heap_type_idx(w, type_idx)
 }
 
 fn emit_gc_ref_test(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_REF_TEST())
-    writer_core::emit_leb128_u(w, type_idx)
+    emit_gc_heap_type_idx(w, type_idx)
 }
 
 fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
-    writer_core::emit_leb128_u(w, type_idx)
+    emit_gc_heap_type_idx(w, type_idx)
 }
 
 fn emit_gc_ref_as_non_null(w: WasmWriter) {

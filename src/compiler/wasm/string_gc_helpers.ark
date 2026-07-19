@@ -106,7 +106,8 @@ fn emit_gc_array_set(w: WasmWriter, type_idx: i32) {
 
 fn emit_gc_ref_null(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
-    writer_core::emit_leb128_u(w, type_idx)
+    // Heap types use signed LEB128 (typeidx >= 64 must not be a single 0x40..0x7f byte).
+    writer_core::emit_leb128_s(w, type_idx)
 }
 
 fn emit_gc_if_void(w: WasmWriter) {
@@ -125,7 +126,7 @@ fn emit_gc_end(w: WasmWriter) {
 fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
     writer_core::emit_byte(w, opcodes::GC_PREFIX())
     writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
-    writer_core::emit_leb128_u(w, type_idx)
+    writer_core::emit_leb128_s(w, type_idx)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
