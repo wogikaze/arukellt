@@ -6962,6 +6962,10 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         h.check_pass("selfhost fixpoint reached")
     elif res.skipped:
         h.check_skip(f"selfhost fixpoint not yet reached (exit {res.exit_code})")
+        # Always surface the last lines — exit 2 is often a silent stage-3
+        # build/validation failure when output is omitted.
+        for line in res.output.splitlines()[-40:]:
+            print(line)
     else:
         h.check_fail(
             "selfhost fixpoint check failed",
@@ -6969,7 +6973,7 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
             command="python3 scripts/manager.py selfhost fixpoint --build",
             primary_path="src/compiler/main.ark",
         )
-        for line in res.output.splitlines()[-30:]:
+        for line in res.output.splitlines()[-40:]:
             print(line)
 
     total, passed, skipped, failed = h.summary()

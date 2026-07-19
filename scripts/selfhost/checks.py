@@ -611,11 +611,14 @@ def _fixpoint_cache_hit(
     if not s2.is_file():
         return None
     exit_code = cache.get("exit_code")
+    # Never replay prereq/build failures (exit 2): timeouts and tool PATH
+    # issues are transient and must be retried on the next invocation.
+    if exit_code not in (0, 1):
+        return None
     # For exit 0 (fixpoint reached) or 1 (not yet reached), s3 must exist.
-    if exit_code in (0, 1):
-        s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
-        if not s3.is_file():
-            return None
+    s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
+    if not s3.is_file():
+        return None
     # Verify s2 wasm hash matches cache (detects manual tampering).
     if cache.get("s2_sha") and _sha256(s2) != cache["s2_sha"]:
         return None
@@ -634,10 +637,13 @@ def _fixpoint_cache_try_write(
 ) -> None:
     """Write fixpoint cache if caching is applicable.
 
-    Caches exit 0/1 (both s2+s3 exist) and exit 2 (s2 exists, s3 may not).
+    Caches exit 0/1 only (both s2+s3 exist). Exit 2 (build/tool failure) is
+    not cached so the next run retries instead of replaying a timeout.
     Skips if fingerprint is None (caching disabled) or s2 is missing.
     """
     if fingerprint is None:
+        return
+    if exit_code not in (0, 1):
         return
     if s2 is not None and not s2.is_file():
         return
