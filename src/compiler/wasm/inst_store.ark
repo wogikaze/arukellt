@@ -8,11 +8,41 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
     if !result_on_stack {
         return
     }
+    let dest = inst_accessors_operands::MirInst_dest(inst)
     let action = inst_store_policy::store_result_action(inst, next_op, next_arg0, next_arg1, next2_op)
     if action == constants::STORE_ACTION_SKIP() {
+        // dest < 0 means "no local" — skipping still leaves the value on the
+        // stack. If the next op does not consume it (e.g. LOCAL_GET of another
+        // local before print in dump_mir), drop it or validation fails with
+        // "values remaining on stack".
+        if dest < 0 && !next_op_consumes_stack_result(next_op, next_arg0) {
+            writer_core::emit_byte(w, opcodes::OP_DROP())
+        }
         return
     }
-    emit_store_action(w, inst_accessors_operands::MirInst_dest(inst), action)
+    emit_store_action(w, dest, action)
+}
+
+fn next_op_consumes_stack_result(next_op: i32, next_arg0: i32) -> bool {
+    if next_op == opcodes::MIR_DROP() {
+        return true
+    }
+    if next_op == opcodes::MIR_RETURN() && next_arg0 < 0 {
+        return true
+    }
+    if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
+        return true
+    }
+    if next_op == opcodes::MIR_EQZ() || next_op == opcodes::MIR_NOT() || next_op == opcodes::MIR_NEG() {
+        return true
+    }
+    if opcodes::is_arith_opcode(next_op) {
+        return true
+    }
+    if next_op == opcodes::MIR_IF() || next_op == opcodes::MIR_BR_IF() {
+        return true
+    }
+    false
 }
 
 fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
