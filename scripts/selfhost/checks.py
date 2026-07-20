@@ -522,6 +522,19 @@ def _reject_invalid_compiler_wasm(wasm_path: Path) -> str:
     rc, msg = _wasm_tools_validate(wasm_path)
     if rc == 0 or rc == 2:
         return ""
+    # Keep a debug copy before delete so KEEP_CLOCK / fixpoint A/B can inspect
+    # the failing wasm32 intermediate without re-running a multi-minute compile.
+    try:
+        resolved = wasm_path.resolve()
+        if resolved.parent.name == "selfhost" and resolved.parent.parent.name == ".build":
+            debug_dir = resolved.parents[2] / ".ark-debug"
+        else:
+            debug_dir = Path.cwd() / ".ark-debug"
+        debug_dir.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        shutil.copy2(wasm_path, debug_dir / f"rejected-{wasm_path.stem}-{stamp}.wasm")
+    except OSError:
+        pass
     try:
         wasm_path.unlink()
     except OSError:
