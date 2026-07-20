@@ -18,4 +18,5 @@
 | [memory64-validate-fail-10.md](memory64-validate-fail-10.md) | Research: 10 remaining Memory64 T3 WASM validation failures | Archive | Generated: 2026-07-18 Target: wasm32-gc with Memory64 Compiler: .build/selfhost/arukellt-s2-runtime.wasm |
 | [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | 次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。 ただし順序は次で固定する。 |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
+| [verify-quick-latency.md](verify-quick-latency.md) | verify quick latency — wall-time breakdown (2026-07-21) | Archive | 計測環境: WSL2 worktree wave/gate-speedup @ 92e11273 |
 | [wasm-gc-post-mvp.md](wasm-gc-post-mvp.md) | WasmGC Post-MVP 拡張機能 — 設計調査 | Archive | 本ファイルは Wasm GC Post-MVP 提案の調査記録である。言語仕様の前提にはしない。 採択済みの方針は ADR-043 を参照する。 |

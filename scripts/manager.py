@@ -408,15 +408,66 @@ def _cached_quick_check(
     return rc, out
 
 
-def _is_verify_quick_heavy_check(label: str, cmd_str: str) -> bool:
-    """True when a bg check should share the selfhost/wasm serial pool.
+def _configure_verify_quick_stdio() -> None:
+    """Make verify-quick progress visible under pipes/redirects (P0)."""
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
+        except Exception:
+            pass
 
-    Static docs/registry checks run with higher parallelism. Checks that compile
-    or execute wasm / touch shared selfhost artifacts stay on a small pool so
-    they do not OOM the host or race unlocked build outputs.
-    """
+
+def _is_verify_quick_extended_check(label: str, cmd_str: str) -> bool:
+    """True for optional extended-tier checks (``verify quick --extended``)."""
     text = f"{label}\n{cmd_str}".lower()
     markers = (
+        "asset naming",
+        "doc example",
+        "deprecated api",
+        "analysis api",
+        "formatter parity",
+        "fmt-parity",
+        "lsp",
+        "dap",
+        "wasm debug",
+        "gc array",
+        "init template",
+        "manifest doc",
+        "internal link",
+        "component wit",
+        "wit bindings",
+        "component standard-world",
+        "host_stub",
+        "wasi p1",
+        "wasm micro",
+        "opt-equivalence",
+        "code actions",
+        "lsp standard completeness",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _verify_quick_pool_kind(label: str, cmd_str: str) -> str:
+    """Classify a bg check into static | heavy_parallel | heavy_serial.
+
+    ``heavy_serial`` is reserved for checks that take the shared selfhost
+    runtime flock (fmt/cli/diag/fixture parity and similar). Other wasm-using
+    checks may run with a small parallel pool.
+    """
+    text = f"{label}\n{cmd_str}".lower()
+    serial_markers = (
+        "formatter parity",
+        "fmt-parity",
+        "selfhost parity",
+        "fixture-parity",
+        "diag-parity",
+        "cli-parity",
+        "selfhost fmt-parity",
+    )
+    if any(marker in text for marker in serial_markers):
+        return "heavy_serial"
+    parallel_markers = (
         "selfhost",
         "wasm",
         "opt-equivalence",
@@ -428,28 +479,48 @@ def _is_verify_quick_heavy_check(label: str, cmd_str: str) -> bool:
         "wit",
         "host_stub",
         "wasi",
-        "fmt-parity",
         "analysis api",
         "mir reachability",
-        "quality quick",
+        "quality changed",
     )
-    return any(marker in text for marker in markers)
+    if any(marker in text for marker in parallel_markers):
+        return "heavy_parallel"
+    return "static"
 
 
-def _verify_quick_worker_counts() -> tuple[int, int]:
-    """Return (static_workers, heavy_workers) for verify-quick bg pools."""
+def _is_verify_quick_heavy_check(label: str, cmd_str: str) -> bool:
+    """Compatibility helper: true for either heavy pool."""
+    return _verify_quick_pool_kind(label, cmd_str) != "static"
+
+
+def _verify_quick_worker_counts() -> tuple[int, int, int]:
+    """Return (static_workers, heavy_parallel_workers, heavy_serial_workers)."""
     cpu = os.cpu_count() or 4
     static_default = max(2, min(8, cpu))
-    heavy_default = 1
+    heavy_parallel_default = max(2, min(3, cpu))
+    heavy_serial_default = 1
     try:
         static_workers = int(os.environ.get("ARUKELLT_VERIFY_QUICK_WORKERS", str(static_default)))
     except ValueError:
         static_workers = static_default
     try:
-        heavy_workers = int(os.environ.get("ARUKELLT_VERIFY_QUICK_HEAVY_WORKERS", str(heavy_default)))
+        heavy_parallel = int(
+            os.environ.get("ARUKELLT_VERIFY_QUICK_HEAVY_WORKERS", str(heavy_parallel_default))
+        )
     except ValueError:
-        heavy_workers = heavy_default
-    return max(1, static_workers), max(1, heavy_workers)
+        heavy_parallel = heavy_parallel_default
+    try:
+        heavy_serial = int(
+            os.environ.get("ARUKELLT_VERIFY_QUICK_SERIAL_WORKERS", str(heavy_serial_default))
+        )
+    except ValueError:
+        heavy_serial = heavy_serial_default
+    return max(1, static_workers), max(1, heavy_parallel), max(1, heavy_serial)
+
+
+def _verify_quick_fail_fast_enabled() -> bool:
+    raw = os.environ.get("ARUKELLT_VERIFY_QUICK_FAIL_FAST", "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
 
 
 _LANE_GATES: dict[str, tuple[str, str]] = {
@@ -4403,7 +4474,14 @@ def cmd_verify_lane(args: argparse.Namespace) -> int:
 def cmd_verify_quick(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
+    extended = bool(getattr(args, "extended", False))
     h = Harness(repo_root=root, dry_run=dry_run)
+    _configure_verify_quick_stdio()
+    print(
+        f"{YELLOW}[verify quick] mode={'extended' if extended else 'core'} "
+        f"fail_fast={_verify_quick_fail_fast_enabled()}{NC}",
+        flush=True,
+    )
 
     # ── Reduce lint parallelism to avoid CI runner OOM ────────────────────────
     # verify quick runs quality quick (which runs lint with 16 parallel workers)
@@ -4609,8 +4687,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/manager.py selfhost fmt-parity",
         ),
         (
-            "quality quick (changed fmt / lint contract / registry / whitespace)",
-            "python3 scripts/manager.py quality quick",
+            "quality changed (touched fmt / lint / contracts)",
+            "python3 scripts/manager.py quality changed",
         ),
         (
             "selfhost LSP lifecycle gate (#569)",
@@ -4729,41 +4807,87 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         ),
     ]
 
+    if not extended:
+        before = len(bg_checks)
+        bg_checks = [
+            (label, cmd_str)
+            for label, cmd_str in bg_checks
+            if not _is_verify_quick_extended_check(label, cmd_str)
+        ]
+        skipped_ext = before - len(bg_checks)
+        if skipped_ext:
+            print(
+                f"{YELLOW}[bg] core mode: skipping {skipped_ext} extended checks "
+                f"(pass --extended to include){NC}",
+                flush=True,
+            )
+
     bg_results: list[tuple[str, str, int, str]] = []
     if not dry_run and os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") != "0":
         _prime_quick_file_digest_cache(root)
     static_checks = [
         (label, cmd_str)
         for label, cmd_str in bg_checks
-        if not _is_verify_quick_heavy_check(label, cmd_str)
+        if _verify_quick_pool_kind(label, cmd_str) == "static"
     ]
-    heavy_checks = [
+    heavy_parallel_checks = [
         (label, cmd_str)
         for label, cmd_str in bg_checks
-        if _is_verify_quick_heavy_check(label, cmd_str)
+        if _verify_quick_pool_kind(label, cmd_str) == "heavy_parallel"
     ]
-    static_workers, heavy_workers = _verify_quick_worker_counts()
+    heavy_serial_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if _verify_quick_pool_kind(label, cmd_str) == "heavy_serial"
+    ]
+    static_workers, heavy_parallel_workers, heavy_serial_workers = _verify_quick_worker_counts()
+    fail_fast = _verify_quick_fail_fast_enabled()
     print(
         f"{YELLOW}[bg] pools: static={len(static_checks)}×{static_workers} "
-        f"heavy={len(heavy_checks)}×{heavy_workers}{NC}"
+        f"heavy_parallel={len(heavy_parallel_checks)}×{heavy_parallel_workers} "
+        f"heavy_serial={len(heavy_serial_checks)}×{heavy_serial_workers} "
+        f"fail_fast={fail_fast}{NC}",
+        flush=True,
     )
     with concurrent.futures.ThreadPoolExecutor(max_workers=static_workers) as static_ex, \
-            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_workers) as heavy_ex:
+            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_parallel_workers) as heavy_par_ex, \
+            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_serial_workers) as heavy_ser_ex:
         futures: dict[concurrent.futures.Future, tuple[str, str]] = {}
         for label, cmd_str in static_checks:
             futures[static_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
                 label,
                 cmd_str,
             )
-        for label, cmd_str in heavy_checks:
-            futures[heavy_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+        for label, cmd_str in heavy_parallel_checks:
+            futures[heavy_par_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
                 label,
                 cmd_str,
             )
+        for label, cmd_str in heavy_serial_checks:
+            futures[heavy_ser_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
+        cancelled = False
         for future in concurrent.futures.as_completed(futures):
             label, cmd_str = futures[future]
-            rc, out = future.result()
+            if cancelled:
+                future.cancel()
+                continue
+            try:
+                rc, out = future.result()
+            except concurrent.futures.CancelledError:
+                continue
             bg_results.append((label, cmd_str, rc, out))
+            print(f"{YELLOW}[bg] done ({rc}): {label}{NC}", flush=True)
+            if fail_fast and rc != 0:
+                cancelled = True
+                print(
+                    f"{RED}[bg] fail-fast: cancelling remaining checks after {label!r}{NC}",
+                    flush=True,
+                )
+                for pending in futures:
+                    pending.cancel()
 
     print(f"\n{YELLOW}[bg] Collecting background check results...{NC}")
     for label, cmd_str, rc, out in bg_results:
@@ -6698,7 +6822,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
     verify_parser.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
-    verify_parser.add_argument("--quick",     action="store_true", help="Run the fast local gate checks (default)")
+    verify_parser.add_argument("--quick",     action="store_true", help="Run the merge/CI local gate checks (default)")
+    verify_parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="With verify quick: include extended LSP/component/opt checks",
+    )
     verify_parser.add_argument("--fixtures",  action="store_true", help="Run the manifest-driven fixture harness")
     verify_parser.add_argument("--size",      action="store_true", help="Run the hello.wasm binary size gate")
     verify_parser.add_argument("--wat",       action="store_true", help="Run the WAT roundtrip gate")
@@ -6741,6 +6870,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional domain gate after quality changed",
     )
     lane_parser.add_argument("--json", action="store_true", help="JSON diagnostics for quality changed")
+    quick_parser = sub_verify.choices["quick"]
+    quick_parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="Also run extended LSP/component/opt-equivalence checks",
+    )
 
     _build_selfhost_subparser(sub_domain)
     _build_docs_subparser(sub_domain)

@@ -31,13 +31,17 @@ All verification is routed through `scripts/manager.py`.
 
 ```bash
 python3 scripts/manager.py verify lane        # agent/lane gate (quality changed [+ --gate])
-python3 scripts/manager.py verify quick       # merge/CI local gate
+python3 scripts/manager.py verify quick       # merge/CI core local gate
+python3 scripts/manager.py verify quick --extended  # core + LSP/component/opt checks
 python3 scripts/manager.py verify fixtures    # fixture harness
 python3 scripts/manager.py verify size        # hello.wasm size gate
 python3 scripts/manager.py verify wat         # WAT roundtrip
 python3 scripts/manager.py verify component-interop # wasmtime interop fixtures
 python3 scripts/manager.py verify full              # all verification domains
 ```
+
+Progress lines: `verify quick` forces line-buffered stdio and prints `[bg] done`.
+Fail-fast: `ARUKELLT_VERIFY_QUICK_FAIL_FAST=1` cancels remaining bg checks after the first failure.
 
 Selfhost artifact isolation: unset `ARUKELLT_BUILD_DIR` uses `<worktree>/.build`
 (already per-worktree). Set `ARUKELLT_BUILD_DIR` when multiple agents share one

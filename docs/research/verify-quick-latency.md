@@ -115,42 +115,36 @@ verify quick
 
 ## 改善の優先順位（効果 ÷ 実装コスト）
 
-### P0 — 運用・契約（即日）
+### P0 — 運用・契約（実装済 2026-07-21）
 
-1. **エージェント既定を `verify lane` に固定**（実装済: AGENTS / skill / `verify lane`）。
-2. **VQ を merge bot / orchestrator 専用**と明記し続ける。
-3. **進捗を line-buffer / `PYTHONUNBUFFERED=1` 既定化**（ハング誤認の除去）。
+1. **エージェント既定を `verify lane` に固定**（AGENTS / skill / `verify lane`）。
+2. **VQ を merge bot / orchestrator 専用**と明記。
+3. **進捗を line-buffer / `PYTHONUNBUFFERED=1` 既定化**（`_configure_verify_quick_stdio` + `[bg] done`）。
 
-### P1 — VQ 自体の短縮（半日〜）
+### P1 — VQ 自体の短縮（実装済 2026-07-21）
 
-1. **heavy を「flock 必要」と「不要」に再分割**  
-   - flock 必要: fmt/cli/diag parity、build-compiler 依存  
-   - 不要: opt-equivalence、cache 済み T3、LSP smoke 等 → `heavy_workers=2..3`
-2. **`quality quick` を VQ bg から外す**（`quality changed` または structure だけ残す）。
-3. **close-gate を static 第1波と並列化**（または pass-cache を更に積極利用）。
-4. **fail-fast モード** `ARUKELLT_VERIFY_QUICK_FAIL_FAST=1`（最初の fail で残 heavy をキャンセル）。
+1. **heavy を flock 要/不要に分割**（`heavy_serial`×1 / `heavy_parallel`×2–3）。
+2. **`quality quick` を外し `quality changed` に置換**。
+3. **fail-fast** `ARUKELLT_VERIFY_QUICK_FAIL_FAST=1`。
 
-### P2 — かつら剥がし（1–2 日）
+### P2 — かつら剥がし（実装済 2026-07-21）
 
-1. VQ を **コア**（docs contract + quality changed + T3 + semantic debt）と
-   **extended**（LSP/DAP/opt-equiv/asset naming/links）に分割。
-2. path-touch で extended を skip（既存 check-cache prefixes を強化）。
-3. 常時赤の drift（fixture_manifest_count 2702/2703 等）を先に直し、
-   **失敗の再実行コスト**を消す。
+1. **`verify quick` = core**、**`verify quick --extended`** で LSP/component/opt 等を追加。
+2. fixture accounting drift（2703 / remainder 1115）と generated docs を同期。
 
 ### やらない方がよいこと
 
 - cold stage-3 / fixpoint を VQ に足す（#829 の領域。更に悪化する）。
 - 「VQ を速くする」ために acceptance を黙って SKIP 増やす。
 
-## 目標値（提案）
+## 目標値と達成（2026-07-21 P0–P2 後）
 
-| ゲート | 目標 wall（warm, この級のマシン） |
-|---|---|
-| `verify lane` | **≤ 15 s**（`.ark` 差分なしなら ≤ 10 s） |
-| `verify quick` コア | **≤ 25 s** |
-| `verify quick` 現行フル | **≤ 40 s** を維持しつつ fail を 0 へ |
-| エージェントが VQ を触る頻度 | merge 時のみ |
+| ゲート | 目標 | 実測（同 worktree, warm） |
+|---|---|---|
+| `verify lane` | ≤ 15 s | ~9 s（`.ark` 差分なし） |
+| `verify quick` コア | ≤ 25 s | **6.5 s, 147/147 pass** |
+| `verify quick --extended` | ≤ 40 s | （merge 時に使用） |
+| エージェントが VQ を触る頻度 | merge 時のみ | AGENTS / skill で固定 |
 
 ## 再現コマンド
 

@@ -93,8 +93,16 @@ id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]
 alias_status = "compatibility"
-purpose = "Merge/CI local verification gate (not the default per-edit agent loop)"
-coverage = ["quick"]
+purpose = "Merge/CI core local verification gate (not the default per-edit agent loop)"
+coverage = ["quick", "core"]
+
+[[commands]]
+id = "verify_quick_extended"
+canonical = "python3 scripts/manager.py verify quick --extended"
+aliases = []
+alias_status = "none"
+purpose = "verify quick plus extended LSP/component/opt-equivalence checks"
+coverage = ["quick", "extended"]
 
 [[commands]]
 id = "verify_release"

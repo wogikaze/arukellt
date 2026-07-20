@@ -61,17 +61,40 @@ class TestBuildPaths(unittest.TestCase):
 
 
 class TestVerifyQuickPools(unittest.TestCase):
-    def test_heavy_classification(self):
-        self.assertTrue(
-            manager._is_verify_quick_heavy_check(
+    def test_pool_kinds(self):
+        self.assertEqual(
+            manager._verify_quick_pool_kind(
                 "T3 fixture WASM validation gate (#686)",
                 "python3 scripts/check/check-t3-wasm-validate.py",
+            ),
+            "heavy_parallel",
+        )
+        self.assertEqual(
+            manager._verify_quick_pool_kind(
+                "selfhost formatter parity gate (#216)",
+                "python3 scripts/manager.py selfhost fmt-parity",
+            ),
+            "heavy_serial",
+        )
+        self.assertEqual(
+            manager._verify_quick_pool_kind(
+                "ADR registry integrity",
+                "python3 scripts/check/check-adrs.py",
+            ),
+            "static",
+        )
+
+    def test_extended_classification(self):
+        self.assertTrue(
+            manager._is_verify_quick_extended_check(
+                "opt-equivalence (O0 == O1)",
+                "bash scripts/run/test-opt-equivalence.sh --quick",
             )
         )
         self.assertFalse(
-            manager._is_verify_quick_heavy_check(
-                "ADR registry integrity",
-                "python3 scripts/check/check-adrs.py",
+            manager._is_verify_quick_extended_check(
+                "T3 fixture WASM validation gate (#686)",
+                "python3 scripts/check/check-t3-wasm-validate.py",
             )
         )
 
@@ -79,9 +102,20 @@ class TestVerifyQuickPools(unittest.TestCase):
         result = _run("verify", "quick", "--dry-run")
         self.assertEqual(result.returncode, 0, msg=result.stderr)
         combined = result.stdout + result.stderr
+        self.assertIn("mode=core", combined)
         self.assertIn("pools: static=", combined)
-        self.assertIn("heavy=", combined)
+        self.assertIn("heavy_parallel=", combined)
+        self.assertIn("heavy_serial=", combined)
+        self.assertIn("skipping", combined)
+        self.assertNotIn("quality quick", combined)
         self.assertNotIn("orphan/stale file inventory", combined)
+
+    def test_verify_quick_extended_dry_run_keeps_opt_equiv(self):
+        result = _run("verify", "quick", "--extended", "--dry-run")
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        combined = result.stdout + result.stderr
+        self.assertIn("mode=extended", combined)
+        self.assertIn("opt-equivalence", combined)
 
 
 class TestVerifyLane(unittest.TestCase):

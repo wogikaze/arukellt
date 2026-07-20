@@ -9,7 +9,7 @@
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
 > Fixture-Snapshot-Commit: `982f3102`
-> Verification-Command: `python3 scripts/manager.py verify quick` (merge/CI); agent/lane loop: `verify lane`
+> Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
 > Blocking: 1089 fixture failure(s), 1 verification check failure(s), 5 additional full-verification blocker group(s)
 > Distinct incidents: 7 (derived from incident_id in release-guarantees.toml; 7 failing checks)
@@ -114,9 +114,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2702 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1114 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2702 is tests/fixtures/manifest.txt registry size. The 1114 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2703 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1115 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2703 is tests/fixtures/manifest.txt registry size. The 1115 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **165/166 checks pass**
 

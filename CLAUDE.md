@@ -171,7 +171,7 @@
 - 構造契約: `python3 scripts/manager.py quality structure`
 - advisory metrics: `python3 scripts/manager.py quality report`
 - レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
-- マージ／CI ゲート: `python3 scripts/manager.py verify quick`
+- マージ／CI ゲート: `python3 scripts/manager.py verify quick`（拡張面は `--extended`）
 - fixture: `python3 scripts/manager.py verify fixtures`
 - **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
 - **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
