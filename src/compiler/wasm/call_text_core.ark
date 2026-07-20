@@ -1,3 +1,4 @@
+use mir::inst_accessors_operands
 use wasm::intrinsic_string_access
 use wasm::inst_store
 use wasm::intrinsic_string_contains_bytes
@@ -7,6 +8,9 @@ use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_string_format
 use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
+use wasm::opcodes
+use wasm::writer_core
+use mir::opcodes as mir_opcodes
 
 fn try_emit_text_core_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_text_basic_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -97,6 +101,20 @@ fn try_emit_text_compare_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_concat(){
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        // Handle-ABI: always materialize into dest. TEE only when the immediate
+        // next MIR op is LOCAL_SET (stack copy); otherwise SET so a following
+        // LOCAL_GET reloads from dest (dump_mir / parse_input_or_error).
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if _result_on_stack && dest >= 0 {
+            if next_op == mir_opcodes::MIR_LOCAL_SET() {
+                writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+                writer_core::emit_leb128_u(w, dest)
+                return true
+            }
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+            writer_core::emit_leb128_u(w, dest)
+            return true
+        }
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
     false
