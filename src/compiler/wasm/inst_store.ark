@@ -3,50 +3,16 @@ use wasm::inst_store_policy
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
-use mir::opcodes as mir_opcodes
 
 fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) {
     if !result_on_stack {
         return
     }
-    let dest = inst_accessors_operands::MirInst_dest(inst)
     let action = inst_store_policy::store_result_action(inst, next_op, next_arg0, next_arg1, next2_op)
     if action == constants::STORE_ACTION_SKIP() {
-        // dest < 0 leaves the value on the stack. dump_mir print paths often
-        // follow with LOCAL_GET(other) which does not consume it.
-        if dest < 0 && !next_op_consumes_stack_result(next_op, next_arg0) {
-            writer_core::emit_byte(w, opcodes::OP_DROP())
-        }
         return
     }
-    emit_store_action(w, dest, action)
-}
-
-fn next_op_consumes_stack_result(next_op: i32, next_arg0: i32) -> bool {
-    if next_op == mir_opcodes::MIR_DROP() {
-        return true
-    }
-    if next_op == mir_opcodes::MIR_LOCAL_SET() {
-        return true
-    }
-    // RETURN: stack return or already_on_stack after LOCAL_GET.
-    if next_op == mir_opcodes::MIR_RETURN() {
-        return true
-    }
-    // Stack-arg calls (arg0 < 0) consume; local-arg calls do not.
-    if (next_op == mir_opcodes::MIR_CALL() || next_op == mir_opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
-        return true
-    }
-    if next_op == mir_opcodes::MIR_EQZ() || next_op == mir_opcodes::MIR_NOT() || next_op == mir_opcodes::MIR_NEG() {
-        return true
-    }
-    if mir_opcodes::is_arith_opcode(next_op) {
-        return true
-    }
-    if next_op == mir_opcodes::MIR_IF() || next_op == mir_opcodes::MIR_BR_IF() {
-        return true
-    }
-    false
+    emit_store_action(w, inst_accessors_operands::MirInst_dest(inst), action)
 }
 
 fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
