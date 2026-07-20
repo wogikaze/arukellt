@@ -11,9 +11,11 @@ They do NOT require wasmtime or the pinned wasm — they are pure unit tests.
 from __future__ import annotations
 
 import io
+import os
 import re
 import unittest
-from contextlib import redirect_stdout, redirect_stderr
+import unittest.mock
+from contextlib import redirect_stdout
 
 import sys
 from pathlib import Path
@@ -110,14 +112,15 @@ class TestSubOptional(unittest.TestCase):
 
     def test_no_match_does_not_raise(self) -> None:
         buf = io.StringIO()
-        with redirect_stderr(buf):
-            result = _sub_optional(
-                "nothing here",
-                r"^fn ",
-                "pub fn ",
-                "promote fn",
-                flags=re.M,
-            )
+        with unittest.mock.patch.dict(os.environ, {"ARUKELLT_OVERLAY_VERBOSE": "1"}):
+            with redirect_stdout(buf):
+                result = _sub_optional(
+                    "nothing here",
+                    r"^fn ",
+                    "pub fn ",
+                    "promote fn",
+                    flags=re.M,
+                )
         self.assertEqual(result, "nothing here")
         self.assertIn("optional patch skipped", buf.getvalue())
         self.assertIn("promote fn", buf.getvalue())
@@ -138,13 +141,14 @@ class TestReplaceOptional(unittest.TestCase):
 
     def test_no_match_does_not_raise(self) -> None:
         buf = io.StringIO()
-        with redirect_stderr(buf):
-            result = _replace_optional(
-                "nothing here",
-                "chars::skip_whitespace",
-                "char_skip::skip_whitespace_impl",
-                "lexer chars rename",
-            )
+        with unittest.mock.patch.dict(os.environ, {"ARUKELLT_OVERLAY_VERBOSE": "1"}):
+            with redirect_stdout(buf):
+                result = _replace_optional(
+                    "nothing here",
+                    "chars::skip_whitespace",
+                    "char_skip::skip_whitespace_impl",
+                    "lexer chars rename",
+                )
         self.assertEqual(result, "nothing here")
         self.assertIn("optional patch skipped", buf.getvalue())
         self.assertIn("lexer chars rename", buf.getvalue())

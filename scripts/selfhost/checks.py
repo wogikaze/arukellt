@@ -1439,25 +1439,56 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
         path.write_text(text, encoding="utf-8")
 
 
-def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> str:
-    """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32.
+# KEEP_CLOCK / stub overlay groups for ``_patch_bootstrap_driver_timing``.
+# A/B via ``ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS=clock,fields,...`` when
+# ``ARUKELLT_OVERLAY_KEEP_CLOCK=1``. Default keep_clock groups are ``clock``
+# only: keep i64 record/getter signatures and wrap the clock read into i64 ms.
+_DRIVER_TIMING_GROUP_CLOCK = "clock"  # (1) clock intrinsic rewrite
+_DRIVER_TIMING_GROUP_FIELDS = "fields"  # (2) result record fields i64→i32
+_DRIVER_TIMING_GROUP_SIGS = "sigs"  # (3) ctor / getter signature i64→i32
+_DRIVER_TIMING_GROUP_BACKEND = "backend"  # (4) backend-side i32_to_i64 wraps
+_DRIVER_TIMING_GROUP_EMIT = "emit"  # (5) emit-side final wraps
+_DRIVER_TIMING_ALL_GROUPS = (
+    _DRIVER_TIMING_GROUP_CLOCK,
+    _DRIVER_TIMING_GROUP_FIELDS,
+    _DRIVER_TIMING_GROUP_SIGS,
+    _DRIVER_TIMING_GROUP_BACKEND,
+    _DRIVER_TIMING_GROUP_EMIT,
+)
+# Stub path (KEEP_CLOCK off): all groups. KEEP_CLOCK default: clock only —
+# global signature/field rewrites have been observed to break unrelated
+# wasm32 codegen (e.g. dump_mir stack imbalance) before Memory64 widening.
+_DRIVER_TIMING_STUB_GROUPS = frozenset(_DRIVER_TIMING_ALL_GROUPS)
+_DRIVER_TIMING_KEEP_CLOCK_DEFAULT_GROUPS = frozenset({_DRIVER_TIMING_GROUP_CLOCK})
 
-    Applied to every file in the ``driver`` namespace; not every file contains
-    every pattern, so all substitutions are *optional* — a skip notice is printed
-    when a pattern does not match, making source drift visible without raising.
 
-    When ``keep_clock`` is true, keep the i32 timestamp field rewrites (GC i64
-    struct fields still miscompile under current s2) but replace
-    ``clock::monotonic_now()`` with millisecond ``i32`` reads so ``--time`` is
-    non-zero without ``expected i32, found i64`` validate failures (#823).
-    """
+def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
+    """Resolve which driver-timing overlay groups to apply."""
+    if not keep_clock:
+        return _DRIVER_TIMING_STUB_GROUPS
+    raw = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS", "").strip()
+    if not raw:
+        return _DRIVER_TIMING_KEEP_CLOCK_DEFAULT_GROUPS
+    selected = {part.strip().lower() for part in raw.split(",") if part.strip()}
+    unknown = selected - set(_DRIVER_TIMING_ALL_GROUPS)
+    if unknown:
+        raise BootstrapOverlayError(
+            "unknown ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS entry: "
+            + ", ".join(sorted(unknown))
+            + f" (valid: {', '.join(_DRIVER_TIMING_ALL_GROUPS)})"
+        )
+    return frozenset(selected)
+
+
+def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
+    """Group 1: rewrite ``clock::monotonic_now()`` (and diff-ms double-divide)."""
     if keep_clock:
-        # Milliseconds as i32: matches overlay i32 timestamp slots.
+        # Keep i64 timestamp slots: store ms as i64 (narrow via i32 then widen).
         text = _replace_optional(
             text,
             "clock::monotonic_now()",
-            "i64_to_i32(clock::monotonic_now() / 1000000i64)",
-            "driver_timing: keep_clock monotonic_now → i32 ms",
+            "i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))",
+            "driver_timing: keep_clock monotonic_now → i64 ms",
         )
         text = _replace_optional(
             text,
@@ -1465,8 +1496,14 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
             "i64_to_i32(diff)",
             "driver_timing: keep_clock phase_timing_ms already ms",
         )
-    else:
-        text = _replace_optional(text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now")
+        return text
+    return _replace_optional(
+        text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now"
+    )
+
+
+def _patch_bootstrap_driver_timing_fields(text: str) -> str:
+    """Group 2: result-record timestamp fields i64→i32 (+ emit-param restore)."""
     for field in ("t0", "t_lex", "t_parse", "t_resolve", "t_typecheck"):
         text = _sub_optional(
             text,
@@ -1486,6 +1523,11 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
             f"driver_timing: restore emit fn param {field} i32→i64",
             flags=re.M,
         )
+    return text
+
+
+def _patch_bootstrap_driver_timing_sigs(text: str) -> str:
+    """Group 3: ctor / helper / getter signatures i64→i32."""
     text = _replace_optional(
         text,
         "fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64)",
@@ -1542,6 +1584,23 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
     )
     text = _replace_optional(
         text,
+        "fn resolve_result_t_resolve(result: DriverResolveResult) -> i64 {",
+        "fn resolve_result_t_resolve(result: DriverResolveResult) -> i32 {",
+        "driver_timing: resolve_result_t_resolve return i64→i32",
+    )
+    text = _replace_optional(
+        text,
+        "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {",
+        "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i32 {",
+        "driver_timing: typecheck_result_t_typecheck return i64→i32",
+    )
+    return text
+
+
+def _patch_bootstrap_driver_timing_backend(text: str) -> str:
+    """Group 4: backend call sites that widen i32 timestamps to i64."""
+    text = _replace_optional(
+        text,
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))",
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), i32_to_i64(pipeline_frontend::frontend_result_t0(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_lex(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_parse(frontend)))",
         "driver_timing: run_backend i32_to_i64 wrapping",
@@ -1560,22 +1619,15 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         )
     text = _replace_optional(
         text,
-        "fn resolve_result_t_resolve(result: DriverResolveResult) -> i64 {",
-        "fn resolve_result_t_resolve(result: DriverResolveResult) -> i32 {",
-        "driver_timing: resolve_result_t_resolve return i64→i32",
-    )
-    text = _replace_optional(
-        text,
-        "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i64 {",
-        "fn typecheck_result_t_typecheck(result: DriverTypecheckResult) -> i32 {",
-        "driver_timing: typecheck_result_t_typecheck return i64→i32",
-    )
-    text = _replace_optional(
-        text,
         "backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked)",
         "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
+    return text
+
+
+def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
+    """Group 5: emit_phase_timing / emit_output final i32_to_i64 wraps."""
     # Split backend timestamps (lower / mir_opt / mir_verify) before emit (#823).
     text = _replace_optional(
         text,
@@ -1602,6 +1654,8 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
     if keep_clock:
+        # Legacy path when clock group emitted bare i64_to_i32(...) into an i64
+        # emit parameter. Default keep_clock clock rewrite already yields i64.
         text = _sub_optional(
             text,
             r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
@@ -1617,6 +1671,36 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         "t_lower,\n            t_mir_opt,\n            t_mir_verify,\n            i32_to_i64(0)\n        )",
         "driver_timing: emit_phase_timing trailing i32_to_i64(0)",
     )
+    return text
+
+
+def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> str:
+    """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32.
+
+    Applied to every file in the ``driver`` namespace; not every file contains
+    every pattern, so all substitutions are *optional* — a skip notice is printed
+    when a pattern does not match, making source drift visible without raising.
+
+    When ``keep_clock`` is true (default groups: ``clock`` only), leave record
+    fields / getter signatures as i64 and rewrite ``clock::monotonic_now()`` to
+    an i64 millisecond expression so ``--time`` is non-zero without the global
+    i64→i32 signature churn that has broken unrelated wasm32 functions
+    (e.g. ``dump_mir`` stack imbalance). Stub mode (keep_clock false) still
+    applies all groups so pinned bootstrap can compile without clock intrinsics.
+
+    A/B: ``ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS=clock,fields,sigs,backend,emit``.
+    """
+    groups = _driver_timing_groups(keep_clock=keep_clock)
+    if _DRIVER_TIMING_GROUP_CLOCK in groups:
+        text = _patch_bootstrap_driver_timing_clock(text, keep_clock=keep_clock)
+    if _DRIVER_TIMING_GROUP_FIELDS in groups:
+        text = _patch_bootstrap_driver_timing_fields(text)
+    if _DRIVER_TIMING_GROUP_SIGS in groups:
+        text = _patch_bootstrap_driver_timing_sigs(text)
+    if _DRIVER_TIMING_GROUP_BACKEND in groups:
+        text = _patch_bootstrap_driver_timing_backend(text)
+    if _DRIVER_TIMING_GROUP_EMIT in groups:
+        text = _patch_bootstrap_driver_timing_emit(text, keep_clock=keep_clock)
     return text
 
 
@@ -1819,8 +1903,9 @@ def _write_worktree_namespace_overlay(
         if rel_name == "wasm/wasm_sections_facade.ark":
             text = _patch_bootstrap_wasm_sections_data_only(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
-        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i64 clocks and skips i32 field
-        # rewrites — compile that overlay with s2-runtime, not pinned (#823).
+        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real clocks with i64 timestamp
+        # slots (clock group only unless KEEP_CLOCK_GROUPS overrides) — compile
+        # that overlay with s2-runtime, not pinned (#823).
         keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text, keep_clock=keep_clock)
@@ -2778,9 +2863,12 @@ def _compiler_source_content_hash(root: Path) -> str:
     """
     digest = hashlib.sha256()
     digest.update(b"v2\n")
-    # KEEP_CLOCK changes overlay patches without touching .ark sources (#823).
+    # KEEP_CLOCK / group toggles change overlay patches without touching .ark (#823).
     digest.update(
         f"keep_clock={1 if os.environ.get('ARUKELLT_OVERLAY_KEEP_CLOCK') == '1' else 0}\n".encode()
+    )
+    digest.update(
+        f"keep_clock_groups={os.environ.get('ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS', '')}\n".encode()
     )
     # Hash checks.py itself (overlay logic depends on it)
     try:
@@ -3753,7 +3841,8 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
 
     Steps:
     1. Ensure stubbed ``arukellt-s2-runtime.wasm`` host (current emitter).
-    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i32 ms timestamp slots).
+    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i64 ms via clock group;
+       no global field/getter i64→i32 unless ``KEEP_CLOCK_GROUPS`` expands).
     3. Compile as **wasm32 + wasi-p1** with that host, then widen to Memory64.
     4. ``wasm-tools validate``; reject on failure.
 
