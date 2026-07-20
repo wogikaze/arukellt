@@ -51,7 +51,6 @@ graph LR
   I807["807 807 — Fixture parity: 367 remaining failures"]
   I809["809 809 — WAT roundtrip failure"]
   I810["810 810 — Component interop failures"]
-  I811["811 811 — Selfhost CLI parity drift"]
   I812["812 812 — Selfhost diagnostic parity drift"]
   I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
@@ -198,7 +197,6 @@ graph LR
 - **807** depends on: 287, framework); blocks: none
 - **809** depends on: none; blocks: none
 - **810** depends on: none; blocks: none
-- **811** depends on: none; blocks: none
 - **812** depends on: none; blocks: none
 - **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
