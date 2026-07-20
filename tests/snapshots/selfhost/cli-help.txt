@@ -27,3 +27,7 @@ Options:
   --json         Emit machine-readable JSON diagnostics
   --output json  Alias for --json on diagnostic/check output
   --wit <path>   Add a WIT import file for component compilation
+  --list         List available lint rules (with `lint` command)
+  --local        Lint local (parse-only) rules; no module resolve
+  --allow <rule> Allow (suppress) a lint rule by W-code or name
+  --deny <rule>  Deny (escalate to error) a lint rule by W-code or name
