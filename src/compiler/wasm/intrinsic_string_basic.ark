@@ -108,7 +108,10 @@ fn emit_concat(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         let s_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
         let s_rp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-        let total_len = inst_accessors_operands::MirInst_dest(inst)
+        // Must not reuse MirInst_dest: setup writes the length into this slot, and
+        // finish_text_call then SETs the string pointer into dest. Clobbering dest
+        // made next LOCAL_GET(dest) look like an identity reload and SKIP'd the store.
+        let total_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
         emit_concat_setup(w, s_a, s_b, s_la, total_len)
         emit_concat_alloc(w, s_rp, total_len)
         emit_concat_copy(w, s_a, s_b, s_la, s_rp, total_len)
