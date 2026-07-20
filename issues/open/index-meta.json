@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-20T16:43:06Z",
+  "generated_at": "2026-07-20T16:45:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -842,7 +842,6 @@
         "785"
       ],
       "blocks_issue_ids": [
-        "800",
         "814"
       ],
       "acceptance": {
@@ -896,23 +895,6 @@
       "path": "810-component-interop-failures.md",
       "title": "810 — Component interop failures",
       "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "812",
-      "path": "812-selfhost-diagnostic-parity-drift.md",
-      "title": "812 — Selfhost diagnostic parity drift",
-      "track": "selfhost",
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [],
@@ -984,6 +966,44 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "825",
+      "path": "825-ast-cache-format-repair.md",
+      "title": "AST cache format repair (not “re-enable as-is”)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "826",
+      "path": "826-symbol-path-intern-clone-audit.md",
+      "title": "P2a: symbol / path interning + hot-path clone audit",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "investigation",
+        "upstream_notes": null
       }
     },
     {
@@ -1318,25 +1338,6 @@
       }
     },
     {
-      "id": "800",
-      "path": "800-fmt-multi-file-batching.md",
-      "title": "800 — Batch multi-file fmt to amortize wasmtime cold-start",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [
-        "791"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "814",
       "path": "814-formatter-parser-exceptions.md",
       "title": "814 — Formatter/parser exceptions (23 files)",
@@ -1501,7 +1502,6 @@
         "726"
       ],
       "blocks_issue_ids": [
-        "823",
         "827",
         "829"
       ],
@@ -1565,25 +1565,22 @@
       }
     },
     {
-      "id": "823",
-      "path": "823-selfhost-compile-latency-quadratic-mir.md",
-      "title": "Selfhost compile latency: remove quadratic MIR vector rebuilds",
+      "id": "827",
+      "path": "827-phase-arena-after-heap-model.md",
+      "title": "P2b: phase arena (only after heap lifetime / ownership)",
       "track": "selfhost-infra",
       "status": "open",
       "depends_on": [
-        "730"
+        "730",
+        "823"
       ],
-      "blocks_issue_ids": [
-        "825",
-        "826",
-        "827"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "implementation",
+        "class": "architecture-investigation",
         "upstream_notes": null
       }
     },
@@ -1630,64 +1627,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
-    },
-    {
-      "id": "825",
-      "path": "825-ast-cache-format-repair.md",
-      "title": "AST cache format repair (not “re-enable as-is”)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "826",
-      "path": "826-symbol-path-intern-clone-audit.md",
-      "title": "P2a: symbol / path interning + hot-path clone audit",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "investigation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "827",
-      "path": "827-phase-arena-after-heap-model.md",
-      "title": "P2b: phase arena (only after heap lifetime / ownership)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730",
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
       }
     },
     {

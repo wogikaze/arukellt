@@ -51,10 +51,11 @@ graph LR
   I807["807 807 — Fixture parity: 367 remaining failures"]
   I809["809 809 — WAT roundtrip failure"]
   I810["810 810 — Component interop failures"]
-  I812["812 812 — Selfhost diagnostic parity drift"]
   I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I820["820 820 — Bounded stdlib-only inliner"]
+  I825["825 AST cache format repair (not “re-enable as-is”)"]
+  I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -71,7 +72,6 @@ graph LR
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
-  I800["800 800 — Batch multi-file fmt to amortize wasmtime cold-start"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I821["821 821 — Pure semantic stdlib migration"]
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
@@ -82,12 +82,9 @@ graph LR
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
-  I823["823 Selfhost compile latency: remove quadratic MIR vector rebuilds"]
+  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
   I829["829 Selfhost latency: phase re-profile and dominant-hotspot removal"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
-  I825["825 AST cache format repair (not “re-enable as-is”)"]
-  I826["826 P2a: symbol / path interning + hot-path clone audit"]
-  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
   I824["824 Early body lowering (worklist; design first)"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
@@ -112,7 +109,6 @@ graph LR
   I715 --> I799
   I724 --> I726
   I724 --> I729
-  I791 --> I800
   I791 --> I814
   I820 --> I821
   I820 --> I822
@@ -132,15 +128,11 @@ graph LR
   I820 --> I818
   I821 --> I818
   I822 --> I818
-  I730 --> I823
+  I730 --> I827
   I730 --> I829
   I681 --> I711
   I709 --> I711
   I710 --> I711
-  I823 --> I825
-  I823 --> I826
-  I730 --> I827
-  I823 --> I827
   I829 --> I824
   I709 --> I712
   I711 --> I712
@@ -193,14 +185,15 @@ graph LR
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
-- **791** depends on: 785; blocks: 800, 814
+- **791** depends on: 785; blocks: 814
 - **807** depends on: 287, framework); blocks: none
 - **809** depends on: none; blocks: none
 - **810** depends on: none; blocks: none
-- **812** depends on: none; blocks: none
 - **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
 - **820** depends on: 798, 816; blocks: 818, 821, 822
+- **825** depends on: 823; blocks: none
+- **826** depends on: 823; blocks: none
 - **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
@@ -217,7 +210,6 @@ graph LR
 - **799** depends on: 715, 796, 797; blocks: none
 - **726** depends on: 724; blocks: 730
 - **729** depends on: 724; blocks: none
-- **800** depends on: 791; blocks: none
 - **814** depends on: 791; blocks: none
 - **821** depends on: 798, 816, 820; blocks: 818
 - **822** depends on: 798, 816, 817, 820; blocks: 818
@@ -225,15 +217,12 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **819** depends on: 727, 798; blocks: 818
-- **730** depends on: 726; blocks: 823, 827, 829
+- **730** depends on: 726; blocks: 827, 829
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
-- **823** depends on: 730; blocks: 825, 826, 827
+- **827** depends on: 730, 823; blocks: none
 - **829** depends on: 730; blocks: 824
 - **711** depends on: 681, 709, 710; blocks: 712, 713
-- **825** depends on: 823; blocks: none
-- **826** depends on: 823; blocks: none
-- **827** depends on: 730, 823; blocks: none
 - **824** depends on: 829; blocks: none
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none

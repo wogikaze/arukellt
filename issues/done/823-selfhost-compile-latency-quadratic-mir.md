@@ -1,12 +1,12 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-17
-Updated: 2026-07-20
+Updated: 2026-07-21
 ID: 823
 Track: selfhost-infra
 Depends on: "730"
 Related: "#730, #824, #825, #826, #827, #829"
-Orchestration class: implementation
+Orchestration class: done
 Blocks v4 exit: False
 ---
 
@@ -140,3 +140,13 @@ P0 was insufficiently applied, and do **not** start #824 until a receipt shows
 
 Close criteria for #823 itself: P0/P1 code + A/B receipt + reachability gate
 green; KEEP_CLOCK / stage-3 minute-scale work tracks #730 / #829.
+
+
+## Close evidence (2026-07-21)
+
+P0/P1 acceptance for this issue is met; remaining cold stage-3 / KEEP_CLOCK work
+is tracked by #730 / #829 (see Close criteria above).
+
+- Reachability gate: `python3 scripts/check/check-mir-reachability-bfs.py` → PASS
+- A/B receipt already recorded in Progress (2026-07-17)
+- Follow-up: [#829](../open/829-selfhost-latency-phase-reprofile-hotspot.md)
