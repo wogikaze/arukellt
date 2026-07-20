@@ -9,6 +9,7 @@ use mir::inst_record
 use wasm::opcodes
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::inst_ctx
 use wasm::inst_store
 use wasm::writer_core
@@ -62,7 +63,10 @@ fn try_emit_resolved_fallback_call(
     if base_local >= 0 {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, base_local)
-        if function_param_view::MirFunction_param_count(called) > 0 {
+        // Handle-based wasm32 must not emit ref.cast; type indices there are
+        // often func types, which validate as "expected funcref, found i32".
+        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) &&
+        function_param_view::MirFunction_param_count(called) > 0 {
             let param_type_name = function_param_view::MirFunction_param_type_name(called, 0)
             let gc_type_idx = resolve_call_param_gc_cast_type(ctx, param_type_name)
             if gc_type_idx >= 0 {

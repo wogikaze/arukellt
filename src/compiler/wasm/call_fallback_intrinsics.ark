@@ -2,6 +2,7 @@
 // impl symbol (clone/len DCE'd in large GC modules).
 
 use wasm::inst_store
+use wasm::intrinsic_clock
 use wasm::intrinsic_string_basic
 
 fn try_emit_name_intrinsic_fallback(
@@ -22,7 +23,34 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // KEEP_CLOCK / --time: when registry binding is missing, unresolved call
+    // emit produced `unreachable` + `return` of an i32 local into an i64
+    // result (mir_lower_phase_now validate fail). Emit the real clock body.
+    if is_clock_now_callee(clone(callee)) {
+        let on_stack = intrinsic_clock::emit_clock_now(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_clock_now_ms_callee(clone(callee)) {
+        let on_stack = intrinsic_clock::emit_clock_now_ms(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
+}
+
+fn is_clock_now_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("clock_now")) ||
+    eq(clone(callee), String_from("monotonic_now")) ||
+    eq(clone(callee), String_from("__intrinsic_clock_now")) ||
+    ends_with(clone(callee), String_from("::monotonic_now")) ||
+    ends_with(clone(callee), String_from("::clock_now"))
+}
+
+fn is_clock_now_ms_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("clock_now_ms")) ||
+    eq(clone(callee), String_from("now_ms")) ||
+    eq(clone(callee), String_from("__intrinsic_clock_now_ms")) ||
+    ends_with(clone(callee), String_from("::now_ms")) ||
+    ends_with(clone(callee), String_from("::clock_now_ms"))
 }
 
 fn is_clone_callee(callee: String) -> bool {

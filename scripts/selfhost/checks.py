@@ -2158,23 +2158,20 @@ def _wasm_memory_section_is_memory64(wasm_path: Path) -> bool:
     return False
 
 
-def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Prepare a stage-3 runtime compiler from s2 (heap-grow + memory64).
+def _widen_compiler_wasm_to_memory64(
+    root: Path,
+    compiler_wasm: Path,
+    out: Path,
+) -> Path | None:
+    """Widen a wasm32 compiler module to Memory64 at ``out`` (validate on success).
 
-    Stage-2 wasm32 modules often omit ``memory.grow``; the patcher injects grow
-    sites, then ``wasm32to64`` widens the module.  Address canonization in the
-    converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
-    leaves non-negative addresses (including past 4GiB) as full i64 (#730).
+    Native Memory64 inputs are copied. ``wasm32to64`` is not used on GC modules
+    (it does not preserve GC type sections).
     """
-    out = root / S2_RUNTIME_WASM_REL
-    if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
-        if not _reject_invalid_compiler_wasm(out):
-            return out
     out.parent.mkdir(parents=True, exist_ok=True)
-    # Native Memory64 modules (wasm32-gc) already grow past 4GiB; do not run
-    # wasm32to64 (it does not preserve GC type sections).
     if _wasm_memory_section_is_memory64(compiler_wasm):
-        shutil.copyfile(compiler_wasm, out)
+        if compiler_wasm.resolve() != out.resolve():
+            shutil.copyfile(compiler_wasm, out)
         if _reject_invalid_compiler_wasm(out):
             return None
         return out
@@ -2192,6 +2189,21 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     if _reject_invalid_compiler_wasm(out):
         return None
     return out
+
+
+def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
+    """Prepare a stage-3 runtime compiler from s2 (heap-grow + memory64).
+
+    Stage-2 wasm32 modules often omit ``memory.grow``; the patcher injects grow
+    sites, then ``wasm32to64`` widens the module.  Address canonization in the
+    converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
+    leaves non-negative addresses (including past 4GiB) as full i64 (#730).
+    """
+    out = root / S2_RUNTIME_WASM_REL
+    if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
+        if not _reject_invalid_compiler_wasm(out):
+            return out
+    return _widen_compiler_wasm_to_memory64(root, compiler_wasm, out)
 
 
 def _patch_monolithic_typechecker_unify(text: str) -> str:
@@ -3397,6 +3409,7 @@ def _run_fixpoint_locked(
 
     def emit(msg: str) -> None:
         lines.append(msg)
+        print(msg, flush=True)
 
     if dry_run:
         print("DRY-RUN: run_fixpoint()")
@@ -3591,8 +3604,19 @@ def rebuild_current_s2(
     fixpoint hash compare. With a warm flat-overlay disk cache, stage-2 from
     the pinned bootstrap typically finishes in under a minute.
 
+    Serialized via runtime_lock so concurrent agents cannot race flat-src
+    ``bootstrap-out.wasm`` / s2 outputs.
+
     Returns ``(runtime_compiler_or_None, error_or_empty, elapsed_seconds)``.
     """
+    return _with_runtime_lock(lambda: _rebuild_current_s2_locked(root, force=force))
+
+
+def _rebuild_current_s2_locked(
+    root: Path,
+    *,
+    force: bool = True,
+) -> tuple[Path | None, str, float]:
     started = time.time()
     build_dir = root / ".build" / "selfhost"
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -3707,18 +3731,27 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
     """Build ``arukellt-s2-clock.wasm`` with real clock reads for ``--time``.
 
     Steps:
-    1. Ensure a normal (clock-stubbed) ``arukellt-s2-runtime.wasm`` host exists.
-    2. Prepare flat overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i32 ms timestamps).
-    3. Compile current selfhost source with that host into the clock artifact.
+    1. Ensure stubbed ``arukellt-s2-runtime.wasm`` host (current emitter).
+    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i32 ms timestamp slots).
+    3. Compile as **wasm32 + wasi-p1** with that host, then widen to Memory64.
     4. ``wasm-tools validate``; reject on failure.
 
-    Keep-clock uses millisecond i32 slots (not raw i64 ns) because GC i64 struct
-    fields still miscompile under the current host. Prefer s2-runtime as host;
-    pinned may work but is slower and more fragile.
+    Host must be s2-runtime (not pinned bootstrap): bootstrap emits
+    ``unreachable`` for ``clock::monotonic_now``, which breaks i64 returns.
+    Emit target must stay wasm32 (not wasm32-gc) for the handle ABI; the host
+    must skip GC ``ref.cast`` on wasm32 (see ``call_fallback_resolved``).
+
+    Serialized via runtime_lock (same lock as fixpoint / build-compiler).
     """
+    return _with_runtime_lock(lambda: _build_clock_capable_s2_locked(root, force=force))
+
+
+def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[Path | None, str]:
     global _FLAT_OVERLAY_CACHE
     out = root / CLOCK_S2_WASM_REL
     host = root / S2_RUNTIME_WASM_REL
+    pre64 = root / ".build/selfhost/arukellt-s2-clock-wasm32.wasm"
+    pre64_rel = str(pre64.relative_to(root))
     if (
         not force
         and out.is_file()
@@ -3729,11 +3762,11 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
         invalid = _reject_invalid_compiler_wasm(out)
         if not invalid:
             return out, ""
-    # Host must be the stubbed runtime, never a keep-clock overlay compile via pinned.
+
     prev_keep = os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK", None)
     try:
         _FLAT_OVERLAY_CACHE = None
-        runtime, err, _elapsed = rebuild_current_s2(root, force=not host.is_file())
+        runtime, err, _elapsed = _rebuild_current_s2_locked(root, force=not host.is_file())
         if runtime is None:
             return None, err or "failed to rebuild stubbed s2-runtime host"
         host = runtime if runtime.is_file() else host
@@ -3746,7 +3779,6 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
     os.environ["ARUKELLT_OVERLAY_KEEP_CLOCK"] = "1"
     try:
         _FLAT_OVERLAY_CACHE = None
-        # Drop disk cache entry so keep_clock hash rebuilds the overlay.
         cache_path = root / _FLAT_OVERLAY_DISK_CACHE_REL
         try:
             if cache_path.is_file():
@@ -3758,27 +3790,31 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
         if not wasmtime:
             return None, "wasmtime not found in PATH"
         out.parent.mkdir(parents=True, exist_ok=True)
-        if out.is_file():
-            try:
-                out.unlink()
-            except OSError:
-                pass
+        for stale in (out, pre64):
+            if stale.is_file():
+                try:
+                    stale.unlink()
+                except OSError:
+                    pass
         result = _wasm_compile(
             wasmtime,
             host,
             SELFHOST_SOURCE_REL,
-            CLOCK_S2_WASM_REL,
+            pre64_rel,
             root,
             workspace_root=workspace,
-            target=SELFHOST_TARGET,
-            wasi_version=SELFHOST_WASI_VERSION,
+            target=BOOTSTRAP_EMIT_TARGET,
+            wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
         )
-        if not out.is_file():
+        if not pre64.is_file():
             detail = ((result.stderr or "") + (result.stdout or ""))[-800:]
             return None, f"clock-capable s2 compile failed:\n{detail}"
-        invalid = _reject_invalid_compiler_wasm(out)
-        if invalid:
-            return None, invalid
+        invalid_pre = _reject_invalid_compiler_wasm(pre64)
+        if invalid_pre:
+            return None, invalid_pre
+        widened = _widen_compiler_wasm_to_memory64(root, pre64, out)
+        if widened is None:
+            return None, f"clock-capable s2 Memory64 widen/validate failed for {out.name}"
         return out, ""
     finally:
         os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK", None)
