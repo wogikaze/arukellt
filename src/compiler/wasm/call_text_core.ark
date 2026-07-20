@@ -7,6 +7,10 @@ use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_string_format
 use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
+use mir::inst_accessors_operands
+use wasm::writer_core
+use wasm::opcodes as wasm_opcodes
+
 fn try_emit_text_core_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_text_basic_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
@@ -96,7 +100,7 @@ fn try_emit_text_compare_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_concat(){
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     false
 }
@@ -104,28 +108,28 @@ fn try_emit_text_compare_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
 fn try_emit_text_construct_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_string_new(){
         let _result_on_stack = intrinsic_string_format::emit_String_new(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_string_clone(){
         let _result_on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_raw_string_from_bytes(){
         let _result_on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_text_clone(){
         let _result_on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
 
     if handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_bool(){
         let _result_on_stack = intrinsic_string_basic::emit_bool_to_string(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_text_string_from_bytes(){
         let _result_on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     false
 }
@@ -149,16 +153,31 @@ fn try_emit_text_measure_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
 fn try_emit_text_pad_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_pad_left(){
         let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_pad_right(){
         let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
-        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return finish_text_call_store_string(w, inst, _result_on_stack)
     }
     false
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    true
+}
+
+// Handle-ABI string results are VT_I32, so the shared store policy cannot tell
+// them apart from len/char_at scalars. Always SET to dest; consumers reload.
+fn finish_text_call_store_string(w: WasmWriter, inst: MirInst, result_on_stack: bool) -> bool {
+    if !result_on_stack {
+        return true
+    }
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest < 0 {
+        return true
+    }
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, dest)
     true
 }

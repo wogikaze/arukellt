@@ -97,6 +97,5 @@ fn try_emit_text_extra_transform_call(w: WasmWriter, handler_id: i32, inst: MirI
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
-    // Delegate to call_text_core so string VT_REF store forcing stays in sync.
-    call_text_core::finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    call_text_core::finish_text_call_store_string(w, inst, result_on_stack)
 }
