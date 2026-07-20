@@ -178,12 +178,9 @@ fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, 
 }
 
 fn should_force_string_handle_store(next_op: i32, next_arg0: i32, dest: i32) -> bool {
-    if next_op == opcodes::MIR_CALL() && next_arg0 >= 0 {
-        return true
-    }
-    if next_op == opcodes::MIR_WIT_CALL() && next_arg0 >= 0 {
-        return true
-    }
+    // Only the LOCAL_GET(other) discard pattern. CALL(local) stays on the
+    // shared policy (VT_REF SET via inst_store_policy) so char_at/len stack
+    // composition is not broken.
     if next_op == opcodes::MIR_LOCAL_GET() && next_arg0 >= 0 && next_arg0 != dest {
         return true
     }
