@@ -10,6 +10,7 @@ use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
 use wasm::opcodes
 use wasm::writer_core
+use mir::opcodes as mir_opcodes
 fn try_emit_text_core_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_text_basic_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
@@ -101,8 +102,15 @@ fn try_emit_text_compare_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
         // Handle-ABI concat leaves the pointer on the stack; always materialize
         // into dest when present so print/dump_mir LOCAL_GET chains stay clean.
+        // Use TEE when the next op still needs the stack value (e.g. LOCAL_SET
+        // copy); plain SET emptied the stack for snapshot_summary.
         let dest = inst_accessors_operands::MirInst_dest(inst)
         if _result_on_stack && dest >= 0 {
+            if next_op == mir_opcodes::MIR_LOCAL_SET() {
+                writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+                writer_core::emit_leb128_u(w, dest)
+                return true
+            }
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
             writer_core::emit_leb128_u(w, dest)
             return true
