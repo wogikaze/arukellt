@@ -101,13 +101,13 @@ fn try_emit_text_compare_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_concat(){
         let _result_on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
-        // Handle-ABI: always materialize into dest.
-        // TEE only when next is LOCAL_SET from stack (arg1 < 0). LOCAL_SET with
-        // arg1 >= 0 is a local-to-local copy (emits get+set) — SET so the stack
-        // is empty (parse_input_or_error).
+        // Handle-ABI: always materialize into dest. TEE when the next op still
+        // needs the stack value (stack-sourced LOCAL_SET, or CALL with stack args).
         let dest = inst_accessors_operands::MirInst_dest(inst)
         if _result_on_stack && dest >= 0 {
-            if next_op == mir_opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+            let needs_stack = (next_op == mir_opcodes::MIR_LOCAL_SET() && next_arg1 < 0) ||
+            ((next_op == mir_opcodes::MIR_CALL() || next_op == mir_opcodes::MIR_WIT_CALL()) && next_arg0 < 0)
+            if needs_stack {
                 writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
                 writer_core::emit_leb128_u(w, dest)
                 return true
