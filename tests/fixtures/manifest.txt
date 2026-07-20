@@ -861,6 +861,7 @@ run:stdlib_io/copy_alias.ark
 run:stdlib_io/copy_bytes_empty.ark
 run:stdlib_io/copy_bytes_full.ark
 run:stdlib_io/eprintln.ark
+run:stdlib_io/eprintln_const_in_if.ark
 run:stdlib_io/exists_missing.ark
 run:stdlib_io/f64_to_string.ark
 run:stdlib_io/fs_deny_access.ark
@@ -2034,6 +2035,7 @@ t3-compile:stdlib_hashmap/hashset_string_facades.ark
 t3-compile:stdlib_hashmap/test_hash_standalone.ark
 t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
+t3-compile:stdlib_io/eprintln_const_in_if.ark
 t3-compile:stdlib_io/f64_to_string.ark
 t3-compile:stdlib_io/fs_read_error.ark
 t3-compile:stdlib_io/fs_read_write.ark
@@ -2454,6 +2456,7 @@ t3-run:stdlib_host/wasi_random.ark
 t3-run:stdlib_host/wasi_stdio.ark
 t3-run:stdlib_io/clock_random.ark
 t3-run:stdlib_io/eprintln.ark
+t3-run:stdlib_io/eprintln_const_in_if.ark
 t3-run:stdlib_io/f64_to_string.ark
 t3-run:stdlib_io/fs_read_error.ark
 t3-run:stdlib_io/i32_to_string.ark

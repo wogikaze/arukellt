@@ -75,20 +75,35 @@ fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32
 
 // Void stdio calls use dest=-1. Encoding that as leb128_u becomes local 0 and
 // clobbers i64 params (emit_phase_timing under KEEP_CLOCK). Prefer arg0.
-// Call-arg lowering may already have pushed the string; drop that stray value
-// when we will reload from the local for iov setup.
+//
+// CONST_STRING before CALL is SKIP-stored (direct consumer), so the pointer
+// remains on the stack while iov reloads from arg0. Capture it into arg0/dest
+// or the if-block in dump_wasm eprintln fails validate (stack leftover).
+// Do not treat CALL the same way: concat force-SETs, so the stack is already empty.
 fn resolve_stdio_string_local(w: WasmWriter, inst: MirInst, prev_op: i32) -> i32 {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     if dest >= 0 {
+        if prev_op == opcodes::MIR_CONST_STRING() {
+            helpers_core::emit_local_set(w, dest)
+            return dest
+        }
         if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
             helpers_core::emit_local_get(w, arg0)
         }
         helpers_core::emit_local_set(w, dest)
         return dest
     }
-    if arg0 >= 0 && prev_op == opcodes::MIR_LOCAL_GET() {
+    if arg0 < 0 {
+        return arg0
+    }
+    if prev_op == opcodes::MIR_LOCAL_GET() {
         helpers_core::emit_drop(w)
+        return arg0
+    }
+    if prev_op == opcodes::MIR_CONST_STRING() {
+        helpers_core::emit_local_set(w, arg0)
+        return arg0
     }
     arg0
 }
