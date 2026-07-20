@@ -33,7 +33,10 @@ fn next_op_consumes_stack_result(next_op: i32, next_arg0: i32) -> bool {
     if next_op == mir_opcodes::MIR_LOCAL_SET() {
         return true
     }
-    if next_op == mir_opcodes::MIR_RETURN() && next_arg0 < 0 {
+    // RETURN always needs the stack value when the previous op left it:
+    // arg0 < 0 returns from stack; arg0 >= 0 uses already_on_stack after
+    // LOCAL_GET and must not DROP that get (arg_is_check_command).
+    if next_op == mir_opcodes::MIR_RETURN() {
         return true
     }
     if (next_op == mir_opcodes::MIR_CALL() || next_op == mir_opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
