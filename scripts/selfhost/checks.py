@@ -1546,6 +1546,18 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), i32_to_i64(pipeline_frontend::frontend_result_t0(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_lex(frontend)), i32_to_i64(pipeline_frontend::frontend_result_t_parse(frontend)))",
         "driver_timing: run_backend i32_to_i64 wrapping",
     )
+    timestamp_getters = (
+        ("t0", "frontend_result_t0"),
+        ("t_lex", "frontend_result_t_lex"),
+        ("t_parse", "frontend_result_t_parse"),
+    )
+    for field, getter in timestamp_getters:
+        text = _replace_optional(
+            text,
+            f"let {field}: i64 = pipeline_frontend::{getter}(frontend)",
+            f"let {field}: i64 = i32_to_i64(pipeline_frontend::{getter}(frontend))",
+            f"driver_timing: pipeline_backend {field} getter i32_to_i64 wrapping",
+        )
     text = _replace_optional(
         text,
         "fn resolve_result_t_resolve(result: DriverResolveResult) -> i64 {",
@@ -1589,6 +1601,15 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         "debug::emit_phase_timing(t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, i32_to_i64(0))",
         "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
+    if keep_clock:
+        text = _sub_optional(
+            text,
+            r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
+            r"\1\2i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))\3",
+            "driver_timing: emit_phase_timing final clock i32_to_i64 wrapping",
+            flags=re.M,
+            count=1,
+        )
     # New signature includes mir_opt / mir_verify; clock stub rewrites the final now() to 0.
     text = _replace_optional(
         text,
