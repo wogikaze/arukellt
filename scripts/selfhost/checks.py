@@ -4378,12 +4378,12 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
     pass_count = 0
     fail_count = 0
 
-    def run_self_with_dirs(dirs: list[Path], *args: str) -> tuple[int, str]:
+    def run_self_with_dirs(dirs: list[Path], *args: str, cwd: Path = root) -> tuple[int, str]:
         cmd = [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS]
         for mount in dirs:
             cmd.extend(["--dir", str(mount)])
         cmd.extend([str(current), "--", *args])
-        r = _run(cmd, root)
+        r = _run(cmd, cwd)
         return r.returncode, (r.stdout + r.stderr)
 
     def run_self(*args: str) -> tuple[int, str]:
@@ -4587,7 +4587,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
         provider.write_bytes(b"\0asm")
         socket.write_bytes(b"\0asm")
         rc_co1, out_co1 = run_self_with_dirs(
-            [root, tmp],
+            [tmp],
             "compose",
             "--validate",
             "--plug",
@@ -4595,6 +4595,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
             "socket.wasm",
             "-o",
             "composed.wasm",
+            cwd=tmp,
         )
         if rc_co1 == 0 and "compose dependency graph" in out_co1:
             lines.append(f"  pass: compose --validate (exit 0, graph printed)")

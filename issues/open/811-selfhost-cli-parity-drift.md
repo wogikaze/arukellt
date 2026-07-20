@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-20
 ID: 811
 Track: selfhost
 Depends on: none
@@ -52,6 +52,27 @@ python3 scripts/manager.py selfhost cli-parity
 ## Current count
 
 2 mismatched commands
+
+## Evidence (2026-07-20)
+
+Ran `python3 scripts/manager.py selfhost parity --mode --cli` after fixes.
+Result: `PASS=19 FAIL=0` (all CLI parity cases pass).
+
+Root causes and fixes:
+
+- `--help` drift: the selfhost compiler now prints four additional global
+  options (`--list`, `--local`, `--allow`, `--deny`) used by the `lint`
+  command and accepted as top-level flags. The previous golden
+  `tests/snapshots/selfhost/cli-help.txt` was missing them. Updated the
+  golden to match the current intentional help text.
+
+- `compose --validate`: the test harness ran the CLI with the worktree root
+  as the first `--dir` preopen and as the subprocess cwd. The `provider.wasm`
+  and `socket.wasm` fixtures were created in a temporary directory, but the
+  selfhost WASI fs layer resolves relative paths against the first preopened
+  directory (fd 3), so the files were not found. Changed the harness to
+  preopen the temporary directory first and run the compose command with
+  that directory as cwd (`scripts/selfhost/checks.py`).
 
 ## New-failure ratchet
 
