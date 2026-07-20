@@ -6,8 +6,11 @@ use wasm::intrinsic_string_format
 use wasm::call_text_mir_view
 use mir::inst_accessors_operands
 use mir::inst_record
+use mir::opcodes as mir_opcodes
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::opcodes
+use wasm::writer_core
 
 fn try_emit_text_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if call_text_core::try_emit_text_core_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
@@ -134,8 +137,28 @@ fn try_emit_string_text_format_call(w: WasmWriter, handler_id: i32, inst: MirIns
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
-    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    // String format results must land in dest before a following CALL that
+    // reads the local (dump_mir print path). Skipping the store leaves the
+    // ptr on the stack and validates as "values remaining on stack".
+    if result_on_stack &&
+    inst_accessors_operands::MirInst_dest(inst) >= 0 &&
+    should_force_text_call_dest_store(next_op, next_arg0) {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_dest(inst))
+    } else {
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    }
     true
+}
+
+fn should_force_text_call_dest_store(next_op: i32, next_arg0: i32) -> bool {
+    if next_op == mir_opcodes::MIR_CALL() && next_arg0 >= 0 {
+        return true
+    }
+    if next_op == mir_opcodes::MIR_WIT_CALL() && next_arg0 >= 0 {
+        return true
+    }
+    false
 }
 
 fn text_call_result_on_stack(inst: MirInst, default_on_stack: bool) -> bool {
