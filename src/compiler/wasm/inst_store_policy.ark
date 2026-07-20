@@ -74,12 +74,21 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                 // stay on the stack for composition.
                 let cur = inst_accessors_shape::MirInst_op(inst)
                 if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
-                    if next2_op == opcodes::MIR_CALL() || next2_op == opcodes::MIR_WIT_CALL() || next2_op == opcodes::MIR_CALL_INDIRECT() {
-                        let vt = inst_accessors_shape::MirInst_val_type(inst)
-                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
-                            return false
+                    let vt = inst_accessors_shape::MirInst_val_type(inst)
+                    let is_numeric = vt == value_types::VT_I32() ||
+                    vt == value_types::VT_I64() ||
+                    vt == value_types::VT_F64()
+                    // Keep numeric scalars on the stack for composition
+                    // (len/len/ne). String handles (VT_REF / unset) must SET
+                    // before LOCAL_GET(other)+CALL/LOCAL_SET (dump_mir).
+                    if next2_op == opcodes::MIR_CALL() ||
+                    next2_op == opcodes::MIR_WIT_CALL() ||
+                    next2_op == opcodes::MIR_CALL_INDIRECT() ||
+                    next2_op == opcodes::MIR_LOCAL_SET() {
+                        if is_numeric {
+                            return true
                         }
-                        return true
+                        return false
                     }
                 }
                 return true

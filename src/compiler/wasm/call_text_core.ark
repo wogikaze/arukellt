@@ -7,11 +7,6 @@ use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_string_format
 use wasm::intrinsic_math
 use wasm::intrinsic_string_pad
-use mir::inst_accessors_operands
-use mir::opcodes
-use wasm::writer_core
-use wasm::opcodes as wasm_opcodes
-
 fn try_emit_text_core_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if try_emit_text_basic_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
@@ -164,25 +159,6 @@ fn try_emit_text_pad_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
 }
 
 fn finish_text_call(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) -> bool {
-    // Force SET only when a later local.get/call would otherwise leave a string
-    // handle under the stack (dump_mir). Do not force on LOCAL_SET — that path
-    // needs TEE so `let n = len(s); n > 0` keeps the value for the compare.
-    let dest = inst_accessors_operands::MirInst_dest(inst)
-    if result_on_stack && dest >= 0 && should_force_string_handle_store(next_op, next_arg0, dest) {
-        writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
-        writer_core::emit_leb128_u(w, dest)
-        return true
-    }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
     true
-}
-
-fn should_force_string_handle_store(next_op: i32, next_arg0: i32, dest: i32) -> bool {
-    // Only the LOCAL_GET(other) discard pattern. CALL(local) stays on the
-    // shared policy (VT_REF SET via inst_store_policy) so char_at/len stack
-    // composition is not broken.
-    if next_op == opcodes::MIR_LOCAL_GET() && next_arg0 >= 0 && next_arg0 != dest {
-        return true
-    }
-    false
 }
