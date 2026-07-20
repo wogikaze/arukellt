@@ -3,23 +3,16 @@ use wasm::inst_store_policy
 use wasm::constants
 use wasm::opcodes
 use wasm::writer_core
-use mir::opcodes as mir_opcodes
 
 fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, result_on_stack: bool) {
     if !result_on_stack {
         return
     }
-    let dest = inst_accessors_operands::MirInst_dest(inst)
     let action = inst_store_policy::store_result_action(inst, next_op, next_arg0, next_arg1, next2_op)
     if action == constants::STORE_ACTION_SKIP() {
-        // Narrow: only dump_mir-style orphans (dest < 0 then LOCAL_GET other).
-        // Do not DROP before LOAD/CONST/eq — those still need the stack value.
-        if dest < 0 && next_op == mir_opcodes::MIR_LOCAL_GET() {
-            writer_core::emit_byte(w, opcodes::OP_DROP())
-        }
         return
     }
-    emit_store_action(w, dest, action)
+    emit_store_action(w, inst_accessors_operands::MirInst_dest(inst), action)
 }
 
 fn emit_store_action(w: WasmWriter, dest: i32, action: i32) {
