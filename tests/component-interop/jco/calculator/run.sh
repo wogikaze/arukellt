@@ -39,8 +39,6 @@ if [[ -z "$WASMTIME" ]]; then
     exit 0
 fi
 
-fi
-
 # ── Build ──────────────────────────────────────────────────────────────────
 
 echo "[1/3] Compiling calculator.ark -> calculator.component.wasm"

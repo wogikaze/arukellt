@@ -120,7 +120,7 @@ fn lib_comp_val_type_to_wit(vt: i32) -> i32 {
     if vt == value_types::VT_F32() {
         return constants::LIB_WIT_F32()
     }
-    constants::LIB_WIT_S32()
+    constants::LIB_WIT_S64()
 }
 
 fn lib_comp_collect_export_indices(mir: MirModule) -> i32 {
