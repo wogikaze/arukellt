@@ -17,7 +17,7 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
         // Only CALL/WIT — never LOCAL_GET (loop i < n is get; get; ge_s).
         let cur = inst_accessors_shape::MirInst_op(inst)
         if dest < 0 && (cur == mir_opcodes::MIR_CALL() || cur == mir_opcodes::MIR_WIT_CALL()) {
-            if !call_result_next_consumes_stack(next_op, next_arg0) {
+            if !call_result_next_consumes_stack(next_op, next_arg0, next_arg1) {
                 writer_core::emit_byte(w, opcodes::OP_DROP())
             }
         }
@@ -26,11 +26,12 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
     emit_store_action(w, dest, action)
 }
 
-fn call_result_next_consumes_stack(next_op: i32, next_arg0: i32) -> bool {
+fn call_result_next_consumes_stack(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {
     if next_op == mir_opcodes::MIR_DROP() {
         return true
     }
-    if next_op == mir_opcodes::MIR_LOCAL_SET() {
+    // LOCAL_SET consumes stack only when arg1 < 0 (not a local-to-local copy).
+    if next_op == mir_opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         return true
     }
     if next_op == mir_opcodes::MIR_RETURN() {
