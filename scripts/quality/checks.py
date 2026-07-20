@@ -638,16 +638,20 @@ def run_quality(
     )
     failures += _run_command(root, ["python3", "scripts/check/check-comment-policy.py"], dry_run)
     failures += _run_command(root, ["python3", "scripts/check/check-semantic-debt.py"], dry_run)
-    failures += run_fmt(
-        root,
-        ark_selected if mode in {"changed", "quick"} else [],
-        True,
-        dry_run,
-        json_output,
-    )
+    # ark_paths([]) means "all inventory roots". For changed/quick, an empty
+    # .ark diff must skip fmt/lint instead of expanding to the whole tree.
+    scoped_ark = mode in {"changed", "quick"}
+    if scoped_ark and ark_selected:
+        failures += run_fmt(root, ark_selected, True, dry_run, json_output)
+    elif not scoped_ark:
+        failures += run_fmt(root, [], True, dry_run, json_output)
+    elif dry_run:
+        print("DRY-RUN: fmt/lint skipped (no .ark files in changed set)")
+
     if mode == "changed":
-        failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-        failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+        if ark_selected:
+            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
+            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
         failures += _run_command(
             root,
             [
@@ -657,8 +661,9 @@ def run_quality(
             dry_run,
         )
     elif mode == "quick":
-        failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-        failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+        if ark_selected:
+            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
+            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
         failures += _run_command(
             root,
             [

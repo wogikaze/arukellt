@@ -142,7 +142,7 @@ def _with_selfhost_runtime_lock(fn: Callable[[], T]) -> T:
         raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn)
+    return mod.with_selfhost_runtime_lock(fn, root=REPO_ROOT)
 
 
 def _default_jobs() -> int:
@@ -620,7 +620,7 @@ def _gate_076_locked() -> tuple[int, str]:
         return 1, "missing scripts/selfhost/runtime_lock.py"
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(_gate_076_body)
+    return mod.with_selfhost_runtime_lock(_gate_076_body, root=REPO_ROOT)
 
 
 def _gate_076_body() -> tuple[int, str]:
@@ -677,7 +677,7 @@ def _gate_074_locked() -> tuple[int, str]:
         return 1, "missing scripts/selfhost/runtime_lock.py"
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(_gate_074_body)
+    return mod.with_selfhost_runtime_lock(_gate_074_body, root=REPO_ROOT)
 
 
 def _gate_074_body() -> tuple[int, str]:

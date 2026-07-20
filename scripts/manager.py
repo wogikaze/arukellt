@@ -28,6 +28,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 # Ensure scripts/ is on sys.path so we can import lib and verify packages.
@@ -89,6 +90,7 @@ _VERIFY_QUICK_MEMO_VERSION = "verify-quick-memo-v2"
 _VERIFY_QUICK_CHECK_CACHE_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-check-cache"
 _VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v2"
 _VERIFY_QUICK_FILE_DIGESTS: dict[str, str] | None = None
+_VERIFY_QUICK_FILE_DIGESTS_LOCK = threading.Lock()
 
 
 def _hash_bytes(digest, data: bytes) -> None:
@@ -198,56 +200,59 @@ def _prime_quick_file_digest_cache(root: Path) -> None:
     """
     global _VERIFY_QUICK_FILE_DIGESTS
 
-    if _VERIFY_QUICK_FILE_DIGESTS is not None:
-        return
-    _VERIFY_QUICK_FILE_DIGESTS = {}
-    tracked = subprocess.run(
-        ["git", "ls-files", "-s", "-z"],
-        cwd=str(root),
-        capture_output=True,
-        check=False,
-    )
-    if tracked.returncode != 0:
-        return
-    for raw in tracked.stdout.split(b"\0"):
-        if not raw:
-            continue
-        try:
-            meta, rel_bytes = raw.split(b"\t", 1)
-        except ValueError:
-            continue
-        parts = meta.split(b" ")
-        if len(parts) < 2:
-            continue
-        oid = parts[1].decode("ascii", errors="replace")
-        rel = rel_bytes.decode("utf-8", errors="surrogateescape")
-        if rel.startswith(".build/"):
-            continue
-        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"git:{oid}"
-
-    changed: set[str] = set()
-    for args in (
-        ["diff", "--name-only", "--no-renames", "-z"],
-        ["diff", "--cached", "--name-only", "--no-renames", "-z"],
-        ["ls-files", "--others", "--exclude-standard", "-z"],
-    ):
-        result = subprocess.run(
-            ["git", *args],
+    with _VERIFY_QUICK_FILE_DIGESTS_LOCK:
+        if _VERIFY_QUICK_FILE_DIGESTS is not None:
+            return
+        digests: dict[str, str] = {}
+        tracked = subprocess.run(
+            ["git", "ls-files", "-s", "-z"],
             cwd=str(root),
             capture_output=True,
             check=False,
         )
-        if result.returncode != 0:
-            continue
-        changed.update(
-            raw.decode("utf-8", errors="surrogateescape")
-            for raw in result.stdout.split(b"\0")
-            if raw
-        )
-    for rel in changed:
-        if rel.startswith(".build/"):
-            continue
-        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"worktree:{_file_sha256(root / rel)}"
+        if tracked.returncode != 0:
+            _VERIFY_QUICK_FILE_DIGESTS = digests
+            return
+        for raw in tracked.stdout.split(b"\0"):
+            if not raw:
+                continue
+            try:
+                meta, rel_bytes = raw.split(b"\t", 1)
+            except ValueError:
+                continue
+            parts = meta.split(b" ")
+            if len(parts) < 2:
+                continue
+            oid = parts[1].decode("ascii", errors="replace")
+            rel = rel_bytes.decode("utf-8", errors="surrogateescape")
+            if rel.startswith(".build/"):
+                continue
+            digests[rel] = f"git:{oid}"
+
+        changed: set[str] = set()
+        for args in (
+            ["diff", "--name-only", "--no-renames", "-z"],
+            ["diff", "--cached", "--name-only", "--no-renames", "-z"],
+            ["ls-files", "--others", "--exclude-standard", "-z"],
+        ):
+            result = subprocess.run(
+                ["git", *args],
+                cwd=str(root),
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                continue
+            changed.update(
+                raw.decode("utf-8", errors="surrogateescape")
+                for raw in result.stdout.split(b"\0")
+                if raw
+            )
+        for rel in changed:
+            if rel.startswith(".build/"):
+                continue
+            digests[rel] = f"worktree:{_file_sha256(root / rel)}"
+        _VERIFY_QUICK_FILE_DIGESTS = digests
 
 
 def _path_matches_prefix(rel: str, prefix: str) -> bool:
@@ -260,7 +265,7 @@ def _fingerprint_prefixes(root: Path, prefixes: tuple[str, ...], salt: str) -> s
     digest = hashlib.sha256()
     _hash_bytes(digest, _VERIFY_QUICK_CHECK_CACHE_VERSION.encode("utf-8"))
     _hash_bytes(digest, salt.encode("utf-8"))
-    file_digests = _VERIFY_QUICK_FILE_DIGESTS or {}
+    file_digests = dict(_VERIFY_QUICK_FILE_DIGESTS or {})
     selected = {"scripts/manager.py"}
     for rel in file_digests:
         if any(_path_matches_prefix(rel, prefix) for prefix in prefixes):
@@ -401,6 +406,82 @@ def _cached_quick_check(
         except OSError:
             pass
     return rc, out
+
+
+def _is_verify_quick_heavy_check(label: str, cmd_str: str) -> bool:
+    """True when a bg check should share the selfhost/wasm serial pool.
+
+    Static docs/registry checks run with higher parallelism. Checks that compile
+    or execute wasm / touch shared selfhost artifacts stay on a small pool so
+    they do not OOM the host or race unlocked build outputs.
+    """
+    text = f"{label}\n{cmd_str}".lower()
+    markers = (
+        "selfhost",
+        "wasm",
+        "opt-equivalence",
+        "t3 fixture",
+        "lsp",
+        "dap",
+        "gc array",
+        "component",
+        "wit",
+        "host_stub",
+        "wasi",
+        "fmt-parity",
+        "analysis api",
+        "mir reachability",
+        "quality quick",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _verify_quick_worker_counts() -> tuple[int, int]:
+    """Return (static_workers, heavy_workers) for verify-quick bg pools."""
+    cpu = os.cpu_count() or 4
+    static_default = max(2, min(8, cpu))
+    heavy_default = 1
+    try:
+        static_workers = int(os.environ.get("ARUKELLT_VERIFY_QUICK_WORKERS", str(static_default)))
+    except ValueError:
+        static_workers = static_default
+    try:
+        heavy_workers = int(os.environ.get("ARUKELLT_VERIFY_QUICK_HEAVY_WORKERS", str(heavy_default)))
+    except ValueError:
+        heavy_workers = heavy_default
+    return max(1, static_workers), max(1, heavy_workers)
+
+
+_LANE_GATES: dict[str, tuple[str, str]] = {
+    "cli-parity": (
+        "selfhost CLI parity",
+        "python3 scripts/manager.py selfhost parity --mode --cli",
+    ),
+    "diag-parity": (
+        "selfhost diagnostic parity",
+        "python3 scripts/manager.py selfhost diag-parity",
+    ),
+    "fixture-parity": (
+        "selfhost fixture parity",
+        "python3 scripts/manager.py selfhost fixture-parity",
+    ),
+    "fmt-parity": (
+        "selfhost formatter parity",
+        "python3 scripts/manager.py selfhost fmt-parity",
+    ),
+    "t3": (
+        "T3 fixture WASM validation",
+        "python3 scripts/check/check-t3-wasm-validate.py",
+    ),
+    "component-interop": (
+        "component interop",
+        "python3 scripts/manager.py verify component-interop",
+    ),
+    "quality-quick": (
+        "quality quick",
+        "python3 scripts/manager.py quality quick",
+    ),
+}
 
 
 def _run(cmd: list[str], *, cwd: Path, dry_run: bool) -> tuple[int, str, str]:
@@ -4253,6 +4334,72 @@ def _mir_lower_input_contract_violations(root: Path) -> list[tuple[str, int, str
 # ── verify subcommands ────────────────────────────────────────────────────────
 
 
+def cmd_verify_lane(args: argparse.Namespace) -> int:
+    """Fast agent/lane gate: quality changed + optional named domain gate.
+
+    Prefer this over ``verify quick`` during iterative and parallel lane work.
+    ``verify quick`` remains the merge/CI gate.
+    """
+    root = _repo_root()
+    dry_run: bool = bool(getattr(args, "dry_run", False))
+    gate = (getattr(args, "gate", None) or "").strip()
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[lane] quality changed...{NC}")
+    quality_rc = run_quality(root, "changed", dry_run, getattr(args, "json", False))
+    if quality_rc == 0:
+        h.check_pass("quality changed")
+    else:
+        h.check_fail(
+            "quality changed",
+            category="quality",
+            command="python3 scripts/manager.py quality changed",
+            primary_path="scripts/quality/checks.py",
+        )
+
+    overall = quality_rc
+    if gate:
+        if gate not in _LANE_GATES:
+            known = ", ".join(sorted(_LANE_GATES))
+            print(f"{RED}error: unknown lane gate {gate!r}; known: {known}{NC}", file=sys.stderr)
+            return 2
+        label, cmd_str = _LANE_GATES[gate]
+        print(f"\n{YELLOW}[lane] gate={gate} ({label})...{NC}")
+        if dry_run:
+            print(f"DRY-RUN: {cmd_str}")
+            h.check_pass(label)
+        else:
+            env = {**os.environ}
+            cargo_bin = str(Path.home() / ".cargo" / "bin")
+            if cargo_bin not in env.get("PATH", ""):
+                env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
+            result = subprocess.run(
+                ["bash", "-lc", cmd_str],
+                cwd=str(root),
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            out = result.stdout + result.stderr
+            if result.returncode == 0:
+                h.check_pass(label)
+            else:
+                h.check_fail(
+                    label,
+                    category="lane-gate",
+                    command=cmd_str,
+                    primary_path="scripts/manager.py",
+                )
+                for line in out.splitlines()[-40:]:
+                    print(line)
+                overall = result.returncode if overall == 0 else overall
+
+    _total, _passed, _skipped, failed = h.summary()
+    if overall != 0:
+        return overall
+    return 1 if failed else 0
+
+
 def cmd_verify_quick(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
@@ -4275,7 +4422,11 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     # wasm (4 GiB) and pointing ARUKELLT_SELFHOST_WASM to it gives all checks
     # sufficient memory.
     if not dry_run:
-        s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+        try:
+            from lib.build_paths import selfhost_dir
+            s2 = selfhost_dir(root) / "arukellt-s2.wasm"
+        except Exception:
+            s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
         if s2.is_file():
             runtime = _ensure_runtime_compiler_wasm(root, s2)
             if runtime is not None and runtime.is_file():
@@ -4542,18 +4693,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "call router semantic dispatch (#798)",
             "python3 scripts/check/check-call-router-semantic-dispatch.py",
         ),
-        (
-            "orphan/stale file inventory (advisory, #418)",
-            "bash scripts/check/check-orphan-inventory.sh",
-        ),
-        (
-            "in-file test adoption report (advisory, #715)",
-            "python3 scripts/check/check-infile-test-adoption.py",
-        ),
-        (
-            "artifact size budget report (advisory, #422)",
-            "bash scripts/check/check-artifact-size-budget.sh",
-        ),
+        # Advisory inventories (orphan / infile-test / artifact-size) stay out of
+        # verify quick — run via quality report / dedicated scripts when needed.
         (
             "host_stub compile gate (#292)",
             "python3 scripts/check/check-host-stub-gate.py",
@@ -4591,11 +4732,34 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     bg_results: list[tuple[str, str, int, str]] = []
     if not dry_run and os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") != "0":
         _prime_quick_file_digest_cache(root)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        futures = {
-            executor.submit(_cached_quick_check, root, label, cmd_str, _shell): (label, cmd_str)
-            for label, cmd_str in bg_checks
-        }
+    static_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if not _is_verify_quick_heavy_check(label, cmd_str)
+    ]
+    heavy_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if _is_verify_quick_heavy_check(label, cmd_str)
+    ]
+    static_workers, heavy_workers = _verify_quick_worker_counts()
+    print(
+        f"{YELLOW}[bg] pools: static={len(static_checks)}×{static_workers} "
+        f"heavy={len(heavy_checks)}×{heavy_workers}{NC}"
+    )
+    with concurrent.futures.ThreadPoolExecutor(max_workers=static_workers) as static_ex, \
+            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_workers) as heavy_ex:
+        futures: dict[concurrent.futures.Future, tuple[str, str]] = {}
+        for label, cmd_str in static_checks:
+            futures[static_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
+        for label, cmd_str in heavy_checks:
+            futures[heavy_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
         for future in concurrent.futures.as_completed(futures):
             label, cmd_str = futures[future]
             rc, out = future.result()
@@ -6558,7 +6722,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub_verify.required = False
 
     for name, help_text in [
-        ("quick",     "Run the fast local gate checks"),
+        ("quick",     "Run the merge/CI local gate checks"),
+        ("lane",      "Fast agent/lane gate (quality changed + optional --gate)"),
         ("fixtures",  "Run the manifest-driven fixture harness"),
         ("size",      "Run the hello.wasm binary size gate"),
         ("wat",       "Run the WAT roundtrip gate"),
@@ -6569,6 +6734,13 @@ def build_parser() -> argparse.ArgumentParser:
     ]:
         p = sub_verify.add_parser(name, help=help_text)
         p.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
+    lane_parser = sub_verify.choices["lane"]
+    lane_parser.add_argument(
+        "--gate",
+        choices=sorted(_LANE_GATES),
+        help="Optional domain gate after quality changed",
+    )
+    lane_parser.add_argument("--json", action="store_true", help="JSON diagnostics for quality changed")
 
     _build_selfhost_subparser(sub_domain)
     _build_docs_subparser(sub_domain)
@@ -6788,6 +6960,7 @@ def main() -> int:
 
     dispatch_positional = {
         "quick":     cmd_verify_quick,
+        "lane":      cmd_verify_lane,
         "fixtures":  cmd_verify_fixtures,
         "size":      cmd_verify_size,
         "wat":       cmd_verify_wat,

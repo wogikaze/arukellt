@@ -27,6 +27,43 @@ GREEN  = "\033[0;32m"
 YELLOW = "\033[1;33m"
 NC     = "\033[0m"
 
+# ── Build-dir resolution (ARUKELLT_BUILD_DIR / worktree-local .build) ─────────
+def _build_dir(root: Path) -> Path:
+    import importlib.util
+    lib = Path(__file__).resolve().parents[1] / "lib" / "build_paths.py"
+    spec = importlib.util.spec_from_file_location("arukellt_build_paths", lib)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"missing {lib}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.build_dir(root)
+
+
+def _selfhost_dir(root: Path) -> Path:
+    return _build_dir(root) / "selfhost"
+
+
+def _selfhost_rel(root: Path, name: str) -> str:
+    import importlib.util
+    lib = Path(__file__).resolve().parents[1] / "lib" / "build_paths.py"
+    spec = importlib.util.spec_from_file_location("arukellt_build_paths", lib)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"missing {lib}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.selfhost_rel(root, name)
+
+
+def _resolve_build_rel(root: Path, rel: str) -> Path:
+    """Map legacy ``.build/...`` relative paths onto ``build_dir(root)``."""
+    norm = rel.replace("\\", "/")
+    if norm == ".build" or norm.startswith(".build/"):
+        rest = norm[len(".build"):].lstrip("/")
+        return _build_dir(root) / rest if rest else _build_dir(root)
+    return root / rel
+
+
+
 # ── Bootstrap overlay patch guards ───────────────────────────────────────────
 #
 # The pinned-reference wasm is built from an older source snapshot.  To compile
@@ -596,7 +633,7 @@ def _selfhost_source_fingerprint(root: Path) -> str:
 
 def _fixpoint_cache_read(root: Path) -> dict | None:
     """Read the fixpoint cache; return None if missing or corrupt."""
-    p = root / FIXPOINT_CACHE_REL
+    p = _resolve_build_rel(root, FIXPOINT_CACHE_REL)
     if not p.is_file():
         return None
     try:
@@ -610,7 +647,7 @@ def _fixpoint_cache_read(root: Path) -> dict | None:
 
 def _fixpoint_cache_write(root: Path, entry: dict) -> None:
     """Write the fixpoint cache atomically."""
-    p = root / FIXPOINT_CACHE_REL
+    p = _resolve_build_rel(root, FIXPOINT_CACHE_REL)
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(entry, indent=2), encoding="utf-8")
@@ -623,7 +660,7 @@ def _fixpoint_cache_hit(
     """Return a cached result if the cache is valid, else None."""
     if cache.get("source_hash") != fingerprint:
         return None
-    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+    s2 = _selfhost_dir(root) / "arukellt-s2.wasm"
     if not s2.is_file():
         return None
     exit_code = cache.get("exit_code")
@@ -632,7 +669,7 @@ def _fixpoint_cache_hit(
     if exit_code not in (0, 1):
         return None
     # For exit 0 (fixpoint reached) or 1 (not yet reached), s3 must exist.
-    s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
+    s3 = _selfhost_dir(root) / "arukellt-s3.wasm"
     if not s3.is_file():
         return None
     # Verify s2 wasm hash matches cache (detects manual tampering).
@@ -787,7 +824,7 @@ def _wasm_compile(
         guest_out = "bootstrap-out.wasm"
     dirs.extend(["--dir", str(root)])
     # Ensure AST cache directory exists
-    ast_cache = root / AST_CACHE_REL
+    ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
     # Only pass --cache-dir to selfhost-built compilers (s2/s3), not pinned bootstrap
     cache_args: list[str] = []
@@ -2171,7 +2208,7 @@ def _patch_bootstrap_disable_selfhost_mir_prune(wasm_path: Path) -> bool:
 
 def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
     """Return a bootstrap-capable copy of the pinned wasm (heap grow + memory64)."""
-    out = root / BOOTSTRAP_WASM_REL
+    out = _resolve_build_rel(root, BOOTSTRAP_WASM_REL)
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
         return None
@@ -2215,16 +2252,16 @@ def resolve_ide_gate_compiler_wasm(root: Path) -> Path | None:
     Prefer heap-patched s2-runtime (Memory64-ready) over bare s2, matching
     the CLI wrapper and T3 validation gate.
     """
-    runtime = root / ".build" / "selfhost" / "arukellt-s2-runtime.wasm"
+    runtime = _selfhost_dir(root) / "arukellt-s2-runtime.wasm"
     if runtime.is_file():
         return runtime
-    s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+    s2 = _selfhost_dir(root) / "arukellt-s2.wasm"
     if s2.is_file():
         ensured = _ensure_runtime_compiler_wasm(root, s2)
         if ensured is not None:
             return ensured
         return s2
-    s3 = root / ".build" / "selfhost" / "arukellt-s3.wasm"
+    s3 = _selfhost_dir(root) / "arukellt-s3.wasm"
     if s3.is_file():
         return s3
     return _find_pinned_wasm(root)
@@ -2318,7 +2355,7 @@ def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | Non
     converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
     leaves non-negative addresses (including past 4GiB) as full i64 (#730).
     """
-    out = root / S2_RUNTIME_WASM_REL
+    out = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         if not _reject_invalid_compiler_wasm(out):
             return out
@@ -2536,9 +2573,9 @@ def _should_try_flat_overlay(stderr: str) -> bool:
 
 def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | None:
     """Build a hop compiler (pinned -> a56+unify) for oversized modular sources."""
-    out = root / HOP_BOOTSTRAP_WASM_REL
+    out = _resolve_build_rel(root, HOP_BOOTSTRAP_WASM_REL)
     patcher_bin = _ensure_wasm_patcher_binary(root)
-    patch_marker = root / ".build" / "selfhost" / f"hop-bootstrap-patch-rev{HOP_BOOTSTRAP_PATCH_REV}"
+    patch_marker = _selfhost_dir(root) / f"hop-bootstrap-patch-rev{HOP_BOOTSTRAP_PATCH_REV}"
     if (
         out.is_file()
         and out.stat().st_mtime >= bootstrap.stat().st_mtime
@@ -2550,7 +2587,7 @@ def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | N
     wasmtime = _find_wasmtime()
     if not wasmtime or patcher_bin is None:
         return None
-    work_dir = root / ".build" / "hop-bootstrap-work"
+    work_dir = _build_dir(root) / "hop-bootstrap-work"
     if work_dir.exists():
         _remove_tree(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -2686,7 +2723,7 @@ def _bootstrap_overlay_root(root: Path) -> Path:
     env = os.environ.get("ARUKELLT_SELFHOST_OVERLAY_ROOT", "").strip()
     if env:
         return Path(env)
-    return root / ".build" / "selfhost" / "flat-src"
+    return _selfhost_dir(root) / "flat-src"
 
 
 def _patch_bootstrap_skip_mir_verify(compiler_out: Path) -> None:
@@ -2977,7 +3014,7 @@ def _prepare_flattened_selfhost_source(root: Path) -> Path:
             _FLAT_OVERLAY_CACHE = (source_mtime, cached_overlay)
             return cached_overlay
 
-    lock_path = root / ".build" / "selfhost" / "flat-overlay.lock"
+    lock_path = _selfhost_dir(root) / "flat-overlay.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("w", encoding="utf-8") as lock_file:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
@@ -3262,7 +3299,7 @@ def _compute_compiler_fingerprint(
 
 def _s3_cache_dir(root: Path) -> Path:
     """Return the s3 compilation cache directory."""
-    d = root / ".build" / "selfhost" / "s3-cache"
+    d = _selfhost_dir(root) / "s3-cache"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -3472,12 +3509,13 @@ class SelfhostFixpointResult:
 
 # ── Runtime lock helper ──────────────────────────────────────────────────────
 
-def _with_runtime_lock(fn):
-    """Serialize selfhost compile/parity operations across concurrent agents.
+def _with_runtime_lock(fn, root: Path):
+    """Serialize selfhost compile/parity operations per worktree/build dir.
 
-    Wraps ``fn`` in an exclusive flock on ``.build/selfhost-runtime.lock``
-    so that concurrent agents cannot overwrite shared s2/s3 wasm artifacts
-    or read half-written files. See ``scripts/selfhost/runtime_lock.py``.
+    Wraps ``fn`` in an exclusive flock on
+    ``<ARUKELLT_BUILD_DIR or root/.build>/selfhost-runtime.lock`` so concurrent
+    agents in the same tree cannot overwrite s2/s3 artifacts. Separate worktrees
+    (or distinct ARUKELLT_BUILD_DIR values) use distinct locks.
     """
     import importlib.util
 
@@ -3489,7 +3527,7 @@ def _with_runtime_lock(fn):
         raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn)
+    return mod.with_selfhost_runtime_lock(fn, root=root)
 
 
 # ── run_fixpoint ──────────────────────────────────────────────────────────────
@@ -3506,7 +3544,7 @@ def run_fixpoint(
     """
     if dry_run:
         return _run_fixpoint_locked(root, dry_run, no_build)
-    return _with_runtime_lock(lambda: _run_fixpoint_locked(root, dry_run, no_build))
+    return _with_runtime_lock(lambda: _run_fixpoint_locked(root, dry_run, no_build), root)
 
 
 def _run_fixpoint_locked(
@@ -3567,7 +3605,7 @@ def _run_fixpoint_locked(
         emit(f"{RED}error: wasmtime not found in PATH{NC}")
         return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
 
-    build_dir = root / ".build" / "selfhost"
+    build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
 
     s2 = build_dir / "arukellt-s2.wasm"
@@ -3731,7 +3769,7 @@ def rebuild_current_s2(
 
     Returns ``(runtime_compiler_or_None, error_or_empty, elapsed_seconds)``.
     """
-    return _with_runtime_lock(lambda: _rebuild_current_s2_locked(root, force=force))
+    return _with_runtime_lock(lambda: _rebuild_current_s2_locked(root, force=force), root)
 
 
 def _rebuild_current_s2_locked(
@@ -3740,7 +3778,7 @@ def _rebuild_current_s2_locked(
     force: bool = True,
 ) -> tuple[Path | None, str, float]:
     started = time.time()
-    build_dir = root / ".build" / "selfhost"
+    build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
     out = build_dir / "arukellt-s2.wasm"
     fingerprint = _selfhost_source_fingerprint(root)
@@ -3835,7 +3873,7 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
     Output is ``.build/selfhost/arukellt-s2.wasm``. If it already exists, it is
     reused (callers may invoke ``run_fixpoint`` / ``rebuild_current_s2`` to refresh).
     """
-    build_dir = root / ".build" / "selfhost"
+    build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
     out = build_dir / "arukellt-s2.wasm"
     if out.is_file() and out.stat().st_mtime >= _compiler_source_mtime(root):
@@ -3866,13 +3904,13 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
 
     Serialized via runtime_lock (same lock as fixpoint / build-compiler).
     """
-    return _with_runtime_lock(lambda: _build_clock_capable_s2_locked(root, force=force))
+    return _with_runtime_lock(lambda: _build_clock_capable_s2_locked(root, force=force), root)
 
 
 def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[Path | None, str]:
     global _FLAT_OVERLAY_CACHE
-    out = root / CLOCK_S2_WASM_REL
-    host = root / S2_RUNTIME_WASM_REL
+    out = _resolve_build_rel(root, CLOCK_S2_WASM_REL)
+    host = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
     pre64 = root / ".build/selfhost/arukellt-s2-clock-wasm32.wasm"
     pre64_rel = str(pre64.relative_to(root))
     if (
@@ -3988,7 +4026,7 @@ def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root))
+    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root), root)
 
 
 def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
@@ -4252,7 +4290,7 @@ def run_diag_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     if dry_run:
         print("DRY-RUN: run_diag_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_diag_parity_locked(root))
+    return _with_runtime_lock(lambda: _run_diag_parity_locked(root), root)
 
 
 def _run_diag_parity_locked(root: Path) -> tuple[int, str]:
@@ -4356,7 +4394,7 @@ def run_fmt_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     if dry_run:
         print("DRY-RUN: run_fmt_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_fmt_parity_locked(root))
+    return _with_runtime_lock(lambda: _run_fmt_parity_locked(root), root)
 
 
 def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
@@ -4389,8 +4427,11 @@ def _run_fmt_parity_locked(root: Path) -> tuple[int, str]:
     for fixture in fixtures:
         ark_path = root / "tests" / "fixtures" / fixture
         expected_path = root / "tests" / "fixtures" / (fixture[:-4] + ".expected")
-        work_rel = str(Path(".build") / "fmt-parity" / fixture)
-        work_path = root / work_rel
+        work_path = _resolve_build_rel(root, f".build/fmt-parity/{fixture}")
+        try:
+            work_rel = str(work_path.resolve().relative_to(root.resolve()))
+        except ValueError:
+            work_rel = str(work_path.resolve())
 
         if not ark_path.is_file():
             lines.append(f"  skip: {fixture} (source not found)")
@@ -4464,7 +4505,7 @@ def _run_cli_parity(root: Path) -> tuple[int, str]:
     Serialized via runtime_lock to prevent concurrent agents from
     overwriting shared s2/s3 wasm artifacts.
     """
-    return _with_runtime_lock(lambda: _run_cli_parity_locked(root))
+    return _with_runtime_lock(lambda: _run_cli_parity_locked(root), root)
 
 
 def _run_cli_parity_locked(root: Path) -> tuple[int, str]:

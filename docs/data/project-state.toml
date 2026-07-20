@@ -4,6 +4,7 @@ version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
 updated = "2026-07-15"
 verification_command = "python3 scripts/manager.py verify quick"
+agent_verification_command = "python3 scripts/manager.py verify lane"
 current_state_doc = "docs/current-state.md"
 
 [pipeline]

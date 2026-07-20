@@ -81,11 +81,19 @@ purpose = "Forbid new packed-encoding / untracked workaround debt; allowlist mus
 coverage = ["semantic-debt-allowlist"]
 
 [[commands]]
+id = "verify_lane"
+canonical = "python3 scripts/manager.py verify lane"
+aliases = []
+alias_status = "none"
+purpose = "Fast agent/lane gate: quality changed plus optional --gate (cli-parity, t3, …)"
+coverage = ["lane", "changed-code"]
+
+[[commands]]
 id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]
 alias_status = "compatibility"
-purpose = "Run the fast local verification gate"
+purpose = "Merge/CI local verification gate (not the default per-edit agent loop)"
 coverage = ["quick"]
 
 [[commands]]

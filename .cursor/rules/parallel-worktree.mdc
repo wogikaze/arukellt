@@ -16,12 +16,14 @@ When launching **multiple subagents in parallel** on the same repository:
    ```
 3. Subagent prompts must include the **absolute worktree path** and forbid edits outside it.
 4. Parent orchestrator merges branches after each lane commits — never cherry-pick from dirty master.
+5. Lane completion gate is `python3 scripts/manager.py verify lane` (plus issue `--gate` if needed), **not** `verify quick`.
+6. If a lane must share a checkout, set a distinct `ARUKELLT_BUILD_DIR` so selfhost locks/artifacts do not serialize globally.
 
 ## Merge order
 
 1. Wait for all lane commits on their branches.
 2. Merge/rebase onto master one branch at a time; resolve conflicts in orchestrator session.
-3. Run `python3 scripts/check/check-t3-wasm-validate.py` after each merge.
+3. Run `python3 scripts/check/check-t3-wasm-validate.py` after each merge (or `verify lane --gate t3`).
 4. Phase completion gate: `python3 scripts/manager.py verify quick` must pass (no `--no-verify`).
 
 ## Cleanup

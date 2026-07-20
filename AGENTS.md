@@ -170,7 +170,8 @@
 - 品質 quick: `python3 scripts/manager.py quality quick`
 - 構造契約: `python3 scripts/manager.py quality structure`
 - advisory metrics: `python3 scripts/manager.py quality report`
-- 高速ゲート: `python3 scripts/manager.py verify quick`
+- レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
+- マージ／CI ゲート: `python3 scripts/manager.py verify quick`
 - fixture: `python3 scripts/manager.py verify fixtures`
 - **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
 - **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
@@ -188,6 +189,12 @@
 ## エージェント運用の効率化
 
 AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツール呼び出しのラウンドトリップ・認証・再試行ループ・無駄な再構築に消えているケースがある。次の運用を徹底する。
+
+### 検証ゲートの選択（必須）
+
+- **編集中・並列レーン完了時の既定**は `python3 scripts/manager.py verify lane`（必要なら `--gate …`）。
+- `verify quick` は **orchestrator の merge 後 / CI / フェーズ完了** に限定する。毎ターン・毎レーンで回さない。
+- 同一 checkout で並列 selfhost する場合は worktree を分けるか、レーンごとに `ARUKELLT_BUILD_DIR` を別ディレクトリへ向ける（lock と成果物を隔離）。
 
 ### ツール呼び出しのバッチ化
 

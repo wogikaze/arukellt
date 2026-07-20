@@ -9,7 +9,7 @@
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
 > Fixture-Snapshot-Commit: `982f3102`
-> Verification-Command: `python3 scripts/manager.py verify quick`
+> Verification-Command: `python3 scripts/manager.py verify quick` (merge/CI); agent/lane loop: `verify lane`
 > Release-Readiness: **NOT READY**
 > Blocking: 1089 fixture failure(s), 1 verification check failure(s), 5 additional full-verification blocker group(s)
 > Distinct incidents: 7 (derived from incident_id in release-guarantees.toml; 7 failing checks)

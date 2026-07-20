@@ -12,6 +12,12 @@ This is a short pointer document for developers and agents working in this repos
 ## Verification Loop
 
 ```bash
+# Agent / lane edit loop (default)
+python3 scripts/manager.py verify lane
+# Optional domain gate, e.g. CLI parity or T3 validate
+python3 scripts/manager.py verify lane --gate cli-parity
+
+# Merge / CI / phase completion
 python3 scripts/manager.py verify quick
 ```
 
@@ -19,18 +25,23 @@ All verification is routed through `scripts/manager.py`.
 
 ### Verify subcommands
 
-> **Canonical grammar:** positional subcommand (`verify quick`, `verify fixtures`).
+> **Canonical grammar:** positional subcommand (`verify lane`, `verify quick`, `verify fixtures`).
 > Flag aliases (`verify --quick`, `verify --fixtures`) are accepted for backward
 > compatibility but the positional form is preferred in documentation.
 
 ```bash
-python3 scripts/manager.py verify quick       # fast local gate (default)
+python3 scripts/manager.py verify lane        # agent/lane gate (quality changed [+ --gate])
+python3 scripts/manager.py verify quick       # merge/CI local gate
 python3 scripts/manager.py verify fixtures    # fixture harness
 python3 scripts/manager.py verify size        # hello.wasm size gate
 python3 scripts/manager.py verify wat         # WAT roundtrip
 python3 scripts/manager.py verify component-interop # wasmtime interop fixtures
 python3 scripts/manager.py verify full              # all verification domains
 ```
+
+Selfhost artifact isolation: unset `ARUKELLT_BUILD_DIR` uses `<worktree>/.build`
+(already per-worktree). Set `ARUKELLT_BUILD_DIR` when multiple agents share one
+checkout and must not share locks or wasm outputs.
 
 The structured command registry is
 [`../data/verification-commands.toml`](../data/verification-commands.toml).
@@ -65,7 +76,7 @@ All subcommands accept `--dry-run` to print intent without executing.
 1. Pick a task from `issues/open/`
 2. Move it conceptually through: planning → implementation → verification
 3. Update relevant docs/ADRs if approach changes
-4. Run `python3 scripts/manager.py verify quick` for a fast local verify pass
+4. Run `python3 scripts/manager.py verify lane` while iterating; run `verify quick` before merge / close
 5. Move completed task to `issues/done/`
 
 ## Key Files
