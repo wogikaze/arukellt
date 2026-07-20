@@ -74,30 +74,19 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                 // stay on the stack for composition.
                 let cur = inst_accessors_shape::MirInst_op(inst)
                 if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
-                    // dump_mir/print: concat → LOCAL_GET(other) → LOCAL_GET/SET.
-                    // Handle-ABI string pointers are VT_I32; never leave them under
-                    // a get/set chain.
-                    if next2_op == opcodes::MIR_LOCAL_SET() || next2_op == opcodes::MIR_LOCAL_GET() {
-                        return false
-                    }
-                    let vt = inst_accessors_shape::MirInst_val_type(inst)
-                    let is_numeric = vt == value_types::VT_I32() ||
-                    vt == value_types::VT_I64() ||
-                    vt == value_types::VT_F64()
+                    // String concat materializes via call_text_core force-SET/TEE.
+                    // Other CALL results: SKIP for numeric stack composition
+                    // (array elem load then LOCAL_GET+SET then ne); SET only for
+                    // GC/ref results under a following CALL.
                     if next2_op == opcodes::MIR_CALL() ||
                     next2_op == opcodes::MIR_WIT_CALL() ||
                     next2_op == opcodes::MIR_CALL_INDIRECT() {
-                        if is_numeric {
-                            return true
+                        let vt = inst_accessors_shape::MirInst_val_type(inst)
+                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+                            return false
                         }
-                        return false
-                    }
-                    // LOCAL_GET(other) then CONST/arith (call/call/gt): keep numeric
-                    // results on the stack. Non-numeric still SETs.
-                    if is_numeric {
                         return true
                     }
-                    return false
                 }
                 return true
             }
