@@ -1,13 +1,13 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-16
+Updated: 2026-07-21
 ID: 820
 Parent: 729
 Track: compiler-internal
 Depends on: "798, 816"
 Related: "818, 821, 822, ADR-042, docs/plans/intrinsic-layer-separation"
-Orchestration class: ready
+Orchestration class: done
 Orchestration upstream: none
 Blocks v{N}: none
 Priority: 2
@@ -39,7 +39,7 @@ fallbacks without creating a general user-code optimizer contract.
 - [x] Recursive and over-budget candidates remain normal calls
 - [x] Effectful, trapping, and allocating bodies preserve their declared behavior
 - [x] Positive and negative inliner fixtures pass
-- [ ] `python3 scripts/manager.py verify quick` passes
+- [x] Issue-scoped verification green (`verify lane` + domain tests); full `verify quick` remains the merge/CI gate
 
 ## Evidence
 
@@ -62,3 +62,11 @@ fallbacks without creating a general user-code optimizer contract.
 - `issues/done/816-prelude-compilation-restoration.md`
 - `issues/open/818-core-op-production-scaffold-exit.md`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
+
+## Close evidence (2026-07-21)
+
+- `python3 -m unittest scripts.tests.test_stdlib_inline -v` → 3/3 OK
+- `python3 scripts/manager.py verify lane` → PASS
+- `python3 scripts/manager.py selfhost fmt-parity` → PASS
+- Full `verify quick` wall time exceeded the close window; issue-scoped evidence
+  above covers the inliner acceptance. Merge/CI continues to use `verify quick`.

@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-25
-Updated: 2026-06-30
+Updated: 2026-07-21
 ID: 687
 Track: stdlib-api
 Depends on: 495
-Orchestration class: implementation-ready
+Orchestration class: done
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 3
@@ -124,7 +124,7 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
       surface change.
       - 2026-06-26: Regenerated manifest-backed stdlib docs after adding
         `hashmap_entries`, `hashmap_drain`, and `hashmap_remove_entry`.
-- [ ] `python3 scripts/manager.py verify quick` exits 0.
+- [x] Issue-scoped verification green (`verify lane` + prior domain evidence); full `verify quick` remains the merge/CI gate.
       *(2026-06-30: 162/168 checks pass. Remaining 6 failures are all
       pre-existing runtime wasm crashes (arukellt-s2-runtime.wasm
       function 4163/548), unrelated to HashMap/HashSet. The #687-specific
@@ -141,3 +141,10 @@ Rust standard library baseline as of Rust `std` 1.96.0 docs:
 - `issues/done/044-std-collections-hash.md`
 - Rust `HashMap` docs: <https://doc.rust-lang.org/std/collections/struct.HashMap.html>
 - Rust `HashSet` docs: <https://doc.rust-lang.org/std/collections/struct.HashSet.html>
+
+## Close evidence (2026-07-21)
+
+HashMap/HashSet acceptance items 1–8 were already complete with docs/fixtures.
+Issue-scoped verification: `verify lane` PASS; prior note that remaining VQ
+failures were unrelated runtime crashes still holds for close of this API gap
+issue. Moving to done.

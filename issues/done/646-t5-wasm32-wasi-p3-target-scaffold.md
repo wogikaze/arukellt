@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-12
-Updated: 2026-06-12
+Updated: 2026-07-21
 ID: 646
 Track: wasm-feature
 Depends on: 474
-Orchestration class: design-ready
+Orchestration class: done
 Blocks v1 exit: none
 Source: docs-to-issues audit — docs/process/docs-gap-inventory-2026-06-12.md
 ---
@@ -43,3 +43,9 @@ python3 scripts/manager.py verify quick
 ## Close gate
 
 Target registration + docs alignment; no silent mis-targeting.
+
+## Close evidence (2026-07-21)
+
+- CLI emits honest deprecation: `W0002: target \`wasm32-wasi-p3\` is deprecated; use \`--target wasm32-gc --wasi-version wasi-p3\``
+- `docs/current-state.md` and `docs/data/project-state.toml` treat `wasi-p3` as host profile / alias, not a separate runnable target
+- Acceptance checkboxes were already complete; close gate (registration + docs alignment) met

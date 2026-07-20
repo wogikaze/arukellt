@@ -1,12 +1,12 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-05
-Updated: 2026-07-07
+Updated: 2026-07-21
 ID: 716
 Progress: 10/10 stubs completed
 Track: gc-native
 Depends on: "686"
-Orchestration class: blocked
+Orchestration class: done
 Orchestration upstream: "#686 Wasm GC Selfhost Implementation"
 Blocks v{N}: none
 Priority: 1
@@ -164,3 +164,9 @@ the existing GC primitives (`array.new`, `array.get`, `array.set`,
   `src/compiler/wasm/intrinsic_sort.ark`, `src/compiler/wasm/intrinsic_string_format_char.ark`
 - Loud-failure host stubs (out of scope): `src/compiler/mir/host_intrinsic_stub_names.ark`,
   `src/compiler/wasm/code_body.ark` lines 29-36
+
+## Close evidence (2026-07-21)
+
+All 10 silent-wrong-result stub acceptance items were already `[x]` with fixture
+evidence in-issue (2026-07-07). Remaining T3 failures are owned by #686 / #808,
+not this stub inventory. Moving to done.

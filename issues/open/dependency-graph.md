@@ -26,7 +26,6 @@ graph LR
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
-  I687["687 687 — HashMap / HashSet Rust parity gap audit and closure"]
   I690["690 690 — `?` operator and `From<E>` error conversion"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
@@ -53,14 +52,12 @@ graph LR
   I810["810 810 — Component interop failures"]
   I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
-  I820["820 820 — Bounded stdlib-only inliner"]
+  I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
-  I646["646 646 — T5 wasm32-wasi-p3 target scaffold"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
-  I716["716 GC target intrinsic stub completion (silent-wrong-result backfill)"]
   I801["801 GC 完了までのプラン"]
   I808["808 808 — T3/Wasm validation failures"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
@@ -73,8 +70,6 @@ graph LR
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
-  I821["821 821 — Pure semantic stdlib migration"]
-  I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -89,12 +84,10 @@ graph LR
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I474 --> I646
   I667 --> I673
   I680 --> I682
   I686 --> I698
   I649 --> I698
-  I686 --> I716
   I686 --> I801
   I686 --> I808
   I690 --> I694
@@ -110,8 +103,6 @@ graph LR
   I724 --> I726
   I724 --> I729
   I791 --> I814
-  I820 --> I821
-  I820 --> I822
   I682 --> I683
   I649 --> I699
   I698 --> I699
@@ -125,8 +116,6 @@ graph LR
   I697 --> I710
   I709 --> I710
   I819 --> I818
-  I820 --> I818
-  I821 --> I818
   I822 --> I818
   I730 --> I827
   I730 --> I829
@@ -145,7 +134,7 @@ graph LR
 ## Adjacency list
 
 - **30** depends on: 27, 037; blocks: none
-- **474** depends on: 035, done), 074; blocks: 646
+- **474** depends on: 035, done), 074; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
 - **649** depends on: 641; blocks: 698, 699
@@ -163,8 +152,7 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: 698, 716, 801, 808
-- **687** depends on: 495; blocks: none
+- **686** depends on: none; blocks: 698, 801, 808
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **693** depends on: 688, 692; blocks: none
@@ -191,14 +179,12 @@ graph LR
 - **810** depends on: none; blocks: none
 - **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
-- **820** depends on: 798, 816; blocks: 818, 821, 822
+- **822** depends on: 798, 816, 817, 820; blocks: 818
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
-- **646** depends on: 474; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
-- **716** depends on: 686; blocks: none
 - **801** depends on: 686; blocks: none
 - **808** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
@@ -211,8 +197,6 @@ graph LR
 - **726** depends on: 724; blocks: 730
 - **729** depends on: 724; blocks: none
 - **814** depends on: 791; blocks: none
-- **821** depends on: 798, 816, 820; blocks: 818
-- **822** depends on: 798, 816, 817, 820; blocks: 818
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713

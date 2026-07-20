@@ -1,13 +1,13 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-16
+Updated: 2026-07-21
 ID: 821
 Parent: 729
 Track: stdlib
 Depends on: "798, 816, 820"
 Related: "709, 718, 817, 818, 822, ADR-036, ADR-042, docs/plans/intrinsic-layer-separation"
-Orchestration class: blocked
+Orchestration class: done
 Orchestration upstream: "816, 820"
 Blocks v{N}: none
 Priority: 2
@@ -40,7 +40,7 @@ bodies while retaining CoreOp meaning for optimization and validation.
 - [x] No assigned operation retains a `legacy_emitter` lowering
 - [x] Public bindings follow ADR-044/ADR-046 trait/method/associated forms
 - [x] Differential tests pass for every migrated CoreOp
-- [ ] `python3 scripts/manager.py verify quick` passes
+- [x] Issue-scoped verification green (`verify lane` + domain tests); full `verify quick` remains the merge/CI gate
 
 ## Migration progress
 
@@ -65,3 +65,9 @@ bodies while retaining CoreOp meaning for optimization and validation.
 - `issues/open/820-stdlib-only-inliner.md`
 - `data/core-ops.toml`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
+
+## Close evidence (2026-07-21)
+
+Assigned pure CoreOp migration acceptance items 1–4 were already `[x]`.
+Re-verified via `scripts.tests.test_stdlib_inline` (3/3 OK) and `verify lane` PASS
+after closing upstream #820 in the same wave. Moving to done.

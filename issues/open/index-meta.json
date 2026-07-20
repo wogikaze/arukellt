@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-20T16:45:39Z",
+  "generated_at": "2026-07-20T16:51:38Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -34,9 +34,7 @@
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [
-        "646"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 4,
         "unchecked": 4
@@ -403,7 +401,6 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "698",
-        "716",
         "801",
         "808"
       ],
@@ -414,25 +411,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "687",
-      "path": "687-hashmap-hashset-rust-parity-gap.md",
-      "title": "687 — HashMap / HashSet Rust parity gap audit and closure",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -945,27 +923,27 @@
       }
     },
     {
-      "id": "820",
-      "path": "820-stdlib-only-inliner.md",
-      "title": "820 — Bounded stdlib-only inliner",
-      "track": "compiler-internal",
+      "id": "822",
+      "path": "822-representation-dependent-stdlib-migration.md",
+      "title": "822 — Representation-dependent and allocating stdlib migration",
+      "track": "stdlib",
       "status": "open",
       "depends_on": [
         "798",
-        "816"
+        "816",
+        "817",
+        "820"
       ],
       "blocks_issue_ids": [
-        "818",
-        "821",
-        "822"
+        "818"
       ],
       "acceptance": {
-        "checked": 4,
-        "unchecked": 1
+        "checked": 0,
+        "unchecked": 6
       },
       "orchestration": {
-        "class": "ready",
-        "upstream_notes": "none"
+        "class": "blocked",
+        "upstream_notes": "816, 817, 820"
       }
     },
     {
@@ -1003,25 +981,6 @@
       },
       "orchestration": {
         "class": "investigation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "646",
-      "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
-      "title": "646 — T5 wasm32-wasi-p3 target scaffold",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "474"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 3,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": null
       }
     },
@@ -1088,25 +1047,6 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "716",
-      "path": "716-gc-intrinsic-stub-completion.md",
-      "title": "GC target intrinsic stub completion (silent-wrong-result backfill)",
-      "track": "gc-native",
-      "status": "open",
-      "depends_on": [
-        "686"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 17,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "#686 Wasm GC Selfhost Implementation"
       }
     },
     {
@@ -1354,53 +1294,6 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "821",
-      "path": "821-pure-semantic-stdlib-migration.md",
-      "title": "821 — Pure semantic stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 820"
-      }
-    },
-    {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
       }
     },
     {
