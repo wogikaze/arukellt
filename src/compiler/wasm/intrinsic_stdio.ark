@@ -31,12 +31,7 @@ fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> b
 }
 
 fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
         helpers_io_p2::emit_p2_write_newline(w, 0)
@@ -48,12 +43,7 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 }
 
 fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
     } else {
@@ -72,12 +62,7 @@ fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -
 }
 
 fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
         helpers_io_p2::emit_p2_write_newline(w, 0)
@@ -86,4 +71,24 @@ fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32
         helpers_io::emit_fd_write_call(w, 2)
         helpers_io::emit_write_newline(w, 2)
     }
+}
+
+// Void stdio calls use dest=-1. Encoding that as leb128_u becomes local 0 and
+// clobbers i64 params (emit_phase_timing under KEEP_CLOCK). Prefer arg0.
+// Call-arg lowering may already have pushed the string; drop that stray value
+// when we will reload from the local for iov setup.
+fn resolve_stdio_string_local(w: WasmWriter, inst: MirInst, prev_op: i32) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if dest >= 0 {
+        if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
+            helpers_core::emit_local_get(w, arg0)
+        }
+        helpers_core::emit_local_set(w, dest)
+        return dest
+    }
+    if arg0 >= 0 && prev_op == opcodes::MIR_LOCAL_GET() {
+        helpers_core::emit_drop(w)
+    }
+    arg0
 }

@@ -1533,18 +1533,23 @@ def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
 def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
     """Group 1: rewrite ``clock::monotonic_now()`` (and diff-ms double-divide)."""
     if keep_clock:
-        # Keep i64 timestamp slots: store ms as i64 (narrow via i32 then widen).
+        # Keep real i64 nanosecond clocks. ``phase_timing_ms`` / ``mir_lower_phase_ms``
+        # already convert ns→ms. Do not rewrite to ``now()/1000000i64``: MIR may
+        # type the clock call dest as i32 and insert ``i64.extend_i32_s`` on the
+        # i64 load, which fails wasm validate (func mir_lower_phase_now).
+        # Widen frontend_stop zero timestamps: source keeps bare ``0`` so stub
+        # overlay (i32 fields) still type-checks.
         text = _replace_optional(
             text,
-            "clock::monotonic_now()",
-            "i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))",
-            "driver_timing: keep_clock monotonic_now → i64 ms",
+            "t0, 0, 0)",
+            "t0, 0i64, 0i64)",
+            "driver_timing: keep_clock frontend_stop i64 zero pair",
         )
         text = _replace_optional(
             text,
-            "i64_to_i32(diff / 1000000i64)",
-            "i64_to_i32(diff)",
-            "driver_timing: keep_clock phase_timing_ms already ms",
+            "t0, t_lex, 0)",
+            "t0, t_lex, 0i64)",
+            "driver_timing: keep_clock frontend_stop i64 zero t_parse",
         )
         return text
     return _replace_optional(
@@ -1704,13 +1709,13 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
         "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
     if keep_clock:
-        # Legacy path when clock group emitted bare i64_to_i32(...) into an i64
-        # emit parameter. Default keep_clock clock rewrite already yields i64.
+        # Legacy: older overlays left i64_to_i32(clock…/1e6) in an i64 emit slot.
+        # Clock group now yields plain i64 ms; unwrap if the old form remains.
         text = _sub_optional(
             text,
             r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
-            r"\1\2i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))\3",
-            "driver_timing: emit_phase_timing final clock i32_to_i64 wrapping",
+            r"\1\2clock::monotonic_now() / 1000000i64\3",
+            "driver_timing: emit_phase_timing unwrap legacy i64_to_i32 clock ms",
             flags=re.M,
             count=1,
         )
@@ -1732,8 +1737,8 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
     when a pattern does not match, making source drift visible without raising.
 
     When ``keep_clock`` is true (default groups: ``clock`` only), leave record
-    fields / getter signatures as i64 and rewrite ``clock::monotonic_now()`` to
-    an i64 millisecond expression so ``--time`` is non-zero without the global
+    fields / getter signatures as i64 and leave ``clock::monotonic_now()`` as a
+    real nanosecond i64 read so ``--time`` is non-zero without the global
     i64→i32 signature churn that has broken unrelated wasm32 functions
     (e.g. ``dump_mir`` stack imbalance). Stub mode (keep_clock false) still
     applies all groups so pinned bootstrap can compile without clock intrinsics.
@@ -1757,19 +1762,7 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
 def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics in mir lower (#823)."""
     if keep_clock:
-        # Store ms in i64; mir_lower_phase_ms must not divide by 1e6 again.
-        text = _replace_optional(
-            text,
-            "clock::monotonic_now()",
-            "i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))",
-            "mir_lower_timing: keep_clock monotonic_now → i64 ms",
-        )
-        text = _replace_optional(
-            text,
-            "i64_to_i32(diff / 1000000i64)",
-            "i64_to_i32(diff)",
-            "mir_lower_timing: keep_clock phase_ms already ms",
-        )
+        # Real ns clocks; mir_lower_phase_ms keeps ``diff / 1000000i64``.
         return text
     return _replace_optional(
         text,
@@ -3892,7 +3885,7 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
 
     Steps:
     1. Ensure stubbed ``arukellt-s2-runtime.wasm`` host (current emitter).
-    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (i64 ms via clock group;
+    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (real i64 ns clocks;
        no global field/getter i64→i32 unless ``KEEP_CLOCK_GROUPS`` expands).
     3. Compile as **wasm32 + wasi-p1** with that host, then widen to Memory64.
     4. ``wasm-tools validate``; reject on failure.
@@ -3927,7 +3920,11 @@ def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[
     prev_keep = os.environ.pop("ARUKELLT_OVERLAY_KEEP_CLOCK", None)
     try:
         _FLAT_OVERLAY_CACHE = None
-        runtime, err, _elapsed = _rebuild_current_s2_locked(root, force=not host.is_file())
+        # force=True must refresh the host emitter (fingerprint alone is not
+        # enough when callers intentionally invalidate clock artifacts).
+        runtime, err, _elapsed = _rebuild_current_s2_locked(
+            root, force=force or not host.is_file()
+        )
         if runtime is None:
             return None, err or "failed to rebuild stubbed s2-runtime host"
         host = runtime if runtime.is_file() else host

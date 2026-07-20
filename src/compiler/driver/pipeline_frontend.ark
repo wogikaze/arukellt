@@ -35,6 +35,8 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     debug::dump_tokens_if_enabled(config, tokens)
     let lex_errors = session_lex_query::session_lex_diagnostic_count(lex_result)
     if lex_errors > 0 {
+        // Bare `0` stays i32-compatible for stub overlay (fields→i32). KEEP_CLOCK
+        // overlay widens these to `0i64` in scripts/selfhost/checks.py.
         return frontend_stop(result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)"))), t0, 0, 0)
     }
     let t_lex = clock::monotonic_now()

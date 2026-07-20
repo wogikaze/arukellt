@@ -62,26 +62,27 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     paths
 }
 
-fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: String) -> bool {
+// Side-effecting collector: no bool result. A discarded i32 return was left on
+// the wasm stack under the caller's loop increment (KEEP_CLOCK validate fail).
+fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: String) {
     let eq_pos = index_of(clone(line), String_from("="))
     if eq_pos < 0 {
-        return false
+        return
     }
     let key = wit_trim_key(substring(line, 0, eq_pos))
     if !is_wit_package_id(clone(key)) {
-        return false
+        return
     }
     let vendor_rel = wit_vendor_rel_from_line(clone(line))
     if len(vendor_rel) == 0 {
-        return false
+        return
     }
     let vendor_dir = wit_resolve_relative_path(clone(package_root), vendor_rel)
     let wit_path = wit_vendor_wit_file(clone(vendor_dir))
     if len(wit_path) == 0 {
-        return false
+        return
     }
     wit_push_unique(paths, wit_path)
-    true
 }
 
 fn wit_vendor_rel_from_line(line: String) -> String {

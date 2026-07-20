@@ -32,14 +32,19 @@ fn dump_ast_if_enabled(config: DriverConfig, decls: Vec<AstNode>) {
 
 fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
     if config_record::config_dump_hir(config) {
-        stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
+        // Bind the header first so CONST_STRING gets a real dest. A bare
+        // eprintln(String_from(...)) can leave dest=-1 with SKIP and then
+        // LOCAL_GET+SET, leaving the pointer on the stack (KEEP_CLOCK validate).
+        let header = String_from("=== HIR (post-resolve) ===")
+        stdio::eprintln(header)
         dump_resolved_scope(resolve_ctx)
     }
 }
 
 fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult) {
     if config_record::config_dump_hir(config) {
-        stdio::eprintln(String_from("=== TYPED HIR ==="))
+        let header = String_from("=== TYPED HIR ===")
+        stdio::eprintln(header)
         dump_checked_hir(check_result)
     }
 }

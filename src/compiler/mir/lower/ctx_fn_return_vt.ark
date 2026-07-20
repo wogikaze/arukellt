@@ -6,6 +6,11 @@ use mir::lower::mono_return_vt
 use mir::value_types
 
 fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
+    // Host clock APIs are always i64. Prefer this over fn_index: a wrong i32
+    // dest makes binary `/ 1000000i64` insert extend_i32_s on a real i64 load.
+    if ctx_is_i64_clock_callee(clone(name)) {
+        return value_types::VT_I64()
+    }
     let found = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
     if found >= 0 {
         let rvt = ctx_fn_index::ctx_fn_index_return_vt_at(ctx, found)
@@ -94,7 +99,12 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
     if eq(clone(bare_name), "i32_to_i64") || eq(clone(bare_name), "u32_to_u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(bare_name), "clock_now") || eq(clone(bare_name), "clock_now_ms") || eq(clone(bare_name), "monotonic_now") || eq(clone(bare_name), "now_ms") {
+    if eq(clone(bare_name), "clock_now") ||
+    eq(clone(bare_name), "clock_now_ms") ||
+    eq(clone(bare_name), "monotonic_now") ||
+    eq(clone(bare_name), "now_ms") ||
+    eq(clone(bare_name), "__intrinsic_clock_now") ||
+    eq(clone(bare_name), "__intrinsic_clock_now_ms") {
         return value_types::VT_I64()
     }
     if eq(clone(bare_name), "sqrt") || eq(clone(bare_name), "math::sqrt") || eq(clone(bare_name), "abs_f64") || eq(clone(bare_name), "f64_abs") || eq(clone(bare_name), "__intrinsic_sqrt") {
@@ -132,6 +142,20 @@ fn ctx_bare_builtin_name(name: String) -> String {
         bare_name = substring(bare_name, 12, len(bare_name))
     }
     bare_name
+}
+
+fn ctx_is_i64_clock_callee(name: String) -> bool {
+    if ends_with(clone(name), String_from("::monotonic_now")) ||
+    ends_with(clone(name), String_from("::now_ms")) ||
+    ends_with(clone(name), String_from("::clock_now")) ||
+    ends_with(clone(name), String_from("::clock_now_ms")) {
+        return true
+    }
+    let bare = ctx_bare_builtin_name(name)
+    eq(clone(bare), String_from("clock_now")) ||
+    eq(clone(bare), String_from("clock_now_ms")) ||
+    eq(clone(bare), String_from("monotonic_now")) ||
+    eq(clone(bare), String_from("now_ms"))
 }
 
 fn is_void_returning_builtin(bare_name: String) -> bool {

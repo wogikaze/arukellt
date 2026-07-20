@@ -1,5 +1,6 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_accessors_literals
 use wasm::inst_store_policy
 use wasm::constants
 use wasm::opcodes
@@ -13,17 +14,41 @@ fn emit_store_result_if_needed(w: WasmWriter, inst: MirInst, next_op: i32, next_
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let action = inst_store_policy::store_result_action(inst, next_op, next_arg0, next_arg1, next2_op)
     if action == constants::STORE_ACTION_SKIP() {
-        // Discarded CALL results (dest < 0) must not remain under later gets.
+        // Discarded CALL results must not remain under later local.get arg loads.
         // Only CALL/WIT — never LOCAL_GET (loop i < n is get; get; ge_s).
         let cur = inst_accessors_shape::MirInst_op(inst)
-        if dest < 0 && (cur == mir_opcodes::MIR_CALL() || cur == mir_opcodes::MIR_WIT_CALL()) {
+        if cur == mir_opcodes::MIR_CALL() || cur == mir_opcodes::MIR_WIT_CALL() {
             if !call_result_next_consumes_stack(next_op, next_arg0, next_arg1) {
-                writer_core::emit_byte(w, opcodes::OP_DROP())
+                if dest < 0 || is_unused_lower_core_expr_before_next_call(inst, dest, next_op, next_arg0, next2_op) {
+                    writer_core::emit_byte(w, opcodes::OP_DROP())
+                }
             }
         }
         return
     }
     emit_store_action(w, dest, action)
+}
+
+// Match-arm guard lowering calls lower_expr / lower_core_expr for side effects,
+// then loads ctx for guard_begin. A temp dest is still allocated, so dest < 0
+// DROP misses and the i32 return sits under the next call's args (block-end
+// validate fail). Do not DROP all CALL; LOCAL_GET; non-CALL — that breaks
+// len/len/gt stack composition (call; reload args; call; gt_s).
+fn is_unused_lower_core_expr_before_next_call(inst: MirInst, dest: i32, next_op: i32, next_arg0: i32, next2_op: i32) -> bool {
+    if next_op != mir_opcodes::MIR_LOCAL_GET() {
+        return false
+    }
+    if next_arg0 == dest {
+        return false
+    }
+    if next2_op != mir_opcodes::MIR_CALL() && next2_op != mir_opcodes::MIR_WIT_CALL() && next2_op != mir_opcodes::MIR_CALL_INDIRECT() {
+        return false
+    }
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    if eq(clone(callee), String_from("lower_core_expr")) {
+        return true
+    }
+    eq(clone(callee), String_from("lower_expr"))
 }
 
 fn call_result_next_consumes_stack(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {
