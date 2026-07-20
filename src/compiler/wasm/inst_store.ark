@@ -28,6 +28,11 @@ fn next_op_consumes_stack_result(next_op: i32, next_arg0: i32) -> bool {
     if next_op == mir_opcodes::MIR_DROP() {
         return true
     }
+    // Call/format results often use dest=-1 with a following LOCAL_SET that
+    // takes the value from the stack (not MirInst_dest on the producer).
+    if next_op == mir_opcodes::MIR_LOCAL_SET() {
+        return true
+    }
     if next_op == mir_opcodes::MIR_RETURN() && next_arg0 < 0 {
         return true
     }
