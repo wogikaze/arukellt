@@ -74,9 +74,11 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                 // stay on the stack for composition.
                 let cur = inst_accessors_shape::MirInst_op(inst)
                 if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
-                    // dump_mir: format/concat → LOCAL_GET(other) → LOCAL_SET.
-                    // Handle-ABI string pointers are VT_I32, so always SET here.
-                    if next2_op == opcodes::MIR_LOCAL_SET() {
+                    // dump_mir/print: concat → LOCAL_GET(other) → LOCAL_GET/SET.
+                    // Handle-ABI string pointers are VT_I32; never leave them under
+                    // a get/set chain. Only SKIP for numeric stack composition into
+                    // a following CALL (len/len/ne).
+                    if next2_op == opcodes::MIR_LOCAL_SET() || next2_op == opcodes::MIR_LOCAL_GET() {
                         return false
                     }
                     let vt = inst_accessors_shape::MirInst_val_type(inst)
@@ -91,6 +93,8 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                         }
                         return false
                     }
+                    // CALL result then LOCAL_GET(other) then other consumer: SET.
+                    return false
                 }
                 return true
             }
