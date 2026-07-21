@@ -175,9 +175,10 @@ PATCHER_DIR_REL = "scripts/bootstrap/wasm-heap-grow-patcher"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 # Memory64 GC full-compiler compiles (stage-2/3 fixpoint) regularly exceed
-# 15 minutes on loaded hosts; keep a higher ceiling so transient load is not
-# misreported as a permanent fixpoint skip.
-SELFHOST_COMPILE_TIMEOUT = 1800
+# 30 minutes on loaded hosts; keep a higher ceiling so transient load is not
+# misreported as a permanent fixpoint skip. Override with
+# ARUKELLT_SELFHOST_COMPILE_TIMEOUT (seconds).
+SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT", "3600"))
 # Stage-2+ artifacts: primary target (ADR-007 Memory64 default).
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
