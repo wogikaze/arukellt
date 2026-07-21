@@ -24,6 +24,34 @@ fn is_get_unchecked_callee_name(name: String) -> bool {
     starts_with(clone(name), String_from("__intrinsic_get_unchecked__"))
 }
 
+fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
+    if eq(clone(type_name), String_from("i32")) ||
+    eq(clone(type_name), String_from("I32")) ||
+    eq(clone(type_name), String_from("bool")) ||
+    eq(clone(type_name), String_from("char")) ||
+    eq(clone(type_name), String_from("i64")) ||
+    eq(clone(type_name), String_from("I64")) ||
+    eq(clone(type_name), String_from("f64")) ||
+    eq(clone(type_name), String_from("F64")) {
+        return true
+    }
+    vt == value_types::VT_I32() || vt == value_types::VT_I64() || vt == value_types::VT_F64()
+}
+
+fn is_container_return_type_name(ret_name: String) -> bool {
+    starts_with(clone(ret_name), String_from("vec:")) ||
+    starts_with(clone(ret_name), String_from("option:")) ||
+    starts_with(clone(ret_name), String_from("Option_")) ||
+    starts_with(clone(ret_name), String_from("Option:")) ||
+    starts_with(clone(ret_name), String_from("Option<")) ||
+    starts_with(clone(ret_name), String_from("result:")) ||
+    starts_with(clone(ret_name), String_from("Result_")) ||
+    starts_with(clone(ret_name), String_from("Result:")) ||
+    starts_with(clone(ret_name), String_from("Result<")) ||
+    starts_with(clone(ret_name), String_from("hashmap:")) ||
+    starts_with(clone(ret_name), String_from("hashset:"))
+}
+
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
     let mut first_variant_slot = 0 - 1
     let block_count = len(f.blocks)
@@ -71,14 +99,40 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
-        // get_unchecked from Vec<Struct> must not inherit a string-returning
-        // mono callee lookup; prefer the function return / registered struct.
+        // get_unchecked: prefer the dest local's element type (set by MIR
+        // mark_vec_get_unchecked_result_type). Do not resolve the enclosing
+        // function's return (e.g. vec:ModInfo → ModInfo) — that poisons
+        // Vec<i32> results in functions that return Vec<Struct> (#730).
         if is_get_unchecked_callee_name(clone(callee)) {
-            let ret_name = function_return_view::MirFunction_return_type_name(f)
-            let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(ret_name))
-            if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                return named
+            let dest_local = inst_accessors_shape::MirInst_dest(inst)
+            let mut dest_tn = String_from("")
+            let mut dest_vt = 0 - 1
+            if dest_local >= 0 && dest_local < function_locals_view::MirFunction_local_count(f) {
+                let loc = function_locals_view::MirFunction_local_at(f, dest_local)
+                dest_tn = local_access::MirLocal_type_name(loc)
+                dest_vt = local_access::MirLocal_val_type(loc)
             }
+            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
+                return 0 - 1
+            }
+            if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
+                return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+            }
+            let named_dest = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(dest_tn))
+            if named_dest >= 0 && named_dest != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return named_dest
+            }
+            let ret_name = function_return_view::MirFunction_return_type_name(f)
+            if !is_container_return_type_name(clone(ret_name)) {
+                // Bare struct return only — never strip vec:Elem → Elem.
+                let named_ret = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(ret_name))
+                if named_ret >= 0 && named_ret != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                    return named_ret
+                }
+            }
+            // Skip mono/intrinsic call-result fallback (often string); scalars
+            // and unresolved elems must not become GC refs here.
+            return 0 - 1
         }
         let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, clone(callee))
         if call_type >= 0 {

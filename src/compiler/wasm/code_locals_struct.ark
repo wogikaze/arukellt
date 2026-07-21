@@ -6,8 +6,10 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::sections_types_gc
 use mir::block_inst_access
+use mir::function_locals_view
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
+use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::writer_core
@@ -250,6 +252,15 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
 fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
     if gc_type >= 0 {
+        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+        let type_name = local_access::MirLocal_type_name(loc)
+        // Scalar MIR locals must stay numeric wasm locals. Refusing a poisoned
+        // inference (e.g. enclosing fn return vec:Struct → Struct) keeps
+        // Memory64 i32→i64 stores valid (#730 build_module_infos).
+        if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(clone(type_name), vt) &&
+        !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+            return false
+        }
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, gc_type)
         return true

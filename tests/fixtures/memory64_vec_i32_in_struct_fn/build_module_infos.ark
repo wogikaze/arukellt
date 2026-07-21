@@ -1,0 +1,36 @@
+struct ModInfo {
+    name: String,
+    decl_start: i32,
+    decl_count: i32
+}
+
+fn ModInfo_new(name: String, decl_start: i32, decl_count: i32) -> ModInfo {
+    ModInfo { name: name, decl_start: decl_start, decl_count: decl_count }
+}
+
+fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, total_decl_count: i32) -> Vec<ModInfo> {
+    let infos = Vec_new_ModInfo()
+    let mut decl_offset = 0
+    let module_count = len(module_names)
+    let mut i = 0
+    while i < module_count {
+        let decl_count = get_unchecked(module_decl_counts, i)
+        push(infos, ModInfo_new(get_unchecked(module_names, i), decl_offset, decl_count))
+        decl_offset = decl_offset + decl_count
+        i = i + 1
+    }
+    let main_decl_count = total_decl_count - decl_offset
+    if main_decl_count > 0 {
+        push(infos, ModInfo_new(String_from("<main>"), decl_offset, main_decl_count))
+    }
+    infos
+}
+
+fn main() -> i32 {
+    let names = Vec_new_String()
+    push(names, String_from("a"))
+    let counts = Vec_new_i32()
+    push(counts, 1)
+    let infos = build_module_infos(names, counts, 1)
+    len(infos)
+}
