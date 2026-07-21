@@ -26,27 +26,18 @@ pub fn symbol_index_remove_uri(state: LspState, uri: String) {
     let indexed_uris = state_record::lsp_state_symbol_indexed_uris(state)
     let uri_idx = symbol_index_record::symbol_index_uri_index(indexed_uris, clone(uri))
     if uri_idx >= 0 {
-        let mut uris = clone(indexed_uris)
-        let tail = Vec_new_String()
-        let un = len(uris)
-        let mut j = uri_idx + 1
+        // Rebuild without `clone(vec)` into a mut local: that dest was poisoned
+        // to String on wasm32-gc and failed validate (#730).
+        let rebuilt = Vec_new_String()
+        let un = len(indexed_uris)
+        let mut j = 0
         while j < un {
-            push(tail, get_unchecked(uris, j))
+            if j != uri_idx {
+                push(rebuilt, get_unchecked(indexed_uris, j))
+            }
             j = j + 1
         }
-        uris = Vec_new_String()
-        let mut k = 0
-        while k < uri_idx {
-            push(uris, get_unchecked(indexed_uris, k))
-            k = k + 1
-        }
-        let tn = len(tail)
-        let mut m = 0
-        while m < tn {
-            push(uris, get_unchecked(tail, m))
-            m = m + 1
-        }
-        state.symbol_indexed_uris = uris
+        state.symbol_indexed_uris = rebuilt
     }
 }
 
