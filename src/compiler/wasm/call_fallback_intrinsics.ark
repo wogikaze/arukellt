@@ -1,9 +1,14 @@
 // Name-based intrinsic fallback when a Call-kind core_op has no linked
-// impl symbol (clone/len DCE'd in large GC modules).
+// impl symbol (clone/len/Vec_new DCE'd in large GC modules).
 
+use mir::inst_accessors_operands
+use wasm::inst_ctx
 use wasm::inst_store
 use wasm::intrinsic_clock
 use wasm::intrinsic_string_basic
+use wasm::intrinsic_string_affix
+use wasm::intrinsic_string_contains_bytes
+use wasm::intrinsic_vec_new_layout
 
 fn try_emit_name_intrinsic_fallback(
     w: WasmWriter,
@@ -23,6 +28,26 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
+    // core_op binding and become unresolved → unreachable in tokenize.
+    if is_vec_new_callee(clone(callee)) {
+        intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
+        inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+    }
+    // Same class of miss: string predicates used by loader / name helpers.
+    if is_contains_callee(clone(callee)) {
+        let on_stack = intrinsic_string_contains_bytes::emit_contains(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_starts_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_starts_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_ends_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_ends_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     // KEEP_CLOCK / --time: when registry binding is missing, unresolved call
     // emit produced `unreachable` + `return` of an i32 local into an i64
     // result (mir_lower_phase_now validate fail). Emit the real clock body.
@@ -35,6 +60,35 @@ fn try_emit_name_intrinsic_fallback(
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     false
+}
+
+fn is_vec_new_callee(callee: String) -> bool {
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return true
+    }
+    if eq(clone(callee), String_from("Vec_new")) {
+        return true
+    }
+    if contains(clone(callee), String_from("::Vec_new_")) {
+        return true
+    }
+    ends_with(clone(callee), String_from("Vec_new_fallback"))
+}
+
+fn is_contains_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("contains")) ||
+    eq(clone(callee), String_from("__intrinsic_contains")) ||
+    ends_with(clone(callee), String_from("::contains"))
+}
+
+fn is_starts_with_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("starts_with")) ||
+    ends_with(clone(callee), String_from("::starts_with"))
+}
+
+fn is_ends_with_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("ends_with")) ||
+    ends_with(clone(callee), String_from("::ends_with"))
 }
 
 fn is_clock_now_callee(callee: String) -> bool {

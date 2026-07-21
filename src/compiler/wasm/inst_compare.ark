@@ -23,8 +23,10 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 helpers_numeric_i32_convert::emit_widen_compare_result(w)
             } else {
                 if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-                    // String comparison on GC target: delegate to byte-by-byte intrinsic
-                    intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+                    // String comparison on GC target: delegate to byte-by-byte intrinsic.
+                    // Bind the bool so wasm32 lowering emits local.set (discarded call
+                    // results currently leave a stack value and fail validate).
+                    let _emitted = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
                     helpers_numeric_i32_convert::emit_widen_compare_result(w)
                 } else {
                     helpers_numeric_i32_convert::emit_i32_or_widened_op(
@@ -54,7 +56,8 @@ fn emit_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                     // String comparison on GC target: delegate to eq intrinsic, then invert.
                     // Memory64 stores the intrinsic's boolean scratch value as i64.
-                    intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+                    // Bind the bool so wasm32 lowering emits local.set (see emit_eq).
+                    let _emitted = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
                     helpers_numeric_i32_convert::emit_i32_or_widened_op(
                         w, opcodes::OP_I32_EQZ(), opcodes::OP_I64_EQZ()
                     )
