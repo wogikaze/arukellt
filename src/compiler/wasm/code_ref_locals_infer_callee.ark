@@ -106,7 +106,12 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
         }
     }
     if ret_type == value_types::VT_GC_REF() {
-        if is_option_type_name(clone(ret_name)) || starts_with(clone(ret_name), String_from("enum:")) {
+        if is_option_type_name(clone(ret_name)) ||
+        starts_with(clone(ret_name), String_from("enum:")) ||
+        starts_with(clone(ret_name), String_from("Result_")) ||
+        starts_with(clone(ret_name), String_from("Result:")) ||
+        starts_with(clone(ret_name), String_from("Result<")) ||
+        starts_with(clone(ret_name), String_from("result:")) {
             return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         }
         let named = resolve_named_struct_gc_type(ctx, clone(ret_name))

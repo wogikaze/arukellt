@@ -1,9 +1,9 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::intrinsic_fs_write_bytes_buffer
+use wasm::intrinsic_fs_write_bytes_gc
 use wasm::intrinsic_fs_write_result
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -12,20 +12,11 @@ use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::writer_gc
 
 // Handler for: fs::write_bytes
 fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // Validate stub: drop path+bytes, return null Result (#726 fs import).
-        let _inst = inst
-        let s_a = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        let s_b = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-        helpers_core::emit_local_set(w, s_b)
-        helpers_core::emit_local_set(w, s_a)
-        let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        writer_gc::emit_gc_ref_null(w, open_type)
-        return true
+        return intrinsic_fs_write_bytes_gc::emit_fs_write_bytes_gc(w, inst, ctx)
     }
     intrinsic_fs_write_bytes_buffer::emit_fs_write_bytes_buffer(w, ctx)
     emit_fs_write_bytes_result(w, ctx)

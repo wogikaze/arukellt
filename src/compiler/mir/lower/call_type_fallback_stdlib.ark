@@ -37,6 +37,15 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return
     }
+    if eq(clone(cn), "write_bytes") ||
+    eq(clone(cn), "fs_write_bytes") ||
+    eq(clone(cn), "__intrinsic_fs_write_bytes") ||
+    ends_with(clone(callee_name), String_from("::write_bytes")) {
+        // Without this, Result dest locals stay Memory64 i64 and ref.null/Ok
+        // from the GC intrinsic fails validate (#730 write_compile_output).
+        set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
+        return
+    }
     if eq(clone(cn), "parse_f64") || ends_with(clone(callee_name), String_from("::parse_f64")) {
         set_stdlib_result_type(ctx, dest, String_from("result:f64:String"))
         return
