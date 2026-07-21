@@ -2,6 +2,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_lookup
 use mir::lower::ctx_types
 use mir::inst_const_i32
 use mir::inst_local_set
@@ -40,7 +41,7 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
             let field_name = core_expr_shape_accessors::mir_core_expr_text(field_expr)
             let val_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(field_expr, 0))
             let mut val_idx = 0 - 1
-            let fi_idx = ctx_struct_layout::ctx_field_index(ctx, clone(struct_name), clone(field_name))
+            let fi_idx = ctx_struct_lookup::ctx_field_index(ctx, clone(struct_name), clone(field_name))
             if core_expr_shape_atoms::mir_core_expr_is_int(val_expr) && fi_idx >= 0 && ctx_struct_layout::ctx_struct_field_is_i64(ctx, clone(struct_name), fi_idx) {
                 val_idx = core_literals::lower_core_int_literal_forced_i64(ctx, val_expr)
             } else {
