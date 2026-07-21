@@ -3,12 +3,22 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::constants
 use wasm::intrinsics::helpers_numeric_i64_const
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::emit_target
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 
 fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // Drop GC String path; linear-memory open path stores String as i64 and
+        // fails wasm validate on wasm32-gc. Full WASI exists is not wired for GC.
+        let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        helpers_core::emit_local_set(w, s_drop)
+        helpers_numeric_i32::emit_i32_const(w, 0)
+        return true
+    }
     let s_ex = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     emit_fs_exists_setup(w, s_ex)
     emit_fs_exists_open_call(w, s_ex)

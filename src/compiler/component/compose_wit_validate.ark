@@ -137,8 +137,22 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
 fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String {
     let provider_wit = compose_wit_sidecar_for_wasm(clone(provider_wasm))
     let socket_wit = compose_wit_sidecar_for_wasm(clone(socket_wasm))
-    let provider_has = fs::exists(clone(provider_wit))
-    let socket_has = fs::exists(clone(socket_wit))
+    let provider_has = match fs::read_to_string(clone(provider_wit)) {
+        Result::Ok(_) => {
+            true
+        },
+        Result::Err(_) => {
+            false
+        },
+    }
+    let socket_has = match fs::read_to_string(clone(socket_wit)) {
+        Result::Ok(_) => {
+            true
+        },
+        Result::Err(_) => {
+            false
+        },
+    }
     if !provider_has && !socket_has {
         return String_new()
     }

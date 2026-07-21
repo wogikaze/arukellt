@@ -1,5 +1,4 @@
 use std::host::fs
-use std::host::http
 use loader::registry_config
 
 fn registry_error_unreachable(url: String, reason: String) -> String {
@@ -62,19 +61,10 @@ fn http_registry_fetch_url(registry_url: String, package_name: String) -> String
 }
 
 fn read_http_registry_source(registry_url: String, package_name: String) -> Result<String, String> {
-    let fetch_url = http_registry_fetch_url(clone(registry_url), clone(package_name))
-    match http::get(clone(fetch_url)) {
-        Result::Ok(body) => {
-            if len(body) == 0 {
-                Result::Err(registry_error_not_found(clone(package_name)))
-            } else {
-                Result::Ok(body)
-            }
-        },
-        Result::Err(reason) => {
-            Result::Err(registry_error_unreachable(clone(registry_url), reason))
-        },
-    }
+    // http::get is not reliably lowered for wasm32-gc selfhost (validate fails
+        // in the Result/string bridge). HTTP registry fetch stays unavailable here.
+    let _package_name = package_name
+    Result::Err(registry_error_unreachable(clone(registry_url), String_from("http registry fetch unsupported on wasm32-gc")))
 }
 
 pub fn resolve_registry_module_source(package_root: String, package_name: String) -> Result<String, String> {

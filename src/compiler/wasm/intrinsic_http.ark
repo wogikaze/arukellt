@@ -1,6 +1,7 @@
 use wasm::import_indices
 use wasm::constants
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
 use wasm::intrinsic_http_result
 use wasm::intrinsic_stdio_gc
 use wasm::emit_target
@@ -9,13 +10,28 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
+use wasm::writer_gc
+
+fn emit_http_result_gc_null_after_drop_strings(w: WasmWriter, ctx: SelfEmitCtx, string_arg_count: i32) -> bool {
+    // Drop GC String args, then return a null open-enum Result.
+    // Full HTTP host bridge is not typed for wasm32-gc yet; unreachable left
+    // match arms with ref-vs-i64 validate failures in s3 (#730).
+    let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let mut i = 0
+    while i < string_arg_count {
+        helpers_core::emit_local_set(w, s_drop)
+        i = i + 1
+    }
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    writer_gc::emit_gc_ref_null(w, open_type)
+    true
+}
 
 fn emit_http_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
-        helpers_core::emit_unreachable(w)
-        return true
+        let _inst = inst
+        return emit_http_result_gc_null_after_drop_strings(w, ctx, 1)
     } else {
         emit_http_get_save_url(w, s_url)
     }
@@ -30,9 +46,11 @@ fn emit_http_request(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_url = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_http_request_save_args_gc(w, inst, ctx, s_method, s_url, s_body)
-        helpers_core::emit_unreachable(w)
-        return true
+        let _inst = inst
+        let _s_method = s_method
+        let _s_url = s_url
+        let _s_body = s_body
+        return emit_http_result_gc_null_after_drop_strings(w, ctx, 3)
     } else {
         emit_http_request_save_args(w, s_method, s_url, s_body)
     }
@@ -52,8 +70,13 @@ fn emit_http_serve(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_port = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_body = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_http_serve_save_args_gc(w, inst, ctx, s_port, s_body)
-        helpers_core::emit_unreachable(w)
+        // Stack top→bottom: body (String), port (i32). Drop body as GC ref, port as i64.
+        let _inst = inst
+        let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+        helpers_core::emit_local_set(w, s_drop)
+        helpers_core::emit_local_set(w, s_port)
+        let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        writer_gc::emit_gc_ref_null(w, open_type)
         return true
     } else {
         emit_http_serve_save_args(w, s_port, s_body)

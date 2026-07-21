@@ -37,13 +37,19 @@ fn compose_validate_paths(provider: String, socket: String, output: String) -> b
         stdio::eprintln(String_from("error: compose conflict — provider, socket, and output paths must differ"))
         return false
     }
-    if !fs::exists(clone(provider)) {
-        stdio::eprintln(concat(String_from("error: provider component not found: "), clone(provider)))
-        return false
+    match fs::read_to_string(clone(provider)) {
+        Result::Ok(_) => {},
+        Result::Err(_) => {
+            stdio::eprintln(concat(String_from("error: provider component not found: "), clone(provider)))
+            return false
+        },
     }
-    if !fs::exists(clone(socket)) {
-        stdio::eprintln(concat(String_from("error: socket component not found: "), clone(socket)))
-        return false
+    match fs::read_to_string(clone(socket)) {
+        Result::Ok(_) => {},
+        Result::Err(_) => {
+            stdio::eprintln(concat(String_from("error: socket component not found: "), clone(socket)))
+            return false
+        },
     }
     true
 }

@@ -22,9 +22,12 @@ pub fn cmd_init(opts: CliOptions) {
     }
     let src_main = concat(clone(project_name), String_from("/main.ark"))
     let ark_toml = concat(clone(project_name), String_from("/ark.toml"))
-    if fs::exists(clone(ark_toml)) {
-        stdio::eprintln(concat(String_from("error: ark.toml already exists in "), clone(project_name)))
-        process::exit(1)
+    match fs::read_to_string(clone(ark_toml)) {
+        Result::Ok(_) => {
+            stdio::eprintln(concat(String_from("error: ark.toml already exists in "), clone(project_name)))
+            process::exit(1)
+        },
+        Result::Err(_) => {},
     }
     let main_content = init_templates::init_template_main_ark(clone(template))
     let toml_content = init_templates::init_template_ark_toml(clone(project_name), clone(template))

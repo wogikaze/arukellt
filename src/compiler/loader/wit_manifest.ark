@@ -141,17 +141,22 @@ fn wit_resolve_relative_path(base: String, rel: String) -> String {
 }
 
 fn wit_vendor_wit_file(vendor_dir: String) -> String {
+    // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
     let mod_wit = wit_join_path(clone(vendor_dir), String_from("mod.wit"))
-    match fs::exists(clone(mod_wit)) {
-        Result::Ok(true) => mod_wit,
-        Result::Ok(false) => {
+    match fs::read_to_string(clone(mod_wit)) {
+        Result::Ok(_) => {
+            mod_wit
+        },
+        Result::Err(_) => {
             let iface_wit = wit_join_path(clone(vendor_dir), String_from("interface.wit"))
-            match fs::exists(clone(iface_wit)) {
-                Result::Ok(true) => iface_wit,
-                Result::Ok(false) => String_new(),
-                Result::Err(_) => String_new(),
+            match fs::read_to_string(clone(iface_wit)) {
+                Result::Ok(_) => {
+                    iface_wit
+                },
+                Result::Err(_) => {
+                    String_new()
+                },
             }
         },
-        Result::Err(_) => String_new(),
     }
 }
