@@ -6,6 +6,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_fs_read_body
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::writer_gc
 
@@ -93,8 +94,9 @@ fn emit_fs_write_unit_ok_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Result::Ok"))
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     // Result<(), String> Ok: tag=0 with i32 payload 0 (builtin _f1_i32 Ok).
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, 0)
+    // GC struct i32 fields must stay true i32 under Memory64 (#730).
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_const::emit_i32_const(w, 0)
     writer_gc::emit_gc_struct_new(w, type_idx)
     writer_gc::emit_gc_ref_cast(w, open_type)
 }
