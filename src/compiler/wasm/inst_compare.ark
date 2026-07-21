@@ -25,9 +25,10 @@ fn emit_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 if (val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF()) && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                     // String comparison on GC target: delegate to byte-by-byte intrinsic.
                     // Bind the bool so wasm32 lowering emits local.set (discarded call
-                    // results currently leave a stack value and fail validate).
+                        // results currently leave a stack value and fail validate).
+                    // Intrinsic already leaves a Memory64-widened i64 bool (scratch
+                        // local.get); do not widen again — extend_i32_u on i64 fails validate.
                     let _emitted = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
-                    helpers_numeric_i32_convert::emit_widen_compare_result(w)
                 } else {
                     helpers_numeric_i32_convert::emit_i32_or_widened_op(
                         w, opcodes::OP_I32_EQ(), opcodes::OP_I64_EQ()
