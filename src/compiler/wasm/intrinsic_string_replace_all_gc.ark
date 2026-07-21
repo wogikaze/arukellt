@@ -146,9 +146,11 @@ fn emit_replace_gc_copy_loop(
     helpers_control::emit_if_empty(w)
     emit_replace_gc_copy_match(w, g_rep, g_result, s_pat_len, s_rep_len, s_pos, s_dst, string_type)
     helpers_control::emit_else(w)
-    // No match: copy one byte from source to dest
+    // No match: copy one byte from source to dest.
+    // Narrow dst index before pushing the value; array_set only narrows the top.
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_dst)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, g_src)
     helpers_core::emit_local_get(w, s_pos)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
