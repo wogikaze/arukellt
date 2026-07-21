@@ -295,16 +295,10 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    if bootstrap_mir_has_library_exports(mir) {
-        // TODO(#666 owner=component removal=generic-export-reachable recheck=2026-08-31): enable this path.
-        if false {
-            return component_emit::bootstrap_emit_library_component(core_wasm, mir, target, String_from("p1"), world)
-        }
-    }
-    if eq(clone(wasi_version), String_from("p2")) {
-        return wasm_component_p2_emit::emit_p2_command_component(core_wasm)
-    }
-    core_wasm
+    // Forward to flattened component/emit.ark. Do not keep an `if false` library
+    // path: it still lowers to drop+unreachable with an i64 return temp and fails
+    // wasm validate (#730 emit_component).
+    component_emit::component_emit__emit_component(core_wasm, mir, target, wasi_version, world)
 }
 
 pub fn mir_has_library_exports(mir: MirModule) -> bool {
