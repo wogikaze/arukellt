@@ -188,7 +188,8 @@ fn emit_fs_read_gc_string_from_scratch(w: WasmWriter, s_str: i32, s_i: i32, s_le
     helpers_memory::emit_i32_load_default(w)
     helpers_core::emit_local_set(w, s_len)
     helpers_core::emit_local_get(w, s_len)
-    writer_gc::emit_gc_array_new(w, string_type)
+    // load_default widens length to i64 under Memory64 (#730 write_bytes Err).
+    writer_gc::emit_gc_array_new_from_widened(w, string_type)
     writer_gc::emit_gc_ref_cast(w, string_type)
     helpers_core::emit_local_set(w, s_str)
     helpers_numeric_i32::emit_i32_const(w, 0)
@@ -196,7 +197,7 @@ fn emit_fs_read_gc_string_from_scratch(w: WasmWriter, s_str: i32, s_i: i32, s_le
     helpers_control::emit_block_loop_header(w)
     helpers_core::emit_local_get(w, s_i)
     helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32::emit_i32_ge_s(w)
     helpers_control::emit_br_if(w, 1)
     helpers_core::emit_local_get(w, s_str)
     helpers_core::emit_local_get(w, s_i)
