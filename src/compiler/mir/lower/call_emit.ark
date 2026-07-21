@@ -6,6 +6,7 @@ use mir::lower::call_args
 use mir::lower::call_emit_dest
 use mir::lower::call_emit_staged
 use mir::lower::call_rewrite
+use mir::lower::call_type_vec
 use mir::lower::call_types
 use mir::value_types
 
@@ -62,7 +63,15 @@ fn mir_emit_direct_call(
         }
         call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, push_i64_needs_extend)
     }
-    if first_arg_idx >= 0 && call_args::mir_is_printlike_callee(clone(callee_name)) {
+    // Record the vec/receiver local on get_unchecked/push-style calls so GC emit
+    // can resolve element types when MirLocal.type_name was poisoned (#730).
+    if first_arg_idx >= 0 && (
+        call_args::mir_is_printlike_callee(clone(callee_name)) ||
+        call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||
+        eq(clone(callee_name), String_from("push")) ||
+        eq(clone(callee_name), String_from("vec_push")) ||
+        starts_with(clone(callee_name), String_from("push__"))
+    ) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
     } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_lane_vt(clone(callee_name), arg_count, dest, lane_immediate, dest_vt))

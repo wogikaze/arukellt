@@ -52,6 +52,46 @@ fn is_container_return_type_name(ret_name: String) -> bool {
     starts_with(clone(ret_name), String_from("hashset:"))
 }
 
+fn strip_module_prefix_type_name(type_name: String) -> String {
+    let n = len(type_name)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(type_name, i) == 58 && char_at(type_name, i + 1) == 58 {
+            return substring(type_name, i + 2, n)
+        }
+        i = i - 1
+    }
+    type_name
+}
+
+fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+    let mut vec_local = inst_accessors_operands::MirInst_arg0(inst)
+    if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
+    let mut elem = String_new()
+    if starts_with(clone(vec_tn), String_from("vec:")) {
+        elem = substring(clone(vec_tn), 4, len(vec_tn))
+    } else if starts_with(clone(vec_tn), String_from("Vec_")) {
+        elem = substring(clone(vec_tn), 4, len(vec_tn))
+    } else {
+        return 0 - 1
+    }
+    elem = strip_module_prefix_type_name(clone(elem))
+    if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    }
+    if is_scalar_get_unchecked_result(clone(elem), 0 - 1) {
+        return 0 - 1
+    }
+    let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(elem))
+    if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+        return named
+    }
+    0 - 1
+}
+
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
     let mut first_variant_slot = 0 - 1
     let block_count = len(f.blocks)
@@ -100,7 +140,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
         // get_unchecked: prefer the dest local's element type (set by MIR
-        // mark_vec_get_unchecked_result_type). Do not resolve the enclosing
+            // mark_vec_get_unchecked_result_type). Do not resolve the enclosing
         // function's return (e.g. vec:ModInfo → ModInfo) — that poisons
         // Vec<i32> results in functions that return Vec<Struct> (#730).
         if is_get_unchecked_callee_name(clone(callee)) {
@@ -114,6 +154,12 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             }
             if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
                 return 0 - 1
+            }
+            // Prefer the vec receiver's element type over a poisoned String dest
+            // (get_unchecked__String mono / sticky type_name) (#730).
+            let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
+            if from_vec >= 0 {
+                return from_vec
             }
             if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
                 return ctx_gc_type::SelfEmitCtx_string_type(ctx)

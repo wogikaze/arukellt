@@ -141,12 +141,16 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     while ai >= 0 {
         let src = get_unchecked(arg_srcs, ai)
         let tname = local_type_name(ctx, src)
-        if starts_with(clone(tname), String_from("vec:")) {
+        if starts_with(clone(tname), String_from("vec:")) || starts_with(clone(tname), String_from("Vec_")) {
             found = src
             ai = 0 - 1
         } else {
             ai = ai - 1
         }
+    }
+    // type_name may be missing after typed-sync; farthest LOCAL_GET is arg0 (the vec).
+    if found < 0 && len(arg_srcs) > 0 {
+        found = get_unchecked(arg_srcs, len(arg_srcs) - 1)
     }
     found
 }
@@ -156,6 +160,11 @@ fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
 }
 
 fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
+    // Lowering records the receiver/vec local in arg0 for get_unchecked/push.
+    let recorded = inst_accessors_operands::MirInst_arg0(inst)
+    if recorded >= 0 {
+        return recorded
+    }
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
