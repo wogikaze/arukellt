@@ -1,4 +1,3 @@
-use std::host::env
 use std::host::fs
 use std::host::process
 use std::host::stdio
@@ -9,15 +8,9 @@ use main::manifest_doc_record
 use main::manifest_doc_render
 
 fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
-    let mut path = String_from("std/manifest.toml")
-    match env::var(String_from("ARUKELLT_MANIFEST")) {
-        Result::Ok(p) => {
-            if len(p) > 0 {
-                path = p
-            }
-        },
-        Result::Err(_) => {},
-    }
+    // ARUKELLT_MANIFEST env override disabled on wasm32-gc until Option/Result
+    // locals from env::var validate; default manifest path only.
+    let path = String_from("std/manifest.toml")
     let read_result = fs::read_to_string(clone(path))
     match read_result {
         Result::Ok(content) => {

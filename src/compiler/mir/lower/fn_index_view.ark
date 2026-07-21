@@ -63,7 +63,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
 }
 
 fn mir_collect_qualified_fn_aliases(
-    decl_source: CoreHirMirDeclSource,
+    decl_source: MirLowerDeclSource,
     source: MirLowerFnIndexSource,
     fn_names: Vec<String>,
     fn_return_vts: Vec<i32>,

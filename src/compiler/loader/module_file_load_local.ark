@@ -4,10 +4,23 @@ use loader::module_paths
 struct DriverLoadedSource {
     path: String,
     source: String,
+    error: String,
 }
 
-fn DriverLoadedSource_new(path: String, source: String) -> DriverLoadedSource {
-    DriverLoadedSource { path: path, source: source }
+fn DriverLoadedSource_ok(path: String, source: String) -> DriverLoadedSource {
+    DriverLoadedSource {
+        path: path,
+        source: source,
+        error: String_new(),
+    }
+}
+
+fn DriverLoadedSource_err(error: String) -> DriverLoadedSource {
+    DriverLoadedSource {
+        path: String_new(),
+        source: String_new(),
+        error: error,
+    }
 }
 
 pub fn DriverLoadedSource_path(loaded: DriverLoadedSource) -> String {
@@ -18,23 +31,30 @@ pub fn DriverLoadedSource_source(loaded: DriverLoadedSource) -> String {
     loaded.source
 }
 
-pub fn read_local_module_source(module_name: String, base_dir: String) -> Result<DriverLoadedSource, String> {
+pub fn DriverLoadedSource_is_ok(loaded: DriverLoadedSource) -> bool {
+    len(loaded.error) == 0
+}
+
+// Returns a loaded source or an error string in `.error`. Avoids
+// `Result<DriverLoadedSource, String>` on wasm32-gc where Ok's payload
+// field can be typed as the open Result heap type instead of the struct.
+pub fn read_local_module_source(module_name: String, base_dir: String) -> DriverLoadedSource {
     let stem = module_paths::module_path_to_file_stem(clone(module_name))
     let primary_path = module_paths::module_stem_to_file_path(clone(base_dir), clone(stem))
     let primary_result = fs::read_to_string(clone(primary_path))
     match primary_result {
         Result::Ok(source) => {
-            return Result::Ok(DriverLoadedSource_new(primary_path, source))
+            DriverLoadedSource_ok(primary_path, source)
         },
         Result::Err(_) => {
             let mod_path = module_paths::module_stem_to_mod_path(clone(base_dir), clone(stem))
             let mod_result = fs::read_to_string(clone(mod_path))
             match mod_result {
                 Result::Ok(source) => {
-                    Result::Ok(DriverLoadedSource_new(mod_path, source))
+                    DriverLoadedSource_ok(mod_path, source)
                 },
                 Result::Err(e) => {
-                    Result::Err(e)
+                    DriverLoadedSource_err(e)
                 },
             }
         },

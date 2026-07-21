@@ -1,16 +1,3 @@
-use std::host::env
-use std::host::env
-use mir::inst_accessors_shape
-use mir::inst_accessors_literals
-use mir::block_inst_access
-use mir::opcodes
-use mir::function_block_queries
-use mir::function_identity
-use mir::core_op_call
-use mir::module_functions
-use mir::reachability_prune
-use mir::types
-use resolver
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::block_inst_access
@@ -27,10 +14,10 @@ use resolver
 // Enable with MIR_REACHABILITY_LEGACY_FIXPOINT=1 on a clock-capable artifact.
 
 fn mir_reachability_legacy_enabled() -> bool {
-    match env::var(String_from("MIR_REACHABILITY_LEGACY_FIXPOINT")) {
-        Some(v) => eq(clone(v), String_from("1")) || eq(clone(v), String_from("true")),
-        None => false
-    }
+    // wasm32-gc: match on env::var(Option) currently mis-types the Option
+    // local as String and fails module validate. Legacy walk stays off until
+    // that ABI is fixed; enable via source edit for A/B, not env.
+    false
 }
 
 fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i32>, name: String) -> bool {

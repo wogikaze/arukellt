@@ -1,17 +1,39 @@
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
 use wasm::intrinsic_env_var_lookup
 use wasm::intrinsic_env_var_option
-use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_core
 use wasm::emit_target
 use wasm::ctx_record
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+
+fn emit_env_var_gc_none(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    // Consume the name String so the stack is balanced, then return Option::None.
+    // Real WASI env lookup is not wired for wasm32-gc yet; unreachable here left
+    // match/Option consumers with ref-vs-ref validate failures in s3.
+    let s_name = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    helpers_core::emit_local_set(w, s_name)
+
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
+    if none_type >= 0 {
+        writer_gc::emit_gc_struct_new_default(w, none_type)
+        writer_gc::emit_gc_ref_cast(w, open_type)
+        return true
+    }
+
+    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+    writer_core::emit_leb128_s(w, open_type)
+    true
+}
 
 fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let _inst = inst
     let name_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
-        helpers_core::emit_unreachable(w)
-        return true
+        return emit_env_var_gc_none(w, ctx)
     }
     helpers_core::emit_local_set(w, name_local)
     if emit_target::is_minimal_p1_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_arukellt_host(ctx)) {

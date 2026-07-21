@@ -36,16 +36,13 @@ fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: Strin
         base_dir
     }
     let loaded = module_file_load_local::read_local_module_source(clone(import_path), clone(base))
-    match loaded {
-        Result::Ok(src) => {
-            module_file_load_local::DriverLoadedSource_path(src)
-        },
-        Result::Err(_) => {
-            if contains(clone(import_path), String_from("::")) {
-                return String_new()
-            }
-            dependency_module_file(clone(project_root), clone(import_path))
-        },
+    if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
+        module_file_load_local::DriverLoadedSource_path(loaded)
+    } else {
+        if contains(clone(import_path), String_from("::")) {
+            return String_new()
+        }
+        dependency_module_file(clone(project_root), clone(import_path))
     }
 }
 
@@ -76,13 +73,10 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
                     }
                     let dep_src = symbol_index_paths::join_path(clone(dep_root), String_from("src"))
                     let loaded = module_file_load_local::read_local_module_source(clone(import_name), dep_src)
-                    match loaded {
-                        Result::Ok(src) => {
-                            module_file_load_local::DriverLoadedSource_path(src)
-                        },
-                        Result::Err(_) => {
-                            String_new()
-                        },
+                    if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
+                        module_file_load_local::DriverLoadedSource_path(loaded)
+                    } else {
+                        String_new()
                     }
                 },
                 Result::Err(_) => {

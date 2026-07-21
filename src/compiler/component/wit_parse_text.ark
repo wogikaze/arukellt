@@ -46,6 +46,20 @@ fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitPars
     WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records, enums: enums }
 }
 
+// Cross-module `doc.enums` / `.funcs` / `.records` field lowers can mis-bind to
+// field 0 (package String). Keep aggregate access beside the struct definition.
+fn WitParsedInterface_funcs(doc: WitParsedInterface) -> Vec<WitParsedFunc> {
+    doc.funcs
+}
+
+fn WitParsedInterface_records(doc: WitParsedInterface) -> Vec<WitParsedRecord> {
+    doc.records
+}
+
+fn WitParsedInterface_enums(doc: WitParsedInterface) -> Vec<WitParsedEnum> {
+    doc.enums
+}
+
 fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
     WitParsedFunc { wit_name: wit_name, ark_name: ark_name, param_wit_types: param_wit_types, ret_wit_type: ret_wit_type }
 }

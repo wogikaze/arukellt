@@ -36,14 +36,16 @@ pub fn load_local_module_decls(module_name: String, base_dir: String, state: Loa
     if skip {
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
-    let load_result = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
-    match load_result {
-        Result::Ok(loaded) => {
-            register_local_module_source(clone(module_name), module_file_load_local::DriverLoadedSource_path(loaded), module_file_load_local::DriverLoadedSource_source(loaded), state)
-        },
-        Result::Err(_) => {
-            try_load_registry_module(clone(module_name), clone(base_dir), state)
-        },
+    let loaded = module_file_load_local::read_local_module_source(clone(module_name), clone(base_dir))
+    if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
+        register_local_module_source(
+            clone(module_name),
+            module_file_load_local::DriverLoadedSource_path(loaded),
+            module_file_load_local::DriverLoadedSource_source(loaded),
+            state
+        )
+    } else {
+        try_load_registry_module(clone(module_name), clone(base_dir), state)
     }
 }
 

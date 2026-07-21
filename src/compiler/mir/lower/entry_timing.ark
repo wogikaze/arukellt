@@ -1,20 +1,13 @@
 use std::host::clock
-use std::host::env
 use std::host::stdio
 
 fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
+    // Env override disabled on wasm32-gc until Option-from-env::var locals
+    // validate; --time / report_flag remains the supported enable path.
     if report_flag != 0 {
         return 1
     }
-    match env::var(String_from("MIR_LOWER_PHASE_TIMING")) {
-        Some(v) => {
-            if eq(clone(v), String_from("1")) || eq(clone(v), String_from("true")) {
-                return 1
-            }
-            0
-        }
-        None => 0
-    }
+    0
 }
 
 fn mir_lower_phase_now() -> i64 {

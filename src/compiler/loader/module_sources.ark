@@ -1,7 +1,7 @@
 use loader::module_file_load_local
 use loader::module_file_load_stdlib
 
-fn load_local_module_source(module_name: String, base_dir: String) -> Result<DriverLoadedSource, String> {
+fn load_local_module_source(module_name: String, base_dir: String) -> DriverLoadedSource {
     module_file_load_local::read_local_module_source(module_name, base_dir)
 }
 

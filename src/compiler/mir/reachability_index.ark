@@ -13,6 +13,29 @@ struct MirReachabilityIndex {
     fid_to_mir: Vec<i32>,
 }
 
+// Nested else-less `if` around `set(Vec, …)` was lowered with a Vec block
+// result into an i64 local (s3 validate: expected i64, found ref). Early
+// returns keep each guard as a statement with no merge value.
+fn mir_reachability_index_bind_fid(m: MirModule, fid_to_mir: Vec<i32>, fname: String, fi: i32) {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fname))
+    if !function_id::function_id_is_valid(fid) {
+        return
+    }
+    let raw = function_id::FunctionId_raw(fid)
+    if raw < 0 || raw >= len(fid_to_mir) {
+        return
+    }
+    // First MirFunction wins if aliases collide.
+    if get_unchecked(fid_to_mir, raw) >= 0 {
+        return
+    }
+    set(fid_to_mir, raw, fi)
+}
+
 fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
     let fn_count = len(functions)
     let name_to_mir = name_index::NameIndex_new(fn_count)
@@ -33,19 +56,7 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
         let f = get_unchecked(functions, fi)
         let fname = function_identity::MirFunction_name(f)
         name_index::name_index_insert_first(name_to_mir, clone(fname), fi)
-        if module_spine::MirModule_signature_spine_populated(m) {
-            let registry = module_spine::MirModule_signature_registry(m)
-            let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fname))
-            if function_id::function_id_is_valid(fid) {
-                let raw = function_id::FunctionId_raw(fid)
-                if raw >= 0 && raw < len(fid_to_mir) {
-                    // First MirFunction wins if aliases collide.
-                    if get_unchecked(fid_to_mir, raw) < 0 {
-                        set(fid_to_mir, raw, fi)
-                    }
-                }
-            }
-        }
+        mir_reachability_index_bind_fid(m, fid_to_mir, fname, fi)
         fi = fi + 1
     }
     MirReachabilityIndex { name_to_mir: name_to_mir, fid_to_mir: fid_to_mir }
