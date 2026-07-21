@@ -7,6 +7,7 @@ use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC-target replace: all strings are (ref null array_i8), result is new GC array.
 // Two-pass approach: count matches, then allocate exact size and copy.
@@ -165,10 +166,13 @@ fn emit_replace_gc_copy_loop(
     helpers_control::emit_br(w, 0)
     helpers_control::emit_end(w)
     // Copy remaining suffix: source[s_pos..s_src_len] to dest[s_dst..]
+    // array.copy wants i32 offsets/len; Memory64 keeps cursors as i64 (#730).
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_dst)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, g_src)
     helpers_core::emit_local_get(w, s_pos)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_src_len)
     helpers_core::emit_local_get(w, s_pos)
     helpers_numeric_i32::emit_i32_sub(w)
@@ -180,8 +184,10 @@ fn emit_replace_gc_copy_loop(
 fn emit_replace_gc_copy_match(w: WasmWriter, g_rep: i32, g_result: i32, s_pat_len: i32, s_rep_len: i32, s_pos: i32, s_dst: i32, string_type: i32) {
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_dst)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, g_rep)
     helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_rep_len)
     writer_gc::emit_gc_array_copy(w, string_type, string_type)
     // s_dst += s_rep_len, s_pos += s_pat_len
