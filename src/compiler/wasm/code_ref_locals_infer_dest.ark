@@ -175,6 +175,59 @@ fn infer_local_is_copy_of(block: MirBlock, before_ii: i32, alias: i32, local_idx
     false
 }
 
+// Match emit_get_unchecked: stack-top result feeds the next CALL's last param.
+fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == opcodes::MIR_CALL() {
+                let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
+                if eq(clone(cur_callee), clone(callee)) &&
+                inst_accessors_operands::MirInst_dest(cur) == dest {
+                    let mut look = ii + 1
+                    while look < inst_count {
+                        let next = block_inst_access::MirBlock_inst_at(block, look)
+                        let nop = inst_accessors_shape::MirInst_op(next)
+                        if nop == opcodes::MIR_CALL() {
+                            let next_callee = inst_accessors_literals::MirInst_str_val(next)
+                            let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(next_callee))
+                            if fn_idx >= 0 {
+                                let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+                                let pc = function_param_view::MirFunction_param_count(called)
+                                if pc > 0 {
+                                    let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
+                                    if !starts_with(clone(pname), String_from("vec:")) &&
+                                    !starts_with(clone(pname), String_from("Vec")) {
+                                        let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
+                                        if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                            return named
+                                        }
+                                    }
+                                }
+                            }
+                            look = inst_count
+                        } else if nop == opcodes::MIR_LOCAL_SET() || nop == opcodes::MIR_LOCAL_GET() {
+                            look = look + 1
+                        } else {
+                            look = inst_count
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
     let mut first_variant_slot = 0 - 1
     let block_count = len(f.blocks)
@@ -247,6 +300,10 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
             if from_use >= 0 {
                 return from_use
+            }
+            let from_next = infer_get_unchecked_elem_from_next_call(f, inst, ctx)
+            if from_next >= 0 {
+                return from_next
             }
             if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
                 return ctx_gc_type::SelfEmitCtx_string_type(ctx)
