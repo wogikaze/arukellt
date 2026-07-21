@@ -90,7 +90,8 @@ fn emit_fs_write_bytes_copy_loop(w: WasmWriter, s_bi: i32, s_bcount: i32, s_bbuf
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_get(w, s_bi)
-    writer_gc::emit_gc_array_get(w, arr_type)
+    // array.get yields i32; Memory64 store8 narrows a widened i64 value (#730).
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
     helpers_memory::emit_i32_store8_default(w)
     helpers_core::emit_local_get(w, s_bi)
     helpers_numeric_i32::emit_i32_const(w, 1)
