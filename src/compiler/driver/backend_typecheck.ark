@@ -96,7 +96,7 @@ fn backend_typecheck(source: String, config: DriverConfig, all_decls: Vec<AstNod
                 session_typecheck_query::session_typecheck_errors(check_result)
             ),
             check_result,
-            0
+            0i64
         )
     }
     if config_record::config_check_only(config) {

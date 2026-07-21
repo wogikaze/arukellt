@@ -46,10 +46,10 @@ fn emit_i64_digits(w: WasmWriter, s_val64: i32, s_wpos64: i32, s_neg64: i32) {
 
 fn emit_i64_normalize_sign(w: WasmWriter, s_val64: i32, s_neg64: i32) {
     helpers_core::emit_local_get(w, s_val64)
-    helpers_numeric_i64_const::emit_i64_const(w, 0)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_numeric_i64_compare::emit_i64_lt_s(w)
     helpers_control::emit_if_empty(w)
-    helpers_numeric_i64_const::emit_i64_const(w, 0)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_core::emit_local_get(w, s_val64)
     helpers_numeric_i64_arith::emit_i64_sub(w)
     helpers_core::emit_local_set(w, s_val64)

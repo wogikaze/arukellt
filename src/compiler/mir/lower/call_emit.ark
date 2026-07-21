@@ -1,6 +1,7 @@
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_local_types
 use mir::inst_call
+use mir::lower::call_arg_i64
 use mir::lower::call_args
 use mir::lower::call_emit_dest
 use mir::lower::call_emit_staged
@@ -48,7 +49,18 @@ fn mir_emit_direct_call(
         dest_vt = ctx_api_local_types::ctx_local_vt(ctx, dest)
     }
     if stage_call_args {
-        call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite))
+        let mut push_i64_needs_extend = call_rewrite::MirCallRewrite_push_i64_needs_extend(call_rewrite)
+        let staged_count = len(staged_arg_locals)
+        if !push_i64_needs_extend && staged_count > 0 {
+            let last_param = staged_count - 1
+            let last_local = get_unchecked(staged_arg_locals, last_param)
+            if ctx_api_local_types::ctx_local_vt(ctx, last_local) == value_types::VT_I32() {
+                if call_arg_i64::mir_callee_param_is_i64(ctx, clone(callee_name), last_param) {
+                    push_i64_needs_extend = true
+                }
+            }
+        }
+        call_emit_staged::mir_emit_staged_call_args(ctx, staged_arg_locals, push_i64_needs_extend)
     }
     if first_arg_idx >= 0 && call_args::mir_is_printlike_callee(clone(callee_name)) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))

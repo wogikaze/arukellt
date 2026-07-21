@@ -1491,8 +1491,9 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
 
 # KEEP_CLOCK / stub overlay groups for ``_patch_bootstrap_driver_timing``.
 # A/B via ``ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS=clock,fields,...`` when
-# ``ARUKELLT_OVERLAY_KEEP_CLOCK=1``. Default keep_clock groups are ``clock``
-# only: keep i64 record/getter signatures and wrap the clock read into i64 ms.
+# ``ARUKELLT_OVERLAY_KEEP_CLOCK=1``. Default keep_clock applies all groups:
+# wasm32 bootstrap stores struct i64 fields via i32 setters, so timestamp
+# slots must stay i32 ms (real ``monotonic_now()/1e6``) rather than i64 ns.
 _DRIVER_TIMING_GROUP_CLOCK = "clock"  # (1) clock intrinsic rewrite
 _DRIVER_TIMING_GROUP_FIELDS = "fields"  # (2) result record fields i64→i32
 _DRIVER_TIMING_GROUP_SIGS = "sigs"  # (3) ctor / getter signature i64→i32
@@ -1505,11 +1506,10 @@ _DRIVER_TIMING_ALL_GROUPS = (
     _DRIVER_TIMING_GROUP_BACKEND,
     _DRIVER_TIMING_GROUP_EMIT,
 )
-# Stub path (KEEP_CLOCK off): all groups. KEEP_CLOCK default: clock only —
-# global signature/field rewrites have been observed to break unrelated
-# wasm32 codegen (e.g. dump_mir stack imbalance) before Memory64 widening.
+# Stub and KEEP_CLOCK both use all groups; KEEP_CLOCK only changes the clock
+# rewrite (real i32 ms vs stub ``0``). Narrow A/B still via KEEP_CLOCK_GROUPS.
 _DRIVER_TIMING_STUB_GROUPS = frozenset(_DRIVER_TIMING_ALL_GROUPS)
-_DRIVER_TIMING_KEEP_CLOCK_DEFAULT_GROUPS = frozenset({_DRIVER_TIMING_GROUP_CLOCK})
+_DRIVER_TIMING_KEEP_CLOCK_DEFAULT_GROUPS = frozenset(_DRIVER_TIMING_ALL_GROUPS)
 
 
 def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
@@ -1533,28 +1533,61 @@ def _driver_timing_groups(*, keep_clock: bool) -> frozenset[str]:
 def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
     """Group 1: rewrite ``clock::monotonic_now()`` (and diff-ms double-divide)."""
     if keep_clock:
-        # Keep real i64 nanosecond clocks. ``phase_timing_ms`` / ``mir_lower_phase_ms``
-        # already convert ns→ms. Do not rewrite to ``now()/1000000i64``: MIR may
-        # type the clock call dest as i32 and insert ``i64.extend_i32_s`` on the
-        # i64 load, which fails wasm validate (func mir_lower_phase_now).
-        # Widen frontend_stop zero timestamps: source keeps bare ``0`` so stub
-        # overlay (i32 fields) still type-checks.
+        # Milliseconds as i32: matches overlay i32 timestamp slots. wasm32
+        # bootstrap field setters are (i32, i32); leaving ns i64 in record
+        # fields fails validate (expected i32, found i64).
         text = _replace_optional(
             text,
-            "t0, 0, 0)",
-            "t0, 0i64, 0i64)",
-            "driver_timing: keep_clock frontend_stop i64 zero pair",
+            "clock::monotonic_now()",
+            "i64_to_i32(clock::monotonic_now() / 1000000i64)",
+            "driver_timing: keep_clock monotonic_now → i32 ms",
         )
+        # Stored values are already ms; do not divide again in phase_timing_ms.
         text = _replace_optional(
             text,
-            "t0, t_lex, 0)",
-            "t0, t_lex, 0i64)",
-            "driver_timing: keep_clock frontend_stop i64 zero t_parse",
+            "i64_to_i32(diff / 1000000i64)",
+            "i64_to_i32(diff)",
+            "driver_timing: keep_clock phase_timing_ms already ms",
         )
         return text
     return _replace_optional(
         text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now"
     )
+
+
+def _patch_bootstrap_driver_timing_i32_zeros(text: str) -> str:
+    """Narrow canonical ``0i64`` timestamp literals when overlay slots are i32."""
+    text = _replace_optional(
+        text,
+        "t0, 0i64, 0i64)",
+        "t0, 0, 0)",
+        "driver_timing: i32 slots frontend_stop zero pair",
+    )
+    text = _replace_optional(
+        text,
+        "t0, t_lex, 0i64)",
+        "t0, t_lex, 0)",
+        "driver_timing: i32 slots frontend_stop zero t_parse",
+    )
+    text = _sub_optional(
+        text,
+        r"(session_empty_resolve_ctx\(\),\n)(\s+)0i64(\n\s*\))",
+        r"\g<1>\g<2>0\3",
+        "driver_timing: i32 slots resolve empty-ctx zero",
+    )
+    text = _sub_optional(
+        text,
+        r"(resolve_ctx,\n)(\s+)0i64(\n\s*\))",
+        r"\g<1>\g<2>0\3",
+        "driver_timing: i32 slots resolve error-path zero",
+    )
+    text = _sub_optional(
+        text,
+        r"(check_result,\n)(\s+)0i64(\n\s*\))",
+        r"\g<1>\g<2>0\3",
+        "driver_timing: i32 slots typecheck error-path zero",
+    )
+    return text
 
 
 def _patch_bootstrap_driver_timing_fields(text: str) -> str:
@@ -1709,13 +1742,13 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
         "driver_timing: debug::emit_phase_timing i32_to_i64(0)",
     )
     if keep_clock:
-        # Legacy: older overlays left i64_to_i32(clock…/1e6) in an i64 emit slot.
-        # Clock group now yields plain i64 ms; unwrap if the old form remains.
+        # Clock group rewrites now()→i32 ms globally; emit_phase_timing's final
+        # param is i64, so widen the trailing clock read back to i64 ms.
         text = _sub_optional(
             text,
             r"(debug::emit_phase_timing\([\s\S]*?t_mir_verify,\n)(\s*)i64_to_i32\(clock::monotonic_now\(\) / 1000000i64\)(\n\s*\))",
-            r"\1\2clock::monotonic_now() / 1000000i64\3",
-            "driver_timing: emit_phase_timing unwrap legacy i64_to_i32 clock ms",
+            r"\1\2i32_to_i64(i64_to_i32(clock::monotonic_now() / 1000000i64))\3",
+            "driver_timing: emit_phase_timing widen trailing i32 ms → i64",
             flags=re.M,
             count=1,
         )
@@ -1736,12 +1769,11 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
     every pattern, so all substitutions are *optional* — a skip notice is printed
     when a pattern does not match, making source drift visible without raising.
 
-    When ``keep_clock`` is true (default groups: ``clock`` only), leave record
-    fields / getter signatures as i64 and leave ``clock::monotonic_now()`` as a
-    real nanosecond i64 read so ``--time`` is non-zero without the global
-    i64→i32 signature churn that has broken unrelated wasm32 functions
-    (e.g. ``dump_mir`` stack imbalance). Stub mode (keep_clock false) still
-    applies all groups so pinned bootstrap can compile without clock intrinsics.
+    When ``keep_clock`` is true (default: all groups), keep i32 timestamp
+    fields/sigs and rewrite ``clock::monotonic_now()`` to i32 milliseconds so
+    ``--time`` is non-zero without ``expected i32, found i64`` on wasm32
+    struct field stores. Stub mode (keep_clock false) uses the same field/sig
+    rewrites but replaces clocks with ``0``.
 
     A/B: ``ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS=clock,fields,sigs,backend,emit``.
     """
@@ -1752,6 +1784,9 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
         text = _patch_bootstrap_driver_timing_fields(text)
     if _DRIVER_TIMING_GROUP_SIGS in groups:
         text = _patch_bootstrap_driver_timing_sigs(text)
+    # After field/sig i64→i32, narrow source ``0i64`` literals to bare ``0``.
+    if _DRIVER_TIMING_GROUP_FIELDS in groups or _DRIVER_TIMING_GROUP_SIGS in groups:
+        text = _patch_bootstrap_driver_timing_i32_zeros(text)
     if _DRIVER_TIMING_GROUP_BACKEND in groups:
         text = _patch_bootstrap_driver_timing_backend(text)
     if _DRIVER_TIMING_GROUP_EMIT in groups:
@@ -1946,9 +1981,8 @@ def _write_worktree_namespace_overlay(
         if rel_name == "wasm/wasm_sections_facade.ark":
             text = _patch_bootstrap_wasm_sections_data_only(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
-        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real clocks with i64 timestamp
-        # slots (clock group only unless KEEP_CLOCK_GROUPS overrides) — compile
-        # that overlay with s2-runtime, not pinned (#823).
+        # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i32-ms clocks (all timing
+        # groups by default) — compile that overlay with s2-runtime (#823).
         keep_clock = os.environ.get("ARUKELLT_OVERLAY_KEEP_CLOCK") == "1"
         if namespace == "driver":
             text = _patch_bootstrap_driver_timing(text, keep_clock=keep_clock)
@@ -3885,8 +3919,8 @@ def build_clock_capable_s2(root: Path, *, force: bool = False) -> tuple[Path | N
 
     Steps:
     1. Ensure stubbed ``arukellt-s2-runtime.wasm`` host (current emitter).
-    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (real i64 ns clocks;
-       no global field/getter i64→i32 unless ``KEEP_CLOCK_GROUPS`` expands).
+    2. Overlay with ``ARUKELLT_OVERLAY_KEEP_CLOCK=1`` (real i32-ms clocks;
+       all field/sig/backend/emit groups by default).
     3. Compile as **wasm32 + wasi-p1** with that host, then widen to Memory64.
     4. ``wasm-tools validate``; reject on failure.
 

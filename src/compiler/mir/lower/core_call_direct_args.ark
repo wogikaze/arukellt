@@ -1,3 +1,4 @@
+use mir::lower::call_arg_i64
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
 use mir::lower::core_call_args
@@ -25,7 +26,6 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     }
     let is_println = core_call_args::mir_core_is_printlike_callee(clone(callee_name))
     let stage_call_args = !is_println && child_count > 2
-    let callee_expects_i64 = mir_core_callee_expects_i64(clone(callee_name))
     let staged_arg_locals = Vec_new_i32()
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1
@@ -34,6 +34,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     while a < child_count {
         let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
         let mut arg_idx = 0 - 1
+        let param_idx = a - 1
         let is_lane_immediate = a == 2 && call_emit::mir_is_simd_lane_immediate_callee(clone(callee_name)) && core_expr_shape_atoms::mir_core_expr_is_int(arg_expr)
         if is_lane_immediate {
             lane_immediate = core_expr_shape_accessors::mir_core_expr_int_val(arg_expr)
@@ -46,7 +47,7 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, core_names::mir_core_lookup_local(ctx, arg_expr))
         if needs_print_convert {
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
-        } else if callee_expects_i64 && core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) {
+        } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
             arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
         } else {
             arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
@@ -72,26 +73,4 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         core_expr_shape_accessors::mir_core_expr_span_start(expr),
         lane_immediate
     )
-}
-
-fn mir_core_callee_expects_i64(callee_name: String) -> bool {
-    // Conversion intrinsics that *produce* i64 from i32 must keep i32 args.
-    // `contains("i64")` alone wrongly matches `__intrinsic_i32_to_i64` and
-    // forces i64.const + extend (#726 hashmap i64::hash).
-    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
-        return false
-    }
-    if contains(clone(callee_name), String_from("i64")) {
-        return true
-    }
-    if ends_with(clone(callee_name), String_from("seek_to")) {
-        return true
-    }
-    if eq(clone(callee_name), String_from("seek")) {
-        return true
-    }
-    if ends_with(clone(callee_name), String_from("::seek")) {
-        return true
-    }
-    false
 }

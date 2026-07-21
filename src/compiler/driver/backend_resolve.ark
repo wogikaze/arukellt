@@ -53,7 +53,7 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
             errors::module_loading_errors_result(module_state_errors::LoadState_errors(load_state)),
             load_state,
             session_resolve_query::session_empty_resolve_ctx(),
-            0
+            0i64
         )
     }
     let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules_for_target_and_host(
@@ -77,7 +77,7 @@ fn backend_resolve(source: String, config: DriverConfig, decls: Vec<AstNode>) ->
             ),
             load_state,
             resolve_ctx,
-            0
+            0i64
         )
     }
     DriverResolveResult_new(false, result_record::CompileResult_ok(phases::PHASE_RESOLVE()), load_state, resolve_ctx, clock::monotonic_now())
