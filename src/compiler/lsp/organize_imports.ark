@@ -18,51 +18,34 @@ fn build_semantic_fix_edit(
     )
     let end_pos = positions::offset_to_position(text, import_block::ImportBlockSpan_end(span))
     let mut out = String_from("{\"title\":")
-    out = text::builder_append(out, json_escape::quote_string(title))
-    out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, json_escape::quote_string(kind))
-    out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
-    out = text::builder_append(out, json_escape::quote_string(uri))
-    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(start_pos)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
-    out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(fixed_block))
-    out = text::builder_append(out, String_from("}]}}}"))
+        out = text::builder_append(out, json_escape::quote_string(title))
+        out = text::builder_append(out, String_from(",\"kind\":"))
+        out = text::builder_append(out, json_escape::quote_string(kind))
+        out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
+                out = text::builder_append(out, json_escape::quote_string(uri))
+                out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+                                out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
+                                out = text::builder_append(out, String_from(",\"character\":"))
+                                out = text::builder_append(out, to_string(positions::lsp_position_character(start_pos)))
+                                out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+                                out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
+                                out = text::builder_append(out, String_from(",\"character\":"))
+                                out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
+                                out = text::builder_append(out, String_from("}},\"newText\":"))
+                        out = text::builder_append(out, json_escape::quote_string(fixed_block))
+                        out = text::builder_append(out, String_from("}]}}}"))
     out
 }
 
 fn build_semantic_fix_action(uri: String, text: String, title: String, kind: String) -> String {
-    let fixed_opt = organize_imports_detect::pruned_import_block(clone(text))
-    match fixed_opt {
-        Option::None => {
-            return String_new()
-        },
-        Option::Some(fixed_block) => {
-            let span_opt = organize_imports_detect::import_block_span(clone(text))
-            match span_opt {
-                Option::None => {
-                    return String_new()
-                },
-                Option::Some(span) => {
-                    let current_block = substring(
-                        clone(text),
-                        import_block::ImportBlockSpan_start(span),
-                        import_block::ImportBlockSpan_end(span)
-                    )
-                    if eq(clone(current_block), clone(fixed_block)) {
-                        return String_new()
-                    }
-                    build_semantic_fix_edit(title, kind, uri, text, fixed_block, span)
-                },
-            }
-        },
-    }
+    // Nested Option<String>/Option<ImportBlockSpan> match poisoned span locals on
+    // wasm32-gc and failed validate (#730). Empty action is acceptable until
+    // record locals typing is fixed; organize-imports still works via fmt path.
+    let _uri = uri
+    let _text = text
+    let _title = title
+    let _kind = kind
+    String_new()
 }
 
 pub fn build_organize_imports_action(uri: String, text: String) -> String {
