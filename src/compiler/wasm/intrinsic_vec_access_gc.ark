@@ -256,12 +256,17 @@ fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) ->
                             let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(next_callee))
                             if fn_idx >= 0 {
                                 let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
-                                if function_param_view::MirFunction_param_count(called) > 0 {
-                                    let pname = function_param_view::MirFunction_param_type_name(called, 0)
+                                let pc = function_param_view::MirFunction_param_count(called)
+                                // get_unchecked result is stack-top → last call argument.
+                                // Using param 0 wrongly picks the Vec receiver for push(vec, elem).
+                                if pc > 0 {
+                                    let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
                                     let resolved = resolve_concrete_struct_type(ctx, clone(pname))
                                     if resolved >= 0 &&
                                     resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
-                                    resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+                                    resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) &&
+                                    !starts_with(clone(pname), String_from("vec:")) &&
+                                    !starts_with(clone(pname), String_from("Vec")) {
                                         return resolved
                                     }
                                 }
