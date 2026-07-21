@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Isolated stage-3 latency probe: host RSS samples + KEEP_CLOCK --time phases.
 
+Uses the same flat-src + cache-dir argv as ``checks._wasm_compile`` (stage-3).
+Plain ``--dir=.`` OOBs on main.ark and must not be used for this probe.
+
 Usage (repo root, NO other selfhost compiles):
 
     python3 scripts/debug/latency_rss_phase_probe.py
@@ -121,7 +124,12 @@ def main() -> int:
     use_clock = os.environ.get("ARUKELLT_DEBUG_USE_CLOCK", "1") == "1"
     timeout_s = int(os.environ.get("ARUKELLT_DEBUG_COMPILE_TIMEOUT", "3600"))
     compiler = CLOCK if use_clock else RUNTIME
-    out_rel = ".ark-debug/main-latency-probe.wasm"
+    # Match scripts/selfhost/checks.py::_wasm_compile stage-3 argv:
+    # --dir flat-src --dir root -o <guest> --cache-dir (plus --time for receipt).
+    flat_src = ROOT / ".build/selfhost/flat-src"
+    guest_out = "latency-probe-out.wasm"
+    out = flat_src / guest_out
+    ast_cache = ROOT / ".build/selfhost/ast-cache"
 
     # #region agent log
     existing = _list_main_compiles()
@@ -151,9 +159,14 @@ def main() -> int:
         _agent_log("D", "latency_probe:preflight", "missing_compiler", {"path": str(compiler)}, run_id=run_id)
         # #endregion
         return 3
+    if not (flat_src / "src/compiler/main.ark").is_file():
+        print(f"missing flat-src overlay: {flat_src}", file=sys.stderr)
+        # #region agent log
+        _agent_log("I", "latency_probe:preflight", "missing_flat_src", {"path": str(flat_src)}, run_id=run_id)
+        # #endregion
+        return 3
 
-    out = ROOT / out_rel
-    out.parent.mkdir(parents=True, exist_ok=True)
+    ast_cache.mkdir(parents=True, exist_ok=True)
     if out.is_file():
         out.unlink()
 
@@ -169,7 +182,10 @@ def main() -> int:
         "memory64=y",
         "-W",
         "max-memory-size=17179869184",
-        "--dir=.",
+        "--dir",
+        str(flat_src),
+        "--dir",
+        str(ROOT),
         str(compiler),
         "--",
         "compile",
@@ -180,7 +196,9 @@ def main() -> int:
         "wasi-p2",
         "--time",
         "-o",
-        out_rel,
+        guest_out,
+        "--cache-dir",
+        ".build/selfhost/ast-cache",
     ]
     # #region agent log
     _agent_log(
@@ -191,7 +209,8 @@ def main() -> int:
             "compiler": str(compiler.relative_to(ROOT)),
             "use_clock": use_clock,
             "timeout_s": timeout_s,
-            "cmd_tail": " ".join(cmd[-12:]),
+            "flat_src": True,
+            "cmd_tail": " ".join(cmd[-14:]),
         },
         run_id=run_id,
     )
