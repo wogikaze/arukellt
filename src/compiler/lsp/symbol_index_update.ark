@@ -9,14 +9,16 @@ pub fn symbol_index_clear_project(state: LspState) {
 }
 
 pub fn symbol_index_remove_uri(state: LspState, uri: String) {
+    // Pass get_unchecked results straight into typed callees (no `let sym = …`).
+    // Intermediate IndexedSymbol locals were poisoned to String on wasm32-gc and
+    // failed validate after structref array.get (#730).
     let kept = Vec_new_IndexedSymbol()
     let symbols = state_record::lsp_state_symbol_symbols(state)
     let n = len(symbols)
     let mut i = 0
     while i < n {
-        let sym = get_unchecked(symbols, i)
-        if !eq(symbol_index_record::indexed_symbol_uri(sym), clone(uri)) {
-            push(kept, sym)
+        if !eq(symbol_index_record::indexed_symbol_uri(get_unchecked(symbols, i)), clone(uri)) {
+            symbol_index_record::symbol_index_push_symbol(kept, get_unchecked(symbols, i))
         }
         i = i + 1
     }
