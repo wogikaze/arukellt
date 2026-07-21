@@ -64,7 +64,12 @@ def _list_main_compiles() -> list[dict]:
             cmd = (proc / "cmdline").read_bytes().replace(b"\x00", b" ").decode()
         except OSError:
             continue
-        if "wasmtime" not in cmd or "main.ark" not in cmd:
+        # Require real wasmtime as argv0 — python -c scripts embedding these
+        # strings must not count as concurrent compiles.
+        if "main.ark" not in cmd:
+            continue
+        argv0 = cmd.split(" ", 1)[0]
+        if not argv0.endswith("wasmtime"):
             continue
         try:
             status = (proc / "status").read_text(encoding="utf-8")
