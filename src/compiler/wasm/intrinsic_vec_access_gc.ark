@@ -211,8 +211,13 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
         elem_gc_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
             elem_gc_type = 0 - 1
         }
-        if elem_gc_type < 0 {
+        if elem_gc_type < 0 && dest >= 0 {
             elem_gc_type = resolve_get_unchecked_elem_from_dest_uses(ctx, dest)
+        }
+        // Nested call args: `typed_fn(get_unchecked(vec, i))` leaves dest=-1 and
+        // feeds the structref straight into the next CALL (#730).
+        if elem_gc_type < 0 {
+            elem_gc_type = resolve_get_unchecked_elem_from_next_call(ctx, inst)
         }
         if elem_gc_type < 0 {
             elem_gc_type = resolve_get_unchecked_elem_from_func_return(ctx)
@@ -222,6 +227,59 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
         }
     }
     return true
+}
+
+fn resolve_get_unchecked_elem_from_next_call(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
+                let cur_callee = inst_accessors_literals::MirInst_str_val(cur)
+                let same_get = eq(clone(cur_callee), clone(callee)) &&
+                inst_accessors_operands::MirInst_dest(cur) == dest
+                if same_get {
+                    let mut look = ii + 1
+                    while look < inst_count {
+                        let next = block_inst_access::MirBlock_inst_at(block, look)
+                        let nop = inst_accessors_shape::MirInst_op(next)
+                        if nop == mir_opcodes::MIR_CALL() {
+                            let next_callee = inst_accessors_literals::MirInst_str_val(next)
+                            let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(next_callee))
+                            if fn_idx >= 0 {
+                                let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+                                if function_param_view::MirFunction_param_count(called) > 0 {
+                                    let pname = function_param_view::MirFunction_param_type_name(called, 0)
+                                    let resolved = resolve_concrete_struct_type(ctx, clone(pname))
+                                    if resolved >= 0 &&
+                                    resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+                                    resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+                                        return resolved
+                                    }
+                                }
+                            }
+                            look = inst_count
+                        } else if nop == mir_opcodes::MIR_LOCAL_SET() || nop == mir_opcodes::MIR_LOCAL_GET() {
+                            look = look + 1
+                        } else {
+                            look = inst_count
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
 }
 
 // When dest type_name is poisoned (String) but the value is immediately passed
