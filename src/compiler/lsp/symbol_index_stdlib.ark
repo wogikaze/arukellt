@@ -26,10 +26,10 @@ fn stdlib_module_to_source_uri(module_path: String) -> String {
 fn render_manifest_signature(name: String, params: String, returns: String) -> String {
     let mut sig = concat(String_from("fn "), clone(name))
     sig = text::builder_append(sig, String_from("("))
-    if len(params) > 0 {
-        sig = text::builder_append(sig, concat(String_from("s: "), params))
-    }
-    sig = text::builder_append(sig, String_from(")"))
+        if len(params) > 0 {
+            sig = text::builder_append(sig, concat(String_from("s: "), params))
+        }
+        sig = text::builder_append(sig, String_from(")"))
     if len(returns) > 0 {
         sig = text::builder_append(sig, concat(String_from(" -> "), returns))
     }
@@ -54,33 +54,11 @@ fn flush_function_symbol(out: Vec<symbol_index_record::StdlibIndexedSymbol>, sta
 }
 
 fn apply_manifest_line(out: Vec<symbol_index_record::StdlibIndexedSymbol>, state: ManifestParseState, line: String) -> ManifestParseState {
-    if starts_with(clone(line), String_from("[[functions]]")) {
-        flush_function_symbol(out, clone(state))
-        let mut next = ManifestParseState_new()
-        next.section = 1
-        return next
-    }
-    if starts_with(clone(line), String_from("[[types]]")) {
-        flush_function_symbol(out, clone(state))
-        let mut next = ManifestParseState_new()
-        next.section = 2
-        return next
-    }
-    let key_name = symbol_index_paths::find_toml_value(clone(line), String_from("name"))
-    if len(key_name) > 0 && state.section == 2 {
-        push_type_symbol(out, clone(key_name))
-        return state
-    }
-    if len(key_name) > 0 && state.section == 1 {
-        flush_function_symbol(out, clone(state))
-        let mut next = ManifestParseState_new()
-        next.section = 1
-        next.name = key_name
-        return apply_manifest_fields(next, line)
-    }
-    if state.section == 1 {
-        return apply_manifest_fields(state, line)
-    }
+    // Full TOML walk poisoned ManifestParseState locals to String on wasm32-gc
+    // (#730). fs::read_to_string is already a GC stub, so stdlib symbols stay
+    // empty at runtime; keep a validate-safe passthrough until record locals fix.
+    let _out = out
+    let _line = line
     state
 }
 
@@ -130,22 +108,8 @@ fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestPar
 }
 
 fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibIndexedSymbol> {
-    let out = Vec_new_StdlibIndexedSymbol()
-    let mut state = ManifestParseState_new()
-    let n = len(content)
-    let mut line_start = 0
-    let mut i = 0
-    while i < n {
-        if char_at(content, i) == 10 || i == n - 1 {
-            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
-            state = apply_manifest_line(out, state, line)
-            line_start = i + 1
-        }
-        i = i + 1
-    }
-    flush_function_symbol(out, state)
-    out
+    let _content = content
+    Vec_new_StdlibIndexedSymbol()
 }
 
 fn manifest_load_path() -> String {
