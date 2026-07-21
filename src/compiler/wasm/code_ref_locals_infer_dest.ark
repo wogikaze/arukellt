@@ -2,16 +2,19 @@
 use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_accessors_literals
 use mir::block_inst_access
 use mir::opcodes
 use mir::value_types
 use mir::function_locals_view
 use mir::function_return_view
+use mir::function_param_view
 use mir::local_access
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
+use wasm::inst_ctx
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
@@ -92,6 +95,86 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     0 - 1
 }
 
+fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfEmitCtx) -> i32 {
+    if dest < 0 {
+        return 0 - 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == opcodes::MIR_CALL() {
+                if infer_call_args_include_local(block, ii, dest) {
+                    let call_callee = inst_accessors_literals::MirInst_str_val(cur)
+                    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(call_callee))
+                    if fn_idx >= 0 {
+                        let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+                        if function_param_view::MirFunction_param_count(called) > 0 {
+                            let pname = function_param_view::MirFunction_param_type_name(called, 0)
+                            let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
+                            if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                return named
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
+fn infer_call_args_include_local(block: MirBlock, call_ii: i32, local_idx: i32) -> bool {
+    let call = block_inst_access::MirBlock_inst_at(block, call_ii)
+    let arg_count = inst_accessors_operands::MirInst_int_val(call)
+    if arg_count <= 0 {
+        return false
+    }
+    let mut gets_seen = 0
+    let mut look = 1
+    while gets_seen < arg_count && call_ii - look >= 0 {
+        let prev = block_inst_access::MirBlock_inst_at(block, call_ii - look)
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+            let src = inst_accessors_operands::MirInst_arg0(prev)
+            if src == local_idx || infer_local_is_copy_of(block, call_ii, src, local_idx) {
+                return true
+            }
+            gets_seen = gets_seen + 1
+        }
+        look = look + 1
+    }
+    false
+}
+
+fn infer_local_is_copy_of(block: MirBlock, before_ii: i32, alias: i32, local_idx: i32) -> bool {
+    if alias == local_idx {
+        return true
+    }
+    let mut ii = 0
+    while ii < before_ii {
+        let cur = block_inst_access::MirBlock_inst_at(block, ii)
+        if inst_accessors_shape::MirInst_op(cur) == opcodes::MIR_LOCAL_SET() {
+            // LOCAL_SET encodes the target local in arg0 (dest is unused).
+            if inst_accessors_operands::MirInst_arg0(cur) == alias && ii > 0 {
+                let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+                    if inst_accessors_operands::MirInst_arg0(prev) == local_idx {
+                        return true
+                    }
+                }
+            }
+        }
+        ii = ii + 1
+    }
+    false
+}
+
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
     let mut first_variant_slot = 0 - 1
     let block_count = len(f.blocks)
@@ -160,6 +243,10 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
             if from_vec >= 0 {
                 return from_vec
+            }
+            let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
+            if from_use >= 0 {
+                return from_use
             }
             if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
                 return ctx_gc_type::SelfEmitCtx_string_type(ctx)

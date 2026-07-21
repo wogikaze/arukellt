@@ -6,11 +6,15 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
+use wasm::inst_ctx
 use mir::function_return_view
+use mir::function_param_view
+use mir::function_block_queries
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::block_inst_access
+use mir::opcodes as mir_opcodes
 
 // Resolve a concrete GC struct type from a struct type name (e.g. "Point").
 // Checks gc_struct_names first, then falls back to byte_size-based lookup.
@@ -208,6 +212,9 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
             elem_gc_type = 0 - 1
         }
         if elem_gc_type < 0 {
+            elem_gc_type = resolve_get_unchecked_elem_from_dest_uses(ctx, dest)
+        }
+        if elem_gc_type < 0 {
             elem_gc_type = resolve_get_unchecked_elem_from_func_return(ctx)
         }
         if elem_gc_type >= 0 {
@@ -215,6 +222,96 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
         }
     }
     return true
+}
+
+// When dest type_name is poisoned (String) but the value is immediately passed
+// to a typed call (e.g. indexed_symbol_uri(IndexedSymbol)), recover the concrete
+// GC struct from that callee's first parameter (#730 symbol_index_remove_uri).
+fn resolve_get_unchecked_elem_from_dest_uses(ctx: SelfEmitCtx, dest: i32) -> i32 {
+    if dest < 0 {
+        return 0 - 1
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
+                let feeds = call_arg_local_gets_include(block, ii, dest)
+                if feeds {
+                    let call_callee = inst_accessors_literals::MirInst_str_val(cur)
+                    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(call_callee))
+                    if fn_idx >= 0 {
+                        let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
+                        if function_param_view::MirFunction_param_count(called) > 0 {
+                            let pname = function_param_view::MirFunction_param_type_name(called, 0)
+                            let resolved = resolve_concrete_struct_type(ctx, clone(pname))
+                            if resolved >= 0 &&
+                            resolved != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+                            resolved != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+                                return resolved
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
+fn call_arg_local_gets_include(block: MirBlock, call_ii: i32, local_idx: i32) -> bool {
+    let call = block_inst_access::MirBlock_inst_at(block, call_ii)
+    let arg_count = inst_accessors_operands::MirInst_int_val(call)
+    if arg_count <= 0 {
+        return false
+    }
+    let mut gets_seen = 0
+    let mut look = 1
+    while gets_seen < arg_count && call_ii - look >= 0 {
+        let prev = block_inst_access::MirBlock_inst_at(block, call_ii - look)
+        if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+            let src = inst_accessors_operands::MirInst_arg0(prev)
+            if src == local_idx || local_is_copy_of(block, call_ii, src, local_idx) {
+                return true
+            }
+            gets_seen = gets_seen + 1
+        }
+        look = look + 1
+    }
+    false
+}
+
+// True when `alias` was defined by copying `local_idx` earlier in the block
+// (local.get local_idx; local.set alias), as get_unchecked results often are.
+fn local_is_copy_of(block: MirBlock, before_ii: i32, alias: i32, local_idx: i32) -> bool {
+    if alias == local_idx {
+        return true
+    }
+    let mut ii = 0
+    while ii < before_ii {
+        let cur = block_inst_access::MirBlock_inst_at(block, ii)
+        if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_LOCAL_SET() {
+            // LOCAL_SET encodes the target local in arg0 (dest is unused).
+            if inst_accessors_operands::MirInst_arg0(cur) == alias && ii > 0 {
+                let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+                    if inst_accessors_operands::MirInst_arg0(prev) == local_idx {
+                        return true
+                    }
+                }
+            }
+        }
+        ii = ii + 1
+    }
+    false
 }
 
 // When vec elem typing was poisoned (vec:String) but the array is structref,
@@ -270,7 +367,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
 }
 
 // Prefer Option::Some with the requested payload suffix (_f1_i32 / _f1_i64 /
-// _f1_ref0 / _f1_gcsrefN / ...) over the first name-only match (#726).
+    // _f1_ref0 / _f1_gcsrefN / ...) over the first name-only match (#726).
 fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_type: i32) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
