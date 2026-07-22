@@ -1,4 +1,8 @@
-"""Native C99 selfhost executor pipeline (ADR-049, RFC-008)."""
+"""Native C99 selfhost executor pipeline (ADR-049, RFC-008).
+
+The native executor host is native, but S3 output must inherit the comparison
+S2 build profile. Never hardcode wasm32-gc as the S3 target.
+"""
 
 from __future__ import annotations
 
@@ -10,11 +14,15 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from typing import Any
 
 from selfhost.checks import (
+    BOOTSTRAP_EMIT_TARGET,
+    BOOTSTRAP_EMIT_WASI_VERSION,
     _postprocess_selfhost_compiler_wasm,
     _prepare_bootstrap_workspace,
     _reject_invalid_compiler_wasm,
+    _selfhost_dir,
     _selfhost_source_fingerprint,
 )
 
@@ -22,6 +30,9 @@ RUNTIME_ABI_VERSION = 1
 BACKEND_SCHEMA_VERSION = 1
 CAPABILITY_TABLE_VERSION = 1
 MINIMUM_CLANG_VERSION = 14
+S2_BUILD_PROFILE_NAME = "arukellt-s2.build-profile.json"
+MEMORY_GATE_BYTES = int(2.4 * 1024**3)
+WALL_GATE_MS = 300_000
 
 
 def _sha256(path: Path) -> str:
@@ -104,6 +115,75 @@ def _runtime_hash(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _default_s2_build_profile(s2: Path, fingerprint: str) -> dict[str, Any]:
+    """Explicit profile for existing S2 artifacts built via the bootstrap chain.
+
+    Regular stage-2 emission uses BOOTSTRAP_EMIT_TARGET / WASI (wasm32 + wasi-p1),
+    not SELFHOST_TARGET. Do not invent wasm32-gc here.
+    """
+    return {
+        "artifact": s2.name,
+        "sha256": _sha256(s2) if s2.is_file() else "",
+        "output_target": BOOTSTRAP_EMIT_TARGET,
+        "wasi": BOOTSTRAP_EMIT_WASI_VERSION,
+        "memory64": False,
+        "wasm_gc": False,
+        "optimization": "release",
+        "source_fingerprint": fingerprint,
+        "compiler_flags": [],
+    }
+
+
+def write_s2_build_profile(root: Path, s2: Path, *, fingerprint: str | None = None) -> Path:
+    """Persist a machine-readable S2 output profile next to the artifact."""
+    build_dir = _selfhost_dir(root)
+    build_dir.mkdir(parents=True, exist_ok=True)
+    path = build_dir / S2_BUILD_PROFILE_NAME
+    fp = fingerprint if fingerprint is not None else _selfhost_source_fingerprint(root)
+    profile = _default_s2_build_profile(s2, fp)
+    path.write_text(json.dumps(profile, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def load_s2_build_profile(root: Path, s2: Path) -> tuple[dict[str, Any] | None, str]:
+    """Load the S2 profile manifest; refuse ambiguous target guessing."""
+    path = _selfhost_dir(root) / S2_BUILD_PROFILE_NAME
+    if not path.is_file():
+        return None, (
+            "native executor diagnostic: missing S2 build-profile manifest at "
+            f"{path.relative_to(root)}; rebuild with "
+            "`python3 scripts/manager.py selfhost build-compiler` "
+            "(or write an explicit profile — do not infer wasm32-gc)"
+        )
+    try:
+        profile = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return None, f"native executor diagnostic: invalid S2 build-profile manifest: {exc}"
+
+    required = ("output_target", "wasi", "memory64", "wasm_gc", "sha256")
+    missing = [key for key in required if key not in profile]
+    if missing:
+        return None, (
+            "native executor diagnostic: S2 build-profile missing keys: "
+            + ", ".join(missing)
+        )
+
+    target = str(profile["output_target"])
+    if not target or target == "native-cpp" or target == "native-llvm":
+        return None, (
+            f"native executor diagnostic: S2 build-profile output_target `{target}` "
+            "is not a Wasm comparison target"
+        )
+
+    expected_sha = str(profile.get("sha256", ""))
+    if expected_sha and s2.is_file() and _sha256(s2) != expected_sha:
+        return None, (
+            "native executor diagnostic: S2 build-profile sha256 does not match "
+            f"{s2.name}; rebuild S2 or refresh the manifest"
+        )
+    return profile, ""
+
+
 def _cache_key(
     root: Path,
     s2_runtime: Path,
@@ -111,6 +191,7 @@ def _cache_key(
     clang_version: str,
     compile_flags: list[str],
     link_flags: list[str],
+    profile: dict[str, Any],
 ) -> str:
     identity = {
         "s2_compiler_artifact_hash": _sha256(s2_runtime),
@@ -124,6 +205,8 @@ def _cache_key(
         "target_triple": "x86_64-unknown-linux-gnu",
         "backend_schema_version": BACKEND_SCHEMA_VERSION,
         "capability_table_version": CAPABILITY_TABLE_VERSION,
+        "s2_output_target": profile["output_target"],
+        "s2_wasi": profile["wasi"],
     }
     encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
@@ -144,6 +227,10 @@ def _empty_receipt() -> dict[str, object]:
         "runtime_abi_version": RUNTIME_ABI_VERSION,
         "cache_hit": False,
         "exit_code": 1,
+        "output_target": "",
+        "wasi": "",
+        "memory64": False,
+        "wasm_gc": False,
     }
 
 
@@ -155,16 +242,27 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         return 1, "native-executor requires --build until a verified cache exists"
 
     pipeline_started = time.monotonic_ns()
-    output_dir = root / ".build/selfhost/native"
+    build_dir = _selfhost_dir(root)
+    output_dir = build_dir / "native"
     output_dir.mkdir(parents=True, exist_ok=True)
     receipt_path = output_dir / "native-executor-receipt.json"
     receipt = _empty_receipt()
 
-    s2 = root / ".build/selfhost/arukellt-s2.wasm"
-    s2_runtime = root / ".build/selfhost/arukellt-s2-runtime.wasm"
+    s2 = build_dir / "arukellt-s2.wasm"
+    s2_runtime = build_dir / "arukellt-s2-runtime.wasm"
     if not s2.is_file() or not s2_runtime.is_file():
         return 1, "native executor diagnostic: missing s2 artifacts; run selfhost build-compiler"
     receipt["s2_sha256"] = _sha256(s2)
+
+    profile, profile_error = load_s2_build_profile(root, s2)
+    if profile is None:
+        return 1, profile_error
+    output_target = str(profile["output_target"])
+    wasi = str(profile["wasi"])
+    receipt["output_target"] = output_target
+    receipt["wasi"] = wasi
+    receipt["memory64"] = bool(profile["memory64"])
+    receipt["wasm_gc"] = bool(profile["wasm_gc"])
 
     clang_path, toolchain = _toolchain()
     if clang_path is None:
@@ -173,7 +271,9 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
 
     compile_flags = ["-std=c99", "-O2"]
     link_flags: list[str] = []
-    key = _cache_key(root, s2_runtime, clang_path, toolchain, compile_flags, link_flags)
+    key = _cache_key(
+        root, s2_runtime, clang_path, toolchain, compile_flags, link_flags, profile
+    )
     key_path = output_dir / "cache-key.txt"
     executable = output_dir / "arukellt-native"
     generated_c = output_dir / "compiler.c"
@@ -240,6 +340,21 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
             )
         key_path.write_text(key + "\n", encoding="utf-8")
 
+    # Smoke: --help before full S3.
+    help_run, _, help_peak = _timed_run(
+        [str(executable), "--help"],
+        root=root,
+        measurement=output_dir / "native-help.maxrss",
+    )
+    pipeline_peak = max(pipeline_peak, help_peak)
+    if help_run.returncode != 0:
+        receipt["exit_code"] = help_run.returncode or 1
+        receipt_path.write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        detail = (help_run.stderr + help_run.stdout)[-1000:]
+        return 1, f"arukellt-native --help failed:\n{detail}"
+
     s3_first = output_dir / "arukellt-s3-native.wasm"
     s3_second = output_dir / "arukellt-s3-native-second.wasm"
     workspace = _prepare_bootstrap_workspace(root)
@@ -256,7 +371,9 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
                 "compile",
                 str(compiler_source),
                 "--target",
-                "wasm32-gc",
+                output_target,
+                "--wasi-version",
+                wasi,
                 "--output",
                 str(output),
                 "--cache-dir",
@@ -270,6 +387,8 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         pipeline_peak = max(pipeline_peak, peak)
         if execution.returncode != 0 or not output.is_file():
             receipt["exit_code"] = execution.returncode or 1
+            detail = (execution.stderr + execution.stdout)[-2000:]
+            receipt["executor_error"] = detail
             break
         _postprocess_selfhost_compiler_wasm(output, root)
         executor_hashes.append(_sha256(output))
@@ -300,8 +419,8 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         != ""
     )
     byte_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
-    performance_ok = int(receipt["executor_wall_time_ms"]) < 300_000
-    memory_ok = int(receipt["executor_peak_rss_bytes"]) <= int(2.4 * 1024**3)
+    performance_ok = int(receipt["executor_wall_time_ms"]) < WALL_GATE_MS
+    memory_ok = int(receipt["executor_peak_rss_bytes"]) <= MEMORY_GATE_BYTES
     succeeded = is_valid and deterministic and byte_equal and performance_ok and memory_ok
     receipt["exit_code"] = 0 if succeeded else 1
     receipt_path.write_text(
@@ -309,7 +428,9 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
     )
 
     summary = [
-        f"native executor receipt: {receipt_path.relative_to(root)}",
+        f"native executor receipt: {receipt_path}",
+        f"output profile: target={output_target} wasi={wasi} "
+        f"memory64={profile['memory64']} wasm_gc={profile['wasm_gc']}",
         f"s2 sha256: {receipt['s2_sha256']}",
         f"s3 sha256: {receipt['s3_sha256']}",
         f"deterministic: {deterministic}",
@@ -319,4 +440,6 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
     ]
     if "validation_error" in receipt:
         summary.append(f"s3 validation: {receipt['validation_error']}")
+    if "executor_error" in receipt:
+        summary.append(f"executor error: {receipt['executor_error']}")
     return (0 if succeeded else 1), "\n".join(summary)
