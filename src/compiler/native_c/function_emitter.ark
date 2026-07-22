@@ -916,6 +916,7 @@ fn native_c_emit_return(
         abi::native_c_signature_return_type(module_spine::MirModule_type_table(mir_module), signature),
         String_from("void")
     ) {
+        native_c_append(state, String_from("    ark_gc_pop_frame();\n"))
         native_c_append(state, String_from("    return;\n"))
         state.is_unreachable = true
         return true
@@ -932,6 +933,7 @@ fn native_c_emit_return(
             )
         )
     }
+    native_c_append(state, String_from("    ark_gc_pop_frame();\n"))
     native_c_append(
         state,
         concat(String_from("    return "), concat(native_c_local_name(returned_local), String_from(";\n")))
@@ -1149,6 +1151,42 @@ fn native_c_emit_local_declarations(
             )
         )
         local_id = local_id + 1
+    }
+    let mut root_count = 0
+    let mut root_scan = 0
+    while root_scan < local_count {
+        if get_unchecked(reference_producers, root_scan) != 0 {
+            root_count = root_count + 1
+        }
+        root_scan = root_scan + 1
+    }
+    native_c_append(
+        state,
+        concat(
+            String_from("    ark_gc_push_frame((size_t)"),
+            concat(i32_to_string(root_count), String_from(");\n"))
+        )
+    )
+    let mut root_slot = 0
+    let mut root_local = 0
+    while root_local < local_count {
+        if get_unchecked(reference_producers, root_local) != 0 {
+            native_c_append(
+                state,
+                concat(
+                    String_from("    ark_gc_set_root((size_t)"),
+                    concat(
+                        i32_to_string(root_slot),
+                        concat(
+                            String_from(", &"),
+                            concat(native_c_local_name(root_local), String_from(");\n"))
+                        )
+                    )
+                )
+            )
+            root_slot = root_slot + 1
+        }
+        root_local = root_local + 1
     }
 }
 
