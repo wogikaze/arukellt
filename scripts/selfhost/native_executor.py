@@ -70,13 +70,31 @@ def _toolchain() -> tuple[str | None, str]:
     return str(Path(path).resolve()), version
 
 
+def _read_smaps_rss_bytes(pid: int) -> int:
+    """Return current Rss from smaps_rollup for a single process (not a tree sum)."""
+    path = Path(f"/proc/{pid}/smaps_rollup")
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("Rss:"):
+                parts = line.split()
+                return int(parts[1]) * 1024
+    except (OSError, ValueError, IndexError):
+        return 0
+    return 0
+
+
 def _timed_run(
     command: list[str],
     *,
     root: Path,
     measurement: Path,
     environment: dict[str, str] | None = None,
-) -> tuple[subprocess.CompletedProcess[str], int, int]:
+) -> tuple[subprocess.CompletedProcess[str], int, int, int]:
+    """Run command under /usr/bin/time and sample the child's smaps_rollup peak.
+
+    Returns (result, wall_ms, time_v_max_rss_bytes, smaps_peak_rss_bytes).
+    Parent manager RSS is never included; only the timed child is sampled.
+    """
     measurement.unlink(missing_ok=True)
     started = time.monotonic_ns()
     wrapped = [
@@ -87,13 +105,34 @@ def _timed_run(
         str(measurement),
         *command,
     ]
-    result = subprocess.run(
+    proc = subprocess.Popen(
         wrapped,
         cwd=root,
         env=environment,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         text=True,
-        check=False,
+    )
+    smaps_peak = 0
+    # /usr/bin/time is the direct child; the measured workload is its child.
+    while proc.poll() is None:
+        try:
+            children = Path(f"/proc/{proc.pid}/task/{proc.pid}/children")
+            # Fallback: sample time itself, then any listed children.
+            candidates = [proc.pid]
+            try:
+                for token in children.read_text(encoding="utf-8").split():
+                    candidates.append(int(token))
+            except OSError:
+                pass
+            for pid in candidates:
+                smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
+        except OSError:
+            pass
+        time.sleep(0.05)
+    stdout, stderr = proc.communicate()
+    result = subprocess.CompletedProcess(
+        wrapped, proc.returncode or 0, stdout=stdout or "", stderr=stderr or ""
     )
     elapsed_ms = (time.monotonic_ns() - started) // 1_000_000
     peak_kib = 0
@@ -102,7 +141,7 @@ def _timed_run(
             peak_kib = int(measurement.read_text(encoding="utf-8").strip())
         except ValueError:
             peak_kib = 0
-    return result, elapsed_ms, peak_kib * 1024
+    return result, elapsed_ms, peak_kib * 1024, smaps_peak
 
 
 def _runtime_hash(root: Path) -> str:
@@ -231,6 +270,13 @@ def _empty_receipt() -> dict[str, object]:
         "wasi": "",
         "memory64": False,
         "wasm_gc": False,
+        "time_v_max_rss_bytes": 0,
+        "smaps_rollup_peak_rss_bytes": 0,
+        "runtime_requested_bytes": 0,
+        "runtime_committed_bytes": 0,
+        "runtime_live_bytes": 0,
+        "runtime_collection_count": 0,
+        "runtime_reclaimed_bytes": 0,
     }
 
 
@@ -294,7 +340,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         generation_cache_arg = str((output_dir / "ast-cache").relative_to(root))
         generation_environment = os.environ.copy()
         generation_environment["ARUKELLT_SELFHOST_WASM"] = str(s2_runtime)
-        generation, _, generation_peak = _timed_run(
+        generation, _, generation_peak, _generation_smaps = _timed_run(
             [
                 str(root / "scripts/run/arukellt-selfhost.sh"),
                 "compile",
@@ -315,7 +361,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
             detail = (generation.stderr + generation.stdout)[-2000:]
             return 1, f"native C generation failed:\n{detail}"
 
-        clang, _, clang_peak = _timed_run(
+        clang, _, clang_peak, _clang_smaps = _timed_run(
             [
                 clang_path,
                 *compile_flags,
@@ -341,7 +387,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         key_path.write_text(key + "\n", encoding="utf-8")
 
     # Smoke: --help before full S3.
-    help_run, _, help_peak = _timed_run(
+    help_run, _, help_peak, _help_smaps = _timed_run(
         [str(executable), "--help"],
         root=root,
         measurement=output_dir / "native-help.maxrss",
@@ -362,10 +408,11 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
 
     executor_times: list[int] = []
     executor_peaks: list[int] = []
+    executor_smaps_peaks: list[int] = []
     executor_hashes: list[str] = []
     for run_index, output in enumerate((s3_first, s3_second), start=1):
         output.unlink(missing_ok=True)
-        execution, elapsed, peak = _timed_run(
+        execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
                 "compile",
@@ -384,6 +431,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         )
         executor_times.append(elapsed)
         executor_peaks.append(peak)
+        executor_smaps_peaks.append(smaps_peak)
         pipeline_peak = max(pipeline_peak, peak)
         if execution.returncode != 0 or not output.is_file():
             receipt["exit_code"] = execution.returncode or 1
@@ -406,6 +454,8 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
 
     receipt["clang_peak_rss_bytes"] = clang_peak
     receipt["executor_peak_rss_bytes"] = max(executor_peaks, default=0)
+    receipt["time_v_max_rss_bytes"] = max(executor_peaks, default=0)
+    receipt["smaps_rollup_peak_rss_bytes"] = max(executor_smaps_peaks, default=0)
     receipt["pipeline_peak_rss_bytes"] = pipeline_peak
     receipt["executor_wall_time_ms"] = executor_times[0] if executor_times else 0
     receipt["pipeline_wall_time_ms"] = (

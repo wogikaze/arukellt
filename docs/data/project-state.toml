@@ -59,11 +59,11 @@ display = "WebAssembly GC target (WASI P2, default)"
 [[target_profiles]]
 id = "native-cpp"
 support_tier = "scaffold"
-implementation_state = "scaffold"
+implementation_state = "partial"
 contract_stability = "experimental"
 run_supported = false
-role = "Scaffold target with Phase 1A constant-return C99 emit; executor lane remains unimplemented"
-display = "Native C99 executor scaffold"
+role = "Recovered C99 emitter/runtime + native-executor lane (S2 profile inheritance); S2/S3 equality and 2.4 GiB RSS gate pending"
+display = "Native C99 selfhost executor (experimental lane)"
 
 [[target_profiles]]
 id = "native-llvm"

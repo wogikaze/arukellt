@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-20T16:51:38Z",
+  "generated_at": "2026-07-22T10:16:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -981,6 +981,40 @@
       },
       "orchestration": {
         "class": "investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "831",
+      "path": "831-native-executor-wasm32-gc-func118-validation.md",
+      "title": "native-executor wasm32-gc S3 validation drift (func 118)",
+      "track": "main",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "832",
+      "path": "832-native-vs-wasmtime-s3-function-count-drift.md",
+      "title": "native S3 vs wasmtime S3 function-count drift (+10)",
+      "track": "main",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
         "upstream_notes": null
       }
     },
