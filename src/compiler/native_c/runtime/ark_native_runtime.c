@@ -34,7 +34,6 @@ static ark_gc_allocation *ark_gc_heap_head;
 static ark_gc_allocation *ark_gc_free_list;
 static ark_gc_frame *ark_gc_frame_top;
 static ark_gc_frame *ark_gc_frame_free;
-static size_t ark_gc_empty_depth;
 static ark_gc_allocation **ark_gc_object_table;
 static size_t ark_gc_object_table_cap;
 static size_t ark_gc_object_table_len;
@@ -295,10 +294,6 @@ void ark_gc_collect(void) {
 
 void ark_gc_push_frame(size_t slot_count) {
     if (!ark_gc_mode) return;
-    if (slot_count == 0) {
-        ark_gc_empty_depth += 1;
-        return;
-    }
     ark_gc_frame *frame = ark_gc_frame_free;
     if (frame != NULL) {
         ark_gc_frame_free = frame->parent;
@@ -324,10 +319,6 @@ void ark_gc_push_frame(size_t slot_count) {
 
 void ark_gc_pop_frame(void) {
     if (!ark_gc_mode) return;
-    if (ark_gc_empty_depth > 0) {
-        ark_gc_empty_depth -= 1;
-        return;
-    }
     ark_gc_frame *frame = ark_gc_frame_top;
     if (frame == NULL) return;
     ark_gc_frame_top = frame->parent;
@@ -440,7 +431,6 @@ void ark_rt_init(int argc, char **argv) {
     ark_gc_free_list = NULL;
     ark_gc_frame_top = NULL;
     ark_gc_frame_free = NULL;
-    ark_gc_empty_depth = 0;
     ark_gc_object_table = NULL;
     ark_gc_object_table_cap = 0;
     ark_gc_object_table_len = 0;
