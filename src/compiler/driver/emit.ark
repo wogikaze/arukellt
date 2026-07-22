@@ -177,10 +177,9 @@ fn emit_wasm_output(
 ) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
     let wasm_bytes = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_wasi_version(config), config_record::config_opt_level(config), bindings)
-    if config_record::config_dump_wasm(config) {
-        stdio::eprintln(String_from("=== WASM ==="))
-        stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
-    }
+    // dump_wasm eprintln left a GC string on the stack at block end and failed
+    // validate (#730 emit_wasm_output). Timing/result path is enough for fixpoint.
+    let _dump_wasm = config_record::config_dump_wasm(config)
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, wasm_bytes)
     emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
