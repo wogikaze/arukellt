@@ -9,18 +9,26 @@
 #include <string.h>
 #include <time.h>
 
-typedef struct ark_arena_chunk {
-    struct ark_arena_chunk *next;
-    void *allocation;
-    uint8_t *data;
-    size_t used;
-    size_t capacity;
-} ark_arena_chunk;
+typedef struct ark_gc_frame {
+    struct ark_gc_frame *parent;
+    size_t slot_count;
+    ark_object_header ***slots;
+} ark_gc_frame;
 
-static ark_arena_chunk *ark_arena_head;
-static uint64_t ark_allocation_bytes;
-static uint32_t ark_chunk_count;
+static ark_gc_allocation *ark_gc_heap_head;
+static ark_gc_allocation *ark_gc_free_list;
+static ark_gc_frame *ark_gc_frame_top;
+static uint64_t ark_requested_bytes;
+static uint64_t ark_committed_bytes;
+static uint64_t ark_live_bytes;
+static uint64_t ark_collection_count;
+static uint64_t ark_reclaimed_bytes;
+static uint64_t ark_gc_threshold_bytes;
+static uint32_t ark_chunk_count; /* retained name: heap object count */
 static ark_vec *ark_process_args;
+static int ark_gc_collecting;
+
+#define ARK_GC_INITIAL_THRESHOLD (8ull * 1024ull * 1024ull)
 
 static size_t ark_checked_add(size_t left, size_t right) {
     if (left > SIZE_MAX - right) ark_rt_trap();
@@ -32,52 +40,211 @@ static size_t ark_checked_mul(size_t left, size_t right) {
     return left * right;
 }
 
-static ark_arena_chunk *ark_add_chunk(size_t minimum) {
-    size_t capacity = 1024u * 1024u;
-    if (capacity < minimum) capacity = minimum;
-    void *allocation = malloc(ark_checked_add(capacity, 15u));
-    ark_arena_chunk *chunk = malloc(sizeof(*chunk));
-    if (allocation == NULL || chunk == NULL) {
-        free(allocation);
-        free(chunk);
+static ark_gc_allocation *ark_gc_header_from_object(void *object) {
+    return ((ark_gc_allocation *)object) - 1;
+}
+
+static void *ark_gc_object_from_header(ark_gc_allocation *header) {
+    return (void *)(header + 1);
+}
+
+static void ark_gc_mark_object(ark_object_header *object);
+
+static void ark_gc_mark_value(ark_value value) {
+    if (value.ref != NULL) ark_gc_mark_object(value.ref);
+}
+
+static void ark_gc_free_side_buffers(ark_object_header *object, size_t payload) {
+    if (payload == sizeof(ark_string)) {
+        ark_string *string = (ark_string *)object;
+        free(string->bytes);
+        string->bytes = NULL;
+        return;
+    }
+    if (payload == sizeof(ark_vec)) {
+        ark_vec *vector = (ark_vec *)object;
+        free(vector->data);
+        vector->data = NULL;
+    }
+}
+
+static void ark_gc_mark_object(ark_object_header *object) {
+    if (object == NULL) return;
+    ark_gc_allocation *header = ark_gc_header_from_object(object);
+    if (header->mark) return;
+    header->mark = 1;
+    size_t payload = header->allocation_size;
+    if (payload == sizeof(ark_string)) {
+        return;
+    }
+    if (payload == sizeof(ark_vec)) {
+        ark_vec *vector = (ark_vec *)object;
+        if (vector->data == NULL) return;
+        for (uint32_t i = 0; i < vector->length; i += 1) {
+            ark_gc_mark_value(vector->data[i]);
+        }
+        return;
+    }
+    if (payload >= offsetof(ark_struct_object, fields)) {
+        ark_struct_object *structure = (ark_struct_object *)object;
+        size_t expect = offsetof(ark_struct_object, fields) +
+            (size_t)structure->field_count * sizeof(ark_value);
+        if (expect == payload && structure->field_count < 4096u) {
+            for (uint32_t i = 0; i < structure->field_count; i += 1) {
+                ark_gc_mark_value(structure->fields[i]);
+            }
+        }
+    }
+}
+
+static void ark_gc_mark_roots(void) {
+    for (ark_gc_frame *frame = ark_gc_frame_top; frame != NULL; frame = frame->parent) {
+        for (size_t i = 0; i < frame->slot_count; i += 1) {
+            ark_object_header **slot = frame->slots[i];
+            if (slot != NULL && *slot != NULL) ark_gc_mark_object(*slot);
+        }
+    }
+    if (ark_process_args != NULL) {
+        ark_gc_mark_object((ark_object_header *)ark_process_args);
+    }
+}
+
+void ark_gc_collect(void) {
+    if (ark_gc_collecting) return;
+    ark_gc_collecting = 1;
+    ark_collection_count += 1;
+    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
+        node->mark = 0;
+    }
+    ark_gc_mark_roots();
+    ark_gc_allocation *live_head = NULL;
+    uint64_t live = 0;
+    uint64_t reclaimed = 0;
+    ark_gc_allocation *node = ark_gc_heap_head;
+    while (node != NULL) {
+        ark_gc_allocation *next = node->next;
+        if (node->mark) {
+            node->next = live_head;
+            live_head = node;
+            live += node->allocation_size;
+        } else {
+            ark_gc_free_side_buffers(
+                (ark_object_header *)ark_gc_object_from_header(node),
+                node->allocation_size
+            );
+            reclaimed += node->allocation_size;
+            node->next = ark_gc_free_list;
+            ark_gc_free_list = node;
+            if (ark_chunk_count > 0) ark_chunk_count -= 1;
+        }
+        node = next;
+    }
+    ark_gc_heap_head = live_head;
+    ark_live_bytes = live;
+    ark_reclaimed_bytes += reclaimed;
+    ark_gc_threshold_bytes = live + (live / 2ull) + ARK_GC_INITIAL_THRESHOLD;
+    if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
+        ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
+    }
+    ark_gc_collecting = 0;
+}
+
+void ark_gc_push_frame(size_t slot_count) {
+    ark_gc_frame *frame = malloc(sizeof(*frame));
+    ark_object_header ***slots = NULL;
+    if (slot_count > 0) {
+        slots = calloc(slot_count, sizeof(*slots));
+    }
+    if (frame == NULL || (slot_count > 0 && slots == NULL)) {
+        free(frame);
+        free(slots);
         ark_rt_trap();
     }
-    chunk->next = ark_arena_head;
-    chunk->allocation = allocation;
-    chunk->data = (uint8_t *)(((uintptr_t)allocation + 15u) & ~(uintptr_t)15u);
-    chunk->used = 0;
-    chunk->capacity = capacity;
-    ark_arena_head = chunk;
-    ark_chunk_count += 1;
-    return chunk;
+    frame->parent = ark_gc_frame_top;
+    frame->slot_count = slot_count;
+    frame->slots = slots;
+    ark_gc_frame_top = frame;
 }
+
+void ark_gc_pop_frame(void) {
+    ark_gc_frame *frame = ark_gc_frame_top;
+    if (frame == NULL) return;
+    ark_gc_frame_top = frame->parent;
+    free(frame->slots);
+    free(frame);
+}
+
+void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr) {
+    ark_gc_frame *frame = ark_gc_frame_top;
+    if (frame == NULL || slot >= frame->slot_count) ark_rt_trap();
+    frame->slots[slot] = slot_ptr;
+}
+
+uint64_t ark_rt_stats_requested_bytes(void) { return ark_requested_bytes; }
+uint64_t ark_rt_stats_committed_bytes(void) { return ark_committed_bytes; }
+uint64_t ark_rt_stats_live_bytes(void) { return ark_live_bytes; }
+uint64_t ark_rt_stats_collection_count(void) { return ark_collection_count; }
+uint64_t ark_rt_stats_reclaimed_bytes(void) { return ark_reclaimed_bytes; }
+uint32_t ark_rt_stats_chunk_count(void) { return ark_chunk_count; }
 
 void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
     if (alignment < 16u) alignment = 16u;
     if ((alignment & (alignment - 1u)) != 0u) ark_rt_trap();
-    size_t required = ark_checked_add(size, alignment - 1u);
-    ark_arena_chunk *chunk = ark_arena_head;
-    if (chunk == NULL) chunk = ark_add_chunk(required);
-    uintptr_t base = (uintptr_t)chunk->data;
-    uintptr_t aligned = (base + chunk->used + alignment - 1u) & ~(uintptr_t)(alignment - 1u);
-    size_t end = ark_checked_add((size_t)(aligned - base), size);
-    if (end > chunk->capacity) {
-        chunk = ark_add_chunk(required);
-        base = (uintptr_t)chunk->data;
-        aligned = (base + alignment - 1u) & ~(uintptr_t)(alignment - 1u);
-        end = ark_checked_add((size_t)(aligned - base), size);
+    if (!ark_gc_collecting && ark_requested_bytes >= ark_gc_threshold_bytes) {
+        ark_gc_collect();
     }
-    chunk->used = end;
-    ark_allocation_bytes += size;
-    void *result = (void *)aligned;
+    size_t prefix = sizeof(ark_gc_allocation);
+    size_t total = ark_checked_add(prefix, size);
+    /* Align object payload to 16 after prefix. */
+    size_t padded_prefix = (prefix + 15u) & ~(size_t)15u;
+    total = ark_checked_add(padded_prefix, size);
+    ark_gc_allocation *header = NULL;
+    /* Free-list first-fit. */
+    ark_gc_allocation **link = &ark_gc_free_list;
+    while (*link != NULL) {
+        if ((*link)->allocation_size >= size) {
+            header = *link;
+            *link = header->next;
+            break;
+        }
+        link = &(*link)->next;
+    }
+    if (header == NULL) {
+        void *block = NULL;
+        if (posix_memalign(&block, 16u, total) != 0 || block == NULL) ark_rt_trap();
+        header = (ark_gc_allocation *)block;
+        ark_committed_bytes += total;
+    }
+    header->next = ark_gc_heap_head;
+    header->allocation_size = size;
+    header->mark = 0;
+    memset(header->reserved, 0, sizeof(header->reserved));
+    ark_gc_heap_head = header;
+    ark_requested_bytes += size;
+    ark_live_bytes += size;
+    ark_chunk_count += 1;
+    void *result = (uint8_t *)header + padded_prefix;
+    /* If prefix packing leaves gap, keep object immediately after header for metadata backtrace. */
+    result = ark_gc_object_from_header(header);
     memset(result, 0, size);
+    (void)alignment;
+    (void)padded_prefix;
+    (void)total;
     return result;
 }
 
 void ark_rt_init(int argc, char **argv) {
-    ark_arena_head = NULL;
-    ark_allocation_bytes = 0;
+    ark_gc_heap_head = NULL;
+    ark_gc_free_list = NULL;
+    ark_gc_frame_top = NULL;
+    ark_requested_bytes = 0;
+    ark_committed_bytes = 0;
+    ark_live_bytes = 0;
+    ark_collection_count = 0;
+    ark_reclaimed_bytes = 0;
+    ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
     ark_chunk_count = 0;
+    ark_gc_collecting = 0;
     ark_process_args = ark_rt_vec_new(0);
     for (int index = 0; index < argc; index += 1) {
         size_t length = strlen(argv[index]);
@@ -91,14 +258,21 @@ void ark_rt_init(int argc, char **argv) {
 }
 
 void ark_rt_shutdown(void) {
-    ark_arena_chunk *chunk = ark_arena_head;
-    while (chunk != NULL) {
-        ark_arena_chunk *next = chunk->next;
-        free(chunk->allocation);
-        free(chunk);
-        chunk = next;
+    while (ark_gc_frame_top != NULL) ark_gc_pop_frame();
+    ark_gc_allocation *node = ark_gc_heap_head;
+    while (node != NULL) {
+        ark_gc_allocation *next = node->next;
+        free(node);
+        node = next;
     }
-    ark_arena_head = NULL;
+    node = ark_gc_free_list;
+    while (node != NULL) {
+        ark_gc_allocation *next = node->next;
+        free(node);
+        node = next;
+    }
+    ark_gc_heap_head = NULL;
+    ark_gc_free_list = NULL;
 }
 
 void ark_rt_trap(void) {
@@ -136,7 +310,8 @@ ark_string *ark_rt_string_from_bytes(const uint8_t *bytes, uint32_t length) {
     result->byte_length = length;
     result->capacity = length;
     if (length != 0) {
-        result->bytes = ark_rt_alloc_aligned(length, 16u);
+        result->bytes = malloc(length);
+        if (result->bytes == NULL) ark_rt_trap();
         memcpy(result->bytes, bytes, length);
     }
     return result;
@@ -148,7 +323,8 @@ ark_string *ark_rt_string_from_vec_bytes(ark_vec *bytes) {
     result->byte_length = bytes->length;
     result->capacity = bytes->length;
     if (bytes->length != 0) {
-        result->bytes = ark_rt_alloc_aligned(bytes->length, 16u);
+        result->bytes = malloc(bytes->length);
+        if (result->bytes == NULL) ark_rt_trap();
         for (uint32_t index = 0; index < bytes->length; index += 1) {
             result->bytes[index] = (uint8_t)bytes->data[index].i32;
         }
@@ -169,7 +345,8 @@ ark_string *ark_rt_string_concat(ark_string *left, ark_string *right) {
     result->byte_length = length;
     result->capacity = length;
     if (length != 0) {
-        result->bytes = ark_rt_alloc_aligned(length, 16u);
+        result->bytes = malloc(length);
+        if (result->bytes == NULL) ark_rt_trap();
         memcpy(result->bytes, left->bytes, left->byte_length);
         memcpy(result->bytes + left->byte_length, right->bytes, right->byte_length);
     }
@@ -275,7 +452,8 @@ ark_string *ark_rt_f64_to_string(double value) {
 
 ark_object_header *ark_rt_parse_f64(ark_string *source) {
     if (source == NULL) ark_rt_trap();
-    char *buffer = ark_rt_alloc_aligned((size_t)source->byte_length + 1u, 16u);
+    char *buffer = malloc((size_t)source->byte_length + 1u);
+    if (buffer == NULL) ark_rt_trap();
     memcpy(buffer, source->bytes, source->byte_length);
     buffer[source->byte_length] = '\0';
     char *end;
@@ -316,8 +494,10 @@ static void ark_vec_reserve(ark_vec *vector, uint32_t minimum) {
         if (capacity > UINT32_MAX / 2u) ark_rt_trap();
         capacity *= 2u;
     }
-    ark_value *data = ark_rt_alloc_aligned(ark_checked_mul(capacity, sizeof(*data)), 16u);
+    ark_value *data = malloc(ark_checked_mul(capacity, sizeof(*data)));
+    if (data == NULL) ark_rt_trap();
     if (vector->length != 0) memcpy(data, vector->data, vector->length * sizeof(*data));
+    free(vector->data);
     vector->data = data;
     vector->capacity = capacity;
 }
@@ -372,7 +552,8 @@ static ark_string *ark_read_stream(FILE *stream) {
     result->byte_length = bytes->length;
     result->capacity = bytes->length;
     if (bytes->length != 0) {
-        result->bytes = ark_rt_alloc_aligned(bytes->length, 16u);
+        result->bytes = malloc(bytes->length);
+        if (result->bytes == NULL) ark_rt_trap();
         for (uint32_t index = 0; index < bytes->length; index += 1) {
             result->bytes[index] = (uint8_t)bytes->data[index].i32;
         }
@@ -382,7 +563,8 @@ static ark_string *ark_read_stream(FILE *stream) {
 
 static char *ark_path(ark_string *path) {
     if (path == NULL || memchr(path->bytes, 0, path->byte_length) != NULL) ark_rt_trap();
-    char *result = ark_rt_alloc_aligned((size_t)path->byte_length + 1u, 16u);
+    char *result = malloc((size_t)path->byte_length + 1u);
+    if (result == NULL) ark_rt_trap();
     memcpy(result, path->bytes, path->byte_length);
     result[path->byte_length] = '\0';
     return result;

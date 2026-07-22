@@ -41,6 +41,26 @@ typedef struct {
     uint32_t capacity;
 } ark_vec;
 
+
+typedef struct ark_gc_allocation {
+    struct ark_gc_allocation *next;
+    size_t allocation_size;
+    uint8_t mark;
+    uint8_t reserved[7];
+} ark_gc_allocation;
+
+void ark_gc_push_frame(size_t slot_count);
+void ark_gc_pop_frame(void);
+void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr);
+void ark_gc_collect(void);
+
+uint64_t ark_rt_stats_requested_bytes(void);
+uint64_t ark_rt_stats_committed_bytes(void);
+uint64_t ark_rt_stats_live_bytes(void);
+uint64_t ark_rt_stats_collection_count(void);
+uint64_t ark_rt_stats_reclaimed_bytes(void);
+uint32_t ark_rt_stats_chunk_count(void);
+
 void ark_rt_init(int argc, char **argv);
 void ark_rt_shutdown(void);
 void ark_rt_trap(void);
