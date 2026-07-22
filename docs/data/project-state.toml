@@ -62,7 +62,7 @@ support_tier = "scaffold"
 implementation_state = "partial"
 contract_stability = "experimental"
 run_supported = false
-role = "Recovered C99 emitter/runtime + native-executor lane (S2 profile inheritance); same-profile S2/S3 byte equality green; 2.4 GiB RSS gate pending (arena ~12 GiB)"
+role = "Recovered C99 emitter/runtime + native-executor lane; S2/S3 equality green; exact GC RSS ~1.5 GiB (under 2.4 GiB); warm wall still ~10–11 min (5 min gate pending)"
 display = "Native C99 selfhost executor (experimental lane)"
 
 [[target_profiles]]
