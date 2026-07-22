@@ -541,6 +541,15 @@ source fingerprintは`src/compiler/`の対象file pathとcontent SHA-256をcanon
 pointer address、一時path、wall clock、process ID、unordered iteration順をcache keyに含めない。
 cacheは正本ではなく、削除しても生成結果を変えてはならない。
 
+## 14.1 S2 build-profile inheritance
+
+native executor laneが生成するWasmのoutput targetは、比較対象S2のbuild-profile
+manifestから取得する。managerはS2生成時に`arukellt-s2.build-profile.json`を書き、
+native-executorはそれを読む。`wasm32-gc`をcommandへハードコードしない。
+
+正規lane例: `s2[wasm32] -> native executor -> s3[wasm32] -> byte equality`。
+将来のGC検証laneは`wasm32-gc`同士で分離する。
+
 ## 15. Performance receipt
 
 managerはnative executor pipelineごとにmachine-readable JSON receiptを生成する。

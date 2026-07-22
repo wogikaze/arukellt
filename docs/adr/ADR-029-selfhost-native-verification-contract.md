@@ -52,6 +52,12 @@ Pre-585 契約から維持されるもの:
 executorから`s3.wasm`を作る非正規の高速laneである。本節のWasmtimeによる正規fixpointを
 置換せず、byte equality契約を弱めない。
 
+native executorの「native」はコンパイラ実行hostを意味する。生成するS3のoutput target /
+WASI / Memory64 / Wasm GC featureは、比較対象S2のbuild-profile manifestを継承する。
+現行の正規S2が`wasm32` + `wasi-p1`なら、native laneも同じprofileのS3を生成して比較する。
+`wasm32-gc`へ固定してはならない。同一profileのS2が無い状態で異なるtarget間のbyte equalityを
+要求しない。将来のGC検証lane（`s2-gc[wasm32-gc] -> s3-gc[wasm32-gc]`）は本laneと分離する。
+
 変わるもの:
 - **Stage 0 はピン留め wasm であり Rust コンパイラではない。** Rust バイナリは参照されない。
 - **以前のベースラインとの Stage-1 バイト等価は `fixpoint` の一部としてはもはやアサートしない** — 歴史的に `s1`（Rust）と `s2`（セルフホスト）は別エンコーディングだったため、意味のあるバイト固定は `s2 == s3` のみだった。
