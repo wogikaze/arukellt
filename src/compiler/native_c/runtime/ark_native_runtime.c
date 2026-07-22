@@ -6,8 +6,12 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 #include <time.h>
+
+/* ark_rt_trap is defined later; table helpers need it early. */
+void ark_rt_trap(void);
 
 typedef struct ark_arena_chunk {
     struct ark_arena_chunk *next;
@@ -20,6 +24,7 @@ typedef struct ark_arena_chunk {
 typedef struct ark_gc_frame {
     struct ark_gc_frame *parent;
     size_t slot_count;
+    size_t slot_capacity;
     ark_object_header ***slots;
 } ark_gc_frame;
 
@@ -28,22 +33,30 @@ static ark_arena_chunk *ark_arena_head;
 static ark_gc_allocation *ark_gc_heap_head;
 static ark_gc_allocation *ark_gc_free_list;
 static ark_gc_frame *ark_gc_frame_top;
+static ark_gc_frame *ark_gc_frame_free;
+static size_t ark_gc_empty_depth;
+static ark_gc_allocation **ark_gc_object_table;
+static size_t ark_gc_object_table_cap;
+static size_t ark_gc_object_table_len;
 static uint64_t ark_requested_bytes;
 static uint64_t ark_committed_bytes;
 static uint64_t ark_live_bytes;
 static uint64_t ark_collection_count;
 static uint64_t ark_reclaimed_bytes;
 static uint64_t ark_gc_threshold_bytes;
+static uint64_t ark_gc_bytes_since_collection;
 static uint32_t ark_chunk_count;
 static ark_vec *ark_process_args;
 static int ark_gc_collecting;
 
 static int ark_env_gc_enabled(void) {
     const char *enable = getenv("ARUKELLT_NATIVE_GC");
-    return enable != NULL && enable[0] == '1';
+    /* Default on: process-lifetime arena exceeds the 2.4 GiB executor gate. */
+    if (enable == NULL) return 1;
+    return enable[0] == '1';
 }
 
-#define ARK_GC_INITIAL_THRESHOLD (256ull * 1024ull * 1024ull)
+#define ARK_GC_INITIAL_THRESHOLD (32ull * 1024ull * 1024ull)
 #define ARK_GC_KIND_RAW 0u
 #define ARK_GC_KIND_STRING 1u
 #define ARK_GC_KIND_VEC 2u
@@ -67,13 +80,102 @@ static void *ark_gc_object_from_header(ark_gc_allocation *header) {
     return (void *)(header + 1);
 }
 
+static size_t ark_gc_hash_ptr(const void *pointer) {
+    uintptr_t value = (uintptr_t)pointer;
+    value ^= value >> 30;
+    value *= (uintptr_t)0xbf58476d1ce4e5b9ULL;
+    value ^= value >> 27;
+    return (size_t)value;
+}
+
+static void ark_gc_table_clear(void) {
+    if (ark_gc_object_table != NULL && ark_gc_object_table_cap != 0) {
+        memset(ark_gc_object_table, 0, ark_gc_object_table_cap * sizeof(*ark_gc_object_table));
+    }
+    ark_gc_object_table_len = 0;
+}
+
+static void ark_gc_table_ensure(size_t minimum_cap) {
+    size_t cap = ark_gc_object_table_cap;
+    if (cap == 0) cap = 1024u;
+    while (cap < minimum_cap) {
+        if (cap > (SIZE_MAX / 2u)) ark_rt_trap();
+        cap *= 2u;
+    }
+    if (cap == ark_gc_object_table_cap) return;
+    ark_gc_allocation **old = ark_gc_object_table;
+    size_t old_cap = ark_gc_object_table_cap;
+    ark_gc_allocation **fresh = calloc(cap, sizeof(*fresh));
+    if (fresh == NULL) ark_rt_trap();
+    ark_gc_object_table = fresh;
+    ark_gc_object_table_cap = cap;
+    ark_gc_object_table_len = 0;
+    if (old != NULL) {
+        for (size_t i = 0; i < old_cap; i += 1) {
+            ark_gc_allocation *header = old[i];
+            if (header == NULL) continue;
+            void *object = ark_gc_object_from_header(header);
+            size_t slot = ark_gc_hash_ptr(object) & (cap - 1u);
+            while (ark_gc_object_table[slot] != NULL) {
+                slot = (slot + 1u) & (cap - 1u);
+            }
+            ark_gc_object_table[slot] = header;
+            ark_gc_object_table_len += 1;
+        }
+        free(old);
+    }
+}
+
+static void ark_gc_table_insert(ark_gc_allocation *header) {
+    if (header == NULL) return;
+    if (ark_gc_object_table_cap == 0 ||
+        (ark_gc_object_table_len + 1u) * 2u > ark_gc_object_table_cap) {
+        size_t need = ark_gc_object_table_cap == 0 ? 1024u : ark_gc_object_table_cap * 2u;
+        ark_gc_table_ensure(need);
+    }
+    void *object = ark_gc_object_from_header(header);
+    size_t slot = ark_gc_hash_ptr(object) & (ark_gc_object_table_cap - 1u);
+    while (ark_gc_object_table[slot] != NULL) {
+        if (ark_gc_object_from_header(ark_gc_object_table[slot]) == object) return;
+        slot = (slot + 1u) & (ark_gc_object_table_cap - 1u);
+    }
+    ark_gc_object_table[slot] = header;
+    ark_gc_object_table_len += 1;
+}
+
+static ark_gc_allocation *ark_gc_table_find(void *object) {
+    if (object == NULL || ark_gc_object_table_cap == 0) return NULL;
+    size_t mask = ark_gc_object_table_cap - 1u;
+    size_t slot = ark_gc_hash_ptr(object) & mask;
+    for (;;) {
+        ark_gc_allocation *header = ark_gc_object_table[slot];
+        if (header == NULL) return NULL;
+        if (ark_gc_object_from_header(header) == object) return header;
+        slot = (slot + 1u) & mask;
+    }
+}
+
+static void ark_gc_table_rebuild_from_heap(void) {
+    size_t count = 0;
+    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
+        count += 1;
+    }
+    ark_gc_table_ensure(count < 1024u ? 1024u : count * 2u);
+    ark_gc_table_clear();
+    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
+        ark_gc_table_insert(node);
+    }
+}
+
 static void ark_gc_set_kind(void *object, uint8_t kind) {
     if (!ark_gc_mode || object == NULL) return;
+    if (ark_gc_table_find(object) == NULL) return;
     ark_gc_header_from_object(object)->reserved[0] = kind;
 }
 
 static uint8_t ark_gc_kind(void *object) {
     if (!ark_gc_mode || object == NULL) return ARK_GC_KIND_RAW;
+    if (ark_gc_table_find(object) == NULL) return ARK_GC_KIND_RAW;
     return ark_gc_header_from_object(object)->reserved[0];
 }
 
@@ -109,7 +211,9 @@ static void ark_gc_free_side_buffers(ark_object_header *object) {
 
 static void ark_gc_mark_object(ark_object_header *object) {
     if (object == NULL) return;
-    ark_gc_allocation *header = ark_gc_header_from_object(object);
+    /* Ignore scalar bit-patterns that are not heap object addresses. */
+    ark_gc_allocation *header = ark_gc_table_find(object);
+    if (header == NULL) return;
     if (header->mark) return;
     header->mark = 1;
     uint8_t kind = header->reserved[0];
@@ -176,40 +280,59 @@ void ark_gc_collect(void) {
         node = next;
     }
     ark_gc_heap_head = live_head;
+    ark_gc_table_rebuild_from_heap();
     ark_live_bytes = live;
     ark_reclaimed_bytes += reclaimed;
-    ark_gc_threshold_bytes = live + (live / 2ull) + ARK_GC_INITIAL_THRESHOLD;
+    ark_gc_bytes_since_collection = 0;
+    /* Keep pressure high enough for the 2.4 GiB RSS gate (measured ~1.5 GiB). */
+    ark_gc_threshold_bytes = live / 2ull;
     if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
         ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
     }
+    malloc_trim(0);
     ark_gc_collecting = 0;
 }
 
 void ark_gc_push_frame(size_t slot_count) {
     if (!ark_gc_mode) return;
-    ark_gc_frame *frame = malloc(sizeof(*frame));
-    ark_object_header ***slots = NULL;
-    if (slot_count > 0) {
-        slots = calloc(slot_count, sizeof(*slots));
+    if (slot_count == 0) {
+        ark_gc_empty_depth += 1;
+        return;
     }
-    if (frame == NULL || (slot_count > 0 && slots == NULL)) {
-        free(frame);
-        free(slots);
-        ark_rt_trap();
+    ark_gc_frame *frame = ark_gc_frame_free;
+    if (frame != NULL) {
+        ark_gc_frame_free = frame->parent;
+    } else {
+        frame = malloc(sizeof(*frame));
+        if (frame == NULL) ark_rt_trap();
+        frame->slots = NULL;
+        frame->slot_capacity = 0;
+    }
+    if (slot_count > frame->slot_capacity) {
+        ark_object_header ***slots = realloc(frame->slots, slot_count * sizeof(*slots));
+        if (slots == NULL) ark_rt_trap();
+        frame->slots = slots;
+        frame->slot_capacity = slot_count;
+    }
+    if (slot_count > 0) {
+        memset(frame->slots, 0, slot_count * sizeof(*frame->slots));
     }
     frame->parent = ark_gc_frame_top;
     frame->slot_count = slot_count;
-    frame->slots = slots;
     ark_gc_frame_top = frame;
 }
 
 void ark_gc_pop_frame(void) {
     if (!ark_gc_mode) return;
+    if (ark_gc_empty_depth > 0) {
+        ark_gc_empty_depth -= 1;
+        return;
+    }
     ark_gc_frame *frame = ark_gc_frame_top;
     if (frame == NULL) return;
     ark_gc_frame_top = frame->parent;
-    free(frame->slots);
-    free(frame);
+    frame->parent = ark_gc_frame_free;
+    ark_gc_frame_free = frame;
 }
 
 void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr) {
@@ -284,7 +407,7 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
         memset(result, 0, size);
         return result;
     }
-    if (!ark_gc_collecting && ark_requested_bytes >= ark_gc_threshold_bytes) {
+    if (!ark_gc_collecting && ark_gc_bytes_since_collection >= ark_gc_threshold_bytes) {
         ark_gc_collect();
     }
     size_t prefix = sizeof(ark_gc_allocation);
@@ -299,7 +422,9 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
     header->mark = 0;
     memset(header->reserved, 0, sizeof(header->reserved));
     ark_gc_heap_head = header;
+    ark_gc_table_insert(header);
     ark_requested_bytes += size;
+    ark_gc_bytes_since_collection += size;
     ark_live_bytes += size;
     ark_chunk_count += 1;
     void *result = ark_gc_object_from_header(header);
@@ -314,12 +439,18 @@ void ark_rt_init(int argc, char **argv) {
     ark_gc_heap_head = NULL;
     ark_gc_free_list = NULL;
     ark_gc_frame_top = NULL;
+    ark_gc_frame_free = NULL;
+    ark_gc_empty_depth = 0;
+    ark_gc_object_table = NULL;
+    ark_gc_object_table_cap = 0;
+    ark_gc_object_table_len = 0;
     ark_requested_bytes = 0;
     ark_committed_bytes = 0;
     ark_live_bytes = 0;
     ark_collection_count = 0;
     ark_reclaimed_bytes = 0;
     ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
+    ark_gc_bytes_since_collection = 0;
     ark_chunk_count = 0;
     ark_gc_collecting = 0;
     ark_process_args = ark_rt_vec_new(0);
@@ -336,6 +467,12 @@ void ark_rt_init(int argc, char **argv) {
 
 void ark_rt_shutdown(void) {
     while (ark_gc_frame_top != NULL) ark_gc_pop_frame();
+    while (ark_gc_frame_free != NULL) {
+        ark_gc_frame *frame = ark_gc_frame_free;
+        ark_gc_frame_free = frame->parent;
+        free(frame->slots);
+        free(frame);
+    }
     if (!ark_gc_mode) {
         ark_arena_chunk *chunk = ark_arena_head;
         while (chunk != NULL) {
@@ -362,6 +499,10 @@ void ark_rt_shutdown(void) {
     }
     ark_gc_heap_head = NULL;
     ark_gc_free_list = NULL;
+    free(ark_gc_object_table);
+    ark_gc_object_table = NULL;
+    ark_gc_object_table_cap = 0;
+    ark_gc_object_table_len = 0;
 }
 
 void ark_rt_trap(void) {
