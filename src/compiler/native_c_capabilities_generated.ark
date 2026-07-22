@@ -1,0 +1,407 @@
+// Generated from data/native-cpp-capabilities.toml.
+// Run scripts/check/check-native-cpp-capabilities.py --write-generated.
+
+use mir::opcodes
+
+fn native_c_capability_opcode_name(op: i32) -> String {
+    if op == opcodes::MIR_CONST_I32() {
+        return String_from("MIR_CONST_I32")
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return String_from("MIR_CONST_I64")
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        return String_from("MIR_CONST_F64")
+    }
+    if op == opcodes::MIR_CONST_BOOL() {
+        return String_from("MIR_CONST_BOOL")
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        return String_from("MIR_CONST_STRING")
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        return String_from("MIR_LOCAL_GET")
+    }
+    if op == opcodes::MIR_LOCAL_SET() {
+        return String_from("MIR_LOCAL_SET")
+    }
+    if op == opcodes::MIR_ADD() {
+        return String_from("MIR_ADD")
+    }
+    if op == opcodes::MIR_SUB() {
+        return String_from("MIR_SUB")
+    }
+    if op == opcodes::MIR_MUL() {
+        return String_from("MIR_MUL")
+    }
+    if op == opcodes::MIR_DIV() {
+        return String_from("MIR_DIV")
+    }
+    if op == opcodes::MIR_MOD() {
+        return String_from("MIR_MOD")
+    }
+    if op == opcodes::MIR_EQ() {
+        return String_from("MIR_EQ")
+    }
+    if op == opcodes::MIR_NEQ() {
+        return String_from("MIR_NEQ")
+    }
+    if op == opcodes::MIR_LT() {
+        return String_from("MIR_LT")
+    }
+    if op == opcodes::MIR_LTEQ() {
+        return String_from("MIR_LTEQ")
+    }
+    if op == opcodes::MIR_GT() {
+        return String_from("MIR_GT")
+    }
+    if op == opcodes::MIR_GTEQ() {
+        return String_from("MIR_GTEQ")
+    }
+    if op == opcodes::MIR_AND() {
+        return String_from("MIR_AND")
+    }
+    if op == opcodes::MIR_OR() {
+        return String_from("MIR_OR")
+    }
+    if op == opcodes::MIR_NEG() {
+        return String_from("MIR_NEG")
+    }
+    if op == opcodes::MIR_NOT() {
+        return String_from("MIR_NOT")
+    }
+    if op == opcodes::MIR_BIT_AND() {
+        return String_from("MIR_BIT_AND")
+    }
+    if op == opcodes::MIR_BIT_OR() {
+        return String_from("MIR_BIT_OR")
+    }
+    if op == opcodes::MIR_BIT_XOR() {
+        return String_from("MIR_BIT_XOR")
+    }
+    if op == opcodes::MIR_SHL() {
+        return String_from("MIR_SHL")
+    }
+    if op == opcodes::MIR_SHR() {
+        return String_from("MIR_SHR")
+    }
+    if op == opcodes::MIR_CALL() {
+        return String_from("MIR_CALL")
+    }
+    if op == opcodes::MIR_CALL_INDIRECT() {
+        return String_from("MIR_CALL_INDIRECT")
+    }
+    if op == opcodes::MIR_RETURN() {
+        return String_from("MIR_RETURN")
+    }
+    if op == opcodes::MIR_WIT_CALL() {
+        return String_from("MIR_WIT_CALL")
+    }
+    if op == opcodes::MIR_EXTEND_I32_TO_I64() {
+        return String_from("MIR_EXTEND_I32_TO_I64")
+    }
+    if op == opcodes::MIR_TRUNC_I64_TO_I32() {
+        return String_from("MIR_TRUNC_I64_TO_I32")
+    }
+    if op == opcodes::MIR_BR() {
+        return String_from("MIR_BR")
+    }
+    if op == opcodes::MIR_BR_IF() {
+        return String_from("MIR_BR_IF")
+    }
+    if op == opcodes::MIR_BR_TABLE() {
+        return String_from("MIR_BR_TABLE")
+    }
+    if op == opcodes::MIR_BLOCK() {
+        return String_from("MIR_BLOCK")
+    }
+    if op == opcodes::MIR_LOOP() {
+        return String_from("MIR_LOOP")
+    }
+    if op == opcodes::MIR_IF() {
+        return String_from("MIR_IF")
+    }
+    if op == opcodes::MIR_ELSE() {
+        return String_from("MIR_ELSE")
+    }
+    if op == opcodes::MIR_END() {
+        return String_from("MIR_END")
+    }
+    if op == opcodes::MIR_EQZ() {
+        return String_from("MIR_EQZ")
+    }
+    if op == opcodes::MIR_STRUCT_NEW() {
+        return String_from("MIR_STRUCT_NEW")
+    }
+    if op == opcodes::MIR_STRUCT_GET() {
+        return String_from("MIR_STRUCT_GET")
+    }
+    if op == opcodes::MIR_STRUCT_SET() {
+        return String_from("MIR_STRUCT_SET")
+    }
+    if op == opcodes::MIR_ARRAY_NEW() {
+        return String_from("MIR_ARRAY_NEW")
+    }
+    if op == opcodes::MIR_ARRAY_GET() {
+        return String_from("MIR_ARRAY_GET")
+    }
+    if op == opcodes::MIR_ARRAY_SET() {
+        return String_from("MIR_ARRAY_SET")
+    }
+    if op == opcodes::MIR_ARRAY_LEN() {
+        return String_from("MIR_ARRAY_LEN")
+    }
+    if op == opcodes::MIR_DROP() {
+        return String_from("MIR_DROP")
+    }
+    if op == opcodes::MIR_NOP() {
+        return String_from("MIR_NOP")
+    }
+    if op == opcodes::MIR_UNREACHABLE() {
+        return String_from("MIR_UNREACHABLE")
+    }
+    if op == opcodes::MIR_PHI() {
+        return String_from("MIR_PHI")
+    }
+    if op == opcodes::MIR_GC_HINT() {
+        return String_from("MIR_GC_HINT")
+    }
+    if op == opcodes::MIR_GC_HINT_SHORT_LIVED() {
+        return String_from("MIR_GC_HINT_SHORT_LIVED")
+    }
+    if op == opcodes::MIR_FUTURE_NEW() {
+        return String_from("MIR_FUTURE_NEW")
+    }
+    if op == opcodes::MIR_AWAIT() {
+        return String_from("MIR_AWAIT")
+    }
+    if op == opcodes::MIR_BR_ON_CAST() {
+        return String_from("MIR_BR_ON_CAST")
+    }
+    if op == opcodes::MIR_BR_ON_CAST_FAIL() {
+        return String_from("MIR_BR_ON_CAST_FAIL")
+    }
+    if op == opcodes::MIR_REF_TEST() {
+        return String_from("MIR_REF_TEST")
+    }
+    if op == opcodes::MIR_REF_CAST() {
+        return String_from("MIR_REF_CAST")
+    }
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        return String_from("MIR_GC_STRUCT_NEW")
+    }
+    if op == opcodes::MIR_GC_STRUCT_GET() {
+        return String_from("MIR_GC_STRUCT_GET")
+    }
+    if op == opcodes::MIR_GC_STRUCT_SET() {
+        return String_from("MIR_GC_STRUCT_SET")
+    }
+    if op == opcodes::MIR_REF_FUNC() {
+        return String_from("MIR_REF_FUNC")
+    }
+    concat(String_from("MIR_OPCODE_"), i32_to_string(op))
+}
+
+fn native_c_capability_status_detail(op: i32) -> String {
+    if op == opcodes::MIR_CONST_I32() {
+        return String_from("supported")
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_CONST_BOOL() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_CONST_STRING() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_LOCAL_SET() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_ADD() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_SUB() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_MUL() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_DIV() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_MOD() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_EQ() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_NEQ() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_LT() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_LTEQ() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_GT() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_GTEQ() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_AND() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_OR() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_NEG() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_NOT() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BIT_AND() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BIT_OR() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BIT_XOR() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_SHL() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_SHR() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_CALL() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_CALL_INDIRECT() {
+        return String_from("planned phase 3")
+    }
+    if op == opcodes::MIR_RETURN() {
+        return String_from("supported")
+    }
+    if op == opcodes::MIR_WIT_CALL() {
+        return String_from("unsupported: WIT and Component Model are outside the native-cpp MVP scope")
+    }
+    if op == opcodes::MIR_EXTEND_I32_TO_I64() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_TRUNC_I64_TO_I32() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BR() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BR_IF() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BR_TABLE() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_BLOCK() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_LOOP() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_IF() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_ELSE() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_END() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_EQZ() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_STRUCT_NEW() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_STRUCT_GET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_STRUCT_SET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_ARRAY_NEW() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_ARRAY_GET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_ARRAY_SET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_ARRAY_LEN() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_DROP() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_NOP() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_UNREACHABLE() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_PHI() {
+        return String_from("planned phase 1")
+    }
+    if op == opcodes::MIR_GC_HINT() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_GC_HINT_SHORT_LIVED() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_FUTURE_NEW() {
+        return String_from("unsupported: future and async are outside the native-cpp MVP scope")
+    }
+    if op == opcodes::MIR_AWAIT() {
+        return String_from("unsupported: future and async are outside the native-cpp MVP scope")
+    }
+    if op == opcodes::MIR_BR_ON_CAST() {
+        return String_from("planned phase 3")
+    }
+    if op == opcodes::MIR_BR_ON_CAST_FAIL() {
+        return String_from("planned phase 3")
+    }
+    if op == opcodes::MIR_REF_TEST() {
+        return String_from("planned phase 3")
+    }
+    if op == opcodes::MIR_REF_CAST() {
+        return String_from("planned phase 3")
+    }
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_GC_STRUCT_GET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_GC_STRUCT_SET() {
+        return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_REF_FUNC() {
+        return String_from("planned phase 3")
+    }
+    String_from("unknown capability")
+}
+
+fn native_c_capability_is_supported(op: i32) -> bool {
+    op == opcodes::MIR_CONST_I32() ||
+    op == opcodes::MIR_RETURN()
+}

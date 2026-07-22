@@ -1,5 +1,13 @@
 fn is_native_target(target: String) -> bool {
-    eq(clone(target), String_from("native-cpp")) || eq(target, String_from("native-llvm"))
+    is_native_cpp_target(clone(target)) || is_native_llvm_target(target)
+}
+
+pub fn is_native_cpp_target(target: String) -> bool {
+    eq(target, String_from("native-cpp"))
+}
+
+pub fn is_native_llvm_target(target: String) -> bool {
+    eq(target, String_from("native-llvm"))
 }
 
 fn is_wasm_target(target: String) -> bool {

@@ -7,6 +7,7 @@ use component
 use component::world_spec
 use driver::native
 use driver::target
+use native_c
 use wasm
 use driver::checked_program
 use driver::debug
@@ -155,7 +156,22 @@ fn emit_native_output(
     t_mir_opt: i64,
     t_mir_verify: i64
 ) -> CompileResult {
-    let native_bytes = driver::native::emit_native_scaffold(mir_module, config_record::config_target(config))
+    let target_name = config_record::config_target(config)
+    if target::is_native_cpp_target(clone(target_name)) {
+        let emitted = native_c::emit_native_c_module(mir_module)
+        if !native_c::native_c_emit_result_success(emitted) {
+            return result_record::CompileResult_err(phases::PHASE_EMIT(), native_c::native_c_emit_result_diagnostic(emitted))
+        }
+        let native_bytes = native::native_output_bytes_from_string(native_c::native_c_emit_result_source(emitted))
+        let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
+        result_record::compile_result_set_output_bytes(result, native_bytes)
+        emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
+        return result
+    }
+    if !target::is_native_llvm_target(target_name) {
+        return result_record::CompileResult_err(phases::PHASE_EMIT(), String_from("compiler ICE: native emit routing received an unknown target"))
+    }
+    let native_bytes = driver::native::emit_native_llvm_scaffold(mir_module)
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     result_record::compile_result_set_output_bytes(result, native_bytes)
     emit_timing_if_enabled(config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)

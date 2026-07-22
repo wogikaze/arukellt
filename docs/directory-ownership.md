@@ -57,6 +57,8 @@
 | `docs/data/798-core-op-shadow-receipt.json` | internal (receipt) | `scripts/check/check-core-op-shadow.py` | #798 T3 shadow agreement receipt |
 | `data/core-ops.toml` | product (SSOT input) | hand-maintained | Compiler-consumed CoreOpRegistry. `status = "migration"` permits only tracked `legacy_emitter` entries; production exit owner: #818. |
 | `data/native-cpp-capabilities.toml` | product (SSOT input) | hand-maintained from MIR/CoreOp registries | Per-opcode and per-CoreOp native-cpp capability state (ADR-049 / RFC-008). |
+| `src/compiler/native_c/` | product | selfhost compiler | MIR-to-C99 emitter and target capability diagnostics. |
+| `src/compiler/native_c_capabilities_generated.ark` | generated | `scripts/check/check-native-cpp-capabilities.py --write-generated` | Compiler view of `data/native-cpp-capabilities.toml`; do not edit directly. |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `docs/rfcs/` | product | — | 詳細設計提案・仕様草案（ADR の長文側） |
@@ -74,7 +76,6 @@ Their presence in this table does not mean the native-cpp lane is implemented.
 
 | Planned path | Tier | Owner/Generator | Intended role |
 |--------------|------|-----------------|---------------|
-| `src/compiler/native_c/` | product | selfhost compiler | MIR-to-C99 emitter; replaces the native scaffold only when implementation lands. |
 | `runtime/native-cpp/ark_runtime.h` | product | native runtime | Compiler-private C99 runtime ABI declarations. |
 | `runtime/native-cpp/ark_runtime.c` | product | native runtime | Arena, raw object operations, and approved host operations. |
 | `.build/selfhost/native-cpp/receipt.json` | internal receipt | `scripts/manager.py selfhost native-executor` | Generated hash, determinism, timing, and RSS receipt; not committed. |

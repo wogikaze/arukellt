@@ -1,4 +1,4 @@
-fn string_to_bytes(text: String) -> Vec<i32> {
+pub fn native_output_bytes_from_string(text: String) -> Vec<i32> {
     let out = Vec_new_i32()
     let text_len = len(text)
     let mut i = 0
@@ -9,12 +9,12 @@ fn string_to_bytes(text: String) -> Vec<i32> {
     out
 }
 
-pub fn emit_native_scaffold(_mir: MirModule, _target: String) -> Vec<i32> {
-    let asm = String_from("; Arukellt T4 native scaffold (#641)\n")
+pub fn emit_native_llvm_scaffold(_mir: MirModule) -> Vec<i32> {
+    let asm = String_from("; Arukellt native-llvm scaffold (#641)\n")
     let asm = concat(asm, String_from(".text\n"))
     let asm = concat(asm, String_from(".globl main\n"))
     let asm = concat(asm, String_from("main:\n"))
     let asm = concat(asm, String_from("    xor %eax, %eax\n"))
     let asm = concat(asm, String_from("    ret\n"))
-    string_to_bytes(asm)
+    native_output_bytes_from_string(asm)
 }

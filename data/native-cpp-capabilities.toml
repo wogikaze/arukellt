@@ -1,5 +1,5 @@
 # native-cpp capability registry — ADR-049 / RFC-008
-# Initial design state only. No entry is supported while the target remains scaffold.
+# Initial implementation registry. Target support tier remains scaffold until the full lane exists.
 
 schema_version = 1
 target = "native-cpp"
@@ -16,9 +16,8 @@ unsupported_requires = ["reason"]
 [[mir_opcodes]]
 id = "MIR_CONST_I32"
 opcode = 1
-status = "planned"
-phase = 1
-implementation = "c_emitter"
+status = "supported"
+implementation = "src/compiler/native_c/"
 
 [[mir_opcodes]]
 id = "MIR_CONST_I64"
@@ -219,9 +218,8 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_RETURN"
 opcode = 42
-status = "planned"
-phase = 1
-implementation = "c_emitter"
+status = "supported"
+implementation = "src/compiler/native_c/"
 
 [[mir_opcodes]]
 id = "MIR_WIT_CALL"

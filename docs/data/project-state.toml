@@ -62,8 +62,8 @@ support_tier = "scaffold"
 implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
-role = "Scaffold C99 emit path; executor design accepted in ADR-049, lane unimplemented"
-display = "Native C++ backend scaffold"
+role = "Scaffold target with Phase 1A constant-return C99 emit; executor lane remains unimplemented"
+display = "Native C99 executor scaffold"
 
 [[target_profiles]]
 id = "native-llvm"
@@ -194,12 +194,12 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2706
+fixture_manifest_count = 2708
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1118
-fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2706 is tests/fixtures/manifest.txt registry size. The 1118 remainder were not part of that run (not proof they fail)."
+fixture_not_in_last_harness_snapshot = 1120
+fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2708 is tests/fixtures/manifest.txt registry size. The 1120 remainder were not part of that run (not proof they fail)."
 checks_passed = 165
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"

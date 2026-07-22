@@ -57,10 +57,10 @@ WASI 非依存の旧 freestanding は提供しない。
 
 ### 4. `native-*`
 
-- 現行実装は両targetともscaffold（`native_scaffold`）である。
+- 両targetのsupport tierはscaffoldであり、詳細な実装状態はcurrent-stateとproject-stateを正とする。
 - `native-cpp`のC99出力、private ABI、runtime、manager責務はADR-049とRFC-008が所有する。
 - `native-llvm`のemit kind、object生成、link、ABI、FFIは未決定である。
-- 実装状態はcurrent-stateとproject-stateを正とし、設計採択を実装済みと扱わない。
+- 設計採択や部分的なemitter実装をtarget完成と扱わない。
 
 ### 5. Emit 契約（Wasm のみ）
 

@@ -2726,6 +2726,8 @@ t3-run:variables/mut_var.ark
 t3-run:variables/string_lit.ark
 t3-run:variables/tuple.ark
 t4-compile:t4/native_scaffold.ark
+t4-compile:native_cpp/constant_return.ark
+t4-compile:native_cpp/unsupported_string.ark
 # ADR-041 in-file test syntax fixtures
 t3-compile:test_syntax/basic.ark
 compile-error:test_syntax/body_type_error.ark

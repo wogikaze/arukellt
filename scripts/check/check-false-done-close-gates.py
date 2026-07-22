@@ -85,7 +85,7 @@ TRACKED: dict[str, list[str]] = {
     "051": ["std::time + std::random umbrella (gate-051-std-time-random.py)"],
     "648": ["general canonical ABI umbrella (gate-648-component-export-general-abi.py)"],
     "123": ["Layer C import string syntax component fixture"],
-    "641": ["T4 native scaffold compile (t4/native_scaffold.ark)"],
+    "641": ["native-cpp C99 constant-return slice and native-llvm scaffold"],
     "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
@@ -858,25 +858,51 @@ def gate_639() -> tuple[int, str]:
 
 
 def gate_641() -> tuple[int, str]:
-    entry = "t4-compile:t4/native_scaffold.ark"
-    if not _manifest_contains(entry):
-        return 1, f"manifest missing {entry}"
-    fixture = REPO_ROOT / "tests" / "fixtures" / "t4" / "native_scaffold.ark"
-    if not fixture.is_file():
-        return 1, "missing tests/fixtures/t4/native_scaffold.ark"
+    required_entries = (
+        "t4-compile:t4/native_scaffold.ark",
+        "t4-compile:native_cpp/constant_return.ark",
+        "t4-compile:native_cpp/unsupported_string.ark",
+    )
+    for entry in required_entries:
+        if not _manifest_contains(entry):
+            return 1, f"manifest missing {entry}"
     target_ark = REPO_ROOT / "src" / "compiler" / "driver" / "target.ark"
     native_ark = REPO_ROOT / "src" / "compiler" / "driver" / "native.ark"
-    if not target_ark.is_file() or not native_ark.is_file():
-        return 1, "missing src/compiler/driver/target.ark or native.ark"
+    emit_ark = REPO_ROOT / "src" / "compiler" / "driver" / "emit.ark"
+    native_c_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "mod.ark"
+    if not all(path.is_file() for path in (target_ark, native_ark, emit_ark, native_c_ark)):
+        return 1, "missing native target routing or native-cpp emitter source"
     target_text = target_ark.read_text(encoding="utf-8")
     native_text = native_ark.read_text(encoding="utf-8")
-    if "is_native_target" not in target_text:
-        return 1, "target.ark lacks native registration"
-    if "emit_native_scaffold" not in native_text or "T4 native scaffold" not in native_text:
-        return 1, "native.ark lacks scaffold emitter"
-    contract = (REPO_ROOT / "docs" / "adr" / "ADR-007-targets.md").read_text(encoding="utf-8")
-    if "native_scaffold" not in contract or "scaffold" not in contract:
-        return 1, "ADR-007-targets.md T4 native section not scaffold"
+    emit_text = emit_ark.read_text(encoding="utf-8")
+    native_c_text = native_c_ark.read_text(encoding="utf-8")
+    if "is_native_cpp_target" not in target_text or "is_native_llvm_target" not in target_text:
+        return 1, "target.ark does not separate native targets"
+    if "emit_native_c_module" not in emit_text or "use native_c" not in emit_text:
+        return 1, "native-cpp is not routed to the C99 emitter"
+    if "emit_native_llvm_scaffold" not in native_text or ".globl main" not in native_text:
+        return 1, "native-llvm scaffold is not preserved"
+    if "emit_native_scaffold" in native_text or "emit_native_scaffold" in emit_text:
+        return 1, "obsolete shared native scaffold routing remains"
+    for required in ("INT32_C(", "ark_f_", "int main(int argc, char **argv)"):
+        if required not in native_c_text:
+            return 1, f"native-cpp emitter lacks {required}"
+    state = (REPO_ROOT / "docs/data/project-state.toml").read_text(encoding="utf-8")
+    match = re.search(r'id = "native-cpp"(?P<body>.*?)(?=\n\[\[target_profiles\]\]|\Z)', state, re.S)
+    if match is None:
+        return 1, "project-state lacks native-cpp"
+    for required in ('support_tier = "scaffold"', 'implementation_state = "scaffold"', "run_supported = false"):
+        if required not in match.group("body"):
+            return 1, f"native-cpp project-state must retain {required}"
+    validation = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts/check/check-native-cpp-capabilities.py")],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if validation.returncode != 0:
+        return 1, (validation.stdout + validation.stderr)[-800:]
     return 0, ""
 
 
