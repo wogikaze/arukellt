@@ -98,7 +98,8 @@ python3 docs/research/wat-probes/run-probes.py
 ## 禁止事項
 
 - `wasm32` の linear memory 実装を `wasm32-gc` に持ち込まない
-- `native` 向けの言語機能・最適化方針・ABI は ADR-045 の再評価と後継採択まで固定しない
+- `native-cpp`はADR-049の限定されたprivate executor契約だけを持つ。公開native ABIと
+  `native-llvm`の意味論は未決定
 - `wasm32` は AtCoder が GC 対応したら即座に廃止する。将来に向けた拡張は `wasm32-gc` に行う
 
 ---
@@ -140,7 +141,11 @@ python3 docs/research/wat-probes/run-probes.py
 
 ### `native-cpp` / `native-llvm`
 
-- 別途 ADR で決定する。
+- `native-cpp`のexperimentalセルフホストexecutor契約は
+  [ADR-049](../adr/ADR-049-native-c99-selfhost-executor.md)が所有する。
+- C99 layoutとruntime ABIは
+  [RFC-008](../rfcs/008-native-cpp-c99-backend-runtime-abi.md)が所有する。
+- 現行実装は両targetともscaffoldであり、`native-llvm`の詳細は未決定である。
 
 ---
 
@@ -171,10 +176,15 @@ python3 docs/research/wat-probes/run-probes.py
 | `wasm32-gc` | `wit` | `<input>.wit` | WIT export surface |
 | `wasm32-gc` | `all` | `<input>.wasm` + `<input>.component.wasm` | core + component |
 
-`native-*`:
+`native-cpp`:
 
-- emit kind、拡張子、object 生成、link 手順は **未決定**（ADR-007 / ADR-045）
-- 試験実装の現状のみ `docs/current-state.md` に記録する（本ファイルでも契約化しない）
+- 設計上の出力はportable C99の`<input>.c`（ADR-049 / RFC-008）
+- backendはC sourceまで、objectとexecutableはmanagerが所有する
+- 現行driverはscaffoldであり、`--emit c`とmanager laneは未実装
+
+`native-llvm`:
+
+- emit kind、拡張子、object生成、link手順、ABIは未決定
 
 ### `--emit all` 時のファイル衝突
 
@@ -187,11 +197,14 @@ python3 docs/research/wat-probes/run-probes.py
 
 ### native ターゲットの出力形式
 
-`native-cpp` / `native-llvm`（scaffold）:
+`native-cpp`（scaffold）:
 
-- 出力形式・リンク手順・ABI は **未決定**（ADR-045）
-- C99 / C ABI / clang / `llc` 等を契約として固定しない
-- 試験実装の現状のみ `docs/current-state.md` に記録する
+- 採択済み設計はC99 source、compiler-private ABI、clang orchestration（ADR-049 / RFC-008）
+- 現行実装は固定assembly scaffoldであり、採択済み設計をまだ実装していない
+
+`native-llvm`（scaffold）:
+
+- 出力形式、link手順、ABIは未決定
 
 ### ブラウザ向けパッケージング（jco）
 
@@ -217,7 +230,7 @@ jco transpile app.component.wasm -o app.dist/
 | `component` | No | Yes | — | **Public contract (ADR-008):** in-tree. **Implementation:** living path may still use `wasm-tools` / Python helpers — see `current-state.md` |
 | `wit` | No | Yes | — | WIT export surface |
 | `all` | No | Yes | — | core + component（契約はコンパイラ内; 実装ギャップは current-state） |
-| native emits | — | — | scaffold | 形式・ABI は未決定（ADR-045）。現状は current-state |
+| native emits | — | — | scaffold | native-cppのC99設計はADR-049/RFC-008。現行実装はscaffold |
 
 複数コンポーネントのリンクは ADR-034（`wac plug`）。ブラウザ向けは上記 jco。
 
@@ -251,7 +264,7 @@ jco transpile app.component.wasm -o app.dist/
 | `Wasm32Linear` | Linear memory + WASI P1 |
 | `Wasm32Gc` | Linear memory + Wasm GC + Component Model |
 | `NativeCpp` | C++ / C99 native backend（scaffold） |
-| `NativeLlvm` | LLVM IR native backend（scaffold; 意味論は ADR-045） |
+| `NativeLlvm` | LLVM IR native backend（scaffold。ADR-049の対象外で意味論は未決定） |
 
 現行の稼働状態・件数は `docs/current-state.md` を参照。
 
@@ -306,6 +319,8 @@ Status: **scaffold** — asm stub only.
 | parse / typecheck | guaranteed | shared frontend |
 | compile | scaffold | `native::emit_native_scaffold` asm stub |
 | run | none | `run_supported=false` |
+
+`native-cpp`の設計契約はADR-049とRFC-008に採択済みだが、表は現行実装だけを示す。
 
 ### CI job mapping
 

@@ -16,6 +16,7 @@
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
+| [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | 詳細仕様: RFC-008 Capability SSOT: data/native-cpp-capabilities.toml |
 | [selfhost-latency-phase-reprofile.md](selfhost-latency-phase-reprofile.md) | Selfhost compile latency: Memory64後の作業計画 | Archive | 親 issue: #829 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |

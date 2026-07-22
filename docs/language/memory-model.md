@@ -20,7 +20,8 @@ Arukellt の言語意味論は **Wasm GC 前提**である（ADR-002）。
 |-----------|------|----------|
 | `wasm32-gc` | **primary**（ADR-013） | Wasm GC references（移行途中の箇所あり — current-state） |
 | `wasm32` | **supported** 互換 | 同一言語意味論の **linear-memory lowering** |
-| `native-*` | scaffold | 未決定（ADR-045） |
+| `native-cpp` | scaffold | ADR-049のexecutor設計では同一GC意味論をprocess-lifetime arenaへlower。未実装 |
+| `native-llvm` | scaffold | 未決定。ADR-049の対象外 |
 
 「設計上の primary」と「ある時点の実装完成度」は分ける:
 

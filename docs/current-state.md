@@ -4,7 +4,7 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-07-15.
+> Updated: 2026-07-22.
 > Generated-At: 2026-07-15
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
@@ -70,8 +70,8 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 |--------|--------------|----------------|--------------------|-----|-------|
 | `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
-| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
+| `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path; executor design accepted in ADR-049, lane unimplemented |
+| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
 
@@ -309,7 +309,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 - `--deny-clock` / `--deny-random`: **intended** compile-time MIR scan on `run` (transitive; not on `compile`), but **not implemented** on the current selfhost CLI. Fixtures remain in `DIAG_PARITY_SKIP` (#459). See [`process/policy.md`](process/policy.md) and [`data/capabilities.toml`](data/capabilities.toml).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
-- `native-*` is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
+- `native-*` is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md) adopts the native-cpp executor design, but the lane and C99 lowering remain unimplemented.
 - some historical docs remain archived / historical and should not override current-state
 - **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [Capability surface](platform/target-runtime-and-surfaces.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.

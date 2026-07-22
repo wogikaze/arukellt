@@ -159,7 +159,7 @@ id = "native_targets"
 tier = "not_guaranteed"
 cadence = "release-only"
 summary = "native-cpp / native-llvm"
-known_limitation = "Scaffold; ABI undecided (ADR-045)"
+known_limitation = "Both targets remain scaffold; ADR-049 adopts only the compiler-private native-cpp executor ABI"
 
 # ── Checks (executable verification items) ────────────────────────────────────
 # The release-blocker set is exactly {check | release_blocking = true}.

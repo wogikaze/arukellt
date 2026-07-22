@@ -1,0 +1,2650 @@
+# native-cpp capability registry — ADR-049 / RFC-008
+# Initial design state only. No entry is supported while the target remains scaffold.
+
+schema_version = 1
+target = "native-cpp"
+implementation_state = "scaffold"
+mir_opcode_source = "src/compiler/mir/opcodes.ark"
+core_op_source = "data/core-ops.toml"
+
+[status_schema]
+allowed = ["supported", "planned", "unsupported"]
+supported_requires = ["implementation"]
+planned_requires = ["phase", "implementation"]
+unsupported_requires = ["reason"]
+
+[[mir_opcodes]]
+id = "MIR_CONST_I32"
+opcode = 1
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CONST_I64"
+opcode = 2
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CONST_F64"
+opcode = 3
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CONST_BOOL"
+opcode = 4
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CONST_STRING"
+opcode = 5
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_LOCAL_GET"
+opcode = 10
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_LOCAL_SET"
+opcode = 11
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ADD"
+opcode = 20
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_SUB"
+opcode = 21
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_MUL"
+opcode = 22
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_DIV"
+opcode = 23
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_MOD"
+opcode = 24
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_EQ"
+opcode = 25
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_NEQ"
+opcode = 26
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_LT"
+opcode = 27
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_LTEQ"
+opcode = 28
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GT"
+opcode = 29
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GTEQ"
+opcode = 30
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_AND"
+opcode = 31
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_OR"
+opcode = 32
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_NEG"
+opcode = 33
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_NOT"
+opcode = 34
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BIT_AND"
+opcode = 35
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BIT_OR"
+opcode = 36
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BIT_XOR"
+opcode = 37
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_SHL"
+opcode = 38
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_SHR"
+opcode = 39
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CALL"
+opcode = 40
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_CALL_INDIRECT"
+opcode = 41
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_RETURN"
+opcode = 42
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_WIT_CALL"
+opcode = 43
+status = "unsupported"
+reason = "WIT and Component Model are outside the native-cpp MVP scope"
+
+[[mir_opcodes]]
+id = "MIR_EXTEND_I32_TO_I64"
+opcode = 45
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_TRUNC_I64_TO_I32"
+opcode = 46
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BR"
+opcode = 50
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BR_IF"
+opcode = 51
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BR_TABLE"
+opcode = 52
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BLOCK"
+opcode = 53
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_LOOP"
+opcode = 54
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_IF"
+opcode = 55
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ELSE"
+opcode = 56
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_END"
+opcode = 57
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_EQZ"
+opcode = 58
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_STRUCT_NEW"
+opcode = 60
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_STRUCT_GET"
+opcode = 61
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_STRUCT_SET"
+opcode = 62
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ARRAY_NEW"
+opcode = 63
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ARRAY_GET"
+opcode = 64
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ARRAY_SET"
+opcode = 65
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_ARRAY_LEN"
+opcode = 66
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_DROP"
+opcode = 70
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_NOP"
+opcode = 71
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_UNREACHABLE"
+opcode = 72
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_PHI"
+opcode = 73
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GC_HINT"
+opcode = 74
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GC_HINT_SHORT_LIVED"
+opcode = 0
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_FUTURE_NEW"
+opcode = 80
+status = "unsupported"
+reason = "future and async are outside the native-cpp MVP scope"
+
+[[mir_opcodes]]
+id = "MIR_AWAIT"
+opcode = 81
+status = "unsupported"
+reason = "future and async are outside the native-cpp MVP scope"
+
+[[mir_opcodes]]
+id = "MIR_BR_ON_CAST"
+opcode = 82
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_BR_ON_CAST_FAIL"
+opcode = 83
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_REF_TEST"
+opcode = 84
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_REF_CAST"
+opcode = 85
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GC_STRUCT_NEW"
+opcode = 86
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GC_STRUCT_GET"
+opcode = 87
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_GC_STRUCT_SET"
+opcode = 88
+status = "planned"
+phase = 2
+implementation = "c_emitter"
+
+[[mir_opcodes]]
+id = "MIR_REF_FUNC"
+opcode = 89
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "string.starts_with"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+[[core_ops]]
+id = "string.ends_with"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "panic"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_get_unchecked"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_grow"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_len"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_set_unchecked"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_clone"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_from_bytes"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_new"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_byte_at_unchecked"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_len_bytes"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "simd.i32x4.add"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.sub"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.add"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "wasm.v128.load"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "core.range_contains"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "core.range_len"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "core.range_new"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.abs"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.clamp"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.gcd"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.max"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.min"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.pow_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "math.sqrt"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "parse.parse_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "parse.parse_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "parse.parse_i64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "primitive.memory_copy"
+registry_layer = "primitive"
+registry_lowering = "mir_op"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "primitive.memory_fill"
+registry_layer = "primitive"
+registry_lowering = "mir_op"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.accept"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.arg_at"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.arg_count"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.args"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.assert"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.assert_eq"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.assert_eq_i64"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.assert_eq_str"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.assert_ne"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.clock_now"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.clock_now_ms"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.connect"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.eprintln"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.exists"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.f32_to_f64"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.fs_read_file"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.get"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.get_var"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.has_flag"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.i32_to_i64"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.i32_to_i8"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.i32_to_u32"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.i64_to_i32"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.i8_to_i32"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.is_err"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.is_ok"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.listen"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.print"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.println"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.process.abort"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.process.exit"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.random_i32"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "host random is outside the native-cpp executor runtime boundary"
+
+[[core_ops]]
+id = "runtime.read"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.read_stdin"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.request"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.serve"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.u32_to_u64"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "runtime.unwrap"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.unwrap_or"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.var"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.var_or_default"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.write"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "network runtime is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "runtime.write_bytes"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "runtime.write_string"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "planned"
+phase = 4
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "scalar.f64_bits_hi"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "scalar.f64_bits_lo"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 1
+implementation = "c_emitter"
+
+[[core_ops]]
+id = "seq.binary_search"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.count_eq"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.max_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.min_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.product_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.skip_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.sort_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.sort_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.sort_i64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.sum_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.take_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "seq.unique"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "simd.f32x4.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.ceil"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.div"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.extract.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.floor"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.ge"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.gt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.le"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.lt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.max"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.min"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.ne"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.nearest"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.sqrt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.sub"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f32x4.trunc"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.add"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.ceil"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.convert.low.i32x4.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.convert.low.i32x4.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.div"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.extract.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.floor"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.ge"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.gt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.le"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.lt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.ne"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.nearest"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.promote.low.f32x4"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.sqrt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.sub"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.f64x2.trunc"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.add"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.add.sat.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.add.sat.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.all.true"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.bitmask"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extadd.pairwise.i8x16.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extadd.pairwise.i8x16.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extend.high.i8x16.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extend.high.i8x16.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extend.low.i8x16.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extract.lane.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.extract.lane.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.ge.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.max.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.max.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.min.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.min.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.narrow.i32x4.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.narrow.i32x4.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.shl"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.shr.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.shr.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.sub"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.sub.sat.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i16x8.sub.sat.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.all.true"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.bitmask"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.extract.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.ge.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.ge.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.gt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.gt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.le.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.le.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.lt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.lt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.max.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.min.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.min.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.ne"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.shl"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.shr.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.shr.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i32x4.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.add"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.all.true"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.bitmask"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.extract.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.ge.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.le.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.lt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.ne"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.shl"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.shr.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.shr.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i64x2.sub"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.abs"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.add"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.add.sat.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.add.sat.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.all.true"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.bitmask"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.eq"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.extract.lane.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.extract.lane.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.gt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.gt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.lt.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.lt.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.max.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.max.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.min.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.min.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.mul"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.narrow.i16x8.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.narrow.i16x8.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.ne"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.neg"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.replace.lane"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.shl"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.shr.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.shr.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.splat"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.sub"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.sub.sat.s"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.i8x16.sub.sat.u"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.and"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.andnot"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.any.true"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.bitselect"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.const"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.not"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.or"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "simd.v128.xor"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "unsupported"
+reason = "SIMD is outside the native-cpp MVP scope"
+
+[[core_ops]]
+id = "string.char_at"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.concat"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.contains"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.index_of"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.join"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.lines"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.len"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.pad_left"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.pad_right"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.pad_left_fill"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.pad_right_fill"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.repeat"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.replace"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.reverse"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.slice"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.split"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.to_lowercase"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.to_uppercase"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.trim"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.trim_end"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "string.trim_start"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.String_new"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.char_to_string"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.chars"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.clone"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.f32_to_string"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.format_bool"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.format_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.format_i64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.is_empty"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.len_bytes"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.push_char"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.string_eq"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.string_from_bytes"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "text.to_string"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.Vec_new_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.Vec_new_fallback"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.contains_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.get"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.get_unchecked"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.get_unchecked_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.get_unchecked_i64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.is_empty"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.len"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.pop"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.push"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.push_f64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.push_i64"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.remove_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.reverse_i32"
+registry_layer = "semantic_stdlib"
+registry_lowering = "normal_call"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"
+
+[[core_ops]]
+id = "vec.set"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "planned"
+phase = 2
+implementation = "ark_fallback"

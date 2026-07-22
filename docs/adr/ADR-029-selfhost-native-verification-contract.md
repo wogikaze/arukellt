@@ -48,6 +48,10 @@ Pre-585 契約から維持されるもの:
 - 古典的ブートストラップ fixpoint 定義は不変（`sha256(s2) == sha256(s3)`）。
 - セルフホストコンパイラの再現性を壊すドリフト（例: 非決定的 codegen）は依然ゲート失敗。
 
+[ADR-049](ADR-049-native-c99-selfhost-executor.md)のnative executor laneは、C99で生成した
+executorから`s3.wasm`を作る非正規の高速laneである。本節のWasmtimeによる正規fixpointを
+置換せず、byte equality契約を弱めない。
+
 変わるもの:
 - **Stage 0 はピン留め wasm であり Rust コンパイラではない。** Rust バイナリは参照されない。
 - **以前のベースラインとの Stage-1 バイト等価は `fixpoint` の一部としてはもはやアサートしない** — 歴史的に `s1`（Rust）と `s2`（セルフホスト）は別エンコーディングだったため、意味のあるバイト固定は `s2 == s3` のみだった。
@@ -149,3 +153,7 @@ python3 scripts/manager.py selfhost parity --mode --cli  # PASS
 ```
 
 `cargo build --workspace --exclude ark-llvm` ビルドは依然成功 — 本スライスは Rust crate を削除しない。
+
+## 関連文書
+
+- [ADR-049: Native C99 Selfhost Executor](ADR-049-native-c99-selfhost-executor.md)

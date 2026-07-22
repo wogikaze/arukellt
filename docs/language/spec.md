@@ -1614,7 +1614,8 @@ canonical compilation targets are:
 |--------|------|-------|
 | `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-008). |
 | `wasm32` | supported | Same language semantics, linear-memory lowering. AtCoder / non-GC compatibility. |
-| `native-cpp` / `native-llvm` | scaffold | Experimental. ABI / semantics undecided (ADR-045). |
+| `native-cpp` | scaffold | Experimental selfhost executor design accepted in ADR-049; C99 lowering remains unimplemented. |
+| `native-llvm` | scaffold | Experimental. ABI and semantics remain undecided. |
 
 Retired / not public contracts:
 
@@ -1640,4 +1641,5 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR-013 | Primary target = `wasm32-gc` (default host WASI P2) |
 | ADR-031 | Import / WIT package syntax unification (supersedes ADR-025/026 exploration) |
 | ADR-044 | Trait / method syntax adopted (supersedes ADR-004) |
-| ADR-045 | Old LLVM-as-required-backend policy withdrawn; native ABI undecided |
+| ADR-045 | Native/LLVM decision deferral, superseded by ADR-049 for the limited native-cpp executor scope |
+| ADR-049 | Native C99 selfhost executor with a compiler-private ABI; current implementation remains scaffold |

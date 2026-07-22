@@ -26,7 +26,7 @@
 | Compiler-private ABI | コンパイラ私有 | **なし** |
 | Stable interoperability ABI | WIT / Canonical ABI | **維持する** |
 | Experimental raw Wasm ABI | 素の Wasm import/export（限定） | **experimental** |
-| Reserved native ABI | native 外部境界 | **未決定**（ADR-045） |
+| Reserved native ABI | native 外部境界 | 公開ABIは未決定。native-cpp内部executor ABIだけADR-049でcompiler-privateとして決定 |
 
 ### Compiler-private ABI
 
@@ -52,7 +52,9 @@
 
 ### Reserved native ABI
 
-- 予約スロット。具体 ABI・構文・型制約は **未決定**（[ADR-045](ADR-045-llvm-scope-withdrawn.md)）
+- 公開native ABIの予約スロット。公開構文と型制約は未決定
+- [ADR-049](ADR-049-native-c99-selfhost-executor.md)のnative-cpp executor ABIは
+  compiler-privateであり、この公開予約スロットを消費しない
 - portable Ark から直接利用可能とはしない
 
 ---
@@ -79,7 +81,7 @@
 
 ## 関連
 
-- ADR-045: native ABI 詳細は未決定
+- [ADR-049](ADR-049-native-c99-selfhost-executor.md): native-cpp executorの内部ABIはcompiler-private。公開native ABIは未決定
 - ADR-008: component 生成（stable WIT/canonical の成果物）
 - ADR-040 / ADR-042: 内部型・intrinsic 整理（compiler-private 変更の根拠）
 - [ADR-007: Targets](ADR-007-targets.md)

@@ -28,7 +28,7 @@
 | `dap` | `experimental` | `manual` | ark-dap / debug-adapter | — | ⬜ not-run | ❓ unknown | manual | — | Scaffold only |
 | `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | 🟢 fresh | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
-| `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Scaffold; ABI undecided (ADR-045) |
+| `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Both targets remain scaffold; ADR-049 adopts only the compiler-private native-cpp executor ABI |
 
 ## Check catalogue
 

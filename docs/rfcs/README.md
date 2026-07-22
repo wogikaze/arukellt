@@ -20,3 +20,4 @@
 | [005-prelude-compilation-restoration.md](005-prelude-compilation-restoration.md) | RFC-005: Prelude compilation restoration | ACCEPTED | 関連 issue: #816 関連 plan: intrinsic-layer-separation.md |
 | [006-sealed-raw-api.md](006-sealed-raw-api.md) | RFC-006: Sealed raw API for Vec/String representation | ACCEPTED | 関連 issue: #817 関連 plan: intrinsic-layer-separation.md |
 | [007-memory64-gc-layout-and-wasi-boundary.md](007-memory64-gc-layout-and-wasi-boundary.md) | RFC-007: Memory64 GC レイアウトと WASI P2 境界 | DRAFT | ADR-040（ACCEPTED） |
+| [008-native-cpp-c99-backend-runtime-abi.md](008-native-cpp-c99-backend-runtime-abi.md) | RFC-008: native-cpp C99 backend と runtime ABI | ACCEPTED | 関連 plan: native-cpp MVP implementation plan |

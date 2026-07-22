@@ -2,7 +2,7 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-07-15"
+updated = "2026-07-22"
 verification_command = "python3 scripts/manager.py verify quick"
 agent_verification_command = "python3 scripts/manager.py verify lane"
 current_state_doc = "docs/current-state.md"
@@ -21,7 +21,7 @@ refactor_target = [
   "MIRValidate",
   "MIROptimize",
   "BackendPlan",
-  "WasmEmit / LLVMEmit",
+  "WasmEmit / NativeCEmit / LLVMEmit",
   "BackendValidate",
 ]
 session_entry = "ark-driver::Session"
@@ -62,7 +62,7 @@ support_tier = "scaffold"
 implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
-role = "Scaffold C99 emit path"
+role = "Scaffold C99 emit path; executor design accepted in ADR-049, lane unimplemented"
 display = "Native C++ backend scaffold"
 
 [[target_profiles]]
@@ -71,7 +71,7 @@ support_tier = "scaffold"
 implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
-role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+role = "Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided"
 display = "Native LLVM backend scaffold"
 
 # User input spellings are canonicalized once at the CLI/config boundary. These

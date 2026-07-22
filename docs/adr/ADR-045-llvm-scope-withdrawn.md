@@ -1,9 +1,10 @@
 # ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する
 
-ステータス: **ACCEPTED** — 旧 ADR-005 の LLVM 従属方針を撤回し、再開条件まで未決定とする
+ステータス: **SUPERSEDED** — native-cpp の限定判断を ADR-049 が後継する
 
 決定日: 2026-07-11  
 廃止: [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md)
+後継: [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md)
 
 ---
 
@@ -14,8 +15,9 @@
 矛盾していた。主 Wasm バックエンド自体も未完成であり、native / LLVM の役割を
 固定する材料が足りない。
 
-「保留する」こと自体を採択済み判断として記録する（同一ファイルを `DEFERRED` に
-書き換えて履歴を消さない）。
+「保留する」こと自体を採択済み判断として記録した（同一ファイルを `DEFERRED` に
+書き換えて履歴を消さない）。2026-07-22 に、限定された `native-cpp` セルフホスト
+executor の判断を ADR-049 が後継した。以下は保留を採択した時点の歴史的決定である。
 
 ---
 
@@ -46,3 +48,4 @@
 - [ADR-005](ADR-005-llvm-scope.md)（廃止記録 + 旧本文）
 - [ADR-006](ADR-006-abi-policy.md)
 - [ADR-007](ADR-007-targets.md)
+- [ADR-049](ADR-049-native-c99-selfhost-executor.md)（後継）

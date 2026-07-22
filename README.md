@@ -7,7 +7,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 <!-- BEGIN GENERATED:README_STATUS -->
 ## Status
 
-- Updated: 2026-07-15
+- Updated: 2026-07-22
 - CLI default target: `wasm32-gc`
 - Canonical target: `wasm32-gc`
 - Component/WIT target: `wasm32-gc`
