@@ -263,7 +263,11 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 """
 
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
-use wasm
+use component_component_base
+use component_emit
+use component_export_plan
+use component_wit_text
+use component_world_spec
 
 fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
     let fn_count = mir_module_functions::MirModule_function_count(mir)
@@ -303,17 +307,17 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    if eq(clone(wasi_version), String_from("wasi-p2")) {
+    // Inline the #730-safe generic export path. A cross-module call to
+    // `component_emit__emit_component` does not receive a FunctionId under the
+    // flat bootstrap overlay (native-cpp ICE). Keep the same control flow as
+    // component/emit.ark: P2 command wrapper or generic library exports.
+    let _target = target
+    if component_world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
         return wasm::emit_p2_command_component(core_wasm)
     }
-    if eq(clone(wasi_version), String_from("p1-component")) {
-        return wasm::emit_library_component(core_wasm, mir)
-    }
-    // TODO(#714 owner=bootstrap-emit removal=component_emit-overlay-resolves recheck=2026-08-01)
-    // Bootstrap overlay falls back to the wasm P2 emitter for unhandled wasi
-    // versions; the flattened component/emit.ark delegate is not yet resolvable
-    // in the selfhost flat overlay, so keep this shortcut until #714 lands.
-    wasm::emit_p2_command_component(core_wasm)
+    let out = component_component_base::comp_new_component_writer()
+    let plan = component_export_plan::collect_component_exports(mir)
+    emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
 pub fn mir_has_library_exports(mir: MirModule) -> bool {
