@@ -1,0 +1,21 @@
+fn add(left: i32, right: i32) -> i32 {
+    left + right
+}
+
+fn compute(limit: i32) -> i32 {
+    let mut total = 0
+    let mut index = 0
+    while index < limit {
+        total = total + index
+        index = index + 1
+    }
+    if total == 45 {
+        add(total, -3)
+    } else {
+        0
+    }
+}
+
+fn main() -> i32 {
+    compute(10)
+}

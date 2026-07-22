@@ -70,9 +70,18 @@ status = "unsupported"
 reason = "outside fixture"
 """
         )
-        summary = load_validator().validate_repository(self.root)
+        validator = load_validator()
+        summary = validator.validate_repository(self.root)
         self.assertEqual((summary.mir_opcode_count, summary.core_op_count), (2, 1))
         self.assertEqual(summary.status_counts, {"planned": 1, "supported": 1, "unsupported": 1})
+        generated = validator.render_generated_ark(
+            [
+                {"id": "MIR_CONST_I32", "status": "supported", "implementation": "emitter"},
+                {"id": "MIR_RETURN", "status": "planned", "phase": 1, "implementation": "emitter"},
+            ],
+            [{"id": "text.len", "status": "unsupported", "reason": "outside fixture"}],
+        )
+        self.assertIn("native_c_core_capability_is_supported", generated)
 
     def test_missing_unknown_and_duplicate_ids_are_rejected(self) -> None:
         self.write_capabilities(

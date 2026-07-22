@@ -14,7 +14,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WRAPPER = ROOT / "scripts/run/arukellt-selfhost.sh"
 CONSTANT_FIXTURE = Path("tests/fixtures/native_cpp/constant_return.ark")
-UNSUPPORTED_FIXTURE = Path("tests/fixtures/native_cpp/unsupported_string.ark")
+UNSUPPORTED_FIXTURE = Path("tests/fixtures/native_cpp/unsupported_array.ark")
+RUNTIME_DIR = ROOT / "src/compiler/native_c/runtime"
+RUNTIME_SOURCE = RUNTIME_DIR / "ark_native_runtime.c"
 
 
 def resolve_clang() -> str | None:
@@ -70,7 +72,20 @@ class NativeCppPhase1ATests(unittest.TestCase):
 
             executable = Path(temp_dir) / "constant_return"
             clang_result = subprocess.run(
-                [self.clang, "-std=c99", "-O0", "-Wall", "-Wextra", "-Werror", str(output), "-o", str(executable)],
+                [
+                    self.clang,
+                    "-std=c99",
+                    "-O0",
+                    "-Wall",
+                    "-Wextra",
+                    "-Werror",
+                    "-I",
+                    str(RUNTIME_DIR),
+                    str(output),
+                    str(RUNTIME_SOURCE),
+                    "-o",
+                    str(executable),
+                ],
                 cwd=ROOT,
                 capture_output=True,
                 text=True,
@@ -82,14 +97,14 @@ class NativeCppPhase1ATests(unittest.TestCase):
             self.assertEqual(run_result.stdout, "")
             self.assertEqual(run_result.stderr, "")
 
-    def test_unsupported_string_is_rejected_without_output(self) -> None:
+    def test_unsupported_array_is_rejected_without_output(self) -> None:
         with tempfile.TemporaryDirectory(dir=ROOT / ".build") as temp_dir:
             output = Path(temp_dir) / "unsupported.c"
             compile_result = self.compile_fixture(UNSUPPORTED_FIXTURE, output)
             diagnostic = compile_result.stdout + compile_result.stderr
             self.assertNotEqual(compile_result.returncode, 0, diagnostic)
             self.assertIn("target `native-cpp`", diagnostic)
-            self.assertIn("MIR_CONST_STRING", diagnostic)
+            self.assertIn("MIR_ARRAY_NEW", diagnostic)
             self.assertIn("function `main`", diagnostic)
             self.assertIn("planned phase 2", diagnostic)
             self.assertFalse(output.exists())
