@@ -70,7 +70,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 |--------|--------------|----------------|--------------------|-----|-------|
 | `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | partial | experimental | No | Recovered C99 emitter/runtime + native-executor lane (S2 profile inheritance); S2/S3 equality and 2.4 GiB RSS gate pending |
+| `native-cpp` | scaffold | partial | experimental | No | Recovered C99 emitter/runtime + native-executor lane (S2 profile inheritance); same-profile S2/S3 byte equality green; 2.4 GiB RSS gate pending (arena ~12 GiB) |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
