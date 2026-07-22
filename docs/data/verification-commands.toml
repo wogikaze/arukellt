@@ -286,3 +286,9 @@ coverage = [
     "tests/fixtures/reachability/ref_func_only_target.ark",
     "tests/fixtures/hello/hello.ark",
 ]
+
+[[commands]]
+id = "selfhost-native-executor"
+argv = ["python3", "scripts/manager.py", "selfhost", "native-executor", "--build"]
+summary = "ADR-049 native executor lane: inherit S2 build profile, generate S3, require byte equality"
+

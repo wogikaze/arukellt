@@ -83,12 +83,18 @@ require: sha256(s2.wasm) == sha256(s3.wasm)
 native executor は別の高速 lane とする。
 
 ```text
-s2.wasm
+s2[profile P]
   -> compiler sourceをnative-cpp C99へ生成
   -> clangでarukellt-nativeを生成
-  -> arukellt-nativeがcompiler sourceからs3.wasmを生成
-  -> require: sha256(s2.wasm) == sha256(s3.wasm)
+  -> arukellt-nativeがcompiler sourceからs3[profile P]を生成
+  -> require: sha256(s2) == sha256(s3) under the same build profile P
 ```
+
+S2生成時にmachine-readable build-profile manifest（output_target、wasi、memory64、
+wasm_gc、source fingerprint等）を保存する。native executorはこのmanifestを読み、
+S3の出力profileを継承する。manifestが無い場合はartifactから曖昧に推測せず診断して停止する。
+MVP完了条件は「比較対象S2のbuild profileを継承したS3が、同一profileのS2とbyte equalityを
+満たす」ことである。正規Wasmtime fixpoint契約は弱めない。
 
 日常開発は native executor lane を利用できる。CI、release、bootstrap 更新では正規 fixpoint
 を維持する。native lane は当面正規 fixpoint の代替ではなく、正規契約を変更する場合は
