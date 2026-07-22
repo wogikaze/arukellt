@@ -48,6 +48,11 @@ pub struct SelfEmitCtx {
     core_op_shadow_unresolved: i32,
     core_op_shadow_mismatch_budget: i32,
     gc_layout_table: GcLayoutTable,
+    // Per-function emit caches (#829). Empty = inactive.
+    local_gc_infer_cache: Vec<i32>,
+    local_struct_new_cache: Vec<i32>,
+    // [functions, struct_new_hits, infer_hits, infer_fills] — debug counters.
+    local_gc_cache_stats: Vec<i32>,
 }
 
 fn SelfEmitCtx_new(
@@ -129,8 +134,40 @@ fn SelfEmitCtx_new(
         core_op_shadow_mismatched: 0,
         core_op_shadow_unresolved: 0,
         core_op_shadow_mismatch_budget: 128,
-        gc_layout_table: layout
+        gc_layout_table: layout,
+        local_gc_infer_cache: Vec_new_i32(),
+        local_struct_new_cache: Vec_new_i32(),
+        local_gc_cache_stats: SelfEmitCtx_new_local_gc_cache_stats(),
     }
+}
+
+fn SelfEmitCtx_new_local_gc_cache_stats() -> Vec<i32> {
+    let stats = Vec_new_i32()
+    push(stats, 0)
+    push(stats, 0)
+    push(stats, 0)
+    push(stats, 0)
+    stats
+}
+
+fn SelfEmitCtx_local_gc_infer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_gc_infer_cache
+}
+
+fn SelfEmitCtx_set_local_gc_infer_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_gc_infer_cache = cache
+}
+
+fn SelfEmitCtx_local_struct_new_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_struct_new_cache
+}
+
+fn SelfEmitCtx_set_local_struct_new_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_struct_new_cache = cache
+}
+
+fn SelfEmitCtx_local_gc_cache_stats(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_gc_cache_stats
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {

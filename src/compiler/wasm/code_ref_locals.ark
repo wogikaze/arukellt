@@ -27,7 +27,7 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
     // Payload locals with stray slots must not cast string → variant.
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     if variant_slot >= 0 {
-        if !local_is_direct_gc_struct_new_dest(f, local_idx) {
+        if !local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
             return false
         }
         return !code_ref_locals_types::is_gc_container_type_name(clone(type_name))
@@ -71,8 +71,8 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx)
 }
 
-fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
-    code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx)
+fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
 }
 
 fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {

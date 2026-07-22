@@ -6,6 +6,8 @@ use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes
+use wasm::code_ref_locals_fn_cache
+use wasm::ctx_record
 
 fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
     let block_count = len(f.blocks)
@@ -35,7 +37,14 @@ fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
     false
 }
 
-fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32) -> bool {
+// Prefer the per-function cache when emit has activated it (#829).
+fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        let cached = code_ref_locals_fn_cache::cached_is_direct_gc_struct_new_dest(ctx, local_idx)
+        if cached >= 0 {
+            return cached != 0
+        }
+    }
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {

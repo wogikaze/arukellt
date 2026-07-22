@@ -28,10 +28,30 @@ use wasm::code_ref_locals_typename
 use wasm::code_ref_locals_infer_dest
 use wasm::code_ref_locals_stack_scan
 use wasm::code_ref_locals_scan
+use wasm::code_ref_locals_fn_cache
 
 // Public entry point: infer GC type for a local's storage.
 fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
-    infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
+    if depth0_cache_hit(ctx, local_idx) {
+        return code_ref_locals_fn_cache::cached_infer_get(ctx, local_idx)
+    }
+    let inferred = infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        code_ref_locals_fn_cache::cached_infer_set(ctx, local_idx, inferred)
+    }
+    inferred
+}
+
+fn depth0_cache_hit(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    if !code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        return false
+    }
+    let cached = code_ref_locals_fn_cache::cached_infer_get(ctx, local_idx)
+    if cached == 0 - 2 {
+        return false
+    }
+    code_ref_locals_fn_cache::note_infer_cache_hit(ctx)
+    true
 }
 
 // Depth-aware recursive inference.  Depth limit prevents infinite
@@ -43,10 +63,14 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
         return 0 - 1
     }
+    // Nested LOCAL_SET traces can reuse a depth-0 memoized result.
+    if depth > 0 && depth0_cache_hit(ctx, local_idx) {
+        return code_ref_locals_fn_cache::cached_infer_get(ctx, local_idx)
+    }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx)
+    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     // Payload locals used only as GC_STRUCT_SET values often keep a stray
     // variant_slot and/or enum type_name from lowering. Those must not win
     // over the actual producer (string/call); otherwise storage becomes the

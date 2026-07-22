@@ -57,7 +57,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     // Prefer producer-inferred string storage before enum-variant typing.
     // Payload locals used in GC_STRUCT_SET can keep a stray variant_slot while
     // still being defined by string-producing calls.
-    if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx) {
+    if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
         let inferred_early = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
         if inferred_early >= 0 && inferred_early == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -121,7 +121,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     }
     if variant_slot >= 0 &&
     !code_locals_struct::local_has_container_type_name(clone(type_name)) &&
-    code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx) {
+    code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
         let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())

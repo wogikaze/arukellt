@@ -9,6 +9,7 @@ use wasm::host_intrinsic_adapter
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
+use wasm::code_ref_locals_fn_cache
 use wasm::emit_target
 
 fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> WasmWriter {
@@ -17,6 +18,7 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
     )
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
+    code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
     code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
@@ -25,16 +27,19 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
         // cannot validate against the generic signature. Emit unreachable.
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
+        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
         return body
     }
     if host_intrinsic_adapter::host_intrinsic_should_emit_unreachable_gc_stub(f, ctx) {
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
+        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
         return body
     }
     code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
 
     writer_core::emit_byte(body, opcodes::OP_END())
+    code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
     body
 }
 
