@@ -1,4 +1,3 @@
-use std::host::stdio
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::function_local_mutation
@@ -37,7 +36,7 @@ fn mir_module_propagate_local_types(m: MirModule) {
     mir_module_propagate_local_types_report(m, 0)
 }
 
-fn mir_module_propagate_local_types_report(m: MirModule, report: i32) {
+fn mir_module_propagate_local_types_report(m: MirModule, _report: i32) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
@@ -45,39 +44,11 @@ fn mir_module_propagate_local_types_report(m: MirModule, report: i32) {
     let cache = post_pass_callee_cache::callee_prop_cache_build(m)
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
-    let mut iterations_total = 0
-    let mut max_iterations = 0
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
-        let iterations = mir_function_propagate_local_types(cache, f, table)
+        mir_function_propagate_local_types(cache, f, table)
         module_functions::MirModule_set_function_at(m, fi, f)
-        iterations_total = iterations_total + iterations
-        if iterations > max_iterations {
-            max_iterations = iterations
-        }
         fi = fi + 1
-    }
-    if report != 0 {
-        // #region agent log
-        stdio::eprintln(
-            concat(
-                String_from("[arukellt] propagate.stats: functions="),
-                concat(
-                    to_string(count),
-                    concat(
-                        String_from(" iterations_total="),
-                        concat(
-                            to_string(iterations_total),
-                            concat(
-                                String_from(" max_iterations="),
-                                to_string(max_iterations)
-                            )
-                        )
-                    )
-                )
-            )
-        )
-        // #endregion
     }
 }
 

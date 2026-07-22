@@ -1,7 +1,8 @@
-use wasm::opcodes
 use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
+use mir::lower::entry_timing
+use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_vec_locals
 use wasm::ctx_record
@@ -12,14 +13,56 @@ use wasm::code_body_helpers
 use wasm::code_ref_locals_fn_cache
 use wasm::emit_target
 
-fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> WasmWriter {
+// #region agent log
+struct CodeEmitTiming {
+    locals_ms: i32,
+    insts_ms: i32,
+}
+
+fn CodeEmitTiming_new() -> CodeEmitTiming {
+    CodeEmitTiming {
+        locals_ms: 0,
+        insts_ms: 0,
+    }
+}
+
+fn CodeEmitTiming_locals_ms(t: CodeEmitTiming) -> i32 {
+    t.locals_ms
+}
+
+fn CodeEmitTiming_insts_ms(t: CodeEmitTiming) -> i32 {
+    t.insts_ms
+}
+
+fn CodeEmitTiming_add_locals(t: CodeEmitTiming, ms: i32) {
+    t.locals_ms = t.locals_ms + ms
+}
+
+fn CodeEmitTiming_add_insts(t: CodeEmitTiming, ms: i32) {
+    t.insts_ms = t.insts_ms + ms
+}
+// #endregion
+
+fn emit_function_body(
+    f: MirFunction,
+    ctx: SelfEmitCtx,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    timing: CodeEmitTiming
+) -> WasmWriter {
     let body = writer_core::WasmWriter_with_memory64(
         emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
     )
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
     code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
+    // #region agent log
+    let t_locals0 = entry_timing::mir_lower_phase_now()
+    // #endregion
     code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
+    // #region agent log
+    let t_locals1 = entry_timing::mir_lower_phase_now()
+    CodeEmitTiming_add_locals(timing, entry_timing::mir_lower_phase_ms(t_locals0, t_locals1))
+    // #endregion
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
     if is_generic_function(f) {
@@ -36,7 +79,14 @@ fn emit_function_body(f: MirFunction, ctx: SelfEmitCtx, bindings: Vec<resolver::
         code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
         return body
     }
+    // #region agent log
+    let t_insts0 = entry_timing::mir_lower_phase_now()
+    // #endregion
     code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
+    // #region agent log
+    let t_insts1 = entry_timing::mir_lower_phase_now()
+    CodeEmitTiming_add_insts(timing, entry_timing::mir_lower_phase_ms(t_insts0, t_insts1))
+    // #endregion
 
     writer_core::emit_byte(body, opcodes::OP_END())
     code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)

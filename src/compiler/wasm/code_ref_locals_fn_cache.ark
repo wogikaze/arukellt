@@ -1,4 +1,3 @@
-use std::host::stdio
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::inst_accessors_operands
@@ -9,8 +8,6 @@ use wasm::ctx_record
 // Per-function caches for GC local inference during emit (#829).
 // Without this, emit_local_decls calls local_is_direct_gc_struct_new_dest /
 // infer_ref_local_gc_type once per local, each rescanning the whole body.
-//
-// Stats slots: [functions, struct_new_hits, infer_hits, infer_fills]
 
 fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let local_count = function_locals_view::MirFunction_local_count(f)
@@ -43,7 +40,6 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     }
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, infer)
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, struct_new)
-    bump_stat(ctx, 0, 1)
 }
 
 fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
@@ -56,7 +52,6 @@ fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 
     if local_idx < 0 || local_idx >= len(flags) {
         return 0 - 1
     }
-    bump_stat(ctx, 1, 1)
     get_unchecked(flags, local_idx)
 }
 
@@ -74,54 +69,8 @@ fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: i32) {
         return
     }
     set(cache, local_idx, value)
-    bump_stat(ctx, 3, 1)
-}
-
-fn note_infer_cache_hit(ctx: SelfEmitCtx) {
-    bump_stat(ctx, 2, 1)
 }
 
 fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
     len(ctx_record::SelfEmitCtx_local_struct_new_cache(ctx)) > 0
 }
-
-fn bump_stat(ctx: SelfEmitCtx, slot: i32, delta: i32) {
-    let stats = ctx_record::SelfEmitCtx_local_gc_cache_stats(ctx)
-    if slot < 0 || slot >= len(stats) {
-        return
-    }
-    set(stats, slot, get_unchecked(stats, slot) + delta)
-}
-
-// #region agent log
-fn report_local_gc_cache_stats(ctx: SelfEmitCtx) {
-    let stats = ctx_record::SelfEmitCtx_local_gc_cache_stats(ctx)
-    if len(stats) < 4 {
-        return
-    }
-    stdio::eprintln(
-        concat(
-            String_from("[arukellt] emit.local_gc_cache: functions="),
-            concat(
-                to_string(get_unchecked(stats, 0)),
-                concat(
-                    String_from(" struct_new_hits="),
-                    concat(
-                        to_string(get_unchecked(stats, 1)),
-                        concat(
-                            String_from(" infer_hits="),
-                            concat(
-                                to_string(get_unchecked(stats, 2)),
-                                concat(
-                                    String_from(" infer_fills="),
-                                    to_string(get_unchecked(stats, 3))
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
-}
-// #endregion

@@ -1,21 +1,25 @@
+use std::host::stdio
+use mir::module_wit_imports
+use wasm::code_body
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::function_indices
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
-use wasm::code_body
-use wasm::function_indices
-use wasm::ctx_record
-use wasm::emit_target
-use mir::module_wit_imports
 
 fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
+    // #region agent log
+    let timing = code_body::CodeEmitTiming_new()
+    // #endregion
     let mut ci = 0
     while ci < fn_count {
         let f = get_unchecked(functions, ci)
         ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
-        let body = code_body::emit_function_body(f, ctx, bindings)
+        let body = code_body::emit_function_body(f, ctx, bindings, timing)
         emit_code_body_entry(code_sec, body)
         ci = ci + 1
     }
@@ -23,6 +27,20 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
         let wrapper_body = emit_start_wrapper_body(main_idx, ctx, wit_import_count)
         emit_code_body_entry(code_sec, wrapper_body)
     }
+    // #region agent log
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] emit.code.locals: "),
+            concat(to_string(code_body::CodeEmitTiming_locals_ms(timing)), String_from("ms"))
+        )
+    )
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] emit.code.insts: "),
+            concat(to_string(code_body::CodeEmitTiming_insts_ms(timing)), String_from("ms"))
+        )
+    )
+    // #endregion
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
 }
 

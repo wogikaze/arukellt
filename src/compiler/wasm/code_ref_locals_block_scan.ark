@@ -47,11 +47,7 @@ fn depth0_cache_hit(ctx: SelfEmitCtx, local_idx: i32) -> bool {
         return false
     }
     let cached = code_ref_locals_fn_cache::cached_infer_get(ctx, local_idx)
-    if cached == 0 - 2 {
-        return false
-    }
-    code_ref_locals_fn_cache::note_infer_cache_hit(ctx)
-    true
+    cached != 0 - 2
 }
 
 // Depth-aware recursive inference.  Depth limit prevents infinite
