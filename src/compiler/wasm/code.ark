@@ -40,6 +40,33 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
             concat(to_string(code_body::CodeEmitTiming_insts_ms(timing)), String_from("ms"))
         )
     )
+    let counters = ctx_record::SelfEmitCtx_local_gc_debug_counters(ctx)
+    if len(counters) >= 4 {
+        stdio::eprintln(
+            concat(
+                String_from("[arukellt] emit.locals_debug: infer_fills="),
+                concat(
+                    to_string(get_unchecked(counters, 0)),
+                    concat(
+                        String_from(" block_scans="),
+                        concat(
+                            to_string(get_unchecked(counters, 1)),
+                            concat(
+                                String_from(" layout_lookups="),
+                                concat(
+                                    to_string(get_unchecked(counters, 2)),
+                                    concat(
+                                        String_from(" byte_size_scans="),
+                                        to_string(get_unchecked(counters, 3))
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
     // #endregion
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
 }

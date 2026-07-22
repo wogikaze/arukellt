@@ -170,7 +170,7 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
     }
     // Fallback: scan function for MIR_STRUCT_NEW with this struct name to determine byte_size.
     if len(type_name) > 0 {
-        let byte_size = lookup_struct_byte_size(f, clone(type_name))
+        let byte_size = lookup_struct_byte_size(f, clone(type_name), ctx)
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
@@ -180,7 +180,10 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
     emit_gc_local_inferred_type(body, f, local_idx, vt, ctx)
 }
 // Scan function instructions for MIR_STRUCT_NEW with matching struct name to extract byte_size.
-fn lookup_struct_byte_size(f: MirFunction, struct_name: String) -> i32 {
+fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx) -> i32 {
+    // #region agent log
+    ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 3)
+    // #endregion
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {

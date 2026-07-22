@@ -53,6 +53,12 @@ pub struct SelfEmitCtx {
     // Per-function emit caches (#829). Empty = inactive.
     local_gc_infer_cache: Vec<i32>,
     local_struct_new_cache: Vec<i32>,
+    // type_name → wasm ref type idx (+2 encoded; 1 = known miss).
+    type_name_ref_index: NameIndex,
+    // #region agent log
+    // [infer_fills, block_scans, layout_lookups, byte_size_scans]
+    local_gc_debug_counters: Vec<i32>,
+    // #endregion
 }
 
 fn SelfEmitCtx_new(
@@ -139,8 +145,37 @@ fn SelfEmitCtx_new(
         gc_layout_table: layout,
         local_gc_infer_cache: Vec_new_i32(),
         local_struct_new_cache: Vec_new_i32(),
+        type_name_ref_index: name_index::NameIndex_new(4096),
+        local_gc_debug_counters: SelfEmitCtx_new_local_gc_debug_counters(),
     }
 }
+
+fn SelfEmitCtx_type_name_ref_index(ctx: SelfEmitCtx) -> NameIndex {
+    ctx.type_name_ref_index
+}
+
+// #region agent log
+fn SelfEmitCtx_new_local_gc_debug_counters() -> Vec<i32> {
+    let counters = Vec_new_i32()
+    push(counters, 0)
+    push(counters, 0)
+    push(counters, 0)
+    push(counters, 0)
+    counters
+}
+
+fn SelfEmitCtx_bump_local_gc_debug(ctx: SelfEmitCtx, slot: i32) {
+    let counters = ctx.local_gc_debug_counters
+    if slot < 0 || slot >= len(counters) {
+        return
+    }
+    set(counters, slot, get_unchecked(counters, slot) + 1)
+}
+
+fn SelfEmitCtx_local_gc_debug_counters(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_gc_debug_counters
+}
+// #endregion
 
 fn SelfEmitCtx_local_gc_infer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_gc_infer_cache

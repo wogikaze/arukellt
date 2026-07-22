@@ -29,6 +29,7 @@ use wasm::code_ref_locals_infer_dest
 use wasm::code_ref_locals_stack_scan
 use wasm::code_ref_locals_scan
 use wasm::code_ref_locals_fn_cache
+use wasm::ctx_record
 
 // Public entry point: infer GC type for a local's storage.
 fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
@@ -38,6 +39,9 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
     let inferred = infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
     if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
         code_ref_locals_fn_cache::cached_infer_set(ctx, local_idx, inferred)
+        // #region agent log
+        ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 0)
+        // #endregion
     }
     inferred
 }
@@ -137,6 +141,9 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
 // Scan all blocks for instructions that assign to local_idx and infer
 // the GC type from the producer instruction.
 fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    // #region agent log
+    ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 1)
+    // #endregion
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {

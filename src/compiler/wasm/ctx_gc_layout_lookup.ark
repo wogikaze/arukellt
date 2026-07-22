@@ -1,3 +1,4 @@
+use collections::name_index
 use wasm::ctx_record
 use wasm::gc_layout_table
 use wasm::code_ref_locals_scan
@@ -122,9 +123,24 @@ fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -
 // name→offset mapping) when the type_id lookup fails, so callers no longer
 // need their own string-prefix matchers.
 fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    // #region agent log
+    ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 2)
+    // #endregion
     if len(type_name) == 0 {
         return 0 - 1
     }
+    let index = ctx_record::SelfEmitCtx_type_name_ref_index(ctx)
+    // Encoded values are type_idx+2 (1 = known miss) so get!=-1 means cached.
+    let encoded = name_index::name_index_get(index, clone(type_name))
+    if encoded >= 1 {
+        return encoded - 2
+    }
+    let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(type_name))
+    name_index::name_index_set(index, type_name, resolved + 2)
+    resolved
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_name: String) -> i32 {
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
     let tid = gc_layout_type_id_for_name(tt, clone(type_name))
     let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, tid)
