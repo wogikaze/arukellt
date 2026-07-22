@@ -68,7 +68,7 @@ fn try_emit_host_int_widen_convert_call(w: WasmWriter, handler_id: i32, inst: Mi
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_i8_to_i32(){
-        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx, clone(handler_id))
+        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx, handler_id)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
