@@ -1,3 +1,4 @@
+use std::host::stdio
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::function_local_mutation
@@ -7,6 +8,7 @@ use mir::local_access
 use mir::module_functions
 use mir::module_spine
 use mir::opcodes
+use mir::post_pass_callee_cache
 use mir::post_pass_callee_lookup
 use mir::post_pass_enum_normalize
 use mir::post_pass_stack_scan
@@ -27,23 +29,64 @@ use mir::typed_mir_sync_module
 //
 // Runs as a fixpoint iteration: a chain A←B←C may need multiple passes
 // to fully propagate from C to A.
+//
+// #829: CalleePropCache makes per-CALL callee lookup O(1) instead of scanning
+// the whole MirModule (and each callee body) on every fixpoint iteration.
 
 fn mir_module_propagate_local_types(m: MirModule) {
+    mir_module_propagate_local_types_report(m, 0)
+}
+
+fn mir_module_propagate_local_types_report(m: MirModule, report: i32) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
     let table = module_spine::MirModule_type_table(m)
+    let cache = post_pass_callee_cache::callee_prop_cache_build(m)
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
+    let mut iterations_total = 0
+    let mut max_iterations = 0
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
-        let propagated = mir_function_propagate_local_types(m, f, table)
-        module_functions::MirModule_set_function_at(m, fi, propagated)
+        let iterations = mir_function_propagate_local_types(cache, f, table)
+        module_functions::MirModule_set_function_at(m, fi, f)
+        iterations_total = iterations_total + iterations
+        if iterations > max_iterations {
+            max_iterations = iterations
+        }
         fi = fi + 1
+    }
+    if report != 0 {
+        // #region agent log
+        stdio::eprintln(
+            concat(
+                String_from("[arukellt] propagate.stats: functions="),
+                concat(
+                    to_string(count),
+                    concat(
+                        String_from(" iterations_total="),
+                        concat(
+                            to_string(iterations_total),
+                            concat(
+                                String_from(" max_iterations="),
+                                to_string(max_iterations)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        // #endregion
     }
 }
 
-fn mir_function_propagate_local_types(m: MirModule, f: MirFunction, table: TypeTable) -> MirFunction {
+// Returns fixpoint iteration count. Mutates `f` in place.
+fn mir_function_propagate_local_types(
+    cache: CalleePropCache,
+    f: MirFunction,
+    table: TypeTable
+) -> i32 {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut changed = true
     let mut iterations = 0
@@ -55,16 +98,25 @@ fn mir_function_propagate_local_types(m: MirModule, f: MirFunction, table: TypeT
         while bi < block_count {
             let block = get_unchecked(f.blocks, bi)
             let inst_count = block_inst_access::MirBlock_inst_count(block)
-            changed = scan_block_for_propagation(m, f, block, inst_count, local_count, table, changed)
+            changed = scan_block_for_propagation(
+                cache,
+                f,
+                block,
+                inst_count,
+                local_count,
+                table,
+                changed
+            )
             bi = bi + 1
         }
         iterations = iterations + 1
     }
-    post_pass_enum_normalize::mir_function_normalize_multi_variant_locals(f, table)
+    let _normalized = post_pass_enum_normalize::mir_function_normalize_multi_variant_locals(f, table)
+    iterations
 }
 
 fn scan_block_for_propagation(
-    m: MirModule,
+    cache: CalleePropCache,
     f: MirFunction,
     block: MirBlock,
     inst_count: i32,
@@ -79,7 +131,7 @@ fn scan_block_for_propagation(
         let op = inst_accessors_shape::MirInst_op(inst)
         let dest = inst_accessors_operands::MirInst_dest(inst)
         if dest >= 0 && dest < local_count {
-            if post_pass_callee_lookup::propagate_from_producer_inst(m, f, inst, op, dest, table) {
+            if post_pass_callee_lookup::propagate_from_producer_inst(cache, f, inst, op, dest, table) {
                 result = true
             }
         }
@@ -92,7 +144,15 @@ fn scan_block_for_propagation(
                         result = true
                     }
                 } else {
-                    if propagate_from_stack_producer(m, f, block, inst_count, ii, set_dest, table) {
+                    if propagate_from_stack_producer(
+                        cache,
+                        f,
+                        block,
+                        inst_count,
+                        ii,
+                        set_dest,
+                        table
+                    ) {
                         result = true
                     }
                 }
@@ -165,7 +225,7 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
 
 // For stack-based LOCAL_SET, find the producer and propagate its type.
 fn propagate_from_stack_producer(
-    m: MirModule,
+    cache: CalleePropCache,
     f: MirFunction,
     block: MirBlock,
     inst_count: i32,
@@ -187,5 +247,5 @@ fn propagate_from_stack_producer(
     if src_dest >= 0 && src_dest != dest {
         return propagate_from_local(f, dest, src_dest, table)
     }
-    return post_pass_callee_lookup::propagate_from_producer_inst(m, f, src_inst, src_op, dest, table)
+    post_pass_callee_lookup::propagate_from_producer_inst(cache, f, src_inst, src_op, dest, table)
 }

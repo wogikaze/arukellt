@@ -68,7 +68,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, String_from("sync"), t_after_reach, t_after_sync)
 
     // TypeTable re-sync is fused into type_name writes during propagate (#823).
-    post_pass_type_propagate::mir_module_propagate_local_types(module)
+    post_pass_type_propagate::mir_module_propagate_local_types_report(module, timing)
     let t_after_prop = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, String_from("propagate"), t_after_sync, t_after_prop)
     entry_timing::mir_lower_phase_note(timing, String_from("total"), t_enter, t_after_prop)

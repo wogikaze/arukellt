@@ -1,0 +1,134 @@
+use collections::name_index
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_identity
+use mir::function_locals_view
+use mir::function_return_view
+use mir::inst_accessors_operands
+use mir::inst_record
+use mir::local_access
+use mir::module_functions
+use mir::opcodes
+//
+// Module-scoped callee lookup for type propagation.
+// Linear scan of every MirFunction on each CALL (× fixpoint iterations) was
+// the dominant cost of lower.propagate on selfhost-scale modules (#829).
+
+struct CalleePropCache {
+    by_name: NameIndex,
+    by_bare: NameIndex,
+    ret_type_names: Vec<String>,
+    ret_variant_slots: Vec<i32>,
+}
+
+fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
+    let count = module_functions::MirModule_function_count(m)
+    let by_name = name_index::NameIndex_new(count)
+    let by_bare = name_index::NameIndex_new(count)
+    let ret_type_names = Vec_new_String()
+    let ret_variant_slots = Vec_new_i32()
+    let mut fi = 0
+    while fi < count {
+        let f = module_functions::MirModule_function_at(m, fi)
+        let fname = function_identity::MirFunction_name(f)
+        name_index::name_index_insert_first(by_name, clone(fname), fi)
+        let bare = strip_module_prefix(clone(fname))
+        let existing_bare = name_index::name_index_get(by_bare, clone(bare))
+        if existing_bare < 0 {
+            name_index::name_index_set(by_bare, bare, fi)
+        } else if existing_bare != fi {
+            // Ambiguous bare name: same rule as linear lookup (no unique match).
+            name_index::name_index_set(by_bare, bare, 0 - 2)
+        }
+        push(ret_type_names, function_return_view::MirFunction_return_type_name(f))
+        push(ret_variant_slots, compute_return_variant_slot(f))
+        fi = fi + 1
+    }
+    CalleePropCache {
+        by_name: by_name,
+        by_bare: by_bare,
+        ret_type_names: ret_type_names,
+        ret_variant_slots: ret_variant_slots,
+    }
+}
+
+fn callee_prop_cache_lookup(cache: CalleePropCache, callee: String) -> i32 {
+    let exact = name_index::name_index_get(cache.by_name, clone(callee))
+    if exact >= 0 {
+        return exact
+    }
+    let bare = strip_module_prefix(callee)
+    let bare_idx = name_index::name_index_get(cache.by_bare, bare)
+    if bare_idx >= 0 {
+        return bare_idx
+    }
+    0 - 1
+}
+
+fn callee_prop_cache_return_type_name(cache: CalleePropCache, callee: String) -> String {
+    let idx = callee_prop_cache_lookup(cache, callee)
+    if idx < 0 || idx >= len(cache.ret_type_names) {
+        return String_new()
+    }
+    clone(get_unchecked(cache.ret_type_names, idx))
+}
+
+fn callee_prop_cache_return_variant_slot(cache: CalleePropCache, callee: String) -> i32 {
+    let idx = callee_prop_cache_lookup(cache, callee)
+    if idx < 0 || idx >= len(cache.ret_variant_slots) {
+        return 0 - 1
+    }
+    get_unchecked(cache.ret_variant_slots, idx)
+}
+
+fn compute_return_variant_slot(f: MirFunction) -> i32 {
+    let mut first_slot = 0 - 1
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_record::mir_inst_op(inst) == opcodes::MIR_RETURN() {
+                let ret_local = inst_accessors_operands::MirInst_arg0(inst)
+                if ret_local >= 0 && ret_local < function_locals_view::MirFunction_local_count(f) {
+                    let loc = function_locals_view::MirFunction_local_at(f, ret_local)
+                    let slot = local_access::MirLocal_variant_slot(loc)
+                    if slot >= 0 {
+                        if first_slot < 0 {
+                            first_slot = slot
+                        } else {
+                            if slot != first_slot {
+                                return 0 - 1
+                            }
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    first_slot
+}
+
+fn strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut last = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            let next = i + 2
+            if next < n {
+                last = next
+            }
+        }
+        i = i + 1
+    }
+    if last >= 0 {
+        return substring(name, last, n)
+    }
+    name
+}
