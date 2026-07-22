@@ -51,10 +51,8 @@ graph LR
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
-  I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
-  I834["834 Pin bootstrap to validating Memory64 wasm32-gc"]
-  I840["840 840 — Enable `?` From conversion on wasm32-gc"]
-  I841["841 841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims"]
+  I831["831 native-executor wasm32-gc S3 validation drift (func 118)"]
+  I832["832 native S3 vs wasmtime S3 function-count drift (+10)"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -157,10 +155,8 @@ graph LR
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
-- **830** depends on: 730; blocks: none
-- **834** depends on: 730; blocks: none
-- **840** depends on: 839; blocks: none
-- **841** depends on: 727; blocks: 675
+- **831** depends on: none; blocks: none
+- **832** depends on: none; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699

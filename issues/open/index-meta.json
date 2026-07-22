@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-22T10:16:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -893,81 +893,37 @@
       }
     },
     {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
+      "id": "831",
+      "path": "831-native-executor-wasm32-gc-func118-validation.md",
+      "title": "native-executor wasm32-gc S3 validation drift (func 118)",
+      "track": "main",
       "status": "open",
-      "depends_on": [
-        "730"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "834",
-      "path": "834-wasm32-gc-bootstrap-pin.md",
-      "title": "Pin bootstrap to validating Memory64 wasm32-gc",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
+        "class": null,
         "upstream_notes": null
       }
     },
     {
-      "id": "840",
-      "path": "840-question-mark-from-wasm32-gc.md",
-      "title": "840 — Enable `?` From conversion on wasm32-gc",
-      "track": "language-design",
+      "id": "832",
+      "path": "832-native-vs-wasmtime-s3-function-count-drift.md",
+      "title": "native S3 vs wasmtime S3 function-count drift (+10)",
+      "track": "main",
       "status": "open",
-      "depends_on": [
-        "839"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 0
       },
       "orchestration": {
-        "class": "implementation",
-        "upstream_notes": 839
-      }
-    },
-    {
-      "id": "841",
-      "path": "841-wit-network-real-wasi-abi.md",
-      "title": "841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "727"
-      ],
-      "blocks_issue_ids": [
-        "675"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
