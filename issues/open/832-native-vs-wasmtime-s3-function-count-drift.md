@@ -23,3 +23,21 @@ reached on this source revision).
 - bootstrap S2 SHA-256: `2abbda53e60c377fe0681b7dd05e0f9c6f7739998fc33d9ba05caeed662355ef` (funcs 9268; not yet a fixpoint peer of either S3)
 - Independent `/usr/bin/time -v` max RSS for native full S3 (arena default): ~12.3 GiB
 - Exact GC exists behind `ARUKELLT_NATIVE_GC=1` but auto-collect still SIGSEGV on full compiler (shadow-stack incomplete)
+
+
+## Clean-cache recheck (2026-07-22, wave/native-cpp-recovery)
+
+Under identical flat overlay, `wasm32`/`wasi-p1`, and **empty separate caches**,
+native executor and wasmtime-hosted S2-runtime produce:
+
+- reachability: `9351 -> 8441` on both
+- MIR function multiset: identical (ordered, Counter delta 0)
+- S3 SHA-256: `e34fc3f083d42d27098c8b40fea18be07b3aaa43b48a75e475b342e52a0d4531` (both)
+- Wasm funcs/codes: 8441 / 8441 (both)
+
+Conclusion: the earlier +10 (8441 vs 8431) is **not reproducible** with clean
+caches on this revision. Treat prior artifact drift as stale-cache / mismatched
+overlay or source fingerprint until a clean-cache reproduction exists.
+
+Artifacts: `.build-native-recovery/selfhost/native/function-diff/`
+Tool: `scripts/debug/compare-s3-mir-functions.py`
