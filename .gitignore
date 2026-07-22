@@ -96,3 +96,7 @@ superpowers/
 .worktrees
 tmp/
 .ark-t3-tmp/
+
+# Native-cpp recovery worktree locals
+.recovery-snapshot/
+.build-native-recovery/

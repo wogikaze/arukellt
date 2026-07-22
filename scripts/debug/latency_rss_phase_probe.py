@@ -25,8 +25,23 @@ ROOT = Path(__file__).resolve().parents[2]
 LOG = ROOT / ".cursor/debug-5db792.log"
 SESSION = "5db792"
 PHASE_RE = re.compile(r"\[arukellt\]\s+([A-Za-z0-9_.]+):\s*([0-9]+(?:\.[0-9]+)?)ms")
-CLOCK = ROOT / ".build/selfhost/arukellt-s2-clock.wasm"
-RUNTIME = ROOT / ".build/selfhost/arukellt-s2-runtime.wasm"
+
+
+def _selfhost_dir() -> Path:
+    """Honor ARUKELLT_BUILD_DIR so probes do not race the shared .build/selfhost."""
+    import importlib.util
+
+    lib = ROOT / "scripts/lib/build_paths.py"
+    spec = importlib.util.spec_from_file_location("arukellt_build_paths", lib)
+    if spec is None or spec.loader is None:
+        return ROOT / ".build/selfhost"
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.build_dir(ROOT) / "selfhost"
+
+
+CLOCK = _selfhost_dir() / "arukellt-s2-clock.wasm"
+RUNTIME = _selfhost_dir() / "arukellt-s2-runtime.wasm"
 
 
 # #region agent log
@@ -126,10 +141,11 @@ def main() -> int:
     compiler = CLOCK if use_clock else RUNTIME
     # Match scripts/selfhost/checks.py::_wasm_compile stage-3 argv:
     # --dir flat-src --dir root -o <guest> --cache-dir (plus --time for receipt).
-    flat_src = ROOT / ".build/selfhost/flat-src"
+    selfhost = _selfhost_dir()
+    flat_src = selfhost / "flat-src"
     guest_out = "latency-probe-out.wasm"
     out = flat_src / guest_out
-    ast_cache = ROOT / ".build/selfhost/ast-cache"
+    ast_cache = selfhost / "ast-cache"
 
     # #region agent log
     existing = _list_main_compiles()

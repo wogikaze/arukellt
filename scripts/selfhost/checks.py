@@ -790,9 +790,11 @@ def _is_selfhost_compiler(compiler_wasm: Path, root: Path) -> bool:
         rel = compiler_wasm.relative_to(root)
     except ValueError:
         return False
-    s = str(rel)
-    # Selfhost-built compilers are in .build/selfhost/arukellt-s2*.wasm or s3*.wasm
-    return s.startswith(".build/selfhost/arukellt-s")
+    try:
+        compiler_wasm.relative_to(_selfhost_dir(root))
+    except ValueError:
+        return False
+    return compiler_wasm.name.startswith("arukellt-s")
 
 
 def _wasm_compile(
@@ -805,6 +807,7 @@ def _wasm_compile(
     workspace_root: Path | None = None,
     target: str | None = None,
     wasi_version: str | None = None,
+    extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime.
 
@@ -836,7 +839,8 @@ def _wasm_compile(
         run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
     result = _run(
         [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out, *cache_args],
+         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out,
+         *cache_args, *(extra_args or [])],
         root,
         timeout=timeout,
     )
@@ -3383,6 +3387,7 @@ def _wasm_compile_selfhost_source(
     use_s3_cache: bool = False,
     target: str | None = None,
     wasi_version: str | None = None,
+    extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
     """Compile current selfhost source, falling back to a flat bootstrap overlay.
 
@@ -3415,6 +3420,7 @@ def _wasm_compile_selfhost_source(
                 workspace_root=workspace,
                 target=emit_target,
                 wasi_version=emit_wasi,
+                extra_args=extra_args,
             )
         result = _wasm_compile(
             wasmtime,
@@ -3425,6 +3431,7 @@ def _wasm_compile_selfhost_source(
             timeout=compile_timeout,
             target=emit_target,
             wasi_version=emit_wasi,
+            extra_args=extra_args,
         )
         if result.returncode == 0:
             return result
@@ -3441,6 +3448,7 @@ def _wasm_compile_selfhost_source(
             workspace_root=ws,
             target=emit_target,
             wasi_version=emit_wasi,
+            extra_args=extra_args,
         )
 
     result = _do_compile()
@@ -3679,6 +3687,10 @@ def _run_fixpoint_locked(
             (build_dir / "s2-hash.txt").write_text(_sha256(s2), encoding="utf-8")
             if fingerprint is not None:
                 (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
+            from selfhost.native_executor import write_s2_build_profile
+            write_s2_build_profile(
+                root, s2, fingerprint=fingerprint if fingerprint is not None else ""
+            )
         except OSError:
             pass
 
@@ -3822,6 +3834,14 @@ def _rebuild_current_s2_locked(
                             f"{RED}error: pinned-reference selfhost wasm not found at "
                             f"{PINNED_WASM_REL}{NC}"
                         ), time.time() - started
+                    try:
+                        from selfhost.native_executor import write_s2_build_profile
+                        write_s2_build_profile(root, out, fingerprint=fingerprint)
+                    except Exception as profile_exc:
+                        return None, (
+                            f"{RED}error: failed to write S2 build-profile manifest: "
+                            f"{profile_exc}{NC}"
+                        ), time.time() - started
                     runtime = _parity_runtime_compiler(root, pinned, out)
                     if runtime is None:
                         return None, (
@@ -3882,6 +3902,15 @@ def _rebuild_current_s2_locked(
         (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
     except OSError:
         pass
+
+    # Machine-readable output profile for native-executor / ADR-049 lane.
+    try:
+        from selfhost.native_executor import write_s2_build_profile
+        write_s2_build_profile(root, out, fingerprint=fingerprint)
+    except Exception as profile_exc:
+        return None, (
+            f"{RED}error: failed to write S2 build-profile manifest: {profile_exc}{NC}"
+        ), time.time() - started
 
     runtime = _parity_runtime_compiler(root, pinned, out)
     if runtime is None:

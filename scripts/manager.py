@@ -55,6 +55,7 @@ from selfhost.checks import (  # noqa: E402
     run_fmt_parity,
     run_parity,
 )
+from selfhost.native_executor import run_native_executor  # noqa: E402
 from docs_domain.checks import (  # noqa: E402
     run_consistency,
     run_deprecated_api_scan,
@@ -6937,6 +6938,22 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
         default=False,
         help="Skip rebuild when s2 already matches the current source fingerprint",
     )
+    p_ne = sub.add_parser(
+        "native-executor",
+        help="ADR-049 native C99 executor lane (S2 profile → native → S3 byte equality)",
+        description=(
+            "Build/cache arukellt-native from S2, then generate S3 with the same output "
+            "profile as the comparison S2 (build-profile manifest). Requires --build."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_ne.add_argument("--dry-run", action="store_true")
+    p_ne.add_argument(
+        "--build",
+        action="store_true",
+        default=False,
+        help="Build or refresh the native executor and run the S3 equality lane",
+    )
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -7176,6 +7193,7 @@ def main() -> int:
             "build-compiler": cmd_selfhost_build_compiler,
             "build-s2":       cmd_selfhost_build_compiler,
             "rebuild-s2":     cmd_selfhost_build_compiler,
+            "native-executor": cmd_selfhost_native_executor,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
             "fmt-parity":     cmd_selfhost_fmt_parity,
@@ -7245,6 +7263,17 @@ def main() -> int:
     print(f"{RED}error: unknown domain: {args.domain}{NC}", file=sys.stderr)
     return 1
 # ── selfhost subcommands ──────────────────────────────────────────────────────
+
+
+def cmd_selfhost_native_executor(args: argparse.Namespace) -> int:
+    """Run the ADR-049 native executor lane and preserve its receipt."""
+    return_code, output = run_native_executor(
+        _repo_root(),
+        build=getattr(args, "build", False),
+        dry_run=args.dry_run,
+    )
+    print(output)
+    return return_code
 
 
 def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
