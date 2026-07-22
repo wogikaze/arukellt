@@ -101,7 +101,9 @@ fn compose_wit_find_export(exports: Vec<ComposeWitFuncSig>, name: String) -> i32
 fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider_exports: Vec<ComposeWitFuncSig>) -> String {
     for i in 0..len(socket_imports) {
         let imp = get_unchecked(socket_imports, i)
-        let export_idx = compose_wit_find_export(clone(provider_exports), clone(imp.name))
+        // prelude clone() is String-only; cloning a Vec makes Memory64 locals
+        // typed as String and fails validate (#730).
+        let export_idx = compose_wit_find_export(provider_exports, clone(imp.name))
         if export_idx < 0 {
             return concat(
                 String_from("error: compose conflict: socket import '"),
@@ -170,5 +172,5 @@ fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String 
     }
     let provider_world = compose_wit_load_world(clone(provider_wit))
     let socket_world = compose_wit_load_world(clone(socket_wit))
-    compose_wit_validate_imports(clone(socket_world.imports), clone(provider_world.exports))
+    compose_wit_validate_imports(socket_world.imports, provider_world.exports)
 }
