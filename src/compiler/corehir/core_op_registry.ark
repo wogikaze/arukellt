@@ -20,6 +20,21 @@ fn CoreOpRegistry_lookup_by_canonical(canonical_id: String) -> CoreOpId {
     core_op_id::CoreOpId_new(index)
 }
 
+fn CoreOpRegistry_lookup_by_fallback_symbol(symbol: String) -> CoreOpId {
+    let count = core_op_registry_generated::core_op_registry_entry_count()
+    let mut index = 0
+    while index < count {
+        if eq(
+            clone(symbol),
+            core_op_registry_generated::core_op_registry_fallback_symbol_at(index)
+        ) {
+            return core_op_id::CoreOpId_new(index)
+        }
+        index = index + 1
+    }
+    core_op_id::CORE_OP_ID_NONE()
+}
+
 fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
     CoreOpEntry {
         id: core_op_id::CoreOpId_new(index),

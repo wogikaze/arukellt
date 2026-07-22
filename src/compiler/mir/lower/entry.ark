@@ -2,6 +2,7 @@ use mir::lower::ctx_api_module
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_gc_struct_order
+use mir::lower::call_func_id
 use mir::lower::decl_source
 use mir::lower::entry_context
 use mir::lower::entry_decls
@@ -47,6 +48,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     entry_timing::mir_lower_phase_note(timing, String_from("decl_emit"), t_enter, t_after_decl)
 
     let module = ctx_api_module::ctx_current_module(ctx)
+    call_func_id::mir_module_attach_missing_function_ids(module)
     let fns_before = module_functions::MirModule_function_count(module)
     let blocks_before = module_functions::MirModule_block_count(module)
     let insts_before = module_functions::MirModule_inst_count(module)

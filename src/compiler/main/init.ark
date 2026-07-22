@@ -40,13 +40,13 @@ pub fn cmd_init(opts: CliOptions) {
                     init_templates::init_template_print_next_steps(clone(project_name), clone(template))
                 },
                 Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error creating ark.toml: "), fs::fs_error_message(e)))
+                    stdio::eprintln(concat(String_from("error creating ark.toml: "), e))
                     process::exit(1)
                 },
             }
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error creating project: "), fs::fs_error_message(e)))
+            stdio::eprintln(concat(String_from("error creating project: "), e))
             process::exit(1)
         },
     }

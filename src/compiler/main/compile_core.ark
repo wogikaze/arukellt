@@ -34,6 +34,10 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))
         config_record::config_set_dump_hir(config, should_dump(opts, String_from("hir")))
         config_record::config_set_dump_mir(config, should_dump(opts, String_from("mir")))
+        config_record::config_set_dump_native_cpp_coverage(
+            config,
+            should_dump(opts, String_from("native-cpp"))
+        )
         config_record::config_set_dump_wasm(config, should_dump(opts, String_from("wasm")))
     }
     config

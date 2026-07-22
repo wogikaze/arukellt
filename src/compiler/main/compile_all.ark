@@ -16,14 +16,14 @@ fn cmd_compile_all(opts: CliOptions) {
     let wasm_config = compile_core::build_emit_config(opts, String_from("wasm"), true)
     let wasm_result = file::compile_file(clone(input_file), wasm_config)
     if !result_record::compile_result_success(wasm_result) {
-        compile_core::print_compile_errors(clone(input_file), wasm_result, json_mode)
+        compile_core::print_compile_diagnostics(clone(input_file), wasm_result, json_mode)
         process::exit(1)
         return
     }
     let comp_config = compile_core::build_emit_config(opts, String_from("component"), false)
     let comp_result = file::compile_file(clone(input_file), comp_config)
     if !result_record::compile_result_success(comp_result) {
-        compile_core::print_compile_errors(clone(input_file), comp_result, json_mode)
+        compile_core::print_compile_diagnostics(clone(input_file), comp_result, json_mode)
         process::exit(1)
         return
     }

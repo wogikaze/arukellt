@@ -1,0 +1,166 @@
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::signature_entry
+use corehir::type_id
+use corehir::type_table
+use mir::local_record
+use mir::value_types
+
+fn native_c_scalar_type_name(name: String) -> String {
+    if eq(clone(name), String_from("i8")) { return String_from("int8_t") }
+    if eq(clone(name), String_from("i16")) { return String_from("int16_t") }
+    if eq(clone(name), String_from("i32")) { return String_from("int32_t") }
+    if eq(clone(name), String_from("i64")) { return String_from("int64_t") }
+    if eq(clone(name), String_from("u8")) { return String_from("uint8_t") }
+    if eq(clone(name), String_from("u16")) { return String_from("uint16_t") }
+    if eq(clone(name), String_from("u32")) { return String_from("uint32_t") }
+    if eq(clone(name), String_from("u64")) { return String_from("uint64_t") }
+    if eq(clone(name), String_from("f32")) { return String_from("float") }
+    if eq(clone(name), String_from("f64")) { return String_from("double") }
+    if eq(clone(name), String_from("bool")) { return String_from("uint8_t") }
+    if eq(clone(name), String_from("char")) { return String_from("uint32_t") }
+    if eq(clone(name), String_from("unit")) || eq(clone(name), String_from("void")) {
+        return String_from("ark_unit")
+    }
+    String_new()
+}
+
+fn native_c_type_for_value(table: TypeTable, value_type: MirValueType) -> String {
+    let raw_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type))
+    if raw_type_id < 0 || raw_type_id >= type_table::TypeTable_entry_count(table) {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_entry_at(table, raw_type_id)
+    let scalar = native_c_scalar_type_name(type_table::type_entry_name(entry))
+    if len(scalar) > 0 {
+        return scalar
+    }
+    String_from("ark_object_header *")
+}
+
+fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
+    let typed = native_c_type_for_value(table, local_record::mir_local_value_type(local))
+    if len(typed) > 0 {
+        return typed
+    }
+    let legacy = local_record::mir_local_val_type(local)
+    if legacy == value_types::VT_I32() { return String_from("int32_t") }
+    if legacy == value_types::VT_I64() { return String_from("int64_t") }
+    if legacy == value_types::VT_F32() { return String_from("float") }
+    if legacy == value_types::VT_F64() { return String_from("double") }
+    if legacy == value_types::VT_REF() || legacy == value_types::VT_GC_REF() {
+        return String_from("ark_object_header *")
+    }
+    String_new()
+}
+
+fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String {
+    let raw_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type))
+    if raw_type_id < 0 || raw_type_id >= type_table::TypeTable_entry_count(table) {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_entry_at(table, raw_type_id)
+    let name = type_table::type_entry_name(entry)
+    if eq(clone(name), String_from("i8")) { return String_from("i8") }
+    if eq(clone(name), String_from("i16")) { return String_from("i16") }
+    if eq(clone(name), String_from("i32")) { return String_from("i32") }
+    if eq(clone(name), String_from("i64")) { return String_from("i64") }
+    if eq(clone(name), String_from("u8")) { return String_from("u8") }
+    if eq(clone(name), String_from("u16")) { return String_from("u16") }
+    if eq(clone(name), String_from("u32")) { return String_from("u32") }
+    if eq(clone(name), String_from("u64")) { return String_from("u64") }
+    if eq(clone(name), String_from("f32")) { return String_from("f32") }
+    if eq(clone(name), String_from("f64")) { return String_from("f64") }
+    if eq(clone(name), String_from("bool")) { return String_from("b") }
+    if eq(clone(name), String_from("char")) { return String_from("c") }
+    if eq(clone(name), String_from("unit")) || eq(clone(name), String_from("void")) {
+        return String_from("v")
+    }
+    let prefix = if mir_value_type::mir_value_type_nullability(value_type) == kinds::NULLABILITY_NULLABLE() {
+        String_from("n")
+    } else {
+        String_from("r")
+    }
+    concat(prefix, i32_to_string(raw_type_id))
+}
+
+fn native_c_signature_parameter_encoding(table: TypeTable, signature: SignatureEntry) -> String {
+    let count = signature_entry::signature_entry_param_count(signature)
+    if count == 0 {
+        return String_from("v")
+    }
+    let mut encoding = String_new()
+    let mut index = 0
+    while index < count {
+        if index > 0 { encoding = concat(encoding, String_from("_")) }
+        let part = native_c_type_encoding(table, signature_entry::signature_entry_param_at(signature, index))
+        if len(part) == 0 { return String_new() }
+        encoding = concat(encoding, part)
+        index = index + 1
+    }
+    encoding
+}
+
+fn native_c_signature_result_encoding(table: TypeTable, signature: SignatureEntry) -> String {
+    let count = signature_entry::signature_entry_return_count(signature)
+    if count == 0 {
+        return String_from("v")
+    }
+    let mut encoding = String_new()
+    let mut index = 0
+    while index < count {
+        if index > 0 { encoding = concat(encoding, String_from("_")) }
+        let part = native_c_type_encoding(table, signature_entry::signature_entry_return_at(signature, index))
+        if len(part) == 0 { return String_new() }
+        encoding = concat(encoding, part)
+        index = index + 1
+    }
+    encoding
+}
+
+fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: SignatureEntry) -> String {
+    let parameters = native_c_signature_parameter_encoding(table, signature)
+    let results = native_c_signature_result_encoding(table, signature)
+    if len(parameters) == 0 || len(results) == 0 {
+        return String_new()
+    }
+    concat(
+        String_from("ark_f_"),
+        concat(
+            i32_to_string(function_id_raw),
+            concat(String_from("__P_"), concat(parameters, concat(String_from("__R_"), results)))
+        )
+    )
+}
+
+fn native_c_signature_return_type(table: TypeTable, signature: SignatureEntry) -> String {
+    let count = signature_entry::signature_entry_return_count(signature)
+    if count == 0 { return String_from("void") }
+    if count == 1 {
+        let c_type = native_c_type_for_value(
+            table,
+            signature_entry::signature_entry_return_at(signature, 0)
+        )
+        if eq(clone(c_type), String_from("ark_unit")) { return String_from("void") }
+        return c_type
+    }
+    String_new()
+}
+
+fn native_c_signature_parameters(table: TypeTable, signature: SignatureEntry) -> String {
+    let count = signature_entry::signature_entry_param_count(signature)
+    if count == 0 { return String_from("void") }
+    let mut parameters = String_new()
+    let mut index = 0
+    while index < count {
+        let c_type = native_c_type_for_value(table, signature_entry::signature_entry_param_at(signature, index))
+        if len(c_type) == 0 { return String_new() }
+        if index > 0 { parameters = concat(parameters, String_from(", ")) }
+        parameters = concat(
+            parameters,
+            concat(c_type, concat(String_from(" ark_v_"), i32_to_string(index)))
+        )
+        index = index + 1
+    }
+    parameters
+}

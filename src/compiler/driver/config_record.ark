@@ -8,6 +8,7 @@ struct DriverConfig {
     dump_ast: bool,
     dump_hir: bool,
     dump_mir: bool,
+    dump_native_cpp_coverage: bool,
     dump_wasm: bool,
     parse_only: bool,
     check_only: bool,
@@ -32,6 +33,7 @@ fn DriverConfig_default() -> DriverConfig {
         dump_ast: false,
         dump_hir: false,
         dump_mir: false,
+        dump_native_cpp_coverage: false,
         dump_wasm: false,
         parse_only: false,
         check_only: false,
@@ -55,6 +57,7 @@ fn config_dump_tokens(config: DriverConfig) -> bool { config.dump_tokens }
 fn config_dump_ast(config: DriverConfig) -> bool { config.dump_ast }
 fn config_dump_hir(config: DriverConfig) -> bool { config.dump_hir }
 fn config_dump_mir(config: DriverConfig) -> bool { config.dump_mir }
+fn config_dump_native_cpp_coverage(config: DriverConfig) -> bool { config.dump_native_cpp_coverage }
 fn config_dump_wasm(config: DriverConfig) -> bool { config.dump_wasm }
 fn config_show_timing(config: DriverConfig) -> bool { config.show_timing }
 fn config_parse_only(config: DriverConfig) -> bool { config.parse_only }
@@ -70,6 +73,7 @@ fn config_set_dump_tokens(config: DriverConfig, dump_tokens: bool) { config.dump
 fn config_set_dump_ast(config: DriverConfig, dump_ast: bool) { config.dump_ast = dump_ast }
 fn config_set_dump_hir(config: DriverConfig, dump_hir: bool) { config.dump_hir = dump_hir }
 fn config_set_dump_mir(config: DriverConfig, dump_mir: bool) { config.dump_mir = dump_mir }
+fn config_set_dump_native_cpp_coverage(config: DriverConfig, enabled: bool) { config.dump_native_cpp_coverage = enabled }
 fn config_set_dump_wasm(config: DriverConfig, dump_wasm: bool) { config.dump_wasm = dump_wasm }
 fn config_set_show_timing(config: DriverConfig, show_timing: bool) { config.show_timing = show_timing }
 fn config_set_parse_only(config: DriverConfig, parse_only: bool) { config.parse_only = parse_only }

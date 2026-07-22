@@ -101,13 +101,13 @@ fn stdlib_resolve_normal_call_block(m: MirModule, block: MirBlock) -> i32 {
             let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fallback))
             let fallback_raw = function_id::FunctionId_raw(fallback_id)
             if fallback_raw >= 0 {
-                let resolved = inst_record::mir_inst_with_call_target(inst, fallback, fallback_raw)
+                let resolved_instruction = inst_record::mir_inst_with_call_target(inst, fallback, fallback_raw)
                 let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
                 inst_record::mir_inst_set_result_types(
-                    resolved,
+                    resolved_instruction,
                     signature_entry::signature_entry_return_types(fallback_entry)
                 )
-                push(output, resolved)
+                push(output, resolved_instruction)
                 resolved = resolved + 1
                 index = index + 1
                 continue

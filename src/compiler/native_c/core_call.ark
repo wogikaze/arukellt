@@ -1,0 +1,452 @@
+use corehir::core_op_registry_generated
+use corehir::mir_value_type
+use corehir::type_id
+use mir::core_op_call
+use mir::function_identity
+use mir::function_locals_view
+use mir::inst_accessors_operands
+use mir::local_record
+use mir::value_types
+
+struct NativeCCoreCall {
+    handled: bool,
+    expression: String,
+    diagnostic: String,
+}
+
+fn native_c_core_call_not_handled() -> NativeCCoreCall {
+    NativeCCoreCall { handled: false, expression: String_new(), diagnostic: String_new() }
+}
+
+fn native_c_core_call_expression(expression: String) -> NativeCCoreCall {
+    NativeCCoreCall { handled: true, expression: expression, diagnostic: String_new() }
+}
+
+fn native_c_core_call_error(diagnostic: String) -> NativeCCoreCall {
+    NativeCCoreCall { handled: true, expression: String_new(), diagnostic: diagnostic }
+}
+
+fn native_c_core_call_is_handled(call: NativeCCoreCall) -> bool { call.handled }
+fn native_c_core_call_source(call: NativeCCoreCall) -> String { clone(call.expression) }
+fn native_c_core_call_diagnostic(call: NativeCCoreCall) -> String { clone(call.diagnostic) }
+
+fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: MirInst) -> bool {
+    let handler = core_op_call::mir_call_core_op_index(mir_module, instruction)
+    if handler < 0 { return false }
+    handler == core_op_registry_generated::core_op_handler_parse_parse_f64() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_clone() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_from_bytes() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_new() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_args() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_read_stdin() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_write_bytes() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_write_string() ||
+    handler == core_op_registry_generated::core_op_handler_string_concat() ||
+    handler == core_op_registry_generated::core_op_handler_string_slice() ||
+    handler == core_op_registry_generated::core_op_handler_text_String_new() ||
+    handler == core_op_registry_generated::core_op_handler_text_char_to_string() ||
+    handler == core_op_registry_generated::core_op_handler_text_clone() ||
+    handler == core_op_registry_generated::core_op_handler_text_format_f64() ||
+    handler == core_op_registry_generated::core_op_handler_text_to_string() ||
+    handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback()
+}
+
+fn native_c_core_arg(arguments: Vec<i32>, index: i32) -> String {
+    concat(String_from("ark_v_"), i32_to_string(get_unchecked(arguments, index)))
+}
+
+fn native_c_core_ref_arg(arguments: Vec<i32>, index: i32, c_type: String) -> String {
+    concat(String_from("("), concat(c_type, concat(String_from(" *)"), native_c_core_arg(arguments, index))))
+}
+
+fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
+    if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(function) {
+        return String_from("i32")
+    }
+    let local = function_locals_view::MirFunction_local_at(function, local_id)
+    let value_type = local_record::mir_local_val_type(local)
+    if value_type == value_types::VT_I64() { return String_from("i64") }
+    if value_type == value_types::VT_F32() { return String_from("f32") }
+    if value_type == value_types::VT_F64() { return String_from("f64") }
+    if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() {
+        return String_from("ref")
+    }
+    String_from("i32")
+}
+
+fn native_c_core_destination_type_id(function: MirFunction, instruction: MirInst) -> i32 {
+    let destination = inst_accessors_operands::MirInst_dest(instruction)
+    if destination < 0 || destination >= function_locals_view::MirFunction_local_count(function) {
+        return 0
+    }
+    let local = function_locals_view::MirFunction_local_at(function, destination)
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(local_record::mir_local_value_type(local)))
+}
+
+fn native_c_core_binary_string_call(function_name: String, arguments: Vec<i32>) -> NativeCCoreCall {
+    if len(arguments) != 2 {
+        return native_c_core_call_error(String_from("compiler ICE: native-cpp String CoreOp argument mismatch"))
+    }
+    native_c_core_call_expression(
+        concat(
+            function_name,
+            concat(
+                String_from("("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                        concat(
+                            String_from(", "),
+                            concat(native_c_core_ref_arg(arguments, 1, String_from("ark_string")), String_from(")"))
+                    )
+                )
+            )
+        )
+    )
+}
+
+fn native_c_core_expected_argument_count(handler: i32) -> i32 {
+    if handler == core_op_registry_generated::core_op_handler_runtime_args() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_read_stdin() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_new() ||
+    handler == core_op_registry_generated::core_op_handler_text_String_new() {
+        return 0
+    }
+    if handler == core_op_registry_generated::core_op_handler_parse_parse_f64() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_clone() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_from_bytes() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_len_bytes() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_eprintln() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i64() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_i64_to_i32() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_print() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_println() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_process_exit() ||
+    handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_hi() ||
+    handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_lo() ||
+    handler == core_op_registry_generated::core_op_handler_string_len() ||
+    handler == core_op_registry_generated::core_op_handler_text_char_to_string() ||
+    handler == core_op_registry_generated::core_op_handler_text_clone() ||
+    handler == core_op_registry_generated::core_op_handler_text_format_f64() ||
+    handler == core_op_registry_generated::core_op_handler_text_to_string() ||
+    handler == core_op_registry_generated::core_op_handler_vec_len() ||
+    handler == core_op_registry_generated::core_op_handler_vec_pop() {
+        return 1
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_write_bytes() ||
+    handler == core_op_registry_generated::core_op_handler_runtime_write_string() ||
+    handler == core_op_registry_generated::core_op_handler_raw_string_byte_at_unchecked() ||
+    handler == core_op_registry_generated::core_op_handler_string_char_at() ||
+    handler == core_op_registry_generated::core_op_handler_string_concat() ||
+    handler == core_op_registry_generated::core_op_handler_string_contains() ||
+    handler == core_op_registry_generated::core_op_handler_string_ends_with() ||
+    handler == core_op_registry_generated::core_op_handler_string_index_of() ||
+    handler == core_op_registry_generated::core_op_handler_string_starts_with() ||
+    handler == core_op_registry_generated::core_op_handler_text_string_eq() ||
+    handler == core_op_registry_generated::core_op_handler_vec_get_unchecked() ||
+    handler == core_op_registry_generated::core_op_handler_vec_push() {
+        return 2
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_slice() ||
+    handler == core_op_registry_generated::core_op_handler_vec_set() {
+        return 3
+    }
+    0 - 1
+}
+
+fn native_c_emit_core_call(
+    mir_module: MirModule,
+    function: MirFunction,
+    instruction: MirInst,
+    arguments: Vec<i32>
+) -> NativeCCoreCall {
+    let handler = core_op_call::mir_call_core_op_index(mir_module, instruction)
+    if handler < 0 { return native_c_core_call_not_handled() }
+    let expected_arguments = native_c_core_expected_argument_count(handler)
+    if expected_arguments >= 0 && len(arguments) != expected_arguments {
+        return native_c_core_call_error(
+            concat(
+                String_from("compiler ICE: native-cpp CoreOp `"),
+                concat(
+                    core_op_registry_generated::core_op_registry_canonical_id_at(handler),
+                    concat(
+                        String_from("` argument count mismatch in function `"),
+                        concat(
+                            function_identity::MirFunction_name(function),
+                            concat(
+                                String_from("`: expected "),
+                                concat(
+                                    i32_to_string(expected_arguments),
+                                    concat(String_from(", got "), i32_to_string(len(arguments)))
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_parse_parse_f64() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_parse_f64("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_raw_string_byte_at_unchecked() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("ark_rt_string_char_at("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                        concat(String_from(", "), concat(native_c_core_arg(arguments, 1), String_from(")")))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_raw_string_clone() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("(ark_object_header *)ark_rt_string_clone("),
+                    concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_raw_string_from_bytes() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("(ark_object_header *)ark_rt_string_from_vec_bytes("),
+                    concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")"))
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_raw_string_len_bytes() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("ark_rt_string_len("),
+                    concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")"))
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_raw_string_new() {
+        return native_c_core_call_expression(
+            String_from("(ark_object_header *)ark_rt_string_from_bytes(NULL, UINT32_C(0))")
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_args() {
+        return native_c_core_call_expression(String_from("(ark_object_header *)ark_rt_args()"))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_eprintln() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_eprintln("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() {
+        return native_c_core_call_expression(
+            concat(String_from("(ark_object_header *)ark_rt_fs_read_file("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i64() {
+        return native_c_core_call_expression(concat(String_from("(int64_t)(int32_t)"), native_c_core_arg(arguments, 0)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_i64_to_i32() {
+        return native_c_core_call_expression(concat(String_from("(int32_t)(uint32_t)(uint64_t)"), native_c_core_arg(arguments, 0)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_print() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_print("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_println() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_println("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_process_exit() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_process_exit("), concat(native_c_core_arg(arguments, 0), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_read_stdin() {
+        return native_c_core_call_expression(String_from("(ark_object_header *)ark_rt_read_stdin()"))
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_write_bytes() {
+        if len(arguments) != 2 { return native_c_core_call_error(String_from("compiler ICE: native-cpp write_bytes argument mismatch")) }
+        return native_c_core_call_expression(
+            concat(
+                String_from("ark_rt_write_bytes("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                        concat(String_from(", "), concat(native_c_core_ref_arg(arguments, 1, String_from("ark_vec")), String_from(")")))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_write_string() {
+        if len(arguments) != 2 { return native_c_core_call_error(String_from("compiler ICE: native-cpp write_string argument mismatch")) }
+        return native_c_core_call_expression(
+            concat(
+                String_from("ark_rt_write_string("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                        concat(String_from(", "), concat(native_c_core_ref_arg(arguments, 1, String_from("ark_string")), String_from(")")))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_hi() {
+        return native_c_core_call_expression(concat(String_from("ark_rt_f64_bits_hi("), concat(native_c_core_arg(arguments, 0), String_from(")"))))
+    }
+    if handler == core_op_registry_generated::core_op_handler_scalar_f64_bits_lo() {
+        return native_c_core_call_expression(concat(String_from("ark_rt_f64_bits_lo("), concat(native_c_core_arg(arguments, 0), String_from(")"))))
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_char_at() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_string_char_at("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), concat(String_from(", "), concat(native_c_core_arg(arguments, 1), String_from(")")))))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_concat() {
+        let call = native_c_core_binary_string_call(String_from("ark_rt_string_concat"), arguments)
+        if len(native_c_core_call_diagnostic(call)) > 0 { return call }
+        return native_c_core_call_expression(concat(String_from("(ark_object_header *)"), native_c_core_call_source(call)))
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_contains() {
+        return native_c_core_binary_string_call(String_from("ark_rt_string_contains"), arguments)
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_ends_with() {
+        return native_c_core_binary_string_call(String_from("ark_rt_string_ends_with"), arguments)
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_index_of() {
+        return native_c_core_binary_string_call(String_from("ark_rt_string_index_of"), arguments)
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_len() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_string_len("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_slice() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("(ark_object_header *)ark_rt_string_slice("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                        concat(String_from(", "), concat(native_c_core_arg(arguments, 1), concat(String_from(", "), concat(native_c_core_arg(arguments, 2), String_from(")")))))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_starts_with() {
+        return native_c_core_binary_string_call(String_from("ark_rt_string_starts_with"), arguments)
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_String_new() {
+        return native_c_core_call_expression(String_from("(ark_object_header *)ark_rt_string_from_bytes(NULL, UINT32_C(0))"))
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_char_to_string() {
+        return native_c_core_call_expression(
+            concat(String_from("(ark_object_header *)ark_rt_char_to_string("), concat(native_c_core_arg(arguments, 0), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_format_f64() {
+        return native_c_core_call_expression(
+            concat(String_from("(ark_object_header *)ark_rt_f64_to_string("), concat(native_c_core_arg(arguments, 0), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_clone() {
+        return native_c_core_call_expression(native_c_core_arg(arguments, 0))
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_string_eq() {
+        return native_c_core_binary_string_call(String_from("ark_rt_string_eq"), arguments)
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_to_string() {
+        return native_c_core_call_expression(
+            concat(String_from("(ark_object_header *)ark_rt_i32_to_string("), concat(native_c_core_arg(arguments, 0), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() {
+        if len(arguments) > 1 {
+            return native_c_core_call_error(
+                String_from("compiler ICE: native-cpp Vec constructor accepts at most one capacity")
+            )
+        }
+        let constructor = if len(arguments) == 0 {
+            String_from("ark_rt_vec_new")
+        } else {
+            String_from("ark_rt_vec_new_with_capacity")
+        }
+        let mut expression = concat(
+            String_from("(ark_object_header *)"),
+            concat(
+                constructor,
+                concat(
+                    String_from("(UINT32_C("),
+                            concat(i32_to_string(native_c_core_destination_type_id(function, instruction)), String_from(")"))
+                    )
+                )
+            )
+            if len(arguments) == 1 {
+                expression = concat(expression, concat(String_from(", "), native_c_core_arg(arguments, 0)))
+            }
+            return native_c_core_call_expression(
+                concat(expression, String_from(")"))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_get_unchecked() {
+        let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
+        return native_c_core_call_expression(
+            concat(
+                String_from("ark_rt_vec_get("),
+                    concat(
+                        native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
+                        concat(String_from(", "), concat(native_c_core_arg(arguments, 1), concat(String_from(")."), member)))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_len() {
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_vec_len("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_pop() {
+        let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
+        return native_c_core_call_expression(
+            concat(String_from("ark_rt_vec_pop("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_vec")), concat(String_from(")."), member)))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_push() {
+        let value_local = get_unchecked(arguments, 1)
+        let member = native_c_core_value_member(function, value_local)
+        let operation = concat(
+            String_from("ark_rt_vec_push("),
+                concat(
+                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
+                    concat(
+                        String_from(", (ark_value){ ."),
+                            concat(member, concat(String_from(" = "), concat(native_c_core_arg(arguments, 1), String_from(" })"))))
+                )
+            )
+        )
+        return native_c_core_call_expression(operation)
+    }
+    if handler == core_op_registry_generated::core_op_handler_vec_set() {
+        let value_local = get_unchecked(arguments, 2)
+        let member = native_c_core_value_member(function, value_local)
+        let operation = concat(
+            String_from("ark_rt_vec_set("),
+                concat(
+                    native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
+                    concat(
+                        String_from(", "),
+                        concat(
+                            native_c_core_arg(arguments, 1),
+                            concat(
+                                String_from(", (ark_value){ ."),
+                                    concat(member, concat(String_from(" = "), concat(native_c_core_arg(arguments, 2), String_from(" })"))))
+                        )
+                    )
+                )
+            )
+        )
+        return native_c_core_call_expression(operation)
+    }
+    native_c_core_call_error(String_from("compiler ICE: native-cpp missing implementation for supported CoreOp"))
+}

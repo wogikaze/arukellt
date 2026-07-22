@@ -22,189 +22,189 @@ implementation = "src/compiler/native_c/"
 [[mir_opcodes]]
 id = "MIR_CONST_I64"
 opcode = 2
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_CONST_F64"
 opcode = 3
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_CONST_BOOL"
 opcode = 4
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_CONST_STRING"
 opcode = 5
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_LOCAL_GET"
 opcode = 10
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_LOCAL_SET"
 opcode = 11
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_ADD"
 opcode = 20
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_SUB"
 opcode = 21
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_MUL"
 opcode = 22
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_DIV"
 opcode = 23
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_MOD"
 opcode = 24
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_EQ"
 opcode = 25
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_NEQ"
 opcode = 26
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_LT"
 opcode = 27
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_LTEQ"
 opcode = 28
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_GT"
 opcode = 29
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_GTEQ"
 opcode = 30
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_AND"
 opcode = 31
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_OR"
 opcode = 32
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_NEG"
 opcode = 33
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_NOT"
 opcode = 34
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_BIT_AND"
 opcode = 35
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_BIT_OR"
 opcode = 36
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_BIT_XOR"
 opcode = 37
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_SHL"
 opcode = 38
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_SHR"
 opcode = 39
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_CALL"
 opcode = 40
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -230,28 +230,28 @@ reason = "WIT and Component Model are outside the native-cpp MVP scope"
 [[mir_opcodes]]
 id = "MIR_EXTEND_I32_TO_I64"
 opcode = 45
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_TRUNC_I64_TO_I32"
 opcode = 46
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_BR"
 opcode = 50
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_BR_IF"
 opcode = 51
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -265,63 +265,63 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_BLOCK"
 opcode = 53
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_LOOP"
 opcode = 54
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_IF"
 opcode = 55
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_ELSE"
 opcode = 56
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_END"
 opcode = 57
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_EQZ"
 opcode = 58
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_STRUCT_NEW"
 opcode = 60
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_STRUCT_GET"
 opcode = 61
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_STRUCT_SET"
 opcode = 62
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
@@ -356,21 +356,21 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_DROP"
 opcode = 70
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_NOP"
 opcode = 71
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_UNREACHABLE"
 opcode = 72
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -467,14 +467,14 @@ implementation = "c_emitter"
 id = "string.starts_with"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 [[core_ops]]
 id = "string.ends_with"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -522,40 +522,35 @@ implementation = "native_runtime"
 id = "raw.string_clone"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.string_from_bytes"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.string_new"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.string_byte_at_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.string_len_bytes"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
@@ -670,7 +665,7 @@ implementation = "ark_fallback"
 id = "parse.parse_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -733,7 +728,7 @@ implementation = "native_runtime"
 id = "runtime.args"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -804,7 +799,7 @@ reason = "network runtime is outside the native-cpp MVP scope"
 id = "runtime.eprintln"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -828,7 +823,7 @@ implementation = "c_emitter"
 id = "runtime.fs_read_file"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -859,7 +854,7 @@ implementation = "native_runtime"
 id = "runtime.i32_to_i64"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -883,7 +878,7 @@ implementation = "c_emitter"
 id = "runtime.i64_to_i32"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -922,7 +917,7 @@ reason = "network runtime is outside the native-cpp MVP scope"
 id = "runtime.print"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -930,7 +925,7 @@ implementation = "native_runtime"
 id = "runtime.println"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -946,7 +941,7 @@ implementation = "native_runtime"
 id = "runtime.process.exit"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -968,7 +963,7 @@ reason = "network runtime is outside the native-cpp MVP scope"
 id = "runtime.read_stdin"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -1037,7 +1032,7 @@ reason = "network runtime is outside the native-cpp MVP scope"
 id = "runtime.write_bytes"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -1045,7 +1040,7 @@ implementation = "native_runtime"
 id = "runtime.write_string"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
 implementation = "native_runtime"
 
@@ -1053,7 +1048,7 @@ implementation = "native_runtime"
 id = "scalar.f64_bits_hi"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -1061,7 +1056,7 @@ implementation = "c_emitter"
 id = "scalar.f64_bits_lo"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -2243,7 +2238,7 @@ reason = "SIMD is outside the native-cpp MVP scope"
 id = "string.char_at"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2251,7 +2246,7 @@ implementation = "ark_fallback"
 id = "string.concat"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2259,15 +2254,15 @@ implementation = "ark_fallback"
 id = "string.contains"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "native_runtime"
 
 [[core_ops]]
 id = "string.index_of"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2291,7 +2286,7 @@ implementation = "ark_fallback"
 id = "string.len"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2355,7 +2350,7 @@ implementation = "ark_fallback"
 id = "string.slice"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2411,7 +2406,7 @@ implementation = "ark_fallback"
 id = "text.String_new"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2419,7 +2414,7 @@ implementation = "ark_fallback"
 id = "text.char_to_string"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2435,7 +2430,7 @@ implementation = "ark_fallback"
 id = "text.clone"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2459,9 +2454,8 @@ implementation = "ark_fallback"
 id = "text.format_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
-phase = 2
-implementation = "ark_fallback"
+status = "supported"
+implementation = "native_runtime"
 
 [[core_ops]]
 id = "text.format_i64"
@@ -2499,7 +2493,7 @@ implementation = "ark_fallback"
 id = "text.string_eq"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2515,7 +2509,7 @@ implementation = "ark_fallback"
 id = "text.to_string"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2531,7 +2525,7 @@ implementation = "ark_fallback"
 id = "vec.Vec_new_fallback"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2555,7 +2549,7 @@ implementation = "ark_fallback"
 id = "vec.get_unchecked"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2587,7 +2581,7 @@ implementation = "ark_fallback"
 id = "vec.len"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2595,7 +2589,7 @@ implementation = "ark_fallback"
 id = "vec.pop"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2603,7 +2597,7 @@ implementation = "ark_fallback"
 id = "vec.push"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2643,6 +2637,6 @@ implementation = "ark_fallback"
 id = "vec.set"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"

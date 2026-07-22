@@ -63,6 +63,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     }
     let t_mir_verify = clock::monotonic_now()
     debug::dump_mir_if_enabled(config, mir_module)
+    debug::dump_native_cpp_coverage_if_enabled(config, mir_module)
     emit::emit_output(
         mir_module,
         program,

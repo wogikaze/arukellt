@@ -1,21 +1,18 @@
 use corehir::function_id
+use corehir::core_op_registry_generated
 use corehir::signature_entry
 use corehir::signature_registry
 use mir::block_inst_access
+use mir::core_op_call
 use mir::function_block_queries
 use mir::function_identity
 use mir::function_locals_view
 use mir::function_param_view
-use mir::function_return_view
-use mir::inst_accessors_literals
-use mir::inst_accessors_operands
 use mir::inst_accessors_shape
-use mir::legacy_vt_compat
-use mir::local_record
 use mir::module_functions
 use mir::module_spine
-use mir::opcodes
-use mir::value_types
+use native_c::abi
+use native_c::function_emitter
 use native_c_capabilities_generated
 
 pub struct NativeCEmitResult {
@@ -45,14 +42,6 @@ pub fn native_c_emit_result_source(result: NativeCEmitResult) -> String {
 /// Returns the target or ICE diagnostic after failed native-cpp emission.
 pub fn native_c_emit_result_diagnostic(result: NativeCEmitResult) -> String {
     clone(result.diagnostic)
-}
-
-fn native_c_local_name(local_id: i32) -> String {
-    concat(String_from("ark_v_"), i32_to_string(local_id))
-}
-
-fn native_c_function_symbol(function_id_raw: i32) -> String {
-    concat(String_from("ark_f_"), concat(i32_to_string(function_id_raw), String_from("__P_v__R_i32")))
 }
 
 fn native_c_target_capability_diagnostic(op: i32, function_name: String) -> String {
@@ -88,6 +77,29 @@ fn native_c_validate_capabilities(mir_module: MirModule) -> String {
                 if !native_c_capabilities_generated::native_c_capability_is_supported(op) {
                     return native_c_target_capability_diagnostic(op, function_name)
                 }
+                let core_op_index = core_op_call::mir_call_core_op_index(mir_module, instruction)
+                if core_op_index >= 0 &&
+                !native_c_capabilities_generated::native_c_core_capability_is_supported(core_op_index) {
+                    return concat(
+                        String_from("target `native-cpp` does not support CoreOp `"),
+                        concat(
+                            core_op_registry_generated::core_op_registry_canonical_id_at(core_op_index),
+                            concat(
+                                String_from("` in function `"),
+                                concat(
+                                    clone(function_name),
+                                    concat(
+                                        String_from("` ("),
+                                            concat(
+                                                native_c_capabilities_generated::native_c_core_capability_status_detail(core_op_index),
+                                                String_from(")")
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
                 instruction_index = instruction_index + 1
             }
             block_index = block_index + 1
@@ -97,192 +109,225 @@ fn native_c_validate_capabilities(mir_module: MirModule) -> String {
     String_new()
 }
 
+fn native_c_resolve_function_id(
+    mir_module: MirModule,
+    function: MirFunction,
+    function_index: i32
+) -> FunctionId {
+    let name = function_identity::MirFunction_name(function)
+    let mut ordinal = 0
+    let mut prior_index = 0
+    while prior_index < function_index {
+        if eq(
+            function_identity::MirFunction_name(
+                module_functions::MirModule_function_at(mir_module, prior_index)
+            ),
+            clone(name)
+        ) {
+            ordinal = ordinal + 1
+        }
+        prior_index = prior_index + 1
+    }
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let mut registry_index = 0
+    while registry_index < signature_registry::signature_registry_entry_count(registry) {
+        if eq(
+            signature_registry::signature_registry_mangled_at(registry, registry_index),
+            clone(name)
+        ) {
+            if ordinal == 0 { return function_id::FunctionId_new(registry_index) }
+            ordinal = ordinal - 1
+        }
+        registry_index = registry_index + 1
+    }
+    function_id::FUNCTION_ID_INVALID()
+}
+
 fn native_c_validate_function_signature(
     mir_module: MirModule,
     function: MirFunction,
     function_id_raw: i32,
     signature: SignatureEntry
 ) -> String {
+    let parameter_count = function_param_view::MirFunction_param_count(function)
+    if parameter_count != signature_entry::signature_entry_param_count(signature) {
+        return concat(
+            String_from("compiler ICE: native-cpp signature parameter mismatch for FunctionId "),
+            i32_to_string(function_id_raw)
+        )
+    }
+    if function_locals_view::MirFunction_local_count(function) < parameter_count {
+        return concat(
+            String_from("compiler ICE: native-cpp function locals omit parameters for FunctionId "),
+            i32_to_string(function_id_raw)
+        )
+    }
+    if signature_entry::signature_entry_return_count(signature) > 1 {
+        return concat(
+            String_from("target `native-cpp` does not yet support multiple results in function `"),
+            concat(function_identity::MirFunction_name(function), String_from("`"))
+        )
+    }
+    let table = module_spine::MirModule_type_table(mir_module)
+    if len(abi::native_c_signature_return_type(table, signature)) == 0 {
+        return concat(
+            String_from("compiler ICE: native-cpp cannot lower result signature for FunctionId "),
+            i32_to_string(function_id_raw)
+        )
+    }
+    if len(abi::native_c_signature_parameters(table, signature)) == 0 {
+        return concat(
+            String_from("compiler ICE: native-cpp cannot lower parameter signature for FunctionId "),
+            i32_to_string(function_id_raw)
+        )
+    }
+    String_new()
+}
+
+fn native_c_function_declaration(
+    mir_module: MirModule,
+    function: MirFunction,
+    function_index: i32,
+    include_semicolon: bool
+) -> NativeCEmitResult {
     let function_name = function_identity::MirFunction_name(function)
-    if function_param_view::MirFunction_param_count(function) != signature_entry::signature_entry_param_count(signature) {
-        return concat(String_from("compiler ICE: native-cpp signature parameter mismatch for FunctionId "), i32_to_string(function_id_raw))
-    }
-    if function_param_view::MirFunction_param_count(function) != 0 {
-        return concat(String_from("target `native-cpp` does not support parameters in Phase 1A function `"), concat(function_name, String_from("`")))
-    }
-    if signature_entry::signature_entry_return_count(signature) != 1 {
-        return concat(String_from("compiler ICE: native-cpp expected one result for FunctionId "), i32_to_string(function_id_raw))
-    }
-    let signature_return_type = legacy_vt_compat::legacy_vt_from_mir_value_type(
-        module_spine::MirModule_type_table(mir_module),
-        signature_entry::signature_entry_return_at(signature, 0)
-    )
-    if signature_return_type != function_return_view::MirFunction_return_type(function) {
-        return concat(String_from("compiler ICE: native-cpp signature result mismatch for FunctionId "), i32_to_string(function_id_raw))
-    }
-    if function_return_view::MirFunction_return_type(function) != value_types::VT_I32() {
-        return concat(String_from("target `native-cpp` does not support non-i32 result in Phase 1A function `"), concat(function_name, String_from("`")))
-    }
-    String_new()
-}
-
-fn native_c_resolve_function_id(mir_module: MirModule, function: MirFunction) -> FunctionId {
-    signature_registry::signature_registry_lookup_by_mangled(
-        module_spine::MirModule_signature_registry(mir_module),
-        function_identity::MirFunction_name(function)
-    )
-}
-
-fn native_c_validate_locals(function: MirFunction) -> String {
-    let local_count = function_locals_view::MirFunction_local_count(function)
-    let mut local_id = 0
-    while local_id < local_count {
-        let local = function_locals_view::MirFunction_local_at(function, local_id)
-        if local_record::mir_local_val_type(local) != value_types::VT_I32() {
-            return concat(String_from("target `native-cpp` does not support non-i32 local in Phase 1A function `"), concat(function_identity::MirFunction_name(function), String_from("`")))
-        }
-        local_id = local_id + 1
-    }
-    String_new()
-}
-
-fn native_c_emit_local_declarations(function: MirFunction) -> String {
-    let mut source = String_new()
-    let local_count = function_locals_view::MirFunction_local_count(function)
-    let mut local_id = 0
-    while local_id < local_count {
-        source = concat(source, concat(String_from("    int32_t "), concat(native_c_local_name(local_id), String_from(";\n"))))
-        local_id = local_id + 1
-    }
-    source
-}
-
-fn native_c_emit_instruction(function: MirFunction, instruction: MirInst) -> NativeCEmitResult {
-    let op = inst_accessors_shape::MirInst_op(instruction)
-    if op == opcodes::MIR_CONST_I32() {
-        let destination = inst_accessors_operands::MirInst_dest(instruction)
-        if destination < 0 || destination >= function_locals_view::MirFunction_local_count(function) {
-            return NativeCEmitResult_err(String_from("compiler ICE: native-cpp constant has invalid destination local"))
-        }
-        return NativeCEmitResult_ok(
+    let resolved_id = native_c_resolve_function_id(mir_module, function, function_index)
+    if !function_id::function_id_is_valid(resolved_id) {
+        return NativeCEmitResult_err(
             concat(
-                String_from("    "),
-                concat(
-                    native_c_local_name(destination),
-                    concat(String_from(" = INT32_C("), concat(i32_to_string(inst_accessors_literals::MirInst_int_val(instruction)), String_from(");\n")))
-                )
+                String_from("compiler ICE: native-cpp missing FunctionId for MIR function `"),
+                concat(function_name, String_from("`"))
             )
         )
     }
-    if op == opcodes::MIR_RETURN() {
-        let returned_local = inst_accessors_operands::MirInst_arg0(instruction)
-        if returned_local < 0 || returned_local >= function_locals_view::MirFunction_local_count(function) {
-            return NativeCEmitResult_err(String_from("compiler ICE: native-cpp return has invalid local"))
-        }
-        return NativeCEmitResult_ok(concat(String_from("    return "), concat(native_c_local_name(returned_local), String_from(";\n"))))
+    let function_id_raw = function_id::FunctionId_raw(resolved_id)
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let signature = signature_registry::signature_registry_lookup_by_id(registry, resolved_id)
+    let signature_error = native_c_validate_function_signature(
+        mir_module,
+        function,
+        function_id_raw,
+        signature
+    )
+    if len(signature_error) > 0 { return NativeCEmitResult_err(signature_error) }
+    let table = module_spine::MirModule_type_table(mir_module)
+    let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
+    if len(symbol) == 0 {
+        return NativeCEmitResult_err(
+            concat(
+                String_from("compiler ICE: native-cpp cannot mangle signature for FunctionId "),
+                i32_to_string(function_id_raw)
+            )
+        )
     }
-    NativeCEmitResult_err(native_c_target_capability_diagnostic(op, function_identity::MirFunction_name(function)))
-}
-
-fn native_c_emit_function_body(function: MirFunction) -> NativeCEmitResult {
-    let mut source = native_c_emit_local_declarations(function)
-    let block_count = function_block_queries::MirFunction_block_count(function)
-    let mut block_index = 0
-    while block_index < block_count {
-        let block = function_block_queries::MirFunction_block_at(function, block_index)
-        let instruction_count = block_inst_access::MirBlock_inst_count(block)
-        let mut instruction_index = 0
-        while instruction_index < instruction_count {
-            let emitted = native_c_emit_instruction(function, block_inst_access::MirBlock_inst_at(block, instruction_index))
-            if !native_c_emit_result_success(emitted) {
-                return emitted
-            }
-            source = concat(source, native_c_emit_result_source(emitted))
-            instruction_index = instruction_index + 1
-        }
-        block_index = block_index + 1
-    }
+    let mut source = concat(
+        abi::native_c_signature_return_type(table, signature),
+        concat(
+            String_from(" "),
+            concat(symbol, concat(String_from("("), concat(abi::native_c_signature_parameters(table, signature), String_from(")"))))
+        )
+    )
+    if include_semicolon { source = concat(source, String_from(";")) }
     NativeCEmitResult_ok(source)
 }
 
 fn native_c_emit_function(
     mir_module: MirModule,
     function: MirFunction,
-    seen_symbols: Vec<String>,
-    seen_owners: Vec<String>
+    function_index: i32
 ) -> NativeCEmitResult {
-    let function_name = function_identity::MirFunction_name(function)
-    let function_id = native_c_resolve_function_id(mir_module, function)
-    if !function_id::function_id_is_valid(function_id) {
-        return NativeCEmitResult_err(concat(String_from("compiler ICE: native-cpp missing FunctionId for MIR function `"), concat(function_name, String_from("`"))))
+    let declaration = native_c_function_declaration(mir_module, function, function_index, false)
+    if !native_c_emit_result_success(declaration) { return declaration }
+    let resolved_id = native_c_resolve_function_id(mir_module, function, function_index)
+    let signature = signature_registry::signature_registry_lookup_by_id(
+        module_spine::MirModule_signature_registry(mir_module),
+        resolved_id
+    )
+    let body = function_emitter::native_c_emit_function_body(mir_module, function, signature)
+    if !function_emitter::native_c_function_emit_success(body) {
+        return NativeCEmitResult_err(function_emitter::native_c_function_emit_diagnostic(body))
     }
-    let function_id_raw = function_id::FunctionId_raw(function_id)
-    let signature = signature_registry::signature_registry_lookup_by_id(module_spine::MirModule_signature_registry(mir_module), function_id)
-    let signature_error = native_c_validate_function_signature(mir_module, function, function_id_raw, signature)
-    if len(signature_error) > 0 {
-        return NativeCEmitResult_err(signature_error)
-    }
-    let local_error = native_c_validate_locals(function)
-    if len(local_error) > 0 {
-        return NativeCEmitResult_err(local_error)
-    }
-    let symbol = native_c_function_symbol(function_id_raw)
-    let owner = concat(i32_to_string(function_id_raw), String_from("|P_v|R_i32"))
-    let mut seen_index = 0
-    while seen_index < len(seen_symbols) {
-        if eq(get_unchecked(seen_symbols, seen_index), clone(symbol)) && !eq(get_unchecked(seen_owners, seen_index), clone(owner)) {
-            return NativeCEmitResult_err(concat(String_from("compiler ICE: native-cpp symbol collision for `"), concat(symbol, String_from("`"))))
-        }
-        seen_index = seen_index + 1
-    }
-    push(seen_symbols, clone(symbol))
-    push(seen_owners, owner)
-    let body = native_c_emit_function_body(function)
-    if !native_c_emit_result_success(body) {
-        return body
-    }
-    let mut source = concat(String_from("/* FunctionId: "), concat(i32_to_string(function_id_raw), String_from(" */\n")))
-    source = concat(source, concat(String_from("int32_t "), concat(clone(symbol), String_from("(void) {\n"))))
-    source = concat(source, native_c_emit_result_source(body))
-    source = concat(source, String_from("}\n\n"))
+    let mut source = concat(
+        String_from("/* FunctionId: "),
+        concat(
+            i32_to_string(function_id::FunctionId_raw(resolved_id)),
+            String_from(" */\n")
+        )
+    )
+    source = concat(source, concat(native_c_emit_result_source(declaration), String_from(" {\n")))
+        source = concat(source, function_emitter::native_c_function_emit_source(body))
+        source = concat(source, String_from("}\n\n"))
     NativeCEmitResult_ok(source)
+}
+
+fn native_c_runtime_prelude() -> String {
+    String_from("#include <stdint.h>\n#include \"ark_native_runtime.h\"\n\n")
+}
+
+fn native_c_append_bytes(output: Vec<i32>, fragment: String) {
+    let length = len(fragment)
+    let mut index = 0
+    while index < length {
+        push(output, char_at(fragment, index))
+        index = index + 1
+    }
 }
 
 /// Lowers the supported native-cpp MIR subset directly to portable C99.
 pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     if !module_spine::MirModule_signature_spine_populated(mir_module) {
-        return NativeCEmitResult_err(String_from("compiler ICE: native-cpp requires a populated SignatureRegistry"))
+        return NativeCEmitResult_err(
+            String_from("compiler ICE: native-cpp requires a populated SignatureRegistry")
+        )
     }
     let capability_error = native_c_validate_capabilities(mir_module)
-    if len(capability_error) > 0 {
-        return NativeCEmitResult_err(capability_error)
-    }
-    let mut source = String_from("#include <stdint.h>\n\n")
-    let seen_symbols = Vec_new_String()
-    let seen_owners = Vec_new_String()
-    let mut main_symbol = String_new()
+    if len(capability_error) > 0 { return NativeCEmitResult_err(capability_error) }
+    let source_bytes = Vec_new_i32()
+    native_c_append_bytes(source_bytes, native_c_runtime_prelude())
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0
     while function_index < function_count {
         let function = module_functions::MirModule_function_at(mir_module, function_index)
-        let emitted = native_c_emit_function(mir_module, function, seen_symbols, seen_owners)
-        if !native_c_emit_result_success(emitted) {
-            return emitted
-        }
-        source = concat(source, native_c_emit_result_source(emitted))
+        let declaration = native_c_function_declaration(mir_module, function, function_index, true)
+        if !native_c_emit_result_success(declaration) { return declaration }
+        native_c_append_bytes(
+            source_bytes,
+            concat(native_c_emit_result_source(declaration), String_from("\n"))
+        )
+        function_index = function_index + 1
+    }
+    native_c_append_bytes(source_bytes, String_from("\n"))
+    let mut main_symbol = String_new()
+    function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let emitted = native_c_emit_function(mir_module, function, function_index)
+        if !native_c_emit_result_success(emitted) { return emitted }
+        native_c_append_bytes(source_bytes, native_c_emit_result_source(emitted))
         if eq(function_identity::MirFunction_name(function), String_from("main")) {
-            let function_id = native_c_resolve_function_id(mir_module, function)
-            main_symbol = native_c_function_symbol(function_id::FunctionId_raw(function_id))
+            let resolved_id = native_c_resolve_function_id(mir_module, function, function_index)
+            let signature = signature_registry::signature_registry_lookup_by_id(
+                module_spine::MirModule_signature_registry(mir_module),
+                resolved_id
+            )
+            main_symbol = abi::native_c_function_symbol(
+                module_spine::MirModule_type_table(mir_module),
+                function_id::FunctionId_raw(resolved_id),
+                signature
+            )
         }
         function_index = function_index + 1
     }
     if len(main_symbol) == 0 {
         return NativeCEmitResult_err(String_from("compiler ICE: native-cpp MIR module has no Ark entry point"))
     }
-    source = concat(source, String_from("int main(int argc, char **argv) {\n"))
-    source = concat(source, String_from("    (void)argc;\n"))
-    source = concat(source, String_from("    (void)argv;\n"))
-    source = concat(source, concat(String_from("    (void)"), concat(main_symbol, String_from("();\n"))))
-    source = concat(source, String_from("    return 0;\n}\n"))
-    NativeCEmitResult_ok(source)
+    native_c_append_bytes(source_bytes, String_from("int main(int argc, char **argv) {\n"))
+        native_c_append_bytes(source_bytes, String_from("    ark_rt_init(argc, argv);\n"))
+        native_c_append_bytes(
+            source_bytes,
+            concat(String_from("    (void)"), concat(main_symbol, String_from("();\n")))
+        )
+        native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
+        native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))
+    NativeCEmitResult_ok(__intrinsic_string_from_bytes(source_bytes))
 }
