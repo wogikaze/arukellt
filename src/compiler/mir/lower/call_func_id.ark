@@ -25,6 +25,16 @@ fn mir_call_short_symbol(symbol: String) -> String {
     symbol
 }
 
+fn mir_call_flatten_qualified_symbol(symbol: String) -> String {
+    // `component_emit::component_emit__emit_component` → `component_emit__emit_component`
+    // when the callee already uses the overlay flat spelling after `::`.
+    let short = mir_call_short_symbol(clone(symbol))
+    if contains(clone(symbol), String_from("::")) && contains(clone(short), String_from("__")) {
+        return short
+    }
+    short
+}
+
 fn mir_call_resolve_function_id(registry: SignatureRegistry, symbol: String) -> FunctionId {
     let exact = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
     let core_op = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
@@ -44,9 +54,12 @@ fn mir_call_resolve_function_id(registry: SignatureRegistry, symbol: String) -> 
         )
     }
     if function_id::function_id_is_valid(exact) { return exact }
+    let short = mir_call_flatten_qualified_symbol(clone(symbol))
+    let by_short = signature_registry::signature_registry_lookup_by_mangled(registry, clone(short))
+    if function_id::function_id_is_valid(by_short) { return by_short }
     signature_registry::signature_registry_lookup_by_mangled(
         registry,
-        mir_call_short_symbol(clone(symbol))
+        mir_call_short_symbol(symbol)
     )
 }
 
