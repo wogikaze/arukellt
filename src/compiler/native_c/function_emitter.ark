@@ -1143,6 +1143,15 @@ fn native_c_emit_local_declarations(
                 concat(c_type, concat(String_from(" "), concat(native_c_local_name(local_id), String_from(";\n"))))
             )
         )
+        if get_unchecked(reference_producers, local_id) != 0 {
+            native_c_append(
+                state,
+                concat(
+                    String_from("    "),
+                    concat(native_c_local_name(local_id), String_from(" = NULL;\n"))
+                )
+            )
+        }
         native_c_append(
             state,
             concat(
