@@ -79,7 +79,12 @@ fn emit_gc_string_to_heap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32
 
 fn emit_gc_string_to_heap_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> i32 {
     let arg_local = inst_accessors_operands::MirInst_arg0(inst)
-    if arg_local >= 0 && prev_op != mir_opcodes::MIR_LOCAL_GET() {
+    // CONST_STRING / LOCAL_GET leave the string on the stack when store policy
+    // SKIP-stores before a direct consumer CALL. Reloading via from_local then
+    // duplicates the ref and fails validate ("values remaining on stack") (#730).
+    let prev_leaves_string_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() ||
+    prev_op == mir_opcodes::MIR_CONST_STRING()
+    if arg_local >= 0 && !prev_leaves_string_on_stack {
         return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
     }
     emit_gc_string_to_heap_from_stack(w, inst, ctx)
