@@ -115,6 +115,10 @@ alias = "__intrinsic_char_to_string"
 core_op_id = "text.char_to_string"
 
 [[legacy_bindings]]
+alias = "__intrinsic_concat"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
 alias = "__intrinsic_clock_now"
 core_op_id = "runtime.clock_now"
 
@@ -1051,6 +1055,10 @@ alias = "concat"
 core_op_id = "string.concat"
 
 [[legacy_bindings]]
+alias = "contains"
+core_op_id = "string.contains"
+
+[[legacy_bindings]]
 alias = "convert::bool_to_string"
 core_op_id = "text.format_bool"
 
@@ -1448,6 +1456,10 @@ core_op_id = "runtime.process.abort"
 
 [[legacy_bindings]]
 alias = "process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]

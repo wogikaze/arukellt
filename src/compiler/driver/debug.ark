@@ -4,6 +4,7 @@ use driver::parser_dump_view
 use driver::resolver_dump_view
 use driver::typechecker_dump_view
 use mir
+use native_c_coverage
 use lexer::names
 use lexer::token_state
 
@@ -52,6 +53,12 @@ fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult
 fn dump_mir_if_enabled(config: DriverConfig, mir_module: MirModule) {
     if config_record::config_dump_mir(config) {
         mir::dump_mir(mir_module)
+    }
+}
+
+fn dump_native_cpp_coverage_if_enabled(config: DriverConfig, mir_module: MirModule) {
+    if config_record::config_dump_native_cpp_coverage(config) {
+        stdio::eprintln(native_c_coverage::native_c_coverage_report(mir_module))
     }
 }
 

@@ -4,10 +4,22 @@ use corehir::core_op_registry
 
 fn core_op_binding_lookup_for_callee(callee: String) -> CoreOpId {
     let canonical = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
-    if len(canonical) == 0 {
-        return core_op_id::CORE_OP_ID_NONE()
+    if len(canonical) > 0 {
+        return core_op_registry::CoreOpRegistry_lookup_by_canonical(canonical)
     }
-    return core_op_registry::CoreOpRegistry_lookup_by_canonical(canonical)
+    let fallback = core_op_registry::CoreOpRegistry_lookup_by_fallback_symbol(clone(callee))
+    if core_op_id::core_op_id_is_some(fallback) {
+        return fallback
+    }
+    // Concrete Vec constructors are monomorphized after semantic resolution.
+    // They all retain the registry-owned Vec constructor operation even though
+    // their concrete type suffix is not enumerable in the static alias table.
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return core_op_registry::CoreOpRegistry_lookup_by_canonical(
+            String_from("vec.Vec_new_fallback")
+        )
+    }
+    core_op_id::CORE_OP_ID_NONE()
 }
 
 fn core_op_binding_lookup_for_mangled(mangled: String) -> CoreOpId {

@@ -3,11 +3,52 @@ use corehir::signature_registry
 use corehir::core_op_binding
 use corehir::core_op_id
 use mir::inst_record
+use mir::block_inst_access
+use mir::function_block_queries
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
+use mir::module_functions
 use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
+
+fn mir_call_short_symbol(symbol: String) -> String {
+    let length = len(symbol)
+    if length < 2 { return symbol }
+    let mut index = length - 2
+    while index >= 0 {
+        if char_at(symbol, index) == 58 && char_at(symbol, index + 1) == 58 {
+            return substring(symbol, index + 2, length)
+        }
+        index = index - 1
+    }
+    symbol
+}
+
+fn mir_call_resolve_function_id(registry: SignatureRegistry, symbol: String) -> FunctionId {
+    let exact = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
+    let core_op = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
+    if core_op_id::core_op_id_is_some(core_op) {
+        if function_id::function_id_is_valid(exact) {
+            signature_registry::signature_registry_set_core_op_id_at(
+                registry,
+                function_id::FunctionId_raw(exact),
+                core_op
+            )
+            return exact
+        }
+        return signature_registry::signature_registry_register_core_op_alias(
+            registry,
+            clone(symbol),
+            core_op
+        )
+    }
+    if function_id::function_id_is_valid(exact) { return exact }
+    signature_registry::signature_registry_lookup_by_mangled(
+        registry,
+        mir_call_short_symbol(clone(symbol))
+    )
+}
 
 fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: String) -> MirInst {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -15,21 +56,51 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: Stri
         return inst
     }
     let registry = module_spine::MirModule_signature_registry(m)
-    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
-    if !function_id::function_id_is_valid(fid) {
-        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
-        if core_op_id::core_op_id_is_some(coid) {
-            fid = signature_registry::signature_registry_register_core_op_alias(
-                registry,
-                clone(symbol),
-                coid
-            )
-        }
-    }
+    let fid = mir_call_resolve_function_id(registry, symbol)
     if function_id::function_id_is_valid(fid) {
         return inst_record::mir_inst_with_func_id_raw(inst, function_id::FunctionId_raw(fid))
     }
     inst
+}
+
+fn mir_module_attach_missing_function_ids(module: MirModule) {
+    if !module_spine::MirModule_signature_spine_populated(module) { return }
+    let registry = module_spine::MirModule_signature_registry(module)
+    let function_count = module_functions::MirModule_function_count(module)
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(module, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(function)
+        let mut block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(function, block_index)
+            let instructions = block_inst_access::MirBlock_instructions(block)
+            let mut instruction_index = 0
+            while instruction_index < len(instructions) {
+                let instruction = get_unchecked(instructions, instruction_index)
+                let op = inst_accessors_shape::MirInst_op(instruction)
+                if op == opcodes::MIR_CALL() || op == opcodes::MIR_REF_FUNC() {
+                    let resolved = mir_call_resolve_function_id(
+                        registry,
+                        inst_accessors_literals::MirInst_str_val(instruction)
+                    )
+                    if function_id::function_id_is_valid(resolved) {
+                        set(
+                            instructions,
+                            instruction_index,
+                            inst_record::mir_inst_with_func_id_raw(
+                                instruction,
+                                function_id::FunctionId_raw(resolved)
+                            )
+                        )
+                    }
+                }
+                instruction_index = instruction_index + 1
+            }
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
 }
 
 fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, inst: MirInst) -> MirInst {

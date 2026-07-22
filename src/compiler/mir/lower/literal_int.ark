@@ -39,7 +39,12 @@ fn lower_unary_neg_forced_i64(ctx: LowerCtx, operand_node: AstNode) -> i32 {
 fn mir_int_literal_needs_i64(node: AstNode) -> bool {
     let raw_text = ast_node::node_text(node)
     let raw_len = len(raw_text)
-    let is_hex_or_bin = raw_len >= 2 && char_at(raw_text, 0) == 48 && char_at(raw_text, 1) == 120 || char_at(raw_text, 1) == 88 || char_at(raw_text, 1) == 98 || char_at(raw_text, 1) == 66
+    let is_hex_or_bin = raw_len >= 2 && char_at(raw_text, 0) == 48 && (
+        char_at(raw_text, 1) == 120 ||
+        char_at(raw_text, 1) == 88 ||
+        char_at(raw_text, 1) == 98 ||
+        char_at(raw_text, 1) == 66
+    )
     let has_small_suffix = literal_int_suffix::mir_int_literal_has_small_suffix(raw_text, raw_len)
     if literal_int_suffix::mir_int_literal_has_64_suffix(ast_node::node_text(node), raw_len) {
         return true
