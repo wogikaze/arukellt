@@ -1,19 +1,17 @@
 use std::host::stdio
 use mir::function_identity
 use mir::function_locals_view
-use mir::dominance
 use mir::dump_core_blocks
 use mir::function_block_queries
 use mir::module_functions
 use mir::module_strings
 use mir::module_metadata
 use mir::types
-use mir::ssa_rename_entry
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
+/// Diagnostic dump only. Must not mutate `m`: this runs before emit, and any
+/// in-place dominance / SSA rename would change the emitted Wasm (#832).
 fn dump_mir(m: MirModule) {
-    dominance::mir_compute_dominance(m)
-    ssa_rename_entry::mir_ssa_rename_module(m)
     let fn_count = module_functions::MirModule_function_count(m)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
     let pruned_count = module_metadata::MirModule_mono_pruned_count(m)
