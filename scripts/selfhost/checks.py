@@ -2407,8 +2407,15 @@ def _widen_compiler_wasm_to_memory64(
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
         return None
+    # Full selfhost / native-cpp C generation exceeds the historical 4GiB-1
+    # Memory64 initial heap; reserve more pages so the bump allocator does not
+    # depend on the i32-shaped grow helper past the wasm32 ceiling.
+    initial_pages = os.environ.get("ARUKELLT_WASM_INITIAL_PAGES", "131072").strip()
+    patch_cmd = [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"]
+    if initial_pages and initial_pages != "0":
+        patch_cmd.append(f"--initial-pages={initial_pages}")
     patch = subprocess.run(
-        [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"],
+        patch_cmd,
         cwd=str(root),
         capture_output=True,
         text=True,

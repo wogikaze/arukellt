@@ -24,7 +24,7 @@ FN_MARKER = re.compile(
     r"assigns_planned=(\d+) sites_emitted=(\d+) assigns_emitted=(\d+) "
     r"peak_slots=(\d+) planner_bytes=(\d+) entry_nulls=(\d+) emit=(\d+) \*/"
 )
-CLEAR_MARKER = re.compile(r"/\* ark-root-clear inst=(\d+) local=(\d+) \*/")
+CLEAR_MARKER = re.compile(r"/\* ark-root-clear inst=(\d+) n=(\d+) \*/")
 
 
 def _run(cmd: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -58,6 +58,21 @@ def _main_marker(text: str) -> re.Match[str]:
     return max(matches, key=lambda m: (int(m.group(12)), int(m.group(6))))
 
 
+def _link_and_run_gc(text: str, tmp_path: Path, stem: str) -> None:
+    c_out = tmp_path / f"{stem}.c"
+    c_out.write_text(text, encoding="utf-8")
+    exe = tmp_path / stem
+    linked = _run(
+        [CC, "-std=c99", "-O1", f"-I{RUNTIME_I}", str(c_out), str(RUNTIME_C), "-o", str(exe)]
+    )
+    assert linked.returncode == 0, linked.stderr[-2000:]
+    env = os.environ.copy()
+    env["ARUKELLT_NATIVE_GC"] = "1"
+    env["ARUKELLT_NATIVE_GC_THRESHOLD_BYTES"] = "65536"
+    ran = _run([str(exe)], env=env)
+    assert ran.returncode == 0, ran.stderr[-2000:] + ran.stdout[-2000:]
+
+
 def test_dead_after_last_use_plans_clear() -> None:
     fixture = FIXTURES / "dead_after_last_use.ark"
     with tempfile.TemporaryDirectory(prefix="root-live-") as tmp:
@@ -65,45 +80,30 @@ def test_dead_after_last_use_plans_clear() -> None:
     marker = _main_marker(text)
     assert int(marker.group(2)) == 0, "skipped must be 0"
     assert int(marker.group(6)) >= 1, "expected planned assignments"
-    assert int(marker.group(12)) == 0, "emit stays off until structured CFG liveness"
-    assert int(marker.group(8)) == 0, "no emitted assignments in shadow mode"
-    assert not CLEAR_MARKER.search(text), "no ark-root-clear markers while emit disabled"
+    assert int(marker.group(12)) == 1, "loop-free fixture enables Stage B emit"
+    assert int(marker.group(8)) >= 1, "expected emitted assignments"
+    assert CLEAR_MARKER.search(text), "expected ark-root-clear markers"
 
 
 def test_call_argument_kept_live() -> None:
     fixture = FIXTURES / "call_argument_live.ark"
     with tempfile.TemporaryDirectory(prefix="root-live-") as tmp:
         text = _compile_fixture(fixture, Path(tmp))
-        c_out = Path(tmp) / f"{fixture.stem}.c"
-        c_out.write_text(text, encoding="utf-8")
-        exe = Path(tmp) / fixture.stem
-        linked = _run(
-            [
-                CC,
-                "-std=c99",
-                "-O1",
-                f"-I{RUNTIME_I}",
-                str(c_out),
-                str(RUNTIME_C),
-                "-o",
-                str(exe),
-            ]
-        )
-        assert linked.returncode == 0, linked.stderr[-2000:]
-        env = os.environ.copy()
-        env["ARUKELLT_NATIVE_GC"] = "1"
-        env["ARUKELLT_NATIVE_GC_THRESHOLD_BYTES"] = "65536"
-        ran = _run([str(exe)], env=env)
-        assert ran.returncode == 0, ran.stderr[-2000:] + ran.stdout[-2000:]
+        _link_and_run_gc(text, Path(tmp), fixture.stem)
 
 
-def test_control_flow_fixtures_compile_without_emit() -> None:
-    """Structured control must not enable clears until CFG successors exist."""
-    names = (
-        "branch_join_live.ark",
-        "loop_carried_live.ark",
-        "early_return_live.ark",
-    )
+def test_loop_carried_fixture_runs_with_safe_emit() -> None:
+    fixture = FIXTURES / "loop_carried_live.ark"
+    with tempfile.TemporaryDirectory(prefix="root-live-") as tmp:
+        tmp_path = Path(tmp)
+        text = _compile_fixture(fixture, tmp_path)
+        marker = _main_marker(text)
+        assert int(marker.group(2)) == 0
+        _link_and_run_gc(text, tmp_path, fixture.stem)
+
+
+def test_branch_and_overwrite_run_with_emit() -> None:
+    names = ("branch_join_live.ark", "overwrite_old_dead.ark", "early_return_live.ark")
     with tempfile.TemporaryDirectory(prefix="root-live-") as tmp:
         tmp_path = Path(tmp)
         for name in names:
@@ -111,67 +111,15 @@ def test_control_flow_fixtures_compile_without_emit() -> None:
             text = _compile_fixture(fixture, tmp_path)
             marker = _main_marker(text)
             assert int(marker.group(2)) == 0, f"{name}: skipped"
-            assert int(marker.group(12)) == 0, f"{name}: emit must stay off for control-flow"
-            c_out = tmp_path / f"{fixture.stem}.c"
-            c_out.write_text(text, encoding="utf-8")
-            exe = tmp_path / fixture.stem
-            linked = _run(
-                [
-                    CC,
-                    "-std=c99",
-                    "-O1",
-                    f"-I{RUNTIME_I}",
-                    str(c_out),
-                    str(RUNTIME_C),
-                    "-o",
-                    str(exe),
-                ]
-            )
-            assert linked.returncode == 0, f"{name} link:\n{linked.stderr[-2000:]}"
-            env = os.environ.copy()
-            env["ARUKELLT_NATIVE_GC"] = "1"
-            env["ARUKELLT_NATIVE_GC_THRESHOLD_BYTES"] = "65536"
-            ran = _run([str(exe)], env=env)
-            assert ran.returncode == 0, f"{name} run:\n{ran.stderr[-2000:]}"
-
-
-def test_straight_line_overwrite_runs_in_shadow_mode() -> None:
-    fixture = FIXTURES / "overwrite_old_dead.ark"
-    with tempfile.TemporaryDirectory(prefix="root-live-") as tmp:
-        tmp_path = Path(tmp)
-        text = _compile_fixture(fixture, tmp_path)
-        marker = _main_marker(text)
-        assert int(marker.group(12)) == 0
-        assert int(marker.group(6)) >= 0
-        c_out = tmp_path / f"{fixture.stem}.c"
-        c_out.write_text(text, encoding="utf-8")
-        exe = tmp_path / fixture.stem
-        linked = _run(
-            [
-                CC,
-                "-std=c99",
-                "-O1",
-                f"-I{RUNTIME_I}",
-                str(c_out),
-                str(RUNTIME_C),
-                "-o",
-                str(exe),
-            ]
-        )
-        assert linked.returncode == 0, linked.stderr[-2000:]
-        env = os.environ.copy()
-        env["ARUKELLT_NATIVE_GC"] = "1"
-        env["ARUKELLT_NATIVE_GC_THRESHOLD_BYTES"] = "65536"
-        ran = _run([str(exe)], env=env)
-        assert ran.returncode == 0, ran.stderr[-2000:]
+            _link_and_run_gc(text, tmp_path, fixture.stem)
 
 
 if __name__ == "__main__":
     try:
         test_dead_after_last_use_plans_clear()
         test_call_argument_kept_live()
-        test_control_flow_fixtures_compile_without_emit()
-        test_straight_line_overwrite_runs_in_shadow_mode()
+        test_loop_carried_fixture_runs_with_safe_emit()
+        test_branch_and_overwrite_run_with_emit()
     except AssertionError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         raise SystemExit(1) from exc

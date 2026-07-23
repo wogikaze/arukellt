@@ -1,6 +1,6 @@
 # native-cpp selfhost executor experimental 昇格計画
 
-Status: active — Phase 0–2 COMPLETE / Phase 3 NEXT (structured CFG required for emit)
+Status: active — Phase 0–3 COMPLETE / Phase 4 NEXT (root-clear remasure + dual gate)
 Owner: native-cpp / umbrella #834 / root-liveness #833
 Created: 2026-07-23
 Last updated: 2026-07-23

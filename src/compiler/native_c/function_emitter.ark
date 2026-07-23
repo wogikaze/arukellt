@@ -47,6 +47,7 @@ struct NativeCFunctionEmitState {
     effect_block_ids: Vec<i32>,
     effect_reachable: Vec<i32>,
     effect_is_safepoint: Vec<i32>,
+    effect_opcodes: Vec<i32>,
     effect_use_start: Vec<i32>,
     effect_use_count: Vec<i32>,
     effect_use_locals: Vec<i32>,
@@ -95,6 +96,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         effect_block_ids: Vec_new_i32(),
         effect_reachable: Vec_new_i32(),
         effect_is_safepoint: Vec_new_i32(),
+        effect_opcodes: Vec_new_i32(),
         effect_use_start: Vec_new_i32(),
         effect_use_count: Vec_new_i32(),
         effect_use_locals: Vec_new_i32(),
@@ -134,37 +136,35 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
         let start = get_unchecked(state.root_clear_start, order)
         let mut emitted_here = 0
         let mut clear_index = 0
+        // One site marker (not per-local) keeps full-S3 C generation inside wasm RSS.
+        if state.root_emit_enabled_for_fn && count > 0 {
+            native_c_append(
+                state,
+                concat(
+                    String_from("    /* ark-root-clear inst="),
+                    concat(
+                        i32_to_string(order),
+                        concat(
+                            String_from(" n="),
+                            concat(i32_to_string(count), String_from(" */\n"))
+                        )
+                    )
+                )
+            )
+        }
         while clear_index < count {
             let local = get_unchecked(state.root_clear_locals, start + clear_index)
-            // Stack operands are live for the current instruction even when the
-            // MIR CALL encoding omits explicit first_arg locals.
-            if !native_c_value_stack_contains(state, local) {
-                // Per-clear markers only when emitting (small Stage A/B functions).
-                // Full-S3 shadow plans millions of clears — do not bloat C with comments.
-                if state.root_emit_enabled_for_fn {
-                    native_c_append(
-                        state,
-                        concat(
-                            String_from("    /* ark-root-clear inst="),
-                            concat(
-                                i32_to_string(order),
-                                concat(
-                                    String_from(" local="),
-                                    concat(i32_to_string(local), String_from(" */\n"))
-                                )
-                            )
-                        )
+            // Stack-resident locals stay live across the upcoming safepoint.
+            if state.root_emit_enabled_for_fn && !native_c_value_stack_contains(state, local) {
+                native_c_append(
+                    state,
+                    concat(
+                        String_from("    "),
+                        concat(native_c_local_name(local), String_from(" = NULL;\n"))
                     )
-                    native_c_append(
-                        state,
-                        concat(
-                            String_from("    "),
-                            concat(native_c_local_name(local), String_from(" = NULL;\n"))
-                        )
-                    )
-                    state.root_assigns_emitted = state.root_assigns_emitted + 1
-                    emitted_here = emitted_here + 1
-                }
+                )
+                state.root_assigns_emitted = state.root_assigns_emitted + 1
+                emitted_here = emitted_here + 1
             }
             clear_index = clear_index + 1
         }
@@ -324,6 +324,7 @@ fn native_c_effects_flush(state: NativeCFunctionEmitState, instruction: MirInst)
     } else {
         push(state.effect_is_safepoint, 0)
     }
+    push(state.effect_opcodes, op)
     push(state.effect_use_start, len(state.effect_use_locals))
     push(state.effect_use_count, len(state.current_uses))
     let mut index = 0
@@ -368,6 +369,7 @@ fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> root_li
             get_unchecked(state.effect_block_ids, order),
             get_unchecked(state.effect_reachable, order) != 0,
             get_unchecked(state.effect_is_safepoint, order) != 0,
+            get_unchecked(state.effect_opcodes, order),
             uses,
             defs
         )
@@ -1635,8 +1637,11 @@ fn native_c_emit_function_body(
     state.root_frame_locals = root_count
     state.root_entry_null_inits = root_count
     let block_count = function_block_queries::MirFunction_block_count(function)
-    state.root_emit_enabled_for_fn = !root_liveness::native_c_function_has_structured_control(function) &&
-    root_liveness::native_c_root_clear_emit_allowed(block_count, root_count)
+    // Loop-touched locals are pinned in the planner; IF/ELSE use last-use.
+    state.root_emit_enabled_for_fn = root_liveness::native_c_root_clear_emit_allowed(
+        block_count,
+        root_count
+    )
     // Attach clear vectors only when this function will emit (avoids retaining
     // multi-million entry plans for large full-S3 functions in the wasm host).
     if state.root_emit_enabled_for_fn {
@@ -1645,5 +1650,11 @@ fn native_c_emit_function_body(
         state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
     }
     native_c_emit_function_instructions(state, mir_module, function, signature)
+    // Emit-time value-stack filter may skip planner clears that are still
+    // stack-resident. Receipt planned/emitted must match what production emitted.
+    if state.root_emit_enabled_for_fn {
+        state.root_plan_clears = state.root_assigns_emitted
+        state.root_plan_sites = state.root_sites_emitted
+    }
     state
 }
