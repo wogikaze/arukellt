@@ -58,8 +58,10 @@ static const char *ark_gc_current_function;
 
 static int ark_env_gc_enabled(void) {
     const char *enable = getenv("ARUKELLT_NATIVE_GC");
-    /* Default on: process-lifetime arena exceeds the 2.4 GiB executor gate. */
-    if (enable == NULL) return 1;
+    /* Default off: full-S3 mark-sweep still exceeds the 5-minute wall gate while
+       the live compiler IR stays rooted. Opt in with ARUKELLT_NATIVE_GC=1 for
+       RSS work; the strict native-executor lane sets this explicitly. */
+    if (enable == NULL) return 0;
     return enable[0] == '1';
 }
 

@@ -463,6 +463,10 @@ def run_native_executor(
         stats_path.unlink(missing_ok=True)
         run_env = os.environ.copy()
         run_env["ARUKELLT_NATIVE_GC_STATS_PATH"] = str(stats_path)
+        # Strict lane enables GC for the RSS gate. --allow-high-rss prefers the
+        # arena path so warm wall stays under 5 minutes while RSS work continues.
+        if "ARUKELLT_NATIVE_GC" not in run_env:
+            run_env["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
         execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
