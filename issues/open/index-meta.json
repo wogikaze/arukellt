@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-23T12:22:40Z",
+  "generated_at": "2026-07-23T13:00:17Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -907,6 +907,25 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "833",
+      "path": "833-native-cpp-root-liveness-reenable.md",
+      "title": "833 — Re-enable CFG-complete native-cpp root liveness clears",
+      "track": "native-cpp",
+      "status": "open",
+      "depends_on": [
+        "832"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "open",
+        "upstream_notes": "None"
       }
     },
     {

@@ -62,7 +62,7 @@ support_tier = "scaffold"
 implementation_state = "partial"
 contract_stability = "experimental"
 run_supported = false
-role = "Recovered C99 emitter/runtime + native-executor lane; S2/S3 equality+determinism green; --allow-high-rss operational (arena ~12 GiB / warm ~3.8 min); GC=1 RSS ~1.55 GiB but warm ~8 min (experimental wall pending)"
+role = "Recovered C99 selfhost executor; S2/S3 equality+determinism green; --allow-high-rss operational (arena ~12 GiB / warm ~3.8 min); GC=1 RSS ~1.55 GiB but warm ~8 min; root safepoint clears disabled (#833) so live set stays conservative"
 display = "Native C99 selfhost executor (scaffold; high-RSS opt-in lane)"
 
 [[target_profiles]]

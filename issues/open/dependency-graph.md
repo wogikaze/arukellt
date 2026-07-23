@@ -52,6 +52,7 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I831["831 native-executor wasm32-gc S3 validation drift (func 118)"]
+  I833["833 833 — Re-enable CFG-complete native-cpp root liveness clears"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -155,6 +156,7 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
 - **831** depends on: none; blocks: none
+- **833** depends on: 832; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699

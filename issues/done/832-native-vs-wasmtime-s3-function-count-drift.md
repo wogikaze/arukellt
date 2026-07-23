@@ -45,3 +45,9 @@ separately from this native wasm32 equality lane).
 - S2/S3 SHA-256: `4975cd51501ff76e3696ac2f3b3e4e66bc3d53b06919c349dcefb4d71675562a`
 - `exit_code: 0` with `--allow-high-rss` (RSS ~12.3 GiB; warm ~228s)
 - Strict GC=1 lane: RSS ~1.55 GiB (under 2.4), warm ~480s (over 5 min) — experimental not yet
+
+## Correction (root liveness)
+
+Safepoint dead-root clears are **not** active. `root_liveness.ark` keeps
+`enable_root_clears = false` after earlier `String::clone(NULL)` traps.
+Follow-up: `#833`.
