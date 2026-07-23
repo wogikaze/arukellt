@@ -45,6 +45,13 @@ liveness evidence.
 - [ ] `native-executor --build` with GC=1: RSS ≤ 2.4 GiB **and** warm wall < 5 min
 - [ ] No false-done: stress green alone is not enough without the dual gate
 
+## Plan
+
+Canonical promotion plan: [`docs/plans/native-cpp-experimental-promotion.md`](../../docs/plans/native-cpp-experimental-promotion.md)
+
+Phase order: receipt → emitter effects → CFG liveness → shadow → fixture clears →
+full-S3 clears → measure → (only if needed) collector/threshold → 3× strict → docs.
+
 ## Non-goals
 
 - `#831` wasm32-gc fixpoint validation (separate)

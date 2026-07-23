@@ -51,6 +51,16 @@ static uint64_t ark_gc_object_bytes;
 static uint64_t ark_gc_string_buffer_bytes;
 static uint64_t ark_gc_vec_buffer_bytes;
 static uint64_t ark_gc_root_frame_bytes;
+static uint64_t ark_gc_total_mark_time_ns;
+static uint64_t ark_gc_total_sweep_time_ns;
+static uint64_t ark_gc_total_table_rebuild_time_ns;
+static uint64_t ark_gc_total_malloc_trim_time_ns;
+static uint64_t ark_gc_total_root_scan_time_ns;
+static uint64_t ark_gc_total_marked_objects;
+static uint64_t ark_gc_max_marked_objects_per_collection;
+static uint64_t ark_gc_max_root_slots_scanned;
+static uint64_t ark_gc_max_heap_objects_before_collection;
+static uint64_t ark_gc_max_heap_objects_after_collection;
 static uint32_t ark_chunk_count;
 static ark_vec *ark_process_args;
 static int ark_gc_collecting;
@@ -102,6 +112,12 @@ static void ark_gc_dump_crash_state(const char *reason) {
 
 static uint64_t ark_gc_measure_root_frame_bytes(void);
 
+static uint64_t ark_gc_now_ns(void) {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) return 0;
+    return (uint64_t)ts.tv_sec * 1000000000ull + (uint64_t)ts.tv_nsec;
+}
+
 static void ark_gc_write_stats_file(void) {
     const char *path = getenv("ARUKELLT_NATIVE_GC_STATS_PATH");
     if (path == NULL || path[0] == '\0') return;
@@ -122,6 +138,17 @@ static void ark_gc_write_stats_file(void) {
         "  \"gc_collection_count\": %" PRIu64 ",\n"
         "  \"gc_reclaimed_object_bytes\": %" PRIu64 ",\n"
         "  \"gc_reclaimed_side_buffer_bytes\": %" PRIu64 ",\n"
+        "  \"gc_total_mark_time_ms\": %" PRIu64 ",\n"
+        "  \"gc_total_sweep_time_ms\": %" PRIu64 ",\n"
+        "  \"gc_total_table_rebuild_time_ms\": %" PRIu64 ",\n"
+        "  \"gc_total_malloc_trim_time_ms\": %" PRIu64 ",\n"
+        "  \"gc_total_root_scan_time_ms\": %" PRIu64 ",\n"
+        "  \"gc_total_marked_objects\": %" PRIu64 ",\n"
+        "  \"gc_max_marked_objects_per_collection\": %" PRIu64 ",\n"
+        "  \"gc_max_root_slots_scanned\": %" PRIu64 ",\n"
+        "  \"gc_max_heap_objects_before_collection\": %" PRIu64 ",\n"
+        "  \"gc_max_heap_objects_after_collection\": %" PRIu64 ",\n"
+        "  \"gc_threshold_bytes\": %" PRIu64 ",\n"
         "  \"runtime_requested_bytes\": %" PRIu64 ",\n"
         "  \"runtime_committed_bytes\": %" PRIu64 ",\n"
         "  \"runtime_live_bytes\": %" PRIu64 ",\n"
@@ -138,6 +165,17 @@ static void ark_gc_write_stats_file(void) {
         ark_collection_count,
         ark_reclaimed_object_bytes,
         ark_reclaimed_side_buffer_bytes,
+        (uint64_t)(ark_gc_total_mark_time_ns / 1000000ull),
+        (uint64_t)(ark_gc_total_sweep_time_ns / 1000000ull),
+        (uint64_t)(ark_gc_total_table_rebuild_time_ns / 1000000ull),
+        (uint64_t)(ark_gc_total_malloc_trim_time_ns / 1000000ull),
+        (uint64_t)(ark_gc_total_root_scan_time_ns / 1000000ull),
+        ark_gc_total_marked_objects,
+        ark_gc_max_marked_objects_per_collection,
+        ark_gc_max_root_slots_scanned,
+        ark_gc_max_heap_objects_before_collection,
+        ark_gc_max_heap_objects_after_collection,
+        ark_gc_threshold_bytes,
         ark_requested_bytes,
         ark_committed_bytes,
         ark_live_bytes,
@@ -376,16 +414,20 @@ static void ark_gc_mark_object(ark_object_header *object) {
     }
 }
 
-static void ark_gc_mark_roots(void) {
+static uint64_t ark_gc_mark_roots(void) {
+    uint64_t slots_scanned = 0;
     for (ark_gc_frame *frame = ark_gc_frame_top; frame != NULL; frame = frame->parent) {
         for (size_t i = 0; i < frame->slot_count; i += 1) {
+            slots_scanned += 1u;
             ark_object_header **slot = frame->slots[i];
             if (slot != NULL && *slot != NULL) ark_gc_mark_object(*slot);
         }
     }
     if (ark_process_args != NULL) {
+        slots_scanned += 1u;
         ark_gc_mark_object((ark_object_header *)ark_process_args);
     }
+    return slots_scanned;
 }
 
 static void ark_gc_table_maybe_shrink(size_t live_count) {
@@ -397,10 +439,31 @@ void ark_gc_collect(void) {
     if (!ark_gc_mode || ark_gc_collecting) return;
     ark_gc_collecting = 1;
     ark_collection_count += 1;
+
+    uint64_t heap_before = 0;
+    for (ark_gc_allocation *count_node = ark_gc_heap_head;
+         count_node != NULL;
+         count_node = count_node->next) {
+        heap_before += 1u;
+    }
+    if (heap_before > ark_gc_max_heap_objects_before_collection) {
+        ark_gc_max_heap_objects_before_collection = heap_before;
+    }
+
     for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
         node->mark = 0;
     }
-    ark_gc_mark_roots();
+
+    uint64_t root_started = ark_gc_now_ns();
+    uint64_t slots_scanned = ark_gc_mark_roots();
+    uint64_t root_elapsed = ark_gc_now_ns() - root_started;
+    ark_gc_total_root_scan_time_ns += root_elapsed;
+    ark_gc_total_mark_time_ns += root_elapsed;
+    if (slots_scanned > ark_gc_max_root_slots_scanned) {
+        ark_gc_max_root_slots_scanned = slots_scanned;
+    }
+
+    uint64_t sweep_started = ark_gc_now_ns();
     ark_gc_allocation *live_head = NULL;
     uint64_t live = 0;
     uint64_t reclaimed = 0;
@@ -432,9 +495,21 @@ void ark_gc_collect(void) {
         }
         node = next;
     }
+    ark_gc_total_sweep_time_ns += ark_gc_now_ns() - sweep_started;
     ark_gc_heap_head = live_head;
+    ark_gc_total_marked_objects += (uint64_t)live_count;
+    if ((uint64_t)live_count > ark_gc_max_marked_objects_per_collection) {
+        ark_gc_max_marked_objects_per_collection = (uint64_t)live_count;
+    }
+    if ((uint64_t)live_count > ark_gc_max_heap_objects_after_collection) {
+        ark_gc_max_heap_objects_after_collection = (uint64_t)live_count;
+    }
+
+    uint64_t rebuild_started = ark_gc_now_ns();
     ark_gc_table_rebuild_from_heap();
     ark_gc_table_maybe_shrink(live_count);
+    ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
+
     ark_live_bytes = live;
     ark_reclaimed_bytes += reclaimed;
     ark_gc_bytes_since_collection = 0;
@@ -447,7 +522,9 @@ void ark_gc_collect(void) {
             ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
         }
     }
+    uint64_t trim_started = ark_gc_now_ns();
     malloc_trim(0);
+    ark_gc_total_malloc_trim_time_ns += ark_gc_now_ns() - trim_started;
     ark_gc_collecting = 0;
 }
 

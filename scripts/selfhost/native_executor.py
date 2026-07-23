@@ -29,10 +29,40 @@ from selfhost.checks import (
 RUNTIME_ABI_VERSION = 1
 BACKEND_SCHEMA_VERSION = 1
 CAPABILITY_TABLE_VERSION = 1
+RECEIPT_SCHEMA_VERSION = 2
 MINIMUM_CLANG_VERSION = 14
 S2_BUILD_PROFILE_NAME = "arukellt-s2.build-profile.json"
 MEMORY_GATE_BYTES = int(2.4 * 1024**3)
 WALL_GATE_MS = 300_000
+
+_GC_STAT_KEYS = (
+    "gc_object_bytes",
+    "gc_string_buffer_bytes",
+    "gc_vec_buffer_bytes",
+    "gc_object_table_bytes",
+    "gc_root_frame_bytes",
+    "gc_live_object_count",
+    "gc_object_table_capacity",
+    "gc_collection_count",
+    "gc_reclaimed_object_bytes",
+    "gc_reclaimed_side_buffer_bytes",
+    "gc_total_mark_time_ms",
+    "gc_total_sweep_time_ms",
+    "gc_total_table_rebuild_time_ms",
+    "gc_total_malloc_trim_time_ms",
+    "gc_total_root_scan_time_ms",
+    "gc_total_marked_objects",
+    "gc_max_marked_objects_per_collection",
+    "gc_max_root_slots_scanned",
+    "gc_max_heap_objects_before_collection",
+    "gc_max_heap_objects_after_collection",
+    "gc_threshold_bytes",
+    "runtime_requested_bytes",
+    "runtime_committed_bytes",
+    "runtime_live_bytes",
+    "runtime_collection_count",
+    "runtime_reclaimed_bytes",
+)
 
 
 def _sha256(path: Path) -> str:
@@ -270,12 +300,45 @@ def _cache_key(
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _empty_gc_stats() -> dict[str, object]:
+    return {key: 0 for key in _GC_STAT_KEYS}
+
+
+def _empty_root_liveness_stats() -> dict[str, object]:
+    # Populated by the emitter once #833 lands; Phase 0 records the disabled state.
+    return {
+        "root_liveness_enabled": False,
+        "root_functions_with_frames": 0,
+        "root_functions_analyzed": 0,
+        "root_functions_skipped": 0,
+        "root_reference_local_count": 0,
+        "root_safepoint_count": 0,
+        "root_clear_sites_planned": 0,
+        "root_clear_sites_emitted": 0,
+        "root_clear_assignments_emitted": 0,
+        "root_liveness_fallback_count": 0,
+    }
+
+
+def _empty_executor_run() -> dict[str, object]:
+    return {
+        "wall_time_ms": 0,
+        "peak_rss_bytes": 0,
+        "smaps_rollup_peak_rss_bytes": 0,
+        "s3_sha256": "",
+        "gc": _empty_gc_stats(),
+    }
+
+
 def _empty_receipt() -> dict[str, object]:
     return {
+        "receipt_schema_version": RECEIPT_SCHEMA_VERSION,
         "clang_peak_rss_bytes": 0,
         "executor_peak_rss_bytes": 0,
         "pipeline_peak_rss_bytes": 0,
         "executor_wall_time_ms": 0,
+        "executor_cold_wall_time_ms": 0,
+        "warm_run_index": 2,
         "pipeline_wall_time_ms": 0,
         "s2_sha256": "",
         "s3_sha256": "",
@@ -283,61 +346,53 @@ def _empty_receipt() -> dict[str, object]:
         "determinism_run_2_sha256": "",
         "clang_version": "",
         "runtime_abi_version": RUNTIME_ABI_VERSION,
+        "native_runtime_hash": "",
         "cache_hit": False,
         "exit_code": 1,
         "output_target": "",
         "wasi": "",
         "memory64": False,
         "wasm_gc": False,
+        "gc_mode": "arena",
+        "gc_threshold_bytes": 0,
         "time_v_max_rss_bytes": 0,
         "smaps_rollup_peak_rss_bytes": 0,
-        "runtime_requested_bytes": 0,
-        "runtime_committed_bytes": 0,
-        "runtime_live_bytes": 0,
-        "runtime_collection_count": 0,
-        "runtime_reclaimed_bytes": 0,
-        "gc_object_bytes": 0,
-        "gc_string_buffer_bytes": 0,
-        "gc_vec_buffer_bytes": 0,
-        "gc_object_table_bytes": 0,
-        "gc_root_frame_bytes": 0,
-        "gc_live_object_count": 0,
-        "gc_object_table_capacity": 0,
-        "gc_collection_count": 0,
-        "gc_reclaimed_object_bytes": 0,
-        "gc_reclaimed_side_buffer_bytes": 0,
+        "executor_run_1": _empty_executor_run(),
+        "executor_run_2": _empty_executor_run(),
+        "root_liveness": _empty_root_liveness_stats(),
+        "correctness_gate_passed": False,
+        "performance_gate_passed": False,
         "memory_gate_passed": False,
+        "strict_gate_passed": False,
         "high_rss_override": False,
+        # Top-level GC mirrors warm run for backward-compatible summary lines.
+        **_empty_gc_stats(),
     }
 
 
-def _merge_gc_stats(receipt: dict[str, object], stats_path: Path) -> None:
-    """Merge runtime GC stats JSON written by ark_rt_shutdown into the receipt."""
+def _load_gc_stats(stats_path: Path) -> dict[str, object]:
+    """Load runtime GC stats JSON written by ark_rt_shutdown."""
+    stats = _empty_gc_stats()
     if not stats_path.is_file():
-        return
+        return stats
     try:
         payload = json.loads(stats_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return
-    for key in (
-        "gc_object_bytes",
-        "gc_string_buffer_bytes",
-        "gc_vec_buffer_bytes",
-        "gc_object_table_bytes",
-        "gc_root_frame_bytes",
-        "gc_live_object_count",
-        "gc_object_table_capacity",
-        "gc_collection_count",
-        "gc_reclaimed_object_bytes",
-        "gc_reclaimed_side_buffer_bytes",
-        "runtime_requested_bytes",
-        "runtime_committed_bytes",
-        "runtime_live_bytes",
-        "runtime_collection_count",
-        "runtime_reclaimed_bytes",
-    ):
+        return stats
+    for key in _GC_STAT_KEYS:
         if key in payload:
-            receipt[key] = payload[key]
+            stats[key] = payload[key]
+    return stats
+
+
+def _host_fingerprint() -> dict[str, object]:
+    uname = os.uname()
+    return {
+        "os_sysname": uname.sysname,
+        "os_release": uname.release,
+        "os_machine": uname.machine,
+        "cpu_count": os.cpu_count() or 0,
+    }
 
 
 def run_native_executor(
@@ -472,20 +527,23 @@ def run_native_executor(
     workspace = _prepare_bootstrap_workspace(root)
     compiler_source = workspace / "src/compiler/main.ark"
 
-    executor_times: list[int] = []
-    executor_peaks: list[int] = []
-    executor_smaps_peaks: list[int] = []
-    executor_hashes: list[str] = []
+    run_env_base = os.environ.copy()
+    # Strict lane enables GC for the RSS gate. --allow-high-rss prefers the
+    # arena path so warm wall stays under 5 minutes while RSS work continues.
+    if "ARUKELLT_NATIVE_GC" not in run_env_base:
+        run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
+    gc_mode = "gc" if run_env_base.get("ARUKELLT_NATIVE_GC", "0") == "1" else "arena"
+    receipt["gc_mode"] = gc_mode
+    receipt["native_runtime_hash"] = _runtime_hash(root)
+    receipt["host"] = _host_fingerprint()
+
+    executor_runs: list[dict[str, object]] = []
     for run_index, output in enumerate((s3_first, s3_second), start=1):
         output.unlink(missing_ok=True)
         stats_path = output_dir / f"executor-{run_index}.gc-stats.json"
         stats_path.unlink(missing_ok=True)
-        run_env = os.environ.copy()
+        run_env = run_env_base.copy()
         run_env["ARUKELLT_NATIVE_GC_STATS_PATH"] = str(stats_path)
-        # Strict lane enables GC for the RSS gate. --allow-high-rss prefers the
-        # arena path so warm wall stays under 5 minutes while RSS work continues.
-        if "ARUKELLT_NATIVE_GC" not in run_env:
-            run_env["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
         execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
@@ -504,44 +562,64 @@ def run_native_executor(
             measurement=output_dir / f"executor-{run_index}.maxrss",
             environment=run_env,
         )
-        executor_times.append(elapsed)
-        executor_peaks.append(peak)
-        executor_smaps_peaks.append(smaps_peak)
         pipeline_peak = max(pipeline_peak, peak)
-        _merge_gc_stats(receipt, stats_path)
+        run_record = _empty_executor_run()
+        run_record["wall_time_ms"] = elapsed
+        run_record["peak_rss_bytes"] = peak
+        run_record["smaps_rollup_peak_rss_bytes"] = smaps_peak
+        run_record["gc"] = _load_gc_stats(stats_path)
         if execution.returncode != 0 or not output.is_file():
             receipt["exit_code"] = execution.returncode or 1
             detail = (execution.stderr + execution.stdout)[-2000:]
             receipt["executor_error"] = detail
+            receipt[f"executor_run_{run_index}"] = run_record
+            executor_runs.append(run_record)
             break
         _postprocess_selfhost_compiler_wasm(output, root)
-        executor_hashes.append(_sha256(output))
+        run_record["s3_sha256"] = _sha256(output)
+        receipt[f"executor_run_{run_index}"] = run_record
+        executor_runs.append(run_record)
         invalid = _reject_invalid_compiler_wasm(output)
         if invalid:
             receipt["exit_code"] = 1
             receipt["validation_error"] = invalid
             break
 
-    if executor_hashes:
-        receipt["s3_sha256"] = executor_hashes[0]
-        receipt["determinism_run_1_sha256"] = executor_hashes[0]
-    if len(executor_hashes) > 1:
-        receipt["determinism_run_2_sha256"] = executor_hashes[1]
+    if executor_runs:
+        receipt["s3_sha256"] = str(executor_runs[0].get("s3_sha256", ""))
+        receipt["determinism_run_1_sha256"] = receipt["s3_sha256"]
+    if len(executor_runs) > 1:
+        receipt["determinism_run_2_sha256"] = str(executor_runs[1].get("s3_sha256", ""))
 
     receipt["clang_peak_rss_bytes"] = clang_peak
-    receipt["executor_peak_rss_bytes"] = max(executor_peaks, default=0)
-    receipt["time_v_max_rss_bytes"] = max(executor_peaks, default=0)
-    receipt["smaps_rollup_peak_rss_bytes"] = max(executor_smaps_peaks, default=0)
+    peaks = [int(run["peak_rss_bytes"]) for run in executor_runs]
+    smaps_peaks = [int(run["smaps_rollup_peak_rss_bytes"]) for run in executor_runs]
+    receipt["executor_peak_rss_bytes"] = max(peaks, default=0)
+    receipt["time_v_max_rss_bytes"] = max(peaks, default=0)
+    receipt["smaps_rollup_peak_rss_bytes"] = max(smaps_peaks, default=0)
     receipt["pipeline_peak_rss_bytes"] = pipeline_peak
-    # First run pays process/cold-cache startup; the wall gate uses the second
-    # determinism run as the warm sample when present.
-    cold_ms = executor_times[0] if executor_times else 0
-    warm_ms = executor_times[-1] if executor_times else 0
+    # First run is cold; the wall gate uses the second determinism run as warm.
+    cold_ms = int(executor_runs[0]["wall_time_ms"]) if executor_runs else 0
+    warm_index = 2 if len(executor_runs) > 1 else (1 if executor_runs else 0)
+    warm_ms = (
+        int(executor_runs[warm_index - 1]["wall_time_ms"]) if warm_index else 0
+    )
     receipt["executor_cold_wall_time_ms"] = cold_ms
     receipt["executor_wall_time_ms"] = warm_ms
+    receipt["warm_run_index"] = warm_index
     receipt["pipeline_wall_time_ms"] = (
         time.monotonic_ns() - pipeline_started
     ) // 1_000_000
+
+    warm_gc = (
+        executor_runs[warm_index - 1]["gc"]
+        if warm_index and isinstance(executor_runs[warm_index - 1].get("gc"), dict)
+        else _empty_gc_stats()
+    )
+    assert isinstance(warm_gc, dict)
+    for key in _GC_STAT_KEYS:
+        receipt[key] = warm_gc.get(key, 0)
+    receipt["gc_threshold_bytes"] = int(warm_gc.get("gc_threshold_bytes", 0) or 0)
 
     is_valid = "validation_error" not in receipt and s3_second.is_file()
     deterministic = (
@@ -550,15 +628,19 @@ def run_native_executor(
         != ""
     )
     byte_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
-    performance_ok = int(receipt["executor_wall_time_ms"]) < WALL_GATE_MS
+    correctness_ok = is_valid and deterministic and byte_equal
+    performance_ok = warm_ms < WALL_GATE_MS
     memory_ok = int(receipt["executor_peak_rss_bytes"]) <= MEMORY_GATE_BYTES
+    strict_ok = correctness_ok and performance_ok and memory_ok
+    receipt["correctness_gate_passed"] = correctness_ok
+    receipt["performance_gate_passed"] = performance_ok
     receipt["memory_gate_passed"] = memory_ok
+    receipt["strict_gate_passed"] = strict_ok
     receipt["high_rss_override"] = bool(allow_high_rss) and not memory_ok
-    correctness_ok = is_valid and deterministic and byte_equal and performance_ok
     if allow_high_rss:
-        succeeded = correctness_ok
+        succeeded = correctness_ok and performance_ok
     else:
-        succeeded = correctness_ok and memory_ok
+        succeeded = strict_ok
     receipt["exit_code"] = 0 if succeeded else 1
     receipt_path.write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -566,6 +648,7 @@ def run_native_executor(
 
     summary = [
         f"native executor receipt: {receipt_path}",
+        f"receipt schema: {RECEIPT_SCHEMA_VERSION} gc_mode={gc_mode}",
         f"output profile: target={output_target} wasi={wasi} "
         f"memory64={profile['memory64']} wasm_gc={profile['wasm_gc']}",
         f"s2 sha256: {receipt['s2_sha256']}",
@@ -573,20 +656,22 @@ def run_native_executor(
         f"deterministic: {deterministic}",
         f"byte equality: {byte_equal}",
         f"cold executor ms: {cold_ms}",
-        f"warm executor ms: {receipt['executor_wall_time_ms']}",
+        f"warm executor ms (run {warm_index}): {warm_ms}",
         f"executor peak RSS bytes: {receipt['executor_peak_rss_bytes']}",
-        f"memory gate passed: {memory_ok}",
+        (
+            f"gates: correctness={correctness_ok} performance={performance_ok} "
+            f"memory={memory_ok} strict={strict_ok}"
+        ),
         f"high_rss_override: {receipt['high_rss_override']}",
         (
-            f"gc stats: objects={receipt['gc_live_object_count']} "
+            f"warm gc: objects={receipt['gc_live_object_count']} "
             f"object_bytes={receipt['gc_object_bytes']} "
-            f"string_buf={receipt['gc_string_buffer_bytes']} "
-            f"vec_buf={receipt['gc_vec_buffer_bytes']} "
-            f"table_bytes={receipt['gc_object_table_bytes']} "
+            f"mark_ms={receipt['gc_total_mark_time_ms']} "
+            f"sweep_ms={receipt['gc_total_sweep_time_ms']} "
             f"collections={receipt['gc_collection_count']}"
         ),
     ]
-    if allow_high_rss and not memory_ok and correctness_ok:
+    if allow_high_rss and not memory_ok and correctness_ok and performance_ok:
         summary.insert(
             0,
             "WARNING: executor RSS exceeds 2.4 GiB gate; --allow-high-rss opted in "

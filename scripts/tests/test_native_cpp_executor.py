@@ -45,3 +45,18 @@ def test_native_executor_allow_high_rss_flag_is_wired() -> None:
     )
     assert result.returncode == 0
     assert "--allow-high-rss" in result.stdout
+
+
+def test_native_executor_receipt_schema_defaults() -> None:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from selfhost.native_executor import RECEIPT_SCHEMA_VERSION, _empty_receipt
+
+    receipt = _empty_receipt()
+    assert receipt["receipt_schema_version"] == RECEIPT_SCHEMA_VERSION
+    assert "executor_run_1" in receipt and "executor_run_2" in receipt
+    assert "root_liveness" in receipt
+    assert receipt["root_liveness"]["root_liveness_enabled"] is False
+    assert "correctness_gate_passed" in receipt
+    assert "performance_gate_passed" in receipt
+    assert "strict_gate_passed" in receipt
+    assert "gc_total_mark_time_ms" in receipt["executor_run_1"]["gc"]
