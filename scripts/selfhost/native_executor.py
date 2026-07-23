@@ -137,7 +137,9 @@ def _timed_run(
                     smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
             except OSError:
                 pass
-            time.sleep(0.05)
+            # smaps_rollup on a multi-GiB native compile is expensive; keep this
+            # as a coarse peak probe. `/usr/bin/time %M` remains the RSS gate.
+            time.sleep(1.0)
         returncode = proc.wait()
     stdout = stdout_path.read_text(encoding="utf-8", errors="replace")
     stderr = stderr_path.read_text(encoding="utf-8", errors="replace")
