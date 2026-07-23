@@ -514,7 +514,12 @@ def run_native_executor(
     receipt["time_v_max_rss_bytes"] = max(executor_peaks, default=0)
     receipt["smaps_rollup_peak_rss_bytes"] = max(executor_smaps_peaks, default=0)
     receipt["pipeline_peak_rss_bytes"] = pipeline_peak
-    receipt["executor_wall_time_ms"] = executor_times[0] if executor_times else 0
+    # First run pays process/cold-cache startup; the wall gate uses the second
+    # determinism run as the warm sample when present.
+    cold_ms = executor_times[0] if executor_times else 0
+    warm_ms = executor_times[-1] if executor_times else 0
+    receipt["executor_cold_wall_time_ms"] = cold_ms
+    receipt["executor_wall_time_ms"] = warm_ms
     receipt["pipeline_wall_time_ms"] = (
         time.monotonic_ns() - pipeline_started
     ) // 1_000_000
@@ -548,6 +553,7 @@ def run_native_executor(
         f"s3 sha256: {receipt['s3_sha256']}",
         f"deterministic: {deterministic}",
         f"byte equality: {byte_equal}",
+        f"cold executor ms: {cold_ms}",
         f"warm executor ms: {receipt['executor_wall_time_ms']}",
         f"executor peak RSS bytes: {receipt['executor_peak_rss_bytes']}",
         f"memory gate passed: {memory_ok}",
