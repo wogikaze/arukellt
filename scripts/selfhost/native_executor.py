@@ -699,8 +699,10 @@ def run_native_executor(
     run_env_base = os.environ.copy()
     # Strict lane enables GC for the RSS gate. --allow-high-rss prefers the
     # arena path so warm wall stays under 5 minutes while RSS work continues.
-    if "ARUKELLT_NATIVE_GC" not in run_env_base:
-        run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
+    # Strict lane always enables GC. Do not inherit a stale ARUKELLT_NATIVE_GC=0
+    # from the parent environment (that silently selects arena and blows RSS).
+    # --allow-high-rss is the only opt-in to arena for local escape-hatch runs.
+    run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
     gc_mode = "gc" if run_env_base.get("ARUKELLT_NATIVE_GC", "0") == "1" else "arena"
     receipt["gc_mode"] = gc_mode
     receipt["host"] = _host_fingerprint()
