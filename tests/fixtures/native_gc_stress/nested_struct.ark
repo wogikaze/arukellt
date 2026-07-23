@@ -1,0 +1,17 @@
+struct Inner {
+    label: String,
+}
+
+struct Outer {
+    inner: Inner,
+}
+
+fn main() -> i32 {
+    let outer = Outer { inner: Inner { label: String_from("nested") } }
+    let mut i = 0
+    while i < 32 {
+        let _junk = String_from("pad")
+        i = i + 1
+    }
+    if eq(outer.inner.label, String_from("nested")) { 0 } else { 1 }
+}

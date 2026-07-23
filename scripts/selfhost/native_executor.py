@@ -277,10 +277,57 @@ def _empty_receipt() -> dict[str, object]:
         "runtime_live_bytes": 0,
         "runtime_collection_count": 0,
         "runtime_reclaimed_bytes": 0,
+        "gc_object_bytes": 0,
+        "gc_string_buffer_bytes": 0,
+        "gc_vec_buffer_bytes": 0,
+        "gc_object_table_bytes": 0,
+        "gc_root_frame_bytes": 0,
+        "gc_live_object_count": 0,
+        "gc_object_table_capacity": 0,
+        "gc_collection_count": 0,
+        "gc_reclaimed_object_bytes": 0,
+        "gc_reclaimed_side_buffer_bytes": 0,
+        "memory_gate_passed": False,
+        "high_rss_override": False,
     }
 
 
-def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int, str]:
+def _merge_gc_stats(receipt: dict[str, object], stats_path: Path) -> None:
+    """Merge runtime GC stats JSON written by ark_rt_shutdown into the receipt."""
+    if not stats_path.is_file():
+        return
+    try:
+        payload = json.loads(stats_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    for key in (
+        "gc_object_bytes",
+        "gc_string_buffer_bytes",
+        "gc_vec_buffer_bytes",
+        "gc_object_table_bytes",
+        "gc_root_frame_bytes",
+        "gc_live_object_count",
+        "gc_object_table_capacity",
+        "gc_collection_count",
+        "gc_reclaimed_object_bytes",
+        "gc_reclaimed_side_buffer_bytes",
+        "runtime_requested_bytes",
+        "runtime_committed_bytes",
+        "runtime_live_bytes",
+        "runtime_collection_count",
+        "runtime_reclaimed_bytes",
+    ):
+        if key in payload:
+            receipt[key] = payload[key]
+
+
+def run_native_executor(
+    root: Path,
+    *,
+    build: bool,
+    dry_run: bool,
+    allow_high_rss: bool = False,
+) -> tuple[int, str]:
     """Build/cache the native compiler, produce s3 twice, and verify it."""
     if dry_run:
         return 0, "DRY-RUN: native C generation -> clang -> two native s3 runs -> equality"
@@ -412,6 +459,10 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
     executor_hashes: list[str] = []
     for run_index, output in enumerate((s3_first, s3_second), start=1):
         output.unlink(missing_ok=True)
+        stats_path = output_dir / f"executor-{run_index}.gc-stats.json"
+        stats_path.unlink(missing_ok=True)
+        run_env = os.environ.copy()
+        run_env["ARUKELLT_NATIVE_GC_STATS_PATH"] = str(stats_path)
         execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
@@ -428,11 +479,13 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
             ],
             root=root,
             measurement=output_dir / f"executor-{run_index}.maxrss",
+            environment=run_env,
         )
         executor_times.append(elapsed)
         executor_peaks.append(peak)
         executor_smaps_peaks.append(smaps_peak)
         pipeline_peak = max(pipeline_peak, peak)
+        _merge_gc_stats(receipt, stats_path)
         if execution.returncode != 0 or not output.is_file():
             receipt["exit_code"] = execution.returncode or 1
             detail = (execution.stderr + execution.stdout)[-2000:]
@@ -471,7 +524,13 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
     byte_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
     performance_ok = int(receipt["executor_wall_time_ms"]) < WALL_GATE_MS
     memory_ok = int(receipt["executor_peak_rss_bytes"]) <= MEMORY_GATE_BYTES
-    succeeded = is_valid and deterministic and byte_equal and performance_ok and memory_ok
+    receipt["memory_gate_passed"] = memory_ok
+    receipt["high_rss_override"] = bool(allow_high_rss) and not memory_ok
+    correctness_ok = is_valid and deterministic and byte_equal and performance_ok
+    if allow_high_rss:
+        succeeded = correctness_ok
+    else:
+        succeeded = correctness_ok and memory_ok
     receipt["exit_code"] = 0 if succeeded else 1
     receipt_path.write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -487,7 +546,23 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         f"byte equality: {byte_equal}",
         f"warm executor ms: {receipt['executor_wall_time_ms']}",
         f"executor peak RSS bytes: {receipt['executor_peak_rss_bytes']}",
+        f"memory gate passed: {memory_ok}",
+        f"high_rss_override: {receipt['high_rss_override']}",
+        (
+            f"gc stats: objects={receipt['gc_live_object_count']} "
+            f"object_bytes={receipt['gc_object_bytes']} "
+            f"string_buf={receipt['gc_string_buffer_bytes']} "
+            f"vec_buf={receipt['gc_vec_buffer_bytes']} "
+            f"table_bytes={receipt['gc_object_table_bytes']} "
+            f"collections={receipt['gc_collection_count']}"
+        ),
     ]
+    if allow_high_rss and not memory_ok and correctness_ok:
+        summary.insert(
+            0,
+            "WARNING: executor RSS exceeds 2.4 GiB gate; --allow-high-rss opted in "
+            "(CI must not use this; current-state stays scaffold; memory_gate_passed=false)",
+        )
     if "validation_error" in receipt:
         summary.append(f"s3 validation: {receipt['validation_error']}")
     if "executor_error" in receipt:

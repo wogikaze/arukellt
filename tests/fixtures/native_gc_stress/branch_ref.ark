@@ -1,0 +1,9 @@
+fn main() -> i32 {
+    let left = String_from("left")
+    let right = String_from("right")
+    let mut chosen = left
+    if len(right) > 0 {
+        chosen = right
+    }
+    if eq(chosen, String_from("right")) { 0 } else { 1 }
+}

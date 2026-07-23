@@ -18,6 +18,7 @@ use mir::opcodes
 use mir::value_types
 use native_c::abi
 use native_c::core_call
+use native_c::root_liveness
 
 struct NativeCFunctionEmitState {
     temporary_declarations: Vec<i32>,
@@ -33,6 +34,10 @@ struct NativeCFunctionEmitState {
     next_temporary_id: i32,
     is_unreachable: bool,
     unreachable_nested_depth: i32,
+    root_clear_start: Vec<i32>,
+    root_clear_count: Vec<i32>,
+    root_clear_locals: Vec<i32>,
+    instruction_order: i32,
 }
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
@@ -50,7 +55,48 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         next_temporary_id: 0,
         is_unreachable: false,
         unreachable_nested_depth: 0,
+        root_clear_start: Vec_new_i32(),
+        root_clear_count: Vec_new_i32(),
+        root_clear_locals: Vec_new_i32(),
+        instruction_order: 0,
     }
+}
+
+fn native_c_value_stack_contains(state: NativeCFunctionEmitState, local: i32) -> bool {
+    let mut index = 0
+    while index < len(state.value_stack) {
+        if get_unchecked(state.value_stack, index) == local {
+            return true
+        }
+        index = index + 1
+    }
+    false
+}
+
+fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instruction: MirInst) {
+    let order = state.instruction_order
+    if order >= 0 && order < len(state.root_clear_count) {
+        let count = get_unchecked(state.root_clear_count, order)
+        let start = get_unchecked(state.root_clear_start, order)
+        let mut clear_index = 0
+        while clear_index < count {
+            let local = get_unchecked(state.root_clear_locals, start + clear_index)
+            // Stack operands are live for the current instruction even when the
+            // MIR CALL encoding omits explicit first_arg locals.
+            if !native_c_value_stack_contains(state, local) {
+                native_c_append(
+                    state,
+                    concat(
+                        String_from("    "),
+                        concat(native_c_local_name(local), String_from(" = NULL;\n"))
+                    )
+                )
+            }
+            clear_index = clear_index + 1
+        }
+    }
+    let _ = instruction
+    state.instruction_order = order + 1
 }
 
 fn native_c_function_emit_success(state: NativeCFunctionEmitState) -> bool {
@@ -963,6 +1009,7 @@ fn native_c_emit_instruction(
     signature: SignatureEntry,
     instruction: MirInst
 ) {
+    native_c_emit_pending_root_clears(state, instruction)
     let op = inst_accessors_shape::MirInst_op(instruction)
     if state.is_unreachable {
         if op == opcodes::MIR_BLOCK() || op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() {
@@ -1172,6 +1219,16 @@ fn native_c_emit_local_declarations(
     native_c_append(
         state,
         concat(
+            String_from("    ark_gc_set_current_function(\""),
+            concat(
+                function_identity::MirFunction_name(function),
+                String_from("\");\n")
+            )
+        )
+    )
+    native_c_append(
+        state,
+        concat(
             String_from("    ark_gc_push_frame((size_t)"),
             concat(i32_to_string(root_count), String_from(");\n"))
         )
@@ -1240,8 +1297,15 @@ fn native_c_emit_function_body(
     native_c_emit_function_instructions(inference_state, mir_module, function, signature)
     if !native_c_function_emit_success(inference_state) { return inference_state }
 
+    let clear_plan = root_liveness::native_c_plan_root_clears(
+        function,
+        inference_state.reference_locals
+    )
     let state = native_c_function_state_new()
     state.reference_locals = inference_state.reference_locals
+    state.root_clear_start = root_liveness::native_c_root_clear_plan_start(clear_plan)
+    state.root_clear_count = root_liveness::native_c_root_clear_plan_counts(clear_plan)
+    state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
     native_c_emit_local_declarations(state, mir_module, function, signature)
     if !native_c_function_emit_success(state) { return state }
     native_c_emit_function_instructions(state, mir_module, function, signature)

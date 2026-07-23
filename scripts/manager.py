@@ -6954,6 +6954,16 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
         default=False,
         help="Build or refresh the native executor and run the S3 equality lane",
     )
+    p_ne.add_argument(
+        "--allow-high-rss",
+        action="store_true",
+        default=False,
+        help=(
+            "Opt-in: if correctness/determinism/wall gates pass, exit 0 even when "
+            "executor RSS exceeds 2.4 GiB (warning + receipt flags; not for CI; "
+            "does not promote current-state)"
+        ),
+    )
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -7271,6 +7281,7 @@ def cmd_selfhost_native_executor(args: argparse.Namespace) -> int:
         _repo_root(),
         build=getattr(args, "build", False),
         dry_run=args.dry_run,
+        allow_high_rss=getattr(args, "allow_high_rss", False),
     )
     print(output)
     return return_code

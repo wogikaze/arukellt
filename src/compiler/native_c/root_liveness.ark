@@ -1,0 +1,539 @@
+// Reference-local liveness for native-cpp GC root clearing at safepoints.
+// Computes block use/def, live_in/live_out fixed-point, then per-instruction
+// live sets so dead rooted locals can be set to NULL before GC may run.
+
+use mir::block_inst_access
+use mir::block_phi_access
+use mir::block_successor_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::phi_record
+
+struct NativeCRootClearPlan {
+    // Parallel to emit order: block-major, instruction-minor.
+    clear_start: Vec<i32>,
+    clear_count: Vec<i32>,
+    clear_locals: Vec<i32>,
+    instruction_count: i32,
+    functions_analyzed: i32,
+    reference_local_count: i32,
+    cleared_root_count: i32,
+    safepoint_count: i32,
+}
+
+fn native_c_root_clear_plan_empty() -> NativeCRootClearPlan {
+    NativeCRootClearPlan {
+        clear_start: Vec_new_i32(),
+        clear_count: Vec_new_i32(),
+        clear_locals: Vec_new_i32(),
+        instruction_count: 0,
+        functions_analyzed: 0,
+        reference_local_count: 0,
+        cleared_root_count: 0,
+        safepoint_count: 0,
+    }
+}
+
+fn native_c_bitset_new(width: i32) -> Vec<i32> {
+    let bits = Vec_new_i32()
+    let mut index = 0
+    while index < width {
+        push(bits, 0)
+        index = index + 1
+    }
+    bits
+}
+
+fn native_c_bitset_clone(source: Vec<i32>) -> Vec<i32> {
+    let bits = Vec_new_i32()
+    let mut index = 0
+    while index < len(source) {
+        push(bits, get_unchecked(source, index))
+        index = index + 1
+    }
+    bits
+}
+
+fn native_c_bitset_set_ref(bits: Vec<i32>, local: i32, reference_locals: Vec<i32>) {
+    if local < 0 || local >= len(bits) { return }
+    if local >= len(reference_locals) { return }
+    if get_unchecked(reference_locals, local) == 0 { return }
+    set(bits, local, 1)
+}
+
+fn native_c_is_safepoint_op(op: i32) -> bool {
+    if op == opcodes::MIR_CONST_STRING() { return true }
+    if op == opcodes::MIR_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_GC_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_ARRAY_NEW() { return true }
+    if op == opcodes::MIR_CALL() { return true }
+    if op == opcodes::MIR_CALL_INDIRECT() { return true }
+    if op == opcodes::MIR_WIT_CALL() { return true }
+    false
+}
+
+// Stack depth tracked explicitly; stack holds local ids.
+fn native_c_sim_push(stack: Vec<i32>, depth: i32, local: i32) -> i32 {
+    if depth < len(stack) {
+        set(stack, depth, local)
+    } else {
+        push(stack, local)
+    }
+    depth + 1
+}
+
+fn native_c_sim_pop(stack: Vec<i32>, depth: i32) -> i32 {
+    if depth <= 0 { return 0 - 1 }
+    get_unchecked(stack, depth - 1)
+}
+
+fn native_c_collect_inst_use_def(
+    instruction: MirInst,
+    reference_locals: Vec<i32>,
+    use_bits: Vec<i32>,
+    def_bits: Vec<i32>,
+    stack: Vec<i32>,
+    depth: i32
+) -> i32 {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    let dest = inst_accessors_operands::MirInst_dest(instruction)
+    let arg0 = inst_accessors_operands::MirInst_arg0(instruction)
+    let arg1 = inst_accessors_operands::MirInst_arg1(instruction)
+    let mut next_depth = depth
+
+    if op == opcodes::MIR_LOCAL_GET() {
+        native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+        if dest >= 0 && dest != arg0 {
+            native_c_bitset_set_ref(def_bits, dest, reference_locals)
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        } else {
+            next_depth = native_c_sim_push(stack, next_depth, arg0)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_LOCAL_SET() {
+        let source = if arg1 >= 0 {
+            native_c_bitset_set_ref(use_bits, arg1, reference_locals)
+            arg1
+        } else {
+            let popped = native_c_sim_pop(stack, next_depth)
+            if next_depth > 0 { next_depth = next_depth - 1 }
+            native_c_bitset_set_ref(use_bits, popped, reference_locals)
+            popped
+        }
+        native_c_bitset_set_ref(def_bits, arg0, reference_locals)
+        let _ = source
+        return next_depth
+    }
+    if op == opcodes::MIR_CONST_STRING() || op == opcodes::MIR_STRUCT_NEW() ||
+    op == opcodes::MIR_GC_STRUCT_NEW() || op == opcodes::MIR_ARRAY_NEW() ||
+    op == opcodes::MIR_REF_FUNC() {
+        if dest >= 0 {
+            native_c_bitset_set_ref(def_bits, dest, reference_locals)
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_CALL() || op == opcodes::MIR_CALL_INDIRECT() || op == opcodes::MIR_WIT_CALL() {
+        let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
+        let mut argument_index = 0
+        while argument_index < argument_count {
+            let argument = native_c_sim_pop(stack, next_depth)
+            if next_depth > 0 { next_depth = next_depth - 1 }
+            native_c_bitset_set_ref(use_bits, argument, reference_locals)
+            argument_index = argument_index + 1
+        }
+        // CALL pops were in reverse; uses are still correct as a set.
+        if dest >= 0 {
+            native_c_bitset_set_ref(def_bits, dest, reference_locals)
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_RETURN() {
+        if arg0 >= 0 {
+            native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+        } else if next_depth > 0 {
+            let returned = native_c_sim_pop(stack, next_depth)
+            native_c_bitset_set_ref(use_bits, returned, reference_locals)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_GET() ||
+    op == opcodes::MIR_ARRAY_GET() || op == opcodes::MIR_ARRAY_LEN() ||
+    op == opcodes::MIR_REF_CAST() || op == opcodes::MIR_REF_TEST() {
+        native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+        if dest >= 0 {
+            native_c_bitset_set_ref(def_bits, dest, reference_locals)
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_STRUCT_SET() || op == opcodes::MIR_GC_STRUCT_SET() ||
+    op == opcodes::MIR_ARRAY_SET() {
+        native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+        native_c_bitset_set_ref(use_bits, arg1, reference_locals)
+        return next_depth
+    }
+    if op == opcodes::MIR_DROP() {
+        if next_depth > 0 { next_depth = next_depth - 1 }
+        return next_depth
+    }
+    // Generic binary / unary stack ops: consume args when present.
+    if opcodes::is_arith_opcode(op) || op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
+    op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() || op == opcodes::MIR_GT() ||
+    op == opcodes::MIR_GTEQ() || op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
+    op == opcodes::MIR_BIT_AND() || op == opcodes::MIR_BIT_OR() || op == opcodes::MIR_BIT_XOR() ||
+    op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() {
+        if next_depth > 0 {
+            let right = native_c_sim_pop(stack, next_depth)
+            next_depth = next_depth - 1
+            native_c_bitset_set_ref(use_bits, right, reference_locals)
+        }
+        if next_depth > 0 {
+            let left = native_c_sim_pop(stack, next_depth)
+            next_depth = next_depth - 1
+            native_c_bitset_set_ref(use_bits, left, reference_locals)
+        }
+        if dest >= 0 {
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() ||
+    op == opcodes::MIR_EXTEND_I32_TO_I64() || op == opcodes::MIR_TRUNC_I64_TO_I32() {
+        if next_depth > 0 {
+            let value = native_c_sim_pop(stack, next_depth)
+            next_depth = next_depth - 1
+            native_c_bitset_set_ref(use_bits, value, reference_locals)
+        }
+        if dest >= 0 {
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64() ||
+    op == opcodes::MIR_CONST_F64() || op == opcodes::MIR_CONST_BOOL() {
+        if dest >= 0 {
+            next_depth = native_c_sim_push(stack, next_depth, dest)
+        }
+        return next_depth
+    }
+    next_depth
+}
+
+fn native_c_plan_root_clears(
+    function: MirFunction,
+    reference_locals: Vec<i32>
+) -> NativeCRootClearPlan {
+    let plan = native_c_root_clear_plan_empty()
+    plan.functions_analyzed = 1
+    // Clears stay off until CFG-complete liveness is proven on full S3.
+    // Incorrect clears caused `String::clone(NULL)` traps during native S3.
+    let enable_root_clears = false
+    if !enable_root_clears {
+        return plan
+    }
+    let block_count_probe = function_block_queries::MirFunction_block_count(function)
+    let local_count_probe = function_locals_view::MirFunction_local_count(function)
+    if block_count_probe > 8 || local_count_probe > 32 {
+        return plan
+    }
+    let local_count = function_locals_view::MirFunction_local_count(function)
+    let mut reference_count = 0
+    let mut local_index = 0
+    while local_index < local_count && local_index < len(reference_locals) {
+        if get_unchecked(reference_locals, local_index) != 0 {
+            reference_count = reference_count + 1
+        }
+        local_index = local_index + 1
+    }
+    plan.reference_local_count = reference_count
+    if reference_count == 0 {
+        return plan
+    }
+
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    // Flat bitsets: block_count * local_count
+    let use_all = native_c_bitset_new(block_count * local_count)
+    let def_all = native_c_bitset_new(block_count * local_count)
+    let live_in_all = native_c_bitset_new(block_count * local_count)
+    let live_out_all = native_c_bitset_new(block_count * local_count)
+
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        let use_bits = native_c_bitset_new(local_count)
+        let def_bits = native_c_bitset_new(local_count)
+        let stack = Vec_new_i32()
+        let mut depth = 0
+        let instruction_count = block_inst_access::MirBlock_inst_count(block)
+        let mut instruction_index = 0
+        while instruction_index < instruction_count {
+            let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+            depth = native_c_collect_inst_use_def(
+                instruction,
+                reference_locals,
+                use_bits,
+                def_bits,
+                stack,
+                depth
+            )
+            instruction_index = instruction_index + 1
+        }
+        // Phi dests are defs; phi edge args are uses of the predecessor.
+        let phi_count = block_phi_access::MirBlock_phi_count(block)
+        let mut phi_index = 0
+        while phi_index < phi_count {
+            let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
+            native_c_bitset_set_ref(def_bits, phi_record::mir_phi_dest(phi), reference_locals)
+            let arg_count = phi_record::mir_phi_arg_count(phi)
+            let mut arg_index = 0
+            while arg_index < arg_count {
+                let arg = phi_record::mir_phi_arg_at(phi, arg_index)
+                let pred = phi_record::mir_phi_arg_pred_block(arg)
+                let local = phi_record::mir_phi_arg_local(arg)
+                if pred >= 0 && pred < block_count {
+                    let pred_use_base = pred * local_count
+                    if local >= 0 && local < local_count &&
+                    local < len(reference_locals) &&
+                    get_unchecked(reference_locals, local) != 0 {
+                        set(use_all, pred_use_base + local, 1)
+                    }
+                }
+                arg_index = arg_index + 1
+            }
+            phi_index = phi_index + 1
+        }
+        let base = block_index * local_count
+        local_index = 0
+        while local_index < local_count {
+            if get_unchecked(use_bits, local_index) != 0 {
+                set(use_all, base + local_index, 1)
+            }
+            if get_unchecked(def_bits, local_index) != 0 {
+                set(def_all, base + local_index, 1)
+            }
+            local_index = local_index + 1
+        }
+        block_index = block_index + 1
+    }
+
+    // Fixed-point live_in / live_out.
+    let mut changed = true
+    let mut pass = 0
+    while changed && pass < block_count + 8 {
+        changed = false
+        pass = pass + 1
+        block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(function, block_index)
+            let out_bits = native_c_bitset_new(local_count)
+            let succ0 = block_successor_access::MirBlock_succ0(block)
+            let succ1 = block_successor_access::MirBlock_succ1(block)
+            if succ0 >= 0 && succ0 < block_count {
+                let succ_base = succ0 * local_count
+                local_index = 0
+                while local_index < local_count {
+                    if get_unchecked(live_in_all, succ_base + local_index) != 0 {
+                        set(out_bits, local_index, 1)
+                    }
+                    local_index = local_index + 1
+                }
+            }
+            if succ1 >= 0 && succ1 < block_count {
+                let succ_base = succ1 * local_count
+                local_index = 0
+                while local_index < local_count {
+                    if get_unchecked(live_in_all, succ_base + local_index) != 0 {
+                        set(out_bits, local_index, 1)
+                    }
+                    local_index = local_index + 1
+                }
+            }
+            let base = block_index * local_count
+            local_index = 0
+            while local_index < local_count {
+                let previous = get_unchecked(live_out_all, base + local_index)
+                let next = get_unchecked(out_bits, local_index)
+                if previous != next {
+                    set(live_out_all, base + local_index, next)
+                    changed = true
+                }
+                // live_in = use ∪ (live_out − def)
+                let is_use = get_unchecked(use_all, base + local_index) != 0
+                let is_def = get_unchecked(def_all, base + local_index) != 0
+                let in_next = if is_use || (next != 0 && !is_def) { 1 } else { 0 }
+                if get_unchecked(live_in_all, base + local_index) != in_next {
+                    set(live_in_all, base + local_index, in_next)
+                    changed = true
+                }
+                local_index = local_index + 1
+            }
+            block_index = block_index + 1
+        }
+    }
+
+    // Per-instruction reverse walk: record clears before each safepoint.
+    block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        let instruction_count = block_inst_access::MirBlock_inst_count(block)
+        let live = native_c_bitset_new(local_count)
+        let base = block_index * local_count
+        local_index = 0
+        while local_index < local_count {
+            set(live, local_index, get_unchecked(live_out_all, base + local_index))
+            local_index = local_index + 1
+        }
+        // Store live_before for each instruction via reverse pass into temporary vectors.
+        let before_starts = Vec_new_i32()
+        let before_counts = Vec_new_i32()
+        let before_locals = Vec_new_i32()
+        // We'll fill from the end; use parallel arrays sized to instruction_count.
+        let live_before_packed = Vec_new_i32()
+        let mut fill = 0
+        while fill < instruction_count * local_count {
+            push(live_before_packed, 0)
+            fill = fill + 1
+        }
+        let mut instruction_index = instruction_count - 1
+        while instruction_index >= 0 {
+            // Snapshot live as live_after, then transfer to before after processing.
+            let snapshot_base = instruction_index * local_count
+            // Process instruction for backward transfer first into working `live`,
+            // but we need live_before = after removing def and adding use.
+            // Capture live_after into a temp by cloning live, then update live.
+            let after = native_c_bitset_clone(live)
+            let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+            let use_bits = native_c_bitset_new(local_count)
+            let def_bits = native_c_bitset_new(local_count)
+            let stack = Vec_new_i32()
+            // Backward transfer does not need accurate stack depth for bitsets:
+            // re-run forward collect on this single inst with empty stack is wrong for CALL.
+            // Instead, use operand fields + int_val for CALL when arg0 encodes first_arg.
+            let op = inst_accessors_shape::MirInst_op(instruction)
+            let dest = inst_accessors_operands::MirInst_dest(instruction)
+            let arg0 = inst_accessors_operands::MirInst_arg0(instruction)
+            let arg1 = inst_accessors_operands::MirInst_arg1(instruction)
+            if dest >= 0 {
+                native_c_bitset_set_ref(def_bits, dest, reference_locals)
+            }
+            if op == opcodes::MIR_LOCAL_SET() {
+                native_c_bitset_set_ref(def_bits, arg0, reference_locals)
+                if arg1 >= 0 {
+                    native_c_bitset_set_ref(use_bits, arg1, reference_locals)
+                }
+            } else if op == opcodes::MIR_LOCAL_GET() {
+                native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+                if dest >= 0 && dest != arg0 {
+                    native_c_bitset_set_ref(def_bits, dest, reference_locals)
+                }
+            } else if op == opcodes::MIR_CALL() || op == opcodes::MIR_CALL_INDIRECT() ||
+            op == opcodes::MIR_WIT_CALL() {
+                // Prefer explicit first_arg when present; otherwise keep live_out conservative.
+                let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
+                if arg0 >= 0 && argument_count > 0 {
+                    let mut argument_index = 0
+                    while argument_index < argument_count {
+                        native_c_bitset_set_ref(use_bits, arg0 + argument_index, reference_locals)
+                        argument_index = argument_index + 1
+                    }
+                }
+            } else {
+                native_c_bitset_set_ref(use_bits, arg0, reference_locals)
+                native_c_bitset_set_ref(use_bits, arg1, reference_locals)
+            }
+            // live = (live - def) ∪ use
+            local_index = 0
+            while local_index < local_count {
+                if get_unchecked(def_bits, local_index) != 0 {
+                    set(live, local_index, 0)
+                }
+                if get_unchecked(use_bits, local_index) != 0 {
+                    set(live, local_index, 1)
+                }
+                local_index = local_index + 1
+            }
+            local_index = 0
+            while local_index < local_count {
+                set(live_before_packed, snapshot_base + local_index, get_unchecked(live, local_index))
+                local_index = local_index + 1
+            }
+            let _ = after
+            let _ = before_starts
+            let _ = before_counts
+            let _ = before_locals
+            instruction_index = instruction_index - 1
+        }
+
+        instruction_index = 0
+        while instruction_index < instruction_count {
+            let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+            let op = inst_accessors_shape::MirInst_op(instruction)
+            let start = len(plan.clear_locals)
+            push(plan.clear_start, start)
+            let mut count = 0
+            if native_c_is_safepoint_op(op) {
+                plan.safepoint_count = plan.safepoint_count + 1
+                let snapshot_base = instruction_index * local_count
+                local_index = 0
+                while local_index < local_count {
+                    if get_unchecked(reference_locals, local_index) != 0 &&
+                    get_unchecked(live_before_packed, snapshot_base + local_index) == 0 {
+                        push(plan.clear_locals, local_index)
+                        count = count + 1
+                        plan.cleared_root_count = plan.cleared_root_count + 1
+                    }
+                    local_index = local_index + 1
+                }
+            }
+            push(plan.clear_count, count)
+            plan.instruction_count = plan.instruction_count + 1
+            instruction_index = instruction_index + 1
+        }
+        block_index = block_index + 1
+    }
+    plan
+}
+
+fn native_c_root_clear_plan_start(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_start
+}
+
+fn native_c_root_clear_plan_counts(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_count
+}
+
+fn native_c_root_clear_plan_locals(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_locals
+}
+
+fn native_c_root_clear_plan_cleared_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.cleared_root_count
+}
+
+fn native_c_root_clear_plan_safepoint_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.safepoint_count
+}
+
+fn native_c_root_clear_count_at(plan: NativeCRootClearPlan, instruction_order: i32) -> i32 {
+    if instruction_order < 0 || instruction_order >= len(plan.clear_count) { return 0 }
+    get_unchecked(plan.clear_count, instruction_order)
+}
+
+fn native_c_root_clear_local_at(
+    plan: NativeCRootClearPlan,
+    instruction_order: i32,
+    clear_index: i32
+) -> i32 {
+    if instruction_order < 0 || instruction_order >= len(plan.clear_start) { return 0 - 1 }
+    let start = get_unchecked(plan.clear_start, instruction_order)
+    let count = get_unchecked(plan.clear_count, instruction_order)
+    if clear_index < 0 || clear_index >= count { return 0 - 1 }
+    get_unchecked(plan.clear_locals, start + clear_index)
+}

@@ -1,0 +1,17 @@
+fn consume(value: String) -> i32 {
+    len(value)
+}
+
+fn main() -> i32 {
+    let keep = String_from("keep-arg")
+    let mut i = 0
+    while i < 64 {
+        let arg = concat(String_from("call-arg-"), String_from("payload"))
+        let n = consume(arg)
+        if n < 1 {
+            return 1
+        }
+        i = i + 1
+    }
+    if eq(keep, String_from("keep-arg")) { 0 } else { 1 }
+}

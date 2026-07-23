@@ -1,0 +1,9 @@
+fn main() -> i32 {
+    let mut acc = String_from("x")
+    let mut i = 0
+    while i < 32 {
+        acc = concat(acc, String_from("y"))
+        i = i + 1
+    }
+    if len(acc) == 33 { 0 } else { 1 }
+}
