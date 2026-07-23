@@ -52,6 +52,9 @@ Canonical promotion plan: [`docs/plans/native-cpp-experimental-promotion.md`](..
 Phase order: receipt → emitter effects → CFG liveness → shadow → fixture clears →
 full-S3 clears → measure → (only if needed) collector/threshold → 3× strict → docs.
 
+Closing #833 does not complete the promotion mission. After #833 acceptance,
+continue umbrella #834 through the final checklist without waiting for another instruction.
+
 ## Non-goals
 
 - `#831` wasm32-gc fixpoint validation (separate)
