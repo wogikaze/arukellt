@@ -94,52 +94,69 @@ def _timed_run(
 
     Returns (result, wall_ms, time_v_max_rss_bytes, smaps_peak_rss_bytes).
     Parent manager RSS is never included; only the timed child is sampled.
+
+    stdout/stderr go to side files (not pipes) so verbose compiler logs cannot
+    stall the child on a full pipe buffer and inflate the wall gate.
     """
     measurement.unlink(missing_ok=True)
-    started = time.monotonic_ns()
+    stdout_path = measurement.with_suffix(measurement.suffix + ".stdout")
+    stderr_path = measurement.with_suffix(measurement.suffix + ".stderr")
+    stdout_path.unlink(missing_ok=True)
+    stderr_path.unlink(missing_ok=True)
     wrapped = [
         "/usr/bin/time",
         "-f",
-        "%M",
+        "%e %M",
         "-o",
         str(measurement),
         *command,
     ]
-    proc = subprocess.Popen(
-        wrapped,
-        cwd=root,
-        env=environment,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    smaps_peak = 0
-    # /usr/bin/time is the direct child; the measured workload is its child.
-    while proc.poll() is None:
-        try:
-            children = Path(f"/proc/{proc.pid}/task/{proc.pid}/children")
-            # Fallback: sample time itself, then any listed children.
-            candidates = [proc.pid]
+    with stdout_path.open("w", encoding="utf-8") as stdout_file, stderr_path.open(
+        "w", encoding="utf-8"
+    ) as stderr_file:
+        proc = subprocess.Popen(
+            wrapped,
+            cwd=root,
+            env=environment,
+            stdout=stdout_file,
+            stderr=stderr_file,
+            text=True,
+        )
+        smaps_peak = 0
+        # /usr/bin/time is the direct child; the measured workload is its child.
+        while proc.poll() is None:
             try:
-                for token in children.read_text(encoding="utf-8").split():
-                    candidates.append(int(token))
+                children = Path(f"/proc/{proc.pid}/task/{proc.pid}/children")
+                candidates = [proc.pid]
+                try:
+                    for token in children.read_text(encoding="utf-8").split():
+                        candidates.append(int(token))
+                except OSError:
+                    pass
+                for pid in candidates:
+                    smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
             except OSError:
                 pass
-            for pid in candidates:
-                smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
-        except OSError:
-            pass
-        time.sleep(0.05)
-    stdout, stderr = proc.communicate()
+            time.sleep(0.05)
+        returncode = proc.wait()
+    stdout = stdout_path.read_text(encoding="utf-8", errors="replace")
+    stderr = stderr_path.read_text(encoding="utf-8", errors="replace")
     result = subprocess.CompletedProcess(
-        wrapped, proc.returncode or 0, stdout=stdout or "", stderr=stderr or ""
+        wrapped, returncode or 0, stdout=stdout, stderr=stderr
     )
-    elapsed_ms = (time.monotonic_ns() - started) // 1_000_000
+    elapsed_ms = 0
     peak_kib = 0
     if measurement.is_file():
+        raw = measurement.read_text(encoding="utf-8").strip().split()
         try:
-            peak_kib = int(measurement.read_text(encoding="utf-8").strip())
+            if len(raw) >= 2:
+                elapsed_ms = int(float(raw[0]) * 1000.0)
+                peak_kib = int(raw[1])
+            elif len(raw) == 1:
+                # Backward compatible with older "%M"-only measurements.
+                peak_kib = int(raw[0])
         except ValueError:
+            elapsed_ms = 0
             peak_kib = 0
     return result, elapsed_ms, peak_kib * 1024, smaps_peak
 
