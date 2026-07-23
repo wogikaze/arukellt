@@ -50,7 +50,6 @@ graph LR
   I807["807 807 — Fixture parity: 367 remaining failures"]
   I809["809 809 — WAT roundtrip failure"]
   I810["810 810 — Component interop failures"]
-  I813["813 813 — Selfhost fixpoint not reached"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
@@ -177,7 +176,6 @@ graph LR
 - **807** depends on: 287, framework); blocks: none
 - **809** depends on: none; blocks: none
 - **810** depends on: none; blocks: none
-- **813** depends on: 459, framework); blocks: none
 - **815** depends on: none; blocks: none
 - **822** depends on: 798, 816, 817, 820; blocks: 818
 - **825** depends on: 823; blocks: none

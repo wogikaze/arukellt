@@ -386,21 +386,21 @@ ci_job = "verification"
 release_blocking = true
 included_in_full = true
 included_in_quick = false
-result = "fail"
+result = "pass"
 evidence_type = "exhaustive"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "2cd10f16"
-verified_at = "2026-07-15"
+last_verified_commit = "fb8a3827"
+verified_at = "2026-07-24"
 stale_after_days = 30
-affected_count = 1
+affected_count = 0
 incident_id = "incident_selfhost_fixpoint"
 blocker_category = "bootstrap"
 blocker_scope = "full"
 blocker_owner = "selfhost compiler"
-blocker_issue = "#813"
+blocker_issue = ""
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached"
+note = "sha256(s2) == sha256(s3); fixpoint reached (#813)"
 
 [[checks]]
 id = "check_selfhost_cli_parity"

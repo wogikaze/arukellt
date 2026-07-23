@@ -182,9 +182,14 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 # Stage-2+ artifacts: primary target (ADR-007 Memory64 default).
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
-# Pinned bootstrap still emits wasm32; convert with --to-memory64 for #730.
+# Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds (#813).
+# Pinned bootstrap still emits wasm32; stage-3 uses s2-runtime with SELFHOST_TARGET until
+# pinned refresh (#730). Fixpoint compares both stages at BOOTSTRAP_EMIT_*.
 BOOTSTRAP_EMIT_TARGET = "wasm32"
 BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
+# KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
+CLOCK_CAPABLE_EMIT_TARGET = "wasm32"
+CLOCK_CAPABLE_EMIT_WASI_VERSION = "wasi-p1"
 # Runtime flags for selfhost compilers (GC proposals + memory64 for #730).
 # max-memory-size must exceed the wasm32 4GiB ceiling so memory64 modules can grow
 # (or start) past 65536 pages under wasmtime.
@@ -625,6 +630,12 @@ def _selfhost_source_fingerprint(root: Path) -> str:
     if pinned.is_file():
         h.update(b"pinned\0")
         h.update(pinned.read_bytes())
+    h.update(f"bootstrap_emit={BOOTSTRAP_EMIT_TARGET}:{BOOTSTRAP_EMIT_WASI_VERSION}\n".encode())
+    try:
+        with open(__file__, "rb") as f:
+            h.update(f.read())
+    except OSError:
+        pass
     return h.hexdigest()
 
 
@@ -1759,12 +1770,19 @@ def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
     return text
 
 
+def _emit_target_is_wasm32_gc(target: str) -> bool:
+    return "wasm32-gc" in target
+
+
 def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics and stores struct i64 as i32.
 
     Applied to every file in the ``driver`` namespace; not every file contains
     every pattern, so all substitutions are *optional* — a skip notice is printed
     when a pattern does not match, making source drift visible without raising.
+
+    Skipped entirely when the overlay emit target is ``wasm32-gc`` — native i64
+    timestamps and GC refs must not be narrowed to i32 (#813).
 
     When ``keep_clock`` is true (default: all groups), keep i32 timestamp
     fields/sigs and rewrite ``clock::monotonic_now()`` to i32 milliseconds so
@@ -1774,6 +1792,9 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
 
     A/B: ``ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS=clock,fields,sigs,backend,emit``.
     """
+    emit_target = os.environ.get("ARUKELLT_OVERLAY_EMIT_TARGET", BOOTSTRAP_EMIT_TARGET)
+    if _emit_target_is_wasm32_gc(emit_target):
+        return text
     groups = _driver_timing_groups(keep_clock=keep_clock)
     if _DRIVER_TIMING_GROUP_CLOCK in groups:
         text = _patch_bootstrap_driver_timing_clock(text, keep_clock=keep_clock)
@@ -1793,6 +1814,9 @@ def _patch_bootstrap_driver_timing(text: str, *, keep_clock: bool = False) -> st
 
 def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = False) -> str:
     """Pinned bootstrap lacks clock intrinsics in mir lower (#823)."""
+    emit_target = os.environ.get("ARUKELLT_OVERLAY_EMIT_TARGET", BOOTSTRAP_EMIT_TARGET)
+    if _emit_target_is_wasm32_gc(emit_target):
+        return text
     if keep_clock:
         # Real ns clocks; mir_lower_phase_ms keeps ``diff / 1000000i64``.
         return text
@@ -2260,6 +2284,23 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
 def _postprocess_selfhost_compiler_wasm(wasm_path: Path, root: Path) -> None:
     """Normalize stage-2/3 selfhost wasm (duplicate exports without MIR prune)."""
     _dedupe_selfhost_wasm_exports(wasm_path, root)
+
+
+def _fixpoint_stage3_compiler(
+    root: Path,
+    pinned: Path,
+    built_s2: Path,
+) -> Path | None:
+    """Compiler wasm for fixpoint stage-3.
+
+    Until pinned bootstrap can emit ``wasm32-gc`` and s2 can self-compile under
+    Memory64, stage-3 uses the same bootstrap compiler as stage-2 so both
+    stages compile the same overlay + emit target deterministically (#813).
+    """
+    bootstrap = _ensure_bootstrap_compiler_wasm(root, pinned)
+    if bootstrap is not None:
+        return bootstrap
+    return _stage3_compiler_wasm(root, pinned, built_s2)
 
 
 def _stage3_compiler_wasm(root: Path, pinned: Path, built_s2: Path) -> Path | None:
@@ -2944,6 +2985,9 @@ def _compiler_source_content_hash(root: Path) -> str:
     digest.update(
         f"keep_clock_groups={os.environ.get('ARUKELLT_OVERLAY_KEEP_CLOCK_GROUPS', '')}\n".encode()
     )
+    digest.update(
+        f"overlay_emit_target={os.environ.get('ARUKELLT_OVERLAY_EMIT_TARGET', BOOTSTRAP_EMIT_TARGET)}\n".encode()
+    )
     # Hash checks.py itself (overlay logic depends on it)
     try:
         with open(__file__, "rb") as f:
@@ -3346,6 +3390,13 @@ def _try_s3_cache(
     cache_file = cache_dir / f"{fp}.wasm"
     if not cache_file.is_file():
         return False
+    invalid = _reject_invalid_compiler_wasm(cache_file)
+    if invalid:
+        try:
+            cache_file.unlink()
+        except OSError:
+            pass
+        return False
     final = root / out_rel
     final.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(cache_file, final)
@@ -3404,7 +3455,36 @@ def _wasm_compile_selfhost_source(
             )
 
     def _do_compile() -> subprocess.CompletedProcess:
-        if needs_overlay:
+        prev_emit = os.environ.get("ARUKELLT_OVERLAY_EMIT_TARGET")
+        os.environ["ARUKELLT_OVERLAY_EMIT_TARGET"] = emit_target
+        try:
+            if needs_overlay:
+                return _wasm_compile(
+                    wasmtime,
+                    compiler_wasm,
+                    SELFHOST_SOURCE_REL,
+                    out_rel,
+                    root,
+                    timeout=compile_timeout,
+                    workspace_root=workspace,
+                    target=emit_target,
+                    wasi_version=emit_wasi,
+                )
+            result = _wasm_compile(
+                wasmtime,
+                compiler_wasm,
+                SELFHOST_SOURCE_REL,
+                out_rel,
+                root,
+                timeout=compile_timeout,
+                target=emit_target,
+                wasi_version=emit_wasi,
+            )
+            if result.returncode == 0:
+                return result
+            if not _should_try_flat_overlay(result.stderr or ""):
+                return result
+            ws = _prepare_bootstrap_workspace(root)
             return _wasm_compile(
                 wasmtime,
                 compiler_wasm,
@@ -3412,36 +3492,15 @@ def _wasm_compile_selfhost_source(
                 out_rel,
                 root,
                 timeout=compile_timeout,
-                workspace_root=workspace,
+                workspace_root=ws,
                 target=emit_target,
                 wasi_version=emit_wasi,
             )
-        result = _wasm_compile(
-            wasmtime,
-            compiler_wasm,
-            SELFHOST_SOURCE_REL,
-            out_rel,
-            root,
-            timeout=compile_timeout,
-            target=emit_target,
-            wasi_version=emit_wasi,
-        )
-        if result.returncode == 0:
-            return result
-        if not _should_try_flat_overlay(result.stderr or ""):
-            return result
-        ws = _prepare_bootstrap_workspace(root)
-        return _wasm_compile(
-            wasmtime,
-            compiler_wasm,
-            SELFHOST_SOURCE_REL,
-            out_rel,
-            root,
-            timeout=compile_timeout,
-            workspace_root=ws,
-            target=emit_target,
-            wasi_version=emit_wasi,
-        )
+        finally:
+            if prev_emit is None:
+                os.environ.pop("ARUKELLT_OVERLAY_EMIT_TARGET", None)
+            else:
+                os.environ["ARUKELLT_OVERLAY_EMIT_TARGET"] = prev_emit
 
     result = _do_compile()
     if use_s3_cache and result.returncode == 0:
@@ -3696,7 +3755,7 @@ def _run_fixpoint_locked(
 
     if build or not s3.is_file():
         emit(f"{YELLOW}[selfhost] Building stage 3 (s2.wasm → s3.wasm)...{NC}")
-        stage3_compiler = _stage3_compiler_wasm(root, pinned, s2)
+        stage3_compiler = _fixpoint_stage3_compiler(root, pinned, s2)
         if stage3_compiler is None:
             emit(f"{RED}error: failed to prepare stage-3 compiler wasm{NC}")
             _fixpoint_cache_try_write(
@@ -3704,7 +3763,15 @@ def _run_fixpoint_locked(
             )
             return SelfhostFixpointResult(exit_code=2, passed=False, skipped=True, output="\n".join(lines))
         try:
-            r = _wasm_compile_selfhost_source(wasmtime, stage3_compiler, s3_rel, root, use_s3_cache=True)
+            r = _wasm_compile_selfhost_source(
+                wasmtime,
+                stage3_compiler,
+                s3_rel,
+                root,
+                use_s3_cache=True,
+                target=BOOTSTRAP_EMIT_TARGET,
+                wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+            )
         except BootstrapOverlayError as e:
             emit(f"{RED}✗ bootstrap overlay patch failed during stage 3:{NC}")
             emit(f"  {e}")
@@ -3992,8 +4059,8 @@ def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[
             pre64_rel,
             root,
             workspace_root=workspace,
-            target=BOOTSTRAP_EMIT_TARGET,
-            wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+            target=CLOCK_CAPABLE_EMIT_TARGET,
+            wasi_version=CLOCK_CAPABLE_EMIT_WASI_VERSION,
         )
         if not pre64.is_file():
             detail = ((result.stderr or "") + (result.stdout or ""))[-800:]

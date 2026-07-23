@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-24
 ID: 813
 Track: selfhost
 Depends on: "459 (done, framework)"

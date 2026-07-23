@@ -11,8 +11,8 @@
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 1 verification check failure(s), 5 additional full-verification blocker group(s)
-> Distinct incidents: 7 (derived from incident_id in release-guarantees.toml; 7 failing checks)
+> Blocking: 1089 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
+> Distinct incidents: 6 (derived from incident_id in release-guarantees.toml; 6 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -128,7 +128,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
 | `check_t3_wasm_validate` | `quick` | `verification` | 1 | `incident_t3_wasm_validate` | T3 fixture Wasm validation: 1 aggregate gate failure + 100 fixture-level validate failures (func N failed to validate) | `python3 scripts/check/check-t3-wasm-validate.py` | Wasm backend | #808 | `fd14539c23288d3ed993c03600aeed36cd478d06` | `982f3102` | `fresh` |
-| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #813 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |
