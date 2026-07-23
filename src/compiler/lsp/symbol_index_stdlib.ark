@@ -26,10 +26,10 @@ fn stdlib_module_to_source_uri(module_path: String) -> String {
 fn render_manifest_signature(name: String, params: String, returns: String) -> String {
     let mut sig = concat(String_from("fn "), clone(name))
     sig = text::builder_append(sig, String_from("("))
-        if len(params) > 0 {
-            sig = text::builder_append(sig, concat(String_from("s: "), params))
-        }
-        sig = text::builder_append(sig, String_from(")"))
+    if len(params) > 0 {
+        sig = text::builder_append(sig, concat(String_from("s: "), params))
+    }
+    sig = text::builder_append(sig, String_from(")"))
     if len(returns) > 0 {
         sig = text::builder_append(sig, concat(String_from(" -> "), returns))
     }

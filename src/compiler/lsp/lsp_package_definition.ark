@@ -48,10 +48,10 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
     }
     let tail = substring(body, pos, len(body))
     let arr_start = index_of(clone(tail), String_from("["))
-        if arr_start < 0 {
-            return Vec_new_String()
-        }
-        let arr_end = index_of(clone(tail), String_from("]"))
+    if arr_start < 0 {
+        return Vec_new_String()
+    }
+    let arr_end = index_of(clone(tail), String_from("]"))
     if arr_end < arr_start {
         return Vec_new_String()
     }

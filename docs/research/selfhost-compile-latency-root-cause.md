@@ -124,6 +124,23 @@ Stage-3 終盤 6 分で RSS ≈ 1.37 → 2.40 GiB（線形増加）。時間の�
 
 残課題: `block_scans≈1.4M`（producer 一括化）と `lower.reachability≈13 s`。
 
+### Phase receipt（2026-07-24, #829 reprofile）
+
+KEEP_CLOCK + flat-src、同一 host `arukellt-s2-clock.wasm`（`sha256=46a376a3…`）。
+
+| | emit.code.locals | lower.reachability | total | wall |
+|---|---:|---:|---:|---:|
+| Baseline（計測 1） | **13.6 s** | 11.2 s | 44.3 s | 46.4 s |
+| After def-site / has_ref caches | **10.5 s** | 11.5 s | 39.1 s | 40.4 s |
+
+支配フェーズは引き続き **`emit.code.locals`**（`decl_emit` は第 2 位 ≈6 s）。
+`emit.code.locals` は **−23%**（半減未達）。`layout_lookups` は type_name cache ヒット計測修正で
+カウンタ上 2.4M → 486。`block_scans` は ≈1.37M のまま。
+
+Receipt: `.build/selfhost/selfhost-latency-receipt.json`
+
+残課題: `block_scans` producer 一括化で `emit.code.locals` 半減、`lower.reachability` 再プロファイル。
+
 ### 次に取るべき receipt（同一 artifact・同一 target）
 
 壁時間:
@@ -170,7 +187,7 @@ AOT/overlay は秒〜十数秒級。十〜二十分級 stage-3 の主因では�
 
 ## マイルストーン（#829）
 
-1. mem64 / `selfhost fixpoint --build` を green にする（#730 / #813）— **残**
+1. mem64 / `selfhost fixpoint --build` を green にする（#730 / #813）— **完了（2026-07-24）**
 2. `ARUKELLT_OVERLAY_KEEP_CLOCK=1` で生成した s2 が `wasm-tools validate` に通り、`--time` が実時間を出す — **完了（2026-07-21）**
 3. 23.5 分級 workload の **phase receipt** を確定する（壁 + 境界 RSS）
 4. 最大フェーズを半減させる（候補は計測後に選ぶ。既定で #824 にしない）

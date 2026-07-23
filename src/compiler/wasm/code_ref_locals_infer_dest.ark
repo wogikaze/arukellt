@@ -276,7 +276,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
         // get_unchecked: prefer the dest local's element type (set by MIR
-            // mark_vec_get_unchecked_result_type). Do not resolve the enclosing
+        // mark_vec_get_unchecked_result_type). Do not resolve the enclosing
         // function's return (e.g. vec:ModInfo → ModInfo) — that poisons
         // Vec<i32> results in functions that return Vec<Struct> (#730).
         if is_get_unchecked_callee_name(clone(callee)) {

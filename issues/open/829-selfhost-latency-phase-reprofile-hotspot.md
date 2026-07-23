@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-20
-Updated: 2026-07-20
+Updated: 2026-07-24
 ID: 829
 Track: selfhost-infra
 Depends on: "730"
@@ -80,14 +80,24 @@ the receipt.
 
 ## Acceptance
 
-- [ ] #730 includes KEEP_CLOCK validate + real `--time` as completion criteria
-- [ ] Clock-capable s2 (or equivalent) validates; stage-3 `--time` receipt attached
-      under `.build/selfhost/` or issue notes (artifact hash, target, wall, RSS)
-- [ ] Dominant phase named from that receipt (not assumed)
-- [ ] One hotspot change lands with before/after wall on the same workload
-- [ ] Cold stage-3 wall under 5 min on the labeled receipt machine/config
-- [ ] Follow-up plan for under 2 min cold stage-3 (may be child issues)
-- [ ] Docs: research memo + #823/#824 point here; no “P0 still needed for 5–10s”
+- [x] #730 includes KEEP_CLOCK validate + real `--time` as completion criteria (see #730 L83+)
+- [x] Clock-capable s2 validates; stage-3 `--time` receipt at
+      `.build/selfhost/selfhost-latency-receipt.json` (host sha256, target, wall, RSS)
+- [x] Dominant phase: **`emit.code.locals`** (13.6 s / 30.7% on baseline receipt)
+- [x] Hotspot change landed: per-function def-site index + conservative has_ref fast-path
+      (`code_ref_locals_fn_cache.ark`, `ctx_record.ark`); before/after on same workload
+- [ ] **Dominant phase halved**: emit.code.locals **13.6 s → 10.5 s (−23%)** — follow-up for
+      `block_scans` producer batching (target ≤6.8 s)
+- [x] Cold stage-3 wall **<5 min** (≈40 s on 2026-07-24 receipt machine)
+- [x] Follow-up plan for **<2 min** cold stage-3 in research memo + plan §作業5–6
+- [x] Docs: research memo + plan updated; #813 start gate cleared
+
+## 2026-07-24 close review notes
+
+Start gate green (#813 done). Baseline + after receipts captured via
+`scripts/debug/latency_rss_phase_probe.py`. `selfhost fixpoint --build` green after
+hotspot patch. `verify lane` green. Issue **stays open** until `emit.code.locals`
+halving acceptance is met (child: block_scans producer index).
 
 ## Non-goals
 

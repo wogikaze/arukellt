@@ -83,7 +83,7 @@ fn local_has_container_type_name(type_name: String) -> bool {
 // GC-target local val type for hashmap/string/option/inferred types.
 fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), String_from("hashmap:")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -100,7 +100,7 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
         }
     }
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -112,7 +112,7 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
     starts_with(clone(type_name), String_from("option:")) ||
     starts_with(clone(type_name), String_from("Option:")) ||
     starts_with(clone(type_name), String_from("Option<")) {
-        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+        if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -261,7 +261,7 @@ fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32,
         // inference (e.g. enclosing fn return vec:Struct → Struct) keeps
         // Memory64 i32→i64 stores valid (#730 build_module_infos).
         if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(clone(type_name), vt) &&
-        !code_ref_locals::local_has_any_ref_assignment(f, local_idx) {
+        !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             return false
         }
         writer_core::emit_byte(body, constants::WASM_REF_NULL())

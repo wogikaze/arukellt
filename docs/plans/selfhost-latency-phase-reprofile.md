@@ -1,6 +1,6 @@
 # Selfhost compile latency: Memory64後の作業計画
 
-ステータス: 計画（作業1 KEEP_CLOCK/--time は完了。残り開始条件は fixpoint green）  
+ステータス: 計画（作業1 KEEP_CLOCK/--time 完了。作業2–3 完了。作業4 部分完了 — emit.code.locals −23%、半減は follow-up）  
 親 issue: [#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md)  
 調査メモ: [`../research/selfhost-compile-latency-root-cause.md`](../research/selfhost-compile-latency-root-cause.md)
 

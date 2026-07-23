@@ -18,7 +18,7 @@ fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type:
     }
     let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
     let local_vt = function_local_queries::mir_local_vt_for_function(f, local_idx)
-    let local_is_ref = local_idx >= 0 && code_ref_locals::local_has_any_ref_assignment(f, local_idx)
+    let local_is_ref = local_idx >= 0 && code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx)
     helpers_numeric_i32_convert::is_memory64_i32_field_scalar(val_type, local_vt, local_is_ref)
 }
 

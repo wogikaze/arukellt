@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-20
+Updated: 2026-07-24
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
@@ -107,14 +107,14 @@ Binary patches help slightly but do not remove the 4GB ceiling.
 
 ## Acceptance Criteria
 
-- [ ] `selfhost fixpoint --build` can produce s2/s3 wasm
+- [x] `selfhost fixpoint --build` can produce s2/s3 wasm (#813, 2026-07-24)
 - [ ] `verify quick` passes (0 failures)
 - [ ] Pinned wasm can be refreshed with current source
 - [x] Stage-3 no longer hangs in MIR lower after typecheck (`471661a3`)
-- [ ] `ARUKELLT_OVERLAY_KEEP_CLOCK=1` produces a compiler wasm that
-      `wasm-tools validate` accepts (Memory64 / GC clock intrinsic ABI fixed)
-- [ ] That clock-capable artifact prints non-zero `--time` / `lower.*` phase ms on
-      a short smoke and on full selfhost (latency entry for [#829](829-selfhost-latency-phase-reprofile-hotspot.md))
+- [x] `ARUKELLT_OVERLAY_KEEP_CLOCK=1` produces a compiler wasm that
+      `wasm-tools validate` accepts (smoke: `scripts/tests/test_selfhost_keep_clock_time_smoke.py`, 2026-07-21+)
+- [x] That clock-capable artifact prints non-zero `--time` / `lower.*` phase ms on
+      full selfhost (#829 receipt `.build/selfhost/selfhost-latency-receipt.json`, 2026-07-24)
 
 KEEP_CLOCK is part of Memory64 completion, not a optional latency nicety: without
 real clocks, post-#823 hotspot selection is guesswork.

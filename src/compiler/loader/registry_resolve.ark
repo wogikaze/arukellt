@@ -62,7 +62,7 @@ fn http_registry_fetch_url(registry_url: String, package_name: String) -> String
 
 fn read_http_registry_source(registry_url: String, package_name: String) -> Result<String, String> {
     // http::get is not reliably lowered for wasm32-gc selfhost (validate fails
-        // in the Result/string bridge). HTTP registry fetch stays unavailable here.
+    // in the Result/string bridge). HTTP registry fetch stays unavailable here.
     let _package_name = package_name
     Result::Err(registry_error_unreachable(clone(registry_url), String_from("http registry fetch unsupported on wasm32-gc")))
 }

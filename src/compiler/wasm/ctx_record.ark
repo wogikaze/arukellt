@@ -53,6 +53,11 @@ pub struct SelfEmitCtx {
     // Per-function emit caches (#829). Empty = inactive.
     local_gc_infer_cache: Vec<i32>,
     local_struct_new_cache: Vec<i32>,
+    // 0/1 ref-assignment flags; parallel to struct_new cache when active.
+    local_has_ref_cache: Vec<i32>,
+    // First defining MIR site per local (-1 = none); speeds block_scan.
+    local_def_block_cache: Vec<i32>,
+    local_def_inst_cache: Vec<i32>,
     // type_name → wasm ref type idx (+2 encoded; 1 = known miss).
     type_name_ref_index: NameIndex,
     // #region agent log
@@ -145,6 +150,9 @@ fn SelfEmitCtx_new(
         gc_layout_table: layout,
         local_gc_infer_cache: Vec_new_i32(),
         local_struct_new_cache: Vec_new_i32(),
+        local_has_ref_cache: Vec_new_i32(),
+        local_def_block_cache: Vec_new_i32(),
+        local_def_inst_cache: Vec_new_i32(),
         type_name_ref_index: name_index::NameIndex_new(4096),
         local_gc_debug_counters: SelfEmitCtx_new_local_gc_debug_counters(),
     }
@@ -191,6 +199,30 @@ fn SelfEmitCtx_local_struct_new_cache(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_local_struct_new_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_struct_new_cache = cache
+}
+
+fn SelfEmitCtx_local_has_ref_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_has_ref_cache
+}
+
+fn SelfEmitCtx_set_local_has_ref_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_has_ref_cache = cache
+}
+
+fn SelfEmitCtx_local_def_block_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_def_block_cache
+}
+
+fn SelfEmitCtx_set_local_def_block_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_def_block_cache = cache
+}
+
+fn SelfEmitCtx_local_def_inst_cache(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_def_inst_cache
+}
+
+fn SelfEmitCtx_set_local_def_inst_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_def_inst_cache = cache
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {

@@ -25,6 +25,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_typename
+use wasm::code_ref_locals_fn_cache
 use wasm::code_ref_locals_infer_dest
 use wasm::code_ref_locals_stack_scan
 use wasm::code_ref_locals_scan
@@ -145,11 +146,26 @@ fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
     ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 1)
     // #endregion
     let block_count = len(f.blocks)
-    let mut bi = 0
+    let mut start_bi = 0
+    let mut start_ii = 0
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        let def_bi = code_ref_locals_fn_cache::cached_def_block(ctx, local_idx)
+        if def_bi >= 0 {
+            start_bi = def_bi
+            start_ii = code_ref_locals_fn_cache::cached_def_inst(ctx, local_idx)
+            if start_ii < 0 {
+                start_ii = 0
+            }
+        }
+    }
+    let mut bi = start_bi
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
+        if bi == start_bi {
+            ii = start_ii
+        }
         let mut prev_op = 0 - 1
         let mut prev_arg0 = 0 - 1
         let mut prev_dest = 0 - 1

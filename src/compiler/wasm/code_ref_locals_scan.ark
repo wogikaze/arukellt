@@ -114,7 +114,13 @@ fn local_has_ref_type_name(f: MirFunction, local_idx: i32) -> bool {
 // i32 values in the current MIR. Returns true if there is evidence the local
 // holds a ref value (direct ref-producing op, LOCAL_SET/LOCAL_GET from a ref
 // source, or a function parameter with a ref type_name).
-fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32) -> bool {
+fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        let cached = code_ref_locals_fn_cache::cached_has_ref_assignment(ctx, local_idx)
+        if cached == 1 {
+            return true
+        }
+    }
     local_has_any_ref_assignment_depth(f, local_idx, 0)
 }
 

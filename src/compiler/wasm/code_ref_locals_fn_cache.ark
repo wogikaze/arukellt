@@ -1,8 +1,11 @@
 use mir::block_inst_access
 use mir::function_locals_view
+use mir::function_param_view
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::local_access
 use mir::opcodes
+use wasm::code_ref_locals_scan
 use wasm::ctx_record
 //
 // Per-function caches for GC local inference during emit (#829).
@@ -13,13 +16,20 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let infer = Vec_new_i32()
     let struct_new = Vec_new_i32()
+    let has_ref = Vec_new_i32()
+    let def_block = Vec_new_i32()
+    let def_inst = Vec_new_i32()
     let mut i = 0
     while i < local_count {
         // -2 = not yet inferred
         push(infer, 0 - 2)
         push(struct_new, 0)
+        push(has_ref, 0)
+        push(def_block, 0 - 1)
+        push(def_inst, 0 - 1)
         i = i + 1
     }
+    seed_has_ref_from_params(f, has_ref)
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {
@@ -28,23 +38,141 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                let dest = inst_accessors_operands::MirInst_dest(inst)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            if op == opcodes::MIR_GC_STRUCT_NEW() {
                 if dest >= 0 && dest < local_count {
                     set(struct_new, dest, 1)
                 }
+            }
+            record_local_def_site(def_block, def_inst, local_count, dest, bi, ii, op)
+            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+            if op == opcodes::MIR_LOCAL_SET() {
+                record_local_def_site(def_block, def_inst, local_count, arg0, bi, ii, op)
             }
             ii = ii + 1
         }
         bi = bi + 1
     }
+    propagate_has_ref_assignments(f, has_ref, 4)
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, infer)
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, struct_new)
+    ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, has_ref)
+    ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, def_block)
+    ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, def_inst)
+}
+
+fn seed_has_ref_from_params(f: MirFunction, has_ref: Vec<i32>) {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        let param_type_name = function_param_view::MirFunction_param_type_name(f, pi)
+        if len(param_type_name) > 0 && code_ref_locals_scan::type_name_is_ref(param_type_name) {
+            set(has_ref, pi, 1)
+        }
+        pi = pi + 1
+    }
+}
+
+fn record_local_def_site(
+    def_block: Vec<i32>,
+    def_inst: Vec<i32>,
+    local_count: i32,
+    local_idx: i32,
+    block_idx: i32,
+    inst_idx: i32,
+    op: i32
+) {
+    if local_idx < 0 || local_idx >= local_count {
+        return
+    }
+    if op == opcodes::MIR_GC_STRUCT_SET() || op == opcodes::MIR_STRUCT_SET() {
+        return
+    }
+    if get_unchecked(def_block, local_idx) >= 0 {
+        return
+    }
+    set(def_block, local_idx, block_idx)
+    set(def_inst, local_idx, inst_idx)
+}
+
+fn propagate_has_ref_assignments(f: MirFunction, has_ref: Vec<i32>, max_passes: i32) {
+    let mut pass = 0
+    while pass < max_passes {
+        let mut changed = 0
+        let block_count = len(f.blocks)
+        let mut bi = 0
+        while bi < block_count {
+            let block = get_unchecked(f.blocks, bi)
+            let inst_count = block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = block_inst_access::MirBlock_inst_at(block, ii)
+                if local_inst_marks_ref(f, inst, has_ref) {
+                    changed = 1
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        if changed == 0 {
+            return
+        }
+        pass = pass + 1
+    }
+}
+
+fn local_inst_marks_ref(f: MirFunction, inst: MirInst, has_ref: Vec<i32>) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if dest >= 0 && dest < len(has_ref) {
+        if op == opcodes::MIR_GC_STRUCT_NEW() ||
+        op == opcodes::MIR_STRUCT_NEW() ||
+        op == opcodes::MIR_ARRAY_NEW() ||
+        op == opcodes::MIR_CONST_STRING() ||
+        op == opcodes::MIR_CALL() ||
+        op == opcodes::MIR_REF_CAST() ||
+        op == opcodes::MIR_REF_TEST() {
+            if get_unchecked(has_ref, dest) == 0 {
+                set(has_ref, dest, 1)
+                return true
+            }
+        }
+        if op == opcodes::MIR_GC_STRUCT_GET() && code_ref_locals_scan::local_has_ref_type_name(f, dest) {
+            if get_unchecked(has_ref, dest) == 0 {
+                set(has_ref, dest, 1)
+                return true
+            }
+        }
+        if op == opcodes::MIR_LOCAL_GET() {
+            let src = inst_accessors_operands::MirInst_arg0(inst)
+            if src >= 0 && src < len(has_ref) && get_unchecked(has_ref, src) == 1 {
+                if get_unchecked(has_ref, dest) == 0 {
+                    set(has_ref, dest, 1)
+                    return true
+                }
+            }
+        }
+    }
+    if op == opcodes::MIR_LOCAL_SET() && arg0 >= 0 && arg0 < len(has_ref) {
+        let source = inst_accessors_operands::MirInst_arg1(inst)
+        if source >= 0 && source < len(has_ref) && get_unchecked(has_ref, source) == 1 {
+            if get_unchecked(has_ref, arg0) == 0 {
+                set(has_ref, arg0, 1)
+                return true
+            }
+        }
+    }
+    false
 }
 
 fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
     ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec_new_i32())
     ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec_new_i32())
+    ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec_new_i32())
+    ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec_new_i32())
+    ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec_new_i32())
 }
 
 fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -53,6 +181,30 @@ fn cached_is_direct_gc_struct_new_dest(ctx: SelfEmitCtx, local_idx: i32) -> i32 
         return 0 - 1
     }
     get_unchecked(flags, local_idx)
+}
+
+fn cached_has_ref_assignment(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let flags = ctx_record::SelfEmitCtx_local_has_ref_cache(ctx)
+    if local_idx < 0 || local_idx >= len(flags) {
+        return 0 - 1
+    }
+    get_unchecked(flags, local_idx)
+}
+
+fn cached_def_block(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let blocks = ctx_record::SelfEmitCtx_local_def_block_cache(ctx)
+    if local_idx < 0 || local_idx >= len(blocks) {
+        return 0 - 1
+    }
+    get_unchecked(blocks, local_idx)
+}
+
+fn cached_def_inst(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let insts = ctx_record::SelfEmitCtx_local_def_inst_cache(ctx)
+    if local_idx < 0 || local_idx >= len(insts) {
+        return 0 - 1
+    }
+    get_unchecked(insts, local_idx)
 }
 
 fn cached_infer_get(ctx: SelfEmitCtx, local_idx: i32) -> i32 {

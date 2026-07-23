@@ -430,7 +430,7 @@ fn elem_name_looks_like_enum(ctx: SelfEmitCtx, struct_name: String) -> bool {
 }
 
 // Prefer Option::Some with the requested payload suffix (_f1_i32 / _f1_i64 /
-    // _f1_ref0 / _f1_gcsrefN / ...) over the first name-only match (#726).
+// _f1_ref0 / _f1_gcsrefN / ...) over the first name-only match (#726).
 fn find_option_some_variant_type(ctx: SelfEmitCtx, field_suffix: String, enum_type: i32) -> i32 {
     let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
