@@ -180,6 +180,16 @@ status = "deferred"
 owner = "bootstrap-tooling"
 
 [[families]]
+ext = ".h"
+formatter = "clang-format"
+linter = "clang-tidy"
+canonical_fmt = "clang-format"
+canonical_lint = "clang-tidy"
+status = "deferred"
+owner = "bootstrap-tooling"
+notes = "native-cpp runtime headers alongside ark_native_runtime.c"
+
+[[families]]
 ext = ".grain"
 formatter = "grain format"
 linter = "grain check"
