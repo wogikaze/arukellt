@@ -55,7 +55,10 @@ def test_native_executor_receipt_schema_defaults() -> None:
     assert receipt["receipt_schema_version"] == RECEIPT_SCHEMA_VERSION
     assert "executor_run_1" in receipt and "executor_run_2" in receipt
     assert "root_liveness" in receipt
-    assert receipt["root_liveness"]["root_liveness_enabled"] is False
+    assert "root_clear_assignments_planned" in receipt["root_liveness"]
+    assert "root_peak_slots" in receipt["root_liveness"]
+    assert "root_planner_peak_bytes" in receipt["root_liveness"]
+    assert "root_entry_null_inits" in receipt["root_liveness"]
     assert "correctness_gate_passed" in receipt
     assert "performance_gate_passed" in receipt
     assert "strict_gate_passed" in receipt

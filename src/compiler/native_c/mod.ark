@@ -90,9 +90,9 @@ fn native_c_validate_capabilities(mir_module: MirModule) -> String {
                                     clone(function_name),
                                     concat(
                                         String_from("` ("),
-                                            concat(
-                                                native_c_capabilities_generated::native_c_core_capability_status_detail(core_op_index),
-                                                String_from(")")
+                                        concat(
+                                            native_c_capabilities_generated::native_c_core_capability_status_detail(core_op_index),
+                                            String_from(")")
                                         )
                                     )
                                 )
@@ -257,40 +257,7 @@ fn native_c_emit_function(
     source = concat(source, concat(native_c_emit_result_source(declaration), String_from(" {\n")))
     source = concat(source, function_emitter::native_c_function_emit_source(body))
     source = concat(source, String_from("}\n"))
-    source = concat(
-        source,
-        concat(
-            String_from("/* ARK_ROOT_LIVENESS fn analyzed="),
-            concat(
-                i32_to_string(function_emitter::native_c_function_root_plan_analyzed(body)),
-                concat(
-                    String_from(" skipped="),
-                    concat(
-                        i32_to_string(function_emitter::native_c_function_root_plan_skipped(body)),
-                        concat(
-                            String_from(" frames="),
-                            concat(
-                                i32_to_string(function_emitter::native_c_function_root_frame_locals(body)),
-                                concat(
-                                    String_from(" safepoints="),
-                                    concat(
-                                        i32_to_string(function_emitter::native_c_function_root_plan_safepoints(body)),
-                                        concat(
-                                            String_from(" planned_clears="),
-                                            concat(
-                                                i32_to_string(function_emitter::native_c_function_root_plan_clears(body)),
-                                                String_from(" */\n\n")
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+    source = concat(source, function_emitter::native_c_function_root_liveness_marker(body))
     NativeCEmitResult_ok(source)
 }
 
@@ -357,15 +324,15 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     }
     native_c_append_bytes(
         source_bytes,
-        String_from("/* ARK_ROOT_LIVENESS_MODULE shadow=1 clears_emitted=0 */\n")
+        String_from("/* ARK_ROOT_LIVENESS_MODULE rollup=1 */\n")
     )
     native_c_append_bytes(source_bytes, String_from("int main(int argc, char **argv) {\n"))
-        native_c_append_bytes(source_bytes, String_from("    ark_rt_init(argc, argv);\n"))
-        native_c_append_bytes(
-            source_bytes,
-            concat(String_from("    (void)"), concat(main_symbol, String_from("();\n")))
-        )
-        native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
-        native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))
+    native_c_append_bytes(source_bytes, String_from("    ark_rt_init(argc, argv);\n"))
+    native_c_append_bytes(
+        source_bytes,
+        concat(String_from("    (void)"), concat(main_symbol, String_from("();\n")))
+    )
+    native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
+    native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))
     NativeCEmitResult_ok(__intrinsic_string_from_bytes(source_bytes))
 }

@@ -1,6 +1,6 @@
 # native-cpp selfhost executor experimental 昇格計画
 
-Status: active — Phase 0 COMPLETE / Phase 1 COMPLETE / Phase 2 NEXT
+Status: active — Phase 0–2 COMPLETE / Phase 3 NEXT (structured CFG required for emit)
 Owner: native-cpp / umbrella #834 / root-liveness #833
 Created: 2026-07-23
 Last updated: 2026-07-23
@@ -9,6 +9,7 @@ Phase 0 equality vs old S2: `NOT_APPLICABLE_STALE_REFERENCE`
 Phase 1 current-source S2/S3: `8b71d68432bcf29ff568c0e3b10149398e30482c9febacb928c6106e32f32fbe`
 Phase 1 shadow: analyzed=8361 / skipped=0 / planned_clears=3,265,155 / clears_emitted=0
 Phase 1 implementation commit: `aa6e04f8`
+Phase 2 finding: ADR-024 — MIR `succ0`/`succ1` unset; block-CFG plans over-clear. Emit stays off until structured-control CFG liveness.
 
 ## 0. Mission and continuation contract
 
@@ -286,12 +287,13 @@ receipt必須field:
 - [x] functional C hash不変
 - [x] S2/S3 equality PASS
 - [x] determinism PASS
-- [ ] planner unit tests全件PASS
-- [ ] safepoint audit PASS
-- [ ] receipt field完全化
-- [ ] root planner peak memoryが許容範囲
-- [ ] `verify lane` PASS
-- [ ] Phase 2完了commit
+- [x] planner unit/fixture tests PASS（emit off; control-flow fixtures shadow-only）
+- [x] safepoint audit PASS
+- [x] receipt field完全化（sites/assigns/peak/planner/entry_nulls）
+- [x] root planner peak memoryが許容範囲（bitset reuse; no inst×local matrix）
+- [x] GC stress PASS with shadow compiler
+- [x] Phase 2完了commit
+- [x] ADR-024 blocker recorded: emit requires structured CFG, not MirBlock.succ*
 
 Phase 2完了後は停止せずPhase 3へ進む。
 

@@ -56,9 +56,16 @@ struct NativeCFunctionEmitState {
     // Module rollup copied out after body emit.
     root_plan_safepoints: i32,
     root_plan_clears: i32,
+    root_plan_sites: i32,
     root_plan_skipped: i32,
     root_plan_analyzed: i32,
     root_frame_locals: i32,
+    root_peak_slots: i32,
+    root_planner_bytes: i32,
+    root_emit_enabled_for_fn: bool,
+    root_sites_emitted: i32,
+    root_assigns_emitted: i32,
+    root_entry_null_inits: i32,
 }
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
@@ -96,9 +103,16 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         effect_def_locals: Vec_new_i32(),
         root_plan_safepoints: 0,
         root_plan_clears: 0,
+        root_plan_sites: 0,
         root_plan_skipped: 0,
         root_plan_analyzed: 0,
         root_frame_locals: 0,
+        root_peak_slots: 0,
+        root_planner_bytes: 0,
+        root_emit_enabled_for_fn: false,
+        root_sites_emitted: 0,
+        root_assigns_emitted: 0,
+        root_entry_null_inits: 0,
     }
 }
 
@@ -118,21 +132,44 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
     if order >= 0 && order < len(state.root_clear_count) {
         let count = get_unchecked(state.root_clear_count, order)
         let start = get_unchecked(state.root_clear_start, order)
+        let mut emitted_here = 0
         let mut clear_index = 0
         while clear_index < count {
             let local = get_unchecked(state.root_clear_locals, start + clear_index)
             // Stack operands are live for the current instruction even when the
             // MIR CALL encoding omits explicit first_arg locals.
             if !native_c_value_stack_contains(state, local) {
-                native_c_append(
-                    state,
-                    concat(
-                        String_from("    "),
-                        concat(native_c_local_name(local), String_from(" = NULL;\n"))
+                // Per-clear markers only when emitting (small Stage A/B functions).
+                // Full-S3 shadow plans millions of clears — do not bloat C with comments.
+                if state.root_emit_enabled_for_fn {
+                    native_c_append(
+                        state,
+                        concat(
+                            String_from("    /* ark-root-clear inst="),
+                            concat(
+                                i32_to_string(order),
+                                concat(
+                                    String_from(" local="),
+                                    concat(i32_to_string(local), String_from(" */\n"))
+                                )
+                            )
+                        )
                     )
-                )
+                    native_c_append(
+                        state,
+                        concat(
+                            String_from("    "),
+                            concat(native_c_local_name(local), String_from(" = NULL;\n"))
+                        )
+                    )
+                    state.root_assigns_emitted = state.root_assigns_emitted + 1
+                    emitted_here = emitted_here + 1
+                }
             }
             clear_index = clear_index + 1
+        }
+        if emitted_here > 0 {
+            state.root_sites_emitted = state.root_sites_emitted + 1
         }
     }
     let _ = instruction
@@ -151,6 +188,10 @@ fn native_c_function_root_plan_clears(state: NativeCFunctionEmitState) -> i32 {
     state.root_plan_clears
 }
 
+fn native_c_function_root_plan_sites(state: NativeCFunctionEmitState) -> i32 {
+    state.root_plan_sites
+}
+
 fn native_c_function_root_plan_skipped(state: NativeCFunctionEmitState) -> i32 {
     state.root_plan_skipped
 }
@@ -161,6 +202,59 @@ fn native_c_function_root_plan_analyzed(state: NativeCFunctionEmitState) -> i32 
 
 fn native_c_function_root_frame_locals(state: NativeCFunctionEmitState) -> i32 {
     state.root_frame_locals
+}
+
+fn native_c_function_root_peak_slots(state: NativeCFunctionEmitState) -> i32 {
+    state.root_peak_slots
+}
+
+fn native_c_function_root_planner_bytes(state: NativeCFunctionEmitState) -> i32 {
+    state.root_planner_bytes
+}
+
+fn native_c_function_root_sites_emitted(state: NativeCFunctionEmitState) -> i32 {
+    state.root_sites_emitted
+}
+
+fn native_c_function_root_assigns_emitted(state: NativeCFunctionEmitState) -> i32 {
+    state.root_assigns_emitted
+}
+
+fn native_c_function_root_entry_null_inits(state: NativeCFunctionEmitState) -> i32 {
+    state.root_entry_null_inits
+}
+
+fn native_c_function_root_emit_enabled(state: NativeCFunctionEmitState) -> bool {
+    state.root_emit_enabled_for_fn
+}
+
+fn native_c_function_root_liveness_marker(state: NativeCFunctionEmitState) -> String {
+    let emit_flag = if state.root_emit_enabled_for_fn { 1 } else { 0 }
+    let mut marker = String_from("/* ARK_ROOT_LIVENESS fn analyzed=")
+    marker = concat(marker, i32_to_string(state.root_plan_analyzed))
+    marker = concat(marker, String_from(" skipped="))
+    marker = concat(marker, i32_to_string(state.root_plan_skipped))
+    marker = concat(marker, String_from(" frames="))
+    marker = concat(marker, i32_to_string(state.root_frame_locals))
+    marker = concat(marker, String_from(" safepoints="))
+    marker = concat(marker, i32_to_string(state.root_plan_safepoints))
+    marker = concat(marker, String_from(" sites_planned="))
+    marker = concat(marker, i32_to_string(state.root_plan_sites))
+    marker = concat(marker, String_from(" assigns_planned="))
+    marker = concat(marker, i32_to_string(state.root_plan_clears))
+    marker = concat(marker, String_from(" sites_emitted="))
+    marker = concat(marker, i32_to_string(state.root_sites_emitted))
+    marker = concat(marker, String_from(" assigns_emitted="))
+    marker = concat(marker, i32_to_string(state.root_assigns_emitted))
+    marker = concat(marker, String_from(" peak_slots="))
+    marker = concat(marker, i32_to_string(state.root_peak_slots))
+    marker = concat(marker, String_from(" planner_bytes="))
+    marker = concat(marker, i32_to_string(state.root_planner_bytes))
+    marker = concat(marker, String_from(" entry_nulls="))
+    marker = concat(marker, i32_to_string(state.root_entry_null_inits))
+    marker = concat(marker, String_from(" emit="))
+    marker = concat(marker, i32_to_string(emit_flag))
+    concat(marker, String_from(" */\n\n"))
 }
 
 fn native_c_function_emit_source(state: NativeCFunctionEmitState) -> String {
@@ -1172,11 +1266,8 @@ fn native_c_emit_instruction(
 ) {
     while len(state.current_uses) > 0 { pop(state.current_uses) }
     while len(state.current_defs) > 0 { pop(state.current_defs) }
-    if root_liveness::native_c_root_clear_emit_enabled() {
-        native_c_emit_pending_root_clears(state, instruction)
-    } else {
-        state.instruction_order = state.instruction_order + 1
-    }
+    // Always advance through the clear plan so shadow markers and emits stay aligned.
+    native_c_emit_pending_root_clears(state, instruction)
     let op = inst_accessors_shape::MirInst_op(instruction)
     if state.is_unreachable {
         if op == opcodes::MIR_BLOCK() || op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() {
@@ -1223,9 +1314,14 @@ fn native_c_emit_instruction(
     }
     let dest = inst_accessors_operands::MirInst_dest(instruction)
     let arg0 = inst_accessors_operands::MirInst_arg0(instruction)
+    let arg1 = inst_accessors_operands::MirInst_arg1(instruction)
     native_c_note_def(state, dest)
     if op == opcodes::MIR_LOCAL_SET() {
         native_c_note_def(state, arg0)
+        // Explicit MIR source; stack-pop path already recorded use via stack_pop.
+        if arg1 >= 0 {
+            native_c_note_use(state, arg1)
+        }
     }
     if op == opcodes::MIR_LOCAL_GET() {
         native_c_note_use(state, arg0)
@@ -1508,19 +1604,24 @@ fn native_c_emit_function_body(
         inference_state.reference_locals,
         effects
     )
+    if root_liveness::native_c_root_clear_plan_functions_skipped(clear_plan) != 0 {
+        native_c_fail(
+            inference_state,
+            String_from("compiler ICE: native-cpp root liveness rejected MIR_PHI or failed to converge")
+        )
+        return inference_state
+    }
 
-    // Pass 2: emit real C. Clears stay disabled until Phase 3.
+    // Pass 2: emit real C. Size-gated clear emit (Phase 3 Stage A+).
     let state = native_c_function_state_new()
     state.reference_locals = inference_state.reference_locals
     state.root_plan_safepoints = root_liveness::native_c_root_clear_plan_safepoint_count(clear_plan)
     state.root_plan_clears = root_liveness::native_c_root_clear_plan_cleared_count(clear_plan)
+    state.root_plan_sites = root_liveness::native_c_root_clear_plan_site_count(clear_plan)
     state.root_plan_skipped = root_liveness::native_c_root_clear_plan_functions_skipped(clear_plan)
     state.root_plan_analyzed = root_liveness::native_c_root_clear_plan_functions_analyzed(clear_plan)
-    if root_liveness::native_c_root_clear_emit_enabled() {
-        state.root_clear_start = root_liveness::native_c_root_clear_plan_start(clear_plan)
-        state.root_clear_count = root_liveness::native_c_root_clear_plan_counts(clear_plan)
-        state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
-    }
+    state.root_peak_slots = root_liveness::native_c_root_clear_plan_peak_slots(clear_plan)
+    state.root_planner_bytes = root_liveness::native_c_root_clear_plan_planner_bytes(clear_plan)
     native_c_emit_local_declarations(state, mir_module, function, signature)
     if !native_c_function_emit_success(state) { return state }
     let mut root_count = 0
@@ -1532,6 +1633,17 @@ fn native_c_emit_function_body(
         root_scan = root_scan + 1
     }
     state.root_frame_locals = root_count
+    state.root_entry_null_inits = root_count
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    state.root_emit_enabled_for_fn = !root_liveness::native_c_function_has_structured_control(function) &&
+    root_liveness::native_c_root_clear_emit_allowed(block_count, root_count)
+    // Attach clear vectors only when this function will emit (avoids retaining
+    // multi-million entry plans for large full-S3 functions in the wasm host).
+    if state.root_emit_enabled_for_fn {
+        state.root_clear_start = root_liveness::native_c_root_clear_plan_start(clear_plan)
+        state.root_clear_count = root_liveness::native_c_root_clear_plan_counts(clear_plan)
+        state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
+    }
     native_c_emit_function_instructions(state, mir_module, function, signature)
     state
 }

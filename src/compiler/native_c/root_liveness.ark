@@ -3,7 +3,6 @@
 // enable_root_clears stays false until Phase 3 (#833).
 
 use mir::block_inst_access
-use mir::block_successor_access
 use mir::function_block_queries
 use mir::function_locals_view
 use mir::inst_accessors_shape
@@ -18,9 +17,14 @@ pub struct NativeCRootClearPlan {
     functions_analyzed: i32,
     functions_skipped: i32,
     reference_local_count: i32,
+    // Assignments = individual local clears; sites = safepoints with ≥1 clear.
     cleared_root_count: i32,
+    clear_site_count: i32,
     safepoint_count: i32,
+    peak_live_slots: i32,
+    planner_bytes_est: i32,
     converged: bool,
+    reject_diagnostic: String,
 }
 
 pub struct NativeCInstructionEffects {
@@ -46,8 +50,12 @@ fn native_c_root_clear_plan_empty() -> NativeCRootClearPlan {
         functions_skipped: 0,
         reference_local_count: 0,
         cleared_root_count: 0,
+        clear_site_count: 0,
         safepoint_count: 0,
+        peak_live_slots: 0,
+        planner_bytes_est: 0,
         converged: true,
+        reject_diagnostic: String_new(),
     }
 }
 
@@ -129,6 +137,35 @@ fn native_c_effects_push(
     }
 }
 
+/// True when MIR uses structured control. ADR-024: lowering leaves succ0/succ1
+/// unset, so block-CFG liveness is unsound; emit clears only for straight-line.
+fn native_c_function_has_structured_control(function: MirFunction) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let op = inst_accessors_shape::MirInst_op(
+                block_inst_access::MirBlock_inst_at(block, inst_index)
+            )
+            if op == opcodes::MIR_IF() || op == opcodes::MIR_ELSE() ||
+            op == opcodes::MIR_LOOP() || op == opcodes::MIR_BLOCK() ||
+            op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() ||
+            op == opcodes::MIR_END() {
+                return true
+            }
+            if op == opcodes::MIR_PHI() {
+                return true
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    false
+}
+
 fn native_c_plan_root_clears_from_effects(
     function: MirFunction,
     reference_locals: Vec<i32>,
@@ -136,6 +173,27 @@ fn native_c_plan_root_clears_from_effects(
 ) -> NativeCRootClearPlan {
     let plan = native_c_root_clear_plan_empty()
     plan.functions_analyzed = 1
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    let mut phi_block = 0
+    while phi_block < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, phi_block)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            if inst_accessors_shape::MirInst_op(
+                block_inst_access::MirBlock_inst_at(block, inst_index)
+            ) == opcodes::MIR_PHI() {
+                plan.functions_skipped = 1
+                plan.converged = false
+                plan.reject_diagnostic = String_from(
+                    "compiler ICE: native-cpp root liveness rejects MIR_PHI"
+                )
+                return plan
+            }
+            inst_index = inst_index + 1
+        }
+        phi_block = phi_block + 1
+    }
     let local_count = function_locals_view::MirFunction_local_count(function)
     let mut reference_count = 0
     let mut local_index = 0
@@ -148,244 +206,107 @@ fn native_c_plan_root_clears_from_effects(
     plan.reference_local_count = reference_count
     let instruction_total = len(effects.block_ids)
     plan.instruction_count = instruction_total
+    let mut pad = 0
+    while pad < instruction_total {
+        push(plan.clear_start, 0)
+        push(plan.clear_count, 0)
+        pad = pad + 1
+    }
     if reference_count == 0 || instruction_total == 0 {
-        let mut pad = 0
-        while pad < instruction_total {
-            push(plan.clear_start, 0)
-            push(plan.clear_count, 0)
-            pad = pad + 1
-        }
         return plan
     }
 
-    let block_count = function_block_queries::MirFunction_block_count(function)
-    let use_all = native_c_bitset_new(block_count * local_count)
-    let def_all = native_c_bitset_new(block_count * local_count)
-    let live_in_all = native_c_bitset_new(block_count * local_count)
-    let live_out_all = native_c_bitset_new(block_count * local_count)
-
-    // Aggregate block gen/kill from emitter effects (reachable only).
-    // use_B |= uses - already_def_B; then def_B |= defs.
-    let mut order = 0
-    while order < instruction_total {
-        if get_unchecked(effects.reachable, order) == 0 {
-            order = order + 1
-            continue
-        }
-        let block_id = get_unchecked(effects.block_ids, order)
-        if block_id < 0 || block_id >= block_count {
-            order = order + 1
-            continue
-        }
-        let base = block_id * local_count
-        let use_start = get_unchecked(effects.use_start, order)
-        let use_count = get_unchecked(effects.use_count, order)
-        let mut use_index = 0
-        while use_index < use_count {
-            let local = get_unchecked(effects.use_locals, use_start + use_index)
-            if local >= 0 && local < local_count && get_unchecked(def_all, base + local) == 0 {
-                set(use_all, base + local, 1)
-            }
-            use_index = use_index + 1
-        }
-        let def_start = get_unchecked(effects.def_start, order)
-        let def_count = get_unchecked(effects.def_count, order)
-        let mut def_index = 0
-        while def_index < def_count {
-            let local = get_unchecked(effects.def_locals, def_start + def_index)
-            if local >= 0 && local < local_count {
-                set(def_all, base + local, 1)
-            }
-            def_index = def_index + 1
-        }
-        order = order + 1
-    }
-
-    // Worklist fixed-point over predecessors (iterate until quiescence).
-    let worklist = Vec_new_i32()
-    let mut block_index = 0
-    while block_index < block_count {
-        push(worklist, block_index)
-        block_index = block_index + 1
-    }
-    let on_list = native_c_bitset_new(block_count)
-    block_index = 0
-    while block_index < block_count {
-        set(on_list, block_index, 1)
-        block_index = block_index + 1
-    }
-    // Monotone bitvector liveness: worklist empties without size caps on CFG.
-    while len(worklist) > 0 {
-        let current = get_unchecked(worklist, len(worklist) - 1)
-        pop(worklist)
-        set(on_list, current, 0)
-        let block = function_block_queries::MirFunction_block_at(function, current)
-        let out_bits = native_c_bitset_new(local_count)
-        let succ0 = block_successor_access::MirBlock_succ0(block)
-        let succ1 = block_successor_access::MirBlock_succ1(block)
-        if succ0 >= 0 && succ0 < block_count {
-            let succ_base = succ0 * local_count
-            local_index = 0
-            while local_index < local_count {
-                if get_unchecked(live_in_all, succ_base + local_index) != 0 {
-                    set(out_bits, local_index, 1)
-                }
-                local_index = local_index + 1
-            }
-        }
-        if succ1 >= 0 && succ1 < block_count {
-            let succ_base = succ1 * local_count
-            local_index = 0
-            while local_index < local_count {
-                if get_unchecked(live_in_all, succ_base + local_index) != 0 {
-                    set(out_bits, local_index, 1)
-                }
-                local_index = local_index + 1
-            }
-        }
-        let base = current * local_count
-        let mut changed = false
-        local_index = 0
-        while local_index < local_count {
-            let next_out = get_unchecked(out_bits, local_index)
-            if get_unchecked(live_out_all, base + local_index) != next_out {
-                set(live_out_all, base + local_index, next_out)
-                changed = true
-            }
-            let is_use = get_unchecked(use_all, base + local_index) != 0
-            let is_def = get_unchecked(def_all, base + local_index) != 0
-            let in_next = if is_use || (next_out != 0 && !is_def) { 1 } else { 0 }
-            if get_unchecked(live_in_all, base + local_index) != in_next {
-                set(live_in_all, base + local_index, in_next)
-                changed = true
-            }
-            local_index = local_index + 1
-        }
-        if changed {
-            // Reprocess predecessors: any block with succ == current.
-            let mut pred = 0
-            while pred < block_count {
-                let pred_block = function_block_queries::MirFunction_block_at(function, pred)
-                let p0 = block_successor_access::MirBlock_succ0(pred_block)
-                let p1 = block_successor_access::MirBlock_succ1(pred_block)
-                if p0 == current || p1 == current {
-                    if get_unchecked(on_list, pred) == 0 {
-                        push(worklist, pred)
-                        set(on_list, pred, 1)
-                    }
-                }
-                pred = pred + 1
-            }
-        }
-    }
+    // Straight-line reverse scan. Structured control is not emitted until CFG
+    // successors exist (ADR-024); reverse-linear would mis-clear loop-carried refs.
+    let has_control = native_c_function_has_structured_control(function)
+    let store_clear_locals = !has_control &&
+    native_c_root_clear_emit_allowed(block_count, reference_count)
+    plan.planner_bytes_est = local_count * 12
     plan.converged = true
 
-    // Per-block reverse walk; store clear plans only (no full live×inst matrix).
-    // Build instruction index ranges per block from effects order.
-    let block_inst_start = native_c_bitset_new(block_count)
-    let block_inst_count = native_c_bitset_new(block_count)
-    // Reuse bitset_new as i32 vectors initialized to 0 — overwrite with starts.
-    block_index = 0
-    while block_index < block_count {
-        set(block_inst_start, block_index, 0 - 1)
-        set(block_inst_count, block_index, 0)
-        block_index = block_index + 1
-    }
-    order = 0
-    while order < instruction_total {
-        let block_id = get_unchecked(effects.block_ids, order)
-        if block_id >= 0 && block_id < block_count {
-            if get_unchecked(block_inst_start, block_id) < 0 {
-                set(block_inst_start, block_id, order)
-            }
-            set(block_inst_count, block_id, get_unchecked(block_inst_count, block_id) + 1)
+    let live = native_c_bitset_new(local_count)
+    let use_bits = native_c_bitset_new(local_count)
+    let def_bits = native_c_bitset_new(local_count)
+    let mut absolute = instruction_total - 1
+    while absolute >= 0 {
+        native_c_bitset_clear(use_bits)
+        native_c_bitset_clear(def_bits)
+        let use_start = get_unchecked(effects.use_start, absolute)
+        let use_n = get_unchecked(effects.use_count, absolute)
+        let mut u = 0
+        while u < use_n {
+            native_c_bitset_set_ref(
+                use_bits,
+                get_unchecked(effects.use_locals, use_start + u),
+                reference_locals
+            )
+            u = u + 1
         }
-        order = order + 1
-    }
-
-    // Pre-size clear plan entries for every instruction order.
-    order = 0
-    while order < instruction_total {
-        push(plan.clear_start, 0)
-        push(plan.clear_count, 0)
-        order = order + 1
-    }
-
-    block_index = 0
-    while block_index < block_count {
-        let start = get_unchecked(block_inst_start, block_index)
-        let count = get_unchecked(block_inst_count, block_index)
-        if start < 0 || count <= 0 {
-            block_index = block_index + 1
-            continue
+        let def_start = get_unchecked(effects.def_start, absolute)
+        let def_n = get_unchecked(effects.def_count, absolute)
+        let mut d = 0
+        while d < def_n {
+            native_c_bitset_set_ref(
+                def_bits,
+                get_unchecked(effects.def_locals, def_start + d),
+                reference_locals
+            )
+            d = d + 1
         }
-        let live = native_c_bitset_new(local_count)
-        let base = block_index * local_count
-        local_index = 0
-        while local_index < local_count {
-            set(live, local_index, get_unchecked(live_out_all, base + local_index))
-            local_index = local_index + 1
-        }
-        let mut instruction_index = count - 1
-        while instruction_index >= 0 {
-            let absolute = start + instruction_index
-            let use_bits = native_c_bitset_new(local_count)
-            let def_bits = native_c_bitset_new(local_count)
-            let use_start = get_unchecked(effects.use_start, absolute)
-            let use_n = get_unchecked(effects.use_count, absolute)
-            let mut u = 0
-            while u < use_n {
-                native_c_bitset_set_ref(
-                    use_bits,
-                    get_unchecked(effects.use_locals, use_start + u),
-                    reference_locals
-                )
-                u = u + 1
-            }
-            let def_start = get_unchecked(effects.def_start, absolute)
-            let def_n = get_unchecked(effects.def_count, absolute)
-            let mut d = 0
-            while d < def_n {
-                native_c_bitset_set_ref(
-                    def_bits,
-                    get_unchecked(effects.def_locals, def_start + d),
-                    reference_locals
-                )
-                d = d + 1
-            }
-            // live_before = (live_after - def) ∪ use
+        // Plan clears from live_after ∪ uses (do not clear current operands or
+        // values still needed later in straight-line order).
+        if get_unchecked(effects.reachable, absolute) != 0 &&
+        get_unchecked(effects.is_safepoint, absolute) != 0 {
+            plan.safepoint_count = plan.safepoint_count + 1
+            let clear_at = len(plan.clear_locals)
+            set(plan.clear_start, absolute, clear_at)
+            let mut clear_n = 0
             local_index = 0
             while local_index < local_count {
-                if get_unchecked(def_bits, local_index) != 0 {
-                    set(live, local_index, 0)
-                }
-                if get_unchecked(use_bits, local_index) != 0 {
-                    set(live, local_index, 1)
-                }
-                local_index = local_index + 1
-            }
-            if get_unchecked(effects.reachable, absolute) != 0 &&
-            get_unchecked(effects.is_safepoint, absolute) != 0 {
-                plan.safepoint_count = plan.safepoint_count + 1
-                let clear_at = len(plan.clear_locals)
-                set(plan.clear_start, absolute, clear_at)
-                let mut clear_n = 0
-                local_index = 0
-                while local_index < local_count {
-                    if get_unchecked(reference_locals, local_index) != 0 &&
-                    get_unchecked(live, local_index) == 0 {
-                        // Keep instruction uses (already in live); clear only dead refs.
+                if get_unchecked(reference_locals, local_index) != 0 &&
+                get_unchecked(live, local_index) == 0 &&
+                get_unchecked(use_bits, local_index) == 0 {
+                    if store_clear_locals {
                         push(plan.clear_locals, local_index)
+                    }
+                    // Count planned clears for straight-line only; control-flow
+                    // functions keep assigns_planned=0 so rollout stats stay honest.
+                    if !has_control {
                         clear_n = clear_n + 1
                         plan.cleared_root_count = plan.cleared_root_count + 1
                     }
-                    local_index = local_index + 1
                 }
-                set(plan.clear_count, absolute, clear_n)
+                local_index = local_index + 1
             }
-            instruction_index = instruction_index - 1
+            set(plan.clear_count, absolute, clear_n)
+            if clear_n > 0 {
+                plan.clear_site_count = plan.clear_site_count + 1
+            }
         }
-        block_index = block_index + 1
+        // live_before = (live_after - def) ∪ use
+        local_index = 0
+        while local_index < local_count {
+            if get_unchecked(def_bits, local_index) != 0 {
+                set(live, local_index, 0)
+            }
+            if get_unchecked(use_bits, local_index) != 0 {
+                set(live, local_index, 1)
+            }
+            local_index = local_index + 1
+        }
+        let mut live_slots = 0
+        local_index = 0
+        while local_index < local_count {
+            if get_unchecked(reference_locals, local_index) != 0 &&
+            get_unchecked(live, local_index) != 0 {
+                live_slots = live_slots + 1
+            }
+            local_index = local_index + 1
+        }
+        if live_slots > plan.peak_live_slots {
+            plan.peak_live_slots = live_slots
+        }
+        absolute = absolute - 1
     }
     plan
 }
@@ -418,6 +339,10 @@ fn native_c_root_clear_plan_cleared_count(plan: NativeCRootClearPlan) -> i32 {
     plan.cleared_root_count
 }
 
+fn native_c_root_clear_plan_site_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.clear_site_count
+}
+
 fn native_c_root_clear_plan_safepoint_count(plan: NativeCRootClearPlan) -> i32 {
     plan.safepoint_count
 }
@@ -434,7 +359,65 @@ fn native_c_root_clear_plan_converged(plan: NativeCRootClearPlan) -> bool {
     plan.converged
 }
 
+fn native_c_root_clear_plan_peak_slots(plan: NativeCRootClearPlan) -> i32 {
+    plan.peak_live_slots
+}
+
+fn native_c_root_clear_plan_planner_bytes(plan: NativeCRootClearPlan) -> i32 {
+    plan.planner_bytes_est
+}
+
+/// Emit rollout mode: 0=shadow only, 1=size-gated / full emit (Phase 3+).
+fn native_c_root_clear_emit_mode() -> i32 {
+    // ADR-024: MIR succ0/succ1 are unset. Straight-line emit still caused
+    // String::clone(NULL) in compiler helpers — keep shadow-only until
+    // structured-control CFG liveness is wired (Phase 3).
+    0
+}
+
+/// 0 means unlimited. Stage A starts at 8 / 16; raised through Stages B–D.
+fn native_c_root_clear_emit_max_blocks() -> i32 {
+    8
+}
+
+fn native_c_root_clear_emit_max_refs() -> i32 {
+    16
+}
+
 fn native_c_root_clear_emit_enabled() -> bool {
-    // Phase 1–2: shadow planning only. Phase 3 flips this after fixture gates.
-    false
+    native_c_root_clear_emit_mode() != 0
+}
+
+fn native_c_root_clear_emit_allowed(block_count: i32, reference_count: i32) -> bool {
+    if !native_c_root_clear_emit_enabled() {
+        return false
+    }
+    let max_blocks = native_c_root_clear_emit_max_blocks()
+    let max_refs = native_c_root_clear_emit_max_refs()
+    if max_blocks > 0 && block_count > max_blocks {
+        return false
+    }
+    if max_refs > 0 && reference_count > max_refs {
+        return false
+    }
+    true
+}
+
+test mod "native_c_root_liveness_safepoint_ssot" {
+    test "const_string_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_CONST_STRING()))
+    }
+    test "struct_new_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_STRUCT_NEW()))
+    }
+    test "call_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_CALL()))
+    }
+    test "local_get_is_not_safepoint" {
+        assert(!native_c_is_safepoint_op(opcodes::MIR_LOCAL_GET()))
+    }
+    test "emit_mode_shadow_only_until_structured_cfg" {
+        assert(!native_c_root_clear_emit_enabled())
+        assert(!native_c_root_clear_emit_allowed(8, 16))
+    }
 }

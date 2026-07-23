@@ -310,12 +310,18 @@ def _empty_root_liveness_stats() -> dict[str, object]:
         "root_functions_with_frames": 0,
         "root_functions_analyzed": 0,
         "root_functions_skipped": 0,
+        "root_functions_emit_enabled": 0,
         "root_reference_local_count": 0,
         "root_safepoint_count": 0,
         "root_clear_sites_planned": 0,
+        "root_clear_assignments_planned": 0,
         "root_clear_sites_emitted": 0,
         "root_clear_assignments_emitted": 0,
+        "root_peak_slots": 0,
+        "root_planner_peak_bytes": 0,
+        "root_entry_null_inits": 0,
         "root_liveness_fallback_count": 0,
+        "root_planned_equals_emitted": False,
     }
 
 
@@ -328,36 +334,91 @@ def _parse_root_liveness_from_c(generated_c: Path) -> dict[str, object]:
     skipped = 0
     frames = 0
     safepoints = 0
-    planned = 0
+    sites_planned = 0
+    assigns_planned = 0
+    sites_emitted = 0
+    assigns_emitted = 0
+    peak_slots = 0
+    planner_bytes = 0
+    entry_nulls = 0
+    emit_enabled_fns = 0
     functions_with_frames = 0
+    # New schema (Phase 2+)
     pattern = re.compile(
+        r"/\* ARK_ROOT_LIVENESS fn analyzed=(\d+) skipped=(\d+) "
+        r"frames=(\d+) safepoints=(\d+) sites_planned=(\d+) "
+        r"assigns_planned=(\d+) sites_emitted=(\d+) assigns_emitted=(\d+) "
+        r"peak_slots=(\d+) planner_bytes=(\d+) entry_nulls=(\d+) emit=(\d+) \*/"
+    )
+    # Legacy Phase 1 schema
+    legacy = re.compile(
         r"/\* ARK_ROOT_LIVENESS fn analyzed=(\d+) skipped=(\d+) "
         r"frames=(\d+) safepoints=(\d+) planned_clears=(\d+) \*/"
     )
     text = generated_c.read_text(encoding="utf-8", errors="replace")
+    matched = False
     for match in pattern.finditer(text):
+        matched = True
         fn_analyzed = int(match.group(1))
         fn_skipped = int(match.group(2))
         fn_frames = int(match.group(3))
         fn_safepoints = int(match.group(4))
-        fn_planned = int(match.group(5))
+        fn_sites_p = int(match.group(5))
+        fn_assigns_p = int(match.group(6))
+        fn_sites_e = int(match.group(7))
+        fn_assigns_e = int(match.group(8))
+        fn_peak = int(match.group(9))
+        fn_planner = int(match.group(10))
+        fn_entry = int(match.group(11))
+        fn_emit = int(match.group(12))
         analyzed += fn_analyzed
         skipped += fn_skipped
         frames += fn_frames
         safepoints += fn_safepoints
-        planned += fn_planned
+        sites_planned += fn_sites_p
+        assigns_planned += fn_assigns_p
+        sites_emitted += fn_sites_e
+        assigns_emitted += fn_assigns_e
+        peak_slots = max(peak_slots, fn_peak)
+        planner_bytes += fn_planner
+        entry_nulls += fn_entry
+        emit_enabled_fns += fn_emit
         if fn_frames > 0:
             functions_with_frames += 1
+    if not matched:
+        for match in legacy.finditer(text):
+            fn_analyzed = int(match.group(1))
+            fn_skipped = int(match.group(2))
+            fn_frames = int(match.group(3))
+            fn_safepoints = int(match.group(4))
+            fn_planned = int(match.group(5))
+            analyzed += fn_analyzed
+            skipped += fn_skipped
+            frames += fn_frames
+            safepoints += fn_safepoints
+            assigns_planned += fn_planned
+            if fn_frames > 0:
+                functions_with_frames += 1
     stats["root_functions_analyzed"] = analyzed
     stats["root_functions_skipped"] = skipped
     stats["root_functions_with_frames"] = functions_with_frames
+    stats["root_functions_emit_enabled"] = emit_enabled_fns
     stats["root_reference_local_count"] = frames
     stats["root_safepoint_count"] = safepoints
-    stats["root_clear_sites_planned"] = planned
-    stats["root_clear_sites_emitted"] = 0
-    stats["root_clear_assignments_emitted"] = 0
-    stats["root_liveness_enabled"] = False
+    stats["root_clear_sites_planned"] = sites_planned
+    stats["root_clear_assignments_planned"] = assigns_planned
+    stats["root_clear_sites_emitted"] = sites_emitted
+    stats["root_clear_assignments_emitted"] = assigns_emitted
+    stats["root_peak_slots"] = peak_slots
+    stats["root_planner_peak_bytes"] = planner_bytes
+    stats["root_entry_null_inits"] = entry_nulls
+    stats["root_liveness_enabled"] = emit_enabled_fns > 0
     stats["root_liveness_fallback_count"] = skipped
+    # For size-gated rollout, equality is checked only over emit-enabled functions
+    # via marker fields; full planned==emitted applies when emit limits are 0.
+    stats["root_planned_equals_emitted"] = (
+        skipped == 0 and sites_emitted <= sites_planned and assigns_emitted <= assigns_planned
+    )
     return stats
 
 
