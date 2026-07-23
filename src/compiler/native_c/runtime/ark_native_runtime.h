@@ -53,6 +53,7 @@ void ark_gc_push_frame(size_t slot_count);
 void ark_gc_pop_frame(void);
 void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr);
 void ark_gc_collect(void);
+void ark_gc_set_current_function(const char *name);
 
 uint64_t ark_rt_stats_requested_bytes(void);
 uint64_t ark_rt_stats_committed_bytes(void);

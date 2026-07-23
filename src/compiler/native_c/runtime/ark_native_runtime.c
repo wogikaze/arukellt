@@ -42,11 +42,19 @@ static uint64_t ark_committed_bytes;
 static uint64_t ark_live_bytes;
 static uint64_t ark_collection_count;
 static uint64_t ark_reclaimed_bytes;
+static uint64_t ark_reclaimed_object_bytes;
+static uint64_t ark_reclaimed_side_buffer_bytes;
 static uint64_t ark_gc_threshold_bytes;
+static uint64_t ark_gc_threshold_override;
 static uint64_t ark_gc_bytes_since_collection;
+static uint64_t ark_gc_object_bytes;
+static uint64_t ark_gc_string_buffer_bytes;
+static uint64_t ark_gc_vec_buffer_bytes;
+static uint64_t ark_gc_root_frame_bytes;
 static uint32_t ark_chunk_count;
 static ark_vec *ark_process_args;
 static int ark_gc_collecting;
+static const char *ark_gc_current_function;
 
 static int ark_env_gc_enabled(void) {
     const char *enable = getenv("ARUKELLT_NATIVE_GC");
@@ -55,7 +63,89 @@ static int ark_env_gc_enabled(void) {
     return enable[0] == '1';
 }
 
-#define ARK_GC_INITIAL_THRESHOLD (32ull * 1024ull * 1024ull)
+static uint64_t ark_env_u64(const char *name, uint64_t fallback) {
+    const char *raw = getenv(name);
+    if (raw == NULL || raw[0] == '\0') return fallback;
+    char *end = NULL;
+    errno = 0;
+    unsigned long long value = strtoull(raw, &end, 10);
+    if (errno != 0 || end == raw) return fallback;
+    return (uint64_t)value;
+}
+
+void ark_gc_set_current_function(const char *name) {
+    ark_gc_current_function = name;
+}
+
+static void ark_gc_dump_crash_state(const char *reason) {
+    fprintf(
+        stderr,
+        "native-cpp GC diagnostic: %s\n"
+        "  collection=%" PRIu64 " function=%s live_objects=%zu table_cap=%zu\n"
+        "  object_bytes=%" PRIu64 " string_buf=%" PRIu64 " vec_buf=%" PRIu64 "\n"
+        "  root_frame_bytes=%" PRIu64 " reclaimed_object=%" PRIu64 " reclaimed_side=%" PRIu64 "\n",
+        reason,
+        ark_collection_count,
+        ark_gc_current_function != NULL ? ark_gc_current_function : "(unknown)",
+        ark_gc_object_table_len,
+        ark_gc_object_table_cap,
+        ark_gc_object_bytes,
+        ark_gc_string_buffer_bytes,
+        ark_gc_vec_buffer_bytes,
+        ark_gc_root_frame_bytes,
+        ark_reclaimed_object_bytes,
+        ark_reclaimed_side_buffer_bytes
+    );
+}
+
+static uint64_t ark_gc_measure_root_frame_bytes(void);
+
+static void ark_gc_write_stats_file(void) {
+    const char *path = getenv("ARUKELLT_NATIVE_GC_STATS_PATH");
+    if (path == NULL || path[0] == '\0') return;
+    FILE *out = fopen(path, "w");
+    if (out == NULL) return;
+    uint64_t table_bytes = (uint64_t)ark_gc_object_table_cap * (uint64_t)sizeof(ark_gc_allocation *);
+    ark_gc_root_frame_bytes = ark_gc_measure_root_frame_bytes();
+    fprintf(
+        out,
+        "{\n"
+        "  \"gc_object_bytes\": %" PRIu64 ",\n"
+        "  \"gc_string_buffer_bytes\": %" PRIu64 ",\n"
+        "  \"gc_vec_buffer_bytes\": %" PRIu64 ",\n"
+        "  \"gc_object_table_bytes\": %" PRIu64 ",\n"
+        "  \"gc_root_frame_bytes\": %" PRIu64 ",\n"
+        "  \"gc_live_object_count\": %zu,\n"
+        "  \"gc_object_table_capacity\": %zu,\n"
+        "  \"gc_collection_count\": %" PRIu64 ",\n"
+        "  \"gc_reclaimed_object_bytes\": %" PRIu64 ",\n"
+        "  \"gc_reclaimed_side_buffer_bytes\": %" PRIu64 ",\n"
+        "  \"runtime_requested_bytes\": %" PRIu64 ",\n"
+        "  \"runtime_committed_bytes\": %" PRIu64 ",\n"
+        "  \"runtime_live_bytes\": %" PRIu64 ",\n"
+        "  \"runtime_collection_count\": %" PRIu64 ",\n"
+        "  \"runtime_reclaimed_bytes\": %" PRIu64 "\n"
+        "}\n",
+        ark_gc_object_bytes,
+        ark_gc_string_buffer_bytes,
+        ark_gc_vec_buffer_bytes,
+        table_bytes,
+        ark_gc_root_frame_bytes,
+        ark_gc_object_table_len,
+        ark_gc_object_table_cap,
+        ark_collection_count,
+        ark_reclaimed_object_bytes,
+        ark_reclaimed_side_buffer_bytes,
+        ark_requested_bytes,
+        ark_committed_bytes,
+        ark_live_bytes,
+        ark_collection_count,
+        ark_reclaimed_bytes
+    );
+    fclose(out);
+}
+
+#define ARK_GC_INITIAL_THRESHOLD (128ull * 1024ull * 1024ull)
 #define ARK_GC_KIND_RAW 0u
 #define ARK_GC_KIND_STRING 1u
 #define ARK_GC_KIND_VEC 2u
@@ -154,13 +244,36 @@ static ark_gc_allocation *ark_gc_table_find(void *object) {
     }
 }
 
+static size_t ark_next_pow2_size(size_t value) {
+    size_t cap = 1u;
+    while (cap < value) {
+        if (cap > (SIZE_MAX / 2u)) return SIZE_MAX;
+        cap *= 2u;
+    }
+    return cap;
+}
+
 static void ark_gc_table_rebuild_from_heap(void) {
     size_t count = 0;
     for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
         count += 1;
     }
-    ark_gc_table_ensure(count < 1024u ? 1024u : count * 2u);
-    ark_gc_table_clear();
+    size_t desired = count * 2u;
+    if (desired < 1024u) desired = 1024u;
+    desired = ark_next_pow2_size(desired);
+    /* Grow when short; shrink only when capacity is more than 4× desired. */
+    int needs_realloc = ark_gc_object_table_cap == 0 ||
+        ark_gc_object_table_cap < desired ||
+        ark_gc_object_table_cap > desired * 4u;
+    if (needs_realloc) {
+        free(ark_gc_object_table);
+        ark_gc_object_table = calloc(desired, sizeof(*ark_gc_object_table));
+        if (ark_gc_object_table == NULL) ark_rt_trap();
+        ark_gc_object_table_cap = desired;
+        ark_gc_object_table_len = 0;
+    } else {
+        ark_gc_table_clear();
+    }
     for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
         ark_gc_table_insert(node);
     }
@@ -178,13 +291,25 @@ static uint8_t ark_gc_kind(void *object) {
     return ark_gc_header_from_object(object)->reserved[0];
 }
 
-static void *ark_side_bytes(size_t size) {
+static void *ark_side_bytes_accounted(size_t size, uint64_t *counter) {
     if (ark_gc_mode) {
         void *bytes = malloc(size);
-        if (bytes == NULL) ark_rt_trap();
+        if (bytes == NULL) {
+            ark_gc_dump_crash_state("side-buffer malloc failed");
+            ark_rt_trap();
+        }
+        *counter += size;
         return bytes;
     }
     return ark_rt_alloc_aligned(size, 16u);
+}
+
+static void *ark_side_bytes_string(size_t size) {
+    return ark_side_bytes_accounted(size, &ark_gc_string_buffer_bytes);
+}
+
+static void *ark_side_bytes_vec(size_t size) {
+    return ark_side_bytes_accounted(size, &ark_gc_vec_buffer_bytes);
 }
 
 static void ark_gc_mark_object(ark_object_header *object);
@@ -197,14 +322,28 @@ static void ark_gc_free_side_buffers(ark_object_header *object) {
     uint8_t kind = ark_gc_kind(object);
     if (kind == ARK_GC_KIND_STRING) {
         ark_string *string = (ark_string *)object;
-        free(string->bytes);
-        string->bytes = NULL;
+        if (string->bytes != NULL) {
+            uint64_t bytes = string->capacity;
+            if (ark_gc_string_buffer_bytes >= bytes) ark_gc_string_buffer_bytes -= bytes;
+            else ark_gc_string_buffer_bytes = 0;
+            ark_reclaimed_side_buffer_bytes += bytes;
+            free(string->bytes);
+            string->bytes = NULL;
+            string->capacity = 0;
+        }
         return;
     }
     if (kind == ARK_GC_KIND_VEC) {
         ark_vec *vector = (ark_vec *)object;
-        free(vector->data);
-        vector->data = NULL;
+        if (vector->data != NULL) {
+            uint64_t bytes = (uint64_t)vector->capacity * (uint64_t)sizeof(ark_value);
+            if (ark_gc_vec_buffer_bytes >= bytes) ark_gc_vec_buffer_bytes -= bytes;
+            else ark_gc_vec_buffer_bytes = 0;
+            ark_reclaimed_side_buffer_bytes += bytes;
+            free(vector->data);
+            vector->data = NULL;
+            vector->capacity = 0;
+        }
     }
 }
 
@@ -247,6 +386,11 @@ static void ark_gc_mark_roots(void) {
     }
 }
 
+static void ark_gc_table_maybe_shrink(size_t live_count) {
+    /* Shrink policy is applied inside ark_gc_table_rebuild_from_heap. */
+    (void)live_count;
+}
+
 void ark_gc_collect(void) {
     if (!ark_gc_mode || ark_gc_collecting) return;
     ark_gc_collecting = 1;
@@ -258,6 +402,7 @@ void ark_gc_collect(void) {
     ark_gc_allocation *live_head = NULL;
     uint64_t live = 0;
     uint64_t reclaimed = 0;
+    size_t live_count = 0;
     ark_gc_allocation *node = ark_gc_heap_head;
     while (node != NULL) {
         ark_gc_allocation *next = node->next;
@@ -265,11 +410,18 @@ void ark_gc_collect(void) {
             node->next = live_head;
             live_head = node;
             live += node->allocation_size;
+            live_count += 1u;
         } else {
             ark_gc_free_side_buffers(
                 (ark_object_header *)ark_gc_object_from_header(node)
             );
             reclaimed += node->allocation_size;
+            ark_reclaimed_object_bytes += node->allocation_size;
+            if (ark_gc_object_bytes >= node->allocation_size) {
+                ark_gc_object_bytes -= node->allocation_size;
+            } else {
+                ark_gc_object_bytes = 0;
+            }
             if (ark_chunk_count > 0) ark_chunk_count -= 1;
             if (ark_committed_bytes >= (sizeof(ark_gc_allocation) + node->allocation_size)) {
                 ark_committed_bytes -= sizeof(ark_gc_allocation) + node->allocation_size;
@@ -280,13 +432,18 @@ void ark_gc_collect(void) {
     }
     ark_gc_heap_head = live_head;
     ark_gc_table_rebuild_from_heap();
+    ark_gc_table_maybe_shrink(live_count);
     ark_live_bytes = live;
     ark_reclaimed_bytes += reclaimed;
     ark_gc_bytes_since_collection = 0;
-    /* Keep pressure high enough for the 2.4 GiB RSS gate (measured ~1.5 GiB). */
-    ark_gc_threshold_bytes = live / 2ull;
-    if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
-        ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
+    if (ark_gc_threshold_override != 0) {
+        ark_gc_threshold_bytes = ark_gc_threshold_override;
+    } else {
+        /* Keep pressure high enough for the 2.4 GiB RSS gate (measured ~1.5 GiB). */
+        ark_gc_threshold_bytes = live / 2ull;
+        if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
+            ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
+        }
     }
     malloc_trim(0);
     ark_gc_collecting = 0;
@@ -324,6 +481,17 @@ void ark_gc_pop_frame(void) {
     ark_gc_frame_top = frame->parent;
     frame->parent = ark_gc_frame_free;
     ark_gc_frame_free = frame;
+}
+
+static uint64_t ark_gc_measure_root_frame_bytes(void) {
+    uint64_t total = 0;
+    for (ark_gc_frame *frame = ark_gc_frame_top; frame != NULL; frame = frame->parent) {
+        total += sizeof(*frame) + frame->slot_capacity * sizeof(ark_object_header **);
+    }
+    for (ark_gc_frame *frame = ark_gc_frame_free; frame != NULL; frame = frame->parent) {
+        total += sizeof(*frame) + frame->slot_capacity * sizeof(ark_object_header **);
+    }
+    return total;
 }
 
 void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr) {
@@ -417,6 +585,7 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
     ark_requested_bytes += size;
     ark_gc_bytes_since_collection += size;
     ark_live_bytes += size;
+    ark_gc_object_bytes += size;
     ark_chunk_count += 1;
     void *result = ark_gc_object_from_header(header);
     memset(result, 0, size);
@@ -439,10 +608,20 @@ void ark_rt_init(int argc, char **argv) {
     ark_live_bytes = 0;
     ark_collection_count = 0;
     ark_reclaimed_bytes = 0;
-    ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
+    ark_reclaimed_object_bytes = 0;
+    ark_reclaimed_side_buffer_bytes = 0;
+    ark_gc_threshold_override = ark_env_u64("ARUKELLT_NATIVE_GC_THRESHOLD_BYTES", 0);
+    ark_gc_threshold_bytes = ark_gc_threshold_override != 0
+        ? ark_gc_threshold_override
+        : ARK_GC_INITIAL_THRESHOLD;
     ark_gc_bytes_since_collection = 0;
+    ark_gc_object_bytes = 0;
+    ark_gc_string_buffer_bytes = 0;
+    ark_gc_vec_buffer_bytes = 0;
+    ark_gc_root_frame_bytes = 0;
     ark_chunk_count = 0;
     ark_gc_collecting = 0;
+    ark_gc_current_function = NULL;
     ark_process_args = ark_rt_vec_new(0);
     for (int index = 0; index < argc; index += 1) {
         size_t length = strlen(argv[index]);
@@ -456,6 +635,7 @@ void ark_rt_init(int argc, char **argv) {
 }
 
 void ark_rt_shutdown(void) {
+    ark_gc_write_stats_file();
     while (ark_gc_frame_top != NULL) ark_gc_pop_frame();
     while (ark_gc_frame_free != NULL) {
         ark_gc_frame *frame = ark_gc_frame_free;
@@ -496,6 +676,9 @@ void ark_rt_shutdown(void) {
 }
 
 void ark_rt_trap(void) {
+    if (ark_gc_mode) {
+        ark_gc_dump_crash_state("ark_rt_trap");
+    }
     abort();
 }
 
@@ -532,7 +715,7 @@ ark_string *ark_rt_string_from_bytes(const uint8_t *bytes, uint32_t length) {
     result->byte_length = length;
     result->capacity = length;
     if (length != 0) {
-        result->bytes = ark_side_bytes(length);
+        result->bytes = ark_side_bytes_string(length);
         memcpy(result->bytes, bytes, length);
     }
     return result;
@@ -544,7 +727,7 @@ ark_string *ark_rt_string_from_vec_bytes(ark_vec *bytes) {
     result->byte_length = bytes->length;
     result->capacity = bytes->length;
     if (bytes->length != 0) {
-        result->bytes = ark_side_bytes(bytes->length);
+        result->bytes = ark_side_bytes_string(bytes->length);
         for (uint32_t index = 0; index < bytes->length; index += 1) {
             result->bytes[index] = (uint8_t)bytes->data[index].i32;
         }
@@ -565,7 +748,7 @@ ark_string *ark_rt_string_concat(ark_string *left, ark_string *right) {
     result->byte_length = length;
     result->capacity = length;
     if (length != 0) {
-        result->bytes = ark_side_bytes(length);
+        result->bytes = ark_side_bytes_string(length);
         memcpy(result->bytes, left->bytes, left->byte_length);
         memcpy(result->bytes + left->byte_length, right->bytes, right->byte_length);
     }
@@ -715,9 +898,14 @@ static void ark_vec_reserve(ark_vec *vector, uint32_t minimum) {
         capacity *= 2u;
     }
     size_t bytes = ark_checked_mul(capacity, sizeof(*vector->data));
-    ark_value *data = ark_side_bytes(bytes);
+    ark_value *data = ark_side_bytes_vec(bytes);
     if (vector->length != 0) memcpy(data, vector->data, vector->length * sizeof(*data));
-    if (ark_gc_mode) free(vector->data);
+    if (ark_gc_mode && vector->data != NULL) {
+        uint64_t old_bytes = (uint64_t)vector->capacity * (uint64_t)sizeof(ark_value);
+        if (ark_gc_vec_buffer_bytes >= old_bytes) ark_gc_vec_buffer_bytes -= old_bytes;
+        else ark_gc_vec_buffer_bytes = 0;
+        free(vector->data);
+    }
     vector->data = data;
     vector->capacity = capacity;
 }
@@ -772,7 +960,7 @@ static ark_string *ark_read_stream(FILE *stream) {
     result->byte_length = bytes->length;
     result->capacity = bytes->length;
     if (bytes->length != 0) {
-        result->bytes = ark_side_bytes(bytes->length);
+        result->bytes = ark_side_bytes_string(bytes->length);
         for (uint32_t index = 0; index < bytes->length; index += 1) {
             result->bytes[index] = (uint8_t)bytes->data[index].i32;
         }

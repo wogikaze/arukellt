@@ -1,0 +1,18 @@
+fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
+    f(x)
+}
+
+fn add_two(n: i32) -> i32 {
+    n + 2
+}
+
+fn main() -> i32 {
+    let keep = String_from("env-keep")
+    let mut i = 0
+    while i < 32 {
+        let _junk = String_from("closure-env-temp")
+        let _n = apply(add_two, i)
+        i = i + 1
+    }
+    if eq(keep, String_from("env-keep")) && apply(add_two, 40) == 42 { 0 } else { 1 }
+}
