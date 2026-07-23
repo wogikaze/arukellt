@@ -135,7 +135,7 @@ fn target_display_line(input: String) -> String {
         return String_from("  wasm32-gc  WebAssembly GC target (WASI P2, default)")
     }
     if eq(clone(input), String_from("native-cpp")) {
-        return String_from("  native-cpp  Native C99 selfhost executor (experimental lane)")
+        return String_from("  native-cpp  Native C99 selfhost executor (scaffold; high-RSS opt-in lane)")
     }
     if eq(clone(input), String_from("native-llvm")) {
         return String_from("  native-llvm  Native LLVM backend scaffold")
