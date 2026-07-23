@@ -62,8 +62,8 @@ support_tier = "scaffold"
 implementation_state = "partial"
 contract_stability = "experimental"
 run_supported = false
-role = "Recovered C99 emitter/runtime + native-executor lane; S2/S3 equality green; exact GC RSS ~1.5 GiB (under 2.4 GiB); warm wall still ~10–11 min (5 min gate pending)"
-display = "Native C99 selfhost executor (experimental lane)"
+role = "Recovered C99 emitter/runtime + native-executor lane; S2/S3 equality+determinism green; --allow-high-rss operational (arena ~12 GiB / warm ~3.8 min); GC=1 RSS ~1.55 GiB but warm ~8 min (experimental wall pending)"
+display = "Native C99 selfhost executor (scaffold; high-RSS opt-in lane)"
 
 [[target_profiles]]
 id = "native-llvm"
