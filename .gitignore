@@ -96,3 +96,4 @@ superpowers/
 .worktrees
 tmp/
 .ark-t3-tmp/
+.ark-debug/
