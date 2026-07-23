@@ -38,6 +38,27 @@ struct NativeCFunctionEmitState {
     root_clear_count: Vec<i32>,
     root_clear_locals: Vec<i32>,
     instruction_order: i32,
+    // Effect recording (inference / shadow liveness).
+    suppress_source: bool,
+    record_effects: bool,
+    current_block_id: i32,
+    current_uses: Vec<i32>,
+    current_defs: Vec<i32>,
+    effect_block_ids: Vec<i32>,
+    effect_reachable: Vec<i32>,
+    effect_is_safepoint: Vec<i32>,
+    effect_use_start: Vec<i32>,
+    effect_use_count: Vec<i32>,
+    effect_use_locals: Vec<i32>,
+    effect_def_start: Vec<i32>,
+    effect_def_count: Vec<i32>,
+    effect_def_locals: Vec<i32>,
+    // Module rollup copied out after body emit.
+    root_plan_safepoints: i32,
+    root_plan_clears: i32,
+    root_plan_skipped: i32,
+    root_plan_analyzed: i32,
+    root_frame_locals: i32,
 }
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
@@ -59,6 +80,25 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         root_clear_count: Vec_new_i32(),
         root_clear_locals: Vec_new_i32(),
         instruction_order: 0,
+        suppress_source: false,
+        record_effects: false,
+        current_block_id: 0,
+        current_uses: Vec_new_i32(),
+        current_defs: Vec_new_i32(),
+        effect_block_ids: Vec_new_i32(),
+        effect_reachable: Vec_new_i32(),
+        effect_is_safepoint: Vec_new_i32(),
+        effect_use_start: Vec_new_i32(),
+        effect_use_count: Vec_new_i32(),
+        effect_use_locals: Vec_new_i32(),
+        effect_def_start: Vec_new_i32(),
+        effect_def_count: Vec_new_i32(),
+        effect_def_locals: Vec_new_i32(),
+        root_plan_safepoints: 0,
+        root_plan_clears: 0,
+        root_plan_skipped: 0,
+        root_plan_analyzed: 0,
+        root_frame_locals: 0,
     }
 }
 
@@ -103,6 +143,26 @@ fn native_c_function_emit_success(state: NativeCFunctionEmitState) -> bool {
     len(state.diagnostic) == 0
 }
 
+fn native_c_function_root_plan_safepoints(state: NativeCFunctionEmitState) -> i32 {
+    state.root_plan_safepoints
+}
+
+fn native_c_function_root_plan_clears(state: NativeCFunctionEmitState) -> i32 {
+    state.root_plan_clears
+}
+
+fn native_c_function_root_plan_skipped(state: NativeCFunctionEmitState) -> i32 {
+    state.root_plan_skipped
+}
+
+fn native_c_function_root_plan_analyzed(state: NativeCFunctionEmitState) -> i32 {
+    state.root_plan_analyzed
+}
+
+fn native_c_function_root_frame_locals(state: NativeCFunctionEmitState) -> i32 {
+    state.root_frame_locals
+}
+
 fn native_c_function_emit_source(state: NativeCFunctionEmitState) -> String {
     let bytes = Vec_new_i32()
     let mut index = 0
@@ -123,12 +183,103 @@ fn native_c_function_emit_diagnostic(state: NativeCFunctionEmitState) -> String 
 }
 
 fn native_c_append(state: NativeCFunctionEmitState, source: String) {
+    if state.suppress_source { return }
     let length = len(source)
     let mut index = 0
     while index < length {
         push(state.source, char_at(source, index))
         index = index + 1
     }
+}
+
+fn native_c_note_use(state: NativeCFunctionEmitState, local: i32) {
+    if !state.record_effects { return }
+    if local < 0 || local >= len(state.reference_locals) { return }
+    if get_unchecked(state.reference_locals, local) == 0 { return }
+    let mut index = 0
+    while index < len(state.current_uses) {
+        if get_unchecked(state.current_uses, index) == local { return }
+        index = index + 1
+    }
+    push(state.current_uses, local)
+}
+
+fn native_c_note_def(state: NativeCFunctionEmitState, local: i32) {
+    if !state.record_effects { return }
+    if local < 0 || local >= len(state.reference_locals) { return }
+    if get_unchecked(state.reference_locals, local) == 0 { return }
+    let mut index = 0
+    while index < len(state.current_defs) {
+        if get_unchecked(state.current_defs, index) == local { return }
+        index = index + 1
+    }
+    push(state.current_defs, local)
+}
+
+fn native_c_effects_flush(state: NativeCFunctionEmitState, instruction: MirInst) {
+    if !state.record_effects { return }
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    push(state.effect_block_ids, state.current_block_id)
+    if state.is_unreachable {
+        push(state.effect_reachable, 0)
+    } else {
+        push(state.effect_reachable, 1)
+    }
+    if root_liveness::native_c_is_safepoint_op(op) {
+        push(state.effect_is_safepoint, 1)
+    } else {
+        push(state.effect_is_safepoint, 0)
+    }
+    push(state.effect_use_start, len(state.effect_use_locals))
+    push(state.effect_use_count, len(state.current_uses))
+    let mut index = 0
+    while index < len(state.current_uses) {
+        push(state.effect_use_locals, get_unchecked(state.current_uses, index))
+        index = index + 1
+    }
+    push(state.effect_def_start, len(state.effect_def_locals))
+    push(state.effect_def_count, len(state.current_defs))
+    index = 0
+    while index < len(state.current_defs) {
+        push(state.effect_def_locals, get_unchecked(state.current_defs, index))
+        index = index + 1
+    }
+    // Reset per-instruction buffers without reallocating when possible.
+    while len(state.current_uses) > 0 { pop(state.current_uses) }
+    while len(state.current_defs) > 0 { pop(state.current_defs) }
+}
+
+fn native_c_build_effects_from_state(state: NativeCFunctionEmitState) -> root_liveness::NativeCInstructionEffects {
+    let effects = root_liveness::native_c_instruction_effects_new()
+    let mut order = 0
+    while order < len(state.effect_block_ids) {
+        let uses = Vec_new_i32()
+        let defs = Vec_new_i32()
+        let use_start = get_unchecked(state.effect_use_start, order)
+        let use_count = get_unchecked(state.effect_use_count, order)
+        let mut index = 0
+        while index < use_count {
+            push(uses, get_unchecked(state.effect_use_locals, use_start + index))
+            index = index + 1
+        }
+        let def_start = get_unchecked(state.effect_def_start, order)
+        let def_count = get_unchecked(state.effect_def_count, order)
+        index = 0
+        while index < def_count {
+            push(defs, get_unchecked(state.effect_def_locals, def_start + index))
+            index = index + 1
+        }
+        root_liveness::native_c_effects_push(
+            effects,
+            get_unchecked(state.effect_block_ids, order),
+            get_unchecked(state.effect_reachable, order) != 0,
+            get_unchecked(state.effect_is_safepoint, order) != 0,
+            uses,
+            defs
+        )
+        order = order + 1
+    }
+    effects
 }
 
 fn native_c_fail(state: NativeCFunctionEmitState, diagnostic: String) {
@@ -148,14 +299,16 @@ fn native_c_allocate_temporary(state: NativeCFunctionEmitState, c_type: String) 
     let temporary_id = state.next_temporary_id
     state.next_temporary_id = state.next_temporary_id + 1
     let encoded_id = (0 - temporary_id) - 2
-    let declaration = concat(
-        String_from("    "),
-        concat(c_type, concat(String_from(" "), concat(native_c_local_name(encoded_id), String_from(";\n"))))
-    )
-    let mut index = 0
-    while index < len(declaration) {
-        push(state.temporary_declarations, char_at(declaration, index))
-        index = index + 1
+    if !state.suppress_source {
+        let declaration = concat(
+            String_from("    "),
+            concat(c_type, concat(String_from(" "), concat(native_c_local_name(encoded_id), String_from(";\n"))))
+        )
+        let mut index = 0
+        while index < len(declaration) {
+            push(state.temporary_declarations, char_at(declaration, index))
+            index = index + 1
+        }
     }
     encoded_id
 }
@@ -175,6 +328,7 @@ fn native_c_stack_pop(state: NativeCFunctionEmitState, context: String) -> i32 {
     let index = len(state.value_stack) - 1
     let local_id = get_unchecked(state.value_stack, index)
     pop(state.value_stack)
+    native_c_note_use(state, local_id)
     local_id
 }
 
@@ -840,6 +994,13 @@ fn native_c_emit_call(
         }
         call = concat(call, String_from(")"))
     }
+    // Effects must come from the emitter value stack, not MIR operand fields.
+    // discard_to alone would drop args without recording uses.
+    argument_index = 0
+    while argument_index < argument_count {
+        native_c_note_use(state, get_unchecked(arguments, argument_index))
+        argument_index = argument_index + 1
+    }
     native_c_stack_discard_to(state, first_argument)
     let return_count = if eq(
         abi::native_c_signature_return_type(table, signature),
@@ -1009,42 +1170,70 @@ fn native_c_emit_instruction(
     signature: SignatureEntry,
     instruction: MirInst
 ) {
-    native_c_emit_pending_root_clears(state, instruction)
+    while len(state.current_uses) > 0 { pop(state.current_uses) }
+    while len(state.current_defs) > 0 { pop(state.current_defs) }
+    if root_liveness::native_c_root_clear_emit_enabled() {
+        native_c_emit_pending_root_clears(state, instruction)
+    } else {
+        state.instruction_order = state.instruction_order + 1
+    }
     let op = inst_accessors_shape::MirInst_op(instruction)
     if state.is_unreachable {
         if op == opcodes::MIR_BLOCK() || op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() {
             state.unreachable_nested_depth = state.unreachable_nested_depth + 1
+            native_c_effects_flush(state, instruction)
             return
         }
         if op == opcodes::MIR_END() && state.unreachable_nested_depth > 0 {
             state.unreachable_nested_depth = state.unreachable_nested_depth - 1
+            native_c_effects_flush(state, instruction)
             return
         }
         if op == opcodes::MIR_ELSE() && state.unreachable_nested_depth > 0 {
+            native_c_effects_flush(state, instruction)
             return
         }
         if op != opcodes::MIR_ELSE() && op != opcodes::MIR_END() {
+            native_c_effects_flush(state, instruction)
             return
         }
         state.is_unreachable = false
     }
-    if native_c_emit_constant(state, instruction) { return }
-    if native_c_emit_local(state, function, instruction) { return }
-    if native_c_emit_binary(state, instruction) { return }
-    if native_c_emit_unary(state, instruction) { return }
-    if native_c_emit_conversion(state, instruction) { return }
-    if native_c_emit_call(state, mir_module, function, instruction) { return }
-    if native_c_emit_struct(state, function, instruction) { return }
-    if native_c_emit_control(state, instruction) { return }
-    if native_c_emit_return(state, mir_module, function, signature, instruction) { return }
-    if native_c_emit_misc(state, instruction) { return }
-    native_c_fail(
-        state,
-        concat(
-            String_from("compiler ICE: native-cpp reached validated opcode "),
-            i32_to_string(inst_accessors_shape::MirInst_op(instruction))
+    let mut handled = false
+    if native_c_emit_constant(state, instruction) { handled = true }
+    if !handled && native_c_emit_local(state, function, instruction) { handled = true }
+    if !handled && native_c_emit_binary(state, instruction) { handled = true }
+    if !handled && native_c_emit_unary(state, instruction) { handled = true }
+    if !handled && native_c_emit_conversion(state, instruction) { handled = true }
+    if !handled && native_c_emit_call(state, mir_module, function, instruction) { handled = true }
+    if !handled && native_c_emit_struct(state, function, instruction) { handled = true }
+    if !handled && native_c_emit_control(state, instruction) { handled = true }
+    if !handled && native_c_emit_return(state, mir_module, function, signature, instruction) {
+        handled = true
+    }
+    if !handled && native_c_emit_misc(state, instruction) { handled = true }
+    if !handled {
+        native_c_fail(
+            state,
+            concat(
+                String_from("compiler ICE: native-cpp reached validated opcode "),
+                i32_to_string(inst_accessors_shape::MirInst_op(instruction))
+            )
         )
-    )
+    }
+    let dest = inst_accessors_operands::MirInst_dest(instruction)
+    let arg0 = inst_accessors_operands::MirInst_arg0(instruction)
+    native_c_note_def(state, dest)
+    if op == opcodes::MIR_LOCAL_SET() {
+        native_c_note_def(state, arg0)
+    }
+    if op == opcodes::MIR_LOCAL_GET() {
+        native_c_note_use(state, arg0)
+    }
+    if op == opcodes::MIR_RETURN() && arg0 >= 0 {
+        native_c_note_use(state, arg0)
+    }
+    native_c_effects_flush(state, instruction)
 }
 
 fn native_c_emit_local_declarations(
@@ -1265,6 +1454,7 @@ fn native_c_emit_function_instructions(
     let block_count = function_block_queries::MirFunction_block_count(function)
     let mut block_index = 0
     while block_index < block_count {
+        state.current_block_id = block_index
         let block = function_block_queries::MirFunction_block_at(function, block_index)
         let instruction_count = block_inst_access::MirBlock_inst_count(block)
         let mut instruction_index = 0
@@ -1291,23 +1481,57 @@ fn native_c_emit_function_body(
     function: MirFunction,
     signature: SignatureEntry
 ) -> NativeCFunctionEmitState {
+    // Pass 1: infer reference locals + record instruction effects (no C text).
     let inference_state = native_c_function_state_new()
+    inference_state.suppress_source = true
+    inference_state.record_effects = true
     native_c_emit_local_declarations(inference_state, mir_module, function, signature)
     if !native_c_function_emit_success(inference_state) { return inference_state }
+    // Reset control/stack before effect recording walk; keep reference_locals.
+    inference_state.value_stack = Vec_new_i32()
+    inference_state.control_kinds = Vec_new_i32()
+    inference_state.control_ids = Vec_new_i32()
+    inference_state.control_stack_depths = Vec_new_i32()
+    inference_state.control_has_else = Vec_new_i32()
+    inference_state.next_control_id = 0
+    inference_state.is_unreachable = false
+    inference_state.unreachable_nested_depth = 0
+    inference_state.instruction_order = 0
+    inference_state.source = Vec_new_i32()
+    inference_state.temporary_declarations = Vec_new_i32()
     native_c_emit_function_instructions(inference_state, mir_module, function, signature)
     if !native_c_function_emit_success(inference_state) { return inference_state }
 
-    let clear_plan = root_liveness::native_c_plan_root_clears(
+    let effects = native_c_build_effects_from_state(inference_state)
+    let clear_plan = root_liveness::native_c_plan_root_clears_from_effects(
         function,
-        inference_state.reference_locals
+        inference_state.reference_locals,
+        effects
     )
+
+    // Pass 2: emit real C. Clears stay disabled until Phase 3.
     let state = native_c_function_state_new()
     state.reference_locals = inference_state.reference_locals
-    state.root_clear_start = root_liveness::native_c_root_clear_plan_start(clear_plan)
-    state.root_clear_count = root_liveness::native_c_root_clear_plan_counts(clear_plan)
-    state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
+    state.root_plan_safepoints = root_liveness::native_c_root_clear_plan_safepoint_count(clear_plan)
+    state.root_plan_clears = root_liveness::native_c_root_clear_plan_cleared_count(clear_plan)
+    state.root_plan_skipped = root_liveness::native_c_root_clear_plan_functions_skipped(clear_plan)
+    state.root_plan_analyzed = root_liveness::native_c_root_clear_plan_functions_analyzed(clear_plan)
+    if root_liveness::native_c_root_clear_emit_enabled() {
+        state.root_clear_start = root_liveness::native_c_root_clear_plan_start(clear_plan)
+        state.root_clear_count = root_liveness::native_c_root_clear_plan_counts(clear_plan)
+        state.root_clear_locals = root_liveness::native_c_root_clear_plan_locals(clear_plan)
+    }
     native_c_emit_local_declarations(state, mir_module, function, signature)
     if !native_c_function_emit_success(state) { return state }
+    let mut root_count = 0
+    let mut root_scan = 0
+    while root_scan < len(state.reference_locals) {
+        if get_unchecked(state.reference_locals, root_scan) != 0 {
+            root_count = root_count + 1
+        }
+        root_scan = root_scan + 1
+    }
+    state.root_frame_locals = root_count
     native_c_emit_function_instructions(state, mir_module, function, signature)
     state
 }

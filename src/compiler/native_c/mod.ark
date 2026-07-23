@@ -255,8 +255,42 @@ fn native_c_emit_function(
         )
     )
     source = concat(source, concat(native_c_emit_result_source(declaration), String_from(" {\n")))
-        source = concat(source, function_emitter::native_c_function_emit_source(body))
-        source = concat(source, String_from("}\n\n"))
+    source = concat(source, function_emitter::native_c_function_emit_source(body))
+    source = concat(source, String_from("}\n"))
+    source = concat(
+        source,
+        concat(
+            String_from("/* ARK_ROOT_LIVENESS fn analyzed="),
+            concat(
+                i32_to_string(function_emitter::native_c_function_root_plan_analyzed(body)),
+                concat(
+                    String_from(" skipped="),
+                    concat(
+                        i32_to_string(function_emitter::native_c_function_root_plan_skipped(body)),
+                        concat(
+                            String_from(" frames="),
+                            concat(
+                                i32_to_string(function_emitter::native_c_function_root_frame_locals(body)),
+                                concat(
+                                    String_from(" safepoints="),
+                                    concat(
+                                        i32_to_string(function_emitter::native_c_function_root_plan_safepoints(body)),
+                                        concat(
+                                            String_from(" planned_clears="),
+                                            concat(
+                                                i32_to_string(function_emitter::native_c_function_root_plan_clears(body)),
+                                                String_from(" */\n\n")
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
     NativeCEmitResult_ok(source)
 }
 
@@ -321,6 +355,10 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     if len(main_symbol) == 0 {
         return NativeCEmitResult_err(String_from("compiler ICE: native-cpp MIR module has no Ark entry point"))
     }
+    native_c_append_bytes(
+        source_bytes,
+        String_from("/* ARK_ROOT_LIVENESS_MODULE shadow=1 clears_emitted=0 */\n")
+    )
     native_c_append_bytes(source_bytes, String_from("int main(int argc, char **argv) {\n"))
         native_c_append_bytes(source_bytes, String_from("    ark_rt_init(argc, argv);\n"))
         native_c_append_bytes(

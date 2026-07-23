@@ -305,7 +305,6 @@ def _empty_gc_stats() -> dict[str, object]:
 
 
 def _empty_root_liveness_stats() -> dict[str, object]:
-    # Populated by the emitter once #833 lands; Phase 0 records the disabled state.
     return {
         "root_liveness_enabled": False,
         "root_functions_with_frames": 0,
@@ -318,6 +317,90 @@ def _empty_root_liveness_stats() -> dict[str, object]:
         "root_clear_assignments_emitted": 0,
         "root_liveness_fallback_count": 0,
     }
+
+
+def _parse_root_liveness_from_c(generated_c: Path) -> dict[str, object]:
+    """Aggregate `ARK_ROOT_LIVENESS fn ...` markers from generated C."""
+    stats = _empty_root_liveness_stats()
+    if not generated_c.is_file():
+        return stats
+    analyzed = 0
+    skipped = 0
+    frames = 0
+    safepoints = 0
+    planned = 0
+    functions_with_frames = 0
+    pattern = re.compile(
+        r"/\* ARK_ROOT_LIVENESS fn analyzed=(\d+) skipped=(\d+) "
+        r"frames=(\d+) safepoints=(\d+) planned_clears=(\d+) \*/"
+    )
+    text = generated_c.read_text(encoding="utf-8", errors="replace")
+    for match in pattern.finditer(text):
+        fn_analyzed = int(match.group(1))
+        fn_skipped = int(match.group(2))
+        fn_frames = int(match.group(3))
+        fn_safepoints = int(match.group(4))
+        fn_planned = int(match.group(5))
+        analyzed += fn_analyzed
+        skipped += fn_skipped
+        frames += fn_frames
+        safepoints += fn_safepoints
+        planned += fn_planned
+        if fn_frames > 0:
+            functions_with_frames += 1
+    stats["root_functions_analyzed"] = analyzed
+    stats["root_functions_skipped"] = skipped
+    stats["root_functions_with_frames"] = functions_with_frames
+    stats["root_reference_local_count"] = frames
+    stats["root_safepoint_count"] = safepoints
+    stats["root_clear_sites_planned"] = planned
+    stats["root_clear_sites_emitted"] = 0
+    stats["root_clear_assignments_emitted"] = 0
+    stats["root_liveness_enabled"] = False
+    stats["root_liveness_fallback_count"] = skipped
+    return stats
+
+
+def _git_head(root: Path) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+
+
+def _equality_applicability(
+    profile: dict[str, Any],
+    *,
+    current_commit: str,
+    current_runtime_hash: str,
+    current_profile_fingerprint: str = "",
+) -> tuple[bool, str]:
+    """Return (applicable, status) for S2/S3 byte equality.
+
+    Equality is only a PASS/FAIL signal when the S2 peer was promoted from the
+    same source commit / runtime / fingerprint. Otherwise report
+    NOT_APPLICABLE_STALE_REFERENCE so baseline / operational lanes do not stop.
+    """
+    reference_commit = str(profile.get("source_commit", "") or "")
+    reference_runtime = str(profile.get("native_runtime_hash", "") or "")
+    reference_fp = str(profile.get("source_fingerprint", "") or "")
+    promoted = str(profile.get("promoted_from_s3_sha256", "") or "")
+    if not reference_commit or reference_commit != current_commit:
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if reference_runtime and reference_runtime != current_runtime_hash:
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if (
+        reference_fp
+        and current_profile_fingerprint
+        and reference_fp != current_profile_fingerprint
+    ):
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if not promoted:
+        # Bootstrap fat S2 without promote provenance cannot be an equality peer.
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    return True, "APPLICABLE"
 
 
 def _empty_executor_run() -> dict[str, object]:
@@ -365,6 +448,12 @@ def _empty_receipt() -> dict[str, object]:
         "memory_gate_passed": False,
         "strict_gate_passed": False,
         "high_rss_override": False,
+        "equality_gate_applicable": False,
+        "equality_status": "NOT_APPLICABLE_STALE_REFERENCE",
+        "reference_source_commit": "",
+        "current_source_commit": "",
+        "reference_profile_fingerprint": "",
+        "current_profile_fingerprint": "",
         # Top-level GC mirrors warm run for backward-compatible summary lines.
         **_empty_gc_stats(),
     }
@@ -420,6 +509,10 @@ def run_native_executor(
     if not s2.is_file() or not s2_runtime.is_file():
         return 1, "native executor diagnostic: missing s2 artifacts; run selfhost build-compiler"
     receipt["s2_sha256"] = _sha256(s2)
+    current_commit = _git_head(root)
+    current_runtime_hash = _runtime_hash(root)
+    receipt["current_source_commit"] = current_commit
+    receipt["native_runtime_hash"] = current_runtime_hash
 
     profile, profile_error = load_s2_build_profile(root, s2)
     if profile is None:
@@ -430,6 +523,18 @@ def run_native_executor(
     receipt["wasi"] = wasi
     receipt["memory64"] = bool(profile["memory64"])
     receipt["wasm_gc"] = bool(profile["wasm_gc"])
+    current_fp = _selfhost_source_fingerprint(root)
+    receipt["reference_source_commit"] = str(profile.get("source_commit", "") or "")
+    receipt["reference_profile_fingerprint"] = str(profile.get("source_fingerprint", "") or "")
+    receipt["current_profile_fingerprint"] = current_fp
+    equality_applicable, equality_status = _equality_applicability(
+        profile,
+        current_commit=current_commit,
+        current_runtime_hash=current_runtime_hash,
+        current_profile_fingerprint=current_fp,
+    )
+    receipt["equality_gate_applicable"] = equality_applicable
+    receipt["equality_status"] = equality_status
 
     clang_path, toolchain = _toolchain()
     if clang_path is None:
@@ -507,6 +612,9 @@ def run_native_executor(
             )
         key_path.write_text(key + "\n", encoding="utf-8")
 
+    if generated_c.is_file():
+        receipt["root_liveness"] = _parse_root_liveness_from_c(generated_c)
+
     # Smoke: --help before full S3.
     help_run, _, help_peak, _help_smaps = _timed_run(
         [str(executable), "--help"],
@@ -534,7 +642,6 @@ def run_native_executor(
         run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
     gc_mode = "gc" if run_env_base.get("ARUKELLT_NATIVE_GC", "0") == "1" else "arena"
     receipt["gc_mode"] = gc_mode
-    receipt["native_runtime_hash"] = _runtime_hash(root)
     receipt["host"] = _host_fingerprint()
 
     executor_runs: list[dict[str, object]] = []
@@ -627,11 +734,26 @@ def run_native_executor(
         == receipt["determinism_run_2_sha256"]
         != ""
     )
-    byte_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
-    correctness_ok = is_valid and deterministic and byte_equal
+    hashes_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
+    if equality_applicable:
+        receipt["equality_status"] = "PASS" if hashes_equal else "FAIL"
+        # Provenance matches: equality is a real PASS/FAIL signal.
+        equality_for_correctness = hashes_equal
+    else:
+        receipt["equality_status"] = equality_status
+        # Stale reference: do not fail operational/baseline on hash mismatch.
+        equality_for_correctness = True
+    correctness_ok = is_valid and deterministic and equality_for_correctness
     performance_ok = warm_ms < WALL_GATE_MS
     memory_ok = int(receipt["executor_peak_rss_bytes"]) <= MEMORY_GATE_BYTES
-    strict_ok = correctness_ok and performance_ok and memory_ok
+    # Strict promotion always requires current S2/S3 byte equality.
+    strict_ok = (
+        is_valid
+        and deterministic
+        and hashes_equal
+        and performance_ok
+        and memory_ok
+    )
     receipt["correctness_gate_passed"] = correctness_ok
     receipt["performance_gate_passed"] = performance_ok
     receipt["memory_gate_passed"] = memory_ok
@@ -646,6 +768,8 @@ def run_native_executor(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
+    root_stats = receipt.get("root_liveness", _empty_root_liveness_stats())
+    assert isinstance(root_stats, dict)
     summary = [
         f"native executor receipt: {receipt_path}",
         f"receipt schema: {RECEIPT_SCHEMA_VERSION} gc_mode={gc_mode}",
@@ -654,7 +778,8 @@ def run_native_executor(
         f"s2 sha256: {receipt['s2_sha256']}",
         f"s3 sha256: {receipt['s3_sha256']}",
         f"deterministic: {deterministic}",
-        f"byte equality: {byte_equal}",
+        f"byte equality: {receipt['equality_status']} "
+        f"(applicable={equality_applicable} hashes_equal={hashes_equal})",
         f"cold executor ms: {cold_ms}",
         f"warm executor ms (run {warm_index}): {warm_ms}",
         f"executor peak RSS bytes: {receipt['executor_peak_rss_bytes']}",
@@ -663,6 +788,12 @@ def run_native_executor(
             f"memory={memory_ok} strict={strict_ok}"
         ),
         f"high_rss_override: {receipt['high_rss_override']}",
+        (
+            f"root liveness: analyzed={root_stats.get('root_functions_analyzed')} "
+            f"skipped={root_stats.get('root_functions_skipped')} "
+            f"safepoints={root_stats.get('root_safepoint_count')} "
+            f"planned_clears={root_stats.get('root_clear_sites_planned')}"
+        ),
         (
             f"warm gc: objects={receipt['gc_live_object_count']} "
             f"object_bytes={receipt['gc_object_bytes']} "

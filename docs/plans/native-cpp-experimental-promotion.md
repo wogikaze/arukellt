@@ -1,8 +1,14 @@
 # native-cpp selfhost executor experimental 昇格計画
 
-Status: active  
+Status: active (Phase 0 COMPLETE, Phase 1 COMPLETE)  
 Owner: native-cpp / #833  
-Created: 2026-07-23
+Created: 2026-07-23  
+Phase 0 baseline: `.build-native-recovery/selfhost/native/baselines/20260723-221402/`  
+Phase 0 equality vs old S2: `NOT_APPLICABLE_STALE_REFERENCE`  
+Phase 0 promoted S2 (pre-liveness peer): `ad1b483550ff2cab657ab2965c1bfc1fe04efb8d92d2774f4c130edc0ddbcc77`  
+Phase 1 current-source S2/S3: `8b71d68432bcf29ff568c0e3b10149398e30482c9febacb928c6106e32f32fbe`  
+Shadow: analyzed=8361 skipped=0 planned_clears=3265155 clears_emitted=0  
+Previous S2 artifacts: `previous-s2/arukellt-s2-4975cd51.wasm`, `previous-s2/arukellt-s2-58b70acf.wasm`
 
 ## 目標
 
