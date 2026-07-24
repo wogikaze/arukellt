@@ -917,6 +917,10 @@ void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr) {
 
 void ark_gc_clear_root_slots(size_t count, const size_t *slots) {
     if (!ark_gc_mode || count == 0) return;
+    {
+        const char *skip = getenv("ARUKELLT_NATIVE_GC_SKIP_CLEARS");
+        if (skip != NULL && skip[0] == '1') return;
+    }
     ark_gc_frame *frame = ark_gc_frame_top;
     if (frame == NULL || slots == NULL) ark_rt_trap();
     for (size_t index = 0; index < count; index += 1) {

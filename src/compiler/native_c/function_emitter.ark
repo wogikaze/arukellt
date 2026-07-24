@@ -168,60 +168,42 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                     )
                 )
             )
-            if emitted_here == 1 {
-                let slot = get_unchecked(clear_slots, 0)
-                // Single-clear keeps a direct store; multi-clear uses compact helper.
-                let mut local_scan = 0
-                while local_scan < len(state.root_slot_of_local) {
-                    if get_unchecked(state.root_slot_of_local, local_scan) == slot {
-                        native_c_append(
-                            state,
-                            concat(
-                                String_from("    "),
-                                concat(native_c_local_name(local_scan), String_from(" = NULL;\n"))
-                            )
-                        )
-                        local_scan = len(state.root_slot_of_local)
-                    } else {
-                        local_scan = local_scan + 1
-                    }
+            // Always use the compact helper so the runtime can defer NULL stores
+            // until the next collection / frame pop.
+            native_c_append(state, String_from("    {\n"))
+            native_c_append(
+                state,
+                concat(
+                    String_from("        static const size_t ark_clr_"),
+                    concat(i32_to_string(order), String_from("[] = {"))
+                )
+            )
+            let mut slot_index = 0
+            while slot_index < emitted_here {
+                if slot_index > 0 {
+                    native_c_append(state, String_from(", "))
                 }
-            } else {
-                native_c_append(state, String_from("    {\n"))
                 native_c_append(
                     state,
-                    concat(
-                        String_from("        static const size_t ark_clr_"),
-                        concat(i32_to_string(order), String_from("[] = {"))
-                    )
+                    concat(i32_to_string(get_unchecked(clear_slots, slot_index)), String_from("u"))
                 )
-                let mut slot_index = 0
-                while slot_index < emitted_here {
-                    if slot_index > 0 {
-                        native_c_append(state, String_from(", "))
-                    }
-                    native_c_append(
-                        state,
-                        concat(i32_to_string(get_unchecked(clear_slots, slot_index)), String_from("u"))
-                    )
-                    slot_index = slot_index + 1
-                }
-                native_c_append(state, String_from("};\n"))
-                native_c_append(
-                    state,
-                    concat(
-                        String_from("        ark_gc_clear_root_slots((size_t)"),
-                        concat(
-                            i32_to_string(emitted_here),
-                            concat(
-                                String_from("u, ark_clr_"),
-                                concat(i32_to_string(order), String_from(");\n"))
-                            )
-                        )
-                    )
-                )
-                native_c_append(state, String_from("    }\n"))
+                slot_index = slot_index + 1
             }
+            native_c_append(state, String_from("};\n"))
+            native_c_append(
+                state,
+                concat(
+                    String_from("        ark_gc_clear_root_slots((size_t)"),
+                    concat(
+                        i32_to_string(emitted_here),
+                        concat(
+                            String_from("u, ark_clr_"),
+                            concat(i32_to_string(order), String_from(");\n"))
+                        )
+                    )
+                )
+            )
+            native_c_append(state, String_from("    }\n"))
             state.root_assigns_emitted = state.root_assigns_emitted + emitted_here
             state.root_sites_emitted = state.root_sites_emitted + 1
         }

@@ -91,8 +91,10 @@ fn native_c_is_safepoint_op(op: i32) -> bool {
 /// Allocating safepoints where last-use clears are emitted.
 /// CALL clears remain off: enabling them on full-S3 inflates clear vectors until
 /// native-cpp C generation hits host ICE / memory faults.
+/// CONST_STRING clears are also off: they dominate safepoint volume (~tens of
+/// seconds of mutator stores) without shrinking the retained full-S3 live set
+/// after Phase 5 owner release; struct/array alloc sites still clear.
 fn native_c_is_clear_emit_safepoint_op(op: i32) -> bool {
-    if op == opcodes::MIR_CONST_STRING() { return true }
     if op == opcodes::MIR_STRUCT_NEW() { return true }
     if op == opcodes::MIR_GC_STRUCT_NEW() { return true }
     if op == opcodes::MIR_ARRAY_NEW() { return true }
