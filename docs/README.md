@@ -41,6 +41,7 @@
 | [data/component-availability.md](data/component-availability.md) | Component availability axes |
 | [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |
 | [directory-ownership.md](directory-ownership.md) | Directory ownership map |
+| [board/index.html](board/index.html) | Project board (kanban for issues, ADRs, docs) |
 | [release/README.md](release/README.md) | Release criteria + checklist entry |
 | [governance/document-ownership.md](governance/document-ownership.md) | Shared ownership schema |
 

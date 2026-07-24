@@ -74,6 +74,9 @@ tools/board/*.tsbuildinfo
 tools/board/**/*.js
 tools/board/**/*.d.ts
 
+# Generated board snapshot for GitHub Pages
+docs/board/
+
 # VS Code test downloads
 **/.vscode-test/
 

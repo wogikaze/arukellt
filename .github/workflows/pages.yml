@@ -6,6 +6,8 @@ on:
     paths:
       - "docs/**"
       - "playground/**"
+      - "tools/board/**"
+      - "issues/**"
       - "bootstrap/**"
       - "std/manifest.toml"
       - "src/compiler/**"
@@ -48,6 +50,10 @@ jobs:
       - name: Build playground JS
         working-directory: playground
         run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Build board for Pages
+        working-directory: tools/board
+        run: npm ci && npm run build:pages
 
       - name: Generate stdlib HTML docs
         run: |
