@@ -239,10 +239,6 @@ fn SelfEmitCtx_wasi_version(ctx: SelfEmitCtx) -> String {
     ctx.wasi_version
 }
 
-fn SelfEmitCtx_source_file(ctx: SelfEmitCtx) -> String {
-    clone(ctx.source_file)
-}
-
 fn SelfEmitCtx_code_section_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.code_section_offsets
 }

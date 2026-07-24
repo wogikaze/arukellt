@@ -54,7 +54,3 @@ fn mir_lower_input_body_source(input: MirLowerInput) -> MirLowerEntryBodySource 
 fn mir_lower_input_target(input: MirLowerInput) -> String {
     clone(input.target)
 }
-
-fn mir_lower_input_source_text(input: MirLowerInput) -> String {
-    clone(input.source_text)
-}

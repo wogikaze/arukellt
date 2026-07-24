@@ -20,7 +20,7 @@ fn emit_debug_source_map_custom_section(out: WasmWriter, ctx: SelfEmitCtx, impor
     // File table: always include source_file as file_id 1
     writer_core::emit_leb128_u(payload, 1) // file_count
     writer_core::emit_leb128_u(payload, 1) // file_id 1
-    writer_string::emit_string(payload, source_file)
+    writer_string::emit_string(payload, clone(ctx.source_file))
     // Map entries
     let offsets = ctx_record::SelfEmitCtx_code_section_offsets(ctx)
     let mut entry_count = 0

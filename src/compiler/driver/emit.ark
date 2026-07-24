@@ -79,7 +79,15 @@ fn emit_component_output(
 ) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
     let core_wasi = emit_component_core_wasi_version(config, mir_module)
-    let core_wasm = wasm::emit_wasm(mir_module, config_record::config_target(config), core_wasi, config_record::config_opt_level(config), config_record::config_strip_debug(config), bindings, config_record::config_source_file(config))
+    let core_wasm = wasm::emit_wasm(
+        mir_module,
+        config_record::config_target(config),
+        core_wasi,
+        config_record::config_opt_level(config),
+        config_record::config_strip_debug(config),
+        bindings,
+        config_record::config_source_file(config)
+    )
     if config_record::config_dump_wasm(config) {
         stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
     }
@@ -192,7 +200,15 @@ fn emit_wasm_output(
     t_mir_verify: i64
 ) -> CompileResult {
     let bindings = wit_import_bind::wit_collect_bindings(config_record::config_wit_paths(config), checked_program::checked_program_wit_decls(program))
-    let wasm_bytes = wasm::emit_wasm(mir_module, config_record::config_target(config), config_record::config_wasi_version(config), config_record::config_opt_level(config), config_record::config_strip_debug(config), bindings, config_record::config_source_file(config))
+    let wasm_bytes = wasm::emit_wasm(
+        mir_module,
+        config_record::config_target(config),
+        config_record::config_wasi_version(config),
+        config_record::config_opt_level(config),
+        config_record::config_strip_debug(config),
+        bindings,
+        config_record::config_source_file(config)
+    )
     // dump_wasm eprintln left a GC string on the stack at block end and failed
     // validate (#730 emit_wasm_output). Timing/result path is enough for fixpoint.
     let _dump_wasm = config_record::config_dump_wasm(config)

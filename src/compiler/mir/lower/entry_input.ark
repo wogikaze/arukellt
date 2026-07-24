@@ -20,7 +20,7 @@ fn mir_entry_input_from_lower_input(input: MirLowerInput) -> MirLowerEntryInput 
         decl_nodes: input::mir_lower_input_decl_nodes(input),
         target: input::mir_lower_input_target(input),
         report_phase_timing: input.report_phase_timing,
-        source_text: input::mir_lower_input_source_text(input)
+        source_text: input.source_text
     }
 }
 
@@ -30,8 +30,4 @@ fn mir_entry_input_view(input: MirLowerEntryInput) -> CoreHirMirView {
 
 fn mir_entry_input_body_source(input: MirLowerEntryInput) -> MirLowerEntryBodySource {
     input.body_source
-}
-
-fn mir_entry_input_source_text(input: MirLowerEntryInput) -> String {
-    clone(input.source_text)
 }

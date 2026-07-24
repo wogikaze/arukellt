@@ -14,7 +14,16 @@ use mir::module_gc_struct
 use mir::module_gc_enum
 use mir::module_spine
 
-fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, opt_level: i32, strip_debug: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>, source_file: String) {
+fn emit_wasm_module_sections(
+    out: WasmWriter,
+    mir: MirModule,
+    target: String,
+    wasi_version: String,
+    opt_level: i32,
+    strip_debug: bool,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    source_file: String
+) {
     let fn_count = module_functions::MirModule_function_count(mir)
     let functions = module_functions::MirModule_functions(mir)
     let strings = strings::prepare_string_table(mir)
