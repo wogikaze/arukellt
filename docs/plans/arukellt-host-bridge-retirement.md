@@ -1,6 +1,6 @@
 # `#727` — `arukellt_host` bridge retirement 実装計画
 
-ステータス: **確定（2026-07-25）** — Phase 0 待ち（`#714` blocker）  
+ステータス: **確定（2026-07-25）** — Phase 0 完了（`#714` closed / merged to master）; Phase 1 着手可  
 親 issue: [`#727`](../../issues/open/727-arukellt-host-bridge-retirement.md)  
 関連 ADR: [ADR-007](../adr/ADR-007-targets.md), [ADR-011](../adr/ADR-011-wasi-host-layering.md), [ADR-008](../adr/ADR-008-component-wrapping.md), [ADR-014](../adr/ADR-014-stability.md)  
 Child: [`#830`](../../issues/open/830-wasm-heap-grow-patcher-retirement.md)（patcher 退役・本計画のスコープ外）
@@ -52,29 +52,24 @@ Child: [`#830`](../../issues/open/830-wasm-heap-grow-patcher-retirement.md)（pa
 
 ## 4. Blocker と協調注意
 
-### Phase 0 blocker: `#714`
+### Phase 0 blocker: `#714` — **resolved 2026-07-25**
 
-HTTP/sockets WIT import は `#714` の canonical ABI glue（`list<u8>` / resource handle / result lowering）と emitter-native component emit を前提とする。
+`#714` は bridged emitter-native WASI P2 として close 済み（`wave/714-p2-emitter-native` → master）。
+`tests/fixtures/wasi_p2_native/hello.ark` が wrapper-free で `wasm-tools validate` + `wasmtime run` 緑。
 
-判定: `tests/fixtures/wasi_p2_native/hello.ark` が wrapper-free で `wasm-tools validate` + `wasmtime run` 緑。
+HTTP/sockets は `#714` の component emit / canon lower パターンを再利用する。guest-native
+`get-stdout` 直呼びは `#668` 残件であり、`#727` の blocker ではない。
 
-代替（非推奨）: `#714` 完了前に `#727` 側だけで ABI glue を二重実装しない。共有基盤が必要なら `#714` に寄せる。
+### `#714` worktree との衝突 — **resolved**
 
-### `#714` worktree との衝突
-
-`.worktrees/714-wrapper-retirement`（`feature/714-wrapper-retirement`）は既に `tools/host-linker` 全体削除と gate-655–658 の縮小を含む。これは `#727` Phase 4/5 の先取りであり、stdio 完了前に HTTP/sockets 実行経路を落とすリスクがある。
-
-協調規則:
-
-1. `#714` は stdio / wrapper-free component emit にスコープを戻す。
-2. `host_http.rs` / `host_sockets.rs` 削除と gate-655–658 の「実行証拠」更新は `#727` が所有する。
-3. merge 時は orchestrator が衝突を `#727` 計画に従って解決する（host-linker を stdio 完了だけで消さない）。
+旧 `feature/714-wrapper-retirement` の host-linker 削除はマージしていない。
+`host_http.rs` / `host_sockets.rs` 削除と gate-655–658 実行証拠更新は引き続き `#727` 所有。
 
 ## 5. フェーズ
 
 | Phase | 内容 | 正本（主な編集先） | 完了条件 |
 |-------|------|-------------------|----------|
-| 0 | `#714` 完了待ち | `component_p2_emit.ark` 等（`#714` 所有） | hello fixture validate+run |
+| 0 | `#714` 完了（済） | bridged P2 on master | hello validate+run; wrap deleted |
 | 1 | WIT mapping + CoreOp schema | `data/core-ops.toml`, `scripts/gen/generate-core-ops-registry.py`, `scripts/check/check-core-ops.py` | 8 CoreOp が `runtime_call` / `kind="wit"`。generator が package/interface/function/version を emit |
 | 2 | CoreOp → WIT lowering | `core_op_dispatch.ark`, `call_host_network.ark`, 推奨 `call_runtime_wit.ark`, `intrinsic_http.ark`, `intrinsic_sockets.ark` | HTTP/sockets call が WIT import index 経由 |
 | 3 | import table / component wrapper | `sections_imports.ark`, `import_indices.ark`, `function_indices.ark`, `emit_target.ark`, `component_p2_*.ark` | `needs_arukellt_host` / `arukellt_host` エントリ削除。P1 では compile-time error 維持 |

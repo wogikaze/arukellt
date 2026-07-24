@@ -1,5 +1,6 @@
 ---
 Status: open
+Status note: After #714 wrap removal, gate_076 is validate-only until in-tree fs bridge lands.
 Created: 2026-03-28
 Updated: 2026-07-12
 ID: 076

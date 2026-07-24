@@ -5,7 +5,12 @@ fn is_gc_target(target: String) -> bool {
 }
 
 // ADR-007: Memory64 is default emit OK for wasm32-gc only (not wasm32/iwasm).
-fn uses_memory64(target: String) -> bool {
+// WASI P2 command/component path keeps i32 linear memory so the bridged
+// stdout canon lowering can share guest memory (#714).
+fn uses_memory64(target: String, wasi_version: String) -> bool {
+    if is_p2_wasi(clone(wasi_version)) {
+        return false
+    }
     is_gc_target(clone(target))
 }
 

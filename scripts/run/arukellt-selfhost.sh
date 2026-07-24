@@ -113,6 +113,48 @@ if [[ "${1:-}" == "doc" ]]; then
 fi
 
 if [[ "${1:-}" == "run" ]]; then
+  # Driver `run` ignores `--emit component` and writes a core module. For the
+  # bridged P2 path (#714), compile to a component then execute with wasmtime.
+  emit_mode=""
+  i=1
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--emit" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        emit_mode="${!next}"
+      fi
+    fi
+    i=$((i + 1))
+  done
+  if [[ "$emit_mode" == "component" ]]; then
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+    set +e
+    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- compile "${@:2}" \
+      >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    rc=$?
+    set -e
+    cat "$tmpdir/stdout"
+    if [[ "$rc" -ne 0 ]]; then
+      cat "$tmpdir/stderr" >&2
+      exit "$rc"
+    fi
+    out_path="$(sed -n 's/^wrote .* to //p' "$tmpdir/stderr" | tail -n 1)"
+    if [[ -z "$out_path" ]]; then
+      out_path="$(sed -n 's/^compiled .* -> //p' "$tmpdir/stderr" | tail -n 1)"
+    fi
+    if [[ -z "$out_path" ]]; then
+      cat "$tmpdir/stderr" >&2
+      echo "arukellt-selfhost: error — component compile produced no output path" >&2
+      exit 1
+    fi
+    if [[ "$out_path" != /* ]]; then
+      out_path="$REPO_ROOT/$out_path"
+    fi
+    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  fi
+
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
@@ -134,7 +176,13 @@ if [[ "${1:-}" == "run" ]]; then
   if [[ "$out_path" != /* ]]; then
     out_path="$REPO_ROOT/$out_path"
   fi
-  if grep -aqE 'arukellt_host|wasi:' "$out_path" 2>/dev/null; then
+  # Component Model binaries use version 0x0d; run with wasmtime (bridged P2 path, #714).
+  # Do not route them through arukellt-run-hosted.sh just because the payload contains "wasi:".
+  wasm_ver="$(od -An -tu1 -j4 -N1 "$out_path" 2>/dev/null | tr -d ' ')"
+  if [[ "$wasm_ver" == "13" ]]; then
+    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  fi
+  if grep -aqE 'arukellt_host' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
   exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"

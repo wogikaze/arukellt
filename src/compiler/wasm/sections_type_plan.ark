@@ -177,12 +177,13 @@ fn val_type_to_sig(vt: i32) -> String {
     }
 }
 
-fn val_type_to_target_sig(vt: i32, is_gc_target: bool) -> String {
+fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String {
     if vt == 5 && !is_gc_target {
         return String_from("i32")
     }
-    // wasm32-gc default Memory64: widen former i32 Wasm values to i64.
-    if is_gc_target && (vt == 1 || vt == 8 || vt == 30) {
+    // Memory64 (wasm32-gc default): widen former i32 Wasm values to i64.
+    // WASI P2 command/component keeps i32 linear memory (#714), so skip widen.
+    if memory64 && (vt == 1 || vt == 8 || vt == 30) {
         return String_from("i64")
     }
     val_type_to_sig(vt)

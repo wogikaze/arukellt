@@ -11,6 +11,7 @@ graph LR
   I62["62 076-wasi-p2-filesystem"]
   I649["649 649 — T4 native full lowering (beyond scaffold #641)"]
   I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
+  I668["668 668 — P2 native component polish (post-#074)"]
   I669["669 669 — WIT import IDE and formatter surface"]
   I670["670 670 — WIT import resolver hardening (duplicates, spans, collisions)"]
   I671["671 671 — WIT import callable type matrix (fixtures + gates)"]
@@ -35,7 +36,6 @@ graph LR
   I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
-  I714["714 714 — Emitter-native WASI P2 component output without wrapper"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
@@ -55,32 +55,32 @@ graph LR
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
+  I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
-  I668["668 668 — P2 native component polish (post-#074)"]
-  I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
+  I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
-  I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
-  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
+  I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I667 --> I673
+  I675 --> I727
   I680 --> I682
   I686 --> I698
   I649 --> I698
@@ -90,14 +90,12 @@ graph LR
   I695 --> I697
   I691 --> I703
   I695 --> I703
-  I714 --> I668
-  I714 --> I727
-  I675 --> I727
   I715 --> I719
   I715 --> I799
   I724 --> I726
   I724 --> I729
   I791 --> I814
+  I727 --> I819
   I682 --> I683
   I649 --> I699
   I698 --> I699
@@ -105,13 +103,12 @@ graph LR
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I727 --> I819
   I726 --> I730
+  I819 --> I818
+  I822 --> I818
   I691 --> I710
   I697 --> I710
   I709 --> I710
-  I819 --> I818
-  I822 --> I818
   I730 --> I827
   I730 --> I830
   I681 --> I711
@@ -131,6 +128,7 @@ graph LR
 - **62** depends on: 074, 510; blocks: none
 - **649** depends on: 641; blocks: 698, 699
 - **667** depends on: 666; blocks: 673
+- **668** depends on: 074, 510, 714; blocks: none
 - **669** depends on: 652, done); blocks: none
 - **670** depends on: 653, done); blocks: none
 - **671** depends on: 653, 654; blocks: none
@@ -155,7 +153,6 @@ graph LR
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
-- **714** depends on: 074, 510; blocks: 668, 727
 - **715** depends on: 041, done); blocks: 719, 799
 - **718** depends on: 700, 701; blocks: none
 - **721** depends on: none; blocks: none
@@ -175,26 +172,25 @@ graph LR
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
+- **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
-- **668** depends on: 074, 510, 714; blocks: none
-- **727** depends on: 714, 675; blocks: 819
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **726** depends on: 724; blocks: 730
 - **729** depends on: 724; blocks: none
 - **814** depends on: 791; blocks: none
+- **819** depends on: 727, 798; blocks: 818
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
-- **819** depends on: 727, 798; blocks: 818
 - **730** depends on: 726; blocks: 827, 830
-- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
+- **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **827** depends on: 730, 823; blocks: none
 - **830** depends on: 730; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713

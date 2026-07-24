@@ -27,15 +27,15 @@ except ModuleNotFoundError:  # Python 3.10 on supported development hosts
 ARK_PACKAGE_ROOTS = ("src/compiler/", "std/")
 TEXT_FINAL_NEWLINE_SUFFIXES = {
     ".ark", ".css", ".html", ".js", ".json", ".jsonc", ".py", ".rs",
-    ".sh", ".toml", ".ts", ".wit", ".yaml", ".yml",
+    ".sh", ".toml", ".ts", ".tsx", ".wit", ".yaml", ".yml",
 }
 TEXT_TRAILING_WHITESPACE_SUFFIXES = {
     ".css", ".html", ".js", ".json", ".jsonc", ".py", ".rs", ".sh",
-    ".toml", ".ts", ".yaml", ".yml",
+    ".toml", ".ts", ".tsx", ".yaml", ".yml",
 }
 INDENT_SUFFIXES = {
     ".ark", ".css", ".html", ".js", ".json", ".jsonc", ".md", ".py",
-    ".rs", ".sh", ".toml", ".ts", ".wit", ".yaml", ".yml",
+    ".rs", ".sh", ".toml", ".ts", ".tsx", ".wit", ".yaml", ".yml",
 }
 
 

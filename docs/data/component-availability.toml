@@ -3,7 +3,7 @@
 [meta]
 target = "wasm32-gc"
 public_contract = "ADR-008 in-tree component/wit emit"
-implementation_note = "Living path may still use wasm-tools / Python wrap helpers for some packaging steps"
+implementation_note = "P2 command path is bridged in-tree (#714). Library/other packaging may still use wasm-tools helpers."
 
 [artifacts]
 pinned_bootstrap = "bootstrap/arukellt-selfhost.wasm"
@@ -16,7 +16,7 @@ label = "Command component (wasi:cli/run)"
 status = "available_on_pinned"
 active_compiler = "pinned_or_s2"
 external_tool_dependency = "optional (wasm-tools for inspect)"
-notes = "Modules without exportable pub fn use P2 command wrapper. gate_510 (compile + wasm-tools validate) green on s2-runtime; wasmtime run still pending #714."
+notes = "P2 command uses bridged in-tree emit (#714). gate_510 validate + gate-714 wasmtime run (hello p2) green. Guest-native get-stdout lowering remains #668."
 
 [[surfaces]]
 id = "library_component"

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-24T20:42:08Z",
+  "generated_at": "2026-07-24T21:32:39Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -101,6 +101,27 @@
       "acceptance": {
         "checked": 2,
         "unchecked": 12
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "668",
+      "path": "668-p2-native-component-polish.md",
+      "title": "668 — P2 native component polish (post-#074)",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "074",
+        "510",
+        "714"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -600,29 +621,6 @@
       }
     },
     {
-      "id": "714",
-      "path": "714-wasi-p2-emitter-native-component-output.md",
-      "title": "714 — Emitter-native WASI P2 component output without wrapper",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "668",
-        "727"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "715",
       "path": "715-in-file-test-coverage-targets.md",
       "title": "715 — In-file test coverage targets for compiler and stdlib",
@@ -984,6 +982,28 @@
       }
     },
     {
+      "id": "727",
+      "path": "727-arukellt-host-bridge-retirement.md",
+      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "714",
+        "675"
+      ],
+      "blocks_issue_ids": [
+        "819"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -1114,49 +1134,6 @@
       }
     },
     {
-      "id": "668",
-      "path": "668-p2-native-component-polish.md",
-      "title": "668 — P2 native component polish (post-#074)",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510",
-        "714"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "727",
-      "path": "727-arukellt-host-bridge-retirement.md",
-      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "714",
-        "675"
-      ],
-      "blocks_issue_ids": [
-        "819"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "719",
       "path": "719-test-execution-harness.md",
       "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
@@ -1256,6 +1233,28 @@
       }
     },
     {
+      "id": "819",
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "727",
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "727"
+      }
+    },
+    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -1323,28 +1322,6 @@
       }
     },
     {
-      "id": "819",
-      "path": "819-runtime-abi-core-op-lowering.md",
-      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "727",
-        "798"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "727"
-      }
-    },
-    {
       "id": "730",
       "path": "730-bootstrap-wasm-4gb-memory-limit.md",
       "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
@@ -1364,31 +1341,6 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "697",
-        "701",
-        "707",
-        "709"
-      ],
-      "blocks_issue_ids": [
-        "711"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {
@@ -1414,6 +1366,31 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "816, 817, 819, 820, 821, 822"
+      }
+    },
+    {
+      "id": "710",
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "691",
+        "697",
+        "701",
+        "707",
+        "709"
+      ],
+      "blocks_issue_ids": [
+        "711"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
       }
     },
     {

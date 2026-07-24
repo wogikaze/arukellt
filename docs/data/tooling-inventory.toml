@@ -48,6 +48,16 @@ owner = "editor-tooling"
 notes = "Single Biome stack when introduced; do not pair with Prettier"
 
 [[families]]
+ext = ".tsx"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "editor-tooling"
+notes = "React TSX tracked by the board tooling under tools/board/"
+
+[[families]]
 ext = ".js"
 formatter = "biome"
 linter = "biome"

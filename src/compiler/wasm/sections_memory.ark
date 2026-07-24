@@ -7,7 +7,7 @@ use wasm::emit_target
 fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
-        emit_memory_entry(mem_sec, 1, emit_target::uses_memory64(clone(target)))
+        emit_memory_entry(mem_sec, 1, writer_core::writer_memory64(out))
     } else {
         emit_memory_entry(mem_sec, initial_memory_pages(), false)
     }
