@@ -5,6 +5,7 @@
 - `python3`
 - `npx` / `markdownlint-cli2` for the markdown check used by the harness
 - `wasmtime` for run fixtures
+- `node` >= 18 and `npm` for the optional jco JavaScript interop gate (`ARUKELLT_TEST_JCO=1`)
 
 ## Start Here
 

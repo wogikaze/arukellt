@@ -6666,6 +6666,24 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
 
     print(f"\n{YELLOW}[component] Component interop smoke test...{NC}")
 
+    # Shared selfhost compiler environment for component fixtures.
+    try:
+        from lib.selfhost_s2 import gate_env
+
+        component_env = gate_env(root, build=True)
+    except (FileNotFoundError, RuntimeError) as exc:
+        h.check_fail(
+            "component interop (s2 selfhost wasm)",
+            category="component-interop",
+            command="python3 scripts/manager.py selfhost fixpoint --build",
+            primary_path="scripts/lib/selfhost_s2.py",
+        )
+        print(f"{RED}{exc}{NC}")
+        return h.exit_code()
+
+    interop_dir = root / "tests" / "component-interop" / "jco"
+    jco_script = interop_dir / "calculator" / "run.sh"
+
     # Check for wasmtime
     wasmtime_check = subprocess.run(
         ["which", "wasmtime"], capture_output=True
@@ -6673,25 +6691,13 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
     if wasmtime_check.returncode != 0:
         h.check_skip("component interop (wasmtime not found)")
     else:
-        interop_dir = root / "tests" / "component-interop" / "jco"
         run_scripts = sorted(interop_dir.glob("*/run.sh"))
-        if not run_scripts:
+        # The calculator fixture is exercised through the jco gate (#036).
+        wasmtime_scripts = [s for s in run_scripts if s != jco_script]
+        if not wasmtime_scripts:
             h.check_skip("component interop scripts not found")
         else:
-            try:
-                from lib.selfhost_s2 import gate_env
-
-                component_env = gate_env(root, build=True)
-            except (FileNotFoundError, RuntimeError) as exc:
-                h.check_fail(
-                    "component interop (s2 selfhost wasm)",
-                    category="component-interop",
-                    command="python3 scripts/manager.py selfhost fixpoint --build",
-                    primary_path="scripts/lib/selfhost_s2.py",
-                )
-                print(f"{RED}{exc}{NC}")
-                return h.exit_code()
-            for run_sh in run_scripts:
+            for run_sh in wasmtime_scripts:
                 fixture_name = run_sh.parent.name
                 rc, _, _ = _run_env(
                     ["bash", str(run_sh)],
@@ -6708,6 +6714,34 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
                         command=f"bash {run_sh}",
                         primary_path=str(run_sh.relative_to(root)),
                     )
+
+    # Optional jco JavaScript interop gate (#036 / #037).
+    if os.environ.get("ARUKELLT_TEST_JCO") == "1":
+        if jco_script.is_file():
+            rc, _, _ = _run_env(
+                ["bash", str(jco_script)],
+                cwd=root,
+                dry_run=dry_run,
+                env=component_env,
+            )
+            if rc == 0:
+                h.check_pass("jco-interop (calculator)")
+            else:
+                h.check_fail(
+                    "jco-interop (calculator)",
+                    category="component-interop",
+                    command=f"bash {jco_script}",
+                    primary_path=str(jco_script.relative_to(root)),
+                )
+        else:
+            h.check_fail(
+                "jco-interop script missing",
+                category="component-interop",
+                command=f"bash {jco_script}",
+                primary_path=str(jco_script.relative_to(root)),
+            )
+    else:
+        h.check_skip("jco-interop (set ARUKELLT_TEST_JCO=1 to run)")
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")

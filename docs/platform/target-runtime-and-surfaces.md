@@ -217,6 +217,13 @@ arukellt compile --target wasm32-gc --emit component input.ark -o app.component.
 jco transpile app.component.wasm -o app.dist/
 ```
 
+Node.js 実行時の注意: T3 は 64 ビット Wasm memory（`i64` memory limits）を出力するため、
+Node 23.6 などでは `--experimental-wasm-memory64` が必要になる。jco 1.25.2 以降では
+transpile 自体は GC 型を処理できる。scalar `pub fn` の E2E 検証は
+`tests/component-interop/jco/calculator/` で `ARUKELLT_TEST_JCO=1` の opt-in gate
+として実行できる。String / record / variant などの canonical ABI adapter は
+未実装のため jco 経由でもまだ動作しない。
+
 ---
 
 ## Emit surface

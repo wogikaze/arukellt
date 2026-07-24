@@ -232,7 +232,7 @@ baseline_cases = [
 heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
 
 [component]
-status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools)"
+status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools). jco transpile + Node.js E2E works for scalar `pub fn` with ARUKELLT_TEST_JCO=1; String/record/variant adapters still pending."
 summary = "Only user `pub fn` with WIT-compatible types are exported"
 
 # Lifecycle status labels used across docs, issues, and target-contract.md.

@@ -1,28 +1,8 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-24T14:08:12Z",
+  "generated_at": "2026-07-24T20:34:11Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
-    {
-      "id": "30",
-      "path": "036-jco-javascript-interop.md",
-      "title": "036-jco-javascript-interop",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "27",
-        "037"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "partially-blocked",
-        "upstream_notes": "#037 jco GC upstream"
-      }
-    },
     {
       "id": "474",
       "path": "474-async-component-support-v5.md",
@@ -1523,16 +1503,5 @@
       }
     }
   ],
-  "blocked_external": [
-    {
-      "id": "31",
-      "path": "037-jco-gc-support.md",
-      "title": "jco: Wasm GC 型サポート待ち (upstream blocked)",
-      "track": "component-model",
-      "blocked_by": "jco upstream (<https://github.com/bytecodealliance/jco>)",
-      "depends_on": [
-        "30"
-      ]
-    }
-  ]
+  "blocked_external": []
 }

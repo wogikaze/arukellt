@@ -1,17 +1,18 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-04-13
+Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 036
 Track: component-model
 Depends on: "27, 037"
-Orchestration class: partially-blocked
+Orchestration class: done
 Orchestration upstream: "#037 jco GC upstream"
 Blocks v{N}: none
-Status note: Partially blocked — wasmtime scalar interop done; jco/Node path blocked on #037 upstream GC support.
+Status note: jco 1.25.2 transpiles Arukellt T3 components; scalar Node.js E2E gate green with ARUKELLT_TEST_JCO=1. String/record/variant canonical ABI adapters still pending (#029 area).
 Reason: Tests in tests/component-interop/jco/ use Wasmtime, not Node/JCO. Not actual JavaScript interop.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit.
-Implementation: "wasmtime CLI–based component interop smoke test (jco blocked)."
+Action: Moved from `issues/done/` to `issues/open/` by false-done audit; completed 2026-07-25.
+Implementation: "jco transpile + Node.js assertions for calculator scalar exports; optional ARUKELLT_TEST_JCO=1 gate."
 ---
 
 [jco](https: //github.com/bytecodealliance/jco). Add a Node.js-based smoke test that
@@ -95,20 +96,21 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 
 ### What was discovered
 
-jco v1.16.1 / v1.17.5 fail with `"array indexed types not supported without the gc feature"`
-on all Arukellt T3 components, including scalar-only ones. This is because T3 always emits
-GC type definitions (string array, vec struct, etc.) in the core module's type section,
-even when not used by the exported functions. jco's transpiler does not handle GC proposal
-types.
+jco v1.16.1 / v1.17.5 originally failed with `"array indexed types not supported without the gc feature"`
+on all Arukellt T3 components, including scalar-only ones. jco 1.25.2 handles GC types; the
+remaining runtime issue is Node.js requiring `--experimental-wasm-memory64` because T3 emits
+`i64` memory. String/record/variant exports still fail because canonical ABI lift/lower for
+GC-native types is not implemented.
 
-### What was implemented instead
+### What was implemented
 
 - `tests/component-interop/jco/calculator/calculator.ark` — scalar exports (add, mul, negate)
-- `tests/component-interop/jco/calculator/run.sh` — wasmtime CLI–based test:
-  `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)'` → `7`
+- `tests/component-interop/jco/calculator/test.mjs` — Node.js ES module asserting scalar exports
+- `tests/component-interop/jco/calculator/run.sh` — compiles to `.component.wasm`, runs
+  `jco transpile` (pinned to 1.25.2 via `npm exec --package=@bytecodealliance/jco@<version>`),
+  then `node --experimental-wasm-memory64 test.mjs`
   7 test cases: add(3,4), add(0,0), add(-1,1), mul(6,7), mul(0,100), negate(5), negate(-3)
-- `python scripts/manager.py verify component` — optional check 17 via `ARUKELLT_TEST_COMPONENT=1`
-  (renamed from `ARUKELLT_TEST_JCO=1` to reflect wasmtime-based implementation)
+- `python scripts/manager.py verify component` — optional jco-interop check when `ARUKELLT_TEST_JCO=1`
 
 ### String exports excluded
 
@@ -120,11 +122,12 @@ String component interop is deferred to the canonical ABI implementation work.
 ### Acceptance criteria delta
 
 - ✅ `calculator.ark` fixture exists
-- ✅ `run.sh` compiles and runs the component interop test (wasmtime, not jco/Node.js)
-- ✅ `python scripts/manager.py verify component` optional gate added (check 17, `ARUKELLT_TEST_COMPONENT=1`)
-- ⚠️  `test.mjs` / jco path: BLOCKED — jco does not support Wasm GC. Track jco upstream.
+- ✅ `test.mjs` exists and asserts scalar exports
+- ✅ `run.sh` compiles and runs the jco/Node.js component interop test
+- ✅ `python scripts/manager.py verify component` optional jco-interop gate added (`ARUKELLT_TEST_JCO=1`)
+- ✅ Node.js dependency noted in `docs/contributing.md`
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
-- ⚠️  `docs/platform/wasm-features.md` jco documentation: deferred (jco not usable).
+- ⚠️  `docs/process/roadmap-v2.md` watchpoint #5: roadmap-v2.md does not exist; equivalent coverage in `docs/platform/target-runtime-and-surfaces.md` and `docs/current-state.md`.
 
 - The jco gate is **opt-in**. `python scripts/manager.py verify` without `ARUKELLT_TEST_JCO=1`
   must still exit 0 at 17/17 (the existing component gate from #035). The jco gate is

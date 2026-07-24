@@ -141,8 +141,16 @@ id = "verify_component_interop"
 canonical = "python3 scripts/manager.py verify component-interop"
 aliases = ["python3 scripts/manager.py verify component", "python3 scripts/manager.py verify --component"]
 alias_status = "compatibility"
-purpose = "Run the wasmtime Component Model interop fixture set"
-coverage = ["tests/component-interop/jco/*/run.sh"]
+purpose = "Run the wasmtime Component Model interop fixture set (jco/Node opt-in with ARUKELLT_TEST_JCO=1)"
+coverage = ["tests/component-interop/jco/*/run.sh", "ARUKELLT_TEST_JCO=1"]
+
+[[commands]]
+id = "verify_component_interop_jco"
+canonical = "ARUKELLT_TEST_JCO=1 python3 scripts/manager.py verify component-interop"
+aliases = []
+alias_status = "none"
+purpose = "Run the optional jco/Node JavaScript interop smoke test for the calculator fixture"
+coverage = ["tests/component-interop/jco/calculator/run.sh"]
 
 [[commands]]
 id = "verify_component_emit"

@@ -35,6 +35,14 @@ external_tool_dependency = "optional"
 notes = "Scalar library wit works on s2; pinned may emit empty library WIT"
 
 [[surfaces]]
+id = "jco_transpile"
+label = "jco transpile + Node.js execution"
+status = "smoke"
+active_compiler = "s2_or_ARUKELLT_SELFHOST_WASM"
+external_tool_dependency = "jco >= 1.25.2; Node.js >= 18"
+notes = "Scalar pub fn exports execute via jco-generated JS glue. Node 23.6 requires --experimental-wasm-memory64 due to T3 i64 memory. String/record/variant canonical ABI adapters still pending (#029 area)."
+
+[[surfaces]]
 id = "component_cli"
 label = "arukellt component build"
 status = "provisional"
