@@ -19,19 +19,14 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
         ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
         let body = code_body::emit_function_body(f, ctx, bindings)
         emit_code_body_entry(code_sec, body)
+        // Drop each MIR body immediately so native GC can reclaim during the
+        // long emit loop (not only after the whole code section).
+        function_block_mutation::MirFunction_set_blocks(f, Vec_new_MirBlock())
         ci = ci + 1
     }
     if needs_wrapper == 1 {
         let wrapper_body = emit_start_wrapper_body(main_idx, ctx, wit_import_count)
         emit_code_body_entry(code_sec, wrapper_body)
-    }
-    // After the full code section is written, drop MIR bodies so native GC can
-    // reclaim them during remaining section emission / write-out (Phase 5).
-    let mut release_i = 0
-    while release_i < fn_count {
-        let released = get_unchecked(functions, release_i)
-        function_block_mutation::MirFunction_set_blocks(released, Vec_new_MirBlock())
-        release_i = release_i + 1
     }
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
 }
