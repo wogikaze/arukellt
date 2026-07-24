@@ -4724,6 +4724,26 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
         (
+            "native-cpp capabilities registry",
+            "python3 scripts/check/check-native-cpp-capabilities.py",
+        ),
+        (
+            "native-cpp safepoint audit",
+            "python3 scripts/check/check-native-cpp-safepoint-audit.py",
+        ),
+        (
+            "native-executor CI contract (#834)",
+            "python3 scripts/check/check-native-executor-ci-contract.py",
+        ),
+        (
+            "native runtime C99 -Werror",
+            "python3 scripts/check/check-native-runtime-c99-werror.py",
+        ),
+        (
+            "native-executor manager unit tests",
+            "python3 scripts/tests/test_native_cpp_executor.py",
+        ),
+        (
             "operational target drift",
             "python3 scripts/check/check-operational-target-drift.py",
         ),
@@ -7309,13 +7329,30 @@ def main() -> int:
 # ── selfhost subcommands ──────────────────────────────────────────────────────
 
 
+def _ci_forbids_native_high_rss() -> bool:
+    """CI/GitHub Actions must never use --allow-high-rss as a success path."""
+    if os.environ.get("GITHUB_ACTIONS", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("CI", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
 def cmd_selfhost_native_executor(args: argparse.Namespace) -> int:
     """Run the ADR-049 native executor lane and preserve its receipt."""
+    allow_high_rss = bool(getattr(args, "allow_high_rss", False))
+    if allow_high_rss and _ci_forbids_native_high_rss():
+        print(
+            f"{RED}error: --allow-high-rss is a local escape hatch only; "
+            f"forbidden under CI/GITHUB_ACTIONS{NC}",
+            file=sys.stderr,
+        )
+        return 2
     return_code, output = run_native_executor(
         _repo_root(),
         build=getattr(args, "build", False),
         dry_run=args.dry_run,
-        allow_high_rss=getattr(args, "allow_high_rss", False),
+        allow_high_rss=allow_high_rss,
     )
     print(output)
     return return_code

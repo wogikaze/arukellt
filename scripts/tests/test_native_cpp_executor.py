@@ -47,6 +47,31 @@ def test_native_executor_allow_high_rss_flag_is_wired() -> None:
     assert "--allow-high-rss" in result.stdout
 
 
+def test_native_executor_allow_high_rss_forbidden_under_ci() -> None:
+    env = dict(**{k: v for k, v in __import__("os").environ.items()})
+    env["CI"] = "true"
+    env["GITHUB_ACTIONS"] = "true"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/manager.py",
+            "selfhost",
+            "native-executor",
+            "--build",
+            "--allow-high-rss",
+            "--dry-run",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    assert result.returncode != 0
+    combined = result.stdout + result.stderr
+    assert "forbidden" in combined.lower() or "escape hatch" in combined.lower()
+
+
 def test_native_executor_receipt_schema_defaults() -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     from selfhost.native_executor import RECEIPT_SCHEMA_VERSION, _empty_receipt

@@ -546,6 +546,14 @@ def _host_fingerprint() -> dict[str, object]:
     }
 
 
+def _ci_forbids_high_rss() -> bool:
+    if os.environ.get("GITHUB_ACTIONS", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("CI", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
 def run_native_executor(
     root: Path,
     *,
@@ -554,6 +562,12 @@ def run_native_executor(
     allow_high_rss: bool = False,
 ) -> tuple[int, str]:
     """Build/cache the native compiler, produce s3 twice, and verify it."""
+    if allow_high_rss and _ci_forbids_high_rss():
+        return (
+            2,
+            "native-executor: --allow-high-rss is forbidden under CI/GITHUB_ACTIONS "
+            "(local escape hatch only; not an Experimental success path)",
+        )
     if dry_run:
         return 0, "DRY-RUN: native C generation -> clang -> two native s3 runs -> equality"
     if not build:
@@ -676,8 +690,21 @@ def run_native_executor(
             )
         key_path.write_text(key + "\n", encoding="utf-8")
 
+    root_liveness_sidecar = output_dir / "root-liveness-stats.json"
     if generated_c.is_file():
         receipt["root_liveness"] = _parse_root_liveness_from_c(generated_c)
+        root_liveness_sidecar.write_text(
+            json.dumps(receipt["root_liveness"], indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    elif root_liveness_sidecar.is_file():
+        # Cache-hit path may omit compiler.c; keep Phase 6/8 receipt evidence.
+        try:
+            loaded = json.loads(root_liveness_sidecar.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                receipt["root_liveness"] = {**_empty_root_liveness_stats(), **loaded}
+        except (OSError, json.JSONDecodeError):
+            receipt["root_liveness"] = _empty_root_liveness_stats()
 
     # Smoke: --help before full S3.
     help_run, _, help_peak, _help_smaps = _timed_run(
@@ -711,12 +738,26 @@ def run_native_executor(
     receipt["host"] = _host_fingerprint()
 
     executor_runs: list[dict[str, object]] = []
+    # Prefer tmpfs for AST caches when available: WSL swap thrashing otherwise
+    # dominates warm-wall variance near the 300s gate.
+    ast_cache_root = output_dir
+    shm_candidate = Path("/dev/shm")
+    if shm_candidate.is_dir():
+        try:
+            shm_probe = shm_candidate / f"ark-native-ast-{os.getpid()}"
+            shm_probe.mkdir(parents=True, exist_ok=True)
+            shm_probe.rmdir()
+            ast_cache_root = shm_candidate
+        except OSError:
+            ast_cache_root = output_dir
     for run_index, output in enumerate((s3_first, s3_second), start=1):
         output.unlink(missing_ok=True)
         stats_path = output_dir / f"executor-{run_index}.gc-stats.json"
         stats_path.unlink(missing_ok=True)
         run_env = run_env_base.copy()
         run_env["ARUKELLT_NATIVE_GC_STATS_PATH"] = str(stats_path)
+        cache_dir = ast_cache_root / f"ark-native-ast-cache-{run_index}"
+        cache_dir.mkdir(parents=True, exist_ok=True)
         execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
@@ -729,7 +770,7 @@ def run_native_executor(
                 "--output",
                 str(output),
                 "--cache-dir",
-                str(output_dir / f"native-ast-cache-{run_index}"),
+                str(cache_dir),
             ],
             root=root,
             measurement=output_dir / f"executor-{run_index}.maxrss",
