@@ -54,7 +54,10 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
-    let mir_lowered = lower::lower_checked_program(program, config, clone(source))
+    let mir_lowered = lower::lower_checked_program(program, config)
+    // Emit only needs MIR + WIT main_decls; drop AST/CoreHIR so native GC can
+    // reclaim the frontend graph before mir_opt/emit (Phase 5 owner release).
+    checked_program::checked_program_release_post_lower(program)
     let t_lower = clock::monotonic_now()
     let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
     let t_mir_opt = clock::monotonic_now()

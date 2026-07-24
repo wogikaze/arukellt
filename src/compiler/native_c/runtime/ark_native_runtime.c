@@ -32,6 +32,12 @@ static int ark_gc_mode;
 static ark_arena_chunk *ark_arena_head;
 static ark_gc_allocation *ark_gc_heap_head;
 static ark_gc_allocation *ark_gc_free_list;
+#define ARK_GC_SIZE_CLASS_COUNT 20
+static ark_gc_allocation *ark_gc_size_free[ARK_GC_SIZE_CLASS_COUNT];
+static uint64_t ark_gc_size_free_bytes;
+static uint64_t ark_gc_size_free_limit_bytes;
+static uint64_t ark_gc_rss_soft_limit_bytes;
+static uint64_t ark_gc_committed_soft_limit_bytes;
 static ark_gc_frame *ark_gc_frame_top;
 static ark_gc_frame *ark_gc_frame_free;
 static ark_gc_allocation **ark_gc_object_table;
@@ -61,6 +67,9 @@ static uint64_t ark_gc_max_marked_objects_per_collection;
 static uint64_t ark_gc_max_root_slots_scanned;
 static uint64_t ark_gc_max_heap_objects_before_collection;
 static uint64_t ark_gc_max_heap_objects_after_collection;
+static uint64_t ark_gc_mark_stack_peak;
+static ark_object_header **ark_gc_mark_stack;
+static size_t ark_gc_mark_stack_cap;
 static uint32_t ark_chunk_count;
 static ark_vec *ark_process_args;
 static int ark_gc_collecting;
@@ -149,6 +158,7 @@ static void ark_gc_write_stats_file(void) {
         "  \"gc_max_heap_objects_before_collection\": %" PRIu64 ",\n"
         "  \"gc_max_heap_objects_after_collection\": %" PRIu64 ",\n"
         "  \"gc_threshold_bytes\": %" PRIu64 ",\n"
+        "  \"gc_mark_stack_peak\": %" PRIu64 ",\n"
         "  \"runtime_requested_bytes\": %" PRIu64 ",\n"
         "  \"runtime_committed_bytes\": %" PRIu64 ",\n"
         "  \"runtime_live_bytes\": %" PRIu64 ",\n"
@@ -176,6 +186,7 @@ static void ark_gc_write_stats_file(void) {
         ark_gc_max_heap_objects_before_collection,
         ark_gc_max_heap_objects_after_collection,
         ark_gc_threshold_bytes,
+        ark_gc_mark_stack_peak,
         ark_requested_bytes,
         ark_committed_bytes,
         ark_live_bytes,
@@ -190,6 +201,85 @@ static void ark_gc_write_stats_file(void) {
 #define ARK_GC_KIND_STRING 1u
 #define ARK_GC_KIND_VEC 2u
 #define ARK_GC_KIND_STRUCT 3u
+#define ARK_GC_SIZE_FREE_LIMIT_DEFAULT (48ull * 1024ull * 1024ull)
+/* Soft budget for accounted heap buffers (leaves headroom under 2.4 GiB RSS).
+ * Measured: 1700 MiB accounted still peaked ~2.8 GiB RSS with live*1.0. */
+#define ARK_GC_RSS_SOFT_LIMIT_DEFAULT (1100ull * 1024ull * 1024ull)
+#define ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT (1650ull * 1024ull * 1024ull)
+/* reserved[1..4] hold a little-endian magic used for membership without a hash table. */
+#define ARK_GC_HEADER_MAGIC 0xA4C9D17Bu
+
+static int ark_gc_size_class_for(size_t size) {
+    size_t bucket = 16u;
+    int cls = 0;
+    while (bucket < size && cls + 1 < ARK_GC_SIZE_CLASS_COUNT) {
+        bucket *= 2u;
+        cls += 1;
+    }
+    return cls;
+}
+
+static size_t ark_gc_size_class_bytes(int cls) {
+    size_t bucket = 16u;
+    int i = 0;
+    while (i < cls) {
+        bucket *= 2u;
+        i += 1;
+    }
+    return bucket;
+}
+
+static void ark_gc_size_free_release_excess(void) {
+    while (ark_gc_size_free_bytes > ark_gc_size_free_limit_bytes) {
+        int freed_any = 0;
+        for (int cls = ARK_GC_SIZE_CLASS_COUNT - 1; cls >= 0; cls -= 1) {
+            ark_gc_allocation *node = ark_gc_size_free[cls];
+            if (node == NULL) continue;
+            ark_gc_size_free[cls] = node->next;
+            size_t total = sizeof(ark_gc_allocation) + node->allocation_size;
+            if (ark_gc_size_free_bytes >= total) ark_gc_size_free_bytes -= total;
+            else ark_gc_size_free_bytes = 0;
+            if (ark_committed_bytes >= total) ark_committed_bytes -= total;
+            free(node);
+            freed_any = 1;
+            break;
+        }
+        if (!freed_any) break;
+    }
+}
+
+static void ark_gc_size_free_push(ark_gc_allocation *node) {
+    int cls = ark_gc_size_class_for(node->allocation_size);
+    node->mark = 0;
+    memset(node->reserved, 0, sizeof(node->reserved));
+    /* Magic cleared with reserved[] so freelist nodes are not mistaken for live objects. */
+    node->next = ark_gc_size_free[cls];
+    ark_gc_size_free[cls] = node;
+    ark_gc_size_free_bytes += sizeof(ark_gc_allocation) + node->allocation_size;
+    ark_gc_size_free_release_excess();
+}
+
+static size_t ark_gc_round_alloc_size(size_t size) {
+    int cls = ark_gc_size_class_for(size);
+    size_t rounded = ark_gc_size_class_bytes(cls);
+    if (rounded < size) return size;
+    return rounded;
+}
+
+static ark_gc_allocation *ark_gc_size_free_take(size_t size) {
+    size_t rounded = ark_gc_round_alloc_size(size);
+    int cls = ark_gc_size_class_for(rounded);
+    if (ark_gc_size_class_bytes(cls) < rounded) return NULL;
+    ark_gc_allocation *node = ark_gc_size_free[cls];
+    if (node == NULL) return NULL;
+    ark_gc_size_free[cls] = node->next;
+    size_t total = sizeof(ark_gc_allocation) + node->allocation_size;
+    if (ark_gc_size_free_bytes >= total) ark_gc_size_free_bytes -= total;
+    else ark_gc_size_free_bytes = 0;
+    node->allocation_size = rounded;
+    node->next = NULL;
+    return node;
+}
 
 static size_t ark_checked_add(size_t left, size_t right) {
     if (left > SIZE_MAX - right) ark_rt_trap();
@@ -207,6 +297,28 @@ static ark_gc_allocation *ark_gc_header_from_object(void *object) {
 
 static void *ark_gc_object_from_header(ark_gc_allocation *header) {
     return (void *)(header + 1);
+}
+
+static void ark_gc_header_set_magic(ark_gc_allocation *header) {
+    uint32_t magic = ARK_GC_HEADER_MAGIC;
+    memcpy(&header->reserved[1], &magic, sizeof(magic));
+}
+
+static int ark_gc_header_has_magic(const ark_gc_allocation *header) {
+    uint32_t magic = 0;
+    memcpy(&magic, &header->reserved[1], sizeof(magic));
+    return magic == ARK_GC_HEADER_MAGIC;
+}
+
+static ark_gc_allocation *ark_gc_header_if_heap_object(void *object) {
+    if (object == NULL) return NULL;
+    uintptr_t address = (uintptr_t)object;
+    /* Fresh allocations come from 16-byte-aligned blocks; reject obvious scalars. */
+    if ((address & 7u) != 0u) return NULL;
+    if (address < 4096u) return NULL;
+    ark_gc_allocation *header = ark_gc_header_from_object(object);
+    if (!ark_gc_header_has_magic(header)) return NULL;
+    return header;
 }
 
 static size_t ark_gc_hash_ptr(const void *pointer) {
@@ -293,41 +405,48 @@ static size_t ark_next_pow2_size(size_t value) {
     return cap;
 }
 
+static void ark_gc_table_rebuild_from_heap_count(size_t count) {
+    /* 5/4 load target (vs 2×) shrinks table rebuild/copy traffic. */
+    size_t desired = count + (count / 4u);
+    if (desired < 1024u) desired = 1024u;
+    desired = ark_next_pow2_size(desired);
+    if (ark_gc_object_table != NULL && ark_gc_object_table_cap == desired) {
+        ark_gc_table_clear();
+    } else {
+        free(ark_gc_object_table);
+        ark_gc_object_table = calloc(desired, sizeof(*ark_gc_object_table));
+        if (ark_gc_object_table == NULL) ark_rt_trap();
+        ark_gc_object_table_cap = desired;
+    }
+    ark_gc_object_table_len = 0;
+    size_t mask = desired - 1u;
+    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
+        void *object = ark_gc_object_from_header(node);
+        size_t slot = ark_gc_hash_ptr(object) & mask;
+        while (ark_gc_object_table[slot] != NULL) {
+            slot = (slot + 1u) & mask;
+        }
+        ark_gc_object_table[slot] = node;
+        ark_gc_object_table_len += 1;
+    }
+}
+
 static void ark_gc_table_rebuild_from_heap(void) {
     size_t count = 0;
     for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
         count += 1;
     }
-    size_t desired = count * 2u;
-    if (desired < 1024u) desired = 1024u;
-    desired = ark_next_pow2_size(desired);
-    /* Grow when short; shrink only when capacity is more than 4× desired. */
-    int needs_realloc = ark_gc_object_table_cap == 0 ||
-        ark_gc_object_table_cap < desired ||
-        ark_gc_object_table_cap > desired * 4u;
-    if (needs_realloc) {
-        free(ark_gc_object_table);
-        ark_gc_object_table = calloc(desired, sizeof(*ark_gc_object_table));
-        if (ark_gc_object_table == NULL) ark_rt_trap();
-        ark_gc_object_table_cap = desired;
-        ark_gc_object_table_len = 0;
-    } else {
-        ark_gc_table_clear();
-    }
-    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
-        ark_gc_table_insert(node);
-    }
+    ark_gc_table_rebuild_from_heap_count(count);
 }
 
 static void ark_gc_set_kind(void *object, uint8_t kind) {
     if (!ark_gc_mode || object == NULL) return;
-    if (ark_gc_table_find(object) == NULL) return;
+    /* Kind lives on the allocation header; no hash-table lookup in the mutator. */
     ark_gc_header_from_object(object)->reserved[0] = kind;
 }
 
 static uint8_t ark_gc_kind(void *object) {
     if (!ark_gc_mode || object == NULL) return ARK_GC_KIND_RAW;
-    if (ark_gc_table_find(object) == NULL) return ARK_GC_KIND_RAW;
     return ark_gc_header_from_object(object)->reserved[0];
 }
 
@@ -387,46 +506,82 @@ static void ark_gc_free_side_buffers(ark_object_header *object) {
     }
 }
 
-static void ark_gc_mark_object(ark_object_header *object) {
+static void ark_gc_mark_stack_ensure(size_t need) {
+    if (need <= ark_gc_mark_stack_cap) return;
+    size_t next = ark_gc_mark_stack_cap == 0 ? 4096u : ark_gc_mark_stack_cap;
+    while (next < need) {
+        if (next > (SIZE_MAX / 2u)) ark_rt_trap();
+        next *= 2u;
+    }
+    ark_object_header **fresh = realloc(ark_gc_mark_stack, next * sizeof(*fresh));
+    if (fresh == NULL) ark_rt_trap();
+    ark_gc_mark_stack = fresh;
+    ark_gc_mark_stack_cap = next;
+}
+
+static void ark_gc_mark_push(size_t *len, ark_object_header *object) {
     if (object == NULL) return;
-    /* Ignore scalar bit-patterns that are not heap object addresses. */
     ark_gc_allocation *header = ark_gc_table_find(object);
-    if (header == NULL) return;
-    if (header->mark) return;
+    if (header == NULL || header->mark) return;
     header->mark = 1;
-    uint8_t kind = header->reserved[0];
-    if (kind == ARK_GC_KIND_STRING || kind == ARK_GC_KIND_RAW) {
-        return;
+    ark_gc_mark_stack_ensure(*len + 1u);
+    ark_gc_mark_stack[*len] = object;
+    *len += 1u;
+    if ((uint64_t)(*len) > ark_gc_mark_stack_peak) {
+        ark_gc_mark_stack_peak = (uint64_t)(*len);
     }
-    if (kind == ARK_GC_KIND_VEC) {
-        ark_vec *vector = (ark_vec *)object;
-        if (vector->data == NULL) return;
-        for (uint32_t i = 0; i < vector->length; i += 1) {
-            ark_gc_mark_value(vector->data[i]);
+}
+
+static void ark_gc_mark_drain(size_t *len) {
+    while (*len > 0) {
+        ark_object_header *current = ark_gc_mark_stack[*len - 1u];
+        *len -= 1u;
+        /* Object was marked at push time; kind lives on the allocation header. */
+        ark_gc_allocation *header = ark_gc_header_from_object(current);
+        uint8_t kind = header->reserved[0];
+        if (kind == ARK_GC_KIND_STRING || kind == ARK_GC_KIND_RAW) {
+            continue;
         }
-        return;
-    }
-    if (kind == ARK_GC_KIND_STRUCT) {
-        ark_struct_object *structure = (ark_struct_object *)object;
-        for (uint32_t i = 0; i < structure->field_count; i += 1) {
-            ark_gc_mark_value(structure->fields[i]);
+        if (kind == ARK_GC_KIND_VEC) {
+            ark_vec *vector = (ark_vec *)current;
+            if (vector->data == NULL) continue;
+            for (uint32_t i = 0; i < vector->length; i += 1) {
+                ark_gc_mark_push(len, vector->data[i].ref);
+            }
+            continue;
+        }
+        if (kind == ARK_GC_KIND_STRUCT) {
+            ark_struct_object *structure = (ark_struct_object *)current;
+            for (uint32_t i = 0; i < structure->field_count; i += 1) {
+                ark_gc_mark_push(len, structure->fields[i].ref);
+            }
         }
     }
 }
 
+static void ark_gc_mark_object(ark_object_header *object) {
+    size_t len = 0;
+    ark_gc_mark_push(&len, object);
+    ark_gc_mark_drain(&len);
+}
+
 static uint64_t ark_gc_mark_roots(void) {
     uint64_t slots_scanned = 0;
+    size_t len = 0;
     for (ark_gc_frame *frame = ark_gc_frame_top; frame != NULL; frame = frame->parent) {
         for (size_t i = 0; i < frame->slot_count; i += 1) {
             slots_scanned += 1u;
             ark_object_header **slot = frame->slots[i];
-            if (slot != NULL && *slot != NULL) ark_gc_mark_object(*slot);
+            if (slot != NULL && *slot != NULL) {
+                ark_gc_mark_push(&len, *slot);
+            }
         }
     }
     if (ark_process_args != NULL) {
         slots_scanned += 1u;
-        ark_gc_mark_object((ark_object_header *)ark_process_args);
+        ark_gc_mark_push(&len, (ark_object_header *)ark_process_args);
     }
+    ark_gc_mark_drain(&len);
     return slots_scanned;
 }
 
@@ -440,19 +595,20 @@ void ark_gc_collect(void) {
     ark_gc_collecting = 1;
     ark_collection_count += 1;
 
-    uint64_t heap_before = 0;
+    /* Mutator does not maintain membership; clear marks while rebuilding. */
+    uint64_t rebuild_started = ark_gc_now_ns();
+    size_t heap_before = 0;
     for (ark_gc_allocation *count_node = ark_gc_heap_head;
          count_node != NULL;
          count_node = count_node->next) {
         heap_before += 1u;
+        count_node->mark = 0;
     }
-    if (heap_before > ark_gc_max_heap_objects_before_collection) {
-        ark_gc_max_heap_objects_before_collection = heap_before;
+    if ((uint64_t)heap_before > ark_gc_max_heap_objects_before_collection) {
+        ark_gc_max_heap_objects_before_collection = (uint64_t)heap_before;
     }
-
-    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
-        node->mark = 0;
-    }
+    ark_gc_table_rebuild_from_heap_count(heap_before);
+    ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
 
     uint64_t root_started = ark_gc_now_ns();
     uint64_t slots_scanned = ark_gc_mark_roots();
@@ -488,15 +644,14 @@ void ark_gc_collect(void) {
                 ark_gc_object_bytes = 0;
             }
             if (ark_chunk_count > 0) ark_chunk_count -= 1;
-            if (ark_committed_bytes >= (sizeof(ark_gc_allocation) + node->allocation_size)) {
-                ark_committed_bytes -= sizeof(ark_gc_allocation) + node->allocation_size;
-            }
-            free(node);
+            /* Recycle into size-class freelist (Branch E) instead of free()+memalign. */
+            ark_gc_size_free_push(node);
         }
         node = next;
     }
     ark_gc_total_sweep_time_ns += ark_gc_now_ns() - sweep_started;
     ark_gc_heap_head = live_head;
+    ark_gc_object_table_len = live_count;
     ark_gc_total_marked_objects += (uint64_t)live_count;
     if ((uint64_t)live_count > ark_gc_max_marked_objects_per_collection) {
         ark_gc_max_marked_objects_per_collection = (uint64_t)live_count;
@@ -505,9 +660,10 @@ void ark_gc_collect(void) {
         ark_gc_max_heap_objects_after_collection = (uint64_t)live_count;
     }
 
-    uint64_t rebuild_started = ark_gc_now_ns();
-    ark_gc_table_rebuild_from_heap();
-    ark_gc_table_maybe_shrink(live_count);
+    /* Keep table capacity for reuse; clear contents so mutator stays off-table. */
+    rebuild_started = ark_gc_now_ns();
+    ark_gc_table_clear();
+    ark_gc_object_table_len = live_count;
     ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
 
     ark_live_bytes = live;
@@ -516,15 +672,15 @@ void ark_gc_collect(void) {
     if (ark_gc_threshold_override != 0) {
         ark_gc_threshold_bytes = ark_gc_threshold_override;
     } else {
-        /* Keep pressure high enough for the 2.4 GiB RSS gate (measured ~1.5 GiB). */
-        ark_gc_threshold_bytes = live / 2ull;
+        /* live*5/4 + soft-limits: measured warm≈381s / RSS≈2.39 GiB. */
+        ark_gc_threshold_bytes = live + (live / 4ull);
         if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
             ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
         }
     }
-    uint64_t trim_started = ark_gc_now_ns();
-    malloc_trim(0);
-    ark_gc_total_malloc_trim_time_ns += ark_gc_now_ns() - trim_started;
+    /* Branch E: do not malloc_trim per collection (~20–35s). Cap freelist instead. */
+    (void)reclaimed;
+    ark_gc_size_free_release_excess();
     ark_gc_collecting = 0;
 }
 
@@ -645,26 +801,39 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
         memset(result, 0, size);
         return result;
     }
-    if (!ark_gc_collecting && ark_gc_bytes_since_collection >= ark_gc_threshold_bytes) {
-        ark_gc_collect();
+    {
+        uint64_t accounted = ark_gc_object_bytes + ark_gc_string_buffer_bytes +
+            ark_gc_vec_buffer_bytes + ark_gc_size_free_bytes;
+        if (!ark_gc_collecting &&
+            (ark_gc_bytes_since_collection >= ark_gc_threshold_bytes ||
+             accounted >= ark_gc_rss_soft_limit_bytes ||
+             ark_committed_bytes >= ark_gc_committed_soft_limit_bytes)) {
+            ark_gc_collect();
+        }
     }
+    size_t rounded = ark_gc_round_alloc_size(size);
     size_t prefix = sizeof(ark_gc_allocation);
-    size_t total = ark_checked_add(prefix, size);
-    ark_gc_allocation *header = NULL;
-    void *block = NULL;
-    if (posix_memalign(&block, 16u, total) != 0 || block == NULL) ark_rt_trap();
-    header = (ark_gc_allocation *)block;
-    ark_committed_bytes += total;
+    size_t total = ark_checked_add(prefix, rounded);
+    ark_gc_allocation *header = ark_gc_size_free_take(size);
+    if (header == NULL) {
+        /* malloc is faster than posix_memalign on this mutator path; 8-byte
+         * alignment is enough for ark_gc_allocation + object payloads. */
+        void *block = malloc(total);
+        if (block == NULL) ark_rt_trap();
+        header = (ark_gc_allocation *)block;
+        ark_committed_bytes += total;
+        header->allocation_size = rounded;
+    }
     header->next = ark_gc_heap_head;
-    header->allocation_size = size;
     header->mark = 0;
     memset(header->reserved, 0, sizeof(header->reserved));
+    ark_gc_header_set_magic(header);
     ark_gc_heap_head = header;
-    ark_gc_table_insert(header);
     ark_requested_bytes += size;
-    ark_gc_bytes_since_collection += size;
-    ark_live_bytes += size;
-    ark_gc_object_bytes += size;
+    /* Charge the rounded slab size so soft-limit accounting matches sweep. */
+    ark_gc_bytes_since_collection += rounded;
+    ark_live_bytes += rounded;
+    ark_gc_object_bytes += rounded;
     ark_chunk_count += 1;
     void *result = ark_gc_object_from_header(header);
     memset(result, 0, size);
@@ -677,6 +846,22 @@ void ark_rt_init(int argc, char **argv) {
     ark_arena_head = NULL;
     ark_gc_heap_head = NULL;
     ark_gc_free_list = NULL;
+    for (int cls = 0; cls < ARK_GC_SIZE_CLASS_COUNT; cls += 1) {
+        ark_gc_size_free[cls] = NULL;
+    }
+    ark_gc_size_free_bytes = 0;
+    ark_gc_size_free_limit_bytes = ark_env_u64(
+        "ARUKELLT_NATIVE_GC_SIZE_FREE_LIMIT_BYTES",
+        ARK_GC_SIZE_FREE_LIMIT_DEFAULT
+    );
+    ark_gc_rss_soft_limit_bytes = ark_env_u64(
+        "ARUKELLT_NATIVE_GC_RSS_SOFT_LIMIT_BYTES",
+        ARK_GC_RSS_SOFT_LIMIT_DEFAULT
+    );
+    ark_gc_committed_soft_limit_bytes = ark_env_u64(
+        "ARUKELLT_NATIVE_GC_COMMITTED_SOFT_LIMIT_BYTES",
+        ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT
+    );
     ark_gc_frame_top = NULL;
     ark_gc_frame_free = NULL;
     ark_gc_object_table = NULL;
@@ -746,8 +931,22 @@ void ark_rt_shutdown(void) {
         free(node);
         node = next;
     }
+    for (int cls = 0; cls < ARK_GC_SIZE_CLASS_COUNT; cls += 1) {
+        ark_gc_allocation *free_node = ark_gc_size_free[cls];
+        while (free_node != NULL) {
+            ark_gc_allocation *next = free_node->next;
+            free(free_node);
+            free_node = next;
+        }
+        ark_gc_size_free[cls] = NULL;
+    }
+    ark_gc_size_free_bytes = 0;
     ark_gc_heap_head = NULL;
     ark_gc_free_list = NULL;
+    free(ark_gc_mark_stack);
+    ark_gc_mark_stack = NULL;
+    ark_gc_mark_stack_cap = 0;
+    malloc_trim(0);
     free(ark_gc_object_table);
     ark_gc_object_table = NULL;
     ark_gc_object_table_cap = 0;
