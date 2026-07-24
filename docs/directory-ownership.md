@@ -29,6 +29,8 @@
 | `benchmarks/` | internal | — | Performance benchmarks and results |
 | `scripts/` | internal | — | Build, test, generation scripts |
 | `docs/` | product | — | User and developer documentation |
+| `tools/board/` | internal | — | Kanban SPA for issues, ADRs, and docs (replaces `tools/doc-viewer`) |
+| `tools/host-linker/` | internal | — | Host-side linker tool |
 | `docs/stdlib/reference.md` | generated | `scripts/gen/generate-docs.py` | Stdlib API reference |
 | `docs/stdlib/modules/*.md` | generated | `scripts/gen/generate-docs.py` | Per-module reference pages |
 | `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-docs.py` | Module maturity scoreboard |
