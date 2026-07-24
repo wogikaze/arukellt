@@ -15,7 +15,7 @@
 |--------|--------------|----------------|--------------------|-----|-------|
 | `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | partial | experimental | No | Recovered C99 selfhost executor; S2/S3 equality+determinism green; --allow-high-rss operational (arena ~12 GiB / warm ~3.8 min); GC=1 RSS ~1.55 GiB but warm ~8 min; root safepoint clears disabled (#833) so live set stays conservative |
+| `native-cpp` | scaffold | partial | experimental | No | Public run --target native-cpp remains unsupported; internal C99 selfhost executor lane is experimental (root clears on, strict wall/RSS dual gate without --allow-high-rss; see docs/data/native-cpp-executor-promotion-receipt.json) |
 | `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 

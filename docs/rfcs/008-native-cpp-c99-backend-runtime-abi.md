@@ -15,7 +15,7 @@ Capability SSOT: [`data/native-cpp-capabilities.toml`](../../data/native-cpp-cap
 採用理由と非目標は ADR-049、実装順は implementation plan、個々の MIR opcode と
 CoreOp の状態は capability registry が所有する。
 
-現行 target は scaffold である。
+現行 target は scaffold / partial / experimental / run_supported=false である。内部 selfhost executor lane は experimental（production root clear 有効、strict wall/RSS dual gate、`--allow-high-rss` は CI 禁止）。証拠: `docs/data/native-cpp-executor-promotion-receipt.json`。
 本 RFC の `ACCEPTED` は実装済みまたは実行可能を意味しない。
 
 ## 2. Target と artifact

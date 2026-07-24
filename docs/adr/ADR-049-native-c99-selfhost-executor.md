@@ -148,7 +148,12 @@ native lane は Wasm executor 自身による Stage-3 生成を証明しない�
 - `native-llvm`、公開 FFI、一般 native product は引き続き未決定である。
 - native-cpp の詳細仕様は RFC-008、実装順は native-cpp MVP plan、対応状態は
   machine-readable capability registry が所有する。
-- target の support tier と implementation state は実装が完了するまで scaffold のままとする。
+- target の support tier は scaffold、implementation_state は partial、`run_supported=false`
+  のままとする（公開 `run --target native-cpp` は未提供）。
+- 内部 selfhost executor lane は experimental とし、arena/GC dual mode・production root
+  clear・strict wall/RSS dual gate（`--allow-high-rss` は CI 禁止の local escape hatch）を
+  正とする。昇格証拠は
+  `docs/data/native-cpp-executor-promotion-receipt.json` を参照する。
 
 ## 再検討条件
 

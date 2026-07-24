@@ -1,6 +1,8 @@
 # native-cpp MVP implementation plan
 
-ステータス: 実装計画（決定記録ではない）
+ステータス: historical（MVP到達済み。以降の experimental 昇格は
+[`native-cpp-experimental-promotion.md`](native-cpp-experimental-promotion.md) と
+`docs/data/native-cpp-executor-promotion-receipt.json` を正とする）
 関連 ADR: [ADR-049](../adr/ADR-049-native-c99-selfhost-executor.md)
 詳細仕様: [RFC-008](../rfcs/008-native-cpp-c99-backend-runtime-abi.md)
 Capability SSOT: [`data/native-cpp-capabilities.toml`](../../data/native-cpp-capabilities.toml)
