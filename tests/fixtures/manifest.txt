@@ -1994,6 +1994,7 @@ t3-compile:match_extensions/or_pattern.ark
 t3-compile:match_extensions/struct_field_update.ark
 t3-compile:match_extensions/struct_pattern.ark
 t3-compile:memory64_struct_i32/default_fields.ark
+t3-compile:memory64_vec_i32_in_struct_fn/build_module_infos.ark
 t3-compile:modules/import_basic/main.ark
 t3-compile:modules/multi_import/main.ark
 t3-compile:operator_overload/add_complex.ark
@@ -2727,6 +2728,7 @@ t3-run:variables/string_lit.ark
 t3-run:variables/tuple.ark
 t4-compile:t4/native_scaffold.ark
 t4-compile:native_cpp/constant_return.ark
+t4-compile:native_cpp/scalar_cfg_call.ark
 t4-compile:native_cpp/unsupported_string.ark
 # ADR-041 in-file test syntax fixtures
 t3-compile:test_syntax/basic.ark
