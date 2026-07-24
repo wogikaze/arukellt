@@ -378,6 +378,21 @@ fn SelfEmitCtx_gc_struct_name_index(ctx: SelfEmitCtx) -> NameIndex {
     ctx.gc_struct_name_index
 }
 
+fn SelfEmitCtx_bare_suffix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            if i + 1 < n {
+                return substring(name, i + 1, n)
+            }
+            return String_new()
+        }
+        i = i - 1
+    }
+    name
+}
+
 fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
     let names = ctx.gc_struct_names
     let map = ctx.gc_struct_type_map
@@ -391,7 +406,12 @@ fn SelfEmitCtx_rebuild_gc_struct_name_index(ctx: SelfEmitCtx) {
             0 - 1
         }
         if type_idx >= 0 {
-            name_index::name_index_insert_first(index, clone(get_unchecked(names, i)), type_idx)
+            let full_name = clone(get_unchecked(names, i))
+            name_index::name_index_insert_first(index, full_name, type_idx)
+            let bare = SelfEmitCtx_bare_suffix(full_name)
+            if len(bare) > 0 && !eq(clone(bare), clone(full_name)) {
+                name_index::name_index_insert_first(index, bare, type_idx)
+            }
         }
         i = i + 1
     }

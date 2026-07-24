@@ -330,6 +330,21 @@ fn gc_layout_table_populate_from_type_table(table: GcLayoutTable, tt: TypeTable,
     }
 }
 
+fn gc_layout_table_bare_suffix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            if i + 1 < n {
+                return substring(name, i + 1, n)
+            }
+            return String_new()
+        }
+        i = i - 1
+    }
+    name
+}
+
 fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, struct_names: Vec<String>, struct_type_map: Vec<i32>) {
     let count = len(struct_names)
     let map_count = len(struct_type_map)
@@ -341,10 +356,17 @@ fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, st
         let sname = clone(get_unchecked(struct_names, i))
         let type_idx = get_unchecked(struct_type_map, i)
         let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
-        if type_id::type_id_is_valid(tid) {
+        let mut found_tid = tid
+        if !type_id::type_id_is_valid(found_tid) {
+            let bare = gc_layout_table_bare_suffix(sname)
+            if len(bare) > 0 && !eq(clone(bare), clone(sname)) {
+                found_tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), bare, Vec_new_TypeId())
+            }
+        }
+        if type_id::type_id_is_valid(found_tid) {
             gc_layout_table_register_key(
                 table,
-                GcLayoutKey_new(tid, GcMemberKey_aggregate()),
+                GcLayoutKey_new(found_tid, GcMemberKey_aggregate()),
                 WasmRefType_new(type_idx, 1),
                 type_idx
             )
