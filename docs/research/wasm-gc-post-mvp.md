@@ -350,7 +350,26 @@ GC integration により:
 
 ただし `Result<T, E>` の値渡しモデルは Arukellt の設計に合致しており、
 「例外命令への移行」はパフォーマンス以外の動機に乏しい。
-**相互運用シナリオに限り採用を検討**する。
+
+#### 評価結果（2026-07、issue #723）
+
+- `Result<T, E>` モデルと `try_table`/`throw` を使った `.wat` プロトタイプで比較計測した。
+  対象は `benchmarks/bench_compute_error_chain.ark` に対応する浅いエラーチェーンと、
+  10 段ネストした deep chain の 2 パターン（いずれも wasmtime 46、50 回実行）。
+- 計測結果: shallow chain で Result median ~12.1 ms、exnref median ~10.7 ms;
+  deep chain で Result median ~11.4 ms、exnref median ~10.6 ms（いずれも wasmtime 46、50 回実行）。
+  exnref は浅い/深い両方でわずかに速いが（約 10–12 %）、圧倒的な差ではなく、
+  ランタイムの例外実装の成熟度にも依存する。
+- JS 相互運用のユースケースは現時点で具体化していない。
+  Playground v2 は WASI P2 + jco 経由（ADR-032）であり、
+  Component Model の `result<T, E>` 型は Arukellt の Result と独立して対応可能。
+  `extern fn` で JS から throw された例外を Wasm 側で catch するような具体例は未出現。
+- **推奨: A（導入しない）**。当面 `Result<T, E>` を維持し、
+  ユーザーに `throw`/`catch` 構文を公開しない。
+- B（FFI 境界のみ）の再検討条件: JS interop または `extern` 呼び出しで
+  「ホスト側が throw し、Wasm 側が catch して Result に変換する」具体例が issue/RFC 化され、
+  ADR-009/ADR-011/ADR-032 との整合が確認された時点。
+- 言語機能としての C（`throw`/`catch` 構文導入）は設計複雑化のため非推奨。
 
 ### 実装コスト推定
 
@@ -399,9 +418,14 @@ Arukellt が `throw` / `catch` を採用するかは別問題（`Result<T, E>` �
    再評価する。Phase 0 のため、実装は早すぎる可能性がある。
 
 5. **Exception handling 統合** は `exnref` として Wasm 3.0 で shipped 済み。
-   ただし Arukellt の `Result<T, E>` 値渡しモデルは設計に合致しており、
-   移行動機に乏しい。JS 相互運用のユースケースが具体化した時点で設計を開始する。
-   それまでは `Result<T, E>` を維持。
+   issue #723 で評価した結果、`Result<T, E>` モデルと `try_table`/`throw` ベースの
+   プロトタイプはわずかに exnref が速いが（約 10–12 %）、圧倒的な差ではなく
+   深いコールスタックでも大きな改善は見られなかった。
+   JS 相互運用のユースケースは現時点で具体化していないため、
+   **推奨 A（導入しない）を採用し、当面 `Result<T, E>` を維持する**。
+   ユーザーに `throw`/`catch` 構文を公開しない。
+   JS interop の具体例が issue/RFC 化され、ADR-009/ADR-011/ADR-032 との整合が
+   確認された時点で B（FFI 境界のみ）を再検討する。
 
 6. **Typed Function References** は Wasm 3.0 で shipped 済み。
    詳細な移行計画は **ADR-033** に委譲（Phase A/C の計測は issue #722）。

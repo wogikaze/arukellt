@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — Phase 0 の Wasm GC 拡張に言語仕様を依存させない
 
 決定日: 2026-04-15  
-改訂日: 2026-07-11 — 調査本文を `docs/research/` へ分離し、決定のみ残す
+改訂日: 2026-07-24 — issue #723 による exnref 評価を反映
 
 旧番号メモ: 調査草稿は誤って ADR-008 として公開されたのち ADR-043 へ移した。
 調査本文の正本は [`docs/research/wasm-gc-post-mvp.md`](../research/wasm-gc-post-mvp.md)。
@@ -34,6 +34,12 @@ stdlib 契約の前提にすると、仕様が外部の未成熟提案に鎖さ�
 4. 詳細な提案比較・コスト見積もりは調査文書
    [`docs/research/wasm-gc-post-mvp.md`](../research/wasm-gc-post-mvp.md) に置く。
    本 ADR はそれを採択しない。
+5. **Wasm Exception Handling (`exnref`) は言語機能として導入しない。**
+   issue #723 で性能比較・JS interop 具体化度を評価した結果、
+   `Result<T, E>` モデルとの置き換え動機は乏しく、ユーザーに `throw`/`catch` を公開する
+   メリットがない。当面 `Result<T, E>` を維持する。
+   JS interop / `extern` 呼び出しでホスト例外を catch する具体例が issue/RFC 化され、
+   ADR-009 / ADR-011 / ADR-032 との整合が確認された時点で FFI 境界のみの利用を再検討する。
 
 ---
 
@@ -46,5 +52,8 @@ stdlib 契約の前提にすると、仕様が外部の未成熟提案に鎖さ�
 
 - [`docs/research/wasm-gc-post-mvp.md`](../research/wasm-gc-post-mvp.md)
 - ADR-002（Wasm GC 採用）
+- ADR-009（Import 構文）
+- ADR-011（host-bound stdlib API）
+- ADR-032（Playground v2 ブラウザ compile + run）
 - ADR-033（`call_ref` 移行）
 - ADR-035（GC 実装方針 — 提案）

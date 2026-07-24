@@ -8,17 +8,17 @@ use std::host::stdio
 
 fn safe_div(a: i32, b: i32) -> Result<i32, String> {
     if b == 0 {
-        Result::Err("division by zero")
+        Err("division by zero")
     } else {
-        Result::Ok(a / b)
+        Ok(a / b)
     }
 }
 
 fn validate(v: i32) -> Result<i32, String> {
     if v < 0 {
-        Result::Err("negative value")
+        Err("negative value")
     } else {
-        Result::Ok(v)
+        Ok(v)
     }
 }
 
@@ -26,12 +26,12 @@ fn compute_step(i: i32) -> Result<i32, String> {
     let divisor: i32 = i - i / 5 * 5
     let div_result: Result<i32, String> = safe_div(i * 3 + 7, divisor)
     match div_result {
-        Result::Err(msg) => Result::Err(msg),
-        Result::Ok(q) => {
+        Err(msg) => Err(msg),
+        Ok(q) => {
             let val_result: Result<i32, String> = validate(q - 10)
             match val_result {
-                Result::Err(msg) => Result::Err(msg),
-                Result::Ok(v) => Result::Ok(v - v / 1000 * 1000),
+                Err(msg) => Err(msg),
+                Ok(v) => Ok(v - v / 1000 * 1000),
             }
         },
     }
