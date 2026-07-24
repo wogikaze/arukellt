@@ -537,8 +537,8 @@ fn main() {
     let mut module = load_module(&path);
 
     for mem in module.memories.iter_mut() {
-        mem.initial = 65535;
-        mem.maximum = Some(65536);
+        mem.initial = initial_pages.unwrap_or(65535);
+        mem.maximum = Some(524288);
     }
 
     let heap_global = module
