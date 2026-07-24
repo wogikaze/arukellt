@@ -219,12 +219,12 @@ static void ark_gc_write_stats_file(void) {
 #define ARK_GC_KIND_STRING 1u
 #define ARK_GC_KIND_VEC 2u
 #define ARK_GC_KIND_STRUCT 3u
-#define ARK_GC_SIZE_FREE_LIMIT_DEFAULT (48ull * 1024ull * 1024ull)
-/* Soft budget for accounted heap buffers (leaves headroom under 2.4 GiB RSS).
- * Measured: freelist+mark-stack overhead sits above accounted bytes; keep soft
- * limits below the dual gate so peak RSS stays <= 2.4 GiB. */
-#define ARK_GC_RSS_SOFT_LIMIT_DEFAULT (1180ull * 1024ull * 1024ull)
-#define ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT (1580ull * 1024ull * 1024ull)
+#define ARK_GC_SIZE_FREE_LIMIT_DEFAULT (8ull * 1024ull * 1024ull)
+/* Soft budget for live heap buffers (leaves headroom under 2.4 GiB RSS).
+ * Freelist bytes are capped separately and excluded from the soft trigger so
+ * recycling does not force extra full-heap collections. */
+#define ARK_GC_RSS_SOFT_LIMIT_DEFAULT (1160ull * 1024ull * 1024ull)
+#define ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT (1520ull * 1024ull * 1024ull)
 /* reserved[1..4] hold a little-endian magic used for membership without a hash table. */
 #define ARK_GC_HEADER_MAGIC 0xA4C9D17Bu
 
@@ -999,8 +999,9 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
         return result;
     }
     {
+        /* Soft limit tracks live payload only; freelist has its own cap. */
         uint64_t accounted = ark_gc_object_bytes + ark_gc_string_buffer_bytes +
-            ark_gc_vec_buffer_bytes + ark_gc_size_free_bytes;
+            ark_gc_vec_buffer_bytes;
         if (!ark_gc_collecting &&
             (ark_gc_bytes_since_collection >= ark_gc_threshold_bytes ||
              accounted >= ark_gc_rss_soft_limit_bytes ||
