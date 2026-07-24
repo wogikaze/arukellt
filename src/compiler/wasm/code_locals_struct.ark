@@ -211,9 +211,7 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
 }
 // Scan function instructions for MIR_STRUCT_NEW with matching struct name to extract byte_size.
 fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx) -> i32 {
-    // #region agent log
     ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 3)
-    // #endregion
     let block_count = len(f.blocks)
     let mut bi = 0
     while bi < block_count {

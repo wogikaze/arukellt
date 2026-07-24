@@ -75,6 +75,10 @@ fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_scalar_producer(f, local_idx)
 }
 
+fn local_body_has_i64_stack_set(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_scan::local_body_has_i64_stack_set(f, local_idx)
+}
+
 fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_strong_ref_producer(f, local_idx)
 }
