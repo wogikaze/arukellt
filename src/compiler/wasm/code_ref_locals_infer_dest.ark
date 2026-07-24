@@ -15,6 +15,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
+use wasm::sections_types_gc
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
@@ -272,6 +273,27 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
         }
         return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
+    }
+    if op == opcodes::MIR_GC_STRUCT_GET() {
+        // struct.get on a GC variant: if the field is a ref, return the
+        // actual ref type from the field signature. This handles the case
+        // where a local receives a ref field from a struct.get and the
+        // type_name is stale (#808).
+        let type_slot = inst_accessors_operands::MirInst_arg0(inst)
+        let field_idx = inst_accessors_literals::MirInst_int_val(inst)
+        let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
+        if type_slot >= 0 && type_slot < len(sigs) {
+            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, type_slot))
+            if field_idx >= 0 && field_idx < len(fields) {
+                let field_sig = get_unchecked(fields, field_idx)
+                if starts_with(clone(field_sig), String_from("ref")) {
+                    let offset_str = substring(clone(field_sig), 3, len(field_sig))
+                    let offset = sections_types_gc::parse_type_sig_int(offset_str)
+                    return ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset
+                }
+            }
+        }
+        return 0 - 1
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)

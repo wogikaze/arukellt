@@ -178,8 +178,11 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
         // gc_struct slot when the MIR return type name names that struct.
         if emit_target::is_gc_target(clone(target)) &&
         eq(clone(typed_sig), sections_types_gc::gc_enum_open_type_sig()) {
+            // Prefer a concrete gc_struct only for true user structs. Enum
+            // names that were wrongly registered as GS_f0_ref14 boxes must
+            // keep open-enum returns (toml_get / JsonValue) (#808).
             let concrete = gc_struct_sig_from_return_type_name(clone(return_type_name), mir)
-            if len(concrete) > 0 {
+            if len(concrete) > 0 && !gc_struct_sig_is_enum_open_box(clone(concrete), mir) {
                 return concrete
             }
         } else {
@@ -226,6 +229,21 @@ fn build_return_type_value_sig(uf: MirFunction, return_type: i32, return_type_na
     sections_type_plan::val_type_to_target_sig(return_type, emit_target::is_gc_target(clone(target)))
 }
 
+// True when a gcsref slot is the single-field open-enum box (GS_f0_ref14)
+// produced by wrongly registering an enum layout as a gc_struct.
+fn gc_struct_sig_is_enum_open_box(sig_or_gcsref: String, mir: MirModule) -> bool {
+    let mut sig = clone(sig_or_gcsref)
+    if starts_with(clone(sig), String_from("gcsref")) {
+        let slot_str = substring(clone(sig), 6, len(sig))
+        let slot = sections_types_gc::parse_type_sig_int(slot_str)
+        if slot < 0 || slot >= module_gc_struct::MirModule_gc_struct_sig_count(mir) {
+            return false
+        }
+        sig = module_gc_struct::MirModule_gc_struct_sig_at(mir, slot)
+    }
+    eq(clone(sig), String_from("GS_f0_ref14"))
+}
+
 // Resolve a registered gc_struct for a return type name. Accepts raw names,
 // module::Name, and struct:Name:size (slot hit only — not size fallback).
 fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule) -> String {
@@ -235,13 +253,20 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
     if starts_with(clone(return_type_name), String_from("struct:")) {
         let from_struct = gc_struct_return_sig_from_name(clone(return_type_name), mir)
         if starts_with(clone(from_struct), String_from("gcsref")) {
+            if gc_struct_sig_is_enum_open_box(clone(from_struct), mir) {
+                return String_new()
+            }
             return from_struct
         }
         return String_new()
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(return_type_name))
     if slot >= 0 {
-        return concat(String_from("gcsref"), i32_to_string(slot))
+        let gcsref = concat(String_from("gcsref"), i32_to_string(slot))
+        if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
+            return String_new()
+        }
+        return gcsref
     }
     let name_len = len(return_type_name)
     let mut colon_pos = 0 - 1
@@ -257,7 +282,11 @@ fn gc_struct_sig_from_return_type_name(return_type_name: String, mir: MirModule)
         let bare = substring(return_type_name, colon_pos + 1, name_len)
         let bare_slot = module_gc_struct::MirModule_gc_struct_slot(mir, bare)
         if bare_slot >= 0 {
-            return concat(String_from("gcsref"), i32_to_string(bare_slot))
+            let gcsref = concat(String_from("gcsref"), i32_to_string(bare_slot))
+            if gc_struct_sig_is_enum_open_box(clone(gcsref), mir) {
+                return String_new()
+            }
+            return gcsref
         }
     }
     String_new()

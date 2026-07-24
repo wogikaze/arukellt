@@ -154,8 +154,9 @@ fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32
     false
 }
 
-// Check if a local receives its value from another local via MIR_LOCAL_SET
-// (local-to-local copy). Used to detect stale type_name from local reuse (#808).
+// Check if a local receives its value via MIR_LOCAL_SET or MIR_GC_STRUCT_GET
+// (from another local or from a struct field extraction). Used to detect stale
+// type_name from local reuse (#808).
 fn local_has_local_set_source(f: MirFunction, local_idx: i32) -> bool {
     let block_count = len(f.blocks)
     let mut bi = 0
@@ -167,9 +168,12 @@ fn local_has_local_set_source(f: MirFunction, local_idx: i32) -> bool {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             if op == opcodes::MIR_LOCAL_SET() {
-                let target = inst_accessors_operands::MirInst_arg0(inst)
-                let source = inst_accessors_operands::MirInst_arg1(inst)
-                if target == local_idx && source >= 0 {
+                if inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                    return true
+                }
+            }
+            if op == opcodes::MIR_GC_STRUCT_GET() {
+                if inst_accessors_shape::MirInst_dest(inst) == local_idx {
                     return true
                 }
             }
@@ -283,11 +287,11 @@ fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             if dest == local_idx {
                 if op == opcodes::MIR_GC_STRUCT_NEW() ||
-                   op == opcodes::MIR_STRUCT_NEW() ||
-                   op == opcodes::MIR_ARRAY_NEW() ||
-                   op == opcodes::MIR_CONST_STRING() ||
-                   op == opcodes::MIR_REF_CAST() ||
-                   op == opcodes::MIR_REF_TEST() {
+                op == opcodes::MIR_STRUCT_NEW() ||
+                op == opcodes::MIR_ARRAY_NEW() ||
+                op == opcodes::MIR_CONST_STRING() ||
+                op == opcodes::MIR_REF_CAST() ||
+                op == opcodes::MIR_REF_TEST() {
                     return true
                 }
                 // MIR_CALL with VT_GC_REF val_type is a ref producer
@@ -308,17 +312,17 @@ fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
 fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
     // Instructions that always produce scalar values.
     if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64() ||
-       op == opcodes::MIR_CONST_F64() || op == opcodes::MIR_CONST_BOOL() ||
-       op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() ||
-       op == opcodes::MIR_MUL() || op == opcodes::MIR_DIV() ||
-       op == opcodes::MIR_MOD() ||
-       op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
-       op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() ||
-       op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() ||
-       op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
-       op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() ||
-       op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() ||
-       op == opcodes::MIR_EQZ() {
+    op == opcodes::MIR_CONST_F64() || op == opcodes::MIR_CONST_BOOL() ||
+    op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() ||
+    op == opcodes::MIR_MUL() || op == opcodes::MIR_DIV() ||
+    op == opcodes::MIR_MOD() ||
+    op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
+    op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() ||
+    op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() ||
+    op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
+    op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() ||
+    op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() ||
+    op == opcodes::MIR_EQZ() {
         return true
     }
     // MIR_ARRAY_GET always produces a scalar i32 (default i32-backed arrays,
@@ -333,7 +337,7 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
     if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_GET() {
         let vt = inst_accessors_shape::MirInst_val_type(inst)
         if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
-           vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
             return true
         }
         // VT_VOID: the field type is unknown in MIR. Conservative: treat
@@ -348,7 +352,7 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
     if op == opcodes::MIR_CALL() {
         let vt = inst_accessors_shape::MirInst_val_type(inst)
         if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
-           vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
             return true
         }
     }

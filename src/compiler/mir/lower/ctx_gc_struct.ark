@@ -2,6 +2,7 @@ use std::text
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
+use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
@@ -46,6 +47,16 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
         return existing
     }
     if !ctx_struct_field_type::ctx_struct_layout_exists(ctx, clone(struct_name)) {
+        return 0 - 1
+    }
+    // Enum base layouts (_tag only) and variant layouts (Enum::Var) must not
+    // become named gc_structs. Their _tag field has an empty type that would
+    // fall through to GS_f0_ref14, and return/payload lowering would then
+    // prefer that box over open-enum (#808 toml_get / nested_enum).
+    if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(struct_name)) {
+        return 0 - 1
+    }
+    if contains(clone(struct_name), String_from("::")) {
         return 0 - 1
     }
     let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, clone(struct_name))
@@ -112,6 +123,11 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
 }
 fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
     let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    // Empty field types are discriminant/_tag slots on enum layouts — i32, not
+    // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
+    if len(type_name) == 0 {
+        return concat(prefix, String_from("_i32"))
+    }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
     if len(scalar) > 0 {
         return concat(prefix, scalar)
