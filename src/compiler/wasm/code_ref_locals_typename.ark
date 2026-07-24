@@ -1,19 +1,23 @@
 // GC type from type names.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
-// Do not match Option in functions that also take SelfEmitCtx (runtime trap).
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
-use wasm::code_ref_locals_option
 
 fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
     let hm = infer_hashmap_gc_type_from_type_name(clone(type_name), ctx)
-    if code_ref_locals_option::option_i32_is_some(hm) {
-        return hm
+    match hm {
+        Option::Some(_opt_v) => {
+            return hm
+        }
+        Option::None => {}
     }
     let vec = infer_vec_gc_type_from_type_name(clone(type_name), ctx)
-    if code_ref_locals_option::option_i32_is_some(vec) {
-        return vec
+    match vec {
+        Option::Some(_opt_v) => {
+            return vec
+        }
+        Option::None => {}
     }
     if starts_with(clone(type_name), String_from("Option_")) ||
     starts_with(clone(type_name), String_from("option:")) ||

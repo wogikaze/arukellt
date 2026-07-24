@@ -92,6 +92,14 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
     let result = Vec_new_String()
+    // Surface Option:/Result: forms must become option:/result: — never
+    // "?Option:..." which makes is_generic_function emit unreachable bodies.
+    let normalized = mir_param_normalize_option_result_type_name(clone(p_type_name))
+    if len(normalized) > 0 {
+        push(result, clone(normalized))
+        push(result, clone(normalized))
+        return result
+    }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
         let mt = concat(String_from("enum:"), p_type_name)
         push(result, mt)
@@ -110,6 +118,34 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     result
+}
+
+fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("Option_")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Option:")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("?Option:")) {
+        return concat(String_from("option:"), substring(type_name, 8, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+    }
+    if starts_with(clone(type_name), String_from("Result:")) {
+        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("?Result:")) {
+        return concat(String_from("result:"), substring(type_name, 8, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Result_")) {
+        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    }
+    String_new()
 }
 
 fn mir_param_resolve_named_user_type(ctx: LowerCtx, bare: String) -> String {

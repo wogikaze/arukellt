@@ -1,7 +1,6 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
-use wasm::code_ref_locals_option
 use wasm::code_ref_locals_infer_dest
 use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
@@ -140,13 +139,15 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
             // Stale type_name from local reuse: check producer inference (#808).
             if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
                 let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-                if code_ref_locals_option::option_i32_is_some(inferred) {
-                    let inferred_v = code_ref_locals_option::option_i32_unwrap(inferred)
-                    if inferred_v != named_gc {
-                        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                        writer_core::emit_leb128_s(body, inferred_v)
-                        return true
+                match inferred {
+                    Option::Some(inferred_v) => {
+                        if inferred_v != named_gc {
+                            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                            writer_core::emit_leb128_s(body, inferred_v)
+                            return true
+                        }
                     }
+                    Option::None => {}
                 }
             }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -167,13 +168,15 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
         // Stale type_name from local reuse: check producer inference (#808).
         if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
             let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-            if code_ref_locals_option::option_i32_is_some(inferred) {
-                let inferred_v = code_ref_locals_option::option_i32_unwrap(inferred)
-                if inferred_v != struct_gc {
-                    writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                    writer_core::emit_leb128_s(body, inferred_v)
-                    return true
+            match inferred {
+                Option::Some(inferred_v) => {
+                    if inferred_v != struct_gc {
+                        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                        writer_core::emit_leb128_s(body, inferred_v)
+                        return true
+                    }
                 }
+                Option::None => {}
             }
         }
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -194,13 +197,15 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
                 // enum variant via LOCAL_SET from another local. Check the
                 // producer inference and prefer it when it differs (#808).
                 let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-                if code_ref_locals_option::option_i32_is_some(inferred) {
-                    let inferred_v = code_ref_locals_option::option_i32_unwrap(inferred)
-                    if inferred_v != layout_gc {
-                        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                        writer_core::emit_leb128_s(body, inferred_v)
-                        return true
+                match inferred {
+                    Option::Some(inferred_v) => {
+                        if inferred_v != layout_gc {
+                            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                            writer_core::emit_leb128_s(body, inferred_v)
+                            return true
+                        }
                     }
+                    Option::None => {}
                 }
                 writer_core::emit_byte(body, constants::WASM_REF_NULL())
                 writer_core::emit_leb128_s(body, layout_gc)
@@ -291,20 +296,22 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
 // Fallback: legacy inference first, spine lookup as fallback for the GC ref type.
 fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-    if code_ref_locals_option::option_i32_is_some(gc_type) {
-        let gc_type_v = code_ref_locals_option::option_i32_unwrap(gc_type)
-        let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-        let type_name = local_access::MirLocal_type_name(loc)
-        // Scalar MIR locals must stay numeric wasm locals. Refusing a poisoned
-        // inference (e.g. enclosing fn return vec:Struct → Struct) keeps
-        // Memory64 i32→i64 stores valid (#730 build_module_infos).
-        if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(clone(type_name), vt) &&
-        !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
-            return false
+    match gc_type {
+        Option::Some(gc_type_v) => {
+            let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+            let type_name = local_access::MirLocal_type_name(loc)
+            // Scalar MIR locals must stay numeric wasm locals. Refusing a poisoned
+            // inference (e.g. enclosing fn return vec:Struct → Struct) keeps
+            // Memory64 i32→i64 stores valid (#730 build_module_infos).
+            if code_ref_locals_infer_dest::is_scalar_get_unchecked_result(clone(type_name), vt) &&
+            !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
+                return false
+            }
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, gc_type_v)
+            return true
         }
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, gc_type_v)
-        return true
+        Option::None => {}
     }
     // Spine lookup fallback for types legacy inference can't handle
     let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)

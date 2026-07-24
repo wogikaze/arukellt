@@ -1,6 +1,5 @@
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
-// Do not match Option in functions that also take SelfEmitCtx (runtime trap).
 use mir::function_return_view
 use mir::post_pass_callee_lookup
 use mir::value_types
@@ -10,7 +9,6 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
-use wasm::code_ref_locals_option
 
 // Infer GC type for string-returning callees. Returns -1 if not a string callee.
 fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
@@ -47,8 +45,11 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     // / layout lookup can still report enum-open for user structs
     // (WitParsedInterface), which then types call-result locals incorrectly.
     let named_struct = resolve_named_struct_gc_type(ctx, clone(ret_name))
-    if code_ref_locals_option::option_i32_is_some(named_struct) {
-        return named_struct
+    match named_struct {
+        Option::Some(_opt_v) => {
+            return named_struct
+        }
+        Option::None => {}
     }
     // Phase 5e: structured lookup (GcLayoutTable + centralized name→offset
     // fallback) handles vec/string/hashmap/option/result/enum.
@@ -119,8 +120,11 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
         let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
-        if code_ref_locals_option::option_i32_is_some(named) {
-            return named
+        match named {
+            Option::Some(_opt_v) => {
+                return named
+            }
+            Option::None => {}
         }
         // Unknown GC ref without a registered struct name: do not guess the
         // 1-field size-class (collides with enum-open at base+2).
@@ -180,16 +184,25 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let string_type = infer_string_callee_gc_type(ctx, callee)
-    if code_ref_locals_option::option_i32_is_some(string_type) {
-        return string_type
+    match string_type {
+        Option::Some(_opt_v) => {
+            return string_type
+        }
+        Option::None => {}
     }
     let hm_type = infer_hashmap_callee_gc_type(ctx, callee)
-    if code_ref_locals_option::option_i32_is_some(hm_type) {
-        return hm_type
+    match hm_type {
+        Option::Some(_opt_v) => {
+            return hm_type
+        }
+        Option::None => {}
     }
     let builtin = infer_builtin_callee_gc_type(ctx, callee)
-    if code_ref_locals_option::option_i32_is_some(builtin) {
-        return builtin
+    match builtin {
+        Option::Some(_opt_v) => {
+            return builtin
+        }
+        Option::None => {}
     }
     infer_call_result_gc_type_from_fn(ctx, callee)
 }

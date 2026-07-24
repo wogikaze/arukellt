@@ -40,14 +40,16 @@ These `-1` (or other) encodings stay as-is:
 - `name_index` type cache (`type_idx+2`)
 - layout lookup helpers that still return `i32` (convert at the Option boundary)
 
-## SelfEmitCtx + Option match trap
+## Option match variant selection (fixed)
 
-Matching prelude `Option` inside a function that also has `SelfEmitCtx` in
-scope currently traps (`unreachable`) in the selfhost wasm emitter. Returns
-of `Option<i32>` from such functions are fine; convert via helpers in
-`code_ref_locals_option.ark` (`option_i32_is_some` / `option_i32_unwrap`)
-instead of `match` at the call site.
+Matching `Option` / `Result` inside functions that also take large GC structs
+(e.g. `SelfEmitCtx`) used to trap when wasm-GC match lowering picked the first
+`Option::Some` slot by name (`Option::Some(i32)` before `Option::Some(String)`).
 
-Cache API uses the same three-state contract as `Option<Option<i32>>`,
-exposed as `cached_infer_is_computed` + `cached_infer_as_option` over a
-private `Vec<i32>` encoding (`-2` / `-1` / `>=0`).
+Root fix (layout / payload selection by scrutinee `T`, typed slot exact match,
+`?Option:` param normalization) lands in MIR lower + wasm emit. Call sites may
+`match` prelude `Option` values directly; the former
+`code_ref_locals_option.ark` workaround is removed.
+
+Regression fixture:
+`tests/fixtures/stdlib_option_result/option_match_ctx_vec_payload.ark`.

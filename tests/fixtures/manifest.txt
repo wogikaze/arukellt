@@ -1127,6 +1127,7 @@ run:stdlib_option_result/option_map_square.ark
 run:stdlib_option_result/option_map_zero_to_zero.ark
 run:stdlib_option_result/option_match.ark
 run:stdlib_option_result/option_match_both_branches.ark
+run:stdlib_option_result/option_match_ctx_vec_payload.ark
 run:stdlib_option_result/option_match_exhaustive_check.ark
 run:stdlib_option_result/option_match_in_function.ark
 run:stdlib_option_result/option_match_none_branch.ark
@@ -2078,6 +2079,7 @@ t3-compile:stdlib_option_result/option_is_some_true.ark
 t3-compile:stdlib_option_result/option_map.ark
 t3-compile:stdlib_option_result/option_match.ark
 t3-compile:stdlib_option_result/option_match_both_branches.ark
+t3-compile:stdlib_option_result/option_match_ctx_vec_payload.ark
 t3-compile:stdlib_option_result/option_match_exhaustive_check.ark
 t3-compile:stdlib_option_result/option_match_in_function.ark
 t3-compile:stdlib_option_result/option_match_none_branch.ark

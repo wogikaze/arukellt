@@ -36,7 +36,9 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
         if starts_with(clone(local_type_name), String_from("vec:")) ||
         starts_with(clone(local_type_name), String_from("hashmap:")) ||
         starts_with(clone(local_type_name), String_from("Option_")) ||
-        starts_with(clone(local_type_name), String_from("option:")) {
+        starts_with(clone(local_type_name), String_from("option:")) ||
+        starts_with(clone(local_type_name), String_from("result:")) ||
+        starts_with(clone(local_type_name), String_from("Result_")) {
             pvt = value_types::VT_GC_REF()
         } else {
             if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
@@ -45,7 +47,15 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
             }
         }
     } else {
-        if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
+        if starts_with(clone(p_type_name), String_from("Option:")) {
+            mir_type_name = concat(String_from("option:"), substring(p_type_name, 7, len(p_type_name)))
+            sig_type_name = clone(mir_type_name)
+            pvt = value_types::VT_GC_REF()
+        } else if starts_with(clone(p_type_name), String_from("Result:")) {
+            mir_type_name = concat(String_from("result:"), substring(p_type_name, 7, len(p_type_name)))
+            sig_type_name = clone(mir_type_name)
+            pvt = value_types::VT_GC_REF()
+        } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(p_type_name)) {
             pvt = value_types::VT_GC_REF()
             sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
         } else {

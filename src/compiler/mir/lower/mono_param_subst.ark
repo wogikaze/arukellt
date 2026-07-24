@@ -70,6 +70,10 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
     if starts_with(clone(ty_name), String_from("option:")) || starts_with(clone(ty_name), String_from("Option:")) {
         let type_var = substring(clone(ty_name), 7, len(ty_name))
         if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(type_var)) {
+            // Concrete payloads still need the canonical option: prefix.
+            if starts_with(clone(ty_name), String_from("Option:")) {
+                mono_set_param_gc_type(ctx, p, concat(String_from("option:"), type_var))
+            }
             return true
         }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)
@@ -81,6 +85,9 @@ fn mono_subst_wrapped_param(ctx: LowerCtx, p: i32, ty_name: String, mono_suffix:
     if starts_with(clone(ty_name), String_from("?Option:")) {
         let type_var = substring(clone(ty_name), 8, len(ty_name))
         if !mono_suffix_parse::mono_elem_is_substitutable_type_var(clone(type_var)) {
+            // Already-concrete "?Option:String" must drop the generic marker
+            // so wasm emit does not treat the whole function as unreachable.
+            mono_set_param_gc_type(ctx, p, concat(String_from("option:"), type_var))
             return true
         }
         let concrete = resolve_concrete_type(ctx, clone(type_var), clone(mono_suffix), has_mono_map)

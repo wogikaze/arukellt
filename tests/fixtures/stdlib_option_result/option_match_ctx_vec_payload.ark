@@ -1,0 +1,52 @@
+use std::host::stdio
+use std::test
+
+// Regression: Option match must select the Some layout for the scrutinee
+// payload T, not the first Option::Some slot registered in a module that
+// also has Vec-heavy structs (SelfEmitCtx-shaped pollution).
+
+struct Ctx {
+    v0: Vec<i32>,
+    v1: Vec<i32>,
+    v2: Vec<i32>,
+    v3: Vec<i32>,
+}
+
+struct Inner {
+    n: i32,
+}
+
+fn match_opt_string(ctx: Ctx, o: Option<String>) -> i32 {
+    let _keep = len(ctx.v0) + len(ctx.v1) + len(ctx.v2) + len(ctx.v3)
+    match o {
+        Option::Some(s) => len(s) + _keep - _keep,
+        Option::None => 0,
+    }
+}
+
+fn match_opt_inner(ctx: Ctx, o: Option<Inner>) -> i32 {
+    let _keep = len(ctx.v0)
+    match o {
+        Option::Some(x) => x.n + _keep - _keep,
+        Option::None => 0,
+    }
+}
+
+fn main() {
+    let ctx = Ctx {
+        v0: Vec_new_i32(),
+        v1: Vec_new_i32(),
+        v2: Vec_new_i32(),
+        v3: Vec_new_i32(),
+    }
+    // Register Option::Some(i32) before String/Inner matches.
+    let _force_i32: Option<i32> = Some(1)
+    test::assert_eq_i32(match_opt_string(ctx, Some(String_from("ab"))), 2)
+    test::assert_eq_i32(match_opt_string(ctx, None), 0)
+    let inner = Inner {
+        n: 7,
+    }
+    test::assert_eq_i32(match_opt_inner(ctx, Some(inner)), 7)
+    test::assert_eq_i32(match_opt_inner(ctx, None), 0)
+    stdio::println("ok")
+}

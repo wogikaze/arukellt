@@ -6,11 +6,42 @@ use mir::lower::ctx_struct_field_type
 use mir::lower::match_payload_field_type
 use mir::value_types
 
-fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32) {
+fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_local: i32, bind_vt: i32, field_idx: i32, payload_type_name: String) {
     if bind_vt != value_types::VT_GC_REF() {
         return
     }
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    let field_type = if len(payload_type_name) > 0 {
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(payload_type_name))
+    } else {
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    }
+    // Prefer the scrutinee-derived payload type when layout lookup is ambiguous.
+    if len(payload_type_name) > 0 {
+        if eq(clone(payload_type_name), "String") || eq(clone(payload_type_name), "string") {
+            ctx_set_local_type(ctx, bind_local, String_from("string"))
+            return
+        }
+        let hint_vec = normalize_payload_vec_type_name(clone(payload_type_name))
+        if len(hint_vec) > 0 {
+            ctx_set_local_type(ctx, bind_local, hint_vec)
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+            return
+        }
+        if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(payload_type_name)) {
+            ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), payload_type_name))
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+            return
+        }
+        if !match_payload_field_type::mir_payload_scalar_type_name(clone(payload_type_name)) {
+            if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(payload_type_name)) >= 0 {
+                ctx_set_local_type(ctx, bind_local, clone(payload_type_name))
+            } else {
+                ctx_set_local_type(ctx, bind_local, clone(payload_type_name))
+            }
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+            return
+        }
+    }
     if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
         ctx_set_local_type(ctx, bind_local, String_from("string"))
         return

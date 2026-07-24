@@ -14,16 +14,35 @@ use mir::lower::ctx_struct_field_type
 use mir::value_types
 fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_i32: bool) {
     let variant_name = ast_node::node_text(pat)
+    let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+    let is_some_or_ok = match_payload_field_type::mir_match_variant_is_some_or_ok(clone(variant_name))
+    let is_err = match_payload_field_type::mir_match_variant_is_err(clone(variant_name))
+    let mut payload_hint = String_new()
+    if is_some_or_ok || is_err {
+        payload_hint = mir_payload_elem_type_from_scrut(clone(scrut_type), is_some_or_ok)
+    }
     let mut bi = 0
     while bi < ast_node::node_child_count(pat) {
         let bind_pat = ast_node::node_child_at(pat, bi)
-        let bind_vt = match_payload_field_type::mir_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64)
+        let hint_for_field = if bi == 0 {
+            clone(payload_hint)
+        } else {
+            String_new()
+        }
+        let bind_vt = match_payload_field_type::mir_payload_field_vt_for_payload(
+            ctx,
+            clone(variant_name),
+            bi,
+            scrut_ok_is_f64,
+            scrut_ok_is_i64,
+            clone(hint_for_field)
+        )
         let bind_local = ctx_alloc_local(ctx, ast_node::node_text(bind_pat), bind_vt)
         if bind_vt == value_types::VT_GC_REF() || match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), bi) {
             ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
-        match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
+        match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, clone(hint_for_field))
         match_payload_bind_types::set_i32_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi, scrut_ok_is_i32)
         // Infer concrete payload type from scrutinee type for Option/Result.
         if bi == 0 {
@@ -65,13 +84,28 @@ fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> 
         if starts_with(clone(scrut_type), String_from("Option_")) {
             return substring(scrut_type, 7, len(scrut_type))
         }
-        if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
+        if starts_with(clone(scrut_type), String_from("Option:")) {
+            return substring(scrut_type, 7, len(scrut_type))
+        }
+        if starts_with(clone(scrut_type), String_from("?Option:")) {
+            return substring(scrut_type, 8, len(scrut_type))
+        }
+        if starts_with(clone(scrut_type), String_from("Option<")) && ends_with(clone(scrut_type), String_from(">")) {
+            return substring(scrut_type, 7, len(scrut_type) - 1)
+        }
+        if starts_with(clone(scrut_type), String_from("Result_")) ||
+        starts_with(clone(scrut_type), String_from("result:")) ||
+        starts_with(clone(scrut_type), String_from("Result:")) ||
+        starts_with(clone(scrut_type), String_from("?Result:")) {
             return match_payload_bind_types::extract_first_result_type_param(scrut_type)
         }
         return String_new()
     }
     // Err payload is the second type parameter.
-    if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
+    if starts_with(clone(scrut_type), String_from("Result_")) ||
+    starts_with(clone(scrut_type), String_from("result:")) ||
+    starts_with(clone(scrut_type), String_from("Result:")) ||
+    starts_with(clone(scrut_type), String_from("?Result:")) {
         return match_payload_bind_types::extract_second_result_type_param(scrut_type)
     }
     String_new()
@@ -172,7 +206,14 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
         if !scalar_bind && match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
             effective_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-            match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, effective_vt, field_idx)
+            match_payload_bind_types::set_gc_payload_bind_type_if_needed(
+                ctx,
+                clone(variant_name),
+                bind_local,
+                effective_vt,
+                field_idx,
+                ctx_get_local_type(ctx, bind_local)
+            )
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }

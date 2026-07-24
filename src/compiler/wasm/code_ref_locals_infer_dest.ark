@@ -1,7 +1,6 @@
 // GC ref producer inference.
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
-// Do not match Option in functions that also take SelfEmitCtx (runtime trap).
 use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -19,7 +18,6 @@ use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
 use wasm::sections_types_gc
-use wasm::code_ref_locals_option
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
@@ -94,11 +92,13 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
         return Option::None
     }
     let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(elem))
-    if code_ref_locals_option::option_i32_is_some(named) {
-        let named_v = code_ref_locals_option::option_i32_unwrap(named)
-        if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-            return named
+    match named {
+        Option::Some(named_v) => {
+            if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return named
+            }
         }
+        Option::None => {}
     }
     Option::None
 }
@@ -124,11 +124,13 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
                         if function_param_view::MirFunction_param_count(called) > 0 {
                             let pname = function_param_view::MirFunction_param_type_name(called, 0)
                             let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
-                            if code_ref_locals_option::option_i32_is_some(named) {
-                                let named_v = code_ref_locals_option::option_i32_unwrap(named)
-                                if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                    return named
+                            match named {
+                                Option::Some(named_v) => {
+                                    if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                        return named
+                                    }
                                 }
+                                Option::None => {}
                             }
                         }
                     }
@@ -217,11 +219,13 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                                     if !starts_with(clone(pname), String_from("vec:")) &&
                                     !starts_with(clone(pname), String_from("Vec")) {
                                         let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
-                                        if code_ref_locals_option::option_i32_is_some(named) {
-                                            let named_v = code_ref_locals_option::option_i32_unwrap(named)
-                                            if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                                return named
+                                        match named {
+                                            Option::Some(named_v) => {
+                                                if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                                    return named
+                                                }
                                             }
+                                            Option::None => {}
                                         }
                                     }
                                 }
@@ -329,36 +333,49 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             // Prefer the vec receiver's element type over a poisoned String dest
             // (get_unchecked__String mono / sticky type_name) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
-            if code_ref_locals_option::option_i32_is_some(from_vec) {
-                return from_vec
+            match from_vec {
+                Option::Some(_opt_v) => {
+                    return from_vec
+                }
+                Option::None => {}
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
-            if code_ref_locals_option::option_i32_is_some(from_use) {
-                return from_use
+            match from_use {
+                Option::Some(_opt_v) => {
+                    return from_use
+                }
+                Option::None => {}
             }
             let from_next = infer_get_unchecked_elem_from_next_call(f, inst, ctx)
-            if code_ref_locals_option::option_i32_is_some(from_next) {
-                return from_next
+            match from_next {
+                Option::Some(_opt_v) => {
+                    return from_next
+                }
+                Option::None => {}
             }
             if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
                 return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
             }
             let named_dest = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(dest_tn))
-            if code_ref_locals_option::option_i32_is_some(named_dest) {
-                let named_dest_v = code_ref_locals_option::option_i32_unwrap(named_dest)
-                if named_dest_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                    return named_dest
+            match named_dest {
+                Option::Some(named_dest_v) => {
+                    if named_dest_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                        return named_dest
+                    }
                 }
+                Option::None => {}
             }
             let ret_name = function_return_view::MirFunction_return_type_name(f)
             if !is_container_return_type_name(clone(ret_name)) {
                 // Bare struct return only — never strip vec:Elem → Elem.
                 let named_ret = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(ret_name))
-                if code_ref_locals_option::option_i32_is_some(named_ret) {
-                    let named_ret_v = code_ref_locals_option::option_i32_unwrap(named_ret)
-                    if named_ret_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                        return named_ret
+                match named_ret {
+                    Option::Some(named_ret_v) => {
+                        if named_ret_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                            return named_ret
+                        }
                     }
+                    Option::None => {}
                 }
             }
             // Skip mono/intrinsic call-result fallback (often string); scalars
@@ -366,8 +383,11 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             return Option::None
         }
         let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, clone(callee))
-        if code_ref_locals_option::option_i32_is_some(call_type) {
-            return call_type
+        match call_type {
+            Option::Some(_opt_v) => {
+                return call_type
+            }
+            Option::None => {}
         }
     }
     if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {

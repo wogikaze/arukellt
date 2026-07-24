@@ -5,7 +5,14 @@ use mir::lower::ctx_struct_layout
 
 fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, field_idx: i32, bind_local: i32) -> String {
     let mut bind_type_name = ctx_get_local_type(ctx, bind_local)
-    let layout_ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    // When the bind already has a concrete payload type (from scrutinee
+    // inference), select the matching Option/Result layout instead of the
+    // first same-named Some/Ok/Err registration.
+    let layout_ft = if len(bind_type_name) > 0 && !eq(clone(bind_type_name), String_from("enum:open")) {
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(bind_type_name))
+    } else {
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    }
     let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
     let mut layout_vec = String_new()
     if starts_with(clone(layout_norm), String_from("vec:")) {

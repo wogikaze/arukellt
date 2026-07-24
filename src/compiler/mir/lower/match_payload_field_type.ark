@@ -4,7 +4,38 @@ use mir::lower::ctx_types
 use mir::value_types
 
 fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool) -> i32 {
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    mir_payload_field_vt_for_payload(ctx, variant_name, field_idx, scrut_ok_is_f64, scrut_ok_is_i64, String_new())
+}
+
+fn mir_payload_field_vt_for_payload(
+    ctx: LowerCtx,
+    variant_name: String,
+    field_idx: i32,
+    scrut_ok_is_f64: bool,
+    scrut_ok_is_i64: bool,
+    payload_type_name: String
+) -> i32 {
+    let field_type = if len(payload_type_name) > 0 {
+        ctx_struct_field_type::ctx_struct_field_type_name_for_payload(ctx, clone(variant_name), field_idx + 1, clone(payload_type_name))
+    } else {
+        ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    }
+    // Scrutinee-derived Option/Result payload types must win over a stale
+    // first-name Option::Some(i32) layout when selecting the bind VT.
+    if len(payload_type_name) > 0 && field_idx == 0 {
+        if mir_payload_type_name_is_gc_ref_payload(clone(payload_type_name)) {
+            return value_types::VT_GC_REF()
+        }
+        if eq(clone(payload_type_name), String_from("f64")) || eq(clone(payload_type_name), String_from("F64")) {
+            return value_types::VT_F64()
+        }
+        if eq(clone(payload_type_name), String_from("i64")) || eq(clone(payload_type_name), String_from("I64")) {
+            return value_types::VT_I64()
+        }
+        if mir_payload_scalar_type_name(clone(payload_type_name)) {
+            return value_types::VT_I32()
+        }
+    }
     if ctx_struct_field_type::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), field_idx + 1) {
         return value_types::VT_GC_REF()
     }
@@ -38,16 +69,39 @@ fn mir_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scr
     value_types::VT_I32()
 }
 
-fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
-    let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
-    if slot < 0 {
+fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return true
+    }
+    if mir_payload_scalar_type_name(clone(type_name)) {
         return false
     }
-    let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
-    if field_idx == 0 {
-        if contains(clone(sig), String_from("_f1_ref")) {
-            return true
+    if len(type_name) == 0 {
+        return false
+    }
+    true
+}
+
+fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i32) -> bool {
+    // Walk all same-named slots; the first Option::Some may be scalar while a
+    // later registration holds the ref payload used by this match.
+    let count = len(ctx.gc_enum_variant_names)
+    let mut i = 0
+    let mut saw_name = false
+    while i < count {
+        if ctx_gc_enum::ctx_gc_enum_variant_names_match(clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(variant_name)) {
+            saw_name = true
+            let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
+            if field_idx == 0 {
+                if contains(clone(sig), String_from("_f1_ref")) || contains(clone(sig), String_from("gcsref")) {
+                    return true
+                }
+            }
         }
+        i = i + 1
+    }
+    if saw_name {
+        return false
     }
     false
 }

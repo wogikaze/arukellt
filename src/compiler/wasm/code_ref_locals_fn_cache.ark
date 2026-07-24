@@ -5,7 +5,6 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::code_ref_locals_scan
-use wasm::code_ref_locals_option
 use wasm::ctx_record
 //
 // Per-function caches for GC local inference during emit (#829).
@@ -430,11 +429,13 @@ fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }
-    // Do not match Option here — SelfEmitCtx in scope traps at runtime.
-    if code_ref_locals_option::option_i32_is_some(value) {
-        set(cache, local_idx, code_ref_locals_option::option_i32_unwrap(value))
-    } else {
-        set(cache, local_idx, infer_cache_miss())
+    match value {
+        Option::Some(v) => {
+            set(cache, local_idx, v)
+        }
+        Option::None => {
+            set(cache, local_idx, infer_cache_miss())
+        }
     }
 }
 

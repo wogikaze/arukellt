@@ -12,7 +12,6 @@ use wasm::emit_target
 use wasm::ctx_record
 use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals
-use wasm::code_ref_locals_option
 use mir::value_types
 
 fn emit_local_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -47,8 +46,11 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
         // Fallback to storage inference (which may use the instruction tracer
         // as a last resort for complex cases like stack-based LOCAL_SET chains)
         let inferred = code_ref_locals::infer_ref_local_gc_type(f, dest, ctx)
-        if code_ref_locals_option::option_i32_is_some(inferred) {
-            dest_gc = code_ref_locals_option::option_i32_unwrap(inferred)
+        match inferred {
+            Option::Some(_opt_v) => {
+                dest_gc = _opt_v
+            }
+            Option::None => {}
         }
     }
     if dest_gc >= 0 {
