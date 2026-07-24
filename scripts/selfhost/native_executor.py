@@ -603,7 +603,9 @@ def run_native_executor(
         return 1, toolchain
     receipt["clang_version"] = toolchain
 
-    compile_flags = ["-std=c99", "-O3", "-flto", "-DNDEBUG"]
+    # Avoid -flto on the ~50MiB generated compiler.c: link time heats the host
+    # and has not improved warm S3 wall on this lane.
+    compile_flags = ["-std=c99", "-O3", "-DNDEBUG"]
     link_flags: list[str] = []
     key = _cache_key(
         root, s2_runtime, clang_path, toolchain, compile_flags, link_flags, profile
