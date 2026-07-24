@@ -167,9 +167,10 @@ def _timed_run(
                     smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
             except OSError:
                 pass
-            # smaps_rollup on a multi-GiB native compile is expensive; keep this
-            # as a coarse peak probe. `/usr/bin/time %M` remains the RSS gate.
-            time.sleep(1.0)
+            # smaps_rollup on a multi-GiB native compile is expensive and can
+            # perturb the child on some hosts; keep a coarse probe only.
+            # `/usr/bin/time %M` remains the RSS gate.
+            time.sleep(5.0)
         returncode = proc.wait()
     stdout = stdout_path.read_text(encoding="utf-8", errors="replace")
     stderr = stderr_path.read_text(encoding="utf-8", errors="replace")
@@ -602,7 +603,7 @@ def run_native_executor(
         return 1, toolchain
     receipt["clang_version"] = toolchain
 
-    compile_flags = ["-std=c99", "-O3"]
+    compile_flags = ["-std=c99", "-O3", "-flto", "-DNDEBUG"]
     link_flags: list[str] = []
     key = _cache_key(
         root, s2_runtime, clang_path, toolchain, compile_flags, link_flags, profile

@@ -12,6 +12,8 @@
 
 /* ark_rt_trap is defined later; table helpers need it early. */
 void ark_rt_trap(void);
+static void ark_gc_page_inc(const void *pointer);
+static void ark_gc_page_dec(const void *pointer);
 
 typedef struct ark_arena_chunk {
     struct ark_arena_chunk *next;
@@ -43,6 +45,20 @@ static ark_gc_frame *ark_gc_frame_free;
 static ark_gc_allocation **ark_gc_object_table;
 static size_t ark_gc_object_table_cap;
 static size_t ark_gc_object_table_len;
+typedef struct {
+    uintptr_t key; /* 0 empty, UINTPTR_MAX tomb, else addr>>12 */
+    uint32_t count;
+} ark_gc_page_slot;
+#define ARK_GC_PAGE_EMPTY ((uintptr_t)0)
+#define ARK_GC_PAGE_TOMB ((uintptr_t)UINTPTR_MAX)
+static ark_gc_page_slot *ark_gc_page_map;
+static size_t ark_gc_page_map_cap;
+static size_t ark_gc_page_map_len;
+static size_t ark_gc_page_map_tombs;
+static uint64_t ark_gc_page_map_misses;
+/* Non-zero epoch; objects with mark==epoch are black. Avoids O(heap) clear. */
+static uint8_t ark_gc_mark_epoch;
+static size_t ark_gc_heap_len;
 static uint64_t ark_requested_bytes;
 static uint64_t ark_committed_bytes;
 static uint64_t ark_live_bytes;
@@ -132,7 +148,9 @@ static void ark_gc_write_stats_file(void) {
     if (path == NULL || path[0] == '\0') return;
     FILE *out = fopen(path, "w");
     if (out == NULL) return;
-    uint64_t table_bytes = (uint64_t)ark_gc_object_table_cap * (uint64_t)sizeof(ark_gc_allocation *);
+    uint64_t table_bytes =
+        (uint64_t)ark_gc_object_table_cap * (uint64_t)sizeof(ark_gc_allocation *) +
+        (uint64_t)ark_gc_page_map_cap * (uint64_t)sizeof(ark_gc_page_slot);
     ark_gc_root_frame_bytes = ark_gc_measure_root_frame_bytes();
     fprintf(
         out,
@@ -203,9 +221,10 @@ static void ark_gc_write_stats_file(void) {
 #define ARK_GC_KIND_STRUCT 3u
 #define ARK_GC_SIZE_FREE_LIMIT_DEFAULT (48ull * 1024ull * 1024ull)
 /* Soft budget for accounted heap buffers (leaves headroom under 2.4 GiB RSS).
- * Measured: 1700 MiB accounted still peaked ~2.8 GiB RSS with live*1.0. */
-#define ARK_GC_RSS_SOFT_LIMIT_DEFAULT (1100ull * 1024ull * 1024ull)
-#define ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT (1650ull * 1024ull * 1024ull)
+ * Measured: freelist+mark-stack overhead sits above accounted bytes; keep soft
+ * limits below the dual gate so peak RSS stays <= 2.4 GiB. */
+#define ARK_GC_RSS_SOFT_LIMIT_DEFAULT (1180ull * 1024ull * 1024ull)
+#define ARK_GC_COMMITTED_SOFT_LIMIT_DEFAULT (1580ull * 1024ull * 1024ull)
 /* reserved[1..4] hold a little-endian magic used for membership without a hash table. */
 #define ARK_GC_HEADER_MAGIC 0xA4C9D17Bu
 
@@ -240,6 +259,7 @@ static void ark_gc_size_free_release_excess(void) {
             if (ark_gc_size_free_bytes >= total) ark_gc_size_free_bytes -= total;
             else ark_gc_size_free_bytes = 0;
             if (ark_committed_bytes >= total) ark_committed_bytes -= total;
+            ark_gc_page_dec(node);
             free(node);
             freed_any = 1;
             break;
@@ -249,14 +269,23 @@ static void ark_gc_size_free_release_excess(void) {
 }
 
 static void ark_gc_size_free_push(ark_gc_allocation *node) {
+    size_t total = sizeof(ark_gc_allocation) + node->allocation_size;
+    /* Prefer recycling through the size-class freelist for mutator speed.
+     * When the cap is already saturated, free immediately (O(1)) instead of
+     * scanning release_excess() once per reclaimed object. */
+    if (ark_gc_size_free_bytes + total > ark_gc_size_free_limit_bytes) {
+        if (ark_committed_bytes >= total) ark_committed_bytes -= total;
+        ark_gc_page_dec(node);
+        free(node);
+        return;
+    }
     int cls = ark_gc_size_class_for(node->allocation_size);
     node->mark = 0;
     memset(node->reserved, 0, sizeof(node->reserved));
     /* Magic cleared with reserved[] so freelist nodes are not mistaken for live objects. */
     node->next = ark_gc_size_free[cls];
     ark_gc_size_free[cls] = node;
-    ark_gc_size_free_bytes += sizeof(ark_gc_allocation) + node->allocation_size;
-    ark_gc_size_free_release_excess();
+    ark_gc_size_free_bytes += total;
 }
 
 static size_t ark_gc_round_alloc_size(size_t size) {
@@ -308,6 +337,122 @@ static int ark_gc_header_has_magic(const ark_gc_allocation *header) {
     uint32_t magic = 0;
     memcpy(&magic, &header->reserved[1], sizeof(magic));
     return magic == ARK_GC_HEADER_MAGIC;
+}
+
+static size_t ark_gc_hash_uptr(uintptr_t value) {
+    value ^= value >> 30;
+    value *= (uintptr_t)0xbf58476d1ce4e5b9ULL;
+    value ^= value >> 27;
+    return (size_t)value;
+}
+
+static uintptr_t ark_gc_page_key(const void *pointer) {
+    return ((uintptr_t)pointer) >> 12;
+}
+
+static void ark_gc_page_rehash(size_t new_cap) {
+    ark_gc_page_slot *fresh = calloc(new_cap, sizeof(*fresh));
+    if (fresh == NULL) ark_rt_trap();
+    size_t mask = new_cap - 1u;
+    size_t len = 0;
+    if (ark_gc_page_map != NULL) {
+        for (size_t i = 0; i < ark_gc_page_map_cap; i += 1) {
+            uintptr_t key = ark_gc_page_map[i].key;
+            if (key == ARK_GC_PAGE_EMPTY || key == ARK_GC_PAGE_TOMB) continue;
+            size_t slot = ark_gc_hash_uptr(key) & mask;
+            while (fresh[slot].key != ARK_GC_PAGE_EMPTY) slot = (slot + 1u) & mask;
+            fresh[slot].key = key;
+            fresh[slot].count = ark_gc_page_map[i].count;
+            len += 1;
+        }
+        free(ark_gc_page_map);
+    }
+    ark_gc_page_map = fresh;
+    ark_gc_page_map_cap = new_cap;
+    ark_gc_page_map_len = len;
+    ark_gc_page_map_tombs = 0;
+}
+
+static void ark_gc_page_ensure_load(void) {
+    size_t occupied = ark_gc_page_map_len + ark_gc_page_map_tombs;
+    if (ark_gc_page_map_cap == 0) {
+        ark_gc_page_rehash(1024u);
+        return;
+    }
+    if ((occupied + 1u) * 2u <= ark_gc_page_map_cap) return;
+    size_t next = ark_gc_page_map_cap * 2u;
+    ark_gc_page_rehash(next);
+}
+
+static void ark_gc_page_inc(const void *pointer) {
+    if (pointer == NULL) return;
+    uintptr_t key = ark_gc_page_key(pointer);
+    if (key == ARK_GC_PAGE_EMPTY) return;
+    ark_gc_page_ensure_load();
+    size_t mask = ark_gc_page_map_cap - 1u;
+    size_t slot = ark_gc_hash_uptr(key) & mask;
+    size_t tomb = (size_t)-1;
+    for (;;) {
+        uintptr_t present = ark_gc_page_map[slot].key;
+        if (present == key) {
+            ark_gc_page_map[slot].count += 1u;
+            return;
+        }
+        if (present == ARK_GC_PAGE_EMPTY) {
+            size_t dest = tomb != (size_t)-1 ? tomb : slot;
+            if (ark_gc_page_map[dest].key == ARK_GC_PAGE_TOMB) ark_gc_page_map_tombs -= 1u;
+            else ark_gc_page_map_len += 1u;
+            ark_gc_page_map[dest].key = key;
+            ark_gc_page_map[dest].count = 1u;
+            return;
+        }
+        if (present == ARK_GC_PAGE_TOMB && tomb == (size_t)-1) tomb = slot;
+        slot = (slot + 1u) & mask;
+    }
+}
+
+static void ark_gc_page_dec(const void *pointer) {
+    if (pointer == NULL || ark_gc_page_map_cap == 0) return;
+    uintptr_t key = ark_gc_page_key(pointer);
+    size_t mask = ark_gc_page_map_cap - 1u;
+    size_t slot = ark_gc_hash_uptr(key) & mask;
+    for (;;) {
+        uintptr_t present = ark_gc_page_map[slot].key;
+        if (present == ARK_GC_PAGE_EMPTY) return;
+        if (present == key) {
+            if (ark_gc_page_map[slot].count > 1u) {
+                ark_gc_page_map[slot].count -= 1u;
+                return;
+            }
+            ark_gc_page_map[slot].key = ARK_GC_PAGE_TOMB;
+            ark_gc_page_map[slot].count = 0;
+            ark_gc_page_map_len -= 1u;
+            ark_gc_page_map_tombs += 1u;
+            return;
+        }
+        slot = (slot + 1u) & mask;
+    }
+}
+
+static int ark_gc_page_has(const void *pointer) {
+    if (pointer == NULL || ark_gc_page_map_cap == 0) return 0;
+    uintptr_t key = ark_gc_page_key(pointer);
+    size_t mask = ark_gc_page_map_cap - 1u;
+    size_t slot = ark_gc_hash_uptr(key) & mask;
+    for (;;) {
+        uintptr_t present = ark_gc_page_map[slot].key;
+        if (present == ARK_GC_PAGE_EMPTY) return 0;
+        if (present == key) return ark_gc_page_map[slot].count > 0u;
+        slot = (slot + 1u) & mask;
+    }
+}
+
+static size_t ark_gc_page_verify_heap(void) {
+    size_t misses = 0;
+    for (ark_gc_allocation *node = ark_gc_heap_head; node != NULL; node = node->next) {
+        if (!ark_gc_page_has(node)) misses += 1u;
+    }
+    return misses;
 }
 
 static ark_gc_allocation *ark_gc_header_if_heap_object(void *object) {
@@ -385,13 +530,22 @@ static void ark_gc_table_insert(ark_gc_allocation *header) {
 }
 
 static ark_gc_allocation *ark_gc_table_find(void *object) {
-    if (object == NULL || ark_gc_object_table_cap == 0) return NULL;
+    if (object == NULL) return NULL;
+    uintptr_t address = (uintptr_t)object;
+    if ((address & 7u) != 0u || address < 4096u) return NULL;
+    ark_gc_allocation *header = ark_gc_header_from_object(object);
+    if (ark_gc_page_has(header)) {
+        if (ark_gc_header_has_magic(header)) return header;
+        return NULL;
+    }
+    /* Fallback path when page-map is incomplete (should be rare). */
+    if (ark_gc_object_table_cap == 0) return NULL;
     size_t mask = ark_gc_object_table_cap - 1u;
     size_t slot = ark_gc_hash_ptr(object) & mask;
     for (;;) {
-        ark_gc_allocation *header = ark_gc_object_table[slot];
-        if (header == NULL) return NULL;
-        if (ark_gc_object_from_header(header) == object) return header;
+        ark_gc_allocation *present = ark_gc_object_table[slot];
+        if (present == NULL) return NULL;
+        if (ark_gc_object_from_header(present) == object) return present;
         slot = (slot + 1u) & mask;
     }
 }
@@ -522,8 +676,8 @@ static void ark_gc_mark_stack_ensure(size_t need) {
 static void ark_gc_mark_push(size_t *len, ark_object_header *object) {
     if (object == NULL) return;
     ark_gc_allocation *header = ark_gc_table_find(object);
-    if (header == NULL || header->mark) return;
-    header->mark = 1;
+    if (header == NULL || header->mark == ark_gc_mark_epoch) return;
+    header->mark = ark_gc_mark_epoch;
     ark_gc_mark_stack_ensure(*len + 1u);
     ark_gc_mark_stack[*len] = object;
     *len += 1u;
@@ -595,20 +749,42 @@ void ark_gc_collect(void) {
     ark_gc_collecting = 1;
     ark_collection_count += 1;
 
-    /* Mutator does not maintain membership; clear marks while rebuilding. */
-    uint64_t rebuild_started = ark_gc_now_ns();
-    size_t heap_before = 0;
-    for (ark_gc_allocation *count_node = ark_gc_heap_head;
-         count_node != NULL;
-         count_node = count_node->next) {
-        heap_before += 1u;
-        count_node->mark = 0;
+    /* Advance mark epoch instead of clearing every object (was O(heap)). */
+    ark_gc_mark_epoch = (uint8_t)(ark_gc_mark_epoch + 1u);
+    if (ark_gc_mark_epoch == 0) {
+        for (ark_gc_allocation *clear_node = ark_gc_heap_head;
+             clear_node != NULL;
+             clear_node = clear_node->next) {
+            clear_node->mark = 0;
+        }
+        ark_gc_mark_epoch = 1;
     }
+    size_t heap_before = ark_gc_heap_len;
     if ((uint64_t)heap_before > ark_gc_max_heap_objects_before_collection) {
         ark_gc_max_heap_objects_before_collection = (uint64_t)heap_before;
     }
-    ark_gc_table_rebuild_from_heap_count(heap_before);
-    ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
+    {
+        const char *verify = getenv("ARUKELLT_NATIVE_GC_VERIFY_PAGE_MAP");
+        size_t misses = 0;
+        if (verify != NULL && verify[0] == '1') {
+            misses = ark_gc_page_verify_heap();
+            ark_gc_page_map_misses += (uint64_t)misses;
+        }
+        if (misses != 0) {
+            uint64_t rebuild_started = ark_gc_now_ns();
+            ark_gc_table_rebuild_from_heap_count(heap_before);
+            ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
+            fprintf(
+                stderr,
+                "native-cpp GC: page-map miss=%zu heap=%zu; fell back to table rebuild\n",
+                misses,
+                heap_before
+            );
+        } else {
+            /* Mark uses page-map+magic; object-table stays unused. */
+            ark_gc_object_table_len = heap_before;
+        }
+    }
 
     uint64_t root_started = ark_gc_now_ns();
     uint64_t slots_scanned = ark_gc_mark_roots();
@@ -627,7 +803,7 @@ void ark_gc_collect(void) {
     ark_gc_allocation *node = ark_gc_heap_head;
     while (node != NULL) {
         ark_gc_allocation *next = node->next;
-        if (node->mark) {
+        if (node->mark == ark_gc_mark_epoch) {
             node->next = live_head;
             live_head = node;
             live += node->allocation_size;
@@ -651,6 +827,7 @@ void ark_gc_collect(void) {
     }
     ark_gc_total_sweep_time_ns += ark_gc_now_ns() - sweep_started;
     ark_gc_heap_head = live_head;
+    ark_gc_heap_len = live_count;
     ark_gc_object_table_len = live_count;
     ark_gc_total_marked_objects += (uint64_t)live_count;
     if ((uint64_t)live_count > ark_gc_max_marked_objects_per_collection) {
@@ -660,11 +837,13 @@ void ark_gc_collect(void) {
         ark_gc_max_heap_objects_after_collection = (uint64_t)live_count;
     }
 
-    /* Keep table capacity for reuse; clear contents so mutator stays off-table. */
-    rebuild_started = ark_gc_now_ns();
-    ark_gc_table_clear();
+    /* Page-map is SSOT for membership; drop any emergency object-table. */
+    if (ark_gc_object_table != NULL) {
+        free(ark_gc_object_table);
+        ark_gc_object_table = NULL;
+        ark_gc_object_table_cap = 0;
+    }
     ark_gc_object_table_len = live_count;
-    ark_gc_total_table_rebuild_time_ns += ark_gc_now_ns() - rebuild_started;
 
     ark_live_bytes = live;
     ark_reclaimed_bytes += reclaimed;
@@ -672,8 +851,8 @@ void ark_gc_collect(void) {
     if (ark_gc_threshold_override != 0) {
         ark_gc_threshold_bytes = ark_gc_threshold_override;
     } else {
-        /* live*5/4 + soft-limits: measured warm≈381s / RSS≈2.39 GiB. */
-        ark_gc_threshold_bytes = live + (live / 4ull);
+        /* live*2 under soft RSS/committed caps: fewer full-heap sweeps. */
+        ark_gc_threshold_bytes = live * 2ull;
         if (ark_gc_threshold_bytes < ARK_GC_INITIAL_THRESHOLD) {
             ark_gc_threshold_bytes = ARK_GC_INITIAL_THRESHOLD;
         }
@@ -823,12 +1002,16 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
         header = (ark_gc_allocation *)block;
         ark_committed_bytes += total;
         header->allocation_size = rounded;
+        ark_gc_page_inc(header);
+    } else {
+        /* Freelist reuse: page membership remains from the original malloc. */
     }
     header->next = ark_gc_heap_head;
     header->mark = 0;
     memset(header->reserved, 0, sizeof(header->reserved));
     ark_gc_header_set_magic(header);
     ark_gc_heap_head = header;
+    ark_gc_heap_len += 1u;
     ark_requested_bytes += size;
     /* Charge the rounded slab size so soft-limit accounting matches sweep. */
     ark_gc_bytes_since_collection += rounded;
@@ -867,6 +1050,13 @@ void ark_rt_init(int argc, char **argv) {
     ark_gc_object_table = NULL;
     ark_gc_object_table_cap = 0;
     ark_gc_object_table_len = 0;
+    ark_gc_page_map = NULL;
+    ark_gc_page_map_cap = 0;
+    ark_gc_page_map_len = 0;
+    ark_gc_page_map_tombs = 0;
+    ark_gc_page_map_misses = 0;
+    ark_gc_mark_epoch = 1;
+    ark_gc_heap_len = 0;
     ark_requested_bytes = 0;
     ark_committed_bytes = 0;
     ark_live_bytes = 0;
@@ -922,6 +1112,7 @@ void ark_rt_shutdown(void) {
     while (node != NULL) {
         ark_gc_allocation *next = node->next;
         ark_gc_free_side_buffers((ark_object_header *)ark_gc_object_from_header(node));
+        ark_gc_page_dec(node);
         free(node);
         node = next;
     }
@@ -935,6 +1126,7 @@ void ark_rt_shutdown(void) {
         ark_gc_allocation *free_node = ark_gc_size_free[cls];
         while (free_node != NULL) {
             ark_gc_allocation *next = free_node->next;
+            ark_gc_page_dec(free_node);
             free(free_node);
             free_node = next;
         }
@@ -951,6 +1143,11 @@ void ark_rt_shutdown(void) {
     ark_gc_object_table = NULL;
     ark_gc_object_table_cap = 0;
     ark_gc_object_table_len = 0;
+    free(ark_gc_page_map);
+    ark_gc_page_map = NULL;
+    ark_gc_page_map_cap = 0;
+    ark_gc_page_map_len = 0;
+    ark_gc_page_map_tombs = 0;
 }
 
 void ark_rt_trap(void) {
