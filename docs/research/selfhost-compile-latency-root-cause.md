@@ -5,7 +5,7 @@
 
 - [#730](../../issues/open/730-bootstrap-wasm-4gb-memory-limit.md) — Memory64 / fixpoint green（計測入口を含む）
 - [#823](../../issues/open/823-selfhost-compile-latency-quadratic-mir.md) — quadratic MIR P0 + reachability BFS（コード landed）
-- [#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md) — **次テーマ**: phase re-profile と dominant hotspot 除去
+- [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md) — phase re-profile + dominant hotspot 除去（**done**, emit.locals 半減）
 - 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)、[#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/open/827-phase-arena-after-heap-model.md)
 
 ## 方針（2026-07-20）
@@ -194,14 +194,14 @@ AOT/overlay は秒〜十数秒級。十〜二十分級 stage-3 の主因では�
 
 1. mem64 / `selfhost fixpoint --build` を green にする（#730 / #813）— **完了（2026-07-24）**
 2. `ARUKELLT_OVERLAY_KEEP_CLOCK=1` で生成した s2 が `wasm-tools validate` に通り、`--time` が実時間を出す — **完了（2026-07-21）**
-3. 23.5 分級 workload の **phase receipt** を確定する（壁 + 境界 RSS）
-4. 最大フェーズを半減させる（候補は計測後に選ぶ。既定で #824 にしない）
-5. stage-3 cold をまず **5 分未満**、その後 **2 分未満**
-6. （別段階）module cache 等で通常の編集反復を数秒へ
+3. 23.5 分級 workload の **phase receipt** を確定する — **完了（2026-07-24）**
+4. 最大フェーズ半減（`emit.code.locals` 13.6 s → 2.8 s）— **完了（2026-07-24）**
+5. stage-3 cold **5 分未満** / **2 分未満** — **完了**（≈33 s）
+6. （別段階）module cache 等で通常の編集反復を数秒へ — 未着手
+7. （follow-up）`lower.reachability` ≈13 s の再プロファイル
 
 ## 計測ギャップ
 
 1. Overlay stub 経路の `--time` は意図的に 0ms（KEEP_CLOCK 経路で実時間を取る）
 2. `MIR_LOWER_TRACE=1` は関数ごと出力で selfhost には不適
 3. 並列 `fixpoint --build` は receipt を汚染する（同時コンパイル数を記録すること）
-4. phase receipt / #829 開始には、なお `selfhost fixpoint --build` green が必要
