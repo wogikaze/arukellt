@@ -194,5 +194,5 @@ fixture が通った後の ADR-029 gate として使い、日常の rebuild に�
 - [ADR-040: Semantic Type Spine](../adr/ADR-040-typed-mir-signature-registry.md)
 - [RFC-007: Memory64 GC レイアウトと WASI P2 境界](../rfcs/007-memory64-gc-layout-and-wasi-boundary.md)
 - [残存 validation failure 調査](../research/memory64-validate-fail-10.md)
-- [Issue #808](../../issues/open/808-t3-wasm-validation-failures.md)
+- [Issue #808](../../issues/done/808-t3-wasm-validation-failures.md)
 - [Issue #714](../../issues/open/714-wasi-p2-emitter-native-component-output.md)

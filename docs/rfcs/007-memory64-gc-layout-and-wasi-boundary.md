@@ -5,7 +5,7 @@
 関連 ADR: [ADR-035](../adr/ADR-035-wasm-gc-implementation.md)（ACCEPTED） /
 [ADR-040](../adr/ADR-040-typed-mir-signature-registry.md)（ACCEPTED）
 
-関連 issue: [#808](../../issues/open/808-t3-wasm-validation-failures.md) /
+関連 issue: [#808](../../issues/done/808-t3-wasm-validation-failures.md) /
 [#714](../../issues/open/714-wasi-p2-emitter-native-component-output.md)
 
 提案日: 2026-07-18

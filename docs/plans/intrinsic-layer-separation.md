@@ -258,4 +258,4 @@ python3 scripts/manager.py verify quick
 - [ADR-040: Semantic Type Spine](../adr/ADR-040-typed-mir-signature-registry.md)
 - [ADR-037: std::simd](../adr/ADR-037-std-simd.md)
 - RFC-003: NaN semantics (planned)
-- [issue #808: T3/Wasm validation failures](../../issues/open/808-t3-wasm-validation-failures.md)
+- [issue #808: T3/Wasm validation failures](../../issues/done/808-t3-wasm-validation-failures.md)

@@ -52,13 +52,13 @@ graph LR
   I810["810 810 — Component interop failures"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
+  I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
-  I808["808 808 — T3/Wasm validation failures"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
@@ -77,9 +77,7 @@ graph LR
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
-  I829["829 Selfhost latency: phase re-profile and dominant-hotspot removal"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
-  I824["824 Early body lowering (worklist; design first)"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
   I31["31 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -88,7 +86,6 @@ graph LR
   I686 --> I698
   I649 --> I698
   I686 --> I801
-  I686 --> I808
   I690 --> I694
   I691 --> I697
   I695 --> I697
@@ -117,11 +114,9 @@ graph LR
   I819 --> I818
   I822 --> I818
   I730 --> I827
-  I730 --> I829
   I681 --> I711
   I709 --> I711
   I710 --> I711
-  I829 --> I824
   I709 --> I712
   I711 --> I712
   I709 --> I713
@@ -151,7 +146,7 @@ graph LR
 - **681** depends on: 679; blocks: 711
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
-- **686** depends on: none; blocks: 698, 801, 808
+- **686** depends on: none; blocks: 698, 801
 - **690** depends on: 688; blocks: 694
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **693** depends on: 688, 692; blocks: none
@@ -178,13 +173,13 @@ graph LR
 - **810** depends on: none; blocks: none
 - **815** depends on: none; blocks: none
 - **822** depends on: 798, 816, 817, 820; blocks: 818
+- **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
-- **808** depends on: 686; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
@@ -199,13 +194,11 @@ graph LR
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
 - **819** depends on: 727, 798; blocks: 818
-- **730** depends on: 726; blocks: 827, 829
+- **730** depends on: 726; blocks: 827
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **827** depends on: 730, 823; blocks: none
-- **829** depends on: 730; blocks: 824
 - **711** depends on: 681, 709, 710; blocks: 712, 713
-- **824** depends on: 829; blocks: none
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none
 

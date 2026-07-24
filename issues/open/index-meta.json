@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-23T17:51:55Z",
+  "generated_at": "2026-07-24T14:08:12Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -401,8 +401,7 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "698",
-        "801",
-        "808"
+        "801"
       ],
       "acceptance": {
         "checked": 12,
@@ -927,6 +926,25 @@
       }
     },
     {
+      "id": "824",
+      "path": "824-early-body-lowering-worklist.md",
+      "title": "Early body lowering (worklist; design first)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "829"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "825",
       "path": "825-ast-cache-format-repair.md",
       "title": "AST cache format repair (not “re-enable as-is”)",
@@ -1034,25 +1052,6 @@
       "path": "801-gc-rebuild-plan.md",
       "title": "GC 完了までのプラン",
       "track": "gc",
-      "status": "open",
-      "depends_on": [
-        "686"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 686
-      }
-    },
-    {
-      "id": "808",
-      "path": "808-t3-wasm-validation-failures.md",
-      "title": "808 — T3/Wasm validation failures",
-      "track": "compiler",
       "status": "open",
       "depends_on": [
         "686"
@@ -1375,12 +1374,11 @@
         "726"
       ],
       "blocks_issue_ids": [
-        "827",
-        "829"
+        "827"
       ],
       "acceptance": {
-        "checked": 1,
-        "unchecked": 5
+        "checked": 5,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "architecture-investigation",
@@ -1458,27 +1456,6 @@
       }
     },
     {
-      "id": "829",
-      "path": "829-selfhost-latency-phase-reprofile-hotspot.md",
-      "title": "Selfhost latency: phase re-profile and dominant-hotspot removal",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [
-        "824"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "711",
       "path": "711-stdlib-docs-rich-reference-quality.md",
       "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
@@ -1500,25 +1477,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
-    },
-    {
-      "id": "824",
-      "path": "824-early-body-lowering-worklist.md",
-      "title": "Early body lowering (worklist; design first)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "829"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design",
-        "upstream_notes": null
       }
     },
     {

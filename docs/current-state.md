@@ -11,8 +11,8 @@
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 1 verification check failure(s), 4 additional full-verification blocker group(s)
-> Distinct incidents: 6 (derived from incident_id in release-guarantees.toml; 6 failing checks)
+> Blocking: 1089 fixture failure(s), 4 additional full-verification blocker group(s)
+> Distinct incidents: 5 (derived from incident_id in release-guarantees.toml; 5 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -118,7 +118,7 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 - Not in last harness snapshot: 1120 registry entries (not proof they fail)
 - Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2708 is tests/fixtures/manifest.txt registry size. The 1120 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **165/166 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
 ### Active blockers
 
@@ -127,7 +127,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
-| `check_t3_wasm_validate` | `quick` | `verification` | 1 | `incident_t3_wasm_validate` | T3 fixture Wasm validation: 1 aggregate gate failure + 100 fixture-level validate failures (func N failed to validate) | `python3 scripts/check/check-t3-wasm-validate.py` | Wasm backend | #808 | `fd14539c23288d3ed993c03600aeed36cd478d06` | `982f3102` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |

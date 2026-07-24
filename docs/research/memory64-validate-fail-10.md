@@ -5,7 +5,7 @@ Target: `wasm32-gc` with Memory64
 Compiler: `.build/selfhost/arukellt-s2-runtime.wasm`
 
 ## Tracking
-- Issue: #808 (`issues/open/808-t3-wasm-validation-failures.md`)
+- Issue: #808 (`issues/done/808-t3-wasm-validation-failures.md`)
 - Parent: #686 (Wasm GC backend completeness)
 - ADR / Plan: ADR-035 / `docs/plans/wasm-gc-implementation.md`
 - Current state: `docs/current-state.md` notes `wasm32-gc` GC lowering is partial and

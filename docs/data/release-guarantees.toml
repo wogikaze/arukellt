@@ -358,23 +358,23 @@ ci_job = "verification"
 release_blocking = true
 included_in_full = false
 included_in_quick = true
-result = "fail"
+result = "pass"
 evidence_type = "smoke"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "982f3102"
-verified_at = "2026-07-15"
+last_verified_commit = "e18c09aa"
+verified_at = "2026-07-24"
 stale_after_days = 30
-aggregate_failure_count = 1
-fixture_failure_count = 100
-affected_count = 1
-incident_id = "incident_t3_wasm_validate"
-blocker_category = "verification"
-blocker_scope = "quick"
-blocker_owner = "Wasm backend"
-blocker_issue = "#808"
+aggregate_failure_count = 0
+fixture_failure_count = 0
+affected_count = 0
+incident_id = ""
+blocker_category = ""
+blocker_scope = ""
+blocker_owner = ""
+blocker_issue = ""
 first_seen_commit = "fd14539c23288d3ed993c03600aeed36cd478d06"
 platforms = ["linux"]
-note = "T3 fixture Wasm validation: 1 aggregate gate failure + 100 fixture-level validate failures (func N failed to validate)"
+note = "T3 fixture Wasm validation: 428 pass, 0 validate-fail, 0 compile-fail, 23 skip (total 451)"
 
 # ── Full-verification checks (supplemental, previously in release-checklist.md) ──
 
