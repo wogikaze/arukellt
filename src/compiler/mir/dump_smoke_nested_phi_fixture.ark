@@ -8,6 +8,7 @@ use mir::function_return_mutation
 use mir::inst_const_i32
 use mir::inst_return
 use mir::module_factory
+use mir::source_location_record
 use mir::value_types
 
 pub struct MirDumpNestedPhiFixture {
@@ -27,7 +28,7 @@ pub struct MirDumpNestedPhiFixture {
 
 fn mir_dump_nested_phi_fixture_new(name: String) -> MirDumpNestedPhiFixture {
     let m = module_factory::MirModule_new()
-    let f = function_factory::MirFunction_new(name)
+    let f = function_factory::MirFunction_new(name, source_location_record::SourceLocation_unmapped())
     let cond_outer = function_local_alloc::alloc_local(f, String_from("cond_outer"), value_types::VT_I32())
     let cond_inner = function_local_alloc::alloc_local(f, String_from("cond_inner"), value_types::VT_I32())
     let inner_then_val = function_local_alloc::alloc_local(f, String_from("inner_then_val"), value_types::VT_I32())

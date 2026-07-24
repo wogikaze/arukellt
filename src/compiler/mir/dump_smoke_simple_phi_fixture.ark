@@ -10,6 +10,7 @@ use mir::inst_const_i32
 use mir::inst_return
 use mir::module_factory
 use mir::phi_factory
+use mir::source_location_record
 use mir::value_types
 
 pub struct MirDumpSimplePhiFixture {
@@ -27,7 +28,7 @@ pub struct MirDumpSimplePhiFixture {
 
 fn mir_dump_simple_phi_fixture_new(name: String, with_phi: bool) -> MirDumpSimplePhiFixture {
     let m = module_factory::MirModule_new()
-    let f = function_factory::MirFunction_new(name)
+    let f = function_factory::MirFunction_new(name, source_location_record::SourceLocation_unmapped())
     let cond = function_local_alloc::alloc_local(f, String_from("cond"), value_types::VT_I32())
     let then_val = function_local_alloc::alloc_local(f, String_from("then_val"), value_types::VT_I32())
     let else_val = function_local_alloc::alloc_local(f, String_from("else_val"), value_types::VT_I32())

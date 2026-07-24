@@ -1,6 +1,7 @@
 use mir::function_core_record
+use mir::source_location_record
 use mir::types_function
 
-fn MirFunction_new(name: String) -> MirFunction {
-    function_core_record::MirFunction_new(name)
+fn MirFunction_new(name: String, source_location: SourceLocation) -> MirFunction {
+    function_core_record::MirFunction_new(name, source_location)
 }
