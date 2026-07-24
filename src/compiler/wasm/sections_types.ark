@@ -140,7 +140,14 @@ fn build_type_sigs(
         sections_types_gc::append_gc_struct_sigs(type_sigs, mir)
         sections_types_gc::append_enum_variant_sigs(type_sigs, mir)
     }
-    sections_types_sigs::append_function_type_sigs(type_sigs, functions, fn_count, clone(target), mir)
+    sections_types_sigs::append_function_type_sigs(
+        type_sigs,
+        functions,
+        fn_count,
+        clone(target),
+        clone(wasi_version),
+        mir
+    )
     sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper)
     type_sigs
 }

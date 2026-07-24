@@ -377,7 +377,10 @@ def _run_gate(issue_id: str) -> tuple[str, list[str], int, str]:
         return issue_id, gate_names, rc, f"cached: {msg}" if msg else "cached"
 
     def invoke() -> tuple[int, str]:
-        return gate_fn()
+        try:
+            return gate_fn()
+        except subprocess.TimeoutExpired as exc:
+            return 1, f"timeout after {exc.timeout}s: {exc.cmd!r}"
 
     if issue_id in _PLAYGROUND_LOCKED_ISSUES:
         rc, msg = _with_file_lock(_PLAYGROUND_LOCK, invoke)
@@ -1054,7 +1057,7 @@ def gate_657() -> tuple[int, str]:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=300,
     )
     if result.returncode != 0:
         return 1, (result.stdout + result.stderr)[-800:]

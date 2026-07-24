@@ -11,7 +11,7 @@ Orchestration upstream: "#037 jco GC upstream"
 Blocks v{N}: none
 Status note: jco 1.25.2 transpiles Arukellt T3 components; scalar Node.js E2E gate green with ARUKELLT_TEST_JCO=1. String/record/variant canonical ABI adapters still pending (#029 area).
 Reason: Tests in tests/component-interop/jco/ use Wasmtime, not Node/JCO. Not actual JavaScript interop.
-Action: Moved from `issues/done/` to `issues/open/` by false-done audit; completed 2026-07-25.
+Action: Re-closed 2026-07-25 after jco 1.25.2 Node.js scalar E2E gate (ARUKELLT_TEST_JCO=1).
 Implementation: "jco transpile + Node.js assertions for calculator scalar exports; optional ARUKELLT_TEST_JCO=1 gate."
 ---
 
@@ -26,6 +26,13 @@ and `pub fn greet(name: String) -> String`
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
 - ⚠️  `docs/platform/wasm-features.md` jco documentation: "deferred (jco not usable)."
 - jco version pin: "fix the jco version in `run.sh` (`npm exec --package=@bytecodealliance/jco@<version>`)"
+
+## Audit resolution
+
+Reopened by false-done audit (2026-04-13) because early evidence used Wasmtime rather than
+Node/jco. Re-closed 2026-07-25 after jco 1.25.2 transpiles Arukellt T3 components and the
+optional `ARUKELLT_TEST_JCO=1` scalar Node.js gate is green. Remaining String/record/variant
+canonical ABI adapters stay tracked outside this issue (#029 area).
 
 # jco JavaScript interop smoke test
 
