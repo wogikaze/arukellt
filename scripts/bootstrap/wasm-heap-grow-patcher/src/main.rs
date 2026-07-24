@@ -562,6 +562,9 @@ fn main() {
         .if_else(
             None,
             |then_| {
+                // pages = ceil((end - size_bytes) / 65536) + 1 spare page.
+                // The spare avoids OOB when a store lands exactly at the
+                // current memory size (address == size) after a tight grow.
                 then_
                     .local_get(end)
                     .memory_size(memory_id)
@@ -572,6 +575,8 @@ fn main() {
                     .binop(walrus::ir::BinaryOp::I32Add)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32ShrU)
+                    .i32_const(1)
+                    .binop(walrus::ir::BinaryOp::I32Add)
                     .memory_grow(memory_id)
                     .drop();
             },
