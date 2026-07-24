@@ -5,7 +5,7 @@ Updated: 2026-07-24
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
-Related: "#727, #686, #823, #829"
+Related: "#727, #686, #813, #823, #829"
 Orchestration class: architecture-investigation
 Blocks v4 exit: True
 ---
@@ -18,16 +18,18 @@ The pinned bootstrap wasm (`bootstrap/arukellt-selfhost.wasm`) cannot compile
 the current `src/compiler/` source because the compiler's bump allocator exceeds
 the wasm32 4GB linear memory limit.
 
-## Status (2026-07-17)
+## Status (2026-07-24)
 
 | Item | State |
 |------|--------|
 | Hard 4GiB ceiling | Unblocked via Memory64 path (`wasm32to64` / convert-only + wasmtime `-W memory64=y`) |
 | Stage-3 MIR lower hang | **Fixed** in `471661a3` (prune-before-sync) |
-| Full selfhost `compile` past lower | **OK** — `compilation succeeded (phase 6)` ~10–11 min with convert-only 8GiB s2 |
-| `selfhost fixpoint --build` | Still open (runtime path / write races / remaining emit issues) |
-| `verify quick` 0 failures | Still open (see below) |
-| Pinned wasm refresh | Still open |
+| Full selfhost `compile` past lower | **OK** |
+| `selfhost fixpoint --build` | **Green** (#813; emit still `wasm32` / `wasi-p1`) |
+| KEEP_CLOCK validate + `--time` | **Green** (#829 receipt) |
+| Pinned wasm refresh (wasm32) | **Done** — `48ad40ee4edd…` @ `9951fd2b` (two-round stable fixpoint) |
+| Pinned / `BOOTSTRAP_EMIT` → `wasm32-gc` | **Blocked** — s2→wasm32-gc emit fails validate (`func 8204`) |
+| `verify quick` 0 failures | Still open (T3 / CLI parity etc.) |
 
 ### Landed fixes
 
@@ -37,6 +39,11 @@ the wasm32 4GB linear memory limit.
    - `lower_to_mir_with_roots` prunes with export-surface roots **before** typed sync.
    - `session_lower_mir` / `_component` use that path.
    - `is_t3_wasm_emit` treats `wasm32-gc` as T3 even without `"-p2"` in the target string.
+3. **Fixpoint path (#813)**: stage-2/3 share `BOOTSTRAP_EMIT_TARGET=wasm32` via pinned bootstrap host.
+4. **Pinned refresh (2026-07-24)**: two-round wasm32 fixpoint pin
+   (`08dfbfcb…` → `06b61c60…` → stable `48ad40ee…`);
+   `sha256(pinned)==sha256(s2)==sha256(s3)`; `fixture-parity` green; no intentional
+   fixture drift observed.
 
 Hang root cause: `ctx_sync_typed_value_types` on the unpruned flat selfhost MIR
 (roughly O(locals²) per function) after ~10GiB emit.
@@ -48,68 +55,24 @@ Prefer **convert-only + `--initial-pages=131072` (8GiB)** over `--to-memory64`
 of `.build/selfhost/flat-src` can cause `file write error` / module-load failures
 even after a successful compile.
 
-### verify quick (2026-07-17 snapshot)
+### wasm32-gc pinned experiment (2026-07-24) — Strategy A failed
 
-163 passed / 8 failed (not the old “stuck in lower” hang):
+| Step | Result |
+|------|--------|
+| s2-runtime compile `--target wasm32-gc --wasi-version wasi-p2` | rc=0, ~3.4 MiB, Memory64 |
+| `wasm-tools validate` on that artifact | **FAIL** `func 8204`: expected `(ref null $type)`, found `(ref null $type)` |
+| Old pinned bootstrap with `--target wasm32-gc` | Emits bytes **identical** to wasm32 s2 (no true gc emit from that host) |
+| Conclusion | Do **not** pin wasm32-gc until self-emit validates. Keep `BOOTSTRAP_EMIT_*=wasm32`. |
 
-| Check | Observed failure mode |
-|-------|------------------------|
-| false-done close-gate | wasm validate `func 10/11` |
-| selfhost analysis API (#568) | fail |
-| GC array smoke | wasm compile validate `func 10` |
-| runtime Wasm debug smoke (#638) | validate `func 11` |
-| selfhost LSP lifecycle (#569) | fail |
-| T3 fixture WASM validation (#686) | many fixtures: validate `func 10/11` |
-| docs consistency | generated docs out of date |
-
-## Progress detail (2026-07-16)
-
-Chosen path: **Memory64** (ADR-007 already lists it as `wasm32-gc` default emit OK).
-
-1. **Bootstrap unblock**: `wasm-heap-grow-patcher --to-memory64` converts pinned/s2
-   wasm32 modules; selfhost runners pass `-W memory64=y` and
-   `-W max-memory-size=16GiB`.
-2. **Native emit**: `wasm32-gc` emits Memory64 memory + i64 heap and widens former
-   i32 LM values via emitter helpers (`uses_memory64` = GC target).
-3. **Selfhost retarget**: stage-2 still emits `wasm32` from pinned bootstrap;
-   stage-3+ uses `--target wasm32-gc --wasi-version wasi-p2`. GC Memory64 modules
-   skip `wasm32to64` (preserves GC types).
-4. **Converter hardening**:
-   - Stage-2 often has **zero** `memory.grow` sites → heap-grow patch is required.
-   - Grow injection uses `ge_u` + `65536` (was `gt_u` / `65535`).
-   - `wasm32to64` keeps load sign-extend for sentinels, leaves `i32.add`/`sub` as
-     full i64 (past 4GiB), and **canonizes** negative addresses before mem ops
-     so sign-extended pointers in `[2GiB, 4GiB)` stay valid.
-
-### Stage-3 hang bisect (historical)
-
-| Probe | Result |
-|-------|--------|
-| `check` (through typecheck) | **OK ~54s**, RSS ~230MB |
-| Forced E0200 in `main.ark` | **OK ~15s** |
-| `compile --dump-phases mir` (pre-fix) | **TIMEOUT ≥10min**, RSS ~0.7→10GB then plateau; no MIR dump |
-| After `471661a3` | Reaches mir-verify and `compilation succeeded (phase 6)` |
-
-## Root Cause (4GiB)
-
-The compiler uses a bump allocator (global 0 = heap pointer, monotonic,
-never freed). Every allocation increases the heap pointer. The compiler
-allocates AST nodes, MIR instructions, wasm bytes, etc. for all ~1894
-source files. With ~106K lines of source, the bump allocator needs more
-than 4GB. wasm32 has a hard 4GB linear memory limit.
-
-### Memory.grow check bugs (secondary, pinned-era)
-
-1. **`gt_u` instead of `ge_u`**
-2. **`65535` instead of `65536`** in pages-needed calculation
-
-Binary patches help slightly but do not remove the 4GB ceiling.
+Follow-up (before close): fix wasm32-gc selfhost emit validate, then refresh pinned to
+Memory64 `wasm32-gc` / `wasi-p2` and restore `_fixpoint_stage3_compiler` → s2-runtime.
 
 ## Acceptance Criteria
 
 - [x] `selfhost fixpoint --build` can produce s2/s3 wasm (#813, 2026-07-24)
 - [ ] `verify quick` passes (0 failures)
-- [ ] Pinned wasm can be refreshed with current source
+- [x] Pinned wasm refreshed with current source (**wasm32** stable fixpoint `48ad40ee…`)
+- [ ] Pinned / bootstrap emit path is native **`wasm32-gc` / `wasi-p2` / Memory64**
 - [x] Stage-3 no longer hangs in MIR lower after typecheck (`471661a3`)
 - [x] `ARUKELLT_OVERLAY_KEEP_CLOCK=1` produces a compiler wasm that
       `wasm-tools validate` accepts (smoke: `scripts/tests/test_selfhost_keep_clock_time_smoke.py`, 2026-07-21+)
@@ -121,10 +84,14 @@ real clocks, post-#823 hotspot selection is guesswork.
 
 ## Next (remaining for close)
 
-1. Stabilize stage-3 runtime path in `scripts/selfhost/checks.py` (convert-only 8GiB
-   vs `--to-memory64`) and avoid flat-src races during fixpoint.
-2. Clear remaining `verify quick` failures (validate `func 10/11`, docs regenerate).
-3. Fix KEEP_CLOCK / clock intrinsic lowering so validate + `--time` work.
-4. Refresh pinned bootstrap once fixpoint is green.
-5. Hand off to [#829](829-selfhost-latency-phase-reprofile-hotspot.md) for phase
-   re-profile (do not start #824 from this issue).
+1. Fix `wasm32-gc` self-compile validate (`func 8204` ref mismatch) on stage-2 host.
+2. Refresh pinned to validating Memory64 `wasm32-gc` artifact; set
+   `BOOTSTRAP_EMIT_TARGET=wasm32-gc` / `BOOTSTRAP_EMIT_WASI_VERSION=wasi-p2`.
+3. Restore fixpoint stage-3 host to s2-runtime (drop #813 bootstrap-only workaround).
+4. Clear remaining `verify quick` failures (T3 validate, CLI component parity / #811).
+
+## References
+
+- `bootstrap/PROVENANCE.md`
+- [#813](../done/813-selfhost-fixpoint-not-reached.md) (done)
+- [#829](../done/829-selfhost-latency-phase-reprofile-hotspot.md) (done)
