@@ -135,8 +135,18 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
     if starts_with(clone(type_name), String_from("struct:")) {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+            // Stale type_name from local reuse: check producer inference (#808).
+            if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
+                let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+                if inferred >= 0 && inferred != named_gc {
+                    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                    writer_core::emit_leb128_s(body, inferred)
+                    return true
+                }
+            }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
+            writer_core::emit_leb128_s(body, named_gc)
             return true
         }
         // Fallback for structs without ref fields: extract byte_size and map to GC struct type index.
@@ -149,8 +159,18 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
     }
     // Check raw struct name (without "struct:" prefix) as gc_struct.
     if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
+        let struct_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name))
+        // Stale type_name from local reuse: check producer inference (#808).
+        if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
+            let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+            if inferred >= 0 && inferred != struct_gc {
+                writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                writer_core::emit_leb128_s(body, inferred)
+                return true
+            }
+        }
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name)))
+        writer_core::emit_leb128_s(body, struct_gc)
         return true
     }
     // Try gc_layout table lookup for raw struct names (e.g. "Point") not in gc_struct_names.
@@ -162,6 +182,16 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
             let allow_layout = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) ||
             !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, layout_gc)
             if allow_layout {
+                // Stale type_name from local reuse: the local may keep a struct
+                // type_name from a prior use but actually receive a concrete
+                // enum variant via LOCAL_SET from another local. Check the
+                // producer inference and prefer it when it differs (#808).
+                let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
+                if inferred >= 0 && inferred != layout_gc {
+                    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                    writer_core::emit_leb128_s(body, inferred)
+                    return true
+                }
                 writer_core::emit_byte(body, constants::WASM_REF_NULL())
                 writer_core::emit_leb128_s(body, layout_gc)
                 return true

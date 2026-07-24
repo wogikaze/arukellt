@@ -154,6 +154,32 @@ fn local_has_any_ref_assignment_depth(f: MirFunction, local_idx: i32, depth: i32
     false
 }
 
+// Check if a local receives its value from another local via MIR_LOCAL_SET
+// (local-to-local copy). Used to detect stale type_name from local reuse (#808).
+fn local_has_local_set_source(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_LOCAL_SET() {
+                let target = inst_accessors_operands::MirInst_arg0(inst)
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if target == local_idx && source >= 0 {
+                    return true
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
 fn local_inst_assigns_ref(f: MirFunction, inst: MirInst, local_idx: i32, depth: i32) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     let dest = inst_accessors_operands::MirInst_dest(inst)

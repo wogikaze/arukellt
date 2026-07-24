@@ -87,6 +87,20 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
             return scanned_over_string
         }
     }
+    // Stale struct type_name from local reuse: a local may keep a struct
+    // type_name from a prior use but actually receive a concrete enum variant
+    // via LOCAL_SET from another local. Run the block scan first and prefer
+    // the producer type when it differs from the type_name lookup (#808).
+    if !is_struct_new_dest && len(type_name) > 0 &&
+    code_ref_locals_scan::local_has_local_set_source(f, local_idx) {
+        let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
+        if tn_gc >= 0 && !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, tn_gc) {
+            let scanned = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
+            if scanned >= 0 && scanned != tn_gc {
+                return scanned
+            }
+        }
+    }
     // 1. type_name → GcLayoutTable lookup, then string-prefix fallback.
     // Reject concrete enum-variant types unless this local is the STRUCT_NEW dest.
     if len(type_name) > 0 {
