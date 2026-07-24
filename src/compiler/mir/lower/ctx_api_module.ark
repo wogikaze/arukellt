@@ -1,6 +1,7 @@
 use mir::lower::ctx_module
 use mir::post_pass_type_propagate
 use mir::typed_mir_sync_module
+use mir::source_location_record
 
 fn ctx_push_module_function(ctx: LowerCtx, func: MirFunction) { ctx_module::ctx_push_module_function(ctx, func) }
 fn ctx_push_current_function(ctx: LowerCtx) { ctx_module::ctx_push_current_function(ctx) }
@@ -15,3 +16,9 @@ fn ctx_sync_typed_value_types(ctx: LowerCtx) {
     post_pass_type_propagate::mir_module_propagate_local_types(m)
 }
 fn ctx_set_mono_instances(ctx: LowerCtx, instances: Vec<MonoInstance>) { ctx.mono_instances = instances }
+fn ctx_fn_source_location_at(ctx: LowerCtx, fn_info_index: i32) -> SourceLocation {
+    if fn_info_index >= 0 && fn_info_index < len(ctx.fn_source_locations) {
+        return get_unchecked(ctx.fn_source_locations, fn_info_index)
+    }
+    source_location_record::SourceLocation_unmapped()
+}

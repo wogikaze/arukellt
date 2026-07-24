@@ -11,7 +11,6 @@ use mir::lower::entry_params
 use mir::lower::entry_view
 use mir::lower::ctx_struct_layout
 use mir::lower::trace
-use mir::source_location_record
 
 fn mir_emit_top_level_fn_body(
     ctx: LowerCtx,
@@ -25,7 +24,8 @@ fn mir_emit_top_level_fn_body(
     entry_view: MirLowerEntryView,
     fn_info_index: i32
 ) {
-    let mf = function_factory::MirFunction_new(emit_fn_name, source_location_record::SourceLocation_unmapped())
+    let source_loc = ctx_api_module::ctx_fn_source_location_at(ctx, fn_info_index)
+    let mf = function_factory::MirFunction_new(emit_fn_name, source_loc)
     let _entry_fn = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
     trace::mir_lower_trace_line(mir_tr, -2, typed_index, 0, 0, 0)
     entry_params::mir_bind_top_level_params(ctx, entry_view, fn_info_index, param_count)

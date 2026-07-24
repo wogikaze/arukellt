@@ -1,4 +1,5 @@
 use mir::types
+use mir::source_location_record
 use collections::name_index
 
 pub struct LowerCtx {
@@ -62,4 +63,6 @@ pub struct LowerCtx {
     mono_type_param_names: Vec<String>,
     mono_type_param_types: Vec<String>,
     mono_instances: Vec<MonoInstance>,
+    source_text: String,
+    fn_source_locations: Vec<SourceLocation>,
 }

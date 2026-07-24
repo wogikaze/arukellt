@@ -5,10 +5,10 @@ use wasm::emit_target
 use collections::name_index
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
-    LowerCtx_new_for_target(m, String_new())
+    LowerCtx_new_for_target(m, String_new(), String_new(), Vec_new_SourceLocation())
 }
 
-fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
+fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn_source_locations: Vec<SourceLocation>) -> LowerCtx {
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
         effective_target = String_from("wasm32-gc")
@@ -50,5 +50,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
         gc_struct_names: Vec_new_String(), gc_struct_sigs: Vec_new_String(),
         mono_type_param_names: Vec_new_String(), mono_type_param_types: Vec_new_String(),
         mono_instances: Vec_new_MonoInstance(),
+        source_text: source_text,
+        fn_source_locations: fn_source_locations,
     }
 }

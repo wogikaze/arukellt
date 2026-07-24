@@ -26,9 +26,10 @@ fn session_lower_mir(
     export_roots: Vec<String>,
     wit_paths: Vec<String>,
     target: String,
-    report_phase_timing: i32
+    report_phase_timing: i32,
+    source: String
 ) -> MirModule {
-    session_corehir::session_lower_mir(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing)
+    session_corehir::session_lower_mir(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source)
 }
 
 fn session_lower_mir_component(
@@ -37,7 +38,8 @@ fn session_lower_mir_component(
     export_roots: Vec<String>,
     wit_paths: Vec<String>,
     target: String,
-    report_phase_timing: i32
+    report_phase_timing: i32,
+    source: String
 ) -> MirModule {
-    session_corehir::session_lower_mir_component(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing)
+    session_corehir::session_lower_mir_component(sess.core_program, all_decls, export_roots, wit_paths, target, report_phase_timing, source)
 }

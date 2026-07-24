@@ -7,6 +7,7 @@ struct MirLowerInput {
     decl_nodes: Vec<AstNode>,
     target: String,
     report_phase_timing: i32,
+    source_text: String,
 }
 
 fn mir_lower_input_new(
@@ -15,7 +16,8 @@ fn mir_lower_input_new(
     wit_paths: Vec<String>,
     decl_nodes: Vec<AstNode>,
     target: String,
-    report_phase_timing: i32
+    report_phase_timing: i32,
+    source_text: String
 ) -> MirLowerInput {
     let body_source = entry_body_source::mir_entry_body_source_new(entry_body_source::mir_entry_body_source_view_from_core(view), fallback_source)
     let mut effective_target = clone(target)
@@ -28,7 +30,8 @@ fn mir_lower_input_new(
         wit_paths: wit_paths,
         decl_nodes: decl_nodes,
         target: effective_target,
-        report_phase_timing: report_phase_timing
+        report_phase_timing: report_phase_timing,
+        source_text: source_text
     }
 }
 
@@ -50,4 +53,8 @@ fn mir_lower_input_body_source(input: MirLowerInput) -> MirLowerEntryBodySource 
 
 fn mir_lower_input_target(input: MirLowerInput) -> String {
     clone(input.target)
+}
+
+fn mir_lower_input_source_text(input: MirLowerInput) -> String {
+    clone(input.source_text)
 }

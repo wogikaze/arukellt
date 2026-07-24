@@ -28,9 +28,10 @@ pub fn mir_lower_input_new(
     wit_paths: Vec<String>,
     decl_nodes: Vec<AstNode>,
     target: String,
-    report_phase_timing: i32
+    report_phase_timing: i32,
+    source_text: String
 ) -> MirLowerInput {
-    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes, target, report_phase_timing)
+    input::mir_lower_input_new(view, fallback_source, wit_paths, decl_nodes, target, report_phase_timing, source_text)
 }
 
 pub fn mir_fallback_source_from_decls(decls: Vec<MirLowerLegacyDecl>) -> MirLowerFallbackSource {

@@ -88,6 +88,14 @@ fn fn_info_is_entry_main_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallb
     fallback
 }
 
+fn fn_info_decl_index_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: i32) -> i32 {
+    if info_index >= 0 && info_index < len(fn_infos) {
+        let info = get_unchecked(fn_infos, info_index)
+        return info.decl_index
+    }
+    fallback
+}
+
 fn fn_info_entry_main_decl_index(fn_infos: Vec<CoreHirFnInfo>) -> i32 {
     let count = len(fn_infos)
     let mut i = 0

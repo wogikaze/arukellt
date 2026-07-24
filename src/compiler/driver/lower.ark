@@ -10,14 +10,14 @@ fn lower_report_phase_timing(config: DriverConfig) -> i32 {
     0
 }
 
-fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
+fn lower_checked_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {
     let emit_mode = config_record::config_emit_mode(config)
     let component_mode = eq(clone(emit_mode), "component") || eq(clone(emit_mode), "wit")
     if component_mode {
-        return lower_component_program(program, config)
+        return lower_component_program(program, config, clone(source))
     }
     if is_t3_wasm_emit(config, clone(emit_mode)) {
-        return lower_t3_wasm_program(program, config)
+        return lower_t3_wasm_program(program, config, clone(source))
     }
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(
@@ -29,7 +29,8 @@ fn lower_checked_program(program: CheckedProgram, config: DriverConfig) -> MirMo
         export_roots,
         config_record::config_wit_paths(config),
         config_record::config_target(config),
-        lower_report_phase_timing(config)
+        lower_report_phase_timing(config),
+        source
     )
 }
 
@@ -45,7 +46,7 @@ fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
     || contains(clone(target), String_from("-p2"))
 }
 
-fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
+fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
     session::session_lower_mir_component(
@@ -54,11 +55,12 @@ fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig) -> MirMo
         export_roots,
         config_record::config_wit_paths(config),
         config_record::config_target(config),
-        lower_report_phase_timing(config)
+        lower_report_phase_timing(config),
+        source
     )
 }
 
-fn lower_component_program(program: CheckedProgram, config: DriverConfig) -> MirModule {
+fn lower_component_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {
     let decls = checked_program::checked_program_all_decls(program)
     let export_roots = export_surface::export_surface_names(checked_program::checked_program_export_surface(program))
     session::session_lower_mir_component(
@@ -67,6 +69,7 @@ fn lower_component_program(program: CheckedProgram, config: DriverConfig) -> Mir
         export_roots,
         config_record::config_wit_paths(config),
         config_record::config_target(config),
-        lower_report_phase_timing(config)
+        lower_report_phase_timing(config),
+        source
     )
 }
