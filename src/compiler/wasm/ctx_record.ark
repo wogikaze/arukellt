@@ -23,6 +23,8 @@ pub struct SelfEmitCtx {
     needs_arukellt_host: i32,
     gc_hint_offsets: Vec<i32>,
     needs_wasi_http_outgoing: i32,
+    source_file: String,
+    code_section_offsets: Vec<i32>,
     gc_type_base: i32,
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
@@ -75,7 +77,8 @@ fn SelfEmitCtx_new(
     target: String,
     wasi_version: String,
     needs_arukellt_host: i32,
-    needs_wasi_http_outgoing: i32
+    needs_wasi_http_outgoing: i32,
+    source_file: String
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
     let mut name_lengths = Vec_new_i32()
@@ -120,6 +123,8 @@ fn SelfEmitCtx_new(
         needs_arukellt_host: needs_arukellt_host,
         gc_hint_offsets: empty_i32_b,
         needs_wasi_http_outgoing: needs_wasi_http_outgoing,
+        source_file: source_file,
+        code_section_offsets: Vec_new_i32(),
         gc_type_base: 0,
         gc_enum_variant_base: 0 - 1,
         gc_enum_variant_type_map: empty_i32_c,
@@ -161,7 +166,6 @@ fn SelfEmitCtx_new(
 fn SelfEmitCtx_type_name_ref_index(ctx: SelfEmitCtx) -> NameIndex {
     ctx.type_name_ref_index
 }
-
 
 fn SelfEmitCtx_local_gc_infer_cache(ctx: SelfEmitCtx) -> Vec<i32> {
     ctx.local_gc_infer_cache
@@ -233,6 +237,26 @@ fn SelfEmitCtx_target(ctx: SelfEmitCtx) -> String {
 
 fn SelfEmitCtx_wasi_version(ctx: SelfEmitCtx) -> String {
     ctx.wasi_version
+}
+
+fn SelfEmitCtx_source_file(ctx: SelfEmitCtx) -> String {
+    clone(ctx.source_file)
+}
+
+fn SelfEmitCtx_code_section_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.code_section_offsets
+}
+
+fn SelfEmitCtx_set_code_section_offsets(ctx: SelfEmitCtx, offsets: Vec<i32>) {
+    ctx.code_section_offsets = offsets
+}
+
+fn SelfEmitCtx_code_section_offset_at(ctx: SelfEmitCtx, func_idx: i32) -> i32 {
+    let offsets = ctx.code_section_offsets
+    if func_idx < 0 || func_idx >= len(offsets) {
+        return 0 - 1
+    }
+    get_unchecked(offsets, func_idx)
 }
 
 fn SelfEmitCtx_function_count(ctx: SelfEmitCtx) -> i32 {

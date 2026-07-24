@@ -1,14 +1,16 @@
 use wasm::sections_branch_hint
 use wasm::sections_data
+use wasm::sections_debug_source_map
 use wasm::sections_gc_hint
 use wasm::sections_i31ref_hint
 use wasm::sections_name
 use wasm::strings
 
-fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool) {
+fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool, source_file: String) {
     sections_gc_hint::emit_gc_hint_custom_section(out, ctx)
     sections_branch_hint::emit_branch_hint_custom_section(out)
     sections_i31ref_hint::emit_i31ref_hint_custom_section(out)
     sections_name::emit_name_custom_section(out, ctx, import_count, opt_level, strip_debug)
+    sections_debug_source_map::emit_debug_source_map_custom_section(out, ctx, import_count, opt_level, strip_debug, source_file)
     sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))
 }

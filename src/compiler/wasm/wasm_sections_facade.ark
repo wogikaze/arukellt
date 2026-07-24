@@ -82,8 +82,8 @@ fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_ve
     sections_table::emit_element_section(out, mir, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
 }
 
-fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool) {
-    sections_tail::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug)
+fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool, source_file: String) {
+    sections_tail::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug, source_file)
 }
 
 fn type_plan_gc_type_base(plan: TypeSectionPlan) -> i32 {
