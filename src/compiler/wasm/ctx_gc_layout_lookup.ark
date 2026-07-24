@@ -135,7 +135,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: Stri
     if encoded >= 1 {
         return encoded - 2
     }
-    ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 2)
     let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(type_name))
     name_index::name_index_set(index, type_name, resolved + 2)
     resolved

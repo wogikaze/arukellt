@@ -30,8 +30,7 @@ fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx)
     let inferred = infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
     if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
         code_ref_locals_fn_cache::cached_infer_set(ctx, local_idx, inferred)
-        ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 0)
-    }
+        }
     inferred
 }
 
@@ -122,7 +121,6 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
 }
 
 fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
-    ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 1)
     if code_ref_locals_fn_cache::is_local_producer_index_active(ctx) {
         return infer_gc_type_from_producer_index(f, local_idx, ctx, depth)
     }

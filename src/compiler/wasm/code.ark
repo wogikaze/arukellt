@@ -1,4 +1,3 @@
-use std::host::stdio
 use mir::module_wit_imports
 use wasm::code_body
 use wasm::ctx_record
@@ -12,14 +11,11 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
-    // #region agent log
-    let timing = code_body::CodeEmitTiming_new()
-    // #endregion
     let mut ci = 0
     while ci < fn_count {
         let f = get_unchecked(functions, ci)
         ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
-        let body = code_body::emit_function_body(f, ctx, bindings, timing)
+        let body = code_body::emit_function_body(f, ctx, bindings)
         emit_code_body_entry(code_sec, body)
         ci = ci + 1
     }
@@ -27,47 +23,6 @@ fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32
         let wrapper_body = emit_start_wrapper_body(main_idx, ctx, wit_import_count)
         emit_code_body_entry(code_sec, wrapper_body)
     }
-    // #region agent log
-    stdio::eprintln(
-        concat(
-            String_from("[arukellt] emit.code.locals: "),
-            concat(to_string(code_body::CodeEmitTiming_locals_ms(timing)), String_from("ms"))
-        )
-    )
-    stdio::eprintln(
-        concat(
-            String_from("[arukellt] emit.code.insts: "),
-            concat(to_string(code_body::CodeEmitTiming_insts_ms(timing)), String_from("ms"))
-        )
-    )
-    let counters = ctx_record::SelfEmitCtx_local_gc_debug_counters(ctx)
-    if len(counters) >= 4 {
-        stdio::eprintln(
-            concat(
-                String_from("[arukellt] emit.locals_debug: infer_fills="),
-                concat(
-                    to_string(get_unchecked(counters, 0)),
-                    concat(
-                        String_from(" block_scans="),
-                        concat(
-                            to_string(get_unchecked(counters, 1)),
-                            concat(
-                                String_from(" layout_lookups="),
-                                concat(
-                                    to_string(get_unchecked(counters, 2)),
-                                    concat(
-                                        String_from(" byte_size_scans="),
-                                        to_string(get_unchecked(counters, 3))
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-    // #endregion
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
 }
 
