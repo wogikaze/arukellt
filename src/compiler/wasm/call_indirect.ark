@@ -54,7 +54,10 @@ fn resolve_indirect_type_idx(ctx: SelfEmitCtx, type_idx: i32, arg_count: i32, de
     let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let fn_count = len(functions)
-    let memory64 = emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
+    let memory64 = emit_target::uses_memory64(
+        ctx_record::SelfEmitCtx_target(ctx),
+        ctx_record::SelfEmitCtx_wasi_version(ctx)
+    )
     // Unary HOF (map/filter): on wasm32 use stable WASI i32_1i32 (type 3).
     // Under Memory64, pick a MirFunction with MIR (i32)->i32; its fn_type_map
     // entry is the widened (i64)->i64 wasm type (not a Vec-returning helper).

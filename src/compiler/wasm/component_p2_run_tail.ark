@@ -1,5 +1,16 @@
+// Arukellt Selfhost - pre-encoded inner wasi:cli/run component for P2 command wrappers.
+//
+// Inner component with result type for the run export:
+//   (component
+//     (type (result))
+//     (type (func (result 0)))
+//     (import "import-func-run" (func (type 1)))
+//     (type (result))
+//     (type (func (result 2)))
+//     (export "run" (func 0) (func (type 3))))
+
 fn p2_run_inner_component_bytes() -> Vec<i32> {
-    p2_run_bytes_from_hex(String_from("0061736d0d000100070501400001000a1401000f696d706f72742d66756e632d72756e0100070501400001000b0b01000372756e0100010101"))
+    p2_run_bytes_from_hex(String_from("0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103001a0e636f6d706f6e656e742d6e616d6500090872756e5f636f6d70"))
 }
 
 fn p2_run_bytes_from_hex(hex: String) -> Vec<i32> {

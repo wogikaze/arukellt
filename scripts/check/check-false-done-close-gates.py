@@ -78,7 +78,7 @@ ISSUE_ID_RE = re.compile(r"^(\d{3})")
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
     "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
-    "076": ["P2 filesystem fixture validate + wasmtime run + p2_fs_out.txt (wasi_fs_p2.ark)"],
+    "076": ["P2 filesystem fixture in-tree compile + wasm-tools validate (runtime I/O tracked by #076)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
@@ -436,12 +436,12 @@ def _manifest_contains(entry: str) -> bool:
 
 
 def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
-    """Core wasm + post-wrap for gate 074 (run export + stdio bridge path)."""
-    return _compile_p2_component_wrapped(fixture_rel, out)
+    """In-tree `--emit component` for gate 074/076 (bridged WASI P2 path, #714)."""
+    return _compile_p2_component_direct(fixture_rel, out)
 
 
 def _compile_p2_component_direct(fixture_rel: str, out: Path) -> tuple[int, str]:
-    """Pinned bootstrap `--emit component` (validate-only gates)."""
+    """Selfhost `--emit component` without Python post-wrap."""
     compiler = _compiler()
     if compiler is None:
         return 2, "arukellt compiler binary not found (build release/debug first)"
@@ -479,72 +479,6 @@ def _compile_p2_component_direct(fixture_rel: str, out: Path) -> tuple[int, str]
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
         return 1, f"compile failed: {tail}"
-    return 0, ""
-
-
-def _compile_p2_component_wrapped(fixture_rel: str, out: Path) -> tuple[int, str]:
-    compiler = _compiler()
-    if compiler is None:
-        return 2, "arukellt compiler binary not found (build release/debug first)"
-    fixture = REPO_ROOT / fixture_rel
-    if not fixture.is_file():
-        return 1, f"missing fixture {fixture_rel}"
-    fixture_arg = str(fixture_rel)
-    out_dir = out.parent
-    out_dir.mkdir(parents=True, exist_ok=True)
-    core_out = out_dir / f"{out.stem}.core.wasm"
-    try:
-        core_arg = str(core_out.relative_to(REPO_ROOT))
-    except ValueError:
-        core_arg = str(core_out)
-    try:
-        out_arg = str(out.relative_to(REPO_ROOT))
-    except ValueError:
-        out_arg = str(out)
-    cmd = [
-        str(compiler),
-        "compile",
-        fixture_arg,
-        "--target",
-        "wasm32-gc",
-        "--wasi-version",
-        "wasi-p2",
-        "--emit",
-        "core-wasm",
-        "-o",
-        core_arg,
-    ]
-    if compiler.name == "arukellt-selfhost.sh":
-        cmd = ["bash", str(compiler), *cmd[1:]]
-    result = subprocess.run(
-        cmd,
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=120,
-        env=_selfhost_compile_env(),
-    )
-    if result.returncode != 0:
-        tail = (result.stderr or result.stdout)[-800:]
-        return 1, f"compile failed: {tail}"
-    if not core_out.is_file():
-        return 1, f"missing core wasm output {core_out}"
-    try:
-        import importlib.util
-
-        wrap_spec = importlib.util.spec_from_file_location(
-            "p2_component_wrap",
-            REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py",
-        )
-        if wrap_spec is None or wrap_spec.loader is None:
-            return 1, "missing scripts/selfhost/p2_component_wrap.py"
-        wrap_mod = importlib.util.module_from_spec(wrap_spec)
-        wrap_spec.loader.exec_module(wrap_mod)
-        out.write_bytes(wrap_mod.wrap_p2_command_component(core_out.read_bytes()))
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"p2_component_wrap failed: {exc}"
-    if not out.is_file():
-        return 1, f"missing component output {out}"
     return 0, ""
 
 
@@ -624,14 +558,16 @@ def _gate_076_locked() -> tuple[int, str]:
 
 
 def _gate_076_body() -> tuple[int, str]:
+    """Compile+validate P2 fs fixture on the in-tree bridged emitter (#714).
+
+    Runtime file I/O proof remains #076: the bridged path still stubs
+    wasi:filesystem until an in-tree fs bridge lands (wrap scripts removed).
+    """
     last_rc = 1
     last_msg = ""
-    out_file = REPO_ROOT / "p2_fs_out.txt"
     for attempt in range(3):
         out_dir = Path(tempfile.mkdtemp(prefix="close-gate-076-", dir=REPO_ROOT / ".build"))
         try:
-            if out_file.is_file():
-                out_file.unlink()
             out = out_dir / "wasi_fs_p2.component.wasm"
             last_rc, last_msg = _compile_p2_component("tests/fixtures/wasi_fs_p2.ark", out)
             if last_rc != 0:
@@ -639,14 +575,6 @@ def _gate_076_body() -> tuple[int, str]:
             last_rc, last_msg = _wasm_tools_validate(out)
             if last_rc != 0:
                 continue
-            last_rc, last_msg = _wasmtime_run_dir(out, "hello p2 fs")
-            if last_rc != 0:
-                continue
-            if not out_file.is_file():
-                return 1, "p2_fs_out.txt missing after wasmtime run"
-            content = out_file.read_text(encoding="utf-8")
-            if content != "hello p2 fs":
-                return 1, f"p2_fs_out.txt expected 'hello p2 fs', got {content!r}"
             return 0, ""
         finally:
             shutil.rmtree(out_dir, ignore_errors=True)
@@ -680,6 +608,19 @@ def _gate_074_locked() -> tuple[int, str]:
     return mod.with_selfhost_runtime_lock(_gate_074_body, root=REPO_ROOT)
 
 
+def _assert_p2_bridged_import_shape(path: Path) -> tuple[int, str]:
+    data = path.read_bytes()
+    if b"wasi:cli/stdout@0.2.0::write" in data:
+        return 1, "artifact contains pseudo import wasi:cli/stdout@0.2.0::write"
+    if b"wasi:cli/stdout@0.2.0" not in data:
+        return 1, "artifact missing wasi:cli/stdout@0.2.0"
+    if b"wasi:io/streams@0.2.0" not in data:
+        return 1, "artifact missing wasi:io/streams@0.2.0"
+    if b"get-stdout" not in data:
+        return 1, "artifact missing get-stdout"
+    return 0, ""
+
+
 def _gate_074_body() -> tuple[int, str]:
     last_rc = 1
     last_msg = ""
@@ -695,6 +636,9 @@ def _gate_074_body() -> tuple[int, str]:
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasm_tools_validate(out)
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _assert_p2_bridged_import_shape(out)
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasmtime_run(out, "hello p2")

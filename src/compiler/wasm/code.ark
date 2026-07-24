@@ -36,7 +36,10 @@ fn emit_code_body_entry(code_sec: WasmWriter, body: WasmWriter) {
 
 fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i32) -> WasmWriter {
     let wrapper_body = writer_core::WasmWriter_with_memory64(
-        emit_target::uses_memory64(ctx_record::SelfEmitCtx_target(ctx))
+        emit_target::uses_memory64(
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx)
+        )
     )
     writer_core::emit_leb128_u(wrapper_body, 0)
     writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())

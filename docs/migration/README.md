@@ -7,7 +7,7 @@
 
 - CLI default target remains `wasm32-gc`.
 - Canonical path for current docs is `wasm32-gc`.
-- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — Living path may still use wasm-tools / Python wrap helpers for some packaging steps ([axes](../data/component-availability.md)).
+- Component emit: multi-axis on `wasm32-gc`: `command_component`=`available_on_pinned`; `library_component`=`requires_s2`; `wit_emit`=`partial`; `jco_transpile`=`smoke`; `component_cli`=`provisional` — P2 command path is bridged in-tree (#714). Library/other packaging may still use wasm-tools helpers. ([axes](../data/component-availability.md)).
 
 ## Documents
 

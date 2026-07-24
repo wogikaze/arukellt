@@ -1,0 +1,458 @@
+// Arukellt Selfhost - add `run` export for wasi:cli/command@0.2.0.
+//
+// When the core wasm exports `_start: () -> ()`, the P2 command component
+// needs a `run: () -> i32` export (wasi:cli/run canonical signature).
+// This module adds a wrapper function that calls `_start` and returns 0,
+// then exports it as both `run` and `wasi:cli/run@0.2.0#run`.
+//
+// Ported from _add_run_export in scripts/selfhost/p2_guest_stdio_patch.py.
+
+use wasm::component_p2_strip
+
+// VOID_FUNC_TYPE = 0x60 0x00 0x00 (func () -> ())
+// I32_FUNC_TYPE  = 0x60 0x00 0x01 0x7f (func () -> i32)
+// RETURN_I32     = 0x41 0x00 0x0b (i32.const 0; end)
+
+// Main entry: ensure the core wasm has `run` and `wasi:cli/run@0.2.0#run` exports.
+fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
+    let start_idx = export_func_index(core_wasm, String_from("_start"))
+    if start_idx < 0 {
+        return core_wasm
+    }
+    if export_func_index(core_wasm, String_from("run")) >= 0 {
+        return core_wasm
+    }
+
+    let import_func_count = import_func_count(core_wasm)
+    let defined_idx = start_idx - import_func_count
+    if defined_idx < 0 {
+        return core_wasm
+    }
+
+    let start_type_idx = defined_func_type_index(core_wasm, defined_idx)
+    if start_type_idx < 0 {
+        return core_wasm
+    }
+
+    let type_payload = section_payload(core_wasm, 1)
+    if len(type_payload) == 0 {
+        return core_wasm
+    }
+
+    let start_type = type_at(type_payload, start_type_idx)
+    let mut run_idx = start_idx
+
+    // If _start is () -> (), create a wrapper that calls _start and returns 0
+    if is_void_func_type(start_type) == 1 {
+        let mut wasm = core_wasm
+        let i32_type_idx = find_type_index(type_payload, i32_func_type_bytes())
+        let actual_i32_type_idx = if i32_type_idx >= 0 {
+            i32_type_idx
+        } else {
+            // Add () -> i32 type to type section
+            let new_type_payload = Vec_new_i32()
+            append_bytes(new_type_payload, type_payload)
+            // Increment count at beginning
+            let r = component_p2_strip::WasmReader_new(type_payload)
+            let count = component_p2_strip::reader_uleb(r)
+            let rest_start = r.pos
+            // Rebuild: new_count + rest + i32_func_type
+            let new_payload = Vec_new_i32()
+            component_p2_strip::write_uleb(new_payload, count + 1)
+            copy_range(new_payload, type_payload, rest_start, len(type_payload))
+            append_bytes(new_payload, i32_func_type_bytes())
+            wasm = replace_section(wasm, 1, new_payload)
+            count
+        }
+
+        // Add function section entry
+        let func_payload = section_payload(wasm, 3)
+        if len(func_payload) == 0 {
+            return core_wasm
+        }
+        let fr = component_p2_strip::WasmReader_new(func_payload)
+        let fcount = component_p2_strip::reader_uleb(fr)
+        let frest_start = fr.pos
+        let new_func_payload = Vec_new_i32()
+        component_p2_strip::write_uleb(new_func_payload, fcount + 1)
+        copy_range(new_func_payload, func_payload, frest_start, len(func_payload))
+        component_p2_strip::write_uleb(new_func_payload, actual_i32_type_idx)
+        wasm = replace_section(wasm, 3, new_func_payload)
+
+        run_idx = import_func_count + fcount
+
+        // Add code body: call _start; i32.const 0; end
+        let body = Vec_new_i32()
+        component_p2_strip::write_uleb(body, 0)  // local decls
+        push(body, 0x10)  // call
+        component_p2_strip::write_uleb(body, start_idx)
+        push(body, 0x41)  // i32.const
+        push(body, 0x00)
+        push(body, 0x0b)  // end
+
+        let code_payload = section_payload(wasm, 10)
+        if len(code_payload) == 0 {
+            return core_wasm
+        }
+        let cr = component_p2_strip::WasmReader_new(code_payload)
+        let ccount = component_p2_strip::reader_uleb(cr)
+        let crest_start = cr.pos
+        let new_code_payload = Vec_new_i32()
+        component_p2_strip::write_uleb(new_code_payload, ccount + 1)
+        copy_range(new_code_payload, code_payload, crest_start, len(code_payload))
+        component_p2_strip::write_uleb(new_code_payload, len(body))
+        append_bytes(new_code_payload, body)
+        wasm = replace_section(wasm, 10, new_code_payload)
+
+        // Now add exports
+        wasm = add_export(wasm, String_from("run"), run_idx)
+        wasm = add_export(wasm, String_from("wasi:cli/run@0.2.0#run"), run_idx)
+        return wasm
+    }
+
+    // _start is already () -> i32, just add exports
+    let wasm2 = add_export(core_wasm, String_from("run"), run_idx)
+    add_export(wasm2, String_from("wasi:cli/run@0.2.0#run"), run_idx)
+}
+
+fn add_export(wasm: Vec<i32>, name: String, func_idx: i32) -> Vec<i32> {
+    let export_payload = section_payload(wasm, 7)
+    if len(export_payload) == 0 {
+        return wasm
+    }
+    let er = component_p2_strip::WasmReader_new(export_payload)
+    let count = component_p2_strip::reader_uleb(er)
+    let rest_start = er.pos
+
+    let new_payload = Vec_new_i32()
+    component_p2_strip::write_uleb(new_payload, count + 1)
+    copy_range(new_payload, export_payload, rest_start, len(export_payload))
+
+    // Add export entry: name_len, name, kind=0x00 (func), func_idx
+    let name_bytes = string_to_bytes(name)
+    component_p2_strip::write_uleb(new_payload, len(name_bytes))
+    append_bytes(new_payload, name_bytes)
+    push(new_payload, 0x00)
+    component_p2_strip::write_uleb(new_payload, func_idx)
+
+    replace_section(wasm, 7, new_payload)
+}
+
+fn string_to_bytes(s: String) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        push(out, char_at(s, i))
+        i = i + 1
+    }
+    out
+}
+
+// ---- Section helpers ----
+
+fn section_payload(wasm: Vec<i32>, section_id: i32) -> Vec<i32> {
+    let r = component_p2_strip::WasmReader_new(wasm)
+    r.pos = 8
+    while r.pos < r.len {
+        let sid = component_p2_strip::reader_byte(r)
+        let size = component_p2_strip::reader_uleb(r)
+        let payload_start = r.pos
+        if sid == section_id {
+            let out = Vec_new_i32()
+            copy_range(out, wasm, payload_start, payload_start + size)
+            return out
+        }
+        r.pos = payload_start + size
+    }
+    Vec_new_i32()
+}
+
+fn replace_section(wasm: Vec<i32>, section_id: i32, payload: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    copy_range(out, wasm, 0, 8)  // header
+
+    let r = component_p2_strip::WasmReader_new(wasm)
+    r.pos = 8
+    while r.pos < r.len {
+        let sid = component_p2_strip::reader_byte(r)
+        let size = component_p2_strip::reader_uleb(r)
+        let payload_start = r.pos
+        if sid == section_id {
+            push(out, sid)
+            component_p2_strip::write_uleb(out, len(payload))
+            append_bytes(out, payload)
+        } else {
+            push(out, sid)
+            component_p2_strip::write_uleb(out, size)
+            copy_range(out, wasm, payload_start, payload_start + size)
+        }
+        r.pos = payload_start + size
+    }
+    out
+}
+
+// ---- Export lookup ----
+
+fn export_func_index(wasm: Vec<i32>, name: String) -> i32 {
+    let payload = section_payload(wasm, 7)
+    if len(payload) == 0 {
+        return 0 - 1
+    }
+    let r = component_p2_strip::WasmReader_new(payload)
+    let count = component_p2_strip::reader_uleb(r)
+    let mut i = 0
+    while i < count {
+        let export_name = component_p2_strip::reader_string(r)
+        let kind = component_p2_strip::reader_byte(r)
+        let idx = component_p2_strip::reader_uleb(r)
+        if kind == 0x00 && eq(clone(export_name), clone(name)) {
+            return idx
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// ---- Import func counting ----
+
+fn import_func_count(wasm: Vec<i32>) -> i32 {
+    let payload = section_payload(wasm, 2)
+    if len(payload) == 0 {
+        return 0
+    }
+    let r = component_p2_strip::WasmReader_new(payload)
+    let count = component_p2_strip::reader_uleb(r)
+    let mut import_funcs = 0
+    let mut i = 0
+    while i < count {
+        let _mod_name = component_p2_strip::reader_string(r)
+        let _field_name = component_p2_strip::reader_string(r)
+        let kind = component_p2_strip::reader_byte(r)
+        if kind == 0x00 {
+            let _ = component_p2_strip::reader_uleb(r)
+            import_funcs = import_funcs + 1
+        } else if kind == 0x01 {
+            // table: elemtype + limits
+            r.pos = r.pos + 1  // elemtype
+            let flags = component_p2_strip::reader_byte(r)
+            let _ = component_p2_strip::reader_uleb(r)
+            if (flags & 1) != 0 {
+                let _ = component_p2_strip::reader_uleb(r)
+            }
+        } else if kind == 0x02 {
+            // memory: limits
+            let flags = component_p2_strip::reader_byte(r)
+            let _ = component_p2_strip::reader_uleb(r)
+            if (flags & 1) != 0 {
+                let _ = component_p2_strip::reader_uleb(r)
+            }
+        } else if kind == 0x03 {
+            // global: valtype + mut
+            r.pos = r.pos + 1
+            r.pos = r.pos + 1
+        }
+        i = i + 1
+    }
+    import_funcs
+}
+
+// ---- Defined func type index ----
+
+fn defined_func_type_index(wasm: Vec<i32>, defined_idx: i32) -> i32 {
+    let payload = section_payload(wasm, 3)
+    if len(payload) == 0 {
+        return 0 - 1
+    }
+    let r = component_p2_strip::WasmReader_new(payload)
+    let count = component_p2_strip::reader_uleb(r)
+    if defined_idx >= count {
+        return 0 - 1
+    }
+    let mut i = 0
+    while i < defined_idx {
+        let _ = component_p2_strip::reader_uleb(r)
+        i = i + 1
+    }
+    component_p2_strip::reader_uleb(r)
+}
+
+// ---- Type helpers ----
+
+fn void_func_type_bytes() -> Vec<i32> {
+    let out = Vec_new_i32()
+    push(out, 0x60)
+    push(out, 0x00)
+    push(out, 0x00)
+    out
+}
+
+fn i32_func_type_bytes() -> Vec<i32> {
+    let out = Vec_new_i32()
+    push(out, 0x60)
+    push(out, 0x00)
+    push(out, 0x01)
+    push(out, 0x7f)
+    out
+}
+
+fn is_void_func_type(type_bytes: Vec<i32>) -> i32 {
+    let n = len(type_bytes)
+    if n != 3 {
+        return 0
+    }
+    if get_unchecked(type_bytes, 0) != 0x60 {
+        return 0
+    }
+    if get_unchecked(type_bytes, 1) != 0x00 {
+        return 0
+    }
+    if get_unchecked(type_bytes, 2) != 0x00 {
+        return 0
+    }
+    1
+}
+
+// Return raw bytes of the type at index, or empty vec if not a func type.
+fn type_at(type_payload: Vec<i32>, index: i32) -> Vec<i32> {
+    let r = component_p2_strip::WasmReader_new(type_payload)
+    let count = component_p2_strip::reader_uleb(r)
+    if index >= count {
+        return Vec_new_i32()
+    }
+    let mut i = 0
+    while i < index {
+        let form = component_p2_strip::reader_byte(r)
+        if form == 0x60 {
+            let pc = component_p2_strip::reader_uleb(r)
+            let mut j = 0
+            while j < pc {
+                component_p2_strip::skip_valtype(r)
+                j = j + 1
+            }
+            let rc = component_p2_strip::reader_uleb(r)
+            let mut k = 0
+            while k < rc {
+                component_p2_strip::skip_valtype(r)
+                k = k + 1
+            }
+        } else if form == 0x5e {
+            component_p2_strip::skip_valtype(r)
+            r.pos = r.pos + 1
+        } else if form == 0x5f {
+            let fc = component_p2_strip::reader_uleb(r)
+            let mut k = 0
+            while k < fc {
+                component_p2_strip::skip_valtype(r)
+                r.pos = r.pos + 1
+                k = k + 1
+            }
+        } else if form == 0x4e || form == 0x4f || form == 0x50 || form == 0x51 {
+            let sc = component_p2_strip::reader_uleb(r)
+            let mut s = 0
+            while s < sc {
+                let _ = component_p2_strip::reader_uleb(r)
+                s = s + 1
+            }
+            component_p2_strip::skip_comptype(r)
+        }
+        i = i + 1
+    }
+    // Now at the target type
+    let start = r.pos
+    let form = component_p2_strip::reader_byte(r)
+    if form != 0x60 {
+        return Vec_new_i32()
+    }
+    let pc = component_p2_strip::reader_uleb(r)
+    let mut j = 0
+    while j < pc {
+        component_p2_strip::skip_valtype(r)
+        j = j + 1
+    }
+    let rc = component_p2_strip::reader_uleb(r)
+    let mut k = 0
+    while k < rc {
+        component_p2_strip::skip_valtype(r)
+        k = k + 1
+    }
+    let end = r.pos
+    let out = Vec_new_i32()
+    copy_range(out, type_payload, start, end)
+    out
+}
+
+// Find a func type by its binary encoding, skipping non-func (GC) types.
+fn find_type_index(type_payload: Vec<i32>, needle: Vec<i32>) -> i32 {
+    let r = component_p2_strip::WasmReader_new(type_payload)
+    let count = component_p2_strip::reader_uleb(r)
+    let mut idx = 0
+    let mut found_idx = 0 - 1
+    let mut found = 0
+    while idx < count {
+        let start = r.pos
+        let form = component_p2_strip::reader_byte(r)
+        if form == 0x60 {
+            let pc = component_p2_strip::reader_uleb(r)
+            let mut j = 0
+            while j < pc {
+                component_p2_strip::skip_valtype(r)
+                j = j + 1
+            }
+            let rc = component_p2_strip::reader_uleb(r)
+            let mut k = 0
+            while k < rc {
+                component_p2_strip::skip_valtype(r)
+                k = k + 1
+            }
+            let end = r.pos
+            if range_equals(type_payload, start, end, needle) == 1 {
+                found = 1
+                found_idx = idx
+            }
+        } else if form == 0x5e {
+            component_p2_strip::skip_valtype(r)
+            r.pos = r.pos + 1
+        } else if form == 0x5f {
+            let fc = component_p2_strip::reader_uleb(r)
+            let mut k = 0
+            while k < fc {
+                component_p2_strip::skip_valtype(r)
+                r.pos = r.pos + 1
+                k = k + 1
+            }
+        } else if form == 0x4e || form == 0x4f || form == 0x50 || form == 0x51 {
+            let sc = component_p2_strip::reader_uleb(r)
+            let mut s = 0
+            while s < sc {
+                let _ = component_p2_strip::reader_uleb(r)
+                s = s + 1
+            }
+            component_p2_strip::skip_comptype(r)
+        }
+        if found == 1 {
+            idx = count
+        } else {
+            idx = idx + 1
+        }
+    }
+    found_idx
+}
+
+fn range_equals(data: Vec<i32>, start: i32, end: i32, needle: Vec<i32>) -> i32 {
+    let range_len = end - start
+    let mut match_ok = 1
+    if range_len != len(needle) {
+        match_ok = 0
+    }
+    let mut i = 0
+    while i < range_len {
+        if i < len(needle) {
+            if get_unchecked(data, start + i) != get_unchecked(needle, i) {
+                match_ok = 0
+            }
+        }
+        i = i + 1
+    }
+    match_ok
+}

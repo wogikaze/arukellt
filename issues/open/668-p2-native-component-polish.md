@@ -27,15 +27,15 @@ if the queue grows.
 
 ## Background
 
-- Stdout uses `p2_component_wrap.py` + canonical ABI patch; stderr and direct
-  `wasi:io/streams` guest imports are not wired. #714 tracks the architecture
-  correction: emit wrapper-free WASI 0.2 Component Model output directly from the
-  compiler instead of repairing pseudo core imports after compilation.
-- `tests/fixtures/wasi_p2_native/` contains only `hello.ark`.
+- **#714 bridged close (2026-07-25):** `p2_component_wrap.py` deleted; in-tree
+  bridged emit prints `hello p2` via component imports of `wasi:cli/stdout` +
+  `wasi:io/streams` + stdout bridge. Guest core may still import a bridge
+  `write` symbol; **guest-native** `get-stdout` + stream method call sites
+  remain this issue's acceptance item.
+- `tests/fixtures/wasi_p2_native/` has `hello.ark` + `exit_code.ark` (exit path
+  trap proof). stderr / args / env_var fixtures still needed here.
 - `BOOTSTRAP_COMPONENT_STUB` remains in `scripts/selfhost/checks.py` (FD-07 risk).
-- `docs/target-contract.md` still says P2 native is "deferred to v5+" while
-  `docs/current-state.md` documents `gate_074` as green.
-- `wasi:cli` version strings mix `@0.2.0` (imports) and `@0.2.6` (exports).
+- `wasi:cli` version strings mix `@0.2.0` (imports) and `@0.2.0`/`@0.2.6` (exports).
 
 ## Acceptance
 

@@ -206,7 +206,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 705 | [std::toml Full TOML 1.0 Compliance](705-std-toml-full-compliance.md) | stdlib | 606 | none | 0 checked / 5 open | — | — | |
 | 706 | [std::wit Full WIT 1.0 Compliance](706-std-wit-full-compliance.md) | stdlib | 606 | none | 0 checked / 5 open | — | — | |
 | 708 | [708 — `TryFrom` / `TryInto` traits for fallible conversions](708-tryfrom-tryinto-traits.md) | stdlib-api | 692, 707 | none | 0 checked / 13 open | blocked-by-upstream | #692 From/Into traits, #707 Self return type support | |
-| 714 | [714 — Emitter-native WASI P2 component output without wrapper](714-wasi-p2-emitter-native-component-output.md) | component-model | 074, 510 | 668, 727 | 0 checked / 9 open | architecture-implementation | None | |
+| 714 | [714 — Emitter-native WASI P2 component output without wrapper](714-wasi-p2-emitter-native-component-output.md) | component-model | 074, 510 | 668, 727 | 8 checked / 1 open | architecture-implementation | None | |
 | 715 | [715 — In-file test coverage targets for compiler and stdlib](715-in-file-test-coverage-targets.md) | testing | 041, done) | 719, 799 | 13 checked / 6 open | ready | None | |
 | 718 | [718 — Stdlib free-function → method/trait migration inventory](718-stdlib-free-function-method-migration.md) | stdlib-api | 700, 701 | none | 15 checked / 4 open | incremental | None | |
 | 721 | [Final Types (`sub final`) を全 struct に適用](721-final-types-emit-for-all-structs.md) | wasm-feature | none | none | 0 checked / 7 open | implementation-ready | none | |

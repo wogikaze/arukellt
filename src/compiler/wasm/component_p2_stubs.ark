@@ -1,3 +1,5 @@
+// Arukellt Selfhost - P2 stub core modules for bootstrap component emission.
+
 use wasm::writer_core
 use wasm::writer_string
 
@@ -33,6 +35,10 @@ fn p2_stub_emit_core_func_type(type_sec: WasmWriter, params: Vec<i32>, results: 
 }
 
 fn p2_stub_single_export(export_name: String, void_ret: i32) -> Vec<i32> {
+    p2_stub_single_export_named(export_name, export_name, void_ret)
+}
+
+fn p2_stub_single_export_named(export_name: String, module_name: String, void_ret: i32) -> Vec<i32> {
     let out = p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
@@ -57,6 +63,7 @@ fn p2_stub_single_export(export_name: String, void_ret: i32) -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 0)
     p2_stub_emit_wasm_section(out, 3, func_sec)
     p2_stub_emit_exports(out, export_name, 0, void_ret)
+    p2_stub_emit_module_name(out, module_name)
     writer_core::writer_bytes(out)
 }
 
@@ -77,6 +84,7 @@ fn p2_stub_env_module() -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 0)
     p2_stub_emit_wasm_section(out, 3, func_sec)
     p2_stub_emit_core_exports(out, String_from("args-sizes"), String_from("arguments"), 2)
+    p2_stub_emit_module_name(out, String_from("stub_env"))
     writer_core::writer_bytes(out)
 }
 
@@ -107,6 +115,7 @@ fn p2_stub_fs_module() -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 1)
     p2_stub_emit_wasm_section(out, 3, func_sec)
     p2_stub_emit_core_exports(out, String_from("open-at"), String_from("close"), 2)
+    p2_stub_emit_module_name(out, String_from("stub_fs"))
     writer_core::writer_bytes(out)
 }
 
@@ -196,4 +205,15 @@ fn p2_stub_emit_void_body(out: WasmWriter) {
     writer_core::emit_leb128_u(code_sec, 0)
     writer_core::emit_byte(code_sec, 0x0b)
     p2_stub_emit_wasm_section(out, 10, code_sec)
+}
+
+fn p2_stub_emit_module_name(out: WasmWriter, module_name: String) {
+    let name_sec = writer_core::WasmWriter_new()
+    writer_string::emit_string(name_sec, String_from("name"))
+    writer_core::emit_byte(name_sec, 0x00)
+    let name_body = writer_core::WasmWriter_new()
+    writer_string::emit_string(name_body, module_name)
+    writer_core::emit_leb128_u(name_sec, writer_core::writer_size(name_body))
+    writer_core::emit_bytes(name_sec, writer_core::writer_bytes(name_body))
+    p2_stub_emit_wasm_section(out, 0, name_sec)
 }
