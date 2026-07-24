@@ -1832,25 +1832,6 @@ def _patch_bootstrap_mir_lower_phase_timing(text: str, *, keep_clock: bool = Fal
     )
 
 
-def _patch_bootstrap_wasm_sections_data_only(text: str) -> str:
-    """Bootstrap overlay excludes gc_hint tail; emit data section directly."""
-    # Rewrite sections_tail import to sections_data (if present).
-    text = text.replace(
-        "use wasm::sections_tail",
-        "use wasm::sections_data",
-    )
-    # Replace direct call (legacy) or facade-wrapped call (post-split).
-    text = text.replace(
-        "sections_tail::emit_tail_sections(out, ctx, strings, opt_level)",
-        "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
-    )
-    text = text.replace(
-        "wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)",
-        "sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))",
-    )
-    return text
-
-
 def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     """Bootstrap overlay drops WAT modules; keep a stub for driver linkage."""
     lines = text.splitlines()
@@ -2001,10 +1982,6 @@ def _write_worktree_namespace_overlay(
         if rel_name == "wasm/mod.ark":
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
             text = _patch_bootstrap_wasm_mod_p2_emit(text)
-        if rel_name == "wasm/wasm_sections.ark":
-            text = _patch_bootstrap_wasm_sections_data_only(text)
-        if rel_name == "wasm/wasm_sections_facade.ark":
-            text = _patch_bootstrap_wasm_sections_data_only(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
         # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i32-ms clocks (all timing
         # groups by default) — compile that overlay with s2-runtime (#823).

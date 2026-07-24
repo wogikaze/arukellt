@@ -1,4 +1,5 @@
 use wasm::code
+use wasm::emit_target
 use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
@@ -79,7 +80,8 @@ fn emit_wasm_module_sections(out: WasmWriter, mir: MirModule, target: String, wa
     wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
-    wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level)
+    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level, import_count)
     registry_return_audit::registry_audit_print_summary(ctx)
     core_op_shadow::core_op_shadow_print_summary(ctx)
     gc_layout_audit::gc_layout_audit_print_summary(ctx)

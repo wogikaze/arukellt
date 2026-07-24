@@ -1,14 +1,36 @@
+use mir::function_identity
+use wasm::ctx_record
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::writer_string
 
-fn emit_name_custom_section(out: WasmWriter, opt_level: i32) {
+fn emit_name_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32) {
     if opt_level >= 2 {
+        return
+    }
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    if fn_count <= 0 {
         return
     }
     let payload = writer_core::WasmWriter_new()
     writer_string::emit_string(payload, String_from("name"))
-    writer_core::emit_leb128_u(payload, 0)
+    emit_function_name_subsection(payload, ctx, fn_count, import_count)
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}
+
+fn emit_function_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
+    let fn_payload = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(fn_payload, fn_count)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
+        let name = function_identity::MirFunction_name(f)
+        writer_core::emit_leb128_u(fn_payload, import_count + fi)
+        writer_string::emit_string(fn_payload, name)
+        fi = fi + 1
+    }
+    writer_core::emit_byte(payload, 1)
+    writer_core::emit_leb128_u(payload, writer_core::writer_size(fn_payload))
+    writer_core::emit_bytes(payload, writer_core::writer_bytes(fn_payload))
 }
