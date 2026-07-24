@@ -17,6 +17,7 @@
 |------|-------|---------|
 | [agent-harness.md](agent-harness.md) | Agent Harness Guide | This is a short pointer document for developers and agents working in this repository. |
 | [benchmark-plan.md](benchmark-plan.md) | Benchmark Plan — Governance, Run Modes, and Baseline Rules | This document is the authoritative process reference for the Arukellt benchmark suite. It defines run modes, baseline update rules, and the governance contract |
+| [board.md](board.md) | Arukellt Board | Arukellt Board は、issue / ADR / ドキュメントを横断して追跡できる読み取り専用のカンバン SPA です。複数軸切り替え、全文検索、Mermaid 依存グラフ、エージェント向けコピー、n ペイン分割タブを備えています。 |
 | [bootstrap-verification.md](bootstrap-verification.md) | Bootstrap Verification | Current-first. This page is a thin pointer to the ADR-029 verification contract. Do not treat Rust Stage 0 documents as current. |
 | [ci-required-checks.md](ci-required-checks.md) | CI required checks (quality closed loop) | Policy: ADR-047. |
 | [codeowners-plan.md](codeowners-plan.md) | CODEOWNERS plan (not yet enforced) | ADR-047 does not require CODEOWNERS for acceptance. When owners are known, add .github/CODEOWNERS with paths such as: |
