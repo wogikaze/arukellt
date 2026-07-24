@@ -263,6 +263,8 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 """
 
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
+use wasm
+
 fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
     let fn_count = mir_module_functions::MirModule_function_count(mir)
     if fn_count < 2 {
@@ -301,10 +303,11 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    // Forward to flattened component/emit.ark. Do not keep an `if false` library
-    // path: it still lowers to drop+unreachable with an i64 return temp and fails
-    // wasm validate (#730 emit_component).
-    component_emit::component_emit__emit_component(core_wasm, mir, target, wasi_version, world)
+    // TODO(#714 owner=bootstrap-emit removal=component_emit-overlay-resolves recheck=2026-08-01)
+    // Bootstrap overlay routes directly to the wasm P2 emitter; the flattened
+    // component/emit.ark delegate is not yet resolvable in the selfhost flat
+    // overlay, so keep this narrow P2-command shortcut until #714 lands.
+    wasm::emit_p2_command_component(core_wasm)
 }
 
 pub fn mir_has_library_exports(mir: MirModule) -> bool {

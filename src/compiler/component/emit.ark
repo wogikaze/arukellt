@@ -3,11 +3,10 @@ use component::export_plan
 use component::export_sections
 use component::export_types
 use component::writer_core
-use component::world_spec
+use wasm
 
-fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    let _target = target
-    if world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
+fn emit_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, wasi_version: String, _world: String) -> Vec<i32> {
+    if eq(clone(wasi_version), String_from("wasi-p2")) {
         return wasm::emit_p2_command_component(core_wasm)
     }
     // Specialized emit lowered to drop+unreachable with an i64 return temp and
@@ -17,10 +16,7 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
-fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    let _target = target
-    let _wasi_version = wasi_version
-    let _world = world
+fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, _wasi_version: String, _world: String) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()
     let plan = export_plan::collect_component_exports(mir)
     emit_component_generic_exports(out, core_wasm, plan, mir)
