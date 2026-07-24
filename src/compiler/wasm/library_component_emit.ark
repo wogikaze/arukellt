@@ -120,6 +120,9 @@ fn lib_comp_val_type_to_wit(vt: i32) -> i32 {
     if vt == value_types::VT_F32() {
         return constants::LIB_WIT_F32()
     }
+    if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
+        return constants::LIB_WIT_STRING()
+    }
     constants::LIB_WIT_S64()
 }
 
