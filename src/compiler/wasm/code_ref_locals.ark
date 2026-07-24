@@ -71,6 +71,14 @@ fn local_has_any_ref_assignment(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx
     code_ref_locals_scan::local_has_any_ref_assignment(f, local_idx, ctx)
 }
 
+fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_scan::local_has_scalar_producer(f, local_idx)
+}
+
+fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
+    code_ref_locals_scan::local_has_strong_ref_producer(f, local_idx)
+}
+
 fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
 }

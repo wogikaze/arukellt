@@ -65,6 +65,16 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
+    // For GC_STRUCT_NEW destinations with variant_slot, prefer the concrete
+    // variant type over the open enum type from type_name lookup. Without this
+    // priority, type_name → open-enum wins and ref.cast targets a different
+    // type than the local declaration (#808).
+    if variant_slot >= 0 && is_struct_new_dest {
+        let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            return variant_gc
+        }
+    }
     if len(local_type_name) > 0 {
         let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
         if type_name_gc >= 0 {
@@ -73,13 +83,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
             if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
                 return type_name_gc
             }
-        }
-    }
-    // ADR-040 Phase 5e: variant_slot only for GC_STRUCT_NEW destinations.
-    if variant_slot >= 0 && is_struct_new_dest {
-        let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
-        if variant_gc >= 0 {
-            return variant_gc
         }
     }
     if is_payload_with_stray_variant {

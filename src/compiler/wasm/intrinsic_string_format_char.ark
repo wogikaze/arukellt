@@ -104,9 +104,9 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
 
-    // Void function — drop the new array ref (not stored back to caller's local)
-    // The new array is lost; this is a known limitation of void push_char on GC targets.
-    return true
+    // Void function — no value left on stack. The new array is lost; this is
+    // a known limitation of void push_char on GC targets.
+    return false
 }
 
 // Handler for: String_new

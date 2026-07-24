@@ -6,6 +6,7 @@ use mir::function_param_view
 use mir::function_locals_view
 use mir::local_access
 use mir::opcodes
+use mir::value_types
 use wasm::code_ref_locals_fn_cache
 use wasm::ctx_record
 
@@ -180,6 +181,148 @@ fn local_inst_assigns_ref(f: MirFunction, inst: MirInst, local_idx: i32, depth: 
     if op == opcodes::MIR_LOCAL_SET() && arg0 == local_idx {
         let source = inst_accessors_operands::MirInst_arg1(inst)
         if source >= 0 && (local_has_ref_type_name(f, source) || local_has_any_ref_assignment_depth(f, source, depth + 1)) {
+            return true
+        }
+    }
+    false
+}
+
+// Check if a local is the dest of any instruction that produces a scalar
+// (non-ref) value. On Memory64, scalar i32 results are widened to i64 via
+// emit_widen_i32_result. If a local receives both ref and scalar values
+// (local reuse), declaring it as a GC ref causes validation failures because
+// the widened i64 cannot be stored in a ref local (#808).
+fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
+    local_has_scalar_producer_depth(f, local_idx, 0)
+}
+
+fn local_has_scalar_producer_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
+    if depth > 3 {
+        return false
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_is_scalar_producer_for(f, inst, local_idx, depth) {
+                return true
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn inst_is_scalar_producer_for(f: MirFunction, inst: MirInst, local_idx: i32, depth: i32) -> bool {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest == local_idx {
+        if inst_op_is_scalar_producer(op, inst) {
+            return true
+        }
+    }
+    // LOCAL_SET from a scalar-producing source local also makes this local
+    // receive a scalar value (local reuse chain).
+    if op == opcodes::MIR_LOCAL_SET() {
+        let target = inst_accessors_operands::MirInst_arg0(inst)
+        if target == local_idx {
+            let source = inst_accessors_operands::MirInst_arg1(inst)
+            if source >= 0 && local_has_scalar_producer_depth(f, source, depth + 1) {
+                return true
+            }
+        }
+    }
+    false
+}
+
+// Check if a local has a "strong" ref producer — an instruction that
+// definitely produces a ref value (not just a MIR_CALL with stale val_type).
+// Used to distinguish true local reuse (both ref and scalar) from stale
+// val_type (only scalar, but val_type says ref).
+fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            if dest == local_idx {
+                if op == opcodes::MIR_GC_STRUCT_NEW() ||
+                   op == opcodes::MIR_STRUCT_NEW() ||
+                   op == opcodes::MIR_ARRAY_NEW() ||
+                   op == opcodes::MIR_CONST_STRING() ||
+                   op == opcodes::MIR_REF_CAST() ||
+                   op == opcodes::MIR_REF_TEST() {
+                    return true
+                }
+                // MIR_CALL with VT_GC_REF val_type is a ref producer
+                if op == opcodes::MIR_CALL() {
+                    let vt = inst_accessors_shape::MirInst_val_type(inst)
+                    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
+    // Instructions that always produce scalar values.
+    if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_I64() ||
+       op == opcodes::MIR_CONST_F64() || op == opcodes::MIR_CONST_BOOL() ||
+       op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() ||
+       op == opcodes::MIR_MUL() || op == opcodes::MIR_DIV() ||
+       op == opcodes::MIR_MOD() ||
+       op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
+       op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() ||
+       op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() ||
+       op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
+       op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() ||
+       op == opcodes::MIR_SHL() || op == opcodes::MIR_SHR() ||
+       op == opcodes::MIR_EQZ() {
+        return true
+    }
+    // MIR_ARRAY_GET always produces a scalar i32 (default i32-backed arrays,
+    // widened to i64 on Memory64). The instruction val_type may be stale
+    // (VT_GC_REF from local reuse) so do not rely on it.
+    if op == opcodes::MIR_ARRAY_GET() {
+        return true
+    }
+    // MIR_STRUCT_GET and MIR_GC_STRUCT_GET produce scalar values when the
+    // result val_type is VT_I32 (i32 field, widened to i64 on Memory64).
+    // Ref field results have val_type VT_GC_REF and are not scalar.
+    if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_GET() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+           vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+            return true
+        }
+        // VT_VOID: the field type is unknown in MIR. Conservative: treat
+        // VT_VOID struct_get as scalar to avoid ref declaration mismatches.
+        if vt == value_types::VT_VOID() {
+            return true
+        }
+    }
+    // MIR_CALL to intrinsics that emit array.get_i32 (e.g. vec_get_unchecked)
+    // produce scalar i32 values widened to i64 on Memory64. The instruction
+    // val_type indicates the result type: VT_I32 = scalar, VT_GC_REF = ref.
+    if op == opcodes::MIR_CALL() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+           vt == value_types::VT_F64() || vt == value_types::VT_F32() {
             return true
         }
     }
