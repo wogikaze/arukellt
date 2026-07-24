@@ -615,12 +615,22 @@ fn main() {
         module.emit_wasm_file(&tmp).expect("write pre-memory64 wasm");
         let bytes = std::fs::read(&tmp).expect("read pre-memory64 wasm");
         match wasm32to64::convert_to_memory64(&bytes) {
-            Ok(converted) => {
+            Ok(mut converted) => {
+                // Re-apply --initial-pages after convert (convert keeps the
+                // pre64 minimum, but make the flag authoritative).
+                if let Some(pages) = initial_pages {
+                    converted = set_memory64_initial_pages(&converted, pages)
+                        .expect("set memory64 initial pages after --to-memory64");
+                }
                 std::fs::write(&out, &converted).expect("write memory64 wasm");
                 let _ = std::fs::remove_file(&tmp);
                 eprintln!(
-                    "patched {} heap growth sites; converted to memory64; wrote {}",
-                    total_patched, out
+                    "patched {} heap growth sites; converted to memory64{}; wrote {}",
+                    total_patched,
+                    initial_pages
+                        .map(|p| format!(", initial_pages={p}"))
+                        .unwrap_or_default(),
+                    out
                 );
             }
             Err(err) => {

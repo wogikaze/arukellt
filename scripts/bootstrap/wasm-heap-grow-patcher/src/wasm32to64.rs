@@ -1004,7 +1004,10 @@ fn convert_operator(
         Operator::F64Ge => { i!(Instruction::F64Ge); i!(Instruction::I64ExtendI32U); }
 
         // ── i32 arithmetic/logic → i64 ─────────────────────────────
-        // Add/Sub stay full i64 so the bump heap can pass 4GiB (#730).
+        // Add/Sub/Shl/ShrU stay full i64 so the bump heap and the injected
+        // heap-grow helper can pass 4GiB (#730). Grow does
+        // `memory.size << 16` / `>> 16`; wrapping those to i32 zeroes the
+        // high bits past 4GiB and causes OOB on the next store.
         // Other ops keep wasm32 wrap + sign-extend for sentinel/index math.
         Operator::I32Clz => {
             i!(Instruction::I64Clz);
@@ -1063,21 +1066,13 @@ fn convert_operator(
             i!(Instruction::I32WrapI64);
             i!(Instruction::I64ExtendI32S);
         }
-        Operator::I32Shl => {
-            i!(Instruction::I64Shl);
-            i!(Instruction::I32WrapI64);
-            i!(Instruction::I64ExtendI32S);
-        }
+        Operator::I32Shl => i!(Instruction::I64Shl),
         Operator::I32ShrS => {
             i!(Instruction::I64ShrS);
             i!(Instruction::I32WrapI64);
             i!(Instruction::I64ExtendI32S);
         }
-        Operator::I32ShrU => {
-            i!(Instruction::I64ShrU);
-            i!(Instruction::I32WrapI64);
-            i!(Instruction::I64ExtendI32U);
-        }
+        Operator::I32ShrU => i!(Instruction::I64ShrU),
         Operator::I32Rotl => {
             i!(Instruction::I64Rotl);
             i!(Instruction::I32WrapI64);
