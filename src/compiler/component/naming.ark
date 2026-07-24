@@ -43,7 +43,7 @@ fn val_type_to_comp(val_type: i32) -> i32 {
     if val_type == value_types::VT_F64() {
         return constants_wit_values::WIT_VAL_FLOAT64()
     }
-    if val_type == value_types::VT_REF() {
+    if val_type == value_types::VT_REF() || val_type == value_types::VT_GC_REF() {
         return constants_wit_values::WIT_VAL_STRING()
     }
     constants_wit_values::WIT_VAL_S32()
@@ -86,7 +86,7 @@ fn comp_wit_type_from_name(type_name: String, fallback_vt: i32) -> i32 {
     if eq(clone(type_name), String_from("f64")) {
         return constants_wit_values::WIT_VAL_FLOAT64()
     }
-    if eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
         return constants_wit_values::WIT_VAL_STRING()
     }
     val_type_to_comp(fallback_vt)

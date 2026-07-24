@@ -1,0 +1,492 @@
+use wasm::writer_core
+use wasm::writer_string
+
+// Canonical ABI adapter core module for a single String parameter and
+// single String return value. The adapter converts between the WIT string
+// representation (i32 pointer/length in linear memory) and Arukellt's
+// internal GC array-of-i8 representation (ref null (array (mut i8))).
+//
+// This module currently only generates adapters for one string argument
+// and one string result; it can be extended once mixed scalar/string
+// component signatures are required.
+
+pub fn emit_string_adapter_module(user_export_name: String) -> Vec<i32> {
+    let out = writer_core::WasmWriter_new()
+    emit_module_header(out)
+
+    let type_sec = writer_core::WasmWriter_new()
+    emit_type_section(type_sec)
+    emit_core_section(out, 1, type_sec)
+
+    let import_sec = writer_core::WasmWriter_new()
+    emit_import_section(import_sec, user_export_name)
+    emit_core_section(out, 2, import_sec)
+
+    let func_sec = writer_core::WasmWriter_new()
+    emit_func_section(func_sec)
+    emit_core_section(out, 3, func_sec)
+
+    let mem_sec = writer_core::WasmWriter_new()
+    emit_memory_section(mem_sec)
+    emit_core_section(out, 5, mem_sec)
+
+    let global_sec = writer_core::WasmWriter_new()
+    emit_global_section(global_sec)
+    emit_core_section(out, 6, global_sec)
+
+    let export_sec = writer_core::WasmWriter_new()
+    emit_export_section(export_sec, user_export_name)
+    emit_core_section(out, 7, export_sec)
+
+    let code_sec = writer_core::WasmWriter_new()
+    emit_code_section(code_sec)
+    emit_core_section(out, 10, code_sec)
+
+    writer_core::writer_bytes(out)
+}
+
+fn emit_module_header(out: writer_core::WasmWriter) {
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x61)
+    writer_core::emit_byte(out, 0x73)
+    writer_core::emit_byte(out, 0x6d)
+    writer_core::emit_byte(out, 0x01)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x00)
+    writer_core::emit_byte(out, 0x00)
+}
+
+fn emit_core_section(out: writer_core::WasmWriter, section_id: i32, contents: writer_core::WasmWriter) {
+    writer_core::emit_byte(out, section_id)
+    writer_core::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
+}
+
+// Type indices:
+// 0: (array (mut i8))        -- string backing array
+// 1: (i32, i32, i32, i32) -> i32  -- realloc
+// 2: (ref null 0) -> (ref null 0) -- user greet
+// 3: (i32, i32) -> (i32, i32)     -- adapter greet
+fn emit_type_section(sec: writer_core::WasmWriter) {
+    writer_core::emit_leb128_u(sec, 4)
+
+    // type 0: array (mut i8)
+    writer_core::emit_byte(sec, 0x5e)
+    writer_core::emit_byte(sec, 0x78)
+    writer_core::emit_byte(sec, 0x01)
+
+    // type 1: realloc
+    writer_core::emit_byte(sec, 0x60)
+    writer_core::emit_leb128_u(sec, 4)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x7f)
+
+    // type 2: user greet
+    writer_core::emit_byte(sec, 0x60)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x63)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x63)
+    writer_core::emit_byte(sec, 0x00)
+
+    // type 3: adapter greet (i32, i32) -> (i32)
+    // The single i32 return is a pointer to a (ptr, len) record for the
+    // canonical ABI; the record points at the UTF-8 string in linear memory.
+    writer_core::emit_byte(sec, 0x60)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x7f)
+}
+
+fn emit_import_section(sec: writer_core::WasmWriter, user_export_name: String) {
+    writer_core::emit_leb128_u(sec, 1)
+    writer_string::emit_string(sec, String_from("user"))
+    writer_string::emit_string(sec, user_export_name)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 2)
+}
+
+fn emit_func_section(sec: writer_core::WasmWriter) {
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, 3)
+}
+
+fn emit_memory_section(sec: writer_core::WasmWriter) {
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 1)
+}
+
+fn emit_global_section(sec: writer_core::WasmWriter) {
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x01)
+    writer_core::emit_byte(sec, 0x41)
+    writer_core::emit_leb128_u(sec, 256)
+    writer_core::emit_byte(sec, 0x0b)
+}
+
+fn emit_export_section(sec: writer_core::WasmWriter, user_export_name: String) {
+    writer_core::emit_leb128_u(sec, 3)
+    writer_string::emit_string(sec, String_from("realloc"))
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 1)
+    writer_string::emit_string(sec, user_export_name)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_string::emit_string(sec, String_from("memory"))
+    writer_core::emit_byte(sec, 0x02)
+    writer_core::emit_leb128_u(sec, 0)
+}
+
+fn emit_code_section(sec: writer_core::WasmWriter) {
+    writer_core::emit_leb128_u(sec, 2)
+    emit_realloc_body(sec)
+    emit_greet_body(sec)
+}
+
+fn emit_realloc_body(sec: writer_core::WasmWriter) {
+    let body = writer_core::WasmWriter_new()
+    // one i32 local ($ptr at index 4)
+    writer_core::emit_leb128_u(body, 1)
+    writer_core::emit_leb128_u(body, 1)
+    writer_core::emit_byte(body, 0x7f)
+
+    // if new_size == 0 return 1 (canonical free no-op)
+    emit_local_get(body, 3)
+    emit_i32_const(body, 0)
+    emit_i32_eq(body)
+    emit_if(body)
+    emit_i32_const(body, 1)
+    emit_return(body)
+    emit_end(body)
+
+    // ptr = bump
+    emit_global_get(body, 0)
+    emit_local_set(body, 4)
+
+    // if align > 1: ptr = align_up(ptr, align)
+    emit_local_get(body, 2)
+    emit_i32_const(body, 1)
+    emit_i32_gt_u(body)
+    emit_if(body)
+    emit_local_get(body, 4)
+    emit_local_get(body, 2)
+    emit_i32_const(body, 1)
+    emit_i32_sub(body)
+    emit_i32_add(body)
+    emit_local_get(body, 2)
+    emit_i32_div_u(body)
+    emit_local_get(body, 2)
+    emit_i32_mul(body)
+    emit_local_set(body, 4)
+    emit_end(body)
+
+    // bump = ptr + new_size
+    emit_local_get(body, 4)
+    emit_local_get(body, 3)
+    emit_i32_add(body)
+    emit_global_set(body, 0)
+
+    // if bump > 65536: unreachable (out of canonical scratch)
+    emit_global_get(body, 0)
+    emit_i32_const(body, 65536)
+    emit_i32_gt_u(body)
+    emit_if(body)
+    emit_unreachable(body)
+    emit_end(body)
+
+    // if old_ptr != 0: memory.copy(ptr, old_ptr, old_size)
+    emit_local_get(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_ne(body)
+    emit_if(body)
+    emit_local_get(body, 4)
+    emit_local_get(body, 0)
+    emit_local_get(body, 1)
+    emit_memory_copy(body)
+    emit_end(body)
+
+    emit_local_get(body, 4)
+    emit_end(body)
+
+    let bytes = writer_core::writer_bytes(body)
+    writer_core::emit_leb128_u(sec, len(bytes))
+    writer_core::emit_bytes(sec, bytes)
+}
+
+fn emit_greet_body(sec: writer_core::WasmWriter) {
+    let body = writer_core::WasmWriter_new()
+    // locals: arr(ref 0), arr2(ref null 0), out_ptr, out_len, i, ret
+    writer_core::emit_leb128_u(body, 3)
+    writer_core::emit_leb128_u(body, 1)
+    writer_core::emit_byte(body, 0x64)
+    writer_core::emit_byte(body, 0x00)
+    writer_core::emit_leb128_u(body, 1)
+    writer_core::emit_byte(body, 0x63)
+    writer_core::emit_byte(body, 0x00)
+    writer_core::emit_leb128_u(body, 4)
+    writer_core::emit_byte(body, 0x7f)
+
+    // arr = array.new_default $arr (len)
+    emit_local_get(body, 1)
+    emit_array_new_default(body, 0)
+    emit_local_set(body, 2)
+
+    // i = 0
+    emit_i32_const(body, 0)
+    emit_local_set(body, 6)
+
+    // copy input bytes from linear memory to array
+    emit_loop(body)
+    emit_local_get(body, 6)
+    emit_local_get(body, 1)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, 2)
+    emit_local_get(body, 6)
+    emit_local_get(body, 0)
+    emit_local_get(body, 6)
+    emit_i32_add(body)
+    emit_i32_load8_u(body)
+    emit_array_set(body, 0)
+    emit_local_get(body, 6)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, 6)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+
+    // reset bump to canonical scratch start (256) before output allocation
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    // arr2 = call user greet(arr)
+    emit_local_get(body, 2)
+    emit_call(body, 0)
+    emit_local_set(body, 3)
+
+    // out_len = array.len (ref.as_non_null arr2)
+    emit_local_get(body, 3)
+    emit_ref_as_non_null(body)
+    emit_array_len(body)
+    emit_local_set(body, 5)
+
+    // out_ptr = realloc(0, 0, 1, out_len)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 1)
+    emit_local_get(body, 5)
+    emit_call(body, 1)
+    emit_local_set(body, 4)
+
+    // out_ptr = realloc(0, 0, 1, out_len)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 1)
+    emit_local_get(body, 5)
+    emit_call(body, 1)
+    emit_local_set(body, 4)
+
+    // i = 0
+    emit_i32_const(body, 0)
+    emit_local_set(body, 6)
+
+    // copy output bytes from array to linear memory
+    emit_loop(body)
+    emit_local_get(body, 6)
+    emit_local_get(body, 5)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, 4)
+    emit_local_get(body, 6)
+    emit_i32_add(body)
+    emit_local_get(body, 3)
+    emit_ref_as_non_null(body)
+    emit_local_get(body, 6)
+    emit_array_get_u(body, 0)
+    emit_i32_store8(body)
+    emit_local_get(body, 6)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, 6)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+
+    // ret = realloc(0, 0, 4, 8)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_i32_const(body, 8)
+    emit_call(body, 1)
+    emit_local_set(body, 7)
+
+    // [ret + 0] = out_ptr
+    emit_local_get(body, 7)
+    emit_local_get(body, 4)
+    emit_i32_store(body, 0)
+    // [ret + 4] = out_len
+    emit_local_get(body, 7)
+    emit_local_get(body, 5)
+    emit_i32_store(body, 4)
+
+    emit_local_get(body, 7)
+    emit_end(body)
+
+    let bytes = writer_core::writer_bytes(body)
+    writer_core::emit_leb128_u(sec, len(bytes))
+    writer_core::emit_bytes(sec, bytes)
+}
+
+// ---- Core instruction emitters (one-byte opcodes) ----
+
+fn emit_i32_const(w: writer_core::WasmWriter, v: i32) {
+    writer_core::emit_byte(w, 0x41)
+    writer_core::emit_leb128_s(w, v)
+}
+
+fn emit_i32_add(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x6a)
+}
+
+fn emit_i32_sub(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x6b)
+}
+
+fn emit_i32_mul(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x6c)
+}
+
+fn emit_i32_div_u(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x6e)
+}
+
+fn emit_i32_lt_u(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x49)
+}
+
+fn emit_i32_gt_u(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x4b)
+}
+
+fn emit_i32_eq(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x46)
+}
+
+fn emit_i32_ne(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x47)
+}
+
+fn emit_i32_load8_u(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x2d)
+    writer_core::emit_byte(w, 0x00)
+    writer_core::emit_byte(w, 0x00)
+}
+
+fn emit_i32_store8(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x3a)
+    writer_core::emit_byte(w, 0x00)
+    writer_core::emit_byte(w, 0x00)
+}
+
+fn emit_i32_store(w: writer_core::WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, 0x36)
+    writer_core::emit_byte(w, 0x02)
+    writer_core::emit_leb128_u(w, offset)
+}
+
+fn emit_local_get(w: writer_core::WasmWriter, idx: i32) {
+    writer_core::emit_byte(w, 0x20)
+    writer_core::emit_leb128_u(w, idx)
+}
+
+fn emit_local_set(w: writer_core::WasmWriter, idx: i32) {
+    writer_core::emit_byte(w, 0x21)
+    writer_core::emit_leb128_u(w, idx)
+}
+
+fn emit_global_get(w: writer_core::WasmWriter, idx: i32) {
+    writer_core::emit_byte(w, 0x23)
+    writer_core::emit_leb128_u(w, idx)
+}
+
+fn emit_global_set(w: writer_core::WasmWriter, idx: i32) {
+    writer_core::emit_byte(w, 0x24)
+    writer_core::emit_leb128_u(w, idx)
+}
+
+fn emit_call(w: writer_core::WasmWriter, idx: i32) {
+    writer_core::emit_byte(w, 0x10)
+    writer_core::emit_leb128_u(w, idx)
+}
+
+fn emit_return(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x0f)
+}
+
+fn emit_unreachable(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x00)
+}
+
+fn emit_if(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x04)
+    writer_core::emit_byte(w, 0x40)
+}
+
+fn emit_end(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x0b)
+}
+
+fn emit_loop(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x03)
+    writer_core::emit_byte(w, 0x40)
+}
+
+fn emit_br(w: writer_core::WasmWriter, depth: i32) {
+    writer_core::emit_byte(w, 0x0c)
+    writer_core::emit_leb128_u(w, depth)
+}
+
+fn emit_memory_copy(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0xfc)
+    writer_core::emit_leb128_u(w, 10)
+    writer_core::emit_byte(w, 0x00)
+    writer_core::emit_byte(w, 0x00)
+}
+
+fn emit_array_new_default(w: writer_core::WasmWriter, typeidx: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x07)
+    writer_core::emit_leb128_u(w, typeidx)
+}
+
+fn emit_array_get_u(w: writer_core::WasmWriter, typeidx: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x0d)
+    writer_core::emit_leb128_u(w, typeidx)
+}
+
+fn emit_array_set(w: writer_core::WasmWriter, typeidx: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x0e)
+    writer_core::emit_leb128_u(w, typeidx)
+}
+
+fn emit_array_len(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x0f)
+}
+
+fn emit_ref_as_non_null(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0xd4)
+}
