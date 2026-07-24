@@ -124,6 +124,13 @@ fn is_clock_now_ms_callee(callee: String) -> bool {
 }
 
 fn is_clone_callee(callee: String) -> bool {
+    // core_op_handler_* functions are generated constant accessors (e.g.
+    // core_op_handler_raw_string_clone), not actual clone operations.
+    // Treating them as identity clone intrinsics omits their return value
+    // and leaves the stack unbalanced.
+    if contains(clone(callee), String_from("core_op_handler_")) {
+        return false
+    }
     // Kind-1 core_op rewrites `clone` → `__core_string_clone_impl` (and
     // similar string-clone symbols). Those must stay identity intrinsics too;
     // a direct call is typed String→String and rejects GC struct args.
