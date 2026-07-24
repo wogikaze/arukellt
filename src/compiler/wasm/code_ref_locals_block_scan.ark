@@ -139,12 +139,95 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
 }
 
-// Scan all blocks for instructions that assign to local_idx and infer
-// the GC type from the producer instruction.
+// Scan write sites for local_idx and infer GC type from producers.
+// Prefer the per-function CSR producer index (#829); fall back to a full
+// body scan when the index is inactive.
 fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     // #region agent log
     ctx_record::SelfEmitCtx_bump_local_gc_debug(ctx, 1)
     // #endregion
+    if code_ref_locals_fn_cache::is_local_producer_index_active(ctx) {
+        return infer_gc_type_from_producer_index(f, local_idx, ctx, depth)
+    }
+    infer_gc_type_from_full_block_scan(f, local_idx, ctx, depth)
+}
+
+fn infer_gc_type_from_producer_index(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+    let count = code_ref_locals_fn_cache::local_producer_index_count(ctx, local_idx)
+    let mut n = 0
+    while n < count {
+        let bi = code_ref_locals_fn_cache::local_producer_index_block(ctx, local_idx, n)
+        let ii = code_ref_locals_fn_cache::local_producer_index_inst(ctx, local_idx, n)
+        if bi < 0 || ii < 0 || bi >= len(f.blocks) {
+            n = n + 1
+            continue
+        }
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        if ii >= inst_count {
+            n = n + 1
+            continue
+        }
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let matched = infer_from_indexed_write_site(f, block, inst, inst_count, ii, local_idx, ctx, depth)
+        if matched >= 0 {
+            return matched
+        }
+        n = n + 1
+    }
+    0 - 1
+}
+
+fn infer_from_indexed_write_site(
+    f: MirFunction,
+    block: MirBlock,
+    inst: MirInst,
+    inst_count: i32,
+    ii: i32,
+    local_idx: i32,
+    ctx: SelfEmitCtx,
+    depth: i32
+) -> i32 {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    // MIR_GC_STRUCT_SET / MIR_STRUCT_SET store the *value* local in dest;
+    // that is a use, not a definition.
+    if dest == local_idx &&
+    op != opcodes::MIR_GC_STRUCT_SET() &&
+    op != opcodes::MIR_STRUCT_SET() {
+        let matched = infer_from_dest_match(f, inst, op, ctx, depth)
+        if matched >= 0 {
+            return matched
+        }
+    }
+    if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+        let source = inst_accessors_operands::MirInst_arg1(inst)
+        if source >= 0 {
+            return infer_local_storage_gc_type_depth(f, source, ctx, depth + 1)
+        }
+        let prev_op = 0 - 1
+        let prev_arg0 = 0 - 1
+        let prev_dest = 0 - 1
+        if ii > 0 {
+            let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+            return infer_from_stack_set(
+                f,
+                block,
+                inst_count,
+                ii,
+                inst_accessors_shape::MirInst_op(prev),
+                inst_accessors_operands::MirInst_arg0(prev),
+                inst_accessors_operands::MirInst_dest(prev),
+                ctx,
+                depth
+            )
+        }
+        return infer_from_stack_set(f, block, inst_count, ii, prev_op, prev_arg0, prev_dest, ctx, depth)
+    }
+    0 - 1
+}
+
+fn infer_gc_type_from_full_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
     let block_count = len(f.blocks)
     let mut start_bi = 0
     let mut start_ii = 0
@@ -166,41 +249,12 @@ fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCt
         if bi == start_bi {
             ii = start_ii
         }
-        let mut prev_op = 0 - 1
-        let mut prev_arg0 = 0 - 1
-        let mut prev_dest = 0 - 1
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            // MIR_GC_STRUCT_SET / MIR_STRUCT_SET store the *value* local in dest;
-            // that is a use, not a definition. Skipping prevents payload locals
-            // from being inferred as the enclosing variant type.
-            if dest == local_idx &&
-            op != opcodes::MIR_GC_STRUCT_SET() &&
-            op != opcodes::MIR_STRUCT_SET() {
-                let matched = infer_from_dest_match(f, inst, op, ctx, depth)
-                if matched >= 0 {
-                    return matched
-                }
+            let matched = infer_from_indexed_write_site(f, block, inst, inst_count, ii, local_idx, ctx, depth)
+            if matched >= 0 {
+                return matched
             }
-            if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
-                let source = inst_accessors_operands::MirInst_arg1(inst)
-                if source >= 0 {
-                    let inferred = infer_local_storage_gc_type_depth(f, source, ctx, depth + 1)
-                    if inferred >= 0 {
-                        return inferred
-                    }
-                } else {
-                    let stacked = infer_from_stack_set(f, block, inst_count, ii, prev_op, prev_arg0, prev_dest, ctx, depth)
-                    if stacked >= 0 {
-                        return stacked
-                    }
-                }
-            }
-            prev_op = op
-            prev_arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            prev_dest = dest
             ii = ii + 1
         }
         bi = bi + 1

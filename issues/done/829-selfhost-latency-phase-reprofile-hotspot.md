@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-20
 Updated: 2026-07-24
 ID: 829
@@ -84,20 +84,20 @@ the receipt.
 - [x] Clock-capable s2 validates; stage-3 `--time` receipt at
       `.build/selfhost/selfhost-latency-receipt.json` (host sha256, target, wall, RSS)
 - [x] Dominant phase: **`emit.code.locals`** (13.6 s / 30.7% on baseline receipt)
-- [x] Hotspot change landed: per-function def-site index + conservative has_ref fast-path
-      (`code_ref_locals_fn_cache.ark`, `ctx_record.ark`); before/after on same workload
-- [ ] **Dominant phase halved**: emit.code.locals **13.6 s → 10.5 s (−23%)** — follow-up for
-      `block_scans` producer batching (target ≤6.8 s)
-- [x] Cold stage-3 wall **<5 min** (≈40 s on 2026-07-24 receipt machine)
-- [x] Follow-up plan for **<2 min** cold stage-3 in research memo + plan §作業5–6
+- [x] Hotspot change landed: CSR producer write index + prior def-site / has_ref caches
+      (`code_ref_locals_fn_cache.ark`, `code_ref_locals_block_scan.ark`, `ctx_record.ark`)
+- [x] **Dominant phase halved**: emit.code.locals **13.6 s → 2.8 s (−79.5%, target ≤6.8 s)**
+- [x] Cold stage-3 wall **<5 min** (≈33 s on 2026-07-24 receipt machine; also &lt;2 min)
+- [x] Follow-up plan for further cold improvement: next dominant is `lower.reachability` ≈13 s
 - [x] Docs: research memo + plan updated; #813 start gate cleared
 
 ## 2026-07-24 close review notes
 
-Start gate green (#813 done). Baseline + after receipts captured via
-`scripts/debug/latency_rss_phase_probe.py`. `selfhost fixpoint --build` green after
-hotspot patch. `verify lane` green. Issue **stays open** until `emit.code.locals`
-halving acceptance is met (child: block_scans producer index).
+Start gate green (#813 done). Baseline + after receipts via
+`scripts/debug/latency_rss_phase_probe.py`. Producer-index after:
+`emit.code.locals=2782ms`, `total=31343ms`, `wall=32953ms`.
+`selfhost fixpoint --build` green (`sha256=06b61c60…`). `verify lane` green.
+KEEP_CLOCK smoke green. #824 not required (decl_emit not dominant).
 
 ## Non-goals
 

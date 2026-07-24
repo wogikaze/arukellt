@@ -122,24 +122,29 @@ Stage-3 終盤 6 分で RSS ≈ 1.37 → 2.40 GiB（線形増加）。時間の�
 - type_name→wasm-ref `NameIndex` cache: `wasm_ref_type_idx_for_type_name` が
   TypeTable を kind×線形探索していたのをメモ化（locals ≈ 86 s → ≈ 12 s）。
 
-残課題: `block_scans≈1.4M`（producer 一括化）と `lower.reachability≈13 s`。
+~~残課題: `block_scans≈1.4M`（producer 一括化）~~ → **landed**（CSR write index, 2026-07-24）。
+残課題: `lower.reachability≈13 s`（次の支配相候補）。
 
 ### Phase receipt（2026-07-24, #829 reprofile）
 
-KEEP_CLOCK + flat-src、同一 host `arukellt-s2-clock.wasm`（`sha256=46a376a3…`）。
+KEEP_CLOCK + flat-src、同一 host `arukellt-s2-clock.wasm`。
 
 | | emit.code.locals | lower.reachability | total | wall |
 |---|---:|---:|---:|---:|
 | Baseline（計測 1） | **13.6 s** | 11.2 s | 44.3 s | 46.4 s |
 | After def-site / has_ref caches | **10.5 s** | 11.5 s | 39.1 s | 40.4 s |
+| After CSR producer write index | **2.8 s** | 13.2 s | 31.3 s | 33.0 s |
 
-支配フェーズは引き続き **`emit.code.locals`**（`decl_emit` は第 2 位 ≈6 s）。
-`emit.code.locals` は **−23%**（半減未達）。`layout_lookups` は type_name cache ヒット計測修正で
-カウンタ上 2.4M → 486。`block_scans` は ≈1.37M のまま。
+支配フェーズは当初 **`emit.code.locals`**。CSR producer index
+（`local_producer_index_{offsets,entries}`）で各 local の write sites を
+O(instructions) 一括構築し、`infer_gc_type_from_block_scan` を O(writes) 化。
+`emit.code.locals` **13.6 s → 2.8 s（−79.5%, 半減達成 / 目標 ≤6.8 s）**。
+呼び出しカウンタ `block_scans` は ≈1.4M のまま（回数計測）だが、1 回あたりの
+走査コストが命令列全走査から write list 走査へ変わった。
 
 Receipt: `.build/selfhost/selfhost-latency-receipt.json`
 
-残課題: `block_scans` producer 一括化で `emit.code.locals` 半減、`lower.reachability` 再プロファイル。
+次の支配相: `lower.reachability`（≈13 s）。`<2 min` cold は既に達成（≈33 s）。
 
 ### 次に取るべき receipt（同一 artifact・同一 target）
 
@@ -155,7 +160,7 @@ Receipt: `.build/selfhost/selfhost-latency-receipt.json`
 |---|---|
 | `decl_emit` | #824 |
 | `propagate` | ~~callee 線形探索~~（`CalleePropCache` landed）; 残れば stack-producer / 反復 |
-| `emit.code.locals` | ~~struct_new / infer / type_name cache~~（landed, ≈12 s）; 残は body `block_scans` |
+| `emit.code.locals` | ~~struct_new / type_name / CSR producer index~~（landed, ≈2.8 s） |
 | `emit.code.insts` | ~~struct NameIndex~~（landed, ≈1 s） |
 | `lower.reachability` | BFS 自体の再プロファイル（**現行の支配相の一角** ≈13 s） |
 | 複数フェーズで RSS だけ増 | #826 clone/intern |

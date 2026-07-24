@@ -58,6 +58,9 @@ pub struct SelfEmitCtx {
     // First defining MIR site per local (-1 = none); speeds block_scan.
     local_def_block_cache: Vec<i32>,
     local_def_inst_cache: Vec<i32>,
+    // CSR producer write index: offsets[local_count+1], entries [bi,ii,...].
+    local_producer_index_offsets: Vec<i32>,
+    local_producer_index_entries: Vec<i32>,
     // type_name → wasm ref type idx (+2 encoded; 1 = known miss).
     type_name_ref_index: NameIndex,
     // #region agent log
@@ -153,6 +156,8 @@ fn SelfEmitCtx_new(
         local_has_ref_cache: Vec_new_i32(),
         local_def_block_cache: Vec_new_i32(),
         local_def_inst_cache: Vec_new_i32(),
+        local_producer_index_offsets: Vec_new_i32(),
+        local_producer_index_entries: Vec_new_i32(),
         type_name_ref_index: name_index::NameIndex_new(4096),
         local_gc_debug_counters: SelfEmitCtx_new_local_gc_debug_counters(),
     }
@@ -223,6 +228,22 @@ fn SelfEmitCtx_local_def_inst_cache(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_local_def_inst_cache(ctx: SelfEmitCtx, cache: Vec<i32>) {
     ctx.local_def_inst_cache = cache
+}
+
+fn SelfEmitCtx_local_producer_index_offsets(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_producer_index_offsets
+}
+
+fn SelfEmitCtx_set_local_producer_index_offsets(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_producer_index_offsets = cache
+}
+
+fn SelfEmitCtx_local_producer_index_entries(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.local_producer_index_entries
+}
+
+fn SelfEmitCtx_set_local_producer_index_entries(ctx: SelfEmitCtx, cache: Vec<i32>) {
+    ctx.local_producer_index_entries = cache
 }
 
 fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {

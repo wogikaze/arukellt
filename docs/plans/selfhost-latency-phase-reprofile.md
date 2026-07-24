@@ -1,7 +1,7 @@
 # Selfhost compile latency: Memory64後の作業計画
 
-ステータス: 計画（作業1 KEEP_CLOCK/--time 完了。作業2–3 完了。作業4 部分完了 — emit.code.locals −23%、半減は follow-up）  
-親 issue: [#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md)  
+ステータス: **完了（2026-07-24）** — 作業1–6 完了。`emit.code.locals` 13.6 s → 2.8 s（半減達成）  
+親 issue: [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md)  
 調査メモ: [`../research/selfhost-compile-latency-root-cause.md`](../research/selfhost-compile-latency-root-cause.md)
 
 ## 目的
@@ -70,6 +70,9 @@ MIR規模 before→after、validate結果、warning量、phase合計と外部wal
 
 ## 作業5–6
 
-選択した最大ボトルネックを一つだけ改善（before/after receipt）。  
-`verify quick`、clock gate、reachability BFS、`fixpoint --build`、docs同期。  
-#823は実時間 receipt 取得後に close review。#824は A 判定時のみ実装。
+ステータス: **完了（2026-07-24）**
+
+選択した最大ボトルネック: `emit.code.locals`（判定 C）。  
+CSR producer write index で半減達成（13.6 s → 2.8 s）。  
+`fixpoint --build` / `verify lane` / KEEP_CLOCK smoke green。  
+#824 は decl_emit 非支配のため未実装。follow-up: `lower.reachability` / cold &lt;2 min は既に ≈33 s で満たす。
