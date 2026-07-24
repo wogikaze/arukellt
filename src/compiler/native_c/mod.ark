@@ -9,6 +9,7 @@ use mir::function_identity
 use mir::function_locals_view
 use mir::function_param_view
 use mir::inst_accessors_shape
+use mir::function_block_mutation
 use mir::module_functions
 use mir::module_spine
 use native_c::abi
@@ -317,6 +318,9 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
                 signature
             )
         }
+        // Mirror wasm/code.ark: drop MIR body after emit so native GC can reclaim.
+        function_block_mutation::MirFunction_set_blocks(function, Vec_new_MirBlock())
+        module_functions::MirModule_set_function_at(mir_module, function_index, function)
         function_index = function_index + 1
     }
     if len(main_symbol) == 0 {

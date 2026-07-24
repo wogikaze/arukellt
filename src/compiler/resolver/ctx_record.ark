@@ -135,3 +135,16 @@ fn resolve_ctx_lookup_use_alias(ctx: ResolveCtx, short_name: String) -> String {
     }
     String_new()
 }
+
+/// Drop resolve tables after typecheck/checked-program construction (Phase 5).
+fn resolve_ctx_release_owners(ctx: ResolveCtx) {
+    ctx.scopes = Vec_new_Scope()
+    ctx.errors = Vec_new_String()
+    ctx.diagnostics = Vec_new_Diagnostic()
+    ctx.ref_index = ref_index::RefIndex_new()
+    ctx.use_alias_shorts = Vec_new_String()
+    ctx.use_alias_targets = Vec_new_String()
+    ctx.current_depth = 0
+    ctx.error_count = 0
+    ctx.next_decl_index = 0
+}

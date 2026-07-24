@@ -915,6 +915,20 @@ void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr) {
     frame->slots[slot] = slot_ptr;
 }
 
+void ark_gc_clear_root_slots(size_t count, const size_t *slots) {
+    if (!ark_gc_mode || count == 0) return;
+    ark_gc_frame *frame = ark_gc_frame_top;
+    if (frame == NULL || slots == NULL) ark_rt_trap();
+    for (size_t index = 0; index < count; index += 1) {
+        size_t slot = slots[index];
+        if (slot >= frame->slot_count) ark_rt_trap();
+        ark_object_header **slot_ptr = frame->slots[slot];
+        if (slot_ptr != NULL) {
+            *slot_ptr = NULL;
+        }
+    }
+}
+
 uint64_t ark_rt_stats_requested_bytes(void) { return ark_requested_bytes; }
 uint64_t ark_rt_stats_committed_bytes(void) { return ark_committed_bytes; }
 uint64_t ark_rt_stats_live_bytes(void) { return ark_live_bytes; }

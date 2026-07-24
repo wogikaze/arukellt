@@ -67,6 +67,8 @@ struct NativeCFunctionEmitState {
     root_sites_emitted: i32,
     root_assigns_emitted: i32,
     root_entry_null_inits: i32,
+    // Parallel to locals: GC frame slot index, or -1 when not rooted.
+    root_slot_of_local: Vec<i32>,
 }
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
@@ -115,6 +117,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         root_sites_emitted: 0,
         root_assigns_emitted: 0,
         root_entry_null_inits: 0,
+        root_slot_of_local: Vec_new_i32(),
     }
 }
 
@@ -134,10 +137,24 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
     if order >= 0 && order < len(state.root_clear_count) {
         let count = get_unchecked(state.root_clear_count, order)
         let start = get_unchecked(state.root_clear_start, order)
-        let mut emitted_here = 0
+        let clear_slots = Vec_new_i32()
         let mut clear_index = 0
-        // One site marker (not per-local) keeps full-S3 C generation inside wasm RSS.
-        if state.root_emit_enabled_for_fn && count > 0 {
+        while clear_index < count {
+            let local = get_unchecked(state.root_clear_locals, start + clear_index)
+            // Stack-resident locals stay live across the upcoming safepoint.
+            if state.root_emit_enabled_for_fn &&
+            !native_c_value_stack_contains(state, local) &&
+            local >= 0 &&
+            local < len(state.root_slot_of_local) {
+                let slot = get_unchecked(state.root_slot_of_local, local)
+                if slot >= 0 {
+                    push(clear_slots, slot)
+                }
+            }
+            clear_index = clear_index + 1
+        }
+        let emitted_here = len(clear_slots)
+        if state.root_emit_enabled_for_fn && emitted_here > 0 {
             native_c_append(
                 state,
                 concat(
@@ -146,29 +163,66 @@ fn native_c_emit_pending_root_clears(state: NativeCFunctionEmitState, instructio
                         i32_to_string(order),
                         concat(
                             String_from(" n="),
-                            concat(i32_to_string(count), String_from(" */\n"))
+                            concat(i32_to_string(emitted_here), String_from(" */\n"))
                         )
                     )
                 )
             )
-        }
-        while clear_index < count {
-            let local = get_unchecked(state.root_clear_locals, start + clear_index)
-            // Stack-resident locals stay live across the upcoming safepoint.
-            if state.root_emit_enabled_for_fn && !native_c_value_stack_contains(state, local) {
+            if emitted_here == 1 {
+                let slot = get_unchecked(clear_slots, 0)
+                // Single-clear keeps a direct store; multi-clear uses compact helper.
+                let mut local_scan = 0
+                while local_scan < len(state.root_slot_of_local) {
+                    if get_unchecked(state.root_slot_of_local, local_scan) == slot {
+                        native_c_append(
+                            state,
+                            concat(
+                                String_from("    "),
+                                concat(native_c_local_name(local_scan), String_from(" = NULL;\n"))
+                            )
+                        )
+                        local_scan = len(state.root_slot_of_local)
+                    } else {
+                        local_scan = local_scan + 1
+                    }
+                }
+            } else {
+                native_c_append(state, String_from("    {\n"))
                 native_c_append(
                     state,
                     concat(
-                        String_from("    "),
-                        concat(native_c_local_name(local), String_from(" = NULL;\n"))
+                        String_from("        static const size_t ark_clr_"),
+                        concat(i32_to_string(order), String_from("[] = {"))
                     )
                 )
-                state.root_assigns_emitted = state.root_assigns_emitted + 1
-                emitted_here = emitted_here + 1
+                let mut slot_index = 0
+                while slot_index < emitted_here {
+                    if slot_index > 0 {
+                        native_c_append(state, String_from(", "))
+                    }
+                    native_c_append(
+                        state,
+                        concat(i32_to_string(get_unchecked(clear_slots, slot_index)), String_from("u"))
+                    )
+                    slot_index = slot_index + 1
+                }
+                native_c_append(state, String_from("};\n"))
+                native_c_append(
+                    state,
+                    concat(
+                        String_from("        ark_gc_clear_root_slots((size_t)"),
+                        concat(
+                            i32_to_string(emitted_here),
+                            concat(
+                                String_from("u, ark_clr_"),
+                                concat(i32_to_string(order), String_from(");\n"))
+                            )
+                        )
+                    )
+                )
+                native_c_append(state, String_from("    }\n"))
             }
-            clear_index = clear_index + 1
-        }
-        if emitted_here > 0 {
+            state.root_assigns_emitted = state.root_assigns_emitted + emitted_here
             state.root_sites_emitted = state.root_sites_emitted + 1
         }
     }
@@ -1520,10 +1574,19 @@ fn native_c_emit_local_declarations(
             concat(i32_to_string(root_count), String_from(");\n"))
         )
     )
+    while len(state.root_slot_of_local) > 0 {
+        pop(state.root_slot_of_local)
+    }
+    let mut map_local = 0
+    while map_local < local_count {
+        push(state.root_slot_of_local, 0 - 1)
+        map_local = map_local + 1
+    }
     let mut root_slot = 0
     let mut root_local = 0
     while root_local < local_count {
         if get_unchecked(reference_producers, root_local) != 0 {
+            set(state.root_slot_of_local, root_local, root_slot)
             native_c_append(
                 state,
                 concat(

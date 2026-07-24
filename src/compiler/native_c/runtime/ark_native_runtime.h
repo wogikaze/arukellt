@@ -52,6 +52,8 @@ typedef struct ark_gc_allocation {
 void ark_gc_push_frame(size_t slot_count);
 void ark_gc_pop_frame(void);
 void ark_gc_set_root(size_t slot, ark_object_header **slot_ptr);
+/** Clear rooted locals by GC frame slot index (compact codegen for safepoints). */
+void ark_gc_clear_root_slots(size_t count, const size_t *slots);
 void ark_gc_collect(void);
 void ark_gc_set_current_function(const char *name);
 
