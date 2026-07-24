@@ -31,6 +31,7 @@ struct CliOptions {
     lint_allow: Vec<String>,
     lint_deny: Vec<String>,
     cache_dir: String,
+    strip_debug: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
@@ -65,6 +66,7 @@ fn CliOptions_default() -> CliOptions {
         lint_allow: Vec_new_String(),
         lint_deny: Vec_new_String(),
         cache_dir: String_new(),
+        strip_debug: false,
     }
 }
 
@@ -211,3 +213,5 @@ fn cli_set_lint_deny(opts: CliOptions, rules: Vec<String>) { opts.lint_deny = ru
 fn cli_cache_dir(opts: CliOptions) -> String { clone(opts.cache_dir) }
 fn cli_has_cache_dir(opts: CliOptions) -> bool { len(opts.cache_dir) > 0 }
 fn cli_set_cache_dir(opts: CliOptions, cache_dir: String) { opts.cache_dir = cache_dir }
+fn cli_strip_debug(opts: CliOptions) -> bool { opts.strip_debug }
+fn cli_set_strip_debug(opts: CliOptions, strip_debug: bool) { opts.strip_debug = strip_debug }

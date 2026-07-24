@@ -19,6 +19,7 @@ struct DriverConfig {
     lint_deny: Vec<String>,
     lint_local_only: bool,
     cache_dir: String,
+    strip_debug: bool,
 }
 
 fn DriverConfig_default() -> DriverConfig {
@@ -43,6 +44,7 @@ fn DriverConfig_default() -> DriverConfig {
         lint_deny: Vec_new_String(),
         lint_local_only: false,
         cache_dir: String_new(),
+        strip_debug: false,
     }
 }
 
@@ -86,3 +88,5 @@ fn config_lint_local_only(config: DriverConfig) -> bool { config.lint_local_only
 fn config_set_lint_local_only(config: DriverConfig, lint_local_only: bool) { config.lint_local_only = lint_local_only }
 fn config_cache_dir(config: DriverConfig) -> String { clone(config.cache_dir) }
 fn config_set_cache_dir(config: DriverConfig, cache_dir: String) { config.cache_dir = cache_dir }
+fn config_strip_debug(config: DriverConfig) -> bool { config.strip_debug }
+fn config_set_strip_debug(config: DriverConfig, strip_debug: bool) { config.strip_debug = strip_debug }

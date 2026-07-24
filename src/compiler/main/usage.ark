@@ -34,6 +34,7 @@ fn print_usage() {
     stdio::println(String_from("  --local        Lint local (parse-only) rules; no module resolve"))
     stdio::println(String_from("  --allow <rule> Allow (suppress) a lint rule by W-code or name"))
     stdio::println(String_from("  --deny <rule>  Deny (escalate to error) a lint rule by W-code or name"))
+    stdio::println(String_from("  --strip-debug  Strip debug sections (name, source map) from output"))
 }
 
 fn print_version() {

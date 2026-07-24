@@ -5,8 +5,8 @@ use wasm::library_component_emit
 use wasm::wasm
 use wasm::wat
 
-pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level: i32, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<i32> {
-    wasm::emit_wasm_module(mir, target, wasi_version, opt_level, bindings)
+pub fn emit_wasm(mir: MirModule, target: String, wasi_version: String, opt_level: i32, strip_debug: bool, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) -> Vec<i32> {
+    wasm::emit_wasm_module(mir, target, wasi_version, opt_level, strip_debug, bindings)
 }
 
 pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {

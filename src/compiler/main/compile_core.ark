@@ -29,6 +29,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
     if args_record::cli_has_cache_dir(opts) {
         config_record::config_set_cache_dir(config, args_record::cli_cache_dir(opts))
     }
+    config_record::config_set_strip_debug(config, args_record::cli_strip_debug(opts))
     if include_dumps {
         config_record::config_set_dump_tokens(config, should_dump(opts, String_from("tokens")))
         config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))
