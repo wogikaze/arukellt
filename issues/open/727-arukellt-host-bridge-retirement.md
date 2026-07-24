@@ -29,6 +29,16 @@ Locked decisions:
 3. **Phase 0 blocker** = `#714` — **resolved 2026-07-25** (bridged emitter-native P2 on master).
 4. CoreOp path: `runtime_call` / `kind="wit"`; no MIR_CALL → MIR_WIT_CALL rewrite.
    Keep `std::host::{http,sockets}` facade.
+5. **`runtime.serve`** = guest **export** of `wasi:http/incoming-handler@0.2.0::handle`
+   (not a host import).
+
+### Progress (2026-07-25)
+
+| Phase | Status |
+|-------|--------|
+| 0 `#714` | done (merged to master) |
+| 1 WIT CoreOp schema | done — 8 ops `kind="wit"`; generator emits package/interface/function/version |
+| 2–7 | next: CoreOp → WIT lowering + import table |
 
 ## Summary
 

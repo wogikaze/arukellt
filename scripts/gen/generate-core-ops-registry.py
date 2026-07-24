@@ -25,6 +25,14 @@ LOWERING_KIND_TO_INT = {
     "legacy_emitter": 5,
 }
 
+# Discriminator for [operations.lowering.runtime].kind
+RUNTIME_KIND_TO_INT = {
+    "": 0,
+    "internal": 1,
+    "wit": 2,
+    "native": 3,
+}
+
 LAYER_TO_INT = {
     "primitive": 1,
     "runtime": 2,
@@ -107,7 +115,12 @@ def render(ops: list[dict]) -> str:
         for op in ops
     ]
     target_ids: list[str] = []
+    runtime_kinds: list[int] = []
     runtime_symbols: list[str] = []
+    wit_packages: list[str] = []
+    wit_interfaces: list[str] = []
+    wit_functions: list[str] = []
+    wit_versions: list[str] = []
     mir_ops: list[str] = []
     legacy_handler_ids: list[str] = []
     fallback_symbols: list[str] = []
@@ -120,9 +133,27 @@ def render(ops: list[dict]) -> str:
             target_ids.append("")
         if lowering_kind == "runtime_call":
             runtime = op.get("lowering", {}).get("runtime", {})
-            runtime_symbols.append(runtime.get("symbol", ""))
+            runtime_kind = runtime.get("kind", "internal")
+            runtime_kinds.append(RUNTIME_KIND_TO_INT.get(runtime_kind, 0))
+            if runtime_kind == "wit":
+                runtime_symbols.append("")
+                wit_packages.append(runtime.get("package", ""))
+                wit_interfaces.append(runtime.get("interface", ""))
+                wit_functions.append(runtime.get("function", ""))
+                wit_versions.append(runtime.get("version", ""))
+            else:
+                runtime_symbols.append(runtime.get("symbol", ""))
+                wit_packages.append("")
+                wit_interfaces.append("")
+                wit_functions.append("")
+                wit_versions.append("")
         else:
+            runtime_kinds.append(0)
             runtime_symbols.append("")
+            wit_packages.append("")
+            wit_interfaces.append("")
+            wit_functions.append("")
+            wit_versions.append("")
         if lowering_kind == "mir_op":
             mir = op.get("lowering", {}).get("mir", {})
             mir_ops.append(mir.get("operation", mir.get("opcode", "")))
@@ -140,7 +171,12 @@ def render(ops: list[dict]) -> str:
     emit_i32_table("core_op_registry_layer", layers)
     emit_sparse_i32_table("core_op_registry_inline_policy", inline_policies, 0)
     emit_string_table("core_op_registry_target_id", target_ids)
+    emit_sparse_i32_table("core_op_registry_runtime_kind", runtime_kinds, 0)
     emit_string_table("core_op_registry_runtime_symbol", runtime_symbols)
+    emit_sparse_string_table("core_op_registry_wit_package", wit_packages)
+    emit_sparse_string_table("core_op_registry_wit_interface", wit_interfaces)
+    emit_sparse_string_table("core_op_registry_wit_function", wit_functions)
+    emit_sparse_string_table("core_op_registry_wit_version", wit_versions)
     emit_string_table("core_op_registry_mir_operation", mir_ops)
     emit_string_table("core_op_registry_legacy_handler_id", legacy_handler_ids)
     emit_sparse_string_table("core_op_registry_fallback_symbol", fallback_symbols)

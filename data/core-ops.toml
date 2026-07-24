@@ -3189,9 +3189,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_accept"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "accept"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3596,9 +3598,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_connect"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "start-connect"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3781,9 +3785,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_get"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "outgoing-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4151,9 +4157,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_listen"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "start-listen"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4373,9 +4381,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_read"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:io"
+interface = "streams"
+function = "[method]input-stream.read"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4447,9 +4457,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_request"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "outgoing-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4458,7 +4470,7 @@ id = "runtime.serve"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::serve (aliases: 4; http_serve, __intrinsic_http_serve, http::serve, std::host::http::serve)"
+description = "Guest export contract wasi:http/incoming-handler::handle (legacy http::serve aliases: http_serve, __intrinsic_http_serve, http::serve, std::host::http::serve)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4484,9 +4496,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_serve"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "incoming-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4706,9 +4720,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_write"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:io"
+interface = "streams"
+function = "[method]output-stream.write"
+version = "0.2.0"
 [operations.fallback]
 required = false
 

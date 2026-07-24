@@ -1,6 +1,6 @@
 # `#727` — `arukellt_host` bridge retirement 実装計画
 
-ステータス: **確定（2026-07-25）** — Phase 0 完了（`#714` closed / merged to master）; Phase 1 着手可  
+ステータス: **確定（2026-07-25）** — Phase 0–1 完了; Phase 2（WIT lowering）着手可  
 親 issue: [`#727`](../../issues/open/727-arukellt-host-bridge-retirement.md)  
 関連 ADR: [ADR-007](../adr/ADR-007-targets.md), [ADR-011](../adr/ADR-011-wasi-host-layering.md), [ADR-008](../adr/ADR-008-component-wrapping.md), [ADR-014](../adr/ADR-014-stability.md)  
 Child: [`#830`](../../issues/open/830-wasm-heap-grow-patcher-retirement.md)（patcher 退役・本計画のスコープ外）
@@ -70,7 +70,7 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 | Phase | 内容 | 正本（主な編集先） | 完了条件 |
 |-------|------|-------------------|----------|
 | 0 | `#714` 完了（済） | bridged P2 on master | hello validate+run; wrap deleted |
-| 1 | WIT mapping + CoreOp schema | `data/core-ops.toml`, `scripts/gen/generate-core-ops-registry.py`, `scripts/check/check-core-ops.py` | 8 CoreOp が `runtime_call` / `kind="wit"`。generator が package/interface/function/version を emit |
+| 1 | WIT mapping + CoreOp schema（済） | `data/core-ops.toml`, generator, `CoreOpEntry` | 8 CoreOp = `kind="wit"`; generator emits package/interface/function/version |
 | 2 | CoreOp → WIT lowering | `core_op_dispatch.ark`, `call_host_network.ark`, 推奨 `call_runtime_wit.ark`, `intrinsic_http.ark`, `intrinsic_sockets.ark` | HTTP/sockets call が WIT import index 経由 |
 | 3 | import table / component wrapper | `sections_imports.ark`, `import_indices.ark`, `function_indices.ark`, `emit_target.ark`, `component_p2_*.ark` | `needs_arukellt_host` / `arukellt_host` エントリ削除。P1 では compile-time error 維持 |
 | 4 | host-linker → wasmtime-wasi | `tools/host-linker/**`, `Cargo.toml` | カスタム HTTP/sockets 実装削除。標準 WASI link |
@@ -84,7 +84,7 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 |--------|-----------|----------|
 | `runtime.get` | `http_get` | `wasi:http/outgoing-handler@0.2.x::handle` |
 | `runtime.request` | `http_request` | 同上 |
-| `runtime.serve` | `http_serve` | `wasi:http/incoming-handler@0.2.x`（export/import 形状は Phase 1 で固定） |
+| `runtime.serve` | `http_serve` | **guest export** `wasi:http/incoming-handler@0.2.0::handle`（host import ではない） |
 | `runtime.connect` | `sockets_connect` | `wasi:sockets/tcp@0.2.x` create/connect 系 |
 | `runtime.read` | `sockets_read` | tcp + `wasi:io/streams` read |
 | `runtime.write` | `sockets_write` | tcp + streams write |
