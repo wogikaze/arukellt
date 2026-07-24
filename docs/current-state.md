@@ -114,9 +114,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2708 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1120 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2708 is tests/fixtures/manifest.txt registry size. The 1120 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2712 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1124 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2712 is tests/fixtures/manifest.txt registry size. The 1124 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -328,6 +328,8 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 要約: command component は pinned compiler で利用可能、library component は s2 compiler が必要、WIT emit は partial。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
+
+P2 command component は s2-runtime 上でも `tests/fixtures/wasi_p2_native/hello.ark` のコンパイルと `wasm-tools validate` が通るようになった（`gate_510` 回帰解消、commit `8688b6c4`）。`wasmtime run` による実行証明や #714 の残りの acceptance は未完了。
 
 Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes
 such as non-`Color` enums, non-`Shape` payload variants, and non-`Point` records

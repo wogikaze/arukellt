@@ -14,6 +14,7 @@
 |------|-------|-------|---------|
 | [agent-tooling-latency.md](agent-tooling-latency.md) | Agent tooling latency — Devin / Cursor (2026-07-17) | Archive | Devin CLI のログと Cursor worker ログを読み取り、AI agent タスクで何に時間がかかっているかを調査した。結論として、コンパイルそのものよりも「ツール呼び出しのラウンドトリップ」「selfhost の無駄な再構築」「認証・インデックスの再試行ループ」が時間を圧迫しているケースが多い。 |
 | [code-quality-practices.md](code-quality-practices.md) | 良いコード実務の調査 — Arukellt への取り込み判定 | Archive | 関連提案: ADR-047、ADR-048 |
+| [infer-local-gc-type-option.md](infer-local-gc-type-option.md) | GC local infer: Option&lt;i32&gt; contract | Archive | Canonical contract for wasm GC local-type inference (infer_ in src/compiler/wasm/code_ref_locals.ark). |
 | [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | 本ファイルは計測表・環境・スクリプト一覧の正本。ADR-002 には判定要旨のみ残す。 |
 | [memory64-validate-fail-10.md](memory64-validate-fail-10.md) | Research: 10 remaining Memory64 T3 WASM validation failures | Archive | Generated: 2026-07-18 Target: wasm32-gc with Memory64 Compiler: .build/selfhost/arukellt-s2-runtime.wasm |
 | [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | 次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。 ただし順序は次で固定する。 |

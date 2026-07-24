@@ -1,7 +1,8 @@
 ---
 Status: open
+Status note: Gate 510 compile+validate green on s2-runtime; full acceptance still pending.
 Created: 2026-07-02
-Updated: 2026-07-02
+Updated: 2026-07-25
 ID: 714
 Track: component-model
 Parent: 668
@@ -126,6 +127,29 @@ Add or update a gate under `scripts/check/` so it:
   (verification gate coverage), #706 (`std::wit` parser compliance),
   #727 (`arukellt_host` bridge retirement — HTTP/sockets follow the same
   emitter-native component import architecture).
+
+## Progress evidence — 2026-07-25
+
+**Gate 510 regression fixed:** the s2-runtime no longer traps on `unreachable`
+when compiling `tests/fixtures/wasi_p2_native/hello.ark` with
+`--target wasm32-gc --wasi-version p2 --emit component`.
+
+| Step | Command | Result |
+|------|---------|--------|
+| Compile hello.ark to component | `bash scripts/run/arukellt-selfhost.sh compile ... -o .build/tmp/hello.component.wasm` | OK: 1974 bytes |
+| Validate component | `wasm-tools validate .build/tmp/hello.component.wasm` | OK: pass |
+| Close-gate script | `python3 scripts/check/check-false-done-close-gates.py` | OK: 28/28 gates pass |
+
+**Changes landed in commit `8688b6c4`:**
+- `src/compiler/component/emit.ark`: add `use wasm` and route `--wasi-version p2` to `wasm::emit_p2_command_component`.
+- `src/compiler/wasm/component_p2_emit.ark`: add missing `use wasm::component_p2_run_sections`.
+- `scripts/selfhost/checks.py`: bootstrap `component.ark` stub routes P2 command emit directly to `wasm::emit_p2_command_component` with TODO(#714) for the overlay shortcut.
+
+**Still pending:**
+- `wasmtime run` proof for the emitted component.
+- Replace direct `wasi:cli/stdout@0.2.0::write` core imports with component-correct `wasi:cli/stdout` + `wasi:io/streams` resource imports.
+- Remove `p2_component_wrap.py` from the product path.
+- `python3 scripts/manager.py verify quick` (blocked by unrelated pre-existing failures: callee-string dispatch inventory, legacy dispatch inventory, core-op validator).
 
 ## References
 

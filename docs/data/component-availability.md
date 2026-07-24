@@ -19,7 +19,7 @@
 
 | ID | Label | Status | Active compiler | External tools | Notes |
 |----|-------|--------|-----------------|----------------|-------|
-| `command_component` | Command component (wasi:cli/run) | `available_on_pinned` | `pinned_or_s2` | optional (wasm-tools for inspect) | Modules without exportable pub fn use P2 command wrapper |
+| `command_component` | Command component (wasi:cli/run) | `available_on_pinned` | `pinned_or_s2` | optional (wasm-tools for inspect) | Modules without exportable pub fn use P2 command wrapper. gate_510 (compile + wasm-tools validate) green on s2-runtime; wasmtime run still pending #714. |
 | `library_component` | Library component (pub fn exports) | `requires_s2` | `s2_or_ARUKELLT_SELFHOST_WASM` | optional | Pinned bootstrap returns empty WIT / non-invokable components for library-style pub fn exports (#666) |
 | `wit_emit` | WIT emit | `partial` | `s2_preferred` | optional | Scalar library wit works on s2; pinned may emit empty library WIT |
 | `component_cli` | arukellt component build | `provisional` | `same_as_compile` | none for build | Aliases compile --emit component; inspect/validate not implemented |

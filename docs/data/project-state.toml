@@ -34,7 +34,7 @@ component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components work on pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component."
+component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components now compile and validate on s2-runtime (gate_510 green) as well as pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component."
 
 [[target_profiles]]
 id = "wasm32"
@@ -194,12 +194,12 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2708
+fixture_manifest_count = 2712
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1120
-fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2708 is tests/fixtures/manifest.txt registry size. The 1120 remainder were not part of that run (not proof they fail)."
+fixture_not_in_last_harness_snapshot = 1124
+fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2712 is tests/fixtures/manifest.txt registry size. The 1124 remainder were not part of that run (not proof they fail)."
 checks_passed = 166
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
