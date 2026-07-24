@@ -15,6 +15,7 @@ use wasm::ctx_record
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_ref_locals
+use wasm::code_ref_locals_option
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::function_local_queries
@@ -276,8 +277,8 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
         let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
         let inferred = code_ref_locals::infer_ref_local_gc_type(f, base_local, ctx)
-        if inferred >= 0 {
-            return inferred
+        if code_ref_locals_option::option_i32_is_some(inferred) {
+            return code_ref_locals_option::option_i32_unwrap(inferred)
         }
     }
     let size_hint_val = size_hint

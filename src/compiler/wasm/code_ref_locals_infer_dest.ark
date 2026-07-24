@@ -1,4 +1,7 @@
 // GC ref producer inference.
+// Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
+// See docs/research/infer-local-gc-type-option.md.
+// Do not match Option in functions that also take SelfEmitCtx (runtime trap).
 use mir::inst_record
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
@@ -16,6 +19,7 @@ use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
 use wasm::sections_types_gc
+use wasm::code_ref_locals_option
 
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
@@ -39,7 +43,7 @@ fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
     eq(clone(type_name), String_from("F64")) {
         return true
     }
-    vt == value_types::VT_I32() || vt == value_types::VT_I64() || vt == value_types::VT_F64()
+    vt == value_types::mir_value_types__VT_I32() || vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
 }
 
 fn is_container_return_type_name(ret_name: String) -> bool {
@@ -68,10 +72,10 @@ fn strip_module_prefix_type_name(type_name: String) -> String {
     type_name
 }
 
-fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let mut vec_local = inst_accessors_operands::MirInst_arg0(inst)
     if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(f) {
-        return 0 - 1
+        return Option::None
     }
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
@@ -80,25 +84,28 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     } else if starts_with(clone(vec_tn), String_from("Vec_")) {
         elem = substring(clone(vec_tn), 4, len(vec_tn))
     } else {
-        return 0 - 1
+        return Option::None
     }
     elem = strip_module_prefix_type_name(clone(elem))
     if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     if is_scalar_get_unchecked_result(clone(elem), 0 - 1) {
-        return 0 - 1
+        return Option::None
     }
     let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(elem))
-    if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-        return named
+    if code_ref_locals_option::option_i32_is_some(named) {
+        let named_v = code_ref_locals_option::option_i32_unwrap(named)
+        if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+            return named
+        }
     }
-    0 - 1
+    Option::None
 }
 
-fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfEmitCtx) -> i32 {
+fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfEmitCtx) -> Option<i32> {
     if dest < 0 {
-        return 0 - 1
+        return Option::None
     }
     let block_count = len(f.blocks)
     let mut bi = 0
@@ -117,8 +124,11 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
                         if function_param_view::MirFunction_param_count(called) > 0 {
                             let pname = function_param_view::MirFunction_param_type_name(called, 0)
                             let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
-                            if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                return named
+                            if code_ref_locals_option::option_i32_is_some(named) {
+                                let named_v = code_ref_locals_option::option_i32_unwrap(named)
+                                if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                    return named
+                                }
                             }
                         }
                     }
@@ -128,7 +138,7 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
         }
         bi = bi + 1
     }
-    0 - 1
+    Option::None
 }
 
 fn infer_call_args_include_local(block: MirBlock, call_ii: i32, local_idx: i32) -> bool {
@@ -177,7 +187,7 @@ fn infer_local_is_copy_of(block: MirBlock, before_ii: i32, alias: i32, local_idx
 }
 
 // Match emit_get_unchecked: stack-top result feeds the next CALL's last param.
-fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
+fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let block_count = len(f.blocks)
@@ -207,8 +217,11 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                                     if !starts_with(clone(pname), String_from("vec:")) &&
                                     !starts_with(clone(pname), String_from("Vec")) {
                                         let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
-                                        if named >= 0 && named != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                            return named
+                                        if code_ref_locals_option::option_i32_is_some(named) {
+                                            let named_v = code_ref_locals_option::option_i32_unwrap(named)
+                                            if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                                return named
+                                            }
                                         }
                                     }
                                 }
@@ -226,7 +239,7 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
         }
         bi = bi + 1
     }
-    0 - 1
+    Option::None
 }
 
 fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool {
@@ -256,23 +269,23 @@ fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool
     false
 }
 
-fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx) -> i32 {
+fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx) -> Option<i32> {
     if op == opcodes::MIR_ARRAY_NEW() {
-        return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_i32_array_type(ctx))
     }
     if op == opcodes::MIR_GC_STRUCT_NEW() {
         let dest_local = inst_accessors_shape::MirInst_dest(inst)
         if dest_local >= 0 && local_has_multiple_enum_variant_types(f, dest_local) {
-            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
-        return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst))
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, inst_accessors_operands::MirInst_arg0(inst)))
     }
     if op == opcodes::MIR_STRUCT_NEW() {
         let struct_name = inst_record::mir_inst_str_val(inst)
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
         }
-        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst))
+        return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type(ctx, inst_record::mir_inst_int_val(inst)))
     }
     if op == opcodes::MIR_GC_STRUCT_GET() {
         // struct.get on a GC variant: if the field is a ref, return the
@@ -283,17 +296,17 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         let field_idx = inst_accessors_literals::MirInst_int_val(inst)
         let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
         if type_slot >= 0 && type_slot < len(sigs) {
-            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, type_slot))
+            let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
             if field_idx >= 0 && field_idx < len(fields) {
                 let field_sig = get_unchecked(fields, field_idx)
                 if starts_with(clone(field_sig), String_from("ref")) {
                     let offset_str = substring(clone(field_sig), 3, len(field_sig))
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
-                    return ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset
+                    return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
                 }
             }
         }
-        return 0 - 1
+        return Option::None
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
@@ -311,55 +324,61 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 dest_vt = local_access::MirLocal_val_type(loc)
             }
             if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
-                return 0 - 1
+                return Option::None
             }
             // Prefer the vec receiver's element type over a poisoned String dest
             // (get_unchecked__String mono / sticky type_name) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
-            if from_vec >= 0 {
+            if code_ref_locals_option::option_i32_is_some(from_vec) {
                 return from_vec
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
-            if from_use >= 0 {
+            if code_ref_locals_option::option_i32_is_some(from_use) {
                 return from_use
             }
             let from_next = infer_get_unchecked_elem_from_next_call(f, inst, ctx)
-            if from_next >= 0 {
+            if code_ref_locals_option::option_i32_is_some(from_next) {
                 return from_next
             }
             if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
-                return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+                return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
             }
             let named_dest = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(dest_tn))
-            if named_dest >= 0 && named_dest != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                return named_dest
+            if code_ref_locals_option::option_i32_is_some(named_dest) {
+                let named_dest_v = code_ref_locals_option::option_i32_unwrap(named_dest)
+                if named_dest_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                    return named_dest
+                }
             }
             let ret_name = function_return_view::MirFunction_return_type_name(f)
             if !is_container_return_type_name(clone(ret_name)) {
                 // Bare struct return only — never strip vec:Elem → Elem.
                 let named_ret = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(ret_name))
-                if named_ret >= 0 && named_ret != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                    return named_ret
+                if code_ref_locals_option::option_i32_is_some(named_ret) {
+                    let named_ret_v = code_ref_locals_option::option_i32_unwrap(named_ret)
+                    if named_ret_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                        return named_ret
+                    }
                 }
             }
             // Skip mono/intrinsic call-result fallback (often string); scalars
             // and unresolved elems must not become GC refs here.
-            return 0 - 1
+            return Option::None
         }
         let call_type = code_ref_locals_infer_callee::infer_call_result_gc_type(ctx, clone(callee))
-        if call_type >= 0 {
+        if code_ref_locals_option::option_i32_is_some(call_type) {
             return call_type
         }
     }
     if op == opcodes::MIR_CONST_STRING() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     // MIR_ADD with VT_REF/VT_GC_REF on GC targets is string concatenation.
     // The emitter dispatches it to emit_concat, which produces a GC string ref.
     if op == opcodes::MIR_ADD() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let vt = inst_accessors_shape::MirInst_val_type(inst)
-        if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
-            return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        if vt == value_types::mir_value_types__VT_REF() || vt == value_types::mir_value_types__VT_GC_REF() {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
         }
     }
     // MIR_REF_CAST on GC targets produces a ref of the enum variant type.
@@ -367,8 +386,8 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     if op == opcodes::MIR_REF_CAST() && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let type_slot = inst_accessors_operands::MirInst_arg0(inst)
         if type_slot >= 0 {
-            return ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot))
         }
     }
-    0 - 1
+    Option::None
 }

@@ -1,6 +1,7 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::code_ref_locals
+use wasm::code_ref_locals_option
 use wasm::code_scratch_locals
 use wasm::code_locals_val_type
 use wasm::ctx_gc_type
@@ -75,10 +76,13 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     // still being defined by string-producing calls.
     if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
         let inferred_early = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-        if inferred_early >= 0 && inferred_early == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-            writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, inferred_early)
-            return true
+        if code_ref_locals_option::option_i32_is_some(inferred_early) {
+            let inferred_early_v = code_ref_locals_option::option_i32_unwrap(inferred_early)
+            if inferred_early_v == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                writer_core::emit_leb128_s(body, inferred_early_v)
+                return true
+            }
         }
     }
     if code_locals_struct::emit_gc_local_enum_like(body, f, local_idx, clone(type_name), variant_slot, ctx) {
@@ -100,19 +104,22 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         }
         if vt == value_types::VT_I32() {
             let gc_type = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-            if gc_type < 0 {
-                // Type inference found no vec assignment — local is reused for i32.
-            } else {
+            if code_ref_locals_option::option_i32_is_some(gc_type) {
                 writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                writer_core::emit_leb128_s(body, gc_type)
+                writer_core::emit_leb128_s(body, code_ref_locals_option::option_i32_unwrap(gc_type))
                 return true
+            } else {
+                // Type inference found no vec assignment — local is reused for i32.
             }
         } else {
             let inferred_vec = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-            if inferred_vec >= 0 && !vec_inferred_type_conflicts_with_type_name(clone(type_name), inferred_vec, ctx) {
-                writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                writer_core::emit_leb128_s(body, inferred_vec)
-                return true
+            if code_ref_locals_option::option_i32_is_some(inferred_vec) {
+                let inferred_vec_v = code_ref_locals_option::option_i32_unwrap(inferred_vec)
+                if !vec_inferred_type_conflicts_with_type_name(clone(type_name), inferred_vec_v, ctx) {
+                    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                    writer_core::emit_leb128_s(body, inferred_vec_v)
+                    return true
+                }
             }
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             let elem_name = substring(clone(type_name), 4, len(type_name))
@@ -130,10 +137,13 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     // Prefer producer inference (string/call result) over a stray variant_slot
     // on payload locals that are not themselves GC_STRUCT_NEW destinations.
     let inferred = code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx)
-    if inferred >= 0 && inferred == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-        writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, inferred)
-        return true
+    if code_ref_locals_option::option_i32_is_some(inferred) {
+        let inferred_v = code_ref_locals_option::option_i32_unwrap(inferred)
+        if inferred_v == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, inferred_v)
+            return true
+        }
     }
     if variant_slot >= 0 &&
     !code_locals_struct::local_has_container_type_name(clone(type_name)) &&

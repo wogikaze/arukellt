@@ -5,6 +5,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes
 use wasm::code_ref_locals_scan
+use wasm::code_ref_locals_option
 use wasm::ctx_record
 //
 // Per-function caches for GC local inference during emit (#829).
@@ -20,7 +21,7 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let def_inst = Vec_new_i32()
     let mut i = 0
     while i < local_count {
-        // -2 = not yet inferred
+        // Private encoding: -2 = not yet inferred (see cached_infer_*).
         push(infer, 0 - 2)
         push(struct_new, 0)
         push(has_ref, 0)
@@ -393,20 +394,48 @@ fn cached_def_inst(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     get_unchecked(insts, local_idx)
 }
 
+// Private Vec<i32> encoding: -2 uncomputed, -1 miss, >=0 hit.
+// Public infer_* returns Option; convert with cached_infer_as_option.
+// See docs/research/infer-local-gc-type-option.md.
+fn infer_cache_uncomputed() -> i32 {
+    0 - 2
+}
+
+fn infer_cache_miss() -> i32 {
+    0 - 1
+}
+
 fn cached_infer_get(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     let cache = ctx_record::SelfEmitCtx_local_gc_infer_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
-        return 0 - 2
+        return infer_cache_uncomputed()
     }
     get_unchecked(cache, local_idx)
 }
 
-fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: i32) {
+fn cached_infer_is_computed(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    cached_infer_get(ctx, local_idx) != infer_cache_uncomputed()
+}
+
+fn cached_infer_as_option(ctx: SelfEmitCtx, local_idx: i32) -> Option<i32> {
+    let encoded = cached_infer_get(ctx, local_idx)
+    if encoded == infer_cache_uncomputed() || encoded == infer_cache_miss() {
+        return Option::None
+    }
+    Option::Some(encoded)
+}
+
+fn cached_infer_set(ctx: SelfEmitCtx, local_idx: i32, value: Option<i32>) {
     let cache = ctx_record::SelfEmitCtx_local_gc_infer_cache(ctx)
     if local_idx < 0 || local_idx >= len(cache) {
         return
     }
-    set(cache, local_idx, value)
+    // Do not match Option here — SelfEmitCtx in scope traps at runtime.
+    if code_ref_locals_option::option_i32_is_some(value) {
+        set(cache, local_idx, code_ref_locals_option::option_i32_unwrap(value))
+    } else {
+        set(cache, local_idx, infer_cache_miss())
+    }
 }
 
 fn is_function_local_gc_cache_active(ctx: SelfEmitCtx) -> bool {
