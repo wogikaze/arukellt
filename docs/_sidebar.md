@@ -17,7 +17,7 @@
     - [▶ Try Playground](#/playground/index.html)
   - [ベンチマーク](#/benchmarks/README)
   - [現行詳細](#/state/README)
-  - [▶ プロジェクトボード](board/)
+  - [▶ プロジェクトボード](#/board/)
 
 - **Supporting Docs**
   - [クックブック](#/cookbook/README)

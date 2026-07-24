@@ -2044,7 +2044,7 @@ def render_sidebar(sections: list[dict]) -> str:
             if section["dir"] == "playground":
                 lines.append("    - [▶ Try Playground](#/playground/index.html)")
         if category == "current":
-            lines.append("  - [▶ プロジェクトボード](board/)")
+            lines.append("  - [▶ プロジェクトボード](#/board/)")
     return "\n".join(lines) + "\n"
 
 
