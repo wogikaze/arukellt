@@ -1,0 +1,590 @@
+// Arukellt Selfhost - strip unused WIT interface imports from core wasm.
+//
+// Some Arukellt-compiled modules import wasi:clocks/* and wasi:random/*
+// interfaces even when those functions are never called.  This module
+// removes such imports and replaces them with local stub functions that
+// preserve the original function indices, so the resulting wasm can be
+// embedded into a wasi:cli/command@0.2.0 component world without rewriting
+// call sites in the code section (which is unsafe for Wasm GC binaries).
+//
+// Ported from scripts/selfhost/p2_strip_imports.py.
+
+// ---- WasmReader cursor ----
+
+pub struct WasmReader {
+    data: Vec<i32>,
+    pos: i32,
+    len: i32,
+}
+
+fn WasmReader_new(data: Vec<i32>) -> WasmReader {
+    WasmReader { data: data, pos: 0, len: len(data) }
+}
+
+fn reader_byte(r: WasmReader) -> i32 {
+    let b = get_unchecked(r.data, r.pos)
+    r.pos = r.pos + 1
+    b
+}
+
+fn reader_uleb(r: WasmReader) -> i32 {
+    let mut result = 0
+    let mut shift = 0
+    let mut cont = 1
+    while cont == 1 {
+        let b = reader_byte(r)
+        result = result | ((b & 0x7f) << shift)
+        shift = shift + 7
+        if (b & 0x80) == 0 {
+            cont = 0
+        }
+    }
+    result
+}
+
+fn reader_string(r: WasmReader) -> String {
+    let length = reader_uleb(r)
+    let start = r.pos
+    r.pos = start + length
+    // Build string from bytes (wasm import names are ASCII)
+    let mut s = String_new()
+    let mut i = 0
+    while i < length {
+        s = concat(s, char_to_string(get_unchecked(r.data, start + i)))
+        i = i + 1
+    }
+    s
+}
+
+fn reader_at(r: WasmReader, offset: i32) -> i32 {
+    get_unchecked(r.data, offset)
+}
+
+// ---- LEB128 writer ----
+
+fn write_uleb(out: Vec<i32>, value: i32) {
+    let mut v = value
+    let mut cont = 1
+    while cont == 1 {
+        let byte = v & 0x7f
+        v = v >> 7
+        if v != 0 {
+            push(out, byte | 0x80)
+        } else {
+            push(out, byte)
+            cont = 0
+        }
+    }
+}
+
+fn append_bytes(out: Vec<i32>, src: Vec<i32>) {
+    let n = len(src)
+    let mut i = 0
+    while i < n {
+        push(out, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+fn copy_range(out: Vec<i32>, src: Vec<i32>, start: i32, end: i32) {
+    let mut i = start
+    while i < end {
+        push(out, get_unchecked(src, i))
+        i = i + 1
+    }
+}
+
+// ---- Section parsing ----
+
+// Parse wasm sections into parallel arrays.
+// Returns three Vec<i32>: ids, offsets, sizes (packed sequentially).
+// Use section_ids() / section_offsets() / section_sizes() to extract.
+fn parse_wasm_sections(data: Vec<i32>) -> Vec<i32> {
+    let mut ids = Vec_new_i32()
+    let mut offsets = Vec_new_i32()
+    let mut sizes = Vec_new_i32()
+    let r = WasmReader_new(data)
+    r.pos = 8  // skip magic + version
+    while r.pos < r.len {
+        let section_id = reader_byte(r)
+        let section_size = reader_uleb(r)
+        let section_offset = r.pos
+        push(ids, section_id)
+        push(offsets, section_offset)
+        push(sizes, section_size)
+        r.pos = section_offset + section_size
+    }
+    // Pack: [ids_len, ids..., offsets_len, offsets..., sizes_len, sizes...]
+    let result = Vec_new_i32()
+    push(result, len(ids))
+    append_bytes(result, ids)
+    push(result, len(offsets))
+    append_bytes(result, offsets)
+    push(result, len(sizes))
+    append_bytes(result, sizes)
+    result
+}
+
+fn section_ids(packed: Vec<i32>) -> Vec<i32> {
+    let n = get_unchecked(packed, 0)
+    let mut out = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(out, get_unchecked(packed, 1 + i))
+        i = i + 1
+    }
+    out
+}
+
+fn section_offsets(packed: Vec<i32>) -> Vec<i32> {
+    let ids_n = get_unchecked(packed, 0)
+    let off_start = 1 + ids_n
+    let n = get_unchecked(packed, off_start)
+    let mut out = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(out, get_unchecked(packed, off_start + 1 + i))
+        i = i + 1
+    }
+    out
+}
+
+fn section_sizes(packed: Vec<i32>) -> Vec<i32> {
+    let ids_n = get_unchecked(packed, 0)
+    let off_start = 1 + ids_n
+    let offsets_n = get_unchecked(packed, off_start)
+    let sz_start = off_start + 1 + offsets_n
+    let n = get_unchecked(packed, sz_start)
+    let mut out = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(out, get_unchecked(packed, sz_start + 1 + i))
+        i = i + 1
+    }
+    out
+}
+
+fn find_section(ids: Vec<i32>, target_id: i32) -> i32 {
+    let n = len(ids)
+    let mut i = 0
+    while i < n {
+        if get_unchecked(ids, i) == target_id {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// ---- Valtype skipping ----
+
+fn skip_valtype(r: WasmReader) {
+    let byte = reader_byte(r)
+    if byte == 0x64 || byte == 0x63 {
+        let _ = reader_uleb(r)
+    }
+}
+
+fn skip_comptype(r: WasmReader) {
+    let form = reader_byte(r)
+    if form == 0x60 {
+        let param_count = reader_uleb(r)
+        let mut i = 0
+        while i < param_count {
+            skip_valtype(r)
+            i = i + 1
+        }
+        let result_count = reader_uleb(r)
+        let mut j = 0
+        while j < result_count {
+            skip_valtype(r)
+            j = j + 1
+        }
+    } else if form == 0x5e {
+        skip_valtype(r)
+        r.pos = r.pos + 1
+    } else if form == 0x5f {
+        let field_count = reader_uleb(r)
+        let mut k = 0
+        while k < field_count {
+            skip_valtype(r)
+            r.pos = r.pos + 1
+            k = k + 1
+        }
+    }
+}
+
+// ---- Func type result extraction ----
+
+// Return result valtype bytes for a func type at type_idx.
+fn func_type_results(type_data: Vec<i32>, type_idx: i32) -> Vec<i32> {
+    let r = WasmReader_new(type_data)
+    let count = reader_uleb(r)
+    let mut idx = 0
+    let mut found = 0
+    let mut found_results = Vec_new_i32()
+    while idx < count {
+        let form = reader_byte(r)
+        if form == 0x60 {
+            let param_count = reader_uleb(r)
+            let mut i = 0
+            while i < param_count {
+                skip_valtype(r)
+                i = i + 1
+            }
+            let result_count = reader_uleb(r)
+            let mut results = Vec_new_i32()
+            let mut j = 0
+            while j < result_count {
+                push(results, reader_byte(r))
+                j = j + 1
+            }
+            if idx == type_idx {
+                found = 1
+                found_results = results
+            }
+        } else if form == 0x5e {
+            skip_valtype(r)
+            r.pos = r.pos + 1
+        } else if form == 0x5f {
+            let field_count = reader_uleb(r)
+            let mut k = 0
+            while k < field_count {
+                skip_valtype(r)
+                r.pos = r.pos + 1
+                k = k + 1
+            }
+        } else if form == 0x4e || form == 0x4f || form == 0x50 || form == 0x51 {
+            let super_count = reader_uleb(r)
+            let mut s = 0
+            while s < super_count {
+                let _ = reader_uleb(r)
+                s = s + 1
+            }
+            skip_comptype(r)
+        }
+        if found == 1 {
+            idx = count
+        } else {
+            idx = idx + 1
+        }
+    }
+    found_results
+}
+
+// ---- Stub function body ----
+
+fn stub_func_body(results: Vec<i32>) -> Vec<i32> {
+    let body = Vec_new_i32()
+    write_uleb(body, 0)  // local decls
+    let n = len(results)
+    let mut i = 0
+    while i < n {
+        let r = get_unchecked(results, i)
+        if r == 0x7f {
+            push(body, 0x41)
+            push(body, 0x00)
+        } else if r == 0x7e {
+            push(body, 0x42)
+            push(body, 0x00)
+        } else if r == 0x7d {
+            push(body, 0x43)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+        } else if r == 0x7c {
+            push(body, 0x44)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+            push(body, 0x00)
+        }
+        i = i + 1
+    }
+    push(body, 0x0B)  // end
+    body
+}
+
+// ---- Import entry parsing ----
+
+// Parse import section and return:
+//   module_names: Vec<String>
+//   kinds: Vec<i32>  (0=func, 1=table, 2=mem, 3=global)
+//   type_idxs: Vec<i32>  (func type idx, or -1 for non-func)
+//   entry_starts: Vec<i32>  (offset within imp_data of each entry start)
+//   entry_ends: Vec<i32>  (offset within imp_data of each entry end)
+//
+// Packed as: [mn_len, mn_count, ...module_names..., ...]
+// Actually, Vec<String> is natively supported, so we return module_names
+// directly and pack the i32 arrays.
+fn parse_import_entries(imp_data: Vec<i32>) -> Vec<i32> {
+    let r = WasmReader_new(imp_data)
+    let count = reader_uleb(r)
+
+    // We pack results as:
+    // [count, kind_0, type_0, start_0, end_0, kind_1, ...]
+
+    // module_names stored separately - but we can't return Vec<String> from
+    // a Vec<i32> function. So we pack module name lengths and chars too.
+    // Actually, let's use a different approach: we only need module_names
+    // for matching prefixes. We can match prefixes during parsing and
+    // record decisions directly.
+
+    // Revised: we return a packed array of:
+    // [count, entry_0_kind, entry_0_type, entry_0_start, entry_0_end,
+    //  entry_0_should_strip, entry_1_..., ...]
+    // Plus a separate Vec<String> for module names is not needed if we
+    // match during parsing.
+
+    // But we need prefixes to match against. Let's pass prefixes in.
+    // Actually, let's just record everything and match later.
+    // We'll store module name start/length in the packed array.
+
+    let result = Vec_new_i32()
+    push(result, count)
+
+    let mut i = 0
+    while i < count {
+        let entry_start = r.pos
+        let _mod_name_leb_start = r.pos
+        let mod_name_len = reader_uleb(r)
+        let mod_name_data_start = r.pos
+        r.pos = r.pos + mod_name_len  // skip string data
+        let _field_name_len = reader_uleb(r)
+        r.pos = r.pos + _field_name_len  // skip field name string data
+        let kind = reader_byte(r)
+        let mut type_idx = 0 - 1
+
+        if kind == 0 {
+            type_idx = reader_uleb(r)
+        } else if kind == 1 {
+            r.pos = r.pos + 1
+            let limits_flag = reader_byte(r)
+            let _ = reader_uleb(r)
+            if (limits_flag & 1) != 0 {
+                let _ = reader_uleb(r)
+            }
+        } else if kind == 2 {
+            let limits_flag = reader_byte(r)
+            let _ = reader_uleb(r)
+            if (limits_flag & 1) != 0 {
+                let _ = reader_uleb(r)
+            }
+        } else if kind == 3 {
+            r.pos = r.pos + 1
+            r.pos = r.pos + 1
+        }
+
+        let entry_end = r.pos
+        push(result, kind)
+        push(result, type_idx)
+        push(result, entry_start)
+        push(result, entry_end)
+        push(result, mod_name_data_start)
+        push(result, mod_name_len)
+
+        i = i + 1
+    }
+    result
+}
+
+// Check if a module name at (imp_data, name_start, name_len) matches any prefix.
+fn match_any_prefix(imp_data: Vec<i32>, name_start: i32, name_len: i32, prefixes: Vec<String>) -> i32 {
+    let n = len(prefixes)
+    let mut i = 0
+    while i < n {
+        let prefix = get_unchecked(prefixes, i)
+        if name_matches_prefix(imp_data, name_start, name_len, prefix) == 1 {
+            return 1
+        }
+        i = i + 1
+    }
+    0
+}
+
+fn name_matches_prefix(imp_data: Vec<i32>, name_data_start: i32, name_len: i32, prefix: String) -> i32 {
+    let plen = len(prefix)
+    if name_len < plen {
+        return 0
+    }
+    let mut i = 0
+    while i < plen {
+        let expected = char_at(prefix, i)
+        let actual = get_unchecked(imp_data, name_data_start + i)
+        if expected != actual {
+            return 0
+        }
+        i = i + 1
+    }
+    1
+}
+
+// ---- Main strip function ----
+
+// Remove matching imports and replace them with index-preserving stubs.
+// Removed func imports must form a trailing contiguous suffix of the func
+// import list (Arukellt emits wasi:clocks/* and wasi:random/* last).
+//
+// prefixes: Vec<String> of module name prefixes to strip (e.g. "wasi:clocks/", "wasi:random/")
+fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
+    let packed_sections = parse_wasm_sections(wasm)
+    let ids = section_ids(packed_sections)
+    let offsets = section_offsets(packed_sections)
+    let sizes = section_sizes(packed_sections)
+
+    let imp_idx = find_section(ids, 2)
+    if imp_idx < 0 {
+        return wasm
+    }
+
+    let imp_offset = get_unchecked(offsets, imp_idx)
+    let imp_size = get_unchecked(sizes, imp_idx)
+    // Extract import section data
+    let imp_data = Vec_new_i32()
+    copy_range(imp_data, wasm, imp_offset, imp_offset + imp_size)
+
+    let parsed = parse_import_entries(imp_data)
+    let entry_count = get_unchecked(parsed, 0)
+
+    // First pass: determine which entries to strip
+    let stub_types = Vec_new_i32()
+    let kept_entry_indices = Vec_new_i32()  // indices into parsed array
+    let mut removing = 0
+
+    let mut i = 0
+    while i < entry_count {
+        let base = 1 + i * 6
+        let kind = get_unchecked(parsed, base)
+        let tidx = get_unchecked(parsed, base + 1)
+        let mod_name_start = get_unchecked(parsed, base + 4)
+        let mod_name_len = get_unchecked(parsed, base + 5)
+
+        let should_remove = if kind == 0 && tidx >= 0 {
+            match_any_prefix(imp_data, mod_name_start, mod_name_len, prefixes)
+        } else {
+            0
+        }
+
+        if should_remove == 1 {
+            removing = 1
+            push(stub_types, tidx)
+        } else {
+            push(kept_entry_indices, i)
+        }
+
+        i = i + 1
+    }
+
+    let stub_count = len(stub_types)
+    if stub_count == 0 {
+        return wasm
+    }
+
+    // Need type section (1), function section (3), and code section (10)
+    let type_idx = find_section(ids, 1)
+    let func_idx = find_section(ids, 3)
+    let code_idx = find_section(ids, 10)
+    if type_idx < 0 || func_idx < 0 || code_idx < 0 {
+        return wasm
+    }
+
+    let type_offset = get_unchecked(offsets, type_idx)
+    let type_size = get_unchecked(sizes, type_idx)
+    let type_data = Vec_new_i32()
+    copy_range(type_data, wasm, type_offset, type_offset + type_size)
+
+    // Build new import section
+    let new_imp = Vec_new_i32()
+    write_uleb(new_imp, len(kept_entry_indices))
+    let mut ki = 0
+    while ki < len(kept_entry_indices) {
+        let entry_i = get_unchecked(kept_entry_indices, ki)
+        let base = 1 + entry_i * 6
+        let entry_start = get_unchecked(parsed, base + 2)
+        let entry_end = get_unchecked(parsed, base + 3)
+        copy_range(new_imp, imp_data, entry_start, entry_end)
+        ki = ki + 1
+    }
+
+    // Build new function section
+    let func_offset = get_unchecked(offsets, func_idx)
+    let func_size = get_unchecked(sizes, func_idx)
+    let fs_data = Vec_new_i32()
+    copy_range(fs_data, wasm, func_offset, func_offset + func_size)
+    let fs_reader = WasmReader_new(fs_data)
+    let fcount = reader_uleb(fs_reader)
+    let fs_rest_start = fs_reader.pos
+
+    let new_fs = Vec_new_i32()
+    write_uleb(new_fs, fcount + stub_count)
+    let mut si = 0
+    while si < stub_count {
+        write_uleb(new_fs, get_unchecked(stub_types, si))
+        si = si + 1
+    }
+    copy_range(new_fs, fs_data, fs_rest_start, len(fs_data))
+
+    // Build new code section
+    let code_offset = get_unchecked(offsets, code_idx)
+    let code_size = get_unchecked(sizes, code_idx)
+    let code_data = Vec_new_i32()
+    copy_range(code_data, wasm, code_offset, code_offset + code_size)
+    let code_reader = WasmReader_new(code_data)
+    let ccount = reader_uleb(code_reader)
+    let code_rest_start = code_reader.pos
+
+    let new_code = Vec_new_i32()
+    write_uleb(new_code, ccount + stub_count)
+    let mut si2 = 0
+    while si2 < stub_count {
+        let t = get_unchecked(stub_types, si2)
+        let results = func_type_results(type_data, t)
+        let body = stub_func_body(results)
+        write_uleb(new_code, len(body))
+        append_bytes(new_code, body)
+        si2 = si2 + 1
+    }
+    copy_range(new_code, code_data, code_rest_start, len(code_data))
+
+    // Reassemble wasm
+    rebuild_wasm(wasm, ids, offsets, sizes, new_imp, new_fs, new_code)
+}
+
+// Reassemble wasm binary, replacing sections 2 (import), 3 (func), 10 (code).
+fn rebuild_wasm(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>, new_imp: Vec<i32>, new_fs: Vec<i32>, new_code: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    // Header (8 bytes)
+    copy_range(out, wasm, 0, 8)
+
+    let n = len(ids)
+    let mut i = 0
+    while i < n {
+        let sid = get_unchecked(ids, i)
+        if sid == 2 {
+            emit_rebuilt_section(out, sid, new_imp)
+        } else if sid == 3 {
+            emit_rebuilt_section(out, sid, new_fs)
+        } else if sid == 10 {
+            emit_rebuilt_section(out, sid, new_code)
+        } else {
+            let off = get_unchecked(offsets, i)
+            let sz = get_unchecked(sizes, i)
+            push(out, sid)
+            write_uleb(out, sz)
+            copy_range(out, wasm, off, off + sz)
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn emit_rebuilt_section(out: Vec<i32>, sid: i32, contents: Vec<i32>) {
+    push(out, sid)
+    write_uleb(out, len(contents))
+    append_bytes(out, contents)
+}

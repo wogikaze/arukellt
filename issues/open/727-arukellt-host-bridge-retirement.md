@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-10
+Updated: 2026-07-25
 ID: 727
 Track: wasi-feature
 Depends on: "714, 675"
@@ -130,9 +130,10 @@ Add or extend a gate under `scripts/check/` that:
 
 ## Dependency Notes
 
-- Depends on **#714** (emitter-native P2 component output) — the
-  canonical ABI glue and component emission infrastructure built for
-  stdio must be in place before HTTP/sockets can follow the same path.
+- Depends on **#714** (emitter-native P2 component output) — **done
+  2026-07-25** (bridged path). Canonical ABI glue / component emission
+  for stdio is in place; Phase 0 unblocked after `wave/714-p2-emitter-native`
+  merges.
 - Depends on **#675** (host capability user-reachability) — permission
   flags and manifest honesty must be reconciled so the migrated
   capabilities remain user-reachable.

@@ -40,11 +40,21 @@ fn append_t2_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_1i32"))
 }
 
-fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String, mir: MirModule) {
+fn append_function_type_sigs(
+    type_sigs: Vec<String>,
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    target: String,
+    wasi_version: String,
+    mir: MirModule
+) {
     let mut ui = 0
     while ui < fn_count {
         let uf = get_unchecked(functions, ui)
-        push(type_sigs, sections_types_sigs_detail::build_function_type_sig(uf, clone(target), mir))
+        push(
+            type_sigs,
+            sections_types_sigs_detail::build_function_type_sig(uf, clone(target), clone(wasi_version), mir)
+        )
         ui = ui + 1
     }
 }

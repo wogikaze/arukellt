@@ -22,9 +22,10 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 - **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - Component path (v2):
   - **ADR-008 契約**: `--emit component` は in-tree（`wasm-tools component new` への恒久依存なし）
-  - **現行実装ギャップ**: 一部経路はまだ `WIT generation → wasm-tools component embed/new` や
-    Python wrap helper（例: `p2_component_wrap.py`）を使う。理想と現状の差であり、
-    公開契約は ADR-008。詳細は下記「Accepted ADR contract gaps」
+  - **P2 command（#714）**: bridged in-tree emit（`component_p2_emit.ark`）。component は
+    `wasi:cli/stdout` + `wasi:io/streams` を import し、guest 疑似 `::write` は strip して
+    stdout bridge に配線する。`p2_component_wrap.py` は削除済み。guest が直接
+    `get-stdout` / stream methods を呼ぶ形は #668 残件。
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
@@ -34,7 +35,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
-| Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
+| Component emit | ADR-008: in-tree | P2 command は bridged in-tree（#714）。library / 一部 packaging は移行中 |
 | Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。scalar `pub fn` の Node.js E2E は `tests/component-interop/jco/calculator/` で `ARUKELLT_TEST_JCO=1` gate として稼働。String/record/variant canonical ABI adapters は未実装 |
@@ -114,9 +115,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2712 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1124 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2712 is tests/fixtures/manifest.txt registry size. The 1124 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2713 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1125 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2713 is tests/fixtures/manifest.txt registry size. The 1125 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -329,7 +330,10 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 要約: command component は pinned compiler で利用可能、library component は s2 compiler が必要、WIT emit は partial。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
 
-P2 command component は s2-runtime 上でも `tests/fixtures/wasi_p2_native/hello.ark` のコンパイルと `wasm-tools validate` が通るようになった（`gate_510` 回帰解消、commit `8688b6c4`）。`wasmtime run` による実行証明や #714 の残りの acceptance は未完了。
+P2 command component は bridged in-tree emit で `wasm-tools validate` + `wasmtime run` が緑
+（`hello p2`、`gate-714-p2-emitter-native.py`）。WASI P2 経路では Memory64 を切り、i32 linear
+memory で stdout bridge と共有する。guest 側の疑似 `stdout::write` import 名は bridge 配線用に
+残り、component 正本 import は `get-stdout` + streams（guest-native 直呼びは #668）。
 
 Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes
 such as non-`Color` enums, non-`Shape` payload variants, and non-`Point` records
