@@ -9,7 +9,6 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::OnceLock;
 use std::time::Duration;
 use wasmtime::*;
-use wasmtime_wasi::p1::WasiP1Ctx;
 
 static INCOMING_PORT: OnceLock<u16> = OnceLock::new();
 
@@ -62,13 +61,13 @@ fn incoming_client_loop(port: u16) {
     }
 }
 
-pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), String> {
+pub fn register_http_host_fns<T: 'static>(linker: &mut Linker<T>) -> Result<(), String> {
     ensure_http_incoming_client_helper();
     linker
         .func_wrap(
             "wasi:http/outgoing-handler@0.2.0",
             "http_get",
-            |mut caller: Caller<'_, WasiP1Ctx>, url_ptr: i32, url_len: i32, resp_ptr: i32| -> i32 {
+            |mut caller: Caller<'_, T>, url_ptr: i32, url_len: i32, resp_ptr: i32| -> i32 {
                 let mem = match caller.get_export("memory") {
                     Some(Extern::Memory(m)) => m,
                     _ => return write_error(&mut caller, resp_ptr, "no memory export"),
@@ -89,7 +88,7 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
         .func_wrap(
             "wasi:http/outgoing-handler@0.2.0",
             "http_request",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              method_ptr: i32,
              method_len: i32,
              url_ptr: i32,
@@ -126,7 +125,7 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
         .func_wrap(
             "wasi:http/incoming-handler@0.2.0",
             "http_serve",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              port: i32,
              body_ptr: i32,
              body_len: i32,

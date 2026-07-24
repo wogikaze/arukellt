@@ -6,14 +6,6 @@ use mir::block_inst_access
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::opcodes
-use mir::function_core_record
-use mir::module_record
-use mir::types
-use mir::function_block_queries
-use mir::block_inst_access
-use mir::inst_accessors_shape
-use mir::inst_accessors_literals
-use mir::opcodes
 
 fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
     m.functions

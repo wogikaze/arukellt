@@ -118,24 +118,21 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
   `http_get` 等。Phase 4 で削除）。
 - `call_runtime_wit.ark` + `call_host_network.ark` が WIT package 判定で dispatch。
 
-### 次のブロッカー（GC stub）
+### GC HTTP finalize + needs scan（2026-07-25）
 
-`intrinsic_http.ark` は `wasm32-gc` で HTTP を **null Result stub** している
-（`emit_http_result_gc_null_after_drop_strings`）。理由は linear-memory Result
-pack（`intrinsic_http_result.ark`）が GC Result enum と非互換なため（#730 関連）。
+- `intrinsic_http.ark` の GC null stub を撤去し、`emit_http_finalize_string_result_gc` /
+  `emit_http_finalize_unit_result_gc` で `Result<String,String>` / `Result<(),String>`
+  を構築する（fs_read / fs_write と同型）。
+- Bootstrap overlay が `mir_module_needs_*` を常に `0` へ stub していたため import が
+  出なかった。`_patch_bootstrap_mir_module_host_needs` は inline callee matcher を注入
+  する形へ変更（flat rename 後の facade 呼び出し罠を回避）。
+- P2 の network host type index は wall-clock 占有分 +1 が必要だった
+  （`network_host_type_offset`）。ずれていると `http_get` が 2 引数型になり instantiate 失敗。
+- `run_wasm_p2` は auto-stub のあと bridged `http_get` / sockets を本物の host fn で上書き。
+- `get_err_dns`（wasm32-gc + wasi-p2）: `arukellt_host` 無し、
+  `wasi:http/outgoing-handler@0.2.0::http_get` あり、実行で DNS Err 文字列を確認済み。
 
-そのため現状の `wasm32-gc` + `wasi-p2` fixture は:
-
-1. `needs_arukellt_host` が CoreOp spine 経由だと 0 のままになりやすい
-2. 生成物に `http_get` / `wasi:http/...` import が出ない
-3. DNS Err の期待出力を runtime で満たせない
-
-`#727` close には次のいずれかが必要:
-
-- **A (推奨):** GC 向けに host 戻り値 → `Result<String, String>` GC enum を組み立てる
-  finalize を実装し、stub を外して WIT-shaped import を実際に call する
-- **B:** component bridge で guest から host call を隠し、stdio `#714` と同型の
-  canon lower だけを残す（guest ABI 刷新）
+次: sockets GC stub 撤去、Phase 4 host-linker → wasmtime-wasi。
 
 ## 6. 変更しない領域
 
