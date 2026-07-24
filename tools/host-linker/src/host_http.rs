@@ -1,4 +1,7 @@
-//! TCP HTTP/1.1 host implementations for `arukellt_host::http_get` / `http_request` / `http_serve`.
+//! TCP HTTP/1.1 host implementations for WIT-shaped guest imports (#727 Phase 2/3).
+//! Modules: `wasi:http/outgoing-handler@0.2.0` / `wasi:http/incoming-handler@0.2.0`.
+//! Function names remain the simplified guest ABI (`http_get` / `http_request` / `http_serve`)
+//! until component bridges lower to real WASI methods (Phase 4).
 
 use crate::{read_string_from_mem, write_error, write_ok};
 use std::io::{Read, Write};
@@ -63,7 +66,7 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
     ensure_http_incoming_client_helper();
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/outgoing-handler@0.2.0",
             "http_get",
             |mut caller: Caller<'_, WasiP1Ctx>, url_ptr: i32, url_len: i32, resp_ptr: i32| -> i32 {
                 let mem = match caller.get_export("memory") {
@@ -84,7 +87,7 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/outgoing-handler@0.2.0",
             "http_request",
             |mut caller: Caller<'_, WasiP1Ctx>,
              method_ptr: i32,
@@ -121,7 +124,7 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/incoming-handler@0.2.0",
             "http_serve",
             |mut caller: Caller<'_, WasiP1Ctx>,
              port: i32,

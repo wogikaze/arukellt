@@ -182,7 +182,9 @@ if [[ "${1:-}" == "run" ]]; then
   if [[ "$wasm_ver" == "13" ]]; then
     exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
   fi
-  if grep -aqE 'arukellt_host' "$out_path" 2>/dev/null; then
+  # Hosted runner for simplified guest ABI on WIT-shaped modules (#727 Phase 2/3).
+  # Real WASI method names (handle / start-connect / …) go through wasmtime once Phase 4 lands.
+  if grep -aqE 'http_get|http_request|http_serve|sockets_connect|sockets_read|sockets_write|sockets_listen|sockets_accept' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
   exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"

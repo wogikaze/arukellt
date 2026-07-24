@@ -1,4 +1,6 @@
-//! TCP socket host implementations for `arukellt_host::{sockets_connect,sockets_read,sockets_write,sockets_listen,sockets_accept}`.
+//! TCP socket host implementations for WIT-shaped guest imports (#727 Phase 2/3).
+//! Modules: `wasi:sockets/tcp@0.2.0` / `wasi:io/streams@0.2.0`.
+//! Function names remain the simplified guest ABI until Phase 4 real WASI lowering.
 
 use crate::{read_string_from_mem, write_error};
 use std::collections::HashMap;
@@ -57,7 +59,7 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_connect",
             |mut caller: Caller<'_, WasiP1Ctx>,
              host_ptr: i32,
@@ -87,7 +89,7 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:io/streams@0.2.0",
             "sockets_read",
             |mut caller: Caller<'_, WasiP1Ctx>, fd: i32, max_len: i32, result_ptr: i32| -> i32 {
                 if max_len < 0 {
@@ -123,7 +125,7 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:io/streams@0.2.0",
             "sockets_write",
             |mut caller: Caller<'_, WasiP1Ctx>,
              fd: i32,
@@ -166,7 +168,7 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_listen",
             |mut caller: Caller<'_, WasiP1Ctx>,
              host_ptr: i32,
@@ -196,7 +198,7 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_accept",
             |mut caller: Caller<'_, WasiP1Ctx>, listener_fd: i32, result_ptr: i32| -> i32 {
                 match tcp_accept_impl(listener_fd) {

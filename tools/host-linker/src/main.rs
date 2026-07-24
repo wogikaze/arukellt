@@ -1,4 +1,4 @@
-//! Run user Wasm modules with WASI Preview 1 and conditional `arukellt_host` imports.
+//! Run user Wasm modules with WASI Preview 1 and conditional WIT-shaped HTTP/sockets imports.
 
 use arukellt_host_linker::{run_wasm, RuntimeCaps};
 use std::env;

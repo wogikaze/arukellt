@@ -1,0 +1,76 @@
+// WIT identity helpers for runtime_call kind=wit CoreOps (#727).
+//
+// Phase 2 uses these to resolve package/interface/function/version from the
+// CoreOp registry. Guest emission still goes through intrinsic_http /
+// intrinsic_sockets; Phase 3 remaps import module names and component bridges
+// (same pattern as #714 stdout bridged path).
+
+use corehir::core_op_registry_generated
+use wasm::effective_lowering_decision
+
+fn wit_module_name(package: String, interface: String, version: String) -> String {
+    // WASI core import module form used by guest cores today, e.g.
+    // "wasi:http/outgoing-handler@0.2.0".
+    let slash = concat(clone(package), String_from("/"))
+    let with_iface = concat(slash, clone(interface))
+    let at = concat(with_iface, String_from("@"))
+    concat(at, clone(version))
+}
+
+fn wit_module_for_handler(handler_id: i32) -> String {
+    let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
+        core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
+    )
+    if !effective_lowering_decision::effective_lowering_is_wit(decision) {
+        return String_new()
+    }
+    wit_module_name(
+        clone(decision.wit_package),
+        clone(decision.wit_interface),
+        clone(decision.wit_version)
+    )
+}
+
+fn wit_function_for_handler(handler_id: i32) -> String {
+    let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
+        core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
+    )
+    if !effective_lowering_decision::effective_lowering_is_wit(decision) {
+        return String_new()
+    }
+    clone(decision.wit_function)
+}
+
+fn handler_is_wit_runtime(handler_id: i32) -> bool {
+    let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
+        core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
+    )
+    effective_lowering_decision::effective_lowering_is_wit(decision)
+}
+
+fn handler_is_http_wit(handler_id: i32) -> bool {
+    if !handler_is_wit_runtime(handler_id) {
+        return false
+    }
+    let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
+        core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
+    )
+    eq(clone(decision.wit_package), String_from("wasi:http"))
+}
+
+fn handler_is_sockets_wit(handler_id: i32) -> bool {
+    if !handler_is_wit_runtime(handler_id) {
+        return false
+    }
+    let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
+        core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
+    )
+    eq(clone(decision.wit_package), String_from("wasi:sockets")) ||
+    eq(clone(decision.wit_package), String_from("wasi:io"))
+}
+
+// True when this handler should use the legacy arukellt_host import slot.
+// After Phase 3 remaps imports, this always returns false for network CoreOps.
+fn handler_uses_arukellt_host_slot(handler_id: i32) -> bool {
+    !handler_is_wit_runtime(handler_id)
+}

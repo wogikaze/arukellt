@@ -1,4 +1,4 @@
-//! Wasmtime runner with conditional `arukellt_host` HTTP and TCP socket linking.
+//! Wasmtime runner with conditional WIT-shaped HTTP/TCP guest import linking (#727).
 
 mod debug_runner;
 mod host_http;
@@ -88,23 +88,25 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
         )
         .map_err(|e| format!("proc_exit override error: {}", e))?;
 
-    let needs_http = module
-        .imports()
-        .any(|imp| imp.module() == "arukellt_host" && matches!(imp.name(), "http_get" | "http_request" | "http_serve"));
+    let needs_http = module.imports().any(|imp| {
+        matches!(
+            (imp.module(), imp.name()),
+            ("wasi:http/outgoing-handler@0.2.0", "http_get" | "http_request")
+                | ("wasi:http/incoming-handler@0.2.0", "http_serve")
+        )
+    });
     if needs_http {
         host_http::register_http_host_fns(&mut linker)?;
     }
 
     let needs_sockets = module.imports().any(|imp| {
-        imp.module() == "arukellt_host"
-            && matches!(
-                imp.name(),
-                "sockets_connect"
-                    | "sockets_read"
-                    | "sockets_write"
-                    | "sockets_listen"
-                    | "sockets_accept"
-            )
+        matches!(
+            (imp.module(), imp.name()),
+            (
+                "wasi:sockets/tcp@0.2.0",
+                "sockets_connect" | "sockets_listen" | "sockets_accept"
+            ) | ("wasi:io/streams@0.2.0", "sockets_read" | "sockets_write")
+        )
     });
     if needs_sockets {
         host_sockets::register_sockets_host_fns(&mut linker)?;

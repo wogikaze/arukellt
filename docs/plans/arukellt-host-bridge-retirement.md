@@ -71,7 +71,7 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 |-------|------|-------------------|----------|
 | 0 | `#714` 完了（済） | bridged P2 on master | hello validate+run; wrap deleted |
 | 1 | WIT mapping + CoreOp schema（済） | `data/core-ops.toml`, generator, `CoreOpEntry` | 8 CoreOp = `kind="wit"`; generator emits package/interface/function/version |
-| 2 | CoreOp → WIT lowering | `core_op_dispatch.ark`, `call_host_network.ark`, 推奨 `call_runtime_wit.ark`, `intrinsic_http.ark`, `intrinsic_sockets.ark` | HTTP/sockets call が WIT import index 経由 |
+| 2 | CoreOp → WIT lowering（着手） | `call_runtime_wit.ark`, `call_host_network.ark`, `intrinsic_http.ark`, `intrinsic_sockets.ark` | HTTP/sockets call が WIT identity / import index 経由 |
 | 3 | import table / component wrapper | `sections_imports.ark`, `import_indices.ark`, `function_indices.ark`, `emit_target.ark`, `component_p2_*.ark` | `needs_arukellt_host` / `arukellt_host` エントリ削除。P1 では compile-time error 維持 |
 | 4 | host-linker → wasmtime-wasi | `tools/host-linker/**`, `Cargo.toml` | カスタム HTTP/sockets 実装削除。標準 WASI link |
 | 5 | runner / gate / fixture | `arukellt-selfhost.sh`, `arukellt-run-hosted.sh`, `gate-655`–`658`, fixtures | WIT 検査 + wasmtime run 証拠 |
@@ -91,7 +91,50 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 | `runtime.listen` | `sockets_listen` | tcp bind+listen |
 | `runtime.accept` | `sockets_accept` | tcp accept |
 
-注: `docs/compiler/core-ops-registry.md` は既に `runtime_call` の `kind="wit"`（package/interface/function/version）を定義済み。`generate-core-ops-registry.py` は現状 `symbol` のみ emit するため拡張が必須。
+注: Phase 1 で generator は WIT フィールドを emit 済み。
+
+### Phase 2–3 実装方針（bridged、`#714` と同型）
+
+真の WASI HTTP/sockets ABI（OutgoingRequest リソース等）を guest 直 emit するのは
+別規模の作業になる。`#727` は `#714` stdio と同じ **bridged path** で閉じる:
+
+1. Guest core は当面既存の簡略 ABI（url/buffer scratch）を維持する。
+2. Import module 名を `arukellt_host` から WIT 形
+   （`wasi:http/outgoing-handler@0.2.0` / `wasi:sockets/tcp@0.2.0` /
+   `wasi:io/streams@0.2.0`）へ差し替え、component strip/bridge で canon lower する。
+3. Component 境界には標準 WASI import だけが残る（成果物に `arukellt_host` 無し）。
+4. `runtime.serve` は guest **export**（`incoming-handler::handle`）。host import ではない。
+5. Phase 4 で `host_http.rs` / `host_sockets.rs` を削除し、wasmtime-wasi /
+   wasi-http が component import を満たす。
+
+`call_runtime_wit.ark` が CoreOp → WIT module/function 文字列の正本ヘルパ。
+
+### Phase 2/3 途中成果（2026-07-25）
+
+- Guest import module 名を WIT 形へ変更（`sections_imports.ark`）。
+  `arukellt_host` 文字列は import emit から除去済み。
+- `tools/host-linker` の bind 先を同じ WIT module 名へ追従（まだ簡略 ABI
+  `http_get` 等。Phase 4 で削除）。
+- `call_runtime_wit.ark` + `call_host_network.ark` が WIT package 判定で dispatch。
+
+### 次のブロッカー（GC stub）
+
+`intrinsic_http.ark` は `wasm32-gc` で HTTP を **null Result stub** している
+（`emit_http_result_gc_null_after_drop_strings`）。理由は linear-memory Result
+pack（`intrinsic_http_result.ark`）が GC Result enum と非互換なため（#730 関連）。
+
+そのため現状の `wasm32-gc` + `wasi-p2` fixture は:
+
+1. `needs_arukellt_host` が CoreOp spine 経由だと 0 のままになりやすい
+2. 生成物に `http_get` / `wasi:http/...` import が出ない
+3. DNS Err の期待出力を runtime で満たせない
+
+`#727` close には次のいずれかが必要:
+
+- **A (推奨):** GC 向けに host 戻り値 → `Result<String, String>` GC enum を組み立てる
+  finalize を実装し、stub を外して WIT-shaped import を実際に call する
+- **B:** component bridge で guest から host call を隠し、stdio `#714` と同型の
+  canon lower だけを残す（guest ABI 刷新）
 
 ## 6. 変更しない領域
 

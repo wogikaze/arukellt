@@ -24,7 +24,7 @@ def _static_evidence() -> tuple[int, str]:
     if "wasi:http/incoming-handler@0.2.0" not in imports:
         return 1, "sections_imports.ark lacks wasi:http/incoming-handler import"
     if "http_serve" not in imports:
-        return 1, "sections_imports.ark lacks arukellt_host http_serve import"
+        return 1, "sections_imports.ark lacks http_serve import"
     gate = (REPO_ROOT / "src/compiler/resolver/target_gate.ark").read_text(encoding="utf-8")
     if "std::host::http" not in gate:
         return 1, "target_gate.ark lacks std::host::http T1 gate"
