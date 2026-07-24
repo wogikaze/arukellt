@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-24T20:34:11Z",
+  "generated_at": "2026-07-24T20:42:08Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -1354,7 +1354,8 @@
         "726"
       ],
       "blocks_issue_ids": [
-        "827"
+        "827",
+        "830"
       ],
       "acceptance": {
         "checked": 5,
@@ -1433,6 +1434,25 @@
       "orchestration": {
         "class": "architecture-investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "830",
+      "path": "830-wasm-heap-grow-patcher-retirement.md",
+      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
       }
     },
     {
