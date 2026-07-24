@@ -340,11 +340,8 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
         vt == value_types::VT_F64() || vt == value_types::VT_F32() {
             return true
         }
-        // VT_VOID: the field type is unknown in MIR. Conservative: treat
-        // VT_VOID struct_get as scalar to avoid ref declaration mismatches.
-        if vt == value_types::VT_VOID() {
-            return true
-        }
+        // Do not treat VT_VOID as scalar: ref fields often keep VOID in MIR
+        // and demoting those locals to i64 breaks String/struct stores (#808).
     }
     // MIR_CALL to intrinsics that emit array.get_i32 (e.g. vec_get_unchecked)
     // produce scalar i32 values widened to i64 on Memory64. The instruction
