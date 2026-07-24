@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-15
+Updated: 2026-07-24
 ID: 723
 Track: language-design
 Depends on: none
@@ -99,11 +99,27 @@ WASI P2/P3 の component model では、host 側がエラーを返す際に
 
 ## Acceptance criteria
 
-- [ ] Result モデル vs exnref モデルの性能比較（ベンチマック）が実施される
-- [ ] JS interop のユースケースが具体化しているか評価される
-- [ ] 選択肢 A/B/C のいずれかが推奨として記録される
+- [x] Result モデル vs exnref モデルの性能比較（ベンチマック）が実施される
+- [x] JS interop のユースケースが具体化しているか評価される
+- [x] 選択肢 A/B/C のいずれかが推奨として記録される
 - [ ] 選択肢 B を採用する場合、JS interop の設計 ADR との整合が確認される
-- [ ] ADR-008 #6 の推奨事項が本 issue の結論に合わせて更新される
+- [x] ADR-008 / ADR-043 の推奨事項が本 issue の結論に合わせて更新される
+
+## Conclusion (2026-07-24)
+
+- 性能比較: `Result<T, E>` モデルと `try_table`/`throw` ベースの `.wat` プロトタイプを
+  `bench_compute_error_chain.ark`（浅いエラーチェーン）および 10 段 deep chain で比較。
+  exnref は浅い/深い両方でわずかに速い（shallow: Result median ~12.1 ms /
+  exnref median ~10.7 ms; deep: Result median ~11.4 ms / exnref median ~10.6 ms、
+  各 50 回実行、wasmtime 46）が、圧倒的な差ではなく約 10–12 % 程度である。
+- JS interop: 現時点で具体例は存在しない。Playground v2 は WASI P2 + jco 経由（ADR-032）
+  で、Component Model の `result<T,E>` 型は独立。`extern fn` で JS 例外を catch する
+  ようなシナリオは未出現。
+- **推奨: A（導入しない）**。`Result<T, E>` モデルを維持し、ユーザーに `throw`/`catch` を
+  公開しない。B（FFI 境界のみ）は JS interop 具体例が issue/RFC 化され
+  ADR-009/ADR-011/ADR-032 との整合が確認された時点で再検討。
+- ドキュメント更新: `docs/research/wasm-gc-post-mvp.md` 6 節・将来推奨事項 #5、
+  `docs/adr/ADR-043-wasm-gc-post-mvp.md` を更新済み。
 
 ## Note
 
