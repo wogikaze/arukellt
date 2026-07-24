@@ -18,7 +18,7 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
             let span_start = ast::ast_node_span_start(node)
             let line = source_map_offsets::offset_to_line(clone(source_text), span_start)
             let column = source_map_offsets::offset_to_column(source_text, span_start)
-            source_location_record::SourceLocation_new(0, line, column)
+            source_location_record::SourceLocation_new(1, line, column)
         } else {
             source_location_record::SourceLocation_unmapped()
         }

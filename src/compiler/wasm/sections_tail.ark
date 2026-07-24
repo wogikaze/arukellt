@@ -10,7 +10,7 @@ fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTabl
     sections_gc_hint::emit_gc_hint_custom_section(out, ctx)
     sections_branch_hint::emit_branch_hint_custom_section(out)
     sections_i31ref_hint::emit_i31ref_hint_custom_section(out)
-    sections_name::emit_name_custom_section(out, ctx, import_count, opt_level, strip_debug)
-    sections_debug_source_map::emit_debug_source_map_custom_section(out, ctx, import_count, opt_level, strip_debug, source_file)
     sections_data::emit_data_section(out, strings::EmitStringTablePlan_values(strings))
+    sections_debug_source_map::emit_debug_source_map_custom_section(out, ctx, import_count, opt_level, strip_debug, source_file)
+    sections_name::emit_name_custom_section(out, ctx, import_count, opt_level, strip_debug)
 }
