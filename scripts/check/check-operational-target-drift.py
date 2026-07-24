@@ -98,7 +98,8 @@ def check_drift(fix: bool) -> int:
         if not path.is_file():
             continue
         if any(s in str(path) for s in [
-            ".git", ".worktrees", ".build", "__pycache__", "node_modules",
+            ".git", ".worktrees", ".build", ".ark-debug", "__pycache__",
+            "node_modules",
             "/target/",  # Rust build artifacts
         ]):
             continue
