@@ -20,14 +20,16 @@ fn mir_substitute_mono_param_types(ctx: LowerCtx) {
     // "unwrap_or_default__i32"). If no "__" separator, this is not a
     // specialized mono function — skip substitution.
     let mono_suffix = mono_suffix_parse::extract_mono_suffix(clone(fn_name))
-    if len(clone(mono_suffix)) == 0 {
-        return
-    }
     // Prefer the mono type parameter mapping (set up by
     // ctx_setup_mono_type_params_by_ordinal) which correctly maps
     // individual type variables to their concrete types even for
     // multi-parameter generics (e.g. T→i32, E→String).
     let has_mono_map = ctx_mono_type_params::ctx_has_mono_type_params(ctx)
+    // Nested keys like Vec_i32_ were once rejected by extract_mono_suffix;
+    // still allow substitution when the ordinal mono map is present.
+    if len(clone(mono_suffix)) == 0 && !has_mono_map {
+        return
+    }
     let param_count = function_param_view::MirFunction_param_count(func)
     let mut p = 0
     while p < param_count {

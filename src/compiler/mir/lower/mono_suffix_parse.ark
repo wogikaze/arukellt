@@ -134,6 +134,17 @@ fn is_valid_mono_type_key(key: String) -> bool {
     eq(clone(key), String_from("string")) {
         return true
     }
+    // Nested container mangling uses underscores for type args
+    // (Vec_i32_, Option_String, HashMap_i32_String_). These must be
+    // accepted so count__Vec_i32_ substitutes vec:T → vec:Vec_i32_ and
+    // takes the structref-array vec ABI (#808 nested_generic_call).
+    if starts_with(clone(key), String_from("Vec_")) ||
+    starts_with(clone(key), String_from("Option_")) ||
+    starts_with(clone(key), String_from("Result_")) ||
+    starts_with(clone(key), String_from("HashMap_")) ||
+    starts_with(clone(key), String_from("HashSet_")) {
+        return true
+    }
     // Nominal keys are PascalCase type names (Point). Reject snake_case
     // tails from module__FnName exports (Token_float_val).
     if len(key) > 0 {
