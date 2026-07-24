@@ -99,6 +99,8 @@ export interface BoardData {
     tracks: string[];
     orchestrationClasses: string[];
     stats: BoardStats;
+    /** Static snapshot only: full text of every indexed file keyed by path. */
+    files?: Record<string, string>;
 }
 
 export interface FileContent {

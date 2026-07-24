@@ -43,3 +43,15 @@ npm run serve
 ```
 
 E2E スクリーンショット検証は `tools/board` を起動した上で `/tmp/board-verify/verify.mjs`（playwright-core）を実行します。
+
+## GitHub Pages
+
+`.github/workflows/pages.yml` が `tools/board` をビルドして `docs/board/` に出力し、Pages サイトの `/board/` として公開します。ビルド時に issue / ADR / ドキュメントの本文を含む `data.json` が生成されるため、静的なまま全文検索とドキュメント表示が動作します。
+
+相互リンク:
+
+- ドキュメント: `/`
+- Playground: `/playground/`
+- Board: `/board/`
+
+ページ内のトップバーにも Docs / Playground へのリンクを置いています。

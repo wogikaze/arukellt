@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && vite build --ssr server/main.ts --outDir dist/server",
+    "build:server": "tsc -b && vite build --ssr server/main.ts --outDir dist/server",
+    "build:pages": "tsc -b && npm run build:server && BOARD_STATIC=1 vite build && node scripts/build-data.mjs",
     "serve": "node dist/server/main.js",
     "start": "npm run build && npm run serve",
     "typecheck": "tsc -b && tsc -p tsconfig.app.json --noEmit",

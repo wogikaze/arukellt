@@ -82,6 +82,10 @@ export function App(): ReactNode {
                     <SidebarIcon />
                 </button>
                 <span className="topbar__brand">Arukellt Board</span>
+                <nav className="topbar__nav" aria-label="サイト内リンク">
+                    <a href="/">Docs</a>
+                    <a href="/playground/">Playground</a>
+                </nav>
                 <span className="topbar__repo text-mono" title={data.repoRoot}>
                     {data.repoName}
                     {data.branch ? <span className="topbar__branch">{data.branch}</span> : null}
