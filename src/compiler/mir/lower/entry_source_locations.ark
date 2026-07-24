@@ -3,6 +3,7 @@ use corehir::mir_signature_source_record
 use corehir::mir_view
 use diagnostics::source_map_offsets
 use parser::ast
+use parser::kinds
 use mir::source_location_record
 
 fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, source_text: String) -> Vec<SourceLocation> {
@@ -15,10 +16,14 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)
         let loc = if decl_index >= 0 && decl_index < len(decl_nodes) {
             let node = get_unchecked(decl_nodes, decl_index)
-            let span_start = ast::ast_node_span_start(node)
-            let line = source_map_offsets::offset_to_line(clone(source_text), span_start)
-            let column = source_map_offsets::offset_to_column(source_text, span_start)
-            source_location_record::SourceLocation_new(1, line, column)
+            if ast::ast_node_kind(node) == kinds::NK_FN_DECL() {
+                let span_start = ast::ast_node_span_start(node)
+                let line = source_map_offsets::offset_to_line(clone(source_text), span_start)
+                let column = source_map_offsets::offset_to_column(source_text, span_start)
+                source_location_record::SourceLocation_new(1, line, column)
+            } else {
+                source_location_record::SourceLocation_unmapped()
+            }
         } else {
             source_location_record::SourceLocation_unmapped()
         }
