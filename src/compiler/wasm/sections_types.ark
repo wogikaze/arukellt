@@ -192,6 +192,9 @@ fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
         if starts_with(clone(sig), String_from("GS_f")) {
             return i
         }
+        if starts_with(clone(sig), String_from("Sub")) {
+            return i
+        }
     }
     0 - 1
 }

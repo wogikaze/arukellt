@@ -56,9 +56,13 @@ fn emit_sub_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, is_
     } else {
         writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_SUB())
     }
-    writer_core::emit_leb128_u(type_sec, 1)
     let super_off = sections_types_sig_parse::parse_sub_super_offset(sig)
-    writer_core::emit_leb128_u(type_sec, gc_type_base + super_off)
+    if super_off >= 0 {
+        writer_core::emit_leb128_u(type_sec, 1)
+        writer_core::emit_leb128_u(type_sec, gc_type_base + super_off)
+    } else {
+        writer_core::emit_leb128_u(type_sec, 0)
+    }
     emit_struct_type_entry(type_sec, sections_types_sig_parse::parse_sub_struct_sig(sig), gc_type_base, gc_struct_type_map)
 }
 
