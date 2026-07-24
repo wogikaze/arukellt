@@ -79,7 +79,7 @@ New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) t
 ## References
 
 - `issues/done/074-wasi-p2-native-component.md`
-- `issues/open/714-wasi-p2-emitter-native-component-output.md`
+- `issues/done/714-wasi-p2-emitter-native-component-output.md`
 - `scripts/selfhost/p2_component_wrap.py`, `p2_guest_stdio_patch.py`
 - `scripts/check/check-false-done-close-gates.py` (`gate_074`)
 - `docs/process/false-done-prevention.md` (FD-07)

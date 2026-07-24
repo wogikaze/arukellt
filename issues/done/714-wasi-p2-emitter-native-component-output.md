@@ -1,8 +1,9 @@
 ---
-Status: open
-Status note: Bridged emitter-native path green; awaiting verify quick + issue-close-review.
+Status: done
+Status note: Bridged emitter-native WASI P2 path closed; verify quick green.
 Created: 2026-07-02
 Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 714
 Track: component-model
 Parent: 668
@@ -40,7 +41,7 @@ from the compiler/emitter (bridged path), without `p2_component_wrap.py`.
 - [x] `docs/current-state.md` / component-availability describe bridged
       emitter-native P2 output
 - [x] #668 updated with bridged-close / guest-native remaining work
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] `python3 scripts/manager.py verify quick` exits 0
 
 ## Close gate
 
@@ -63,7 +64,7 @@ from the compiler/emitter (bridged path), without `p2_component_wrap.py`.
 | gate 076 | validate-only (runtime fs I/O remains #076) |
 | Python wrap/patch scripts | deleted |
 
-Remaining before move to `issues/done/`: `verify quick` green + `$issue-close-review`.
+Closed 2026-07-25 after `verify lane` + `verify quick` (147/147) and `$issue-close-review` APPROVE.
 
 ## References
 
@@ -72,3 +73,17 @@ Remaining before move to `issues/done/`: `verify quick` green + `$issue-close-re
 - `scripts/check/gate-714-p2-emitter-native.py`
 - #668 (guest-native get-stdout / stderr polish)
 - #727 (HTTP/sockets follow same architecture)
+
+
+## Close note — 2026-07-25
+
+**Verdict: APPROVE** (self-review against `docs/process/false-done-prevention.md`).
+
+Evidence:
+- `gate-714-p2-emitter-native.py` PASS
+- gate 074 PASS (`hello p2`); gate 076 validate-only (runtime fs → #076)
+- `p2_component_wrap.py` deleted; selfhost/runners have zero wrap refs
+- Artifact has `wasi:cli/stdout` + `wasi:io/streams` + `get-stdout`; no `::write` literal
+- Exit-code fixture proves emitter-native path
+- `python3 scripts/manager.py verify quick` → 147 passed, 0 failed
+- Guest-native get-stdout / stderr polish remains in #668; HTTP/sockets in #727
