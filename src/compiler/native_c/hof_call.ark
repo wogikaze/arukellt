@@ -129,7 +129,13 @@ fn native_c_hof_find_matching_function_id(
             function_index = function_index + 1
             continue
         }
-        if !eq(result_encoding, clone(dest_result_encoding)) {
+        // bool lowers as uint8_t / encoding `b`, but many callbacks are typed i32.
+        let encodings_match = eq(result_encoding, clone(dest_result_encoding)) ||
+        (eq(clone(result_encoding), String_from("b")) &&
+            eq(clone(dest_result_encoding), String_from("i32"))) ||
+        (eq(clone(result_encoding), String_from("i32")) &&
+            eq(clone(dest_result_encoding), String_from("b")))
+        if !encodings_match {
             function_index = function_index + 1
             continue
         }
