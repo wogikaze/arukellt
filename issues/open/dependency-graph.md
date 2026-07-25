@@ -30,7 +30,7 @@ graph LR
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
-  I696["696 696 — `Debug` trait and `format!` / `write!` formatting ecosystem"]
+  I696["696 696 — `Debug` trait and `format!` / `write!` equivalent formatting"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
@@ -140,7 +140,7 @@ graph LR
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **693** depends on: 688, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
-- **696** depends on: 688, 692; blocks: none
+- **696** depends on: none; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none

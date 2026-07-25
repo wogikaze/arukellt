@@ -29,7 +29,7 @@ Layer 1 (trait 定義 + 言語機能):
 Layer 2 (上位 trait + エコシステム):
   693  Read/Write/BufRead/Seek traits + IO unification  (needs 688+692)
   694  Error trait + unified error ecosystem             (needs 690+692)
-  696  Debug trait + format!/write! formatting ecosystem (needs 688+692)
+  696  Debug trait + format! / write! equivalent formatting (needs 688+692)
 
 Layer 3 (コレクション拡張):
   697  Vec<T> operation extension                        (needs 691+695)
@@ -93,15 +93,14 @@ stable 契約を無視した一括削除は ADR-014 違反であり禁止。
 | `std::seq` | **廃止** → `std::iter` + `std::collections::vec` | eager helper を Iterator adapter + Vec method に置換 |
 | `std::collections::vec` (stub) | `std::collections::vec` (本格化) | Vec<T> メソッド表面を拡充 |
 | `std::core::cmp` | `std::core::cmp` (拡張) | Ord/PartialOrd 追加 |
-| `std::core::convert` | `std::core::convert` (拡張) | From/Into/TryFrom 追加 |
+| `std::core::convert` | `std::core::convert` (拡張) | Display/Debug/From/Into/TryFrom 追加 |
 | `std::core::error` (enum) | `std::core::error` (trait) | Error enum → AppError にリネーム、Error trait 新設 |
 | `std::core::hash` | `std::core::hash` (維持) | Hash trait は既存のまま dispatch 有効化のみ |
 | — (新設) | `std::core::ops` | Add/Sub/Mul/Index/Deref 等 |
 | — (新設) | `std::core::iter` | Iterator/IntoIterator/FromIterator |
 | — (新設) | `std::core::clone` | Clone/Copy |
 | — (新設) | `std::core::default` | Default |
-| — (新設) | `std::core::fmt` | Debug/Display/Formatter/Arguments |
-| `std::text::fmt` (stub) | `std::fmt` に統合 or `std::text::fmt` (本格化) | format!/write! マクロ基盤 |
+| `std::text::fmt` (stub) | `std::fmt` に統合 or `std::text::fmt` (本格化) | Debug/Display trait の再エクスポート、format_debug / write_debug_to 汎用関数、f-string `{x:?}` 展開基盤 (Formatter/Arguments はマクロを導入しないため不要) |
 | `std::io` (Vec<i32> alias) | `std::io` (trait ベース) | Read/Write/BufRead/Seek |
 
 ### D4: トレイト階層の標準化

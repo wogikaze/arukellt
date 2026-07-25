@@ -123,7 +123,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 22. [691 — 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`](691-iterator-trait-lazy-adapters.md)
 23. [693 — 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification](693-read-write-traits-io-unification.md)
 24. [695 — 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms](695-ord-partialord-traits.md)
-25. [696 — 696 — `Debug` trait and `format!` / `write!` formatting ecosystem](696-debug-trait-format-macros.md)
+25. [696 — 696 — `Debug` trait and `format!` / `write!` equivalent formatting](696-debug-trait-format-macros.md)
 26. [702 — 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch](702-to-string-clone-hash-trait-integration.md)
 27. [704 — std::json Full JSON RFC 8259 Compliance](704-std-json-full-compliance.md)
 28. [705 — std::toml Full TOML 1.0 Compliance](705-std-toml-full-compliance.md)
@@ -198,7 +198,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 691 | [691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`](691-iterator-trait-lazy-adapters.md) | stdlib-api | 688, 707 | 697, 703, 709, 710 | 0 checked / 16 open | blocked-by-upstream | #688 trait method dispatch | |
 | 693 | [693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification](693-read-write-traits-io-unification.md) | stdlib-api | 688, 692 | none | 0 checked / 16 open | blocked-by-upstream | #688 trait dispatch, #692 From/Into/AsRef | |
 | 695 | [695 — `Ord` / `PartialOrd` traits and comparison-based algorithms](695-ord-partialord-traits.md) | stdlib-api | 688 | 697, 703, 709 | 0 checked / 12 open | blocked-by-upstream | #688 trait method dispatch | |
-| 696 | [696 — `Debug` trait and `format!` / `write!` formatting ecosystem](696-debug-trait-format-macros.md) | stdlib-api | 688, 692 | none | 0 checked / 13 open | blocked-by-upstream | #688 trait dispatch, #692 Display/From | |
+| 696 | [696 — `Debug` trait and `format!` / `write!` equivalent formatting](696-debug-trait-format-macros.md) | stdlib-api | none | none | 6 checked / 8 open | implementation | none | |
 | 702 | [702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch](702-to-string-clone-hash-trait-integration.md) | stdlib-api | 688, 700, 692 | none | 0 checked / 15 open | blocked-by-upstream | #688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into | |
 | 704 | [std::json Full JSON RFC 8259 Compliance](704-std-json-full-compliance.md) | stdlib | 606 | none | 0 checked / 6 open | — | — | |
 | 705 | [std::toml Full TOML 1.0 Compliance](705-std-toml-full-compliance.md) | stdlib | 606 | none | 0 checked / 5 open | — | — | |

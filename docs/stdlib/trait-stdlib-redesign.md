@@ -106,7 +106,7 @@ std::core/
   mod.ark         — Ordering, Range (変更なし)
   cmp.ark         — Eq + Ord + PartialOrd trait + scalar impls
                     cmp/min/max/clamp をジェネリック化 (Ord bound)
-  convert.ark     — Display + From + Into + TryFrom + TryInto trait
+  convert.ark     — Display + Debug + From + Into + TryFrom + TryInto trait
                     i32_to_string 等は Display impl へ delegate
   clone.ark       — [新設] Clone + Copy trait + scalar impls
   default.ark     — [新設] Default trait + scalar impls
@@ -114,8 +114,10 @@ std::core/
                     + scalar impls (Add for i32 等)
   iter.ark        — [新設] Iterator/IntoIterator/FromIterator trait 定義
                     (adapter 型の実装は std::iter に配置)
-  fmt.ark         — [新設] Debug trait + Formatter + Arguments 型定義
-                    (format!/write! マクロ展開は std::fmt に配置)
+  fmt.ark         — [新設] Debug/Display trait の再エクスポート
+                    format_debug / write_debug_to 汎用関数
+                    f-string 補間と `{x:?}` debug specifier 展開基盤
+                    (Formatter/Arguments はマクロを導入しないため不要)
   error.ark       — Error trait (新設) + AppError enum (旧 Error enum からリネーム)
                     impl Error for AppError, impl Error for IoError, ...
   hash.ark        — Hash trait (変更なし、dispatch 有効化のみ)
@@ -203,20 +205,20 @@ std::io/
 ```
 std::fmt/                    (または std::text::fmt/ を本格化)
   mod.ark         — Debug/Display trait の再エクスポート
-                    Formatter, Arguments 型
-                    format!/write!/println! マクロ展開基盤
-  formatter.ark   — Formatter 実装 (pad, align, fill, precision)
-  arguments.ark   — Arguments 中間表現 (format string parse 結果)
+                    format_debug / write_debug_to 汎用関数
+                    f-string 補間と `{x:?}` debug specifier 展開基盤
+  formatter.ark   — (見送り) Formatter/Arguments はマクロを導入しないため不要
+  arguments.ark   — (見送り)
 ```
 
 **`std::text::fmt` (現状 stub) からの移行:**
 
 | 現在 | 移行後 |
 |------|--------|
-| `format_i32(n)` | `format!("{}", n)` または `n.to_string()` |
-| `format_f64(n)` | `format!("{}", n)` |
-| `pad_left(s, w, f)` | `format!("{:>w$}", s)` (Formatter 機能) |
-| `pad_right(s, w, f)` | `format!("{:<w$}", s)` |
+| `format_i32(n)` | `n.to_string()` または `fmt::format_debug(n)` |
+| `format_f64(n)` | `n.to_string()` |
+| `pad_left(s, w, f)` | `fmt::pad_left(s, w, f)` (将来の Formatter 拡張まで維持) |
+| `pad_right(s, w, f)` | `fmt::pad_right(s, w, f)` |
 
 ### 2.6 std::error (新設)
 
@@ -287,8 +289,7 @@ pub fn clone(s: String) -> String {
 use std::core::cmp::{PartialEq, Eq, PartialOrd, Ord}
 use std::core::clone::Clone
 use std::core::default::Default
-use std::core::convert::{Display, From, Into, TryFrom, TryInto}
-use std::core::fmt::Debug
+use std::core::convert::{Display, Debug, From, Into, TryFrom, TryInto}
 use std::core::iter::{Iterator, IntoIterator, FromIterator}
 use std::core::ops::{Add, Sub, Mul, Div, Index, Deref}
 use std::core::hash::Hash
@@ -332,8 +333,8 @@ B5. std::core::ops (Add/Index/Deref/...)  — #689
 B6. std::core::iter (Iterator 定義)       — #691
 B7. std::iter (adapter 型 + VecIter)      — #691
 B8. std::collections::vec 本格化           — #697
-B9. std::core::fmt (Debug/Formatter)      — #696
-B10. std::fmt (format!/write! 基盤)       — #696
+B9. std::core::convert (Display/Debug trait)            — #696
+B10. std::fmt (format_debug / write_debug_to / f-string debug specifier) — #696
 B11. std::core::error (Error trait)       — #694
 B12. std::error (impl Error for ...)      — #694
 B13. std::io trait ベース再構築            — #693
@@ -356,7 +357,7 @@ B14. prelude free 削除（移行期 deprecated のみ） — ADR-046 / 全 trai
 | `Eq::eq` メソッド所有 | 比較 API | `PartialEq::eq`（`Eq` は marker） |
 | `std::io` の `Vec<i32>` alias | Reader/Writer 型 | Read/Write trait + Cursor |
 | `std::core::error` の `Error` enum | error 型名 | `AppError` にリネーム |
-| `std::text::fmt` の `format_i32`/`format_f64`/`pad_left`/`pad_right` | フォーマット | `format!` マクロ |
+| `std::text::fmt` の `format_i32`/`format_f64`/`pad_left`/`pad_right` | フォーマット | `to_string()` / `fmt::format_debug()` / f-string 補間 |
 
 ### 4.4 移行ガイド
 
@@ -370,7 +371,7 @@ B14. prelude free 削除（移行期 deprecated のみ） — ADR-046 / 全 trai
 6. **比較** — `Eq::eq` → `PartialEq::eq`
 7. **IO** — `reader_from_bytes` → `Cursor::new`
 8. **エラー** — `Error` enum → `AppError` + `Error` trait
-9. **フォーマット** — `format_i32(n)` → `format!("{}", n)`
+9. **フォーマット** — `format_i32(n)` → `n.to_string()` または `fmt::format_debug(n)`
 10. **prelude 関数の削除** — 移行期 wrapper の挙動は委譲で不変、最終は削除（ADR-046）
 
 ---
