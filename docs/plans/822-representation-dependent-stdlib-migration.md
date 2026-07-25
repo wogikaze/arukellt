@@ -1,6 +1,7 @@
 # #822 — Representation-dependent and allocating stdlib migration クローズ計画
 
-ステータス: 計画  
+ステータス: 進行中（format_bool / char_to_string / range_new 移行済み; legacy 31→28）  
+
 親 issue: [#822](../../issues/open/822-representation-dependent-stdlib-migration.md)  
 前提: #798, #816, #817, #820 done（#820 は WAT export 正規表現修正後）  
 担当 subagent lane: `wave/822-repr-stdlib`  

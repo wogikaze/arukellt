@@ -83,10 +83,19 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   not call the still-runtime-owned integer conversion CoreOp.
 - `scripts/tests/test_stdlib_inline.py` runs exact-result checks for the
   migrated String and Vec/seq operations in both fallback and optimized
-  builds. The registry currently has 294 CoreOps: 52 `normal_call`, 31
+  builds. The registry currently has 294 CoreOps: 55 `normal_call`, 28
   `legacy_emitter`, 45 `runtime_call`, 164 `target_intrinsic`, and 2 `mir_op`.
-- Remaining work includes Vec mutation and allocation-returning sequence
-  operations, floating-point formatting, and numeric parsing.
+- Wave `wave/822-repr-stdlib` migrated `text.format_bool`, `text.char_to_string`,
+  and `core.range_new` to `normal_call` with sealed-raw / Ark bodies
+  (`__core_format_bool_impl`, `__core_char_to_string_impl`,
+  `__core_range_new_impl`). Bare prelude `format_bool` now binds to
+  `text.format_bool`. O0/O1 differential probes cover the three ops.
+- `seq.sort_i64` / `seq.sort_f64` stay `legacy_emitter`: an Ark insertion-sort
+  body using generic `set` still emits i32 stores for i64/f64 elements
+  (invalid wasm). Needs monomorphic set helpers or a typed `set` fix first.
+- Remaining `legacy_emitter` work includes Vec mutation/allocation, float
+  format (`text.f32_to_string`, `text.format_f64`), numeric parse, scalar
+  `f64_bits_*`, `math.sqrt`, `text.push_char`, and SIMD portable ops.
   Generic Vec mutation additionally requires the fallback resolver to select
   or synthesize a call-site-specialized implementation before the generic
   CoreOps can leave `legacy_emitter`.
