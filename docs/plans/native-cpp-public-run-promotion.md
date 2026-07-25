@@ -147,11 +147,11 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 4 — public runtime 安全既定
 
-- [ ] public run 既定 GC ON
-- [ ] arena は debug override のみ
-- [ ] trap/panic user diagnostic
-- [ ] 対応済み I/O の Result 契約
-- [ ] ASan/UBSan/GC stress 継続 PASS
+- [x] public run 既定 GC ON（runner + runtime unset 時 ON；executor は明示 0/1）
+- [x] arena は `ARUKELLT_NATIVE_GC=0` の明示 override のみ
+- [x] trap/panic user diagnostic（kind 付き trap + `ark_rt_panic`；GC dump は debug flag 時のみ）
+- [x] 対応済み I/O の Result 契約（fs read/write は trap ではなく Result）
+- [ ] ASan/UBSan/GC stress 継続 PASS（Phase 6 public corpus で再確認）
 
 ---
 

@@ -93,11 +93,15 @@ static const char *ark_gc_current_function;
 
 static int ark_env_gc_enabled(void) {
     const char *enable = getenv("ARUKELLT_NATIVE_GC");
-    /* Default off: full-S3 mark-sweep still exceeds the 5-minute wall gate while
-       the live compiler IR stays rooted. Opt in with ARUKELLT_NATIVE_GC=1 for
-       RSS work; the strict native-executor lane sets this explicitly. */
-    if (enable == NULL) return 0;
+    /* Public run defaults to GC on (ADR-050). The selfhost native executor
+       always sets ARUKELLT_NATIVE_GC explicitly (0 or 1). */
+    if (enable == NULL) return 1;
     return enable[0] == '1';
+}
+
+static int ark_env_debug_gc_dump(void) {
+    const char *flag = getenv("ARUKELLT_NATIVE_GC_DEBUG_DUMP");
+    return flag != NULL && flag[0] == '1';
 }
 
 static uint64_t ark_env_u64(const char *name, uint64_t fallback) {
@@ -311,12 +315,12 @@ static ark_gc_allocation *ark_gc_size_free_take(size_t size) {
 }
 
 static size_t ark_checked_add(size_t left, size_t right) {
-    if (left > SIZE_MAX - right) ark_rt_trap();
+    if (left > SIZE_MAX - right) ark_rt_trap_kind(ARK_TRAP_ALLOC);
     return left + right;
 }
 
 static size_t ark_checked_mul(size_t left, size_t right) {
-    if (left != 0 && right > SIZE_MAX / left) ark_rt_trap();
+    if (left != 0 && right > SIZE_MAX / left) ark_rt_trap_kind(ARK_TRAP_ALLOC);
     return left * right;
 }
 
@@ -352,7 +356,7 @@ static uintptr_t ark_gc_page_key(const void *pointer) {
 
 static void ark_gc_page_rehash(size_t new_cap) {
     ark_gc_page_slot *fresh = calloc(new_cap, sizeof(*fresh));
-    if (fresh == NULL) ark_rt_trap();
+    if (fresh == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
     size_t mask = new_cap - 1u;
     size_t len = 0;
     if (ark_gc_page_map != NULL) {
@@ -492,7 +496,7 @@ static void ark_gc_table_ensure(size_t minimum_cap) {
     ark_gc_allocation **old = ark_gc_object_table;
     size_t old_cap = ark_gc_object_table_cap;
     ark_gc_allocation **fresh = calloc(cap, sizeof(*fresh));
-    if (fresh == NULL) ark_rt_trap();
+    if (fresh == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
     ark_gc_object_table = fresh;
     ark_gc_object_table_cap = cap;
     ark_gc_object_table_len = 0;
@@ -569,7 +573,7 @@ static void ark_gc_table_rebuild_from_heap_count(size_t count) {
     } else {
         free(ark_gc_object_table);
         ark_gc_object_table = calloc(desired, sizeof(*ark_gc_object_table));
-        if (ark_gc_object_table == NULL) ark_rt_trap();
+        if (ark_gc_object_table == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
         ark_gc_object_table_cap = desired;
     }
     ark_gc_object_table_len = 0;
@@ -668,7 +672,7 @@ static void ark_gc_mark_stack_ensure(size_t need) {
         next *= 2u;
     }
     ark_object_header **fresh = realloc(ark_gc_mark_stack, next * sizeof(*fresh));
-    if (fresh == NULL) ark_rt_trap();
+    if (fresh == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
     ark_gc_mark_stack = fresh;
     ark_gc_mark_stack_cap = next;
 }
@@ -870,13 +874,13 @@ void ark_gc_push_frame(size_t slot_count) {
         ark_gc_frame_free = frame->parent;
     } else {
         frame = malloc(sizeof(*frame));
-        if (frame == NULL) ark_rt_trap();
+        if (frame == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
         frame->slots = NULL;
         frame->slot_capacity = 0;
     }
     if (slot_count > frame->slot_capacity) {
         ark_object_header ***slots = realloc(frame->slots, slot_count * sizeof(*slots));
-        if (slots == NULL) ark_rt_trap();
+        if (slots == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
         frame->slots = slots;
         frame->slot_capacity = slot_count;
     }
@@ -1017,7 +1021,7 @@ void *ark_rt_alloc_aligned(size_t size, size_t alignment) {
         /* malloc is faster than posix_memalign on this mutator path; 8-byte
          * alignment is enough for ark_gc_allocation + object payloads. */
         void *block = malloc(total);
-        if (block == NULL) ark_rt_trap();
+        if (block == NULL) ark_rt_trap_kind(ARK_TRAP_OOM);
         header = (ark_gc_allocation *)block;
         ark_committed_bytes += total;
         header->allocation_size = rounded;
@@ -1177,11 +1181,45 @@ void ark_rt_shutdown(void) {
     ark_gc_page_map_tombs = 0;
 }
 
-void ark_rt_trap(void) {
-    if (ark_gc_mode) {
+static const char *ark_trap_kind_label(ark_trap_kind kind) {
+    switch (kind) {
+        case ARK_TRAP_BOUNDS: return "bounds error";
+        case ARK_TRAP_DIV_BY_ZERO: return "divide by zero";
+        case ARK_TRAP_NULL_REF: return "null reference";
+        case ARK_TRAP_ALLOC: return "allocation overflow";
+        case ARK_TRAP_OOM: return "out of memory";
+        case ARK_TRAP_INVALID_CAST: return "invalid cast";
+        case ARK_TRAP_GENERIC:
+        default: return "runtime trap";
+    }
+}
+
+void ark_rt_trap_kind(ark_trap_kind kind) {
+    const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+    fprintf(stderr, "arukellt: %s in `%s`\n", ark_trap_kind_label(kind), function);
+    if (ark_gc_mode && ark_env_debug_gc_dump()) {
         ark_gc_dump_crash_state("ark_rt_trap");
     }
     abort();
+}
+
+void ark_rt_trap(void) {
+    ark_rt_trap_kind(ARK_TRAP_GENERIC);
+}
+
+void ark_rt_panic(ark_string *message) {
+    const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+    fprintf(stderr, "arukellt: panic in `%s`: ", function);
+    if (message != NULL && message->bytes != NULL && message->byte_length > 0) {
+        fwrite(message->bytes, 1, message->byte_length, stderr);
+    } else {
+        fputs("(no message)", stderr);
+    }
+    fputc('\n', stderr);
+    if (ark_gc_mode && ark_env_debug_gc_dump()) {
+        ark_gc_dump_crash_state("ark_rt_panic");
+    }
+    exit(1);
 }
 
 ark_struct_object *ark_rt_struct_new(uint32_t type_id, uint32_t field_count) {
@@ -1199,13 +1237,15 @@ ark_struct_object *ark_rt_struct_new(uint32_t type_id, uint32_t field_count) {
 
 ark_value ark_rt_struct_get(ark_object_header *object, uint32_t field_index) {
     ark_struct_object *structure = (ark_struct_object *)object;
-    if (structure == NULL || field_index >= structure->field_count) ark_rt_trap();
+    if (structure == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (field_index >= structure->field_count) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return structure->fields[field_index];
 }
 
 void ark_rt_struct_set(ark_object_header *object, uint32_t field_index, ark_value value) {
     ark_struct_object *structure = (ark_struct_object *)object;
-    if (structure == NULL || field_index >= structure->field_count) ark_rt_trap();
+    if (structure == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (field_index >= structure->field_count) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     structure->fields[field_index] = value;
 }
 
@@ -1224,7 +1264,7 @@ ark_string *ark_rt_string_from_bytes(const uint8_t *bytes, uint32_t length) {
 }
 
 ark_string *ark_rt_string_from_vec_bytes(ark_vec *bytes) {
-    if (bytes == NULL) ark_rt_trap();
+    if (bytes == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     ark_string *result = ark_rt_string_from_bytes(NULL, 0);
     result->byte_length = bytes->length;
     result->capacity = bytes->length;
@@ -1238,14 +1278,14 @@ ark_string *ark_rt_string_from_vec_bytes(ark_vec *bytes) {
 }
 
 ark_string *ark_rt_string_clone(ark_string *source) {
-    if (source == NULL) ark_rt_trap();
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     return source;
 }
 
 ark_string *ark_rt_string_concat(ark_string *left, ark_string *right) {
-    if (left == NULL || right == NULL) ark_rt_trap();
+    if (left == NULL || right == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     uint32_t length = left->byte_length + right->byte_length;
-    if (length < left->byte_length) ark_rt_trap();
+    if (length < left->byte_length) ark_rt_trap_kind(ARK_TRAP_ALLOC);
     ark_string *result = ark_rt_string_from_bytes(NULL, 0);
     result->byte_length = length;
     result->capacity = length;
@@ -1258,19 +1298,22 @@ ark_string *ark_rt_string_concat(ark_string *left, ark_string *right) {
 }
 
 ark_string *ark_rt_string_slice(ark_string *source, int32_t start, int32_t end) {
-    if (source == NULL || start < 0 || end < start || (uint32_t)end > source->byte_length) {
-        ark_rt_trap();
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (start < 0 || end < start || (uint32_t)end > source->byte_length) {
+        ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     }
     return ark_rt_string_from_bytes(source->bytes + start, (uint32_t)(end - start));
 }
 
 int32_t ark_rt_string_len(ark_string *source) {
-    if (source == NULL || source->byte_length > INT32_MAX) ark_rt_trap();
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (source->byte_length > INT32_MAX) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return (int32_t)source->byte_length;
 }
 
 int32_t ark_rt_string_char_at(ark_string *source, int32_t index) {
-    if (source == NULL || index < 0 || (uint32_t)index >= source->byte_length) ark_rt_trap();
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (index < 0 || (uint32_t)index >= source->byte_length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return source->bytes[index];
 }
 
@@ -1385,18 +1428,18 @@ ark_vec *ark_rt_vec_new(uint32_t type_id) {
 }
 
 ark_vec *ark_rt_vec_new_with_capacity(uint32_t type_id, int32_t capacity) {
-    if (capacity < 0) ark_rt_trap();
+    if (capacity < 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     ark_vec *vector = ark_rt_vec_new(type_id);
     ark_vec_reserve(vector, (uint32_t)capacity);
     return vector;
 }
 
 static void ark_vec_reserve(ark_vec *vector, uint32_t minimum) {
-    if (vector == NULL) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     if (vector->capacity >= minimum) return;
     uint32_t capacity = vector->capacity == 0 ? 4u : vector->capacity;
     while (capacity < minimum) {
-        if (capacity > UINT32_MAX / 2u) ark_rt_trap();
+        if (capacity > UINT32_MAX / 2u) ark_rt_trap_kind(ARK_TRAP_ALLOC);
         capacity *= 2u;
     }
     size_t bytes = ark_checked_mul(capacity, sizeof(*vector->data));
@@ -1413,23 +1456,27 @@ static void ark_vec_reserve(ark_vec *vector, uint32_t minimum) {
 }
 
 int32_t ark_rt_vec_len(ark_vec *vector) {
-    if (vector == NULL || vector->length > INT32_MAX) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (vector->length > INT32_MAX) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return (int32_t)vector->length;
 }
 
 ark_value ark_rt_vec_get(ark_vec *vector, int32_t index) {
-    if (vector == NULL || index < 0 || (uint32_t)index >= vector->length) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return vector->data[index];
 }
 
 ark_unit ark_rt_vec_set(ark_vec *vector, int32_t index, ark_value value) {
-    if (vector == NULL || index < 0 || (uint32_t)index >= vector->length) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     vector->data[index] = value;
     return 0;
 }
 
 ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value) {
-    if (vector == NULL || vector->length == UINT32_MAX) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (vector->length == UINT32_MAX) ark_rt_trap_kind(ARK_TRAP_ALLOC);
     ark_vec_reserve(vector, vector->length + 1u);
     vector->data[vector->length] = value;
     vector->length += 1u;
@@ -1437,7 +1484,8 @@ ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value) {
 }
 
 ark_value ark_rt_vec_pop(ark_vec *vector) {
-    if (vector == NULL || vector->length == 0) ark_rt_trap();
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (vector->length == 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     vector->length -= 1u;
     return vector->data[vector->length];
 }
@@ -1531,13 +1579,6 @@ ark_unit ark_rt_eprintln(ark_string *text) {
     return 0;
 }
 
-static void ark_write_file(ark_string *path, ark_string *text) {
-    FILE *file = fopen(ark_path(path), "wb");
-    if (file == NULL) ark_rt_trap();
-    ark_write_stream(file, text);
-    if (fclose(file) != 0) ark_rt_trap();
-}
-
 static ark_object_header *ark_write_success(void) {
     ark_object_header *result = (ark_object_header *)ark_rt_struct_new(0u, 2u);
     ark_rt_struct_set(result, 0u, (ark_value){ .i32 = 0 });
@@ -1545,8 +1586,41 @@ static ark_object_header *ark_write_success(void) {
     return result;
 }
 
+static ark_object_header *ark_write_error(const char *message) {
+    return ark_result_string(
+        1,
+        ark_rt_string_from_bytes((const uint8_t *)message, (uint32_t)strlen(message))
+    );
+}
+
+static ark_object_header *ark_try_write_file(ark_string *path, ark_string *text) {
+    char *cpath = ark_path(path);
+    FILE *file = fopen(cpath, "wb");
+    free(cpath);
+    if (file == NULL) {
+        return ark_write_error("file open error");
+    }
+    if (text == NULL) {
+        fclose(file);
+        return ark_write_error("null text");
+    }
+    size_t offset = 0;
+    while (offset < text->byte_length) {
+        size_t count = fwrite(text->bytes + offset, 1, text->byte_length - offset, file);
+        if (count == 0) {
+            fclose(file);
+            return ark_write_error("file write error");
+        }
+        offset += count;
+    }
+    if (fclose(file) != 0) {
+        return ark_write_error("file close error");
+    }
+    return ark_write_success();
+}
+
 ark_object_header *ark_rt_write_bytes(ark_string *path, ark_vec *bytes) {
-    if (bytes == NULL) ark_rt_trap();
+    if (bytes == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     ark_string view;
     view.header.type_id = 0;
     view.header.flags = 0;
@@ -1556,13 +1630,11 @@ ark_object_header *ark_rt_write_bytes(ark_string *path, ark_vec *bytes) {
     for (uint32_t index = 0; index < bytes->length; index += 1) {
         view.bytes[index] = (uint8_t)bytes->data[index].i32;
     }
-    ark_write_file(path, &view);
-    return ark_write_success();
+    return ark_try_write_file(path, &view);
 }
 
 ark_object_header *ark_rt_write_string(ark_string *path, ark_string *text) {
-    ark_write_file(path, text);
-    return ark_write_success();
+    return ark_try_write_file(path, text);
 }
 
 ark_unit ark_rt_process_exit(int32_t status) {
@@ -1588,23 +1660,23 @@ int32_t ark_rt_f64_bits_lo(double value) {
 }
 
 int32_t ark_div_i32(int32_t left, int32_t right) {
-    if (right == 0 || (left == INT32_MIN && right == -1)) ark_rt_trap();
+    if (right == 0 || (left == INT32_MIN && right == -1)) ark_rt_trap_kind(ARK_TRAP_DIV_BY_ZERO);
     return left / right;
 }
 
 int64_t ark_div_i64(int64_t left, int64_t right) {
-    if (right == 0 || (left == INT64_MIN && right == -1)) ark_rt_trap();
+    if (right == 0 || (left == INT64_MIN && right == -1)) ark_rt_trap_kind(ARK_TRAP_DIV_BY_ZERO);
     return left / right;
 }
 
 int32_t ark_rem_i32(int32_t left, int32_t right) {
-    if (right == 0) ark_rt_trap();
+    if (right == 0) ark_rt_trap_kind(ARK_TRAP_DIV_BY_ZERO);
     if (left == INT32_MIN && right == -1) return 0;
     return left % right;
 }
 
 int64_t ark_rem_i64(int64_t left, int64_t right) {
-    if (right == 0) ark_rt_trap();
+    if (right == 0) ark_rt_trap_kind(ARK_TRAP_DIV_BY_ZERO);
     if (left == INT64_MIN && right == -1) return 0;
     return left % right;
 }

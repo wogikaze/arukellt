@@ -27,6 +27,10 @@ PUBLIC_STDIO = PUBLIC / "stdio_hello.ark"
 PUBLIC_EXIT = PUBLIC / "process_exit_7.ark"
 PUBLIC_FS = PUBLIC / "fs_roundtrip.ark"
 PUBLIC_STDIN = PUBLIC / "stdin_echo.ark"
+PUBLIC_PANIC = PUBLIC / "panic_message.ark"
+PUBLIC_TRAP_DIV = PUBLIC / "trap_div_zero.ark"
+PUBLIC_FS_WRITE_ERR = PUBLIC / "fs_write_missing_parent.ark"
+RUNTIME_C = ROOT / "src" / "compiler" / "native_c" / "runtime" / "ark_native_runtime.c"
 
 
 class NativeCppRunnerParseTest(unittest.TestCase):
@@ -238,6 +242,60 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         source = RUNNER_PATH.read_text(encoding="utf-8")
         self.assertIn('env["ARUKELLT_NATIVE_GC"] = "1"', source)
         self.assertIn("os.execve", source)
+        self.assertNotIn("ARUKELLT_NATIVE_GC_SKIP_CLEARS", source)
+        self.assertNotIn("allow_high_rss", source)
+        self.assertNotIn("ARUKELLT_NATIVE_ALLOW_HIGH_RSS", source)
+
+    def test_runtime_defaults_gc_on_when_unset(self) -> None:
+        source = RUNTIME_C.read_text(encoding="utf-8")
+        self.assertIn("if (enable == NULL) return 1;", source)
+        self.assertIn("void ark_rt_panic(ark_string *message)", source)
+        self.assertIn("void ark_rt_trap_kind(ark_trap_kind kind)", source)
+
+    def test_panic_prints_message_and_exits_nonzero(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_PANIC.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("boom-native", result.stderr)
+        self.assertIn("panic", result.stderr)
+
+    def test_trap_div_zero_prints_kind(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_TRAP_DIV.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("divide by zero", result.stderr)
+
+    def test_fs_write_error_is_result_not_trap(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_FS_WRITE_ERR.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("write-err", result.stdout)
+        self.assertNotIn("runtime trap", result.stderr)
+        self.assertNotIn("divide by zero", result.stderr)
 
 
 if __name__ == "__main__":

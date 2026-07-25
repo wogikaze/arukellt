@@ -64,9 +64,21 @@ uint64_t ark_rt_stats_collection_count(void);
 uint64_t ark_rt_stats_reclaimed_bytes(void);
 uint32_t ark_rt_stats_chunk_count(void);
 
+typedef enum ark_trap_kind {
+    ARK_TRAP_GENERIC = 0,
+    ARK_TRAP_BOUNDS = 1,
+    ARK_TRAP_DIV_BY_ZERO = 2,
+    ARK_TRAP_NULL_REF = 3,
+    ARK_TRAP_ALLOC = 4,
+    ARK_TRAP_OOM = 5,
+    ARK_TRAP_INVALID_CAST = 6
+} ark_trap_kind;
+
 void ark_rt_init(int argc, char **argv);
 void ark_rt_shutdown(void);
 void ark_rt_trap(void);
+void ark_rt_trap_kind(ark_trap_kind kind);
+void ark_rt_panic(ark_string *message);
 void *ark_rt_alloc_aligned(size_t size, size_t alignment);
 ark_struct_object *ark_rt_struct_new(uint32_t type_id, uint32_t field_count);
 ark_value ark_rt_struct_get(ark_object_header *object, uint32_t field_index);

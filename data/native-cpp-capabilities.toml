@@ -489,7 +489,7 @@ implementation = "ark_fallback"
 id = "panic"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "native_runtime"
 

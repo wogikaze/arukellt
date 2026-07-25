@@ -43,9 +43,10 @@ public CLI. It does **not** mean full MIR/CoreOp coverage or `support_tier=suppo
 - [x] Shared clang 14+ toolchain resolver
 - [x] Formal `--emit c` + default `.c` output + emit matrix diagnostics
 - [x] Entry signature + args argv[0] parity
-- [x] Public run GC default ON (runner sets `ARUKELLT_NATIVE_GC=1`); user-facing trap/panic diagnostics remain
+- [x] Public run GC default ON (runner + runtime unset default; executor keeps explicit 0/1)
 - [x] stdio / cwd / exit / signal contracts + fixtures (env CoreOp still planned)
-- [ ] User-facing trap/panic diagnostics
+- [x] User-facing trap/panic diagnostics (`ark_rt_trap_kind` / `ark_rt_panic`)
+- [x] Supported fs I/O returns Result (write open/write failures do not abort)
 - [ ] `tests/fixtures/native_cpp_public/` corpus + Wasm/native parity
 - [ ] HOF/indirect call or explicit Known Limitation + blocker
 - [ ] PHI / de-SSA for user programs
