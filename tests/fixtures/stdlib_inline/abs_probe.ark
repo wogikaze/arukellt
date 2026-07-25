@@ -238,6 +238,18 @@ pub fn probe_range_new_ops() -> bool {
     range.contains(5) && length == 5 && !range.contains(8)
 }
 
+pub fn probe_sqrt_ops() -> bool {
+    let root = sqrt(4.0)
+    let lo = f64_bits_lo(root)
+    let hi = f64_bits_hi(root)
+    lo == f64_bits_lo(2.0) && hi == f64_bits_hi(2.0)
+}
+
+pub fn probe_f64_bits_ops() -> bool {
+    // 1.0 = 0x3FF0000000000000 → lo=0, hi=0x3FF00000
+    f64_bits_lo(1.0) == 0 && f64_bits_hi(1.0) == 1072693248
+}
+
 fn main() {}
 use std::core
 use std::seq

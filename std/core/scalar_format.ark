@@ -38,6 +38,18 @@ fn __core_char_to_string_impl(value: char) -> String {
     raw::raw_string_from_bytes(bytes)
 }
 
+fn __core_math_sqrt_impl(value: f64) -> f64 {
+    raw::raw_f64_sqrt(value)
+}
+
+fn __core_scalar_f64_bits_lo_impl(value: f64) -> i32 {
+    raw::raw_f64_bits_lo(value)
+}
+
+fn __core_scalar_f64_bits_hi_impl(value: f64) -> i32 {
+    raw::raw_f64_bits_hi(value)
+}
+
 fn __core_format_i32_impl(value: i32) -> String {
     let reversed = raw::raw_array_new(12)
     let mut remaining = value

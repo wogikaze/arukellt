@@ -114,6 +114,44 @@ core_op_id = "text.format_bool"
 alias = "__intrinsic_char_to_string"
 core_op_id = "text.char_to_string"
 
+
+[[legacy_bindings]]
+alias = "__intrinsic_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "raw_f64_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "raw_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "raw_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+
 [[legacy_bindings]]
 alias = "__intrinsic_clock_now"
 core_op_id = "runtime.clock_now"
@@ -2437,6 +2475,122 @@ required_target_features = []
 [operations.fallback]
 required = false
 
+
+[[operations]]
+id = "raw.f64_sqrt"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Wasm f64.sqrt for sealed raw float primitives (#822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_sqrt"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.f64_bits_lo"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Low 32 bits of an f64 bit pattern (#822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_bits_lo"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.f64_bits_hi"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "High 32 bits of an f64 bit pattern (#822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_bits_hi"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+
 [[operations]]
 id = "simd.i32x4.add"
 visibility = "public"
@@ -2963,16 +3117,16 @@ id = "math.sqrt"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → math::sqrt (aliases: 2; sqrt, math::sqrt)"
+description = "Square root via sealed-raw f64.sqrt (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
@@ -2985,12 +3139,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.sqrt"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_sqrt_impl"
+required = true
+
 
 [[operations]]
 id = "parse.parse_f64"
@@ -4815,9 +4970,9 @@ id = "scalar.f64_bits_hi"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f64_bits_hi (aliases: 1; f64_bits_hi)"
+description = "High 32 bits of f64 via sealed-raw (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4828,7 +4983,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4837,21 +4992,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "scalar.f64_bits_hi"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_scalar_f64_bits_hi_impl"
+required = true
+
 
 [[operations]]
 id = "scalar.f64_bits_lo"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f64_bits_lo (aliases: 1; f64_bits_lo)"
+description = "Low 32 bits of f64 via sealed-raw (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4862,7 +5018,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4871,12 +5027,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "scalar.f64_bits_lo"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_scalar_f64_bits_lo_impl"
+required = true
+
 
 [[operations]]
 id = "seq.binary_search"

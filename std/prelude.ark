@@ -134,15 +134,15 @@ pub fn parse_f64(s: String) -> Result<f64, String> {
 
 // Math
 pub fn sqrt(x: f64) -> f64 {
-    panic(String_new()); return 0.0
+    __core_math_sqrt_impl(x)
 }
 
 pub fn f64_bits_lo(x: f64) -> i32 {
-    panic(String_new()); return 0
+    __core_scalar_f64_bits_lo_impl(x)
 }
 
 pub fn f64_bits_hi(x: f64) -> i32 {
-    panic(String_new()); return 0
+    __core_scalar_f64_bits_hi_impl(x)
 }
 
 // --- Scalar type conversion functions (issue #040) ---

@@ -23,12 +23,14 @@ fn try_emit_scalar_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
 }
 
 fn try_emit_scalar_bits_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_lo(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_lo()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_f64_bits_lo() {
         let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_lo(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_hi(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_scalar_f64_bits_hi()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_f64_bits_hi() {
         let _result_on_stack = intrinsic_f64_bits::emit_f64_bits_hi(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -50,7 +52,8 @@ fn try_emit_scalar_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx:
 }
 
 fn try_emit_scalar_float_math_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_sqrt(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_math_sqrt()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_f64_sqrt() {
         let _result_on_stack = intrinsic_math::emit_sqrt(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true

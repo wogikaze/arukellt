@@ -100,6 +100,8 @@ class StdlibInlineIntegrationTests(unittest.TestCase):
             ("probe_format_bool_ops", (), "1"),
             ("probe_char_to_string_ops", (), "1"),
             ("probe_range_new_ops", (), "1"),
+            ("probe_sqrt_ops", (), "1"),
+            ("probe_f64_bits_ops", (), "1"),
         )
         for output in outputs:
             validate = subprocess.run(

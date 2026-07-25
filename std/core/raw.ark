@@ -1,4 +1,4 @@
-//! Sealed raw representation API for Vec/String (RFC-006 / #817).
+//! Sealed raw representation API for Vec/String/float primitives (RFC-006 / #817).
 //!
 //! User code must not import this module. Only compiler-shipped stdlib modules
 //! may depend on `std::core::raw`. Public Vec/String APIs stay method-shaped.
@@ -57,6 +57,21 @@ pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
 /// Clones raw string storage.
 pub fn raw_string_clone(s: String) -> String {
     __intrinsic_string_clone(s)
+}
+
+/// Wasm `f64.sqrt` for sealed float primitives.
+pub fn raw_f64_sqrt(value: f64) -> f64 {
+    __intrinsic_sqrt(value)
+}
+
+/// Low 32 bits of an `f64` bit pattern.
+pub fn raw_f64_bits_lo(value: f64) -> i32 {
+    __intrinsic_f64_bits_lo(value)
+}
+
+/// High 32 bits of an `f64` bit pattern.
+pub fn raw_f64_bits_hi(value: f64) -> i32 {
+    __intrinsic_f64_bits_hi(value)
 }
 
 test mod "raw_storage" {
