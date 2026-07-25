@@ -83,7 +83,8 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   not call the still-runtime-owned integer conversion CoreOp.
 - `scripts/tests/test_stdlib_inline.py` runs exact-result checks for the
   migrated String and Vec/seq operations in both fallback and optimized
-  builds. Wave path for `legacy_emitter`: **31 → 28 → 25 → 23 → 22 → 19 → 18**.
+  builds. Wave path for `legacy_emitter`:
+  **31 → 28 → 25 → 23 → 22 → 19 → 18 → 16**.
 - Wave `wave/822-repr-stdlib` migrated `text.format_bool`, `text.char_to_string`,
   and `core.range_new` to `normal_call` with sealed-raw / Ark bodies
   (`__core_format_bool_impl`, `__core_char_to_string_impl`,
@@ -110,19 +111,22 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   Result/Option type (or equivalent) so signatures are not opaque `i32`.
 - Concrete `vec.remove_i32` is `normal_call` via `__core_vec_remove_i32_impl`
   (`probe_remove_i32_ops`), same pattern as `reverse_i32`.
-- `seq.sort_i64` / `seq.sort_f64` stay `legacy_emitter`: an Ark insertion-sort
-  body using generic `set` still emits i32 stores for i64/f64 elements
-  (invalid wasm). Needs monomorphic set helpers or a typed `set` fix first.
-- Remaining `legacy_emitter` (**18**): generic Vec mutation/allocation
-  (`vec.len` / `push` / `set` / `get*` / `pop` / `Vec_new_*`),
-  `seq.sort_{i64,f64}`, and SIMD portable leftovers (`simd.i32x4.*`,
-  `simd.f32x4.add`). Generic Vec mutation additionally requires the
-  fallback resolver to select or synthesize a call-site-specialized
-  implementation before those CoreOps can leave `legacy_emitter`.
-- i64/f64 monomorphic Vec helper aliases are present in the frozen registry but
-  are not resolver-reachable source APIs, so they cannot yet receive required
-  differential tests.
-- **Close stance:** do not move #822 to done while assigned Vec/sort/SIMD
+- Typed LM `vec.set` / `raw.array_set_unchecked` now pick i32/i64/f64 stores
+  from the Vec element type; `vec_get_unchecked_i64` no longer mis-extends the
+  i32 index via the `*i64*` name heuristic; `push_i64`/`push_f64` report void
+  correctly (no double-drop). With that, `seq.sort_i64` / `seq.sort_f64` are
+  `normal_call` insertion-sort Ark bodies (`probe_sort_i64_ops`,
+  `probe_sort_f64_ops`).
+- Remaining `legacy_emitter` (**16**): generic Vec mutation/allocation
+  (`vec.len` / `push` / `set` / `get*` / `pop` / `Vec_new_*`) plus concrete
+  typed helpers that still share emitter ownership
+  (`vec.push_{i64,f64}`, `vec.get_unchecked_{i64,f64}`, `vec.Vec_new_f64`),
+  and SIMD portable leftovers (`simd.i32x4.*`, `simd.f32x4.add`).
+  Removal condition for generic Vec: fallback resolver must select or
+  synthesize a call-site-specialized implementation before those CoreOps can
+  leave `legacy_emitter`. Removal condition for SIMD: ADR-037 nominal SIMD
+  types + portable scalar path bound as production lowerings.
+- **Close stance:** do not move #822 to done while assigned Vec/SIMD
   families remain `legacy_emitter`.
 
 ## References
