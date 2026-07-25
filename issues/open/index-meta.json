@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T18:40:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -833,25 +833,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "816, 817, 820"
-      }
-    },
-    {
-      "id": "824",
-      "path": "824-early-body-lowering-worklist.md",
-      "title": "Early body lowering (worklist; design first)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "829"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design",
-        "upstream_notes": null
       }
     },
     {
