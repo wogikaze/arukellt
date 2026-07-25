@@ -96,6 +96,10 @@ fn CORE_OP_LAYER_PRIMITIVE() -> i32 { 1 }
 fn CORE_OP_LAYER_RUNTIME() -> i32 { 2 }
 fn CORE_OP_LAYER_SEMANTIC_STDLIB() -> i32 { 3 }
 fn CORE_OP_LAYER_TARGET_RAW() -> i32 { 4 }
+fn CORE_OP_RUNTIME_KIND_NONE() -> i32 { 0 }
+fn CORE_OP_RUNTIME_KIND_INTERNAL() -> i32 { 1 }
+fn CORE_OP_RUNTIME_KIND_WIT() -> i32 { 2 }
+fn CORE_OP_RUNTIME_KIND_NATIVE() -> i32 { 3 }
 
 // ADR-040 Phase 7 host intrinsic ABI sub-kinds.
 fn HOST_ABI_LINEAR_MEMORY_PTR() -> i32 { 1 }

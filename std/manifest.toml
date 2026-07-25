@@ -2567,7 +2567,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
 capability_id = "host.http"
-doc = "HTTP client helpers (provisional). `wasm32-gc`-only bridge via arukellt_host + wasi:http/outgoing-handler import. Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. When implemented: HTTP/1.1 over TCP only; HTTPS is not supported."
+doc = "HTTP client helpers (provisional). `wasm32-gc` bridged path imports `wasi:http/outgoing-handler@0.2.0` (simplified guest ABI; host-linker). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. HTTP/1.1 over TCP only; HTTPS is not supported. Real WASI method ABI: #841."
 
 [[functions]]
 name = "request"
@@ -2582,7 +2582,7 @@ doc_category = "host_http"
 doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 implementation_status = "unreachable"
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` WIT-bridged outgoing-handler import (host-linker). HTTPS not supported. Real ABI: #841." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
@@ -2598,7 +2598,7 @@ doc_category = "host_http"
 doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
 implementation_status = "unreachable"
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` bridge via arukellt_host + outgoing-handler import. HTTPS not supported." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` WIT-bridged outgoing-handler import (host-linker). HTTPS not supported. Real ABI: #841." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
 [[functions]]
@@ -2614,7 +2614,7 @@ doc_category = "host_http"
 doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to capability `host.http.incoming` through the incoming-handler proxy-world bridge."
 implementation_status = "unreachable"
 errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
-availability = { t1 = false, t3 = true, note = "Capability `host.http.incoming`: `wasm32-gc` bridge via arukellt_host + incoming-handler import." }
+availability = { t1 = false, t3 = true, note = "Capability `host.http.incoming`: `wasm32-gc` WIT-bridged incoming-handler import (host-linker). Real ABI: #841." }
 examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
 
 
@@ -2664,7 +2664,7 @@ target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
 capability_id = "host.sockets.tcp"
-doc = "TCP socket helpers (provisional). `wasm32-gc` connect/read/write and listen/accept use the host linker. See capability `host.sockets.tcp`."
+doc = "TCP socket helpers (provisional). `wasm32-gc` bridged path imports `wasi:sockets/tcp@0.2.0` (+ streams) via host-linker. See capability `host.sockets.tcp`. Real WASI method ABI: #841."
 
 [[functions]]
 name = "connect"
@@ -2679,7 +2679,7 @@ doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 implementation_status = "unreachable"
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 [[functions]]
@@ -2695,7 +2695,7 @@ doc_category = "host_sockets"
 doc = "Read up to max_len bytes from an open socket fd."
 implementation_status = "unreachable"
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
 
 [[functions]]
 name = "write"
@@ -2710,7 +2710,7 @@ doc_category = "host_sockets"
 doc = "Write byte values from a Vec to an open socket fd."
 implementation_status = "unreachable"
 errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
 
 [[functions]]
 name = "listen"
@@ -2725,7 +2725,7 @@ doc_category = "host_sockets"
 doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
 implementation_status = "unreachable"
 errors = "Err on bind failure or invalid port."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
 
 [[functions]]
 name = "accept"
@@ -2740,7 +2740,7 @@ doc_category = "host_sockets"
 doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
 implementation_status = "unreachable"
 errors = "Err on invalid listener fd or accept failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` host-linker sockets. Importing on `wasm32` emits E0500." }
+availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
 
 [[modules]]
 name = "std::host::udp"

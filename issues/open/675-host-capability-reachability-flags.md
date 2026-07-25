@@ -4,7 +4,7 @@ Created: 2026-06-17
 Updated: 2026-07-26
 ID: 675
 Track: capability
-Depends on: "727"
+Depends on: "841"
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none
@@ -52,29 +52,26 @@ behavior.
 
 ## ADR-007 alignment note (2026-07-10)
 
-The current `arukellt_host` bridge (`tools/host-linker/src/host_http.rs`,
-`host_sockets.rs`) is a **legacy layer** that contradicts ADR-007 (2026-07
-revision), which mandates all host functions go through standard WASI P2/P3
-imports. Issue **#727** tracks the retirement of `arukellt_host` and
-migration of HTTP/sockets to `wasi:http/outgoing-handler` /
-`wasi:io/sockets` component imports.
+`#727` closed the **bridged** path (WIT-shaped module names; simplified guest
+ABI still bound by `host_http.rs` / `host_sockets.rs`). Follow-up **#841**
+deletes those shims and lowers to real WASI methods / bare `wasmtime run`.
 
-This issue (#675) focuses on user-reachability and permission flags; #727
-focuses on the import-path migration. Both must be reconciled so the
-migrated capabilities remain user-reachable after the bridge is removed.
+This issue (#675) focuses on user-reachability and permission flags on top of
+the migrated path. Runtime success fixtures that still need the real ABI /
+shim deletion are coordinated with `#841`.
 
 ## Decision note (2026-07-26)
 
 - `arukellt_host` stopgap is **rejected** because ADR-007 prohibits custom host
   modules.
-- Execution order: **#727 first**, then #675 applies permission flags and
-  docs/manifest updates on top of the migrated WASI P2 path.
-- Runtime reachability acceptance items (HTTP/sockets/UDP success fixtures) are
-  now owned by #727; #675 will verify and gate them once #727 closes.
+- Execution order: **#727 bridged close (done)** → **#841 real ABI** → #675
+  permission flags / docs honesty for user-reachable host capabilities.
+- UDP remain #675-owned; HTTP/sockets success under bare wasmtime is `#841`.
 
 ## References
 
 - `issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md`
-- `issues/open/727-arukellt-host-bridge-retirement.md`
+- `issues/done/727-arukellt-host-bridge-retirement.md`
+- `issues/open/841-wit-network-real-wasi-abi.md`
 - `src/compiler/wasm/call_host_network.ark`
 - `scripts/check/gate-655-http-outgoing.py`, `gate-657-sockets-connect-read-write.py`

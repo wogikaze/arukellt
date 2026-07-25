@@ -2,6 +2,7 @@ use corehir::core_op_id
 use corehir::core_op_registry
 use corehir::core_op_registry_generated
 use corehir::core_op_binding_generated
+use corehir::kinds
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::function_id
@@ -26,7 +27,7 @@ fn EffectiveLoweringDecision_empty() -> EffectiveLoweringDecision {
         core_op_canonical_id: String_new(),
         lowering_kind: 0,
         handler_id: String_new(),
-        runtime_kind: core_op_registry::CORE_OP_RUNTIME_KIND_NONE(),
+        runtime_kind: kinds::CORE_OP_RUNTIME_KIND_NONE(),
         runtime_symbol: String_new(),
         wit_package: String_new(),
         wit_interface: String_new(),
@@ -42,7 +43,7 @@ fn effective_lowering_is_resolved(decision: EffectiveLoweringDecision) -> bool {
 }
 
 fn effective_lowering_is_wit(decision: EffectiveLoweringDecision) -> bool {
-    decision.runtime_kind == core_op_registry::CORE_OP_RUNTIME_KIND_WIT()
+    decision.runtime_kind == kinds::CORE_OP_RUNTIME_KIND_WIT()
 }
 
 fn effective_lowering_from_core_op_canonical(canonical_id: String) -> EffectiveLoweringDecision {

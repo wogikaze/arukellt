@@ -66,7 +66,7 @@ A related binary patch (`_patch_bootstrap_disable_selfhost_mir_prune` in
 
 ## References
 
-- `issues/open/727-arukellt-host-bridge-retirement.md` (original Related section)
+- `issues/done/727-arukellt-host-bridge-retirement.md` (original Related section)
 - `issues/open/730-bootstrap-wasm-4gb-memory-limit.md`
 - `docs/plans/arukellt-host-bridge-retirement.md` §3.2
 - `scripts/bootstrap/wasm-heap-grow-patcher/src/main.rs`

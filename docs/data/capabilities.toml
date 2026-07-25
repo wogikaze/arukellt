@@ -112,7 +112,7 @@ runs = false
 user_reachable = false
 grant_required = "n/a"
 verified_on = []
-notes = "host_http_user_reachable=false"
+notes = "host_http_user_reachable=false; WIT-bridged wasi:http imports (#727); real ABI #841"
 
 [[modules]]
 id = "sockets"
@@ -126,7 +126,7 @@ runs = false
 user_reachable = false
 grant_required = "n/a"
 verified_on = []
-notes = "E0500 on wasm32; not user-reachable"
+notes = "E0500 on wasm32; not user-reachable; WIT-bridged wasi:sockets/tcp (#727); real ABI #841"
 
 [[modules]]
 id = "udp"

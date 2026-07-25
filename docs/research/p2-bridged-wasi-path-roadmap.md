@@ -1,7 +1,7 @@
 # P2 Bridged WASI Path — 今後の調査・修正項目
 
-ステータス: **guest-native stdio 完了（2026-07-26）** — #714 / #668 close gate 緑。  
-filesystem は #076。HTTP/sockets は #727。
+ステータス: **Phase A（stdout bridged path）完了（2026-07-25）** — #714 close gate 緑。  
+stderr/fs/guest-native は #668 / #076。HTTP/sockets は #727。
 
 調査日: 2026-07-11（更新 2026-07-25）
 
@@ -26,7 +26,7 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
   ↓ component_p2_emit.ark: component 組立
   →   core module (1個, self-contained)
   →   core instance (import args 0個)
-  →   run sections (wasi:cli/run@0.2.0 export)
+  →   run sections (wasi:cli/run@0.2.6 export)
   → 結果: validate OK, wasmtime run exit 0, stdout 空
 ```
 
@@ -37,7 +37,7 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
 - [x] `component_p2_strip.ark` — import strip + stub function 生成
 - [x] `component_p2_run_export.ark` — `run` wrapper 関数追加
 - [x] `component_p2_emit.ark` — component 組立
-- [x] `component_p2_run_sections.ark` — wasi:cli/run@0.2.0 export sections
+- [x] `component_p2_run_sections.ark` — wasi:cli/run@0.2.6 export sections
 - [x] `component_p2_run_tail.ark` — 内側 component binary (hex embedded)
 - [x] gate #074, #510 — validate + wasmtime `hello p2`
 - [x] gate #076 — validate-only（runtime fs は #076）
@@ -46,10 +46,10 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
 - [x] exit-code fixture on emitter-native path
 - [x] `arukellt-selfhost.sh run --emit component` wrapper-free
 
-### 未達成（#076 / #727 へ移管）
+### 未達成（#668 / #076 / #727 へ移管）
 
-- [x] guest-native `get-stdout` + stream method call sites（#668）
-- [x] stderr / args / env fixtures（#668）
+- [ ] guest-native `get-stdout` + stream method call sites（#668）
+- [ ] stderr / args / env fixtures（#668）
 - [ ] filesystem runtime bridge（#076）
 - [ ] HTTP/sockets standard WASI imports（#727）
 
@@ -175,34 +175,24 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
 
 ### C. arukellt_host bridge retirement (HTTP/sockets)
 
-**関連 issue**: #727
-**優先度**: P1（#714, #675 完了後）
-**前提**: A. Stdout bridge 完了（同じ canonical ABI glue 基盤を使用）
+**関連 issue**: #727（**bridged close 2026-07-25**）→ 残作業 `#841`  
+**優先度**: P1 完了（bridged）/ `#841` は P2  
+**前提**: A. Stdout bridge 完了（`#714`）
 
-#### C-1. HTTP import 移行
+#### C-1. HTTP import 移行 — bridged done
 
-**調査項目**:
-- `std::host::http` の `__intrinsic_http_get` / `__intrinsic_http_request` を
-  `wasi:http/outgoing-handler@0.2.x` component import に移行
-- `tools/host-linker/src/host_http.rs` を `wasmtime-wasi` (wasi-http feature) に置換
-- canonical ABI glue: `wasi:http/types outgoing-request` resource handle,
-  `outgoing-handler.handle` 関数の lowering
+- Guest は `wasi:http/outgoing-handler@0.2.0` / `incoming-handler` module 名 +
+  簡略 `http_*` ABI（`#727`）
+- 真の `outgoing-handler.handle` / resource lowering と `host_http.rs` 削除は `#841`
 
-#### C-2. Sockets import 移行
+#### C-2. Sockets import 移行 — bridged done
 
-**調査項目**:
-- `std::host::sockets` の `__intrinsic_sockets_*` を
-  `wasi:io/sockets@0.2.x` (or `wasi:sockets/tcp@0.2.x`) に移行
-- `tools/host-linker/src/host_sockets.rs` を `wasmtime-wasi` に置換
-- TCP connect/listen/accept の resource handle 管理
+- Guest は `wasi:sockets/tcp@0.2.0` + `wasi:io/streams@0.2.0` + 簡略 `sockets_*`
+- 真の TCP/stream methods と `host_sockets.rs` 削除は `#841`
 
 #### C-3. wasm-heap-grow-patcher retirement
 
-**調査項目** (#727 関連):
-- pinned wasm の memory section 更新 (128 → 8192 pages)
-- Vec_new u32 wraparound check の compiler 組み込み
-- export deduplication の完全性確認
-- MIR prune flag の pinned wasm 更新
+**追跡**: `#830`（`#727` スコープ外）
 
 ---
 
@@ -311,7 +301,7 @@ Phase 5: D-1, D-2 — WIR layer 設計 (#728)
 
 - [Issue #714](../../issues/open/714-wasi-p2-emitter-native-component-output.md) —
   Emitter-native WASI P2 component output without wrapper
-- [Issue #668](../../issues/done/668-p2-native-component-polish.md) —
+- [Issue #668](../../issues/open/668-p2-native-component-polish.md) —
   P2 native component polish (post-#074)
 - [Issue #727](../../issues/open/727-arukellt-host-bridge-retirement.md) —
   Retire arukellt_host custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports

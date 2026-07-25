@@ -24,6 +24,8 @@ def _static_evidence() -> tuple[int, str]:
     imports = (REPO_ROOT / "src/compiler/wasm/sections_imports.ark").read_text(encoding="utf-8")
     if "wasi:http/outgoing-handler@0.2.0" not in imports:
         return 1, "sections_imports.ark lacks wasi:http/outgoing-handler import"
+    if '"arukellt_host"' in imports or "'arukellt_host'" in imports:
+        return 1, "sections_imports.ark still emits arukellt_host module string"
     gate = (REPO_ROOT / "src/compiler/resolver/target_gate.ark").read_text(encoding="utf-8")
     if "std::host::http" not in gate:
         return 1, "target_gate.ark lacks std::host::http T3 gate"

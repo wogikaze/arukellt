@@ -1,6 +1,7 @@
-//! TCP socket host implementations for WIT-shaped guest imports (#727 Phase 2/3).
+//! TCP socket host implementations for WIT-shaped guest imports (#727 bridged).
 //! Modules: `wasi:sockets/tcp@0.2.0` / `wasi:io/streams@0.2.0`.
-//! Function names remain the simplified guest ABI until Phase 4 real WASI lowering.
+//! Function names remain the simplified guest ABI (`sockets_*`).
+//! TODO(#841 owner=host-linker removal="real WASI method ABI + bare wasmtime; delete this file" recheck=2026-08-25)
 
 use crate::{read_string_from_mem, write_error};
 use std::collections::HashMap;

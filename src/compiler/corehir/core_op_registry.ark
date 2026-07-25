@@ -1,5 +1,6 @@
 use corehir::core_op_id
 use corehir::core_op_registry_generated
+use corehir::kinds
 
 struct CoreOpEntry {
     id: CoreOpId,
@@ -16,11 +17,6 @@ struct CoreOpEntry {
     mir_operation: String,
     legacy_handler_id: String,
 }
-
-fn CORE_OP_RUNTIME_KIND_NONE() -> i32 { 0 }
-fn CORE_OP_RUNTIME_KIND_INTERNAL() -> i32 { 1 }
-fn CORE_OP_RUNTIME_KIND_WIT() -> i32 { 2 }
-fn CORE_OP_RUNTIME_KIND_NATIVE() -> i32 { 3 }
 
 fn CoreOpRegistry_lookup_by_canonical(canonical_id: String) -> CoreOpId {
     let index = core_op_registry_generated::core_op_registry_lookup_index(clone(canonical_id))
@@ -58,7 +54,7 @@ fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
             lowering_kind: 0,
             layer: 0,
             target_id: String_new(),
-            runtime_kind: CORE_OP_RUNTIME_KIND_NONE(),
+            runtime_kind: kinds::CORE_OP_RUNTIME_KIND_NONE(),
             runtime_symbol: String_new(),
             wit_package: String_new(),
             wit_interface: String_new(),

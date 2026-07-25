@@ -1,7 +1,7 @@
-//! TCP HTTP/1.1 host implementations for WIT-shaped guest imports (#727 Phase 2/3).
+//! TCP HTTP/1.1 host implementations for WIT-shaped guest imports (#727 bridged).
 //! Modules: `wasi:http/outgoing-handler@0.2.0` / `wasi:http/incoming-handler@0.2.0`.
-//! Function names remain the simplified guest ABI (`http_get` / `http_request` / `http_serve`)
-//! until component bridges lower to real WASI methods (Phase 4).
+//! Function names remain the simplified guest ABI (`http_get` / `http_request` / `http_serve`).
+//! TODO(#841 owner=host-linker removal="real WASI method ABI + bare wasmtime; delete this file" recheck=2026-08-25)
 
 use crate::{read_string_from_mem, write_error, write_ok};
 use std::io::{Read, Write};

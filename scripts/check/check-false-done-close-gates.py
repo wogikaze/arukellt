@@ -92,6 +92,7 @@ TRACKED: dict[str, list[str]] = {
     "658": ["TCP listen/accept host-linker smoke (gate-658-sockets-listen-accept.py)"],
     "139": ["WASI P2 sockets umbrella (gate-139-wasi-p2-sockets-umbrella.py)"],
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
+    "727": ["arukellt_host absence / WIT-bridged HTTP+sockets (gate-727-arukellt-host-absence.py)"],
     "656": ["HTTP incoming server gate-656-http-incoming.py"],
     "077": ["WASI P2 HTTP umbrella (gate-077-wasi-p2-http-umbrella.py)"],
     "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
@@ -1016,6 +1017,22 @@ def gate_034() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_727() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-727-arukellt-host-absence.py"
+    if not script.is_file():
+        return 1, "missing gate-727-arukellt-host-absence.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_655() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-655-http-outgoing.py"
     if not script.is_file():
@@ -1148,6 +1165,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "139": gate_139,
     "655": gate_655,
     "656": gate_656,
+    "727": gate_727,
     "077": gate_077,
     "138": gate_138,
     "136": gate_136,

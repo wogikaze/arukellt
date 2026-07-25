@@ -28,8 +28,8 @@
 | `std::host::process` | `std/host/process.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` |  |
 | `std::host::clock` | `std/host/clock.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-clock; fixtures in DIAG_PARITY_SKIP (#459). |
 | `std::host::random` | `std/host/random.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-random; fixtures in DIAG_PARITY_SKIP (#459). |
-| `std::host::http` | `std/host/http.ark` | yes | yes | partial | partial | no | **no** | n/a | — | host_http_user_reachable=false |
-| `std::host::sockets` | `std/host/sockets.ark` | yes | yes | partial | partial | no | **no** | n/a | — | E0500 on wasm32; not user-reachable |
+| `std::host::http` | `std/host/http.ark` | yes | yes | partial | partial | no | **no** | n/a | — | host_http_user_reachable=false; WIT-bridged wasi:http imports (#727); real ABI #841 |
+| `std::host::sockets` | `std/host/sockets.ark` | yes | yes | partial | partial | no | **no** | n/a | — | E0500 on wasm32; not user-reachable; WIT-bridged wasi:sockets/tcp (#727); real ABI #841 |
 | `std::host::udp` | `std/host/udp.ark` | yes | yes | partial | partial | no | **no** | n/a | — | Same class as sockets |
 
 ## Deny enforcement (structured)

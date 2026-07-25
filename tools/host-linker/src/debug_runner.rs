@@ -135,6 +135,16 @@ fn try_register_known(
 ) -> Result<(), String> {
     match (mod_name, field_name) {
         ("wasi:cli/stdout@0.2.0", "write") => register_stdout_write(linker, engine, ft),
+        // Guest-native P2 stdio (#668): get-stdout/get-stderr + streams.bwaf.
+        ("wasi:cli/stdout@0.2.0", "get-stdout") => {
+            register_get_stream(linker, engine, mod_name, field_name, ft, 1)
+        }
+        ("wasi:cli/stderr@0.2.0", "get-stderr") => {
+            register_get_stream(linker, engine, mod_name, field_name, ft, 2)
+        }
+        ("wasi:io/streams@0.2.0", "blocking-write-and-flush") => {
+            register_blocking_write_and_flush(linker, engine, ft)
+        }
         ("wasi:cli/environment@0.2.0", "args-sizes") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:cli/environment@0.2.0", "arguments") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:cli/stdin@0.2.0", "read") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
@@ -169,6 +179,71 @@ fn register_stdout_write(
         if !r.is_empty() { r[0] = Val::I32(0); }
         Ok(())
     }).map_err(|e| format!("stdout write: {}", e))?;
+    Ok(())
+}
+
+/// Return a stable stream handle for guest-native get-stdout / get-stderr.
+fn register_get_stream(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    mod_name: &str,
+    field_name: &str,
+    ft: &FuncType,
+    handle: i32,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    linker
+        .func_new(mod_name, field_name, ft, move |_: Caller<'_, ()>, _p: &[Val], r: &mut [Val]| {
+            if !r.is_empty() {
+                r[0] = Val::I32(handle);
+            }
+            Ok(())
+        })
+        .map_err(|e| format!("{mod_name}::{field_name}: {e}"))?;
+    Ok(())
+}
+
+/// Guest-native bwaf: (handle, ptr, len, ret_ptr) → write bytes; store nbytes at ret.
+fn register_blocking_write_and_flush(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    use std::io::Write;
+    let ft = ft.clone();
+    linker
+        .func_new(
+            "wasi:io/streams@0.2.0",
+            "blocking-write-and-flush",
+            ft,
+            move |mut caller: Caller<'_, ()>, p: &[Val], _r: &mut [Val]| {
+                if p.len() < 4 {
+                    return Ok(());
+                }
+                let (Val::I32(handle), Val::I32(buf), Val::I32(len), Val::I32(ret)) =
+                    (p[0], p[1], p[2], p[3])
+                else {
+                    return Ok(());
+                };
+                let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) else {
+                    return Ok(());
+                };
+                let mut data = vec![0u8; len.max(0) as usize];
+                let _ = mem.read(&caller, buf as usize, &mut data);
+                let n = if handle == 2 {
+                    let n = std::io::stderr().write(&data).unwrap_or(0) as i32;
+                    let _ = std::io::stderr().flush();
+                    n
+                } else {
+                    let n = std::io::stdout().write(&data).unwrap_or(0) as i32;
+                    let _ = std::io::stdout().flush();
+                    n
+                };
+                let _ = mem.write(&mut caller, ret as usize, &n.to_le_bytes());
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("blocking-write-and-flush: {e}"))?;
     Ok(())
 }
 

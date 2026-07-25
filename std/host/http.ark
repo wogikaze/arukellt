@@ -1,4 +1,6 @@
-//! Host HTTP client helpers backed by the `arukellt_host` runtime.
+//! Host HTTP client helpers via WIT-shaped guest imports (bridged ABI, #727).
+//! Modules: `wasi:http/outgoing-handler@0.2.0` / `wasi:http/incoming-handler@0.2.0`.
+//! Function names remain the simplified guest ABI until #841 (real WASI methods).
 //!
 //! These APIs are **partial**: they expose a TCP-based HTTP/1.1 surface via
 //! host-provided functions. They are not a full HTTP client and are subject
