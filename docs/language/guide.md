@@ -425,8 +425,10 @@ match vec_get(v, 0) {
 
 ### The `?` operator
 
-`expr?` propagates the `Err` variant automatically. The enclosing function must
-return `Result<_, E>` where `E` is compatible:
+`expr?` early-returns a failure variant from the enclosing function:
+
+- `Result` — propagate `Err`, converting via `From` when the error types differ
+- `Option` — propagate `None` (no conversion)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-09-30" -->
 ```ark

@@ -25,9 +25,9 @@ graph LR
   I684["684 684 — False-done and limited-scope done issue re-audit program"]
   I685["685 685 — IDE / Playground / Extension product-claim vs compiler gate audit"]
   I686["686 Wasm GC Selfhost Implementation"]
-  I690["690 690 — `?` operator and `From<E>` error conversion"]
   I691["691 691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`"]
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
+  I694["694 694 — `Error` trait and unified error type ecosystem"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I696["696 696 — `Debug` trait and `format!` / `write!` equivalent formatting"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
@@ -54,12 +54,12 @@ graph LR
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I834["834 Pin bootstrap to validating Memory64 wasm32-gc"]
+  I839["839 839 — Resolve `?` From conversion via SemanticTraitId"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
   I801["801 GC 完了までのプラン"]
-  I694["694 694 — `Error` trait and unified error type ecosystem"]
   I697["697 697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)"]
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
@@ -81,7 +81,6 @@ graph LR
   I686 --> I698
   I649 --> I698
   I686 --> I801
-  I690 --> I694
   I691 --> I697
   I695 --> I697
   I691 --> I703
@@ -134,9 +133,9 @@ graph LR
 - **684** depends on: none; blocks: none
 - **685** depends on: 679; blocks: none
 - **686** depends on: none; blocks: 698, 801
-- **690** depends on: 688; blocks: 694
 - **691** depends on: 688, 707; blocks: 697, 703, 709, 710
 - **693** depends on: 688, 692; blocks: none
+- **694** depends on: 690, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
 - **696** depends on: none; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
@@ -163,12 +162,12 @@ graph LR
 - **826** depends on: 823; blocks: none
 - **830** depends on: 730; blocks: none
 - **834** depends on: 730; blocks: none
+- **839** depends on: 690; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
 - **801** depends on: 686; blocks: none
-- **694** depends on: 690, 692; blocks: none
 - **697** depends on: 691, 695; blocks: 709, 710
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none

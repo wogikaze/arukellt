@@ -445,8 +445,26 @@ expr[index]
 expr?
 ```
 
-Propagates the `Err` variant of a `Result`. The enclosing function must
-return `Result<_, E>`.
+`expr?` early-returns from the enclosing function when the operand is a
+failure variant. Two forms are defined:
+
+**`Result<T, E_source>`** — the enclosing function must return
+`Result<_, E_target>`. On `Ok(v)`, the value of `expr?` is `v`. On `Err(e)`:
+
+- if `E_source` and `E_target` are the same type, return `Err(e)` (identity)
+- otherwise return `Err(From::from(e))`, resolved via the canonical `From`
+  trait for language-syntax desugaring (import not required; ADR-039 D2)
+
+**`Option<T>`** — the enclosing function must return `Option<_>`. On
+`Some(v)`, the value of `expr?` is `v`. On `None`, return `None`. There is
+no error-type conversion. Converting `Option` to `Result` is out of scope
+for `?` (use an explicit `ok_or` / `ok_or_else`).
+
+Any other operand type, or a mismatch between the operand and the enclosing
+return type (`Result` vs `Option`), is a type error.
+
+Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
+`from_error.ark`, `option_propagate.ark`.
 
 ### 3.10 If Expression
 

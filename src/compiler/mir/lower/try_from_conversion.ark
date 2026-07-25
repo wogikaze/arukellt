@@ -15,10 +15,19 @@ use mir::value_types
 use mir::function_return_view
 
 // Resolve the From::from conversion function for the Err path of `?`.
-// Returns the mangled function name (e.g. "AppError::from") if conversion
-// is needed, or an empty string if not.
+// Returns the registered callee mangled name if conversion is needed, or
+// empty if identity (same E) / unavailable.
+//
+// Contract: ADR-039 D2 / RFC-004 §6 — language-syntax desugaring uses
+// SemanticTraitId::From and does not consult import scope.
+// Living path: From impl methods are registered as `E_target::from`, so MIR
+// lower selects that registered associated method until SignatureEntry.trait_id
+// carries the canonical trait id (#839).
+// TODO(#839 owner=compiler removal="resolve via SemanticTraitId::From / SignatureEntry.trait_id" recheck=2026-10-25)
 fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> String {
     if is_gc {
+        // wasm32-gc Err conversion is not wired yet; identity early-return only.
+        // TODO(#839 owner=compiler removal="enable From conversion on wasm32-gc" recheck=2026-10-25)
         return String_new()
     }
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)

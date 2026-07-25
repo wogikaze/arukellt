@@ -13,6 +13,7 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | docs/plans/ は、ADR / RFC で決まった方針をどう実装するかの計画を置く場所である。 |
+| [675-host-capability-reachability-flags.md](675-host-capability-reachability-flags.md) | \#675 — Host capability user-reachability and runtime permission flags 実装計画 | Archive | 親 issue: #675 |
 | [arukellt-host-bridge-retirement.md](arukellt-host-bridge-retirement.md) | #727 — arukellt_host bridge retirement 実装計画 | Archive | 親 issue: #727 |
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |
