@@ -1,15 +1,16 @@
 ---
 Status: open
 Created: 2026-06-17
-Updated: 2026-06-17
+Updated: 2026-07-26
 ID: 675
 Track: capability
-Depends on: "446, 447, 655, 656, 657, 658 (done); 633 (host-capability-honesty, done)"
+Depends on: "727"
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v{N}: none
 Priority: 2
 Source: P1 host capability checklist audit 2026-06-17 — reverses #633 docs-only stance
+Plan: docs/plans/675-host-capability-reachability-flags.md
 ---
 
 # 675 — Host capability user-reachability and runtime permission flags

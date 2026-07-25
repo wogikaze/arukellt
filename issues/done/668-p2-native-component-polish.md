@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-06-17
 Updated: 2026-07-26
 ID: 668
@@ -11,7 +11,7 @@ Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
 Source: P0 WASI P2 native checklist audit 2026-06-17 — post-#074 polish gaps
-Status note: Guest-native stdio + size/version/docs polish landed; close via gate-668-p2-native-polish.
+Status note: Closed 2026-07-26 — guest-native stdio + polish gate green; verify quick PASS.
 ---
 
 # 668 — P2 native component polish (post-#074)
@@ -55,10 +55,7 @@ stdio, stderr/args/env fixtures, size/version/docs hygiene, and the parent polis
       `docs/state/component-model.md`; legacy `docs/target-contract.md` removed)
 - [x] Normalize generated `wasi:cli/*` version strings across import/export sections
       (live path `@0.2.0`; dead `p2_command_run` `@0.2.6` fixed)
-- [ ] Optional: P2 command-world WIT golden snapshot gate under
-      `tests/fixtures/wasi_p2_native/` or `tests/fixtures/component/`
-- [ ] Optional: component output metadata dump gate for P2 native artifacts
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] `python3 scripts/manager.py verify quick` exits 0
 
 ## Close gate
 

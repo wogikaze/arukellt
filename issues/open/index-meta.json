@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T15:30:44Z",
+  "generated_at": "2026-07-25T16:52:34Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -81,27 +81,6 @@
       "acceptance": {
         "checked": 2,
         "unchecked": 12
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "668",
-      "path": "668-p2-native-component-polish.md",
-      "title": "668 — P2 native component polish (post-#074)",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510",
-        "714"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 1,
-        "unchecked": 8
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -203,33 +182,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "446",
-        "447",
-        "655",
-        "656",
-        "657",
-        "658",
-        "done)"
-      ],
-      "blocks_issue_ids": [
-        "727"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -997,28 +949,6 @@
       }
     },
     {
-      "id": "727",
-      "path": "727-arukellt-host-bridge-retirement.md",
-      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "714",
-        "675"
-      ],
-      "blocks_issue_ids": [
-        "819"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -1207,28 +1137,6 @@
       }
     },
     {
-      "id": "819",
-      "path": "819-runtime-abi-core-op-lowering.md",
-      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "727",
-        "798"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "727"
-      }
-    },
-    {
       "id": "683",
       "path": "683-user-facing-executable-example-audit.md",
       "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
@@ -1293,31 +1201,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
-      }
-    },
-    {
-      "id": "818",
-      "path": "818-core-op-production-scaffold-exit.md",
-      "title": "818 — CoreOpRegistry production scaffold exit",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "819",
-        "820",
-        "821",
-        "822"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 819, 820, 821, 822"
       }
     },
     {
@@ -1410,6 +1293,97 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#709 trait-first policy, #711 stdlib docs, #712 LLM quality signals"
+      }
+    },
+    {
+      "id": "675",
+      "path": "675-host-capability-reachability-flags.md",
+      "title": "675 — Host capability user-reachability and runtime permission flags",
+      "track": "capability",
+      "status": "open",
+      "depends_on": [
+        "727"
+      ],
+      "blocks_issue_ids": [
+        "727"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "727",
+      "path": "727-arukellt-host-bridge-retirement.md",
+      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "714",
+        "675"
+      ],
+      "blocks_issue_ids": [
+        "675",
+        "819"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "798",
+        "816",
+        "817",
+        "819",
+        "820",
+        "821",
+        "822"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "816, 817, 819, 820, 821, 822"
+      }
+    },
+    {
+      "id": "819",
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "727",
+        "798"
+      ],
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "727"
       }
     }
   ],
