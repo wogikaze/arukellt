@@ -51,6 +51,7 @@
 | [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
+| [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 
 ## 提案
 

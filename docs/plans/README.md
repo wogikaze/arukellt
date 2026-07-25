@@ -20,6 +20,7 @@
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
 | [native-cpp-experimental-promotion.md](native-cpp-experimental-promotion.md) | native-cpp selfhost executor experimental 昇格計画 | Archive | Owner: native-cpp / umbrella #834 / root-liveness #833 Created: 2026-07-23 Last updated: 2026-07-23 Phase 0 baseline: .build-native-recovery/selfhost/native/baselines/20260723-221402/ |
 | [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | native-cpp-experimental-promotion.md と docs/data/native-cpp-executor-promotion-receipt.json を正とする） |
+| [native-cpp-public-run-promotion.md](native-cpp-public-run-promotion.md) | native-cpp public run (run_supported=true) 昇格計画 | Archive | 詳細仕様: RFC-008 |
 | [selfhost-latency-phase-reprofile.md](selfhost-latency-phase-reprofile.md) | Selfhost compile latency: Memory64後の作業計画 | Archive | 親 issue: #829 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |
