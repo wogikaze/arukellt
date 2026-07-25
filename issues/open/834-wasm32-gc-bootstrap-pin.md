@@ -50,28 +50,27 @@ larger machine or a grow-path fix, not more clone typing.
 
 Probe receipt: [`docs/research/834-wasm32-gc-bootstrap-probe.md`](../../docs/research/834-wasm32-gc-bootstrap-probe.md)
 
-- **Emit+validate on this 23 GiB host: PASS** via flat-src preopen
-  (`--dir=.build/selfhost/flat-src --dir=.`, `-o bootstrap-out.wasm`, AST cache).
-  Measured: WALL ≈ 100s, MAX_RSS ≈ 1.23 GiB, validate features
-  `gc,function-references,memory64` OK (artifact
-  `.build/selfhost/834-probe/selfhost-wasm32-gc-v7.wasm`).
-- The earlier ~6 GiB “hang” / 4 GiB OOB was **wrong dir flags**, not hard OOM and
-  not caused by the Result-typing patch.
-- Landed: P1/P2 WASI import-index helpers; Result-local typing + typed GC fs stubs;
-  `init.ark` no longer passes `String` into `fs_error_message` (FsError-only).
-- **Still blocked for pin / close (do not false-done):**
-  1. Runnable P2 host: smoke fails `unknown import wasi:cli/stdout@0.2.0::get-stdout`
-     under plain wasmtime preview1-style run.
-  2. GC `fs_read` still typed Err stub — cannot read sources.
-  3. P2 has no file `fd_write`; write paths are typed Ok stubs.
-  4. P2 read slot is `stdin.read`, not filesystem read.
-  5. Memory64 `wasm32-gc`/`wasi-p1` path still fails validate in
-     `canonicalize_target_input` (secondary).
+### Done
+
+- [x] Flat-src emit+validate `wasm32-gc`/`wasi-p2` selfhost (~1.23 GiB RSS; guest
+      `(memory 8192)` memory32). Artifact tip: `selfhost-wasm32-gc-v17.wasm`.
+- [x] P2 filesystem `read`/`write` imports + GC unstub + host-linker `p2_host.rs`.
+- [x] Host smoke: `version` / `targets` / `fmt` / **compile hello** PASS.
+- [x] GC emit fixes: `len(struct.vec_field)` type resolve; nested
+      `a.b.c` / `get_unchecked(...).field` stack base (`inst_struct_record`).
+
+### Still blocked for pin / close (do not false-done)
+
+1. **GC guest cannot compile `src/compiler/main.ark`** — trap in
+   `finish_decimal_number` while loading stdlib (`register_stdlib_source`).
+   Pin + `BOOTSTRAP_EMIT_*` flip would break `build-compiler`.
+2. Therefore: no pin refresh, no `BOOTSTRAP_EMIT_*` flip, no #813 drop, no close.
 
 ### Close removal condition
 
-P2 (or successor) filesystem read+write usable by bootstrap run +
-`BOOTSTRAP_EMIT_*=wasm32-gc/wasi-p2` + drop #813 workaround + `verify quick` green.
+GC host-linker can self-compile `main.ark` → pin memory32 wasi-p2 artifact
+(without `--to-memory64`) → flip `BOOTSTRAP_EMIT_*=wasm32-gc/wasi-p2` → drop #813
+→ `verify quick` green.
 
 ## References
 

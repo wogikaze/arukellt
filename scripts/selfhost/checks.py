@@ -735,17 +735,20 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP ABI)."""
+    """True when guest imports need tools/host-linker (bridged HTTP/TCP/P2 ABI)."""
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
-    # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
+    # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
+    # or core wasi-p2 imports that plain wasmtime cannot link (#834).
     return (
         b"arukellt_host" in data
         or b"wasi:http/outgoing-handler@" in data
         or b"wasi:http/incoming-handler@" in data
         or b"wasi:sockets/tcp@" in data
+        or b"wasi:cli/" in data
+        or b"wasi:filesystem/" in data
         or b"sockets_connect" in data
         or b"sockets_listen" in data
         or b"http_get" in data
@@ -845,15 +848,17 @@ def _wasm_compile(
     Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
     Passes --cache-dir to enable per-module parse caching (only for selfhost
     compilers that support the flag; skipped for pinned bootstrap).
+    wasi-p2 compilers route through host-linker (plain wasmtime cannot link
+    ``wasi:cli/*`` core imports; #834).
     """
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
-    dirs: list[str] = []
+    preopen_paths: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
-        dirs.extend(["--dir", str(workspace_root)])
+        preopen_paths.append(str(workspace_root))
         guest_out = "bootstrap-out.wasm"
-    dirs.extend(["--dir", str(root)])
+    preopen_paths.append(str(root))
     # Ensure AST cache directory exists
     ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
@@ -861,19 +866,34 @@ def _wasm_compile(
     cache_args: list[str] = []
     if _is_selfhost_compiler(compiler_wasm, root):
         cache_args = ["--cache-dir", AST_CACHE_REL]
-    # Use AOT precompiled .cwasm when available for faster startup
-    run_wasm = _ensure_aot_cwasm(compiler_wasm)
-    run_flags: list[str]
-    if run_wasm.suffix == ".cwasm":
-        run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+    guest_argv = [
+        "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
+        "-o", guest_out, *cache_args,
+    ]
+    if _wasm_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        host_dirs = [f"--dir={p}" for p in preopen_paths]
+        result = _run(
+            ["bash", str(hosted), *host_dirs, str(compiler_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     else:
-        run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
-    result = _run(
-        [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out, *cache_args],
-        root,
-        timeout=timeout,
-    )
+        dirs: list[str] = []
+        for p in preopen_paths:
+            dirs.extend(["--dir", p])
+        # Use AOT precompiled .cwasm when available for faster startup
+        run_wasm = _ensure_aot_cwasm(compiler_wasm)
+        run_flags: list[str]
+        if run_wasm.suffix == ".cwasm":
+            run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+        else:
+            run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
+        result = _run(
+            [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     if workspace_root is not None:
         staged = workspace_root / guest_out
         stderr = result.stderr or ""

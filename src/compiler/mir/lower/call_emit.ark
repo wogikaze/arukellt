@@ -65,6 +65,10 @@ fn mir_emit_direct_call(
     }
     // Record the vec/receiver local on get_unchecked/push-style calls so GC emit
     // can resolve element types when MirLocal.type_name was poisoned (#730).
+    // Do not record first_arg for vec_len: store policy treats first_arg CALLs as
+    // non-stack-consumers (println-style), but emit_vec_len still reads the stack
+    // (`len(diagnostics())` validate fail). Field-receiver typing is fixed in
+    // intrinsic_vec_type::find_call_source_local (#834).
     if first_arg_idx >= 0 && (
         call_args::mir_is_printlike_callee(clone(callee_name)) ||
         call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||

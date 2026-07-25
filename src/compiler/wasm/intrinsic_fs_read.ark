@@ -4,6 +4,7 @@ use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::import_indices
 use wasm::intrinsic_fs_read_body
+use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
@@ -11,6 +12,7 @@ use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::string_gc_helpers
 
 // Handler for: fs::read_to_string / __intrinsic_fs_read_file
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -27,16 +29,25 @@ fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     return true
 }
 
-// GC validate stub: drop path, return typed Result::Err so match locals stay
-// ref-typed (#834 cmd_init). Full open/read/close GC emit still deferred —
-// unstub attempts hung full selfhost emit on this host (see probe doc).
+// GC: void-if around open/read so Result refs are not forced through if (result i32).
 fn emit_fs_read_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s_path: i32) -> bool {
-    let _inst = inst
-    let _s_path = s_path
-    let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    helpers_core::emit_local_set(w, s_drop)
-    intrinsic_fs_read_body::emit_fs_read_open_error_message(w)
-    intrinsic_fs_read_body::emit_fs_read_result_pair(w, 1, ctx)
+    let s_res = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let path_buf = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core::emit_local_get(w, path_buf)
+    helpers_core::emit_local_set(w, s_path)
+    helpers_io::emit_store_string_local_to_scratch(w, s_path, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
+    emit_fs_read_open_call(w, ctx)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_else(w)
+    intrinsic_fs_read_body::emit_fs_read_loop(w, ctx)
+    intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_res)
     return true
 }
 

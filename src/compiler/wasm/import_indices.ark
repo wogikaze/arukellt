@@ -24,7 +24,21 @@ fn path_open_import_idx(ctx: SelfEmitCtx) -> i32 {
 }
 
 fn fd_read_import_idx(ctx: SelfEmitCtx) -> i32 {
-    // P2 core surface exposes stdin.read at this slot (same i32×4 ABI as P1 fd_read).
+    // File reads: P2 bridged filesystem.read (P1 fd_read ABI), not stdin (#834).
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_FS_READ()
+    }
+    constants::WASI_IMPORT_FD_READ()
+}
+
+fn fd_write_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_FS_WRITE()
+    }
+    constants::WASI_IMPORT_FD_WRITE()
+}
+
+fn stdin_read_import_idx(ctx: SelfEmitCtx) -> i32 {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         return constants::P2_IMPORT_STDIN_READ()
     }
@@ -36,6 +50,13 @@ fn fd_close_import_idx(ctx: SelfEmitCtx) -> i32 {
         return constants::P2_IMPORT_CLOSE()
     }
     constants::WASI_IMPORT_FD_CLOSE()
+}
+
+fn proc_exit_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_EXIT()
+    }
+    constants::WASI_IMPORT_PROC_EXIT()
 }
 
 fn p2_outgoing_import_offset(ctx: SelfEmitCtx) -> i32 {

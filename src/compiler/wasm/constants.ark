@@ -63,23 +63,25 @@ fn SCRATCH_SOCK_RET() -> i32 { 100 }
 fn SCRATCH_SOCK_ABSLEN() -> i32 { 104 }
 fn SCRATCH_SOCK_ENUMPTR() -> i32 { 108 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
-// Guest-native P2 stdio: get-stdout, bwaf, …, get-stderr, environ, clocks/random.
-fn NUM_P2_IMPORTS_BASE() -> i32 { 14 }
+// Guest-native P2 stdio + bridged filesystem read/write after open-at (#834).
+fn NUM_P2_IMPORTS_BASE() -> i32 { 16 }
 fn NUM_P2_HTTP_OUTGOING_IMPORTS() -> i32 { 2 }
 fn P2_IMPORT_GET_STDOUT() -> i32 { 0 }
 fn P2_IMPORT_BWAF() -> i32 { 1 }
 fn P2_IMPORT_ARGS_SIZES() -> i32 { 2 }
 fn P2_IMPORT_ARGUMENTS() -> i32 { 3 }
 fn P2_IMPORT_OPEN_AT() -> i32 { 4 }
-fn P2_IMPORT_STDIN_READ() -> i32 { 5 }
-fn P2_IMPORT_CLOSE() -> i32 { 6 }
-fn P2_IMPORT_EXIT() -> i32 { 7 }
-fn P2_IMPORT_GET_STDERR() -> i32 { 8 }
-fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 9 }
-fn P2_IMPORT_ENVIRON_GET() -> i32 { 10 }
-fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 11 }
-fn P2_IMPORT_WALL_NOW() -> i32 { 12 }
-fn P2_IMPORT_RANDOM_U64() -> i32 { 13 }
+fn P2_IMPORT_FS_READ() -> i32 { 5 }
+fn P2_IMPORT_FS_WRITE() -> i32 { 6 }
+fn P2_IMPORT_STDIN_READ() -> i32 { 7 }
+fn P2_IMPORT_CLOSE() -> i32 { 8 }
+fn P2_IMPORT_EXIT() -> i32 { 9 }
+fn P2_IMPORT_GET_STDERR() -> i32 { 10 }
+fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 11 }
+fn P2_IMPORT_ENVIRON_GET() -> i32 { 12 }
+fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 13 }
+fn P2_IMPORT_WALL_NOW() -> i32 { 14 }
+fn P2_IMPORT_RANDOM_U64() -> i32 { 15 }
 // Preview1 core indices used when emit target is not wasi-p2.
 fn WASI_IMPORT_FD_WRITE() -> i32 { 0 }
 fn WASI_IMPORT_PATH_OPEN() -> i32 { 3 }

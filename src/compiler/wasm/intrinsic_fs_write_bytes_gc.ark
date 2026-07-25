@@ -4,7 +4,6 @@ use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::emit_target
 use wasm::import_indices
 use wasm::intrinsic_fs_write_result
 use wasm::intrinsic_stdio_gc
@@ -22,16 +21,6 @@ use wasm::writer_gc
 // GC: path is a String ref, bytes is a Vec<i32> GC struct. Copy bytes into
 // linear memory, then reuse the open/write/close Result path.
 fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    // P2 core surface has no file fd_write; typed Ok stub until a filesystem
-    // write import is wired (#834). Null Results break match typing in cmd_init.
-    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        let s_a = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        let s_b = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-        helpers_core::emit_local_set(w, s_b)
-        helpers_core::emit_local_set(w, s_a)
-        intrinsic_fs_write_result::emit_fs_write_unit_ok_gc(w, ctx)
-        return true
-    }
     let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_bcount = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_bbuf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)

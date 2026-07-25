@@ -175,6 +175,9 @@ fn emit_p2_import_entries(
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("args-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("arguments"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("open-at"), get_unchecked(host_type_map, 2))
+    // Bridged P1 fd_read/fd_write ABI on filesystem types (#834 bootstrap host).
+    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))

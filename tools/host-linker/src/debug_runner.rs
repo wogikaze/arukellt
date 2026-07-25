@@ -150,6 +150,8 @@ fn try_register_known(
         ("wasi:cli/stdin@0.2.0", "read") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:cli/exit@0.2.0", "exit") => register_exit_stub(linker, engine, ft),
         ("wasi:filesystem/types@0.2.0", "open-at") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
+        ("wasi:filesystem/types@0.2.0", "read") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
+        ("wasi:filesystem/types@0.2.0", "write") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:filesystem/types@0.2.0", "close") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         // Future WASI P3 imports can be added here as they are implemented.
         _ => Err("unknown import".into()),

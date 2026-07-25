@@ -12,8 +12,7 @@ use wasm::intrinsics::helpers_io_layout
 use wasm::writer_gc
 
 fn emit_fs_write_success_writev_and_close(w: WasmWriter, ctx: SelfEmitCtx) {
-    // File fd_write is P1-only; P2 callers must stub before reaching here (#834).
-    helpers_core::emit_call(w, constants::WASI_IMPORT_FD_WRITE())
+    helpers_core::emit_call(w, import_indices::fd_write_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
     helpers_core::emit_call(w, import_indices::fd_close_import_idx(ctx))
