@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-25
 Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 833
 Track: compiler-internal
 Depends on: 832
