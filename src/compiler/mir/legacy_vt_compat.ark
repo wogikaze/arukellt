@@ -72,6 +72,9 @@ fn legacy_vt_from_primitive_name(name: String) -> i32 {
     if eq(clone(name), String_from("i64")) {
         return value_types::VT_I64()
     }
+    if eq(clone(name), String_from("u64")) {
+        return value_types::VT_I64()
+    }
     if eq(clone(name), String_from("f64")) {
         return value_types::VT_F64()
     }

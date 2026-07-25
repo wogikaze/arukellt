@@ -43,6 +43,7 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
     decl_ann_name::decl_ann_is_name(ann, String_from("u8")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("u16")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("u32")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("i8")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("i16")) {
         return value_types::VT_I32()
     }

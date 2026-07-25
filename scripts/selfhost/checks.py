@@ -303,10 +303,16 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
+    if eq(clone(wasi_version), String_from("wasi-p2")) {
+        return wasm::emit_p2_command_component(core_wasm)
+    }
+    if eq(clone(wasi_version), String_from("p1-component")) {
+        return wasm::emit_library_component(core_wasm, mir)
+    }
     // TODO(#714 owner=bootstrap-emit removal=component_emit-overlay-resolves recheck=2026-08-01)
-    // Bootstrap overlay routes directly to the wasm P2 emitter; the flattened
-    // component/emit.ark delegate is not yet resolvable in the selfhost flat
-    // overlay, so keep this narrow P2-command shortcut until #714 lands.
+    // Bootstrap overlay falls back to the wasm P2 emitter for unhandled wasi
+    // versions; the flattened component/emit.ark delegate is not yet resolvable
+    // in the selfhost flat overlay, so keep this shortcut until #714 lands.
     wasm::emit_p2_command_component(core_wasm)
 }
 

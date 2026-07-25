@@ -123,7 +123,46 @@ fn lib_comp_export_name_kebab(name: String) -> String {
     out
 }
 
-fn lib_comp_val_type_to_wit(vt: i32) -> i32 {
+fn lib_comp_wit_type(type_name: String, vt: i32) -> i32 {
+    if eq(clone(type_name), String_from("bool")) {
+        return constants::LIB_WIT_BOOL()
+    }
+    if eq(clone(type_name), String_from("char")) {
+        return constants::LIB_WIT_CHAR()
+    }
+    if eq(clone(type_name), String_from("u8")) {
+        return constants::LIB_WIT_U8()
+    }
+    if eq(clone(type_name), String_from("u16")) {
+        return constants::LIB_WIT_U16()
+    }
+    if eq(clone(type_name), String_from("u32")) {
+        return constants::LIB_WIT_U32()
+    }
+    if eq(clone(type_name), String_from("u64")) {
+        return constants::LIB_WIT_U64()
+    }
+    if eq(clone(type_name), String_from("i8")) {
+        return constants::LIB_WIT_S8()
+    }
+    if eq(clone(type_name), String_from("i16")) {
+        return constants::LIB_WIT_S16()
+    }
+    if eq(clone(type_name), String_from("i32")) {
+        return constants::LIB_WIT_S32()
+    }
+    if eq(clone(type_name), String_from("i64")) {
+        return constants::LIB_WIT_S64()
+    }
+    if eq(clone(type_name), String_from("f32")) {
+        return constants::LIB_WIT_F32()
+    }
+    if eq(clone(type_name), String_from("f64")) {
+        return constants::LIB_WIT_F64()
+    }
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return constants::LIB_WIT_STRING()
+    }
     if vt == value_types::VT_I64() {
         return constants::LIB_WIT_S64()
     }
@@ -136,7 +175,7 @@ fn lib_comp_val_type_to_wit(vt: i32) -> i32 {
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
         return constants::LIB_WIT_STRING()
     }
-    constants::LIB_WIT_S64()
+    constants::LIB_WIT_S32()
 }
 
 fn lib_comp_is_gc_ref(vt: i32) -> bool {
@@ -220,13 +259,15 @@ fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
     while pi < param_count {
         writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
         let vt = function_param_view::MirFunction_param_val_type(f, pi)
-        writer_core::emit_byte(w, lib_comp_val_type_to_wit(vt))
+        let type_name = function_param_view::MirFunction_param_type_name(f, pi)
+        writer_core::emit_byte(w, lib_comp_wit_type(type_name, vt))
         pi = pi + 1
     }
     let ret_type = function_return_view::MirFunction_return_type(f)
+    let ret_type_name = function_return_view::MirFunction_return_type_name(f)
     if ret_type != value_types::VT_VOID() {
         writer_core::emit_byte(w, 0x00)
-        writer_core::emit_byte(w, lib_comp_val_type_to_wit(ret_type))
+        writer_core::emit_byte(w, lib_comp_wit_type(ret_type_name, ret_type))
     } else {
         writer_core::emit_byte(w, 0x01)
         writer_core::emit_leb128_u(w, 0)

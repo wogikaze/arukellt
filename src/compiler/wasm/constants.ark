@@ -126,6 +126,14 @@ fn LIB_WIT_S64() -> i32 { 0x78 }
 fn LIB_WIT_F64() -> i32 { 0x75 }
 fn LIB_WIT_F32() -> i32 { 0x76 }
 fn LIB_WIT_STRING() -> i32 { 0x73 }
+fn LIB_WIT_BOOL() -> i32 { 0x7f }
+fn LIB_WIT_CHAR() -> i32 { 0x74 }
+fn LIB_WIT_U8() -> i32 { 0x7d }
+fn LIB_WIT_U16() -> i32 { 0x7b }
+fn LIB_WIT_U32() -> i32 { 0x79 }
+fn LIB_WIT_U64() -> i32 { 0x77 }
+fn LIB_WIT_S8() -> i32 { 0x7e }
+fn LIB_WIT_S16() -> i32 { 0x7c }
 
 // Local result store actions.
 fn STORE_ACTION_SKIP() -> i32 { 0 }
