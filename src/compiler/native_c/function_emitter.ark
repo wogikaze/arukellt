@@ -21,6 +21,7 @@ use mir::opcodes
 use mir::value_types
 use native_c::abi
 use native_c::core_call
+use native_c::enum_abi
 use native_c::hof_call
 use native_c::phi_edge
 use native_c::root_liveness
@@ -66,6 +67,7 @@ struct NativeCFunctionEmitState {
     root_plan_skipped: i32,
     root_plan_analyzed: i32,
     root_frame_locals: i32,
+    heap_enum_flags: Vec<i32>,
     root_peak_slots: i32,
     root_planner_bytes: i32,
     root_emit_enabled_for_fn: bool,
@@ -116,6 +118,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         root_plan_skipped: 0,
         root_plan_analyzed: 0,
         root_frame_locals: 0,
+        heap_enum_flags: Vec_new_i32(),
         root_peak_slots: 0,
         root_planner_bytes: 0,
         root_emit_enabled_for_fn: false,
@@ -1858,7 +1861,7 @@ fn native_c_emit_call(
             } else {
                 let temporary = native_c_allocate_temporary(
                     state,
-                    abi::native_c_signature_return_type(table, signature)
+                    abi::native_c_signature_return_type(table, signature, state.heap_enum_flags)
                 )
                 native_c_emit_assignment(state, temporary, alias_expr)
                 native_c_stack_push(state, temporary)
@@ -1891,7 +1894,8 @@ fn native_c_emit_call(
             eq(
                 abi::native_c_type_for_value(
                     table,
-                    signature_entry::signature_entry_param_at(signature, argument_index)
+                    signature_entry::signature_entry_param_at(signature, argument_index),
+                    state.heap_enum_flags
                 ),
                 String_from("ark_object_header *")
             ) &&
@@ -1935,7 +1939,7 @@ fn native_c_emit_call(
     }
     native_c_stack_discard_to(state, first_argument)
     let return_count = if eq(
-        abi::native_c_signature_return_type(table, signature),
+        abi::native_c_signature_return_type(table, signature, state.heap_enum_flags),
         String_from("void")
     ) {
         0
@@ -1956,7 +1960,8 @@ fn native_c_emit_call(
                 state,
                 abi::native_c_type_for_value(
                     table,
-                    signature_entry::signature_entry_return_at(signature, 0)
+                    signature_entry::signature_entry_return_at(signature, 0),
+                    state.heap_enum_flags
                 )
             )
         }
@@ -2057,7 +2062,7 @@ fn native_c_emit_return(
         return false
     }
     if eq(
-        abi::native_c_signature_return_type(module_spine::MirModule_type_table(mir_module), signature),
+        abi::native_c_signature_return_type(module_spine::MirModule_type_table(mir_module), signature, state.heap_enum_flags),
         String_from("void")
     ) {
         native_c_append(state, String_from("    ark_gc_pop_frame();\n"))
@@ -2235,7 +2240,7 @@ fn native_c_emit_local_declarations(
         push(
             reference_producers,
             if prior_reference != 0 || eq(
-                abi::native_c_type_for_local(table, producer_local),
+                abi::native_c_type_for_local(table, producer_local, state.heap_enum_flags),
                 String_from("ark_object_header *")
             ) { 1 } else { 0 }
         )
@@ -2243,7 +2248,7 @@ fn native_c_emit_local_declarations(
     }
     let block_count = function_block_queries::MirFunction_block_count(function)
     let return_is_reference = eq(
-        abi::native_c_signature_return_type(table, signature),
+        abi::native_c_signature_return_type(table, signature, state.heap_enum_flags),
         String_from("ark_object_header *")
     )
     let mut propagation_pass = 0
@@ -2278,7 +2283,8 @@ fn native_c_emit_local_declarations(
                 eq(
                     abi::native_c_type_for_local(
                         table,
-                        function_locals_view::MirFunction_local_at(function, destination)
+                        function_locals_view::MirFunction_local_at(function, destination),
+                        state.heap_enum_flags
                     ),
                     String_from("ark_object_header *")
                 ) {
@@ -2310,7 +2316,7 @@ fn native_c_emit_local_declarations(
                             function_id::FunctionId_new(function_id_raw)
                         )
                         produces_reference = eq(
-                            abi::native_c_signature_return_type(table, called_signature),
+                            abi::native_c_signature_return_type(table, called_signature, state.heap_enum_flags),
                             String_from("ark_object_header *")
                         )
                     }
@@ -2494,7 +2500,7 @@ fn native_c_emit_local_declarations(
         } else if get_unchecked(funcref_locals, local_id) != 0 {
             String_from("intptr_t")
         } else {
-            abi::native_c_type_for_local(table, local)
+            abi::native_c_type_for_local(table, local, state.heap_enum_flags)
         }
         if len(c_type) == 0 {
             native_c_fail(
@@ -2633,6 +2639,7 @@ fn native_c_emit_function_body(
 ) -> NativeCFunctionEmitState {
     // Pass 1: infer reference locals + record instruction effects (no C text).
     let inference_state = native_c_function_state_new()
+    inference_state.heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     inference_state.suppress_source = true
     inference_state.record_effects = true
     native_c_emit_local_declarations(inference_state, mir_module, function, signature)
@@ -2668,6 +2675,7 @@ fn native_c_emit_function_body(
 
     // Pass 2: emit real C. Size-gated clear emit (Phase 3 Stage A+).
     let state = native_c_function_state_new()
+    state.heap_enum_flags = inference_state.heap_enum_flags
     state.reference_locals = inference_state.reference_locals
     state.root_plan_safepoints = root_liveness::native_c_root_clear_plan_safepoint_count(clear_plan)
     state.root_plan_clears = root_liveness::native_c_root_clear_plan_cleared_count(clear_plan)

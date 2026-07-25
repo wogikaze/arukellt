@@ -1,0 +1,182 @@
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::local_record
+use mir::module_functions
+use mir::module_spine
+use mir::opcodes
+use mir::value_types
+
+/// Bit flags per TypeTable index: 1 when an enum type is materialized as a heap
+/// object (STRUCT_NEW / STRUCT_GET payload path) somewhere in the module.
+fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
+    let table = module_spine::MirModule_type_table(mir_module)
+    let type_count = type_table::TypeTable_entry_count(table)
+    let flags = Vec_new_i32()
+    let mut type_index = 0
+    while type_index < type_count {
+        push(flags, 0)
+        type_index = type_index + 1
+    }
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(function)
+        let mut block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(function, block_index)
+            let instruction_count = block_inst_access::MirBlock_inst_count(block)
+            let mut instruction_index = 0
+            while instruction_index < instruction_count {
+                let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+                native_c_mark_heap_enum_from_instruction(flags, table, function, instruction)
+                instruction_index = instruction_index + 1
+            }
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
+    flags
+}
+
+fn native_c_mark_heap_enum_from_instruction(
+    flags: Vec<i32>,
+    table: TypeTable,
+    function: MirFunction,
+    instruction: MirInst
+) {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    if op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_GC_STRUCT_NEW() {
+        native_c_mark_heap_enum_local(
+            flags,
+            table,
+            function,
+            inst_accessors_operands::MirInst_dest(instruction)
+        )
+        // Named STRUCT_NEW carries the layout/variant name in string_val.
+        let named = inst_accessors_literals::MirInst_str_val(instruction)
+        if len(named) > 0 {
+            native_c_mark_heap_enum_basename(
+                flags,
+                table,
+                native_c_type_name_enum_basename(named)
+            )
+        }
+        return
+    }
+    // Payload matches lower to STRUCT_GET on the scrutinee. Unit-only enums
+    // compare i32 tags and never take this path, so the base type is heap.
+    if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_STRUCT_SET() {
+        native_c_mark_heap_enum_local(
+            flags,
+            table,
+            function,
+            inst_accessors_operands::MirInst_arg0(instruction)
+        )
+        let named = inst_accessors_literals::MirInst_str_val(instruction)
+        if len(named) > 0 {
+            native_c_mark_heap_enum_basename(
+                flags,
+                table,
+                native_c_type_name_enum_basename(named)
+            )
+        }
+        return
+    }
+    // GC struct ops pack type_slot in arg0 and the object local in arg1.
+    if op == opcodes::MIR_GC_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_SET() {
+        native_c_mark_heap_enum_local(
+            flags,
+            table,
+            function,
+            inst_accessors_operands::MirInst_arg1(instruction)
+        )
+    }
+}
+
+fn native_c_type_name_enum_basename(name: String) -> String {
+    let mut base = name
+    if starts_with(clone(base), String_from("enum:")) {
+        base = substring(base, 5, len(base))
+    }
+    // Variant layout names are `Enum::Variant`; heap-mark the enum prefix too.
+    let length = len(base)
+    let mut index = 0
+    while index + 1 < length {
+        if char_at(base, index) == 58 && char_at(base, index + 1) == 58 {
+            return substring(base, 0, index)
+        }
+        index = index + 1
+    }
+    base
+}
+
+fn native_c_mark_heap_enum_basename(flags: Vec<i32>, table: TypeTable, basename: String) {
+    if len(basename) == 0 {
+        return
+    }
+    let type_count = type_table::TypeTable_entry_count(table)
+    let mut type_index = 0
+    while type_index < type_count {
+        let candidate = type_table::TypeTable_entry_at(table, type_index)
+        let candidate_kind = type_table::type_entry_kind(candidate)
+        if (candidate_kind == kinds::TYPE_KIND_ENUM() || candidate_kind == kinds::TYPE_KIND_STRUCT()) &&
+        eq(native_c_type_name_enum_basename(type_table::type_entry_name(candidate)), clone(basename)) {
+            set(flags, type_index, 1)
+        }
+        type_index = type_index + 1
+    }
+}
+
+fn native_c_mark_heap_enum_local(
+    flags: Vec<i32>,
+    table: TypeTable,
+    function: MirFunction,
+    local_id: i32
+) {
+    if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(function) {
+        return
+    }
+    let local = function_locals_view::MirFunction_local_at(function, local_id)
+    // Prefer type_name: STRUCT_NEW destinations often keep VT_I32 with an
+    // enum:/Shape type_name while type_id is still invalid.
+    let type_name = local_record::mir_local_type_name(local)
+    if len(type_name) > 0 {
+        native_c_mark_heap_enum_basename(
+            flags,
+            table,
+            native_c_type_name_enum_basename(type_name)
+        )
+    }
+    let raw_type_id = type_id::TypeId_raw(
+        mir_value_type::mir_value_type_type_id(local_record::mir_local_value_type(local))
+    )
+    if raw_type_id < 0 || raw_type_id >= len(flags) {
+        return
+    }
+    let entry = type_table::TypeTable_entry_at(table, raw_type_id)
+    let kind = type_table::type_entry_kind(entry)
+    if kind != kinds::TYPE_KIND_ENUM() && kind != kinds::TYPE_KIND_STRUCT() {
+        return
+    }
+    native_c_mark_heap_enum_basename(
+        flags,
+        table,
+        native_c_type_name_enum_basename(type_table::type_entry_name(entry))
+    )
+}
+
+fn native_c_enum_type_is_heap(heap_enum_flags: Vec<i32>, raw_type_id: i32) -> bool {
+    if raw_type_id < 0 || raw_type_id >= len(heap_enum_flags) {
+        return false
+    }
+    get_unchecked(heap_enum_flags, raw_type_id) != 0
+}

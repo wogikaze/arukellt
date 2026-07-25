@@ -13,6 +13,7 @@ use mir::function_block_mutation
 use mir::module_functions
 use mir::module_spine
 use native_c::abi
+use native_c::enum_abi
 use native_c::function_emitter
 use native_c::hof_call
 use native_c_capabilities_generated
@@ -171,13 +172,14 @@ fn native_c_validate_function_signature(
         )
     }
     let table = module_spine::MirModule_type_table(mir_module)
-    if len(abi::native_c_signature_return_type(table, signature)) == 0 {
+    let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
+    if len(abi::native_c_signature_return_type(table, signature, heap_enum_flags)) == 0 {
         return concat(
             String_from("compiler ICE: native-cpp cannot lower result signature for FunctionId "),
             i32_to_string(function_id_raw)
         )
     }
-    if len(abi::native_c_signature_parameters(table, signature)) == 0 {
+    if len(abi::native_c_signature_parameters(table, signature, heap_enum_flags)) == 0 {
         return concat(
             String_from("compiler ICE: native-cpp cannot lower parameter signature for FunctionId "),
             i32_to_string(function_id_raw)
@@ -216,6 +218,7 @@ fn native_c_function_declaration(
     )
     if len(signature_error) > 0 { return NativeCEmitResult_err(signature_error) }
     let table = module_spine::MirModule_type_table(mir_module)
+    let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
     if len(symbol) == 0 {
         return NativeCEmitResult_err(
@@ -226,10 +229,10 @@ fn native_c_function_declaration(
         )
     }
     let mut source = concat(
-        abi::native_c_signature_return_type(table, signature),
+        abi::native_c_signature_return_type(table, signature, heap_enum_flags),
         concat(
             String_from(" "),
-            concat(symbol, concat(String_from("("), concat(abi::native_c_signature_parameters(table, signature), String_from(")"))))
+            concat(symbol, concat(String_from("("), concat(abi::native_c_signature_parameters(table, signature, heap_enum_flags), String_from(")"))))
         )
     )
     if include_semicolon { source = concat(source, String_from(";")) }

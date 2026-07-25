@@ -12,6 +12,7 @@ use mir::module_spine
 use mir::opcodes
 use mir::value_types
 use native_c::abi
+use native_c::enum_abi
 
 struct NativeCHofEmit {
     handled: bool,
@@ -239,6 +240,7 @@ fn native_c_emit_call_indirect(
 fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
     let table = module_spine::MirModule_type_table(mir_module)
     let registry = module_spine::MirModule_signature_registry(mir_module)
+    let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
     let function_count = module_functions::MirModule_function_count(mir_module)
     let emitted_names = Vec_new_String()
     let mut out = String_new()
@@ -261,7 +263,7 @@ fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
                 }
                 if !already {
                     push(emitted_names, clone(typedef_name))
-                    let decl = abi::native_c_funcref_typedef_decl(table, signature)
+                    let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
                     if len(decl) > 0 {
                         out = concat(out, decl)
                     }
