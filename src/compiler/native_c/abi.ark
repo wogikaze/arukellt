@@ -52,16 +52,19 @@ fn native_c_type_for_value(
     if len(scalar) > 0 {
         return scalar
     }
-    // Unit-only enums are i32 tags on native-cpp; payload-bearing enums stay heap objects.
-    // Signature MIR sometimes types the same enum as STRUCT (layout id); match by name.
-    if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_ENUM() {
+    // Unit-only std enum: cmp return may be interned under a non-ENUM/STRUCT
+    // kind while MIR still lowers tags to i32.
+    let basename = enum_abi::native_c_type_name_enum_basename(clone(name))
+    if eq(clone(basename), String_from("Ordering")) {
+        return String_from("int32_t")
+    }
+    // Payload enums and product structs are heap-marked in enum_abi. Unmarked
+    // ENUM/STRUCT kinds are unit-enum i32 tags (RpnOp, Direction, …).
+    let kind = type_table::type_entry_kind(entry)
+    if kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_STRUCT() {
         if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, raw_type_id) {
             return String_from("ark_object_header *")
         }
-        return String_from("int32_t")
-    }
-    if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_STRUCT() &&
-    native_c_table_has_unit_enum_named(table, heap_enum_flags, clone(name)) {
         return String_from("int32_t")
     }
     String_from("ark_object_header *")
@@ -79,24 +82,7 @@ fn native_c_table_has_unit_enum_named(
     heap_enum_flags: Vec<i32>,
     name: String
 ) -> bool {
-    let type_count = type_table::TypeTable_entry_count(table)
-    let mut has_enum = false
-    let mut type_index = 0
-    while type_index < type_count {
-        let entry = type_table::TypeTable_entry_at(table, type_index)
-        let kind = type_table::type_entry_kind(entry)
-        if (kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_STRUCT()) &&
-        native_c_type_names_enum_equal(type_table::type_entry_name(entry), clone(name)) {
-            if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, type_index) {
-                return false
-            }
-            if kind == kinds::TYPE_KIND_ENUM() {
-                has_enum = true
-            }
-        }
-        type_index = type_index + 1
-    }
-    has_enum
+    enum_abi::native_c_table_has_unit_enum_named(table, heap_enum_flags, name)
 }
 
 fn native_c_type_name_is_heap_object(name: String) -> bool {
