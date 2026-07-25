@@ -70,7 +70,7 @@ bare `wasmtime-wasi` method ABI is `#841`.
 - [x] `docs/current-state.md` / `docs/capability-surface.md` / manifest updated
       (no `arukellt_host` bridge claim)
 - [x] `std/manifest.toml` HTTP/sockets docs no longer reference `arukellt_host`
-- [x] `python3 scripts/manager.py verify lane` exits 0 (merge: `verify quick`)
+- [x] `python3 scripts/manager.py verify lane` / `verify quick` exit 0
 
 ## Close gate
 
@@ -93,6 +93,7 @@ Evidence (bridged close on `wave/727-bridged-close`):
 - `gate-727-arukellt-host-absence.py` PASS
 - `gate-655`–`658` PASS (WIT import asserts; no `arukellt_host` string)
 - `python3 scripts/manager.py verify lane` PASS
+- `python3 scripts/manager.py verify quick` → 147/147 PASS
 - Follow-up `#841` opened for real WASI ABI / bare wasmtime / shim deletion
 - Child `#830` remains open (patcher; out of scope)
 - `#675` Depends → `#841`
