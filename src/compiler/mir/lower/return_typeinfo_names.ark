@@ -73,6 +73,14 @@ fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
     ) {
         return String_from("hashmap:i32fn")
     }
+    if key_tag == 5 && (
+        val_tag == 20 ||
+        eq(clone(val_name), String_from("fnref")) ||
+        eq(clone(val_name), String_from("fn")) ||
+        starts_with(clone(val_name), String_from("fn("))
+    ) {
+        return String_from("hashmap:strfn")
+    }
     String_from("hashmap:si32")
 }
 

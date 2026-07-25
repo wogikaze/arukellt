@@ -15,6 +15,10 @@ fn hashmap_builtin_alias(name: String) -> String {
     if !eq(clone(i32_fn), clone(name)) {
         return i32_fn
     }
+    let string_fn = hashmap_string_fn_builtin_alias(clone(name))
+    if !eq(clone(string_fn), clone(name)) {
+        return string_fn
+    }
     let string_string = hashmap_string_string_builtin_alias(clone(name))
     if !eq(clone(string_string), clone(name)) {
         return string_string
@@ -84,6 +88,28 @@ fn hashmap_i32_fn_builtin_alias(name: String) -> String {
     }
     if eq(clone(name), String_from("HashMap_i32_fn_len")) {
         return String_from("hash_fn::hashmap_i32_fn_len")
+    }
+    clone(name)
+}
+
+fn hashmap_string_fn_builtin_alias(name: String) -> String {
+    if eq(clone(name), String_from("HashMap_new_String_fn")) || eq(clone(name), String_from("HashMap_String_fn_new")) {
+        return String_from("hash_str_fn::hashmap_str_fn_new")
+    }
+    if eq(clone(name), String_from("HashMap_String_fn_insert")) {
+        return String_from("hash_str_fn::hashmap_str_fn_set")
+    }
+    if eq(clone(name), String_from("HashMap_String_fn_get")) {
+        return String_from("hash_str_fn::hashmap_str_fn_get")
+    }
+    if eq(clone(name), String_from("HashMap_String_fn_contains_key")) {
+        return String_from("hash_str_fn::hashmap_str_fn_contains")
+    }
+    if eq(clone(name), String_from("HashMap_String_fn_remove")) {
+        return String_from("hash_str_fn::hashmap_str_fn_remove")
+    }
+    if eq(clone(name), String_from("HashMap_String_fn_len")) {
+        return String_from("hash_str_fn::hashmap_str_fn_len")
     }
     clone(name)
 }
