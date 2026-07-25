@@ -83,27 +83,36 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   not call the still-runtime-owned integer conversion CoreOp.
 - `scripts/tests/test_stdlib_inline.py` runs exact-result checks for the
   migrated String and Vec/seq operations in both fallback and optimized
-  builds. The registry currently has 294 CoreOps: 55 `normal_call`, 28
-  `legacy_emitter`, 45 `runtime_call`, 164 `target_intrinsic`, and 2 `mir_op`.
+  builds. After the sqrt/bits tranche the registry has 297 CoreOps:
+  `legacy_emitter` count is **25** (was 31 at wave start, then 28, then 25).
 - Wave `wave/822-repr-stdlib` migrated `text.format_bool`, `text.char_to_string`,
   and `core.range_new` to `normal_call` with sealed-raw / Ark bodies
   (`__core_format_bool_impl`, `__core_char_to_string_impl`,
   `__core_range_new_impl`). Bare prelude `format_bool` now binds to
   `text.format_bool`. O0/O1 differential probes cover the three ops.
+- Same wave then migrated `math.sqrt`, `scalar.f64_bits_lo`, and
+  `scalar.f64_bits_hi` to `normal_call` via sealed `raw.f64_sqrt` /
+  `raw.f64_bits_*` (`target_intrinsic`) and
+  `__core_math_sqrt_impl` / `__core_scalar_f64_bits_*_impl`. O0/O1 probes
+  `probe_sqrt_ops` and `probe_f64_bits_ops` cover them.
 - `seq.sort_i64` / `seq.sort_f64` stay `legacy_emitter`: an Ark insertion-sort
   body using generic `set` still emits i32 stores for i64/f64 elements
   (invalid wasm). Needs monomorphic set helpers or a typed `set` fix first.
-- Remaining `legacy_emitter` work includes Vec mutation/allocation, float
-  format (`text.f32_to_string`, `text.format_f64`), numeric parse, scalar
-  `f64_bits_*`, `math.sqrt`, `text.push_char`, and SIMD portable ops.
-  Generic Vec mutation additionally requires the fallback resolver to select
-  or synthesize a call-site-specialized implementation before the generic
-  CoreOps can leave `legacy_emitter`.
+- Remaining `legacy_emitter` (25): Vec mutation/allocation family
+  (`vec.*`), float format (`text.f32_to_string`, `text.format_f64`),
+  numeric parse (`parse.parse_*`), `text.push_char`, and SIMD portable
+  leftovers (`simd.i32x4.*`, `simd.f32x4.add`). Generic Vec mutation
+  additionally requires the fallback resolver to select or synthesize a
+  call-site-specialized implementation before those CoreOps can leave
+  `legacy_emitter`.
 - i64/f64 monomorphic Vec helper aliases are present in the frozen registry but
   are not resolver-reachable source APIs, so they cannot yet receive required
   differential tests. Numeric parse aliases also currently merge incompatible
   `Result` and `Option` public signatures. Both sets remain migration-only
   until their canonical typed entry points are fixed.
+- **Close stance:** do not move #822 to done while assigned Vec/parse/float/
+  SIMD families remain `legacy_emitter`. Prefer follow-up issues for typed
+  store / parse signature / float format rather than a false close.
 
 ## References
 

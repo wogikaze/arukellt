@@ -1,6 +1,6 @@
 # #822 — Representation-dependent and allocating stdlib migration クローズ計画
 
-ステータス: 進行中（format_bool / char_to_string / range_new 移行済み; legacy 31→28）  
+ステータス: 進行中（+ sqrt / f64_bits_* 移行; legacy 31→28→**25**）。#822 は assigned 残りありで open 維持。  
 
 親 issue: [#822](../../issues/open/822-representation-dependent-stdlib-migration.md)  
 前提: #798, #816, #817, #820 done（#820 は WAT export 正規表現修正後）  
