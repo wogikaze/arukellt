@@ -42,7 +42,7 @@ fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
     if eq(clone(decl_name), String_from("byte_len")) { return true }
     if eq(clone(decl_name), String_from("byte_at")) { return true }
     if eq(clone(decl_name), String_from("format_i32")) { return true }
-    if eq(clone(decl_name), String_from("format_bool")) { return true }
+    // format_bool is CoreOp-bound via legacy alias → text.format_bool (#822).
     if eq(clone(decl_name), String_from("any_i64")) { return true }
     if eq(clone(decl_name), String_from("any_f64")) { return true }
     if eq(clone(decl_name), String_from("any_String")) { return true }

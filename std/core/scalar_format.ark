@@ -1,4 +1,4 @@
-//! Internal integer formatting bodies selected by the CoreOp registry.
+//! Internal scalar formatting bodies selected by the CoreOp registry.
 use std::core::raw
 
 fn __core_i64_digit_ascii(digit: i64) -> i32 {
@@ -12,6 +12,30 @@ fn __core_i64_digit_ascii(digit: i64) -> i32 {
     if digit == 7_i64 { return 55 }
     if digit == 8_i64 { return 56 }
     57
+}
+
+fn __core_format_bool_impl(value: bool) -> String {
+    let bytes = raw::raw_array_new(5)
+    if value {
+        push(bytes, 116)
+        push(bytes, 114)
+        push(bytes, 117)
+        push(bytes, 101)
+    } else {
+        push(bytes, 102)
+        push(bytes, 97)
+        push(bytes, 108)
+        push(bytes, 115)
+        push(bytes, 101)
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_char_to_string_impl(value: char) -> String {
+    // Match the legacy emitter: one byte payload (store8 / GC array.set of the char).
+    let bytes = raw::raw_array_new(1)
+    push(bytes, value)
+    raw::raw_string_from_bytes(bytes)
 }
 
 fn __core_format_i32_impl(value: i32) -> String {

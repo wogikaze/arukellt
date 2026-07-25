@@ -306,7 +306,7 @@ fn core_op_registry_canonical_id_at(index: i32) -> String {
 fn core_op_registry_lowering_kind_at(index: i32) -> i32 {
     if index == 0 { return 1 }
     if index == 1 { return 1 }
-    if index == 2 { return 5 }
+    if index == 2 { return 1 }
     if index == 3 { return 1 }
     if index == 4 { return 1 }
     if index == 5 { return 1 }
@@ -568,11 +568,11 @@ fn core_op_registry_lowering_kind_at(index: i32) -> i32 {
     if index == 261 { return 1 }
     if index == 262 { return 1 }
     if index == 263 { return 1 }
-    if index == 264 { return 5 }
+    if index == 264 { return 1 }
     if index == 265 { return 1 }
     if index == 266 { return 1 }
     if index == 267 { return 5 }
-    if index == 268 { return 5 }
+    if index == 268 { return 1 }
     if index == 269 { return 5 }
     if index == 270 { return 1 }
     if index == 271 { return 1 }
@@ -902,6 +902,7 @@ fn core_op_registry_layer_at(index: i32) -> i32 {
 fn core_op_registry_inline_policy_at(index: i32) -> i32 {
     if index == 0 { return 1 }
     if index == 1 { return 1 }
+    if index == 2 { return 1 }
     if index == 3 { return 1 }
     if index == 4 { return 1 }
     if index == 5 { return 1 }
@@ -945,8 +946,10 @@ fn core_op_registry_inline_policy_at(index: i32) -> i32 {
     if index == 261 { return 1 }
     if index == 262 { return 1 }
     if index == 263 { return 1 }
+    if index == 264 { return 1 }
     if index == 265 { return 1 }
     if index == 266 { return 1 }
+    if index == 268 { return 1 }
     if index == 270 { return 1 }
     if index == 271 { return 1 }
     if index == 272 { return 1 }
@@ -1953,7 +1956,7 @@ fn core_op_registry_mir_operation_at(index: i32) -> String {
 fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
     if index == 0 { return String_from("") }
     if index == 1 { return String_from("") }
-    if index == 2 { return String_from("core.range_new") }
+    if index == 2 { return String_from("") }
     if index == 3 { return String_from("") }
     if index == 4 { return String_from("") }
     if index == 5 { return String_from("") }
@@ -2215,11 +2218,11 @@ fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
     if index == 261 { return String_from("") }
     if index == 262 { return String_from("") }
     if index == 263 { return String_from("") }
-    if index == 264 { return String_from("text.char_to_string") }
+    if index == 264 { return String_from("") }
     if index == 265 { return String_from("") }
     if index == 266 { return String_from("") }
     if index == 267 { return String_from("text.f32_to_string") }
-    if index == 268 { return String_from("text.format_bool") }
+    if index == 268 { return String_from("") }
     if index == 269 { return String_from("text.format_f64") }
     if index == 270 { return String_from("") }
     if index == 271 { return String_from("") }
@@ -2251,6 +2254,7 @@ fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
 fn core_op_registry_fallback_symbol_at(index: i32) -> String {
     if index == 0 { return String_from("__core_range_contains_impl") }
     if index == 1 { return String_from("__core_range_len_impl") }
+    if index == 2 { return String_from("__core_range_new_impl") }
     if index == 3 { return String_from("__core_math_abs_impl") }
     if index == 4 { return String_from("__core_math_clamp_impl") }
     if index == 5 { return String_from("__core_math_gcd_impl") }
@@ -2291,8 +2295,10 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
     if index == 261 { return String_from("__core_string_trim_end_impl") }
     if index == 262 { return String_from("__core_string_trim_start_impl") }
     if index == 263 { return String_from("__core_string_new_impl") }
+    if index == 264 { return String_from("__core_char_to_string_impl") }
     if index == 265 { return String_from("__core_string_chars_impl") }
     if index == 266 { return String_from("__core_string_clone_impl") }
+    if index == 268 { return String_from("__core_format_bool_impl") }
     if index == 270 { return String_from("__core_format_i64_impl") }
     if index == 271 { return String_from("__core_string_is_empty_impl") }
     if index == 272 { return String_from("__core_string_len_bytes_impl") }

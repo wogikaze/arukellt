@@ -1155,6 +1155,10 @@ alias = "f32_to_string"
 core_op_id = "text.f32_to_string"
 
 [[legacy_bindings]]
+alias = "format_bool"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
 alias = "f64_bits_hi"
 core_op_id = "scalar.f64_bits_hi"
 
@@ -2701,9 +2705,12 @@ id = "core.range_new"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → core::range_new (aliases: 2; core::range_new, range_new)"
+description = "Construct a half-open Range through an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "start", type = { kind = "primitive", name = "i32" } },
+  { name = "end", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2723,12 +2730,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "core.range_new"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_range_new_impl"
+required = true
+
 
 [[operations]]
 id = "math.abs"
@@ -5117,6 +5125,7 @@ kind = "legacy_emitter"
 handler_id = "seq.sort_f64"
 tracking_issue = "818"
 
+
 [[operations]]
 id = "seq.sort_i32"
 visibility = "public"
@@ -5185,6 +5194,7 @@ kind = "legacy_emitter"
 [operations.lowering.legacy]
 handler_id = "seq.sort_i64"
 tracking_issue = "818"
+
 
 [[operations]]
 id = "seq.sum_i32"
@@ -11957,10 +11967,11 @@ id = "text.char_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → char_to_string (aliases: 2; char_to_string, __intrinsic_char_to_string)"
+description = "Convert a char to a one-byte String through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "char" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11970,8 +11981,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11979,12 +11990,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.char_to_string"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_char_to_string_impl"
+required = true
+
 
 [[operations]]
 id = "text.chars"
@@ -12095,7 +12107,7 @@ id = "text.format_bool"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_bool"
+description = "Format a bool as true/false through a sealed-raw Ark body."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "bool" } }]
 receiver_index = 0
@@ -12118,12 +12130,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.format_bool"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_bool_impl"
+required = true
+
 
 [[operations]]
 id = "text.format_f64"

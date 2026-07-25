@@ -111,7 +111,7 @@ pub fn replace(s: String, from: String, to: String) -> String {
 // Use inherent method `x.to_string()` instead.
 
 pub fn char_to_string(c: char) -> String {
-    panic(String_new()); return String_new()
+    __core_char_to_string_impl(c)
 }
 
 // to_string — polymorphic builtin dispatched by the compiler.
@@ -373,6 +373,7 @@ pub fn push_char(s: String, c: char) {
 }
 
 // Vec: additional sorting
+// Kept emitter-owned: generic `set` still lowers i64/f64 stores as i32 (#822).
 pub fn sort_i64(v: Vec<i64>) {
     panic(String_new())
 }
@@ -730,7 +731,7 @@ pub fn format_i32(n: i32) -> String {
 }
 
 pub fn format_bool(b: bool) -> String {
-    panic(String_new()); return String_new()
+    __core_format_bool_impl(b)
 }
 
 // HOF extended (types not in prelude's monomorphic set)
