@@ -39,8 +39,8 @@ Locked decisions:
 | 0 `#714` | done (merged to master) |
 | 1 WIT CoreOp schema | done — 8 ops `kind="wit"`; generator emits package/interface/function/version |
 | 2 CoreOp → WIT lowering | done — `call_runtime_wit` + network dispatch by WIT package |
-| 3 import table | partial — guest import modules are WIT-shaped; `needs_arukellt_host` flag rename still open |
-| 4–7 | next — GC Result finalize (blocker), host-linker → wasmtime-wasi, gates, docs, close |
+| 3 import table | partial — guest modules WIT-shaped; GC HTTP/sockets Result finalize landed; flag rename still open |
+| 4–7 | next — host-linker → wasmtime-wasi, gates, docs, close |
 
 ## Summary
 

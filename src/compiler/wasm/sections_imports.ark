@@ -59,13 +59,16 @@ fn wit_io_streams_module_name() -> String {
     String_from("wasi:io/streams@0.2.0")
 }
 
-// Bridged network types follow the WASI base host types. On wasi-p2, slot 6 is
-// already wall-clock (`MR_i64_i32`), so network types start at 7 (+1 vs P1).
-// `needs_wasi_http_outgoing` inserts one spacer type before network types.
+// Bridged network types follow the WASI base host types.
+// On wasi-p2 after #668 guest-native stdio, slots before network are:
+//   5=monotonic(1i64), 6=wall(MR_i64_i32), 7=get-stream(1i32), 8=bwaf(..._0),
+//   optional 9=outgoing-handler spacer, then network at 9/10+.
+// So P2 needs +3 vs P1 (wall + get-stream + bwaf). `needs_wasi_http_outgoing`
+// inserts one more spacer before network types.
 fn network_host_type_offset(wasi_version: String, needs_wasi_http_outgoing: i32) -> i32 {
     let mut off = if needs_wasi_http_outgoing == 1 { 1 } else { 0 }
     if emit_target::is_p2_wasi(clone(wasi_version)) {
-        off = off + 1
+        off = off + 3
     }
     off
 }

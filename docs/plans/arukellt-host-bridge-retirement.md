@@ -1,6 +1,7 @@
 # `#727` — `arukellt_host` bridge retirement 実装計画
 
-ステータス: **確定（2026-07-25）** — Phase 0–2 完了 + Phase 3 import module remap; 次は GC Result finalize / Phase 4  
+ステータス: **確定（2026-07-26）** — Phase 0–2 完了 + Phase 3 import remap + GC Result finalize; 次は Phase 4（host-linker → wasmtime-wasi）  
+
 
 親 issue: [`#727`](../../issues/open/727-arukellt-host-bridge-retirement.md)  
 関連 ADR: [ADR-007](../adr/ADR-007-targets.md), [ADR-011](../adr/ADR-011-wasi-host-layering.md), [ADR-008](../adr/ADR-008-component-wrapping.md), [ADR-014](../adr/ADR-014-stability.md)  
