@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T06:02:15Z",
+  "generated_at": "2026-07-25T09:20:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -941,6 +941,25 @@
       "orchestration": {
         "class": "investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "832",
+      "path": "832-nested-container-funcref-typing-matrix.md",
+      "title": "Nested container / funcref 型付け行列の穴埋め",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "831"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 831
       }
     },
     {
