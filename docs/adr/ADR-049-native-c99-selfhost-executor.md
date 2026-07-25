@@ -145,11 +145,17 @@ native lane は Wasm executor 自身による Stage-3 生成を証明しない�
 ## 帰結
 
 - ADR-045 の保留を終了し、本 ADR が限定された native-cpp 判断を所有する。
-- `native-llvm`、公開 FFI、一般 native product は引き続き未決定である。
-- native-cpp の詳細仕様は RFC-008、実装順は native-cpp MVP plan、対応状態は
-  machine-readable capability registry が所有する。
-- target の support tier は scaffold、implementation_state は partial、`run_supported=false`
-  のままとする（公開 `run --target native-cpp` は未提供）。
+- `native-llvm` と公開安定 C ABI / 外部 FFI は引き続き未決定である。
+- 公開 experimental `arukellt run --target native-cpp` は
+  [ADR-050](ADR-050-experimental-public-native-c99-run.md) が所有する。本 ADR は内部
+  executor lane の契約を維持し、ADR-050 を SUPERSEDE しないし、されない。
+- native-cpp の詳細仕様は RFC-008、内部 executor の実装順は historical MVP /
+  experimental-promotion plan、公開 run の実装順は
+  [native-cpp-public-run-promotion.md](../plans/native-cpp-public-run-promotion.md)、
+  対応状態は machine-readable capability registry が所有する。
+- target の support tier は scaffold、implementation_state は partial を維持する。
+  `run_supported` の公開値は ADR-050 の最終 promotion まで false のままとし、本 ADR 単独では
+  true にしない。
 - 内部 selfhost executor lane は experimental とし、arena/GC dual mode・production root
   clear・strict wall/RSS dual gate（`--allow-high-rss` は CI 禁止の local escape hatch）を
   正とする。昇格証拠は
@@ -161,9 +167,10 @@ exact non-moving mark-sweep は次のいずれかで再検討する。
 
 - `executor_peak_rss_bytes` が現行 Wasm executor の基準約 2.4 GiB を超える。
 - 大規模入力で process-lifetime arena が実用上成立しない。
-- 一般ユーザー向け native product へ昇格する。
 - weak reference または finalizer が言語仕様へ入る。
 - 長寿命 native process を正式対応する。
+
+公開 run の host / packaging 境界は ADR-050 の再検討条件を使う。
 
 性能基準の測定区間と receipt schema は RFC-008、実装時の gate は implementation plan を
 正本とし、本 ADR に生きた測定値を追記しない。
@@ -177,6 +184,8 @@ exact non-moving mark-sweep は次のいずれかで再検討する。
 - [ADR-042: Intrinsic Layer Separation](ADR-042-intrinsic-layer-separation.md)
 - [ADR-045: 旧 LLVM 役割方針を撤回](ADR-045-llvm-scope-withdrawn.md)
 - [ADR-048: 設計原則の適用順序](ADR-048-design-heuristics-application-order.md)
+- [ADR-050: Experimental Public Native C99 Run](ADR-050-experimental-public-native-c99-run.md)
 - [RFC-008: native-cpp C99 backend と runtime ABI](../rfcs/008-native-cpp-c99-backend-runtime-abi.md)
 - [native-cpp MVP implementation plan](../plans/native-cpp-mvp-implementation.md)
+- [native-cpp public run promotion plan](../plans/native-cpp-public-run-promotion.md)
 - [native-cpp capability registry](../../data/native-cpp-capabilities.toml)

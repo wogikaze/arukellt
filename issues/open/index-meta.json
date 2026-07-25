@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-24T22:59:41Z",
+  "generated_at": "2026-07-25T04:36:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -87,19 +87,20 @@
     {
       "id": "649",
       "path": "649-t4-native-full-lowering.md",
-      "title": "649 — T4 native full lowering (beyond scaffold #641)",
-      "track": "wasm-feature",
+      "title": "649 — Experimental public `run --target native-cpp` (`run_supported=true`)",
+      "track": "native-cpp",
       "status": "open",
       "depends_on": [
-        "641"
+        "641",
+        "834"
       ],
       "blocks_issue_ids": [
         "698",
         "699"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 6
+        "checked": 4,
+        "unchecked": 21
       },
       "orchestration": {
         "class": "design-ready",
