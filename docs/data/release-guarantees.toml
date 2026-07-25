@@ -458,21 +458,21 @@ ci_job = "verification"
 release_blocking = true
 included_in_full = true
 included_in_quick = false
-result = "fail"
+result = "pass"
 evidence_type = "smoke"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "2cd10f16"
-verified_at = "2026-07-15"
+last_verified_commit = "4e07e2a6"
+verified_at = "2026-07-26"
 stale_after_days = 30
-affected_count = 6
-incident_id = "incident_wat_roundtrip"
-blocker_category = "target-contract"
-blocker_scope = "full"
-blocker_owner = "Wasm backend"
-blocker_issue = "#809"
+affected_count = 0
+incident_id = ""
+blocker_category = ""
+blocker_scope = ""
+blocker_owner = ""
+blocker_issue = ""
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "The wasm2wat/wat2wasm roundtrip gate fails"
+note = "WAT roundtrip PASS=3152 FAIL=0 SKIP=39 (#809); match lowering fix"
 
 [[checks]]
 id = "check_component_interop_wasmtime"

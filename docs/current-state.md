@@ -11,8 +11,8 @@
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 4 additional full-verification blocker group(s)
-> Distinct incidents: 5 (derived from incident_id in release-guarantees.toml; 5 failing checks)
+> Blocking: 1089 fixture failure(s), 3 additional full-verification blocker group(s)
+> Distinct incidents: 4 (derived from incident_id in release-guarantees.toml; 4 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -130,7 +130,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
-| `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #810 | `a80b4181` | `2cd10f16` | `fresh` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 

@@ -1,7 +1,8 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-26
+Closed: 2026-07-26
 ID: 809
 Track: compiler
 Depends on: none
@@ -46,14 +47,12 @@ survives `wasm-tools print` and subsequent `wasm-tools validate`.
 ## Validation command
 
 ```bash
-python3 scripts/manager.py verify full
+bash scripts/run/wat-roundtrip.sh
+python3 scripts/manager.py verify lane
 ```
 
-(WAT roundtrip is a sub-check within verify full)
-
-## Current count
-
-1 failing fixture
+(`wat_roundtrip` is the owning sub-check; `verify full` regenerates the
+receipt snapshot when next run.)
 
 ## Root cause (2026-07-26)
 
@@ -77,6 +76,22 @@ Fixes:
 receipt's 6 failures were the wit_print pair (×2 targets) plus stale canonical
 pairs.
 
-## New-failure ratchet
+## Acceptance
 
-No new WAT roundtrip failures may be added. The count must only decrease.
+- [x] `tests/fixtures/stdlib_wit/wit_print.ark` roundtrips on wasm32 and wasm32-gc
+- [x] `tests/fixtures/stdlib_component/canonical_list.ark` roundtrips on wasm32 and wasm32-gc
+- [x] `tests/fixtures/stdlib_component/canonical_string.ark` roundtrips on wasm32 and wasm32-gc
+- [x] `bash scripts/run/wat-roundtrip.sh` → PASS=3152 FAIL=0 SKIP=39
+- [x] `python3 scripts/manager.py verify lane` → PASS
+- [x] No SKIP / allow-list used to hide remaining ill-formed Wasm
+
+## Close note
+
+Closed 2026-07-26 on `wave/809-wat-roundtrip`.
+
+- Fix commit: `4e07e2a6` — match parsing / lowering (not wasm string encoding)
+- Gate: `bash scripts/run/wat-roundtrip.sh` PASS=3152 FAIL=0 SKIP=39
+- Gate: `python3 scripts/manager.py verify lane` PASS
+- `docs/data/release-guarantees.toml` `check_wat_roundtrip` cleared to `pass`
+- `docs/data/verify-full-receipt.json` remains a historical snapshot until the
+  next `verify full` regenerates it
