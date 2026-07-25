@@ -1,3 +1,4 @@
+use mir::inst_accessors_literals
 use wasm::inst_store
 use wasm::intrinsic_cast
 
@@ -68,8 +69,10 @@ fn try_emit_host_int_widen_convert_call(w: WasmWriter, handler_id: i32, inst: Mi
         return true
     }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_i8_to_i32(){
-        // emit_i8_to_i32 takes a callee name String, not handler_id i32 (#730).
-        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx, String_from("i8_to_i32"))
+        // Shared handler for i8/u8/i16/u16 → i32. Pass the MIR callee name so
+        // emit_i8_to_i32 can pick extend8/extend16/zero-extend (#807).
+        let callee = inst_accessors_literals::MirInst_str_val(inst)
+        let _result_on_stack = intrinsic_cast::emit_i8_to_i32(w, inst, ctx, callee)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }

@@ -735,11 +735,27 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP ABI)."""
+    """True when guest imports need tools/host-linker (P2 stdio / bridged ABI).
+
+    Plain ``wasmtime run`` does not define guest-native P2 stdio imports
+    (``get-stdout`` / ``blocking-write-and-flush`` / legacy ``write``). After
+    #668/#727 those imports are the default for ``stdio::println`` fixtures, so
+    fixture-parity must route them through ``arukellt-host-run`` (#807).
+    """
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
+    # Guest-native / legacy P2 stdio (#668) — required for println fixtures.
+    if (
+        b"wasi:cli/stdout@" in data
+        or b"wasi:cli/stderr@" in data
+        or b"wasi:io/streams@" in data
+        or b"get-stdout" in data
+        or b"get-stderr" in data
+        or b"blocking-write-and-flush" in data
+    ):
+        return True
     # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
     return (
         b"arukellt_host" in data
@@ -3953,17 +3969,35 @@ def _run_fixpoint_locked(
 
 # ── Shared manifest parsing ───────────────────────────────────────────────────
 
-def _load_manifest_fixtures(root: Path, kind: str) -> tuple[list[str], str]:
-    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string."""
+def _load_manifest_fixtures(
+    root: Path,
+    kind: str,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[list[str], str]:
+    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string.
+
+    When ``filter_dirs`` is set, keep only fixtures whose first path segment
+    matches one of the given directory names (e.g. ``control``, ``scalar``).
+    """
     manifest = root / "tests" / "fixtures" / "manifest.txt"
     if not manifest.is_file():
         return [], f"{RED}error: manifest not found: {manifest}{NC}"
     pattern = re.compile(rf"^{kind}:\s*(.+\.ark)$")
     fixtures: list[str] = []
+    allowed: set[str] | None = None
+    if filter_dirs:
+        allowed = {d.strip().strip("/") for d in filter_dirs if d and d.strip()}
     for line in manifest.read_text().splitlines():
         m = pattern.match(line)
-        if m:
-            fixtures.append(m.group(1))
+        if not m:
+            continue
+        fixture = m.group(1)
+        if allowed is not None:
+            top = fixture.split("/", 1)[0]
+            if top not in allowed:
+                continue
+        fixtures.append(fixture)
     return fixtures, ""
 
 
@@ -4088,6 +4122,10 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
 
     Output is ``.build/selfhost/arukellt-s2.wasm``. If it already exists, it is
     reused (callers may invoke ``run_fixpoint`` / ``rebuild_current_s2`` to refresh).
+
+    Callers already hold ``selfhost-runtime.lock`` (fixture/diag/cli parity).
+    Rebuild via ``_rebuild_current_s2_locked`` — never ``rebuild_current_s2``,
+    which would re-enter flock and deadlock on Linux.
     """
     build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -4099,7 +4137,7 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
                 f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
             )
         return runtime, ""
-    runtime, err, _elapsed = rebuild_current_s2(root, force=True)
+    runtime, err, _elapsed = _rebuild_current_s2_locked(root, force=True)
     return runtime, err
 
 
@@ -4237,19 +4275,35 @@ def _normalize_fixture_parity_output(out: str) -> str:
 
 # ── run_fixture_parity ────────────────────────────────────────────────────────
 
-def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
+def run_fixture_parity(
+    root: Path,
+    dry_run: bool,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     Serialized via runtime_lock to prevent concurrent agents from
     overwriting shared s2/s3 wasm artifacts.
+
+    ``filter_dirs`` limits the run to fixtures under the given top-level
+    directories (Phase 1 of #807). When set, the minimum-fixture floor is
+    skipped so small directories remain usable for iteration.
     """
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root), root)
+    return _with_runtime_lock(
+        lambda: _run_fixture_parity_locked(root, filter_dirs=filter_dirs),
+        root,
+    )
 
 
-def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
+def _run_fixture_parity_locked(
+    root: Path,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     For each ``run:`` fixture in the manifest:
@@ -4273,11 +4327,15 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
     if current is None:
         return (1, err)
 
-    fixtures, err = _load_manifest_fixtures(root, "run")
+    fixtures, err = _load_manifest_fixtures(root, "run", filter_dirs=filter_dirs)
     if err:
         return (1, err + "\n")
 
-    if len(fixtures) < 10:
+    if filter_dirs and not fixtures:
+        dirs = ", ".join(filter_dirs)
+        return (1, f"{RED}error: no run: fixtures matched --filter-dir ({dirs}){NC}\n")
+
+    if not filter_dirs and len(fixtures) < 10:
         return (1, f"{RED}error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found){NC}\n")
 
     pinned_sha = _sha256(pinned)

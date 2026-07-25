@@ -29,6 +29,9 @@ fn lower_unary_from_operand(ctx: LowerCtx, op: i32, operand_idx: i32) -> i32 {
     }
     if op == lower_kinds::UOP_NOT() {
         mir_op = opcodes::MIR_NOT()
+        // Logical not yields bool; keep the type name so `.to_string()` uses
+        // bool_to_string instead of i32 formatting (#807).
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
     }
     ctx_emit(ctx, inst_op::MirInst_unary(mir_op, dest, operand_idx, uvt))
     dest
