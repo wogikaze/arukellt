@@ -34,17 +34,6 @@ fn signature_registry_register(registry: SignatureRegistry, entry: SignatureEntr
     id
 }
 
-fn signature_registry_add_name_alias(registry: SignatureRegistry, alias: String, function_id: FunctionId) {
-    let raw = FunctionId_raw(function_id)
-    if raw < 0 {
-        return
-    }
-    if len(alias) == 0 {
-        return
-    }
-    name_index::name_index_insert_first(registry.mangled_to_id, alias, raw)
-}
-
 fn signature_registry_entry_at(registry: SignatureRegistry, index: i32) -> SignatureEntry {
     get_unchecked(registry.entries, index)
 }

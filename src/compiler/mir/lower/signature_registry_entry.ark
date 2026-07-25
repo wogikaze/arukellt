@@ -25,7 +25,7 @@ fn sig_reg_register_fn(
     impl_id: i32,
     mono_id: i32,
     abi: i32
-) -> FunctionId {
+) {
     // CoreHir params/VT only — TypedFn.TypeInfo values are unsafe across the
     // duplicate TypeInfo/TypedFn structs in the flat selfhost overlay.
     let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)

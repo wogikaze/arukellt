@@ -11,20 +11,10 @@ fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
     }
 }
 
-fn set_stdlib_unit_enum_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
-    // native-cpp lowers unit-only enums to i32 tags (see native_c enum ABI).
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
-    if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-    } else {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
-    }
-}
-
 fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     let cn = mir_strip_module_prefix(clone(callee_name))
     if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
-        set_stdlib_unit_enum_result_type(ctx, dest, String_from("enum:Ordering"))
+        set_stdlib_result_type(ctx, dest, String_from("enum:Ordering"))
         return
     }
     if eq(clone(cn), "find_i64") {

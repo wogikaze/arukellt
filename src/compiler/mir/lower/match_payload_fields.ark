@@ -215,13 +215,12 @@ fn mir_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local: 
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_I32())
         }
     } else {
-        // Non-scalar types (String, Vec, etc.) are heap refs.
-        // Override VT_I32 so native-cpp reads/writes `.ref` and
-        // wasm-gc keeps the GC local type.
+        // Non-scalar types (String, Vec, etc.) are GC refs
+        // on GC targets.  Override VT_I32 to VT_GC_REF so
+        // that the local is declared as a ref and the enum
+        // variant is created with a ref field.
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-        } else {
-            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_REF())
         }
     }
 }
@@ -234,37 +233,41 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, scrut_idx: i32, 
     if effective_vt == value_types::VT_VOID() {
         effective_vt = bind_vt
     }
-    let bind_ty = ctx_get_local_type(ctx, bind_local)
-    let scalar_bind = match_payload_field_type::mir_payload_scalar_type_name(clone(bind_ty)) ||
-    eq(clone(bind_ty), "i32") ||
-    eq(clone(bind_ty), "i64") ||
-    eq(clone(bind_ty), "f64")
-    if effective_vt != value_types::VT_GC_REF() && effective_vt != value_types::VT_REF() {
-        // Do not re-promote scalar Ok payloads (unit/i32/i64/f64) to ref
+    if effective_vt == value_types::VT_FUNCREF() {
+        ctx_set_local_type(ctx, bind_local, String_from("fnref"))
+    } else if ctx_gc_enum::ctx_is_gc_target(ctx) && effective_vt != value_types::VT_GC_REF() {
+        // Do not re-promote scalar Ok payloads (unit/i32/i64/f64) to GC ref
         // just because a stale Result::Ok slot was registered with _f1_ref*
         // (#726 Result<(), E> match vs Ok(()) emit).
+        let bind_ty = ctx_get_local_type(ctx, bind_local)
+        let is_fnref_bind = eq(clone(bind_ty), String_from("fnref")) || starts_with(clone(bind_ty), String_from("fn("))
+        let scalar_bind = is_fnref_bind ||
+        match_payload_field_type::mir_payload_scalar_type_name(clone(bind_ty)) ||
+        eq(clone(bind_ty), "i32") ||
+        eq(clone(bind_ty), "i64") ||
+        eq(clone(bind_ty), "f64")
         if !scalar_bind && match_payload_field_type::mir_payload_gc_field_is_ref(ctx, clone(variant_name), field_idx) {
-            if ctx_gc_enum::ctx_is_gc_target(ctx) {
-                effective_vt = value_types::VT_GC_REF()
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-            } else {
-                effective_vt = value_types::VT_REF()
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_REF())
-            }
-            match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, effective_vt, field_idx)
+            effective_vt = value_types::VT_GC_REF()
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
+            match_payload_bind_types::set_gc_payload_bind_type_if_needed(
+                ctx,
+                clone(variant_name),
+                bind_local,
+                effective_vt,
+                field_idx,
+                ctx_get_local_type(ctx, bind_local)
+            )
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
         } else if !scalar_bind && match_payload_bind_types::payload_type_name_is_gc_ref(ctx, bind_local) {
-            // Local type name is String/Vec/… but vt stayed I32 (common on
-            // native-cpp when Option/Result field layout lacks GC metadata).
-            if ctx_gc_enum::ctx_is_gc_target(ctx) {
-                effective_vt = value_types::VT_GC_REF()
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
-            } else {
-                effective_vt = value_types::VT_REF()
-                ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_REF())
-            }
+            // The local type name indicates a GC ref type (String, Vec, etc.)
+            // but core_payload_gc_field_is_ref could not detect it because
+            // the variant was previously registered with an i32 payload.
+            // Override effective_vt to VT_GC_REF so the enum variant is
+            // created/found with a ref field.
+            effective_vt = value_types::VT_GC_REF()
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         }
     }
     let mut field_vt = value_types::VT_VOID()

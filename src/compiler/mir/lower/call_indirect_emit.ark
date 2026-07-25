@@ -13,9 +13,8 @@ fn mir_is_funcref_local(ctx: LowerCtx, local_idx: i32) -> bool {
         return true
     }
     let type_name = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
-    if eq(clone(type_name), String_from("fnref")) || eq(clone(type_name), String_from("fn")) {
-        return true
-    }
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fn")) ||
     starts_with(clone(type_name), String_from("fn("))
 }
 

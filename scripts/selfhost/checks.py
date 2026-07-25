@@ -3610,6 +3610,7 @@ def _wasm_compile_selfhost_source(
                     workspace_root=workspace,
                     target=emit_target,
                     wasi_version=emit_wasi,
+                    extra_args=extra_args,
                 )
             result = _wasm_compile(
                 wasmtime,
@@ -3620,6 +3621,7 @@ def _wasm_compile_selfhost_source(
                 timeout=compile_timeout,
                 target=emit_target,
                 wasi_version=emit_wasi,
+                extra_args=extra_args,
             )
             if result.returncode == 0:
                 return result
@@ -3638,34 +3640,11 @@ def _wasm_compile_selfhost_source(
                 wasi_version=emit_wasi,
                 extra_args=extra_args,
             )
-        result = _wasm_compile(
-            wasmtime,
-            compiler_wasm,
-            SELFHOST_SOURCE_REL,
-            out_rel,
-            root,
-            timeout=compile_timeout,
-            target=emit_target,
-            wasi_version=emit_wasi,
-            extra_args=extra_args,
-        )
-        if result.returncode == 0:
-            return result
-        if not _should_try_flat_overlay(result.stderr or ""):
-            return result
-        ws = _prepare_bootstrap_workspace(root)
-        return _wasm_compile(
-            wasmtime,
-            compiler_wasm,
-            SELFHOST_SOURCE_REL,
-            out_rel,
-            root,
-            timeout=compile_timeout,
-            workspace_root=ws,
-            target=emit_target,
-            wasi_version=emit_wasi,
-            extra_args=extra_args,
-        )
+        finally:
+            if prev_emit is None:
+                os.environ.pop("ARUKELLT_OVERLAY_EMIT_TARGET", None)
+            else:
+                os.environ["ARUKELLT_OVERLAY_EMIT_TARGET"] = prev_emit
 
     result = _do_compile()
     if use_s3_cache and result.returncode == 0:

@@ -1692,6 +1692,28 @@ ark_vec *ark_rt_string_split(ark_string *source, ark_string *separator, uint32_t
     return parts;
 }
 
+ark_vec *ark_rt_string_lines(ark_string *source, uint32_t type_id) {
+    static uint8_t newline_bytes[1] = {'\n'};
+    ark_string separator;
+    separator.header.type_id = 0u;
+    separator.header.flags = 0u;
+    separator.bytes = newline_bytes;
+    separator.byte_length = 1u;
+    separator.capacity = 1u;
+    return ark_rt_string_split(source, &separator, type_id);
+}
+
+ark_vec *ark_rt_string_chars(ark_string *source, uint32_t type_id) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_vec *chars = ark_rt_vec_new(type_id);
+    uint32_t index = 0;
+    while (index < source->byte_length) {
+        ark_rt_vec_push(chars, (ark_value){.i32 = (int32_t)source->bytes[index]});
+        index += 1u;
+    }
+    return chars;
+}
+
 int32_t ark_rt_string_is_empty(ark_string *source) {
     if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     return source->byte_length == 0u;

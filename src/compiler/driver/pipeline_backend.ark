@@ -13,7 +13,6 @@ use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
 use mir::mod as mir_api
-use resolver::ctx_record
 
 fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let frontend = pipeline_frontend::run_frontend(source, config)
@@ -54,12 +53,8 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         decls
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
-    ctx_record::resolve_ctx_release_owners(backend_resolve::resolve_result_ctx(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
-    let mir_lowered = lower::lower_checked_program(program, config)
-    // Emit only needs MIR + WIT main_decls; drop AST/CoreHIR so native GC can
-    // reclaim the frontend graph before mir_opt/emit (Phase 5 owner release).
-    checked_program::checked_program_release_post_lower(program)
+    let mir_lowered = lower::lower_checked_program(program, config, clone(source))
     let t_lower = clock::monotonic_now()
     let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
     let t_mir_opt = clock::monotonic_now()
@@ -68,7 +63,6 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     }
     let t_mir_verify = clock::monotonic_now()
     debug::dump_mir_if_enabled(config, mir_module)
-    debug::dump_native_cpp_coverage_if_enabled(config, mir_module)
     emit::emit_output(
         mir_module,
         program,

@@ -1,12 +1,7 @@
 use compiler::session
-use corehir::body
-use corehir::export_surface
 use corehir::frontend_bundle
 use corehir::mod
-use corehir::raw_record
-use corehir::type_facts
 use loader::module_state_modules
-use typechecker::contract_result_state
 
 struct CheckedProgram {
     bundle: FrontendBundle,
@@ -80,25 +75,4 @@ fn checked_program_wit_decls(program: CheckedProgram) -> Vec<AstNode> {
 
 fn checked_program_all_decls(program: CheckedProgram) -> Vec<AstNode> {
     frontend_bundle::bundle_decls(program.bundle)
-}
-
-/// Drop AST/CoreHIR owners that emit no longer needs (Phase 5).
-/// Keeps `main_decls` for WIT import binding during wasm/native emit.
-fn checked_program_release_post_lower(program: CheckedProgram) {
-    program.bundle.decls = Vec_new_AstNode()
-    program.bundle.check_result = TypeCheckResult_new()
-    let empty_core = raw_record::CoreHirRawProgram_new(
-        Vec_new_CoreHirDeclInfo(),
-        Vec_new_CoreHirFnInfo(),
-        Vec_new_CoreHirMethodInfo(),
-        Vec_new_CoreHirLayoutDecl(),
-        type_facts::CoreHirTypeFacts_new(Vec_new_TypedFn(), Vec_new_MonoInstance()),
-        body::CoreHirBodyTable_new(),
-        Vec_new_CoreHirModuleInfo(),
-        Vec_new_CoreHirResolvedCall(),
-        Vec_new_CoreHirTypedLocal(),
-        export_surface::CoreHirExportSurface_new(Vec_new_String())
-    )
-    program.core_program = empty_core
-    program.session = session::CompileSession_build(empty_core)
 }

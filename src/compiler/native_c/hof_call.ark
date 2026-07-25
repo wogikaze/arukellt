@@ -3,14 +3,12 @@ use corehir::signature_entry
 use corehir::signature_registry
 use mir::function_identity
 use mir::function_param_view
-use mir::function_return_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_shape
 use mir::inst_record
 use mir::module_functions
 use mir::module_spine
 use mir::opcodes
-use mir::value_types
 use native_c::abi
 use native_c::enum_abi
 
@@ -98,10 +96,11 @@ fn native_c_parse_first_arg_vt_hint(hint: String) -> i32 {
 fn native_c_hof_find_matching_function_id(
     mir_module: MirModule,
     arg_count: i32,
-    dest_vt: i32,
+    dest_result_encoding: String,
     first_arg_vt: i32
 ) -> i32 {
     let registry = module_spine::MirModule_signature_registry(mir_module)
+    let table = module_spine::MirModule_type_table(mir_module)
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0
     while function_index < function_count {
@@ -116,22 +115,25 @@ fn native_c_hof_find_matching_function_id(
                 continue
             }
         }
-        let return_vt = function_return_view::MirFunction_return_type(function)
-        if dest_vt == value_types::VT_VOID() {
-            if return_vt != value_types::VT_VOID() && return_vt != 0 {
-                function_index = function_index + 1
-                continue
-            }
-        } else if return_vt != dest_vt {
+        let name = function_identity::MirFunction_name(function)
+        let resolved = signature_registry::signature_registry_lookup_by_mangled(registry, name)
+        if !function_id::function_id_is_valid(resolved) {
             function_index = function_index + 1
             continue
         }
-        let name = function_identity::MirFunction_name(function)
-        let resolved = signature_registry::signature_registry_lookup_by_mangled(registry, name)
-        if function_id::function_id_is_valid(resolved) {
-            return function_id::FunctionId_raw(resolved)
+        let signature = signature_registry::signature_registry_lookup_by_id(registry, resolved)
+        // Prefer SignatureEntry result encoding over legacy MirFunction_return_type:
+        // CALL_REF dest locals often keep VT_REF while MirValueType is already i32.
+        let result_encoding = abi::native_c_signature_result_encoding(table, signature)
+        if len(result_encoding) == 0 {
+            function_index = function_index + 1
+            continue
         }
-        function_index = function_index + 1
+        if !eq(result_encoding, clone(dest_result_encoding)) {
+            function_index = function_index + 1
+            continue
+        }
+        return function_id::FunctionId_raw(resolved)
     }
     0 - 1
 }
@@ -181,23 +183,24 @@ fn native_c_emit_call_indirect(
     mir_module: MirModule,
     instruction: MirInst,
     callee_local: i32,
-    argument_locals: Vec<i32>
+    argument_locals: Vec<i32>,
+    dest_result_encoding: String
 ) -> NativeCHofEmit {
-    if inst_accessors_shape::MirInst_op(instruction) != opcodes::MIR_CALL_INDIRECT() {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    if op != opcodes::MIR_CALL_INDIRECT() && op != opcodes::MIR_CALL_REF() {
         return native_c_hof_not_handled()
     }
     let arg_count = inst_accessors_literals::MirInst_int_val(instruction)
     if len(argument_locals) != arg_count {
         return native_c_hof_error(
-            String_from("compiler ICE: native-cpp CALL_INDIRECT argument count mismatch")
+            String_from("compiler ICE: native-cpp indirect call argument count mismatch")
         )
     }
-    let dest_vt = inst_accessors_shape::MirInst_val_type(instruction)
     let first_arg_vt = native_c_parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(instruction))
     let matched_id = native_c_hof_find_matching_function_id(
         mir_module,
         arg_count,
-        dest_vt,
+        dest_result_encoding,
         first_arg_vt
     )
     if matched_id < 0 {

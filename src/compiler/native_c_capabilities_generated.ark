@@ -399,7 +399,7 @@ fn native_c_capability_status_detail(op: i32) -> String {
         return String_from("planned phase 2")
     }
     if op == opcodes::MIR_CALL_REF() {
-        return String_from("planned phase 3")
+        return String_from("supported")
     }
     if op == opcodes::MIR_REF_FUNC() {
         return String_from("supported")
@@ -459,6 +459,7 @@ fn native_c_capability_is_supported(op: i32) -> bool {
     op == opcodes::MIR_NOP() ||
     op == opcodes::MIR_UNREACHABLE() ||
     op == opcodes::MIR_PHI() ||
+    op == opcodes::MIR_CALL_REF() ||
     op == opcodes::MIR_REF_FUNC()
 }
 
@@ -581,7 +582,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 4")
     }
     if index == 39 {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if index == 40 {
         return String_from("supported")
@@ -1205,7 +1206,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 247 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 248 {
         return String_from("supported")
@@ -1259,7 +1260,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 265 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 266 {
         return String_from("supported")
@@ -1374,6 +1375,7 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 34 ||
     index == 35 ||
     index == 37 ||
+    index == 39 ||
     index == 40 ||
     index == 44 ||
     index == 47 ||
@@ -1399,6 +1401,7 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 244 ||
     index == 245 ||
     index == 246 ||
+    index == 247 ||
     index == 248 ||
     index == 249 ||
     index == 250 ||
@@ -1416,6 +1419,7 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 262 ||
     index == 263 ||
     index == 264 ||
+    index == 265 ||
     index == 266 ||
     index == 268 ||
     index == 269 ||

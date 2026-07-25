@@ -1489,6 +1489,7 @@ fn native_c_emit_conversion(state: NativeCFunctionEmitState, instruction: MirIns
 fn native_c_emit_hof(
     state: NativeCFunctionEmitState,
     mir_module: MirModule,
+    function: MirFunction,
     instruction: MirInst
 ) -> bool {
     let op = inst_accessors_shape::MirInst_op(instruction)
@@ -1508,16 +1509,16 @@ fn native_c_emit_hof(
         native_c_stack_push(state, destination)
         return true
     }
-    if op != opcodes::MIR_CALL_INDIRECT() {
+    if op != opcodes::MIR_CALL_INDIRECT() && op != opcodes::MIR_CALL_REF() {
         return false
     }
     let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
-    // Stack layout matches wasm: [args..., callee].
+    // Stack layout matches wasm: [args..., callee]. CALL_REF shares this shape.
     if len(state.value_stack) < argument_count + 1 {
-        native_c_fail(state, String_from("compiler ICE: native-cpp CALL_INDIRECT stack underflow"))
+        native_c_fail(state, String_from("compiler ICE: native-cpp indirect call stack underflow"))
         return true
     }
-    let callee_local = native_c_stack_pop(state, String_from("CALL_INDIRECT callee"))
+    let callee_local = native_c_stack_pop(state, String_from("indirect call callee"))
     let first_argument = len(state.value_stack) - argument_count
     let arguments = Vec_new_i32()
     let mut argument_index = 0
@@ -1532,26 +1533,57 @@ fn native_c_emit_hof(
     }
     native_c_note_use(state, callee_local)
     native_c_stack_discard_to(state, first_argument)
+    let destination = inst_accessors_operands::MirInst_dest(instruction)
+    let table = module_spine::MirModule_type_table(mir_module)
+    // Match funcref typedefs by MirValueType encoding (not legacy VT_REF).
+    let mut dest_result_encoding = String_from("v")
+    let mut dest_vt = inst_accessors_shape::MirInst_val_type(instruction)
+    if destination >= 0 && destination < function_locals_view::MirFunction_local_count(function) {
+        let dest_local = function_locals_view::MirFunction_local_at(function, destination)
+        dest_vt = local_record::mir_local_val_type(dest_local)
+        let encoded = abi::native_c_type_encoding(
+            table,
+            local_record::mir_local_value_type(dest_local)
+        )
+        if len(encoded) > 0 {
+            dest_result_encoding = encoded
+        } else if dest_vt == value_types::VT_I32() {
+            dest_result_encoding = String_from("i32")
+        } else if dest_vt == value_types::VT_I64() {
+            dest_result_encoding = String_from("i64")
+        } else if dest_vt == value_types::VT_F32() {
+            dest_result_encoding = String_from("f32")
+        } else if dest_vt == value_types::VT_F64() {
+            dest_result_encoding = String_from("f64")
+        }
+    } else if dest_vt == value_types::VT_I32() {
+        dest_result_encoding = String_from("i32")
+    } else if dest_vt == value_types::VT_I64() {
+        dest_result_encoding = String_from("i64")
+    } else if dest_vt == value_types::VT_F32() {
+        dest_result_encoding = String_from("f32")
+    } else if dest_vt == value_types::VT_F64() {
+        dest_result_encoding = String_from("f64")
+    }
     let result = hof_call::native_c_emit_call_indirect(
         mir_module,
         instruction,
         callee_local,
-        arguments
+        arguments,
+        dest_result_encoding
     )
     if !hof_call::native_c_hof_is_handled(result) {
-        native_c_fail(state, String_from("compiler ICE: native-cpp CALL_INDIRECT not handled"))
+        native_c_fail(state, String_from("compiler ICE: native-cpp indirect call not handled"))
         return true
     }
     if len(hof_call::native_c_hof_diagnostic(result)) > 0 {
         native_c_fail(state, hof_call::native_c_hof_diagnostic(result))
         return true
     }
-    let destination = inst_accessors_operands::MirInst_dest(instruction)
-    let dest_vt = inst_accessors_shape::MirInst_val_type(instruction)
     if destination >= 0 {
         native_c_emit_assignment(state, destination, hof_call::native_c_hof_source(result))
         native_c_stack_push(state, destination)
-    } else if dest_vt == value_types::VT_VOID() {
+    } else if eq(clone(dest_result_encoding), String_from("v")) {
         native_c_append(
             state,
             concat(String_from("    "), concat(hof_call::native_c_hof_source(result), String_from(";\n")))
@@ -1669,7 +1701,7 @@ fn native_c_emit_call(
     function: MirFunction,
     instruction: MirInst
 ) -> bool {
-    if native_c_emit_hof(state, mir_module, instruction) {
+    if native_c_emit_hof(state, mir_module, function, instruction) {
         return true
     }
     if inst_accessors_shape::MirInst_op(instruction) != opcodes::MIR_CALL() {

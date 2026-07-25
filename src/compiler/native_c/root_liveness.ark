@@ -84,6 +84,7 @@ fn native_c_is_safepoint_op(op: i32) -> bool {
     if op == opcodes::MIR_ARRAY_NEW() { return true }
     if op == opcodes::MIR_CALL() { return true }
     if op == opcodes::MIR_CALL_INDIRECT() { return true }
+    if op == opcodes::MIR_CALL_REF() { return true }
     if op == opcodes::MIR_WIT_CALL() { return true }
     false
 }

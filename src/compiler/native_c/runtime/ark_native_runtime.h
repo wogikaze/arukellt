@@ -119,6 +119,8 @@ ark_string *ark_rt_string_to_uppercase(ark_string *source);
 ark_string *ark_rt_string_reverse(ark_string *source);
 ark_string *ark_rt_string_join(ark_vec *parts, ark_string *separator);
 ark_vec *ark_rt_string_split(ark_string *source, ark_string *separator, uint32_t type_id);
+ark_vec *ark_rt_string_lines(ark_string *source, uint32_t type_id);
+ark_vec *ark_rt_string_chars(ark_string *source, uint32_t type_id);
 int32_t ark_rt_string_is_empty(ark_string *source);
 
 int32_t ark_rt_is_ok(ark_object_header *value);

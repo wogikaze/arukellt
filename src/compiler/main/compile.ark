@@ -1,4 +1,3 @@
-use std::host::process
 use main::args_record
 use main::commands
 use main::compile_all
@@ -7,12 +6,7 @@ use main::kinds
 
 pub fn cmd_compile(opts: CliOptions) {
     let command = args_record::cli_command(opts)
-    let emit_mode = compile_core::resolve_cli_emit_mode(opts)
-    if commands::cli_str_eq(clone(emit_mode), String_from("all")) && command != kinds::CMD_PARSE() && command != kinds::CMD_CHECK() {
-        if !compile_core::validate_target_emit_kind(opts) {
-            process::exit(1)
-            return
-        }
+    if commands::cli_str_eq(args_record::cli_emit_mode(opts), String_from("all")) && command != kinds::CMD_PARSE() && command != kinds::CMD_CHECK() {
         compile_all::cmd_compile_all(opts)
         return
     }

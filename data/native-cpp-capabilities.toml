@@ -459,7 +459,7 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_CALL_REF"
 opcode = 44
-status = "planned"
+status = "supported"
 phase = 3
 implementation = "c_emitter"
 
@@ -822,7 +822,7 @@ implementation = "native_runtime"
 id = "runtime.f32_to_f64"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -2285,9 +2285,9 @@ implementation = "ark_rt_string_join"
 id = "string.lines"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_lines"
 
 [[core_ops]]
 id = "string.len"
@@ -2429,9 +2429,9 @@ implementation = "ark_fallback"
 id = "text.chars"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_chars"
 
 [[core_ops]]
 id = "text.clone"

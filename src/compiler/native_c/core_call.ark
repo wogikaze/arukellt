@@ -72,6 +72,8 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
     if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_replace() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_repeat() { return true }
+    if handler == core_op_registry_generated::core_op_handler_string_lines() { return true }
+    if handler == core_op_registry_generated::core_op_handler_text_chars() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_split() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_to_lowercase() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_to_uppercase() { return true }
@@ -157,6 +159,7 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_raw_string_len_bytes() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_eprintln() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i64() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_i64_to_i32() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_runtime_is_err() { return 1 }
@@ -214,6 +217,8 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_vec_set() { return 3 }
     if handler == core_op_registry_generated::core_op_handler_string_replace() { return 3 }
     if handler == core_op_registry_generated::core_op_handler_string_repeat() { return 2 }
+    if handler == core_op_registry_generated::core_op_handler_string_lines() { return 1 }
+    if handler == core_op_registry_generated::core_op_handler_text_chars() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_string_split() { return 2 }
     if handler == core_op_registry_generated::core_op_handler_string_to_lowercase() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_string_to_uppercase() { return 1 }
@@ -373,6 +378,18 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_runtime_fs_read_file() {
         return native_c_core_call_expression(
             concat(String_from("(ark_object_header *)ark_rt_fs_read_file("), concat(native_c_core_ref_arg(arguments, 0, String_from("ark_string")), String_from(")")))
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_runtime_f32_to_f64() {
+        let dest = inst_accessors_operands::MirInst_dest(instruction)
+        let dest_member = native_c_core_value_member(function, dest)
+        if eq(clone(dest_member), String_from("f32")) {
+            return native_c_core_call_expression(
+                concat(String_from("(float)"), native_c_core_arg(arguments, 0))
+            )
+        }
+        return native_c_core_call_expression(
+            concat(String_from("(double)"), native_c_core_arg(arguments, 0))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_runtime_i32_to_i64() {
@@ -646,6 +663,40 @@ fn native_c_emit_core_call(
                 concat(
                     native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
                     concat(String_from(", "), concat(native_c_core_arg(arguments, 1), String_from(")")))
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_string_lines() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("(ark_object_header *)ark_rt_string_lines("),
+                concat(
+                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                    concat(
+                        String_from(", UINT32_C("),
+                        concat(
+                            i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                            String_from("))")
+                        )
+                    )
+                )
+            )
+        )
+    }
+    if handler == core_op_registry_generated::core_op_handler_text_chars() {
+        return native_c_core_call_expression(
+            concat(
+                String_from("(ark_object_header *)ark_rt_string_chars("),
+                concat(
+                    native_c_core_ref_arg(arguments, 0, String_from("ark_string")),
+                    concat(
+                        String_from(", UINT32_C("),
+                        concat(
+                            i32_to_string(native_c_core_destination_type_id(function, instruction)),
+                            String_from("))")
+                        )
+                    )
                 )
             )
         )
