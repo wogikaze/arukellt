@@ -135,13 +135,13 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 - [x] `fn main()` / `fn main() -> Unit`（scalar 戻り値は捨てて exit 0；パラメータ付き main は emit 前拒否）
 - [x] args parity（native 既定は argv[0] 除外；Wasm wasi-p1 と一致。executor は `ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0=1` で移行）
-- [ ] stdio / cwd / env fixtures
-- [ ] `process.exit` / panic / signal 写像
+- [x] stdio / cwd / env fixtures（env CoreOp は planned；launcher は `execve` で env 継承 + GC 既定 ON）
+- [x] `process.exit` / signal 写像（`map_child_exit`）；panic 診断は Phase 4
 
 ## Phase 3 完了条件
 
-- [ ] entry 検証 + args/stdio/cwd/env/exit fixtures PASS
-- [ ] RFC-008 と実装一致
+- [x] entry 検証 + args/stdio/cwd/exit fixtures PASS
+- [x] RFC-008 args（argv[0] 除外）と実装一致
 
 ---
 

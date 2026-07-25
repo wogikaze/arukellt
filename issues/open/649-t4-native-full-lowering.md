@@ -42,9 +42,9 @@ public CLI. It does **not** mean full MIR/CoreOp coverage or `support_tier=suppo
 - [x] Host launcher (`scripts/run/native-cpp-runner.py`) + wrapper dispatch
 - [x] Shared clang 14+ toolchain resolver
 - [x] Formal `--emit c` + default `.c` output + emit matrix diagnostics
-- [x] Entry signature + args argv[0] parity (stdio/cwd/env/exit/signal fixtures remain)
+- [x] Entry signature + args argv[0] parity
 - [x] Public run GC default ON (runner sets `ARUKELLT_NATIVE_GC=1`); user-facing trap/panic diagnostics remain
-- [ ] stdio / cwd / env / exit / signal contracts + fixtures
+- [x] stdio / cwd / exit / signal contracts + fixtures (env CoreOp still planned)
 - [ ] User-facing trap/panic diagnostics
 - [ ] `tests/fixtures/native_cpp_public/` corpus + Wasm/native parity
 - [ ] HOF/indirect call or explicit Known Limitation + blocker

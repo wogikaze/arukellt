@@ -20,8 +20,13 @@ SPEC.loader.exec_module(runner)
 
 WRAPPER = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 FIXTURE = ROOT / "tests" / "fixtures" / "native_cpp" / "constant_return.ark"
-PUBLIC_BAD_MAIN = ROOT / "tests" / "fixtures" / "native_cpp_public" / "main_with_param.ark"
-PUBLIC_ARGS = ROOT / "tests" / "fixtures" / "native_cpp_public" / "args_print.ark"
+PUBLIC = ROOT / "tests" / "fixtures" / "native_cpp_public"
+PUBLIC_BAD_MAIN = PUBLIC / "main_with_param.ark"
+PUBLIC_ARGS = PUBLIC / "args_print.ark"
+PUBLIC_STDIO = PUBLIC / "stdio_hello.ark"
+PUBLIC_EXIT = PUBLIC / "process_exit_7.ark"
+PUBLIC_FS = PUBLIC / "fs_roundtrip.ark"
+PUBLIC_STDIN = PUBLIC / "stdin_echo.ark"
 
 
 class NativeCppRunnerParseTest(unittest.TestCase):
@@ -163,6 +168,76 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         self.assertIn("count=3", result.stdout)
         self.assertIn("arg=hello", result.stdout)
         self.assertNotIn(".exe", result.stdout)
+
+    def test_stdio_stdout_and_stderr(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_STDIO.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("hello-stdout", result.stdout)
+        self.assertIn("hello-stderr", result.stderr)
+
+    def test_process_exit_code_passthrough(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_EXIT.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 7, result.stdout + result.stderr)
+        self.assertIn("before-exit", result.stdout)
+        self.assertNotIn("after-exit", result.stdout)
+
+    def test_fs_roundtrip_uses_launcher_cwd(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        work = build_dir / "cwd-work"
+        work.mkdir(parents=True, exist_ok=True)
+        out_file = work / "native_cpp_public_fs_roundtrip.txt"
+        out_file.unlink(missing_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_FS.resolve()), "--target", "native-cpp"],
+            cwd=work,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("fs-ok", result.stdout)
+        self.assertTrue(out_file.is_file(), "relative write must land in launcher cwd")
+        self.assertEqual(out_file.read_text(encoding="utf-8"), "fs-ok")
+
+    def test_stdin_passthrough(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_STDIN.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            input="stdin-bytes",
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("in=stdin-bytes", result.stdout)
+
+    def test_public_runner_defaults_gc_on(self) -> None:
+        """Public launcher must force GC on when unset (process env inheritance contract)."""
+        source = RUNNER_PATH.read_text(encoding="utf-8")
+        self.assertIn('env["ARUKELLT_NATIVE_GC"] = "1"', source)
+        self.assertIn("os.execve", source)
 
 
 if __name__ == "__main__":
