@@ -13007,41 +13007,45 @@ id = "vec.get_unchecked"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get_unchecked (aliases: 2; vec_get_unchecked, get_unchecked)"
+description = "Unchecked Vec element load through a sealed-raw Ark body (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "var", name = "T" } }]
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Unchecked f64 Vec element load (#822 typed access)."
+description = "Unchecked f64 Vec element load through a sealed-raw Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
@@ -13066,19 +13070,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_f64_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Unchecked i64 Vec element load (#822 typed access)."
+description = "Unchecked i64 Vec element load through a sealed-raw Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
@@ -13103,19 +13107,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_i64_impl"
+required = true
 
 [[operations]]
 id = "vec.is_empty"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Test Vec emptiness through its sealed raw length."
+description = "Test Vec emptiness through a sealed-raw Ark body (#822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -13138,19 +13142,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.is_empty"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_is_empty_impl"
+required = true
 
 [[operations]]
 id = "vec.len"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Return Vec length through the sealed raw API."
+description = "Return Vec length through a sealed-raw Ark body (#822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -13173,12 +13177,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.len"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_len_impl"
+required = true
 
 [[operations]]
 id = "vec.pop"
@@ -13219,7 +13223,7 @@ id = "vec.push"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a Vec element through the sealed raw API."
+description = "Append a Vec element through the sealed raw API (emitter until push Ark body is typed on LM)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13257,22 +13261,26 @@ id = "vec.push_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → push_f64 (aliases: 1; push_f64)"
+description = "Append an f64 Vec element via typed LM emitter (#822 push Ark body still ABI-broken)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
+  { name = "value", type = { kind = "primitive", name = "f64" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
+memory = "read-write"
+allocates = true
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
@@ -13291,22 +13299,26 @@ id = "vec.push_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_push_i64 (aliases: 2; vec_push_i64, push_i64)"
+description = "Append an i64 Vec element via typed LM emitter (#822 push Ark body still ABI-broken)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
+  { name = "value", type = { kind = "primitive", name = "i64" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
+memory = "read-write"
+allocates = true
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
@@ -13398,7 +13410,7 @@ id = "vec.set"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Set a Vec element through the sealed raw API."
+description = "Write a Vec element through a sealed-raw Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13425,9 +13437,9 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.set"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_set_impl"
+required = true

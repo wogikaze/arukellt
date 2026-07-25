@@ -1,0 +1,59 @@
+//! Record monomorphization instances for generic Vec CoreOp fallback bodies (#822).
+//!
+//! Free-function and method calls that lower through `vec.len` / `vec.push` /
+//! etc. must instantiate `__core_vec_*_impl` before `normal_call` resolution,
+//! otherwise the unspecialized `Vec<T>` shell reaches GC emit.
+use typechecker::contract_type_access
+use typechecker::kinds
+use typechecker::mono
+
+fn record_vec_core_fallback_mono(env: TypeEnv, fallback_symbol: String, recv_ty: TypeInfo) {
+    if contract_type_access::TypeInfo_tag(recv_ty) != commands::TY_VEC() {
+        return
+    }
+    if contract_type_access::TypeInfo_type_arg_count(recv_ty) <= 0 {
+        return
+    }
+    let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
+    if contract_type_access::TypeInfo_tag(elem) == commands::TY_UNKNOWN() {
+        return
+    }
+    if contract_type_access::TypeInfo_tag(elem) == commands::TY_TYPE_VAR() {
+        return
+    }
+    let resolved = Vec_new_TypeInfo()
+    push(resolved, elem)
+    let _mangled = mono::record_mono_instance(env, fallback_symbol, resolved)
+}
+
+fn record_vec_core_mono_for_callee(env: TypeEnv, callee_name: String, recv_ty: TypeInfo) {
+    if eq(clone(callee_name), String_from("len")) ||
+    eq(clone(callee_name), String_from("vec_len")) {
+        record_vec_core_fallback_mono(env, String_from("__core_vec_len_impl"), recv_ty)
+        return
+    }
+    if eq(clone(callee_name), String_from("is_empty")) ||
+    eq(clone(callee_name), String_from("vec_is_empty")) {
+        record_vec_core_fallback_mono(env, String_from("__core_vec_is_empty_impl"), recv_ty)
+        return
+    }
+    if eq(clone(callee_name), String_from("push")) ||
+    eq(clone(callee_name), String_from("vec_push")) {
+        record_vec_core_fallback_mono(env, String_from("__core_vec_push_impl"), recv_ty)
+        return
+    }
+    if eq(clone(callee_name), String_from("set")) ||
+    eq(clone(callee_name), String_from("vec_set")) {
+        record_vec_core_fallback_mono(env, String_from("__core_vec_set_impl"), recv_ty)
+        return
+    }
+    if eq(clone(callee_name), String_from("get_unchecked")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked")) ||
+    eq(clone(callee_name), String_from("__intrinsic_get_unchecked")) {
+        record_vec_core_fallback_mono(env, String_from("__core_vec_get_unchecked_impl"), recv_ty)
+    }
+}
+
+fn record_vec_method_core_mono(env: TypeEnv, method_name: String, recv_ty: TypeInfo) {
+    record_vec_core_mono_for_callee(env, method_name, recv_ty)
+}

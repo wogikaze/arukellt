@@ -471,10 +471,36 @@ pub fn filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64> {
     __intrinsic_filter_f64(v, f)
 }
 
+// Sealed-raw CoreOp aliases (no `use std::core::raw`) so bootstrap overlays
+// that strip collections modules still resolve these fallback symbols (#822).
+fn __core_vec_len_impl<T>(values: Vec<T>) -> i32 {
+    raw_array_len(values)
+}
+
+fn __core_vec_is_empty_impl<T>(values: Vec<T>) -> bool {
+    raw_array_len(values) == 0
+}
+
+fn __core_vec_get_unchecked_impl<T>(values: Vec<T>, index: i32) -> T {
+    raw_array_get_unchecked(values, index)
+}
+
+fn __core_vec_set_impl<T>(values: Vec<T>, index: i32, value: T) {
+    raw_array_set_unchecked(values, index, value)
+}
+
+fn __core_vec_get_unchecked_i64_impl(values: Vec<i64>, index: i32) -> i64 {
+    raw_array_get_unchecked(values, index)
+}
+
+fn __core_vec_get_unchecked_f64_impl(values: Vec<f64>, index: i32) -> f64 {
+    raw_array_get_unchecked(values, index)
+}
+
 fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     let mut i: i32 = 0
-    while i < len(v) {
-        if get_unchecked(v, i) == x {
+    while i < raw_array_len(v) {
+        if raw_array_get_unchecked(v, i) == x {
             return true
         }
         i = i + 1
@@ -498,13 +524,13 @@ pub fn contains_String(v: Vec<String>, x: String) -> bool {
 }
 
 fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
-    let n: i32 = len(v)
+    let n: i32 = raw_array_len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
-        let tmp: i32 = get_unchecked(v, lo)
-        set(v, lo, get_unchecked(v, hi))
-        set(v, hi, tmp)
+        let tmp: i32 = raw_array_get_unchecked(v, lo)
+        raw_array_set_unchecked(v, lo, raw_array_get_unchecked(v, hi))
+        raw_array_set_unchecked(v, hi, tmp)
         lo = lo + 1
         hi = hi - 1
     }
@@ -532,10 +558,10 @@ pub fn reverse_String(v: Vec<String>) {
 }
 
 fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
-    let n: i32 = len(v)
+    let n: i32 = raw_array_len(v)
     let mut i: i32 = index
     while i < n - 1 {
-        set(v, i, get_unchecked(v, i + 1))
+        raw_array_set_unchecked(v, i, raw_array_get_unchecked(v, i + 1))
         i = i + 1
     }
     pop(v)

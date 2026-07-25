@@ -1,7 +1,7 @@
 # #822 — Representation-dependent and allocating stdlib migration クローズ計画
 
-ステータス: 進行中（+ typed set / sort_i64·f64; legacy 31→…→**16**）。
-残: generic Vec×13 + SIMD×3。#822 open 維持。  
+ステータス: 進行中（+ len/is_empty/set/get_unchecked + typed get; legacy 31→…→**10**）。
+残: push×3 + pop/get/Vec_new×2 + SIMD×3。#822 open 維持。  
 
 親 issue: [#822](../../issues/open/822-representation-dependent-stdlib-migration.md)  
 前提: #798, #816, #817, #820 done（#820 は WAT export 正規表現修正後）  

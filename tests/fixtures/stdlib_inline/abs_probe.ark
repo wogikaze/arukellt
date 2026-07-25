@@ -294,6 +294,33 @@ pub fn probe_remove_i32_ops() -> bool {
     len(values) == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 3
 }
 
+pub fn probe_vec_generic_mutation_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 4)
+    push(values, 5)
+    set(values, 0, 9)
+    let n = len(values)
+    !is_empty(values) &&
+    n == 2 &&
+    get_unchecked(values, 0) == 9 &&
+    get_unchecked(values, 1) == 5
+}
+
+pub fn probe_vec_typed_push_get_ops() -> bool {
+    let mut i64s: Vec<i64> = Vec_new_i64()
+    push(i64s, 7_i64)
+    push(i64s, 8_i64)
+    let mut f64s: Vec<f64> = Vec_new_f64()
+    push(f64s, 1.5)
+    push(f64s, 2.5)
+    len(i64s) == 2 &&
+    get_unchecked(i64s, 0) == 7_i64 &&
+    get_unchecked(i64s, 1) == 8_i64 &&
+    len(f64s) == 2 &&
+    get_unchecked(f64s, 0) == 1.5 &&
+    get_unchecked(f64s, 1) == 2.5
+}
+
 pub fn probe_parse_ops() -> bool {
     let ok_i32 = match parse_i32("42") {
         Ok(n) => n == 42,

@@ -26,7 +26,7 @@ fn emit_comprehension_result_local(ctx: LowerCtx, elem_type_name: String, vec_ty
 fn emit_comprehension_end_local(ctx: LowerCtx, comp_vec_local: i32) -> i32 {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_vec_local))
     let comp_end_local = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, comp_end_local))
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("raw_array_len"), 1, comp_end_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(comp_end_local))
     comp_end_local
 }

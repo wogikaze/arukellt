@@ -31,6 +31,10 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
     eq(clone(callee_name), String_from("vec_get_unchecked_f64")) ||
     eq(clone(callee_name), String_from("vec_len")) ||
+    eq(clone(callee_name), String_from("raw_array_len")) ||
+    eq(clone(callee_name), String_from("raw_array_get_unchecked")) ||
+    eq(clone(callee_name), String_from("raw_array_set_unchecked")) ||
+    eq(clone(callee_name), String_from("raw_array_grow")) ||
     eq(clone(callee_name), String_from("vec_push")) ||
     eq(clone(callee_name), String_from("push_i64")) ||
     eq(clone(callee_name), String_from("push_f64")) ||
@@ -96,9 +100,9 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
         return 0 - 1
     }
     // The receiver value is already on the stack from lower_expr.
-    // Emit: call vec_len 1; eqz dest
+    // Emit sealed raw length; eqz dest (#822 — avoid generic vec.len shell).
     let len_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, len_dest))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("raw_array_len"), 1, len_dest))
     ctx_api_local_types::ctx_set_local_type(ctx, len_dest, String_from("i32"))
     ctx_api_local_types::ctx_set_local_vt(ctx, len_dest, value_types::VT_I32())
     let eqz_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
@@ -112,7 +116,8 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if eq(clone(arg_type_len), String_from("Vec")) || starts_with(clone(arg_type_len), "vec:") {
-            return String_from("vec_len")
+            // Prefer sealed raw at the call site so GC sees the concrete vec local.
+            return String_from("raw_array_len")
         }
     }
     callee_name
@@ -123,8 +128,8 @@ fn mir_rewrite_vec_basic(callee_name: String) -> String {
     if eq(clone(rewritten), "pop") {
         rewritten = String_from("vec_pop")
     }
-    if eq(clone(rewritten), "set") {
-        rewritten = String_from("vec_set")
+    if eq(clone(rewritten), "set") || eq(clone(rewritten), "vec_set") {
+        rewritten = String_from("raw_array_set_unchecked")
     }
     rewritten
 }

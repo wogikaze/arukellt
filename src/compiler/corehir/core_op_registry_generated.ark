@@ -603,18 +603,18 @@ fn core_op_registry_lowering_kind_at(index: i32) -> i32 {
     if index == 287 { return 5 }
     if index == 288 { return 1 }
     if index == 289 { return 5 }
-    if index == 290 { return 5 }
-    if index == 291 { return 5 }
-    if index == 292 { return 5 }
-    if index == 293 { return 5 }
-    if index == 294 { return 5 }
+    if index == 290 { return 1 }
+    if index == 291 { return 1 }
+    if index == 292 { return 1 }
+    if index == 293 { return 1 }
+    if index == 294 { return 1 }
     if index == 295 { return 5 }
     if index == 296 { return 5 }
     if index == 297 { return 5 }
     if index == 298 { return 5 }
     if index == 299 { return 1 }
     if index == 300 { return 1 }
-    if index == 301 { return 5 }
+    if index == 301 { return 1 }
     if index == 302 { return 4 }
     return 0 - 1
 }
@@ -995,8 +995,14 @@ fn core_op_registry_inline_policy_at(index: i32) -> i32 {
     if index == 284 { return 1 }
     if index == 285 { return 1 }
     if index == 288 { return 1 }
+    if index == 290 { return 1 }
+    if index == 291 { return 1 }
+    if index == 292 { return 1 }
+    if index == 293 { return 1 }
+    if index == 294 { return 1 }
     if index == 299 { return 1 }
     if index == 300 { return 1 }
+    if index == 301 { return 1 }
     if index == 302 { return 1 }
     return 0
 }
@@ -2310,18 +2316,18 @@ fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
     if index == 287 { return String_from("vec.Vec_new_fallback") }
     if index == 288 { return String_from("") }
     if index == 289 { return String_from("vec.get") }
-    if index == 290 { return String_from("vec.get_unchecked") }
-    if index == 291 { return String_from("vec.get_unchecked_f64") }
-    if index == 292 { return String_from("vec.get_unchecked_i64") }
-    if index == 293 { return String_from("vec.is_empty") }
-    if index == 294 { return String_from("vec.len") }
+    if index == 290 { return String_from("") }
+    if index == 291 { return String_from("") }
+    if index == 292 { return String_from("") }
+    if index == 293 { return String_from("") }
+    if index == 294 { return String_from("") }
     if index == 295 { return String_from("vec.pop") }
     if index == 296 { return String_from("vec.push") }
     if index == 297 { return String_from("vec.push_f64") }
     if index == 298 { return String_from("vec.push_i64") }
     if index == 299 { return String_from("") }
     if index == 300 { return String_from("") }
-    if index == 301 { return String_from("vec.set") }
+    if index == 301 { return String_from("") }
     if index == 302 { return String_from("") }
     return String_new()
 }
@@ -2392,8 +2398,14 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
     if index == 284 { return String_from("__core_string_from_bytes_impl") }
     if index == 285 { return String_from("__core_format_i32_impl") }
     if index == 288 { return String_from("__core_vec_contains_i32_impl") }
+    if index == 290 { return String_from("__core_vec_get_unchecked_impl") }
+    if index == 291 { return String_from("__core_vec_get_unchecked_f64_impl") }
+    if index == 292 { return String_from("__core_vec_get_unchecked_i64_impl") }
+    if index == 293 { return String_from("__core_vec_is_empty_impl") }
+    if index == 294 { return String_from("__core_vec_len_impl") }
     if index == 299 { return String_from("__core_vec_remove_i32_impl") }
     if index == 300 { return String_from("__core_vec_reverse_i32_impl") }
+    if index == 301 { return String_from("__core_vec_set_impl") }
     return String_new()
 }
 

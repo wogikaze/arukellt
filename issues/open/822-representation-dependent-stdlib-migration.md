@@ -83,8 +83,8 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   not call the still-runtime-owned integer conversion CoreOp.
 - `scripts/tests/test_stdlib_inline.py` runs exact-result checks for the
   migrated String and Vec/seq operations in both fallback and optimized
-  builds. Wave path for `legacy_emitter`:
-  **31 → 28 → 25 → 23 → 22 → 19 → 18 → 16**.
+  builds. Wave path for `legacy_emitter` (see latest bullet for current count):
+  **31 → 28 → 25 → 23 → 22 → 19 → 18 → 16 → 10**.
 - Wave `wave/822-repr-stdlib` migrated `text.format_bool`, `text.char_to_string`,
   and `core.range_new` to `normal_call` with sealed-raw / Ark bodies
   (`__core_format_bool_impl`, `__core_char_to_string_impl`,
@@ -117,15 +117,37 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   correctly (no double-drop). With that, `seq.sort_i64` / `seq.sort_f64` are
   `normal_call` insertion-sort Ark bodies (`probe_sort_i64_ops`,
   `probe_sort_f64_ops`).
-- Remaining `legacy_emitter` (**16**): generic Vec mutation/allocation
-  (`vec.len` / `push` / `set` / `get*` / `pop` / `Vec_new_*`) plus concrete
-  typed helpers that still share emitter ownership
-  (`vec.push_{i64,f64}`, `vec.get_unchecked_{i64,f64}`, `vec.Vec_new_f64`),
-  and SIMD portable leftovers (`simd.i32x4.*`, `simd.f32x4.add`).
-  Removal condition for generic Vec: fallback resolver must select or
-  synthesize a call-site-specialized implementation before those CoreOps can
-  leave `legacy_emitter`. Removal condition for SIMD: ADR-037 nominal SIMD
-  types + portable scalar path bound as production lowerings.
+- Generic Vec read/write leave `legacy_emitter` via sealed-raw + type-aware
+  paths (**16 → 10**):
+  - `vec.len` / `vec.is_empty` / `vec.set` / `vec.get_unchecked` are
+    `normal_call` with `__core_vec_*_impl` fallbacks; MIR rewrites free
+    `len` / `set` / `get_unchecked` / `is_empty` call sites to
+    `raw_array_*` so GC/LM see the concrete vec local (not an unspecialized
+    `Vec<T>` shell).
+  - Typecheck records mono instances for those fallbacks when free/method
+    Vec ops are typed; `stdlib_resolve_normal_calls` prefers
+    `__core_vec_*_impl__{elem}` when present.
+  - LM `raw.array_get_unchecked` / `emit_get_unchecked` now pick i32/i64/f64
+    loads (mirroring typed set); enclosing `__core_vec_*_{i64,f64}_impl`
+    / `sort_{i64,f64}` names supply element hints when param type_name is
+    still i32-shaped.
+  - Concrete `vec.get_unchecked_{i64,f64}` are `normal_call` over
+    `raw_array_get_unchecked` (`probe_vec_generic_mutation_ops`,
+    `probe_vec_typed_push_get_ops`).
+  - `vec.push` / `vec.push_{i64,f64}` stay `legacy_emitter`: Ark bodies that
+    compose `raw_array_grow` + `raw_array_set_unchecked` currently lower to
+    ill-typed or `unreachable` LM prologues when an i64/f64 value param is
+    present. Removal condition: fix LM param/prologue lowering for mixed
+    `Vec<T>` + wide element params (or add a sealed `raw.array_push`
+    target_intrinsic) before those CoreOps can leave `legacy_emitter`.
+- Remaining `legacy_emitter` (**10**): `vec.push` / `vec.push_{i64,f64}`,
+  `vec.pop`, `vec.get`, `vec.Vec_new_fallback` / `vec.Vec_new_f64`, and SIMD
+  portable leftovers (`simd.i32x4.*`, `simd.f32x4.add`).
+  Removal condition for SIMD: ADR-037 nominal SIMD types + portable scalar
+  path bound as production lowerings (no small portable win this tranche;
+  leave in #822 scope).
+- Wave path for `legacy_emitter`:
+  **31 → 28 → 25 → 23 → 22 → 19 → 18 → 16 → 10**.
 - **Close stance:** do not move #822 to done while assigned Vec/SIMD
   families remain `legacy_emitter`.
 

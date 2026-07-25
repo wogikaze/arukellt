@@ -35,6 +35,29 @@ fn is_string_byte_vec_push_context(ctx: SelfEmitCtx) -> bool {
     eq(clone(name), String_from("__core_string_ascii_case_impl"))
 }
 
+fn enclosing_core_vec_elem_hint(ctx: SelfEmitCtx) -> String {
+    // Concrete sealed-raw Ark bodies and mono suffixes keep element types in
+    // the function name when param type_name sync is still i32-shaped on LM (#822).
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let name = function_identity::MirFunction_name(f)
+    if ends_with(clone(name), String_from("__i64")) ||
+    ends_with(clone(name), String_from("_i64_impl")) ||
+    contains(clone(name), String_from("push_i64")) ||
+    contains(clone(name), String_from("get_unchecked_i64")) ||
+    contains(clone(name), String_from("sort_i64")) {
+        return String_from("i64")
+    }
+    if ends_with(clone(name), String_from("__f64")) ||
+    ends_with(clone(name), String_from("_f64_impl")) ||
+    contains(clone(name), String_from("push_f64")) ||
+    contains(clone(name), String_from("get_unchecked_f64")) ||
+    contains(clone(name), String_from("sort_f64")) {
+        return String_from("f64")
+    }
+    String_new()
+}
+
 fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
     // Callee name is authoritative for monomorphic push/pop helpers when
     // mixed Vec locals would otherwise make vec_type_for_ctx prefer String
@@ -97,20 +120,42 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
 }
 
 fn vec_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(clone(callee), String_from("push_i64")) || eq(clone(callee), String_from("pop_i64")) || eq(clone(callee), String_from("vec_get_unchecked_i64")) {
+    if eq(clone(callee), String_from("push_i64")) ||
+    eq(clone(callee), String_from("pop_i64")) ||
+    eq(clone(callee), String_from("vec_get_unchecked_i64")) {
         return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(clone(callee), String_from("push_f64")) || eq(clone(callee), String_from("pop_f64")) || eq(clone(callee), String_from("vec_get_unchecked_f64")) {
+    if eq(clone(callee), String_from("push_f64")) ||
+    eq(clone(callee), String_from("pop_f64")) ||
+    eq(clone(callee), String_from("vec_get_unchecked_f64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+    }
+    let hint = enclosing_core_vec_elem_hint(ctx)
+    if eq(clone(hint), String_from("i64")) {
+        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+    }
+    if eq(clone(hint), String_from("f64")) {
         return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     }
     0 - 1
 }
 
 fn array_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(clone(callee), String_from("push_i64")) || eq(clone(callee), String_from("pop_i64")) || eq(clone(callee), String_from("vec_get_unchecked_i64")) {
+    if eq(clone(callee), String_from("push_i64")) ||
+    eq(clone(callee), String_from("pop_i64")) ||
+    eq(clone(callee), String_from("vec_get_unchecked_i64")) {
         return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
     }
-    if eq(clone(callee), String_from("push_f64")) || eq(clone(callee), String_from("pop_f64")) || eq(clone(callee), String_from("vec_get_unchecked_f64")) {
+    if eq(clone(callee), String_from("push_f64")) ||
+    eq(clone(callee), String_from("pop_f64")) ||
+    eq(clone(callee), String_from("vec_get_unchecked_f64")) {
+        return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
+    }
+    let hint = enclosing_core_vec_elem_hint(ctx)
+    if eq(clone(hint), String_from("i64")) {
+        return ctx_gc_type::SelfEmitCtx_i64_array_type(ctx)
+    }
+    if eq(clone(hint), String_from("f64")) {
         return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     }
     0 - 1
@@ -122,10 +167,10 @@ fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirIns
     }
     let src_local = find_call_source_local(ctx, clone(callee), inst)
     let tname = local_type_name(ctx, src_local)
-    if !starts_with(clone(tname), String_from("vec:")) {
-        return String_new()
+    if starts_with(clone(tname), String_from("vec:")) {
+        return substring(clone(tname), 4, len(tname))
     }
-    substring(clone(tname), 4, len(tname))
+    enclosing_core_vec_elem_hint(ctx)
 }
 
 fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur_arg_count: i32) -> i32 {
