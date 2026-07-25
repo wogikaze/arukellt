@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-24T21:32:39Z",
+  "generated_at": "2026-07-25T05:17:58Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -681,23 +681,6 @@
       }
     },
     {
-      "id": "722",
-      "path": "722-typed-funcref-call-ref-benchmark.md",
-      "title": "Typed Function References (`call_ref`) ベンチマーク計測",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "723",
       "path": "723-exception-handling-exnref-evaluation.md",
       "title": "Wasm Exception Handling (`exnref`) 統合の検討",
@@ -706,8 +689,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 5
+        "checked": 4,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "design-required",
@@ -958,6 +941,25 @@
       "orchestration": {
         "class": "investigation",
         "upstream_notes": null
+      }
+    },
+    {
+      "id": "831",
+      "path": "831-call-ref-emitter-migration.md",
+      "title": "call_ref emitter 移行（typed funcref）",
+      "track": "wasm-feature",
+      "status": "open",
+      "depends_on": [
+        "722"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 9
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": 722
       }
     },
     {

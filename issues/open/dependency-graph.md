@@ -39,7 +39,6 @@ graph LR
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
-  I722["722 Typed Function References (`call_ref`) ベンチマーク計測"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
   I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
   I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
@@ -54,6 +53,7 @@ graph LR
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
+  I831["831 call_ref emitter 移行（typed funcref）"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -156,7 +156,6 @@ graph LR
 - **715** depends on: 041, done); blocks: 719, 799
 - **718** depends on: 700, 701; blocks: none
 - **721** depends on: none; blocks: none
-- **722** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **724** depends on: none; blocks: 726, 729
 - **725** depends on: None; blocks: none
@@ -171,6 +170,7 @@ graph LR
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
+- **831** depends on: 722; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683

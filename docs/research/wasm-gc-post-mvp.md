@@ -322,7 +322,7 @@ wasmtime 46、V8 14.6 でデフォルト有効。初版で「Phase 3+ (v1.0)」�
 
 Arukellt での活用可能性・移行計画・実装コストは **ADR-033** に委譲する。
 ADR-033 は Phase A（emitter audit）→ Phase C（benchmark gate）の段階的移行を決定済み。
-計測は issue #722 がトラッキングする。
+計測（Phase A/B 評価 / Phase C GO）は issue #722（done）。本番 emitter は issue #831。
 
 ---
 
@@ -428,7 +428,7 @@ Arukellt が `throw` / `catch` を採用するかは別問題（`Result<T, E>` �
    確認された時点で B（FFI 境界のみ）を再検討する。
 
 6. **Typed Function References** は Wasm 3.0 で shipped 済み。
-   詳細な移行計画は **ADR-033** に委譲（Phase A/C の計測は issue #722）。
+   詳細な移行計画は **ADR-033** に委譲（計測 #722 done、emitter #831）。
 
 ---
 
@@ -442,7 +442,8 @@ Arukellt が `throw` / `catch` を採用するかは別問題（`Result<T, E>` �
 - ADR-007: Compile Targets
 - ADR-033: クロージャ呼び出しを call_ref に移行（#5 の詳細）
 - Issue #721: Final Types 実装（#4 の実装トラッキング）
-- Issue #722: Typed FuncRef ベンチマーク計測（#5 の Phase A/C トラッキング）
+- Issue #722: Typed FuncRef ベンチマーク計測（done — Phase A/B 評価 / Phase C GO）
+- Issue #831: call_ref emitter 移行（#5 の本番実装）
 - Issue #723: Exception Handling 検討（#6 の評価トラッキング）
 - [WebAssembly GC Proposal Post-MVP](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Post-MVP.md)
 - [WebAssembly Weak References Proposal](https://github.com/WebAssembly/weak-references)
