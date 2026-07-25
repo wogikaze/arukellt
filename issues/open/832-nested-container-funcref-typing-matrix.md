@@ -44,7 +44,7 @@ validate-fail / unreachable / runtime trap が残る。
 | `id(double)(5)`（戻り値 fn の即時呼び出し） | ✅ | C: fn 戻り ABI + callee 式 |
 | `Vec<Option<i32>>` / `Vec<Result<...>>` | ✅ | open-enum 配列 ABI（`A_ref14` + vec header） |
 | `Option<Vec<fn>>` / `Result<Vec<fn>, _>` | ❌ validate | `Vec<fn>` に依存 |
-| `Vec<Vec<i32>>` / `Vec<String>`（一部経路） | ❌ runtime | validate は通るが trap |
+| `Vec<Vec<i32>>` / `Vec<String>`（println(get) 含む） | ✅ | store policy: CALL→CALL(arg0==dest) は SET |
 
 ## Root causes（クラスタ）
 
@@ -83,12 +83,16 @@ validate-fail / unreachable / runtime trap が残る。
   書かず match が None を Some と誤認していたのも修正。
   fixture: `diagnostics/vec_get_arith.ark`
 
-### F. Nested `Vec<Vec<_>>` / `Vec<String>` runtime trap
+### F. Nested `Vec<Vec<_>>` / `Vec<String>` runtime trap（完了）
 
-- **症状**: validate OK だが `_start` で trap
-- **原因候補**: structref-vec layout と `Vec_new_i32` 初期化の不一致、
-  get_unchecked の array type 取り違え（#726 系の残骸）
-- **必要**: 最小 fixture で array type index / cast を突き、#726 残件と重複整理
+- **症状**: `Vec<Vec<i32>>` は現行で通る。`println(get_unchecked(xs, 0))`
+  （`Vec<String>`）だけ runtime trap
+- **原因**: intrinsic CALL が store policy で SKIP されたまま、次の
+  `println` が dest local を `from_local` で読む（値は stack に残り、local は未初期化）
+- **修正**: `should_skip_store_after_early_tee` で **現行が CALL/WIT_CALL** かつ
+  次 CALL の `arg0 == dest` のとき SET を強制（LOCAL_GET/CONST_STRING の
+  stack 合成 #730 は維持）
+- fixtures: `collections/vec_vec_i32.ark`, `collections/vec_string_println_get.ark`
 
 ## Workstreams（推奨順）
 
@@ -97,7 +101,7 @@ validate-fail / unreachable / runtime trap が残る。
 3. **D — `Vec<Option/Result>` 要素 layout**
 4. **A 監査 — Option/Result 型名の残漏れ + local ann shaping 統一**
 5. **E — `get` 誤用の診断 / docs / fixture 寄せ**
-6. **F — nested Vec runtime trap**（#726 と重複ならそちらへ merge）
+6. **F — nested Vec runtime trap**（完了）
 
 並列可: C ∥ A 監査。B 完了後に Option/Result&lt;Vec&lt;fn&gt;&gt; を閉じる。
 
@@ -129,7 +133,8 @@ validate-fail / unreachable / runtime trap が残る。
 - [x] **B** — `Vec<fn>` funcref 配列 ABI + `vec_fn_push_call`（`7360dc76`）
 - [x] **D** — `Vec<Option/Result>` open-enum 配列 ABI（`0d5b7eea`）
 - [x] **E** — `get` の Option 契約 + 算術の E0208 + None tag
-- [ ] **A 監査** / **F**
+- [x] **F** — nested Vec + `println(get_unchecked)` store policy
+- [ ] **A 監査** / `Option<Vec<fn>>` validate
 
 ## Acceptance
 
@@ -138,8 +143,8 @@ validate-fail / unreachable / runtime trap が残る。
 - [x] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
 - [x] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
 - [x] 自由 `get(...)+get(...)` は型エラー（E0208）で失敗し、silent validate-fail にならない
-- [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E 分）
-- [x] `python3 scripts/manager.py verify lane --gate t3`（E 完了時）
+- [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E/F 分）
+- [x] `python3 scripts/manager.py verify lane --gate t3`（F 完了時）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes

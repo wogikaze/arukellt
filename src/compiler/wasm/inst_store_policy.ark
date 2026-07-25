@@ -63,6 +63,16 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
         // Do not force-SET before a CALL just because it has a first-arg
         // local: char_at; char_at; ne relies on leaving both results on the
         // stack. Discarded results are handled below via LOCAL_GET(other)+CALL.
+        // Intrinsic CALL results are different: when the next CALL's first
+        // local arg *is* this dest, store — otherwise println(get_unchecked)
+        // reads an uninitialized temp (#832). Do not apply this to LOCAL_GET /
+        // CONST_STRING; those rely on leaving the value on the stack (#730).
+        let cur = inst_accessors_shape::MirInst_op(inst)
+        if (cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL()) &&
+        (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) &&
+        next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
+            return false
+        }
         return true
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() || inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() {

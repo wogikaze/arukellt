@@ -82,6 +82,9 @@ fn emit_gc_string_to_heap_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitC
     // CONST_STRING / LOCAL_GET leave the string on the stack when store policy
     // SKIP-stores before a direct consumer CALL. Reloading via from_local then
     // duplicates the ref and fails validate ("values remaining on stack") (#730).
+    // CALL results are not listed here: normal calls force-SET before a local-arg
+    // CALL (#832 store policy / should_force_call_dest_store), so from_local is
+    // correct for `println(n.to_string())`.
     let prev_leaves_string_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() ||
     prev_op == mir_opcodes::MIR_CONST_STRING()
     if arg_local >= 0 && !prev_leaves_string_on_stack {
