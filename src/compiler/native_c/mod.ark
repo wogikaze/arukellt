@@ -349,6 +349,15 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     }
     let capability_error = native_c_validate_capabilities(mir_module)
     if len(capability_error) > 0 { return NativeCEmitResult_err(capability_error) }
+    // Register synthetic closures in SignatureRegistry before funcref typedef
+    // collection and emission (they are appended after the spine is built).
+    let function_count_for_registry = module_functions::MirModule_function_count(mir_module)
+    let mut registry_index = 0
+    while registry_index < function_count_for_registry {
+        let function = module_functions::MirModule_function_at(mir_module, registry_index)
+        let _resolved = native_c_resolve_function_id(mir_module, function, registry_index)
+        registry_index = registry_index + 1
+    }
     let source_bytes = Vec_new_i32()
     native_c_append_bytes(source_bytes, native_c_runtime_prelude())
     let funcref_typedefs = hof_call::native_c_collect_funcref_typedefs(mir_module)

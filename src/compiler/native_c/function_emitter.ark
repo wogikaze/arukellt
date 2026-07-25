@@ -875,6 +875,11 @@ fn native_c_option_result_payload_is_heap_ref(
         eq(clone(dest_name), String_from("bool")) {
             return false
         }
+        // Empty type names are common on Option<i32> match binds; treat as
+        // scalar. Heap payloads (String/Vec/…) usually keep a type_name.
+        if len(dest_name) == 0 {
+            return false
+        }
         return true
     }
     false
@@ -889,6 +894,53 @@ fn native_c_struct_get_member(
     destination: i32,
     instruction: MirInst
 ) -> String {
+    // Option/Result scalar payloads must win over a mistyped destination that
+    // was marked as a GC root (match bindings often keep VT_REF on i32 elems).
+    let variant_hint = inst_accessors_literals::MirInst_str_val(instruction)
+    if field_index >= 1 &&
+    !native_c_option_result_payload_is_heap_ref(
+        table,
+        function,
+        base,
+        field_index,
+        clone(variant_hint),
+        destination
+    ) &&
+    (native_c_variant_hint_is_option_result_payload(clone(variant_hint)) ||
+        len(native_c_option_result_elem_type_name(
+            if base >= 0 && base < function_locals_view::MirFunction_local_count(function) {
+                local_record::mir_local_type_name(
+                    function_locals_view::MirFunction_local_at(function, base)
+                )
+            } else {
+                String_new()
+            }
+        )) > 0) {
+        let base_name = if base >= 0 &&
+        base < function_locals_view::MirFunction_local_count(function) {
+            local_record::mir_local_type_name(
+                function_locals_view::MirFunction_local_at(function, base)
+            )
+        } else {
+            String_new()
+        }
+        let elem_name = native_c_option_result_elem_type_name(base_name)
+        if len(elem_name) > 0 && native_c_type_name_elem_is_scalar(elem_name) {
+            if eq(clone(elem_name), String_from("i64")) || eq(clone(elem_name), String_from("I64")) {
+                return String_from("i64")
+            }
+            if eq(clone(elem_name), String_from("f64")) || eq(clone(elem_name), String_from("F64")) {
+                return String_from("f64")
+            }
+            if eq(clone(elem_name), String_from("f32")) || eq(clone(elem_name), String_from("F32")) {
+                return String_from("f32")
+            }
+            return String_from("i32")
+        }
+        if native_c_variant_hint_is_option_result_payload(clone(variant_hint)) {
+            return String_from("i32")
+        }
+    }
     let from_dest = native_c_value_member_for_emission(state, function, destination)
     if eq(clone(from_dest), String_from("ref")) ||
     eq(clone(from_dest), String_from("i64")) ||
@@ -1222,14 +1274,6 @@ fn native_c_emit_local(
         let destination = inst_accessors_operands::MirInst_arg0(instruction)
         let explicit_source = inst_accessors_operands::MirInst_arg1(instruction)
         let source = if explicit_source >= 0 {
-            // Drop a matching stack operand left by STRUCT_NEW / CALL so later
-            // instructions do not consume a stale aggregate or field temp.
-            if len(state.value_stack) > 0 {
-                let top = get_unchecked(state.value_stack, len(state.value_stack) - 1)
-                if top == explicit_source {
-                    pop(state.value_stack)
-                }
-            }
             explicit_source
         } else {
             native_c_stack_pop(
@@ -1242,7 +1286,25 @@ fn native_c_emit_local(
         }
         if source != (0 - 1) {
             if source != destination {
-                native_c_emit_assignment(state, destination, native_c_local_name(source))
+                let source_is_ref = source >= 0 &&
+                source < len(state.reference_locals) &&
+                get_unchecked(state.reference_locals, source) != 0
+                let dest_is_ref = destination >= 0 &&
+                destination < len(state.reference_locals) &&
+                get_unchecked(state.reference_locals, destination) != 0
+                // Match/if arms can local_set a heap scrutinee into a scalar
+                // arm local that is never read (e.g. None => panic(...)).
+                if source_is_ref && !dest_is_ref {
+                    native_c_append(
+                        state,
+                        concat(
+                            String_from("    (void)"),
+                            concat(native_c_local_name(source), String_from(";\n"))
+                        )
+                    )
+                } else {
+                    native_c_emit_assignment(state, destination, native_c_local_name(source))
+                }
             }
         }
         return true

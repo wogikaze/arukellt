@@ -167,8 +167,13 @@ fn native_c_emit_ref_func(mir_module: MirModule, instruction: MirInst) -> Native
             String_from("target `native-cpp` cannot type zero-capture function reference")
         )
     }
+    // C parses `(intptr_t)(typedef)symbol` as a cast of the typedef name, then
+    // a discarded symbol expression. Double-parens force a function cast.
     native_c_hof_expression(
-        concat(String_from("(intptr_t)("), concat(typedef_name, concat(String_from(")"), symbol)))
+        concat(
+            String_from("(intptr_t)(("),
+            concat(typedef_name, concat(String_from(")"), concat(symbol, String_from(")"))))
+        )
     )
 }
 

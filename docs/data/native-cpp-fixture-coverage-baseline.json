@@ -16,7 +16,7 @@
   },
   "hard_zero": {
     "ice_total": true,
-    "unexpected_crash": false
+    "unexpected_crash": true
   },
   "notes": [
     "Worsening is forbidden relative to these floors/ceilings.",
