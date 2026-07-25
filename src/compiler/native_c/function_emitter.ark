@@ -714,6 +714,79 @@ fn native_c_type_kind_is_heap_object(kind: i32) -> bool {
     kind == kinds::TYPE_KIND_ENUM()
 }
 
+fn native_c_self_alias_intrinsic_expression(
+    function: MirFunction,
+    function_name: String,
+    arguments: Vec<i32>
+) -> String {
+    let short = native_c_short_callee_name(function_name)
+    let argument_count = len(arguments)
+    if argument_count == 1 {
+        return native_c_self_alias_unary_intrinsic(function, short, get_unchecked(arguments, 0))
+    }
+    if argument_count == 2 && eq(short, String_from("eq")) {
+        return native_c_self_alias_string_eq_expression(function, arguments)
+    }
+    String_new()
+}
+
+fn native_c_self_alias_string_eq_expression(function: MirFunction, arguments: Vec<i32>) -> String {
+    let left = get_unchecked(arguments, 0)
+    let right = get_unchecked(arguments, 1)
+    // Heap object locals use value-member "ref" (ark_object_header *), not "ptr".
+    if eq(native_c_value_member_for_local(function, left), String_from("ref")) &&
+    eq(native_c_value_member_for_local(function, right), String_from("ref")) {
+        return concat(
+            String_from("ark_rt_string_eq((ark_string *)"),
+            concat(
+                native_c_local_name(left),
+                concat(
+                    String_from(", (ark_string *)"),
+                    concat(native_c_local_name(right), String_from(")"))
+                )
+            )
+        )
+    }
+    String_new()
+}
+
+fn native_c_self_alias_runtime_call(callee: String, arg0_name: String) -> String {
+    concat(callee, concat(arg0_name, String_from(")")))
+}
+
+fn native_c_self_alias_unary_intrinsic(function: MirFunction, short: String, arg0: i32) -> String {
+    let arg0_name = native_c_local_name(arg0)
+    let is_i64 = eq(native_c_value_member_for_local(function, arg0), String_from("i64"))
+    if eq(clone(short), String_from("popcount")) {
+        if is_i64 {
+            return native_c_self_alias_runtime_call(String_from("ark_rt_popcount_i64("), arg0_name)
+        }
+        return native_c_self_alias_runtime_call(String_from("ark_rt_popcount_i32("), arg0_name)
+    }
+    if eq(clone(short), String_from("leading_zeros")) {
+        if is_i64 {
+            return native_c_self_alias_runtime_call(String_from("ark_rt_leading_zeros_i64("), arg0_name)
+        }
+        return native_c_self_alias_runtime_call(String_from("ark_rt_leading_zeros_i32("), arg0_name)
+    }
+    if eq(clone(short), String_from("trailing_zeros")) {
+        if is_i64 {
+            return native_c_self_alias_runtime_call(String_from("ark_rt_trailing_zeros_i64("), arg0_name)
+        }
+        return native_c_self_alias_runtime_call(String_from("ark_rt_trailing_zeros_i32("), arg0_name)
+    }
+    if eq(clone(short), String_from("is_power_of_two")) {
+        if is_i64 {
+            return native_c_self_alias_runtime_call(String_from("ark_rt_is_power_of_two_i64("), arg0_name)
+        }
+        return native_c_self_alias_runtime_call(String_from("ark_rt_is_power_of_two_i32("), arg0_name)
+    }
+    if eq(short, String_from("next_power_of_two")) {
+        return native_c_self_alias_runtime_call(String_from("ark_rt_next_power_of_two_i32("), arg0_name)
+    }
+    String_new()
+}
+
 fn native_c_variant_hint_is_option_result_payload(variant_hint: String) -> bool {
     if eq(clone(variant_hint), String_from("Some")) ||
     eq(clone(variant_hint), String_from("None")) ||
@@ -1760,6 +1833,38 @@ fn native_c_emit_call(
         // Do not upgrade scalar locals to GC roots just because a callee
         // parameter is typed as a pointer (unit-enum tags stay i32 and cast).
         argument_index = argument_index + 1
+    }
+    // Thin stdlib wrappers sometimes CALL themselves (method → free alias).
+    // Expand known aliases to C/runtime builtins; leave true recursion alone.
+    if function_id_raw >= 0 &&
+    current_function_id_raw >= 0 &&
+    function_id_raw == current_function_id_raw {
+        let alias_expr = native_c_self_alias_intrinsic_expression(
+            function,
+            clone(current_name),
+            arguments
+        )
+        if len(alias_expr) > 0 {
+            argument_index = 0
+            while argument_index < argument_count {
+                native_c_note_use(state, get_unchecked(arguments, argument_index))
+                argument_index = argument_index + 1
+            }
+            native_c_stack_discard_to(state, first_argument)
+            let destination = inst_accessors_operands::MirInst_dest(instruction)
+            if destination >= 0 {
+                native_c_emit_assignment(state, destination, alias_expr)
+                native_c_stack_push(state, destination)
+            } else {
+                let temporary = native_c_allocate_temporary(
+                    state,
+                    abi::native_c_signature_return_type(table, signature)
+                )
+                native_c_emit_assignment(state, temporary, alias_expr)
+                native_c_stack_push(state, temporary)
+            }
+            return true
+        }
     }
     let specialized = core_call::native_c_emit_core_call(mir_module, function, instruction, arguments)
     let is_specialized = core_call::native_c_core_call_is_handled(specialized)

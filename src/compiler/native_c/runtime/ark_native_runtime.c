@@ -1752,6 +1752,63 @@ int32_t ark_rt_math_clamp_i32(int32_t value, int32_t low, int32_t high) {
     return value;
 }
 
+int32_t ark_rt_next_power_of_two_i32(int32_t value) {
+    if (value <= 1) {
+        return 1;
+    }
+    uint32_t bits = (uint32_t)value - 1u;
+    bits |= bits >> 1;
+    bits |= bits >> 2;
+    bits |= bits >> 4;
+    bits |= bits >> 8;
+    bits |= bits >> 16;
+    return (int32_t)(bits + 1u);
+}
+
+int32_t ark_rt_popcount_i32(int32_t value) {
+    return (int32_t)__builtin_popcount((unsigned)value);
+}
+
+int32_t ark_rt_popcount_i64(int64_t value) {
+    return (int32_t)__builtin_popcountll((unsigned long long)value);
+}
+
+int32_t ark_rt_leading_zeros_i32(int32_t value) {
+    if (value == 0) {
+        return 32;
+    }
+    return (int32_t)__builtin_clz((unsigned)value);
+}
+
+int32_t ark_rt_leading_zeros_i64(int64_t value) {
+    if (value == 0) {
+        return 64;
+    }
+    return (int32_t)__builtin_clzll((unsigned long long)value);
+}
+
+int32_t ark_rt_trailing_zeros_i32(int32_t value) {
+    if (value == 0) {
+        return 32;
+    }
+    return (int32_t)__builtin_ctz((unsigned)value);
+}
+
+int32_t ark_rt_trailing_zeros_i64(int64_t value) {
+    if (value == 0) {
+        return 64;
+    }
+    return (int32_t)__builtin_ctzll((unsigned long long)value);
+}
+
+int32_t ark_rt_is_power_of_two_i32(int32_t value) {
+    return value > 0 && (value & (value - 1)) == 0;
+}
+
+int32_t ark_rt_is_power_of_two_i64(int64_t value) {
+    return value > 0 && (value & (value - 1)) == 0;
+}
+
 int32_t ark_rt_math_gcd_i32(int32_t left, int32_t right) {
     int32_t a = left < 0 ? -left : left;
     int32_t b = right < 0 ? -right : right;
