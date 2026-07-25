@@ -68,6 +68,18 @@ fn enum_payload_type_name(type_name: String) -> bool {
     }
     true
 }
+fn local_has_result_option_enum_type_name(type_name: String) -> bool {
+    starts_with(clone(type_name), String_from("enum:")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Option_")) ||
+    starts_with(clone(type_name), String_from("Option:")) ||
+    starts_with(clone(type_name), String_from("Option<")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("Result_")) ||
+    starts_with(clone(type_name), String_from("Result:")) ||
+    starts_with(clone(type_name), String_from("Result<"))
+}
+
 fn local_has_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false

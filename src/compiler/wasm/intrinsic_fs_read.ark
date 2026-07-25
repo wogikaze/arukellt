@@ -1,7 +1,6 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::import_indices
 use wasm::intrinsic_fs_read_body
@@ -10,10 +9,8 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
-use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::writer_gc
 
 // Handler for: fs::read_to_string / __intrinsic_fs_read_file
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -30,15 +27,16 @@ fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     return true
 }
 
-// GC validate stub: consume path and return null open-enum Result.
-// Full WASI GC emit currently traps the compiler itself (#726 fs_read_*).
+// GC validate stub: drop path, return typed Result::Err so match locals stay
+// ref-typed (#834 cmd_init). Full open/read/close GC emit still deferred —
+// unstub attempts hung full selfhost emit on this host (see probe doc).
 fn emit_fs_read_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s_path: i32) -> bool {
     let _inst = inst
     let _s_path = s_path
     let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     helpers_core::emit_local_set(w, s_drop)
-    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    writer_gc::emit_gc_ref_null(w, open_type)
+    intrinsic_fs_read_body::emit_fs_read_open_error_message(w)
+    intrinsic_fs_read_body::emit_fs_read_result_pair(w, 1, ctx)
     return true
 }
 

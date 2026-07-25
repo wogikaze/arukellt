@@ -71,8 +71,11 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     }
     // Assert/loop temps may keep an open-enum type_name after local reuse while
     // the body only stores i64. Demote those; real array/string refs are skipped
-    // inside the scan helper.
-    if code_ref_locals::local_body_has_i64_stack_set(f, local_idx) {
+    // inside the scan helper. Never demote Result/Option/enum container locals —
+    // MIR_CALL producers are not counted as ref ops by the i64 scan, so fs
+    // write_string/read_to_string dests were collapsing to i32 (#834 cmd_init).
+    if code_ref_locals::local_body_has_i64_stack_set(f, local_idx) &&
+    !code_locals_struct::local_has_result_option_enum_type_name(clone(type_name)) {
         let mut scalar_vt = vt
         if scalar_vt == value_types::VT_GC_REF() ||
         scalar_vt == value_types::VT_REF() ||

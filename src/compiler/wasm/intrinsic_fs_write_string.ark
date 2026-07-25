@@ -1,7 +1,6 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::import_indices
 use wasm::intrinsic_fs_write_result
@@ -13,21 +12,19 @@ use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::writer_gc
 
 // Handler for: fs::write_string / __intrinsic_fs_write_file
 fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_path_w = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_content = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // Validate stub: drop path+contents GC strings, return null Result.
-        // Full WASI GC write emit can trap the compiler (#726 fs_read_write).
+        // Typed Ok stub: null Result broke match/local typing in cmd_init (#834).
+        // P2 has no file fd_write; P1 full GC write still deferred (#726).
         let s_a = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
         let s_b = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
         helpers_core::emit_local_set(w, s_a)
         helpers_core::emit_local_set(w, s_b)
-        let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        writer_gc::emit_gc_ref_null(w, open_type)
+        intrinsic_fs_write_result::emit_fs_write_unit_ok_gc(w, ctx)
         return true
     }
     helpers_core::emit_local_set(w, s_content)

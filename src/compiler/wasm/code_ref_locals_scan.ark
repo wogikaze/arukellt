@@ -564,6 +564,14 @@ fn local_body_has_i64_stack_set(f: MirFunction, local_idx: i32) -> bool {
             if dest == local_idx && inst_op_produces_ref_value(op) {
                 blocked_by_ref = true
             }
+            // fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF;
+            // without this, Result dest locals demote to i32 (#834).
+            if dest == local_idx && op == opcodes::MIR_CALL() {
+                let call_vt = inst_accessors_shape::MirInst_val_type(inst)
+                if call_vt == value_types::VT_GC_REF() || call_vt == value_types::VT_REF() {
+                    blocked_by_ref = true
+                }
+            }
             if op == opcodes::MIR_LOCAL_SET() &&
             inst_accessors_operands::MirInst_arg0(inst) == local_idx &&
             ii > 0 {

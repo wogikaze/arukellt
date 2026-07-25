@@ -11,31 +11,35 @@ fn set_stdlib_result_type(ctx: LowerCtx, dest: i32, type_name: String) {
     }
 }
 
-fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
     let cn = mir_strip_module_prefix(clone(callee_name))
     if eq(clone(cn), "cmp") || ends_with(clone(cn), String_from("::cmp")) || starts_with(clone(cn), String_from("cmp__")) || contains(clone(cn), String_from("::cmp__")) {
         set_stdlib_result_type(ctx, dest, String_from("enum:Ordering"))
-        return
+        return true
     }
     if eq(clone(cn), "find_i64") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i64"))
+        return true
     }
     if eq(clone(cn), "find_f64") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_f64"))
+        return true
     }
     if eq(clone(cn), "find_String") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
+        return true
     }
     if eq(clone(cn), "find_i32") {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+        return true
     }
     if eq(clone(cn), "read_to_string") || eq(clone(cn), "fs_read_file") || eq(clone(cn), "__intrinsic_fs_read_file") || ends_with(clone(callee_name), String_from("::read_to_string")) {
         set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
-        return
+        return true
     }
     if eq(clone(cn), "write_string") || eq(clone(cn), "fs_write_file") || eq(clone(cn), "__intrinsic_fs_write_file") || ends_with(clone(callee_name), String_from("::write_string")) {
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
-        return
+        return true
     }
     if eq(clone(cn), "write_bytes") ||
     eq(clone(cn), "fs_write_bytes") ||
@@ -44,16 +48,17 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         // Without this, Result dest locals stay Memory64 i64 and ref.null/Ok
         // from the GC intrinsic fails validate (#730 write_compile_output).
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
-        return
+        return true
     }
     if eq(clone(cn), "parse_f64") || ends_with(clone(callee_name), String_from("::parse_f64")) {
         set_stdlib_result_type(ctx, dest, String_from("result:f64:String"))
-        return
+        return true
     }
     if eq(clone(cn), "parse_i64") || ends_with(clone(callee_name), String_from("::parse_i64")) {
         set_stdlib_result_type(ctx, dest, String_from("result:i64:String"))
-        return
+        return true
     }
+    false
 }
 
 fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {

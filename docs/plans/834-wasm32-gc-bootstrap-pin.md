@@ -1,6 +1,6 @@
 # #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画
 
-ステータス: 進行中（Phase 1 完了 / Phase 2 ブロック）  
+ステータス: 進行中（Phase 1 完了 / Phase 2 partial — typing 前進、full emit 再ブロック）  
 親 issue: [#834](../../issues/open/834-wasm32-gc-bootstrap-pin.md)  
 前駆 issue: [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)  
 担当 subagent lane: `wave/834-bootstrap`  
@@ -28,7 +28,9 @@
 
 ### Phase 2 — wasm32-gc self-emit 検証
 - s2 ホストが `src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2` を `wasm-tools validate --features gc,function-references,memory64` で通す。
-- **2026-07-26:** 未達。P2 stdin import index は修正済み。残存: `cmd_init` validate、GC `fs_read` stub、P2 file write surface。
+- **2026-07-26:** partial。P2 import index + Result local typing（fixture で `$write_main` が ref）は前進。
+  full self-emit は同日後半から ~6 GiB hang / 4 GiB OOB で再ブロック（clean HEAD でも再現）。
+  証拠: `docs/research/834-wasm32-gc-bootstrap-probe.md`。
 
 ### Phase 3 — ピン済み bootstrap 更新
 - `python3 scripts/manager.py selfhost fixpoint --build` を実行し `sha256(s2)==sha256(s3)` を安定化。

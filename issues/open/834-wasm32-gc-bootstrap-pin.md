@@ -50,16 +50,17 @@ larger machine or a grow-path fix, not more clone typing.
 
 Probe receipt: [`docs/research/834-wasm32-gc-bootstrap-probe.md`](../../docs/research/834-wasm32-gc-bootstrap-probe.md)
 
-- **Not OOM-blocked** for default Memory64 s2-runtime (`initial_pages=65535`):
-  full `wasm32-gc` self-emit finishes at ~1.2–1.3 GiB RSS on this 23 GiB host.
-- Landed: P1/P2 WASI import-index helpers (`path_open` / `fd_read` / `stdin_read` /
-  `fd_close`) so wasi-p2 stdin no longer calls `open-at`.
-- Landed: wasi-p2 stub for GC `write_bytes` (no file `fd_write` on P2 core surface).
+- **Not OOM-blocked** (morning): default Memory64 s2-runtime finished full emit at
+  ~1.2–1.3 GiB RSS. **Later same day:** full re-emit hangs (~6 GiB flat CPU) or traps
+  at `0x100090000` even on clean HEAD — pin emit path unstable on this host now.
+- Landed: P1/P2 WASI import-index helpers so wasi-p2 stdin no longer calls `open-at`.
+- Landed: Result-local typing guards + typed GC fs Result stubs (`write_main` is
+  `(ref null …)` on `write_init` / `read_init` fixtures; validate OK).
 - **Still blocked for pin:**
-  1. `wasm-tools validate` fails after index fix at `cmd_init` (GC Result/local typing).
-  2. `emit_fs_read_to_string_gc` remains a null stub — pin would not read sources.
-  3. Memory64 `wasm32-gc`/`wasi-p1` path fails validate in `canonicalize_target_input`
-     (GC String used as linear i64 pointer).
+  1. Full `main.ark` wasm32-gc/wasi-p2 self-emit + validate (host hang/OOB).
+  2. GC `fs_read` still stubbed (typed Err) — pin cannot read sources.
+  3. P2 has no file `fd_write`; write paths are typed Ok stubs.
+  4. Memory64 `wasm32-gc`/`wasi-p1` path fails validate in `canonicalize_target_input`.
 
 ## References
 
