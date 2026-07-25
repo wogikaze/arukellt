@@ -311,7 +311,7 @@ Phase 5: D-1, D-2 — WIR layer 設計 (#728)
 
 - [Issue #714](../../issues/open/714-wasi-p2-emitter-native-component-output.md) —
   Emitter-native WASI P2 component output without wrapper
-- [Issue #668](../../issues/open/668-p2-native-component-polish.md) —
+- [Issue #668](../../issues/done/668-p2-native-component-polish.md) —
   P2 native component polish (post-#074)
 - [Issue #727](../../issues/open/727-arukellt-host-bridge-retirement.md) —
   Retire arukellt_host custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports

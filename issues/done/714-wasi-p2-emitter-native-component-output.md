@@ -30,7 +30,7 @@ from the compiler/emitter (bridged path), without `p2_component_wrap.py`.
 - [x] Generated P2 command components import `wasi:cli/stdout@0.2.0` and
       `wasi:io/streams@0.2.0` (component-level); no `::write` pseudo literal in
       the artifact. Guest core may still name a bridge `write` import (bridged
-      short-term design); guest-native `get-stdout` call sites are #668
+      short-term design); guest-native `get-stdout` call sites closed in #668
 - [x] `tests/fixtures/wasi_p2_native/hello.ark` validates and prints `hello p2`
       under `wasmtime run`
 - [x] Exit-code fixture `tests/fixtures/wasi_p2_native/exit_code.ark` proves the

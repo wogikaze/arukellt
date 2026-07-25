@@ -58,7 +58,7 @@ Child: [`#830`](../../issues/open/830-wasm-heap-grow-patcher-retirement.md)（pa
 `tests/fixtures/wasi_p2_native/hello.ark` が wrapper-free で `wasm-tools validate` + `wasmtime run` 緑。
 
 HTTP/sockets は `#714` の component emit / canon lower パターンを再利用する。guest-native
-`get-stdout` 直呼びは `#668` 残件であり、`#727` の blocker ではない。
+`get-stdout` 直呼びは `#668` で完了済みであり、`#727` の blocker ではない。
 
 ### `#714` worktree との衝突 — **resolved**
 

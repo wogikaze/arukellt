@@ -24,7 +24,7 @@ Close gate: scripts/check/check-false-done-close-gates.py::gate_074
 | wasmtime run stdio | ✅ | stdout contains `hello p2` |
 | verify quick | ✅ | 147/147 (HEAD at close) |
 
-**Path:** bridged emitter-native output (#714); `p2_component_wrap.py` removed. Remaining polish (stderr, args/env fixtures, size gate, version-string hygiene, guest-native get-stdout) tracked in [#668](../open/668-p2-native-component-polish.md).
+**Path:** bridged emitter-native output (#714); `p2_component_wrap.py` removed. Post-#074 polish (stderr, args/env, size/version hygiene, guest-native get-stdout) closed in [#668](../done/668-p2-native-component-polish.md).
 
 ## Reopened 2026-07-12 (close-gate failure)
 

@@ -173,7 +173,7 @@ Full root-cause analysis and retirement sequence live in
 - `docs/adr/ADR-011-wasi-host-layering.md` — `std::host::*` facade policy
 - `issues/open/714-wasi-p2-emitter-native-component-output.md`
 - `issues/open/675-host-capability-reachability-flags.md`
-- `issues/open/668-p2-native-component-polish.md`
+- `issues/done/668-p2-native-component-polish.md`
 - `tools/host-linker/src/host_http.rs`, `host_sockets.rs`
 - `src/compiler/wasm/sections_imports.ark`, `import_indices.ark`,
   `emit_target.ark`
