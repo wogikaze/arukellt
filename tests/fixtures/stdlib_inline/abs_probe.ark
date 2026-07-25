@@ -250,6 +250,18 @@ pub fn probe_f64_bits_ops() -> bool {
     f64_bits_lo(1.0) == 0 && f64_bits_hi(1.0) == 1072693248
 }
 
+pub fn probe_format_f64_ops() -> bool {
+    let text = text::format_f64(0.5)
+    text.len() == 3 && text.char_at(0) == 48 && text.char_at(1) == 46 && text.char_at(2) == 53
+}
+
+pub fn probe_push_char_ops() -> bool {
+    let text = String_new()
+    push_char(text, 'A')
+    text.len() == 1 && text.char_at(0) == 65
+}
+
 fn main() {}
 use std::core
 use std::seq
+use std::text

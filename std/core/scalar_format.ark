@@ -50,6 +50,14 @@ fn __core_scalar_f64_bits_hi_impl(value: f64) -> i32 {
     raw::raw_f64_bits_hi(value)
 }
 
+fn __core_format_f64_impl(value: f64) -> String {
+    raw::raw_f64_to_string(value)
+}
+
+fn __core_push_char_impl(s: String, value: char) {
+    raw::raw_string_push_char(s, value)
+}
+
 fn __core_format_i32_impl(value: i32) -> String {
     let reversed = raw::raw_array_new(12)
     let mut remaining = value

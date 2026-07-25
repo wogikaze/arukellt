@@ -276,7 +276,7 @@ pub fn format_i64(n: i64) -> String {
     __intrinsic_i64_to_string(n)
 }
 
-/// Formats an `f64` using the intrinsic formatter.
+/// Formats an `f64` using the sealed-raw formatter.
 pub fn format_f64(n: f64) -> String {
     __intrinsic_f64_to_string(n)
 }

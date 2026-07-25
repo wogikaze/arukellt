@@ -151,6 +151,26 @@ core_op_id = "raw.f64_bits_hi"
 alias = "raw::raw_f64_bits_hi"
 core_op_id = "raw.f64_bits_hi"
 
+[[legacy_bindings]]
+alias = "__intrinsic_push_char"
+core_op_id = "raw.string_push_char"
+
+[[legacy_bindings]]
+alias = "raw_f64_to_string"
+core_op_id = "raw.f64_to_string"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_to_string"
+core_op_id = "raw.f64_to_string"
+
+[[legacy_bindings]]
+alias = "raw_string_push_char"
+core_op_id = "raw.string_push_char"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_push_char"
+core_op_id = "raw.string_push_char"
+
 
 [[legacy_bindings]]
 alias = "__intrinsic_clock_now"
@@ -182,7 +202,7 @@ core_op_id = "runtime.f32_to_f64"
 
 [[legacy_bindings]]
 alias = "__intrinsic_f64_to_string"
-core_op_id = "text.format_f64"
+core_op_id = "raw.f64_to_string"
 
 [[legacy_bindings]]
 alias = "__intrinsic_fs_read_file"
@@ -2585,6 +2605,87 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "raw.f64_bits_hi"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+
+
+[[operations]]
+id = "raw.f64_to_string"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Shortest round-trip f64 decimal formatter for sealed raw (#822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_to_string"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_push_char"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Append one byte to sealed raw String storage (#822)."
+[operations.signature]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "value", type = { kind = "primitive", name = "char" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_push_char"
 required_capabilities = []
 required_target_features = []
 [operations.fallback]
@@ -12230,7 +12331,7 @@ id = "text.f32_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f32_to_string (aliases: 1; f32_to_string)"
+description = "Legacy handler branch → f32_to_string (blocked: f32 literal/ABI bridge; #822 follow-up)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -12300,21 +12401,21 @@ id = "text.format_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_f64 (aliases: 4; f64_to_string, text::format_f64, convert::f64_to_string, __intrinsic_f64_to_string)"
+description = "Format f64 via sealed-raw shortest round-trip formatter (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12322,12 +12423,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.format_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_f64_impl"
+required = true
 
 [[operations]]
 id = "text.format_i64"
@@ -12439,10 +12540,14 @@ id = "text.push_char"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → push_char (aliases: 1; push_char)"
+description = "Append a char via sealed-raw string mutation (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "value", type = { kind = "primitive", name = "char" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -12452,8 +12557,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12461,12 +12566,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.push_char"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_push_char_impl"
+required = true
 
 [[operations]]
 id = "text.string_eq"

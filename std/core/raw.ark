@@ -74,6 +74,16 @@ pub fn raw_f64_bits_hi(value: f64) -> i32 {
     __intrinsic_f64_bits_hi(value)
 }
 
+/// Shortest round-trip decimal formatting for an `f64`.
+pub fn raw_f64_to_string(value: f64) -> String {
+    __intrinsic_f64_to_string(value)
+}
+
+/// Appends one byte to sealed string storage in place.
+pub fn raw_string_push_char(s: String, value: char) {
+    __intrinsic_push_char(s, value)
+}
+
 test mod "raw_storage" {
     test "array_primitives" {
         let values = raw_array_new(2)

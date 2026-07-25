@@ -369,7 +369,7 @@ pub fn join(v: Vec<String>, sep: String) -> String {
 }
 
 pub fn push_char(s: String, c: char) {
-    panic(String_new())
+    __core_push_char_impl(s, c)
 }
 
 // Vec: additional sorting
