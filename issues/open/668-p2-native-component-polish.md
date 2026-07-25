@@ -11,7 +11,7 @@ Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
 Source: P0 WASI P2 native checklist audit 2026-06-17 — post-#074 polish gaps
-Status note: Parent #074 re-closed 2026-07-25; this issue owns remaining polish.
+Status note: Parent #074 re-closed 2026-07-25; stderr bridge landed 2026-07-25 (gate-668-p2-stderr).
 ---
 
 # 668 — P2 native component polish (post-#074)
@@ -40,15 +40,21 @@ if the queue grows.
 
 ## Acceptance
 
-- [ ] P2 `eprintln` routes through `wasi:cli/stderr` (or documented equivalent
+- [x] P2 `eprintln` routes through `wasi:cli/stderr` (or documented equivalent
       streams path) with wasmtime stderr proof fixture
+      (`tests/fixtures/wasi_p2_native/eprintln_stderr.ark`,
+      `scripts/check/gate-668-p2-stderr.py`)
 - [ ] Guest print path follows #714's coherent architecture: wrapper-free
       emitter-native WASI 0.2 component output using `wasi:cli/stdout.get-stdout`
       plus `wasi:io/streams` resource methods, not pseudo direct
       `wasi:cli/stdout::write` core imports
 - [ ] `tests/fixtures/wasi_p2_native/` gains runnable gates for at least:
-      `eprintln_stderr.ark`, `exit_code.ark`, `args.ark`, `env_var.ark`
+      `eprintln_stderr.ark` ✅, `exit_code.ark` ✅, `args.ark`, `env_var.ark`
       (rename or alias `hello.ark` → `hello_stdout.ark` if desired)
+      **Blocker for args/env (2026-07-25):** on `wasm32-gc`, `env::args` /
+      `arg_at` emit `unreachable`, and `env::var` always returns `None`.
+      Real `wasi:cli/environment` host wiring + GC list/string lowering is
+      required before runnable args/env_var fixtures (not stub_env zeros).
 - [ ] P2 native component size regression gate (no P1 adapter blob) lands in
       `scripts/check/` with a checked-in threshold (~80KB savings vs adapter path)
 - [ ] `docs/target-contract.md` P2 native tier matches `current-state.md` and

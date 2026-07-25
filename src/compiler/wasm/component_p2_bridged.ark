@@ -1,23 +1,25 @@
 // Arukellt Selfhost - bridged P2 component wrapping with embedded binary constants.
 //
 // Contains the pre-encoded host import prefix (component import sections for
-// wasi:io/error, wasi:io/streams, wasi:cli/stdout) and helper module bytes
-// (shared memory, realloc, stdout bridge, wrapper) for the bridged component.
+// wasi:io/error, wasi:io/streams, wasi:cli/stdout, wasi:cli/stderr) and helper
+// module bytes (shared memory, realloc, stdout/stderr bridges, wrapper).
 //
-// The bridged path wires canonical WASI 0.2 host imports through a stdout
-// bridge core module that forwards guest write calls to host streams.
+// The bridged path wires canonical WASI 0.2 host imports through stdout/stderr
+// bridge core modules that forward guest write calls to host streams.
 
 use wasm::component_p2_stubs
 use wasm::writer_core
 use wasm::writer_string
 
-// Pre-encoded component import prefix (593 bytes).
+// Pre-encoded component import prefix (stdout + stderr).
 // Contains: type, import, and alias sections for
-// wasi:io/error@0.2.0, wasi:io/streams@0.2.0, wasi:cli/stdout@0.2.0.
+// wasi:io/error@0.2.0, wasi:io/streams@0.2.0, wasi:cli/stdout@0.2.0,
+// wasi:cli/stderr@0.2.0.
 // After the prefix:
-//   component instances: 0=error, 1=streams, 2=stdout
-//   component funcs: 0=bwaf (from streams), 1=get-stdout (from stdout)
-//   component types: 0=error_inst, 1=error, 2=streams_inst, 3=output_stream, 4=stdout_inst
+//   component instances: 0=error, 1=streams, 2=stdout, 3=stderr
+//   component funcs: 0=bwaf, 1=get-stdout, 2=get-stderr
+//   component types: 0=error_inst, 1=error, 2=streams_inst, 3=output_stream,
+//                    4=stdout_inst, 5=stderr_inst
 fn p2_host_import_prefix_bytes() -> Vec<i32> {
     let mut hex = String_from("070d0142010400056572726f7203010a18010013776173693a696f2f6572726f7240302e322e300500060a01030000056572726f7207ce0201421202030201010400056572726f7203000004000d6f75")
     hex = concat(hex, String_from("747075742d73747265616d030104000c696e7075742d73747265616d0301016901017102156c6173742d6f7065726174696f6e2d6661696c656401040006636c6f736564000004000c73747265616d2d"))
@@ -27,6 +29,9 @@ fn p2_host_import_prefix_bytes() -> Vec<i32> {
     hex = concat(hex, String_from("696f2f73747265616d7340302e322e3005020644020100012e5b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e672d77726974652d616e642d666c7573680300010d6f75747075"))
     hex = concat(hex, String_from("742d73747265616d0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d7374646f757401030a1a010015776173693a636c692f7374646f7574"))
     hex = concat(hex, String_from("40302e322e300504060f010100020a6765742d7374646f7574"))
+    // stderr_inst type + wasi:cli/stderr import + get-stderr alias (instance 3)
+    hex = concat(hex, String_from("0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d73746465727201030a1a010015776173693a636c692f73746465727240302e322e300505"))
+    hex = concat(hex, String_from("060f010100030a6765742d737464657272"))
     p2_bridged_hex_to_bytes(hex)
 }
 
@@ -56,6 +61,13 @@ fn p2_realloc_module_bytes() -> Vec<i32> {
 //     (i32.const 0))
 fn p2_stdout_bridge_bytes() -> Vec<i32> {
     let mut hex = String_from("0061736d010000000114036000017f60047f7f7f7f0060047f7f7f7f017f02400303656e760a6765742d7374646f7574000003656e7618626c6f636b696e672d77726974652d616e642d666c75736800")
+    hex = concat(hex, String_from("0104686f7374066d656d6f72790200010302010207090105777269746500020a10010e001000200120022000100141000b000e046e616d65000706627269646765"))
+    p2_bridged_hex_to_bytes(hex)
+}
+
+// Stderr bridge core module — same shape as stdout, imports get-stderr.
+fn p2_stderr_bridge_bytes() -> Vec<i32> {
+    let mut hex = String_from("0061736d010000000114036000017f60047f7f7f7f0060047f7f7f7f017f02400303656e760a6765742d737464657272000003656e7618626c6f636b696e672d77726974652d616e642d666c75736800")
     hex = concat(hex, String_from("0104686f7374066d656d6f72790200010302010207090105777269746500020a10010e001000200120022000100141000b000e046e616d65000706627269646765"))
     p2_bridged_hex_to_bytes(hex)
 }
@@ -92,9 +104,10 @@ fn p2_bridged_hex_val(c: i32) -> i32 {
 }
 
 // Emit the first core instance section (6 instances, no import args).
-// Modules: 0=mem, 1=realloc, 2=bridge, 3=stub_env, 4=stub_fs, 5=stub_read, 6=stub_exit
+// Modules: 0=mem, 1=realloc, 2=stdout_bridge, 3=stub_env, 4=stub_fs, 5=stub_read,
+//          6=stub_exit, 7=stderr_bridge, 8=wrapper, 9=guest
 // Instances 0-5: mem(0), realloc(1), stub_env(3), stub_fs(4), stub_read(5), stub_exit(6)
-// (bridge module 2 is instantiated in instance section 2 with import args)
+// (bridge modules are instantiated in instance section 2 with import args)
 fn p2_bridged_emit_instance_section_1(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 6)
@@ -137,86 +150,91 @@ fn p2_bridged_emit_core_alias_section(out: WasmWriter) {
     p2_bridged_emit_section(out, 6, sec)
 }
 
-// Emit canon lower section: get-stdout and blocking-write-and-flush.
-// comp func 1 (get-stdout) → core func 1, comp func 0 (bwaf) → core func 2
-// Both use core memory 0 and core func 0 (realloc).
+// Emit canon lower section: get-stdout, blocking-write-and-flush, get-stderr.
+// comp func 1 → core func 1, comp func 0 → core func 2, comp func 2 → core func 3
+// All use core memory 0 and core func 0 (realloc).
 fn p2_bridged_emit_canon_lower_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 2)
-    // canon lower: comp func 1 (get-stdout) → core func 1
-    writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 1)
-    writer_core::emit_leb128_u(sec, 2)
-    writer_core::emit_byte(sec, 0x03)
-    writer_core::emit_leb128_u(sec, 0)
-    writer_core::emit_byte(sec, 0x04)
-    writer_core::emit_leb128_u(sec, 0)
-    // canon lower: comp func 0 (bwaf) → core func 2
-    writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 0)
-    writer_core::emit_leb128_u(sec, 2)
-    writer_core::emit_byte(sec, 0x03)
-    writer_core::emit_leb128_u(sec, 0)
-    writer_core::emit_byte(sec, 0x04)
-    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_leb128_u(sec, 3)
+    p2_bridged_emit_canon_lower_entry(sec, 1)
+    p2_bridged_emit_canon_lower_entry(sec, 0)
+    p2_bridged_emit_canon_lower_entry(sec, 2)
     p2_bridged_emit_section(out, 8, sec)
 }
 
-// Emit the second core instance section (2 instances).
-// Instance 6: inline export instance (get-stdout → core func 1, bwaf → core func 2)
-// Instance 7: bridge module (module 2, with env→instance 6, host→instance 0)
+fn p2_bridged_emit_canon_lower_entry(sec: WasmWriter, comp_func_index: i32) {
+    writer_core::emit_byte(sec, 0x01)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, comp_func_index)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, 0x03)
+    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, 0x04)
+    writer_core::emit_leb128_u(sec, 0)
+}
+
+// Emit the second core instance section (3 instances).
+// Instance 6: inline exports (get-stdout→1, bwaf→2, get-stderr→3)
+// Instance 7: stdout bridge (module 2)
+// Instance 8: stderr bridge (module 7)
 fn p2_bridged_emit_instance_section_2(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 2)
-    // Instance 6: inline export instance with 2 exports
+    writer_core::emit_leb128_u(sec, 3)
+    // Instance 6: inline export instance with 3 exports
     writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_leb128_u(sec, 3)
     writer_string::emit_string(sec, String_from("get-stdout"))
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     writer_string::emit_string(sec, String_from("blocking-write-and-flush"))
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 2)
-    // Instance 7: bridge (module 2, with 2 import args)
+    writer_string::emit_string(sec, String_from("get-stderr"))
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 2)
-    writer_core::emit_leb128_u(sec, 2)
-    // env → instance 6
-    writer_string::emit_string(sec, String_from("env"))
-    writer_core::emit_byte(sec, 0x12)
-    writer_core::emit_leb128_u(sec, 6)
-    // host → instance 0
-    writer_string::emit_string(sec, String_from("host"))
-    writer_core::emit_byte(sec, 0x12)
-    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_leb128_u(sec, 3)
+    // Instance 7: stdout bridge (module 2)
+    p2_bridged_emit_bridge_instance(sec, 2, 6)
+    // Instance 8: stderr bridge (module 7)
+    p2_bridged_emit_bridge_instance(sec, 7, 6)
     p2_bridged_emit_section(out, 2, sec)
 }
 
+fn p2_bridged_emit_bridge_instance(sec: WasmWriter, module_index: i32, env_instance: i32) {
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, module_index)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_string::emit_string(sec, String_from("env"))
+    writer_core::emit_byte(sec, 0x12)
+    writer_core::emit_leb128_u(sec, env_instance)
+    writer_string::emit_string(sec, String_from("host"))
+    writer_core::emit_byte(sec, 0x12)
+    writer_core::emit_leb128_u(sec, 0)
+}
+
 // Emit the third core instance section (2 instances).
-// Instance 8: guest (module 8, with 6 import args)
-// Instance 9: wrapper (module 7, with 1 import arg: guest → instance 8)
+// Instance 9: guest (module 9, with 7 import args)
+// Instance 10: wrapper (module 8, with 1 import arg: guest → instance 9)
 fn p2_bridged_emit_instance_section_3(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 2)
-    // Instance 8: guest (module 8, with 6 import args)
+    // Instance 9: guest (module 9, with 7 import args)
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 8)
-    writer_core::emit_leb128_u(sec, 6)
+    writer_core::emit_leb128_u(sec, 9)
+    writer_core::emit_leb128_u(sec, 7)
     p2_bridged_emit_instance_arg(sec, String_from("shared"), 0)
     p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stdout@0.2.0"), 7)
     p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/environment@0.2.0"), 2)
     p2_bridged_emit_instance_arg(sec, String_from("wasi:filesystem/types@0.2.0"), 3)
     p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stdin@0.2.0"), 4)
     p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/exit@0.2.0"), 5)
-    // Instance 9: wrapper (module 7, with 1 import arg: guest → instance 8)
+    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stderr@0.2.0"), 8)
+    // Instance 10: wrapper (module 8, guest → instance 9)
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 7)
+    writer_core::emit_leb128_u(sec, 8)
     writer_core::emit_leb128_u(sec, 1)
     writer_string::emit_string(sec, String_from("guest"))
     writer_core::emit_byte(sec, 0x12)
-    writer_core::emit_leb128_u(sec, 8)
+    writer_core::emit_leb128_u(sec, 9)
     p2_bridged_emit_section(out, 2, sec)
 }
 
