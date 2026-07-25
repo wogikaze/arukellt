@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-15
+Updated: 2026-07-24
 ID: 722
 Track: wasm-feature
 Depends on: none
@@ -79,13 +79,86 @@ HOF / クロージャの call site を以下の3つに分類:
 - バイナリサイズ（table section 削減効果）
 - 型セクションサイズ（typed funcref 型定義の追加）
 
+## Phase A audit results
+
+Call-site classification was performed by compiling representative fixtures to
+`wasm32-gc`, disassembling with `wasm-tools print`, and inspecting `call_indirect`
+usage.
+
+### Class A: static direct / known `ref.func`
+
+- Top-level function callbacks passed to builtin HOFs (`map_i32_i32`,
+  `filter_i32`, `fold_i32_i32`, etc.) are already emitted as **direct calls**.
+- Known function values passed to user-defined `fn` parameters are emitted as an
+  `i32` table index; with typed function references these would become
+  `ref.func` at the call site.
+- Count in the current fixture set: **1** (`higher_order.ark` passes `double` to
+  `apply`).
+
+### Class B: type known, function dynamic
+
+- User-defined functions that take a `fn(...)` parameter and call it emit
+  `call_indirect` with a statically known type index.
+- Count in the current fixture set: **1** (`f(x)` inside `apply` in
+  `higher_order.ark`).
+- Selfhost compiler wasm (`arukellt-s2-runtime.wasm`): **0** `call_indirect`
+  instructions (compiler code only emits MIR, it does not execute indirect
+  calls at runtime).
+
+### Class C: fully dynamic
+
+- No fixtures or known code paths exercise a function reference whose type is
+  also dynamic.
+- Count: **0**.
+
+### Prototype
+
+WAT prototypes demonstrating the `call_indirect` baseline and the equivalent
+`call_ref` / typed-function-reference version are in
+`docs/research/wat-probes/typed-funcref/`:
+
+- `higher_order_call_indirect.wat` — untyped funcref table + `call_indirect`
+- `higher_order_call_ref.wat` — `(ref $callback)` parameter + `call_ref`
+- `bench_call_indirect.wat` — 10M iteration benchmark, baseline
+- `bench_call_ref.wat` — 10M iteration benchmark, prototype
+
+### Phase C microbenchmark (wasmtime 46)
+
+10M iterations of `apply(callback, acc)` on an `i32` callback:
+
+| Variant | median real | median user |
+|---|---|---|
+| `call_indirect` (table index) | ~0.054 s | ~0.045 s |
+| `call_ref` (typed funcref)    | ~0.043 s | ~0.031 s |
+
+`call_ref` is approximately **15–25 % faster** in this microbenchmark, exceeding
+the ≥5 % improvement gate.
+
+Binary size of the `higher_order` equivalent:
+
+| Variant | wasm bytes |
+|---|---|
+| `call_indirect` (table + elem segment) | 140 |
+| `call_ref` (no table, declare elem)    | 132 |
+
+The prototype removes the `table` section but adds a `declare` element segment
+and a typed function reference in the type section, resulting in a small net
+saving for this single-call example.  Programs with many `fn` parameters would
+see larger table-section savings, but each typed reference needs a distinct
+type index, so type-section growth must also be measured in a real emitter.
+
+Real-world impact will depend on how often the compiler emits `call_indirect`
+today; Phase A found only one user fixture that produces it, so total program
+speedup from this change alone is expected to be small unless user code uses
+`fn` parameters heavily.
+
 ## Acceptance criteria
 
 ### Phase A (emitter audit)
 
-- [ ] HOF / クロージャ call site の分類（A/B/C）が完了する
-- [ ] 分類 A（静的直接）の call site 数が把握できる
-- [ ] `call_ref` を emit するプロトタイプ（実験ブランチ）が作成される
+- [x] HOF / クロージャ call site の分類（A/B/C）が完了する
+- [x] 分類 A（静的直接）の call site 数が把握できる
+- [x] `call_ref` を emit するプロトタイプ（実験ブランチ）が作成される
 
 ### Phase B (nullable refs)
 
