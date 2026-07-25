@@ -371,6 +371,8 @@ run:functions/option_fn_call.ark
 run:functions/fn_return_bind.ark
 run:functions/call_expr_callee.ark
 run:functions/vec_fn_push_call.ark
+run:collections/vec_option_i32.ark
+run:collections/vec_result_i32.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
 run:functions/recursive.ark
@@ -1965,6 +1967,8 @@ t3-compile:functions/option_fn_call.ark
 t3-compile:functions/fn_return_bind.ark
 t3-compile:functions/call_expr_callee.ark
 t3-compile:functions/vec_fn_push_call.ark
+t3-compile:collections/vec_option_i32.ark
+t3-compile:collections/vec_result_i32.ark
 t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
 t3-compile:functions/recursive.ark
@@ -2373,6 +2377,8 @@ t3-run:functions/option_fn_call.ark
 t3-run:functions/fn_return_bind.ark
 t3-run:functions/call_expr_callee.ark
 t3-run:functions/vec_fn_push_call.ark
+t3-run:collections/vec_option_i32.ark
+t3-run:collections/vec_result_i32.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
 t3-run:functions/recursive.ark

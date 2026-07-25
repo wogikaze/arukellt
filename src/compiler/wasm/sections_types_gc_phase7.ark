@@ -22,6 +22,18 @@ fn gc_vec_fnref_type_sig() -> String {
     String_from("gcref27")
 }
 
+fn gc_enum_ref_array_offset() -> i32 {
+    28
+}
+
+fn gc_vec_enum_ref_offset() -> i32 {
+    29
+}
+
+fn gc_vec_enum_ref_type_sig() -> String {
+    String_from("gcref29")
+}
+
 fn gc_vec_elem_name_is_fnref(elem: String) -> bool {
     eq(clone(elem), String_from("fnref")) ||
     eq(clone(elem), String_from("fn")) ||

@@ -86,6 +86,9 @@ fn collection_type_sig(type_name: String, target: String) -> String {
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return sections_types_gc::gc_vec_fnref_type_sig()
         }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
+            return sections_types_gc::gc_vec_enum_ref_type_sig()
+        }
         if sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(clone(elem)) ||
         eq(clone(elem), String_from("Vec")) ||
         starts_with(clone(elem), String_from("vec:")) {

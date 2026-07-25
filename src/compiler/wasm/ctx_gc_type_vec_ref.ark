@@ -17,10 +17,22 @@ fn SelfEmitCtx_vec_fnref_type(ctx: SelfEmitCtx) -> i32 {
     ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_vec_fnref_offset()
 }
 
+fn SelfEmitCtx_enum_ref_array_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_enum_ref_array_offset()
+}
+
+fn SelfEmitCtx_vec_enum_ref_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc_phase7::gc_vec_enum_ref_offset()
+}
+
 fn gc_vec_elem_is_struct_ref(elem: String) -> bool {
     sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem)
 }
 
 fn gc_vec_elem_is_fnref(elem: String) -> bool {
     sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem)
+}
+
+fn gc_vec_elem_is_enum_like(elem: String) -> bool {
+    sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(elem)
 }

@@ -252,6 +252,11 @@ fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitC
             writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
             return true
         }
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_enum_like(clone(elem)) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx))
+            return true
+        }
     }
     false
 }

@@ -133,6 +133,9 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
         if ctx_gc_type_vec_ref::gc_vec_elem_is_fnref(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
         }
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_enum_like(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
+        }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || starts_with(clone(elem), String_from("vec:")) || starts_with(clone(elem), String_from("Vec")) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }

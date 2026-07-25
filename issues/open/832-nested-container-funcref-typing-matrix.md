@@ -42,7 +42,7 @@ validate-fail / unreachable / runtime trap が残る。
 | `Vec<fn>` push / get_unchecked / call | ✅ | funcref 配列 ABI（`A_fnref` + vec header） |
 | `get_unchecked(fs,0)(5)`（call-expr callee） | ✅ | C: callee 式 lower → `call_ref` |
 | `id(double)(5)`（戻り値 fn の即時呼び出し） | ✅ | C: fn 戻り ABI + callee 式 |
-| `Vec<Option<i32>>` / `Vec<Result<...>>` | ❌ validate | ref-vs-ref layout |
+| `Vec<Option<i32>>` / `Vec<Result<...>>` | ✅ | open-enum 配列 ABI（`A_ref14` + vec header） |
 | `Option<Vec<fn>>` / `Result<Vec<fn>, _>` | ❌ validate | `Vec<fn>` に依存 |
 | `Vec<Vec<i32>>` / `Vec<String>`（一部経路） | ❌ runtime | validate は通るが trap |
 
@@ -70,15 +70,11 @@ validate-fail / unreachable / runtime trap が残る。
 - **修正済み**: fn 戻り ABI（`VT_FUNCREF`）+ callee 式 lower → `call_ref`、
   CALL 結果の FUNCREF store 強制。fixtures: `fn_return_bind` / `call_expr_callee`
 
-### D. `Vec<Option<T>>` / `Vec<Result<T,E>>` 要素 layout
+### D. `Vec<Option<T>>` / `Vec<Result<T,E>>` 要素 layout（完了）
 
-- **症状**: validate `expected (ref null $type), found (ref null $type)`
-  （型 index 不一致）
-- **原因**: 要素が enum-open / 具象 variant の取り違え、または
-  `gc_vec_elem_name_is_enum_like` 後の fallback（i32 配列）と
-  実際の `Some`/`Ok` 値（GC ref）の不一致
-- **必要**: 要素型に応じた enum-ref 配列（または既存 open-ref 配列）を
-  一貫して選び、push/get の cast を揃える
+- **修正済み**: `A_ref14`（`(array (mut (ref null $enum_open)))`）+ vec header、
+  ann `Vec<Option<i32>>` → `vec:Option_i32`、push/get/new/scratch 配線。
+  fixtures: `collections/vec_option_i32.ark`, `collections/vec_result_i32.ark`
 
 ### E. 自由関数 `get` → `Option<T>` と算術の組み合わせ
 
@@ -134,8 +130,8 @@ validate-fail / unreachable / runtime trap が残る。
 ## Progress
 
 - [x] **C** — call-expr callee / fn 戻り（`c556263b`）
-- [x] **B** — `Vec<fn>` funcref 配列 ABI + `vec_fn_push_call`
-- [ ] **D** — `Vec<Option/Result>` 要素 layout
+- [x] **B** — `Vec<fn>` funcref 配列 ABI + `vec_fn_push_call`（`7360dc76`）
+- [x] **D** — `Vec<Option/Result>` open-enum 配列 ABI
 - [ ] **A 監査** / **E** / **F**
 
 ## Acceptance
@@ -143,11 +139,11 @@ validate-fail / unreachable / runtime trap が残る。
 - [ ] 上表の ❌ 行がすべて validate + hosted run で期待出力
 - [x] `get_unchecked(fs, 0)(5)` と `id(double)(5)` が `call_ref`
 - [x] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
-- [ ] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
+- [x] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
 - [ ] 自由 `get(...)+get(...)` は型エラー（または明示ドキュメント + lint）で失敗し、
       silent validate-fail にならない
-- [x] 回帰 fixture を `run:` + `t3-compile:` に登録（C/B 分）
-- [x] `python3 scripts/manager.py verify lane --gate t3`（B 完了時）
+- [x] 回帰 fixture を `run:` + `t3-compile:` に登録（C/B/D 分）
+- [x] `python3 scripts/manager.py verify lane --gate t3`（D 完了時）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes

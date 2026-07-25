@@ -39,8 +39,11 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     let is_vec_fnref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
+    let is_vec_enumref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
     let arr_tmp = if is_vec_fnref {
         ctx_scratch::SelfEmitCtx_scratch_gc_fnref_array_local(ctx, 0)
+    } else if is_vec_enumref {
+        ctx_scratch::SelfEmitCtx_scratch_gc_enum_ref_array_local(ctx, 0)
     } else if is_vec_string {
         ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
     } else if is_vec_v128 {

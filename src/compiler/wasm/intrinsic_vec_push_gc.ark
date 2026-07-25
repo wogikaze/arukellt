@@ -33,19 +33,53 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
     let is_vec_fnref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
+    let is_vec_enumref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
     let mut element_is_gc_ref = push_gc_element_is_gc_ref(ctx, inst, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
     // String byte-buffer helpers always push i32 code units; MIR type_name on
     // the Vec param may still look like a structref-element vec.
     if intrinsic_vec_type::is_string_byte_vec_push_context(ctx) {
         element_is_gc_ref = false
     }
-    if is_vec_fnref {
+    if is_vec_fnref || is_vec_enumref {
+        // Funcref / enum-ref arrays store refs directly — not i31-packed i32.
         element_is_gc_ref = false
     }
 
-    let s_val = push_gc_val_scratch(ctx, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, element_is_gc_ref, is_vec_sref, is_vec_fnref)
-    let arr_tmp = push_gc_array_scratch(ctx, 0, arr_tmp_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref && element_is_gc_ref, is_vec_fnref)
-    let arr_old = push_gc_array_scratch(ctx, 1, arr_old_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref && element_is_gc_ref, is_vec_fnref)
+    let s_val = push_gc_val_scratch(
+        ctx,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        element_is_gc_ref,
+        is_vec_sref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
+    let arr_tmp = push_gc_array_scratch(
+        ctx,
+        0,
+        arr_tmp_i32,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref && element_is_gc_ref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
+    let arr_old = push_gc_array_scratch(
+        ctx,
+        1,
+        arr_old_i32,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref && element_is_gc_ref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
@@ -64,9 +98,22 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 // Vec<i64>→i64 (offset 15); Vec<f64>→f64 (offset 12); Vec<i32>→i32 base scratch.
 // Vec<i32> may share a GC struct type index with Vec<structref>; only use the
 // abstract structref val scratch when the element is actually a GC ref.
-fn push_gc_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, element_is_gc_ref: bool, is_vec_sref: bool, is_vec_fnref: bool) -> i32 {
+fn push_gc_val_scratch(
+    ctx: SelfEmitCtx,
+    is_vec_string: bool,
+    is_vec_v128: bool,
+    is_vec_i64: bool,
+    is_vec_f64: bool,
+    element_is_gc_ref: bool,
+    is_vec_sref: bool,
+    is_vec_fnref: bool,
+    is_vec_enumref: bool
+) -> i32 {
     if is_vec_fnref {
         return ctx_scratch::SelfEmitCtx_scratch_gc_fnref_val_local(ctx, 0)
+    }
+    if is_vec_enumref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     }
     if is_vec_sref && element_is_gc_ref {
         return ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
@@ -111,9 +158,23 @@ fn push_gc_primitive_vec_elem(elem: String) -> bool {
 }
 
 // Array scratch locals must match the vec's element array type.
-fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, is_vec_sref: bool, is_vec_fnref: bool) -> i32 {
+fn push_gc_array_scratch(
+    ctx: SelfEmitCtx,
+    slot: i32,
+    i32_fallback: i32,
+    is_vec_string: bool,
+    is_vec_v128: bool,
+    is_vec_i64: bool,
+    is_vec_f64: bool,
+    is_vec_sref: bool,
+    is_vec_fnref: bool,
+    is_vec_enumref: bool
+) -> i32 {
     if is_vec_fnref {
         return ctx_scratch::SelfEmitCtx_scratch_gc_fnref_array_local(ctx, slot)
+    }
+    if is_vec_enumref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_enum_ref_array_local(ctx, slot)
     }
     if is_vec_string {
         return ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, slot)

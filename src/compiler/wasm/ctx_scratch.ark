@@ -65,6 +65,10 @@ fn SelfEmitCtx_scratch_gc_fnref_val_local(ctx: SelfEmitCtx, offset: i32) -> i32 
     ctx.scratch_base + 39 + offset
 }
 
+fn SelfEmitCtx_scratch_gc_enum_ref_array_local(ctx: SelfEmitCtx, offset: i32) -> i32 {
+    ctx.scratch_base + 40 + offset
+}
+
 fn SelfEmitCtx_set_scratch_base(ctx: SelfEmitCtx, scratch_base: i32) {
     ctx.scratch_base = scratch_base
 }

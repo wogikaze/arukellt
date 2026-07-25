@@ -49,6 +49,8 @@ fn scratch_gc_fnref_array_local_count() -> i32 { 2 }
 
 fn scratch_gc_fnref_val_local_count() -> i32 { 1 }
 
+fn scratch_gc_enum_ref_array_local_count() -> i32 { 2 }
+
 fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
     let mut count = scratch_i32_local_count() + scratch_f64_local_count() + scratch_f32_local_count() + scratch_i64_local_count()
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -66,6 +68,7 @@ fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
         count = count + scratch_gc_struct_ref_val_local_count()
         count = count + scratch_gc_fnref_array_local_count()
         count = count + scratch_gc_fnref_val_local_count()
+        count = count + scratch_gc_enum_ref_array_local_count()
     }
     count
 }
@@ -92,6 +95,7 @@ fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
         if scratch_v128_local_count() > 0 { count = count + 1 }
         count = count + scratch_gc_i64_array_local_count() + scratch_gc_f64_array_local_count() + scratch_gc_struct_ref_array_local_count() + scratch_gc_struct_ref_val_local_count()
         count = count + scratch_gc_fnref_array_local_count() + scratch_gc_fnref_val_local_count()
+        count = count + scratch_gc_enum_ref_array_local_count()
     }
     count
 }
@@ -116,6 +120,7 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
         emit_structref_scratch_local_decls(body, scratch_gc_struct_ref_val_local_count())
         emit_gc_scratch_local_decls(body, scratch_gc_fnref_array_local_count(), ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx))
         emit_fnref_scratch_local_decls(body, scratch_gc_fnref_val_local_count(), ctx)
+        emit_gc_scratch_local_decls(body, scratch_gc_enum_ref_array_local_count(), ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx))
     }
 }
 

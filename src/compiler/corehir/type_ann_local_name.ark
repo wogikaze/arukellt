@@ -7,6 +7,14 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         if eq(clone(ann_name), String_from("Vec")) {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
+                // Shape nested Option/Result so Vec<Option<i32>> → vec:Option_i32
+                // (bare vec:Option falls through to the i32-vec layout).
+                if type_ann_node::type_ann_is_generic(elem_ty) {
+                    let shaped = type_ann_shape_local_type_name(elem_ty, 0)
+                    if len(shaped) > 0 {
+                        return concat(String_from("vec:"), shaped)
+                    }
+                }
                 return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
             }
             return String_from("vec")
