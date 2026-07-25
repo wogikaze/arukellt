@@ -135,18 +135,44 @@ def clang_opt_flag(opt_level: int) -> str:
     return "-O2"
 
 
+def _runtime_pair_ok(directory: Path) -> bool:
+    return (directory / "ark_native_runtime.c").is_file() and (
+        directory / "ark_native_runtime.h"
+    ).is_file()
+
+
 def resolve_runtime_dir() -> tuple[Path | None, str]:
+    """Discovery order (ADR-050 / Phase 7):
+
+    1. `ARUKELLT_NATIVE_RUNTIME_DIR`
+    2. launcher-adjacent installed prefix: `<prefix>/lib/arukellt/native-cpp`
+       where `<prefix>/bin` contains this runner or `arukellt`
+    3. source-tree runtime under the repository checkout
+    """
     override = os.environ.get("ARUKELLT_NATIVE_RUNTIME_DIR", "").strip()
     if override:
         path = Path(override)
-        if (path / "ark_native_runtime.c").is_file() and (path / "ark_native_runtime.h").is_file():
+        if _runtime_pair_ok(path):
             return path, ""
         return None, f"runtime diagnostic: ARUKELLT_NATIVE_RUNTIME_DIR={override} is incomplete"
-    if RUNTIME_C.is_file() and RUNTIME_H.is_file():
+
+    here = Path(__file__).resolve()
+    # Installed layout: <prefix>/bin/... → <prefix>/lib/arukellt/native-cpp
+    for anchor in (here.parent, here.parent.parent, here.parent.parent.parent):
+        if anchor.name == "bin":
+            installed = anchor.parent / "lib" / "arukellt" / "native-cpp"
+            if _runtime_pair_ok(installed):
+                return installed, ""
+        candidate = anchor / "lib" / "arukellt" / "native-cpp"
+        if _runtime_pair_ok(candidate):
+            return candidate, ""
+
+    if _runtime_pair_ok(RUNTIME_C.parent):
         return RUNTIME_C.parent, ""
     return None, (
-        "runtime diagnostic: native-cpp runtime not found; expected "
-        f"{RUNTIME_C} and {RUNTIME_H}, or set ARUKELLT_NATIVE_RUNTIME_DIR"
+        "runtime diagnostic: native-cpp runtime not found; set ARUKELLT_NATIVE_RUNTIME_DIR "
+        "or install to <prefix>/lib/arukellt/native-cpp "
+        f"(source tree expected {RUNTIME_C} and {RUNTIME_H})"
     )
 
 

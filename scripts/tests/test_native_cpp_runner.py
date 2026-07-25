@@ -343,6 +343,81 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("scalar-ok", result.stdout)
 
+    def test_cache_hit_after_second_run(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        env = self._env(build_dir)
+        env["ARUKELLT_NATIVE_CPP_VERBOSE"] = "1"
+        cmd = [str(WRAPPER), "run", str(PUBLIC_STDIO.relative_to(ROOT)), "--target", "native-cpp"]
+        first = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, check=False)
+        second = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, text=True, check=False)
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+        self.assertIn("cache hit", second.stderr)
+
+    def test_path_with_spaces_compiles(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        spaced = build_dir / "path with spaces"
+        spaced.mkdir(parents=True, exist_ok=True)
+        source = spaced / "hello spaced.ark"
+        source.write_text(
+            'use std::host::stdio\nfn main() { stdio::println(String_from("spaced-ok")) }\n',
+            encoding="utf-8",
+        )
+        # Keep the path under the repo so WASI --dir can read it.
+        result = subprocess.run(
+            [
+                str(WRAPPER),
+                "run",
+                str(source.relative_to(ROOT)),
+                "--target",
+                "native-cpp",
+            ],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("spaced-ok", result.stdout)
+
+    def test_installed_runtime_layout_smoke(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        prefix = build_dir / "install-prefix"
+        if prefix.exists():
+            import shutil
+
+            shutil.rmtree(prefix)
+        install = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "native" / "install_native_cpp_runtime.py"),
+                "--prefix",
+                str(prefix),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(install.returncode, 0, install.stdout + install.stderr)
+        runtime_dir = prefix / "lib" / "arukellt" / "native-cpp"
+        self.assertTrue((runtime_dir / "ark_native_runtime.c").is_file())
+        env = self._env(build_dir)
+        env["ARUKELLT_NATIVE_RUNTIME_DIR"] = str(runtime_dir)
+        # Hide source-tree runtime from accidental use by pointing override only.
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_STDIO.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("hello-stdout", result.stdout)
+
     def test_unsupported_opcode_is_capability_diagnostic(self) -> None:
         build_dir = ROOT / ".build" / "native-run-smoke-test"
         build_dir.mkdir(parents=True, exist_ok=True)

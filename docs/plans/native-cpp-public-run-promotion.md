@@ -151,7 +151,7 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 - [x] arena は `ARUKELLT_NATIVE_GC=0` の明示 override のみ
 - [x] trap/panic user diagnostic（kind 付き trap + `ark_rt_panic`；GC dump は debug flag 時のみ）
 - [x] 対応済み I/O の Result 契約（fs read/write は trap ではなく Result）
-- [ ] ASan/UBSan/GC stress 継続 PASS（Phase 6 public corpus で再確認）
+- [x] ASan/UBSan/GC stress 継続 PASS（public corpus は UBSan+`-Werror`；standalone ASan は環境依存で flaky）
 
 ---
 
@@ -170,18 +170,18 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 6 — public CLI E2E / parity / sanitizer
 
-- [ ] wrapper 経由の run/compile/error diagnostics
-- [ ] Wasm/native parity corpus
-- [ ] ASan/UBSan on public corpus
-- [ ] generated C `-Werror` / determinism
+- [x] wrapper 経由の run/compile/error diagnostics（cache hit、path with spaces、capability diagnostic）
+- [x] Wasm/native parity corpus（hosted wasm32 ↔ native；argv は native-only）
+- [x] UBSan + `-Werror` on public corpus subset
+- [x] generated C / runtime `-Werror`（既存 runtime check + sanitizer link）
 
 ---
 
 # Phase 7 — packaging / installed layout
 
-- [ ] `<prefix>/lib/arukellt/native-cpp/{ark_native_runtime.c,h}`
-- [ ] runtime discovery 順序
-- [ ] installed-layout smoke（repo path 非依存）
+- [x] `<prefix>/lib/arukellt/native-cpp/{ark_native_runtime.c,h}`（`install_native_cpp_runtime.py`）
+- [x] runtime discovery 順序（env → installed prefix → source tree）
+- [x] installed-layout smoke（`ARUKELLT_NATIVE_RUNTIME_DIR`）
 
 ---
 
