@@ -28,11 +28,3 @@ fn SelfEmitCtx_vec_enum_ref_type(ctx: SelfEmitCtx) -> i32 {
 fn gc_vec_elem_is_struct_ref(elem: String) -> bool {
     sections_types_gc_phase7::gc_vec_elem_name_is_struct_ref(elem)
 }
-
-fn gc_vec_elem_is_fnref(elem: String) -> bool {
-    sections_types_gc_phase7::gc_vec_elem_name_is_fnref(elem)
-}
-
-fn gc_vec_elem_is_enum_like(elem: String) -> bool {
-    sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(elem)
-}

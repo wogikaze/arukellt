@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-25
 Updated: 2026-07-25
 ID: 832
@@ -149,7 +149,7 @@ validate-fail / unreachable / runtime trap が残る。
 - [x] 自由 `get(...)+get(...)` は型エラー（E0208）で失敗し、silent validate-fail にならない
 - [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E/F/A 分）
 - [x] `python3 scripts/manager.py verify lane --gate t3`（A/Option&lt;Vec&lt;fn&gt;&gt; 完了時）
-- [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
+- [x] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes
 

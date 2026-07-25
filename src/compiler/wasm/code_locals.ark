@@ -14,6 +14,7 @@ use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
+use wasm::sections_types_gc_phase7
 
 fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx) -> i32 {
     call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
@@ -247,12 +248,12 @@ fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitC
     }
     if starts_with(clone(type_name), String_from("vec:")) {
         let elem = substring(clone(type_name), 4, len(type_name))
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_fnref(clone(elem)) {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
             return true
         }
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_enum_like(clone(elem)) {
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx))
             return true
