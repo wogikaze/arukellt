@@ -103,6 +103,7 @@ class StdlibInlineIntegrationTests(unittest.TestCase):
             ("probe_sqrt_ops", (), "1"),
             ("probe_f64_bits_ops", (), "1"),
             ("probe_format_f64_ops", (), "1"),
+            ("probe_f32_to_string_ops", (), "1"),
             ("probe_push_char_ops", (), "1"),
         )
         for output in outputs:

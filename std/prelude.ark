@@ -769,5 +769,5 @@ pub fn i32_to_u32(n: i32) -> u32 {
 }
 
 pub fn f32_to_string(n: f32) -> String {
-    panic(String_new()); return String_new()
+    __core_f32_to_string_impl(n)
 }

@@ -164,6 +164,18 @@ alias = "raw::raw_f64_to_string"
 core_op_id = "raw.f64_to_string"
 
 [[legacy_bindings]]
+alias = "__intrinsic_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
+alias = "raw_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
+alias = "raw::raw_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
 alias = "raw_string_push_char"
 core_op_id = "raw.string_push_char"
 
@@ -2691,6 +2703,44 @@ required_target_features = []
 [operations.fallback]
 required = false
 
+
+[[operations]]
+id = "raw.f32_promote_f64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Wasm f64.promote_f32 for sealed typed f32 formatting (#822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f32_promote_f64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
 
 [[operations]]
 id = "simd.i32x4.add"
@@ -12331,21 +12381,21 @@ id = "text.f32_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f32_to_string (blocked: f32 literal/ABI bridge; #822 follow-up)"
+description = "Format f32 via sealed promote + f64 formatter (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12353,12 +12403,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.f32_to_string"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_f32_to_string_impl"
+required = true
 
 [[operations]]
 id = "text.format_bool"

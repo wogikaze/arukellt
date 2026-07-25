@@ -1,0 +1,82 @@
+//! IEEE-754 bit helpers for const emission.
+//!
+//! MirInst stores float literals as `f64`. Emitting `f32.const` demotes with
+//! round-ties-to-even so typed `f32` locals match Wasm.
+
+fn f64_to_f32_bits(value: f64) -> i32 {
+    let hi = f64_bits_hi(value)
+    let lo = f64_bits_lo(value)
+    let sign_bit = i32_sign_bit(hi)
+    let hi_abs = hi & 2147483647
+    let exp64 = hi_abs / 1048576
+    let mant_hi = hi_abs - exp64 * 1048576
+
+    if exp64 == 2047 {
+        let nan_payload = mant_hi / 64
+        return sign_bit | 2139095040 | (nan_payload & 8388607)
+    }
+    if exp64 == 0 {
+        return sign_bit
+    }
+
+    let mut exp32 = exp64 - 1023 + 127
+    if exp32 >= 255 {
+        return sign_bit | 2139095040
+    }
+    if exp32 <= 0 {
+        return sign_bit
+    }
+
+    // Top 23 of the 52-bit mantissa: mant_hi (20) << 3 | lo>>29, RTE on lo low 29.
+    let mut mant23 = mant_hi * 8 + u32_shr(lo, 29)
+    let round_and_sticky = u32_low29(lo)
+    let half = 268435456
+    if round_and_sticky > half || (round_and_sticky == half && (mant23 & 1) == 1) {
+        mant23 = mant23 + 1
+        if mant23 == 8388608 {
+            mant23 = 0
+            exp32 = exp32 + 1
+            if exp32 >= 255 {
+                return sign_bit | 2139095040
+            }
+        }
+    }
+    sign_bit | (exp32 * 8388608) | mant23
+}
+
+fn i32_sign_bit(hi: i32) -> i32 {
+    if hi < 0 {
+        0 - 2147483647 - 1
+    } else {
+        0
+    }
+}
+
+fn u32_low29(value: i32) -> i32 {
+    value & 536870911
+}
+
+fn u32_shr(value: i32, amount: i32) -> i32 {
+    if amount <= 0 {
+        return value
+    }
+    if amount >= 32 {
+        return 0
+    }
+    let wide = i32_to_u32_i64(value)
+    let mut shifted = wide
+    let mut i = 0
+    while i < amount {
+        shifted = shifted / 2i64
+        i = i + 1
+    }
+    i64_to_i32(shifted)
+}
+
+fn i32_to_u32_i64(value: i32) -> i64 {
+    if value < 0 {
+        i32_to_i64(value) + i32_to_i64(2147483647) + i32_to_i64(2147483647) + 2i64
+    } else {
+        i32_to_i64(value)
+    }
+}

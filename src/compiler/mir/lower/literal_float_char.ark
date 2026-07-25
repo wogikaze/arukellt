@@ -15,8 +15,26 @@ fn lower_char_literal(ctx: LowerCtx, node: AstNode) -> i32 {
 }
 
 fn lower_float_literal(ctx: LowerCtx, node: AstNode) -> i32 {
+    let raw_text = ast_node::node_text(node)
+    let raw_len = len(raw_text)
+    if mir_float_literal_has_f32_suffix(raw_text, raw_len) {
+        let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F32())
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f32"))
+        ctx_api_emit::ctx_emit(ctx, inst_const_f64::MirInst_const_f32(ast_node::node_float_val(node), dest))
+        return dest
+    }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_F64())
     ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
     ctx_api_emit::ctx_emit(ctx, inst_const_f64::MirInst_const_f64(ast_node::node_float_val(node), dest))
     dest
+}
+
+fn mir_float_literal_has_f32_suffix(raw_text: String, raw_len: i32) -> bool {
+    if raw_len < 3 {
+        return false
+    }
+    let fa = char_at(raw_text, raw_len - 3)
+    let fb = char_at(raw_text, raw_len - 2)
+    let fc = char_at(raw_text, raw_len - 1)
+    fa == 102 && fb == 51 && fc == 50
 }

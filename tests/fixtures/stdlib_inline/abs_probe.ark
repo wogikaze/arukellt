@@ -255,6 +255,12 @@ pub fn probe_format_f64_ops() -> bool {
     text.len() == 3 && text.char_at(0) == 48 && text.char_at(1) == 46 && text.char_at(2) == 53
 }
 
+pub fn probe_f32_to_string_ops() -> bool {
+    let value: f32 = 0.5f32
+    let text = f32_to_string(value)
+    text.len() == 3 && text.char_at(0) == 48 && text.char_at(2) == 53
+}
+
 pub fn probe_push_char_ops() -> bool {
     let text = String_new()
     push_char(text, 'A')

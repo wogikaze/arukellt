@@ -79,6 +79,11 @@ pub fn raw_f64_to_string(value: f64) -> String {
     __intrinsic_f64_to_string(value)
 }
 
+/// Wasm `f64.promote_f32` for sealed typed `f32` formatting.
+pub fn raw_f32_promote_f64(value: f32) -> f64 {
+    __intrinsic_f32_promote_f64(value)
+}
+
 /// Appends one byte to sealed string storage in place.
 pub fn raw_string_push_char(s: String, value: char) {
     __intrinsic_push_char(s, value)

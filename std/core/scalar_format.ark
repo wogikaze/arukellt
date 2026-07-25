@@ -54,6 +54,10 @@ fn __core_format_f64_impl(value: f64) -> String {
     raw::raw_f64_to_string(value)
 }
 
+fn __core_f32_to_string_impl(value: f32) -> String {
+    raw::raw_f64_to_string(raw::raw_f32_promote_f64(value))
+}
+
 fn __core_push_char_impl(s: String, value: char) {
     raw::raw_string_push_char(s, value)
 }
