@@ -303,3 +303,19 @@ alias_status = "none"
 purpose = "ADR-049 native executor lane: inherit S2 build profile, generate S3, require same-profile byte equality"
 coverage = ["selfhost", "native-cpp", "adr-049"]
 
+[[commands]]
+id = "native_cpp_fixture_coverage_measure"
+canonical = "python3 scripts/check/measure-native-cpp-fixture-coverage.py --write --jobs 6"
+aliases = []
+alias_status = "none"
+purpose = "Advisory full-manifest native-cpp readiness measure (schema v2, semantic expectations)"
+coverage = ["native-cpp", "adr-050", "tests/fixtures"]
+
+[[commands]]
+id = "native_cpp_fixture_readiness_ratchet"
+canonical = "python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py"
+aliases = []
+alias_status = "none"
+purpose = "Forbid regression vs native-cpp fixture coverage baseline (ICE/crash/rates)"
+coverage = ["native-cpp", "adr-050"]
+

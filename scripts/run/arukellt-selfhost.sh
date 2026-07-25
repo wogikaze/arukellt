@@ -70,7 +70,8 @@ EOF
   exit 2
 fi
 
-if ! command -v wasmtime >/dev/null 2>&1; then
+WASMTIME_BIN="${ARUKELLT_WASMTIME_BIN:-wasmtime}"
+if ! command -v "$WASMTIME_BIN" >/dev/null 2>&1; then
   echo "arukellt-selfhost: error — wasmtime not found in PATH; install wasmtime ≥ 30" >&2
   exit 127
 fi
@@ -195,7 +196,7 @@ if [[ "${1:-}" == "run" ]]; then
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
-  wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then
@@ -224,7 +225,7 @@ if [[ "${1:-}" == "run" ]]; then
   if grep -aqE 'http_get|http_request|http_serve|sockets_connect|sockets_read|sockets_write|sockets_listen|sockets_accept' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
-  exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
+  exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
 
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
@@ -239,7 +240,7 @@ if [[ "${1:-}" == "compose" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
     cat "$tmpdir/stdout"
@@ -288,7 +289,7 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
-    exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
+    exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
   DEBUG_ADAPTER="$REPO_ROOT/target/release/arukellt-debug-adapter"
   if [[ ! -x "$DEBUG_ADAPTER" ]]; then
@@ -300,4 +301,4 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   fi
 fi
 
-exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
+exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"

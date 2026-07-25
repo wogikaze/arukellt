@@ -232,6 +232,11 @@ jobs:
           python3 scripts/check/collect-native-cpp-public-coverage.py --write
           python3 scripts/check/check-native-cpp-run-promotion-receipt.py
 
+      # Advisory: full-manifest measure is local/scheduled; CI only forbids
+      # regression vs the committed v2 baseline receipt floors.
+      - name: Native-cpp fixture readiness ratchet (advisory baseline)
+        run: python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py
+
       - name: Forbid allow-high-rss under CI
         env:
           CI: "true"
