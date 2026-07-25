@@ -1,10 +1,15 @@
 # #810 — Component interop failures クローズ計画
 
-ステータス: 計画  
+ステータス: 進行中（primitives / routing tranche）  
 親 issue: [#810](../../issues/open/810-component-interop-failures.md)  
 担当 subagent lane: `wave/810-component-interop`  
 作業 worktree: `.worktrees/wave-810-component-interop`  
-作成日: 2026-07-25
+作成日: 2026-07-25  
+更新: 2026-07-26 — fail 103→56（pass 47）。
+
+- デフォルト wasi-p2（target 推論）でも library export があれば `p1-component`（#810）。
+- CLI 明示 `--wasi-version wasi-p2` は command 経路を維持（#668、`gate-668-p2-args-env` PASS）。
+- std host helper 名（`var` / `args` 等）は library-export 判定から除外。
 
 ## 1. 現状とゴール
 

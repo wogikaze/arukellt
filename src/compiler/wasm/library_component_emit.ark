@@ -96,6 +96,17 @@ fn lib_comp_should_export(name: String) -> bool {
     if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
         return false
     }
+    // Keep parity with component::naming so std host helpers never become
+    // accidental component exports (#668 / #810).
+    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+        return false
+    }
+    if eq(clone(name), String_from("var_or_default")) || eq(clone(name), String_from("args")) {
+        return false
+    }
+    if eq(clone(name), String_from("arg_count")) || eq(clone(name), String_from("arg_at")) {
+        return false
+    }
     if contains(clone(name), String_from("::")) {
         return false
     }

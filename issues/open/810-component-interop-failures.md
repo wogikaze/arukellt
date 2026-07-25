@@ -53,7 +53,14 @@ python3 scripts/manager.py verify full
 
 ## Current count
 
-103 failing fixtures
+56 failing fixtures (2026-07-26 lane wave/810-component-interop)
+
+Progress note: restored library→`p1-component` routing (regression from #668
+default wasi-p2 priority) and excluded std host helper MIR names from library
+export detection. Live `verify component-interop` / jco suite: 47 pass / 56 fail
+(receipt baseline was 103 fail). Remaining: option/result/list/record/tuple/
+variant, plus calculator (jco BigInt), f32-multi/f32-result-i32, multi-type
+(abs_i32 missing), string-score32*.
 
 ## New-failure ratchet
 
