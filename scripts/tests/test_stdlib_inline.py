@@ -105,6 +105,8 @@ class StdlibInlineIntegrationTests(unittest.TestCase):
             ("probe_format_f64_ops", (), "1"),
             ("probe_f32_to_string_ops", (), "1"),
             ("probe_parse_ops", (), "1"),
+            ("probe_sort_i64_ops", (), "1"),
+            ("probe_sort_f64_ops", (), "1"),
             ("probe_remove_i32_ops", (), "1"),
             ("probe_push_char_ops", (), "1"),
         )

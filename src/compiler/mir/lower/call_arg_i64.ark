@@ -62,6 +62,12 @@ fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
     if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
         return false
     }
+    // Vec monomorph tags (_i64 / get_unchecked_i64 / push_i64) name the element
+    // type; the index arg stays i32. Push value extends are handled by the
+    // dedicated vec_push rewrite (#822 sort_i64).
+    if mir_callee_is_vec_i64_elem_helper(clone(callee_name)) {
+        return false
+    }
     if contains(clone(callee_name), String_from("i64")) {
         return true
     }
@@ -72,6 +78,17 @@ fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
         return true
     }
     ends_with(clone(callee_name), String_from("::seek"))
+}
+
+fn mir_callee_is_vec_i64_elem_helper(callee_name: String) -> bool {
+    eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
+    eq(clone(callee_name), String_from("get_unchecked_i64")) ||
+    eq(clone(callee_name), String_from("push_i64")) ||
+    eq(clone(callee_name), String_from("vec_push_i64")) ||
+    eq(clone(callee_name), String_from("pop_i64")) ||
+    eq(clone(callee_name), String_from("vec_pop_i64")) ||
+    ends_with(clone(callee_name), String_from("::get_unchecked_i64")) ||
+    ends_with(clone(callee_name), String_from("::push_i64"))
 }
 
 fn mir_callee_short_name(callee_name: String) -> String {

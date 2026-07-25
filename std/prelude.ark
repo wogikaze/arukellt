@@ -372,14 +372,41 @@ pub fn push_char(s: String, c: char) {
     __core_push_char_impl(s, c)
 }
 
-// Vec: additional sorting
-// Kept emitter-owned: generic `set` still lowers i64/f64 stores as i32 (#822).
+// Vec: additional sorting (typed LM set unblocked for i64/f64, #822).
+fn __core_seq_sort_i64_impl(v: Vec<i64>) {
+    let mut index = 1
+    while index < len(v) {
+        let value = get_unchecked(v, index)
+        let mut insertion = index
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            set(v, insertion, get_unchecked(v, insertion - 1))
+            insertion = insertion - 1
+        }
+        set(v, insertion, value)
+        index = index + 1
+    }
+}
+
 pub fn sort_i64(v: Vec<i64>) {
-    panic(String_new())
+    __core_seq_sort_i64_impl(v)
+}
+
+fn __core_seq_sort_f64_impl(v: Vec<f64>) {
+    let mut index = 1
+    while index < len(v) {
+        let value = get_unchecked(v, index)
+        let mut insertion = index
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            set(v, insertion, get_unchecked(v, insertion - 1))
+            insertion = insertion - 1
+        }
+        set(v, insertion, value)
+        index = index + 1
+    }
 }
 
 pub fn sort_f64(v: Vec<f64>) {
-    panic(String_new())
+    __core_seq_sort_f64_impl(v)
 }
 
 // Vec: higher-order (String variants)

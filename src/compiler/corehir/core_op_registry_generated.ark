@@ -399,9 +399,9 @@ fn core_op_registry_lowering_kind_at(index: i32) -> i32 {
     if index == 83 { return 1 }
     if index == 84 { return 1 }
     if index == 85 { return 1 }
-    if index == 86 { return 5 }
+    if index == 86 { return 1 }
     if index == 87 { return 1 }
-    if index == 88 { return 5 }
+    if index == 88 { return 1 }
     if index == 89 { return 1 }
     if index == 90 { return 1 }
     if index == 91 { return 1 }
@@ -948,7 +948,9 @@ fn core_op_registry_inline_policy_at(index: i32) -> i32 {
     if index == 83 { return 1 }
     if index == 84 { return 1 }
     if index == 85 { return 1 }
+    if index == 86 { return 1 }
     if index == 87 { return 1 }
+    if index == 88 { return 1 }
     if index == 89 { return 1 }
     if index == 90 { return 1 }
     if index == 91 { return 1 }
@@ -2104,9 +2106,9 @@ fn core_op_registry_legacy_handler_id_at(index: i32) -> String {
     if index == 83 { return String_from("") }
     if index == 84 { return String_from("") }
     if index == 85 { return String_from("") }
-    if index == 86 { return String_from("seq.sort_f64") }
+    if index == 86 { return String_from("") }
     if index == 87 { return String_from("") }
-    if index == 88 { return String_from("seq.sort_i64") }
+    if index == 88 { return String_from("") }
     if index == 89 { return String_from("") }
     if index == 90 { return String_from("") }
     if index == 91 { return String_from("") }
@@ -2346,7 +2348,9 @@ fn core_op_registry_fallback_symbol_at(index: i32) -> String {
     if index == 83 { return String_from("__core_seq_min_i32_impl") }
     if index == 84 { return String_from("__core_seq_product_i32_impl") }
     if index == 85 { return String_from("__core_seq_skip_i32_impl") }
+    if index == 86 { return String_from("__core_seq_sort_f64_impl") }
     if index == 87 { return String_from("__core_seq_sort_i32_impl") }
+    if index == 88 { return String_from("__core_seq_sort_i64_impl") }
     if index == 89 { return String_from("__core_seq_sum_i32_impl") }
     if index == 90 { return String_from("__core_seq_take_i32_impl") }
     if index == 91 { return String_from("__core_seq_unique_i32_impl") }

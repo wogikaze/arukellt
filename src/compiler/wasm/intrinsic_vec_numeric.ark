@@ -27,10 +27,12 @@ fn emit_push_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push_i6
     writer_core::emit_leb128_u(w, s_vec_i64)
     intrinsic_vec_push::emit_vec_push_grow_if_full(w, s_vec_i64, s_data_i64, s_cap_i64, s_newdata_i64, 8)
     intrinsic_vec_push::emit_vec_push_store_i64(w, s_vec_i64, s_val_i64)
+    // Store leaves the vec ref on the stack; drop it for statement-form push.
     if is_void_push_i64 {
         writer_core::emit_byte(w, opcodes::OP_DROP())
+        return false
     }
-    return true
+    true
 }
 
 fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -48,8 +50,9 @@ fn emit_push_f64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_leb128_u(w, s_vec_f64)
     intrinsic_vec_push::emit_vec_push_grow_if_full(w, s_vec_f64, s_data_f64, s_cap_f64, s_newdata_f64, 8)
     intrinsic_vec_push::emit_vec_push_store_f64(w, s_vec_f64, s_val_f64)
+    // Statement-form push_f64: consume the vec ref left by the store.
     writer_core::emit_byte(w, opcodes::OP_DROP())
-    return true
+    false
 }
 
 // GC target: push i64/f64 value onto Vec<i64>/Vec<f64>.
