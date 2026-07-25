@@ -369,6 +369,7 @@ run:functions/early_return.ark
 run:functions/generic_fn.ark
 run:functions/higher_order.ark
 run:functions/option_fn_call.ark
+run:functions/option_fn_mut_assign.ark
 run:functions/fn_return_bind.ark
 run:functions/call_expr_callee.ark
 run:functions/vec_fn_push_call.ark
@@ -378,6 +379,7 @@ run:collections/vec_vec_i32.ark
 run:collections/vec_string_println_get.ark
 run:collections/option_vec_fn.ark
 run:collections/hashmap_i32_fn_call.ark
+run:collections/hashmap_i32_fn_mut_get.ark
 run:collections/result_vec_fn.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
@@ -1971,6 +1973,7 @@ t3-compile:functions/early_return.ark
 t3-compile:functions/generic_fn.ark
 t3-compile:functions/higher_order.ark
 t3-compile:functions/option_fn_call.ark
+t3-compile:functions/option_fn_mut_assign.ark
 t3-compile:functions/fn_return_bind.ark
 t3-compile:functions/call_expr_callee.ark
 t3-compile:functions/vec_fn_push_call.ark
@@ -1980,6 +1983,7 @@ t3-compile:collections/vec_vec_i32.ark
 t3-compile:collections/vec_string_println_get.ark
 t3-compile:collections/option_vec_fn.ark
 t3-compile:collections/hashmap_i32_fn_call.ark
+t3-compile:collections/hashmap_i32_fn_mut_get.ark
 t3-compile:collections/result_vec_fn.ark
 t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
@@ -2387,6 +2391,7 @@ t3-run:functions/early_return.ark
 t3-run:functions/generic_fn.ark
 t3-run:functions/higher_order.ark
 t3-run:functions/option_fn_call.ark
+t3-run:functions/option_fn_mut_assign.ark
 t3-run:functions/fn_return_bind.ark
 t3-run:functions/call_expr_callee.ark
 t3-run:functions/vec_fn_push_call.ark
@@ -2396,6 +2401,7 @@ t3-run:collections/vec_vec_i32.ark
 t3-run:collections/vec_string_println_get.ark
 t3-run:collections/option_vec_fn.ark
 t3-run:collections/hashmap_i32_fn_call.ark
+t3-run:collections/hashmap_i32_fn_mut_get.ark
 t3-run:collections/result_vec_fn.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark

@@ -123,10 +123,9 @@ HashMap_i32_i32_insert(m, 1, double)  // E0200: i32 vs struct/fn
 
 - value 配列は #832 の `A_fnref`（nullable）を再利用する。新規 array type は不要。
 - `#832` 完了後の直接後続。upstream は #832（Vec&lt;fn&gt; ABI）。
-- `std/collections/hash_fn.ark` の `get`/`remove` は early `return Some/None` を使う。
-  `let mut result: Option&lt;fn&gt; = None` 後に `result = Some(__hm_if_get_val(...))`
-  する形は、スロットに funcref が入っていても `ref.as_non_null` で trap する
-  （`Option&lt;String&gt;` の同型パターンは問題なし）。lowering 修正は follow-up。
+- `std/collections/hash_fn.ark` の `get`/`remove` は `hash_string` と同型の
+  mut `Option&lt;fn&gt;` 代入を使う。かつて early return で回避していた
+  `ref.as_non_null` trap は #835 で修正済み。
 - MVP 正経路は `use std::collections::hash_fn`。`HashMap_i32_fn_*` builtin だけの
   自動 load は現状 `unreachable` に落ちる（`HashMap_i32_String_*` も同型の既知ギャップ）。
 

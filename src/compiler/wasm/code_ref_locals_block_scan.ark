@@ -42,6 +42,11 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     if depth > 0 && code_ref_locals_fn_cache::cached_infer_is_computed(ctx, local_idx) {
         return code_ref_locals_fn_cache::cached_infer_as_option(ctx, local_idx)
     }
+    // mut Option/Result: None then Some via LOCAL_SET must stay open-enum (#835).
+    // Otherwise the first write (None) sticks and later Some is cast to the None type.
+    if code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
     let variant_slot = local_access::MirLocal_variant_slot(loc)

@@ -258,14 +258,12 @@ fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
-                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                    let slot = inst_accessors_operands::MirInst_arg0(inst)
-                    if first_variant_slot < 0 {
-                        first_variant_slot = slot
-                    } else if slot != first_variant_slot {
-                        return true
-                    }
+            let slot = enum_variant_slot_written_to_local(f, block, ii, inst, local_idx)
+            if slot >= 0 {
+                if first_variant_slot < 0 {
+                    first_variant_slot = slot
+                } else if slot != first_variant_slot {
+                    return true
                 }
             }
             ii = ii + 1
@@ -273,6 +271,72 @@ fn local_has_multiple_enum_variant_types(f: MirFunction, local_idx: i32) -> bool
         bi = bi + 1
     }
     false
+}
+
+// Variant slot written into `local_idx` at this instruction, or -1.
+// Includes GC_STRUCT_NEW dests and LOCAL_SET from distinct Some/None temps (#835).
+fn enum_variant_slot_written_to_local(
+    f: MirFunction,
+    block: MirBlock,
+    ii: i32,
+    inst: MirInst,
+    local_idx: i32
+) -> i32 {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op == opcodes::MIR_GC_STRUCT_NEW() {
+        if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+            return inst_accessors_operands::MirInst_arg0(inst)
+        }
+        return 0 - 1
+    }
+    if op != opcodes::MIR_LOCAL_SET() {
+        return 0 - 1
+    }
+    if inst_accessors_operands::MirInst_arg0(inst) != local_idx {
+        return 0 - 1
+    }
+    let source = inst_accessors_operands::MirInst_arg1(inst)
+    if source >= 0 {
+        return gc_struct_new_variant_slot_for_local(f, source)
+    }
+    if ii <= 0 {
+        return 0 - 1
+    }
+    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+        let prev_src = inst_accessors_operands::MirInst_arg0(prev)
+        if prev_src >= 0 {
+            return gc_struct_new_variant_slot_for_local(f, prev_src)
+        }
+        return 0 - 1
+    }
+    // Stack LOCAL_SET after a producer whose dest is the constructed variant.
+    let prev_dest = inst_accessors_operands::MirInst_dest(prev)
+    if prev_dest >= 0 {
+        return gc_struct_new_variant_slot_for_local(f, prev_dest)
+    }
+    0 - 1
+}
+
+fn gc_struct_new_variant_slot_for_local(f: MirFunction, local_idx: i32) -> i32 {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                    return inst_accessors_operands::MirInst_arg0(inst)
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
 }
 
 fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx) -> Option<i32> {

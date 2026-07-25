@@ -7,6 +7,7 @@ use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_block_scan
 use wasm::code_ref_locals_scan
+use wasm::code_ref_locals_infer_dest
 
 fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     let storage_opt = infer_local_storage_gc_type(f, local_idx, ctx)
@@ -15,6 +16,11 @@ fn should_gc_ref_cast_to_dest(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) 
         Option::Some(storage) => {
             if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
                 return false
+            }
+            // Open-enum storage that merges None/Some (or Ok/Err) writes (#835).
+            if storage == ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) &&
+            code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx) {
+                return true
             }
             let loc = function_locals_view::MirFunction_local_at(f, local_idx)
             let type_name = clone(loc.type_name)

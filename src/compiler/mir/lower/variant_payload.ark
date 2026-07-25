@@ -266,10 +266,10 @@ fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payl
         let mut set_vt = value_types::VT_VOID()
         if field_vt == value_types::VT_F64() {
             set_vt = value_types::VT_F64()
-        } else {
-            if field_vt == value_types::VT_I64() {
-                set_vt = value_types::VT_I64()
-            }
+        } else if field_vt == value_types::VT_I64() {
+            set_vt = value_types::VT_I64()
+        } else if field_vt == value_types::VT_FUNCREF() {
+            set_vt = value_types::VT_FUNCREF()
         }
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, field_local, type_slot, fi + 1, set_vt))
         fi = fi + 1
