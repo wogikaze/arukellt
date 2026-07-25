@@ -1,0 +1,14 @@
+use std::host::stdio
+
+// RED for #836: outer get on Vec<Vec<i32>> → Option<Vec<i32>>.
+// get_unchecked path is covered by vec_vec_i32.ark (#832 F).
+fn main() {
+    let mut outer: Vec<Vec<i32>> = Vec_new_i32()
+    let mut inner: Vec<i32> = Vec_new_i32()
+    push(inner, 9)
+    push(outer, inner)
+    match get(outer, 0) {
+        Some(row) => stdio::println(get_unchecked(row, 0).to_string()),
+        None => stdio::println("none"),
+    }
+}
