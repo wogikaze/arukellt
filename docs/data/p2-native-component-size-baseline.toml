@@ -1,0 +1,9 @@
+# Baseline for scripts/check/gate-668-p2-size.py (#668).
+# Measured on wasi_p2_native/hello.ark --emit component (bridged path ~4.2KB).
+# Ceiling leaves headroom for guest-native stdio rewire; still >>80KB under the
+# historical P1 adapter blob (~97KB).
+
+fixture = "tests/fixtures/wasi_p2_native/hello.ark"
+max_bytes = 8192
+adapter_reference_bytes = 99328
+min_savings_vs_adapter_bytes = 81920

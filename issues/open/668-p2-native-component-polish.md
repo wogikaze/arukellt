@@ -33,10 +33,11 @@ if the queue grows.
   `wasi:io/streams` + stdout bridge. Guest core may still import a bridge
   `write` symbol; **guest-native** `get-stdout` + stream method call sites
   remain this issue's acceptance item.
-- `tests/fixtures/wasi_p2_native/` has `hello.ark` + `exit_code.ark` (exit path
-  trap proof). stderr / args / env_var fixtures still needed here.
-- `BOOTSTRAP_COMPONENT_STUB` remains in `scripts/selfhost/checks.py` (FD-07 risk).
-- `wasi:cli` version strings mix `@0.2.0` (imports) and `@0.2.0`/`@0.2.6` (exports).
+- `tests/fixtures/wasi_p2_native/` has hello / exit_code / eprintln / args / env_var
+  fixtures with slice gates. Guest-native stdout/stderr remains.
+- `BOOTSTRAP_COMPONENT_STUB` remains in `scripts/selfhost/checks.py` (FD-07 risk;
+  proof gates must use s2/s3, not the stub overlay).
+- Live `wasi:cli/*` emit uses `@0.2.0` (dead `@0.2.6` path cleaned in this issue).
 
 ## Acceptance
 
@@ -50,14 +51,17 @@ if the queue grows.
       `wasi:cli/stdout::write` core imports
 - [x] `tests/fixtures/wasi_p2_native/` gains runnable gates for at least:
       `eprintln_stderr.ark` ✅, `exit_code.ark` ✅, `args.ark` ✅, `env_var.ark` ✅
-      (rename or alias `hello.ark` → `hello_stdout.ark` if desired)
       Evidence: `scripts/check/gate-668-p2-args-env.py` — real
       `wasi:cli/environment` host + env bridge + GC Vec/Option assembly.
-- [ ] P2 native component size regression gate (no P1 adapter blob) lands in
-      `scripts/check/` with a checked-in threshold (~80KB savings vs adapter path)
-- [ ] `docs/target-contract.md` P2 native tier matches `current-state.md` and
-      `gate_074` reality
-- [ ] Normalize generated `wasi:cli/*` version strings across import/export sections
+- [x] P2 native component size regression gate (no P1 adapter blob) lands in
+      `scripts/check/gate-668-p2-size.py` with
+      `docs/data/p2-native-component-size-baseline.toml` (~80KB savings vs
+      historical adapter reference size)
+- [x] Platform / current-state P2 native tier matches `gate_074` reality
+      (`docs/platform/target-runtime-and-surfaces.md`, `docs/current-state.md`,
+      `docs/state/component-model.md`; legacy `docs/target-contract.md` removed)
+- [x] Normalize generated `wasi:cli/*` version strings across import/export sections
+      (live path `@0.2.0`; dead `p2_command_run` `@0.2.6` fixed)
 - [ ] Optional: P2 command-world WIT golden snapshot gate under
       `tests/fixtures/wasi_p2_native/` or `tests/fixtures/component/`
 - [ ] Optional: component output metadata dump gate for P2 native artifacts
@@ -68,9 +72,9 @@ if the queue grows.
 New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) that:
 
 1. Compiles and runs all `wasi_p2_native/*` manifest entries under wasmtime
-2. Asserts `docs/target-contract.md` does not claim P2 native is deferred-only
-3. Fails if `BOOTSTRAP_COMPONENT_STUB` is still required for the proof path
-   (document exception if bootstrap-only; proof must use s2/pinned non-stub path)
+2. Asserts platform / current-state docs do not claim P2 native is deferred-only
+3. Fails unless proof uses current s2/s3 (`lib.selfhost_s2`); bootstrap stub
+   overlay is not required for the proof path
 
 ## Out of scope
 

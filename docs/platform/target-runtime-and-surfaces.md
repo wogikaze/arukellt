@@ -310,7 +310,7 @@ transpile 自体は GC 型を処理できる。scalar `pub fn` の E2E 検証は
 | typecheck | guaranteed | shared frontend |
 | compile (core Wasm) | guaranteed | `t3-run` + `t3-compile` fixtures |
 | run (wasmtime) | guaranteed | `t3-run` fixtures with stdout comparison |
-| emit component | smoke | `component-compile` fixtures（in-tree; 現行は current-state） |
+| emit component | smoke | in-tree P2 command (`gate_074` / #714 bridged; guest-native stdio #668); `component-compile` fixtures |
 | emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
 | host capabilities | guaranteed | WASI imports conditionally emitted per reachability |
 | determinism | smoke | baselines spot-checked |

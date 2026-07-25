@@ -26,7 +26,7 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
   ↓ component_p2_emit.ark: component 組立
   →   core module (1個, self-contained)
   →   core instance (import args 0個)
-  →   run sections (wasi:cli/run@0.2.6 export)
+  →   run sections (wasi:cli/run@0.2.0 export)
   → 結果: validate OK, wasmtime run exit 0, stdout 空
 ```
 
@@ -37,7 +37,7 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
 - [x] `component_p2_strip.ark` — import strip + stub function 生成
 - [x] `component_p2_run_export.ark` — `run` wrapper 関数追加
 - [x] `component_p2_emit.ark` — component 組立
-- [x] `component_p2_run_sections.ark` — wasi:cli/run@0.2.6 export sections
+- [x] `component_p2_run_sections.ark` — wasi:cli/run@0.2.0 export sections
 - [x] `component_p2_run_tail.ark` — 内側 component binary (hex embedded)
 - [x] gate #074, #510 — validate + wasmtime `hello p2`
 - [x] gate #076 — validate-only（runtime fs は #076）
