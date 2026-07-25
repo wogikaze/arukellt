@@ -38,3 +38,5 @@ git branch -d wave/N-x-description   # after merge
 - `best-of-n-runner` without verifying the agent actually `cd`s into the created worktree.
 - Staging on master while another agent is running.
 - Shared log paths without lane-specific `runId` tags.
+- **`git stash` to clear a contested checkout** — see `.cursor/rules/no-stash-use-worktree.mdc`.
+  On dirty foreign WIP or lock contention, add a worktree and continue there.
