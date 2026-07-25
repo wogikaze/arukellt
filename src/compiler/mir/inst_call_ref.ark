@@ -1,0 +1,25 @@
+use mir::inst_factory
+use mir::opcodes
+use mir::value_types
+
+fn MirInst_call_ref(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32, return_vt: i32) -> MirInst {
+    inst_factory::MirInst_full(opcodes::MIR_CALL_REF(), dest, callee_local, type_idx, arg_count, 0.0, String_new(), return_vt)
+}
+
+// first_arg_vt is encoded in str_val so resolve_indirect_type_idx can prefer
+// candidates whose param0 matches (same convention as MIR_CALL_INDIRECT).
+fn MirInst_call_ref_with_arg0_vt(
+    callee_local: i32,
+    type_idx: i32,
+    arg_count: i32,
+    dest: i32,
+    return_vt: i32,
+    first_arg_vt: i32
+) -> MirInst {
+    let hint = if first_arg_vt >= 0 {
+        i32_to_string(first_arg_vt)
+    } else {
+        String_new()
+    }
+    inst_factory::MirInst_full(opcodes::MIR_CALL_REF(), dest, callee_local, type_idx, arg_count, 0.0, hint, return_vt)
+}

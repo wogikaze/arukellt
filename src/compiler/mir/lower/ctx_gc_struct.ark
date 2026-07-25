@@ -111,7 +111,8 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
         return String_from("_i32")
     }
-    // Function refs are table indices (i32), not GC struct refs.
+    // Function refs are typed funcrefs, not GC struct refs. Struct-field
+    // storage still uses i32 until field layouts gain `(ref $sig)` (#831).
     if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
         return String_from("_i32")
     }

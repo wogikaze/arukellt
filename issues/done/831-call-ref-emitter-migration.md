@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-25
 Updated: 2026-07-25
 ID: 831
@@ -33,10 +33,11 @@ Source: ADR-033 Phase A/C GO from #722 — production call_ref emitter
 - `src/compiler/corehir/param_shape_value.ark` / `param_shape_local.ark` / `type_ann_param_name.ark`
 - `src/compiler/mir/opcodes.ark` / `inst_ref_func.ark` / `inst_call_ref.ark`（新規）
 - `src/compiler/mir/lower/call_indirect_emit.ark` / `core_names.ark`
+- `src/compiler/mir/lower/core_match_payload_bind_*.ark`（`Option<fn>` match）
 - `src/compiler/wasm/opcodes.ark` / `inst_dispatch_const.ark` / `call_ref.ark`（新規）
 - `src/compiler/wasm/sections_types_sigs_detail.ark` / `sections_types_emit.ark` / `code_locals*.ark`
 - `tests/fixtures/functions/higher_order.ark`（`call_ref` / `ref.func` 出現を確認）
-- `Option<fn>` 最小回帰 fixture（enum 経路）
+- `tests/fixtures/functions/option_fn_call.ark`（enum 経路）
 
 ## Non-goals
 
@@ -46,15 +47,20 @@ Source: ADR-033 Phase A/C GO from #722 — production call_ref emitter
 
 ## Acceptance
 
-- [ ] `fn` パラメータの MIR VT が typed funcref（`VT_FUNCREF`）になり、型セクションで `(ref $sig)` になる
-- [ ] `MIR_REF_FUNC` が `ref.func` を emit する（i32.const table index ではない）
-- [ ] Class A/B の funcref 呼び出しが `MIR_CALL_REF` / `call_ref` になる
-- [ ] `higher_order.ark` の出力に `call_ref` と `ref.func` があり、実行結果が従来どおり
-- [ ] `Option<fn>` の `Some(g) => g(...)` が enum のまま呼び出し可能（最小 fixture）
-- [ ] `python3 scripts/manager.py verify lane --gate t3`
-- [ ] `python3 scripts/manager.py verify quick`
-- [ ] `python3 scripts/manager.py selfhost fixpoint`
-- [ ] `docs/current-state.md` Closures 行を更新
+- [x] `fn` パラメータの MIR VT が typed funcref（`VT_FUNCREF`）になり、型セクションで `(ref $sig)` になる
+- [x] `MIR_REF_FUNC` が `ref.func` を emit する（i32.const table index ではない）
+- [x] Class A/B の funcref 呼び出しが `MIR_CALL_REF` / `call_ref` になる
+- [x] `higher_order.ark` の出力に `call_ref` と `ref.func` があり、実行結果が従来どおり
+- [x] `Option<fn>` の `Some(g) => g(...)` が enum のまま呼び出し可能（最小 fixture）
+- [x] `python3 scripts/manager.py verify lane --gate t3`
+- [x] `python3 scripts/manager.py verify quick`
+- [x] `python3 scripts/manager.py selfhost fixpoint`（`fixpoint --build` で s2==s3）
+- [x] `docs/current-state.md` Closures 行を更新
+
+## Notes
+
+- Match payload bind の正本経路は CoreHIR（`core_match_*`）。AST `body_match` / `match_payload_fields` は副経路。
+- Enum の funcref フィールドは defaultable のため nullable；抽出後に `ref.as_non_null` して非 null local へ格納する。
 
 ## Related
 

@@ -62,8 +62,8 @@ push(v2, 20)
 closures は MIR lowerer により **named functions** としてコンパイルされる。
 キャプチャはヒープ環境 struct ではなく関数パラメータ経由で渡す（現行 fixture 集合向け）。
 
-- 関数値は `funcref` テーブル index（i32）
-- `call_indirect` でディスパッチ
+- Class A/B の関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref`
+- Class C / 動的ディスパッチは当面 `call_indirect` + table（ADR-033）
 - エスケープするクロージャが必要になった場合は別途環境 struct を検討する
 
 ## 参照先

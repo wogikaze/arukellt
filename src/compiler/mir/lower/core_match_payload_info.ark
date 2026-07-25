@@ -107,6 +107,10 @@ fn core_suffix_is_ref(suffix: String) -> bool {
     if eq(clone(suffix), "i32") || eq(clone(suffix), "i64") || eq(clone(suffix), "f64") || eq(clone(suffix), "bool") || eq(clone(suffix), "char") {
         return false
     }
+    // Funcref Option payloads use call_ref, not open GC ref (#831).
+    if eq(clone(suffix), "fnref") || eq(clone(suffix), "fn") || starts_with(clone(suffix), String_from("fn(")) {
+        return false
+    }
     true
 }
 

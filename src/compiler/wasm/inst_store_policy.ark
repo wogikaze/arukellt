@@ -60,7 +60,10 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() || inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() {
         if next_op == opcodes::MIR_LOCAL_GET() && next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
-            if next2_op == opcodes::MIR_CALL() || next2_op == opcodes::MIR_WIT_CALL() || next2_op == opcodes::MIR_CALL_INDIRECT() {
+            if next2_op == opcodes::MIR_CALL() ||
+            next2_op == opcodes::MIR_WIT_CALL() ||
+            next2_op == opcodes::MIR_CALL_INDIRECT() ||
+            next2_op == opcodes::MIR_CALL_REF() {
                 return false
             }
         }
@@ -87,7 +90,8 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                     // GC/ref results under a following CALL.
                     if next2_op == opcodes::MIR_CALL() ||
                     next2_op == opcodes::MIR_WIT_CALL() ||
-                    next2_op == opcodes::MIR_CALL_INDIRECT() {
+                    next2_op == opcodes::MIR_CALL_INDIRECT() ||
+                    next2_op == opcodes::MIR_CALL_REF() {
                         let vt = inst_accessors_shape::MirInst_val_type(inst)
                         if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
                             return false
@@ -170,6 +174,9 @@ fn is_direct_consumer_op(op: i32) -> bool {
     if op == opcodes::MIR_CALL_INDIRECT() {
         return true
     }
+    if op == opcodes::MIR_CALL_REF() {
+        return true
+    }
     if op == opcodes::MIR_STRUCT_GET() {
         return true
     }
@@ -221,6 +228,9 @@ fn is_load_followed_by_consumer(op: i32) -> bool {
         return true
     }
     if op == opcodes::MIR_CALL_INDIRECT() {
+        return true
+    }
+    if op == opcodes::MIR_CALL_REF() {
         return true
     }
     if opcodes::is_arith_opcode(op) {

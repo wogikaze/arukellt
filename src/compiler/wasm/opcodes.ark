@@ -71,6 +71,7 @@ fn OP_RETURN() -> i32 { 15 }
 // Call and stack opcodes.
 fn OP_CALL() -> i32 { 16 }
 fn OP_CALL_INDIRECT() -> i32 { 17 }
+fn OP_CALL_REF() -> i32 { 20 }
 fn OP_DROP() -> i32 { 26 }
 fn OP_SELECT() -> i32 { 27 }
 

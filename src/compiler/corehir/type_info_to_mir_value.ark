@@ -135,9 +135,42 @@ fn mvt_gc_layout_alias(table: TypeTable, mvt: MirValueType) -> String {
     let kind = type_table::type_entry_kind(entry)
     if kind == kinds::TYPE_KIND_VEC() || kind == kinds::TYPE_KIND_OPTION() ||
     kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_HASHMAP() {
-        return type_id_to_type_name(table, tid, 0)
+        let name = type_id_to_type_name(table, tid, 0)
+        // Tag-only spine intern (type_info_to_type_id) yields bare container
+        // names without element aliases. Those must not overwrite concrete
+        // CoreHIR names such as option:fnref / vec:String (#831).
+        if mvt_gc_layout_alias_is_bare_container(clone(name)) {
+            return String_new()
+        }
+        return name
     }
     String_new()
+}
+
+fn mvt_gc_layout_alias_is_bare_container(name: String) -> bool {
+    eq(clone(name), String_from("Option")) ||
+    eq(clone(name), String_from("Result")) ||
+    eq(clone(name), String_from("Vec")) ||
+    eq(clone(name), String_from("HashMap"))
+}
+
+// True when a CoreHIR-shaped local type must be kept over a tag-only MVT alias.
+fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
+    if len(local_type) == 0 {
+        return false
+    }
+    if !mvt_gc_layout_alias_is_bare_container(clone(alias)) {
+        return false
+    }
+    starts_with(clone(local_type), String_from("option:")) ||
+    starts_with(clone(local_type), String_from("Option_")) ||
+    starts_with(clone(local_type), String_from("Option:")) ||
+    starts_with(clone(local_type), String_from("result:")) ||
+    starts_with(clone(local_type), String_from("Result_")) ||
+    starts_with(clone(local_type), String_from("Result:")) ||
+    starts_with(clone(local_type), String_from("vec:")) ||
+    starts_with(clone(local_type), String_from("hashmap:")) ||
+    eq(clone(local_type), String_from("fnref"))
 }
 
 // Convert a concrete MirValueType back to the GC-layout alias string used by

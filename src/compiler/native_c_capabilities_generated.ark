@@ -196,6 +196,9 @@ fn native_c_capability_opcode_name(op: i32) -> String {
     if op == opcodes::MIR_GC_STRUCT_SET() {
         return String_from("MIR_GC_STRUCT_SET")
     }
+    if op == opcodes::MIR_CALL_REF() {
+        return String_from("MIR_CALL_REF")
+    }
     if op == opcodes::MIR_REF_FUNC() {
         return String_from("MIR_REF_FUNC")
     }
@@ -394,6 +397,9 @@ fn native_c_capability_status_detail(op: i32) -> String {
     }
     if op == opcodes::MIR_GC_STRUCT_SET() {
         return String_from("planned phase 2")
+    }
+    if op == opcodes::MIR_CALL_REF() {
+        return String_from("planned phase 3")
     }
     if op == opcodes::MIR_REF_FUNC() {
         return String_from("planned phase 3")

@@ -85,6 +85,9 @@ fn parse_tuple_or_fn_type(p: Parser, t: Token) -> AstNode {
 fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    // Stable surface name so Option<fn(...)> / type_ann paths keep "fnref"
+    // instead of an empty TypeFn text (#831).
+    core_ast_text_fields::AstNode_set_text(fn_type, String_from("fnref"))
     core_ast_children::AstNode_set_children(fn_type, core_ast_children::AstNode_children(node))
     let ret = parse_type(p)
     core_ast_type_ann::AstNode_push_type_ann(fn_type, ret)
@@ -94,6 +97,7 @@ fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
 fn parse_fn_type(p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     let fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
+    core_ast_text_fields::AstNode_set_text(fn_node, String_from("fnref"))
     type_token_expect::expect_lparen(p)
     let mut first = true
     while !type_token_predicates::is_tuple_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {

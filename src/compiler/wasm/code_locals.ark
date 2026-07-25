@@ -1,5 +1,6 @@
 use wasm::constants
 use wasm::ctx_record
+use wasm::call_indirect
 use wasm::code_ref_locals
 use wasm::code_scratch_locals
 use wasm::code_locals_val_type
@@ -13,6 +14,10 @@ use mir::function_locals_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
+
+fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx) -> i32 {
+    call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
+}
 
 fn is_string_byte_vec_fn(f: MirFunction) -> bool {
     let name = function_identity::MirFunction_name(f)
@@ -54,6 +59,15 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
     let variant_slot = local_access::MirLocal_variant_slot(loc)
+    // Typed funcref locals: non-null `(ref $callback)` matching unary i32/i64 callbacks.
+    if vt == value_types::VT_FUNCREF() ||
+    eq(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fnref")) {
+        let type_idx = resolve_fnref_local_type_idx(ctx)
+        writer_core::emit_byte(body, constants::WASM_REF())
+        writer_core::emit_leb128_s(body, type_idx)
+        return true
+    }
     // Assert/loop temps may keep an open-enum type_name after local reuse while
     // the body only stores i64. Demote those; real array/string refs are skipped
     // inside the scan helper.

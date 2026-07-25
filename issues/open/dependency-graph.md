@@ -53,7 +53,6 @@ graph LR
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
-  I831["831 call_ref emitter 移行（typed funcref）"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -170,7 +169,6 @@ graph LR
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
-- **831** depends on: 722; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683

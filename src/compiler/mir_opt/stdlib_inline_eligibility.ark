@@ -48,7 +48,10 @@ fn stdlib_inline_body_is_straight_line(f: MirFunction, body_index: i32) -> bool 
         if op == opcodes::MIR_RETURN() {
             return index == count - 1
         }
-        if op == opcodes::MIR_CALL() || op == opcodes::MIR_CALL_INDIRECT() || op == opcodes::MIR_WIT_CALL() {
+        if op == opcodes::MIR_CALL() ||
+        op == opcodes::MIR_CALL_INDIRECT() ||
+        op == opcodes::MIR_CALL_REF() ||
+        op == opcodes::MIR_WIT_CALL() {
             return false
         }
         if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() || op == opcodes::MIR_BR_TABLE() {

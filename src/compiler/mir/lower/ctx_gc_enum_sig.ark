@@ -11,6 +11,9 @@ fn gc_enum_field_sig_for_vt(vt: i32) -> String {
     if vt == value_types::VT_I64() {
         return String_from("_f1_i64")
     }
+    if vt == value_types::VT_FUNCREF() {
+        return String_from("_f1_fnref")
+    }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         return String_from("_f1_ref0")
     }
@@ -44,6 +47,9 @@ fn ctx_gc_enum_payload_field_sigs_typed(ctx: LowerCtx, payload_vts: Vec<i32>, ty
 fn should_use_typed_payload_field_sig(vt: i32, type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
+    }
+    if vt == value_types::VT_FUNCREF() || eq(clone(type_name), String_from("fnref")) {
+        return true
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         return true
@@ -170,6 +176,9 @@ fn gc_enum_field_sig_for_type_ctx(ctx: LowerCtx, type_name: String) -> String {
 }
 
 fn gc_enum_field_sig_for_type_ctx_slot(struct_slot: i32, type_name: String) -> String {
+    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
+        return String_from("_f1_fnref")
+    }
     if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
         return String_from("_f1_f64")
     }

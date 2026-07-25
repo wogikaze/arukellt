@@ -3,6 +3,7 @@ use mir::function_identity
 use mir::value_types
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::function_indices
 use wasm::inst_const
 use wasm::inst_dispatch_result
 use wasm::inst_locals
@@ -49,24 +50,32 @@ fn try_emit_ref_func_inst(
     let fn_name = inst_accessors_facade::MirInst_str_val(inst)
     let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
-    let mut table_idx = 0
+    let mut mir_fn_idx = 0
     let mut found = 0
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(functions, i)
         if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
-            table_idx = i
+            mir_fn_idx = i
             found = 1
         }
         i = i + 1
     }
-    // Function-pointer table indices are i32 at the call_indirect boundary,
-    // but funcref locals are widened to i64 under Memory64. Emit the value
-    // through the i32-const helper so it matches the local storage width.
+    // Typed funcref: emit ref.func with the module function index. Active
+    // table elem segments already declare referenced functions (#831 / ADR-033).
+    writer_core::emit_byte(w, opcodes::OP_REF_FUNC())
     if found == 0 {
-        helpers_numeric_i32_const::emit_i32_const(w, 0)
+        writer_core::emit_leb128_u(w, 0)
     } else {
-        helpers_numeric_i32_const::emit_i32_const(w, table_idx)
+        let defined_idx = function_indices::defined_function_index(
+            mir_fn_idx,
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx),
+            ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+            ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
+            len(bindings)
+        )
+        writer_core::emit_leb128_u(w, defined_idx)
     }
     inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
     true

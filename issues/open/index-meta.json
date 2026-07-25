@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T05:17:58Z",
+  "generated_at": "2026-07-25T06:02:15Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -941,25 +941,6 @@
       "orchestration": {
         "class": "investigation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "831",
-      "path": "831-call-ref-emitter-migration.md",
-      "title": "call_ref emitter 移行（typed funcref）",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "722"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": 722
       }
     },
     {

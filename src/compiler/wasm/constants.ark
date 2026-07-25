@@ -6,6 +6,8 @@ fn WASM_V128() -> i32 { 123 }
 fn WASM_F64() -> i32 { 124 }
 fn WASM_I8() -> i32 { 120 }
 fn WASM_REF_NULL() -> i32 { 99 }
+// Non-null typed reference `(ref $t)` — used for typed funcref params (#831).
+fn WASM_REF() -> i32 { 100 }
 
 // Abbreviated (ref null struct) value type — top type for all GC struct refs.
 fn WASM_STRUCTREF() -> i32 { 107 }

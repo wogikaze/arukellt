@@ -137,6 +137,10 @@ fn mir_apply_param_mvt_override(ctx: LowerCtx, param_local: i32) {
     if len(alias) == 0 {
         return
     }
+    let current = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
+    if type_info_to_mir_value::concrete_type_outranks_mvt_alias(clone(current), clone(alias)) {
+        return
+    }
     let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
     ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))

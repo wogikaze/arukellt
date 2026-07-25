@@ -457,6 +457,13 @@ phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
+id = "MIR_CALL_REF"
+opcode = 44
+status = "planned"
+phase = 3
+implementation = "c_emitter"
+
+[[mir_opcodes]]
 id = "MIR_REF_FUNC"
 opcode = 89
 status = "planned"

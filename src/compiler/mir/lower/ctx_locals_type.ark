@@ -50,6 +50,16 @@ fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
         }
         i = i - 1
     }
+    // Fall back to MirLocal.type_name when the side table missed a write
+    // (e.g. after frame restore). Needed for Option<fn> match hints (#831).
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    if local_idx >= 0 && local_idx < function_locals_view::MirFunction_local_count(func) {
+        let loc = function_locals_view::MirFunction_local_at(func, local_idx)
+        let tn = local_access::MirLocal_type_name(loc)
+        if len(tn) > 0 {
+            return tn
+        }
+    }
     String_new()
 }
 

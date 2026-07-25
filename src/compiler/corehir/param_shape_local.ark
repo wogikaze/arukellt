@@ -61,6 +61,9 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
             // Keep Option_i32/i64/f64 aliases for existing scalar match helpers,
             // and emit option:T for every other payload (String, structs, ...).
+            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem2)) {
+                return String_from("option:fnref")
+            }
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
                 return String_from("Option_i64")
             }
@@ -121,6 +124,10 @@ fn method_param_local_type_name(node: AstNode) -> String {
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
+            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem2)) ||
+            eq(decl_ann_name::decl_ann_name(elem2), String_from("fnref")) {
+                return String_from("option:fnref")
+            }
             if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
                 return String_from("Option_i64")
             }

@@ -61,6 +61,11 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     } else {
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
     }
+    // Enum/struct funcref fields are nullable (defaultable); bare fn locals are
+    // non-null `(ref $sig)`. Narrow before local.set (#831).
+    if val_type == value_types::VT_FUNCREF() {
+        writer_gc::emit_gc_ref_as_non_null(w)
+    }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)
 }

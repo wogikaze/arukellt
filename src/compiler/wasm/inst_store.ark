@@ -41,7 +41,10 @@ fn is_unused_lower_core_expr_before_next_call(inst: MirInst, dest: i32, next_op:
     if next_arg0 == dest {
         return false
     }
-    if next2_op != mir_opcodes::MIR_CALL() && next2_op != mir_opcodes::MIR_WIT_CALL() && next2_op != mir_opcodes::MIR_CALL_INDIRECT() {
+    if next2_op != mir_opcodes::MIR_CALL() &&
+    next2_op != mir_opcodes::MIR_WIT_CALL() &&
+    next2_op != mir_opcodes::MIR_CALL_INDIRECT() &&
+    next2_op != mir_opcodes::MIR_CALL_REF() {
         return false
     }
     let callee = inst_accessors_literals::MirInst_str_val(inst)

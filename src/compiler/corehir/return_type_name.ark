@@ -1,5 +1,7 @@
 use corehir::decl_ann_children
 use corehir::decl_ann_name
+use corehir::frontend_ast_identity
+use corehir::frontend_type_kind
 use corehir::return_ann_shape
 
 fn return_index_type_name(node: AstNode) -> String {
@@ -39,6 +41,10 @@ fn return_index_type_name(node: AstNode) -> String {
         }
         if eq(clone(name), String_from("Option")) && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
+            if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem_opt)) ||
+            eq(decl_ann_name::decl_ann_name(elem_opt), String_from("fnref")) {
+                return String_from("option:fnref")
+            }
             return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem_opt))
         }
         if eq(clone(name), String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ret) >= 3 {

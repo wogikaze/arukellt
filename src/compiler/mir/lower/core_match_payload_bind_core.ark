@@ -19,13 +19,40 @@ fn core_emit_payload_variant_binds(
     scrut_ok_is_ref: bool
 ) {
     let variant_name = core_expr_shape_accessors::mir_core_expr_text(pat)
+    let mut scrut_type = ctx_api_local_types::ctx_get_local_type(ctx, scrut_idx)
+    let is_some_or_ok = core_match_payload_bind_types::core_match_variant_is_some_or_ok(clone(variant_name))
+    let mut payload_hint = String_new()
+    if is_some_or_ok {
+        payload_hint = core_payload_elem_type_from_scrut(clone(scrut_type), true)
+        // Bare Option / empty scrut: recover fnref from an already-registered
+        // Some(_f1_fnref) layout when present (#831).
+        if len(payload_hint) == 0 {
+            let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+            if slot >= 0 {
+                let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
+                if contains(clone(sig), String_from("_f1_fnref")) {
+                    payload_hint = String_from("fnref")
+                    scrut_type = String_from("option:fnref")
+                    ctx_api_local_types::ctx_set_local_type(ctx, scrut_idx, clone(scrut_type))
+                }
+            }
+        }
+    }
     let mut bi = 0
     while bi < core_expr_shape_accessors::mir_core_expr_child_count(pat) {
         let bind_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(pat, bi))
-        let bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
+        let mut bind_vt = core_match_payload_bind_types::core_payload_field_vt(ctx, clone(variant_name), bi, scrut_ok_is_f64, scrut_ok_is_i64, scrut_ok_is_ref)
+        if bi == 0 && core_match_payload_bind_types::core_payload_type_is_fnref(clone(payload_hint)) {
+            bind_vt = value_types::VT_FUNCREF()
+        }
         let bind_local = ctx_api_local_alloc::ctx_alloc_local(ctx, core_expr_shape_accessors::mir_core_expr_text(bind_pat), bind_vt)
-        core_match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
-        if bind_vt == value_types::VT_GC_REF() || core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), bi) {
+        if bind_vt == value_types::VT_FUNCREF() {
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("fnref"))
+            ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
+        } else {
+            core_match_payload_bind_types::set_gc_payload_bind_type_if_needed(ctx, clone(variant_name), bind_local, bind_vt, bi)
+        }
+        if bind_vt != value_types::VT_FUNCREF() && (bind_vt == value_types::VT_GC_REF() || core_match_payload_bind_types::core_payload_gc_field_is_ref(ctx, clone(variant_name), bi)) {
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
             }
@@ -83,6 +110,9 @@ fn core_infer_payload_set_type(ctx: LowerCtx, elem_ty: String) -> String {
     // result:) should NOT be prefixed with "enum:" because
     // the emitter has dedicated GC type mappings for them.
     // Named GC structs keep their bare name for gcsref (#726).
+    if core_match_payload_bind_types::core_payload_type_is_fnref(clone(elem_ty)) {
+        return String_from("fnref")
+    }
     let mut set_type = clone(elem_ty)
     if !core_match_payload_bind_types::core_payload_scalar_type_name(clone(elem_ty)) {
         if !eq(clone(elem_ty), "String") && !eq(clone(elem_ty), "string") {
@@ -131,6 +161,11 @@ fn core_infer_payload_bind_type(ctx: LowerCtx, variant_name: String, bind_local:
     let mut set_type = core_infer_payload_set_type(ctx, clone(elem_ty))
     if eq(clone(elem_ty), "unit") || eq(clone(elem_ty), "()") || eq(clone(elem_ty), "void") {
         set_type = String_from("i32")
+    }
+    if core_match_payload_bind_types::core_payload_type_is_fnref(clone(elem_ty)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("fnref"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
+        return
     }
     ctx_api_local_types::ctx_set_local_type(ctx, bind_local, set_type)
     // Fix vt for scalars: preserve i64/f64 width (#726 debug_vec).

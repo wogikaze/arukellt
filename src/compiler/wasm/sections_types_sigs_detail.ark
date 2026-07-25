@@ -4,6 +4,7 @@ use mir::function_param_view
 use mir::function_return_view
 use mir::local_access
 use mir::module_gc_struct
+use mir::value_types
 use wasm::emit_target
 use wasm::sections_type_plan
 use wasm::sections_types_gc
@@ -73,6 +74,14 @@ fn build_param_type_sig(
     mir: MirModule
 ) -> String {
     let p_type_name = local_access::MirLocal_type_name(p)
+    // Typed funcref params encode as the atomic segment "fnref" (no underscores)
+    // so type_sig_param_segments keeps them intact (#831).
+    if eq(clone(p_type_name), String_from("fnref")) || starts_with(clone(p_type_name), String_from("fnref")) {
+        return String_from("fnref")
+    }
+    if local_access::MirLocal_val_type(p) == value_types::VT_FUNCREF() {
+        return String_from("fnref")
+    }
     // String byte-buffer helpers are always Vec<i32>; a mis-resolved vec:T
     // (structref layout) makes push store i64 chars into structref slots.
     if emit_target::is_gc_target(clone(target)) && pi == 0 && is_string_byte_vec_param_fn(clone(uf.name)) {

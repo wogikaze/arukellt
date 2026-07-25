@@ -4,6 +4,7 @@ use mir::opcodes
 use wasm::call_fallback
 use wasm::call_hash
 use wasm::call_indirect
+use wasm::call_ref
 use wasm::call_wit
 use wasm::core_op_dispatch
 use wasm::core_op_shadow
@@ -82,6 +83,10 @@ fn try_emit_call_inst(
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL_INDIRECT() {
         call_indirect::emit_call_indirect_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL_REF() {
+        call_ref::emit_call_ref_inst(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
