@@ -1,6 +1,6 @@
 # #826 — Symbol / path interning + hot-path clone audit クローズ計画
 
-ステータス: 計画（investigation）  
+ステータス: Phase 1–2 完了 + NameIndex bounded win（investigation 継続可）  
 親 issue: [#826](../../issues/open/826-symbol-path-intern-clone-audit.md)  
 前提: #823, #829 done  
 担当 subagent lane: `wave/826-intern-clone`  

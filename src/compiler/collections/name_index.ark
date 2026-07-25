@@ -32,32 +32,45 @@ pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
     }
 }
 
-fn name_index_hash(name: String) -> i32 {
-    let mut hash = 216613626
-    let count = len(name)
-    let mut i = 0
-    while i < count {
-        hash = hash * 16777619 ^ char_at(name, i)
+fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
+    // Inline FNV-1a + byte compare so `name` is not consumed by helpers and
+    // probe loops do not deep-clone once per occupied bucket (#826).
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
         if hash < 0 {
             hash = 0 - hash
         }
-        i = i + 1
+        hi = hi + 1
     }
     if hash < 0 {
-        return 0
+        hash = 0
     }
-    hash
-}
-
-fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
-    let mut slot = name_index_hash(clone(name)) % index.capacity
+    let mut slot = hash % index.capacity
     let mut probes = 0
     while probes < index.capacity {
         let bucket = get_unchecked(index.buckets, slot)
         if bucket == 0 {
             return slot
         }
-        if eq(get_unchecked(index.keys, bucket - 1), clone(name)) {
+        let key = get_unchecked(index.keys, bucket - 1)
+        let mut same = len(key) == name_len
+        if same {
+            let mut i = 0
+            while i < name_len {
+                if char_at(key, i) != char_at(name, i) {
+                    same = false
+                    i = name_len
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+        if same {
             return slot
         }
         slot = (slot + 1) % index.capacity

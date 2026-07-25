@@ -164,7 +164,7 @@ Receipt: `.build/selfhost/selfhost-latency-receipt.json`
 | `emit.code.locals` | ~~struct_new / type_name / CSR producer index~~（landed, ≈2.8 s） |
 | `emit.code.insts` | ~~struct NameIndex~~（landed, ≈1 s） |
 | `lower.reachability` | BFS 自体の再プロファイル（**現行の支配相の一角** ≈13 s） |
-| 複数フェーズで RSS だけ増 | #826 clone/intern |
+| 複数フェーズで RSS だけ増 | #826 clone/intern（監査+NameIndex win: [`826-symbol-path-intern-clone-audit.md`](826-symbol-path-intern-clone-audit.md)） |
 | `mir_opt` / `mir_verify` | それぞれ別 issue |
 
 ## 歴史的原因メモ（#823 以前の仮説）
