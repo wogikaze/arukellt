@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-17
-Updated: 2026-06-17
+Updated: 2026-07-25
 ID: 668
 Track: wasi-feature
 Parent: 074
@@ -11,6 +11,7 @@ Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
 Source: P0 WASI P2 native checklist audit 2026-06-17 — post-#074 polish gaps
+Status note: Parent #074 re-closed 2026-07-25; this issue owns remaining polish.
 ---
 
 # 668 — P2 native component polish (post-#074)
@@ -18,7 +19,7 @@ Source: P0 WASI P2 native checklist audit 2026-06-17 — post-#074 polish gaps
 ## Summary
 
 Issue #074 closed the minimum P2 native command path (`gate_074`: validate + wasmtime
-`hello p2`). Several P0 items from the 2026-06-17 audit remain open: stderr,
+`hello p2`; re-closed 2026-07-25). Several P0 items from the 2026-06-17 audit remain open: stderr,
 fixture coverage, bootstrap honesty, docs alignment, and export hygiene.
 
 This issue is the **parent polish gate** for P2 native command components. Do not

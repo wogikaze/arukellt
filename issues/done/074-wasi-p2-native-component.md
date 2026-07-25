@@ -1,15 +1,31 @@
 ---
-Status: open
+Status: done
 Created: 2026-03-28
-Updated: 2026-07-12
+Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 074
 Track: wasi-feature
 Depends on: 510, 121
 Orchestration class: implementation-ready
 Orchestration upstream: None
 Blocks v4 exit: no
-Status note: Closed 2026-06-14 — gate_074 passes (wasm-tools validate + wasmtime prints `hello p2` via component-new stdout adapt).
+Status note: Re-closed 2026-07-25 — gate_074 + verify quick green on bridged in-tree emit (#714). Post-#074 polish stays in #668.
+Close gate: scripts/check/check-false-done-close-gates.py::gate_074
 ---
+
+## Close evidence — 2026-07-25 (re-close)
+
+| Gate item | Status | Evidence |
+|-----------|--------|----------|
+| Depends #510 / #121 | ✅ | both in `issues/done/` |
+| P2 compile + component emit | ✅ | `tests/fixtures/wasi_p2_native/hello.ark` via `--target wasm32-gc --wasi-version wasi-p2 --emit component` |
+| wasm-tools validate | ✅ | `gate_074` |
+| Bridged import shape | ✅ | artifact contains `wasi:cli/stdout@0.2.0`, `wasi:io/streams@0.2.0`, `get-stdout` (no `::write` pseudo) |
+| wasmtime run stdio | ✅ | stdout contains `hello p2` |
+| verify quick | ✅ | 147/147 (HEAD at close) |
+
+**Path:** bridged emitter-native output (#714); `p2_component_wrap.py` removed. Remaining polish (stderr, args/env fixtures, size gate, version-string hygiene, guest-native get-stdout) tracked in [#668](../open/668-p2-native-component-polish.md).
+
 ## Reopened 2026-07-12 (close-gate failure)
 
 Close gate failed under current selfhost path; moved back to `issues/open/` so verify is not blocked (false-done prevention). Re-close when gate passes.
