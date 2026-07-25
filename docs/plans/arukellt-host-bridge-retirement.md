@@ -1,6 +1,7 @@
 # `#727` — `arukellt_host` bridge retirement 実装計画
 
-ステータス: **確定（2026-07-25）** — Phase 0–1 完了; Phase 2（WIT lowering）着手可  
+ステータス: **確定（2026-07-25）** — Phase 0–2 完了 + Phase 3 import module remap; 次は GC Result finalize / Phase 4  
+
 親 issue: [`#727`](../../issues/open/727-arukellt-host-bridge-retirement.md)  
 関連 ADR: [ADR-007](../adr/ADR-007-targets.md), [ADR-011](../adr/ADR-011-wasi-host-layering.md), [ADR-008](../adr/ADR-008-component-wrapping.md), [ADR-014](../adr/ADR-014-stability.md)  
 Child: [`#830`](../../issues/open/830-wasm-heap-grow-patcher-retirement.md)（patcher 退役・本計画のスコープ外）
@@ -71,8 +72,8 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 |-------|------|-------------------|----------|
 | 0 | `#714` 完了（済） | bridged P2 on master | hello validate+run; wrap deleted |
 | 1 | WIT mapping + CoreOp schema（済） | `data/core-ops.toml`, generator, `CoreOpEntry` | 8 CoreOp = `kind="wit"`; generator emits package/interface/function/version |
-| 2 | CoreOp → WIT lowering（着手） | `call_runtime_wit.ark`, `call_host_network.ark`, `intrinsic_http.ark`, `intrinsic_sockets.ark` | HTTP/sockets call が WIT identity / import index 経由 |
-| 3 | import table / component wrapper | `sections_imports.ark`, `import_indices.ark`, `function_indices.ark`, `emit_target.ark`, `component_p2_*.ark` | `needs_arukellt_host` / `arukellt_host` エントリ削除。P1 では compile-time error 維持 |
+| 2 | CoreOp → WIT lowering（済） | `call_runtime_wit.ark`, `call_host_network.ark` | HTTP/sockets が WIT identity で dispatch。guest ABI は簡略のまま |
+| 3 | import table / component wrapper（一部済） | `sections_imports.ark`（module 名 remap 済）; `needs_arukellt_host` フラグ改名は残 | `arukellt_host` 文字列は import emit から除去済。フラグ/P1 error 整理は継続 |
 | 4 | host-linker → wasmtime-wasi | `tools/host-linker/**`, `Cargo.toml` | カスタム HTTP/sockets 実装削除。標準 WASI link |
 | 5 | runner / gate / fixture | `arukellt-selfhost.sh`, `arukellt-run-hosted.sh`, `gate-655`–`658`, fixtures | WIT 検査 + wasmtime run 証拠 |
 | 6 | docs / manifest | `std/manifest.toml`, `docs/capability-surface.md`, `docs/current-state.md` | `arukellt_host` 記述削除、`#675` 整合 |

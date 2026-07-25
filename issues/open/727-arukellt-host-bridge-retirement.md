@@ -32,13 +32,15 @@ Locked decisions:
 5. **`runtime.serve`** = guest **export** of `wasi:http/incoming-handler@0.2.0::handle`
    (not a host import).
 
-### Progress (2026-07-25)
+### Progress (2026-07-26)
 
 | Phase | Status |
 |-------|--------|
 | 0 `#714` | done (merged to master) |
 | 1 WIT CoreOp schema | done — 8 ops `kind="wit"`; generator emits package/interface/function/version |
-| 2–7 | next: CoreOp → WIT lowering + import table |
+| 2 CoreOp → WIT lowering | done — `call_runtime_wit` + network dispatch by WIT package |
+| 3 import table | partial — guest import modules are WIT-shaped; `needs_arukellt_host` flag rename still open |
+| 4–7 | next — GC Result finalize (blocker), host-linker → wasmtime-wasi, gates, docs, close |
 
 ## Summary
 
