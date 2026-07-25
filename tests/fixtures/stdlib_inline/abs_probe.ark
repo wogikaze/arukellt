@@ -97,14 +97,14 @@ pub fn probe_string_padding() -> bool {
     let left_fill = "x".pad_left_with(4, "ab")
     let right_fill = "x".pad_right_with(4, "ab")
     left.len() == 3 &&
-        left.char_at(0) == 32 &&
-        left.char_at(2) == 120 &&
-        right.char_at(0) == 120 &&
-        right.char_at(2) == 32 &&
-        left_fill.char_at(0) == 98 &&
-        left_fill.char_at(3) == 120 &&
-        right_fill.char_at(0) == 120 &&
-        right_fill.char_at(3) == 97
+    left.char_at(0) == 32 &&
+    left.char_at(2) == 120 &&
+    right.char_at(0) == 120 &&
+    right.char_at(2) == 32 &&
+    left_fill.char_at(0) == 98 &&
+    left_fill.char_at(3) == 120 &&
+    right_fill.char_at(0) == 120 &&
+    right_fill.char_at(3) == 97
 }
 
 pub fn probe_string_replace() -> bool {
@@ -120,9 +120,9 @@ pub fn probe_string_split() -> bool {
 pub fn probe_string_lines() -> bool {
     let parts = "a\r\nb\n".lines()
     len(parts) == 3 &&
-        get_unchecked(parts, 0).len() == 1 &&
-        get_unchecked(parts, 1).char_at(0) == 98 &&
-        get_unchecked(parts, 2).len() == 0
+    get_unchecked(parts, 0).len() == 1 &&
+    get_unchecked(parts, 1).char_at(0) == 98 &&
+    get_unchecked(parts, 2).len() == 0
 }
 
 pub fn probe_string_storage_ops() -> bool {
@@ -133,22 +133,22 @@ pub fn probe_string_storage_ops() -> bool {
     let copied = text.clone()
     let chars = copied.chars()
     String_new().is_empty() &&
-        copied.len_bytes() == 2 &&
-        string::eq(text, copied) &&
-        len(chars) == 2 &&
-        get_unchecked(chars, 0).char_at(0) == 79 &&
-        get_unchecked(chars, 1).char_at(0) == 75
+    copied.len_bytes() == 2 &&
+    string::eq(text, copied) &&
+    len(chars) == 2 &&
+    get_unchecked(chars, 0).char_at(0) == 79 &&
+    get_unchecked(chars, 1).char_at(0) == 75
 }
 
 pub fn probe_scalar_format_ops() -> bool {
     let i32_text = (0 - 2147483647 - 1).to_string()
     let i64_text = (0_i64 - 9223372036854775807_i64 - 1_i64).to_string()
     i32_text.len() == 11 &&
-        i32_text.char_at(0) == 45 &&
-        i32_text.char_at(10) == 56 &&
-        i64_text.len() == 20 &&
-        i64_text.char_at(0) == 45 &&
-        i64_text.char_at(19) == 56
+    i32_text.char_at(0) == 45 &&
+    i32_text.char_at(10) == 56 &&
+    i64_text.len() == 20 &&
+    i64_text.char_at(0) == 45 &&
+    i64_text.char_at(19) == 56
 }
 
 pub fn probe_string_join() -> bool {
@@ -176,9 +176,9 @@ pub fn probe_vec_string_mutation() -> bool {
     let first = get_unchecked(values, 0)
     let second = get_unchecked(values, 1)
     first.len() == 5 &&
-        first.char_at(0) == 114 &&
-        second.len() == 4 &&
-        second.char_at(0) == 108
+    first.char_at(0) == 114 &&
+    second.len() == 4 &&
+    second.char_at(0) == 108
 }
 
 pub fn probe_seq_read_ops() -> bool {
@@ -200,11 +200,11 @@ pub fn probe_seq_allocation_ops() -> bool {
     let skipped = seq::skip_i32(values, 2)
     let unique_values = seq::unique(values)
     len(taken) == 3 &&
-        get_unchecked(taken, 2) == 3 &&
-        len(skipped) == 2 &&
-        get_unchecked(skipped, 0) == 3 &&
-        len(unique_values) == 3 &&
-        get_unchecked(unique_values, 2) == 7
+    get_unchecked(taken, 2) == 3 &&
+    len(skipped) == 2 &&
+    get_unchecked(skipped, 0) == 3 &&
+    len(unique_values) == 3 &&
+    get_unchecked(unique_values, 2) == 7
 }
 
 pub fn probe_seq_sort_i32() -> bool {
@@ -214,6 +214,28 @@ pub fn probe_seq_sort_i32() -> bool {
     push(i32_values, 4)
     sort_i32(i32_values)
     get_unchecked(i32_values, 0) == 2 && get_unchecked(i32_values, 2) == 7
+}
+
+pub fn probe_format_bool_ops() -> bool {
+    let true_text = format_bool(true)
+    let false_text = format_bool(false)
+    true_text.len() == 4 &&
+    true_text.char_at(0) == 116 &&
+    false_text.len() == 5 &&
+    false_text.char_at(0) == 102
+}
+
+pub fn probe_char_to_string_ops() -> bool {
+    let text = char_to_string('A')
+    text.len() == 1 && text.char_at(0) == 65
+}
+
+pub fn probe_range_new_ops() -> bool {
+    // Avoid `range.len() == N` in the same expression as contains: O1 inlining
+    // of range_len currently drops the left operand of `==` (#822 follow-up).
+    let range: Range = core::range_new(3, 8)
+    let length = range.len()
+    range.contains(5) && length == 5 && !range.contains(8)
 }
 
 fn main() {}
