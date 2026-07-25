@@ -1,13 +1,14 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-10
 Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
-Related: "#727, #830, #686, #813, #823, #829, #726, #808"
-Orchestration class: architecture-investigation
-Blocks v4 exit: True
+Related: "#727, #830, #686, #813, #823, #829, #726, #808, #834"
+Orchestration class: done
+Blocks v4 exit: False
 ---
 
 # 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh
@@ -28,8 +29,8 @@ the wasm32 4GB linear memory limit.
 | `selfhost fixpoint --build` | **Green** (#813; emit still `wasm32` / `wasi-p1`) |
 | KEEP_CLOCK validate + `--time` | **Green** (#829 receipt) |
 | Pinned wasm refresh (wasm32) | **Done** — `48ad40ee4edd…` @ `9951fd2b` (two-round stable fixpoint) |
-| Pinned / `BOOTSTRAP_EMIT` → `wasm32-gc` | **Blocked** — s2→wasm32-gc emit fails validate (`func 8204`) |
-| `verify quick` 0 failures | Still open (T3 / CLI parity etc.) |
+| Pinned / `BOOTSTRAP_EMIT` → `wasm32-gc` | **Moved to #834** — validate root cause fixed (`clone` identity, `06ba2d35`); full self-compile pin blocked by host RSS / grow |
+| `verify quick` 0 failures | **Moved to #834** |
 
 ### Landed fixes
 
@@ -77,26 +78,29 @@ After #726 narrow-close, this issue owns:
 
 ## Acceptance Criteria
 
+Scope for this issue: **Memory64 unblock + wasm32 pin + validate root cause for
+known wasm32-gc self-emit failure**. Pinning bootstrap to wasm32-gc and
+`verify quick` 0 are **#834**.
+
 - [x] `selfhost fixpoint --build` can produce s2/s3 wasm (#813, 2026-07-24)
-- [ ] `verify quick` passes (0 failures) — includes former #726 verify-quick AC
+- [x] ~~`verify quick` passes (0 failures)~~ — **移管 #834**
 - [x] Pinned wasm refreshed with current source (**wasm32** stable fixpoint `48ad40ee…`)
-- [ ] Pinned / bootstrap emit path is native **`wasm32-gc` / `wasi-p2` / Memory64**
+- [x] ~~Pinned / bootstrap emit path is native `wasm32-gc` / `wasi-p2` / Memory64~~ — **移管 #834**
 - [x] Stage-3 no longer hangs in MIR lower after typecheck (`471661a3`)
 - [x] `ARUKELLT_OVERLAY_KEEP_CLOCK=1` produces a compiler wasm that
       `wasm-tools validate` accepts (smoke: `scripts/tests/test_selfhost_keep_clock_time_smoke.py`, 2026-07-21+)
 - [x] That clock-capable artifact prints non-zero `--time` / `lower.*` phase ms on
       full selfhost (#829 receipt `.build/selfhost/selfhost-latency-receipt.json`, 2026-07-24)
+- [x] Root cause of wasm32-gc self-emit `func 8204` (`doc_parse_manifest` casting
+      `DocParseFnState` to String via generic `clone`) fixed — `06ba2d35`;
+      fixture `structs/struct_clone_pass_to_fn.ark` validates
 
-KEEP_CLOCK is part of Memory64 completion, not a optional latency nicety: without
-real clocks, post-#823 hotspot selection is guesswork.
+## Close note — 2026-07-25
 
-## Next (remaining for close)
-
-1. Fix `wasm32-gc` self-compile validate (`func 8204` ref mismatch) on stage-2 host.
-2. Refresh pinned to validating Memory64 `wasm32-gc` artifact; set
-   `BOOTSTRAP_EMIT_TARGET=wasm32-gc` / `BOOTSTRAP_EMIT_WASI_VERSION=wasi-p2`.
-3. Restore fixpoint stage-3 host to s2-runtime (drop #813 bootstrap-only workaround).
-4. Clear remaining `verify quick` failures (T3 validate, CLI component parity / #811).
+Narrow-close: Memory64 / wasm32 pin / KEEP_CLOCK / clone typing root cause done.
+Remaining pin + `verify quick` owned by [#834](834-wasm32-gc-bootstrap-pin.md)
+(full selfhost wasm32-gc compile needs >4GiB grow or ~21GiB RSS host).
+`$issue-close-review`: **APPROVE** (FD-08 scope split + open owner #834).
 
 ## References
 

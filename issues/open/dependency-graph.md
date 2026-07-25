@@ -43,7 +43,6 @@ graph LR
   I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
   I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
-  I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I807["807 807 — Fixture parity: 367 remaining failures"]
@@ -54,6 +53,8 @@ graph LR
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
+  I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
+  I834["834 Pin bootstrap to validating Memory64 wasm32-gc"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -65,8 +66,6 @@ graph LR
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
-  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
-  I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
@@ -91,8 +90,6 @@ graph LR
   I715 --> I719
   I715 --> I799
   I724 --> I729
-  I730 --> I827
-  I730 --> I830
   I791 --> I814
   I727 --> I819
   I682 --> I683
@@ -156,7 +153,6 @@ graph LR
 - **724** depends on: none; blocks: 729
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
-- **730** depends on: 726; blocks: 827, 830
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
 - **807** depends on: 287, framework); blocks: none
@@ -167,6 +163,8 @@ graph LR
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none
+- **830** depends on: 730; blocks: none
+- **834** depends on: 730; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683
@@ -178,8 +176,6 @@ graph LR
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
 - **729** depends on: 724; blocks: none
-- **827** depends on: 730, 823; blocks: none
-- **830** depends on: 730; blocks: none
 - **814** depends on: 791; blocks: none
 - **819** depends on: 727, 798; blocks: 818
 - **683** depends on: 679, 682; blocks: none

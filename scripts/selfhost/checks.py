@@ -183,8 +183,8 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
 # Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds (#813).
-# Emit stays wasm32/wasi-p1 until s2 can self-emit validating wasm32-gc (#730).
-# 2026-07-24: s2-runtime → --target wasm32-gc fails wasm-tools validate (func 8204).
+# Emit stays wasm32/wasi-p1 until s2 can self-emit + pin validating wasm32-gc (#834).
+# #730 closed: clone(T)→T fixed former func 8204 validate; pin/host RSS remains #834.
 # Fixpoint compares both stages at BOOTSTRAP_EMIT_* (stage-3 host = pinned bootstrap).
 BOOTSTRAP_EMIT_TARGET = "wasm32"
 BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"

@@ -69,11 +69,11 @@ behavioural drift in its body.
 ### wasm32-gc pinned (blocked)
 
 Refreshing the pinned artifact to native `wasm32-gc` / `wasi-p2` / Memory64
-emit is the remaining #730 goal. Experiment (2026-07-24): compiling
-`src/compiler/main.ark --target wasm32-gc` with `.build/selfhost/arukellt-s2-runtime.wasm`
-produces a module that fails `wasm-tools validate` (`func 8204` ref type
-mismatch). Do **not** pin that artifact. Keep `BOOTSTRAP_EMIT_TARGET = "wasm32"`
-in `scripts/selfhost/checks.py` until that validate failure is fixed.
+emit is tracked in **#834** (split from #730). The former `func 8204`
+`doc_parse_manifest` String-cast failure is fixed in source (`clone(T)→T`,
+`06ba2d35`); full selfhost wasm32-gc compile/pin still needs a host that can
+grow past 4GiB without ~21GiB RSS OOM. Keep `BOOTSTRAP_EMIT_TARGET = "wasm32"`
+in `scripts/selfhost/checks.py` until #834 lands.
 
 ## Why this artifact is committed
 

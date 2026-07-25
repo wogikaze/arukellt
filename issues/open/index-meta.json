@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T11:03:18Z",
+  "generated_at": "2026-07-25T11:50:03Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -753,28 +753,6 @@
       }
     },
     {
-      "id": "730",
-      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
-      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "726"
-      ],
-      "blocks_issue_ids": [
-        "827",
-        "830"
-      ],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "760",
       "path": "760-adr-registry-rule-compliance.md",
       "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
@@ -961,6 +939,44 @@
       },
       "orchestration": {
         "class": "investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "830",
+      "path": "830-wasm-heap-grow-patcher-retirement.md",
+      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "834",
+      "path": "834-wasm32-gc-bootstrap-pin.md",
+      "title": "Pin bootstrap to validating Memory64 wasm32-gc",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1194,45 +1210,6 @@
       "orchestration": {
         "class": "unblocked",
         "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "827",
-      "path": "827-phase-arena-after-heap-model.md",
-      "title": "P2b: phase arena (only after heap lifetime / ownership)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730",
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
       }
     },
     {

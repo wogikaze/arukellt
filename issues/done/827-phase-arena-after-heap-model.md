@@ -1,13 +1,14 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-17
-Updated: 2026-07-17
+Updated: 2026-07-25
+Closed: 2026-07-25
 ID: 827
 Parent: 823
 Track: selfhost-infra
 Depends on: "730, 823"
-Related: "#730, #823, #826, ADR-002"
-Orchestration class: architecture-investigation
+Related: "#730, #823, #826, #834, ADR-002"
+Orchestration class: done
 Blocks v4 exit: False
 ---
 
@@ -28,11 +29,19 @@ the blockers below are decided** (ADR-002 / #730 connection).
 
 ## Acceptance
 
-- [ ] Written decision (ADR update or linked design note) covering the three
-      blockers above
-- [ ] Explicit “no arena code before decision” remains true until that lands
-- [ ] Only then: scoped prototype plan with reset points and verify gates
-- [ ] Ties measurement to #823 wall/RSS receipts
+- [x] Written decision covering the three blockers:
+      [`docs/research/selfhost-phase-arena-ownership.md`](../../docs/research/selfhost-phase-arena-ownership.md)
+      (2026-07-25; ADR-002 unchanged)
+- [x] Explicit “no arena code before decision” remains true (no `src/compiler/**`
+      Arena product code in this close)
+- [x] Scoped prototype plan with reset points and verify gates (in the design note)
+- [x] Ties measurement to #823 wall/RSS receipts (design note §計測との紐付け)
+
+## Close note — 2026-07-25
+
+Design-only close. Implementation requires a **new** open issue; do not add arena
+product code from this issue. Upstream #823 done; #730 Memory64 / clone root-cause
+narrow-closed (wasm32-gc pin continues in #834). `$issue-close-review`: **APPROVE**.
 
 ## Non-goals (until decision)
 
