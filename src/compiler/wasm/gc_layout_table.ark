@@ -264,6 +264,9 @@ fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> 
     if starts_with(clone(name), String_from("hashmap:i32fn")) {
         return gc_type_base + 30
     }
+    if starts_with(clone(name), String_from("hashmap:strfn")) {
+        return gc_type_base + 31
+    }
     if starts_with(clone(name), String_from("hashmap:si32")) {
         return gc_type_base + 16
     }

@@ -168,10 +168,12 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("SubF_GS_f0_ref28_f1_i32"))
     // HashMap<i32, fn>: keys A_i32, vals A_fnref (offset 26), flags A_i32 (#833).
     push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref26_f4_ref1"))
+    // HashMap<String, fn>: keys A_ref0 (offset 15), vals A_fnref (offset 26) (#838).
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref26_f4_ref1"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    31
+    32
 }
 
 fn gc_enum_open_type_offset() -> i32 {
@@ -244,6 +246,10 @@ fn gc_hashmap_str_str_type_sig() -> String {
 
 fn gc_hashmap_i32_fn_type_sig() -> String {
     String_from("gcref30")
+}
+
+fn gc_hashmap_str_fn_type_sig() -> String {
+    String_from("gcref31")
 }
 
 fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {

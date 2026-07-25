@@ -15,6 +15,9 @@ fn try_emit_hashmap_str_call(w: WasmWriter, callee: String, inst: MirInst, ctx: 
     if try_emit_hm_if_call(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
         return true
     }
+    if try_emit_hm_sf_call(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count) {
+        return true
+    }
     false
 }
 
@@ -148,6 +151,54 @@ fn try_emit_hm_if_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEm
     }
     if eq(clone(callee), "__hm_if_set_val") || eq(clone(callee), "hash_fn::hashmap_i32_fn_set_val") {
         intrinsic_hashmap_str_slot::emit_hm_if_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    false
+}
+
+fn try_emit_hm_sf_call(w: WasmWriter, callee: String, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, wit_import_count: i32) -> bool {
+    // HashMap<String,fn> intrinsics (#838)
+    if eq(clone(callee), "__hm_sf_new") ||
+    eq(clone(callee), "hash_str_fn::hashmap_str_fn_new") ||
+    eq(clone(callee), "HashMap_new_String_fn") ||
+    eq(clone(callee), "HashMap_String_fn_new") {
+        intrinsic_hashmap_str_new::emit_hm_sf_new(w, inst, ctx, next_op, next_arg0, next_arg1, next2_op, wit_import_count)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_cap") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_cap") {
+        intrinsic_hashmap_str_meta::emit_hm_sf_meta_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_size") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_size") {
+        intrinsic_hashmap_str_meta::emit_hm_sf_meta_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_set_size") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_set_size") {
+        intrinsic_hashmap_str_meta::emit_hm_sf_meta_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_get_flag") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_get_flag") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_get(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_set_flag") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_set_flag") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_set(w, inst, ctx, 2, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_get_key") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_get_key") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_get(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_set_key") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_set_key") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_set(w, inst, ctx, 0, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_get_val") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_get_val") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_get(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
+        return true
+    }
+    if eq(clone(callee), "__hm_sf_set_val") || eq(clone(callee), "hash_str_fn::hashmap_str_fn_set_val") {
+        intrinsic_hashmap_str_slot::emit_hm_sf_slot_set(w, inst, ctx, 1, next_op, next_arg0, next_arg1, next2_op)
         return true
     }
     false

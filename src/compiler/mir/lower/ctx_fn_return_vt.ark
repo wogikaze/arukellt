@@ -208,6 +208,7 @@ fn is_void_returning_builtin(bare_name: String) -> bool {
     eq(clone(bare_name), "HashMap_i32_i32_insert") ||
     eq(clone(bare_name), "HashMap_i32_String_insert") ||
     eq(clone(bare_name), "HashMap_i32_fn_insert") ||
+    eq(clone(bare_name), "HashMap_String_fn_insert") ||
     eq(clone(bare_name), "HashMap_String_i32_insert") ||
     eq(clone(bare_name), "HashMap_String_String_insert") ||
     eq(clone(bare_name), "hashmap_set") ||

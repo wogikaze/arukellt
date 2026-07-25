@@ -52,6 +52,19 @@ fn is_hashmap_i32fn_new(callee_name: String) -> bool {
     callee_eq(callee_name, String_from("HashMap_i32_fn_new"))
 }
 
+fn is_hashmap_strfn_new(callee_name: String) -> bool {
+    if callee_eq(clone(callee_name), String_from("__hm_sf_new")) {
+        return true
+    }
+    if callee_eq(clone(callee_name), String_from("hash_str_fn::hashmap_str_fn_new")) {
+        return true
+    }
+    if callee_eq(clone(callee_name), String_from("HashMap_new_String_fn")) {
+        return true
+    }
+    callee_eq(callee_name, String_from("HashMap_String_fn_new"))
+}
+
 fn is_hashmap_strstr_new(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), String_from("__hm_ss_new")) {
         return true
@@ -254,7 +267,19 @@ fn is_option_fn_hash_query(callee_name: String) -> bool {
     if callee_eq(clone(callee_name), String_from("HashMap_i32_fn_remove")) {
         return true
     }
-    callee_eq(callee_name, String_from("hash_fn::hashmap_i32_fn_remove"))
+    if callee_eq(clone(callee_name), String_from("hash_fn::hashmap_i32_fn_remove")) {
+        return true
+    }
+    if callee_eq(clone(callee_name), String_from("HashMap_String_fn_get")) {
+        return true
+    }
+    if callee_eq(clone(callee_name), String_from("hash_str_fn::hashmap_str_fn_get")) {
+        return true
+    }
+    if callee_eq(clone(callee_name), String_from("HashMap_String_fn_remove")) {
+        return true
+    }
+    callee_eq(callee_name, String_from("hash_str_fn::hashmap_str_fn_remove"))
 }
 
 fn is_hash_size_query(callee_name: String) -> bool {
@@ -344,6 +369,9 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if is_hashmap_i32fn_new(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, String_from("hashmap:i32fn"))
     }
+    if is_hashmap_strfn_new(clone(callee_name)) {
+        mark_hash_type_ref(ctx, dest, String_from("hashmap:strfn"))
+    }
     if is_hashmap_strstr_new(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, String_from("hashmap:strstr"))
     }
@@ -359,9 +387,13 @@ fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     callee_eq(clone(callee_name), String_from("__hm_ss_get_val")) {
         mark_hash_type_ref(ctx, dest, String_from("string"))
     }
-    if callee_eq(clone(callee_name), String_from("__hm_if_get_val")) {
+    if callee_eq(clone(callee_name), String_from("__hm_if_get_val")) ||
+    callee_eq(clone(callee_name), String_from("__hm_sf_get_val")) {
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
+    }
+    if callee_eq(clone(callee_name), String_from("__hm_sf_get_key")) {
+        mark_hash_type_ref(ctx, dest, String_from("string"))
     }
     if is_hashmap_i32i32_new(clone(callee_name)) {
         mark_hash_type_ref(ctx, dest, String_from("hashmap:i32i32"))

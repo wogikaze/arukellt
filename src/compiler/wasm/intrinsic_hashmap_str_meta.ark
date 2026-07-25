@@ -24,6 +24,10 @@ fn emit_hm_if_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx
     emit_hm_meta_get_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
 }
 
+fn emit_hm_sf_meta_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_get_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
+}
+
 fn emit_hm_meta_get_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         writer_gc::emit_gc_ref_cast(w, hm_type)
@@ -51,6 +55,10 @@ fn emit_hm_ss_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx
 
 fn emit_hm_if_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     emit_hm_meta_set_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
+}
+
+fn emit_hm_sf_meta_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
+    emit_hm_meta_set_gc_type(w, inst, ctx, field_idx, next_op, next_arg0, next_arg1, next2_op, ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
 }
 
 fn emit_hm_meta_set_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, field_idx: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32, hm_type: i32) {

@@ -29,6 +29,12 @@ fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
     if eq(clone(callee), "__hm_if_new") || eq(clone(callee), "hash_fn::hashmap_i32_fn_new") || eq(clone(callee), "HashMap_new_i32_fn") || eq(clone(callee), "HashMap_i32_fn_new") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
     }
+    if eq(clone(callee), "__hm_sf_new") ||
+    eq(clone(callee), "hash_str_fn::hashmap_str_fn_new") ||
+    eq(clone(callee), "HashMap_new_String_fn") ||
+    eq(clone(callee), "HashMap_String_fn_new") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
+    }
     if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
     }

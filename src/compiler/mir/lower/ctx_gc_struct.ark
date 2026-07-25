@@ -201,6 +201,9 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
         return String_from("_ref30")
     }
+    if starts_with(clone(type_name), String_from("hashmap:strfn")) {
+        return String_from("_ref31")
+    }
     if starts_with(clone(type_name), String_from("hashmap:i32str")) {
         return String_from("_ref17")
     }
