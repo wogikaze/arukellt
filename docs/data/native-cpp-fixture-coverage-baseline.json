@@ -1,18 +1,18 @@
 {
   "counts": {
-    "compiled_positive": 1258,
-    "compiled_positive_semantic_run_pass": 1213,
+    "compiled_positive": 1263,
+    "compiled_positive_semantic_run_pass": 1221,
     "compiler_host_trap_total": 4,
     "expected_negative": 123,
     "expected_negative_diagnostic_pass": 35,
     "ice_positive": 0,
     "ice_total": 0,
-    "positive_compile_expected": 1626,
-    "positive_compile_pass": 1258,
-    "positive_runnable": 1626,
-    "positive_semantic_run_pass": 1213,
+    "positive_compile_expected": 1627,
+    "positive_compile_pass": 1263,
+    "positive_runnable": 1627,
+    "positive_semantic_run_pass": 1221,
     "safe_capability_reject": 43,
-    "unexpected_crash": 3
+    "unexpected_crash": 0
   },
   "hard_zero": {
     "ice_total": true,
@@ -23,12 +23,12 @@
     "When ice_total or unexpected_crash reaches 0, hard_zero locks that metric at 0."
   ],
   "rates": {
-    "compiled_positive_semantic_run_pass_rate": 0.9642,
+    "compiled_positive_semantic_run_pass_rate": 0.9667,
     "expected_negative_diagnostic_pass_rate": 0.2846,
-    "positive_compile_pass_rate": 0.7737,
-    "positive_semantic_run_pass_rate": 0.746
+    "positive_compile_pass_rate": 0.7763,
+    "positive_semantic_run_pass_rate": 0.7505
   },
   "schema": "native-cpp-fixture-coverage-baseline/v1",
-  "source_commit": "7d82039e51b0ba9926613b917e4706b905bb0052",
-  "source_receipt_generated_at": "2026-07-25T18:55:31Z"
+  "source_commit": "a26a96cfdf1ea12c31be57423bebb6f4e353d995",
+  "source_receipt_generated_at": "2026-07-25T19:49:50Z"
 }
