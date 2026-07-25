@@ -1,0 +1,1 @@
+error[E0208|typecheck]: cannot apply arithmetic to Option/Result; use match on get(...) or get_unchecked

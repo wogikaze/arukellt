@@ -628,7 +628,14 @@ def run_quality(
 
     base = quality_base(root)
     selected = changed_paths(root, base) if mode in {"changed", "quick", "full"} else None
-    ark_selected = [path for path in (selected or []) if path.endswith(".ark")]
+    # Negative diagnostic fixtures are expected to fail typecheck; lint them via
+    # diag-parity, not quality changed/quick (otherwise adding a diag: fixture
+    # always fails the lane).
+    ark_selected = [
+        path for path in (selected or [])
+        if path.endswith(".ark")
+        and not path.startswith("tests/fixtures/diagnostics/")
+    ]
     failures = 0
     failures += check_editorconfig_basics(root, selected) if not dry_run else _run_command(
         root, ["python3", "scripts/check/check-editorconfig-basics.py"], True,

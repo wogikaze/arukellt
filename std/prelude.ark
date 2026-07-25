@@ -570,8 +570,8 @@ pub fn push(v: Vec<i32>, val: i32) {
     panic(String_new())
 }
 
-pub fn get(v: Vec<i32>, idx: i32) -> i32 {
-    panic(String_new()); return 0
+pub fn get(v: Vec<i32>, idx: i32) -> Option<i32> {
+    panic(String_new()); return None
 }
 
 pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {

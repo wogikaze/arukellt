@@ -2,6 +2,8 @@ use typechecker::kinds
 use typechecker::ast_access
 use typechecker::ops
 use typechecker::unify
+use typechecker::unify_env
+use typechecker::contract_type_access
 
 fn infer_binary_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     if ast_access::node_child_count(node) >= 2 {
@@ -16,7 +18,25 @@ fn infer_binary_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_
         if ops::is_logical_op(op) {
             return TypeInfo_simple(commands::TY_BOOL())
         }
+        // get() returns Option; arithmetic on it must not silently lower to
+        // invalid wasm (expected i32, found ref). Prefer match / get_unchecked (#832).
+        if ops::is_value_operator(op) {
+            if type_is_option_or_result(lhs_ty) || type_is_option_or_result(rhs_ty) {
+                unify_env::type_error_unsupported_operator(
+                    env,
+                    String_from(
+                        "cannot apply arithmetic to Option/Result; use match on get(...) or get_unchecked"
+                    )
+                )
+                return TypeInfo_simple(commands::TY_UNKNOWN())
+            }
+        }
         return unify::unify(env, lhs_ty, rhs_ty)
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
+}
+
+fn type_is_option_or_result(ty: TypeInfo) -> bool {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    tag == commands::TY_OPTION() || tag == commands::TY_RESULT()
 }

@@ -231,6 +231,7 @@ diag:diagnostics/resolve_dup_fn.ark
 diag:diagnostics/resolve_undef_module.ark
 diag:diagnostics/resolve_undefined_fn.ark
 diag:diagnostics/type_mismatch.ark
+diag:diagnostics/vec_get_arith.ark
 diag:diagnostics/unexpected_token.ark
 diag:diagnostics/unresolved_name.ark
 diag:diagnostics/unused_binding.ark

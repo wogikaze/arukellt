@@ -31,3 +31,12 @@ fn is_logical_op(op: i32) -> bool {
     }
     false
 }
+
+// Arithmetic / bitwise operators (not comparison or logical).
+// Parser op codes: ADD..MOD = 1..5, BIT_* / shifts = 14..18.
+fn is_value_operator(op: i32) -> bool {
+    if is_comparison_op(op) || is_logical_op(op) {
+        return false
+    }
+    op >= 1 && op <= 18
+}

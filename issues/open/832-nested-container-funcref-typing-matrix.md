@@ -38,7 +38,7 @@ validate-fail / unreachable / runtime trap が残る。
 | `Option<Vec<i32>>` + `get_unchecked` | ✅ | `b64548d0` で Option payload 正規化 |
 | `Result<Vec<i32>, String>` + `get_unchecked` | ✅ | |
 | `Option<Option<i32>>` / `Option<Result>` / `Result<Option>` | ✅ | 浅い入れ子は概ね可 |
-| `get(v,0) + get(v,1)`（自由 `get`） | ❌ validate | `get` → `Option<T>` を `i32.add` |
+| `get(v,0) + get(v,1)`（自由 `get`） | ✅ type error | E0208 + prelude `get -> Option` |
 | `Vec<fn>` push / get_unchecked / call | ✅ | funcref 配列 ABI（`A_fnref` + vec header） |
 | `get_unchecked(fs,0)(5)`（call-expr callee） | ✅ | C: callee 式 lower → `call_ref` |
 | `id(double)(5)`（戻り値 fn の即時呼び出し） | ✅ | C: fn 戻り ABI + callee 式 |
@@ -76,16 +76,12 @@ validate-fail / unreachable / runtime trap が残る。
   ann `Vec<Option<i32>>` → `vec:Option_i32`、push/get/new/scratch 配線。
   fixtures: `collections/vec_option_i32.ark`, `collections/vec_result_i32.ark`
 
-### E. 自由関数 `get` → `Option<T>` と算術の組み合わせ
+### E. 自由関数 `get` → `Option<T>` と算術の組み合わせ（完了）
 
-- **症状**: `get(xs,0) + get(xs,1)` が `i32.add` に Option ref を渡して validate-fail
-- **原因**: `vec_get` は仕様どおり `Option` を返す。旧 probe の「Result は ✅」は
-  WAT に `array.get` が見えただけで、実行/validate は通っていない
-- **扱い**:
-  - 言語仕様として `get_unchecked` / `match get(...)` を正規とするなら
-    **診断**（Option を算術に使ったら型エラー）を強化
-  - あるいは糖衣で自動 unwrap は **しない**（ADR-048 / 明示性）
-  - fixture・docs を `get_unchecked` または match に寄せる
+- **修正済み**: prelude / `Vec::get` を `Option` 戻りに合わせ、型検査で
+  Option/Result への算術を E0208 に。`emit_vec_get_gc_none` が tag=1 を
+  書かず match が None を Some と誤認していたのも修正。
+  fixture: `diagnostics/vec_get_arith.ark`
 
 ### F. Nested `Vec<Vec<_>>` / `Vec<String>` runtime trap
 
@@ -131,8 +127,9 @@ validate-fail / unreachable / runtime trap が残る。
 
 - [x] **C** — call-expr callee / fn 戻り（`c556263b`）
 - [x] **B** — `Vec<fn>` funcref 配列 ABI + `vec_fn_push_call`（`7360dc76`）
-- [x] **D** — `Vec<Option/Result>` open-enum 配列 ABI
-- [ ] **A 監査** / **E** / **F**
+- [x] **D** — `Vec<Option/Result>` open-enum 配列 ABI（`0d5b7eea`）
+- [x] **E** — `get` の Option 契約 + 算術の E0208 + None tag
+- [ ] **A 監査** / **F**
 
 ## Acceptance
 
@@ -140,10 +137,9 @@ validate-fail / unreachable / runtime trap が残る。
 - [x] `get_unchecked(fs, 0)(5)` と `id(double)(5)` が `call_ref`
 - [x] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
 - [x] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
-- [ ] 自由 `get(...)+get(...)` は型エラー（または明示ドキュメント + lint）で失敗し、
-      silent validate-fail にならない
-- [x] 回帰 fixture を `run:` + `t3-compile:` に登録（C/B/D 分）
-- [x] `python3 scripts/manager.py verify lane --gate t3`（D 完了時）
+- [x] 自由 `get(...)+get(...)` は型エラー（E0208）で失敗し、silent validate-fail にならない
+- [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E 分）
+- [x] `python3 scripts/manager.py verify lane --gate t3`（E 完了時）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes

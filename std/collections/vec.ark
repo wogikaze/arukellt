@@ -25,8 +25,8 @@ impl Vec<T> {
         vec_pop(self)
     }
 
-    /// Returns the element at `idx` with bounds checking (returns -1 on out-of-bounds).
-    fn get(self, idx: i32) -> i32 {
+    /// Returns the element at `idx` with bounds checking (`None` when out of bounds).
+    fn get(self, idx: i32) -> Option<T> {
         vec_get(self, idx)
     }
 

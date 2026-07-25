@@ -7,6 +7,7 @@ use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::contract_type_param_bounds
 use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::sigs
 use typechecker::trait_method_registry
@@ -113,11 +114,21 @@ fn infer_builtin_vec_method(
     if eq(clone(method_name), String_from("is_empty")) {
         return simple_type(commands::TY_BOOL())
     }
-    if eq(clone(method_name), String_from("get")) || eq(clone(method_name), String_from("get_unchecked")) {
+    if eq(clone(method_name), String_from("get_unchecked")) {
         if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
             return contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
         }
         return simple_type(commands::TY_UNKNOWN())
+    }
+    if eq(clone(method_name), String_from("get")) {
+        // Bounds-checked get returns Option<T> (spec / docs/quickstart).
+        if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
+            let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
+            let mut opt = simple_type(commands::TY_OPTION())
+            contract_type_mutation::TypeInfo_push_type_arg(opt, elem)
+            return opt
+        }
+        return simple_type(commands::TY_OPTION())
     }
     simple_type(commands::TY_UNIT())
 }

@@ -198,11 +198,17 @@ fn emit_vec_get_gc_some_scalar(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, s_va
 }
 
 fn emit_vec_get_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, enum_type: i32) {
-    // Allocate Option::None as GC struct
+    // Allocate Option::None as GC struct. struct.new_default leaves the
+    // discriminant field at 0 (Same as Some); literal None lowers with an
+    // explicit tag=1 store — match treats tag==0 as Some (#832).
     let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
     let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
     writer_gc::emit_gc_struct_new_default(w, none_type_idx)
     helpers_core::emit_local_set(w, s_opt)
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, none_type_idx)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    writer_gc::emit_gc_struct_set_i32(w, none_type_idx, 0)
 }
 
 // --- LM helpers (merged from intrinsic_vec_access_lm; RFC-006 / #817) ---
