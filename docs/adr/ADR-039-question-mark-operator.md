@@ -77,8 +77,8 @@ Option / From 変換付き Result は、早期リターン付き match として
 
 次は決定の一部ではなく、living implementation の一時状態である。進捗は issue を正とする。
 
-- D2 の living 解決は、登録済み associated method `E_target::from` を MIR が選ぶ形である
-  （`SignatureEntry.trait_id` / `SemanticTraitId::From` 配線は #839）
+- D2 の MIR 解決は `SignatureEntry.trait_id == SemanticTraitId::From` と
+  引数／戻り型名で callee を選ぶ（#839）。mangled 名の発明は行わない
 - `wasm32-gc` では異種 Err の From 変換 lowering が未接続（同一型伝播と Option `?` は対象）
 - `arukellt run` が WASI P2 component adapter で落ちる場合は #686 / #810 側であり、本 ADR の対象外
 

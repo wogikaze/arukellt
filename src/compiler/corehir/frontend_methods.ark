@@ -1,6 +1,7 @@
 use corehir::decl_impl_target
 use corehir::decl_member_collections
 use corehir::decl_node
+use corehir::decl_node_identity
 use corehir::method_info
 use corehir::param_shape
 use corehir::return_type
@@ -23,6 +24,7 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_impl(decl) {
             let owner_name = decl_impl_target::impl_self_type_name(decl)
+            let trait_id = decl_impl_target::impl_semantic_trait_id(decl)
             let method_count = decl_member_collections::decl_method_count(decl)
             let mut mi = 0
             while mi < method_count {
@@ -34,7 +36,22 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
                 let mangled = concat(clone(owner_name), concat(String_from("::"), clone(method_name)))
                 let return_vt = return_type::return_value_type_tag(method)
                 let return_type_name = return_type::return_index_type_name(method)
-                push(infos, method_info::CoreHirMethodInfo_new(i, mi, clone(owner_name), method_name, mangled, param_count, params, body_index, return_vt, return_type_name))
+                push(
+                    infos,
+                    method_info::CoreHirMethodInfo_new(
+                        i,
+                        mi,
+                        clone(owner_name),
+                        method_name,
+                        mangled,
+                        param_count,
+                        params,
+                        body_index,
+                        return_vt,
+                        return_type_name,
+                        trait_id
+                    )
+                )
                 mi = mi + 1
             }
         }

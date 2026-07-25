@@ -115,9 +115,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2780 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1192 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2780 is tests/fixtures/manifest.txt registry size. The 1192 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2783 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1195 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2783 is tests/fixtures/manifest.txt registry size. The 1195 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 

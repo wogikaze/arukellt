@@ -1,5 +1,7 @@
 use corehir::param
+use corehir::semantic_trait_id
 use corehir::value_types
+
 struct CoreHirMethodInfo {
     impl_decl_index: i32,
     method_index: i32,
@@ -11,6 +13,7 @@ struct CoreHirMethodInfo {
     body_index: i32,
     return_vt: i32,
     return_type_name: String,
+    trait_id: i32,
 }
 
 fn CoreHirMethodInfo_new(
@@ -23,7 +26,8 @@ fn CoreHirMethodInfo_new(
     params: Vec<CoreHirParam>,
     body_index: i32,
     return_vt: i32,
-    return_type_name: String
+    return_type_name: String,
+    trait_id: i32
 ) -> CoreHirMethodInfo {
     CoreHirMethodInfo {
         impl_decl_index: impl_decl_index,
@@ -35,7 +39,8 @@ fn CoreHirMethodInfo_new(
         params: params,
         body_index: body_index,
         return_vt: return_vt,
-        return_type_name: return_type_name
+        return_type_name: return_type_name,
+        trait_id: trait_id
     }
 }
 
@@ -128,4 +133,12 @@ fn method_info_return_type_name_at(method_infos: Vec<CoreHirMethodInfo>, info_in
         return clone(info.return_type_name)
     }
     fallback
+}
+
+fn method_info_trait_id_at(method_infos: Vec<CoreHirMethodInfo>, info_index: i32) -> i32 {
+    if info_index >= 0 && info_index < len(method_infos) {
+        let info = get_unchecked(method_infos, info_index)
+        return info.trait_id
+    }
+    semantic_trait_id::SEMANTIC_TRAIT_ID_NONE()
 }

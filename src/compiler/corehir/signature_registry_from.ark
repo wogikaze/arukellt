@@ -1,0 +1,50 @@
+// Resolve SemanticTraitId::From conversion callees for `?` (ADR-039 D2).
+
+use corehir::semantic_trait_id
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_info_to_mir_value
+use corehir::type_table
+
+// Find a registered `From<E_source> for E_target` method by canonical trait id
+// and the source/target type names carried on SignatureEntry params/returns.
+// Returns the mangled callee name, or empty when no impl matches.
+fn signature_registry_lookup_from_conversion(
+    registry: SignatureRegistry,
+    table: TypeTable,
+    source_err_type: String,
+    target_err_type: String
+) -> String {
+    let count = signature_registry::signature_registry_entry_count(registry)
+    let mut i = 0
+    while i < count {
+        let entry = signature_registry::signature_registry_entry_at(registry, i)
+        if semantic_trait_id::semantic_trait_id_is_from(signature_entry::signature_entry_trait_id(entry)) {
+            if signature_entry_matches_from_conversion(table, entry, clone(source_err_type), clone(target_err_type)) {
+                return signature_entry::signature_entry_base_name(entry)
+            }
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn signature_entry_matches_from_conversion(
+    table: TypeTable,
+    entry: SignatureEntry,
+    source_err_type: String,
+    target_err_type: String
+) -> bool {
+    if signature_entry::signature_entry_param_count(entry) < 1 {
+        return false
+    }
+    if signature_entry::signature_entry_return_count(entry) < 1 {
+        return false
+    }
+    let param_name = type_info_to_mir_value::mvt_to_type_name(table, signature_entry::signature_entry_param_at(entry, 0))
+    let return_name = type_info_to_mir_value::mvt_to_type_name(table, signature_entry::signature_entry_return_at(entry, 0))
+    if len(param_name) == 0 || len(return_name) == 0 {
+        return false
+    }
+    eq(clone(param_name), clone(source_err_type)) && eq(clone(return_name), clone(target_err_type))
+}
