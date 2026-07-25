@@ -8,6 +8,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::inst_store
 use wasm::intrinsic_hashmap_str_gc
+use wasm::writer_gc
 
 fn emit_hm_si_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i32, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
@@ -147,6 +148,10 @@ fn emit_hm_if_slot_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, region: i
             i32_array_type,
             s_idx
         )
+        // Funcref arrays store nullable refs; callers/locals expect non-null (#833 / #832).
+        if region == 1 {
+            writer_gc::emit_gc_ref_as_non_null(w)
+        }
     } else {
         writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
     }
