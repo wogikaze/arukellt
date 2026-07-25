@@ -27,12 +27,20 @@ PACKAGE_MODULE = Path("src/compiler/driver/backend_typecheck.ark")
 
 def _env() -> dict[str, str]:
     env = {**os.environ}
-    s2 = REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm"
-    bootstrap = REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm"
-    if s2.is_file():
-        env["ARUKELLT_SELFHOST_WASM"] = str(s2)
-    elif bootstrap.is_file():
-        env["ARUKELLT_SELFHOST_WASM"] = str(bootstrap)
+    if env.get("ARUKELLT_SELFHOST_WASM") and Path(env["ARUKELLT_SELFHOST_WASM"]).is_file():
+        return env
+    build_root = Path(env["ARUKELLT_BUILD_DIR"]) if env.get("ARUKELLT_BUILD_DIR") else REPO_ROOT / ".build"
+    candidates = [
+        build_root / "selfhost" / "arukellt-s2-runtime.wasm",
+        build_root / "selfhost" / "arukellt-s2.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm",
+        REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            env["ARUKELLT_SELFHOST_WASM"] = str(candidate)
+            break
     return env
 
 

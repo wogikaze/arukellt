@@ -41,7 +41,7 @@ public CLI. It does **not** mean full MIR/CoreOp coverage or `support_tier=suppo
 
 - [ ] Host launcher (`scripts/run/native-cpp-runner.py`) + wrapper dispatch
 - [ ] Shared clang 14+ toolchain resolver
-- [ ] Formal `--emit c` + default `.c` output + emit matrix diagnostics
+- [x] Formal `--emit c` + default `.c` output + emit matrix diagnostics
 - [ ] Entry / args / stdio / cwd / env / exit / signal contracts + fixtures
 - [ ] Public run GC default ON; user-facing trap/panic diagnostics
 - [ ] `tests/fixtures/native_cpp_public/` corpus + Wasm/native parity

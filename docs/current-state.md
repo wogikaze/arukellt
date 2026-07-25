@@ -67,12 +67,12 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Support Tier | Implementation | Contract Stability | Run | Notes |
-|--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
-| `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | partial | experimental | No | Public run --target native-cpp remains unsupported; internal C99 selfhost executor lane is experimental (root clears on, strict wall/RSS dual gate without --allow-high-rss; see docs/data/native-cpp-executor-promotion-receipt.json) |
-| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
+| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
+|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
+| `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
+| `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
+| `native-cpp` | scaffold | partial | experimental | No | `c` | `c` | Public run --target native-cpp remains unsupported (ADR-050); compile --emit c is the experimental C99 contract; internal selfhost executor lane is experimental (see docs/data/native-cpp-executor-promotion-receipt.json) |
+| `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
 

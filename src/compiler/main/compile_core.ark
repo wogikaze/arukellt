@@ -4,12 +4,56 @@ use std::host::process
 use main::args_record
 use main::commands
 use main::kinds
+use main::target_contract_generated
 use driver::types
 use driver::config_record
 use driver::result_record
 use main::output
 use driver::file
 use diagnostics::mod as diag_mod
+
+fn normalize_emit_kind(emit_mode: String) -> String {
+    if eq(clone(emit_mode), String_from("core-wasm")) {
+        return String_from("wasm")
+    }
+    emit_mode
+}
+
+pub fn resolve_cli_emit_mode(opts: CliOptions) -> String {
+    if args_record::cli_emit_mode_explicit(opts) {
+        return normalize_emit_kind(args_record::cli_emit_mode(opts))
+    }
+    target_contract_generated::target_default_emit_kind(args_record::cli_target(opts))
+}
+
+pub fn target_emit_mismatch_message(target: String, emit_kind: String) -> String {
+    concat(
+        String_from("target `"),
+        concat(
+            clone(target),
+            concat(
+                String_from("` does not support --emit "),
+                concat(
+                    clone(emit_kind),
+                    concat(
+                        String_from("; allowed emit kinds: "),
+                        target_contract_generated::target_allowed_emit_kinds_message(target)
+                    )
+                )
+            )
+        )
+    )
+}
+
+pub fn validate_target_emit_kind(opts: CliOptions) -> bool {
+    let target = args_record::cli_target(opts)
+    let emit_kind = resolve_cli_emit_mode(opts)
+    if target_contract_generated::target_allows_emit_kind(clone(target), clone(emit_kind)) {
+        return true
+    }
+    stdio::eprintln(target_emit_mismatch_message(target, emit_kind))
+    false
+}
 
 pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: bool) -> DriverConfig {
     let config = config_record::DriverConfig_default()
@@ -18,7 +62,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
     }
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
-    config_record::config_set_emit_mode(config, emit_mode)
+    config_record::config_set_emit_mode(config, normalize_emit_kind(emit_mode))
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))
     if args_record::cli_has_world(opts) {
         config_record::config_set_world(config, args_record::cli_world(opts))
@@ -46,7 +90,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
 
 pub fn build_command_config(opts: CliOptions) -> DriverConfig {
     let command = args_record::cli_command(opts)
-    let config = build_emit_config(opts, args_record::cli_emit_mode(opts), true)
+    let config = build_emit_config(opts, resolve_cli_emit_mode(opts), true)
     config_record::config_set_parse_only(config, command == kinds::CMD_PARSE())
     config_record::config_set_check_only(config, command == kinds::CMD_CHECK() || command == kinds::CMD_LINT())
     config_record::config_set_lint_local_only(config, command == kinds::CMD_LINT() && args_record::cli_lint_local(opts))
@@ -127,6 +171,32 @@ fn stem_from_input(path: String) -> String {
     path
 }
 
+fn default_artifact_path(opts: CliOptions) -> String {
+    let emit_kind = resolve_cli_emit_mode(opts)
+    let stem = stem_from_input(args_record::cli_input_file(opts))
+    if eq(clone(emit_kind), String_from("c")) {
+        return concat(stem, String_from(".c"))
+    }
+    if eq(clone(emit_kind), String_from("wat")) {
+        return concat(stem, String_from(".wat"))
+    }
+    if eq(clone(emit_kind), String_from("wit")) {
+        return concat(stem, String_from(".wit"))
+    }
+    if eq(clone(emit_kind), String_from("component")) {
+        return concat(stem, String_from(".component.wasm"))
+    }
+    if eq(clone(emit_kind), String_from("llvm")) {
+        return concat(stem, String_from(".ll"))
+    }
+    concat(stem, String_from(".wasm"))
+}
+
+fn should_write_default_artifact(opts: CliOptions) -> bool {
+    let emit_kind = resolve_cli_emit_mode(opts)
+    eq(clone(emit_kind), String_from("c")) || eq(clone(emit_kind), String_from("llvm"))
+}
+
 fn wasm_path_for_all(opts: CliOptions) -> String {
     if args_record::cli_has_output_file(opts) {
         return args_record::cli_output_file(opts)
@@ -153,6 +223,13 @@ pub fn cmd_compile_single(opts: CliOptions) {
     if !validate_wit_paths(opts) {
         process::exit(1)
         return
+    }
+    let command = args_record::cli_command(opts)
+    if command != kinds::CMD_CHECK() && command != kinds::CMD_LINT() && command != kinds::CMD_PARSE() {
+        if !validate_target_emit_kind(opts) {
+            process::exit(1)
+            return
+        }
     }
     let config = build_command_config(opts)
     let input_file = args_record::cli_input_file(opts)
@@ -185,6 +262,12 @@ fn handle_single_compile_success(opts: CliOptions, input_file: String, result: C
     print_compile_success(clone(input_file), result, json_mode)
     if args_record::cli_has_output_file(opts) {
         if !write_compile_output(args_record::cli_output_file(opts), result_record::compile_result_output_bytes(result), json_mode) {
+            process::exit(1)
+        }
+        return
+    }
+    if should_write_default_artifact(opts) {
+        if !write_compile_output(default_artifact_path(opts), result_record::compile_result_output_bytes(result), json_mode) {
             process::exit(1)
         }
         return

@@ -172,7 +172,17 @@ fn emit_native_output(
     t_mir_verify: i64
 ) -> CompileResult {
     let target_name = config_record::config_target(config)
+    let emit_mode = normalize_emit_mode(config_record::config_emit_mode(config))
     if target::is_native_cpp_target(clone(target_name)) {
+        if !eq(clone(emit_mode), String_from("c")) {
+            return result_record::CompileResult_err(
+                phases::PHASE_EMIT(),
+                concat(
+                    String_from("target `native-cpp` does not support --emit "),
+                    concat(clone(emit_mode), String_from("; allowed emit kinds: c"))
+                )
+            )
+        }
         let emitted = native_c::emit_native_c_module(mir_module)
         if !native_c::native_c_emit_result_success(emitted) {
             return result_record::CompileResult_err(phases::PHASE_EMIT(), native_c::native_c_emit_result_diagnostic(emitted))
@@ -185,6 +195,15 @@ fn emit_native_output(
     }
     if !target::is_native_llvm_target(target_name) {
         return result_record::CompileResult_err(phases::PHASE_EMIT(), String_from("compiler ICE: native emit routing received an unknown target"))
+    }
+    if !eq(clone(emit_mode), String_from("llvm")) {
+        return result_record::CompileResult_err(
+            phases::PHASE_EMIT(),
+            concat(
+                String_from("target `native-llvm` does not support --emit "),
+                concat(clone(emit_mode), String_from("; allowed emit kinds: llvm"))
+            )
+        )
     }
     let native_bytes = driver::native::emit_native_llvm_scaffold(mir_module)
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())

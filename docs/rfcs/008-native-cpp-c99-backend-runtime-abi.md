@@ -27,7 +27,8 @@ canonical target 名は当面 `native-cpp` とする。
 MVP の driver は MIR から単一の C source を `output_bytes` として返す。
 object、executable、runtime 結合、cache、receipt は manager が管理し、driver API を
 複数 artifact 用へ拡張しない。
-将来 `--emit c` を追加するときも、この単一 C source 契約を使用する。
+公開 compile 契約は `compile --target native-cpp --emit c`（ADR-050）。
+この単一 C source 契約を使用する。
 
 runtime header と runtime C は独立した正本ファイルとする。
 巨大な runtime source を Ark の文字列 literal として手書きしない。

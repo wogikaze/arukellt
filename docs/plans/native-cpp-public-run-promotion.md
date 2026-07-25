@@ -114,20 +114,20 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 2 — compiler emit contract
 
-- [ ] emit kind `c` を SSOT 化
-- [ ] target×emit 許可 matrix
-- [ ] native-cpp で wasm/wat/component/wit/all 拒否
-- [ ] Wasm target で `--emit c` 拒否
-- [ ] default output: native-cpp → `.c`
-- [ ] `project-state` から `target_run_supported` / default emit / allowed emits を生成
-- [ ] drift gate
+- [x] emit kind `c` を SSOT 化
+- [x] target×emit 許可 matrix
+- [x] native-cpp で wasm/wat/component/wit/all 拒否
+- [x] Wasm target で `--emit c` 拒否
+- [x] default output: native-cpp → `.c`
+- [x] `project-state` から `target_run_supported` / default emit / allowed emits を生成
+- [x] drift gate（generated target contract + unit tests）
 
 ## Phase 2 完了条件
 
-- [ ] `compile --target native-cpp --emit c` 正式動作
-- [ ] `-o` なしで `.c` 生成
-- [ ] 不正 emit 組合せを拒否
-- [ ] この時点では `run_supported=false` 維持
+- [x] `compile --target native-cpp --emit c` 正式動作
+- [x] `-o` なしで `.c` 生成
+- [x] 不正 emit 組合せを拒否
+- [x] この時点では `run_supported=false` 維持
 
 ---
 

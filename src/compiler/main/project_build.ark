@@ -5,6 +5,7 @@ use driver::config_record
 use driver::file
 use driver::result_record
 use main::args_record
+use main::compile_core
 use main::output
 use main::project_run
 
@@ -12,7 +13,7 @@ fn build_project_driver_config(opts: CliOptions) -> DriverConfig {
     let config = config_record::DriverConfig_default()
     config_record::config_set_target(config, args_record::cli_target(opts))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
-    config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
+    config_record::config_set_emit_mode(config, compile_core::resolve_cli_emit_mode(opts))
     config
 }
 
