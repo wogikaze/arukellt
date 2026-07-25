@@ -1,5 +1,6 @@
 use wasm::string_gc_helpers
 use wasm::ctx_scratch
+use wasm::import_indices
 use wasm::intrinsic_stdio_read_buffer
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -22,7 +23,8 @@ fn emit_gc_wasi_read_stdin_to_string(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
     helpers_io_const::emit_i32_const(w, 1)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_NREAD())
-    helpers_core::emit_call(w, 4)
+    // P1 fd_read=4; P2 stdin.read=5 — hardcoded 4 called open-at on wasi-p2 (#834).
+    helpers_core::emit_call(w, import_indices::fd_read_import_idx(ctx))
     helpers_core::emit_drop(w)
     intrinsic_stdio_read_buffer::emit_advance_stdin_buffer_or_break(w)
     helpers_control::emit_br(w, 0)

@@ -70,12 +70,21 @@ fn P2_IMPORT_GET_STDOUT() -> i32 { 0 }
 fn P2_IMPORT_BWAF() -> i32 { 1 }
 fn P2_IMPORT_ARGS_SIZES() -> i32 { 2 }
 fn P2_IMPORT_ARGUMENTS() -> i32 { 3 }
+fn P2_IMPORT_OPEN_AT() -> i32 { 4 }
+fn P2_IMPORT_STDIN_READ() -> i32 { 5 }
+fn P2_IMPORT_CLOSE() -> i32 { 6 }
+fn P2_IMPORT_EXIT() -> i32 { 7 }
 fn P2_IMPORT_GET_STDERR() -> i32 { 8 }
 fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 9 }
 fn P2_IMPORT_ENVIRON_GET() -> i32 { 10 }
 fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 11 }
 fn P2_IMPORT_WALL_NOW() -> i32 { 12 }
 fn P2_IMPORT_RANDOM_U64() -> i32 { 13 }
+// Preview1 core indices used when emit target is not wasi-p2.
+fn WASI_IMPORT_FD_WRITE() -> i32 { 0 }
+fn WASI_IMPORT_PATH_OPEN() -> i32 { 3 }
+fn WASI_IMPORT_FD_READ() -> i32 { 4 }
+fn WASI_IMPORT_FD_CLOSE() -> i32 { 5 }
 // Host type map indices for guest-native stdio (after base WASI + P2 clock types).
 fn P2_HOST_TYPE_GET_STREAM() -> i32 { 7 }
 fn P2_HOST_TYPE_BWAF() -> i32 { 8 }

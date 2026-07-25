@@ -3,6 +3,7 @@ use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::ctx_gc_type
 use wasm::emit_target
+use wasm::import_indices
 use wasm::intrinsic_fs_read_body
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -23,7 +24,7 @@ fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     emit_fs_read_open_branch(w, inst, ctx, s_path)
     intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
     helpers_control::emit_else(w)
-    intrinsic_fs_read_body::emit_fs_read_loop(w)
+    intrinsic_fs_read_body::emit_fs_read_loop(w, ctx)
     intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
     helpers_control::emit_end(w)
     return true
@@ -43,7 +44,7 @@ fn emit_fs_read_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s_p
 
 fn emit_fs_read_open_branch(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_local: i32) {
     emit_fs_read_open_setup(w, inst, ctx, path_local)
-    emit_fs_read_open_call(w)
+    emit_fs_read_open_call(w, ctx)
     emit_fs_read_open_error_branch(w)
 }
 
@@ -54,7 +55,7 @@ fn emit_fs_read_open_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_
     helpers_io::emit_store_string_local_to_scratch(w, path_local, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
 }
 
-fn emit_fs_read_open_call(w: WasmWriter) {
+fn emit_fs_read_open_call(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_io_const::emit_i32_const(w, 3)
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHPTR())
@@ -64,7 +65,7 @@ fn emit_fs_read_open_call(w: WasmWriter) {
     helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_FD())
-    helpers_core::emit_call(w, 3)
+    helpers_core::emit_call(w, import_indices::path_open_import_idx(ctx))
     helpers_numeric_i32::emit_widen_i32_result(w)
 }
 

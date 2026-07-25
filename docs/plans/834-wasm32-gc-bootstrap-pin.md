@@ -1,11 +1,12 @@
 # #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画
 
-ステータス: 計画  
+ステータス: 進行中（Phase 1 完了 / Phase 2 ブロック）  
 親 issue: [#834](../../issues/open/834-wasm32-gc-bootstrap-pin.md)  
 前駆 issue: [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)  
 担当 subagent lane: `wave/834-bootstrap`  
 作業 worktree: `.worktrees/wave-834-bootstrap`  
-作成日: 2026-07-25
+作成日: 2026-07-25  
+更新日: 2026-07-26
 
 ## 1. 現状とゴール
 
@@ -23,9 +24,11 @@
 ### Phase 1 — ホストメモリ制約確認
 - 現在のホストで `python3 scripts/manager.py selfhost build-compiler` 後、`wasm32-gc` コンパイルを試す。
 - OOM する場合は大容量ホストまたは CI 環境を確保。
+- **2026-07-26:** 完了。default Memory64 runtime で emit OK（~1.3 GiB RSS）。OOM は本経路のブロッカーではない。証拠: `docs/research/834-wasm32-gc-bootstrap-probe.md`。
 
 ### Phase 2 — wasm32-gc self-emit 検証
 - s2 ホストが `src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2` を `wasm-tools validate --features gc,function-references,memory64` で通す。
+- **2026-07-26:** 未達。P2 stdin import index は修正済み。残存: `cmd_init` validate、GC `fs_read` stub、P2 file write surface。
 
 ### Phase 3 — ピン済み bootstrap 更新
 - `python3 scripts/manager.py selfhost fixpoint --build` を実行し `sha256(s2)==sha256(s3)` を安定化。

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-25
-Updated: 2026-07-25
+Updated: 2026-07-26
 ID: 834
 Track: selfhost-infra
 Depends on: "730"
@@ -46,7 +46,23 @@ larger machine or a grow-path fix, not more clone typing.
   `code_ref_locals_infer_dest.ark`
 - Fixture: `tests/fixtures/structs/struct_clone_pass_to_fn.ark` (t3-compile validate)
 
+## Lane progress (2026-07-26, wave/834-bootstrap)
+
+Probe receipt: [`docs/research/834-wasm32-gc-bootstrap-probe.md`](../../docs/research/834-wasm32-gc-bootstrap-probe.md)
+
+- **Not OOM-blocked** for default Memory64 s2-runtime (`initial_pages=65535`):
+  full `wasm32-gc` self-emit finishes at ~1.2–1.3 GiB RSS on this 23 GiB host.
+- Landed: P1/P2 WASI import-index helpers (`path_open` / `fd_read` / `stdin_read` /
+  `fd_close`) so wasi-p2 stdin no longer calls `open-at`.
+- Landed: wasi-p2 stub for GC `write_bytes` (no file `fd_write` on P2 core surface).
+- **Still blocked for pin:**
+  1. `wasm-tools validate` fails after index fix at `cmd_init` (GC Result/local typing).
+  2. `emit_fs_read_to_string_gc` remains a null stub — pin would not read sources.
+  3. Memory64 `wasm32-gc`/`wasi-p1` path fails validate in `canonicalize_target_input`
+     (GC String used as linear i64 pointer).
+
 ## References
 
 - [#730](730-bootstrap-wasm-4gb-memory-limit.md)
 - `bootstrap/PROVENANCE.md` (wasm32-gc pinned blocked section)
+- `docs/research/834-wasm32-gc-bootstrap-probe.md`
