@@ -1,0 +1,48 @@
+use std::host::stdio
+
+// Option ? propagation: None early-returns from an enclosing Option<_>.
+// Desugars to
+//   match expr { Some(v) => v, None => return None }
+// with no From conversion.
+
+fn first_digit(s: String) -> Option<i32> {
+    if len(s) == 0 {
+        return None
+    }
+    let ch = char_at(s, 0)
+    if ch >= 48 && ch <= 57 {
+        Some(ch - 48)
+    } else {
+        None
+    }
+}
+
+fn double_first_digit(s: String) -> Option<i32> {
+    let n: i32 = first_digit(s)?
+    Some(n * 2)
+}
+
+fn main() {
+    // Some path: '5' → 5 → 10.
+    let r1 = double_first_digit(String_from("5"))
+    match r1 {
+        Option::Some(v) => assert(v == 10),
+        None => assert(false),
+    }
+
+    // None path: empty string propagates None.
+    let r2 = double_first_digit(String_from(""))
+    match r2 {
+        Option::Some(_) => assert(false),
+        None => {},
+    }
+
+    // None path: non-digit propagates None.
+    let r3 = double_first_digit(String_from("a"))
+    match r3 {
+        Option::Some(_) => assert(false),
+        None => {},
+    }
+
+    stdio::println(String_from("OK"))
+}

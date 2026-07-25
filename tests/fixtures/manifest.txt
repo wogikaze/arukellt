@@ -470,6 +470,7 @@ run:opt/tail_call_deep.ark
 run:question_mark/basic_propagate.ark
 run:question_mark/from_error.ark
 run:question_mark/nested_result.ark
+run:question_mark/option_propagate.ark
 run:regression/t2_scaffold.ark
 run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
@@ -2057,6 +2058,7 @@ t3-compile:operators/unary.ark
 t3-compile:question_mark/basic_propagate.ark
 t3-compile:question_mark/from_error.ark
 t3-compile:question_mark/nested_result.ark
+t3-compile:question_mark/option_propagate.ark
 t3-compile:regression/type_table/enum_match_variants.ark
 t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
@@ -2490,6 +2492,7 @@ t3-run:operators/unary.ark
 t3-run:question_mark/basic_propagate.ark
 t3-run:question_mark/from_error.ark
 t3-run:question_mark/nested_result.ark
+t3-run:question_mark/option_propagate.ark
 t3-run:scalar/gc_hint_short_lived.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark

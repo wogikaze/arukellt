@@ -23,8 +23,11 @@
 
 ## `?` 演算子
 
-`expr?` は `Err` variant を自動的に伝搬します。
-囲んでいる関数は `Result<_, E>` を返す必要があります。
+`expr?` は失敗 variant を自動的に伝搬します。
+
+- `Result<T, E>` — 囲む関数は `Result<_, E_target>` を返す。`E` と `E_target` が異なるときは
+  `From<E> for E_target` で変換する（import 不要、ADR-039）
+- `Option<T>` — 囲む関数は `Option<_>` を返す。`None` をそのまま伝搬する（変換なし）
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-12-31" -->
 ```ark
@@ -34,9 +37,12 @@ fn parse_twice(s: String) -> Result<i32, String> {
 }
 ```
 
-> 📘 `?` 演算子の正規仕様は [spec.md §3.9 Try Operator](spec.md#39-try-operator) を参照。
+`Option` でも同じ構文が使えます（囲む関数は `Option<_>` を返す）。
 
-このブランチでは v1 系の拡張も入っていますが、まずは `Result<_, String>` を基準に考えるのが分かりやすいです。
+異種エラー型の変換例は [`tests/fixtures/question_mark/from_error.ark`](../../tests/fixtures/question_mark/from_error.ark)、
+Option 伝播は [`tests/fixtures/question_mark/option_propagate.ark`](../../tests/fixtures/question_mark/option_propagate.ark) を参照。
+
+> 📘 `?` 演算子の正規仕様は [spec.md §3.9 Try Operator](spec.md#39-try-operator) を参照。
 
 ## panic
 

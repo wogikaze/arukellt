@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T14:35:23Z",
+  "generated_at": "2026-07-25T15:05:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -394,27 +394,6 @@
       }
     },
     {
-      "id": "690",
-      "path": "690-question-mark-operator.md",
-      "title": "690 — `?` operator and `From<E>` error conversion",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "688"
-      ],
-      "blocks_issue_ids": [
-        "694"
-      ],
-      "acceptance": {
-        "checked": 11,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "691",
       "path": "691-iterator-trait-lazy-adapters.md",
       "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
@@ -457,6 +436,26 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
+      }
+    },
+    {
+      "id": "694",
+      "path": "694-error-trait-unified-ecosystem.md",
+      "title": "694 — `Error` trait and unified error type ecosystem",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "690",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#690 ? operator + From, #692 From trait"
       }
     },
     {
@@ -958,6 +957,25 @@
       }
     },
     {
+      "id": "839",
+      "path": "839-question-mark-from-semantic-trait-id.md",
+      "title": "839 — Resolve `?` From conversion via SemanticTraitId",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [
+        "690"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": 690
+      }
+    },
+    {
       "id": "673",
       "path": "673-component-export-aggregate-expansion.md",
       "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
@@ -1061,26 +1079,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": 686
-      }
-    },
-    {
-      "id": "694",
-      "path": "694-error-trait-unified-ecosystem.md",
-      "title": "694 — `Error` trait and unified error type ecosystem",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "690",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#690 ? operator + From, #692 From trait"
       }
     },
     {
