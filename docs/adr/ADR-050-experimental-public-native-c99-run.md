@@ -132,6 +132,17 @@ arukellt compile <file.ark> --target native-cpp --emit c -o program.c
 - issue [#649](../../issues/open/649-t4-native-full-lowering.md) がこの契約の作業追跡を所有する
 - `support_tier=supported`、配布 ABI、外部 FFI、非 Linux host は未採択のまま残る
 
+## Known Limitations（experimental 公開 run）
+
+- **Capture 付き closure:** `MIR_REF_FUNC` / `MIR_CALL_INDIRECT` の zero-capture
+  （named `fn(...)` / typed funcref）のみ対応する。environment を持つ capture closure は
+  未対応とし、対応前は compile-time 拒否または別 issue で追跡する（#649 サブ項目）。
+- **未注釈の局所 funcref:** `let f = add_one; f(x)` のように型が `fn(...)` として
+  残らない局所束縛は、現状 MIR が direct `CALL` になり得る。公開 corpus は
+  `fn apply(f: fn(i32) -> i32, ...)` 形の zero-capture を正とする。
+- **PHI:** `block.phis` は predecessor edge の parallel copy で lower する。現行の
+  structured if/else 合流は共有 local 代入が主流であり、PHI 自体は稀である。
+
 ## 代替案
 
 1. **ADR-049 を直接拡張する** — 却下。内部 executor と公開 run の完了条件・CI・receipt が混ざる。

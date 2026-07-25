@@ -211,7 +211,7 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_CALL_INDIRECT"
 opcode = 41
-status = "planned"
+status = "supported"
 phase = 3
 implementation = "c_emitter"
 
@@ -377,7 +377,7 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_PHI"
 opcode = 73
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -466,7 +466,7 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_REF_FUNC"
 opcode = 89
-status = "planned"
+status = "supported"
 phase = 3
 implementation = "c_emitter"
 

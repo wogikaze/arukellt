@@ -1,0 +1,19 @@
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn main() {
+    let mut total = 0
+    let mut i = 0
+    while i < 3 {
+        total = add(total, i)
+        i = i + 1
+    }
+    if total == 3 {
+        stdio::println(String_from("scalar-ok"))
+    } else {
+        stdio::println(concat(String_from("bad="), to_string(total)))
+    }
+}

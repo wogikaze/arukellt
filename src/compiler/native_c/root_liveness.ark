@@ -191,26 +191,8 @@ fn native_c_plan_root_clears_from_effects(
     let plan = native_c_root_clear_plan_empty()
     plan.functions_analyzed = 1
     let block_count = function_block_queries::MirFunction_block_count(function)
-    let mut phi_block = 0
-    while phi_block < block_count {
-        let block = function_block_queries::MirFunction_block_at(function, phi_block)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut inst_index = 0
-        while inst_index < inst_count {
-            if inst_accessors_shape::MirInst_op(
-                block_inst_access::MirBlock_inst_at(block, inst_index)
-            ) == opcodes::MIR_PHI() {
-                plan.functions_skipped = 1
-                plan.converged = false
-                plan.reject_diagnostic = String_from(
-                    "compiler ICE: native-cpp root liveness rejects MIR_PHI"
-                )
-                return plan
-            }
-            inst_index = inst_index + 1
-        }
-        phi_block = phi_block + 1
-    }
+    // MIR_PHI / block.phis are lowered by edge parallel copies (RFC-008).
+    // Root liveness analyzes the post-copy local shape and must not ICE.
     let local_count = function_locals_view::MirFunction_local_count(function)
     let mut reference_count = 0
     let mut local_index = 0

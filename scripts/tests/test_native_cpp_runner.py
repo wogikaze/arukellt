@@ -30,6 +30,10 @@ PUBLIC_STDIN = PUBLIC / "stdin_echo.ark"
 PUBLIC_PANIC = PUBLIC / "panic_message.ark"
 PUBLIC_TRAP_DIV = PUBLIC / "trap_div_zero.ark"
 PUBLIC_FS_WRITE_ERR = PUBLIC / "fs_write_missing_parent.ark"
+PUBLIC_HOF = PUBLIC / "hof_named_callback.ark"
+PUBLIC_PHI = PUBLIC / "phi_if_join_i32.ark"
+PUBLIC_SCALAR = PUBLIC / "scalar_cfg.ark"
+PUBLIC_UNSUPPORTED = PUBLIC / "unsupported_array_new.ark"
 RUNTIME_C = ROOT / "src" / "compiler" / "native_c" / "runtime" / "ark_native_runtime.c"
 
 
@@ -296,6 +300,74 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         self.assertIn("write-err", result.stdout)
         self.assertNotIn("runtime trap", result.stderr)
         self.assertNotIn("divide by zero", result.stderr)
+
+    def test_hof_zero_capture_named_callback(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_HOF.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("result=42", result.stdout)
+
+    def test_phi_if_join_runs(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_PHI.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("value=10", result.stdout)
+
+    def test_scalar_cfg_corpus(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [str(WRAPPER), "run", str(PUBLIC_SCALAR.relative_to(ROOT)), "--target", "native-cpp"],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("scalar-ok", result.stdout)
+
+    def test_unsupported_opcode_is_capability_diagnostic(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [
+                str(WRAPPER),
+                "compile",
+                str(PUBLIC_UNSUPPORTED.relative_to(ROOT)),
+                "--target",
+                "native-cpp",
+                "--emit",
+                "c",
+                "-o",
+                ".build/native-run-smoke-test/unsupported.c",
+            ],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        combined = result.stdout + result.stderr
+        self.assertIn("does not support MIR opcode MIR_ARRAY_NEW", combined)
+        self.assertNotIn("compiler ICE", combined)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
+    f(x)
+}
+
+fn main() {
+    let result = apply(add_one, 41)
+    stdio::println(concat(String_from("result="), to_string(result)))
+}

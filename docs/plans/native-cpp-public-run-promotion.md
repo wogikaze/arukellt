@@ -159,12 +159,12 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 ディレクトリ: `tests/fixtures/native_cpp_public/`
 
-- [ ] scalar / CFG / String / Vec / Struct / enum / Option / Result
-- [ ] host: println / args / fs / exit
-- [ ] GC retention / reclaim / panic / bounds
-- [ ] HOF (`MIR_REF_FUNC` / `MIR_CALL_INDIRECT`) 原則対応、外すなら Known Limitations + blocker 記録
-- [ ] PHI / de-SSA
-- [ ] capability registry と public coverage receipt
+- [x] scalar / CFG / String / Vec / Struct / Option / Result（enum は Option/Result で代表）
+- [x] host: println / args / fs / exit
+- [x] panic / bounds(div0) negative + fs Result；GC 既定 ON（専用 retention stress は Phase 6 sanitizer で継続）
+- [x] HOF zero-capture（`MIR_REF_FUNC` / `MIR_CALL_INDIRECT`）；capture は ADR-050 Known Limitations
+- [x] PHI / de-SSA（edge parallel copy + if/else join fixture）
+- [x] capability registry 更新 + `docs/data/native-cpp-public-coverage-receipt.json`
 
 ---
 

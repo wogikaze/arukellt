@@ -291,7 +291,7 @@ fn native_c_capability_status_detail(op: i32) -> String {
         return String_from("supported")
     }
     if op == opcodes::MIR_CALL_INDIRECT() {
-        return String_from("planned phase 3")
+        return String_from("supported")
     }
     if op == opcodes::MIR_RETURN() {
         return String_from("supported")
@@ -363,7 +363,7 @@ fn native_c_capability_status_detail(op: i32) -> String {
         return String_from("supported")
     }
     if op == opcodes::MIR_PHI() {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if op == opcodes::MIR_GC_HINT() {
         return String_from("planned phase 2")
@@ -402,7 +402,7 @@ fn native_c_capability_status_detail(op: i32) -> String {
         return String_from("planned phase 3")
     }
     if op == opcodes::MIR_REF_FUNC() {
-        return String_from("planned phase 3")
+        return String_from("supported")
     }
     String_from("unknown capability")
 }
@@ -436,6 +436,7 @@ fn native_c_capability_is_supported(op: i32) -> bool {
     op == opcodes::MIR_SHL() ||
     op == opcodes::MIR_SHR() ||
     op == opcodes::MIR_CALL() ||
+    op == opcodes::MIR_CALL_INDIRECT() ||
     op == opcodes::MIR_RETURN() ||
     op == opcodes::MIR_EXTEND_I32_TO_I64() ||
     op == opcodes::MIR_TRUNC_I64_TO_I32() ||
@@ -452,7 +453,9 @@ fn native_c_capability_is_supported(op: i32) -> bool {
     op == opcodes::MIR_STRUCT_SET() ||
     op == opcodes::MIR_DROP() ||
     op == opcodes::MIR_NOP() ||
-    op == opcodes::MIR_UNREACHABLE()
+    op == opcodes::MIR_UNREACHABLE() ||
+    op == opcodes::MIR_PHI() ||
+    op == opcodes::MIR_REF_FUNC()
 }
 
 fn native_c_core_capability_status_detail(index: i32) -> String {

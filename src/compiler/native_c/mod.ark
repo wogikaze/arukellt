@@ -14,6 +14,7 @@ use mir::module_functions
 use mir::module_spine
 use native_c::abi
 use native_c::function_emitter
+use native_c::hof_call
 use native_c_capabilities_generated
 
 pub struct NativeCEmitResult {
@@ -263,7 +264,9 @@ fn native_c_emit_function(
 }
 
 fn native_c_runtime_prelude() -> String {
-    String_from("#include <stdint.h>\n#include \"ark_native_runtime.h\"\n\n")
+    String_from(
+        "#include <stdint.h>\n#include <string.h>\n#include \"ark_native_runtime.h\"\n\n"
+    )
 }
 
 fn native_c_append_bytes(output: Vec<i32>, fragment: String) {
@@ -286,6 +289,11 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     if len(capability_error) > 0 { return NativeCEmitResult_err(capability_error) }
     let source_bytes = Vec_new_i32()
     native_c_append_bytes(source_bytes, native_c_runtime_prelude())
+    let funcref_typedefs = hof_call::native_c_collect_funcref_typedefs(mir_module)
+    if len(funcref_typedefs) > 0 {
+        native_c_append_bytes(source_bytes, funcref_typedefs)
+        native_c_append_bytes(source_bytes, String_from("\n"))
+    }
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0
     while function_index < function_count {

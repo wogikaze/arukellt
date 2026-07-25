@@ -47,9 +47,10 @@ public CLI. It does **not** mean full MIR/CoreOp coverage or `support_tier=suppo
 - [x] stdio / cwd / exit / signal contracts + fixtures (env CoreOp still planned)
 - [x] User-facing trap/panic diagnostics (`ark_rt_trap_kind` / `ark_rt_panic`)
 - [x] Supported fs I/O returns Result (write open/write failures do not abort)
-- [ ] `tests/fixtures/native_cpp_public/` corpus + Wasm/native parity
-- [ ] HOF/indirect call or explicit Known Limitation + blocker
-- [ ] PHI / de-SSA for user programs
+- [x] `tests/fixtures/native_cpp_public/` language/host corpus (+ coverage receipt)
+- [x] HOF zero-capture (`MIR_REF_FUNC` / `MIR_CALL_INDIRECT`); capture = Known Limitation (ADR-050)
+- [x] PHI / de-SSA edge parallel copy for `block.phis`
+- [ ] Wasm/native parity + ASan/UBSan (Phase 6)
 - [ ] Installed runtime layout + smoke
 - [ ] Release guarantee + `native-cpp-run-promotion-receipt.json`
 - [ ] Final commit sets `run_supported=true` (never earlier)

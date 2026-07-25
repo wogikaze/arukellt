@@ -25,13 +25,25 @@ fn native_c_scalar_type_name(name: String) -> String {
     String_new()
 }
 
+fn native_c_type_name_is_funcref(name: String) -> bool {
+    if eq(clone(name), String_from("fnref")) || eq(clone(name), String_from("fn")) {
+        return true
+    }
+    starts_with(clone(name), String_from("fn("))
+}
+
 fn native_c_type_for_value(table: TypeTable, value_type: MirValueType) -> String {
     let raw_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type))
     if raw_type_id < 0 || raw_type_id >= type_table::TypeTable_entry_count(table) {
         return String_new()
     }
     let entry = type_table::TypeTable_entry_at(table, raw_type_id)
-    let scalar = native_c_scalar_type_name(type_table::type_entry_name(entry))
+    let name = type_table::type_entry_name(entry)
+    // Zero-capture HOF stores a typed function pointer as intptr_t (LP64-safe).
+    if native_c_type_name_is_funcref(name) {
+        return String_from("intptr_t")
+    }
+    let scalar = native_c_scalar_type_name(name)
     if len(scalar) > 0 {
         return scalar
     }
@@ -39,6 +51,9 @@ fn native_c_type_for_value(table: TypeTable, value_type: MirValueType) -> String
 }
 
 fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
+    if native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+        return String_from("intptr_t")
+    }
     let typed = native_c_type_for_value(table, local_record::mir_local_value_type(local))
     if len(typed) > 0 {
         return typed
@@ -52,6 +67,52 @@ fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
         return String_from("ark_object_header *")
     }
     String_new()
+}
+
+fn native_c_funcref_typedef_name(table: TypeTable, signature: SignatureEntry) -> String {
+    let parameters = native_c_signature_parameter_encoding(table, signature)
+    let results = native_c_signature_result_encoding(table, signature)
+    if len(parameters) == 0 || len(results) == 0 {
+        return String_new()
+    }
+    concat(String_from("ark_fnptr__P_"), concat(parameters, concat(String_from("__R_"), results)))
+}
+
+fn native_c_funcref_typedef_decl(table: TypeTable, signature: SignatureEntry) -> String {
+    let typedef_name = native_c_funcref_typedef_name(table, signature)
+    if len(typedef_name) == 0 {
+        return String_new()
+    }
+    let return_type = native_c_signature_return_type(table, signature)
+    if len(return_type) == 0 {
+        return String_new()
+    }
+    let param_count = signature_entry::signature_entry_param_count(signature)
+    let mut params = String_from("void")
+    if param_count > 0 {
+        params = String_new()
+        let mut index = 0
+        while index < param_count {
+            if index > 0 { params = concat(params, String_from(", ")) }
+            let param_type = native_c_type_for_value(
+                table,
+                signature_entry::signature_entry_param_at(signature, index)
+            )
+            if len(param_type) == 0 { return String_new() }
+            params = concat(params, param_type)
+            index = index + 1
+        }
+    }
+    concat(
+        String_from("typedef "),
+        concat(
+            return_type,
+            concat(
+                String_from(" (*"),
+                concat(typedef_name, concat(String_from(")("), concat(params, String_from(");\n"))))
+            )
+        )
+    )
 }
 
 fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String {

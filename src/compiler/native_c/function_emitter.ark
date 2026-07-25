@@ -18,6 +18,8 @@ use mir::opcodes
 use mir::value_types
 use native_c::abi
 use native_c::core_call
+use native_c::hof_call
+use native_c::phi_edge
 use native_c::root_liveness
 
 struct NativeCFunctionEmitState {
@@ -1016,12 +1018,93 @@ fn native_c_emit_conversion(state: NativeCFunctionEmitState, instruction: MirIns
     true
 }
 
+fn native_c_emit_hof(
+    state: NativeCFunctionEmitState,
+    mir_module: MirModule,
+    instruction: MirInst
+) -> bool {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    if op == opcodes::MIR_REF_FUNC() {
+        let result = hof_call::native_c_emit_ref_func(mir_module, instruction)
+        if !hof_call::native_c_hof_is_handled(result) { return false }
+        if len(hof_call::native_c_hof_diagnostic(result)) > 0 {
+            native_c_fail(state, hof_call::native_c_hof_diagnostic(result))
+            return true
+        }
+        let destination = inst_accessors_operands::MirInst_dest(instruction)
+        if destination < 0 {
+            native_c_fail(state, String_from("compiler ICE: native-cpp REF_FUNC missing destination"))
+            return true
+        }
+        native_c_emit_assignment(state, destination, hof_call::native_c_hof_source(result))
+        native_c_stack_push(state, destination)
+        return true
+    }
+    if op != opcodes::MIR_CALL_INDIRECT() {
+        return false
+    }
+    let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
+    // Stack layout matches wasm: [args..., callee].
+    if len(state.value_stack) < argument_count + 1 {
+        native_c_fail(state, String_from("compiler ICE: native-cpp CALL_INDIRECT stack underflow"))
+        return true
+    }
+    let callee_local = native_c_stack_pop(state, String_from("CALL_INDIRECT callee"))
+    let first_argument = len(state.value_stack) - argument_count
+    let arguments = Vec_new_i32()
+    let mut argument_index = 0
+    while argument_index < argument_count {
+        push(arguments, get_unchecked(state.value_stack, first_argument + argument_index))
+        argument_index = argument_index + 1
+    }
+    argument_index = 0
+    while argument_index < argument_count {
+        native_c_note_use(state, get_unchecked(arguments, argument_index))
+        argument_index = argument_index + 1
+    }
+    native_c_note_use(state, callee_local)
+    native_c_stack_discard_to(state, first_argument)
+    let result = hof_call::native_c_emit_call_indirect(
+        mir_module,
+        instruction,
+        callee_local,
+        arguments
+    )
+    if !hof_call::native_c_hof_is_handled(result) {
+        native_c_fail(state, String_from("compiler ICE: native-cpp CALL_INDIRECT not handled"))
+        return true
+    }
+    if len(hof_call::native_c_hof_diagnostic(result)) > 0 {
+        native_c_fail(state, hof_call::native_c_hof_diagnostic(result))
+        return true
+    }
+    let destination = inst_accessors_operands::MirInst_dest(instruction)
+    let dest_vt = inst_accessors_shape::MirInst_val_type(instruction)
+    if destination >= 0 {
+        native_c_emit_assignment(state, destination, hof_call::native_c_hof_source(result))
+        native_c_stack_push(state, destination)
+    } else if dest_vt == value_types::VT_VOID() {
+        native_c_append(
+            state,
+            concat(String_from("    "), concat(hof_call::native_c_hof_source(result), String_from(";\n")))
+        )
+    } else {
+        let temporary = native_c_allocate_temporary(state, String_from("int32_t"))
+        native_c_emit_assignment(state, temporary, hof_call::native_c_hof_source(result))
+        native_c_stack_push(state, temporary)
+    }
+    true
+}
+
 fn native_c_emit_call(
     state: NativeCFunctionEmitState,
     mir_module: MirModule,
     function: MirFunction,
     instruction: MirInst
 ) -> bool {
+    if native_c_emit_hof(state, mir_module, instruction) {
+        return true
+    }
     if inst_accessors_shape::MirInst_op(instruction) != opcodes::MIR_CALL() {
         return false
     }
@@ -1284,6 +1367,10 @@ fn native_c_emit_return(
 fn native_c_emit_misc(state: NativeCFunctionEmitState, instruction: MirInst) -> bool {
     let op = inst_accessors_shape::MirInst_op(instruction)
     if op == opcodes::MIR_NOP() { return true }
+    if phi_edge::native_c_phi_opcode_is_noop(instruction) {
+        // PHI values are materialized on predecessor edges (RFC-008).
+        return true
+    }
     if op == opcodes::MIR_DROP() {
         let _dropped = native_c_stack_pop(state, String_from("MIR_DROP"))
         return true
@@ -1488,11 +1575,80 @@ fn native_c_emit_local_declarations(
         if !changed { propagation_pass = local_count } else { propagation_pass = propagation_pass + 1 }
     }
     state.reference_locals = reference_producers
+    // Zero-capture HOF: REF_FUNC / CALL_INDIRECT use intptr_t function pointers.
+    // MIR often types these as VT_I32 (wasm table index); widen for LP64.
+    let funcref_locals = Vec_new_i32()
+    let mut funcref_index = 0
+    while funcref_index < local_count {
+        let local = function_locals_view::MirFunction_local_at(function, funcref_index)
+        if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+            push(funcref_locals, 1)
+        } else {
+            push(funcref_locals, 0)
+        }
+        funcref_index = funcref_index + 1
+    }
+    let mut funcref_pass = 0
+    while funcref_pass < local_count {
+        let mut funcref_changed = false
+        let mut block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(function, block_index)
+            let instruction_count = block_inst_access::MirBlock_inst_count(block)
+            let mut instruction_index = 0
+            while instruction_index < instruction_count {
+                let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+                let op = inst_accessors_shape::MirInst_op(instruction)
+                if op == opcodes::MIR_REF_FUNC() {
+                    let destination = inst_accessors_operands::MirInst_dest(instruction)
+                    if destination >= 0 && destination < local_count &&
+                    get_unchecked(funcref_locals, destination) == 0 {
+                        set(funcref_locals, destination, 1)
+                        funcref_changed = true
+                    }
+                }
+                if op == opcodes::MIR_CALL_INDIRECT() {
+                    let callee = inst_accessors_operands::MirInst_arg0(instruction)
+                    if callee >= 0 && callee < local_count && get_unchecked(funcref_locals, callee) == 0 {
+                        set(funcref_locals, callee, 1)
+                        funcref_changed = true
+                    }
+                }
+                let mut copy_destination = 0 - 1
+                let mut copy_source = 0 - 1
+                if op == opcodes::MIR_LOCAL_GET() {
+                    copy_destination = inst_accessors_operands::MirInst_dest(instruction)
+                    copy_source = inst_accessors_operands::MirInst_arg0(instruction)
+                } else if op == opcodes::MIR_LOCAL_SET() {
+                    copy_destination = inst_accessors_operands::MirInst_arg0(instruction)
+                    copy_source = inst_accessors_operands::MirInst_arg1(instruction)
+                }
+                if copy_destination >= 0 && copy_destination < local_count &&
+                copy_source >= 0 && copy_source < local_count &&
+                (get_unchecked(funcref_locals, copy_destination) != 0 ||
+                    get_unchecked(funcref_locals, copy_source) != 0) {
+                    if get_unchecked(funcref_locals, copy_destination) == 0 {
+                        set(funcref_locals, copy_destination, 1)
+                        funcref_changed = true
+                    }
+                    if get_unchecked(funcref_locals, copy_source) == 0 {
+                        set(funcref_locals, copy_source, 1)
+                        funcref_changed = true
+                    }
+                }
+                instruction_index = instruction_index + 1
+            }
+            block_index = block_index + 1
+        }
+        if !funcref_changed { funcref_pass = local_count } else { funcref_pass = funcref_pass + 1 }
+    }
     let mut local_id = parameter_count
     while local_id < local_count {
         let local = function_locals_view::MirFunction_local_at(function, local_id)
         let c_type = if get_unchecked(reference_producers, local_id) != 0 {
             String_from("ark_object_header *")
+        } else if get_unchecked(funcref_locals, local_id) != 0 {
+            String_from("intptr_t")
         } else {
             abi::native_c_type_for_local(table, local)
         }
@@ -1611,6 +1767,13 @@ fn native_c_emit_function_instructions(
             )
             if !native_c_function_emit_success(state) { return }
             instruction_index = instruction_index + 1
+        }
+        // Fall-through edge: materialize phis of the next block from this pred.
+        if block_index + 1 < block_count {
+            let copies = phi_edge::native_c_phi_edge_copies(function, block_index, block_index + 1)
+            if len(copies) > 0 {
+                native_c_append(state, copies)
+            }
         }
         block_index = block_index + 1
     }
