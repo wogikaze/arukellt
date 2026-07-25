@@ -47,6 +47,7 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
     }
     if type_idx == ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx) ||
     type_idx == ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx) ||
     type_idx == ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx) {
         return field_idx == 0 || field_idx == 1
     }

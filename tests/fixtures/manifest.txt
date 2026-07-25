@@ -377,6 +377,7 @@ run:collections/vec_result_i32.ark
 run:collections/vec_vec_i32.ark
 run:collections/vec_string_println_get.ark
 run:collections/option_vec_fn.ark
+run:collections/hashmap_i32_fn_call.ark
 run:collections/result_vec_fn.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
@@ -1880,6 +1881,7 @@ run:structs/nested_struct.ark
 run:structs/nested_struct_init_call.ark
 run:structs/push_chained_field.ark
 run:structs/struct_clone.ark
+run:structs/struct_clone_pass_to_fn.ark
 run:structs/struct_eq.ark
 run:structs/struct_in_vec.ark
 run:structs/struct_update.ark
@@ -1977,6 +1979,7 @@ t3-compile:collections/vec_result_i32.ark
 t3-compile:collections/vec_vec_i32.ark
 t3-compile:collections/vec_string_println_get.ark
 t3-compile:collections/option_vec_fn.ark
+t3-compile:collections/hashmap_i32_fn_call.ark
 t3-compile:collections/result_vec_fn.ark
 t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
@@ -2312,6 +2315,7 @@ t3-compile:structs/constructor_fn.ark
 t3-compile:structs/field_access.ark
 t3-compile:structs/nested_struct.ark
 t3-compile:structs/struct_clone.ark
+t3-compile:structs/struct_clone_pass_to_fn.ark
 t3-compile:structs/struct_eq.ark
 t3-compile:structs/struct_in_vec.ark
 t3-compile:structs/struct_update.ark
@@ -2391,6 +2395,7 @@ t3-run:collections/vec_result_i32.ark
 t3-run:collections/vec_vec_i32.ark
 t3-run:collections/vec_string_println_get.ark
 t3-run:collections/option_vec_fn.ark
+t3-run:collections/hashmap_i32_fn_call.ark
 t3-run:collections/result_vec_fn.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
@@ -2736,6 +2741,7 @@ t3-run:structs/field_access.ark
 t3-run:structs/nested_struct.ark
 t3-run:structs/rmw_noop.ark
 t3-run:structs/struct_clone.ark
+t3-run:structs/struct_clone_pass_to_fn.ark
 t3-run:structs/struct_eq.ark
 t3-run:structs/struct_in_vec.ark
 t3-run:structs/struct_update.ark

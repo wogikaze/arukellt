@@ -45,6 +45,12 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
                 return String_from("hashmap:i32i32")
             }
+            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && (
+                frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
+                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+            ) {
+                return String_from("hashmap:i32fn")
+            }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
@@ -109,6 +115,12 @@ fn method_param_local_type_name(node: AstNode) -> String {
             }
             if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
                 return String_from("hashmap:i32i32")
+            }
+            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && (
+                frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
+                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+            ) {
+                return String_from("hashmap:i32fn")
             }
         }
         if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {

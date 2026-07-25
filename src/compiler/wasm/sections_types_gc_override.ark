@@ -61,6 +61,9 @@ fn gc_param_type_sig_override(fn_name: String, param_idx: i32, type_name: String
     if starts_with(clone(fn_name), String_from("hash_string::hashmap_i32_str_")) || starts_with(clone(fn_name), String_from("hashmap_i32_str_")) {
         return sections_types_gc::gc_hashmap_i32_str_type_sig()
     }
+    if starts_with(clone(fn_name), String_from("hash_fn::hashmap_i32_fn_")) || starts_with(clone(fn_name), String_from("hashmap_i32_fn_")) {
+        return sections_types_gc::gc_hashmap_i32_fn_type_sig()
+    }
     if starts_with(clone(fn_name), String_from("hashmap_str_val_")) {
         return sections_types_gc::gc_hashmap_i32_str_type_sig()
     }
@@ -162,6 +165,10 @@ fn gc_return_type_sig_override(fn_name: String, type_name: String, target: Strin
     starts_with(clone(fn_name), String_from("hash_string::hashmap_i32_str_new__")) {
         return sections_types_gc::gc_hashmap_i32_str_type_sig()
     }
+    if eq(clone(fn_name), String_from("hash_fn::hashmap_i32_fn_new")) ||
+    starts_with(clone(fn_name), String_from("hash_fn::hashmap_i32_fn_new__")) {
+        return sections_types_gc::gc_hashmap_i32_fn_type_sig()
+    }
     if eq(clone(fn_name), String_from("hash_string::hashmap_str_str_new")) ||
     starts_with(clone(fn_name), String_from("hash_string::hashmap_str_str_new__")) {
         return sections_types_gc::gc_hashmap_str_str_type_sig()
@@ -195,6 +202,12 @@ fn gc_fn_returns_option(fn_name: String) -> bool {
         return true
     }
     if eq(clone(fn_name), String_from("hashmap_str_val_get")) || eq(clone(fn_name), String_from("HashMap_i32_String_get")) || eq(clone(fn_name), String_from("hash_string::hashmap_i32_str_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("HashMap_i32_fn_get")) || eq(clone(fn_name), String_from("hash_fn::hashmap_i32_fn_get")) {
+        return true
+    }
+    if eq(clone(fn_name), String_from("HashMap_i32_fn_remove")) || eq(clone(fn_name), String_from("hash_fn::hashmap_i32_fn_remove")) {
         return true
     }
     if eq(clone(fn_name), String_from("hashmap_str_str_get")) || eq(clone(fn_name), String_from("HashMap_String_String_get")) || eq(clone(fn_name), String_from("hash_string::hashmap_str_str_get")) {

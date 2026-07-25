@@ -95,3 +95,13 @@ fn gc_slot_array_type_ss(region: i32, i32_array_type: i32, string_ref_array_type
     }
     i32_array_type
 }
+
+fn gc_slot_array_type_if(region: i32, i32_array_type: i32, fnref_array_type: i32) -> i32 {
+    if region == 0 {
+        return i32_array_type
+    }
+    if region == 1 {
+        return fnref_array_type
+    }
+    i32_array_type
+}

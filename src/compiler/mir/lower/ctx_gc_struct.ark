@@ -198,6 +198,15 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     starts_with(clone(type_name), String_from("vec:enum:")) {
         return String_from("_ref29")
     }
+    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+        return String_from("_ref30")
+    }
+    if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+        return String_from("_ref17")
+    }
+    if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+        return String_from("_ref18")
+    }
     if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap")) {
         return String_from("_ref16")
     }

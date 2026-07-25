@@ -100,6 +100,9 @@ fn collection_type_sig(type_name: String, target: String) -> String {
         if starts_with(clone(type_name), String_from("hashmap:i32str")) {
             return sections_types_gc::gc_hashmap_i32_str_type_sig()
         }
+        if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+            return sections_types_gc::gc_hashmap_i32_fn_type_sig()
+        }
         if starts_with(clone(type_name), String_from("hashmap:strstr")) {
             return sections_types_gc::gc_hashmap_str_str_type_sig()
         }

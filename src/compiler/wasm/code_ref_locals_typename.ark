@@ -57,6 +57,9 @@ fn infer_hashmap_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> 
     if starts_with(clone(type_name), String_from("hashmap:i32str")) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
     }
+    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
+    }
     if starts_with(clone(type_name), String_from("hashmap:si32")) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
     }

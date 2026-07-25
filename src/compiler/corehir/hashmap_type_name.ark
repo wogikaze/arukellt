@@ -15,5 +15,13 @@ fn hashmap_type_alias(k_name: String, v_name: String) -> String {
     if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("i32")) {
         return String_from("i32i32")
     }
+    // TYPE_FN ann text is "fnref" (#831); also accept bare fn / fn(...).
+    if eq(clone(k_name), String_from("i32")) && (
+        eq(clone(v_name), String_from("fnref")) ||
+        eq(clone(v_name), String_from("fn")) ||
+        starts_with(clone(v_name), String_from("fn("))
+    ) {
+        return String_from("i32fn")
+    }
     concat(concat(k_name, String_from(":")), v_name)
 }

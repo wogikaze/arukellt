@@ -64,6 +64,12 @@ fn return_index_type_name(node: AstNode) -> String {
             if eq(clone(key_name), String_from("i32")) && eq(clone(val_name), String_from("i32")) {
                 return String_from("hashmap:i32i32")
             }
+            if eq(clone(key_name), String_from("i32")) && (
+                frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
+                eq(clone(val_name), String_from("fnref"))
+            ) {
+                return String_from("hashmap:i32fn")
+            }
         }
         return clone(name)
     }
