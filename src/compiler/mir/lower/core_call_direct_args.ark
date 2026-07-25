@@ -5,7 +5,6 @@ use mir::lower::core_call_args
 use mir::lower::core_call_direct_arg
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
-use mir::lower::core_expr_shape_calls
 use mir::lower::core_literals
 use mir::lower::core_names
 
@@ -25,8 +24,8 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             return call_indirect_emit::mir_lower_indirect_call(ctx, exprs, expr, child_count, callee_local)
         }
     }
-    // Expression callee: lower first, then call_ref when the value is a funcref (#832).
-    if core_expr_shape_calls::mir_core_expr_is_call(callee_node) {
+    // Expression callee: field access (self.f)(x), call result, etc. → call_ref (#832).
+    if !core_expr_shape_atoms::mir_core_expr_is_ident(callee_node) {
         let callee_local = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
             return call_indirect_emit::mir_lower_indirect_call(ctx, exprs, expr, child_count, callee_local)

@@ -76,6 +76,8 @@ struct NativeCFunctionEmitState {
     root_entry_null_inits: i32,
     // Parallel to locals: GC frame slot index, or -1 when not rooted.
     root_slot_of_local: Vec<i32>,
+    // Parallel to locals: 1 when the local holds a zero-capture funcref (intptr_t).
+    funcref_locals: Vec<i32>,
 }
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
@@ -126,6 +128,7 @@ fn native_c_function_state_new() -> NativeCFunctionEmitState {
         root_assigns_emitted: 0,
         root_entry_null_inits: 0,
         root_slot_of_local: Vec_new_i32(),
+        funcref_locals: Vec_new_i32(),
     }
 }
 
@@ -626,6 +629,10 @@ fn native_c_value_member_for_legacy_type(value_type: i32) -> String {
     if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() {
         return String_from("ref")
     }
+    // Funcref locals are intptr_t; store/load through ark_value.i64 (LP64).
+    if value_type == value_types::VT_FUNCREF() {
+        return String_from("i64")
+    }
     String_from("i32")
 }
 
@@ -633,11 +640,11 @@ fn native_c_value_member_for_local(function: MirFunction, local_id: i32) -> Stri
     if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(function) {
         return String_from("i32")
     }
-    native_c_value_member_for_legacy_type(
-        local_record::mir_local_val_type(
-            function_locals_view::MirFunction_local_at(function, local_id)
-        )
-    )
+    let local = function_locals_view::MirFunction_local_at(function, local_id)
+    if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+        return String_from("i64")
+    }
+    native_c_value_member_for_legacy_type(local_record::mir_local_val_type(local))
 }
 
 fn native_c_value_member_for_emission(
@@ -647,9 +654,33 @@ fn native_c_value_member_for_emission(
 ) -> String {
     if local_id >= 0 && local_id < len(state.reference_locals) &&
     get_unchecked(state.reference_locals, local_id) != 0 {
+        // Funcref locals must not be treated as heap refs for ark_value member selection.
+        if local_id < len(state.funcref_locals) &&
+        get_unchecked(state.funcref_locals, local_id) != 0 {
+            return String_from("i64")
+        }
+        let local_member = native_c_value_member_for_local(function, local_id)
+        if eq(clone(local_member), String_from("i64")) {
+            return local_member
+        }
         return String_from("ref")
     }
+    if local_id >= 0 && local_id < len(state.funcref_locals) &&
+    get_unchecked(state.funcref_locals, local_id) != 0 {
+        return String_from("i64")
+    }
     native_c_value_member_for_local(function, local_id)
+}
+
+fn native_c_base_type_is_funcref_vector(function: MirFunction, base_local: i32) -> bool {
+    if base_local < 0 || base_local >= function_locals_view::MirFunction_local_count(function) {
+        return false
+    }
+    let base_type = local_record::mir_local_type_name(
+        function_locals_view::MirFunction_local_at(function, base_local)
+    )
+    starts_with(clone(base_type), String_from("vec:fn(")) ||
+    starts_with(clone(base_type), String_from("Vec<fn("))
 }
 
 fn native_c_type_name_elem_is_scalar(elem: String) -> bool {
@@ -900,8 +931,14 @@ fn native_c_struct_get_member(
     if inst_vt == value_types::VT_REF() || inst_vt == value_types::VT_GC_REF() {
         return String_from("ref")
     }
-    if inst_vt == value_types::VT_I64() {
+    if inst_vt == value_types::VT_I64() || inst_vt == value_types::VT_FUNCREF() {
         return String_from("i64")
+    }
+    if destination >= 0 && destination < function_locals_view::MirFunction_local_count(function) {
+        let dest_local = function_locals_view::MirFunction_local_at(function, destination)
+        if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(dest_local)) {
+            return String_from("i64")
+        }
     }
     if inst_vt == value_types::VT_F64() {
         return String_from("f64")
@@ -1109,15 +1146,18 @@ fn native_c_emit_array(
         } else {
             native_c_stack_pop(state, String_from("MIR_ARRAY_GET index"))
         }
-        let member = if explicit_destination >= 0 {
+        let mut member = if explicit_destination >= 0 {
             native_c_value_member_for_emission(state, function, explicit_destination)
         } else {
             native_c_value_member_for_legacy_type(inst_accessors_shape::MirInst_val_type(instruction))
         }
+        if native_c_base_type_is_funcref_vector(function, base) {
+            member = String_from("i64")
+        }
         let c_type = if eq(clone(member), String_from("ref")) {
             String_from("ark_object_header *")
         } else if eq(clone(member), String_from("i64")) {
-            String_from("int64_t")
+            String_from("intptr_t")
         } else if eq(clone(member), String_from("f32")) {
             String_from("float")
         } else if eq(clone(member), String_from("f64")) {
@@ -1157,7 +1197,10 @@ fn native_c_emit_array(
         } else {
             native_c_stack_pop(state, String_from("MIR_ARRAY_SET base"))
         }
-        let member = native_c_value_member_for_emission(state, function, value)
+        let mut member = native_c_value_member_for_emission(state, function, value)
+        if native_c_base_type_is_funcref_vector(function, base) {
+            member = String_from("i64")
+        }
         let index = inst_accessors_literals::MirInst_int_val(instruction)
         let statement = concat(
             String_from("    ark_rt_vec_set((ark_vec *)"),
@@ -2489,6 +2532,31 @@ fn native_c_emit_local_declarations(
                         funcref_changed = true
                     }
                 }
+                if op == opcodes::MIR_ARRAY_GET() || op == opcodes::MIR_STRUCT_GET() {
+                    let destination = inst_accessors_operands::MirInst_dest(instruction)
+                    if destination >= 0 && destination < local_count &&
+                    get_unchecked(funcref_locals, destination) == 0 {
+                        let dest_local = function_locals_view::MirFunction_local_at(function, destination)
+                        if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(dest_local)) ||
+                        local_record::mir_local_val_type(dest_local) == value_types::VT_FUNCREF() {
+                            set(funcref_locals, destination, 1)
+                            funcref_changed = true
+                        } else if op == opcodes::MIR_ARRAY_GET() {
+                            // Vec<fn(..)> elements are funcrefs; Option/Result<fn> bases are heap refs.
+                            let base = inst_accessors_operands::MirInst_arg0(instruction)
+                            if base >= 0 && base < local_count {
+                                let base_type = local_record::mir_local_type_name(
+                                    function_locals_view::MirFunction_local_at(function, base)
+                                )
+                                if starts_with(clone(base_type), String_from("vec:fn(")) ||
+                                starts_with(clone(base_type), String_from("Vec<fn(")) {
+                                    set(funcref_locals, destination, 1)
+                                    funcref_changed = true
+                                }
+                            }
+                        }
+                    }
+                }
                 let mut copy_destination = 0 - 1
                 let mut copy_source = 0 - 1
                 if op == opcodes::MIR_LOCAL_GET() {
@@ -2517,6 +2585,7 @@ fn native_c_emit_local_declarations(
         }
         if !funcref_changed { funcref_pass = local_count } else { funcref_pass = funcref_pass + 1 }
     }
+    state.funcref_locals = funcref_locals
     // Unit-enum tags lower as CONST_I32 into named enum locals that the type
     // table still reports as refs. Prefer the concrete i32 producers.
     let scalar_i32_locals = Vec_new_i32()
@@ -2580,12 +2649,18 @@ fn native_c_emit_local_declarations(
     let mut local_id = parameter_count
     while local_id < local_count {
         let local = function_locals_view::MirFunction_local_at(function, local_id)
+        let local_type_name = local_record::mir_local_type_name(local)
+        let is_funcref_local = get_unchecked(funcref_locals, local_id) != 0 ||
+        abi::native_c_type_name_is_funcref(clone(local_type_name)) ||
+        local_record::mir_local_val_type(local) == value_types::VT_FUNCREF()
         let c_type = if get_unchecked(scalar_i32_locals, local_id) != 0 {
             String_from("int32_t")
+        } else if is_funcref_local {
+            // Option/Result<fn> match binds are funcrefs even when also
+            // reference-propagated from the enum payload path.
+            String_from("intptr_t")
         } else if get_unchecked(reference_producers, local_id) != 0 {
             String_from("ark_object_header *")
-        } else if get_unchecked(funcref_locals, local_id) != 0 {
-            String_from("intptr_t")
         } else {
             abi::native_c_type_for_local(table, local, state.heap_enum_flags)
         }
@@ -2606,12 +2681,20 @@ fn native_c_emit_local_declarations(
                 concat(c_type, concat(String_from(" "), concat(native_c_local_name(local_id), String_from(";\n"))))
             )
         )
-        if get_unchecked(reference_producers, local_id) != 0 {
+        if get_unchecked(reference_producers, local_id) != 0 && !is_funcref_local {
             native_c_append(
                 state,
                 concat(
                     String_from("    "),
                     concat(native_c_local_name(local_id), String_from(" = NULL;\n"))
+                )
+            )
+        } else if is_funcref_local {
+            native_c_append(
+                state,
+                concat(
+                    String_from("    "),
+                    concat(native_c_local_name(local_id), String_from(" = (intptr_t)0;\n"))
                 )
             )
         }
@@ -2628,7 +2711,13 @@ fn native_c_emit_local_declarations(
     let mut root_scan = 0
     while root_scan < local_count {
         if get_unchecked(reference_producers, root_scan) != 0 {
-            root_count = root_count + 1
+            let root_local = function_locals_view::MirFunction_local_at(function, root_scan)
+            let root_is_funcref = get_unchecked(funcref_locals, root_scan) != 0 ||
+            abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(root_local)) ||
+            local_record::mir_local_val_type(root_local) == value_types::VT_FUNCREF()
+            if !root_is_funcref {
+                root_count = root_count + 1
+            }
         }
         root_scan = root_scan + 1
     }
@@ -2661,21 +2750,27 @@ fn native_c_emit_local_declarations(
     let mut root_local = 0
     while root_local < local_count {
         if get_unchecked(reference_producers, root_local) != 0 {
-            set(state.root_slot_of_local, root_local, root_slot)
-            native_c_append(
-                state,
-                concat(
-                    String_from("    ark_gc_set_root((size_t)"),
+            let rooted = function_locals_view::MirFunction_local_at(function, root_local)
+            let rooted_is_funcref = get_unchecked(funcref_locals, root_local) != 0 ||
+            abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(rooted)) ||
+            local_record::mir_local_val_type(rooted) == value_types::VT_FUNCREF()
+            if !rooted_is_funcref {
+                set(state.root_slot_of_local, root_local, root_slot)
+                native_c_append(
+                    state,
                     concat(
-                        i32_to_string(root_slot),
+                        String_from("    ark_gc_set_root((size_t)"),
                         concat(
-                            String_from(", &"),
-                            concat(native_c_local_name(root_local), String_from(");\n"))
+                            i32_to_string(root_slot),
+                            concat(
+                                String_from(", &"),
+                                concat(native_c_local_name(root_local), String_from(");\n"))
+                            )
                         )
                     )
                 )
-            )
-            root_slot = root_slot + 1
+                root_slot = root_slot + 1
+            }
         }
         root_local = root_local + 1
     }

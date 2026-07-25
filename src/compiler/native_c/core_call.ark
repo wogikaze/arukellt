@@ -7,6 +7,7 @@ use mir::function_locals_view
 use mir::inst_accessors_operands
 use mir::local_record
 use mir::value_types
+use native_c::abi
 
 struct NativeCCoreCall {
     handled: bool,
@@ -101,8 +102,13 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
         return String_from("i32")
     }
     let local = function_locals_view::MirFunction_local_at(function, local_id)
+    if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+        return String_from("i64")
+    }
     let value_type = local_record::mir_local_val_type(local)
-    if value_type == value_types::VT_I64() { return String_from("i64") }
+    if value_type == value_types::VT_I64() || value_type == value_types::VT_FUNCREF() {
+        return String_from("i64")
+    }
     if value_type == value_types::VT_F32() { return String_from("f32") }
     if value_type == value_types::VT_F64() { return String_from("f64") }
     if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() {
@@ -602,7 +608,17 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_vec_push() {
         let value_local = get_unchecked(arguments, 1)
-        let member = native_c_core_value_member(function, value_local)
+        let mut member = native_c_core_value_member(function, value_local)
+        let vec_local = get_unchecked(arguments, 0)
+        if vec_local >= 0 && vec_local < function_locals_view::MirFunction_local_count(function) {
+            let vec_type = local_record::mir_local_type_name(
+                function_locals_view::MirFunction_local_at(function, vec_local)
+            )
+            if starts_with(clone(vec_type), String_from("vec:fn(")) ||
+            starts_with(clone(vec_type), String_from("Vec<fn(")) {
+                member = String_from("i64")
+            }
+        }
         let operation = concat(
             String_from("ark_rt_vec_push("),
             concat(
@@ -913,7 +929,17 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_vec_get_unchecked() ||
     handler == core_op_registry_generated::core_op_handler_vec_get_unchecked_f64() ||
     handler == core_op_registry_generated::core_op_handler_vec_get_unchecked_i64() {
-        let member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
+        let mut member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
+        let vec_local = get_unchecked(arguments, 0)
+        if vec_local >= 0 && vec_local < function_locals_view::MirFunction_local_count(function) {
+            let vec_type = local_record::mir_local_type_name(
+                function_locals_view::MirFunction_local_at(function, vec_local)
+            )
+            if starts_with(clone(vec_type), String_from("vec:fn(")) ||
+            starts_with(clone(vec_type), String_from("Vec<fn(")) {
+                member = String_from("i64")
+            }
+        }
         return native_c_core_call_expression(
             concat(
                 String_from("ark_rt_vec_get("),
