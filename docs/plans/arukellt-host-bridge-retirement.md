@@ -132,7 +132,19 @@ HTTP/sockets は `#714` の component emit / canon lower パターンを再利�
 - `get_err_dns`（wasm32-gc + wasi-p2）: `arukellt_host` 無し、
   `wasi:http/outgoing-handler@0.2.0::http_get` あり、実行で DNS Err 文字列を確認済み。
 
-次: sockets GC stub 撤去、Phase 4 host-linker → wasmtime-wasi。
+### sockets GC finalize（Phase 2B、2026-07-25）
+
+- `intrinsic_sockets.ark` の GC `unreachable` stub を撤去。
+- `emit_sockets_finalize_i32_result_gc` / `emit_sockets_finalize_read_result_gc`
+  （Ok: `_f1_i32` / `_f1_ref10`、Err: String `_f1_ref0`）。
+- write の scratch 順序を host ABI `(fd, buf, len)` に合わせて修正。
+- `host_intrinsic_adapter` で HTTP/sockets を `HOST_ABI_GC_REF` に分類し、
+  関数本体の GC unreachable stub を解除。
+- `connect_read_write`（wasm32-gc + wasi-p2）: `wasi:sockets/tcp@0.2.0` /
+  `wasi:io/streams@0.2.0` import あり、`arukellt_host` なし、`wasm-tools validate` PASS。
+  実行は `env::var` が依然 GC unreachable のため trap（Phase 5 で対処）。
+
+次: Phase 3 `arukellt_host` 名掃討 → Phase 4 host-linker → wasmtime-wasi。
 
 ## 6. 変更しない領域
 

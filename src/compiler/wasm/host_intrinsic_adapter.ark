@@ -45,6 +45,31 @@ fn host_intrinsic_abi_kind(name: String) -> i32 {
     if eq(clone(name), String_from("is_readable_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
+    // HTTP/sockets host wrappers emit GC Result enums directly (#727).
+    if eq(clone(name), String_from("get")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("request")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("serve")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("connect")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("read")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("write")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("listen")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
+    if eq(clone(name), String_from("accept")) {
+        return kinds::HOST_ABI_GC_REF()
+    }
     // All other host intrinsics return i32 pointers (string handles,
     // vec handles, etc.) that need adapter conversion to GC refs.
     kinds::HOST_ABI_LINEAR_MEMORY_PTR()
