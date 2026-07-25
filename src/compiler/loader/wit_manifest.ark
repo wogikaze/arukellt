@@ -1,8 +1,8 @@
 use std::host::fs
+use std::toml
 use loader::module_paths
 use loader::module_package_root
 use loader::registry_config
-use main::script_toml
 
 pub fn is_wit_package_id(name: String) -> bool {
     if starts_with(clone(name), String_from("std::")) {
@@ -43,7 +43,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     if len(content) == 0 {
         return paths
     }
-    let deps_section = script_toml::find_toml_section(clone(content), String_from("dependencies"))
+    let deps_section = toml::find_toml_section(clone(content), String_from("dependencies"))
     if len(deps_section) == 0 {
         return paths
     }

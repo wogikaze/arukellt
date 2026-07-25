@@ -1,7 +1,6 @@
 use std::host::fs
 use std::host::process
 use std::host::stdio
-use std::toml
 use compiler::session_parse
 use driver::config_record
 use driver::file
@@ -207,8 +206,4 @@ fn print_test_entry(prefix: String, name: String) {
     stdio::eprintln(concat(String_from("  test  "), concat(prefix, concat(String_from("::"), name))))
 }
 
-// ── TOML Value Extraction ────────────────────────────────────────────────────
-fn find_toml_value(content: String, key: String) -> String {
-    toml::toml_find_value(content, key)
-}
 // ADR-041 Phase 1: in-file test adoption should not fail on pre-existing stdlib lint.

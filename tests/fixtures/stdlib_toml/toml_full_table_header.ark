@@ -42,9 +42,9 @@ fn main() {
     let section = toml::find_toml_section(input, String_from("server"))
     assert(eq(section, String_from("host = \"localhost\"\nport = 8080")))
 
-    // find_toml_value public API
-    let val = toml::find_toml_value(input, String_from("port"))
-    assert(eq(val, String_from("8080")))
+    // find_toml_value extracts quoted string values from raw text
+    let val = toml::find_toml_value(input, String_from("host"))
+    assert(eq(val, String_from("localhost")))
 
     stdio::println(String_from("OK"))
 }

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 751
+- **Canonical names:** 757
 - **Historical/deprecated names:** 3
-- **Total entries:** 754
+- **Total entries:** 760
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -241,6 +241,8 @@ Current public API names, sorted alphabetically.
 | `find_i32` | `prelude` | `stable` | Collections |
 | `find_i64` | `prelude` | `stable` | Collections |
 | `find_String` | `prelude` | `stable` | Collections |
+| `find_toml_section` | `std::toml` | `experimental` | Toml |
+| `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
 | `flush` | `std::host::streams` | `provisional` | Host Streams |
@@ -664,9 +666,13 @@ Current public API names, sorted alphabetically.
 | `toml_as_bool` | `std::toml` | `experimental` | Toml |
 | `toml_as_int` | `std::toml` | `experimental` | Toml |
 | `toml_as_string` | `std::toml` | `experimental` | Toml |
+| `toml_find_raw_value` | `std::toml` | `experimental` | Toml |
+| `toml_find_section` | `std::toml` | `experimental` | Toml |
+| `toml_find_value` | `std::toml` | `experimental` | Toml |
 | `toml_get` | `std::toml` | `experimental` | Toml |
 | `toml_parse` | `std::toml` | `experimental` | Toml |
 | `toml_parse_line` | `std::toml` | `experimental` | Toml |
+| `toml_parse_string_array` | `std::toml` | `experimental` | Toml |
 | `toml_stringify` | `std::toml` | `experimental` | Toml |
 | `toml_table_keys` | `std::toml` | `experimental` | Toml |
 | `trim` | `prelude` | `stable` | String |
@@ -1015,6 +1021,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
 | `find_i64` | ✅ `stable` | `prelude` | Collections |
 | `find_String` | ✅ `stable` | `prelude` | Collections |
+| `find_toml_section` | ✅ `experimental` | `std::toml` | Toml |
+| `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `flush` | ✅ `provisional` | `std::host::streams` | Host Streams |
@@ -1439,9 +1447,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `toml_as_bool` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_as_int` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_as_string` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_raw_value` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_section` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_value` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_get` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_parse` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_parse_line` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_parse_string_array` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_stringify` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_table_keys` | ✅ `experimental` | `std::toml` | Toml |
 | `trim` | ✅ `stable` | `prelude` | String |

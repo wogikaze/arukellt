@@ -27,72 +27,6 @@ fn LintConfig_empty() -> LintConfig {
 fn lint_config_allow(config: LintConfig) -> Vec<String> { config.allow }
 fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
 
-// Parse a TOML array string like `["W0006", "unused-import"]` into a Vec<String>.
-fn parse_toml_string_array(raw: String) -> Vec<String> {
-    let result = Vec_new_String()
-    let raw_len = len(raw)
-    if raw_len == 0 {
-        return result
-    }
-    let mut i = 0
-    // Skip leading whitespace
-    while i < raw_len && char_at(raw, i) == 32 { i = i + 1 }
-    if i >= raw_len || char_at(raw, i) != 91 {
-        return result
-    }
-    i = i + 1
-    while i < raw_len {
-        // Skip whitespace and commas
-        while i < raw_len && (char_at(raw, i) == 32 || char_at(raw, i) == 44) { i = i + 1 }
-        if i >= raw_len || char_at(raw, i) == 93 {
-            return result
-        }
-        // Expect opening quote
-        if char_at(raw, i) != 34 {
-            i = i + 1
-            continue
-        }
-        i = i + 1
-        let start = i
-        while i < raw_len && char_at(raw, i) != 34 { i = i + 1 }
-        push(result, substring(raw, start, i))
-        if i < raw_len { i = i + 1 }
-    }
-    result
-}
-
-// Extract the raw value portion after `key =` from a TOML content block.
-// Unlike toml_find_value (which only handles quoted strings), this returns
-// the raw text after `=` so array values like `["W0006", "unused-import"]`
-// can be parsed.
-fn toml_find_raw_value(content: String, key: String) -> String {
-    let content_len = len(content)
-    let key_len = len(key)
-    let mut line_start = 0
-    let mut i = 0
-    while i < content_len {
-        if char_at(content, i) == 10 || i == content_len - 1 {
-            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
-            let line = substring(content, line_start, line_end)
-            let line_len = len(line)
-            if line_len > key_len + 3 {
-                if eq(substring(line, 0, key_len), clone(key)) {
-                    let mut j = key_len
-                    while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                    if j < line_len && char_at(line, j) == 61 {
-                        j = j + 1
-                        while j < line_len && char_at(line, j) == 32 { j = j + 1 }
-                        return substring(line, j, line_len)
-                    }
-                }
-            }
-            line_start = i + 1
-        }
-        i = i + 1
-    }
-    String_new()
-}
-
 // Load lint config from ark.toml in the given directory.
 // Returns an empty LintConfig if ark.toml doesn't exist or has no [lint] section.
 pub fn load_lint_config(project_dir: String) -> LintConfig {
@@ -103,13 +37,13 @@ pub fn load_lint_config(project_dir: String) -> LintConfig {
         Result::Ok(content) => {
             let lint_section = toml::toml_find_section(content, String_from("lint"))
             if len(clone(lint_section)) > 0 {
-                let allow_raw = toml_find_raw_value(clone(lint_section), String_from("allow"))
+                let allow_raw = toml::toml_find_raw_value(clone(lint_section), String_from("allow"))
                 if len(clone(allow_raw)) > 0 {
-                    config.allow = parse_toml_string_array(allow_raw)
+                    config.allow = toml::toml_parse_string_array(allow_raw)
                 }
-                let deny_raw = toml_find_raw_value(clone(lint_section), String_from("deny"))
+                let deny_raw = toml::toml_find_raw_value(clone(lint_section), String_from("deny"))
                 if len(clone(deny_raw)) > 0 {
-                    config.deny = parse_toml_string_array(deny_raw)
+                    config.deny = toml::toml_parse_string_array(deny_raw)
                 }
             }
         },

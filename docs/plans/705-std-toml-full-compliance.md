@@ -1,6 +1,6 @@
 # #705 — std::toml Full TOML 1.0 Compliance クローズ計画
 
-ステータス: 計画  
+ステータス: Phase 1–4 実装済（lane gate PASS。close は親の verify quick 後）  
 親 issue: [#705](../../issues/open/705-std-toml-full-compliance.md)  
 前提: #606 done  
 担当 subagent lane: `wave/705-toml-full`  
@@ -39,8 +39,10 @@
   - `src/compiler/lint/config.ark`
 
 ### Phase 3 — モジュール削除
-- `src/compiler/main/script_toml.ark` 削除。
-- `src/compiler/lsp/symbol_index_paths.ark` 削除。
+- `src/compiler/main/script_toml.ark` 削除（完了）。
+- `symbol_index_paths.ark` から TOML ヘルパーを除去（完了）。ファイル本体は URI/path
+  ヘルパー専用として残す（#704 の LSP JSON 移行と衝突させない）。
+  パスヘルパーの別ファイルへの移設は本 issue の非ゴール。
 
 ### Phase 4 — 検証
 - `toml_get` / `toml_table_keys` のネストテーブルアクセスを確認。

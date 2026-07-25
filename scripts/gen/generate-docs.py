@@ -609,25 +609,29 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
         "modules": ["std::toml"],
         "overview": {
             "summary": (
-                "The `std::toml` module provides minimal experimental helpers for a **bounded "
-                "TOML subset** only: blank lines, full-line comments (`# …`), and simple "
-                "`key = value` entries (one entry per non-comment line). `toml_parse` returns "
-                "`Ok` only for documents that fit that subset; table headers (`[…]`), lines "
-                "without `=`, empty keys or values, unclosed quoted values, trailing non-comment "
-                "lines without `key = value`, and other malformed or unsupported forms return "
-                "`Err(String)`. This is "
-                "not full TOML 1.0 compliance."
+                "The `std::toml` module provides a TOML 1.0 parser/serializer plus streaming "
+                "section/value scanners for compiler manifests. `toml_parse` accepts table "
+                "headers, arrays of tables, inline tables, dotted keys, multiline strings, and "
+                "datetime literals; malformed input returns `Err(String)`. Nested tables are "
+                "traversed with `toml_get` / `toml_table_keys`. `find_toml_section` / "
+                "`find_toml_value` extract sections and quoted string values from raw text."
             ),
             "highlights": [
-                ("`toml_parse(doc)`", "Parse a multi-line document in the supported subset; `Err` on unsupported or malformed lines."),
-                ("`toml_parse_line(line)`", "Legacy single-line filter: pass through `key = value` lines; blank or `#` comment lines become `\"\"`."),
+                ("`toml_parse(doc)`", "Parse a TOML 1.0 document into a `TomlValue` tree; `Err` on malformed input."),
+                ("`toml_get` / `toml_table_keys`", "Traverse nested tables and list keys."),
+                ("`find_toml_section` / `find_toml_value`", "Streaming scanners for `[section]` bodies and quoted string values."),
             ],
             "typical_usage": """\
 ```ark
 import std::toml
 
-let value = toml_parse_line("name = \\"arukellt\\"")
-// value == "arukellt"
+match toml_parse("[server]\\nhost = \\"localhost\\"") {
+    Result::Ok(root) => match toml_get(root, "server") {
+        Option::Some(server) => { /* nested table */ },
+        Option::None => {},
+    },
+    Result::Err(_) => {},
+}
 ```""",
         },
     },

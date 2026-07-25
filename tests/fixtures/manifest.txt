@@ -1535,9 +1535,7 @@ run:stdlib_toml/toml_ml_empty.ark
 run:stdlib_toml/toml_ml_literal.ark
 run:stdlib_toml/toml_ml_literal_backslash.ark
 run:stdlib_toml/toml_parity_nested_section.ark
-run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 run:stdlib_toml/toml_parse_invalid_empty_value.ark
-run:stdlib_toml/toml_parse_invalid_table_header.ark
 run:stdlib_toml/toml_parse_invalid_trailing_garbage.ark
 run:stdlib_toml/toml_parse_invalid_unclosed_string.ark
 run:stdlib_toml/toml_parse_valid_subset.ark
@@ -2182,6 +2180,8 @@ t3-compile:stdlib_string/string_starts_ends.ark
 t3-compile:stdlib_string/to_lower_upper.ark
 t3-compile:stdlib_toml/toml_full_inline_dotted.ark
 t3-compile:stdlib_toml/toml_full_table_header.ark
+run:stdlib_toml/toml_scan_find_raw_value.ark
+run:stdlib_toml/toml_err_bad_aot_header.ark
 t3-compile:stdlib_trait/buf_read.ark
 t3-compile:stdlib_trait/debug_trait.ark
 t3-compile:stdlib_trait/debug_vec.ark

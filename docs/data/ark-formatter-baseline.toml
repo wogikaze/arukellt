@@ -72,7 +72,7 @@ path = "std/seq/mod.ark"
 sha256 = "72d005bb30ccbfabc283cc7844fa5c9903719afa73f4609724fd9b4ae79c2ed6"
 [[exceptions]]
 path = "std/toml.ark"
-sha256 = "a247c67f95d82f2427f74a3beb56d1d72898736b91a87eb9b8c36ba6760c3bd1"
+sha256 = "4b09290b112ea801ee65cdb8557903cb7aab76a6d7622fa02fa44b613b2abdba"
 [[exceptions]]
 path = "std/wit/printer.ark"
 sha256 = "8e2f11021b4fe0195d7fdc8d5dd26bd0ab46a991e9b04cf2ef1a31f23beec10c"

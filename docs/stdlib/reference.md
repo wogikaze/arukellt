@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 394 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 311 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -1108,12 +1108,18 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `find_toml_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_section. |
+| `find_toml_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_value. |
 | `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value. |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
+| `toml_find_raw_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the raw text after key = (for arrays and unquoted values). |
+| `toml_find_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the body of a [section] from raw TOML text. |
+| `toml_find_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract a double-quoted string value for key = "..." from raw TOML text. |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value (nested tables via successive calls). |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_parse_string_array` | `(String) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML string-array literal like ["a", "b"] into Vec<String>. |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 
