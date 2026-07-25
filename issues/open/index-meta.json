@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T20:10:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -870,25 +870,6 @@
       },
       "orchestration": {
         "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "826",
-      "path": "826-symbol-path-intern-clone-audit.md",
-      "title": "P2a: symbol / path interning + hot-path clone audit",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "investigation",
         "upstream_notes": null
       }
     },

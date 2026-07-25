@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-17
 Updated: 2026-07-26
 ID: 826
@@ -39,15 +39,23 @@ deep `clone` on hot selfhost compile paths. Independent of MIR reachability BFS
       if early body lowering must land first)
 - [x] No arena code in this issue
 
-## Lane progress (2026-07-26, `wave/826-intern-clone`)
+## Close note (2026-07-26)
 
-正本: [`docs/research/826-symbol-path-intern-clone-audit.md`](../../docs/research/826-symbol-path-intern-clone-audit.md)
+**Verdict: APPROVE** — investigation acceptance met; no arena code.
 
-- Inventory: `post_pass_callee_lookup` (155) が最大。共通基盤は `NameIndex` probe clone。
-- Ownership: session-durable intern table（phase arena reset 外）。`i32` handle。
-- Measured win: `name_index_find_slot` の probe deep-clone 除去。
-  fair A/B wall **97.07 s → 76.20 s (−21.5%)**, propagate **3023 → 2095 ms (−30.7%)**.
-- Deferred: KEEP_CLOCK `clone_calls`/`clone_bytes` 計装; full Mir field id 化（#824 競合）。
+| Acceptance | Evidence |
+|---|---|
+| Inventory + call-path notes | [`docs/research/826-symbol-path-intern-clone-audit.md`](../../docs/research/826-symbol-path-intern-clone-audit.md) §1 |
+| Intern table ownership / lifetime | same doc §2 (session-durable bump, `i32` handle) |
+| Measured before/after | same doc §3.1; `src/compiler/collections/name_index.ark` (`find_slot` probe clone 除去). fair A/B wall 97.07s→76.20s (−21.5%), propagate 3023→2095 ms (−30.7%) |
+| No arena | product diff is NameIndex only; #827 remains the arena ownership memo |
+
+Landing commit: `d54cf4ad` (`fix(826): drop NameIndex probe clones; record intern audit.`).
+
+Out of acceptance (not blocking close):
+
+- KEEP_CLOCK `clone_calls` / `clone_bytes` 計装 — research deferral（計測は wall/propagate A/B で代替）
+- callee predicate / Mir field id 化 — [#824](../open/824-early-body-lowering-worklist.md) および research §4 follow-up
 
 ## References
 

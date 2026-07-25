@@ -6,7 +6,8 @@
 - [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md) — Memory64 / fixpoint green（done; wasm32-gc pin は #834）
 - [#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md) — quadratic MIR P0 + reachability BFS（コード landed）
 - [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md) — phase re-profile + dominant hotspot 除去（**done**, emit.locals 半減）
-- 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)、[#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/open/827-phase-arena-after-heap-model.md)
+- 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)
+- done: [#826](../../issues/done/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/done/827-phase-arena-after-heap-model.md)（arena 所有メモ）
 - Phase arena 所有決定: [`selfhost-phase-arena-ownership.md`](selfhost-phase-arena-ownership.md)（旧 P2.3 参照の正本）
 
 ## 方針（2026-07-20）

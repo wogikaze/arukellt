@@ -1,8 +1,8 @@
 # #826 — Symbol / path interning + hot-path clone audit
 
-ステータス: Phase 1 inventory + bounded NameIndex win  
+ステータス: **done**（#826 closed 2026-07-26）  
 日付: 2026-07-26  
-関連: [#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[計画](../plans/826-symbol-path-intern-clone-audit.md)、[#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md)、[#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md)、[#827](../../issues/done/827-phase-arena-after-heap-model.md)、[`selfhost-phase-arena-ownership.md`](selfhost-phase-arena-ownership.md)
+関連: [#826](../../issues/done/826-symbol-path-intern-clone-audit.md)、[計画](../plans/826-symbol-path-intern-clone-audit.md)、[#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md)、[#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md)、[#827](../../issues/done/827-phase-arena-after-heap-model.md)、[`selfhost-phase-arena-ownership.md`](selfhost-phase-arena-ownership.md)
 
 ## スコープ
 
@@ -91,9 +91,8 @@ insert/set がキー所有のために 1 回 `clone(name)` する経路は残す
 ### 計測プロトコル
 
 Workload: flat-src `compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2 --time`  
-Host: KEEP_CLOCK `arukellt-s2-clock.wasm`（before）→ `build-compiler` 後の artifact（after）。
-
-結果表は計測完了後に追記する（下記 §3.1）。
+Host: 同一 worktree で `ARUKELLT_OVERLAY_KEEP_CLOCK=1` `build-compiler` した
+`arukellt-s2-runtime.wasm`（旧 `find_slot` / 新 `find_slot` を各 1 回）。
 
 ### `clone_calls` KEEP_CLOCK 拡張について
 
@@ -124,12 +123,14 @@ bump 総量に効いても、この workload では他割当が支配的）。
 `clone_calls` KEEP_CLOCK 拡張は defer（§3）。lookup 経路の deep-clone は
 「hash 用 1 + probe ごと 1」→「0」に静的削減。
 
-## 4. 残作業
+## 4. Follow-ups（#826 acceptance 外）
 
-- [ ] callee_lookup の predicate 列を intern id または単一比較ヘルパへ（借用 `eq` が先決かも）
-- [ ] session `SymbolTable` 設計を ADR/RFC なしの実装 issue に分割
-- [ ] KEEP_CLOCK `clone_calls` 計装（別 PR、validate ゲート付き）
-- [ ] #824 early body lowering 後に Mir 構造体フィールドの id 化を再評価
+#826 は調査 + bounded NameIndex win で閉じる。以下は未完了の acceptance ではない。
+
+- callee_lookup の predicate 列を intern id / 借用比較へ（将来 selfhost-infra）
+- session `SymbolTable`（NameIndex 双方向化）の実装 issue 分割
+- KEEP_CLOCK `clone_calls` / `clone_bytes` 計装（validate ゲート付き）
+- Mir 構造体フィールドの id 化は [#824](../../issues/open/824-early-body-lowering-worklist.md) 後に再評価
 
 ## 5. Non-goals（確認）
 
