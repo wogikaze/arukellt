@@ -735,23 +735,10 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP ABI)."""
     try:
-        data = wasm_path.read_bytes()
+        return b"arukellt_host" in wasm_path.read_bytes()
     except OSError:
         return False
-    # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
-    return (
-        b"arukellt_host" in data
-        or b"wasi:http/outgoing-handler@" in data
-        or b"wasi:http/incoming-handler@" in data
-        or b"wasi:sockets/tcp@" in data
-        or b"sockets_connect" in data
-        or b"sockets_listen" in data
-        or b"http_get" in data
-        or b"http_request" in data
-        or b"http_serve" in data
-    )
 
 
 def _ensure_aot_cwasm(wasm_path: Path) -> Path:
@@ -1499,15 +1486,18 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
     text = path.read_text(encoding="utf-8")
     old = (
         "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
-        "driver_config_record::config_target(config), driver_config_record::config_wasi_version(config), "
+        "driver_config_record::config_target(config), core_wasi, "
         "driver_config_record::config_world(config))"
     )
+    # Key off core_wasi (already respects explicit wasi-p2 vs library worlds),
+    # not bare mir_has_library_exports — otherwise env::var command fixtures are
+    # forced through the p1 library wrapper (#668 / #810).
     new = (
-        "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
+        "    let comp_bytes = if eq(clone(core_wasi), String_from(\"p1-component\")) {\n"
         "        wasm::emit_library_component(core_wasm, mir_module)\n"
         "    } else {\n"
         "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
-        "driver_config_record::config_wasi_version(config), driver_config_record::config_world(config))\n"
+        "core_wasi, driver_config_record::config_world(config))\n"
         "    }"
     )
     if old in text and "emit_library_component" not in text:
@@ -1515,7 +1505,22 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
             text,
             old,
             new,
-            "route library component emit through wasm::emit_library_component in driver_emit",
+            "route p1-component emit through wasm::emit_library_component in driver_emit",
+        )
+        path.write_text(text, encoding="utf-8")
+    elif (
+        "if component::mir_has_library_exports(mir_module)" in text
+        and "eq(clone(core_wasi), String_from(\"p1-component\"))" not in text
+    ):
+        text = text.replace(
+            "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
+            "        wasm::emit_library_component(core_wasm, mir_module)\n"
+            "    } else {\n"
+            "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
+            "core_wasi, driver_config_record::config_world(config))\n"
+            "    }",
+            new,
+            1,
         )
         path.write_text(text, encoding="utf-8")
 
@@ -3279,18 +3284,10 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
     host_text = host_path.read_text(encoding="utf-8")
     text = fn_path.read_text(encoding="utf-8")
     for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
-        renamed = f"mir_module_host_calls__{symbol}"
-        if re.search(
-            rf"pub fn {re.escape(renamed)}\(callee: String\) -> bool",
+        if not re.search(
+            rf"pub fn (?:mir_module_host_calls__)?{re.escape(symbol)}\(callee: String\) -> bool",
             host_text,
         ):
-            callee_name = renamed
-        elif re.search(
-            rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool",
-            host_text,
-        ):
-            callee_name = f"mir_module_host_calls::{symbol}"
-        else:
             continue
         # Facades may already be stripped as thin overlay delegates.
         text = _sub_optional(
@@ -3300,19 +3297,13 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
             f"drop recursive host-call facade {symbol} from mir_module_functions",
             count=1,
         )
-        # Flat-overlay publish renames host helpers to mir_module_host_calls__*.
-        # Rewrite both bare and module-qualified call sites to the published name.
-        if callee_name.startswith("mir_module_host_calls__"):
-            text = text.replace(
-                f"mir_module_host_calls::{symbol}(",
-                f"{callee_name}(",
-            )
-        text = re.sub(
-            rf"(?<![:_]){re.escape(symbol)}\(",
-            f"{callee_name}(",
+        text = _replace_optional(
             text,
+            f"{symbol}(",
+            f"mir_module_host_calls::{symbol}(",
+            f"rewrite {symbol} call sites to mir_module_host_calls delegation",
         )
-    if "use mir_module_host_calls" not in text and "mir_module_host_calls::" in text:
+    if "use mir_module_host_calls" not in text:
         text = _replace_required(
             text,
             "use mir_opcodes\n",
@@ -3323,135 +3314,24 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
 
 
 def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
-    """Replace host-import needs scans with an overlay-safe inline version (#727).
-
-    The live tree scans via ``mir_module_host_calls::*`` helpers, but after
-    flat-module symbol renaming those call paths still trap during bootstrap
-    emission. Keep the scan local to ``mir_module_functions`` with direct
-    string compares so WIT-shaped HTTP/sockets imports are emitted.
-    """
+    """Bootstrap overlay: host-import scans trap after flat-module symbol renames."""
     path = compiler_out / "mir_module_functions.ark"
     if not path.is_file():
         return
     text = path.read_text(encoding="utf-8")
-    inline_match = """
-fn _overlay_callee_needs_network_host(callee: String) -> bool {
-    if eq(clone(callee), String_from("http_get")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }
-    if eq(clone(callee), String_from("http::get")) { return true }
-    if eq(clone(callee), String_from("std::host::http::get")) { return true }
-    if eq(clone(callee), String_from("runtime.get")) { return true }
-    if eq(clone(callee), String_from("http_request")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
-    if eq(clone(callee), String_from("http::request")) { return true }
-    if eq(clone(callee), String_from("std::host::http::request")) { return true }
-    if eq(clone(callee), String_from("runtime.request")) { return true }
-    if eq(clone(callee), String_from("http_serve")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
-    if eq(clone(callee), String_from("http::serve")) { return true }
-    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
-    if eq(clone(callee), String_from("runtime.serve")) { return true }
-    if eq(clone(callee), String_from("sockets_connect")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) { return true }
-    if eq(clone(callee), String_from("sockets::connect")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
-    if eq(clone(callee), String_from("runtime.connect")) { return true }
-    if eq(clone(callee), String_from("sockets_read")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_read")) { return true }
-    if eq(clone(callee), String_from("sockets::read")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
-    if eq(clone(callee), String_from("runtime.read")) { return true }
-    if eq(clone(callee), String_from("sockets_write")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
-    if eq(clone(callee), String_from("sockets::write")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
-    if eq(clone(callee), String_from("runtime.write")) { return true }
-    if eq(clone(callee), String_from("sockets_listen")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_listen")) { return true }
-    if eq(clone(callee), String_from("sockets::listen")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
-    if eq(clone(callee), String_from("runtime.listen")) { return true }
-    if eq(clone(callee), String_from("sockets_accept")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_accept")) { return true }
-    if eq(clone(callee), String_from("sockets::accept")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
-    if eq(clone(callee), String_from("runtime.accept")) { return true }
-    false
-}
-""".lstrip()
-    scan_body = """
-    let fn_count = MirModule_function_count(mir)
-    let mut fi = 0
-    while fi < fn_count {
-        let f = MirModule_function_at(mir, fi)
-        let block_count = mir_function_block_queries::MirFunction_block_count(f)
-        let mut bi = 0
-        while bi < block_count {
-            let block = mir_function_block_queries::MirFunction_block_at(f, bi)
-            let inst_count = mir_block_inst_access::MirBlock_inst_count(block)
-            let mut ii = 0
-            while ii < inst_count {
-                let inst = mir_block_inst_access::MirBlock_inst_at(block, ii)
-                if mir_inst_accessors_shape::MirInst_op(inst) == mir_opcodes::MIR_CALL() {
-                    let callee = mir_inst_accessors_literals::MirInst_str_val(inst)
-                    if _overlay_callee_needs_network_host(clone(callee)) {
-                        return 1
-                    }
-                }
-                ii = ii + 1
-            }
-            bi = bi + 1
-        }
-        fi = fi + 1
-    }
-    0
-""".rstrip()
-    http_only_body = scan_body.replace(
-        "_overlay_callee_needs_network_host(clone(callee))",
-        "("
-        + "eq(clone(callee), String_from(\"http_get\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_get\")) || "
-        + "eq(clone(callee), String_from(\"http::get\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::get\")) || "
-        + "eq(clone(callee), String_from(\"runtime.get\")) || "
-        + "eq(clone(callee), String_from(\"http_request\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_request\")) || "
-        + "eq(clone(callee), String_from(\"http::request\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::request\")) || "
-        + "eq(clone(callee), String_from(\"runtime.request\")) || "
-        + "eq(clone(callee), String_from(\"http_serve\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_serve\")) || "
-        + "eq(clone(callee), String_from(\"http::serve\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::serve\")) || "
-        + "eq(clone(callee), String_from(\"runtime.serve\"))"
-        + ")",
+    stubs: tuple[tuple[str, str], ...] = (
+        ("mir_module_needs_arukellt_host", "mir: MirModule"),
+        ("mir_module_needs_wasi_http_outgoing", "mir: MirModule"),
+        ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
     )
-    if "_overlay_callee_needs_network_host" not in text:
-        # Insert helper before the first needs_* function.
-        text = _replace_required(
+    for name, params in stubs:
+        text = _sub_required(
             text,
-            "pub fn mir_module_needs_wasi_http_outgoing_if_p2",
-            inline_match + "\npub fn mir_module_needs_wasi_http_outgoing_if_p2",
-            "insert overlay-safe network callee matcher",
+            rf"pub fn {re.escape(name)}\({re.escape(params)}\) -> i32 \{{[\s\S]*?\n\}}",
+            f"pub fn {name}({params}) -> i32 {{\n    0\n}}",
+            f"stub {name} to return 0 for pinned bootstrap",
+            count=1,
         )
-    text = _sub_required(
-        text,
-        r"pub fn mir_module_needs_arukellt_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {"
-        + scan_body
-        + "\n}",
-        "inline overlay-safe mir_module_needs_arukellt_host scan",
-        count=1,
-    )
-    text = _sub_required(
-        text,
-        r"pub fn mir_module_needs_wasi_http_outgoing\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_wasi_http_outgoing(mir: MirModule) -> i32 {"
-        + http_only_body
-        + "\n}",
-        "inline overlay-safe mir_module_needs_wasi_http_outgoing scan",
-        count=1,
-    )
     path.write_text(text, encoding="utf-8")
 
 

@@ -104,20 +104,6 @@ fn mir_tuple_byte_size_from_type_info(ty: TypeInfo) -> i32 {
     total
 }
 
-fn mir_tuple_has_gc_ref_elem(ty: TypeInfo) -> bool {
-    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
-    let mut i = 0
-    while i < arg_count {
-        let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
-        let tag = mir_return_tag_from_type_info(elem)
-        if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 {
-            return true
-        }
-        i = i + 1
-    }
-    false
-}
-
 fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
     let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
     if arg_count <= 0 {
@@ -169,11 +155,10 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
         }
         return name
     }
-    if mir_tuple_has_gc_ref_elem(ty) {
-        let inner = mir_tuple_inner_name_from_type_info(ty)
-        return concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
-    }
-    concat(String_from("struct:tuple:"), i32_to_string(byte_size))
+    // Keep element keys for all tuples (not only GC-ref elems) so component
+    // adapters can emit the correct WIT tuple shape (#810).
+    let inner = mir_tuple_inner_name_from_type_info(ty)
+    concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
 }
 
 fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {

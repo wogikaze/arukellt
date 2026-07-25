@@ -59,6 +59,9 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
     if decl_ann_name::decl_ann_is_generic(ann) {
         return value_types::VT_GC_REF()
     }
+    if decl_ann_name::decl_ann_is_tuple(ann) {
+        return value_types::VT_GC_REF()
+    }
     value_types::VT_I32()
 }
 

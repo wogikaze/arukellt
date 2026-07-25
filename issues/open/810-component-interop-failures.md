@@ -53,14 +53,14 @@ python3 scripts/manager.py verify full
 
 ## Current count
 
-56 failing fixtures (2026-07-26 lane wave/810-component-interop)
+6 failing fixtures (2026-07-26 lane wave/810-component-interop)
 
-Progress note: restored library→`p1-component` routing (regression from #668
-default wasi-p2 priority) and excluded std host helper MIR names from library
-export detection. Live `verify component-interop` / jco suite: 47 pass / 56 fail
-(receipt baseline was 103 fail). Remaining: option/result/list/record/tuple/
-variant, plus calculator (jco BigInt), f32-multi/f32-result-i32, multi-type
-(abs_i32 missing), string-score32*.
+Progress note: GC Option/Result/List/Record/Tuple canonical ABI adapters on
+`library_component` path (ported from composite wave), with explicit
+`--wasi-version wasi-p2` still forcing the command path (#668). Live jco suite:
+**97 pass / 6 fail** (was 47/56; receipt baseline 103). Remaining:
+`calculator`, `f32-multi`, `f32-result-i32`, `multi-type-exports`,
+`string-score32`, `string-score32-renamed`.
 
 ## New-failure ratchet
 

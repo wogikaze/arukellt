@@ -50,6 +50,18 @@ fn host_intrinsic_spec_return_types(spec: HostIntrinsicSpec) -> Vec<MirValueType
     spec.return_types
 }
 
+fn host_intrinsic_spec_boundary_param_types(spec: HostIntrinsicSpec) -> Vec<MirValueType> {
+    spec.boundary_param_types
+}
+
+fn host_intrinsic_spec_boundary_return_types(spec: HostIntrinsicSpec) -> Vec<MirValueType> {
+    spec.boundary_return_types
+}
+
+fn host_intrinsic_spec_canonical_memory_index_type(spec: HostIntrinsicSpec) -> i32 {
+    spec.canonical_memory_index_type
+}
+
 fn host_intrinsic_spec_placeholder(name: String) -> HostIntrinsicSpec {
     let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     let returns = Vec_new_MirValueType()

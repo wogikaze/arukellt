@@ -95,6 +95,13 @@ fn fn_param_local_type_name(node: AstNode) -> String {
                 concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
+    } else if decl_ann_name::decl_ann_is_tuple(ann) && decl_ann_children::decl_ann_child_count(ann) == 2 {
+        let a = decl_ann_children::decl_ann_child_at(ann, 0)
+        let b = decl_ann_children::decl_ann_child_at(ann, 1)
+        return concat(
+            String_from("Tuple:"),
+            concat(decl_ann_name::decl_ann_name(a), concat(String_from(":"), decl_ann_name::decl_ann_name(b)))
+        )
     } else {
         return param_named_local_type_name(ann)
     }
@@ -171,6 +178,13 @@ fn method_param_local_type_name(node: AstNode) -> String {
                 concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
             )
         }
+    } else if decl_ann_name::decl_ann_is_tuple(ann) && decl_ann_children::decl_ann_child_count(ann) == 2 {
+        let a = decl_ann_children::decl_ann_child_at(ann, 0)
+        let b = decl_ann_children::decl_ann_child_at(ann, 1)
+        return concat(
+            String_from("Tuple:"),
+            concat(decl_ann_name::decl_ann_name(a), concat(String_from(":"), decl_ann_name::decl_ann_name(b)))
+        )
     } else {
         return param_named_local_type_name(ann)
     }

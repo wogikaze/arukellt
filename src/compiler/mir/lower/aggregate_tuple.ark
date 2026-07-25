@@ -137,6 +137,42 @@ fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
     concat(prefix, String_from("_i32"))
 }
 
+fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
+    // CoreHIR param aliases use Tuple:A:B; GC structs are tuple:A,B (#810).
+    if !starts_with(clone(param_type_name), String_from("Tuple:")) {
+        return String_new()
+    }
+    let rest = substring(param_type_name, 6, len(param_type_name))
+    let mut sep = 0 - 1
+    let mut i = 0
+    while i < len(rest) {
+        if char_at(rest, i) == 58 {
+            sep = i
+            i = len(rest)
+        }
+        i = i + 1
+    }
+    if sep <= 0 {
+        return String_new()
+    }
+    let keys = concat(substring(rest, 0, sep), concat(String_from(","), substring(rest, sep + 1, len(rest))))
+    concat(String_from("tuple:"), keys)
+}
+
+fn ctx_register_tuple_gc_struct_from_param_name(ctx: LowerCtx, param_type_name: String) -> i32 {
+    let wasm_name = tuple_wasm_name_from_param_alias(param_type_name)
+    if len(wasm_name) == 0 {
+        return 0
+    }
+    let keys = substring(wasm_name, 6, len(wasm_name))
+    let sig = tuple_gc_sig_from_type_keys(keys)
+    if len(sig) <= 2 {
+        return 0
+    }
+    ctx_gc_struct::ctx_register_gc_struct(ctx, wasm_name, sig)
+    1
+}
+
 fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name: String) -> i32 {
     if !starts_with(clone(return_type_name), String_from("struct:")) {
         return 0

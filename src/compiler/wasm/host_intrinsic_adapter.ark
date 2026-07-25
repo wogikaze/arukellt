@@ -45,31 +45,6 @@ fn host_intrinsic_abi_kind(name: String) -> i32 {
     if eq(clone(name), String_from("is_readable_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    // HTTP/sockets host wrappers emit GC Result enums directly (#727).
-    if eq(clone(name), String_from("get")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("request")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("serve")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("connect")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("read")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("write")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("listen")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("accept")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
     // All other host intrinsics return i32 pointers (string handles,
     // vec handles, etc.) that need adapter conversion to GC refs.
     kinds::HOST_ABI_LINEAR_MEMORY_PTR()
@@ -89,20 +64,27 @@ fn host_intrinsic_can_emit_gc_body(name: String) -> bool {
 fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
     let abi = host_intrinsic_abi_kind(clone(name))
     let returns = Vec_new_MirValueType()
+    let boundary_returns = Vec_new_MirValueType()
+    let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     if abi == kinds::HOST_ABI_GC_REF() || abi == kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
         push(returns, string_mvt)
+        // Canonical memory32 boundary: ptr (+ optional len) as i32 scalars.
+        push(boundary_returns, i32_mvt)
+        push(boundary_returns, i32_mvt)
     } else {
-        let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
         push(returns, i32_mvt)
+        push(boundary_returns, i32_mvt)
     }
+    // Pointer width comes from the adapter's canonical memory index type (memory32),
+    // not from the guest target name.
     host_intrinsic_spec::HostIntrinsicSpec_new(
         name,
         abi,
         Vec_new_MirValueType(),
         returns,
         Vec_new_MirValueType(),
-        Vec_new_MirValueType(),
+        boundary_returns,
         32,
         0 - 1,
         0 - 1

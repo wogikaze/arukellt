@@ -1,6 +1,11 @@
+use std::host::stdio
+use std::host::process
 use wasm::ctx_record
 use wasm::gc_layout_table
 
+// Phase 5 (#686): GC layout audit is a production hard gate.
+// fallback/conflict during emit means typed TypeId→layout registration missed;
+// do not ship Wasm that relied on name→offset guessing.
 fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     let table = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
     let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
@@ -23,4 +28,8 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
         )
     )
     stdio::eprintln(line)
+    if fallback_count > 0 || conflict_count > 0 {
+        stdio::eprintln(String_from("compiler ICE: gc-layout-audit hard fail"))
+        process::exit(1)
+    }
 }

@@ -305,7 +305,8 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
     kind != kinds::TYPE_KIND_OPTION() &&
     kind != kinds::TYPE_KIND_RESULT() &&
     kind != kinds::TYPE_KIND_HASHMAP() &&
-    kind != kinds::TYPE_KIND_HASHSET() {
+    kind != kinds::TYPE_KIND_HASHSET() &&
+    kind != kinds::TYPE_KIND_ENUM() {
         return GC_LAYOUT_ID_INVALID()
     }
     let name = type_table::type_entry_name(entry)
@@ -393,9 +394,11 @@ fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTab
         let type_idx = get_unchecked(variant_type_map, i)
         let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
         if type_id::type_id_is_valid(tid) {
+            // Prefer aggregate so type_name → TypeId emit lookup hits the
+            // concrete variant type index (Phase 5 typed spine).
             gc_layout_table_register_key(
                 table,
-                GcLayoutKey_new(tid, GcMemberKey_enum_variant(i)),
+                GcLayoutKey_new(tid, GcMemberKey_aggregate()),
                 WasmRefType_new(type_idx, 1),
                 type_idx
             )
