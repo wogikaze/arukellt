@@ -369,7 +369,9 @@ C entry point は次の adapter を持つ。
 int main(int argc, char **argv);
 ```
 
-adapter は arena と runtime を初期化し、argv[0] を除いた args view を登録し、module initializerを
+adapter は arena と runtime を初期化し、argv[0] を除いた args view を登録し（Wasm / WASI
+user-program の `args()` と一致。selfhost native executor のみ移行中に
+`ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0=1` で C 風 argv を維持）、module initializerを
 実行して Ark entry pointを呼ぶ。
 Ark main が通常 return した場合は 0、`process.exit` は指定 code、panic は非 0 を返す。
 runtime abort は Linux の SIGABRT 慣例に従う 134 を process result とする。

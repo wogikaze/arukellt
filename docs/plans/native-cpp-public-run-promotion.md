@@ -133,8 +133,8 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 3 — entry / process semantics
 
-- [ ] `fn main()` / `fn main() -> Unit`（scalar 戻り値は捨てて exit 0）
-- [ ] args parity（Wasm と一致、RFC-008 を実装に合わせる）
+- [x] `fn main()` / `fn main() -> Unit`（scalar 戻り値は捨てて exit 0；パラメータ付き main は emit 前拒否）
+- [x] args parity（native 既定は argv[0] 除外；Wasm wasi-p1 と一致。executor は `ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0=1` で移行）
 - [ ] stdio / cwd / env fixtures
 - [ ] `process.exit` / panic / signal 写像
 

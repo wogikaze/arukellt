@@ -300,6 +300,7 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     }
     native_c_append_bytes(source_bytes, String_from("\n"))
     let mut main_symbol = String_new()
+    let mut main_count = 0
     function_index = 0
     while function_index < function_count {
         let function = module_functions::MirModule_function_at(mir_module, function_index)
@@ -307,11 +308,24 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
         if !native_c_emit_result_success(emitted) { return emitted }
         native_c_append_bytes(source_bytes, native_c_emit_result_source(emitted))
         if eq(function_identity::MirFunction_name(function), String_from("main")) {
+            main_count = main_count + 1
+            if main_count > 1 {
+                return NativeCEmitResult_err(
+                    String_from("target `native-cpp` found multiple `main` entry points")
+                )
+            }
             let resolved_id = native_c_resolve_function_id(mir_module, function, function_index)
             let signature = signature_registry::signature_registry_lookup_by_id(
                 module_spine::MirModule_signature_registry(mir_module),
                 resolved_id
             )
+            if signature_entry::signature_entry_param_count(signature) != 0 {
+                return NativeCEmitResult_err(
+                    String_from(
+                        "target `native-cpp` requires `fn main()` with no parameters; program arguments are read via `args()` / `env::args()`"
+                    )
+                )
+            }
             main_symbol = abi::native_c_function_symbol(
                 module_spine::MirModule_type_table(mir_module),
                 function_id::FunctionId_raw(resolved_id),
@@ -324,7 +338,9 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
         function_index = function_index + 1
     }
     if len(main_symbol) == 0 {
-        return NativeCEmitResult_err(String_from("compiler ICE: native-cpp MIR module has no Ark entry point"))
+        return NativeCEmitResult_err(
+            String_from("target `native-cpp` requires a `fn main()` entry point")
+        )
     }
     native_c_append_bytes(
         source_bytes,

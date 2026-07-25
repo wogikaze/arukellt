@@ -1096,14 +1096,22 @@ void ark_rt_init(int argc, char **argv) {
     ark_gc_collecting = 0;
     ark_gc_current_function = NULL;
     ark_process_args = ark_rt_vec_new(0);
-    for (int index = 0; index < argc; index += 1) {
-        size_t length = strlen(argv[index]);
-        if (length > UINT32_MAX) ark_rt_trap();
-        ark_value value;
-        value.ref = (ark_object_header *)ark_rt_string_from_bytes(
-            (const uint8_t *)argv[index], (uint32_t)length
-        );
-        ark_rt_vec_push(ark_process_args, value);
+    /* Language args() matches Wasm/WASI user programs: exclude argv[0] (RFC-008).
+       The selfhost native executor CLI still expects C-style argv where index 0 is
+       the program name and the subcommand is at index 1; that lane sets
+       ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0=1 until parse_args is migrated (#649). */
+    {
+        const char *include_argv0 = getenv("ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0");
+        int start = (include_argv0 != NULL && include_argv0[0] == '1') ? 0 : 1;
+        for (int index = start; index < argc; index += 1) {
+            size_t length = strlen(argv[index]);
+            if (length > UINT32_MAX) ark_rt_trap();
+            ark_value value;
+            value.ref = (ark_object_header *)ark_rt_string_from_bytes(
+                (const uint8_t *)argv[index], (uint32_t)length
+            );
+            ark_rt_vec_push(ark_process_args, value);
+        }
     }
 }
 

@@ -20,6 +20,8 @@ SPEC.loader.exec_module(runner)
 
 WRAPPER = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 FIXTURE = ROOT / "tests" / "fixtures" / "native_cpp" / "constant_return.ark"
+PUBLIC_BAD_MAIN = ROOT / "tests" / "fixtures" / "native_cpp_public" / "main_with_param.ark"
+PUBLIC_ARGS = ROOT / "tests" / "fixtures" / "native_cpp_public" / "args_print.ark"
 
 
 class NativeCppRunnerParseTest(unittest.TestCase):
@@ -80,13 +82,17 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         if cls.s2 is None:
             raise unittest.SkipTest("selfhost s2 wasm is required for native-cpp run smoke")
 
-    def test_wrapper_routes_native_cpp_run(self) -> None:
+    def _env(self, build_dir: Path) -> dict[str, str]:
         env = os.environ.copy()
         env["ARUKELLT_SELFHOST_WASM"] = str(self.s2)
-        env["ARUKELLT_NATIVE_CPP_VERBOSE"] = "1"
+        env["ARUKELLT_BUILD_DIR"] = str(build_dir)
+        return env
+
+    def test_wrapper_routes_native_cpp_run(self) -> None:
         build_dir = ROOT / ".build" / "native-run-smoke-test"
         build_dir.mkdir(parents=True, exist_ok=True)
-        env["ARUKELLT_BUILD_DIR"] = str(build_dir)
+        env = self._env(build_dir)
+        env["ARUKELLT_NATIVE_CPP_VERBOSE"] = "1"
         result = subprocess.run(
             [
                 str(WRAPPER),
@@ -106,6 +112,57 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
             0,
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
+
+    def test_rejects_main_with_parameters(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [
+                str(WRAPPER),
+                "compile",
+                str(PUBLIC_BAD_MAIN.relative_to(ROOT)),
+                "--target",
+                "native-cpp",
+                "--emit",
+                "c",
+                "-o",
+                ".build/native-run-smoke-test/bad-main.c",
+            ],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        combined = result.stdout + result.stderr
+        self.assertIn("requires `fn main()` with no parameters", combined)
+
+    def test_args_exclude_argv0(self) -> None:
+        build_dir = ROOT / ".build" / "native-run-smoke-test"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [
+                str(WRAPPER),
+                "run",
+                str(PUBLIC_ARGS.relative_to(ROOT)),
+                "--target",
+                "native-cpp",
+                "--",
+                "hello",
+                "a b",
+                "--flag",
+            ],
+            cwd=ROOT,
+            env=self._env(build_dir),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("count=3", result.stdout)
+        self.assertIn("arg=hello", result.stdout)
+        self.assertNotIn(".exe", result.stdout)
 
 
 if __name__ == "__main__":

@@ -687,10 +687,13 @@ def run_native_executor(
             receipt["root_liveness"] = _empty_root_liveness_stats()
 
     # Smoke: --help before full S3.
+    help_env = os.environ.copy()
+    help_env["ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0"] = "1"
     help_run, _, help_peak, _help_smaps = _timed_run(
         [str(executable), "--help"],
         root=root,
         measurement=output_dir / "native-help.maxrss",
+        environment=help_env,
     )
     pipeline_peak = max(pipeline_peak, help_peak)
     if help_run.returncode != 0:
@@ -713,6 +716,9 @@ def run_native_executor(
     # from the parent environment (that silently selects arena and blows RSS).
     # --allow-high-rss is the only opt-in to arena for local escape-hatch runs.
     run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
+    # Keep C-style argv for the selfhost compiler CLI until parse_args reads
+    # command at args()[0] (public run excludes argv[0] for Wasm parity / RFC-008).
+    run_env_base["ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0"] = "1"
     gc_mode = "gc" if run_env_base.get("ARUKELLT_NATIVE_GC", "0") == "1" else "arena"
     receipt["gc_mode"] = gc_mode
     receipt["host"] = _host_fingerprint()
