@@ -13,6 +13,7 @@ remain #841 (same bridged-close pattern as #714 → #668).
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 HTTP_FIXTURE = "tests/fixtures/host/http/get_err_dns.ark"
 SOCK_FIXTURE = "tests/fixtures/host/sockets/connect_dns_fail.ark"
+
+
+def _find_wasm_tools() -> str | None:
+    # Prefer ~/.cargo/bin — ~/.local/bin may shadow with an unrelated wrapper.
+    cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
+    if cargo.is_file():
+        return str(cargo)
+    return shutil.which("wasm-tools")
 
 
 def _compiler() -> Path | None:
@@ -65,8 +74,11 @@ def _compile(fixture_rel: str, out: Path) -> tuple[int, str]:
 
 
 def _validate(path: Path) -> tuple[int, str]:
+    tool = _find_wasm_tools()
+    if not tool:
+        return 2, "wasm-tools not found (~/.cargo/bin or PATH)"
     result = subprocess.run(
-        ["wasm-tools", "validate", str(path)],
+        [tool, "validate", "--features", "all", str(path)],
         capture_output=True,
         text=True,
         timeout=60,
