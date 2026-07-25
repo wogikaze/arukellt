@@ -1101,6 +1101,15 @@ run:stdlib_json/json_stringify_object.ark
 run:stdlib_json/json_stringify_string.ark
 run:stdlib_json/property_parse_stringify_roundtrip.ark
 run:stdlib_json/property_type_predicate_exclusivity.ark
+run:stdlib_json/rfc8259/n_string_incomplete_unicode.ark
+run:stdlib_json/rfc8259/n_string_invalid_escape.ark
+run:stdlib_json/rfc8259/n_string_unescaped_control.ark
+run:stdlib_json/rfc8259/n_structure_trailing_comma.ark
+run:stdlib_json/rfc8259/y_streaming_surrogate_pair.ark
+run:stdlib_json/rfc8259/y_string_escape_all.ark
+run:stdlib_json/rfc8259/y_string_surrogate_pair.ark
+run:stdlib_json/rfc8259/y_string_unicode_bmp.ark
+run:stdlib_json/rfc8259/y_structure_lonely_true.ark
 run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/deque_wrap.ark
 run:stdlib_linear/linear_basic.ark

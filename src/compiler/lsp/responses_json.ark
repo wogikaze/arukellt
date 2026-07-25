@@ -1,1 +1,8 @@
-use lsp::json_escape
+//
+// Delegates to std::json (issue #704).
+
+use std::json
+
+fn quote_string(s: String) -> String {
+    json::quote_string(s)
+}

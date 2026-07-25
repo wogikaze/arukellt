@@ -1,6 +1,6 @@
 # #704 — std::json Full JSON RFC 8259 Compliance クローズ計画
 
-ステータス: 計画  
+ステータス: 進行中（L10 done: LSP thin-delegate / surrogate+strict escapes / 9 rfc8259 fixtures; remaining: delete thin facades, full JSONTestSuite, verify quick）  
 親 issue: [#704](../../issues/open/704-std-json-full-compliance.md)  
 前提: #606 done  
 担当 subagent lane: `wave/704-json-full`  
