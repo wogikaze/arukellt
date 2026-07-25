@@ -23,11 +23,11 @@ fn emit_f64_div(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_DIV()
 fn emit_f64_convert_i32_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_F64_CONVERT_I32_S()) }
 
 fn emit_f64_to_f32_bridge(w: WasmWriter) {
-    writer_core::emit_byte(w, 0xb6)
-    writer_core::emit_byte(w, 0xbc)
+    // Real f32 on the operand stack (component / GC f32 locals). Do not bitcast
+    // through i32 — that breaks `local.set` of f32 results (#810).
+    writer_core::emit_byte(w, opcodes::OP_F32_DEMOTE_F64())
 }
 
 fn emit_f32_to_f64_bridge(w: WasmWriter) {
-    writer_core::emit_byte(w, 0xbe)
-    writer_core::emit_byte(w, 0xbb)
+    writer_core::emit_byte(w, opcodes::OP_F64_PROMOTE_F32())
 }

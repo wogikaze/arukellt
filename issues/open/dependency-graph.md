@@ -44,7 +44,6 @@ graph LR
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I807["807 807 — Fixture parity: 367 remaining failures"]
   I809["809 809 — WAT roundtrip failure"]
-  I810["810 810 — Component interop failures"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
@@ -150,7 +149,6 @@ graph LR
 - **791** depends on: 785; blocks: 814
 - **807** depends on: 287, framework); blocks: none
 - **809** depends on: none; blocks: none
-- **810** depends on: none; blocks: none
 - **815** depends on: none; blocks: none
 - **819** depends on: 727, 798; blocks: 818
 - **822** depends on: 798, 816, 817, 820; blocks: 818

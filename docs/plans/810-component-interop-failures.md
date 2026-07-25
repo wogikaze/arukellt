@@ -1,7 +1,7 @@
 # #810 — Component interop failures クローズ計画
 
 ステータス: 進行中（primitives / routing tranche）  
-親 issue: [#810](../../issues/open/810-component-interop-failures.md)  
+親 issue: [#810](../../issues/done/810-component-interop-failures.md)  
 担当 subagent lane: `wave/810-component-interop`  
 作業 worktree: `.worktrees/wave-810-component-interop`  
 作成日: 2026-07-25  

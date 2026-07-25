@@ -482,21 +482,21 @@ ci_job = "verification"
 release_blocking = true
 included_in_full = true
 included_in_quick = false
-result = "fail"
+result = "pass"
 evidence_type = "fixture-set"
 verification_environment = "linux; repository verification toolchain"
-last_verified_commit = "2cd10f16"
-verified_at = "2026-07-15"
+last_verified_commit = "f2b2a899"
+verified_at = "2026-07-26"
 stale_after_days = 30
-affected_count = 103
-incident_id = "incident_component_interop_103"
-blocker_category = "component-interop"
-blocker_scope = "full"
-blocker_owner = "component model"
-blocker_issue = "#810"
+affected_count = 0
+incident_id = ""
+blocker_category = ""
+blocker_scope = ""
+blocker_owner = ""
+blocker_issue = ""
 first_seen_commit = "a80b4181"
 platforms = ["linux"]
-note = "All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full)."
+note = "Component interop wasmtime suite: 102 pass, 0 fail (jco-interop opt-in skipped unless ARUKELLT_TEST_JCO=1). Closed #810."
 
 [[checks]]
 id = "check_opt_equivalence"

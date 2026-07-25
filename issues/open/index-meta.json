@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T20:27:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -742,23 +742,6 @@
       "id": "809",
       "path": "809-wat-roundtrip-failure.md",
       "title": "809 — WAT roundtrip failure",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "810",
-      "path": "810-component-interop-failures.md",
-      "title": "810 — Component interop failures",
       "track": "compiler",
       "status": "open",
       "depends_on": [],

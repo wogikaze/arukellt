@@ -51,8 +51,8 @@ echo "[2/3] Running multi-type export invocations via wasmtime"
 # i32 functions
 run_test "add_i32(10, 20) = 30"     "30"    "add-i32(10, 20)"
 run_test "add_i32(-5, 5) = 0"      "0"     "add-i32(-5, 5)"
-run_test "abs_i32(-7) = 7"         "7"     "abs-i32(-7)"
-run_test "abs_i32(3) = 3"          "3"     "abs-i32(3)"
+run_test "absolute_i32(-7) = 7"    "7"     "absolute-i32(-7)"
+run_test "absolute_i32(3) = 3"     "3"     "absolute-i32(3)"
 
 # i64 functions
 run_test "add_i64(100, 200) = 300"  "300"   "add-i64(100, 200)"
