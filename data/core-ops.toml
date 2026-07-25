@@ -56,55 +56,55 @@ core_op_id = "raw.string_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_f64"
-core_op_id = "vec.Vec_new_f64"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_i64"
-core_op_id = "vec.Vec_new_f64"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_i32"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_String"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_i32_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_i64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_f64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_Vec_new_i32"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_Vec_new_String"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_Vec_new_i32_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_Vec_new_i64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_Vec_new_f64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "Vec_new_v128"
-core_op_id = "vec.Vec_new_f64"
+core_op_id = "raw.array_new"
 
 [[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
@@ -1067,6 +1067,30 @@ core_op_id = "raw.array_get_unchecked"
 [[legacy_bindings]]
 alias = "raw_array_grow"
 core_op_id = "raw.array_grow"
+
+[[legacy_bindings]]
+alias = "raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "raw_array_set_len"
+core_op_id = "raw.array_set_len"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_set_len"
+core_op_id = "raw.array_set_len"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_set_len"
+core_op_id = "raw.array_set_len"
 
 [[legacy_bindings]]
 alias = "raw::raw_array_grow"
@@ -2245,6 +2269,85 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "raw.array_grow"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_new"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Allocate sealed raw Vec storage with capacity hint (#822)."
+[operations.signature]
+inputs = [{ name = "cap", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_new"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_set_len"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Set sealed raw Vec logical length without shrinking capacity (#822)."
+[operations.signature]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "new_len", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_set_len"
 required_capabilities = []
 required_target_features = []
 [operations.fallback]
@@ -12868,7 +12971,7 @@ id = "vec.Vec_new_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → Vec_new_i64 (aliases: 3; Vec_new_i64, Vec_new_f64, Vec_new_v128)"
+description = "Wide-element Vec constructor via sealed raw.array_new (#822)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -12892,17 +12995,17 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.Vec_new_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_new_f64_impl"
+required = true
 
 [[operations]]
 id = "vec.Vec_new_fallback"
 visibility = "internal"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "forbidden" }
-description = "Migration handler for Vec constructors formerly selected by a callee prefix."
+description = "Default/i32 Vec constructor via sealed raw.array_new (#822)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
@@ -12926,10 +13029,10 @@ volatile = false
 [operations.inline]
 policy = "never"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.Vec_new_fallback"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_new_fallback_impl"
+required = true
 
 [[operations]]
 id = "vec.contains_i32"
@@ -12973,11 +13076,15 @@ id = "vec.get"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get (aliases: 1; vec_get)"
+description = "Bounds-checked Vec element load returning Option through sealed raw (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -12995,12 +13102,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked"
@@ -13189,11 +13296,12 @@ id = "vec.pop"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_pop (aliases: 1; vec_pop)"
+description = "Remove last Vec element returning Option through sealed raw (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -13211,19 +13319,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.pop"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_pop_impl"
+required = true
 
 [[operations]]
 id = "vec.push"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a Vec element through the sealed raw API (emitter until push Ark body is typed on LM)."
+description = "Append a Vec element through sealed raw grow+set Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13249,19 +13357,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.push_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append an f64 Vec element via typed LM emitter (#822 push Ark body still ABI-broken)."
+description = "Append an f64 Vec element through sealed raw grow+set Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
@@ -13287,19 +13395,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_f64_impl"
+required = true
 
 [[operations]]
 id = "vec.push_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append an i64 Vec element via typed LM emitter (#822 push Ark body still ABI-broken)."
+description = "Append an i64 Vec element through sealed raw grow+set Ark body (#822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
@@ -13325,12 +13433,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_i64_impl"
+required = true
 
 [[operations]]
 id = "vec.remove_i32"

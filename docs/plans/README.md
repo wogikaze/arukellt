@@ -13,7 +13,19 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | docs/plans/ は、ADR / RFC で決まった方針をどう実装するかの計画を置く場所である。 |
+| [001-parallel-issue-close-wave.md](001-parallel-issue-close-wave.md) | 並列 issue close wave オーケストレーション計画 | Archive | 対象 issue: #834, #807, #822, #727, #824, #826, #810, #809, #696, #704, #705 |
 | [675-host-capability-reachability-flags.md](675-host-capability-reachability-flags.md) | \#675 — Host capability user-reachability and runtime permission flags 実装計画 | Archive | 親 issue: #675 |
+| [696-debug-trait-format-macros.md](696-debug-trait-format-macros.md) | #696 — Debug trait and format! / write! equivalent クローズ計画 | Archive | 親 issue: #696 前提: #688, #692 done 担当 subagent lane: wave/696-debug-trait 作業 worktree: .worktrees/wave-696-debug-trait |
+| [704-std-json-full-compliance.md](704-std-json-full-compliance.md) | #704 — std::json Full JSON RFC 8259 Compliance クローズ計画 | Archive | 親 issue: #704 前提: #606 done 担当 subagent lane: wave/704-json-full 作業 worktree: .worktrees/wave-704-json-full |
+| [705-std-toml-full-compliance.md](705-std-toml-full-compliance.md) | #705 — std::toml Full TOML 1.0 Compliance クローズ計画 | Archive | 親 issue: #705 前提: #606 done 担当 subagent lane: wave/705-toml-full 作業 worktree: .worktrees/wave-705-toml-full |
+| [727-host-bridge-retirement.md](727-host-bridge-retirement.md) | #727 — Retire arukellt_host custom host bridge クローズ計画 | Archive | 親 issue: #727 関連計画: arukellt-host-bridge-retirement.md |
+| [807-fixture-parity-remaining-failures.md](807-fixture-parity-remaining-failures.md) | #807 — Fixture parity: 367 remaining failures クローズ計画 | Archive | 親 issue: #807 担当 subagent lane: wave/807-fixture-parity 作業 worktree: .worktrees/wave-807-fixture-parity |
+| [809-wat-roundtrip-failure.md](809-wat-roundtrip-failure.md) | #809 — WAT roundtrip failure クローズ計画 | Archive | 親 issue: #809 担当 subagent lane: wave/809-wat-roundtrip 作業 worktree: .worktrees/wave-809-wat-roundtrip |
+| [810-component-interop-failures.md](810-component-interop-failures.md) | #810 — Component interop failures クローズ計画 | Archive | 親 issue: #810 担当 subagent lane: wave/810-component-interop 作業 worktree: .worktrees/wave-810-component-interop |
+| [822-representation-dependent-stdlib-migration.md](822-representation-dependent-stdlib-migration.md) | #822 — Representation-dependent and allocating stdlib migration クローズ計画 | Archive | 残: push×3 + pop/get/Vec_new×2 + SIMD×3。#822 open 維持。 |
+| [824-early-body-lowering-worklist.md](824-early-body-lowering-worklist.md) | #824 — Early body lowering (worklist; design first) クローズ計画 | Archive | 親 issue: #824 前提: #823, #829, #730 done 担当 subagent lane: wave/824-early-body 作業 worktree: .worktrees/wave-824-early-body |
+| [826-symbol-path-intern-clone-audit.md](826-symbol-path-intern-clone-audit.md) | #826 — Symbol / path interning + hot-path clone audit クローズ計画 | Archive | 親 issue: #826 前提: #823, #829 done 担当 subagent lane: wave/826-intern-clone 作業 worktree: .worktrees/wave-826-intern-clone |
+| [834-wasm32-gc-bootstrap-pin.md](834-wasm32-gc-bootstrap-pin.md) | #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画 | Archive | 親 issue: #834 前駆 issue: #730 |
 | [arukellt-host-bridge-retirement.md](arukellt-host-bridge-retirement.md) | #727 — arukellt_host bridge retirement 実装計画 | Archive | 親 issue: #727 |
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |

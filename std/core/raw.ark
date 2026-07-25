@@ -7,8 +7,11 @@
 //! intrinsic handlers behind these entry points (see RFC-006 D5).
 
 /// Allocates a new empty raw array with the requested capacity hint.
-pub fn raw_array_new(cap: i32) -> Vec<i32> {
-    Vec_new_i32_with_cap(cap)
+///
+/// Lowered by `raw.array_new` target_intrinsic (#822). The shell exists for
+/// typechecking only.
+pub fn raw_array_new<T>(cap: i32) -> Vec<T> {
+    panic(String_new()); return raw_array_new(cap)
 }
 
 /// Returns the number of elements in a raw array.
@@ -32,6 +35,13 @@ pub fn raw_array_set_unchecked<T>(a: Vec<T>, i: i32, v: T) {
 /// `raw_array_set_unchecked`.
 pub fn raw_array_grow<T>(a: Vec<T>, new_len: i32) -> Vec<T> {
     return a
+}
+
+/// Sets the logical length without changing capacity.
+///
+/// Caller must ensure `new_len <= capacity`. Lowered by `raw.array_set_len`.
+pub fn raw_array_set_len<T>(a: Vec<T>, new_len: i32) {
+    return
 }
 
 /// Creates an empty raw string.

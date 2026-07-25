@@ -266,43 +266,43 @@ pub fn panic(s: String) {
 // LEGACY COMPAT — @deprecated, will be removed via bold cutover (ADR-036 D2)
 // once issues #688–#697 are complete. Use trait-based method syntax instead.
 // =============================================================================
-// Vec constructors (deprecated)
+// Vec constructors (deprecated) — sealed raw.array_new (#822).
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_i32() -> Vec<i32> {
-    panic(String_new()); return Vec_new_i32()
+    raw_array_new(8)
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_i64() -> Vec<i64> {
-    panic(String_new()); return Vec_new_i64()
+    raw_array_new(8)
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_f64() -> Vec<f64> {
-    panic(String_new()); return Vec_new_f64()
+    raw_array_new(8)
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_v128() -> Vec<v128> {
-    panic(String_new()); return Vec_new_v128()
+    raw_array_new(8)
 }
 
 // @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
 pub fn Vec_new_String() -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
+    raw_array_new(8)
 }
 
 // Vec pre-allocation with exact capacity (no realloc on push up to cap elements)
 pub fn Vec_new_i32_with_cap(cap: i32) -> Vec<i32> {
-    panic(String_new()); return Vec_new_i32_with_cap(cap)
+    raw_array_new(cap)
 }
 
 pub fn Vec_new_i64_with_cap(cap: i32) -> Vec<i64> {
-    panic(String_new()); return Vec_new_i64_with_cap(cap)
+    raw_array_new(cap)
 }
 
 pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
-    panic(String_new()); return Vec_new_f64_with_cap(cap)
+    raw_array_new(cap)
 }
 
 // Vec sorting (deprecated)
@@ -495,6 +495,53 @@ fn __core_vec_get_unchecked_i64_impl(values: Vec<i64>, index: i32) -> i64 {
 
 fn __core_vec_get_unchecked_f64_impl(values: Vec<f64>, index: i32) -> f64 {
     raw_array_get_unchecked(values, index)
+}
+
+// Generic `Vec<T>` push shells lower to `unreachable` on LM; keep concrete
+// i32/i64/f64 bodies and rewrite String/stdlib sites to sealed grow+set (#822).
+fn __core_vec_push_i32_impl(values: Vec<i32>, value: i32) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<i32> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_push_i64_impl(values: Vec<i64>, value: i64) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<i64> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_push_f64_impl(values: Vec<f64>, value: f64) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<f64> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_get_impl(values: Vec<i32>, index: i32) -> Option<i32> {
+    if index < 0 || index >= raw_array_len(values) {
+        return None
+    }
+    Some(raw_array_get_unchecked(values, index))
+}
+
+fn __core_vec_pop_impl(values: Vec<i32>) -> Option<i32> {
+    let n: i32 = raw_array_len(values)
+    if n == 0 {
+        return None
+    }
+    let idx: i32 = n - 1
+    let value: i32 = raw_array_get_unchecked(values, idx)
+    // Shrink logical length through grow (set_len dispatch still incomplete).
+    let _shrunk: Vec<i32> = raw_array_grow(values, idx)
+    Some(value)
+}
+
+fn __core_vec_new_fallback_impl(cap: i32) -> Vec<i32> {
+    raw_array_new(cap)
+}
+
+fn __core_vec_new_f64_impl(cap: i32) -> Vec<f64> {
+    raw_array_new(cap)
 }
 
 fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {

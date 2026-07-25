@@ -37,11 +37,8 @@ fn record_vec_core_mono_for_callee(env: TypeEnv, callee_name: String, recv_ty: T
         record_vec_core_fallback_mono(env, String_from("__core_vec_is_empty_impl"), recv_ty)
         return
     }
-    if eq(clone(callee_name), String_from("push")) ||
-    eq(clone(callee_name), String_from("vec_push")) {
-        record_vec_core_fallback_mono(env, String_from("__core_vec_push_impl"), recv_ty)
-        return
-    }
+    // push uses concrete __core_vec_push_{i32,i64,f64}_impl (generic T shells
+    // are unreachable on LM); no mono recording required.
     if eq(clone(callee_name), String_from("set")) ||
     eq(clone(callee_name), String_from("vec_set")) {
         record_vec_core_fallback_mono(env, String_from("__core_vec_set_impl"), recv_ty)

@@ -110,6 +110,8 @@ class StdlibInlineIntegrationTests(unittest.TestCase):
             ("probe_remove_i32_ops", (), "1"),
             ("probe_vec_generic_mutation_ops", (), "1"),
             ("probe_vec_typed_push_get_ops", (), "1"),
+            ("probe_vec_push_pop_get_ops", (), "1"),
+            ("probe_vec_new_capacity_ops", (), "1"),
             ("probe_push_char_ops", (), "1"),
         )
         for output in outputs:

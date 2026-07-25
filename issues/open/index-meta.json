@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T21:40:04Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -809,30 +809,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "727"
-      }
-    },
-    {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
       }
     },
     {

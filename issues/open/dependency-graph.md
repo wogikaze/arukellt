@@ -47,7 +47,6 @@ graph LR
   I810["810 810 — Component interop failures"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
-  I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
@@ -88,7 +87,6 @@ graph LR
   I724 --> I729
   I791 --> I814
   I819 --> I818
-  I822 --> I818
   I841 --> I675
   I682 --> I683
   I649 --> I699
@@ -153,7 +151,6 @@ graph LR
 - **810** depends on: none; blocks: none
 - **815** depends on: none; blocks: none
 - **819** depends on: 727, 798; blocks: 818
-- **822** depends on: 798, 816, 817, 820; blocks: 818
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
 - **826** depends on: 823; blocks: none

@@ -321,6 +321,38 @@ pub fn probe_vec_typed_push_get_ops() -> bool {
     get_unchecked(f64s, 1) == 2.5
 }
 
+pub fn probe_vec_push_pop_get_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 1)
+    push(values, 2)
+    push(values, 3)
+    let mid = match get(values, 1) {
+        Some(n) => n == 2,
+        None => false,
+    }
+    let missing = match get(values, 9) {
+        Some(_) => false,
+        None => true,
+    }
+    let popped = match pop(values) {
+        Some(n) => n == 3,
+        None => false,
+    }
+    mid && missing && popped && len(values) == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 2
+}
+
+pub fn probe_vec_new_capacity_ops() -> bool {
+    let a = Vec_new_i32()
+    let b = Vec_new_i32_with_cap(4)
+    let c = Vec_new_i64()
+    push(a, 10)
+    push(b, 20)
+    push(c, 30_i64)
+    len(a) == 1 && get_unchecked(a, 0) == 10 &&
+    len(b) == 1 && get_unchecked(b, 0) == 20 &&
+    len(c) == 1 && get_unchecked(c, 0) == 30_i64
+}
+
 pub fn probe_parse_ops() -> bool {
     let ok_i32 = match parse_i32("42") {
         Ok(n) => n == 42,

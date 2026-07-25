@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-06-26
-Updated: 2026-06-30
+Updated: 2026-07-26
 ID: 698
 Track: wasm-feature
 Depends on: "686 (wasm-gc-selfhost-implementation), 649 (t4-native-full-lowering)"
@@ -9,6 +9,7 @@ Orchestration class: design-ready
 Orchestration upstream: None
 Blocks v5 exit: no
 Priority: 2
+Related: "822"
 Source: ADR-037 design decision 2026-06-26
 ---
 
@@ -33,6 +34,13 @@ load/store boundary separation, and std::wasm raw v128 intrinsics.
   struct/array fields via `storagetype`
 
 ## Current state
+
+- **#822 carve-out (2026-07-26):** three portable SIMD CoreOps remain
+  `legacy_emitter` after representation-dependent Vec/String migration closed:
+  `simd.i32x4.add`, `simd.i32x4.sub`, `simd.f32x4.add`. #822 acceptance
+  explicitly excludes these; this issue owns migrating them to portable scalar
+  Ark bodies and/or ADR-037 nominal-type `normal_call` / specialization paths.
+
 
 - `std::wasm::valtype_v128` — constant byte `0x7b` only (experimental)
 - No v128 type in typechecker / MIR / emitter

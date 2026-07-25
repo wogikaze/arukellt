@@ -66,6 +66,7 @@ fn __core_string_eq_impl(a: String, b: String) -> bool {
 fn __core_string_push_range(bytes: Vec<i32>, s: String, start: i32, end: i32) {
     let mut index = start
     while index < end {
+        // Concrete i32 push CoreOp body (generic Vec<T> push is unreachable on LM).
         push(bytes, raw::raw_string_byte_at_unchecked(s, index))
         index = index + 1
     }
@@ -223,7 +224,10 @@ fn __core_string_replace_impl(s: String, from: String, replacement: String) -> S
 }
 
 fn __core_string_push_part(parts: Vec<String>, part: String) {
-    push(parts, part)
+    // Avoid generic push shell: use free CoreOp aliases (not raw:: Ark shells).
+    let n: i32 = raw_array_len(parts)
+    let grown: Vec<String> = raw_array_grow(parts, n + 1)
+    raw_array_set_unchecked(grown, n, part)
 }
 
 fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
