@@ -154,8 +154,8 @@ native lane は Wasm executor 自身による Stage-3 生成を証明しない�
   [native-cpp-public-run-promotion.md](../plans/native-cpp-public-run-promotion.md)、
   対応状態は machine-readable capability registry が所有する。
 - target の support tier は scaffold、implementation_state は partial を維持する。
-  `run_supported` の公開値は ADR-050 の最終 promotion まで false のままとし、本 ADR 単独では
-  true にしない。
+  公開 `run_supported` は ADR-050 が所有する（experimental public run 採択後は true）。
+  本 ADR 単独では公開 run フラグを変更しない。
 - 内部 selfhost executor lane は experimental とし、arena/GC dual mode・production root
   clear・strict wall/RSS dual gate（`--allow-high-rss` は CI 禁止の local escape hatch）を
   正とする。昇格証拠は

@@ -3,7 +3,7 @@
 ステータス: 実行計画（決定記録ではない）
 関連 ADR: [ADR-050](../adr/ADR-050-experimental-public-native-c99-run.md)、[ADR-049](../adr/ADR-049-native-c99-selfhost-executor.md)
 詳細仕様: [RFC-008](../rfcs/008-native-cpp-c99-backend-runtime-abi.md)
-追跡 issue: [#649](../../issues/open/649-t4-native-full-lowering.md)
+追跡 issue: [#649](../../issues/done/649-t4-native-full-lowering.md)
 作成日: 2026-07-25
 
 ---

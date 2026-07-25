@@ -17,12 +17,14 @@ CI 契約）。一方で公開 CLI の
 arukellt run program.ark --target native-cpp -- arg1 arg2
 ```
 
-は未提供のままである（`run_supported=false`、`project_run` は Wasm 固定）。
+は当時未提供だった（`run_supported=false`、`project_run` は Wasm 固定）。
 
 公開 native 実行を再開するには、内部 executor 契約を壊さず、support commitment を
 広げすぎない境界が必要である。`support_tier=supported` まで上げると Windows / macOS /
 長期互換 / 配布 ABI まで期待されるため、本 ADR は **run 可否** と **support tier** を
-分離する。
+分離する。公開 experimental run は採択済み（`run_supported=true`）。全 fixture 実用は
+別計画 [native-cpp-general-backend-readiness.md](../plans/native-cpp-general-backend-readiness.md)
+が追跡する。
 
 ## 決定
 
@@ -123,13 +125,32 @@ arukellt compile <file.ark> --target native-cpp --emit c -o program.c
   `docs/data/native-cpp-run-promotion-receipt.json` を要求する
 - 正規 selfhost fixpoint（ADR-029）と内部 executor strict lane（ADR-049）を退行させない
 
+**public corpus 完成 ≠ 全 fixture 実用。** 保証範囲は `native_cpp_public` と
+capability registry である。全 manifest 向け readiness は measure v2 の正式指標を使う
+（v1 の compile 56% / run 43% は `fn main(` 絞り + exit-0 の暫定・未分類）。
+
+| 正式指標 | 定義 |
+|----------|------|
+| positive compile pass | compile 成功が期待される positive のうち compile 成功 |
+| positive semantic run pass | positive のうち stdout/stderr/exit/signal が期待値と一致 |
+| compiled-positive semantic run pass | compile 成功 positive のうち実行結果が期待値と一致 |
+| expected-negative diagnostic pass | compile 失敗だけでなく diagnostic 内容も期待値と一致 |
+| unexpected ICE | 入力種別を問わず compiler ICE（最終 gate は `ice_total == 0`） |
+| unexpected crash | 期待結果と一致しない signal 終了・runtime 異常 |
+| public corpus / Wasm-native parity | 既存 gate を 100% 維持 |
+
+証拠: `docs/data/native-cpp-fixture-coverage-receipt.json`（v2 以降）、
+計画: [native-cpp-general-backend-readiness.md](../plans/native-cpp-general-backend-readiness.md)。
+
 ## 帰結
 
 - 公開 experimental native run の設計境界が固定される
 - 実装順序と PR 分割は
   [`docs/plans/native-cpp-public-run-promotion.md`](../plans/native-cpp-public-run-promotion.md)
+  が所有する。一般 backend readiness は
+  [`docs/plans/native-cpp-general-backend-readiness.md`](../plans/native-cpp-general-backend-readiness.md)
   が所有する
-- issue [#649](../../issues/open/649-t4-native-full-lowering.md) がこの契約の作業追跡を所有する
+- issue [#649](../../issues/done/649-t4-native-full-lowering.md) が公開 run 契約の作業追跡を所有した（完了）
 - `support_tier=supported`、配布 ABI、外部 FFI、非 Linux host は未採択のまま残る
 
 ## Known Limitations（experimental 公開 run）
