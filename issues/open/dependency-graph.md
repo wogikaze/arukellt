@@ -43,6 +43,7 @@ graph LR
   I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
   I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
+  I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I807["807 807 — Fixture parity: 367 remaining failures"]
@@ -64,18 +65,16 @@ graph LR
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
-  I726["726 T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）"]
   I729["729 729 — Intrinsic layer separation (unblocked epic)"]
+  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
+  I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
-  I730["730 730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I710["710 710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface"]
-  I827["827 P2b: phase arena (only after heap lifetime / ownership)"]
-  I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I711["711 711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability"]
   I712["712 712 — LLM code quality signal gates for readability and stdlib misuse"]
   I713["713 713 — Stdlib and Arukellt code best-practices doc pack"]
@@ -92,8 +91,9 @@ graph LR
   I695 --> I703
   I715 --> I719
   I715 --> I799
-  I724 --> I726
   I724 --> I729
+  I730 --> I827
+  I730 --> I830
   I791 --> I814
   I727 --> I819
   I682 --> I683
@@ -103,14 +103,11 @@ graph LR
   I695 --> I709
   I697 --> I709
   I703 --> I709
-  I726 --> I730
   I819 --> I818
   I822 --> I818
   I691 --> I710
   I697 --> I710
   I709 --> I710
-  I730 --> I827
-  I730 --> I830
   I681 --> I711
   I709 --> I711
   I710 --> I711
@@ -157,9 +154,10 @@ graph LR
 - **718** depends on: 700, 701; blocks: none
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
-- **724** depends on: none; blocks: 726, 729
+- **724** depends on: none; blocks: 729
 - **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
+- **730** depends on: 726; blocks: 827, 830
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
 - **807** depends on: 287, framework); blocks: none
@@ -181,18 +179,16 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
-- **726** depends on: 724; blocks: 730
 - **729** depends on: 724; blocks: none
+- **827** depends on: 730, 823; blocks: none
+- **830** depends on: 730; blocks: none
 - **814** depends on: 791; blocks: none
 - **819** depends on: 727, 798; blocks: 818
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
-- **730** depends on: 726; blocks: 827, 830
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **710** depends on: 691, 697, 701, 707, 709; blocks: 711
-- **827** depends on: 730, 823; blocks: none
-- **830** depends on: 730; blocks: none
 - **711** depends on: 681, 709, 710; blocks: 712, 713
 - **712** depends on: 709, 711; blocks: 713
 - **713** depends on: 709, 711, 712; blocks: none

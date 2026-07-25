@@ -1,11 +1,11 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-24
+Updated: 2026-07-25
 ID: 730
 Track: selfhost-infra
 Depends on: "726"
-Related: "#727, #830, #686, #813, #823, #829"
+Related: "#727, #830, #686, #813, #823, #829, #726, #808"
 Orchestration class: architecture-investigation
 Blocks v4 exit: True
 ---
@@ -67,10 +67,18 @@ even after a successful compile.
 Follow-up (before close): fix wasm32-gc selfhost emit validate, then refresh pinned to
 Memory64 `wasm32-gc` / `wasi-p2` and restore `_fixpoint_stage3_compiler` → s2-runtime.
 
+## Ownership transferred from #726 (2026-07-25)
+
+After #726 narrow-close, this issue owns:
+
+- Any remaining T3 **compile-fail** historically tied to bootstrap 4GB / Memory64
+  (e.g. `stdlib_wit/wit_ast_parse` when still failing under pinned bootstrap).
+- **`verify quick` 0 failures** as the aggregate close gate (not #726).
+
 ## Acceptance Criteria
 
 - [x] `selfhost fixpoint --build` can produce s2/s3 wasm (#813, 2026-07-24)
-- [ ] `verify quick` passes (0 failures)
+- [ ] `verify quick` passes (0 failures) — includes former #726 verify-quick AC
 - [x] Pinned wasm refreshed with current source (**wasm32** stable fixpoint `48ad40ee…`)
 - [ ] Pinned / bootstrap emit path is native **`wasm32-gc` / `wasi-p2` / Memory64**
 - [x] Stage-3 no longer hangs in MIR lower after typecheck (`471661a3`)

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T10:25:41Z",
+  "generated_at": "2026-07-25T10:35:58Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -705,7 +705,6 @@
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [
-        "726",
         "729"
       ],
       "acceptance": {
@@ -751,6 +750,28 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "730",
+      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
+      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "726"
+      ],
+      "blocks_issue_ids": [
+        "827",
+        "830"
+      ],
+      "acceptance": {
+        "checked": 5,
+        "unchecked": 2
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
+        "upstream_notes": null
       }
     },
     {
@@ -1176,27 +1197,6 @@
       }
     },
     {
-      "id": "726",
-      "path": "726-t3-wasm-validation-32-failures.md",
-      "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [
-        "730"
-      ],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
       "title": "729 — Intrinsic layer separation (unblocked epic)",
@@ -1213,6 +1213,45 @@
       "orchestration": {
         "class": "unblocked",
         "upstream_notes": "none"
+      }
+    },
+    {
+      "id": "827",
+      "path": "827-phase-arena-after-heap-model.md",
+      "title": "P2b: phase arena (only after heap lifetime / ownership)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730",
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "architecture-investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "830",
+      "path": "830-wasm-heap-grow-patcher-retirement.md",
+      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
       }
     },
     {
@@ -1324,28 +1363,6 @@
       }
     },
     {
-      "id": "730",
-      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
-      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "726"
-      ],
-      "blocks_issue_ids": [
-        "827",
-        "830"
-      ],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "818",
       "path": "818-core-op-production-scaffold-exit.md",
       "title": "818 — CoreOpRegistry production scaffold exit",
@@ -1393,45 +1410,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
-      }
-    },
-    {
-      "id": "827",
-      "path": "827-phase-arena-after-heap-model.md",
-      "title": "P2b: phase arena (only after heap lifetime / ownership)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730",
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
       }
     },
     {

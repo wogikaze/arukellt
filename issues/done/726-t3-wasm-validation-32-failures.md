@@ -1,20 +1,23 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-11
+Updated: 2026-07-25
+Closed: 2026-07-25
 Track: compiler-internal
 Depends on: 724
-Related: ADR-040, #707, #716, #690, #730
-Orchestration class: implementation-ready
-Blocks v4 exit: True
+Related: ADR-040, #707, #716, #690, #730, #808
+Orchestration class: done
+Blocks v4 exit: False
 ---
 # T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）
 
 ## Summary
 
-T3 WASM validation の **validate-fail は 0**。残るのは `stdlib_wit/wit_ast_parse` の
-compile-fail（#730: bootstrap wasm 4GB メモリ上限）のみ。
-pre-commit の `verify quick` は #730 由来でまだ赤の可能性がある。
+T3 WASM validation の **validate-fail は 0**（本 issue スコープ完了）。
+
+`stdlib_wit/wit_ast_parse` compile-fail と `verify quick` 残失敗は **#730 へ移管**
+（本 issue の受け入れ対象外）。後続の全体 T3 ゲートは [#808](../done/808-t3-wasm-validation-failures.md)
+（done: 428 pass / 0 validate-fail / 0 compile-fail, 2026-07-24）も参照。
 
 ### 現在のベースライン（2026-07-11 再測定 #7 — wave/726-refvsref-iso）
 
@@ -284,6 +287,8 @@ pre-commit の `verify quick` は #730 由来でまだ赤の可能性がある�
 
 ## Acceptance Criteria
 
+スコープ: **T3 validate-fail 修正**（compile-fail / `verify quick` 全体は #730）。
+
 - [x] タスク1: ref-vs-ref 解決 — validate-fail=0（2026-07-11 wave/726-refvsref-iso）
 - [x] タスク2: ref-vs-i32 — 解消済み
 - [x] タスク3: i32-vs-ref — 解消済み
@@ -291,8 +296,14 @@ pre-commit の `verify quick` は #730 由来でまだ赤の可能性がある�
 - [x] タスク5: empty-stack — 解消済み
 - [x] タスク6: array-subtype — 解消済み
 - [x] T3 validate-fail=0（421 pass / 0 validate-fail）
-- [ ] compile-fail `wit_ast_parse` — #730（4GB メモリ上限）
-- [ ] `verify quick` / pre-commit — #730 由来でまだ赤の可能性
+- [x] ~~compile-fail `wit_ast_parse`~~ — **移管 #730**（本 issue スコープ外）
+- [x] ~~`verify quick` / pre-commit~~ — **移管 #730**（本 issue スコープ外）
+
+## Close note — 2026-07-25
+
+Narrow-close: validate-fail=0 を本 issue の完了条件とし、残り 2 AC は #730 所有へ明示移管。
+Evidence: issue 本文ベースライン（2026-07-11 #7: 421/0 validate-fail）; 後続全体ゲートは #808 done。
+`$issue-close-review`: **APPROVE**（スコープ縮小 + open owner #730 明示、FD-08 準拠）。
 
 ## エラーパターン別分類（現行 20 件）
 
