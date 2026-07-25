@@ -3,65 +3,107 @@
 ## Host
 
 - MemTotal ≈ 23 GiB, Swap 6 GiB (WSL2)
-- Concurrent selfhost jobs present; lane used `ARUKELLT_BUILD_DIR=$PWD/.build`
+- Lane: `ARUKELLT_BUILD_DIR=$PWD/.build` under `.worktrees/wave-834-bootstrap`
 
-## Phase 1 — emit without OOM
+## Phase 1 — emit without OOM (morning)
 
-Default Memory64 s2-runtime (`initial_pages=65535`, ~4 GiB max linear):
+Default Memory64 s2-runtime (`initial_pages=65535`):
 
 | Attempt | Target | WASI | Wall | Max RSS | Result |
 |---------|--------|------|------|---------|--------|
 | default | wasm32-gc | wasi-p2 | 201.7s → later 61s cached | ~1.2–1.3 GiB | emit OK |
 | m64 | wasm32-gc | wasi-p1 | 141.2s | ~1.2 GiB | emit OK |
 
-**Conclusion:** Full selfhost `--target wasm32-gc` emit does **not** require OOM on this host
-with the default 65535-page Memory64 runtime. Prior ~21 GiB RSS reports apply to
-`--initial-pages≥98304` hosts, not this default path.
+## Phase 2 — false “hang” diagnosis (afternoon)
 
-## Phase 2 — validate / typing
+Wrong invoke shapes looked like hang/OOM:
 
-### wasi-p2 (memory32; `uses_memory64=false` by `#714`)
+| Invoke | Peak RSS | Result |
+|--------|----------|--------|
+| `--dir=. --dir=src::src --dir=std::std --dir=.build` | ~6 GiB flat CPU | timeout / killed (not progress) |
+| single `--dir=.` / `_wasm_compile` only | grows to 4 GiB | trap `OOB 0x100090000` |
+| **flat-src success path (below)** | **~1.23 GiB** | **emit OK ~100s** |
 
-1. **Before import-index fix:** `func 160 cmd_dap` — `expected i64, found i32` at
-   `call 4`. Cause: hardcoded P1 `fd_read` index 4 is P2 `open-at`.
-2. **After import-index fix:** `func 8570 cmd_init` — `expected (ref null $type), found i32`
-   around Result/match lowering for stubbed `fs::write_string` / init paths.
-3. **After Result-local typing fix (fixture):** `$write_main` is `(ref null …)` and
-   `write_init.ark` / `read_init.ark` validate under
-   `wasm-tools validate --features gc,function-references,memory64`.
+**Not hard OOM** on this host when using the bootstrap flat-src preopen layout.
+The ~6 GiB “hang” is a bad dir/preopen shape (and/or missing `--cache-dir`), not Memory64
+exhaustion. clean `HEAD` reproduced the bad path; it does **not** prove the typing patch
+increased RSS.
 
-Artifact (pre-typing): `.build/selfhost/834-probe/selfhost-wasm32-gc-v2.wasm` (~5.5 MiB).
+## Working emit command (measured)
 
-### wasi-p1 Memory64
+```bash
+cd .worktrees/wave-834-bootstrap
+export ARUKELLT_BUILD_DIR="$PWD/.build"
+python3 - <<'PY'
+import sys
+from pathlib import Path
+sys.path.insert(0, "scripts")
+from selfhost import checks
+print(checks._prepare_flattened_selfhost_source(Path(".").resolve()))
+PY
+rm -f .build/selfhost/flat-src/bootstrap-out.wasm
+/usr/bin/time -f 'WALL_SEC=%e MAX_RSS_KB=%M EXIT=%x' \
+  "$HOME/.wasmtime/bin/wasmtime" run \
+    --wasm gc --wasm function-references \
+    -W memory64=y -W max-memory-size=17179869184 \
+    --dir=.build/selfhost/flat-src --dir=. \
+    .build/selfhost/arukellt-s2-runtime.wasm -- \
+    compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2 \
+    -o bootstrap-out.wasm --cache-dir .build/selfhost/ast-cache
+```
 
-`func 110 canonicalize_target_input` — GC String treated as linear i64 pointer
-(`i32.wrap_i64` on a `(ref null string)`).
+| Receipt | Value |
+|---------|-------|
+| WALL_SEC | 97.75 (v6) / 102.22 (v7 after `init.ark` fix) |
+| MAX_RSS_KB | 1230696 / 1230304 (~1.17 GiB) |
+| EXIT | 0 |
+| output | `.build/selfhost/flat-src/bootstrap-out.wasm` (~5.5 MiB) |
+| copy | `.build/selfhost/834-probe/selfhost-wasm32-gc-v7.wasm` |
 
-## Phase 2b — full self-emit regression on this host (later same day)
+Runtime memory section (host s2): Memory64, `initial_pages=65535`, no max
+(same as morning success). Variants with `--initial-pages=8192/16384/32768` were built
+under `.build/selfhost/834-probe/runtimes/` but **not required** once flat-src was used.
 
-Re-emits of `src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2` after
-`build-compiler` no longer finish reliably on this 23 GiB host:
+## Phase 2 — validate
 
-| Invoke | Result |
-|--------|--------|
-| multi-dir (`--dir=.` + `src`/`std`/`.build`) | ~6 GiB RSS, flat CPU, no output (≥90s; killed) |
-| single-dir / `_wasm_compile` | trap `out of bounds` at `0x100090000` (~4 GiB) in ~17s |
-| clean `HEAD` s2 (no local typing edits) | same multi-dir hang |
+1. Import-index fix (#834 earlier): wasi-p2 stdin no longer calls `open-at`.
+2. Result-local typing + typed GC fs stubs: fixtures `write_init` / `read_init` validate.
+3. Full module validate **failed** on `cmd_init` while `init.ark` called
+   `fs::fs_error_message(e)` with `e: String` from `Result<(), String>` (expects `FsError`).
+   Emitter lowered that arm to `unreachable` + ill-typed dead concat (`expected ref, found i32`).
+4. **Fix:** `src/compiler/main/init.ark` prints `e` directly.
+5. **v7 validate:** `wasm-tools validate --features gc,function-references,memory64` → **PASS**.
 
-So the hang/OOB is **not** uniquely caused by the Result-local patch; full pin emit is
-blocked until the host emit path is stable again (quieter machine, Memory64 grow, or
-dir/preopen setup matching the earlier 61s success).
+```bash
+wasm-tools validate --features gc,function-references,memory64 \
+  .build/selfhost/834-probe/selfhost-wasm32-gc-v7.wasm
+```
 
-## Usability blockers (beyond validate)
+## Pin blockers (leave #834 open)
 
-1. `emit_fs_read_to_string_gc` is a **typed Err stub** (not null) — pin still cannot read sources.
-2. GC `write_string` / P2 `write_bytes` return **typed Ok stubs** — P2 has no file `fd_write`.
-3. Full open/read GC unstub was attempted then deferred: fixture-sized modules validate, but
-   full selfhost emit hung on this host even before that unstub landed.
+Acceptance still needs a **runnable** pinned bootstrap, not only a validating blob:
+
+1. Artifact imports `wasi:cli/stdout@0.2.0` etc. Plain `wasmtime run` without the P2/component
+   host fails: `unknown import get-stdout` (smoke, 2026-07-26).
+2. GC `fs::read_to_string` remains a typed Err stub — pin cannot read sources.
+3. P2 core surface has **no file `fd_write`**; GC `write_string` / `write_bytes` are typed Ok
+   stubs under wasi-p2. Pin cannot write outputs.
+4. P2 `fd_read` import slot is `stdin.read`, not a filesystem read — unstubbing read onto
+   that index is not sufficient for source loads.
+
+### Removal condition (for close)
+
+All of:
+
+- Stable flat-src (or equivalent) emit+validate of `wasm32-gc`/`wasi-p2` selfhost (this probe).
+- Real GC filesystem read (and write) on the P2 host surface used by bootstrap run,
+  **or** an accepted ADR change of `BOOTSTRAP_EMIT_*` away from wasi-p2.
+- `BOOTSTRAP_EMIT_TARGET=wasm32-gc` / `BOOTSTRAP_EMIT_WASI_VERSION=wasi-p2` (or successor).
+- Drop #813 stage-3 bootstrap-only workaround.
+- `python3 scripts/manager.py verify quick` 0 failures.
 
 ## Next actions
 
-1. Stabilize full `wasm32-gc`/`wasi-p2` self-emit on a quiet/large host; re-validate `cmd_init`.
-2. Un-stub GC `fs::read_to_string` (heap path + open/read/close) once emit is stable.
-3. Add P2 filesystem read/write imports if `BOOTSTRAP_EMIT` stays wasi-p2.
-4. Then pin + flip `BOOTSTRAP_EMIT_*` + drop #813 stage-3 workaround + `verify quick`.
+1. Wire P2 filesystem read/write host imports (or decide emit WASI for pin).
+2. Un-stub GC `fs_read` / `write_string` against that surface.
+3. Re-emit → validate → pin → flip `BOOTSTRAP_EMIT_*` → drop #813 → `verify quick`.

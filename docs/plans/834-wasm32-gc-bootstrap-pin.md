@@ -1,6 +1,6 @@
 # #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画
 
-ステータス: 進行中（Phase 1 完了 / Phase 2 partial — typing 前進、full emit 再ブロック）  
+ステータス: 進行中（Phase 2 emit+validate 達成 / Phase 3+ pin は P2 fs I/O でブロック）  
 親 issue: [#834](../../issues/open/834-wasm32-gc-bootstrap-pin.md)  
 前駆 issue: [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)  
 担当 subagent lane: `wave/834-bootstrap`  
@@ -28,8 +28,9 @@
 
 ### Phase 2 — wasm32-gc self-emit 検証
 - s2 ホストが `src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2` を `wasm-tools validate --features gc,function-references,memory64` で通す。
-- **2026-07-26:** partial。P2 import index + Result local typing（fixture で `$write_main` が ref）は前進。
-  full self-emit は同日後半から ~6 GiB hang / 4 GiB OOB で再ブロック（clean HEAD でも再現）。
+- **2026-07-26:** 完了。flat-src 経路で emit OK（MAX_RSS ≈ 1.23 GiB, ~100s）。
+  誤った multi-dir が ~6 GiB hang に見えていた（hard OOM ではない）。
+  `init.ark` の `fs_error_message(String)` 誤用を直し validate PASS（v7）。
   証拠: `docs/research/834-wasm32-gc-bootstrap-probe.md`。
 
 ### Phase 3 — ピン済み bootstrap 更新

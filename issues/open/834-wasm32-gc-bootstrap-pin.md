@@ -50,17 +50,28 @@ larger machine or a grow-path fix, not more clone typing.
 
 Probe receipt: [`docs/research/834-wasm32-gc-bootstrap-probe.md`](../../docs/research/834-wasm32-gc-bootstrap-probe.md)
 
-- **Not OOM-blocked** (morning): default Memory64 s2-runtime finished full emit at
-  ~1.2–1.3 GiB RSS. **Later same day:** full re-emit hangs (~6 GiB flat CPU) or traps
-  at `0x100090000` even on clean HEAD — pin emit path unstable on this host now.
-- Landed: P1/P2 WASI import-index helpers so wasi-p2 stdin no longer calls `open-at`.
-- Landed: Result-local typing guards + typed GC fs Result stubs (`write_main` is
-  `(ref null …)` on `write_init` / `read_init` fixtures; validate OK).
-- **Still blocked for pin:**
-  1. Full `main.ark` wasm32-gc/wasi-p2 self-emit + validate (host hang/OOB).
-  2. GC `fs_read` still stubbed (typed Err) — pin cannot read sources.
+- **Emit+validate on this 23 GiB host: PASS** via flat-src preopen
+  (`--dir=.build/selfhost/flat-src --dir=.`, `-o bootstrap-out.wasm`, AST cache).
+  Measured: WALL ≈ 100s, MAX_RSS ≈ 1.23 GiB, validate features
+  `gc,function-references,memory64` OK (artifact
+  `.build/selfhost/834-probe/selfhost-wasm32-gc-v7.wasm`).
+- The earlier ~6 GiB “hang” / 4 GiB OOB was **wrong dir flags**, not hard OOM and
+  not caused by the Result-typing patch.
+- Landed: P1/P2 WASI import-index helpers; Result-local typing + typed GC fs stubs;
+  `init.ark` no longer passes `String` into `fs_error_message` (FsError-only).
+- **Still blocked for pin / close (do not false-done):**
+  1. Runnable P2 host: smoke fails `unknown import wasi:cli/stdout@0.2.0::get-stdout`
+     under plain wasmtime preview1-style run.
+  2. GC `fs_read` still typed Err stub — cannot read sources.
   3. P2 has no file `fd_write`; write paths are typed Ok stubs.
-  4. Memory64 `wasm32-gc`/`wasi-p1` path fails validate in `canonicalize_target_input`.
+  4. P2 read slot is `stdin.read`, not filesystem read.
+  5. Memory64 `wasm32-gc`/`wasi-p1` path still fails validate in
+     `canonicalize_target_input` (secondary).
+
+### Close removal condition
+
+P2 (or successor) filesystem read+write usable by bootstrap run +
+`BOOTSTRAP_EMIT_*=wasm32-gc/wasi-p2` + drop #813 workaround + `verify quick` green.
 
 ## References
 
