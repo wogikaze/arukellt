@@ -37,6 +37,18 @@
 - 全 suite: **PASS=1032 FAIL=324 SKIP=259**（L2 の FAIL=327 から -3）
 - 残り例: `push_chained_field`, enums 第2 variant trap, `question_mark/*`
 
+### L4 tranche（2026-07-26）— enum bind / chained vec len / GC parse_i32
+
+計測: 全 suite **PASS=1057 FAIL=299 SKIP=259**（L3 の FAIL=324 から -25）。tip `c75ab1f3`。
+
+### L5 tranche（2026-07-26）— `?` From on wasm32-gc + array stack compose
+
+1. **#840 GC From on `?` Err:** extract Err payload → `From::from` → rebuild `Result::Err`（`from_error`）。
+2. **ARRAY_* store policy:** `ARRAY_GET`/`SET` を STRUCT 向け local-load 判定から外し、CONST index を stack に残す（`array_literal` / `array_repeat`）。
+3. **残:** `from_trait_not_inherent` — From 無し・異種 E の GC identity は typed Err cast で trap（linear では handle 同一性で通る）。#807 継続。
+
+計測: 全 suite **PASS=1062 FAIL=294 SKIP=259**（wasm-invalid=242）。L4 の FAIL=299 から -5。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

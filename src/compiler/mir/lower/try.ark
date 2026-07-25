@@ -26,7 +26,7 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     }
     let res_ptr = ctx_api_local_alloc::ctx_fresh_local(ctx, res_vt)
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(res_ptr))
-    let from_fn_name = try_from_conversion::try_resolve_from_conversion(ctx, inner_idx, is_gc)
+    let from_fn_name = try_from_conversion::try_resolve_from_conversion(ctx, inner_idx)
     let has_from = len(from_fn_name) > 0
     let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     if is_gc {
@@ -39,7 +39,7 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(tag_local))
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     if has_from {
-        try_from_conversion::try_emit_err_from_conversion(ctx, res_ptr, from_fn_name)
+        try_from_conversion::try_emit_err_from_conversion(ctx, res_ptr, from_fn_name, inner_idx)
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
         ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())

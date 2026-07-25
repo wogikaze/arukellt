@@ -39,6 +39,8 @@ fn emit_array_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    // Expects [base, index] already on the stack (LOCAL_GET self-skip + CONST
+    // skip). Do not reload from arg locals — that doubles a skipped base (#807).
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         if array_base_is_vec_v128(inst, ctx) {
             let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)

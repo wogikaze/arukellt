@@ -210,16 +210,11 @@ fn next_loads_base_from_local(next_op: i32, next_arg0: i32) -> bool {
 }
 
 fn next2_is_aggregate_local_load(op: i32) -> bool {
+    // STRUCT_GET/NEW load their base from arg0 locals. ARRAY_GET/SET instead
+    // consume stack-composed [base, index]/value] (LOCAL_GET self-skip +
+    // CONST skip). Treating ARRAY_* like STRUCT here forces CONST SET and
+    // empties the stack before array.get/set (#807 array_literal).
     if op == opcodes::MIR_STRUCT_GET() {
-        return true
-    }
-    if op == opcodes::MIR_ARRAY_GET() {
-        return true
-    }
-    if op == opcodes::MIR_ARRAY_SET() {
-        return true
-    }
-    if op == opcodes::MIR_ARRAY_NEW() {
         return true
     }
     if op == opcodes::MIR_STRUCT_NEW() {

@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-14
-Updated: 2026-07-14
+Updated: 2026-07-26
 ID: 807
 Track: selfhost
 Depends on: "287 (done, framework)"
@@ -54,13 +54,17 @@ python3 scripts/manager.py selfhost fixture-parity
 
 - Receipt baseline (pre-L2): 1089 failing fixtures under `fixture_parity`.
 - After L2: `PASS=1029 FAIL=327 SKIP=259`.
-- **After L3 tranche (2026-07-26):** `PASS=1032 FAIL=324 SKIP=259` (full
-  `selfhost fixture-parity` on `wave/807-fixture-parity`).
+- After L3: `PASS=1032 FAIL=324 SKIP=259`.
+- After L4 (`c75ab1f3`): `PASS=1057 FAIL=299 SKIP=259`.
+- **After L5 (2026-07-26):** `PASS=1062 FAIL=294 SKIP=259` (wasm-invalid=242).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
 L3: GC ref struct.get store; chained field-assign base local; CONST RHS
 store before STRUCT_GET; tuple destructure LOCAL_SET (no struct_eq regress).
+L4: enum multi-field bind; chained vec len; GC parse_i32.
+L5: #840 GC `?` From Err rewrite (`from_error`); ARRAY_* stack compose
+(`array_literal` / `array_repeat`). `from_trait_not_inherent` still FAIL.
 
 ## New-failure ratchet
 
