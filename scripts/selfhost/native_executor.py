@@ -25,12 +25,12 @@ from selfhost.checks import (
     _selfhost_dir,
     _selfhost_source_fingerprint,
 )
+from native.toolchain import MINIMUM_CLANG_VERSION, resolve_clang
 
 RUNTIME_ABI_VERSION = 1
 BACKEND_SCHEMA_VERSION = 1
 CAPABILITY_TABLE_VERSION = 1
 RECEIPT_SCHEMA_VERSION = 2
-MINIMUM_CLANG_VERSION = 14
 S2_BUILD_PROFILE_NAME = "arukellt-s2.build-profile.json"
 MEMORY_GATE_BYTES = int(2.4 * 1024**3)
 WALL_GATE_MS = 300_000
@@ -74,30 +74,10 @@ def _sha256(path: Path) -> str:
 
 
 def _toolchain() -> tuple[str | None, str]:
-    override = os.environ.get("ARUKELLT_CC", "").strip()
-    candidates = [override] if override else [
-        "clang",
-        "clang-18",
-        "clang-17",
-        "clang-16",
-        "clang-15",
-        "clang-14",
-    ]
-    path = next((shutil.which(candidate) for candidate in candidates if shutil.which(candidate)), None)
-    if path is None:
-        requested = override or "clang 14+"
-        return None, f"toolchain diagnostic: C compiler `{requested}` was not found"
-    result = subprocess.run(
-        [path, "--version"], capture_output=True, text=True, check=False
-    )
-    version = (result.stdout or result.stderr).splitlines()[0] if result.returncode == 0 else ""
-    match = re.search(r"clang version (\d+)", version)
-    if match is None or int(match.group(1)) < MINIMUM_CLANG_VERSION:
-        return None, (
-            f"toolchain diagnostic: clang {MINIMUM_CLANG_VERSION}+ is required; "
-            f"detected `{version or path}`"
-        )
-    return str(Path(path).resolve()), version
+    toolchain, diagnostic = resolve_clang()
+    if toolchain is None:
+        return None, diagnostic
+    return toolchain.path, toolchain.version_line
 
 
 def _read_smaps_rss_bytes(pid: int) -> int:

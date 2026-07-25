@@ -112,6 +112,43 @@ if [[ "${1:-}" == "doc" ]]; then
   fi
 fi
 
+# ADR-050: public `run --target native-cpp` is owned by the host launcher.
+# Detect target only from compiler options before `--` so program args cannot
+# force or suppress routing (e.g. `run prog.ark -- --target native-cpp`).
+is_native_cpp_public_run() {
+  local i=2
+  local arg next
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--" ]]; then
+      break
+    fi
+    if [[ "$arg" == "--target=native-cpp" ]]; then
+      return 0
+    fi
+    if [[ "$arg" == "--target=native-llvm" ]]; then
+      return 1
+    fi
+    if [[ "$arg" == "--target" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        if [[ "${!next}" == "native-cpp" ]]; then
+          return 0
+        fi
+        if [[ "${!next}" == "native-llvm" ]]; then
+          return 1
+        fi
+      fi
+    fi
+    i=$((i + 1))
+  done
+  return 1
+}
+
+if [[ "${1:-}" == "run" ]] && [[ -z "${ARUKELLT_NATIVE_CPP_INTERNAL_COMPILE:-}" ]] && is_native_cpp_public_run "$@"; then
+  exec python3 "$REPO_ROOT/scripts/run/native-cpp-runner.py" "$@"
+fi
+
 if [[ "${1:-}" == "run" ]]; then
   # Driver `run` ignores `--emit component` and writes a core module. For the
   # bridged P2 path (#714), compile to a component then execute with wasmtime.

@@ -92,23 +92,23 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 1 — host launcher
 
-- [ ] `scripts/run/native-cpp-runner.py`
-- [ ] `scripts/native/toolchain.py`（clang 14+、executor と共有）
-- [ ] `arukellt-selfhost.sh` が native-cpp run のみ host launcher へ route
-- [ ] compile は selfhost へ従来どおり
-- [ ] 再帰 dispatch 防止 hidden env
-- [ ] `--target=native-cpp` 対応または明示拒否
-- [ ] `--` 以降を target 検出に使わない
-- [ ] public flags: `-std=c99 -O2 -DNDEBUG -Wall -Wextra -Wpedantic`（`-march=native` 除外）
-- [ ] temp cleanup / optional keep-on-debug
-- [ ] cache: `.build/native-cpp/run-cache/`（昇格前に identity 実装）
+- [x] `scripts/run/native-cpp-runner.py`
+- [x] `scripts/native/toolchain.py`（clang 14+、executor と共有）
+- [x] `arukellt-selfhost.sh` が native-cpp run のみ host launcher へ route
+- [x] compile は selfhost へ従来どおり
+- [x] 再帰 dispatch 防止 hidden env（`ARUKELLT_NATIVE_CPP_INTERNAL_COMPILE`）
+- [x] `--target=native-cpp` 対応
+- [x] `--` 以降を target 検出に使わない
+- [x] public flags: `-std=c99 -O2 -DNDEBUG -Wall -Wextra -Wpedantic`（`-march=native` 除外）
+- [x] temp cleanup / optional keep-on-debug（`ARUKELLT_NATIVE_CPP_KEEP_TEMP`）
+- [x] cache: `.build/native-cpp/run-cache/`（identity 実装）
 
 ## Phase 1 完了条件
 
-- [ ] `arukellt run hello.ark --target native-cpp` が native executable を起動
-- [ ] exit / stdio / cwd / env 継承
-- [ ] temp が通常時に残らない
-- [ ] cache hit/miss 同結果（cache 実装後）
+- [x] `arukellt run hello.ark --target native-cpp` が native executable を起動
+- [x] exit / stdio / cwd / env 継承（execve）
+- [x] temp が通常時に残らない
+- [x] cache hit/miss 同結果
 
 ---
 

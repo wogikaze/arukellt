@@ -187,7 +187,7 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 474 | [Async component support (v5)](474-async-component-support-v5.md) | wasm-feature | 035, done), 074 | none | 4 checked / 4 open | blocked-by-upstream | None | |
 | 60 | [074-wasi-p2-native-component](074-wasi-p2-native-component.md) | wasi-feature | 510, 121 | none | 2 checked / 0 open | implementation-ready | None | |
 | 62 | [076-wasi-p2-filesystem](076-wasi-p2-filesystem.md) | wasi-feature | 074, 510 | none | 0 checked / 0 open | implementation-ready | None | |
-| 649 | [649 — Experimental public `run --target native-cpp` (`run_supported=true`)](649-t4-native-full-lowering.md) | native-cpp | 641, 834 | 698, 699 | 5 checked / 20 open | design-ready | None | |
+| 649 | [649 — Experimental public `run --target native-cpp` (`run_supported=true`)](649-t4-native-full-lowering.md) | native-cpp | 641, 834 | 698, 699 | 7 checked / 18 open | design-ready | None | |
 | 667 | [667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path](667-library-component-emit-routing-regression.md) | component-model | 666 | 673 | 2 checked / 12 open | implementation-ready | None | |
 | 669 | [669 — WIT import IDE and formatter surface](669-wit-import-ide-formatter.md) | lsp-navigation | 652, done) | none | 0 checked / 10 open | design-ready | None | |
 | 670 | [670 — WIT import resolver hardening (duplicates, spans, collisions)](670-wit-import-resolver-hardening.md) | language-design | 653, done) | none | 0 checked / 11 open | implementation-ready | None | |

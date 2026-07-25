@@ -39,8 +39,8 @@ public CLI. It does **not** mean full MIR/CoreOp coverage or `support_tier=suppo
 
 ## Gaps
 
-- [ ] Host launcher (`scripts/run/native-cpp-runner.py`) + wrapper dispatch
-- [ ] Shared clang 14+ toolchain resolver
+- [x] Host launcher (`scripts/run/native-cpp-runner.py`) + wrapper dispatch
+- [x] Shared clang 14+ toolchain resolver
 - [x] Formal `--emit c` + default `.c` output + emit matrix diagnostics
 - [ ] Entry / args / stdio / cwd / env / exit / signal contracts + fixtures
 - [ ] Public run GC default ON; user-facing trap/panic diagnostics
