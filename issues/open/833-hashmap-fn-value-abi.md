@@ -116,7 +116,7 @@ HashMap_i32_i32_insert(m, 1, double)  // E0200: i32 vs struct/fn
 - [x] 回帰 fixture を manifest 登録
   - `run:` / `t3-compile:` / `t3-run:` in `tests/fixtures/manifest.txt`
 - [x] `python3 scripts/manager.py verify lane --gate t3`（T3 gate PASS; quality changed は無関係 dirty で別失敗しうる）
-- [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
+- [x] フェーズ完了時 `python3 scripts/manager.py verify quick`（docs fixture count sync 後）
 
 ## Notes
 
