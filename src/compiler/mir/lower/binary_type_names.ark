@@ -26,7 +26,14 @@ fn mir_is_builtin_type_name(name: String) -> bool {
     if eq(clone(name), "f32") { return true }
     if eq(clone(name), "bool") { return true }
     if eq(clone(name), "String") { return true }
+    if eq(clone(name), "string") { return true }
     if eq(clone(name), "char") { return true }
+    if eq(clone(name), "u8") { return true }
+    if eq(clone(name), "u16") { return true }
+    if eq(clone(name), "u32") { return true }
+    if eq(clone(name), "u64") { return true }
+    if eq(clone(name), "i8") { return true }
+    if eq(clone(name), "i16") { return true }
     if eq(clone(name), "Vec") { return true }
     if eq(clone(name), "fnref") { return true }
     if starts_with(clone(name), "vec:") { return true }

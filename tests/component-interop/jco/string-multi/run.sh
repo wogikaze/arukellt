@@ -43,7 +43,7 @@ run_test() {
     local expected="$2"
     local invocation="$3"
     local actual
-    actual="$("$WASMTIME" run --wasm gc --wasm component-model --invoke "$invocation" "$COMPONENT_WASM" 2>&1)"
+    actual="$("$WASMTIME" run --wasm gc --wasm function-references --wasm component-model --invoke "$invocation" "$COMPONENT_WASM" 2>&1)"
     if [[ "$actual" == "$expected" ]]; then
         echo "      PASS: $desc"
         ((PASS++)) || true
@@ -54,8 +54,8 @@ run_test() {
 }
 
 echo "[3/4] Running string multi-export invocations"
-run_test 'echo_text("hello") = "hello"' '"hello"' 'echo_text("hello")'
-run_test 'greet_text("world") = "world"' '"world"' 'greet_text("world")'
+run_test 'echo-text("hello") = "hello"' '"hello"' 'echo-text("hello")'
+run_test 'greet-text("world") = "world"' '"world"' 'greet-text("world")'
 
 echo "[4/4] Results: $PASS passed, $FAIL failed"
 if [[ $FAIL -gt 0 ]]; then

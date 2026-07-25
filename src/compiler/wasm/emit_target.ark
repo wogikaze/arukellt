@@ -11,6 +11,9 @@ fn uses_memory64(target: String, wasi_version: String) -> bool {
     if is_p2_wasi(clone(wasi_version)) {
         return false
     }
+    if is_component_stub_wasi(clone(wasi_version)) {
+        return false
+    }
     is_gc_target(clone(target))
 }
 

@@ -33,7 +33,7 @@ run_test() {
     local expected="$2"
     local invocation="$3"
     local actual
-    actual="$("$WASMTIME" run --wasm gc --wasm component-model --invoke "$invocation" "$COMPONENT_WASM" 2>&1)"
+    actual="$("$WASMTIME" run --wasm gc --wasm function-references --wasm component-model --invoke "$invocation" "$COMPONENT_WASM" 2>&1)"
     if [[ "$actual" == "$expected" ]]; then
         echo "      PASS: $desc"
         ((PASS++)) || true
