@@ -50,9 +50,36 @@ fn native_c_type_for_value(table: TypeTable, value_type: MirValueType) -> String
     String_from("ark_object_header *")
 }
 
+fn native_c_type_name_is_heap_object(name: String) -> bool {
+    if eq(clone(name), String_from("string")) || eq(clone(name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("vec:")) || starts_with(clone(name), String_from("Vec<")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Result_")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("hashmap:")) || starts_with(clone(name), String_from("hashset:")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("enum:")) {
+        return true
+    }
+    false
+}
+
 fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
-    if native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+    let type_name = local_record::mir_local_type_name(local)
+    if native_c_type_name_is_funcref(clone(type_name)) {
         return String_from("intptr_t")
+    }
+    // Match payload binds may keep VT_I32 while type_name is vec:/Option_/…
+    if native_c_type_name_is_heap_object(clone(type_name)) {
+        return String_from("ark_object_header *")
     }
     let typed = native_c_type_for_value(table, local_record::mir_local_value_type(local))
     if len(typed) > 0 {

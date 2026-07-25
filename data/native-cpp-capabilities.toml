@@ -328,28 +328,28 @@ implementation = "c_emitter"
 [[mir_opcodes]]
 id = "MIR_ARRAY_NEW"
 opcode = 63
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_ARRAY_GET"
 opcode = 64
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_ARRAY_SET"
 opcode = 65
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
 [[mir_opcodes]]
 id = "MIR_ARRAY_LEN"
 opcode = 66
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "c_emitter"
 
@@ -616,57 +616,57 @@ implementation = "ark_fallback"
 id = "math.abs"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_abs_i32"
 
 [[core_ops]]
 id = "math.clamp"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_clamp_i32"
 
 [[core_ops]]
 id = "math.gcd"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_gcd_i32"
 
 [[core_ops]]
 id = "math.max"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_max_i32"
 
 [[core_ops]]
 id = "math.min"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_min_i32"
 
 [[core_ops]]
 id = "math.pow_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_pow_i32"
 
 [[core_ops]]
 id = "math.sqrt"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_math_sqrt_f64"
 
 [[core_ops]]
 id = "parse.parse_f64"
@@ -680,17 +680,17 @@ implementation = "ark_fallback"
 id = "parse.parse_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_parse_i32"
 
 [[core_ops]]
 id = "parse.parse_i64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_parse_i64"
 
 [[core_ops]]
 id = "primitive.memory_copy"
@@ -727,9 +727,9 @@ implementation = "native_runtime"
 id = "runtime.arg_count"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
-implementation = "native_runtime"
+implementation = "ark_rt_arg_count"
 
 [[core_ops]]
 id = "runtime.args"
@@ -743,33 +743,33 @@ implementation = "native_runtime"
 id = "runtime.assert"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_assert"
 
 [[core_ops]]
 id = "runtime.assert_eq"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_assert_eq_i32"
 
 [[core_ops]]
 id = "runtime.assert_eq_i64"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_assert_eq_i64"
 
 [[core_ops]]
 id = "runtime.assert_eq_str"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_assert_eq_str"
 
 [[core_ops]]
 id = "runtime.assert_ne"
@@ -783,17 +783,17 @@ implementation = "ark_fallback"
 id = "runtime.clock_now"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
-implementation = "native_runtime"
+implementation = "ark_rt_clock_now_ms"
 
 [[core_ops]]
 id = "runtime.clock_now_ms"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 4
-implementation = "native_runtime"
+implementation = "ark_rt_clock_now_ms"
 
 [[core_ops]]
 id = "runtime.connect"
@@ -901,17 +901,17 @@ implementation = "c_emitter"
 id = "runtime.is_err"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_is_err"
 
 [[core_ops]]
 id = "runtime.is_ok"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_is_ok"
 
 [[core_ops]]
 id = "runtime.listen"
@@ -1000,17 +1000,17 @@ implementation = "c_emitter"
 id = "runtime.unwrap"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_result_unwrap"
 
 [[core_ops]]
 id = "runtime.unwrap_or"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_result_unwrap_or"
 
 [[core_ops]]
 id = "runtime.var"
@@ -1103,7 +1103,7 @@ implementation = "ark_fallback"
 id = "seq.product_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -1127,7 +1127,7 @@ implementation = "ark_fallback"
 id = "seq.sort_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -1143,7 +1143,7 @@ implementation = "ark_fallback"
 id = "seq.sum_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2277,9 +2277,9 @@ implementation = "ark_fallback"
 id = "string.join"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_join"
 
 [[core_ops]]
 id = "string.lines"
@@ -2301,7 +2301,7 @@ implementation = "ark_fallback"
 id = "string.pad_left"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2309,7 +2309,7 @@ implementation = "ark_fallback"
 id = "string.pad_right"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2317,7 +2317,7 @@ implementation = "ark_fallback"
 id = "string.pad_left_fill"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2325,7 +2325,7 @@ implementation = "ark_fallback"
 id = "string.pad_right_fill"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2333,25 +2333,25 @@ implementation = "ark_fallback"
 id = "string.repeat"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_repeat"
 
 [[core_ops]]
 id = "string.replace"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_replace"
 
 [[core_ops]]
 id = "string.reverse"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_reverse"
 
 [[core_ops]]
 id = "string.slice"
@@ -2365,49 +2365,49 @@ implementation = "ark_fallback"
 id = "string.split"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_split"
 
 [[core_ops]]
 id = "string.to_lowercase"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_to_lowercase"
 
 [[core_ops]]
 id = "string.to_uppercase"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_to_uppercase"
 
 [[core_ops]]
 id = "string.trim"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_trim"
 
 [[core_ops]]
 id = "string.trim_end"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_trim_end"
 
 [[core_ops]]
 id = "string.trim_start"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_trim_start"
 
 [[core_ops]]
 id = "text.String_new"
@@ -2453,9 +2453,9 @@ implementation = "ark_fallback"
 id = "text.format_bool"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_bool_to_string"
 
 [[core_ops]]
 id = "text.format_f64"
@@ -2468,33 +2468,33 @@ implementation = "native_runtime"
 id = "text.format_i64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_i64_to_string"
 
 [[core_ops]]
 id = "text.is_empty"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_is_empty"
 
 [[core_ops]]
 id = "text.len_bytes"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_len"
 
 [[core_ops]]
 id = "text.push_char"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_push_char"
 
 [[core_ops]]
 id = "text.string_eq"
@@ -2508,9 +2508,9 @@ implementation = "ark_fallback"
 id = "text.string_from_bytes"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_string_from_vec_bytes"
 
 [[core_ops]]
 id = "text.to_string"
@@ -2524,9 +2524,9 @@ implementation = "ark_fallback"
 id = "vec.Vec_new_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_new"
 
 [[core_ops]]
 id = "vec.Vec_new_fallback"
@@ -2540,7 +2540,7 @@ implementation = "ark_fallback"
 id = "vec.contains_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2548,9 +2548,9 @@ implementation = "ark_fallback"
 id = "vec.get"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_get_or_push"
 
 [[core_ops]]
 id = "vec.get_unchecked"
@@ -2564,25 +2564,25 @@ implementation = "ark_fallback"
 id = "vec.get_unchecked_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_get_or_push"
 
 [[core_ops]]
 id = "vec.get_unchecked_i64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_get_or_push"
 
 [[core_ops]]
 id = "vec.is_empty"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_is_empty"
 
 [[core_ops]]
 id = "vec.len"
@@ -2612,23 +2612,23 @@ implementation = "ark_fallback"
 id = "vec.push_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_push"
 
 [[core_ops]]
 id = "vec.push_i64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_push"
 
 [[core_ops]]
 id = "vec.remove_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 
@@ -2636,7 +2636,7 @@ implementation = "ark_fallback"
 id = "vec.reverse_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
 implementation = "ark_fallback"
 

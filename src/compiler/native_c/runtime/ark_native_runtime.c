@@ -1,9 +1,11 @@
 #define _POSIX_C_SOURCE 200809L
 #include "ark_native_runtime.h"
 
+#include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -1410,20 +1412,389 @@ ark_object_header *ark_rt_parse_f64(ark_string *source) {
     if (errno != 0 || end != buffer + source->byte_length) {
         parsed->fields[0].i32 = 1;
         parsed->fields[1].ref = (ark_object_header *)ark_rt_string_clone(source);
+        free(buffer);
         return &parsed->header;
     }
     parsed->fields[0].i32 = 0;
     parsed->fields[1].f64 = result;
+    free(buffer);
     return &parsed->header;
 }
 
+ark_object_header *ark_rt_parse_i32(ark_string *source) {
+    if (source == NULL) ark_rt_trap();
+    char *buffer = malloc((size_t)source->byte_length + 1u);
+    if (buffer == NULL) ark_rt_trap();
+    memcpy(buffer, source->bytes, source->byte_length);
+    buffer[source->byte_length] = '\0';
+    char *end;
+    errno = 0;
+    long result = strtol(buffer, &end, 10);
+    ark_struct_object *parsed = ark_rt_struct_new(0, 2);
+    if (errno != 0 || end != buffer + source->byte_length || result < INT32_MIN || result > INT32_MAX) {
+        parsed->fields[0].i32 = 1;
+        parsed->fields[1].ref = (ark_object_header *)ark_rt_string_clone(source);
+        free(buffer);
+        return &parsed->header;
+    }
+    parsed->fields[0].i32 = 0;
+    parsed->fields[1].i32 = (int32_t)result;
+    free(buffer);
+    return &parsed->header;
+}
+
+ark_object_header *ark_rt_parse_i64(ark_string *source) {
+    if (source == NULL) ark_rt_trap();
+    char *buffer = malloc((size_t)source->byte_length + 1u);
+    if (buffer == NULL) ark_rt_trap();
+    memcpy(buffer, source->bytes, source->byte_length);
+    buffer[source->byte_length] = '\0';
+    char *end;
+    errno = 0;
+    long long result = strtoll(buffer, &end, 10);
+    ark_struct_object *parsed = ark_rt_struct_new(0, 2);
+    if (errno != 0 || end != buffer + source->byte_length) {
+        parsed->fields[0].i32 = 1;
+        parsed->fields[1].ref = (ark_object_header *)ark_rt_string_clone(source);
+        free(buffer);
+        return &parsed->header;
+    }
+    parsed->fields[0].i32 = 0;
+    parsed->fields[1].i64 = (int64_t)result;
+    free(buffer);
+    return &parsed->header;
+}
+
+void ark_rt_assert(int32_t condition) {
+    if (!condition) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: assertion failed\n", function);
+        exit(1);
+    }
+}
+
+void ark_rt_assert_eq_i32(int32_t left, int32_t right) {
+    if (left != right) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: assertion failed\n", function);
+        exit(1);
+    }
+}
+
 static void ark_vec_reserve(ark_vec *vector, uint32_t minimum);
+ark_vec *ark_rt_vec_new(uint32_t type_id);
+ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value);
+
+void ark_rt_assert_eq_i64(int64_t left, int64_t right) {
+    if (left != right) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: assertion failed\n", function);
+        exit(1);
+    }
+}
+
+void ark_rt_assert_eq_str(ark_string *left, ark_string *right) {
+    if (!ark_rt_string_eq(left, right)) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: assertion failed\n", function);
+        exit(1);
+    }
+}
+
+static int ark_rt_is_ascii_space(uint8_t byte) {
+    return byte == ' ' || byte == '\t' || byte == '\n' || byte == '\r';
+}
+
+ark_string *ark_rt_bool_to_string(int32_t value) {
+    if (value) {
+        return ark_rt_string_from_bytes((const uint8_t *)"true", 4u);
+    }
+    return ark_rt_string_from_bytes((const uint8_t *)"false", 5u);
+}
+
+ark_string *ark_rt_string_trim_start(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint32_t start = 0;
+    while (start < source->byte_length && ark_rt_is_ascii_space(source->bytes[start])) {
+        start += 1u;
+    }
+    return ark_rt_string_from_bytes(source->bytes + start, source->byte_length - start);
+}
+
+ark_string *ark_rt_string_trim_end(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint32_t end = source->byte_length;
+    while (end > 0u && ark_rt_is_ascii_space(source->bytes[end - 1u])) {
+        end -= 1u;
+    }
+    return ark_rt_string_from_bytes(source->bytes, end);
+}
+
+ark_string *ark_rt_string_trim(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint32_t start = 0;
+    while (start < source->byte_length && ark_rt_is_ascii_space(source->bytes[start])) {
+        start += 1u;
+    }
+    uint32_t end = source->byte_length;
+    while (end > start && ark_rt_is_ascii_space(source->bytes[end - 1u])) {
+        end -= 1u;
+    }
+    return ark_rt_string_from_bytes(source->bytes + start, end - start);
+}
+
+ark_string *ark_rt_string_replace(ark_string *source, ark_string *from, ark_string *to) {
+    if (source == NULL || from == NULL || to == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (from->byte_length == 0u) {
+        return ark_rt_string_clone(source);
+    }
+    uint32_t count = 0;
+    uint32_t index = 0;
+    while (index + from->byte_length <= source->byte_length) {
+        if (memcmp(source->bytes + index, from->bytes, from->byte_length) == 0) {
+            count += 1u;
+            index += from->byte_length;
+        } else {
+            index += 1u;
+        }
+    }
+    uint64_t out_len64 = (uint64_t)source->byte_length
+        + (uint64_t)count * ((uint64_t)to->byte_length - (uint64_t)from->byte_length);
+    if (out_len64 > UINT32_MAX) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    uint32_t out_len = (uint32_t)out_len64;
+    ark_string *result = ark_rt_string_from_bytes(NULL, 0);
+    result->byte_length = out_len;
+    result->capacity = out_len;
+    if (out_len != 0u) {
+        result->bytes = ark_side_bytes_string(out_len);
+        uint32_t write = 0;
+        index = 0;
+        while (index < source->byte_length) {
+            if (index + from->byte_length <= source->byte_length
+                && memcmp(source->bytes + index, from->bytes, from->byte_length) == 0) {
+                if (to->byte_length != 0u) {
+                    memcpy(result->bytes + write, to->bytes, to->byte_length);
+                    write += to->byte_length;
+                }
+                index += from->byte_length;
+            } else {
+                result->bytes[write] = source->bytes[index];
+                write += 1u;
+                index += 1u;
+            }
+        }
+    }
+    return result;
+}
+
+ark_string *ark_rt_string_repeat(ark_string *source, int32_t count) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (count < 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    if (count == 0 || source->byte_length == 0u) {
+        return ark_rt_string_from_bytes(NULL, 0);
+    }
+    uint64_t out_len64 = (uint64_t)source->byte_length * (uint64_t)(uint32_t)count;
+    if (out_len64 > UINT32_MAX) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    uint32_t out_len = (uint32_t)out_len64;
+    ark_string *result = ark_rt_string_from_bytes(NULL, 0);
+    result->byte_length = out_len;
+    result->capacity = out_len;
+    result->bytes = ark_side_bytes_string(out_len);
+    for (int32_t i = 0; i < count; i += 1) {
+        memcpy(result->bytes + (uint32_t)i * source->byte_length, source->bytes, source->byte_length);
+    }
+    return result;
+}
+
+ark_string *ark_rt_string_to_lowercase(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_string *result = ark_rt_string_from_bytes(source->bytes, source->byte_length);
+    for (uint32_t i = 0; i < result->byte_length; i += 1u) {
+        result->bytes[i] = (uint8_t)tolower((int)result->bytes[i]);
+    }
+    return result;
+}
+
+ark_string *ark_rt_string_to_uppercase(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_string *result = ark_rt_string_from_bytes(source->bytes, source->byte_length);
+    for (uint32_t i = 0; i < result->byte_length; i += 1u) {
+        result->bytes[i] = (uint8_t)toupper((int)result->bytes[i]);
+    }
+    return result;
+}
+
+ark_string *ark_rt_string_reverse(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_string *result = ark_rt_string_from_bytes(source->bytes, source->byte_length);
+    for (uint32_t i = 0; i < result->byte_length / 2u; i += 1u) {
+        uint8_t tmp = result->bytes[i];
+        result->bytes[i] = result->bytes[result->byte_length - 1u - i];
+        result->bytes[result->byte_length - 1u - i] = tmp;
+    }
+    return result;
+}
+
+ark_string *ark_rt_string_join(ark_vec *parts, ark_string *separator) {
+    if (parts == NULL || separator == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint64_t total = 0;
+    for (uint32_t i = 0; i < parts->length; i += 1u) {
+        ark_string *part = (ark_string *)parts->data[i].ref;
+        if (part == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+        total += part->byte_length;
+        if (i + 1u < parts->length) {
+            total += separator->byte_length;
+        }
+    }
+    if (total > UINT32_MAX) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    ark_string *result = ark_rt_string_from_bytes(NULL, 0);
+    result->byte_length = (uint32_t)total;
+    result->capacity = (uint32_t)total;
+    if (total != 0u) {
+        result->bytes = ark_side_bytes_string((uint32_t)total);
+        uint32_t write = 0;
+        for (uint32_t i = 0; i < parts->length; i += 1u) {
+            ark_string *part = (ark_string *)parts->data[i].ref;
+            if (part->byte_length != 0u) {
+                memcpy(result->bytes + write, part->bytes, part->byte_length);
+                write += part->byte_length;
+            }
+            if (i + 1u < parts->length && separator->byte_length != 0u) {
+                memcpy(result->bytes + write, separator->bytes, separator->byte_length);
+                write += separator->byte_length;
+            }
+        }
+    }
+    return result;
+}
+
+ark_vec *ark_rt_string_split(ark_string *source, ark_string *separator, uint32_t type_id) {
+    if (source == NULL || separator == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_vec *parts = ark_rt_vec_new(type_id);
+    if (separator->byte_length == 0u) {
+        ark_rt_vec_push(parts, (ark_value){.ref = (ark_object_header *)ark_rt_string_clone(source)});
+        return parts;
+    }
+    uint32_t start = 0;
+    uint32_t index = 0;
+    while (index + separator->byte_length <= source->byte_length) {
+        if (memcmp(source->bytes + index, separator->bytes, separator->byte_length) == 0) {
+            ark_string *part = ark_rt_string_from_bytes(source->bytes + start, index - start);
+            ark_rt_vec_push(parts, (ark_value){.ref = (ark_object_header *)part});
+            index += separator->byte_length;
+            start = index;
+        } else {
+            index += 1u;
+        }
+    }
+    ark_string *tail = ark_rt_string_from_bytes(source->bytes + start, source->byte_length - start);
+    ark_rt_vec_push(parts, (ark_value){.ref = (ark_object_header *)tail});
+    return parts;
+}
+
+int32_t ark_rt_string_is_empty(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    return source->byte_length == 0u;
+}
+
+int32_t ark_rt_is_ok(ark_object_header *value) {
+    if (value == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    return ((ark_struct_object *)value)->fields[0].i32 == 0;
+}
+
+int32_t ark_rt_is_err(ark_object_header *value) {
+    if (value == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    return ((ark_struct_object *)value)->fields[0].i32 != 0;
+}
+
+ark_value ark_rt_result_unwrap(ark_object_header *value) {
+    if (value == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_struct_object *object = (ark_struct_object *)value;
+    if (object->fields[0].i32 != 0) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: unwrap on Err/None\n", function);
+        exit(1);
+    }
+    return object->fields[1];
+}
+
+ark_value ark_rt_result_unwrap_or(ark_object_header *value, ark_value fallback) {
+    if (value == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    ark_struct_object *object = (ark_struct_object *)value;
+    if (object->fields[0].i32 == 0) {
+        return object->fields[1];
+    }
+    return fallback;
+}
+
+int32_t ark_rt_vec_is_empty(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    return vector->length == 0u;
+}
+
+int32_t ark_rt_math_abs_i32(int32_t value) {
+    if (value == INT32_MIN) ark_rt_trap();
+    return value < 0 ? -value : value;
+}
+
+int32_t ark_rt_math_min_i32(int32_t left, int32_t right) {
+    return left < right ? left : right;
+}
+
+int32_t ark_rt_math_max_i32(int32_t left, int32_t right) {
+    return left > right ? left : right;
+}
+
+int32_t ark_rt_math_clamp_i32(int32_t value, int32_t low, int32_t high) {
+    if (low > high) ark_rt_trap();
+    if (value < low) return low;
+    if (value > high) return high;
+    return value;
+}
+
+int32_t ark_rt_math_gcd_i32(int32_t left, int32_t right) {
+    int32_t a = left < 0 ? -left : left;
+    int32_t b = right < 0 ? -right : right;
+    while (b != 0) {
+        int32_t next = a % b;
+        a = b;
+        b = next;
+    }
+    return a;
+}
+
+int32_t ark_rt_math_pow_i32(int32_t base, int32_t exp) {
+    if (exp < 0) ark_rt_trap();
+    int64_t result = 1;
+    int64_t cur = base;
+    int32_t power = exp;
+    while (power > 0) {
+        if ((power & 1) != 0) {
+            result *= cur;
+            if (result < INT32_MIN || result > INT32_MAX) ark_rt_trap();
+        }
+        power >>= 1;
+        if (power > 0) {
+            cur *= cur;
+            if (cur < INT32_MIN || cur > INT32_MAX) ark_rt_trap();
+        }
+    }
+    return (int32_t)result;
+}
+
+double ark_rt_math_sqrt_f64(double value) {
+    if (value < 0.0) ark_rt_trap();
+    return sqrt(value);
+}
 
 ark_vec *ark_rt_vec_new(uint32_t type_id) {
     ark_vec *vector = ark_rt_alloc_aligned(sizeof(*vector), 16u);
     ark_gc_set_kind(vector, ARK_GC_KIND_VEC);
     vector->header.type_id = type_id;
     vector->header.flags = 0;
+    vector->data = NULL;
+    vector->length = 0;
+    vector->capacity = 0;
     return vector;
 }
 
@@ -1432,6 +1803,65 @@ ark_vec *ark_rt_vec_new_with_capacity(uint32_t type_id, int32_t capacity) {
     ark_vec *vector = ark_rt_vec_new(type_id);
     ark_vec_reserve(vector, (uint32_t)capacity);
     return vector;
+}
+
+ark_vec *ark_rt_array_new(uint32_t type_id, int32_t length) {
+    if (length < 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    ark_vec *vector = ark_rt_vec_new_with_capacity(type_id, length);
+    vector->length = (uint32_t)length;
+    if (length > 0 && vector->data != NULL) {
+        memset(vector->data, 0, (size_t)length * sizeof(*vector->data));
+    }
+    return vector;
+}
+
+int32_t ark_rt_arg_count(void) {
+    return ark_rt_vec_len(ark_process_args);
+}
+
+ark_unit ark_rt_string_push_char(ark_string *string, uint32_t codepoint) {
+    if (string == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint8_t encoded[4];
+    uint32_t encoded_len = 0;
+    if (codepoint <= 0x7Fu) {
+        encoded[0] = (uint8_t)codepoint;
+        encoded_len = 1;
+    } else if (codepoint <= 0x7FFu) {
+        encoded[0] = (uint8_t)(0xC0u | (codepoint >> 6));
+        encoded[1] = (uint8_t)(0x80u | (codepoint & 0x3Fu));
+        encoded_len = 2;
+    } else if (codepoint <= 0xFFFFu) {
+        encoded[0] = (uint8_t)(0xE0u | (codepoint >> 12));
+        encoded[1] = (uint8_t)(0x80u | ((codepoint >> 6) & 0x3Fu));
+        encoded[2] = (uint8_t)(0x80u | (codepoint & 0x3Fu));
+        encoded_len = 3;
+    } else if (codepoint <= 0x10FFFFu) {
+        encoded[0] = (uint8_t)(0xF0u | (codepoint >> 18));
+        encoded[1] = (uint8_t)(0x80u | ((codepoint >> 12) & 0x3Fu));
+        encoded[2] = (uint8_t)(0x80u | ((codepoint >> 6) & 0x3Fu));
+        encoded[3] = (uint8_t)(0x80u | (codepoint & 0x3Fu));
+        encoded_len = 4;
+    } else {
+        ark_rt_trap_kind(ARK_TRAP_INVALID_CAST);
+    }
+    if (string->byte_length > UINT32_MAX - encoded_len) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    uint32_t needed = string->byte_length + encoded_len;
+    if (needed > string->capacity) {
+        uint32_t capacity = string->capacity == 0 ? 16u : string->capacity;
+        while (capacity < needed) {
+            if (capacity > UINT32_MAX / 2u) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+            capacity *= 2u;
+        }
+        uint8_t *bytes = ark_side_bytes_string(capacity);
+        if (string->byte_length != 0 && string->bytes != NULL) {
+            memcpy(bytes, string->bytes, string->byte_length);
+        }
+        string->bytes = bytes;
+        string->capacity = capacity;
+    }
+    memcpy(string->bytes + string->byte_length, encoded, encoded_len);
+    string->byte_length = needed;
+    return 0;
 }
 
 static void ark_vec_reserve(ark_vec *vector, uint32_t minimum) {
@@ -1465,6 +1895,79 @@ ark_value ark_rt_vec_get(ark_vec *vector, int32_t index) {
     if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
     return vector->data[index];
+}
+
+
+void ark_rt_vec_sort_i32(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    for (uint32_t i = 1; i < vector->length; i += 1) {
+        int32_t value = vector->data[i].i32;
+        uint32_t insertion = i;
+        while (insertion > 0 && vector->data[insertion - 1u].i32 > value) {
+            vector->data[insertion] = vector->data[insertion - 1u];
+            insertion -= 1u;
+        }
+        vector->data[insertion].i32 = value;
+    }
+}
+
+int32_t ark_rt_vec_sum_i32(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t total = 0;
+    for (uint32_t i = 0; i < vector->length; i += 1) total += vector->data[i].i32;
+    return total;
+}
+
+int32_t ark_rt_vec_product_i32(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t total = 1;
+    for (uint32_t i = 0; i < vector->length; i += 1) total *= vector->data[i].i32;
+    return total;
+}
+
+ark_unit ark_rt_vec_reverse(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (vector->length == 0) return 0;
+    uint32_t lo = 0;
+    uint32_t hi = vector->length - 1u;
+    while (lo < hi) {
+        ark_value tmp = vector->data[lo];
+        vector->data[lo] = vector->data[hi];
+        vector->data[hi] = tmp;
+        lo += 1u;
+        hi -= 1u;
+    }
+    return 0;
+}
+
+ark_unit ark_rt_vec_remove(ark_vec *vector, int32_t index) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    for (uint32_t i = (uint32_t)index + 1u; i < vector->length; i += 1) {
+        vector->data[i - 1u] = vector->data[i];
+    }
+    vector->length -= 1u;
+    return 0;
+}
+
+int32_t ark_rt_vec_contains_i32(ark_vec *vector, int32_t value) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    for (uint32_t i = 0; i < vector->length; i += 1) {
+        if (vector->data[i].i32 == value) return 1;
+    }
+    return 0;
+}
+
+ark_object_header *ark_rt_vec_get_option(ark_vec *vector, int32_t index, uint32_t option_type_id) {
+    ark_struct_object *option = ark_rt_struct_new(option_type_id, 2u);
+    if (vector == NULL || index < 0 || (uint32_t)index >= vector->length) {
+        option->fields[0].i32 = 1;
+        option->fields[1].i32 = 0;
+        return &option->header;
+    }
+    option->fields[0].i32 = 0;
+    option->fields[1] = vector->data[index];
+    return &option->header;
 }
 
 ark_unit ark_rt_vec_set(ark_vec *vector, int32_t index, ark_value value) {

@@ -101,14 +101,58 @@ ark_string *ark_rt_i32_to_string(int32_t value);
 ark_string *ark_rt_i64_to_string(int64_t value);
 ark_string *ark_rt_f64_to_string(double value);
 ark_object_header *ark_rt_parse_f64(ark_string *source);
+ark_object_header *ark_rt_parse_i32(ark_string *source);
+ark_object_header *ark_rt_parse_i64(ark_string *source);
+void ark_rt_assert(int32_t condition);
+void ark_rt_assert_eq_i32(int32_t left, int32_t right);
+void ark_rt_assert_eq_i64(int64_t left, int64_t right);
+void ark_rt_assert_eq_str(ark_string *left, ark_string *right);
+
+ark_string *ark_rt_bool_to_string(int32_t value);
+ark_string *ark_rt_string_trim(ark_string *source);
+ark_string *ark_rt_string_trim_start(ark_string *source);
+ark_string *ark_rt_string_trim_end(ark_string *source);
+ark_string *ark_rt_string_replace(ark_string *source, ark_string *from, ark_string *to);
+ark_string *ark_rt_string_repeat(ark_string *source, int32_t count);
+ark_string *ark_rt_string_to_lowercase(ark_string *source);
+ark_string *ark_rt_string_to_uppercase(ark_string *source);
+ark_string *ark_rt_string_reverse(ark_string *source);
+ark_string *ark_rt_string_join(ark_vec *parts, ark_string *separator);
+ark_vec *ark_rt_string_split(ark_string *source, ark_string *separator, uint32_t type_id);
+int32_t ark_rt_string_is_empty(ark_string *source);
+
+int32_t ark_rt_is_ok(ark_object_header *value);
+int32_t ark_rt_is_err(ark_object_header *value);
+ark_value ark_rt_result_unwrap(ark_object_header *value);
+ark_value ark_rt_result_unwrap_or(ark_object_header *value, ark_value fallback);
+
+int32_t ark_rt_vec_is_empty(ark_vec *vector);
+
+int32_t ark_rt_math_abs_i32(int32_t value);
+int32_t ark_rt_math_min_i32(int32_t left, int32_t right);
+int32_t ark_rt_math_max_i32(int32_t left, int32_t right);
+int32_t ark_rt_math_clamp_i32(int32_t value, int32_t low, int32_t high);
+int32_t ark_rt_math_gcd_i32(int32_t left, int32_t right);
+int32_t ark_rt_math_pow_i32(int32_t base, int32_t exp);
+double ark_rt_math_sqrt_f64(double value);
 
 ark_vec *ark_rt_vec_new(uint32_t type_id);
 ark_vec *ark_rt_vec_new_with_capacity(uint32_t type_id, int32_t capacity);
+ark_vec *ark_rt_array_new(uint32_t type_id, int32_t length);
 int32_t ark_rt_vec_len(ark_vec *vector);
 ark_value ark_rt_vec_get(ark_vec *vector, int32_t index);
+ark_object_header *ark_rt_vec_get_option(ark_vec *vector, int32_t index, uint32_t option_type_id);
+void ark_rt_vec_sort_i32(ark_vec *vector);
+int32_t ark_rt_vec_sum_i32(ark_vec *vector);
+int32_t ark_rt_vec_product_i32(ark_vec *vector);
+ark_unit ark_rt_vec_reverse(ark_vec *vector);
+ark_unit ark_rt_vec_remove(ark_vec *vector, int32_t index);
+int32_t ark_rt_vec_contains_i32(ark_vec *vector, int32_t value);
 ark_unit ark_rt_vec_set(ark_vec *vector, int32_t index, ark_value value);
 ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value);
 ark_value ark_rt_vec_pop(ark_vec *vector);
+int32_t ark_rt_arg_count(void);
+ark_unit ark_rt_string_push_char(ark_string *string, uint32_t codepoint);
 
 ark_vec *ark_rt_args(void);
 ark_string *ark_rt_read_stdin(void);

@@ -197,8 +197,11 @@ fn native_c_function_declaration(
     if !function_id::function_id_is_valid(resolved_id) {
         return NativeCEmitResult_err(
             concat(
-                String_from("compiler ICE: native-cpp missing FunctionId for MIR function `"),
-                concat(function_name, String_from("`"))
+                String_from("target `native-cpp` does not support MIR function `"),
+                concat(
+                    function_name,
+                    String_from("` (missing FunctionId; closure or overlay callee)")
+                )
             )
         )
     }

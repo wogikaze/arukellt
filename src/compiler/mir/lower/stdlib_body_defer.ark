@@ -5,12 +5,78 @@ use corehir::core_op_id
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
 // #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
 // are not listed here and are lowered normally.
-fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
-    let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
-    if core_op_id::core_op_id_is_some(coid) {
+//
+// Qualified names win over bare leaf aliases: `path::join` must keep its Ark
+// body even though bare `join` binds to string.join for prelude/text call sites.
+fn mir_should_defer_stdlib_body(decl_name: String, qualified_name: String) -> bool {
+    let facing = mir_defer_effective_facing_name(clone(qualified_name))
+    if len(facing) > 0 {
+        let facing_op = core_op_binding::core_op_binding_lookup_for_callee(clone(facing))
+        if core_op_id::core_op_id_is_some(facing_op) {
+            return true
+        }
+        if !eq(clone(facing), clone(qualified_name)) {
+            let qualified_op = core_op_binding::core_op_binding_lookup_for_callee(clone(qualified_name))
+            if core_op_id::core_op_id_is_some(qualified_op) {
+                return true
+            }
+        }
+    }
+    let bare_op = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
+    if core_op_id::core_op_id_is_some(bare_op) {
+        // Module twins (`path::join`) must not inherit bare leaf CoreOps. Prelude
+        // wrappers (`prelude::panic`) still defer through the bare binding.
+        if len(facing) > 0 &&
+        contains(clone(facing), String_from("::")) &&
+        !mir_defer_facing_is_prelude(facing) {
+            return mir_is_unbound_prelude_intrinsic_shim(decl_name)
+        }
         return true
     }
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
+}
+
+fn mir_defer_facing_is_prelude(facing: String) -> bool {
+    if starts_with(clone(facing), String_from("prelude::")) {
+        return true
+    }
+    if starts_with(clone(facing), String_from("std::prelude::")) {
+        return true
+    }
+    false
+}
+
+fn mir_defer_effective_facing_name(qualified_name: String) -> String {
+    if len(qualified_name) == 0 {
+        return String_new()
+    }
+    if !contains(clone(qualified_name), String_from("::")) {
+        return String_new()
+    }
+    let import_facing = mir_defer_import_facing_name(clone(qualified_name))
+    if len(import_facing) > 0 {
+        return import_facing
+    }
+    // Already import-facing (`path::join` has a single `::`).
+    qualified_name
+}
+
+fn mir_defer_import_facing_name(qualified_name: String) -> String {
+    let name_len = len(qualified_name)
+    let separators = Vec_new_i32()
+    let mut index = 0
+    while index < name_len - 1 {
+        if char_at(qualified_name, index) == 58 && char_at(qualified_name, index + 1) == 58 {
+            push(separators, index)
+            index = index + 2
+        } else {
+            index = index + 1
+        }
+    }
+    if len(separators) < 2 {
+        return String_new()
+    }
+    substring(qualified_name, get_unchecked(separators, len(separators) - 2) + 2, name_len)
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {

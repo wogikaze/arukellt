@@ -1,6 +1,8 @@
+use corehir::mir_signature_fn
 use mir::lower::entry_body_source
 use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn
+use mir::lower::entry_view_record
 use mir::lower::stdlib_body_defer
 
 fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySource, decl_index: i32, decl_name: String, fn_idx: i32, entry_main_decl_index: i32, midx: MonoIndex, mir_tr: i32) -> i32 {
@@ -10,14 +12,20 @@ fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySourc
     let mut body_idx = 0 - 1
     let mut param_count = 0
     let mut is_entry_main = decl_index == entry_main_decl_index
+    let mut qualified_name = String_new()
     if fn_info_index >= 0 {
         typed_index = entry_view_fn::mir_entry_fn_typed_index_at(entry_view, fn_info_index, typed_index)
         body_idx = entry_view_fn::mir_entry_fn_body_index_at(entry_view, fn_info_index, body_idx)
         param_count = entry_view_fn::mir_entry_fn_param_count_at(entry_view, fn_info_index, param_count)
         is_entry_main = entry_view_fn::mir_entry_fn_is_entry_main_at(entry_view, fn_info_index, is_entry_main)
+        qualified_name = mir_signature_fn::mir_signature_fn_qualified_name_at(
+            entry_view_record::entry_view_signature_source(entry_view),
+            fn_info_index,
+            String_new()
+        )
     }
     let skip_shadow_main = eq(clone(decl_name), String_from("main")) && !is_entry_main
-    let defer_stdlib_body = stdlib_body_defer::mir_should_defer_stdlib_body(clone(decl_name))
+    let defer_stdlib_body = stdlib_body_defer::mir_should_defer_stdlib_body(clone(decl_name), qualified_name)
     if !skip_shadow_main && !defer_stdlib_body {
         let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, decl_index, fn_info_index, body_idx)
         entry_fns_mono::mir_emit_top_level_fn_mono_bodies(ctx, body_input, decl_name, typed_index, param_count, entry_view, fn_info_index, midx, mir_tr)

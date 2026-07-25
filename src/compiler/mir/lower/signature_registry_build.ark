@@ -1,4 +1,5 @@
 use corehir::kinds
+use corehir::function_id
 use corehir::mir_signature_method
 use corehir::signature_registry
 use corehir::type_table
@@ -38,13 +39,28 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     signature_spine::MirSignatureSpine_new(table, registry, mono_table)
 }
 
+fn signature_registry_is_first_mangled_entry(registry: SignatureRegistry, index: i32, mangled: String) -> bool {
+    let mut prior = 0
+    while prior < index {
+        if eq(signature_registry::signature_registry_mangled_at(registry, prior), clone(mangled)) {
+            return false
+        }
+        prior = prior + 1
+    }
+    true
+}
+
 fn signature_registry_apply_core_op_bindings(registry: SignatureRegistry) {
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
         let mangled = signature_registry::signature_registry_mangled_at(registry, i)
         let coid = core_op_binding::core_op_binding_lookup_for_mangled(clone(mangled))
-        if core_op_id::core_op_id_is_some(coid) {
+        // Bare aliases like `join` → string.join must not stamp every same-leaf
+        // stdlib twin (`path::join`, later `text::join` bodies). Only the first
+        // registry entry with that short mangled name inherits the bare CoreOp.
+        if core_op_id::core_op_id_is_some(coid) &&
+        signature_registry_is_first_mangled_entry(registry, i, mangled) {
             signature_registry::signature_registry_set_core_op_id_at(registry, i, coid)
         }
         i = i + 1
@@ -58,6 +74,50 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     let reg_normal = reg_count - host_count
     if fn_count != reg_normal {
         stdio::eprintln(concat(String_from("sig-reg: fn_index/registry count mismatch fn="), concat(i32_to_string(fn_count), concat(String_from(" reg="), i32_to_string(reg_normal)))))
+    }
+}
+
+fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
+    let name_len = len(qualified_name)
+    let separators = Vec_new_i32()
+    let mut index = 0
+    while index < name_len - 1 {
+        if char_at(qualified_name, index) == 58 && char_at(qualified_name, index + 1) == 58 {
+            push(separators, index)
+            index = index + 2
+        } else {
+            index = index + 1
+        }
+    }
+    if len(separators) < 2 {
+        return String_new()
+    }
+    substring(qualified_name, get_unchecked(separators, len(separators) - 2) + 2, name_len)
+}
+
+fn sig_reg_add_qualified_name_aliases(
+    registry: SignatureRegistry,
+    source: MirLowerFnIndexSource,
+    fn_info_index: i32,
+    decl_name: String,
+    fid: FunctionId
+) {
+    // Primary mangled stays the short decl name (native-cpp FunctionId resolve and
+    // ordinal matching key on MirFunction_name). Qualified aliases let MIR_CALL
+    // symbols like `path::join` hit the correct twin instead of short-name fallback.
+    if fn_info_index < 0 {
+        return
+    }
+    let qualified = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
+    if len(qualified) == 0 {
+        return
+    }
+    if !eq(clone(qualified), clone(decl_name)) {
+        signature_registry::signature_registry_add_name_alias(registry, clone(qualified), fid)
+    }
+    let import_facing = sig_reg_import_facing_qualified_name(qualified)
+    if len(import_facing) > 0 && !eq(clone(import_facing), clone(decl_name)) {
+        signature_registry::signature_registry_add_name_alias(registry, import_facing, fid)
     }
 }
 
@@ -79,8 +139,31 @@ fn sig_reg_index_top_level_fn(
     let entry_main = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
     let skip_shadow = eq(clone(decl_name), String_from("main")) && decl_index != entry_main
     if !skip_shadow {
-        signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
-        signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
+        let function_id = signature_registry_entry::sig_reg_register_fn(
+            table,
+            registry,
+            source,
+            sig_source,
+            fn_info_index,
+            typed_index,
+            clone(decl_name),
+            decl_index,
+            0 - 1,
+            kinds::ABI_KIND_NORMAL()
+        )
+        sig_reg_add_qualified_name_aliases(registry, source, fn_info_index, clone(decl_name), function_id)
+        signature_registry_build_mono::sig_reg_index_mono_variants(
+            table,
+            registry,
+            mono_table,
+            source,
+            sig_source,
+            midx,
+            clone(decl_name),
+            typed_index,
+            fn_info_index,
+            decl_index
+        )
     }
 }
 
