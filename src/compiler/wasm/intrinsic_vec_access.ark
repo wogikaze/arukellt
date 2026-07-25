@@ -144,15 +144,23 @@ fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_stru
             if len(gcsref_suffix) > 0 {
                 some_suffix = gcsref_suffix
             } else {
-                // Enum elems (JsonValue, TomlValue, …) use enum-open Option
-                // payload — never string _f1_ref0 (#726 json_get_index).
-                let open_ty = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-                if elem_gc_type >= 0 && elem_gc_type == open_ty {
-                    some_suffix = String_from("_f1_ref14")
-                } else if starts_with(clone(elem_name), String_from("enum:")) {
-                    some_suffix = String_from("_f1_ref14")
-                } else if intrinsic_vec_access_gc::elem_name_looks_like_enum(ctx, clone(elem_name)) {
-                    some_suffix = String_from("_f1_ref14")
+                let container_suffix = intrinsic_vec_access_gc::option_some_suffix_for_container_elem(clone(elem_name))
+                if len(container_suffix) > 0 {
+                    // Nested Vec/HashMap elems must use the fixed container
+                    // Option::Some payload (e.g. vec:i32 → _f1_ref10), not the
+                    // string default _f1_ref0 (#836 Vec<Vec> outer get).
+                    some_suffix = container_suffix
+                } else {
+                    // Enum elems (JsonValue, TomlValue, …) use enum-open Option
+                    // payload — never string _f1_ref0 (#726 json_get_index).
+                    let open_ty = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+                    if elem_gc_type >= 0 && elem_gc_type == open_ty {
+                        some_suffix = String_from("_f1_ref14")
+                    } else if starts_with(clone(elem_name), String_from("enum:")) {
+                        some_suffix = String_from("_f1_ref14")
+                    } else if intrinsic_vec_access_gc::elem_name_looks_like_enum(ctx, clone(elem_name)) {
+                        some_suffix = String_from("_f1_ref14")
+                    }
                 }
             }
         }
