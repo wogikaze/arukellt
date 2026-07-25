@@ -106,10 +106,17 @@ fn normalize_emit_mode(emit_mode: String) -> String {
 }
 
 fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
+    let configured = config_record::config_wasi_version(config)
+    // Explicit wasi-p2 keeps the command-world bridged path. Std helpers such as
+    // env::var lower to short MIR names (`var`) that look like library exports
+    // and must not force p1-component wrapping for P2 command fixtures (#668).
+    if eq(clone(configured), String_from("wasi-p2")) {
+        return configured
+    }
     if component::mir_has_library_exports(mir_module) {
         return String_from("p1-component")
     }
-    config_record::config_wasi_version(config)
+    configured
 }
 
 fn world_target_error(config: DriverConfig, emit_mode: String) -> String {

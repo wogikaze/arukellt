@@ -1,0 +1,199 @@
+// GC target: build Vec<String> from WASI args-sizes / arguments (P1-shaped ABI).
+// Skips argv[0] so the result matches env::arg_count / linear-memory args().
+
+use wasm::constants
+use wasm::ctx_gc_type
+use wasm::ctx_scratch
+use wasm::host_intrinsic_adapter
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::opcodes
+use wasm::string_gc_helpers
+use wasm::writer_core
+use wasm::writer_gc
+
+fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_argc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_user = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_argv = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_argv_buf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_bufsize = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_li = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_cstr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let s_slen = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_slot = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, 0)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+
+    emit_env_args_gc_fetch(w, s_argc, s_argv, s_argv_buf, s_bufsize)
+    helpers_core::emit_local_get(w, s_argc)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_user)
+    helpers_core::emit_local_get(w, s_user)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_user)
+    helpers_control::emit_end(w)
+
+    helpers_core::emit_local_get(w, s_user)
+    string_gc_helpers::emit_gc_array_new(w, arr_type)
+    helpers_core::emit_local_set(w, s_arr)
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    writer_gc::emit_gc_struct_new(w, vec_type)
+    helpers_core::emit_local_set(w, s_vec)
+
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_li)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_li)
+    helpers_core::emit_local_get(w, s_argc)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 1)
+    emit_env_args_gc_store_one(w, s_argv, s_li, s_cstr, s_slen, s_slot, s_k, s_arr, s_str, arr_type, string_type)
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_li)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    helpers_core::emit_local_get(w, s_user)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    true
+}
+
+fn emit_env_args_gc_fetch(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i32, s_bufsize: i32) {
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core::emit_call(w, 1)
+    helpers_core::emit_drop(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_argc)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_bufsize)
+
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, s_argv)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, s_argc)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, s_argv_buf)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, s_bufsize)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_argv_buf)
+    helpers_core::emit_call(w, 2)
+    helpers_core::emit_drop(w)
+}
+
+fn emit_env_args_gc_store_one(
+    w: WasmWriter,
+    s_argv: i32,
+    s_li: i32,
+    s_cstr: i32,
+    s_slen: i32,
+    s_slot: i32,
+    s_k: i32,
+    s_arr: i32,
+    s_str: i32,
+    arr_type: i32,
+    string_type: i32
+) {
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_slot)
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_cstr)
+    emit_env_args_gc_cstr_len(w, s_cstr, s_slen)
+
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_slot)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, s_slen)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_slot)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_set(w, s_str)
+    emit_env_args_gc_copy_bytes(w, s_cstr, s_slen, s_str, s_k, string_type)
+}
+
+fn emit_env_args_gc_cstr_len(w: WasmWriter, s_cstr: i32, s_slen: i32) {
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_slen)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_cstr)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_slen)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}
+
+fn emit_env_args_gc_copy_bytes(w: WasmWriter, s_cstr: i32, s_slen: i32, s_str: i32, s_k: i32, string_type: i32) {
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_k)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_core::emit_local_get(w, s_slen)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_str)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, s_cstr)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
+    writer_core::emit_byte(w, 0)
+    writer_core::emit_byte(w, 0)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_k)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}

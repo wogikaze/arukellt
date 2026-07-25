@@ -35,8 +35,9 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     writer_core::emit_bytes(out, prefix_bytes)
 
     // 2b. Core modules (section 1):
-    //   0: shared mem, 1: realloc, 2: stdout_bridge, 3: stub_env, 4: stub_fs,
-    //   5: stub_read, 6: stub_exit, 7: stderr_bridge, 8: wrapper, 9: guest
+    //   0: mem, 1: realloc, 2: stdout_bridge, 3: stub_env (unused), 4: stub_fs,
+    //   5: stub_read, 6: stub_exit, 7: stderr_bridge, 8: env_bridge, 9: wrapper,
+    //   10: guest
     p2_comp_emit_core_module(out, component_p2_bridged::p2_shared_mem_module_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_realloc_module_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_stdout_bridge_bytes())
@@ -45,6 +46,7 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("read"), String_from("stub_read"), 0))
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("exit"), String_from("stub_exit"), 1))
     p2_comp_emit_core_module(out, component_p2_bridged::p2_stderr_bridge_bytes())
+    p2_comp_emit_core_module(out, component_p2_bridged::p2_env_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_wrapper_module_bytes())
 
     // 2c. First core instance section: 6 bare instances (mem, realloc, stubs)
@@ -53,24 +55,21 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     // 2d. Core alias section: memory + realloc
     component_p2_bridged::p2_bridged_emit_core_alias_section(out)
 
-    // 2e. Canon lower: get-stdout + blocking-write-and-flush + get-stderr
+    // 2e. Canon lower: stdio + environment host funcs
     component_p2_bridged::p2_bridged_emit_canon_lower_section(out)
 
-    // 2f. Second core instance section: bridge_env + stdout/stderr bridges
+    // 2f. Second core instance section: stdio/env bridges
     component_p2_bridged::p2_bridged_emit_instance_section_2(out)
 
-    // 2g. Guest core module (module 9, defined after bridge instances)
-    //     Transform: replace memory definition with "shared" memory import
-    //     so the guest uses the same memory as the bridge modules.
+    // 2g. Guest core module (module 10)
     let guest_transformed = component_p2_shared::replace_memory_with_shared_import(stripped)
     p2_comp_emit_core_module(out, guest_transformed)
 
     // 2h. Third core instance section: guest + wrapper
     component_p2_bridged::p2_bridged_emit_instance_section_3(out)
 
-    // 2i. Run export sections (wasi:cli/run@0.2.0)
-    //     Wrapper is core instance 10; alias "run" from it
-    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 10)
+    // 2i. Run export sections — wrapper is core instance 12
+    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12)
 
     writer_core::writer_bytes(out)
 }

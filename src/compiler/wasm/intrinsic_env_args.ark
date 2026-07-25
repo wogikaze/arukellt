@@ -2,6 +2,7 @@ use wasm::constants
 use wasm::ctx_scratch
 use wasm::intrinsic_env_arg_at_body
 use wasm::intrinsic_env_arg_list_populate
+use wasm::intrinsic_env_args_gc
 use wasm::intrinsic_env_has_flag_body
 use wasm::intrinsic_env_var
 use wasm::emit_target
@@ -25,8 +26,7 @@ fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core::emit_unreachable(w)
-        return true
+        return intrinsic_env_args_gc::emit_env_args_gc(w, ctx)
     }
     emit_env_args_prepare_vec(w, ctx)
     intrinsic_env_arg_list_populate::emit_env_args_populate(w, ctx)

@@ -204,6 +204,8 @@ component-compile:wasi_http_p2.ark
 component-compile:wasi_p2_native/hello.ark
 component-compile:wasi_p2_native/exit_code.ark
 component-compile:wasi_p2_native/eprintln_stderr.ark
+component-compile:wasi_p2_native/args.ark
+component-compile:wasi_p2_native/env_var.ark
 component-compile:wit_import/compose_roundtrip/main.ark
 component-compile:wit_import/main.ark
 component-wit-parse:component/wit_quality.ark
