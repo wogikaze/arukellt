@@ -11,6 +11,7 @@ use mir::types
 use corehir::function_id
 use corehir::signature_registry
 use mir::module_spine
+use wasm::hash_aliases
 
 fn mir_enqueue_call_edges(
     m: MirModule,
@@ -84,5 +85,14 @@ fn mir_enqueue_symbol(
             }
         }
     }
-    reachability_names::mir_enqueue_reachable_name(index, functions, reachable, queue, symbol)
+    if reachability_names::mir_enqueue_reachable_name(index, functions, reachable, queue, clone(symbol)) {
+        return
+    }
+    // Builtin HashMap_* names resolve at emit via hash_aliases; keep the same
+    // stdlib bodies reachable so DCE does not leave call sites as unreachable.
+    let alias = hash_aliases::hashmap_builtin_alias(clone(symbol))
+    if eq(clone(alias), clone(symbol)) {
+        return
+    }
+    mir_enqueue_symbol(m, index, functions, reachable, queue, alias)
 }

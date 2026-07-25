@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let m = HashMap_i32_String_new()
+    let _ = HashMap_i32_String_insert(m, 1, "hi")
+    match HashMap_i32_String_get(m, 1) {
+        Some(s) => stdio::println(s),
+        None => stdio::println("missing"),
+    }
+}

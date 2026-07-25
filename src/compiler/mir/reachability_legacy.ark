@@ -9,6 +9,7 @@ use mir::module_functions
 use mir::reachability_prune
 use mir::types
 use resolver
+use wasm::hash_aliases
 
 // Pre-#823 fixpoint walk kept for A/B measurement only.
 // Enable with MIR_REACHABILITY_LEGACY_FIXPOINT=1 on a clock-capable artifact.
@@ -89,11 +90,13 @@ fn mir_legacy_mark_function_call_targets(
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             if op == opcodes::MIR_CALL() {
-                if mir_legacy_mark_reachable_name(
-                    functions,
-                    reachable,
-                    inst_accessors_literals::MirInst_str_val(inst)
-                ) {
+                let callee = inst_accessors_literals::MirInst_str_val(inst)
+                if mir_legacy_mark_reachable_name(functions, reachable, clone(callee)) {
+                    changed = true
+                }
+                let alias = hash_aliases::hashmap_builtin_alias(clone(callee))
+                if !eq(clone(alias), clone(callee)) &&
+                mir_legacy_mark_reachable_name(functions, reachable, alias) {
                     changed = true
                 }
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
