@@ -62,12 +62,15 @@ fn propagate_from_producer_inst(
         // overwrite WitParsedInterface/etc. with string here.
         let skip_ret_sync = is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0
         let mut ret_name = String_new()
-        if !skip_ret_sync {
-            ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
-            if len(ret_name) == 0 {
-                if is_generic_clone_intrinsic(clone(callee)) {
-                    ret_name = type_name_of_call_arg(f, inst)
-                } else {
+        // clone(T)->T must win over CalleePropCache / string-intrinsic tables.
+        // Cache often maps bare "clone" to String and poisons GC struct temps
+        // (doc_parse_manifest → doc_flush_fn validate fail, #730).
+        if !skip_ret_sync && is_generic_clone_intrinsic(clone(callee)) {
+            ret_name = type_name_of_call_arg(f, inst)
+        } else {
+            if !skip_ret_sync {
+                ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                if len(ret_name) == 0 {
                     ret_name = lookup_intrinsic_return_type_name(callee)
                 }
             }
@@ -106,8 +109,17 @@ fn propagate_call_variant_slot(
     false
 }
 
+// Keep in sync with mir::lower::call_types::is_clone_result_callee.
 fn is_generic_clone_intrinsic(name: String) -> bool {
-    eq(name, "__intrinsic_clone")
+    eq(clone(name), "clone") ||
+    eq(clone(name), "__intrinsic_clone") ||
+    eq(clone(name), "__intrinsic_string_clone") ||
+    eq(clone(name), "__core_string_clone_impl") ||
+    eq(clone(name), "raw_string_clone") ||
+    ends_with(clone(name), String_from("::clone")) ||
+    ends_with(clone(name), String_from("__clone")) ||
+    ends_with(clone(name), String_from("::raw_string_clone")) ||
+    ends_with(clone(name), String_from("string_clone"))
 }
 
 fn is_get_unchecked_callee(name: String) -> bool {
@@ -246,8 +258,10 @@ fn is_to_string_name(name: String) -> bool {
 }
 
 fn is_common_string_method(name: String) -> bool {
+    // "clone" is identity clone(T)->T (see is_generic_clone_intrinsic), not a
+    // String-only method. Keeping it here made GC struct clone temps validate
+    // as (ref null String) (#730).
     if eq(clone(name), "concat")
-    || eq(clone(name), "clone")
     || eq(clone(name), "trim")
     || eq(clone(name), "trim_start")
     || eq(clone(name), "trim_end")
