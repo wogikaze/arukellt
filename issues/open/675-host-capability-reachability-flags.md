@@ -63,6 +63,15 @@ This issue (#675) focuses on user-reachability and permission flags; #727
 focuses on the import-path migration. Both must be reconciled so the
 migrated capabilities remain user-reachable after the bridge is removed.
 
+## Decision note (2026-07-26)
+
+- `arukellt_host` stopgap is **rejected** because ADR-007 prohibits custom host
+  modules.
+- Execution order: **#727 first**, then #675 applies permission flags and
+  docs/manifest updates on top of the migrated WASI P2 path.
+- Runtime reachability acceptance items (HTTP/sockets/UDP success fixtures) are
+  now owned by #727; #675 will verify and gate them once #727 closes.
+
 ## References
 
 - `issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md`

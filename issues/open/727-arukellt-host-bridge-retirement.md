@@ -1,11 +1,11 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-25
+Updated: 2026-07-26
 ID: 727
 Track: wasi-feature
-Depends on: "714, 675"
-Related: "#668, #676, #830, #730"
+Depends on: "714"
+Related: "#668, #675, #676, #830, #730"
 Orchestration class: architecture-implementation
 Orchestration upstream: None
 Blocks v{N}: none
@@ -50,6 +50,10 @@ The compiler emitter should generate component-correct WIT imports for
 these capabilities, and `tools/host-linker` should link standard WASI
 imports (via `wasmtime-wasi` with `wasi-http` feature) instead of the
 custom `arukellt_host` module.
+
+After #727 closes, issue #675 will add the `--allow-http` / `--allow-net`
+runtime permission flags and update manifest/docs on top of the migrated
+WASI P2 path.
 
 ## Problem
 
