@@ -1,7 +1,7 @@
 # #705 — std::toml Full TOML 1.0 Compliance クローズ計画
 
-ステータス: Phase 1–4 実装済（lane gate PASS。close は親の verify quick 後）  
-親 issue: [#705](../../issues/open/705-std-toml-full-compliance.md)  
+ステータス: 完了  
+親 issue: [#705](../../issues/done/705-std-toml-full-compliance.md)  
 前提: #606 done  
 担当 subagent lane: `wave/705-toml-full`  
 作業 worktree: `.worktrees/wave-705-toml-full`  

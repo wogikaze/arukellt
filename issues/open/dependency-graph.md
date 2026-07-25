@@ -30,7 +30,6 @@ graph LR
   I696["696 696 — `Debug` trait and `format!` / `write!` equivalent formatting"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I704["704 std::json Full JSON RFC 8259 Compliance"]
-  I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
@@ -136,7 +135,6 @@ graph LR
 - **696** depends on: none; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
-- **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **715** depends on: 041, done); blocks: 719, 799

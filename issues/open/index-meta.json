@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T20:10:57Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -484,25 +484,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 6
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "705",
-      "path": "705-std-toml-full-compliance.md",
-      "title": "std::toml Full TOML 1.0 Compliance",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "606"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
       },
       "orchestration": {
         "class": null,

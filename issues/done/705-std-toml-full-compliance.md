@@ -1,6 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
+Updated: 2026-07-26
 ID: 705
 Track: stdlib
 Depends on: 606
@@ -28,13 +29,19 @@ rejected. The compiler's `main/script_toml.ark` and
       helpers only — TOML wrapper removed)
 - [x] Negative fixtures for malformed TOML (unclosed tables, bad arrays)
 
-## Lane progress (wave/705-toml-full)
 
-- Migrated compiler callers to `std::toml` / `toml::find_toml_*`.
-- Moved `toml_find_raw_value` / `toml_parse_string_array` into `std/toml.ark`.
-- Fixed wasm32 parse-step ABI (`Result<Toml*Step>` → direct step like JSON).
-- `stdlib_toml` fixtures: 118/118 pass (wasm32/wasi-p1).
-- Remaining for close: orchestrator `verify quick`, issue → `issues/done/`.
+## Closure note (2026-07-26)
+
+Verdict: **APPROVE**. Implementation: `0e15762b`. Close docs/index: this commit.
+
+Evidence:
+- `stdlib_toml` fixtures: 118/118 PASS (wasm32 / wasi-p1)
+- `python3 scripts/manager.py verify lane`: PASS
+- `script_toml.ark` deleted; callers use `std::toml`
+- `find_toml_section` / `find_toml_value` / `toml_get` / `toml_table_keys` public
+- Negative fixtures present (`toml_err_*`, updated invalid-* expecteds)
+- `symbol_index_paths.ark` retained for URI/path helpers only (no TOML impl)
+
 
 ## Scope
 
