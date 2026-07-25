@@ -58,14 +58,23 @@ fn native_c_type_for_value(
     if eq(clone(basename), String_from("Ordering")) {
         return String_from("int32_t")
     }
-    // Payload enums and product structs are heap-marked in enum_abi. Unmarked
-    // ENUM/STRUCT kinds are unit-enum i32 tags (RpnOp, Direction, …).
     let kind = type_table::type_entry_kind(entry)
-    if kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_STRUCT() {
+    if kind == kinds::TYPE_KIND_ENUM() {
         if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, raw_type_id) {
             return String_from("ark_object_header *")
         }
         return String_from("int32_t")
+    }
+    // STRUCT: product structs and payload enums are heap-marked. Unit enums
+    // sometimes share a STRUCT layout id — only then use i32 tags.
+    if kind == kinds::TYPE_KIND_STRUCT() {
+        if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, raw_type_id) {
+            return String_from("ark_object_header *")
+        }
+        if enum_abi::native_c_table_has_unit_enum_named(table, heap_enum_flags, clone(name)) {
+            return String_from("int32_t")
+        }
+        return String_from("ark_object_header *")
     }
     String_from("ark_object_header *")
 }

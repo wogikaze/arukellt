@@ -156,7 +156,7 @@ fn native_c_enum_type_is_heap(heap_enum_flags: Vec<i32>, raw_type_id: i32) -> bo
     get_unchecked(heap_enum_flags, raw_type_id) != 0
 }
 
-/// True when this type name is an enum that should use i32 tags (unit-only).
+/// True when an ENUM entry with this basename exists and is not heap-marked.
 fn native_c_table_has_unit_enum_named(
     table: TypeTable,
     heap_enum_flags: Vec<i32>,
@@ -167,7 +167,7 @@ fn native_c_table_has_unit_enum_named(
         return false
     }
     let type_count = type_table::TypeTable_entry_count(table)
-    let mut saw_enum_shaped = false
+    let mut saw_enum = false
     let mut type_index = 0
     while type_index < type_count {
         let entry = type_table::TypeTable_entry_at(table, type_index)
@@ -184,15 +184,9 @@ fn native_c_table_has_unit_enum_named(
             return false
         }
         if kind == kinds::TYPE_KIND_ENUM() {
-            saw_enum_shaped = true
-        }
-        // Bare STRUCT layouts for unit enums (Ordering) never get heap marks;
-        // treat unmarked ENUM/STRUCT pairs as unit tags. Product structs are
-        // heap-marked via STRUCT_NEW names during flag construction.
-        if kind == kinds::TYPE_KIND_STRUCT() {
-            saw_enum_shaped = true
+            saw_enum = true
         }
         type_index = type_index + 1
     }
-    saw_enum_shaped
+    saw_enum
 }
