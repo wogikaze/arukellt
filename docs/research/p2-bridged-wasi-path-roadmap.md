@@ -1,7 +1,7 @@
 # P2 Bridged WASI Path — 今後の調査・修正項目
 
-ステータス: **Phase A（stdout bridged path）完了（2026-07-25）** — #714 close gate 緑。  
-stderr/fs/guest-native は #668 / #076。HTTP/sockets は #727。
+ステータス: **guest-native stdio 完了（2026-07-26）** — #714 / #668 close gate 緑。  
+filesystem は #076。HTTP/sockets は #727。
 
 調査日: 2026-07-11（更新 2026-07-25）
 
@@ -46,10 +46,10 @@ core wasm (wasi:cli/stdout@0.2.0::write 疑似import)
 - [x] exit-code fixture on emitter-native path
 - [x] `arukellt-selfhost.sh run --emit component` wrapper-free
 
-### 未達成（#668 / #076 / #727 へ移管）
+### 未達成（#076 / #727 へ移管）
 
-- [ ] guest-native `get-stdout` + stream method call sites（#668）
-- [ ] stderr / args / env fixtures（#668）
+- [x] guest-native `get-stdout` + stream method call sites（#668）
+- [x] stderr / args / env fixtures（#668）
 - [ ] filesystem runtime bridge（#076）
 - [ ] HTTP/sockets standard WASI imports（#727）
 

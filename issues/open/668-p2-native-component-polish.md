@@ -11,7 +11,7 @@ Orchestration upstream: None
 Blocks v{N}: none
 Priority: 1
 Source: P0 WASI P2 native checklist audit 2026-06-17 — post-#074 polish gaps
-Status note: Parent #074 re-closed 2026-07-25; stderr + args/env bridges landed (gate-668-p2-stderr / gate-668-p2-args-env).
+Status note: Guest-native stdio + size/version/docs polish landed; close via gate-668-p2-native-polish.
 ---
 
 # 668 — P2 native component polish (post-#074)
@@ -19,25 +19,18 @@ Status note: Parent #074 re-closed 2026-07-25; stderr + args/env bridges landed 
 ## Summary
 
 Issue #074 closed the minimum P2 native command path (`gate_074`: validate + wasmtime
-`hello p2`; re-closed 2026-07-25). Several P0 items from the 2026-06-17 audit remain open: stderr,
-fixture coverage, bootstrap honesty, docs alignment, and export hygiene.
-
-This issue is the **parent polish gate** for P2 native command components. Do not
-re-open #074 for individual slices; land evidence here and in focused child slices
-if the queue grows.
+`hello p2`; re-closed 2026-07-25). This issue closes the post-#074 polish: guest-native
+stdio, stderr/args/env fixtures, size/version/docs hygiene, and the parent polish gate.
 
 ## Background
 
-- **#714 bridged close (2026-07-25):** `p2_component_wrap.py` deleted; in-tree
-  bridged emit prints `hello p2` via component imports of `wasi:cli/stdout` +
-  `wasi:io/streams` + stdout bridge. Guest core may still import a bridge
-  `write` symbol; **guest-native** `get-stdout` + stream method call sites
-  remain this issue's acceptance item.
-- `tests/fixtures/wasi_p2_native/` has hello / exit_code / eprintln / args / env_var
-  fixtures with slice gates. Guest-native stdout/stderr remains.
+- **#714 bridged close (2026-07-25):** in-tree emit with host `wasi:cli/stdout` + streams.
+- **#668 guest-native (2026-07-26):** guest calls `get-stdout` / `get-stderr` +
+  `blocking-write-and-flush` directly; stdout/stderr bridge modules removed.
+  Environment still uses a P1-shaped env bridge.
 - `BOOTSTRAP_COMPONENT_STUB` remains in `scripts/selfhost/checks.py` (FD-07 risk;
   proof gates must use s2/s3, not the stub overlay).
-- Live `wasi:cli/*` emit uses `@0.2.0` (dead `@0.2.6` path cleaned in this issue).
+- Live `wasi:cli/*` emit uses `@0.2.0`.
 
 ## Acceptance
 
@@ -45,7 +38,7 @@ if the queue grows.
       streams path) with wasmtime stderr proof fixture
       (`tests/fixtures/wasi_p2_native/eprintln_stderr.ark`,
       `scripts/check/gate-668-p2-stderr.py`)
-- [ ] Guest print path follows #714's coherent architecture: wrapper-free
+- [x] Guest print path follows #714's coherent architecture: wrapper-free
       emitter-native WASI 0.2 component output using `wasi:cli/stdout.get-stdout`
       plus `wasi:io/streams` resource methods, not pseudo direct
       `wasi:cli/stdout::write` core imports
@@ -69,12 +62,13 @@ if the queue grows.
 
 ## Close gate
 
-New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) that:
+`scripts/check/gate-668-p2-native-polish.py`:
 
-1. Compiles and runs all `wasi_p2_native/*` manifest entries under wasmtime
+1. Compiles and runs all `wasi_p2_native/*` fixtures under wasmtime
 2. Asserts platform / current-state docs do not claim P2 native is deferred-only
 3. Fails unless proof uses current s2/s3 (`lib.selfhost_s2`); bootstrap stub
    overlay is not required for the proof path
+4. Asserts guest-native import shape (no pseudo stdout/stderr `write`)
 
 ## Out of scope
 
@@ -84,11 +78,12 @@ New script `scripts/check/gate-668-p2-native-polish.py` (or extend `gate_074`) t
   to standard WASI P2 (**#727**)
 - Removing `BOOTSTRAP_COMPONENT_STUB` entirely (tracked separately if memory-budget
   work is needed; this issue only requires non-stub proof for gates)
+- Optional WIT golden / metadata dump gates (explicitly optional above)
 
 ## References
 
 - `issues/done/074-wasi-p2-native-component.md`
 - `issues/done/714-wasi-p2-emitter-native-component-output.md`
-- `scripts/selfhost/p2_component_wrap.py`, `p2_guest_stdio_patch.py`
+- `scripts/check/gate-668-p2-native-polish.py`
 - `scripts/check/check-false-done-close-gates.py` (`gate_074`)
 - `docs/process/false-done-prevention.md` (FD-07)
