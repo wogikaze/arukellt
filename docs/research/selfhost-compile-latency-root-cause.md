@@ -25,8 +25,8 @@ mem64 / fixpoint green
 ```
 
 次マイルストーンの名称は **「#824 early body lowering」ではない**。  
-正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829）。  
-#824 は計測結果から選ばれる候補の一つに留める。
+正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829, done）。  
+#824 は候補だったが、計測ゲート未達のため **wontfix**（2026-07-26）。次の支配相は `lower.reachability`。
 
 ### Acceptance を分ける
 

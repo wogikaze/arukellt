@@ -65,7 +65,7 @@ growth”).
 
 | Dominant | Next work |
 |---|---|
-| `decl_emit` | Consider [#824](824-early-body-lowering-worklist.md) |
+| `decl_emit` | [#824](824-early-body-lowering-worklist.md) — **wontfix** (gate missed 2026-07-26) |
 | `propagate` | Fixpoint / stack-producer search (new slice or extend #823 notes) |
 | `wasm emit` | Section/function rebuild, clone, name-lookup audit |
 | RSS-only growth across phases | [#826](826-symbol-path-intern-clone-audit.md) |

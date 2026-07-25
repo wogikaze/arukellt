@@ -1,5 +1,7 @@
 # #824 — Early body lowering (worklist; design first) クローズ計画
 
+wontfix: `decl_emit` gate missed (L5 11.1% / #829 after 17.9%); no early body lowering code.
+
 ステータス: **完了（wontfix / defer, 2026-07-26）** — Phase 1–2 のみ。実装なし  
 親 issue: [#824](../../issues/done/824-early-body-lowering-worklist.md)  
 前提: #823, #829, #730 done  

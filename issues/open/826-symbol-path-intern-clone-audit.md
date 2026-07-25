@@ -17,7 +17,7 @@ Blocks v4 exit: False
 
 Reduce bump-heap pressure from repeated identifier/callee/path strings and
 deep `clone` on hot selfhost compile paths. Independent of MIR reachability BFS
-(#823) and early body lowering (#824).
+(#823). Early body lowering (#824) closed wontfix (decl_emit gate missed).
 
 ## Scope
 
