@@ -43,20 +43,23 @@ validate-fail / unreachable / runtime trap が残る。
 | `get_unchecked(fs,0)(5)`（call-expr callee） | ✅ | C: callee 式 lower → `call_ref` |
 | `id(double)(5)`（戻り値 fn の即時呼び出し） | ✅ | C: fn 戻り ABI + callee 式 |
 | `Vec<Option<i32>>` / `Vec<Result<...>>` | ✅ | open-enum 配列 ABI（`A_ref14` + vec header） |
-| `Option<Vec<fn>>` / `Result<Vec<fn>, _>` | ❌ validate | `Vec<fn>` に依存 |
+| `Option<Vec<fn>>` / `Result<Vec<fn>, _>` | ✅ | ann `Option_vec:fn…` + payload `_f1_ref27` |
 | `Vec<Vec<i32>>` / `Vec<String>`（println(get) 含む） | ✅ | store policy: CALL→CALL(arg0==dest) は SET |
 
 ## Root causes（クラスタ）
 
-### A. Option/Result payload 型名正規化（部分完了）
+### A. Option/Result payload 型名正規化（ほぼ完了）
 
 - **症状**: `Option_Vec` → bind が bare `Vec` → `get`/`push` が unreachable
 - **原因**: Result Ok 抽出は `normalize_payload_elem_type_name` を呼ぶが、
   Option 抽出は substring のみだった
 - **修正済み**: `b64548d0`（`core_match_payload_bind_core` /
   `match_payload_fields` + fixture `option_match_vec_i32_get.ark`）
-- **残り**: 同様の正規化漏れが他 prefix（`Option:`, 深い `option:option:…`,
-  local ann shaping の `Option_` vs `option:` 不統一）にないか監査
+- **#832 追記**: local ann が `Option<Vec<fn>>` を裸の `Option_Vec` に潰し、
+  `gc_struct_container_ref_suffix(vec:fn*)` が structref `_ref25` に落ちていた。
+  ann を再帰 shape（`Option_vec:fn…`）し、suffix に `_ref27` / `_ref29` を追加。
+  fixtures: `collections/option_vec_fn.ark`, `result_vec_fn.ark`
+- **残り（低優先）**: `Option:` prefix 表記ゆれ、深い `option:option:…` の監査のみ
 
 ### B. `Vec<fn>` / funcref 要素配列 ABI（完了）
 
@@ -134,17 +137,18 @@ validate-fail / unreachable / runtime trap が残る。
 - [x] **D** — `Vec<Option/Result>` open-enum 配列 ABI（`0d5b7eea`）
 - [x] **E** — `get` の Option 契約 + 算術の E0208 + None tag
 - [x] **F** — nested Vec + `println(get_unchecked)` store policy
-- [ ] **A 監査** / `Option<Vec<fn>>` validate
+- [x] **A / B 残り** — `Option`/`Result`<`Vec<fn>`> ann + `_ref27` payload
 
 ## Acceptance
 
-- [ ] 上表の ❌ 行がすべて validate + hosted run で期待出力
+- [x] 上表の ❌ 行がすべて validate + hosted run で期待出力
 - [x] `get_unchecked(fs, 0)(5)` と `id(double)(5)` が `call_ref`
 - [x] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
 - [x] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
+- [x] `Option<Vec<fn>>` / `Result<Vec<fn>, String>` が validate + run
 - [x] 自由 `get(...)+get(...)` は型エラー（E0208）で失敗し、silent validate-fail にならない
-- [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E/F 分）
-- [x] `python3 scripts/manager.py verify lane --gate t3`（F 完了時）
+- [x] 回帰 fixture を `run:` + `t3-compile:` / `diag:` に登録（C/B/D/E/F/A 分）
+- [x] `python3 scripts/manager.py verify lane --gate t3`（A/Option&lt;Vec&lt;fn&gt;&gt; 完了時）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes

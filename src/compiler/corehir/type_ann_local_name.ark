@@ -38,6 +38,13 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_name(ok_ty, String_from("i64")) {
                     return String_from("Result_i64")
                 }
+                // Nested Vec so Result<Vec<fn>, E> → Result_vec:fn… (#832).
+                if type_ann_node::type_ann_is_generic(ok_ty) {
+                    let shaped = type_ann_shape_local_type_name(ok_ty, 0)
+                    if len(shaped) > 0 {
+                        return concat(String_from("Result_"), shaped)
+                    }
+                }
                 let ok_name = type_ann_node::type_ann_name(ok_ty)
                 if len(ok_name) > 0 {
                     return concat(String_from("Result_"), ok_name)
@@ -56,6 +63,13 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 }
                 if type_ann_node::type_ann_is_name(some_ty, String_from("i32")) {
                     return String_from("Option_i32")
+                }
+                // Nested Vec so Option<Vec<fn>> → Option_vec:fn (#832).
+                if type_ann_node::type_ann_is_generic(some_ty) {
+                    let shaped = type_ann_shape_local_type_name(some_ty, 0)
+                    if len(shaped) > 0 {
+                        return concat(String_from("Option_"), shaped)
+                    }
                 }
                 let some_name = type_ann_node::type_ann_name(some_ty)
                 if len(some_name) > 0 {

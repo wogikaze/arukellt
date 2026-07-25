@@ -184,6 +184,20 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
     if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
         return String_from("_ref23")
     }
+    // Vec<fn> / funcref array header (gcref27). Must win over structref (#832).
+    if eq(clone(type_name), String_from("vec:fnref")) ||
+    eq(clone(type_name), String_from("vec:fn")) ||
+    starts_with(clone(type_name), String_from("vec:fn(")) {
+        return String_from("_ref27")
+    }
+    // Vec<Option/Result/enum> open-enum array header (gcref29).
+    if starts_with(clone(type_name), String_from("vec:Option_")) ||
+    starts_with(clone(type_name), String_from("vec:Result_")) ||
+    starts_with(clone(type_name), String_from("vec:option:")) ||
+    starts_with(clone(type_name), String_from("vec:result:")) ||
+    starts_with(clone(type_name), String_from("vec:enum:")) {
+        return String_from("_ref29")
+    }
     if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap")) {
         return String_from("_ref16")
     }
@@ -209,10 +223,34 @@ fn gc_struct_container_ref_suffix(type_name: String) -> String {
         if eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char")) {
             return String_from("_ref10")
         }
+        if eq(clone(elem), String_from("fnref")) ||
+        eq(clone(elem), String_from("fn")) ||
+        starts_with(clone(elem), String_from("fn(")) {
+            return String_from("_ref27")
+        }
+        if starts_with(clone(elem), String_from("Option")) ||
+        starts_with(clone(elem), String_from("Result")) ||
+        starts_with(clone(elem), String_from("option:")) ||
+        starts_with(clone(elem), String_from("result:")) ||
+        starts_with(clone(elem), String_from("enum:")) {
+            return String_from("_ref29")
+        }
         return String_from("_ref25")
     }
     if starts_with(clone(type_name), String_from("vec:")) {
         let elem = substring(clone(type_name), 4, len(type_name))
+        if eq(clone(elem), String_from("fnref")) ||
+        eq(clone(elem), String_from("fn")) ||
+        starts_with(clone(elem), String_from("fn(")) {
+            return String_from("_ref27")
+        }
+        if starts_with(clone(elem), String_from("Option")) ||
+        starts_with(clone(elem), String_from("Result")) ||
+        starts_with(clone(elem), String_from("option:")) ||
+        starts_with(clone(elem), String_from("result:")) ||
+        starts_with(clone(elem), String_from("enum:")) {
+            return String_from("_ref29")
+        }
         if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
             if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {
                 return String_from("_ref25")
