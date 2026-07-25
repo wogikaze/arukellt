@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-16
+Updated: 2026-07-26
 ID: 822
 Parent: 729
 Track: stdlib
@@ -83,8 +83,7 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   not call the still-runtime-owned integer conversion CoreOp.
 - `scripts/tests/test_stdlib_inline.py` runs exact-result checks for the
   migrated String and Vec/seq operations in both fallback and optimized
-  builds. After the format_f64 / push_char tranche `legacy_emitter` is
-  **23** (wave path: 31 → 28 → 25 → 23).
+  builds. Wave path for `legacy_emitter`: **31 → 28 → 25 → 23 → 22 → 19 → 18**.
 - Wave `wave/822-repr-stdlib` migrated `text.format_bool`, `text.char_to_string`,
   and `core.range_new` to `normal_call` with sealed-raw / Ark bodies
   (`__core_format_bool_impl`, `__core_char_to_string_impl`,
@@ -99,16 +98,23 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
   `normal_call` via sealed `raw.f64_to_string` / `raw.string_push_char`
   and `__core_format_f64_impl` / `__core_push_char_impl`. O0/O1 probes
   `probe_format_f64_ops` and `probe_push_char_ops` cover them.
-- `text.f32_to_string` stays `legacy_emitter`: typed `f32` literals currently
-  typecheck/lower as `f64`, and the legacy `f32↔i32` bit bridge does not
-  match typed `f32` params, so a honest differential probe cannot land yet.
-- `parse.parse_*` stay `legacy_emitter`: prelude `Result` and
-  `convert::parse_*` `Option` aliases still collide on one CoreOp.
+- Typed `f32` literals now preserve the `f32` suffix through parse/MIR, emit
+  `f32.const` via demoted bits, and `text.f32_to_string` is `normal_call` to
+  `__core_f32_to_string_impl` over sealed `raw.f32_promote_f64` +
+  `raw.f64_to_string` (`probe_f32_to_string_ops`).
+- `parse.parse_{i32,i64,f64}` are `normal_call` to `__core_parse_*_impl` over
+  sealed `raw.parse_*` (Result-canonical emitters). Short `parse_*` and
+  `convert::parse_*` CoreOp aliases were removed so prelude Result bodies and
+  `std::core::convert` Option adapters are both live Ark (`probe_parse_ops`).
+  Removal condition for residual parse debt: CoreOp schema gains a real
+  Result/Option type (or equivalent) so signatures are not opaque `i32`.
+- Concrete `vec.remove_i32` is `normal_call` via `__core_vec_remove_i32_impl`
+  (`probe_remove_i32_ops`), same pattern as `reverse_i32`.
 - `seq.sort_i64` / `seq.sort_f64` stay `legacy_emitter`: an Ark insertion-sort
   body using generic `set` still emits i32 stores for i64/f64 elements
   (invalid wasm). Needs monomorphic set helpers or a typed `set` fix first.
-- Remaining `legacy_emitter` (23): Vec mutation/allocation family
-  (`vec.*`), `text.f32_to_string`, numeric parse (`parse.parse_*`),
+- Remaining `legacy_emitter` (**18**): generic Vec mutation/allocation
+  (`vec.len` / `push` / `set` / `get*` / `pop` / `Vec_new_*`),
   `seq.sort_{i64,f64}`, and SIMD portable leftovers (`simd.i32x4.*`,
   `simd.f32x4.add`). Generic Vec mutation additionally requires the
   fallback resolver to select or synthesize a call-site-specialized
@@ -116,9 +122,8 @@ to Ark stdlib bodies built on the sealed raw API delivered by #817.
 - i64/f64 monomorphic Vec helper aliases are present in the frozen registry but
   are not resolver-reachable source APIs, so they cannot yet receive required
   differential tests.
-- **Close stance:** do not move #822 to done while assigned Vec/parse/f32/
-  SIMD/sort families remain `legacy_emitter`. Prefer follow-up issues for
-  typed store / parse signature / f32 literal+ABI rather than a false close.
+- **Close stance:** do not move #822 to done while assigned Vec/sort/SIMD
+  families remain `legacy_emitter`.
 
 ## References
 

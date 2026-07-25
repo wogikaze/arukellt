@@ -1,6 +1,7 @@
 # #822 — Representation-dependent and allocating stdlib migration クローズ計画
 
-ステータス: 進行中（+ format_f64 / push_char; legacy 31→28→25→**23**）。f32_to_string / parse / Vec / sort / SIMD は阻害で残。#822 open 維持。  
+ステータス: 進行中（+ f32_to_string / parse.* / remove_i32; legacy 31→…→**18**）。
+残: generic Vec / sort_i64·f64 / SIMD。#822 open 維持。  
 
 親 issue: [#822](../../issues/open/822-representation-dependent-stdlib-migration.md)  
 前提: #798, #816, #817, #820 done（#820 は WAT export 正規表現修正後）  
