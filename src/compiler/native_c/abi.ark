@@ -52,29 +52,18 @@ fn native_c_type_for_value(
     if len(scalar) > 0 {
         return scalar
     }
-    // Unit-only std enum: cmp return may be interned under a non-ENUM/STRUCT
-    // kind while MIR still lowers tags to i32.
-    let basename = enum_abi::native_c_type_name_enum_basename(clone(name))
-    if eq(clone(basename), String_from("Ordering")) {
+    // Unit-tag enums (CONST_I32 lowering) must stay i32. Everything else that is
+    // not a scalar keeps the legacy object* ABI so IoError/JSON/Option work even
+    // when MIR STRUCT_SET omits `Enum::Variant` names.
+    if enum_abi::native_c_type_name_is_unit_tag_enum(clone(name)) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(
+        enum_abi::native_c_type_name_enum_basename(clone(name))
+    ) {
         return String_from("int32_t")
     }
-    let kind = type_table::type_entry_kind(entry)
-    if kind == kinds::TYPE_KIND_ENUM() {
-        if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, raw_type_id) {
-            return String_from("ark_object_header *")
-        }
-        return String_from("int32_t")
-    }
-    // STRUCT: product structs and payload enums are heap-marked. Unit enums
-    // sometimes share a STRUCT layout id — only then use i32 tags.
-    if kind == kinds::TYPE_KIND_STRUCT() {
-        if enum_abi::native_c_enum_type_is_heap(heap_enum_flags, raw_type_id) {
-            return String_from("ark_object_header *")
-        }
-        if enum_abi::native_c_table_has_unit_enum_named(table, heap_enum_flags, clone(name)) {
-            return String_from("int32_t")
-        }
-        return String_from("ark_object_header *")
+    // heap_enum_flags reserved for future payload-vs-unit classification.
+    if len(heap_enum_flags) < 0 {
+        return String_new()
     }
     String_from("ark_object_header *")
 }
