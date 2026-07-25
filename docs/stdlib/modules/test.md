@@ -40,8 +40,8 @@ let value = expect_ok_i32(result)  // 42
 ## Module `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)
-- Manifest-backed functions: 17
-- Stability: experimental 1, stable 16
+- Manifest-backed functions: 18
+- Stability: experimental 1, stable 17
 
 Testing utilities for fixture and example code.
 
@@ -69,7 +69,16 @@ The current module provides typed assertions and expectation helpers for
 | `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | ✅ functional | Assert that two strings are equal, showing expected and actual blocks on failure. |
 | `assert_msg` | `(bool, String) -> ()` | `stable` | ✅ functional | Assert that a boolean condition holds, with a custom failure message. |
 | `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | ✅ functional | Run f exactly iterations times and write a timing summary to stderr. |
+| `assert_eq_debug` | `(T, T) -> ()` | `stable` | ✅ functional | - |
+
+#### `std::test::assert_eq_i32`
+
+Typed i32 equality assertion; failure messages use Debug renderings.
 
 #### `std::test::bench`
 
 Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic.
+
+#### `std::test::assert_eq_debug`
+
+Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is CoreOp-bound; failure messages render both values via Debug.

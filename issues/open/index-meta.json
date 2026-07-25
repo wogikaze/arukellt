@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T20:22:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -431,23 +431,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch"
-      }
-    },
-    {
-      "id": "696",
-      "path": "696-debug-trait-format-macros.md",
-      "title": "696 — `Debug` trait and `format!` / `write!` equivalent formatting",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": "none"
       }
     },
     {

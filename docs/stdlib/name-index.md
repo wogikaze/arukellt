@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 751
+- **Canonical names:** 752
 - **Historical/deprecated names:** 3
-- **Total entries:** 754
+- **Total entries:** 755
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -66,6 +66,7 @@ Current public API names, sorted alphabetically.
 | `assert_contains` | `std::test` | `stable` | Test |
 | `assert_eq` | `prelude` | `stable` | Assert |
 | `assert_eq_bool` | `std::test` | `stable` | Test |
+| `assert_eq_debug` | `std::test` | `stable` | Test |
 | `assert_eq_f64` | `std::test` | `stable` | Test |
 | `assert_eq_i32` | `std::test` | `stable` | Test |
 | `assert_eq_i64` | `prelude` | `stable` | Assert |
@@ -838,6 +839,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_contains` | ✅ `stable` | `std::test` | Test |
 | `assert_eq` | ✅ `stable` | `prelude` | Assert |
 | `assert_eq_bool` | ✅ `stable` | `std::test` | Test |
+| `assert_eq_debug` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_f64` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_i32` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_i64` | ✅ `stable` | `prelude` | Assert |
