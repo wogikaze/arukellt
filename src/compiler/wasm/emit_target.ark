@@ -61,7 +61,8 @@ fn p2_host_import_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32)
 }
 
 fn p2_host_type_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
-    let mut count = 7
+    // Base WASI shapes (5) + P2 clocks (2) + get-stream/bwaf (2).
+    let mut count = 9
     if needs_wasi_http_outgoing == 1 { count = count + 1 }
     if needs_arukellt_host == 1 { count = count + 3 }
     return count

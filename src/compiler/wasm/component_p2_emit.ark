@@ -3,13 +3,12 @@
 // Emits a valid wasi:cli/run@0.2.0 component directly from the compiler,
 // without relying on p2_component_wrap.py.
 //
-// The bridged path:
+// The guest-native path:
 // 1. Strips wasi:clocks/* and wasi:random/* imports from the guest core wasm
-//    (keeps wasi:cli/stdout, wasi:cli/environment, wasi:filesystem, wasi:cli/stdin,
-//    wasi:cli/exit imports for wiring to bridge/stub instances).
-// 2. Embeds helper modules (shared memory, realloc, stdout bridge, stubs, wrapper)
+//    (keeps stdout/streams/stderr/env/fs/stdin/exit for direct wiring).
+// 2. Embeds helper modules (shared memory, realloc, stubs, env bridge, wrapper)
 //    + guest core module.
-// 3. Wires instances in 3 sections: bare modules, bridge+guest, wrapper.
+// 3. Canon-lowers host get-stdout/bwaf/get-stderr and wires them to guest.
 // 4. Canon-lifts wrapper's run as wasi:cli/run@0.2.0 with result type.
 
 use wasm::component_p2_bridged
@@ -20,7 +19,7 @@ use wasm::component_p2_strip
 use wasm::writer_core
 
 fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
-    // 1. Strip only wasi:clocks/ and wasi:random/ (keep stdout/env/fs/stdin/exit)
+    // 1. Strip only wasi:clocks/ and wasi:random/
     let prefixes = Vec_new_String()
     push(prefixes, String_from("wasi:clocks/"))
     push(prefixes, String_from("wasi:random/"))
@@ -29,23 +28,19 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     // 2. Build component
     let out = p2_comp_new_component_writer()
 
-    // 2a. Host import prefix (component-level type/import/alias sections for
-    //     wasi:io/error, wasi:io/streams, wasi:cli/stdout)
+    // 2a. Host import prefix (component-level type/import/alias sections)
     let prefix_bytes = component_p2_bridged::p2_host_import_prefix_bytes()
     writer_core::emit_bytes(out, prefix_bytes)
 
     // 2b. Core modules (section 1):
-    //   0: mem, 1: realloc, 2: stdout_bridge, 3: stub_env (unused), 4: stub_fs,
-    //   5: stub_read, 6: stub_exit, 7: stderr_bridge, 8: env_bridge, 9: wrapper,
-    //   10: guest
+    //   0: mem, 1: realloc, 2: stub_env, 3: stub_fs, 4: stub_read, 5: stub_exit,
+    //   6: env_bridge, 7: wrapper, 8: guest
     p2_comp_emit_core_module(out, component_p2_bridged::p2_shared_mem_module_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_realloc_module_bytes())
-    p2_comp_emit_core_module(out, component_p2_bridged::p2_stdout_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_env_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_fs_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("read"), String_from("stub_read"), 0))
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("exit"), String_from("stub_exit"), 1))
-    p2_comp_emit_core_module(out, component_p2_bridged::p2_stderr_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_env_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_wrapper_module_bytes())
 
@@ -58,18 +53,18 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     // 2e. Canon lower: stdio + environment host funcs
     component_p2_bridged::p2_bridged_emit_canon_lower_section(out)
 
-    // 2f. Second core instance section: stdio/env bridges
+    // 2f. Second core instance section: inline stdio + env bridge
     component_p2_bridged::p2_bridged_emit_instance_section_2(out)
 
-    // 2g. Guest core module (module 10)
+    // 2g. Guest core module (module 8)
     let guest_transformed = component_p2_shared::replace_memory_with_shared_import(stripped)
     p2_comp_emit_core_module(out, guest_transformed)
 
     // 2h. Third core instance section: guest + wrapper
     component_p2_bridged::p2_bridged_emit_instance_section_3(out)
 
-    // 2i. Run export sections — wrapper is core instance 12
-    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12)
+    // 2i. Run export sections — wrapper is core instance 10
+    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 10)
 
     writer_core::writer_bytes(out)
 }

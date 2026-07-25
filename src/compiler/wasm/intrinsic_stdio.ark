@@ -1,5 +1,6 @@
 use mir::inst_accessors_operands
 use mir::opcodes
+use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_stdio_gc
@@ -33,8 +34,8 @@ fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> b
 fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-        helpers_io_p2::emit_p2_write_newline(w, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
+        helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDOUT())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 1)
@@ -45,7 +46,7 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 1)
@@ -64,8 +65,8 @@ fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -
 fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-        helpers_io_p2::emit_p2_write_newline(w, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDERR())
+        helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDERR())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 2)

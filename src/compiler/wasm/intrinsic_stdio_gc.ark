@@ -23,13 +23,13 @@ fn emit_gc_heap_set(w: WasmWriter) {
 
 fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
-    helpers_io_p2::emit_p2_write_newline(w, 0)
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
+    helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDOUT())
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
 }
 
 fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
@@ -148,7 +148,7 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
 
 fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    let stderr_idx = constants::P2_IMPORT_STDERR_WRITE()
+    let stderr_idx = constants::P2_IMPORT_GET_STDERR()
     helpers_io_p2::emit_p2_write_string_local(w, buf_local, stderr_idx)
     helpers_io_p2::emit_p2_write_newline(w, stderr_idx)
 }

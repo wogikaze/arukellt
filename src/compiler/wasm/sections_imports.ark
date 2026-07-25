@@ -109,7 +109,19 @@ fn emit_p2_incoming_handler_import(import_sec: WasmWriter, host_type_map: Vec<i3
 }
 
 fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
-    emit_host_func_import(import_sec, String_from("wasi:cli/stdout@0.2.0"), String_from("write"), get_unchecked(host_type_map, 0))
+    // Guest-native stdio: get-stdout + streams.bwaf (+ get-stderr below).
+    emit_host_func_import(
+        import_sec,
+        String_from("wasi:cli/stdout@0.2.0"),
+        String_from("get-stdout"),
+        get_unchecked(host_type_map, constants::P2_HOST_TYPE_GET_STREAM())
+    )
+    emit_host_func_import(
+        import_sec,
+        String_from("wasi:io/streams@0.2.0"),
+        String_from("blocking-write-and-flush"),
+        get_unchecked(host_type_map, constants::P2_HOST_TYPE_BWAF())
+    )
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("args-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("arguments"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("open-at"), get_unchecked(host_type_map, 2))
@@ -118,7 +130,12 @@ fn emit_p2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>, needs
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
     // Stderr + environ sit before clocks/random so strip_wit_imports can still
     // treat clocks/random as a trailing suffix.
-    emit_host_func_import(import_sec, String_from("wasi:cli/stderr@0.2.0"), String_from("write"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(
+        import_sec,
+        String_from("wasi:cli/stderr@0.2.0"),
+        String_from("get-stderr"),
+        get_unchecked(host_type_map, constants::P2_HOST_TYPE_GET_STREAM())
+    )
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("environ-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("environ-get"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:clocks/monotonic-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 5))

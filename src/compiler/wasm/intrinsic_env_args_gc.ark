@@ -5,6 +5,7 @@ use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_scratch
 use wasm::host_intrinsic_adapter
+use wasm::import_indices
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_layout
@@ -33,7 +34,7 @@ fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
 
-    emit_env_args_gc_fetch(w, s_argc, s_argv, s_argv_buf, s_bufsize)
+    emit_env_args_gc_fetch(w, ctx, s_argc, s_argv, s_argv_buf, s_bufsize)
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_sub(w)
@@ -78,10 +79,17 @@ fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_env_args_gc_fetch(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i32, s_bufsize: i32) {
+fn emit_env_args_gc_fetch(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    s_argc: i32,
+    s_argv: i32,
+    s_argv_buf: i32,
+    s_bufsize: i32
+) {
     host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
     host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
-    helpers_core::emit_call(w, 1)
+    helpers_core::emit_call(w, import_indices::args_sizes_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
     helpers_memory::emit_i32_load_default(w)
@@ -108,7 +116,7 @@ fn emit_env_args_gc_fetch(w: WasmWriter, s_argc: i32, s_argv: i32, s_argv_buf: i
 
     helpers_io_layout::emit_wasi_i32_from_local(w, s_argv)
     helpers_io_layout::emit_wasi_i32_from_local(w, s_argv_buf)
-    helpers_core::emit_call(w, 2)
+    helpers_core::emit_call(w, import_indices::arguments_import_idx(ctx))
     helpers_core::emit_drop(w)
 }
 
