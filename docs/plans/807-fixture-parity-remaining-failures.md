@@ -1,6 +1,6 @@
 # #807 — Fixture parity: 367 remaining failures クローズ計画
 
-ステータス: 進行中（L2 tranche）  
+ステータス: 進行中（L3 tranche）  
 親 issue: [#807](../../issues/open/807-fixture-parity-367-remaining-failures.md)  
 担当 subagent lane: `wave/807-fixture-parity`  
 作業 worktree: `.worktrees/wave-807-fixture-parity`  
@@ -23,6 +23,19 @@
 計測:
 - コア4ディレクトリ: PASS=41 FAIL=0 SKIP=1
 - 全 suite: **PASS=1029 FAIL=327 SKIP=259**（開始レシート fail=1089 から減少）
+
+### L3 tranche（2026-07-26）— structs / tuple store materialization
+
+1. **GC ref STRUCT_GET store:** ref field gets を dest に必ず materialize（`field_access`）。
+2. **Chained field assign base:** `lower_expr` が返した local を使い、誤った stack-save を避ける。
+3. **Store policy:** `CONST_I32; LOCAL_GET; STRUCT_GET` で RHS を SKIP しない（`count = 42`）。
+4. **Tuple destructure:** `STRUCT_GET` の直後に stack `LOCAL_SET` で binding を確定（`variables/tuple`, `generics/two_params`）。
+5. **回帰回避:** `STRUCT_GET` を無条件 force-SET しない（`a.x == b.x` stack 合成 / `struct_eq`）。
+
+計測:
+- 対象フィルタ: PASS=162 FAIL=14 SKIP=13（L2 後フィルタ FAIL=17 から減少）
+- 全 suite: **PASS=1032 FAIL=324 SKIP=259**（L2 の FAIL=327 から -3）
+- 残り例: `push_chained_field`, enums 第2 variant trap, `question_mark/*`
 
 ## 2. 前提・依存
 

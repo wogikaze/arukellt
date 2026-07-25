@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
+use mir::lower::ctx_struct_layout
 use mir::inst_convert
 use mir::inst_struct_set
 use mir::inst_local_set
@@ -76,7 +77,7 @@ fn mir_emit_field_assign(ctx: LowerCtx, field_name: String, struct_idx: i32, val
     let base_type = ctx_struct_layout::ctx_resolve_struct_layout_name(ctx, raw_type)
     let mut fi_assign = 0
     let mut field_off = 0
-    let mut field_vt = value_types::VT_VOID()
+    let mut field_vt = value_types::VT_I32()
     let mut struct_byte_size = 0
     if len(base_type) > 0 {
         fi_assign = ctx_field_index(ctx, clone(base_type), clone(field_name))
@@ -84,12 +85,16 @@ fn mir_emit_field_assign(ctx: LowerCtx, field_name: String, struct_idx: i32, val
         struct_byte_size = ctx_struct_byte_size(ctx, clone(base_type))
         if ctx_struct_field_is_f64(ctx, clone(base_type), fi_assign) {
             field_vt = value_types::VT_F64()
-        }
-        if field_vt == value_types::VT_VOID() && ctx_struct_field_is_i64(ctx, clone(base_type), fi_assign) {
+        } else if ctx_struct_field_is_i64(ctx, clone(base_type), fi_assign) {
             field_vt = value_types::VT_I64()
-        }
-        if field_vt == value_types::VT_VOID() && ctx_struct_field_is_v128(ctx, clone(base_type), fi_assign) {
+        } else if ctx_struct_field_is_v128(ctx, clone(base_type), fi_assign) {
             field_vt = value_types::VT_V128()
+        } else if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(base_type), fi_assign) {
+            if ctx_gc_enum::ctx_is_gc_target(ctx) {
+                field_vt = value_types::VT_GC_REF()
+            } else {
+                field_vt = value_types::VT_REF()
+            }
         }
     } else {
         fi_assign = ctx_field_index_any(ctx, clone(field_name))

@@ -27,8 +27,14 @@ fn lower_core_assign(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) 
             if core_expr_shape_atoms::mir_core_expr_is_ident(base_expr) {
                 struct_idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(base_expr))
             } else {
-                let _base_idx = lower_core_expr(ctx, exprs, base_expr_index)
-                struct_idx = assign::mir_save_field_base_from_stack(ctx)
+                // Prefer the lowered local; stack-save is only for true
+                // stack-leave bases (#807 chained field assign).
+                let base_idx = lower_core_expr(ctx, exprs, base_expr_index)
+                if base_idx >= 0 {
+                    struct_idx = base_idx
+                } else {
+                    struct_idx = assign::mir_save_field_base_from_stack(ctx)
+                }
             }
             assign::mir_emit_field_assign(ctx, core_expr_shape_accessors::mir_core_expr_text(target_expr), struct_idx, val_idx)
         }

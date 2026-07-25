@@ -53,13 +53,14 @@ python3 scripts/manager.py selfhost fixture-parity
 ## Current count
 
 - Receipt baseline (pre-L2): 1089 failing fixtures under `fixture_parity`.
-- **After L2 tranche (2026-07-26):** `PASS=1029 FAIL=327 SKIP=259` (full
+- After L2: `PASS=1029 FAIL=327 SKIP=259`.
+- **After L3 tranche (2026-07-26):** `PASS=1032 FAIL=324 SKIP=259` (full
   `selfhost fixture-parity` on `wave/807-fixture-parity`).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
-L2 tranche:
-- Harness: P2 stdio → host-linker; `--filter-dir`; nested runtime-lock fix.
-- Compiler: bool type name on `&&`/`||`/`!`; i8/u8/i16/u16→i32 widen by callee.
+L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
+L3: GC ref struct.get store; chained field-assign base local; CONST RHS
+store before STRUCT_GET; tuple destructure LOCAL_SET (no struct_eq regress).
 
 ## New-failure ratchet
 
