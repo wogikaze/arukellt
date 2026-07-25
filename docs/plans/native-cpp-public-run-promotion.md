@@ -49,13 +49,13 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 - [x] native selfhost executor strict 3× PASS
 - [x] Linux x86-64 内部 executor contract
 
-不足:
+不足（完了済み）:
 
-- [ ] 公開 CLI run 経路（host launcher）
-- [ ] `--emit c` 正式契約と default `.c` 出力
-- [ ] clang 探索の public 共通化
-- [ ] runtime 公開配置 / installed layout
-- [ ] args / stdio / cwd / env / exit / signal 契約
+- [x] 公開 CLI run 経路（host launcher）
+- [x] `--emit c` 正式契約と default `.c` 出力
+- [x] clang 探索の public 共通化
+- [x] runtime 公開配置 / installed layout
+- [x] args / stdio / cwd / env / exit / signal 契約
 - [x] public fixture corpus / parity / promotion receipt
 - [x] `run_supported=true` + release guarantee
 
@@ -212,7 +212,7 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 - [x] ADR-050 / Linux+clang14 / private ABI / no FFI
 - [x] `run --target native-cpp` が native を起動
-- [ ] `compile --emit c` + default `.c`
-- [ ] public corpus + parity + sanitizer + installed-layout
-- [ ] receipt + guarantee + `run_supported=true`
-- [ ] #649 closed、executor/fixpoint 緑
+- [x] `compile --emit c` + default `.c`
+- [x] public corpus + parity + sanitizer + installed-layout
+- [x] receipt + guarantee + `run_supported=true`
+- [x] #649 closed、executor receipt 維持（fixpoint は ADR-029 別 gate）
