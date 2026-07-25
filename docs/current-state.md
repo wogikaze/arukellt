@@ -71,7 +71,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 |--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
 | `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
 | `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | partial | experimental | No | `c` | `c` | Public run --target native-cpp remains unsupported (ADR-050); compile --emit c is the experimental C99 contract; internal selfhost executor lane is experimental (see docs/data/native-cpp-executor-promotion-receipt.json) |
+| `native-cpp` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
 | `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles

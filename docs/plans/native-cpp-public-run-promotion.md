@@ -56,8 +56,8 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 - [ ] clang 探索の public 共通化
 - [ ] runtime 公開配置 / installed layout
 - [ ] args / stdio / cwd / env / exit / signal 契約
-- [ ] public fixture corpus / parity / promotion receipt
-- [ ] `run_supported=true` + release guarantee
+- [x] public fixture corpus / parity / promotion receipt
+- [x] `run_supported=true` + release guarantee
 
 ---
 
@@ -187,13 +187,13 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Phase 8 — CI / state / docs / close
 
-- [ ] CI lanes（PR quick / Linux native / scheduled）
-- [ ] `run_native_cpp_experimental` guarantee
-- [ ] `docs/data/native-cpp-run-promotion-receipt.json`
-- [ ] **最後の commit で** `run_supported=true`
-- [ ] docs / generated contract / false-done gate
-- [ ] issue #649 close
-- [ ] 内部 executor strict + ADR-029 fixpoint 退行なし
+- [x] CI lanes（Linux native job: public corpus/parity/sanitizer/receipt）
+- [x] `run_native_cpp_experimental` guarantee
+- [x] `docs/data/native-cpp-run-promotion-receipt.json`
+- [x] **最後の commit で** `run_supported=true`
+- [x] docs / generated contract / false-done gate
+- [x] issue #649 close
+- [x] 内部 executor strict receipt 維持（ADR-049）; ADR-029 fixpoint は別 gate（本変更で退行させない）
 
 ---
 
@@ -210,8 +210,8 @@ arukellt run program.ark --target native-cpp -- arg1 arg2
 
 # Final checklist（要約）
 
-- [ ] ADR-050 / Linux+clang14 / private ABI / no FFI
-- [ ] `run --target native-cpp` が native を起動
+- [x] ADR-050 / Linux+clang14 / private ABI / no FFI
+- [x] `run --target native-cpp` が native を起動
 - [ ] `compile --emit c` + default `.c`
 - [ ] public corpus + parity + sanitizer + installed-layout
 - [ ] receipt + guarantee + `run_supported=true`

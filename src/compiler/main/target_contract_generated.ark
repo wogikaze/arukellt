@@ -135,7 +135,7 @@ fn target_display_line(input: String) -> String {
         return String_from("  wasm32-gc  WebAssembly GC target (WASI P2, default)")
     }
     if eq(clone(input), String_from("native-cpp")) {
-        return String_from("  native-cpp  Native C99 backend (scaffold; experimental --emit c; public run pending)")
+        return String_from("  native-cpp  Native C99 backend (scaffold; experimental public run + --emit c)")
     }
     if eq(clone(input), String_from("native-llvm")) {
         return String_from("  native-llvm  Native LLVM backend scaffold")
@@ -151,7 +151,7 @@ fn target_run_supported(input: String) -> bool {
         return true
     }
     if eq(clone(input), String_from("native-cpp")) {
-        return false
+        return true
     }
     if eq(clone(input), String_from("native-llvm")) {
         return false
@@ -251,7 +251,7 @@ test mod "target_contract_generated" {
     test "allows_1_3" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wit"))) }
     test "allows_1_4" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("all"))) }
     test "default_emit_2" { assert(eq(target_default_emit_kind(String_from("native-cpp")), String_from("c"))) }
-    test "run_supported_2" { assert(target_run_supported(String_from("native-cpp")) == false) }
+    test "run_supported_2" { assert(target_run_supported(String_from("native-cpp")) == true) }
     test "allows_2_0" { assert(target_allows_emit_kind(String_from("native-cpp"), String_from("c"))) }
     test "default_emit_3" { assert(eq(target_default_emit_kind(String_from("native-llvm")), String_from("llvm"))) }
     test "run_supported_3" { assert(target_run_supported(String_from("native-llvm")) == false) }

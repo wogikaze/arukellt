@@ -65,11 +65,11 @@ id = "native-cpp"
 support_tier = "scaffold"
 implementation_state = "partial"
 contract_stability = "experimental"
-run_supported = false
+run_supported = true
 default_emit_kind = "c"
 allowed_emit_kinds = ["c"]
-role = "Public run --target native-cpp remains unsupported (ADR-050); compile --emit c is the experimental C99 contract; internal selfhost executor lane is experimental (see docs/data/native-cpp-executor-promotion-receipt.json)"
-display = "Native C99 backend (scaffold; experimental --emit c; public run pending)"
+role = "Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json)"
+display = "Native C99 backend (scaffold; experimental public run + --emit c)"
 
 [[executor_lanes]]
 id = "native-cpp-selfhost"

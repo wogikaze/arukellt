@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T09:47:23Z",
+  "generated_at": "2026-07-25T10:20:01Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -81,29 +81,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "649",
-      "path": "649-t4-native-full-lowering.md",
-      "title": "649 — Experimental public `run --target native-cpp` (`run_supported=true`)",
-      "track": "native-cpp",
-      "status": "open",
-      "depends_on": [
-        "641",
-        "834"
-      ],
-      "blocks_issue_ids": [
-        "698",
-        "699"
-      ],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 17
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },

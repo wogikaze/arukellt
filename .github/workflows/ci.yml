@@ -219,6 +219,19 @@ jobs:
           python3 scripts/check/check-native-runtime-c99-werror.py
           python3 scripts/tests/test_native_cpp_executor.py
 
+      - name: Public native-cpp run corpus / parity / sanitizer / installed layout
+        env:
+          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
+          ARUKELLT_CC: clang
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          python3 -m unittest scripts.tests.test_native_toolchain scripts.tests.test_native_cpp_runner
+          python3 -m unittest scripts.tests.test_native_cpp_parity
+          python3 scripts/check/check-native-cpp-public-sanitizer.py
+          python3 scripts/check/collect-native-cpp-public-coverage.py --write
+          python3 scripts/check/check-native-cpp-run-promotion-receipt.py
+
       - name: Forbid allow-high-rss under CI
         env:
           CI: "true"

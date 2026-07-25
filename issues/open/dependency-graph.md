@@ -10,7 +10,6 @@ graph LR
   I474["474 Async component support (v5)"]
   I60["60 074-wasi-p2-native-component"]
   I62["62 076-wasi-p2-filesystem"]
-  I649["649 649 — Experimental public `run --target native-cpp` (`run_supported=true`)"]
   I667["667 667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path"]
   I669["669 669 — WIT import IDE and formatter surface"]
   I670["670 670 — WIT import resolver hardening (duplicates, spans, collisions)"]
@@ -84,7 +83,6 @@ graph LR
   I667 --> I673
   I680 --> I682
   I686 --> I698
-  I649 --> I698
   I686 --> I801
   I691 --> I697
   I695 --> I697
@@ -98,7 +96,6 @@ graph LR
   I724 --> I729
   I791 --> I814
   I682 --> I683
-  I649 --> I699
   I698 --> I699
   I691 --> I709
   I695 --> I709
@@ -130,7 +127,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **60** depends on: 510, 121; blocks: none
 - **62** depends on: 074, 510; blocks: none
-- **649** depends on: 641, 834; blocks: 698, 699
 - **667** depends on: 666; blocks: 673
 - **669** depends on: 652, done); blocks: none
 - **670** depends on: 653, done); blocks: none

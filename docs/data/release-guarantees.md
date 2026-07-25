@@ -29,6 +29,7 @@
 | `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | 🟢 fresh | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
 | `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Both targets remain scaffold; ADR-049 adopts only the compiler-private native-cpp executor ABI |
+| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ | — | ✅ pass | 🟢 fresh | fixture-set | `local` | scaffold/partial; zero-capture HOF only; no public C ABI/FFI; capture closures unsupported (ADR-050) |
 
 ## Check catalogue
 
@@ -42,6 +43,7 @@ incidents, not by individual checks.
 
 | Check ID | Guarantee | Blocking | In full | In quick | Result | Freshness | Evidence | Affected | Incident | Last verified | Command |
 |----------|-----------|:--------:|:-------:|:--------:|--------|-----------|----------|---------:|----------|---------------|---------|
+| `check_run_native_cpp_experimental` | `run_native_cpp_experimental` | no | — | — | ✅ pass | 🟢 fresh | `fixture-set` | — | — | `local` | `python3 scripts/check/check-native-cpp-run-promotion-receipt.py && python3 -m unittest scripts.tests.test_native_cpp_runner scripts.tests.test_native_cpp_parity && python3 scripts/check/check-native-cpp-public-sanitizer.py` |
 | `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
 | `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
