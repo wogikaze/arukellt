@@ -1,7 +1,7 @@
 # #822 — Representation-dependent and allocating stdlib migration クローズ計画
 
-ステータス: **done**（Vec/String/parse/format/sort 完了。SIMD×3 は #698 へ carve-out）。
-legacy_emitter: **31 → … → 10 → 3**（残は `simd.i32x4.add/sub`, `simd.f32x4.add` のみ）。
+ステータス: **完了**（Vec/String/parse/format/sort 完了。SIMD×3 は #698 / ADR-037 へ carve-out）。
+legacy_emitter: **31 → … → 10 → 3**（残は `simd.i32x4.add/sub`, `simd.f32x4.add` のみ。#822 非担当）。
 
 親 issue: [#822](../../issues/done/822-representation-dependent-stdlib-migration.md)  
 前提: #798, #816, #817, #820 done  

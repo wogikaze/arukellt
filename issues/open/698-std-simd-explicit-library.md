@@ -36,18 +36,16 @@ load/store boundary separation, and std::wasm raw v128 intrinsics.
 ## Current state
 
 - **#822 carve-out (2026-07-26):** three portable SIMD CoreOps remain
-  `legacy_emitter` after representation-dependent Vec/String migration closed:
+  `legacy_emitter` after representation-dependent Vec/String migration closed
+  (`issues/done/822-representation-dependent-stdlib-migration.md`):
   `simd.i32x4.add`, `simd.i32x4.sub`, `simd.f32x4.add`. #822 acceptance
-  explicitly excludes these; this issue owns migrating them to portable scalar
-  Ark bodies and/or ADR-037 nominal-type `normal_call` / specialization paths.
-
-
-- `std::wasm::valtype_v128` — constant byte `0x7b` only (experimental)
-- No v128 type in typechecker / MIR / emitter
-- No SIMD opcodes in `emit_opcodes.ark`
-- No `std::simd` module
+  explicitly excludes these; **this issue (#698) + ADR-037** own migrating them
+  to portable scalar Ark bodies and/or ADR-037 nominal-type `normal_call` /
+  specialization paths (default lowering is still `legacy_emitter`; simd128
+  specialization already exists for NativeSimd).
+- Experimental `std::simd` lane modules and first-class `v128` exist (Phase 1–2
+  below); ADR-037 nominal redesign and the three leftover CoreOps remain open.
 - Issue #107 (loop vectorization hint) — rejected, deferred to v5+
-- roadmap-v4.md §4 lists SIMD as non-target (v5+ scope)
 
 ## Required work
 
@@ -179,6 +177,8 @@ load/store boundary separation, and std::wasm raw v128 intrinsics.
 - ADR-007: Target tiers (T1/T2/T3/T4/T5 SIMD availability)
 - ADR-014: Stability labels (experimental → stable promotion criteria)
 - `issues/reject/107-runtime-loop-vectorization-hint.md` — replaced by this issue
+- `issues/done/822-representation-dependent-stdlib-migration.md` — carved out
+  portable SIMD `legacy_emitter` leftovers to this issue
 - `std/wasm/mod.ark` — `valtype_v128` (stays in std::wasm)
 - [Wasm 3.0 Spec — Types](https://webassembly.github.io/spec/core/syntax/types.html)
 - [Wasm 3.0 Spec — Instructions](https://webassembly.github.io/spec/core/valid/instructions.html)

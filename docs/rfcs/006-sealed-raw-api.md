@@ -121,5 +121,5 @@ raw 層へ移した操作から順に削除する。残差は #817 完了時に�
 
 - ADR-042 D4
 - [#817](../../issues/done/817-sealed-raw-api-module.md)
-- [#822](../../issues/open/822-representation-dependent-stdlib-migration.md)
+- [#822](../../issues/done/822-representation-dependent-stdlib-migration.md)
 - [#816](../../issues/done/816-prelude-compilation-restoration.md)
