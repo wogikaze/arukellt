@@ -1,0 +1,27 @@
+use std::core::cmp
+use std::core::convert
+use std::test
+use std::text::fmt
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Eq for Point {
+    fn eq(self: Point, other: Point) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+impl Debug for Point {
+    fn fmt_debug(self: Point) -> String {
+        concat("Point { x: ", concat((self.x).to_string(), concat(", y: ", concat((self.y).to_string(), " }"))))
+    }
+}
+
+fn main() {
+    let p = Point { x: 1, y: 2 }
+    test::assert_eq_string(fmt::format_debug(p), "Point { x: 1, y: 2 }")
+    test::assert_eq_string(fmt::write_debug_to("p=", p), "p=Point { x: 1, y: 2 }")
+}

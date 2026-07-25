@@ -29,21 +29,77 @@ fn fstring_push_expr_segment(nodes: Vec<AstNode>, content: String, span: Span, o
     let clen = len(content)
     let expr_start = open_idx + 1
     let mut depth = 1
+    let mut colon_idx = 0 - 1
+    let mut in_string = false
+    let mut in_char = false
     let mut i = open_idx + 1
     while i < clen && depth > 0 {
         let ec = char_at(content, i)
-        if ec == 123 {
-            depth = depth + 1
-        }
-        if ec == 125 {
-            depth = depth - 1
+        let prev = if i > 1 { char_at(content, i - 1) } else { 0 }
+        if in_string {
+            if ec == 34 && prev != 92 {
+                in_string = false
+            }
+        } else if in_char {
+            if ec == 39 && prev != 92 {
+                in_char = false
+            }
+        } else if ec == 34 {
+            in_string = true
+        } else if ec == 39 {
+            in_char = true
+        } else {
+            if ec == 123 {
+                depth = depth + 1
+            }
+            if ec == 125 {
+                depth = depth - 1
+            }
+            // Format specifier starts at the first top-level `:` (e.g. `{x:?}`).
+            if depth == 1 && ec == 58 && colon_idx < 0 {
+                colon_idx = i
+            }
         }
         i = i + 1
     }
-    let expr_text = substring(content, expr_start, i - 1)
+    let close_idx = i - 1
+    let end_of_expr = if colon_idx >= 1 { colon_idx } else { close_idx }
+    let expr_text = substring(content, expr_start, end_of_expr)
     let toks = scan::tokenize(clone(expr_text))
     let sub_p = Parser_new(toks)
     let expr = parse_expr(sub_p)
+    if colon_idx >= 1 {
+        let spec_text = substring(content, colon_idx + 1, close_idx)
+        let spec = fstring_trim(spec_text)
+        if eq(spec, String_from("?")) {
+            // `{x:?}` → `fmt::format_debug(x)` (Debug trait dispatch).
+            push(nodes, fstring_nodes::fstring_format_debug_call(expr, span))
+            return i
+        }
+    }
     push(nodes, fstring_nodes::fstring_to_string_call(expr, span))
     i
+}
+
+fn fstring_trim(s: String) -> String {
+    let n = len(s)
+    let mut start = 0
+    let mut end = n
+    while start < end {
+        let c = char_at(s, start)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            start = start + 1
+        } else {
+            break
+        }
+    }
+    while end > start {
+        let c = char_at(s, end - 1)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            end = end - 1
+        } else {
+            break
+        }
+    }
+    substring(s, start, end)
 }

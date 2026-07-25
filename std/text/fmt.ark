@@ -91,7 +91,7 @@ pub fn format_debug<T: Debug>(value: T) -> String {
 /// `write!(buf, "{:?}", value)` equivalent — appends the `Debug` rendering of
 /// `value` to `buf` and returns the updated buffer.
 pub fn write_debug_to<T: Debug>(buf: String, value: T) -> String {
-    __intrinsic_concat(buf, value.fmt_debug())
+    concat(buf, value.fmt_debug())
 }
 
 // ── Vec<T> Debug helpers ────────────────────────────────────────────────────

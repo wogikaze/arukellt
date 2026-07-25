@@ -1376,6 +1376,8 @@ run:stdlib_string/trim_end.ark
 run:stdlib_string/trim_no_whitespace.ark
 run:stdlib_string/trim_start.ark
 run:stdlib_test/assert_eq_fail.ark
+run:stdlib_test/assert_eq_generic.ark
+run:stdlib_test/assert_eq_generic_fail.ark
 run:stdlib_test/snapshot_fail.ark
 run:stdlib_test/test_helpers.ark
 run:stdlib_text/builder_append_chain.ark
@@ -1618,6 +1620,7 @@ run:stdlib_trait/eq_i64.ark
 run:stdlib_trait/eq_string.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/eq_trait_string.ark
+run:stdlib_trait/format_debug_point.ark
 run:stdlib_trait/from_i32_to_i64.ark
 run:stdlib_trait/from_i64_to_i32.ark
 run:stdlib_trait/hash_bool_char.ark
@@ -1884,6 +1887,7 @@ run:stdlib_wit/wit_type_basic.ark
 run:stdlib_wit/wit_types.ark
 run:stdlib_wit/world_build.ark
 run:string_interp/fstring_basic.ark
+run:string_interp/fstring_debug_specifier.ark
 run:string_interp/fstring_expr.ark
 run:struct_mutation/field_assign.ark
 run:structs/basic_struct.ark
@@ -2180,6 +2184,7 @@ t3-compile:stdlib_string/string_slice.ark
 t3-compile:stdlib_string/string_split.ark
 t3-compile:stdlib_string/string_starts_ends.ark
 t3-compile:stdlib_string/to_lower_upper.ark
+t3-compile:stdlib_test/assert_eq_generic.ark
 t3-compile:stdlib_toml/toml_full_inline_dotted.ark
 t3-compile:stdlib_toml/toml_full_table_header.ark
 t3-compile:stdlib_trait/buf_read.ark
@@ -2189,6 +2194,7 @@ t3-compile:stdlib_trait/display_trait.ark
 t3-compile:stdlib_trait/display_trait_vec.ark
 t3-compile:stdlib_trait/eq_trait.ark
 t3-compile:stdlib_trait/eq_trait_string.ark
+t3-compile:stdlib_trait/format_debug_point.ark
 t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark
 t3-compile:stdlib_trait/io_backward_compat.ark
@@ -2331,6 +2337,7 @@ t3-compile:stdlib_wit/wit_ast_parse.ark
 t3-compile:stdlib_wit/wit_names.ark
 t3-compile:stdlib_wit/wit_type_basic.ark
 t3-compile:string_interp/fstring_basic.ark
+t3-compile:string_interp/fstring_debug_specifier.ark
 t3-compile:string_interp/fstring_expr.ark
 t3-compile:struct_mutation/field_assign.ark
 t3-compile:structs/basic_struct.ark
@@ -2766,6 +2773,7 @@ t3-run:stdlib_vec_ops/reverse_i32.ark
 t3-run:stdlib_vec_ops/reverse_string.ark
 t3-run:stdlib_vec_ops/sum_i32.ark
 t3-run:string_interp/fstring_basic.ark
+t3-run:string_interp/fstring_debug_specifier.ark
 t3-run:string_interp/fstring_expr.ark
 t3-run:struct_mutation/field_assign.ark
 t3-run:structs/basic_struct.ark
