@@ -1,5 +1,5 @@
+use std::json
 use lsp::feature_position
-use lsp::json_fields
 use lsp::positions
 use lsp::source_text
 use lsp::state_docs
@@ -38,8 +38,8 @@ pub fn text_position_request_has_text(req: LspTextPositionRequest) -> bool {
 }
 
 fn read_text_position_request(state: LspState, body: String) -> LspTextPositionRequest {
-    let id = json_fields::extract_int_field(clone(body), String_from("id"))
-    let uri = json_fields::extract_string_field(clone(body), String_from("uri"))
+    let id = json::json_get_int(clone(body), String_from("id"))
+    let uri = json::json_get_str(clone(body), String_from("uri"))
     let line = feature_position::extract_position_field(clone(body), String_from("line"))
     let character = feature_position::extract_position_field(clone(body), String_from("character"))
     let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T17:43:09Z",
+  "generated_at": "2026-07-25T20:19:50Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -469,25 +469,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
-      }
-    },
-    {
-      "id": "704",
-      "path": "704-std-json-full-compliance.md",
-      "title": "std::json Full JSON RFC 8259 Compliance",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "606"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
       }
     },
     {

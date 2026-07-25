@@ -1,6 +1,6 @@
 use std::host::stdio
 use std::text
-use lsp::json_escape
+use std::json
 use main::manifest_doc_lookup
 use main::manifest_doc_record
 
@@ -80,7 +80,7 @@ pub fn doc_print_function(e: manifest_doc_record::DocFnEntry, filter_target: Str
 fn doc_json_string_field(out: String, key: String, value: String, comma: bool) -> String {
     let mut r = out
     if comma { r = text::builder_append(r, String_from(",")) }
-    r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json_escape::json_escape(value), String_from("\""))))
+    r = text::builder_append(r, concat(concat(concat(String_from("\""), clone(key)), String_from("\":\"")), concat(json::json_escape(value), String_from("\""))))
     r
 }
 

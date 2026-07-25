@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    // U+0001 must be escaped as \u0001 inside a JSON string literal.
+    let encoded = json::json_encode_string(char_to_string(1))
+    test::assert_eq_string(encoded, "\"\\u0001\"")
+    let with_nullish = json::json_encode_string(concat(char_to_string(0), "a"))
+    test::assert_eq_string(with_nullish, "\"\\u0000a\"")
+}

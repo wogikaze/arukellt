@@ -1,5 +1,5 @@
 use std::text
-use lsp::json_escape
+use std::json
 use lsp::positions
 use lsp::symbol_index_record
 
@@ -7,7 +7,7 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
     let start = positions::offset_to_position(clone(text), decl_start)
     let end = positions::offset_to_position(clone(text), decl_end)
     let mut out = String_from("{\"uri\":")
-    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, json::quote_string(uri))
     out = text::builder_append(out, String_from(",\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_line(start)))
     out = text::builder_append(out, String_from(",\"character\":"))
@@ -22,7 +22,7 @@ fn symbol_location_json(uri: String, text: String, decl_start: i32, decl_end: i3
 
 fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String) -> String {
     let mut out = String_from("{\"name\":")
-    out = text::builder_append(out, json_escape::quote_string(symbol_index_record::indexed_symbol_name(sym)))
+    out = text::builder_append(out, json::quote_string(symbol_index_record::indexed_symbol_name(sym)))
     out = text::builder_append(out, String_from(",\"kind\":"))
     out = text::builder_append(out, to_string(symbol_index_record::indexed_symbol_kind(sym)))
     out = text::builder_append(out, String_from(",\"location\":"))
@@ -37,7 +37,7 @@ fn symbol_information_json(sym: symbol_index_record::IndexedSymbol, text: String
     let module_path = symbol_index_record::indexed_symbol_module_path(sym)
     if len(module_path) > 0 {
         out = text::builder_append(out, String_from(",\"containerName\":"))
-        out = text::builder_append(out, json_escape::quote_string(module_path))
+        out = text::builder_append(out, json::quote_string(module_path))
     }
     out = text::builder_append(out, String_from("}"))
     out

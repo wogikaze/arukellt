@@ -1,6 +1,6 @@
 use std::text
+use std::json
 use fmt::import_block
-use lsp::json_escape
 use lsp::organize_imports_detect
 use lsp::positions
 
@@ -18,11 +18,11 @@ fn build_semantic_fix_edit(
     )
     let end_pos = positions::offset_to_position(text, import_block::ImportBlockSpan_end(span))
     let mut out = String_from("{\"title\":")
-    out = text::builder_append(out, json_escape::quote_string(title))
+    out = text::builder_append(out, json::quote_string(title))
     out = text::builder_append(out, String_from(",\"kind\":"))
-    out = text::builder_append(out, json_escape::quote_string(kind))
+    out = text::builder_append(out, json::quote_string(kind))
     out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
-    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, json::quote_string(uri))
     out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
     out = text::builder_append(out, String_from(",\"character\":"))
@@ -32,7 +32,7 @@ fn build_semantic_fix_edit(
     out = text::builder_append(out, String_from(",\"character\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
     out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(fixed_block))
+    out = text::builder_append(out, json::quote_string(fixed_block))
     out = text::builder_append(out, String_from("}]}}}"))
     out
 }

@@ -1,10 +1,9 @@
 use std::text
+use std::json
 use analysis::ident_span
 use analysis::symbol_references
 use analysis::symbols
 use lsp::feature_request
-use lsp::json_escape
-use lsp::json_fields
 use lsp::positions
 use lsp::rename_workspace
 use lsp::responses
@@ -80,7 +79,7 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     body = text::builder_append(body, String_from(",\"character\":"))
     body = text::builder_append(body, to_string(positions::lsp_position_character(end_pos)))
     body = text::builder_append(body, String_from("}},\"placeholder\":"))
-    body = text::builder_append(body, json_escape::quote_string(name))
+    body = text::builder_append(body, json::quote_string(name))
     body = text::builder_append(body, String_from("}}"))
     body
 }
@@ -112,7 +111,7 @@ pub fn build_rename_response_for_request(state: LspState, body: String, id: i32)
     if !is_renamable_at_offset(clone(req_text), offset) {
         return null_result(id)
     }
-    let new_name = json_fields::extract_string_field(clone(body), String_from("newName"))
+    let new_name = json::json_get_str(clone(body), String_from("newName"))
     if len(new_name) == 0 || is_keyword_name(clone(new_name)) {
         return null_result(id)
     }

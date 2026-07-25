@@ -1,0 +1,11 @@
+use std::json
+use std::test
+
+fn main() {
+    let body = "{\"id\":7,\"method\":\"textDocument/hover\",\"uri\":\"file:///x.ark\"}"
+    test::assert_eq_i32(json::json_get_int(body, "id"), 7)
+    test::assert_eq_string(json::json_get_str(body, "method"), "textDocument/hover")
+    test::assert_eq_string(json::json_get_str(body, "uri"), "file:///x.ark")
+    test::assert_eq_i32(json::skip_ws("  \ttrue", 0), 3)
+    test::assert_eq_i32(json::parse_content_length("Content-Length: 12\r\n\r\n"), 12)
+}
