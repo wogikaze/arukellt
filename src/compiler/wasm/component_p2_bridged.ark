@@ -49,7 +49,9 @@ fn p2_shared_mem_module_bytes() -> Vec<i32> {
 // Without alignment, list<string> lowering from get-arguments traps
 // ("realloc return: result not aligned") under wasmtime (#668).
 fn p2_realloc_module_bytes() -> Vec<i32> {
-    p2_bridged_hex_to_bytes(String_from("0061736d0100000001090160047f7f7f7f017f030201000607017f014180200b070b01077265616c6c6f6300000a26012401017f230021042004200241016b6a200241016b417f73712104200420036a240020040b"))
+    let mut hex = String_from("0061736d0100000001090160047f7f7f7f017f030201000607017f014180200b070b01077265616c6c6f63")
+    hex = concat(hex, String_from("00000a26012401017f230021042004200241016b6a200241016b417f73712104200420036a240020040b"))
+    p2_bridged_hex_to_bytes(hex)
 }
 
 // Environment bridge: host get-arguments/get-environment → guest P1-shaped ABI.
