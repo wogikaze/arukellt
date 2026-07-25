@@ -1,6 +1,6 @@
 use std::host::stdio
 
-// RED for #836: outer get on Vec<Vec<i32>> → Option<Vec<i32>>.
+// #836: outer get on Vec<Vec<i32>> → Option<Vec<i32>>.
 // get_unchecked path is covered by vec_vec_i32.ark (#832 F).
 fn main() {
     let mut outer: Vec<Vec<i32>> = Vec_new_i32()

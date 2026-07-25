@@ -15,6 +15,7 @@ use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::block_inst_access
 use wasm::sections_types_gc_phase7
+use mir::lower::ctx_gc_struct
 use mir::opcodes as mir_opcodes
 
 // Resolve a concrete GC struct type from a struct type name (e.g. "Point").
@@ -404,6 +405,16 @@ fn resolve_get_unchecked_elem_from_func_return(ctx: SelfEmitCtx) -> i32 {
         return resolved
     }
     0 - 1
+}
+
+// Option::Some field suffix for Vec/HashMap element types.
+// Shares the MIR container slot map so outer get on Vec<Vec<T>> does not
+// fall through to string _f1_ref0 (#836).
+fn option_some_suffix_for_container_elem(elem_name: String) -> String {
+    if !ctx_gc_struct::gc_struct_field_type_is_container(clone(elem_name)) {
+        return String_new()
+    }
+    concat(String_from("_f1"), ctx_gc_struct::gc_struct_container_ref_suffix(clone(elem_name)))
 }
 
 // Map a named GC struct to `_f1_gcsref<slot>` for Option::Some payloads.

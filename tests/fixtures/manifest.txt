@@ -376,6 +376,8 @@ run:functions/vec_fn_push_call.ark
 run:collections/vec_option_i32.ark
 run:collections/vec_result_i32.ark
 run:collections/vec_vec_i32.ark
+run:collections/vec_vec_i32_get.ark
+run:collections/vec_vec_string_get.ark
 run:collections/vec_string_println_get.ark
 run:collections/option_vec_fn.ark
 run:collections/hashmap_i32_fn_call.ark
@@ -1980,6 +1982,8 @@ t3-compile:functions/vec_fn_push_call.ark
 t3-compile:collections/vec_option_i32.ark
 t3-compile:collections/vec_result_i32.ark
 t3-compile:collections/vec_vec_i32.ark
+t3-compile:collections/vec_vec_i32_get.ark
+t3-compile:collections/vec_vec_string_get.ark
 t3-compile:collections/vec_string_println_get.ark
 t3-compile:collections/option_vec_fn.ark
 t3-compile:collections/hashmap_i32_fn_call.ark
@@ -2398,6 +2402,8 @@ t3-run:functions/vec_fn_push_call.ark
 t3-run:collections/vec_option_i32.ark
 t3-run:collections/vec_result_i32.ark
 t3-run:collections/vec_vec_i32.ark
+t3-run:collections/vec_vec_i32_get.ark
+t3-run:collections/vec_vec_string_get.ark
 t3-run:collections/vec_string_println_get.ark
 t3-run:collections/option_vec_fn.ark
 t3-run:collections/hashmap_i32_fn_call.ark

@@ -55,7 +55,6 @@ graph LR
   I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I834["834 Pin bootstrap to validating Memory64 wasm32-gc"]
-  I836["836 `get` on `Vec&lt;Vec&lt;T&gt;&gt;` nullability validate-fail"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I727["727 727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports"]
   I682["682 682 — Component / WIT product-claim verification audit"]
@@ -166,7 +165,6 @@ graph LR
 - **826** depends on: 823; blocks: none
 - **830** depends on: 730; blocks: none
 - **834** depends on: 730; blocks: none
-- **836** depends on: 832; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **727** depends on: 714, 675; blocks: 819
 - **682** depends on: 679, 680; blocks: 683
