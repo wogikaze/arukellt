@@ -130,6 +130,9 @@ fn resolve_container_elem_gc_type(ctx: SelfEmitCtx, type_name: String) -> i32 {
         if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) || eq(clone(elem), String_from("Vec_String")) {
             return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
         }
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_fnref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
+        }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || starts_with(clone(elem), String_from("vec:")) || starts_with(clone(elem), String_from("Vec")) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
@@ -180,6 +183,10 @@ fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool
         writer_gc::emit_gc_array_get_i32(w, array_type)
     } else {
         writer_gc::emit_gc_array_get(w, array_type)
+    }
+    // Funcref arrays store nullable refs; callers/locals expect non-null (#832).
+    if array_type == ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx) {
+        writer_gc::emit_gc_ref_as_non_null(w)
     }
     // If array element type is abstract structref, cast to concrete struct type.
     // Prefer dest local's type (vec:String) over bare "Vec" (#726 csv_perf).

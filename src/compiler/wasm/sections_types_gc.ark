@@ -160,10 +160,13 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("SubF_GS_f0_ref12_f1_i32"))
     push(type_sigs, String_from("A_structref"))
     push(type_sigs, String_from("SubF_GS_f0_ref24_f1_i32"))
+    // Vec<fn>: nullable funcref array + vec header (#832).
+    push(type_sigs, String_from("A_fnref"))
+    push(type_sigs, String_from("SubF_GS_f0_ref26_f1_i32"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    26
+    28
 }
 
 fn gc_enum_open_type_offset() -> i32 {
@@ -208,6 +211,10 @@ fn gc_vec_i64_type_sig() -> String {
 
 fn gc_vec_f64_type_sig() -> String {
     String_from("gcref23")
+}
+
+fn gc_vec_fnref_type_sig() -> String {
+    String_from("gcref27")
 }
 
 fn gc_string_type_sig() -> String {

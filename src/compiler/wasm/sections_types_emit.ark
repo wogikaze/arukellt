@@ -27,7 +27,14 @@ fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_ty
                         if starts_with(clone(csig), String_from("GS_f")) {
                             emit_struct_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map, canon_types)
                         } else {
-                            if char_at(clone(csig), 0) == 65 {
+                            if eq(clone(csig), String_from("A_fnref")) {
+                                // Nullable (ref null $sig) so array.new_default works (#832).
+                                writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
+                                let type_idx = find_unary_callback_type_idx(canon_types)
+                                writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+                                writer_core::emit_leb128_s(type_sec, type_idx)
+                                writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+                            } else if char_at(clone(csig), 0) == 65 {
                                 sections_types_gc::emit_array_type_entry(type_sec, csig, gc_type_base, gc_struct_type_map)
                             } else {
                                 writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_FUNCTYPE())

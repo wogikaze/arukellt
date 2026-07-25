@@ -76,8 +76,14 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
     if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
         return ctx_gc_type::SelfEmitCtx_f64_array_type(ctx)
     }
+    if eq(clone(tname), String_from("vec:fnref")) || eq(clone(tname), String_from("vec:fn")) {
+        return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
+    }
     if starts_with(clone(tname), String_from("vec:")) {
         let elem = substring(clone(tname), 4, len(tname))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_fnref(clone(elem)) {
+            return ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx)
+        }
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx)
         }

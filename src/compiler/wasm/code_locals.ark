@@ -240,6 +240,19 @@ fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitC
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
         return true
     }
+    if eq(clone(type_name), String_from("vec:fnref")) || eq(clone(type_name), String_from("vec:fn")) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
+        return true
+    }
+    if starts_with(clone(type_name), String_from("vec:")) {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_fnref(clone(elem)) {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
+            return true
+        }
+    }
     false
 }
 

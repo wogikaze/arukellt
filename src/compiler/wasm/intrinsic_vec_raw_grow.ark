@@ -157,6 +157,7 @@ fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+    let is_vec_fnref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     let old_array = intrinsic_vec_push_gc::push_gc_array_scratch(
         ctx,
         0,
@@ -165,7 +166,8 @@ fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         is_vec_v128,
         is_vec_i64,
         is_vec_f64,
-        is_vec_sref
+        is_vec_sref,
+        is_vec_fnref
     )
     let new_array = intrinsic_vec_push_gc::push_gc_array_scratch(
         ctx,
@@ -175,7 +177,8 @@ fn emit_raw_array_grow_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         is_vec_v128,
         is_vec_i64,
         is_vec_f64,
-        is_vec_sref
+        is_vec_sref,
+        is_vec_fnref
     )
 
     helpers_core::emit_local_set(w, new_len)

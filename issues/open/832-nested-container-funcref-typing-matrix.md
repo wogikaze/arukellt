@@ -39,9 +39,9 @@ validate-fail / unreachable / runtime trap が残る。
 | `Result<Vec<i32>, String>` + `get_unchecked` | ✅ | |
 | `Option<Option<i32>>` / `Option<Result>` / `Result<Option>` | ✅ | 浅い入れ子は概ね可 |
 | `get(v,0) + get(v,1)`（自由 `get`） | ❌ validate | `get` → `Option<T>` を `i32.add` |
-| `Vec<fn>` push / get_unchecked / call | ❌ validate | funcref を structref 配列へ |
-| `get_unchecked(fs,0)(5)`（call-expr callee） | ❌ validate | 直前 `push` の `ref.func` まで消える |
-| `id(double)(5)`（戻り値 fn の即時呼び出し） | ❌ runtime | call-expr-as-callee |
+| `Vec<fn>` push / get_unchecked / call | ✅ | funcref 配列 ABI（`A_fnref` + vec header） |
+| `get_unchecked(fs,0)(5)`（call-expr callee） | ✅ | C: callee 式 lower → `call_ref` |
+| `id(double)(5)`（戻り値 fn の即時呼び出し） | ✅ | C: fn 戻り ABI + callee 式 |
 | `Vec<Option<i32>>` / `Vec<Result<...>>` | ❌ validate | ref-vs-ref layout |
 | `Option<Vec<fn>>` / `Result<Vec<fn>, _>` | ❌ validate | `Vec<fn>` に依存 |
 | `Vec<Vec<i32>>` / `Vec<String>`（一部経路） | ❌ runtime | validate は通るが trap |
@@ -58,25 +58,17 @@ validate-fail / unreachable / runtime trap が残る。
 - **残り**: 同様の正規化漏れが他 prefix（`Option:`, 深い `option:option:…`,
   local ann shaping の `Option_` vs `option:` 不統一）にないか監査
 
-### B. `Vec<fn>` / funcref 要素配列 ABI 未実装
+### B. `Vec<fn>` / funcref 要素配列 ABI（完了）
 
-- **症状**: `expected structref, found (ref $sig)` at `array.set`
-- **原因**: `vec:fnref` が `gc_vec_elem_name_is_struct_ref("fnref") == true`
-  になり structref 配列を選ぶ。funcref 配列型・vec header・scratch・
-  push/get emit が無い
-- **必要**:
-  1. `fnref`/`fn(` を structref 判定から除外
-  2. GC type section に `(array (mut (ref null $sig)))` + vec struct
-  3. `intrinsic_vec_*` の push/get/new が funcref 要素を扱う
-  4. `mark_vec_get_*` が要素型 `fnref` + `VT_FUNCREF` を付ける
+- **修正済み**: `A_fnref` + `SubF_GS_f0_ref26_f1_i32`、structref 判定から fnref 除外、
+  scratch / push / get / new / `call_type_vec` VT、fixture `vec_fn_push_call.ark`
+- **注意**: `push_gc_array_scratch` の arity 変更は全呼び出し側を同時更新すること
+  （`emit_raw_array_grow_gc` 漏れで s2 invalid → stale s3 が拾われる）
 
-### C. Call-expression-as-callee
+### C. Call-expression-as-callee（完了）
 
-- **症状**: `get_unchecked(fs, 0)(5)` や `id(double)(5)` が壊れる
-- **原因**: `core_call_direct_args` の funcref 経路は **callee が ident** のときだけ。
-  Call/式 callee は間接呼び出しに落ちず、staging / stack が崩れる
-  （同関数内の先行 `push(fs, double)` から `ref.func` が消える例あり）
-- **必要**: callee 式を先に lower → funcref local なら `call_ref`
+- **修正済み**: fn 戻り ABI（`VT_FUNCREF`）+ callee 式 lower → `call_ref`、
+  CALL 結果の FUNCREF store 強制。fixtures: `fn_return_bind` / `call_expr_callee`
 
 ### D. `Vec<Option<T>>` / `Vec<Result<T,E>>` 要素 layout
 
@@ -139,16 +131,23 @@ validate-fail / unreachable / runtime trap が残る。
 - HashMap&lt;K, fn&gt; 完全対応（B の後続で別 issue 可）
 - `get` の暗黙 unwrap 糖衣
 
+## Progress
+
+- [x] **C** — call-expr callee / fn 戻り（`c556263b`）
+- [x] **B** — `Vec<fn>` funcref 配列 ABI + `vec_fn_push_call`
+- [ ] **D** — `Vec<Option/Result>` 要素 layout
+- [ ] **A 監査** / **E** / **F**
+
 ## Acceptance
 
 - [ ] 上表の ❌ 行がすべて validate + hosted run で期待出力
-- [ ] `get_unchecked(fs, 0)(5)` と `id(double)(5)` が `call_ref`
-- [ ] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
+- [x] `get_unchecked(fs, 0)(5)` と `id(double)(5)` が `call_ref`
+- [x] `Vec<fn(i32)->i32>` の push/get_unchecked/call が funcref 配列で通る
 - [ ] `Vec<Option<i32>>` / `Vec<Result<i32,String>>` が validate + run
 - [ ] 自由 `get(...)+get(...)` は型エラー（または明示ドキュメント + lint）で失敗し、
       silent validate-fail にならない
-- [ ] 回帰 fixture を `run:` + `t3-compile:` に登録
-- [ ] `python3 scripts/manager.py verify lane --gate t3`
+- [x] 回帰 fixture を `run:` + `t3-compile:` に登録（C/B 分）
+- [x] `python3 scripts/manager.py verify lane --gate t3`（B 完了時）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes
