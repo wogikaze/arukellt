@@ -1,6 +1,6 @@
 # #809 — WAT roundtrip failure クローズ計画
 
-ステータス: 計画  
+ステータス: 実装済み（レーン検証中）  
 親 issue: [#809](../../issues/open/809-wat-roundtrip-failure.md)  
 担当 subagent lane: `wave/809-wat-roundtrip`  
 作業 worktree: `.worktrees/wave-809-wat-roundtrip`  

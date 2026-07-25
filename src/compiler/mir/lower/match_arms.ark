@@ -1,12 +1,21 @@
 use mir::lower::ast_node
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
 use mir::lower_kinds
 use mir::lower::ctx_types
 use mir::inst_structured_control
 
-fn mir_match_is_catchall(pat: AstNode) -> bool {
-    ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) || ast_node::node_kind_is(pat, lower_kinds::NK_PAT_WILDCARD())
+fn mir_match_is_catchall(ctx: LowerCtx, pat: AstNode) -> bool {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_WILDCARD()) {
+        return true
+    }
+    if !ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+        return false
+    }
+    // Bare `None`/`Some`/`Ok`/`Err` parse as PatIdent. Treat registered unit
+    // variants as discriminant arms, not catchall binds (#809).
+    ctx_api_variants::ctx_variant_tag(ctx, ast_node::node_text(pat)) < 0
 }
 
 fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {

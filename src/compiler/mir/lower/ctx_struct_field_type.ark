@@ -126,26 +126,69 @@ fn ctx_struct_layout_exists(ctx: LowerCtx, struct_name: String) -> bool {
 }
 
 fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> String {
-    if contains(clone(variant_name), String_from("::")) {
+    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
+    // Bare `Table` → unique `TomlValue::Table` (#726).
+    if !contains(clone(variant_name), String_from("::")) {
+        let suffix = concat(String_from("::"), clone(variant_name))
+        let mut si = 0
+        let mut found = String_new()
+        let mut hits = 0
+        while si < sc {
+            let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
+            if ends_with(clone(sn), clone(suffix)) {
+                found = sn
+                hits = hits + 1
+            }
+            si = si + 1
+        }
+        if hits == 1 {
+            return found
+        }
         return variant_name
     }
-    let suffix = concat(String_from("::"), clone(variant_name))
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    let mut found = String_new()
-    let mut hits = 0
-    while si < sc {
-        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si)
-        if ends_with(clone(sn), clone(suffix)) {
-            found = sn
-            hits = hits + 1
+    // Module-qualified arms (`types::WitType::List`) share the Enum::Variant
+    // key with layouts registered as `WitType::List` (#809).
+    let query_key = variant_layout_enum_variant_key(clone(variant_name))
+    let mut si2 = 0
+    let mut best = String_new()
+    let mut best_len = 0 - 1
+    let mut hits2 = 0
+    while si2 < sc {
+        let sn = ctx_struct_storage::ctx_struct_layout_name_at(ctx, si2)
+        if eq(variant_layout_enum_variant_key(clone(sn)), clone(query_key)) {
+            hits2 = hits2 + 1
+            let sn_len = len(sn)
+            if sn_len > best_len {
+                best_len = sn_len
+                best = sn
+            }
         }
-        si = si + 1
+        si2 = si2 + 1
     }
-    if hits == 1 {
-        return found
+    if hits2 > 0 {
+        return best
     }
     variant_name
+}
+
+fn variant_layout_enum_variant_key(name: String) -> String {
+    let n = len(name)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            prev_sep = last_sep
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 || prev_sep < 0 {
+        return name
+    }
+    substring(name, prev_sep + 2, n)
 }
 
 fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {

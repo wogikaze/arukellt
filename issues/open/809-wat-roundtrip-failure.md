@@ -55,6 +55,28 @@ python3 scripts/manager.py verify full
 
 1 failing fixture
 
+## Root cause (2026-07-26)
+
+`stdlib_wit/wit_print.ark` pulled in `std/wit/printer.ark`, whose match arms use
+module-qualified patterns (`types::WitType::Bool`). The pattern parser only
+accepted a single `Ident::Ident` segment, so the trailing `::Variant` was left
+unparsed. Match lowering recovered into ill-formed `if`/`else` chains
+(`else` outside `If`), which `wasm-tools print` rejected.
+
+Fixes:
+1. Parser: multi-segment path patterns (`A::B::C`) in `pattern_ident.ark`
+2. Variant tag / layout lookup: `Enum::Variant` key aliasing for
+   `types::WitType::Bool` → `WitType::Bool`
+3. Exhaustiveness: `variant_base_name` uses the last `::` leaf so coverage
+   records `Bool` rather than `WitType::Bool`
+4. Bare `None`/`Some`/`Ok`/`Err` PatIdent arms are unit variants, not
+   catchalls — avoids orphan `else` in Option/Result matches
+   (`partial_ord_f64_nan`)
+
+`canonical_list` / `canonical_string` already roundtripped on current s2; the
+receipt's 6 failures were the wit_print pair (×2 targets) plus stale canonical
+pairs.
+
 ## New-failure ratchet
 
 No new WAT roundtrip failures may be added. The count must only decrease.

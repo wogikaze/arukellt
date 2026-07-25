@@ -135,6 +135,15 @@ fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
             if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) {
                 return true
             }
+            if core_expr_shape_patterns::mir_core_expr_is_pat_ident(scan_pat) {
+                let iname = core_expr_shape_accessors::mir_core_expr_text(scan_pat)
+                if eq(clone(iname), String_from("None")) ||
+                eq(clone(iname), String_from("Some")) ||
+                eq(clone(iname), String_from("Ok")) ||
+                eq(clone(iname), String_from("Err")) {
+                    return true
+                }
+            }
             if core_expr_shape_patterns::mir_core_expr_is_pat_or(scan_pat) {
                 let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(scan_pat)
                 let mut or_oi = 0

@@ -18,8 +18,8 @@ fn mir_emit_payload_variant_binds_if_needed(ctx: LowerCtx, info: MirMatchPayload
     match_payload::mir_emit_payload_variant_binds_if_needed(ctx, info, pat, scrut_idx)
 }
 
-fn mir_match_is_catchall(pat: AstNode) -> bool {
-    match_arms::mir_match_is_catchall(pat)
+fn mir_match_is_catchall(ctx: LowerCtx, pat: AstNode) -> bool {
+    match_arms::mir_match_is_catchall(ctx, pat)
 }
 
 fn mir_match_arm_has_guard(arm_child_count: i32) -> bool {
