@@ -1222,6 +1222,14 @@ fn native_c_emit_local(
         let destination = inst_accessors_operands::MirInst_arg0(instruction)
         let explicit_source = inst_accessors_operands::MirInst_arg1(instruction)
         let source = if explicit_source >= 0 {
+            // Drop a matching stack operand left by STRUCT_NEW / CALL so later
+            // instructions do not consume a stale aggregate or field temp.
+            if len(state.value_stack) > 0 {
+                let top = get_unchecked(state.value_stack, len(state.value_stack) - 1)
+                if top == explicit_source {
+                    pop(state.value_stack)
+                }
+            }
             explicit_source
         } else {
             native_c_stack_pop(
@@ -1814,7 +1822,20 @@ fn native_c_emit_call(
         return true
     }
     let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
-    if len(state.value_stack) < argument_count {
+    // Printlike / typed-receiver calls record the real argument local in
+    // MirInst.arg0. If-expressions intentionally leave no local_get on the
+    // stack, so the stack top may be a stale condition value (bool tag).
+    // Prefer the encoded local only when it disagrees with the stack top.
+    let explicit_first_arg = inst_accessors_operands::MirInst_arg0(instruction)
+    let stack_top_arg = if len(state.value_stack) > 0 {
+        get_unchecked(state.value_stack, len(state.value_stack) - 1)
+    } else {
+        0 - 1
+    }
+    let use_explicit_first_arg = argument_count == 1 &&
+    explicit_first_arg >= 0 &&
+    (len(state.value_stack) < 1 || stack_top_arg != explicit_first_arg)
+    if !use_explicit_first_arg && len(state.value_stack) < argument_count {
         native_c_fail(
             state,
             concat(
@@ -1827,15 +1848,27 @@ fn native_c_emit_call(
         )
         return true
     }
-    let first_argument = len(state.value_stack) - argument_count
+    let first_argument = if use_explicit_first_arg {
+        if len(state.value_stack) >= 1 {
+            len(state.value_stack) - 1
+        } else {
+            len(state.value_stack)
+        }
+    } else {
+        len(state.value_stack) - argument_count
+    }
     let arguments = Vec_new_i32()
     let mut argument_index = 0
-    while argument_index < argument_count {
-        let argument_local = get_unchecked(state.value_stack, first_argument + argument_index)
-        push(arguments, argument_local)
-        // Do not upgrade scalar locals to GC roots just because a callee
-        // parameter is typed as a pointer (unit-enum tags stay i32 and cast).
-        argument_index = argument_index + 1
+    if use_explicit_first_arg {
+        push(arguments, explicit_first_arg)
+    } else {
+        while argument_index < argument_count {
+            let argument_local = get_unchecked(state.value_stack, first_argument + argument_index)
+            push(arguments, argument_local)
+            // Do not upgrade scalar locals to GC roots just because a callee
+            // parameter is typed as a pointer (unit-enum tags stay i32 and cast).
+            argument_index = argument_index + 1
+        }
     }
     // Thin stdlib wrappers sometimes CALL themselves (method → free alias).
     // Expand known aliases to C/runtime builtins; leave true recursion alone.
@@ -1947,7 +1980,19 @@ fn native_c_emit_call(
         signature_entry::signature_entry_return_count(signature)
     }
     let destination = inst_accessors_operands::MirInst_dest(instruction)
-    if is_specialized && destination >= 0 {
+    if is_specialized &&
+    destination >= 0 &&
+    argument_count > 0 &&
+    core_call::native_c_core_call_result_is_receiver(mir_module, instruction) {
+        // Mutating vec ops return unit in C; MIR expects the receiver value.
+        native_c_append(state, concat(String_from("    "), concat(call, String_from(";\n"))))
+        native_c_emit_assignment(
+            state,
+            destination,
+            native_c_local_name(get_unchecked(arguments, 0))
+        )
+        native_c_stack_push(state, destination)
+    } else if is_specialized && destination >= 0 {
         native_c_emit_assignment(state, destination, call)
         native_c_stack_push(state, destination)
     } else if is_specialized || return_count == 0 {

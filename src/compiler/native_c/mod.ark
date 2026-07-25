@@ -1,17 +1,24 @@
 use corehir::function_id
+use corehir::core_op_id
 use corehir::core_op_registry_generated
+use corehir::kinds
+use corehir::mir_value_type
 use corehir::signature_entry
 use corehir::signature_registry
+use corehir::type_id
+use corehir::type_info_to_mir_value
 use mir::block_inst_access
 use mir::core_op_call
 use mir::function_block_queries
 use mir::function_identity
 use mir::function_locals_view
 use mir::function_param_view
+use mir::function_return_view
 use mir::inst_accessors_shape
 use mir::function_block_mutation
 use mir::module_functions
 use mir::module_spine
+use mir::value_types
 use native_c::abi
 use native_c::enum_abi
 use native_c::function_emitter
@@ -143,7 +150,56 @@ fn native_c_resolve_function_id(
         }
         registry_index = registry_index + 1
     }
-    function_id::FUNCTION_ID_INVALID()
+    // Synthetic closures (`__closure_N`) are pushed onto the MIR module after
+    // the signature spine is built, so register a MIR-derived entry on demand.
+    native_c_register_function_id_from_mir(mir_module, function)
+}
+
+fn native_c_register_function_id_from_mir(
+    mir_module: MirModule,
+    function: MirFunction
+) -> FunctionId {
+    let name = function_identity::MirFunction_name(function)
+    let table = module_spine::MirModule_type_table(mir_module)
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let params = Vec_new_MirValueType()
+    let mut param_index = 0
+    let parameter_count = function_param_view::MirFunction_param_count(function)
+    while param_index < parameter_count {
+        let param_vt = function_param_view::MirFunction_param_val_type(function, param_index)
+        push(
+            params,
+            type_info_to_mir_value::vt_to_mir_value(table, param_vt, String_new())
+        )
+        param_index = param_index + 1
+    }
+    let returns = Vec_new_MirValueType()
+    let return_vt = function_return_view::MirFunction_return_type(function)
+    if return_vt != value_types::VT_VOID() && return_vt != 0 {
+        push(
+            returns,
+            type_info_to_mir_value::vt_to_mir_value(table, return_vt, String_new())
+        )
+    }
+    let receiver = mir_value_type::MirValueType_new(
+        type_id::TYPE_ID_INVALID(),
+        kinds::VALUE_REPR_SCALAR(),
+        kinds::NULLABILITY_NOT_REF()
+    )
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(name),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        0 - 1,
+        0 - 1,
+        0,
+        core_op_id::CORE_OP_ID_NONE()
+    )
+    signature_registry::signature_registry_register(registry, entry, name)
 }
 
 fn native_c_validate_function_signature(

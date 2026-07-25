@@ -30,6 +30,17 @@ fn native_c_core_call_is_handled(call: NativeCCoreCall) -> bool { call.handled }
 fn native_c_core_call_source(call: NativeCCoreCall) -> String { clone(call.expression) }
 fn native_c_core_call_diagnostic(call: NativeCCoreCall) -> String { clone(call.diagnostic) }
 
+fn native_c_core_call_result_is_receiver(mir_module: MirModule, instruction: MirInst) -> bool {
+    // Native runtime mutators return ark_unit, but MIR/Wasm treat push as
+    // returning the vector for field/init expressions. Re-materialize arg0.
+    let handler = core_op_call::mir_call_core_op_index(mir_module, instruction)
+    if handler < 0 { return false }
+    if handler == core_op_registry_generated::core_op_handler_vec_push() { return true }
+    if handler == core_op_registry_generated::core_op_handler_vec_push_f64() { return true }
+    if handler == core_op_registry_generated::core_op_handler_vec_push_i64() { return true }
+    false
+}
+
 fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: MirInst) -> bool {
     let handler = core_op_call::mir_call_core_op_index(mir_module, instruction)
     if handler < 0 { return false }
@@ -68,6 +79,10 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
     if handler == core_op_registry_generated::core_op_handler_string_join() { return true }
     if handler == core_op_registry_generated::core_op_handler_text_string_from_bytes() { return true }
     if handler == core_op_registry_generated::core_op_handler_vec_get() { return true }
+    // push returns the receiver vector in MIR field/init expressions.
+    if handler == core_op_registry_generated::core_op_handler_vec_push() { return true }
+    if handler == core_op_registry_generated::core_op_handler_vec_push_f64() { return true }
+    if handler == core_op_registry_generated::core_op_handler_vec_push_i64() { return true }
     false
 }
 
