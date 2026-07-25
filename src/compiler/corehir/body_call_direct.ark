@@ -5,7 +5,10 @@ use corehir::expr_node_access
 use corehir::expr_node_predicates
 
 fn corehir_call_callee_supported(callee: AstNode) -> bool {
-    expr_node_predicates::expr_is_ident(callee) || expr_node_predicates::expr_is_path(callee)
+    // Call-expression callees (id(f)(x), get_unchecked(fs,0)(x)) lower via call_ref (#832).
+    expr_node_predicates::expr_is_ident(callee) ||
+    expr_node_predicates::expr_is_path(callee) ||
+    expr_node_predicates::expr_is_call(callee)
 }
 
 fn corehir_build_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {

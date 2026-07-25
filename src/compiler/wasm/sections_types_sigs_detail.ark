@@ -225,6 +225,14 @@ fn build_return_type_value_sig(
     wasi_version: String,
     mir: MirModule
 ) -> String {
+    // Funcref returns must stay (ref $sig), not GC structref (#832).
+    if eq(clone(return_type_name), String_from("fnref")) ||
+    starts_with(clone(return_type_name), String_from("fnref")) ||
+    eq(clone(return_type_name), String_from("fn")) ||
+    starts_with(clone(return_type_name), String_from("fn(")) ||
+    return_type == value_types::VT_FUNCREF() {
+        return String_from("fnref")
+    }
     let typed_sig = sections_types_gc_plan::typed_function_return_sig(mir, clone(uf.name), clone(target))
     if len(typed_sig) > 0 {
         // Typed spine may classify a registered user struct as ENUM/RESULT open

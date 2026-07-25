@@ -368,6 +368,8 @@ run:functions/early_return.ark
 run:functions/generic_fn.ark
 run:functions/higher_order.ark
 run:functions/option_fn_call.ark
+run:functions/fn_return_bind.ark
+run:functions/call_expr_callee.ark
 run:functions/multiple_params.ark
 run:functions/pub_fn.ark
 run:functions/recursive.ark
@@ -1959,6 +1961,8 @@ t3-compile:functions/early_return.ark
 t3-compile:functions/generic_fn.ark
 t3-compile:functions/higher_order.ark
 t3-compile:functions/option_fn_call.ark
+t3-compile:functions/fn_return_bind.ark
+t3-compile:functions/call_expr_callee.ark
 t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
 t3-compile:functions/recursive.ark
@@ -2364,6 +2368,8 @@ t3-run:functions/early_return.ark
 t3-run:functions/generic_fn.ark
 t3-run:functions/higher_order.ark
 t3-run:functions/option_fn_call.ark
+t3-run:functions/fn_return_bind.ark
+t3-run:functions/call_expr_callee.ark
 t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
 t3-run:functions/recursive.ark

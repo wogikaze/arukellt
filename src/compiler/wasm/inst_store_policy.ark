@@ -44,6 +44,13 @@ fn should_tee_store_early(inst: MirInst, next_op: i32, next_arg1: i32) -> bool {
 }
 
 fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    // Funcref CALL results are reloaded via local.get before call_ref; never
+    // leave them on the stack under following CONST/arg loads (#832).
+    let cur_op = inst_accessors_shape::MirInst_op(inst)
+    if (cur_op == opcodes::MIR_CALL() || cur_op == opcodes::MIR_WIT_CALL()) &&
+    inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_FUNCREF() {
+        return false
+    }
     if next_op == opcodes::MIR_RETURN() {
         if next_arg0 < 0 {
             return true
@@ -93,7 +100,9 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
                     next2_op == opcodes::MIR_CALL_INDIRECT() ||
                     next2_op == opcodes::MIR_CALL_REF() {
                         let vt = inst_accessors_shape::MirInst_val_type(inst)
-                        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+                        if vt == value_types::VT_GC_REF() ||
+                        vt == value_types::VT_REF() ||
+                        vt == value_types::VT_FUNCREF() {
                             return false
                         }
                         return true

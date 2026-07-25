@@ -84,6 +84,13 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
     if len(cleaned) == 0 {
         return
     }
+    if eq(clone(cleaned), String_from("fnref")) ||
+    eq(clone(cleaned), String_from("fn")) ||
+    starts_with(clone(cleaned), String_from("fn(")) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
+        return
+    }
     // Result/Option encodings must not go through layout basename resolve:
     // `Result_JsonValue_JsonParseError` would become `JsonParseError`.
     if is_option_or_result_type_name(clone(cleaned)) {
@@ -155,6 +162,12 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
 
 fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
+        return
+    }
+    if eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fn(")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
     if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("I32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {

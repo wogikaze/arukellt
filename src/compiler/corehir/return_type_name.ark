@@ -67,6 +67,10 @@ fn return_index_type_name(node: AstNode) -> String {
         }
         return clone(name)
     }
+    if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ret)) ||
+    eq(clone(name), String_from("fnref")) {
+        return String_from("fnref")
+    }
     if len(name) > 1 {
         return name
     }

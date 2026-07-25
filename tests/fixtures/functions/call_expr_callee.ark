@@ -1,0 +1,13 @@
+use std::host::stdio
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn id(f: fn(i32) -> i32) -> fn(i32) -> i32 {
+    f
+}
+
+fn main() {
+    stdio::println((id(double)(5)).to_string())
+}
