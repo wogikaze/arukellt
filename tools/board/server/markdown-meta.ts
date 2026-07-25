@@ -119,13 +119,38 @@ export function summaryParagraph(body: string): string {
     return stripMarkdown(collected.join(" ")).slice(0, 240);
 }
 
+const HTML_ENTITY = /&(?:#(?:x[\da-fA-F]+|\d+)|[a-zA-Z][a-zA-Z\d]+);/g;
+const NAMED_ENTITIES: Record<string, string> = {
+    amp: "&",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+};
+
+export function decodeHtmlEntities(text: string): string {
+    return text.replace(HTML_ENTITY, (entity) => {
+        if (entity[1] === "#") {
+            const code = entity[2] === "x" || entity[2] === "X"
+                ? Number.parseInt(entity.slice(3, -1), 16)
+                : Number.parseInt(entity.slice(2, -1), 10);
+            if (Number.isFinite(code) && code > 0) return String.fromCodePoint(code);
+            return entity;
+        }
+        const name = entity.slice(1, -1);
+        return name in NAMED_ENTITIES ? NAMED_ENTITIES[name] : entity;
+    });
+}
+
 export function stripMarkdown(text: string): string {
-    return text
-        .replace(/`([^`]*)`/g, "$1")
-        .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-        .replace(/\*\*|__|\*|_/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
+    return decodeHtmlEntities(
+        text
+            .replace(/`([^`]*)`/g, "$1")
+            .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+            .replace(/\*\*|__|\*|_/g, "")
+            .replace(/\s+/g, " ")
+            .trim(),
+    );
 }
 
 export function countCheckboxes(text: string): { checked: number; total: number } {

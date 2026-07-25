@@ -10,6 +10,29 @@ import { Marked } from "marked";
 
 const marked = new Marked({ gfm: true, breaks: false });
 
+const HTML_ENTITY = /&(?:#(?:x[\da-fA-F]+|\d+)|[a-zA-Z][a-zA-Z\d]+);/g;
+const NAMED_ENTITIES: Record<string, string> = {
+    amp: "&",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+};
+
+export function decodeHtmlEntities(text: string): string {
+    return text.replace(HTML_ENTITY, (entity) => {
+        if (entity[1] === "#") {
+            const code = entity[2] === "x" || entity[2] === "X"
+                ? Number.parseInt(entity.slice(3, -1), 16)
+                : Number.parseInt(entity.slice(2, -1), 10);
+            if (Number.isFinite(code) && code > 0) return String.fromCodePoint(code);
+            return entity;
+        }
+        const name = entity.slice(1, -1);
+        return name in NAMED_ENTITIES ? NAMED_ENTITIES[name] : entity;
+    });
+}
+
 const ALLOWED_TAGS = new Set([
     "a", "blockquote", "br", "code", "del", "details", "div", "em", "h1", "h2", "h3", "h4", "h5", "h6",
     "hr", "img", "input", "li", "ol", "p", "pre", "s", "span", "strong", "summary", "sub", "sup",
@@ -137,7 +160,7 @@ function markRepoLinks(root: Element, sourcePath: string): void {
  * the outline of one pane jump to the other.
  */
 export function renderMarkdown(text: string, sourcePath: string, idPrefix: string): RenderedMarkdown {
-    const parsed = marked.parse(text, { async: false });
+    const parsed = marked.parse(decodeHtmlEntities(text), { async: false });
     const doc = new DOMParser().parseFromString(`<div id="root">${parsed}</div>`, "text/html");
     const root = doc.getElementById("root");
     if (!root) return { html: "", headings: [] };
