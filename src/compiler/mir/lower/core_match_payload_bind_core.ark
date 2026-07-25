@@ -84,11 +84,22 @@ fn core_emit_payload_variant_binds(
 // When scrutinee has type "Result_i32_String", Ok bind should get "i32", Err bind should get "String".
 fn core_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> String {
     if is_some_or_ok {
+        // Normalize Vec_/Vec<T> → vec:T like Result Ok extraction so
+        // Option_Vec / option:Vec binds resolve get/push (not bare Vec).
         if starts_with(clone(scrut_type), String_from("option:")) {
-            return substring(scrut_type, 7, len(scrut_type))
+            return core_match_payload_type_extract::normalize_payload_elem_type_name(
+                substring(scrut_type, 7, len(scrut_type))
+            )
         }
         if starts_with(clone(scrut_type), String_from("Option_")) {
-            return substring(scrut_type, 7, len(scrut_type))
+            return core_match_payload_type_extract::normalize_payload_elem_type_name(
+                substring(scrut_type, 7, len(scrut_type))
+            )
+        }
+        if starts_with(clone(scrut_type), String_from("Option:")) {
+            return core_match_payload_type_extract::normalize_payload_elem_type_name(
+                substring(scrut_type, 7, len(scrut_type))
+            )
         }
         if starts_with(clone(scrut_type), String_from("Result_")) || starts_with(clone(scrut_type), String_from("result:")) {
             return core_match_payload_type_extract::core_extract_first_result_type_param(scrut_type)
