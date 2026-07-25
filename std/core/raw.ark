@@ -89,6 +89,21 @@ pub fn raw_string_push_char(s: String, value: char) {
     __intrinsic_push_char(s, value)
 }
 
+/// Parses a decimal `i32`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_i32(s: String) -> Result<i32, String> {
+    __intrinsic_parse_i32(s)
+}
+
+/// Parses a decimal `i64`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_i64(s: String) -> Result<i64, String> {
+    __intrinsic_parse_i64(s)
+}
+
+/// Parses a decimal `f64`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_f64(s: String) -> Result<f64, String> {
+    __intrinsic_parse_f64(s)
+}
+
 test mod "raw_storage" {
     test "array_primitives" {
         let values = raw_array_new(2)

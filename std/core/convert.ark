@@ -165,15 +165,25 @@ impl Debug for String {
 // `x.to_string()` instead.
 
 pub fn parse_i32(s: String) -> Option<i32> {
-    __intrinsic_parse_i32(s)
+    // Option adapter over the Result-canonical parse CoreOp (#822).
+    match __core_parse_i32_impl(s) {
+        Ok(n) => Some(n),
+        Err(_) => None,
+    }
 }
 
 pub fn parse_i64(s: String) -> Option<i64> {
-    __intrinsic_parse_i64(s)
+    match __core_parse_i64_impl(s) {
+        Ok(n) => Some(n),
+        Err(_) => None,
+    }
 }
 
 pub fn parse_f64(s: String) -> Option<f64> {
-    __intrinsic_parse_f64(s)
+    match __core_parse_f64_impl(s) {
+        Ok(n) => Some(n),
+        Err(_) => None,
+    }
 }
 
 // ---------------------------------------------------------------------------

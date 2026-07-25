@@ -62,6 +62,18 @@ fn __core_push_char_impl(s: String, value: char) {
     raw::raw_string_push_char(s, value)
 }
 
+fn __core_parse_i32_impl(s: String) -> Result<i32, String> {
+    raw::raw_parse_i32(s)
+}
+
+fn __core_parse_i64_impl(s: String) -> Result<i64, String> {
+    raw::raw_parse_i64(s)
+}
+
+fn __core_parse_f64_impl(s: String) -> Result<f64, String> {
+    raw::raw_parse_f64(s)
+}
+
 fn __core_format_i32_impl(value: i32) -> String {
     let reversed = raw::raw_array_new(12)
     let mut remaining = value

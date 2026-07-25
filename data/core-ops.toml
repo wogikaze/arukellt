@@ -217,6 +217,42 @@ alias = "__intrinsic_f64_to_string"
 core_op_id = "raw.f64_to_string"
 
 [[legacy_bindings]]
+alias = "__intrinsic_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_i64"
+core_op_id = "raw.parse_i64"
+
+[[legacy_bindings]]
+alias = "raw_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "raw_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "raw_parse_i64"
+core_op_id = "raw.parse_i64"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_i64"
+core_op_id = "raw.parse_i64"
+
+[[legacy_bindings]]
 alias = "__intrinsic_fs_read_file"
 core_op_id = "runtime.fs_read_file"
 
@@ -1137,14 +1173,6 @@ alias = "convert::i64_to_string"
 core_op_id = "text.format_i64"
 
 [[legacy_bindings]]
-alias = "convert::parse_i32"
-core_op_id = "parse.parse_i32"
-
-[[legacy_bindings]]
-alias = "convert::parse_i64"
-core_op_id = "parse.parse_i64"
-
-[[legacy_bindings]]
 alias = "core::range_contains"
 core_op_id = "core.range_contains"
 
@@ -1479,18 +1507,6 @@ core_op_id = "string.pad_right"
 [[legacy_bindings]]
 alias = "panic"
 core_op_id = "panic"
-
-[[legacy_bindings]]
-alias = "parse_f64"
-core_op_id = "parse.parse_f64"
-
-[[legacy_bindings]]
-alias = "parse_i32"
-core_op_id = "parse.parse_i32"
-
-[[legacy_bindings]]
-alias = "parse_i64"
-core_op_id = "parse.parse_i64"
 
 [[legacy_bindings]]
 alias = "pow_i32"
@@ -2704,6 +2720,121 @@ required_target_features = []
 required = false
 
 
+
+[[operations]]
+id = "raw.parse_f64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing f64 decimal parse primitive (#822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_f64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.parse_i32"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing i32 decimal parse primitive (#822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_i32"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.parse_i64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing i64 decimal parse primitive (#822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_i64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
 [[operations]]
 id = "raw.f32_promote_f64"
 visibility = "internal"
@@ -3303,9 +3434,9 @@ id = "parse.parse_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::parse_f64 (aliases: 2; parse_f64, text::parse_f64)"
+description = "Parse decimal f64 via sealed raw Result primitive (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3316,8 +3447,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3325,21 +3456,21 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_f64_impl"
+required = true
 
 [[operations]]
 id = "parse.parse_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → convert::parse_i32 (aliases: 2; parse_i32, convert::parse_i32)"
+description = "Parse decimal i32 via sealed raw Result primitive (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3350,8 +3481,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3359,21 +3490,21 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_i32_impl"
+required = true
 
 [[operations]]
 id = "parse.parse_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → convert::parse_i64 (aliases: 2; parse_i64, convert::parse_i64)"
+description = "Parse decimal i64 via sealed raw Result primitive (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3384,8 +3515,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3393,12 +3524,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_i64_impl"
+required = true
 
 [[operations]]
 id = "primitive.memory_copy"
@@ -13188,34 +13319,38 @@ id = "vec.remove_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → remove_i32 (aliases: 1; remove_i32)"
+description = "Remove an i32 Vec element by shifting via concrete Ark body (#822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.remove_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_remove_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.reverse_i32"

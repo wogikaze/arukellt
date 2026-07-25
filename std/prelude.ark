@@ -121,15 +121,15 @@ pub fn char_to_string(c: char) -> String {
 // Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
 // Conversion: from string
 pub fn parse_i32(s: String) -> Result<i32, String> {
-    panic(String_new()); return Ok(0)
+    __core_parse_i32_impl(s)
 }
 
 pub fn parse_i64(s: String) -> Result<i64, String> {
-    panic(String_new()); return Ok(0_i64)
+    __core_parse_i64_impl(s)
 }
 
 pub fn parse_f64(s: String) -> Result<f64, String> {
-    panic(String_new()); return Ok(0.0)
+    __core_parse_f64_impl(s)
 }
 
 // Math
@@ -504,7 +504,7 @@ pub fn reverse_String(v: Vec<String>) {
     __core_vec_reverse_string_impl(v)
 }
 
-pub fn remove_i32(v: Vec<i32>, index: i32) {
+fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
     let n: i32 = len(v)
     let mut i: i32 = index
     while i < n - 1 {
@@ -512,6 +512,10 @@ pub fn remove_i32(v: Vec<i32>, index: i32) {
         i = i + 1
     }
     pop(v)
+}
+
+pub fn remove_i32(v: Vec<i32>, index: i32) {
+    __core_vec_remove_i32_impl(v, index)
 }
 
 // Vec aggregation (Ark-native)
