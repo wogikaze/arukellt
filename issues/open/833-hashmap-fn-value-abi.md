@@ -110,16 +110,24 @@ HashMap_i32_i32_insert(m, 1, double)  // E0200: i32 vs struct/fn
 
 ## Acceptance
 
-- [ ] `HashMap&lt;i32, fn(i32)-&gt;i32&gt;` の new/insert/get/call が validate + hosted run
-- [ ] get の `Option&lt;fn&gt;` match で `call_ref`（unreachable にならない）
-- [ ] 回帰 fixture を manifest 登録
-- [ ] `python3 scripts/manager.py verify lane --gate t3`
+- [x] `HashMap&lt;i32, fn(i32)-&gt;i32&gt;` の new/insert/get/call が validate + hosted run
+  - evidence: `tests/fixtures/collections/hashmap_i32_fn_call.ark` → hosted stdout `10`
+- [x] get の `Option&lt;fn&gt;` match で `call_ref`（unreachable にならない）
+- [x] 回帰 fixture を manifest 登録
+  - `run:` / `t3-compile:` / `t3-run:` in `tests/fixtures/manifest.txt`
+- [x] `python3 scripts/manager.py verify lane --gate t3`（T3 gate PASS; quality changed は無関係 dirty で別失敗しうる）
 - [ ] フェーズ完了時 `python3 scripts/manager.py verify quick`
 
 ## Notes
 
 - value 配列は #832 の `A_fnref`（nullable）を再利用する。新規 array type は不要。
 - `#832` 完了後の直接後続。upstream は #832（Vec&lt;fn&gt; ABI）。
+- `std/collections/hash_fn.ark` の `get`/`remove` は early `return Some/None` を使う。
+  `let mut result: Option&lt;fn&gt; = None` 後に `result = Some(__hm_if_get_val(...))`
+  する形は、スロットに funcref が入っていても `ref.as_non_null` で trap する
+  （`Option&lt;String&gt;` の同型パターンは問題なし）。lowering 修正は follow-up。
+- MVP 正経路は `use std::collections::hash_fn`。`HashMap_i32_fn_*` builtin だけの
+  自動 load は現状 `unreachable` に落ちる（`HashMap_i32_String_*` も同型の既知ギャップ）。
 
 ## Related
 
