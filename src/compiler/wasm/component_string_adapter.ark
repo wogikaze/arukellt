@@ -1,29 +1,33 @@
+use mir::function_identity
+use mir::function_param_view
+use mir::function_return_view
+use mir::module_functions
+use mir::value_types
+use wasm::constants
 use wasm::writer_core
 use wasm::writer_string
 
-// Canonical ABI adapter core module for a single String parameter and
-// single String return value. The adapter converts between the WIT string
-// representation (i32 pointer/length in linear memory) and Arukellt's
-// internal GC array-of-i8 representation (ref null (array (mut i8))).
-//
-// This module currently only generates adapters for one string argument
-// and one string result; it can be extended once mixed scalar/string
-// component signatures are required.
+// Canonical ABI adapter core module for component functions that take or
+// return WIT strings. Each exported function gets a tiny adapter that
+// converts between the WIT string representation (i32 pointer/length in
+// linear memory) and Arukellt's internal GC array-of-i8 representation
+// (ref null (array (mut i8))). Scalar parameters and results are passed
+// through unchanged.
 
-pub fn emit_string_adapter_module(user_export_name: String) -> Vec<i32> {
+pub fn emit_string_adapter_module(mir: MirModule, adapter_indices: Vec<i32>) -> Vec<i32> {
     let out = writer_core::WasmWriter_new()
     emit_module_header(out)
 
     let type_sec = writer_core::WasmWriter_new()
-    emit_type_section(type_sec)
+    emit_type_section(type_sec, mir, adapter_indices)
     emit_core_section(out, 1, type_sec)
 
     let import_sec = writer_core::WasmWriter_new()
-    emit_import_section(import_sec, user_export_name)
+    emit_import_section(import_sec, mir, adapter_indices)
     emit_core_section(out, 2, import_sec)
 
     let func_sec = writer_core::WasmWriter_new()
-    emit_func_section(func_sec)
+    emit_func_section(func_sec, adapter_indices)
     emit_core_section(out, 3, func_sec)
 
     let mem_sec = writer_core::WasmWriter_new()
@@ -35,14 +39,78 @@ pub fn emit_string_adapter_module(user_export_name: String) -> Vec<i32> {
     emit_core_section(out, 6, global_sec)
 
     let export_sec = writer_core::WasmWriter_new()
-    emit_export_section(export_sec, user_export_name)
+    emit_export_section(export_sec, mir, adapter_indices)
     emit_core_section(out, 7, export_sec)
 
     let code_sec = writer_core::WasmWriter_new()
-    emit_code_section(code_sec)
+    emit_code_section(code_sec, mir, adapter_indices)
     emit_core_section(out, 10, code_sec)
 
     writer_core::writer_bytes(out)
+}
+
+pub fn adapter_func_needs_adapter(f: MirFunction) -> bool {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        if adapter_is_gc_ref(function_param_view::MirFunction_param_val_type(f, pi)) {
+            return true
+        }
+        pi = pi + 1
+    }
+    adapter_is_gc_ref(function_return_view::MirFunction_return_type(f))
+}
+
+pub fn adapter_func_name(f: MirFunction) -> String {
+    function_identity::MirFunction_name(f)
+}
+
+pub fn adapter_func_has_param(f: MirFunction) -> bool {
+    function_param_view::MirFunction_param_count(f) > 0
+}
+
+pub fn adapter_func_param_is_string(f: MirFunction) -> bool {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    param_count > 0 && adapter_is_gc_ref(function_param_view::MirFunction_param_val_type(f, 0))
+}
+
+pub fn adapter_func_param_type_byte(f: MirFunction) -> i32 {
+    let type_name = function_param_view::MirFunction_param_type_name(f, 0)
+    adapter_core_type_byte(type_name)
+}
+
+pub fn adapter_func_has_return(f: MirFunction) -> bool {
+    function_return_view::MirFunction_return_type(f) != value_types::VT_VOID()
+}
+
+pub fn adapter_func_return_is_string(f: MirFunction) -> bool {
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    ret_type != value_types::VT_VOID() && adapter_is_gc_ref(ret_type)
+}
+
+pub fn adapter_func_return_type_byte(f: MirFunction) -> i32 {
+    let type_name = function_return_view::MirFunction_return_type_name(f)
+    adapter_core_type_byte(type_name)
+}
+
+fn adapter_core_type_byte(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("u8")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("u16")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("u32")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("i8")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("i16")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("i32")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("bool")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("char")) { return constants::WASM_I32() }
+    if eq(clone(type_name), String_from("u64")) { return constants::WASM_I64() }
+    if eq(clone(type_name), String_from("i64")) { return constants::WASM_I64() }
+    if eq(clone(type_name), String_from("f32")) { return constants::WASM_F32() }
+    if eq(clone(type_name), String_from("f64")) { return constants::WASM_F64() }
+    constants::WASM_I32()
+}
+
+fn adapter_is_gc_ref(vt: i32) -> bool {
+    vt == value_types::VT_REF() || vt == value_types::VT_GC_REF()
 }
 
 fn emit_module_header(out: writer_core::WasmWriter) {
@@ -62,20 +130,17 @@ fn emit_core_section(out: writer_core::WasmWriter, section_id: i32, contents: wr
     writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
 }
 
-// Type indices:
-// 0: (array (mut i8))        -- string backing array
-// 1: (i32, i32, i32, i32) -> i32  -- realloc
-// 2: (ref null 0) -> (ref null 0) -- user greet
-// 3: (i32, i32) -> (i32, i32)     -- adapter greet
-fn emit_type_section(sec: writer_core::WasmWriter) {
-    writer_core::emit_leb128_u(sec, 4)
-
+fn emit_type_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
     // type 0: array (mut i8)
+    // type 1: realloc (i32, i32, i32, i32) -> i32
+    // per function: user import type, adapter export type
+    let n = len(adapter_indices)
+    writer_core::emit_leb128_u(sec, 2 + n * 2)
+
     writer_core::emit_byte(sec, 0x5e)
     writer_core::emit_byte(sec, 0x78)
     writer_core::emit_byte(sec, 0x01)
 
-    // type 1: realloc
     writer_core::emit_byte(sec, 0x60)
     writer_core::emit_leb128_u(sec, 4)
     writer_core::emit_byte(sec, 0x7f)
@@ -85,38 +150,111 @@ fn emit_type_section(sec: writer_core::WasmWriter) {
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_byte(sec, 0x7f)
 
-    // type 2: user greet
-    writer_core::emit_byte(sec, 0x60)
-    writer_core::emit_leb128_u(sec, 1)
-    writer_core::emit_byte(sec, 0x63)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 1)
-    writer_core::emit_byte(sec, 0x63)
-    writer_core::emit_byte(sec, 0x00)
-
-    // type 3: adapter greet (i32, i32) -> (i32)
-    // The single i32 return is a pointer to a (ptr, len) record for the
-    // canonical ABI; the record points at the UTF-8 string in linear memory.
-    writer_core::emit_byte(sec, 0x60)
-    writer_core::emit_leb128_u(sec, 2)
-    writer_core::emit_byte(sec, 0x7f)
-    writer_core::emit_byte(sec, 0x7f)
-    writer_core::emit_leb128_u(sec, 1)
-    writer_core::emit_byte(sec, 0x7f)
+    let mut fi = 0
+    while fi < n {
+        let idx = get_unchecked(adapter_indices, fi)
+        let f = module_functions::MirModule_function_at(mir, idx)
+        emit_user_import_type(sec, f)
+        emit_adapter_export_type(sec, f)
+        fi = fi + 1
+    }
 }
 
-fn emit_import_section(sec: writer_core::WasmWriter, user_export_name: String) {
-    writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("user"))
-    writer_string::emit_string(sec, user_export_name)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 2)
+fn emit_user_import_type(sec: writer_core::WasmWriter, f: MirFunction) {
+    let has_param = adapter_func_has_param(f)
+    let param_is_string = adapter_func_param_is_string(f)
+    let param_type_byte = adapter_func_param_type_byte(f)
+    let has_return = adapter_func_has_return(f)
+    let return_is_string = adapter_func_return_is_string(f)
+    let return_type_byte = adapter_func_return_type_byte(f)
+
+    writer_core::emit_byte(sec, 0x60)
+    if has_param {
+        writer_core::emit_leb128_u(sec, 1)
+        if param_is_string {
+            writer_core::emit_byte(sec, 0x63)
+            writer_core::emit_byte(sec, 0x00)
+        } else {
+            writer_core::emit_byte(sec, param_type_byte)
+        }
+    } else {
+        writer_core::emit_leb128_u(sec, 0)
+    }
+    if has_return {
+        writer_core::emit_leb128_u(sec, 1)
+        if return_is_string {
+            writer_core::emit_byte(sec, 0x63)
+            writer_core::emit_byte(sec, 0x00)
+        } else {
+            writer_core::emit_byte(sec, return_type_byte)
+        }
+    } else {
+        writer_core::emit_leb128_u(sec, 0)
+    }
 }
 
-fn emit_func_section(sec: writer_core::WasmWriter) {
-    writer_core::emit_leb128_u(sec, 2)
+fn emit_adapter_export_type(sec: writer_core::WasmWriter, f: MirFunction) {
+    let has_param = adapter_func_has_param(f)
+    let param_is_string = adapter_func_param_is_string(f)
+    let param_type_byte = adapter_func_param_type_byte(f)
+    let has_return = adapter_func_has_return(f)
+    let return_is_string = adapter_func_return_is_string(f)
+    let return_type_byte = adapter_func_return_type_byte(f)
+
+    writer_core::emit_byte(sec, 0x60)
+    if has_param {
+        if param_is_string {
+            writer_core::emit_leb128_u(sec, 2)
+            writer_core::emit_byte(sec, 0x7f)
+            writer_core::emit_byte(sec, 0x7f)
+        } else {
+            writer_core::emit_leb128_u(sec, 1)
+            writer_core::emit_byte(sec, param_type_byte)
+        }
+    } else {
+        writer_core::emit_leb128_u(sec, 0)
+    }
+    if has_return {
+        if return_is_string {
+            writer_core::emit_leb128_u(sec, 1)
+            writer_core::emit_byte(sec, 0x7f)
+        } else {
+            writer_core::emit_leb128_u(sec, 1)
+            writer_core::emit_byte(sec, return_type_byte)
+        }
+    } else {
+        writer_core::emit_leb128_u(sec, 0)
+    }
+}
+
+fn emit_import_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
+    let n = len(adapter_indices)
+    writer_core::emit_leb128_u(sec, n)
+    let mut fi = 0
+    while fi < n {
+        let idx = get_unchecked(adapter_indices, fi)
+        let f = module_functions::MirModule_function_at(mir, idx)
+        let type_idx = 2 + fi * 2
+        let name = function_identity::MirFunction_name(f)
+        writer_string::emit_string(sec, String_from("user"))
+        writer_string::emit_string(sec, clone(name))
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_leb128_u(sec, type_idx)
+        fi = fi + 1
+    }
+}
+
+fn emit_func_section(sec: writer_core::WasmWriter, adapter_indices: Vec<i32>) {
+    let n = len(adapter_indices)
+    writer_core::emit_leb128_u(sec, n + 1)
+    // realloc
     writer_core::emit_leb128_u(sec, 1)
-    writer_core::emit_leb128_u(sec, 3)
+    // adapter functions
+    let mut fi = 0
+    while fi < n {
+        writer_core::emit_leb128_u(sec, 2 + fi * 2 + 1)
+        fi = fi + 1
+    }
 }
 
 fn emit_memory_section(sec: writer_core::WasmWriter) {
@@ -134,33 +272,49 @@ fn emit_global_section(sec: writer_core::WasmWriter) {
     writer_core::emit_byte(sec, 0x0b)
 }
 
-fn emit_export_section(sec: writer_core::WasmWriter, user_export_name: String) {
-    writer_core::emit_leb128_u(sec, 3)
+fn emit_export_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
+    let n = len(adapter_indices)
+    writer_core::emit_leb128_u(sec, n + 2)
+
     writer_string::emit_string(sec, String_from("realloc"))
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, user_export_name)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_leb128_u(sec, n)
+
+    let mut fi = 0
+    while fi < n {
+        let idx = get_unchecked(adapter_indices, fi)
+        let f = module_functions::MirModule_function_at(mir, idx)
+        let name = function_identity::MirFunction_name(f)
+        writer_string::emit_string(sec, clone(name))
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_leb128_u(sec, n + 1 + fi)
+        fi = fi + 1
+    }
+
     writer_string::emit_string(sec, String_from("memory"))
     writer_core::emit_byte(sec, 0x02)
     writer_core::emit_leb128_u(sec, 0)
 }
 
-fn emit_code_section(sec: writer_core::WasmWriter) {
-    writer_core::emit_leb128_u(sec, 2)
+fn emit_code_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
+    let n = len(adapter_indices)
+    writer_core::emit_leb128_u(sec, n + 1)
     emit_realloc_body(sec)
-    emit_greet_body(sec)
+    let mut fi = 0
+    while fi < n {
+        let idx = get_unchecked(adapter_indices, fi)
+        let f = module_functions::MirModule_function_at(mir, idx)
+        emit_adapter_func_body(sec, f, fi, n)
+        fi = fi + 1
+    }
 }
 
 fn emit_realloc_body(sec: writer_core::WasmWriter) {
     let body = writer_core::WasmWriter_new()
-    // one i32 local ($ptr at index 4)
     writer_core::emit_leb128_u(body, 1)
     writer_core::emit_leb128_u(body, 1)
     writer_core::emit_byte(body, 0x7f)
 
-    // if new_size == 0 return 1 (canonical free no-op)
     emit_local_get(body, 3)
     emit_i32_const(body, 0)
     emit_i32_eq(body)
@@ -169,11 +323,9 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
     emit_return(body)
     emit_end(body)
 
-    // ptr = bump
     emit_global_get(body, 0)
     emit_local_set(body, 4)
 
-    // if align > 1: ptr = align_up(ptr, align)
     emit_local_get(body, 2)
     emit_i32_const(body, 1)
     emit_i32_gt_u(body)
@@ -190,13 +342,11 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
     emit_local_set(body, 4)
     emit_end(body)
 
-    // bump = ptr + new_size
     emit_local_get(body, 4)
     emit_local_get(body, 3)
     emit_i32_add(body)
     emit_global_set(body, 0)
 
-    // if bump > 65536: unreachable (out of canonical scratch)
     emit_global_get(body, 0)
     emit_i32_const(body, 65536)
     emit_i32_gt_u(body)
@@ -204,7 +354,6 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
     emit_unreachable(body)
     emit_end(body)
 
-    // if old_ptr != 0: memory.copy(ptr, old_ptr, old_size)
     emit_local_get(body, 0)
     emit_i32_const(body, 0)
     emit_i32_ne(body)
@@ -223,124 +372,180 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
     writer_core::emit_bytes(sec, bytes)
 }
 
-fn emit_greet_body(sec: writer_core::WasmWriter) {
+fn emit_adapter_func_body(sec: writer_core::WasmWriter, f: MirFunction, func_idx: i32, realloc_idx: i32) {
     let body = writer_core::WasmWriter_new()
-    // locals: arr(ref 0), arr2(ref null 0), out_ptr, out_len, i, ret
-    writer_core::emit_leb128_u(body, 3)
-    writer_core::emit_leb128_u(body, 1)
-    writer_core::emit_byte(body, 0x64)
-    writer_core::emit_byte(body, 0x00)
-    writer_core::emit_leb128_u(body, 1)
-    writer_core::emit_byte(body, 0x63)
-    writer_core::emit_byte(body, 0x00)
-    writer_core::emit_leb128_u(body, 4)
-    writer_core::emit_byte(body, 0x7f)
 
-    // arr = array.new_default $arr (len)
-    emit_local_get(body, 1)
-    emit_array_new_default(body, 0)
-    emit_local_set(body, 2)
+    let has_param = adapter_func_has_param(f)
+    let param_is_string = adapter_func_param_is_string(f)
+    let has_return = adapter_func_has_return(f)
+    let return_is_string = adapter_func_return_is_string(f)
 
-    // i = 0
-    emit_i32_const(body, 0)
-    emit_local_set(body, 6)
+    let param_local_count = if has_param {
+        if param_is_string { 2 } else { 1 }
+    } else {
+        0
+    }
+    let mut next_local = param_local_count
+    let mut arr_local = -1
+    let mut ret_local = -1
+    let mut out_ptr_local = -1
+    let mut out_len_local = -1
+    let mut i_local = -1
+    let mut ret_ptr_local = -1
+    let mut group_count = 0
 
-    // copy input bytes from linear memory to array
-    emit_loop(body)
-    emit_local_get(body, 6)
-    emit_local_get(body, 1)
-    emit_i32_lt_u(body)
-    emit_if(body)
-    emit_local_get(body, 2)
-    emit_local_get(body, 6)
-    emit_local_get(body, 0)
-    emit_local_get(body, 6)
-    emit_i32_add(body)
-    emit_i32_load8_u(body)
-    emit_array_set(body, 0)
-    emit_local_get(body, 6)
-    emit_i32_const(body, 1)
-    emit_i32_add(body)
-    emit_local_set(body, 6)
-    emit_br(body, 1)
-    emit_end(body)
-    emit_end(body)
+    if param_is_string {
+        arr_local = next_local
+        next_local = next_local + 1
+        group_count = group_count + 1
+    }
+    if return_is_string {
+        ret_local = next_local
+        next_local = next_local + 1
+        group_count = group_count + 1
+        out_ptr_local = next_local
+        out_len_local = next_local + 1
+        i_local = next_local + 2
+        ret_ptr_local = next_local + 3
+        next_local = next_local + 4
+        group_count = group_count + 1
+    } else if param_is_string {
+        i_local = next_local
+        next_local = next_local + 1
+        group_count = group_count + 1
+    }
 
-    // reset bump to canonical scratch start (256) before output allocation
-    emit_i32_const(body, 256)
-    emit_global_set(body, 0)
+    writer_core::emit_leb128_u(body, group_count)
+    if param_is_string {
+        writer_core::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, 0x64)
+        writer_core::emit_byte(body, 0x00)
+    }
+    if return_is_string {
+        writer_core::emit_leb128_u(body, 1)
+        writer_core::emit_byte(body, 0x63)
+        writer_core::emit_byte(body, 0x00)
+    }
+    if return_is_string || param_is_string {
+        let i32_count = if return_is_string { 4 } else { 1 }
+        writer_core::emit_leb128_u(body, i32_count)
+        writer_core::emit_byte(body, 0x7f)
+    }
 
-    // arr2 = call user greet(arr)
-    emit_local_get(body, 2)
-    emit_call(body, 0)
-    emit_local_set(body, 3)
+    if param_is_string {
+        // arr = array.new_default (len)
+        emit_local_get(body, 1)
+        emit_array_new_default(body, 0)
+        emit_local_set(body, arr_local)
 
-    // out_len = array.len (ref.as_non_null arr2)
-    emit_local_get(body, 3)
-    emit_ref_as_non_null(body)
-    emit_array_len(body)
-    emit_local_set(body, 5)
+        // i = 0
+        emit_i32_const(body, 0)
+        emit_local_set(body, i_local)
 
-    // out_ptr = realloc(0, 0, 1, out_len)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 1)
-    emit_local_get(body, 5)
-    emit_call(body, 1)
-    emit_local_set(body, 4)
+        // copy input bytes from linear memory to array
+        emit_loop(body)
+        emit_local_get(body, i_local)
+        emit_local_get(body, 1)
+        emit_i32_lt_u(body)
+        emit_if(body)
+        emit_local_get(body, arr_local)
+        emit_local_get(body, i_local)
+        emit_local_get(body, 0)
+        emit_local_get(body, i_local)
+        emit_i32_add(body)
+        emit_i32_load8_u(body)
+        emit_array_set(body, 0)
+        emit_local_get(body, i_local)
+        emit_i32_const(body, 1)
+        emit_i32_add(body)
+        emit_local_set(body, i_local)
+        emit_br(body, 1)
+        emit_end(body)
+        emit_end(body)
+    }
 
-    // out_ptr = realloc(0, 0, 1, out_len)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 1)
-    emit_local_get(body, 5)
-    emit_call(body, 1)
-    emit_local_set(body, 4)
+    if has_param {
+        if param_is_string {
+            emit_local_get(body, arr_local)
+        } else {
+            emit_local_get(body, 0)
+        }
+    }
 
-    // i = 0
-    emit_i32_const(body, 0)
-    emit_local_set(body, 6)
+    emit_call(body, func_idx)
 
-    // copy output bytes from array to linear memory
-    emit_loop(body)
-    emit_local_get(body, 6)
-    emit_local_get(body, 5)
-    emit_i32_lt_u(body)
-    emit_if(body)
-    emit_local_get(body, 4)
-    emit_local_get(body, 6)
-    emit_i32_add(body)
-    emit_local_get(body, 3)
-    emit_ref_as_non_null(body)
-    emit_local_get(body, 6)
-    emit_array_get_u(body, 0)
-    emit_i32_store8(body)
-    emit_local_get(body, 6)
-    emit_i32_const(body, 1)
-    emit_i32_add(body)
-    emit_local_set(body, 6)
-    emit_br(body, 1)
-    emit_end(body)
-    emit_end(body)
+    if has_return {
+        if return_is_string {
+            emit_local_set(body, ret_local)
 
-    // ret = realloc(0, 0, 4, 8)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 0)
-    emit_i32_const(body, 4)
-    emit_i32_const(body, 8)
-    emit_call(body, 1)
-    emit_local_set(body, 7)
+            // reset bump to canonical scratch start before output allocation
+            emit_i32_const(body, 256)
+            emit_global_set(body, 0)
 
-    // [ret + 0] = out_ptr
-    emit_local_get(body, 7)
-    emit_local_get(body, 4)
-    emit_i32_store(body, 0)
-    // [ret + 4] = out_len
-    emit_local_get(body, 7)
-    emit_local_get(body, 5)
-    emit_i32_store(body, 4)
+            // out_len = len(ret)
+            emit_local_get(body, ret_local)
+            emit_ref_as_non_null(body)
+            emit_array_len(body)
+            emit_local_set(body, out_len_local)
 
-    emit_local_get(body, 7)
+            // out_ptr = realloc(0, 0, 1, out_len)
+            emit_i32_const(body, 0)
+            emit_i32_const(body, 0)
+            emit_i32_const(body, 1)
+            emit_local_get(body, out_len_local)
+            emit_call(body, realloc_idx)
+            emit_local_set(body, out_ptr_local)
+
+            // i = 0
+            emit_i32_const(body, 0)
+            emit_local_set(body, i_local)
+
+            // copy output bytes from array to linear memory
+            emit_loop(body)
+            emit_local_get(body, i_local)
+            emit_local_get(body, out_len_local)
+            emit_i32_lt_u(body)
+            emit_if(body)
+            emit_local_get(body, out_ptr_local)
+            emit_local_get(body, i_local)
+            emit_i32_add(body)
+            emit_local_get(body, ret_local)
+            emit_ref_as_non_null(body)
+            emit_local_get(body, i_local)
+            emit_array_get_u(body, 0)
+            emit_i32_store8(body)
+            emit_local_get(body, i_local)
+            emit_i32_const(body, 1)
+            emit_i32_add(body)
+            emit_local_set(body, i_local)
+            emit_br(body, 1)
+            emit_end(body)
+            emit_end(body)
+
+            // ret_ptr = realloc(0, 0, 4, 8)
+            emit_i32_const(body, 0)
+            emit_i32_const(body, 0)
+            emit_i32_const(body, 4)
+            emit_i32_const(body, 8)
+            emit_call(body, realloc_idx)
+            emit_local_set(body, ret_ptr_local)
+
+            // [ret_ptr + 0] = out_ptr
+            emit_local_get(body, ret_ptr_local)
+            emit_local_get(body, out_ptr_local)
+            emit_i32_store(body, 0)
+
+            // [ret_ptr + 4] = out_len
+            emit_local_get(body, ret_ptr_local)
+            emit_local_get(body, out_len_local)
+            emit_i32_store(body, 4)
+
+            // return ret_ptr
+            emit_local_get(body, ret_ptr_local)
+        }
+    }
+
+    emit_return(body)
     emit_end(body)
 
     let bytes = writer_core::writer_bytes(body)
