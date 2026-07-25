@@ -101,7 +101,7 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let tname = local_access::MirLocal_type_name(loc)
+    let tname = normalize_vec_type_name(local_access::MirLocal_type_name(loc))
     if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
         return SelfEmitCtx_vec_string_type(ctx)
     }
@@ -131,6 +131,23 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return SelfEmitCtx_vec_type(ctx)
     }
     0 - 1
+}
+
+// Normalize Vec<T> / Vec_T / bare Vec onto the vec: prefix used by emit.
+fn normalize_vec_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        return concat(String_from("vec:"), substring(clone(type_name), 4, len(type_name) - 1))
+    }
+    if starts_with(clone(type_name), String_from("Vec_")) {
+        return concat(String_from("vec:"), substring(clone(type_name), 4, len(type_name)))
+    }
+    if eq(clone(type_name), String_from("Vec")) {
+        return String_from("vec:i32")
+    }
+    type_name
 }
 
 fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {

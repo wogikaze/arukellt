@@ -6,6 +6,7 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
+use mir::lower::ctx_struct_lookup
 use mir::lower::core_match_payload_bind_types
 use mir::lower::core_match_payload_type_extract
 use mir::inst_gc_struct
@@ -82,6 +83,12 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         return false
     }
     let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    // Multi-payload variants must reuse the construction slot; ensuring from
+    // the first bind alone registers a single-payload twin that traps (#807).
+    if type_slot >= 0 && variant_layout_payload_field_count(ctx, clone(variant_name)) > 1 {
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
+        return true
+    }
     let mut eff_vt = effective_vt
     if bi == 0 {
         let bind_type_name = emit_payload_field_bind_gc_resolve_type(ctx, clone(variant_name), bi, bind_local)
@@ -113,16 +120,33 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
             if payload_slot >= 0 {
                 type_slot = payload_slot
             }
+            let bind_ty_for_slot = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
+            if eff_vt == value_types::VT_GC_REF() &&
+            type_slot >= 0 &&
+            !starts_with(clone(bind_ty_for_slot), String_from("enum:")) &&
+            core_match_payload_bind_types::payload_bind_needs_variant_slot(clone(bind_ty_for_slot), clone(variant_name)) {
+                ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
+            }
+            ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
+            return true
         }
-        let bind_ty_for_slot = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-        if eff_vt == value_types::VT_GC_REF() &&
-        type_slot >= 0 &&
-        !starts_with(clone(bind_ty_for_slot), String_from("enum:")) &&
-        core_match_payload_bind_types::payload_bind_needs_variant_slot(clone(bind_ty_for_slot), clone(variant_name)) {
-            ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
+        if type_slot >= 0 {
+            ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
+            return true
         }
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(bind_local, scrut_idx, type_slot, bi + 1, field_vt))
-        true
+        false
+    }
+
+    fn variant_layout_payload_field_count(ctx: LowerCtx, variant_name: String) -> i32 {
+        let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
+        let mut field_count = ctx_struct_lookup::ctx_struct_field_count(ctx, clone(layout_name))
+        if field_count <= 0 {
+            field_count = ctx_struct_lookup::ctx_struct_field_count(ctx, clone(variant_name))
+        }
+        if field_count <= 1 {
+            return 0
+        }
+        field_count - 1
     }
 
     fn emit_payload_field_bind_gc_resolve_type(ctx: LowerCtx, variant_name: String, bi: i32, bind_local: i32) -> String {
