@@ -98,7 +98,7 @@ known wasm32-gc self-emit failure**. Pinning bootstrap to wasm32-gc and
 ## Close note — 2026-07-25
 
 Narrow-close: Memory64 / wasm32 pin / KEEP_CLOCK / clone typing root cause done.
-Remaining pin + `verify quick` owned by [#834](834-wasm32-gc-bootstrap-pin.md)
+Remaining pin + `verify quick` owned by [#843](../open/843-wasm32-gc-bootstrap-pin.md)
 (full selfhost wasm32-gc compile needs >4GiB grow or ~21GiB RSS host).
 `$issue-close-review`: **APPROVE** (FD-08 scope split + open owner #834).
 

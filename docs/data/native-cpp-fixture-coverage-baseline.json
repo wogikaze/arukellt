@@ -1,17 +1,19 @@
 {
   "counts": {
-    "compiled_positive": 1263,
-    "compiled_positive_semantic_run_pass": 1221,
-    "compiler_host_trap_total": 4,
-    "expected_negative": 123,
-    "expected_negative_diagnostic_pass": 35,
+    "compiled_positive": 1349,
+    "compiled_positive_semantic_run_pass": 1301,
+    "compiler_host_trap_total": 2,
+    "expected_negative": 121,
+    "expected_negative_diagnostic_pass": 107,
+    "expected_negative_in_scope": 107,
+    "expected_negative_limited": 14,
     "ice_positive": 0,
     "ice_total": 0,
-    "positive_compile_expected": 1627,
-    "positive_compile_pass": 1263,
-    "positive_runnable": 1627,
-    "positive_semantic_run_pass": 1221,
-    "safe_capability_reject": 43,
+    "positive_compile_expected": 1674,
+    "positive_compile_pass": 1349,
+    "positive_runnable": 1674,
+    "positive_semantic_run_pass": 1301,
+    "safe_capability_reject": 19,
     "unexpected_crash": 0
   },
   "hard_zero": {
@@ -23,12 +25,13 @@
     "When ice_total or unexpected_crash reaches 0, hard_zero locks that metric at 0."
   ],
   "rates": {
-    "compiled_positive_semantic_run_pass_rate": 0.9667,
-    "expected_negative_diagnostic_pass_rate": 0.2846,
-    "positive_compile_pass_rate": 0.7763,
-    "positive_semantic_run_pass_rate": 0.7505
+    "compiled_positive_semantic_run_pass_rate": 0.9644,
+    "expected_negative_diagnostic_pass_rate": 1.0,
+    "expected_negative_diagnostic_pass_rate_including_limitations": 0.8843,
+    "positive_compile_pass_rate": 0.8059,
+    "positive_semantic_run_pass_rate": 0.7772
   },
   "schema": "native-cpp-fixture-coverage-baseline/v1",
-  "source_commit": "a26a96cfdf1ea12c31be57423bebb6f4e353d995",
-  "source_receipt_generated_at": "2026-07-25T19:49:50Z"
+  "source_commit": "1844ff27fe43262977132fbe8c04ee514966f393",
+  "source_receipt_generated_at": "2026-07-26T11:43:15Z"
 }

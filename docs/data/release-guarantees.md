@@ -29,7 +29,7 @@
 | `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | 🟢 fresh | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
 | `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Both targets remain scaffold/partial; native-cpp adds experimental public run (ADR-050) on top of the compiler-private executor ABI (ADR-049); native-llvm stays assembler scaffold |
-| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only) | — | ✅ pass | 🟢 fresh | fixture-set | `local` | Guarantee scope is tests/fixtures/native_cpp_public + parity/sanitizer; full-tree readiness is advisory (docs/plans/native-cpp-general-backend-readiness.md); zero-capture HOF only; no public C ABI/FFI |
+| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only) | — | ✅ pass | 🟢 fresh | fixture-set | `local` | Guarantee scope remains tests/fixtures/native_cpp_public + parity/sanitizer (not production-ready; support_tier=scaffold). Full-tree measure v2 readiness gates are COMPLETE per docs/plans/native-cpp-general-backend-readiness.md with documented expected-negative limitations; zero-capture HOF only; no public C ABI/FFI |
 
 ## Check catalogue
 

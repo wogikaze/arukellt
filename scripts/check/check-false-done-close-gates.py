@@ -849,10 +849,11 @@ def gate_641() -> tuple[int, str]:
     match = re.search(r'id = "native-cpp"(?P<body>.*?)(?=\n\[\[(?:target_profiles|executor_lanes)\]\]|\Z)', state, re.S)
     if match is None:
         return 1, "project-state lacks native-cpp"
+    # ADR-050 experimental public run keeps scaffold/partial but enables run_supported.
     for required in (
         'support_tier = "scaffold"',
         'implementation_state = "partial"',
-        "run_supported = false",
+        "run_supported = true",
     ):
         if required not in match.group("body"):
             return 1, f"native-cpp project-state must retain {required}"

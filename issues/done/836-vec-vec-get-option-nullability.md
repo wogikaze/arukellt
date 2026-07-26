@@ -5,19 +5,19 @@ Updated: 2026-07-25
 ID: 836
 Track: compiler-internal
 Depends on: 832
-Related: ADR-033, #726, #832, #835
+Related: ADR-033, #726, #844, #835
 Orchestration class: implementation-ready
 Orchestration upstream: 832
 Blocks v{N}: none
 Priority: 2
-Source: post-#832 / #833 follow-up — isolate Vec&lt;Vec&gt; vs flat Vec gaps
+Source: post-#844 / #845 follow-up — isolate Vec&lt;Vec&gt; vs flat Vec gaps
 ---
 
 # `get` on `Vec&lt;Vec&lt;T&gt;&gt;` nullability validate-fail
 
 ## Summary
 
-#832 F で `Vec&lt;Vec&lt;i32&gt;&gt;` + `get_unchecked` は閉じた。
+#844 F で `Vec&lt;Vec&lt;i32&gt;&gt;` + `get_unchecked` は閉じた。
 本 issue は **flat `Vec` と nested `Vec&lt;Vec&gt;` を切り分けた結果**、残る穴を追跡する。
 
 切り分け結論（2026-07-25, s2）:
@@ -55,6 +55,6 @@ MIR の `gc_struct_container_ref_suffix` と同じ固定スロット（例: `vec
 
 ## Related
 
-- #832 nested container / funcref matrix（F は get_unchecked のみ）
+- #844 nested container / funcref matrix（F は get_unchecked のみ）
 - #835 Option mut open-enum cast（近縁）
 - #726 GC ref 型推論

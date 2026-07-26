@@ -1,7 +1,7 @@
 # #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画
 
 ステータス: 計画  
-親 issue: [#834](../../issues/open/834-wasm32-gc-bootstrap-pin.md)  
+親 issue: [#843](../../issues/open/843-wasm32-gc-bootstrap-pin.md)  
 前駆 issue: [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)  
 担当 subagent lane: `wave/834-bootstrap`  
 作業 worktree: `.worktrees/wave-834-bootstrap`  

@@ -2,7 +2,7 @@
 Status: open
 Created: 2026-07-25
 Updated: 2026-07-25
-ID: 834
+ID: 843
 Track: selfhost-infra
 Depends on: "730"
 Related: "#730, #827, #830"

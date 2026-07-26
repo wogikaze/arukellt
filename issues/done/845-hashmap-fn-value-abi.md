@@ -3,23 +3,23 @@ Status: done
 Created: 2026-07-25
 Updated: 2026-07-25
 Closed: 2026-07-25
-ID: 833
+ID: 845
 Track: compiler-internal
 Depends on: 832
-Related: ADR-033, #831, #832, #722
+Related: ADR-033, #831, #844, #722
 Orchestration class: implementation-ready
 Orchestration upstream: 832
 Blocks v{N}: none
 Priority: 2
-Source: #832 Non-goal — HashMap&lt;K, fn&gt; after Vec&lt;fn&gt; funcref ABI
+Source: #844 Non-goal — HashMap&lt;K, fn&gt; after Vec&lt;fn&gt; funcref ABI
 ---
 
 # HashMap&lt;K, fn&gt; funcref value ABI
 
 ## Summary
 
-#832 で `Vec&lt;fn&gt;` / `Option&lt;Vec&lt;fn&gt;&gt;` の funcref 配列 ABI は閉じた。
-#832 Non-goals に残した **`HashMap&lt;K, fn&gt;`** を本 issue で実装する。
+#844 で `Vec&lt;fn&gt;` / `Option&lt;Vec&lt;fn&gt;&gt;` の funcref 配列 ABI は閉じた。
+#844 Non-goals に残した **`HashMap&lt;K, fn&gt;`** を本 issue で実装する。
 
 現行の HashMap は monomorphic 特化のみ:
 
@@ -122,7 +122,7 @@ HashMap_i32_i32_insert(m, 1, double)  // E0200: i32 vs struct/fn
 ## Notes
 
 - value 配列は #832 の `A_fnref`（nullable）を再利用する。新規 array type は不要。
-- `#832` 完了後の直接後続。upstream は #832（Vec&lt;fn&gt; ABI）。
+- `#844` 完了後の直接後続。upstream は #844（Vec&lt;fn&gt; ABI）。
 - `std/collections/hash_fn.ark` の `get`/`remove` は `hash_string` と同型の
   mut `Option&lt;fn&gt;` 代入を使う。かつて early return で回避していた
   `ref.as_non_null` trap は #835 で修正済み。
@@ -131,6 +131,6 @@ HashMap_i32_i32_insert(m, 1, double)  // E0200: i32 vs struct/fn
 
 ## Related
 
-- #832 nested container / funcref typing matrix（upstream）
+- #844 nested container / funcref typing matrix（upstream）
 - #831 call_ref emitter
 - ADR-033 HOF / typed funcref migration

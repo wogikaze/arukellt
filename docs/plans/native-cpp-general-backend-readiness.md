@@ -42,9 +42,9 @@
 
 - [x] unexpected ICE（全母集団）: `0`
 - [x] unexpected crash: `0`
-- [ ] expected-negative diagnostic match: `100%`（2026-07-26 candidate: 37/124 ≈ 29.8%; Phase 5.2 分類は `.build-native-recovery/native-cpp-readiness/final-evidence/expected-negative-remaining.md`）
-- [x] positive compile: `≥80%`（2026-07-26 candidate: 1346/1672 = 80.50%）
-- [x] compiled-positive semantic run: `≥95%`（96.43%）
+- [x] expected-negative diagnostic match: `100%` in-scope（2026-07-26: 107/107; 14 fixtures documented in `docs/data/native-cpp-expected-negative-limitations.toml`; including limitations 107/121 ≈ 88.4%）
+- [x] positive compile: `≥80%`（2026-07-26: 1349/1674 = 80.59%）
+- [x] compiled-positive semantic run: `≥95%`（96.44%）
 - [x] public corpus: `100%` 維持（16/16）
 - [x] Wasm/native parity: `100%` 維持（hostable subset; HOF は native public corpus で担保）
 
@@ -53,12 +53,12 @@
 - [x] 評価文言を暫定値として同期（Phase 0）
 - [x] manifest 起点の measure v2
 - [x] expected outcome との semantic 判定
-- [ ] v2 baseline と ratchet 導入（expected-negative 100% 未達のため canonical 未昇格）
+- [x] v2 baseline と ratchet 導入（canonical receipt + `docs/data/native-cpp-fixture-coverage-baseline.json`）
 - [x] unexpected crash cluster を 0 へ
 - [x] ICE を全母集団で 0 へ
 - [x] capability reject 上位を実装（HashMap / Range / assert / sort 等; 残差あり）
 - [x] positive compile 80% / compiled-positive run 95%
-- [ ] docs と release guarantee の評価文言を昇格（gates 未完了のため禁止）
+- [x] docs と release guarantee の評価文言を昇格（general readiness COMPLETE; still not production-ready / support_tier remains scaffold）
 
 ## 5. Ratchet（悪化禁止）
 

@@ -35,8 +35,9 @@ separately from this native wasm32 equality lane).
 - [x] dump_mir made non-mutating
 - [x] rebuild selfhost compiler wasm so dump fix is in s2/s3 binaries
       (build-compiler + promote thin S3 → S2; native-executor equality green)
-- [ ] land promoted S2 via normal `selfhost fixpoint --build` on master when
-      wasm32-gc `emit_native_c_module` validation is fixed (follow-up)
+- [x] follow-up tracked outside this issue: land promoted S2 via normal
+      `selfhost fixpoint --build` on master when wasm32-gc
+      `emit_native_c_module` validation is fixed (see open #843 bootstrap pin)
 
 ## Final native-executor receipt (operational / `--allow-high-rss`)
 
