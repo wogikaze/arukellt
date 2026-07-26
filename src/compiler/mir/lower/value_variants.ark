@@ -6,9 +6,16 @@ use mir::lower::variants
 
 fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
     if ast_node::node_kind_is(node, lower_kinds::NK_PATH()) {
-        let tag = ctx_variant_tag(ctx, ast_node::node_text(node))
+        let raw_name = ast_node::node_text(node)
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let variant_name = if len(canon) > 0 {
+            canon
+        } else {
+            raw_name
+        }
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
         if tag >= 0 {
-            return variants::lower_variant_value(ctx, ast_node::node_text(node), tag)
+            return variants::lower_variant_value(ctx, variant_name, tag)
         }
         return 0 - 1
     }
@@ -16,9 +23,16 @@ fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
 }
 
 fn lower_atomic_ident_variant(ctx: LowerCtx, node: AstNode) -> i32 {
-    let ident_tag = ctx_variant_tag(ctx, ast_node::node_text(node))
+    let raw_name = ast_node::node_text(node)
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let variant_name = if len(canon) > 0 {
+        canon
+    } else {
+        raw_name
+    }
+    let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
     if ident_tag >= 0 {
-        return variants::lower_variant_value(ctx, ast_node::node_text(node), ident_tag)
+        return variants::lower_variant_value(ctx, variant_name, ident_tag)
     }
     0 - 1
 }

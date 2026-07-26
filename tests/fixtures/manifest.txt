@@ -712,6 +712,7 @@ run:stdlib_core/error_basic.ark
 run:stdlib_core/error_match.ark
 run:stdlib_core/error_not_found.ark
 run:stdlib_core/error_parse_error.ark
+run:stdlib_core/error_qualified_paths.ark
 run:stdlib_core/hash.ark
 run:stdlib_core/hash_bool.ark
 run:stdlib_core/hash_char.ark

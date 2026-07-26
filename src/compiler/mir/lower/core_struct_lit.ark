@@ -15,7 +15,13 @@ use mir::value_types
 
 fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
-    let struct_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let struct_name = if len(canon) > 0 {
+        canon
+    } else {
+        raw_name
+    }
     let dest = struct_lit::mir_emit_struct_new(ctx, clone(struct_name))
     // If this is an enum variant, set the _tag field to the variant's tag value.
     let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(struct_name))
