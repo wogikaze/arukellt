@@ -1687,6 +1687,53 @@ fn native_c_resolve_function_id_by_ordinal(
     function_id::FUNCTION_ID_INVALID()
 }
 
+fn native_c_function_inst_count(function: MirFunction) -> i32 {
+    let mut total = 0
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        total = total + block_inst_access::MirBlock_inst_count(block)
+        block_index = block_index + 1
+    }
+    total
+}
+
+// Qualified forwarder calls (`toml_parse` → `parser::toml_parse`) share a short
+// name with the wrapper. Prefer the largest non-self body (wasm collision rule).
+fn native_c_resolve_impl_body_function_id(
+    mir_module: MirModule,
+    short_name: String,
+    skip_function_id_raw: i32
+) -> FunctionId {
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let mut best_id = function_id::FUNCTION_ID_INVALID()
+    let mut best_size = 0 - 1
+    let mut function_index = 0
+    while function_index < function_count {
+        let candidate = module_functions::MirModule_function_at(mir_module, function_index)
+        if eq(function_identity::MirFunction_name(candidate), clone(short_name)) {
+            let resolved = native_c_resolve_function_id_by_ordinal(
+                mir_module,
+                candidate,
+                function_index
+            )
+            if function_id::function_id_is_valid(resolved) {
+                let resolved_raw = function_id::FunctionId_raw(resolved)
+                if resolved_raw != skip_function_id_raw {
+                    let size = native_c_function_inst_count(candidate)
+                    if size > best_size {
+                        best_size = size
+                        best_id = resolved
+                    }
+                }
+            }
+        }
+        function_index = function_index + 1
+    }
+    best_id
+}
+
 fn native_c_remap_call_target_function_id(mir_module: MirModule, function_id_raw: i32) -> i32 {
     if function_id_raw < 0 {
         return function_id_raw
@@ -1785,7 +1832,19 @@ fn native_c_emit_call(
             // Short-name fallback must not resolve a call back to the function
             // being emitted (e.g. free `popcount` wrapping `n.popcount()`).
             // True recursion (MIR FunctionId already self, or full name) is OK.
-            if !eq(short, current_name) {
+            // Exception: qualified forwarders (`parser::toml_parse` from
+            // `toml_parse`) share the short name with the wrapper — pick the
+            // largest non-self body instead of the first registry hit.
+            if eq(short, current_name) {
+                resolved = native_c_resolve_impl_body_function_id(
+                    mir_module,
+                    short,
+                    current_function_id_raw
+                )
+                if function_id::function_id_is_valid(resolved) {
+                    resolved_via_short_fallback = true
+                }
+            } else {
                 resolved = signature_registry::signature_registry_lookup_by_mangled(
                     registry,
                     short
