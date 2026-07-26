@@ -5,7 +5,7 @@ use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::function_return_view
 use mir::function_identity
-use mir::inst_const_i32
+use mir::inst_ref_func
 use mir::lower::closure_storage
 use mir::value_types
 
@@ -29,8 +29,11 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     ctx_api_module::ctx_push_module_function(ctx, mf)
     ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), String_from(""))
     closure_storage::closure_storage_set_pending_bind(ctx, function_identity::MirFunction_name(mf), packed, extra)
+    // Immediate closure values (`bench(..., || {})`) must carry a real
+    // funcref. A placeholder i32 0 used to compile but crashed at the first
+    // CALL_INDIRECT, and also dropped synthetic functions from reachability.
     let dest = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, dest))
+    ctx_emit(ctx, inst_ref_func::MirInst_ref_func(function_identity::MirFunction_name(mf), dest))
     dest
 }
 
