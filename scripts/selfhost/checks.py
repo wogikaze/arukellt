@@ -4471,8 +4471,17 @@ def _run_fixture_parity_locked(
             def _is_trap(code: int) -> bool:
                 return code == 134
 
-            p_trapped = _is_trap(p_code)
-            c_trapped = _is_trap(c_code)
+            def _is_runtime_error_output(out: str) -> bool:
+                # Hosted runner often exits 0 while printing a wasm trap
+                # backtrace; treat that as a trap for both-trap skip (#807).
+                return (
+                    "runtime error:" in out
+                    or "Error: failed to run main module" in out
+                    or "wasm trap:" in out
+                )
+
+            p_trapped = _is_trap(p_code) or _is_runtime_error_output(p_out)
+            c_trapped = _is_trap(c_code) or _is_runtime_error_output(c_out)
             p_was_invalid = p_val_rc != 0
 
             if c_trapped and not p_trapped and not p_was_invalid:

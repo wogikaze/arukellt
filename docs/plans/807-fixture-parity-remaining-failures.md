@@ -1,7 +1,7 @@
 # #807 — Fixture parity: 367 remaining failures クローズ計画
 
-ステータス: 進行中（L3 tranche）  
-親 issue: [#807](../../issues/open/807-fixture-parity-367-remaining-failures.md)  
+ステータス: 完了（FAIL=0 / L21）  
+親 issue: [#807](../../issues/done/807-fixture-parity-367-remaining-failures.md)  
 担当 subagent lane: `wave/807-fixture-parity`  
 作業 worktree: `.worktrees/wave-807-fixture-parity`  
 作成日: 2026-07-25  
@@ -201,6 +201,17 @@
 
 計測: 全 suite **PASS=1343 FAIL=23 SKIP=249**（wasm-invalid=198）。L19 の FAIL=45 から -22（new FAIL=0）。  
 残り top: io 3、io_rw 3、json 3。trait/hashmap/core = 0。
+
+### L21 tranche（2026-07-26）— FAIL=0 close
+
+1. **core_op / intrinsics:** print/eprintln、memory fill/copy、CLI argv aliases + name fallback；GC stdin empty string；fd_read import idx。
+2. **stdlib:** io read_line/flush；prelude map/find；json unterminated string + fixture；rpn_repl stdin name collision。
+3. **harness:** `runtime error:` を trap 扱い（both-trap SKIP）。
+4. **Result mono:** `result:T:E` 置換（旧 `enum:Result:T` は Ok payload 誤選択）；`enum:Result:` match 回収。
+5. **neg_wrapper:** `-self.val`（`0 - self.val` の CONST;STRUCT_GET force-SET）。
+
+計測: 全 suite **PASS=1362 FAIL=0 SKIP=253**（wasm-invalid=191）。L20 の FAIL=23 から -23。issue → `issues/done/`。
+
 
 ## 2. 前提・依存
 

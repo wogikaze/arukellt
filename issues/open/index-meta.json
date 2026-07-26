@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T22:58:45Z",
+  "generated_at": "2026-07-26T10:29:19Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -712,26 +712,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 5
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "807",
-      "path": "807-fixture-parity-367-remaining-failures.md",
-      "title": "807 — Fixture parity: 367 remaining failures",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [
-        "287",
-        "framework)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "ready",

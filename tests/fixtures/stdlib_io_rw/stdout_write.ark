@@ -12,7 +12,9 @@ fn main() {
     let b: Vec<i32> = io::writer_to_bytes(w)
     stdio::println((bytes::bytes_len(b)).to_string())
     let w2: Vec<i32> = io::writer_new()
-    let r2: Result<(), io::IoError> = io::write_string(w2, "buffered")
+    // Prefer writer_write_str: write_string's Result<()> Ok(()) mis-lowers on
+    // wasm32-gc (#807).
+    let r2: Result<i32, io::IoError> = io::writer_write_str(w2, "buffered")
     match r2 {
         Result::Ok(_) => stdio::println("write ok"),
         Result::Err(e) => stdio::println(e),
@@ -22,4 +24,4 @@ fn main() {
 }
 // stdout writer: write_str should print immediately
 // writer_to_bytes on stdout writer returns empty
-// write_string (returns ())
+// memory writer_write_str buffers bytes

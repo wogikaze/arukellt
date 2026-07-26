@@ -19,6 +19,8 @@ use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use wasm::intrinsic_vec
 use wasm::intrinsic_vec_new_layout
+use wasm::intrinsic_memory
+use wasm::intrinsic_env_args
 
 fn try_emit_clone_intrinsic(
     w: WasmWriter,
@@ -160,7 +162,70 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_random::emit_random_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Bulk memory: mir_op binding is forbidden/missed → drop+unreachable (#807).
+    // Args are already on the stack from CALL lowering.
+    if is_memory_fill_callee(clone(callee)) {
+        let on_stack = intrinsic_memory::emit_memory_fill(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_memory_copy_callee(clone(callee)) {
+        let on_stack = intrinsic_memory::emit_memory_copy(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // CLI/env argv: core_op rewrite miss → unreachable (#807 cli_flag_check).
+    if is_arg_count_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_arg_count(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_args_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_args(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_has_flag_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_has_flag(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_arg_at_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_arg_at(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
+}
+
+fn is_has_flag_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("has_flag")) ||
+    eq(clone(callee), String_from("__intrinsic_has_flag")) ||
+    ends_with(clone(callee), String_from("::has_flag"))
+}
+
+fn is_arg_at_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("arg_at")) ||
+    eq(clone(callee), String_from("__intrinsic_arg_at")) ||
+    ends_with(clone(callee), String_from("::arg_at"))
+}
+
+fn is_arg_count_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("arg_count")) ||
+    eq(clone(callee), String_from("__intrinsic_arg_count")) ||
+    ends_with(clone(callee), String_from("::arg_count"))
+}
+
+fn is_args_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("args")) ||
+    eq(clone(callee), String_from("__intrinsic_args")) ||
+    ends_with(clone(callee), String_from("::args"))
+}
+
+fn is_memory_fill_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("memory_fill")) ||
+    eq(clone(callee), String_from("__intrinsic_memory_fill")) ||
+    ends_with(clone(callee), String_from("::memory_fill"))
+}
+
+fn is_memory_copy_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("memory_copy")) ||
+    eq(clone(callee), String_from("__intrinsic_memory_copy")) ||
+    ends_with(clone(callee), String_from("::memory_copy"))
 }
 
 fn is_vec_new_callee(callee: String) -> bool {

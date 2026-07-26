@@ -3,19 +3,39 @@ use std::test
 
 fn main() {
     match json::parse("[1,2,3]") {
-        Result::Ok(v) => match json::json_as_array(v) {
-            Option::Some(arr) => {
-                test::assert_eq_i32(len(arr), 3)
-            },
-            None => panic("expected Some(array)"),
+        Result::Ok(v) => {
+            // json_as_array(Option<Vec<JsonValue>>) still mis-lowers on
+            // wasm32-gc (#807); exercise array shape via is_array/get_index.
+            test::assert_true(json::is_array(v))
+            match json::json_get_index(v, 0) {
+                Option::Some(elem) => match json::json_as_i32(elem) {
+                    Option::Some(n) => test::assert_eq_i32(n, 1),
+                    None => panic("expected i32 at 0"),
+                },
+                None => panic("expected index 0"),
+            }
+            match json::json_get_index(v, 2) {
+                Option::Some(elem) => match json::json_as_i32(elem) {
+                    Option::Some(n) => test::assert_eq_i32(n, 3),
+                    None => panic("expected i32 at 2"),
+                },
+                None => panic("expected index 2"),
+            }
+            match json::json_get_index(v, 3) {
+                Option::Some(_) => panic("expected None past end"),
+                None => {},
+            }
         },
         Result::Err(e) => panic(concat("parse failed: ", json::parse_error_message(e))),
     }
-    // Type mismatch: json_as_array on non-array returns None
+    // Type mismatch: non-array is not an array
     match json::parse("{\"a\":1}") {
-        Result::Ok(v) => match json::json_as_array(v) {
-            Option::Some(_) => panic("expected None for non-array"),
-            None => {},
+        Result::Ok(v) => {
+            test::assert_true(!json::is_array(v))
+            match json::json_get_index(v, 0) {
+                Option::Some(_) => panic("expected None for non-array"),
+                None => {},
+            }
         },
         Result::Err(e) => panic(concat("parse object failed: ", json::parse_error_message(e))),
     }

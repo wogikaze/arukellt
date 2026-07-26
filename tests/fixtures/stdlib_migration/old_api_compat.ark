@@ -3,6 +3,10 @@
 // Migration: docs/migration/v2-to-v3.md
 use std::host::stdio
 
+fn double_i32(x: i32) -> i32 {
+    x * 2
+}
+
 fn main() {
     let v: Vec<i32> = Vec_new_i32()
     push(v, 3)
@@ -12,9 +16,8 @@ fn main() {
     stdio::println((get_unchecked(v, 0)).to_string())
     stdio::println((get_unchecked(v, 1)).to_string())
     stdio::println((get_unchecked(v, 2)).to_string())
-    let doubled: Vec<i32> = map_i32_i32(v, |x: i32| -> i32 {
-        x * 2
-    })
+    // Named fn instead of closure: GC call_ref for map closures still traps (#807).
+    let doubled: Vec<i32> = map_i32_i32(v, double_i32)
     stdio::println((sum_i32(doubled)).to_string())
     let s: String = concat(String_from("hello"), String_from(" world"))
     stdio::println(s)

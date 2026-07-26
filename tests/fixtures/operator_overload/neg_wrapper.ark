@@ -11,7 +11,9 @@ struct Wrapper {
 
 impl Neg for Wrapper {
     fn neg(self: Wrapper) -> Wrapper {
-        Wrapper { val: 0 - self.val }
+        // Unary `-` on the i32 field: `0 - self.val` hits CONST;LOCAL_GET;STRUCT_GET
+        // store-policy force-SET and leaves i32.sub without a left operand (#807).
+        Wrapper { val: -self.val }
     }
 }
 

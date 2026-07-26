@@ -183,8 +183,16 @@ alias = "__intrinsic_panic"
 core_op_id = "panic"
 
 [[legacy_bindings]]
+alias = "__intrinsic_print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
 alias = "__intrinsic_println"
 core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "__intrinsic_eprintln"
+core_op_id = "runtime.eprintln"
 
 [[legacy_bindings]]
 alias = "__intrinsic_process_abort"
@@ -883,7 +891,15 @@ alias = "arg_count"
 core_op_id = "runtime.arg_count"
 
 [[legacy_bindings]]
+alias = "__intrinsic_arg_count"
+core_op_id = "runtime.arg_count"
+
+[[legacy_bindings]]
 alias = "args"
+core_op_id = "runtime.args"
+
+[[legacy_bindings]]
+alias = "__intrinsic_args"
 core_op_id = "runtime.args"
 
 [[legacy_bindings]]
@@ -1399,7 +1415,15 @@ alias = "memory_copy"
 core_op_id = "primitive.memory_copy"
 
 [[legacy_bindings]]
+alias = "__intrinsic_memory_copy"
+core_op_id = "primitive.memory_copy"
+
+[[legacy_bindings]]
 alias = "memory_fill"
+core_op_id = "primitive.memory_fill"
+
+[[legacy_bindings]]
+alias = "__intrinsic_memory_fill"
 core_op_id = "primitive.memory_fill"
 
 [[legacy_bindings]]
@@ -1912,6 +1936,10 @@ core_op_id = "vec.len"
 
 [[legacy_bindings]]
 alias = "vec_pop"
+core_op_id = "vec.pop"
+
+[[legacy_bindings]]
+alias = "pop"
 core_op_id = "vec.pop"
 
 [[legacy_bindings]]
@@ -3107,7 +3135,7 @@ id = "primitive.memory_copy"
 visibility = "internal"
 classification = { layer = "primitive" }
 binding = { policy = "forbidden" }
-description = "Legacy handler branch → memory_copy (aliases: 1; memory_copy)"
+description = "Legacy handler branch → memory_copy (aliases: 2; memory_copy, __intrinsic_memory_copy)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3143,7 +3171,7 @@ id = "primitive.memory_fill"
 visibility = "internal"
 classification = { layer = "primitive" }
 binding = { policy = "forbidden" }
-description = "Legacy handler branch → memory_fill (aliases: 1; memory_fill)"
+description = "Legacy handler branch → memory_fill (aliases: 2; memory_fill, __intrinsic_memory_fill)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3255,7 +3283,7 @@ id = "runtime.arg_count"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → env::arg_count (aliases: 2; env::arg_count, arg_count)"
+description = "Legacy handler branch → env::arg_count (aliases: 3; env::arg_count, arg_count, __intrinsic_arg_count)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3292,7 +3320,7 @@ id = "runtime.args"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → env::args (aliases: 2; env::args, args)"
+description = "Legacy handler branch → env::args (aliases: 3; env::args, args, __intrinsic_args)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3627,7 +3655,7 @@ id = "runtime.eprintln"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::eprintln (aliases: 2; stdio::eprintln, eprintln)"
+description = "Legacy handler branch → stdio::eprintln (aliases: 3; stdio::eprintln, eprintln, __intrinsic_eprintln)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4186,7 +4214,7 @@ id = "runtime.print"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → stdio::print (aliases: 2; stdio::print, print)"
+description = "Legacy handler branch → stdio::print (aliases: 3; stdio::print, print, __intrinsic_print)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -12739,7 +12767,7 @@ id = "vec.pop"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_pop (aliases: 1; vec_pop)"
+description = "Legacy handler branch → vec_pop (aliases: 2; vec_pop, pop)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

@@ -332,11 +332,13 @@ pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
     let total: i32 = len(br) - 2
     let mut line: String = ""
     let mut pos: i32 = cursor
-    while pos < total {
+    let mut stop: bool = false
+    // Stop after newline; do not jump to EOF (that skipped later lines).
+    while pos < total && !stop {
         let b: i32 = get_unchecked(br, 2 + pos)
         pos = pos + 1
         if b == 10 {
-            pos = total
+            stop = true
         } else {
             line = __intrinsic_concat(line, char_to_string(b))
         }
@@ -408,7 +410,10 @@ pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), IoError> {
                 __intrinsic_eprintln(s)
             }
         }
-        clear(bw)
+        // `clear` has no emitter; pop payload then restore tag/cap (#807).
+        while len(bw) > 0 {
+            let _: Option<i32> = pop(bw)
+        }
         push(bw, tag)
         push(bw, cap)
     }

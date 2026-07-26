@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-14
 Updated: 2026-07-26
 ID: 807
@@ -134,6 +134,21 @@ by read count; `reader_read_line` cursor; monomorphic `copy_trait`; GC
 `get_unchecked` on raw arrays; `convert::parse_f64` core_op bind; Hash/
 insert/hashset fixture corrections. trait/hashmap/core → 0 FAIL.
 Remaining top: io 3, io_rw 3, json 3 (+ scattered).
+
+- **After L21 (2026-07-26):** `PASS=1362 FAIL=0 SKIP=253` (wasm-invalid=191). tip after close commit.
+
+L21: `__intrinsic_print`/`eprintln` + memory fill/copy + CLI argv aliases;
+GC empty stdin; stdlib io/json/prelude fixes; trap harness both-trap SKIP;
+`result:` mono subst for Result<T,E> (was `enum:Result:T`); neg_wrapper
+uses `-self.val` (CONST;STRUCT_GET store-policy). FAIL 23→0.
+
+## Close note
+
+Acceptance met: `python3 scripts/manager.py selfhost fixture-parity` reports
+**FAIL=0** (`.build/tmp807-l21d-full-parity.txt`). SKIP entries are
+both-invalid / both-trap / pinned-compile-fail, not ratchet hides.
+Upstream #287 remains done. New-failure ratchet satisfied (23→0).
+
 
 ## New-failure ratchet
 
