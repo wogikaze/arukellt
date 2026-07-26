@@ -172,6 +172,7 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, ti
             cwd=root,
             capture_output=True,
             text=True,
+            errors="replace",
             check=False,
             env=env,
             timeout=timeout,
