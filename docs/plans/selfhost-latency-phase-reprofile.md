@@ -75,4 +75,6 @@ MIR規模 before→after、validate結果、warning量、phase合計と外部wal
 選択した最大ボトルネック: `emit.code.locals`（判定 C）。  
 CSR producer write index で半減達成（13.6 s → 2.8 s）。  
 `fixpoint --build` / `verify lane` / KEEP_CLOCK smoke green。  
-#824 は decl_emit 非支配のため未実装。follow-up: `lower.reachability` / cold &lt;2 min は既に ≈33 s で満たす。
+#824 は decl_emit 非支配のため **wontfix close**（2026-07-26；receipt
+`docs/research/receipts/824-early-body-decl-emit-defer-receipt.json`）。
+follow-up: `lower.reachability` / cold &lt;2 min は既に ≈33 s で満たす。

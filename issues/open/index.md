@@ -141,8 +141,8 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 40. [815 — 815 — Diagnostic/T3 compile skips](815-diagnostic-t3-compile-skips.md)
 41. [819 — 819 — Runtime ABI CoreOp lowering and emitter host-operation removal](819-runtime-abi-core-op-lowering.md)
 42. [822 — 822 — Representation-dependent and allocating stdlib migration](822-representation-dependent-stdlib-migration.md)
-43. [824 — Early body lowering (worklist; design first)](824-early-body-lowering-worklist.md)
-44. [825 — AST cache format repair (not “re-enable as-is”)](825-ast-cache-format-repair.md)
+43. [825 — AST cache format repair (not “re-enable as-is”)](825-ast-cache-format-repair.md)
+44. [826 — P2a: symbol / path interning + hot-path clone audit](826-symbol-path-intern-clone-audit.md)
 45. [830 — 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap](830-wasm-heap-grow-patcher-retirement.md)
 46. [834 — Pin bootstrap to validating Memory64 wasm32-gc](834-wasm32-gc-bootstrap-pin.md)
 47. [840 — 840 — Enable `?` From conversion on wasm32-gc](840-question-mark-from-wasm32-gc.md)
@@ -213,8 +213,8 @@ Machine-readable metadata (orchestration + deps + acceptance counts): `index-met
 | 815 | [815 — Diagnostic/T3 compile skips](815-diagnostic-t3-compile-skips.md) | selfhost | none | none | 0 checked / 0 open | ready | None | |
 | 819 | [819 — Runtime ABI CoreOp lowering and emitter host-operation removal](819-runtime-abi-core-op-lowering.md) | compiler-internal | 727, 798 | 818 | 0 checked / 6 open | blocked | 727 | |
 | 822 | [822 — Representation-dependent and allocating stdlib migration](822-representation-dependent-stdlib-migration.md) | stdlib | 798, 816, 817, 820 | 818 | 0 checked / 6 open | blocked | 816, 817, 820 | |
-| 824 | [Early body lowering (worklist; design first)](824-early-body-lowering-worklist.md) | selfhost-infra | 829 | none | 0 checked / 4 open | design | — | |
 | 825 | [AST cache format repair (not “re-enable as-is”)](825-ast-cache-format-repair.md) | selfhost-infra | 823 | none | 0 checked / 10 open | implementation | — | |
+| 826 | [P2a: symbol / path interning + hot-path clone audit](826-symbol-path-intern-clone-audit.md) | selfhost-infra | 823 | none | 0 checked / 4 open | investigation | — | |
 | 830 | [830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap](830-wasm-heap-grow-patcher-retirement.md) | selfhost-infra | 730 | none | 0 checked / 5 open | architecture-implementation | None | |
 | 834 | [Pin bootstrap to validating Memory64 wasm32-gc](834-wasm32-gc-bootstrap-pin.md) | selfhost-infra | 730 | none | 0 checked / 5 open | implementation-ready | — | |
 | 840 | [840 — Enable `?` From conversion on wasm32-gc](840-question-mark-from-wasm32-gc.md) | language-design | 839 | none | 0 checked / 5 open | implementation | 839 | |

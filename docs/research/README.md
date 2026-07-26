@@ -19,7 +19,7 @@
 | [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | 本ファイルは計測表・環境・スクリプト一覧の正本。ADR-002 には判定要旨のみ残す。 |
 | [memory64-validate-fail-10.md](memory64-validate-fail-10.md) | Research: 10 remaining Memory64 T3 WASM validation failures | Archive | Generated: 2026-07-18 Target: wasm32-gc with Memory64 Compiler: .build/selfhost/arukellt-s2-runtime.wasm |
 | [p2-bridged-wasi-path-roadmap.md](p2-bridged-wasi-path-roadmap.md) | P2 Bridged WASI Path — 今後の調査・修正項目 | Archive | stderr/fs/guest-native は #668 / #076。HTTP/sockets は #727。 |
-| [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | 次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。 ただし順序は次で固定する。 |
+| [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | decl_emit が total の 35% かつ第 2 位の 1.5 倍を満たさず（L5: 11.1%; #829 after: 17.9%）。 receipt: receipts/824-early-body-decl-emit-defer-receipt.json |
 | [selfhost-phase-arena-ownership.md](selfhost-phase-arena-ownership.md) | Selfhost phase arena ownership (compiler bump) | Archive | この文書は セルフホストコンパイラの bump / phase arena だけを扱う。 |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
 | [verify-quick-latency.md](verify-quick-latency.md) | verify quick latency — wall-time breakdown (2026-07-21) | Archive | 計測環境: WSL2 worktree wave/gate-speedup @ 92e11273 |

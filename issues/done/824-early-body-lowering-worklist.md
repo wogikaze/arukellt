@@ -1,12 +1,13 @@
 ---
-Status: open
+Status: done
+Disposition: wontfix
 Created: 2026-07-17
-Updated: 2026-07-20
+Updated: 2026-07-26
 ID: 824
 Parent: 829
 Track: selfhost-infra
 Depends on: "829"
-Related: "#730, #823, #829, docs/research/selfhost-compile-latency-root-cause.md"
+Related: "#730, #823, #829, docs/research/selfhost-compile-latency-root-cause.md, docs/research/receipts/824-early-body-decl-emit-defer-receipt.json"
 Orchestration class: design
 Blocks v4 exit: False
 ---
@@ -26,9 +27,51 @@ pruned graph, so #824 mainly saves omitted-body `decl_emit` (+ temps). It will
 not alone turn ~23 min stage-3 into a few minutes unless `decl_emit` dominates
 the phase receipt.
 
-**Implementation is blocked** until #829 has real phase-ms evidence that
-`decl_emit` dominates wall time (KEEP_CLOCK / clock intrinsic validate is
-currently broken under #730).
+## Phase 2 decision (2026-07-26) — **wontfix / defer**
+
+Measurement gate for implementation:
+
+1. `lower.decl_emit` ≥ **35%** of `--time` total, **and**
+2. `lower.decl_emit` ≥ **1.5×** the second-largest phase
+
+### Lane L5 receipt (KEEP_CLOCK, this worktree)
+
+Workload: `compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2 --time`  
+Host: `arukellt-s2-clock.wasm` via `build_clock_capable_s2`  
+Durable receipt: [`docs/research/receipts/824-early-body-decl-emit-defer-receipt.json`](../../docs/research/receipts/824-early-body-decl-emit-defer-receipt.json)
+
+| Phase | ms | share of total |
+|---|---:|---:|
+| **emit** | 41175 | **40.3%** |
+| **lower.reachability** | 35314 | **34.6%** |
+| lower.decl_emit | 11311 | **11.1%** |
+| resolve | 11104 | 10.9% |
+| total | 102131 | 100% |
+
+- `decl_emit` share **11.1%** ≪ 35% → gate fail
+- `decl_emit / second` = 11311 / 41175 ≈ **0.27×** ≪ 1.5× → gate fail
+- Note: `latency_rss_phase_probe.py` REFUSE'd concurrent bootstraps; phases taken
+  via the same KEEP_CLOCK argv under concurrent load (absolute ms inflated;
+  shares match the #829 quiet receipt below).
+
+### #829 after receipt (quiet machine, authoritative share)
+
+From `.build/selfhost/selfhost-latency-receipt.json` after CSR producer index:
+
+| Phase | ms | share |
+|---|---:|---:|
+| lower.reachability | 13180 | **42.1%** |
+| lower.decl_emit | 5601 | **17.9%** |
+| emit.code.locals | 2782 | 8.9% |
+| total | 31343 | 100% |
+
+- `decl_emit` **17.9%** ≪ 35%; ratio to reachability ≈ **0.43×** ≪ 1.5×
+
+**Decision: do not implement early body lowering.** Close as wontfix.  
+Next latency focus: `lower.reachability` (and remaining emit work), not #824.
+
+Design lock below remains the contract **if** a future receipt ever meets the
+gate (re-open then). No compiler code landed for this issue.
 
 ## Design (acceptance for this issue = design lock + no premature impl)
 
@@ -92,22 +135,28 @@ Register all signatures / FunctionIds / layouts / types
 
 ## Acceptance
 
-- [ ] Design section above remains the implementation contract
-- [ ] Implementation plan lists root seeding, deterministic order, mono/closure
+- [x] Design section above remains the implementation contract (if re-opened)
+- [x] Implementation plan lists root seeding, deterministic order, mono/closure
       rules, fallback edges, keep-reason counters, prune safety net,
       prune-disabled + stage-2 overlay keep-all behavior
-- [ ] Implementation starts only after #829 phase-ms re-judge selects decl_emit
+      (`docs/plans/824-early-body-lowering-worklist.md`)
+- [x] Implementation starts only after #829 phase-ms re-judge selects decl_emit
+      — **gate not met; no implementation**
+- [x] Measurement receipt recorded; issue closed wontfix without code land
 - [ ] `python3 scripts/manager.py verify quick` + selfhost build-compiler smoke
-      when code lands
+      when code lands — **N/A (no code)**
 
 ## Evidence / parent receipt
 
 See #823 A/B: BFS wall 124 s vs legacy 134 s on stubbed s2-runtime; prune
-8748→7991 / blocks 17496→15982 / insts 373771→358123; phase ms still 0ms
-(KEEP_CLOCK blocked). No decl_emit majority claim yet. Umbrella: #829.
+8748→7991 / blocks 17496→15982 / insts 373771→358123.  
+#829 after: `decl_emit` 5601 ms (17.9%), `lower.reachability` 13180 ms (42.1%).  
+Lane L5 2026-07-26: `decl_emit` 11.1%, dominant `emit` 40.3% / `reachability` 34.6%.
 
 ## References
 
-- `issues/open/829-selfhost-latency-phase-reprofile-hotspot.md`
-- `issues/open/823-selfhost-compile-latency-quadratic-mir.md`
+- `issues/done/829-selfhost-latency-phase-reprofile-hotspot.md`
+- `issues/done/823-selfhost-compile-latency-quadratic-mir.md` (if present) / open archive
 - `docs/research/selfhost-compile-latency-root-cause.md`
+- `docs/research/receipts/824-early-body-decl-emit-defer-receipt.json`
+- `docs/plans/824-early-body-lowering-worklist.md`

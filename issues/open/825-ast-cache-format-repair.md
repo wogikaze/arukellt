@@ -29,12 +29,12 @@ implementation priority until frontend-time effect is measured against #823/#824
 - [ ] Schema / version field; reject mismatched versions
 - [ ] Revisit the 500-node limit policy (document keep / raise / remove)
 - [ ] On cache hit: measure heap / peak RSS delta
-- [ ] Measure frontend (lex/parse) wall vs cold before prioritizing over #824
+- [ ] Measure frontend (lex/parse) wall vs cold before prioritizing over reachability work
 - [ ] No product enablement that silently returns empty trees on corrupt input
 
 ## Non-goals
 
-- Early body lowering (#824)
+- Early body lowering (#824) — done / wontfix (decl_emit gate missed)
 - Phase arena (#827)
 - Raising priority above measured frontend benefit
 
@@ -45,5 +45,5 @@ implementation priority until frontend-time effect is measured against #823/#824
 
 ## References
 
-- `issues/open/823-selfhost-compile-latency-quadratic-mir.md`
+- `issues/done/823-selfhost-compile-latency-quadratic-mir.md`
 - `docs/research/selfhost-compile-latency-root-cause.md` (原因6)

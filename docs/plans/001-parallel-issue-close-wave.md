@@ -14,7 +14,7 @@
 - L2 `#807` — Fixture parity 367 failures (`docs/plans/807-fixture-parity-remaining-failures.md`)
 - L3 `#822` — Representation-dependent stdlib migration (`docs/plans/822-representation-dependent-stdlib-migration.md`)
 - L4 `#727` — arukellt_host bridge retirement (`docs/plans/727-host-bridge-retirement.md`)
-- L5 `#824` — Early body lowering (`docs/plans/824-early-body-lowering.md`)
+- L5 `#824` — Early body lowering — **done / wontfix** (`docs/plans/824-early-body-lowering-worklist.md`; no impl)
 - L6 `#826` — Symbol/path interning + clone audit (`docs/plans/826-symbol-path-intern-clone-audit.md`)
 - L7 `#810` — Component interop failures (`docs/plans/810-component-interop-failures.md`)
 - L8 `#809` — WAT roundtrip failure (`docs/plans/809-wat-roundtrip-failure.md`)

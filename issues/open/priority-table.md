@@ -27,7 +27,7 @@ Scoring criteria (0-5 each, total 25):
 | 14 | 719 | 719 — `arukellt test` execution harness (ADR-041 Phase 2) | tooling | 0 | 0 | 1 | 5 | 4 | 10 |
 | 15 | 728 | 728 — WIR / backend target IR for ADR-007 multi-target sepa... | compiler-internal | 0 | 0 | 1 | 5 | 4 | 10 |
 | 16 | 819 | 819 — Runtime ABI CoreOp lowering and emitter host-operatio... | compiler-internal | 1 | 0 | 1 | 5 | 3 | 10 |
-| 17 | 824 | Early body lowering (worklist; design first) | selfhost-infra | 0 | 0 | 1 | 5 | 4 | 10 |
+| 17 | 826 | P2a: symbol / path interning + hot-path clone audit | selfhost-infra | 0 | 0 | 1 | 5 | 4 | 10 |
 | 18 | 830 | 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhos... | selfhost-infra | 0 | 0 | 1 | 5 | 4 | 10 |
 | 19 | 834 | Pin bootstrap to validating Memory64 wasm32-gc | selfhost-infra | 0 | 0 | 1 | 5 | 4 | 10 |
 | 20 | 840 | 840 — Enable `?` From conversion on wasm32-gc | language-design | 0 | 0 | 1 | 5 | 4 | 10 |

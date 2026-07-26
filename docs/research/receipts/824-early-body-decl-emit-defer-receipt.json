@@ -1,0 +1,59 @@
+{
+  "issue": 824,
+  "session": "824-phase1-2026-07-26",
+  "decision": "defer_wontfix",
+  "decision_rationale": "lower.decl_emit is not dominant: share <35% of total and not >=1.5x second place. Dominant phases are emit and lower.reachability. Do not implement early body lowering.",
+  "workload": "compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2",
+  "host": "arukellt-s2-clock.wasm",
+  "host_sha256": "51fa9cdf9d1bfb7fc33c36c7d6853eb494cb134c1b119ef381d58fcd85037c8b",
+  "overlay": "flat-src",
+  "target": "wasm32-gc",
+  "wasi_version": "wasi-p2",
+  "machine": "Linux DP 6.6.87.2-microsoft-standard-WSL2 x86_64",
+  "memory64": true,
+  "overlay_note": "KEEP_CLOCK host via build_clock_capable_s2; manual probe because latency_rss_phase_probe refused concurrent bootstraps",
+  "concurrent_main_ark_at_start": 10,
+  "wall_sec": 108.66,
+  "max_rss_kb": 1374956,
+  "phases_ms": {
+    "lower.decl_emit": 11311.0,
+    "lower.reachability": 35314.0,
+    "lower.sync": 131.0,
+    "lower.propagate": 1772.0,
+    "lower.total": 48530.0,
+    "resolve": 11104.0,
+    "typecheck": 670.0,
+    "lower": 49121.0,
+    "mir_opt": 61.0,
+    "mir_verify": 0.0,
+    "emit": 41175.0,
+    "total": 102131.0
+  },
+  "decl_emit_ms": 11311.0,
+  "decl_emit_share_of_total": 0.1107,
+  "second_place_phase": "emit",
+  "second_place_ms": 41175.0,
+  "decl_emit_to_second_ratio": 0.2747,
+  "implement_gate": {
+    "requires_share_ge_35pct": false,
+    "requires_ge_1_5x_second": false,
+    "met": false
+  },
+  "reachability": {
+    "fns_before": 9394,
+    "fns_after": 8595,
+    "blocks_before": 18788,
+    "blocks_after": 17190,
+    "insts_before": 428479,
+    "insts_after": 411268
+  },
+  "reference_829_after_ms": {
+    "lower.decl_emit": 5601,
+    "lower.reachability": 13180,
+    "emit.code.locals": 2782,
+    "emit": 7902,
+    "resolve": 2328,
+    "total": 31343
+  },
+  "reference_829_decl_emit_share": 0.1787
+}

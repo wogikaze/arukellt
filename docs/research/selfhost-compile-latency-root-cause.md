@@ -6,8 +6,10 @@
 - [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md) — Memory64 / fixpoint green（done; wasm32-gc pin は #834）
 - [#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md) — quadratic MIR P0 + reachability BFS（コード landed）
 - [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md) — phase re-profile + dominant hotspot 除去（**done**, emit.locals 半減）
-- 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)
-- done: [#826](../../issues/done/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/done/827-phase-arena-after-heap-model.md)（arena 所有メモ）
+- ~~候補: [#824](../../issues/done/824-early-body-lowering-worklist.md)~~ — **wontfix（2026-07-26）**:
+  `decl_emit` が total の 35% かつ第 2 位の 1.5 倍を満たさず（L5: 11.1%; #829 after: 17.9%）。
+  receipt: [`receipts/824-early-body-decl-emit-defer-receipt.json`](receipts/824-early-body-decl-emit-defer-receipt.json)
+- 候補: [#825](../../issues/open/825-ast-cache-format-repair.md)、[#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/open/827-phase-arena-after-heap-model.md)
 - Phase arena 所有決定: [`selfhost-phase-arena-ownership.md`](selfhost-phase-arena-ownership.md)（旧 P2.3 参照の正本）
 
 ## 方針（2026-07-20）
@@ -23,8 +25,8 @@ mem64 / fixpoint green
 ```
 
 次マイルストーンの名称は **「#824 early body lowering」ではない**。  
-正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829）。  
-#824 は計測結果から選ばれる候補の一つに留める。
+正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829, done）。  
+#824 は候補だったが、計測ゲート未達のため **wontfix**（2026-07-26）。次の支配相は `lower.reachability`。
 
 ### Acceptance を分ける
 
@@ -160,12 +162,12 @@ Receipt: `.build/selfhost/selfhost-latency-receipt.json`
 
 | 最大フェーズ | 次手 |
 |---|---|
-| `decl_emit` | #824 |
+| `decl_emit` | ~~#824~~（wontfix: gate 未達） |
 | `propagate` | ~~callee 線形探索~~（`CalleePropCache` landed）; 残れば stack-producer / 反復 |
 | `emit.code.locals` | ~~struct_new / type_name / CSR producer index~~（landed, ≈2.8 s） |
 | `emit.code.insts` | ~~struct NameIndex~~（landed, ≈1 s） |
 | `lower.reachability` | BFS 自体の再プロファイル（**現行の支配相の一角** ≈13 s） |
-| 複数フェーズで RSS だけ増 | #826 clone/intern（監査+NameIndex win: [`826-symbol-path-intern-clone-audit.md`](826-symbol-path-intern-clone-audit.md)） |
+| 複数フェーズで RSS だけ増 | #826 clone/intern |
 | `mir_opt` / `mir_verify` | それぞれ別 issue |
 
 ## 歴史的原因メモ（#823 以前の仮説）
