@@ -41,6 +41,26 @@ typedef struct {
     uint32_t capacity;
 } ark_vec;
 
+/* Open-addressing HashMap with empty / occupied / tombstone slots.
+ * key_kind / value_kind: 0 = i32 scalar, 1 = String ref. */
+typedef struct {
+    ark_object_header header;
+    uint32_t capacity;
+    uint32_t size;
+    uint8_t key_kind;
+    uint8_t value_kind;
+    uint8_t reserved0;
+    uint8_t reserved1;
+    uint8_t *flags;
+    ark_value *keys;
+    ark_value *values;
+} ark_hashmap;
+
+#define ARK_HM_KIND_I32 0u
+#define ARK_HM_KIND_STRING 1u
+#define ARK_HM_FLAG_EMPTY 0u
+#define ARK_HM_FLAG_OCCUPIED 1u
+#define ARK_HM_FLAG_TOMBSTONE 2u
 
 typedef struct ark_gc_allocation {
     struct ark_gc_allocation *next;
@@ -150,6 +170,12 @@ double ark_rt_math_sqrt_f64(double value);
 ark_vec *ark_rt_vec_new(uint32_t type_id);
 ark_vec *ark_rt_vec_new_with_capacity(uint32_t type_id, int32_t capacity);
 ark_vec *ark_rt_array_new(uint32_t type_id, int32_t length);
+ark_hashmap *ark_rt_hashmap_new(uint32_t type_id, uint32_t key_kind, uint32_t value_kind);
+ark_unit ark_rt_hashmap_insert(ark_hashmap *map, ark_value key, ark_value value);
+ark_object_header *ark_rt_hashmap_get(ark_hashmap *map, ark_value key, uint32_t option_type_id);
+int32_t ark_rt_hashmap_contains(ark_hashmap *map, ark_value key);
+ark_object_header *ark_rt_hashmap_remove(ark_hashmap *map, ark_value key, uint32_t option_type_id);
+int32_t ark_rt_hashmap_len(ark_hashmap *map);
 int32_t ark_rt_vec_len(ark_vec *vector);
 ark_value ark_rt_vec_get(ark_vec *vector, int32_t index);
 ark_object_header *ark_rt_vec_get_option(ark_vec *vector, int32_t index, uint32_t option_type_id);
