@@ -127,8 +127,15 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
         return
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
+    // Re-apply known stdlib Result types when unset or demoted away from
+    // Result/Option encodings (#834 cmd_init: write_main was i32).
+    let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
+    let needs_stdlib_result = len(existing) == 0 ||
+    !is_option_or_result_type_name(clone(existing))
+    if needs_stdlib_result &&
+    call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest) {
+        set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+        return
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)

@@ -182,12 +182,10 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 # Stage-2+ artifacts: primary target (ADR-007 Memory64 default).
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
-# Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds (#813).
-# Emit stays wasm32/wasi-p1 until s2 can self-emit + pin validating wasm32-gc (#834).
-# #730 closed: clone(T)→T fixed former func 8204 validate; pin/host RSS remains #834.
-# Fixpoint compares both stages at BOOTSTRAP_EMIT_* (stage-3 host = pinned bootstrap).
-BOOTSTRAP_EMIT_TARGET = "wasm32"
-BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
+# Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds.
+# Pinned bootstrap is memory32 wasm32-gc / wasi-p2 (#834); host-linker runs it.
+BOOTSTRAP_EMIT_TARGET = "wasm32-gc"
+BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p2"
 # KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
 CLOCK_CAPABLE_EMIT_TARGET = "wasm32"
 CLOCK_CAPABLE_EMIT_WASI_VERSION = "wasi-p1"
@@ -735,33 +733,21 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (P2 stdio / bridged ABI).
-
-    Plain ``wasmtime run`` does not define guest-native P2 stdio imports
-    (``get-stdout`` / ``blocking-write-and-flush`` / legacy ``write``). After
-    #668/#727 those imports are the default for ``stdio::println`` fixtures, so
-    fixture-parity must route them through ``arukellt-host-run`` (#807).
-    """
+    """True when guest imports need tools/host-linker (bridged HTTP/TCP/P2 ABI)."""
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
-    # Guest-native / legacy P2 stdio (#668) — required for println fixtures.
-    if (
-        b"wasi:cli/stdout@" in data
-        or b"wasi:cli/stderr@" in data
-        or b"wasi:io/streams@" in data
-        or b"get-stdout" in data
-        or b"get-stderr" in data
-        or b"blocking-write-and-flush" in data
-    ):
-        return True
-    # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
+    # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
+    # or core wasi-p2 imports that plain wasmtime cannot link (#834).
     return (
         b"arukellt_host" in data
         or b"wasi:http/outgoing-handler@" in data
         or b"wasi:http/incoming-handler@" in data
         or b"wasi:sockets/tcp@" in data
+        or b"wasi:cli/" in data
+        or b"wasi:filesystem/" in data
+        or b"arukellt:fs@" in data
         or b"sockets_connect" in data
         or b"sockets_listen" in data
         or b"http_get" in data
@@ -796,7 +782,14 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
 def _wasm_run_cmd(
     wasmtime: str, compiler_wasm: Path, root: Path, args: list[str]
 ) -> list[str]:
-    """Build a wasmtime run command, using AOT .cwasm when available."""
+    """Build a run command for ``compiler_wasm``, using AOT .cwasm when available.
+
+    wasi-p2 / host-linker guests skip AOT and route through
+    ``arukellt-run-hosted.sh`` (plain wasmtime cannot link ``wasi:cli/*``; #834).
+    """
+    if _wasm_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        return ["bash", str(hosted), f"--dir={root}", str(compiler_wasm), "--", *args]
     cwasm = _ensure_aot_cwasm(compiler_wasm)
     if cwasm.suffix == ".cwasm":
         return [wasmtime, "run", "--allow-precompiled",
@@ -808,58 +801,15 @@ def _wasm_run_cmd(
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
-def _fixture_host_run_flags(root: Path, fixture: str | None) -> tuple[list[str], bool]:
-    """Parse sibling ``.flags`` for host-run: ``--dir …`` lines and ``--deny-fs``.
-
-    Returns (dir_args, deny_fs). When ``.flags`` lists ``--dir``, those replace
-    the default repo-root preopen so ``--dir .:ro`` can honor read-only (#807).
-    """
-    dir_args = [f"--dir={root}"]
-    deny_fs = False
-    if not fixture:
-        return dir_args, deny_fs
-    flags_path = root / "tests" / "fixtures" / (fixture[:-4] + ".flags")
-    if not flags_path.is_file():
-        return dir_args, deny_fs
-    custom_dirs: list[str] = []
-    for raw in flags_path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line == "--deny-fs":
-            deny_fs = True
-            continue
-        if line.startswith("--dir="):
-            custom_dirs.append(line)
-            continue
-        if line.startswith("--dir ") or line == "--dir":
-            # Support "--dir .:ro" (single line with space).
-            parts = line.split(None, 1)
-            if len(parts) == 2:
-                custom_dirs.append(f"--dir={parts[1]}")
-            continue
-    if custom_dirs:
-        dir_args = custom_dirs
-    return dir_args, deny_fs
-
-
-def _wasm_run_argv(
-    root: Path, wasm_path: Path, *, fixture: str | None = None
-) -> list[str]:
+def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
     """Return argv to execute user wasm, using host-linker when imports need it."""
-    dir_args, deny_fs = _fixture_host_run_flags(root, fixture)
     if _wasm_needs_host_linker(wasm_path):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
         if hosted.is_file():
-            argv = ["bash", str(hosted), *dir_args]
-            if deny_fs:
-                argv.append("--deny-fs")
-            argv.append(str(wasm_path))
-            return argv
+            return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
     wasmtime = _find_wasmtime()
-    argv = [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
-            "--wasm", "max-wasm-stack=16777216", *dir_args, str(wasm_path)]
-    return argv
+    return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
+            "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -904,15 +854,17 @@ def _wasm_compile(
     Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
     Passes --cache-dir to enable per-module parse caching (only for selfhost
     compilers that support the flag; skipped for pinned bootstrap).
+    wasi-p2 compilers route through host-linker (plain wasmtime cannot link
+    ``wasi:cli/*`` core imports; #834).
     """
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
-    dirs: list[str] = []
+    preopen_paths: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
-        dirs.extend(["--dir", str(workspace_root)])
+        preopen_paths.append(str(workspace_root))
         guest_out = "bootstrap-out.wasm"
-    dirs.extend(["--dir", str(root)])
+    preopen_paths.append(str(root))
     # Ensure AST cache directory exists
     ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
@@ -920,19 +872,34 @@ def _wasm_compile(
     cache_args: list[str] = []
     if _is_selfhost_compiler(compiler_wasm, root):
         cache_args = ["--cache-dir", AST_CACHE_REL]
-    # Use AOT precompiled .cwasm when available for faster startup
-    run_wasm = _ensure_aot_cwasm(compiler_wasm)
-    run_flags: list[str]
-    if run_wasm.suffix == ".cwasm":
-        run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+    guest_argv = [
+        "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
+        "-o", guest_out, *cache_args,
+    ]
+    if _wasm_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        host_dirs = [f"--dir={p}" for p in preopen_paths]
+        result = _run(
+            ["bash", str(hosted), *host_dirs, str(compiler_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     else:
-        run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
-    result = _run(
-        [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out, *cache_args],
-        root,
-        timeout=timeout,
-    )
+        dirs: list[str] = []
+        for p in preopen_paths:
+            dirs.extend(["--dir", p])
+        # Use AOT precompiled .cwasm when available for faster startup
+        run_wasm = _ensure_aot_cwasm(compiler_wasm)
+        run_flags: list[str]
+        if run_wasm.suffix == ".cwasm":
+            run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+        else:
+            run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
+        result = _run(
+            [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     if workspace_root is not None:
         staged = workspace_root / guest_out
         stderr = result.stderr or ""
@@ -2314,7 +2281,12 @@ def _patch_bootstrap_disable_selfhost_mir_prune(wasm_path: Path) -> bool:
 
 
 def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
-    """Return a bootstrap-capable copy of the pinned wasm (heap grow + memory64)."""
+    """Return a runnable copy of the pinned bootstrap compiler.
+
+    memory32 ``wasm32-gc`` / ``wasi-p2`` pins (host-linker imports) must not be
+    widened with ``--to-memory64`` — that corrupts GC type sections (#834).
+    Legacy wasm32 pins still get heap-grow + Memory64 widening.
+    """
     out = _resolve_build_rel(root, BOOTSTRAP_WASM_REL)
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
@@ -2327,6 +2299,14 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
     if out.is_file() and out.stat().st_mtime >= source_mtime:
         return out
     out.parent.mkdir(parents=True, exist_ok=True)
+    # GC wasi-p2 memory32: copy as-is for host-linker (#834).
+    if _wasm_needs_host_linker(pinned) and not _wasm_memory_section_is_memory64(pinned):
+        shutil.copyfile(pinned, out)
+        if not _patch_bootstrap_disable_selfhost_mir_prune(out):
+            return None
+        if _reject_invalid_compiler_wasm(out):
+            return None
+        return out
     patch = subprocess.run(
         [str(patcher_bin), str(pinned), str(out), "--to-memory64"],
         cwd=str(root),
@@ -2350,15 +2330,11 @@ def _fixpoint_stage3_compiler(
     pinned: Path,
     built_s2: Path,
 ) -> Path | None:
-    """Compiler wasm for fixpoint stage-3.
+    """Compiler wasm for fixpoint stage-3 — s2-runtime (ADR-029 / #834).
 
-    Until pinned bootstrap can emit ``wasm32-gc`` and s2 can self-compile under
-    Memory64, stage-3 uses the same bootstrap compiler as stage-2 so both
-    stages compile the same overlay + emit target deterministically (#813).
+    The former #813 bootstrap-only stage-3 path is dropped now that pinned
+    bootstrap emits ``wasm32-gc`` / ``wasi-p2`` and s2 can self-compile.
     """
-    bootstrap = _ensure_bootstrap_compiler_wasm(root, pinned)
-    if bootstrap is not None:
-        return bootstrap
     return _stage3_compiler_wasm(root, pinned, built_s2)
 
 
@@ -2445,11 +2421,19 @@ def _widen_compiler_wasm_to_memory64(
 ) -> Path | None:
     """Widen a wasm32 compiler module to Memory64 at ``out`` (validate on success).
 
-    Native Memory64 inputs are copied. ``wasm32to64`` is not used on GC modules
-    (it does not preserve GC type sections).
+    Native Memory64 inputs are copied. memory32 ``wasm32-gc`` / ``wasi-p2``
+    modules (host-linker imports) are copied without ``--to-memory64`` — the
+    patcher does not preserve GC type sections (#834).
     """
     out.parent.mkdir(parents=True, exist_ok=True)
     if _wasm_memory_section_is_memory64(compiler_wasm):
+        if compiler_wasm.resolve() != out.resolve():
+            shutil.copyfile(compiler_wasm, out)
+        if _reject_invalid_compiler_wasm(out):
+            return None
+        return out
+    # GC wasi-p2 memory32: host-linker runs the module as-is (#834).
+    if _wasm_needs_host_linker(compiler_wasm):
         if compiler_wasm.resolve() != out.resolve():
             shutil.copyfile(compiler_wasm, out)
         if _reject_invalid_compiler_wasm(out):
@@ -4012,35 +3996,17 @@ def _run_fixpoint_locked(
 
 # ── Shared manifest parsing ───────────────────────────────────────────────────
 
-def _load_manifest_fixtures(
-    root: Path,
-    kind: str,
-    *,
-    filter_dirs: list[str] | None = None,
-) -> tuple[list[str], str]:
-    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string.
-
-    When ``filter_dirs`` is set, keep only fixtures whose first path segment
-    matches one of the given directory names (e.g. ``control``, ``scalar``).
-    """
+def _load_manifest_fixtures(root: Path, kind: str) -> tuple[list[str], str]:
+    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string."""
     manifest = root / "tests" / "fixtures" / "manifest.txt"
     if not manifest.is_file():
         return [], f"{RED}error: manifest not found: {manifest}{NC}"
     pattern = re.compile(rf"^{kind}:\s*(.+\.ark)$")
     fixtures: list[str] = []
-    allowed: set[str] | None = None
-    if filter_dirs:
-        allowed = {d.strip().strip("/") for d in filter_dirs if d and d.strip()}
     for line in manifest.read_text().splitlines():
         m = pattern.match(line)
-        if not m:
-            continue
-        fixture = m.group(1)
-        if allowed is not None:
-            top = fixture.split("/", 1)[0]
-            if top not in allowed:
-                continue
-        fixtures.append(fixture)
+        if m:
+            fixtures.append(m.group(1))
     return fixtures, ""
 
 
@@ -4165,10 +4131,6 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
 
     Output is ``.build/selfhost/arukellt-s2.wasm``. If it already exists, it is
     reused (callers may invoke ``run_fixpoint`` / ``rebuild_current_s2`` to refresh).
-
-    Callers already hold ``selfhost-runtime.lock`` (fixture/diag/cli parity).
-    Rebuild via ``_rebuild_current_s2_locked`` — never ``rebuild_current_s2``,
-    which would re-enter flock and deadlock on Linux.
     """
     build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -4180,7 +4142,7 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
                 f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
             )
         return runtime, ""
-    runtime, err, _elapsed = _rebuild_current_s2_locked(root, force=True)
+    runtime, err, _elapsed = rebuild_current_s2(root, force=True)
     return runtime, err
 
 
@@ -4318,35 +4280,19 @@ def _normalize_fixture_parity_output(out: str) -> str:
 
 # ── run_fixture_parity ────────────────────────────────────────────────────────
 
-def run_fixture_parity(
-    root: Path,
-    dry_run: bool,
-    *,
-    filter_dirs: list[str] | None = None,
-) -> tuple[int, str]:
+def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     Serialized via runtime_lock to prevent concurrent agents from
     overwriting shared s2/s3 wasm artifacts.
-
-    ``filter_dirs`` limits the run to fixtures under the given top-level
-    directories (Phase 1 of #807). When set, the minimum-fixture floor is
-    skipped so small directories remain usable for iteration.
     """
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
-    return _with_runtime_lock(
-        lambda: _run_fixture_parity_locked(root, filter_dirs=filter_dirs),
-        root,
-    )
+    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root), root)
 
 
-def _run_fixture_parity_locked(
-    root: Path,
-    *,
-    filter_dirs: list[str] | None = None,
-) -> tuple[int, str]:
+def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     For each ``run:`` fixture in the manifest:
@@ -4370,15 +4316,11 @@ def _run_fixture_parity_locked(
     if current is None:
         return (1, err)
 
-    fixtures, err = _load_manifest_fixtures(root, "run", filter_dirs=filter_dirs)
+    fixtures, err = _load_manifest_fixtures(root, "run")
     if err:
         return (1, err + "\n")
 
-    if filter_dirs and not fixtures:
-        dirs = ", ".join(filter_dirs)
-        return (1, f"{RED}error: no run: fixtures matched --filter-dir ({dirs}){NC}\n")
-
-    if not filter_dirs and len(fixtures) < 10:
+    if len(fixtures) < 10:
         return (1, f"{RED}error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found){NC}\n")
 
     pinned_sha = _sha256(pinned)
@@ -4456,13 +4398,14 @@ def _run_fixture_parity_locked(
                 lines.append(f"  note: {fixture} (pinned wasm invalid, current OK — improvement!)")
 
             # ── Execution ─────────────────────────────────────────────────
-            r_p = _run(_wasm_run_argv(root, out_pinned, fixture=fixture), root, timeout=15)
+            r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
 
-            r_c = _run(_wasm_run_argv(root, out_current, fixture=fixture), root, timeout=15)
+            r_c = _run(_wasm_run_argv(root, out_current), root, timeout=15)
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
+
             # A trap (exit 134) after successful wasm validation indicates a
             # runtime crash.
             # - If only current traps → FAIL (new regression).
@@ -4471,17 +4414,8 @@ def _run_fixture_parity_locked(
             def _is_trap(code: int) -> bool:
                 return code == 134
 
-            def _is_runtime_error_output(out: str) -> bool:
-                # Hosted runner often exits 0 while printing a wasm trap
-                # backtrace; treat that as a trap for both-trap skip (#807).
-                return (
-                    "runtime error:" in out
-                    or "Error: failed to run main module" in out
-                    or "wasm trap:" in out
-                )
-
-            p_trapped = _is_trap(p_code) or _is_runtime_error_output(p_out)
-            c_trapped = _is_trap(c_code) or _is_runtime_error_output(c_out)
+            p_trapped = _is_trap(p_code)
+            c_trapped = _is_trap(c_code)
             p_was_invalid = p_val_rc != 0
 
             if c_trapped and not p_trapped and not p_was_invalid:

@@ -2,6 +2,7 @@
 
 use wasm::constants
 use wasm::ctx_gc_type
+use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::import_indices
 use wasm::intrinsic_fs_write_result

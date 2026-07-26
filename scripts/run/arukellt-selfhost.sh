@@ -36,6 +36,24 @@ is_truthy() {
   esac
 }
 
+# memory32 wasm32-gc / wasi-p2 compilers import wasi:cli/* (host-linker; #834).
+compiler_needs_host_linker() {
+  local wasm_path="$1"
+  grep -aqF 'wasi:cli/' "$wasm_path" 2>/dev/null \
+    || grep -aqF 'wasi:filesystem/' "$wasm_path" 2>/dev/null \
+    || grep -aqF 'arukellt:fs@' "$wasm_path" 2>/dev/null
+}
+
+run_compiler() {
+  local wasm_path="$1"
+  shift
+  if compiler_needs_host_linker "$wasm_path"; then
+    "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$wasm_path" -- "$@"
+    return $?
+  fi
+  wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm_path" -- "$@"
+}
+
 resolve_selfhost_wasm() {
   if [[ -n "${ARUKELLT_SELFHOST_WASM:-}" ]] && [[ -f "$ARUKELLT_SELFHOST_WASM" ]]; then
     echo "$ARUKELLT_SELFHOST_WASM"; return 0
@@ -131,7 +149,7 @@ if [[ "${1:-}" == "run" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- compile "${@:2}" \
+    run_compiler "$wasm" compile "${@:2}" \
       >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
@@ -158,7 +176,7 @@ if [[ "${1:-}" == "run" ]]; then
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
-  wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  run_compiler "$wasm" "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then
@@ -251,6 +269,9 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
+    if compiler_needs_host_linker "$wasm"; then
+      exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$wasm" -- "$@"
+    fi
     exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
   DEBUG_ADAPTER="$REPO_ROOT/target/release/arukellt-debug-adapter"
@@ -263,4 +284,8 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   fi
 fi
 
+# Default: fmt / lint / compile / version / … (#834 host-linker for wasi-p2).
+if compiler_needs_host_linker "$wasm"; then
+  exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$wasm" -- "$@"
+fi
 exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"

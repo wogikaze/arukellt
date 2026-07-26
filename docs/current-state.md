@@ -97,9 +97,11 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
 **Memory64（living）:** `wasm32-gc` の default emit は Memory64（memory limits flag + i64 heap /
-アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。selfhost bootstrap の実行中
-コンパイラは `wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB
-上限を外す（[#730](../issues/open/730-bootstrap-wasm-4gb-memory-limit.md)）。
+アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。ピン済み bootstrap 本体は
+`wasm32-gc` / `wasi-p2` の guest memory32（`(memory 8192)`）であり、`--to-memory64` を当てない
+（[#834](../issues/done/834-wasm32-gc-bootstrap-pin.md)）。legacy / 非 GC runtime 経路のみ
+`wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB 上限を外す
+（[#730](../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)）。
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
