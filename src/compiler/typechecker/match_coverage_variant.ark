@@ -2,27 +2,46 @@ use typechecker::ast_access
 use typechecker::match_coverage_mark_record
 use typechecker::match_coverage_record
 
+fn ident_looks_like_unit_variant(pat: AstNode) -> bool {
+    let pat_name = ast_access::node_text(pat)
+    eq(clone(pat_name), String_from("Some")) ||
+    eq(clone(pat_name), String_from("None")) ||
+    eq(clone(pat_name), String_from("Ok")) ||
+    eq(clone(pat_name), String_from("Err")) ||
+    ends_with(clone(pat_name), String_from("::Some")) ||
+    ends_with(clone(pat_name), String_from("::None")) ||
+    ends_with(clone(pat_name), String_from("::Ok")) ||
+    ends_with(clone(pat_name), String_from("::Err"))
+}
+
 fn record_variant_pattern(coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
-    if eq(clone(pat_name), "Some") || ends_with(clone(pat_name), "::Some") {
+    if eq(clone(pat_name), String_from("Some")) || ends_with(clone(pat_name), String_from("::Some")) {
         match_coverage_mark_record::match_coverage_mark_option_some(coverage)
     }
-    if eq(clone(pat_name), "None") || ends_with(clone(pat_name), "::None") {
+    if eq(clone(pat_name), String_from("None")) || ends_with(clone(pat_name), String_from("::None")) {
         match_coverage_mark_record::match_coverage_mark_option_none(coverage)
     }
-    if eq(clone(pat_name), "Ok") || ends_with(clone(pat_name), "::Ok") {
+    if eq(clone(pat_name), String_from("Ok")) || ends_with(clone(pat_name), String_from("::Ok")) {
         match_coverage_mark_record::match_coverage_mark_result_ok(coverage)
     }
-    if eq(clone(pat_name), "Err") || ends_with(clone(pat_name), "::Err") {
+    if eq(clone(pat_name), String_from("Err")) || ends_with(clone(pat_name), String_from("::Err")) {
         match_coverage_mark_record::match_coverage_mark_result_err(coverage)
     }
     match_coverage_mark_record::match_coverage_push_variant(coverage, variant_base_name(pat_name))
 }
 
 fn variant_base_name(name: String) -> String {
-    let colon_pos = index_of(clone(name), "::")
-    if colon_pos >= 0 {
-        return substring(name, colon_pos + 2, len(name))
+    // EnumInfo stores bare variant leaves (`Bool`). Module-qualified arms
+    // like `types::WitType::Bool` must reduce to that leaf, not `WitType::Bool`
+    // from the first `::` (#809).
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
     }
     name
 }

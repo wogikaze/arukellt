@@ -43,7 +43,6 @@ graph LR
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I807["807 807 — Fixture parity: 367 remaining failures"]
-  I809["809 809 — WAT roundtrip failure"]
   I810["810 810 — Component interop failures"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
@@ -149,7 +148,6 @@ graph LR
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
 - **807** depends on: 287, framework); blocks: none
-- **809** depends on: none; blocks: none
 - **810** depends on: none; blocks: none
 - **815** depends on: none; blocks: none
 - **819** depends on: 727, 798; blocks: 818

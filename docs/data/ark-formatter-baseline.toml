@@ -39,7 +39,7 @@ path = "src/compiler/mir/lower/body_match_arm_last.ark"
 sha256 = "e8ebb50d63373d2e2a3058ad459164275804ced734b3534bad05e21ba565a644"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_arm_nonlast.ark"
-sha256 = "5e5f3e98e379b5cd6ee2a97da5a5a31991b364958044b7290a8c7cb1f2362700"
+sha256 = "5e097f3ad45dbd1908957e9edf6bb4d97c6ce47cbf4643e779efb1bbca8c14f2"
 [[exceptions]]
 path = "src/compiler/mir/lower/body_match_compare_or.ark"
 sha256 = "1067c0553f9ef9f0540e95193da9979bd00264fd78ff22a69d736944f3571f11"

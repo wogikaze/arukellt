@@ -12,10 +12,9 @@ fn lower_atomic_pattern(ctx: LowerCtx, node: AstNode) -> i32 {
     if kind == lower_kinds::NK_PAT_WILDCARD() {
         return 0 - 1
     }
-    if kind == lower_kinds::NK_PAT_IDENT() {
-        return 0 - 1
-    }
-    if kind == lower_kinds::NK_PAT_VARIANT() {
+    if kind == lower_kinds::NK_PAT_IDENT() || kind == lower_kinds::NK_PAT_VARIANT() {
+        // PatIdent covers bare unit variants (`None`); PatVariant covers paths
+        // and payload forms (`Option::None`, `Some(x)`).
         let tag = ctx_variant_tag(ctx, ast_node::node_text(node))
         if tag >= 0 {
             let dest = ctx_fresh_local(ctx, value_types::VT_I32())

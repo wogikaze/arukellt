@@ -25,7 +25,7 @@ fn lower_core_match_branch_arm(
     if_depth: i32
 ) -> i32 {
     let mut next_if_depth = if_depth
-    let is_catchall = core_match_patterns::core_match_is_catchall(pat)
+    let is_catchall = core_match_patterns::core_match_is_catchall(ctx, pat)
     let has_guard = core_match_arm_has_guard(arm_node)
     if is_catchall {
         if core_expr_shape_patterns::mir_core_expr_is_pat_ident(pat) {

@@ -79,10 +79,22 @@ fn mir_match_has_variant_pattern(node: AstNode, child_count: i32) -> bool {
             if ast_node::node_kind_is(scan_pat, lower_kinds::NK_PAT_VARIANT()) {
                 return true
             }
+            if ast_node::node_kind_is(scan_pat, lower_kinds::NK_PAT_IDENT()) {
+                if mir_ident_is_unit_variant_name(ast_node::node_text(scan_pat)) {
+                    return true
+                }
+            }
         }
         arm_scan = arm_scan + 1
     }
     false
+}
+
+fn mir_ident_is_unit_variant_name(name: String) -> bool {
+    eq(clone(name), String_from("None")) ||
+    eq(clone(name), String_from("Some")) ||
+    eq(clone(name), String_from("Ok")) ||
+    eq(clone(name), String_from("Err"))
 }
 
 fn mir_match_has_payload_pattern(node: AstNode, child_count: i32) -> bool {

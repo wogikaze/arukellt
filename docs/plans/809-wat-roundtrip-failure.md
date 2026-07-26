@@ -1,10 +1,11 @@
 # #809 — WAT roundtrip failure クローズ計画
 
-ステータス: 計画  
-親 issue: [#809](../../issues/open/809-wat-roundtrip-failure.md)  
+ステータス: 完了  
+親 issue: [#809](../../issues/done/809-wat-roundtrip-failure.md)  
 担当 subagent lane: `wave/809-wat-roundtrip`  
 作業 worktree: `.worktrees/wave-809-wat-roundtrip`  
-作成日: 2026-07-25
+作成日: 2026-07-25  
+完了日: 2026-07-26
 
 ## 1. 現状とゴール
 
@@ -19,51 +20,44 @@
 ## 2. 前提・依存
 
 - なし。
-- 推定原因は `src/compiler/wasm/` 内の文字列 / カスタムセクション / 型セクションエンコーディング。
+- 推定原因（当初）は `src/compiler/wasm/` 内の文字列 / カスタムセクション / 型セクションエンコーディング。
+- **実原因**: match パターン解析・低下（`types::WitType::Bool` パスパターン未解析、裸 unit variant の catchall 誤認）。
 
 ## 3. フェーズと完了条件
 
-### Phase 1 — 最小再現
+### Phase 1 — 最小再現 — 完了
 - `scripts/run/arukellt-selfhost.sh compile --target wasm32 tests/fixtures/stdlib_component/canonical_list.ark -o /tmp/test.wasm`
 - `wasm-tools print /tmp/test.wasm` / `wasm-tools validate /tmp/test.wasm` でエラーメッセージを取得。
 
-### Phase 2 — 根本原因特定
-- 3 つの失敗 fixture の共通点を調査:
-  - Canonical ABI helpers (`std/component/canonical.ark`)
-  - WIT printer (`std/wit/printer.ark`)
-- 問題箇所を特定:
-  - `src/compiler/wasm/strings.ark`
-  - `src/compiler/wasm/wasm_sections.ark`
-  - `src/compiler/wasm/sections_types.ark`
+### Phase 2 — 根本原因特定 — 完了
+- 失敗は主に `stdlib_wit/wit_print.ark` → `std/wit/printer.ark` の
+  module-qualified match patterns。
+- 追加で bare `None`/`Some`/`Ok`/`Err` が catchall 扱いになり orphan `else`。
 
-### Phase 3 — 修正
-- 該当するエンコーディングバグを修正。
+### Phase 3 — 修正 — 完了
+- Parser / MIR match lowering / exhaustiveness（`4e07e2a6`）。
 
-### Phase 4 — 検証
-- `bash scripts/run/wat-roundtrip.sh`
-- `python3 scripts/manager.py verify full`
+### Phase 4 — 検証 — 完了
+- `bash scripts/run/wat-roundtrip.sh` → PASS=3152 FAIL=0 SKIP=39
+- `python3 scripts/manager.py verify lane` → PASS
 
 ## 4. 作業レーン・並列可否
 
-- `src/compiler/wasm/` に集中。他レーンと競合が少ない。
-- `#809` は小規模で独立。
+- 実変更は `src/compiler/parser/` + `mir/lower/` + `typechecker/`。
+- `#809` は独立レーンで完了。
 
 ## 5. 検証コマンド
 
 ```bash
-scripts/run/arukellt-selfhost.sh compile --target wasm32 tests/fixtures/stdlib_component/canonical_list.ark -o /tmp/test.wasm
-wasm-tools print /tmp/test.wasm -o /tmp/test.wat
-wasm-tools validate /tmp/test.wasm
 bash scripts/run/wat-roundtrip.sh
-python3 scripts/manager.py verify full
+python3 scripts/manager.py verify lane
 ```
 
 ## 6. リスク
 
-- 修正中に同種のエンコーディング不備が他の箇所で発見される。
-- 特定 fixture パターンに限られた問題だが、根本的な emitter バグの可能性。
+- （クローズ時）残存なし。全 run: fixture の WAT roundtrip が緑。
 
 ## 7. 進捗更新規則
 
-- Phase 2 で根本原因を issue 本文に追記。
-- 修正後に `verify full` の `wat_roundtrip` 結果を記録。
+- Phase 2 で根本原因を issue 本文に追記済み。
+- クローズ時に `release-guarantees.toml` の `check_wat_roundtrip` を pass へ更新。

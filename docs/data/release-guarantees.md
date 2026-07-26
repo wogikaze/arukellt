@@ -57,7 +57,7 @@ incidents, not by individual checks.
 | `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `exhaustive` | 0 | `incident_selfhost_fixpoint` | `fb8a3827` | `python3 scripts/manager.py selfhost fixpoint --build` |
 | `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
 | `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
-| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 6 | `incident_wat_roundtrip` | `2cd10f16` | `bash scripts/run/wat-roundtrip.sh` |
+| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `4e07e2a6` | `bash scripts/run/wat-roundtrip.sh` |
 | `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 103 | `incident_component_interop_103` | `2cd10f16` | `python3 scripts/manager.py verify component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
 | `check_binary_version` | — | no | — | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `arukellt --version` |
