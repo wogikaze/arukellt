@@ -303,8 +303,8 @@ Phase 5: D-1, D-2 — WIR layer 設計 (#728)
   Emitter-native WASI P2 component output without wrapper
 - [Issue #668](../../issues/open/668-p2-native-component-polish.md) —
   P2 native component polish (post-#074)
-- [Issue #727](../../issues/open/727-arukellt-host-bridge-retirement.md) —
-  Retire arukellt_host custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports
+- [Issue #727](../../issues/done/727-arukellt-host-bridge-retirement.md) —
+  Retire arukellt_host custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports（bridged close; real ABI → #841）
 - [Issue #728](../../issues/open/728-wir-target-backend-ir.md) —
   WIR / backend target IR for ADR-007 multi-target separation
 - [ADR-008](../adr/ADR-008-component-wrapping.md) —
