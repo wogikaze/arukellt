@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-25T20:10:57Z",
+  "generated_at": "2026-07-25T20:10:10Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -491,6 +491,25 @@
       }
     },
     {
+      "id": "705",
+      "path": "705-std-toml-full-compliance.md",
+      "title": "std::toml Full TOML 1.0 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "706",
       "path": "706-std-wit-full-compliance.md",
       "title": "std::wit Full WIT 1.0 Compliance",
@@ -851,25 +870,6 @@
       },
       "orchestration": {
         "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "826",
-      "path": "826-symbol-path-intern-clone-audit.md",
-      "title": "P2a: symbol / path interning + hot-path clone audit",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "investigation",
         "upstream_notes": null
       }
     },

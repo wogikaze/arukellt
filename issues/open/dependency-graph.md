@@ -49,7 +49,6 @@ graph LR
   I822["822 822 — Representation-dependent and allocating stdlib migration"]
   I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
-  I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I834["834 Pin bootstrap to validating Memory64 wasm32-gc"]
   I840["840 840 — Enable `?` From conversion on wasm32-gc"]
@@ -154,7 +153,6 @@ graph LR
 - **822** depends on: 798, 816, 817, 820; blocks: 818
 - **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
-- **826** depends on: 823; blocks: none
 - **830** depends on: 730; blocks: none
 - **834** depends on: 730; blocks: none
 - **840** depends on: 839; blocks: none
