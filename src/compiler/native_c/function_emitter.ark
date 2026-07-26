@@ -843,7 +843,7 @@ fn native_c_option_result_payload_is_heap_ref(
     variant_hint: String,
     destination: i32
 ) -> bool {
-    if field_index < 1 ||
+    if field_index < 0 ||
     base < 0 ||
     base >= function_locals_view::MirFunction_local_count(function) {
         return false
@@ -851,7 +851,11 @@ fn native_c_option_result_payload_is_heap_ref(
     let base_local = function_locals_view::MirFunction_local_at(function, base)
     let base_name = local_record::mir_local_type_name(base_local)
     let elem_name = native_c_option_result_elem_type_name(clone(base_name))
+    // Option/Result field 0 is the discriminant tag; payload starts at 1.
     if len(elem_name) > 0 {
+        if field_index < 1 {
+            return false
+        }
         return !native_c_type_name_elem_is_scalar(elem_name)
     }
     let raw_type_id = type_id::TypeId_raw(
@@ -868,6 +872,9 @@ fn native_c_option_result_payload_is_heap_ref(
         starts_with(clone(entry_name), String_from("Result")) ||
         starts_with(clone(entry_name), String_from("result"))
         if is_option || is_result {
+            if field_index < 1 {
+                return false
+            }
             let mut param_index = 0
             if is_result && contains(clone(variant_hint), String_from("Err")) {
                 param_index = 1
@@ -890,6 +897,9 @@ fn native_c_option_result_payload_is_heap_ref(
     // STRUCT_GET field_name carries Some/Ok/Err even when the base local's
     // type_id is opaque. Non-scalar binds have empty/non-i32 type_name.
     if native_c_variant_hint_is_option_result_payload(clone(variant_hint)) {
+        if field_index < 1 {
+            return false
+        }
         let dest_name = if destination >= 0 &&
         destination < function_locals_view::MirFunction_local_count(function) {
             local_record::mir_local_type_name(
@@ -955,6 +965,24 @@ fn native_c_struct_get_member(
         destination
     ) {
         return String_from("ref")
+    }
+    // Nested heap records (JSON/TOML payloads, etc.) often keep VT_I32 in MIR
+    // while field 0+ holds a real object pointer. Prefer ref when the destination
+    // local is already a heap-shaped type_name.
+    if base >= 0 &&
+    base < len(state.reference_locals) &&
+    get_unchecked(state.reference_locals, base) != 0 &&
+    destination >= 0 &&
+    destination < function_locals_view::MirFunction_local_count(function) {
+        let dest_local = function_locals_view::MirFunction_local_at(function, destination)
+        let dest_name = local_record::mir_local_type_name(dest_local)
+        if abi::native_c_type_name_is_heap_object(clone(dest_name)) ||
+        eq(
+            abi::native_c_type_for_local(table, dest_local, state.heap_enum_flags),
+            String_from("ark_object_header *")
+        ) {
+            return String_from("ref")
+        }
     }
     from_dest
 }
@@ -2096,6 +2124,9 @@ fn native_c_emit_call(
             if argument_index > 0 { call = concat(call, String_from(", ")) }
             let argument_local = get_unchecked(arguments, argument_index)
             let mut argument_expr = native_c_local_name(argument_local)
+            // Unit-enum tags are i32 constants; callee params still use object
+            // pointers from the type table. Pass the tag via intptr_t.
+            // Never do this for Option/Result (they must remain real objects).
             // Unit-enum tags are i32 constants; callee params still use object
             // pointers from the type table. Pass the tag via intptr_t.
             // Never do this for Option/Result (they must remain real objects).
