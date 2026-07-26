@@ -2647,3 +2647,51 @@ registry_lowering = "legacy_emitter"
 status = "supported"
 phase = 2
 implementation = "ark_fallback"
+
+[[core_ops]]
+id = "hashmap.new"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_new"
+
+[[core_ops]]
+id = "hashmap.insert"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_insert"
+
+[[core_ops]]
+id = "hashmap.get"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_get"
+
+[[core_ops]]
+id = "hashmap.contains"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_contains"
+
+[[core_ops]]
+id = "hashmap.remove"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_remove"
+
+[[core_ops]]
+id = "hashmap.len"
+registry_layer = "semantic_stdlib"
+registry_lowering = "legacy_emitter"
+status = "supported"
+phase = 2
+implementation = "ark_rt_hashmap_len"
