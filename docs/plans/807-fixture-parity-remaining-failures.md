@@ -128,6 +128,18 @@
 計測: 全 suite **PASS=1276 FAIL=90 SKIP=249**（wasm-invalid=202）。L12 の FAIL=107 から -17（new FAIL=0）。  
 残り top: trait 12、io 11、hashmap 8、core 6、host 5。
 
+### L14 tranche（2026-07-26）— i32::MIN、path split/join、parse Err、pop None、goldens
+
+1. **`0 - 2147483648`:** peek で wide literal を i64 にし、左辺を right より前に extend（stack 融合順を維持）。
+2. **i64→i32 wrap:** format_i32 / hashmap_* / assert_eq_i32 のみ allowlist（println/debug を壊さない）。
+3. **path::normalize:** `__intrinsic_split` / `__intrinsic_join` / `pop` の name fallback。
+4. **parse_i64/i32 GC Err:** 入力文字列ではなく `"parse error: invalid integer"`。
+5. **vec_pop empty None:** `struct.new_default` 後に tag=1 を書く（vec_get と同型）。
+6. **goldens:** `string_chars`→`3\\n1`、`use_func_destructure_multi`→`a,b,c`。
+
+計測: 全 suite **PASS=1286 FAIL=81 SKIP=248**（wasm-invalid=198）。L13 の FAIL=90 から -9（new FAIL=0）。  
+残り top: trait 12、io 11、core 6、hashmap 6、host 5。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

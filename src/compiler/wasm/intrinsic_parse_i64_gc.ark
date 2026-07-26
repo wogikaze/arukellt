@@ -158,11 +158,13 @@ fn emit_parse_i64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i
     helpers_core::emit_local_set(w, s_result)
 }
 
-fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_str: i32, s_result: i32, open_type: i32) {
+fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
     let err_type = intrinsic_http_result::find_result_string_variant_type(ctx, String_from("Result::Err"))
     if err_type >= 0 {
+        let s_err = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+        emit_parse_gc_invalid_integer_string(w, ctx, s_err)
         helpers_numeric_i32::emit_i32_const(w, 1)
-        helpers_core::emit_local_get(w, s_str)
+        helpers_core::emit_local_get(w, s_err)
         writer_gc::emit_gc_struct_new(w, err_type)
         writer_gc::emit_gc_ref_cast(w, open_type)
         helpers_core::emit_local_set(w, s_result)
@@ -171,4 +173,21 @@ fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_str: i32, s_result: 
     writer_core::emit_byte(w, opcodes::OP_REF_NULL())
     writer_core::emit_leb128_s(w, open_type)
     helpers_core::emit_local_set(w, s_result)
+}
+
+fn emit_parse_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
+    let msg = "parse error: invalid integer"
+    let msg_len = len(msg)
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    helpers_numeric_i32::emit_i32_const(w, msg_len)
+    writer_gc::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, s_err)
+    let mut ei = 0
+    while ei < msg_len {
+        helpers_core::emit_local_get(w, s_err)
+        helpers_numeric_i32::emit_i32_const(w, ei)
+        helpers_numeric_i32::emit_i32_const(w, char_at(msg, ei))
+        writer_gc::emit_gc_array_set(w, string_type)
+        ei = ei + 1
+    }
 }

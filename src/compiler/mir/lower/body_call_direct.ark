@@ -1,5 +1,6 @@
 use mir::lower::ast_node
 use mir::lower_kinds
+use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_args
 use mir::lower::call_emit
@@ -60,6 +61,9 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             }
         } else {
             arg_idx = lower_expr(ctx, arg)
+        }
+        if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
+            arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
         }
         arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
         // Capture pre-stage receiver for GC void mutators (push_char).

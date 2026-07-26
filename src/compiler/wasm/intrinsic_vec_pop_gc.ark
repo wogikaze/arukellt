@@ -168,9 +168,14 @@ fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_t
 }
 
 fn emit_gc_pop_none(w: WasmWriter, s_optptr: i32, enum_type: i32, ctx: SelfEmitCtx) {
-    // Allocate Option::None as GC struct using the None variant type.
+    // Allocate Option::None. struct.new_default leaves tag=0, which match
+    // treats as Some — store tag=1 explicitly (same as vec_get_gc_none, #832).
     let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
     let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
     writer_gc::emit_gc_struct_new_default(w, none_type_idx)
     helpers_core::emit_local_set(w, s_optptr)
+    helpers_core::emit_local_get(w, s_optptr)
+    writer_gc::emit_gc_ref_cast(w, none_type_idx)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    writer_gc::emit_gc_struct_set_i32(w, none_type_idx, 0)
 }

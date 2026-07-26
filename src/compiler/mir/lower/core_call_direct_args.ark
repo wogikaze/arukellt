@@ -1,3 +1,4 @@
+use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_emit
 use mir::lower::call_indirect_emit
@@ -75,6 +76,9 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
                 }
             } else {
                 arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+            }
+            if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
+                arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
             }
             arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
             if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {

@@ -14,7 +14,9 @@ use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
 use wasm::intrinsic_string_contains_bytes
 use wasm::intrinsic_string_from_bytes
+use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
+use wasm::intrinsic_vec
 use wasm::intrinsic_vec_new_layout
 
 fn try_emit_clone_intrinsic(
@@ -105,6 +107,19 @@ fn try_emit_name_intrinsic_fallback(
     // Same class: i64 format Ark body deferred/DCE'd → use intrinsic (#807).
     if is_format_i64_callee(clone(callee)) {
         let on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // path::normalize uses __intrinsic_split/join; core_op miss → unreachable (#807).
+    if is_split_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_split(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_string_join_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_join(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_pop_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
@@ -291,6 +306,35 @@ fn is_format_i64_callee(callee: String) -> bool {
     eq(clone(callee), String_from("i64_to_string")) ||
     ends_with(clone(callee), String_from("::format_i64")) ||
     ends_with(clone(callee), String_from("::i64_to_string"))
+}
+
+fn is_split_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("split")) ||
+    eq(clone(callee), String_from("__intrinsic_split")) ||
+    eq(clone(callee), String_from("__core_string_split_impl")) ||
+    eq(clone(callee), String_from("text::split")) ||
+    eq(clone(callee), String_from("string::split")) ||
+    ends_with(clone(callee), String_from("::split"))
+}
+
+// Vec/string join only — exclude path::join(String, String).
+fn is_string_join_callee(callee: String) -> bool {
+    if eq(clone(callee), String_from("path::join")) || ends_with(clone(callee), String_from("path::join")) {
+        return false
+    }
+    eq(clone(callee), String_from("__intrinsic_join")) ||
+    eq(clone(callee), String_from("__core_string_join_impl")) ||
+    eq(clone(callee), String_from("text::join")) ||
+    eq(clone(callee), String_from("string::join")) ||
+    eq(clone(callee), String_from("join"))
+}
+
+fn is_vec_pop_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("pop")) ||
+    eq(clone(callee), String_from("vec_pop")) ||
+    eq(clone(callee), String_from("__intrinsic_pop")) ||
+    ends_with(clone(callee), String_from("::pop")) ||
+    ends_with(clone(callee), String_from("::vec_pop"))
 }
 
 fn finish_intrinsic_fallback(
