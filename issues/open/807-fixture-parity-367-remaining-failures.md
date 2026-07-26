@@ -64,6 +64,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L10 (2026-07-26):** `PASS=1224 FAIL=142 SKIP=249` (wasm-invalid=213).
 - **After L11 (2026-07-26):** `PASS=1239 FAIL=127 SKIP=249` (wasm-invalid=203).
 - **After L12 (2026-07-26):** `PASS=1259 FAIL=107 SKIP=249` (wasm-invalid=203).
+- **After L13 (2026-07-26):** `PASS=1276 FAIL=90 SKIP=249` (wasm-invalid=202).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -96,6 +97,10 @@ L12: Ark `&`/`<<`/`==` precedence parens in base64/leb128; real `any_i32`/
 `find_i32` bodies (drop defer); f64 shortest-k includes 0 (no trailing `.0`);
 pad/repeat fixture + goldens synced to correct semantics. Remaining top:
 io 13, trait 12, host 10, hashmap 8, core 7, text 6.
+L13: unsteal `path::join` (String param0 + skip Vec join signature);
+`string_from_bytes` / `format_i64` name fallbacks; empty split/chars;
+`format_i64` GC target + CoreHIR `-N` as i64 NEG; GC `parse_i64` with i64 Ok.
+Remaining top: trait 12, io 11, hashmap 8, core 6, host 5.
 
 ## New-failure ratchet
 

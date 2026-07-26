@@ -31,9 +31,12 @@ fn mir_defer_body_for_decl(
     fn_info_index: i32,
     param_count: i32
 ) -> bool {
-    if fn_info_index >= 0 && param_count > 0 && eq(clone(decl_name), String_from("write_bytes")) {
-        let param0 = entry_view_fn::mir_entry_fn_param_at(entry_view, fn_info_index, 0)
-        return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
+    if fn_info_index >= 0 && param_count > 0 {
+        if eq(clone(decl_name), String_from("write_bytes")) ||
+        eq(clone(decl_name), String_from("join")) {
+            let param0 = entry_view_fn::mir_entry_fn_param_at(entry_view, fn_info_index, 0)
+            return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
+        }
     }
     stdlib_body_defer::mir_should_defer_stdlib_body(decl_name)
 }

@@ -13,6 +13,8 @@ use wasm::intrinsic_math
 use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
 use wasm::intrinsic_string_contains_bytes
+use wasm::intrinsic_string_from_bytes
+use wasm::intrinsic_string_format
 use wasm::intrinsic_vec_new_layout
 
 fn try_emit_clone_intrinsic(
@@ -92,6 +94,17 @@ fn try_emit_name_intrinsic_fallback(
     // core_op rewrite misses, drop+unreachable traps (#807 text/debug clusters).
     if is_concat_callee(clone(callee)) {
         let on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // text.string_from_bytes is normal_call→__core_string_from_bytes_impl, but
+    // the impl is often DCE'd; emit the GC/linear intrinsic instead (#807).
+    if is_string_from_bytes_callee(clone(callee)) {
+        let on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Same class: i64 format Ark body deferred/DCE'd → use intrinsic (#807).
+    if is_format_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
@@ -261,6 +274,23 @@ fn is_concat_callee(callee: String) -> bool {
     eq(clone(callee), String_from("__core_string_concat_impl")) ||
     eq(clone(callee), String_from("text::concat")) ||
     ends_with(clone(callee), String_from("::concat"))
+}
+
+fn is_string_from_bytes_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("string_from_bytes")) ||
+    eq(clone(callee), String_from("__core_string_from_bytes_impl")) ||
+    eq(clone(callee), String_from("__intrinsic_string_from_bytes")) ||
+    eq(clone(callee), String_from("raw_string_from_bytes")) ||
+    ends_with(clone(callee), String_from("::string_from_bytes")) ||
+    ends_with(clone(callee), String_from("::raw_string_from_bytes"))
+}
+
+fn is_format_i64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("format_i64")) ||
+    eq(clone(callee), String_from("__core_format_i64_impl")) ||
+    eq(clone(callee), String_from("i64_to_string")) ||
+    ends_with(clone(callee), String_from("::format_i64")) ||
+    ends_with(clone(callee), String_from("::i64_to_string"))
 }
 
 fn finish_intrinsic_fallback(

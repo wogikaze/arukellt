@@ -1,0 +1,174 @@
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::ctx_gc_type
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use wasm::string_gc_helpers
+use wasm::intrinsic_sockets_result
+use wasm::intrinsic_http_result
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_arith
+use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::intrinsics::helpers_numeric_i64_convert
+
+// GC parse_i64: scan String (array i8) and build Result<i64, String>.
+// Must not reuse parse_i32_gc — Ok payload would be i32 and trap on match (#807).
+fn emit_parse_i64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let _inst = inst
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let s_result = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    // i64 accumulator must use offset 15 (dedicated i64 scratch slot).
+    let s_acc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_ok = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+
+    helpers_core::emit_local_set(w, s_str)
+
+    helpers_core::emit_local_get(w, s_str)
+    string_gc_helpers::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_len)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_core::emit_local_set(w, s_acc)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_neg)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_ok)
+
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_empty(w)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
+    helpers_control::emit_else(w)
+
+    helpers_core::emit_local_get(w, s_str)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    helpers_numeric_i32::emit_i32_const(w, 45)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_neg)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
+    helpers_control::emit_else(w)
+    emit_parse_i64_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
+    helpers_control::emit_end(w)
+    helpers_control::emit_else(w)
+    emit_parse_i64_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
+    helpers_control::emit_end(w)
+
+    helpers_control::emit_end(w)
+    helpers_core::emit_local_get(w, s_result)
+    true
+}
+
+fn emit_parse_i64_gc_digit_loop(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    s_str: i32,
+    s_i: i32,
+    s_len: i32,
+    s_acc: i32,
+    s_ok: i32,
+    s_neg: i32,
+    s_result: i32,
+    string_type: i32,
+    open_type: i32
+) {
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_control::emit_br_if(w, 1)
+
+    helpers_core::emit_local_get(w, s_str)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    let s_ch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    helpers_core::emit_local_tee(w, s_ch)
+    helpers_numeric_i32::emit_i32_const(w, 48)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_core::emit_local_get(w, s_ch)
+    helpers_numeric_i32::emit_i32_const(w, 57)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    helpers_numeric_i32::emit_i32_or(w)
+    helpers_control::emit_if_empty(w)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
+    helpers_control::emit_br(w, 2)
+    helpers_control::emit_end(w)
+
+    helpers_core::emit_local_get(w, s_acc)
+    helpers_numeric_i64_const::emit_i64_const(w, 10i64)
+    helpers_numeric_i64_arith::emit_i64_mul(w)
+    helpers_core::emit_local_get(w, s_ch)
+    helpers_numeric_i32::emit_i32_const(w, 48)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
+    helpers_numeric_i64_arith::emit_i64_add(w)
+    helpers_core::emit_local_set(w, s_acc)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_ok)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+
+    helpers_core::emit_local_get(w, s_ok)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, s_neg)
+    helpers_control::emit_if_empty(w)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_core::emit_local_get(w, s_acc)
+    helpers_numeric_i64_arith::emit_i64_sub(w)
+    helpers_core::emit_local_set(w, s_acc)
+    helpers_control::emit_end(w)
+    emit_parse_i64_gc_ok(w, ctx, s_acc, s_result, open_type)
+    helpers_control::emit_else(w)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
+    helpers_control::emit_end(w)
+}
+
+fn emit_parse_i64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
+    let ok_type = intrinsic_sockets_result::find_result_variant_type_by_suffix(
+        ctx,
+        String_from("Result::Ok"),
+        String_from("_f1_i64")
+    )
+    let type_idx = if ok_type >= 0 { ok_type } else { open_type }
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_get(w, s_acc)
+    writer_gc::emit_gc_struct_new(w, type_idx)
+    writer_gc::emit_gc_ref_cast(w, open_type)
+    helpers_core::emit_local_set(w, s_result)
+}
+
+fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_str: i32, s_result: i32, open_type: i32) {
+    let err_type = intrinsic_http_result::find_result_string_variant_type(ctx, String_from("Result::Err"))
+    if err_type >= 0 {
+        helpers_numeric_i32::emit_i32_const(w, 1)
+        helpers_core::emit_local_get(w, s_str)
+        writer_gc::emit_gc_struct_new(w, err_type)
+        writer_gc::emit_gc_ref_cast(w, open_type)
+        helpers_core::emit_local_set(w, s_result)
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_REF_NULL())
+    writer_core::emit_leb128_s(w, open_type)
+    helpers_core::emit_local_set(w, s_result)
+}

@@ -117,6 +117,17 @@
 計測: 全 suite **PASS=1259 FAIL=107 SKIP=249**（wasm-invalid=203）。L11 の FAIL=127 から -20。  
 残り top: io 13、trait 12、host 10、hashmap 8、core 7、text 6。
 
+### L13 tranche（2026-07-26）— path join、from_bytes、chars/split empty、format_i64、parse_i64 GC
+
+1. **path::join steal:** bare `join`→`string.join` が path 本体を defer / Vec 署名で上書き。param0=`String` は lower；Vec overload は signature 登録スキップ。
+2. **string_from_bytes:** normal_call fallback 欠落 → name fallback で GC/linear intrinsic。
+3. **chars/split("",""):** `__core_string_split_impl` が空 haystack+空 delim で 0 要素 → 1 空部分を push。
+4. **format_i64:** wasm32-gc を `is_gc_target` で GC alloc；壊れた Ark body を defer；CoreHIR の `-N` 引数を i64 NEG に force。
+5. **parse_i64 GC:** `emit_parse_i32_gc` 委譲をやめ `emit_parse_i64_gc`（i64 Ok payload）。
+
+計測: 全 suite **PASS=1276 FAIL=90 SKIP=249**（wasm-invalid=202）。L12 の FAIL=107 から -17（new FAIL=0）。  
+残り top: trait 12、io 11、hashmap 8、core 6、host 5。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

@@ -7,8 +7,10 @@ use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_aggregate
 use mir::lower::core_expr_shape_atoms
 use mir::lower::core_expr_shape_calls
+use mir::lower::core_expr_shape_ops
 use mir::lower::core_literals
 use mir::lower::core_names
+use mir::lower_kinds
 
 fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, child_count: i32) -> i32 {
     let callee_name = core_expr_shape_accessors::mir_core_expr_text(expr)
@@ -60,32 +62,43 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
         } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
             arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
-        } else {
-            arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+        } else if core_expr_shape_ops::mir_core_expr_is_unary(arg_expr) &&
+            core_expr_shape_accessors::mir_core_expr_int_val(arg_expr) == lower_kinds::UOP_NEG() &&
+            core_expr_shape_accessors::mir_core_expr_child_count(arg_expr) >= 1 {
+                // -100 passed to format_i64 / parse_i64 must be i64 NEG, not i32 (#807).
+                let unary_operand = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(arg_expr, 0))
+                if core_expr_shape_atoms::mir_core_expr_is_int(unary_operand) &&
+                call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
+                    arg_idx = core_literals::lower_core_unary_neg_forced_i64(ctx, unary_operand)
+                } else {
+                    arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+                }
+            } else {
+                arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
+            }
+            arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
+            if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
+                receiver_writeback = arg_idx
+            }
+            arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
+            if a == 1 {
+                first_arg_idx = arg_idx
+            }
+            if a == 2 {
+                second_arg_idx = arg_idx
+            }
+            a = a + 1
         }
-        arg_idx = core_call_direct_arg::mir_lower_core_direct_print_arg(ctx, arg_expr, arg_idx, is_println, a)
-        if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
-            receiver_writeback = arg_idx
-        }
-        arg_idx = core_call_direct_arg::mir_lower_core_direct_stage_arg(ctx, staged_arg_locals, arg_idx, stage_call_args)
-        if a == 1 {
-            first_arg_idx = arg_idx
-        }
-        if a == 2 {
-            second_arg_idx = arg_idx
-        }
-        a = a + 1
+        call_emit::mir_emit_direct_call(
+            ctx,
+            callee_name,
+            child_count - 1,
+            first_arg_idx,
+            second_arg_idx,
+            staged_arg_locals,
+            stage_call_args,
+            core_expr_shape_accessors::mir_core_expr_span_start(expr),
+            lane_immediate,
+            receiver_writeback
+        )
     }
-    call_emit::mir_emit_direct_call(
-        ctx,
-        callee_name,
-        child_count - 1,
-        first_arg_idx,
-        second_arg_idx,
-        staged_arg_locals,
-        stage_call_args,
-        core_expr_shape_accessors::mir_core_expr_span_start(expr),
-        lane_immediate,
-        receiver_writeback
-    )
-}

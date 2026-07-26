@@ -231,6 +231,11 @@ fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
     let string_len = raw::raw_string_len_bytes(s)
     let delimiter_len = raw::raw_string_len_bytes(delimiter)
     if delimiter_len == 0 {
+        // Empty haystack + empty delimiter → one empty part (chars(""), split("","")).
+        if string_len == 0 {
+            __core_string_push_part(parts, __core_string_slice_impl(s, 0, 0))
+            return parts
+        }
         let mut index = 0
         while index < string_len {
             __core_string_push_part(parts, __core_string_slice_impl(s, index, index + 1))
