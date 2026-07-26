@@ -465,13 +465,13 @@ fn native_c_capability_is_supported(op: i32) -> bool {
 
 fn native_c_core_capability_status_detail(index: i32) -> String {
     if index == 0 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 1 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 2 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 3 {
         return String_from("supported")
@@ -564,7 +564,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 33 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 34 {
         return String_from("supported")
@@ -600,16 +600,16 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 45 {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if index == 46 {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if index == 47 {
         return String_from("supported")
     }
     if index == 48 {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if index == 49 {
         return String_from("supported")
@@ -648,7 +648,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 61 {
-        return String_from("planned phase 1")
+        return String_from("supported")
     }
     if index == 62 {
         return String_from("supported")
@@ -696,13 +696,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 77 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 78 {
         return String_from("supported")
     }
     if index == 79 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 80 {
         return String_from("supported")
@@ -1350,6 +1350,9 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
 }
 
 fn native_c_core_capability_is_supported(index: i32) -> bool {
+    index == 0 ||
+    index == 1 ||
+    index == 2 ||
     index == 3 ||
     index == 4 ||
     index == 5 ||
@@ -1372,19 +1375,24 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 30 ||
     index == 31 ||
     index == 32 ||
+    index == 33 ||
     index == 34 ||
     index == 35 ||
     index == 37 ||
     index == 39 ||
     index == 40 ||
     index == 44 ||
+    index == 45 ||
+    index == 46 ||
     index == 47 ||
+    index == 48 ||
     index == 49 ||
     index == 50 ||
     index == 52 ||
     index == 53 ||
     index == 55 ||
     index == 58 ||
+    index == 61 ||
     index == 62 ||
     index == 63 ||
     index == 67 ||
@@ -1392,7 +1400,9 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 69 ||
     index == 70 ||
     index == 75 ||
+    index == 77 ||
     index == 78 ||
+    index == 79 ||
     index == 80 ||
     index == 240 ||
     index == 241 ||
