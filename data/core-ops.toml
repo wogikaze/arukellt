@@ -106,6 +106,22 @@ core_op_id = "vec.Vec_new_fallback"
 alias = "Vec_new_v128"
 core_op_id = "vec.Vec_new_f64"
 
+# Prefix family bindings evaluated only after exact legacy_bindings / manifest
+# aliases miss. Used by MIR call_func_id; Wasm exact lookup stays unchanged.
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "__intrinsic_Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
 [[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
 core_op_id = "text.format_bool"
@@ -12472,7 +12488,7 @@ id = "vec.Vec_new_fallback"
 visibility = "internal"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "forbidden" }
-description = "Migration handler for Vec constructors formerly selected by a callee prefix."
+description = "Internal family handler for named-type Vec constructors via legacy_binding_patterns (exact scalar aliases still win)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
