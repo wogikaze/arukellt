@@ -31,3 +31,8 @@ fn emit_f32_to_f64_bridge(w: WasmWriter) {
     writer_core::emit_byte(w, 0xbe)
     writer_core::emit_byte(w, 0xbb)
 }
+
+/// Typed `f32` → `f64` (Wasm `f64.promote_f32`).
+fn emit_f32_promote_f64(w: WasmWriter) {
+    writer_core::emit_byte(w, 0xbb)
+}

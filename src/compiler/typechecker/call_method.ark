@@ -11,6 +11,7 @@ use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::sigs
 use typechecker::trait_method_registry
+use typechecker::vec_core_mono
 
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
@@ -26,7 +27,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
     let recv_ty = infer_expr(env, scope, fn_sigs, enum_defs, recv_node)
     // Primitive .to_string() always returns String and does not require an
     // inherent impl block to be present in the prelude.
-    if eq(clone(method_name), "to_string") {
+    if eq(clone(method_name), String_from("to_string")) {
         let tag = contract_type_access::TypeInfo_tag(recv_ty)
         if tag == commands::TY_I32() || tag == commands::TY_I64() || tag == commands::TY_F64() ||
         tag == commands::TY_BOOL() || tag == commands::TY_CHAR() || tag == commands::TY_STRING() {
@@ -34,14 +35,14 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
         }
     }
     if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_STRING() &&
-    eq(clone(method_name), "lines") && child_count == 1 {
+    eq(clone(method_name), String_from("lines")) && child_count == 1 {
         return string_vec_type()
     }
     // Try mangled name lookup first (e.g. "String::len", "i32::to_string")
     // so that impl-block methods are resolved to the correct signature.
     let recv_type_name = type_name_for_mangling(recv_ty)
     if len(recv_type_name) > 0 {
-        let mangled = concat(clone(recv_type_name), concat("::", clone(method_name)))
+        let mangled = concat(clone(recv_type_name), concat(String_from("::"), clone(method_name)))
         let mangled_sig = sigs::lookup_fn_sig(env, fn_sigs, mangled)
         if contract_fn_sig::FnSig_has_name(mangled_sig) {
             return infer_resolved_method_call(env, scope, fn_sigs, enum_defs, node, mangled_sig, recv_ty, child_count)
@@ -87,7 +88,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
 fn string_vec_type() -> TypeInfo {
     let type_args = Vec_new_TypeInfo()
     push(type_args, simple_type(commands::TY_STRING()))
-    contract_types_record::TypeInfo_new(commands::TY_VEC(), "Vec", type_args)
+    contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
 }
 
 fn infer_builtin_vec_method(
@@ -108,19 +109,20 @@ fn infer_builtin_vec_method(
         return simple_type(commands::TY_UNKNOWN())
     }
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
-    if eq(clone(method_name), "len") {
+    vec_core_mono::record_vec_method_core_mono(env, clone(method_name), recv_ty)
+    if eq(clone(method_name), String_from("len")) {
         return simple_type(commands::TY_I32())
     }
-    if eq(clone(method_name), "is_empty") {
+    if eq(clone(method_name), String_from("is_empty")) {
         return simple_type(commands::TY_BOOL())
     }
-    if eq(clone(method_name), "get_unchecked") {
+    if eq(clone(method_name), String_from("get_unchecked")) {
         if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
             return contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
         }
         return simple_type(commands::TY_UNKNOWN())
     }
-    if eq(clone(method_name), "get") {
+    if eq(clone(method_name), String_from("get")) {
         // Bounds-checked get returns Option<T> (spec / docs/quickstart).
         if contract_type_access::TypeInfo_type_arg_count(recv_ty) > 0 {
             let elem = contract_type_access::TypeInfo_type_arg_at(recv_ty, 0)
@@ -135,16 +137,16 @@ fn infer_builtin_vec_method(
 
 fn is_vec_method_with_arity(method_name: String, explicit_args: i32) -> bool {
     if explicit_args == 0 {
-        return eq(clone(method_name), "len") ||
-        eq(clone(method_name), "is_empty")
+        return eq(clone(method_name), String_from("len")) ||
+        eq(clone(method_name), String_from("is_empty"))
     }
     if explicit_args == 1 {
-        return eq(clone(method_name), "push") ||
-        eq(clone(method_name), "get") ||
-        eq(clone(method_name), "get_unchecked")
+        return eq(clone(method_name), String_from("push")) ||
+        eq(clone(method_name), String_from("get")) ||
+        eq(clone(method_name), String_from("get_unchecked"))
     }
     if explicit_args == 2 {
-        return eq(clone(method_name), "set")
+        return eq(clone(method_name), String_from("set"))
     }
     false
 }
@@ -170,25 +172,25 @@ fn infer_resolved_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSi
 fn type_name_for_mangling(ty: TypeInfo) -> String {
     let tag = contract_type_access::TypeInfo_tag(ty)
     if tag == commands::TY_I32() {
-        return "i32"
+        return String_from("i32")
     }
     if tag == commands::TY_I64() {
-        return "i64"
+        return String_from("i64")
     }
     if tag == commands::TY_F64() {
-        return "f64"
+        return String_from("f64")
     }
     if tag == commands::TY_BOOL() {
-        return "bool"
+        return String_from("bool")
     }
     if tag == commands::TY_CHAR() {
-        return "char"
+        return String_from("char")
     }
     if tag == commands::TY_STRING() {
-        return "String"
+        return String_from("String")
     }
     if tag == commands::TY_VEC() {
-        return "Vec"
+        return String_from("Vec")
     }
     if tag == commands::TY_STRUCT() {
         let name = contract_type_access::TypeInfo_name(ty)
@@ -250,7 +252,7 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     // named "Self", substitute the receiver's concrete type (#707).
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_TYPE_VAR() {
         let ret_name = contract_type_access::TypeInfo_name(ret_ty)
-        if eq(clone(ret_name), "Self") {
+        if eq(clone(ret_name), String_from("Self")) {
             return recv_ty
         }
     }
@@ -258,7 +260,7 @@ fn infer_trait_method_call(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     // treat that the same as a type variable named Self.
     if contract_type_access::TypeInfo_tag(ret_ty) == commands::TY_STRUCT() {
         let ret_name = contract_type_access::TypeInfo_name(ret_ty)
-        if eq(clone(ret_name), "Self") {
+        if eq(clone(ret_name), String_from("Self")) {
             return recv_ty
         }
     }

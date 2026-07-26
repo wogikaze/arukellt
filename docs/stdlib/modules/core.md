@@ -58,7 +58,7 @@ that other stdlib modules build upon.
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `range_new` | `(i32, i32) -> Range` | `stable` | ✅ functional | Builds a half-open range [start, end). |
+| `range_new` | `(i32, i32) -> Range` | `stable` | ✅ functional | - |
 | `range_contains` | `(Range, i32) -> bool` | `stable` | ✅ functional | - |
 | `range_len` | `(Range) -> i32` | `stable` | ✅ functional | - |
 | `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | ✅ functional | - |

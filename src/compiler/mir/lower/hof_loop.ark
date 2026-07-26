@@ -15,7 +15,7 @@ use mir::value_types
 fn emit_hof_len_local(ctx: LowerCtx, vec_local: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(vec_local))
     let n_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call("vec_len", 1, n_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("raw_array_len"), 1, n_local))
     ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(n_local))
     n_local
 }

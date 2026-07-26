@@ -1,4 +1,4 @@
-//! Sealed raw representation API for Vec/String (RFC-006 / #817).
+//! Sealed raw representation API for Vec/String/float primitives (RFC-006 / #817).
 //!
 //! User code must not import this module. Only compiler-shipped stdlib modules
 //! may depend on `std::core::raw`. Public Vec/String APIs stay method-shaped.
@@ -7,8 +7,11 @@
 //! intrinsic handlers behind these entry points (see RFC-006 D5).
 
 /// Allocates a new empty raw array with the requested capacity hint.
-pub fn raw_array_new(cap: i32) -> Vec<i32> {
-    Vec_new_i32_with_cap(cap)
+///
+/// Lowered by `raw.array_new` target_intrinsic (#822). The shell exists for
+/// typechecking only.
+pub fn raw_array_new<T>(cap: i32) -> Vec<T> {
+    panic(String_new()); return raw_array_new(cap)
 }
 
 /// Returns the number of elements in a raw array.
@@ -34,6 +37,13 @@ pub fn raw_array_grow<T>(a: Vec<T>, new_len: i32) -> Vec<T> {
     return a
 }
 
+/// Sets the logical length without changing capacity.
+///
+/// Caller must ensure `new_len <= capacity`. Lowered by `raw.array_set_len`.
+pub fn raw_array_set_len<T>(a: Vec<T>, new_len: i32) {
+    return
+}
+
 /// Creates an empty raw string.
 pub fn raw_string_new() -> String {
     __intrinsic_string_new()
@@ -57,6 +67,51 @@ pub fn raw_string_byte_at_unchecked(s: String, i: i32) -> i32 {
 /// Clones raw string storage.
 pub fn raw_string_clone(s: String) -> String {
     __intrinsic_string_clone(s)
+}
+
+/// Wasm `f64.sqrt` for sealed float primitives.
+pub fn raw_f64_sqrt(value: f64) -> f64 {
+    __intrinsic_sqrt(value)
+}
+
+/// Low 32 bits of an `f64` bit pattern.
+pub fn raw_f64_bits_lo(value: f64) -> i32 {
+    __intrinsic_f64_bits_lo(value)
+}
+
+/// High 32 bits of an `f64` bit pattern.
+pub fn raw_f64_bits_hi(value: f64) -> i32 {
+    __intrinsic_f64_bits_hi(value)
+}
+
+/// Shortest round-trip decimal formatting for an `f64`.
+pub fn raw_f64_to_string(value: f64) -> String {
+    __intrinsic_f64_to_string(value)
+}
+
+/// Wasm `f64.promote_f32` for sealed typed `f32` formatting.
+pub fn raw_f32_promote_f64(value: f32) -> f64 {
+    __intrinsic_f32_promote_f64(value)
+}
+
+/// Appends one byte to sealed string storage in place.
+pub fn raw_string_push_char(s: String, value: char) {
+    __intrinsic_push_char(s, value)
+}
+
+/// Parses a decimal `i32`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_i32(s: String) -> Result<i32, String> {
+    __intrinsic_parse_i32(s)
+}
+
+/// Parses a decimal `i64`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_i64(s: String) -> Result<i64, String> {
+    __intrinsic_parse_i64(s)
+}
+
+/// Parses a decimal `f64`, returning `Result` (canonical parse ABI).
+pub fn raw_parse_f64(s: String) -> Result<f64, String> {
+    __intrinsic_parse_f64(s)
 }
 
 test mod "raw_storage" {

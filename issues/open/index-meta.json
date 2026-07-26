@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-26T11:38:56Z",
+  "generated_at": "2026-07-25T21:42:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -434,6 +434,23 @@
       }
     },
     {
+      "id": "696",
+      "path": "696-debug-trait-format-macros.md",
+      "title": "696 — `Debug` trait and `format!` / `write!` equivalent formatting",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 6,
+        "unchecked": 8
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": "none"
+      }
+    },
+    {
       "id": "702",
       "path": "702-to-string-clone-hash-trait-integration.md",
       "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
@@ -452,6 +469,44 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      }
+    },
+    {
+      "id": "704",
+      "path": "704-std-json-full-compliance.md",
+      "title": "std::json Full JSON RFC 8259 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "705",
+      "path": "705-std-toml-full-compliance.md",
+      "title": "std::toml Full TOML 1.0 Compliance",
+      "track": "stdlib",
+      "status": "open",
+      "depends_on": [
+        "606"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {
@@ -684,6 +739,23 @@
       }
     },
     {
+      "id": "809",
+      "path": "809-wat-roundtrip-failure.md",
+      "title": "809 — WAT roundtrip failure",
+      "track": "compiler",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
       "id": "810",
       "path": "810-component-interop-failures.md",
       "title": "810 — Component interop failures",
@@ -740,27 +812,22 @@
       }
     },
     {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
+      "id": "824",
+      "path": "824-early-body-lowering-worklist.md",
+      "title": "Early body lowering (worklist; design first)",
+      "track": "selfhost-infra",
       "status": "open",
       "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
+        "829"
       ],
-      "blocks_issue_ids": [
-        "818"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 6
+        "unchecked": 4
       },
       "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
+        "class": "design",
+        "upstream_notes": null
       }
     },
     {
@@ -779,6 +846,25 @@
       },
       "orchestration": {
         "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "826",
+      "path": "826-symbol-path-intern-clone-audit.md",
+      "title": "P2a: symbol / path interning + hot-path clone audit",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "investigation",
         "upstream_notes": null
       }
     },

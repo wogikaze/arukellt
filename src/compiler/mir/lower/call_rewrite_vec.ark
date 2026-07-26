@@ -26,18 +26,22 @@ fn mir_vec_call_rewrite_push_i64_needs_extend(rewrite: MirVecCallRewrite) -> boo
 }
 
 fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
-    eq(clone(callee_name), "vec_get") ||
-    eq(clone(callee_name), "vec_get_unchecked") ||
-    eq(clone(callee_name), "vec_get_unchecked_i64") ||
-    eq(clone(callee_name), "vec_get_unchecked_f64") ||
-    eq(clone(callee_name), "vec_len") ||
-    eq(clone(callee_name), "vec_push") ||
-    eq(clone(callee_name), "push_i64") ||
-    eq(clone(callee_name), "push_f64") ||
-    eq(clone(callee_name), "vec_push_i64") ||
-    eq(clone(callee_name), "vec_push_f64") ||
-    eq(clone(callee_name), "vec_set") ||
-    eq(clone(callee_name), "vec_pop")
+    eq(clone(callee_name), String_from("vec_get")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked_i64")) ||
+    eq(clone(callee_name), String_from("vec_get_unchecked_f64")) ||
+    eq(clone(callee_name), String_from("vec_len")) ||
+    eq(clone(callee_name), String_from("raw_array_len")) ||
+    eq(clone(callee_name), String_from("raw_array_get_unchecked")) ||
+    eq(clone(callee_name), String_from("raw_array_set_unchecked")) ||
+    eq(clone(callee_name), String_from("raw_array_grow")) ||
+    eq(clone(callee_name), String_from("vec_push")) ||
+    eq(clone(callee_name), String_from("push_i64")) ||
+    eq(clone(callee_name), String_from("push_f64")) ||
+    eq(clone(callee_name), String_from("vec_push_i64")) ||
+    eq(clone(callee_name), String_from("vec_push_f64")) ||
+    eq(clone(callee_name), String_from("vec_set")) ||
+    eq(clone(callee_name), String_from("vec_pop"))
 }
 
 fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
@@ -72,19 +76,19 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
 }
 
 fn is_vec_get_unchecked_callee(name: String) -> bool {
-    eq(clone(name), "get_unchecked") ||
-    eq(clone(name), "__intrinsic_get_unchecked") ||
-    ends_with(clone(name), "::get_unchecked") ||
-    starts_with(clone(name), "get_unchecked__") ||
-    contains(name, "::get_unchecked__")
+    eq(clone(name), String_from("get_unchecked")) ||
+    eq(clone(name), String_from("__intrinsic_get_unchecked")) ||
+    ends_with(clone(name), String_from("::get_unchecked")) ||
+    starts_with(clone(name), String_from("get_unchecked__")) ||
+    contains(name, String_from("::get_unchecked__"))
 }
 
 fn is_vec_get_callee(name: String) -> bool {
-    eq(clone(name), "get") ||
-    eq(clone(name), "__intrinsic_get") ||
-    ends_with(clone(name), "::get") ||
-    starts_with(clone(name), "get__") ||
-    contains(name, "::get__")
+    eq(clone(name), String_from("get")) ||
+    eq(clone(name), String_from("__intrinsic_get")) ||
+    ends_with(clone(name), String_from("::get")) ||
+    starts_with(clone(name), String_from("get__")) ||
+    contains(name, String_from("::get__"))
 }
 
 fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
@@ -92,18 +96,18 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
         return 0 - 1
     }
     let first_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !eq(clone(first_arg_type), "Vec") && !starts_with(clone(first_arg_type), "vec:") {
+    if !eq(clone(first_arg_type), String_from("Vec")) && !starts_with(clone(first_arg_type), "vec:") {
         return 0 - 1
     }
     // The receiver value is already on the stack from lower_expr.
-    // Emit: call vec_len 1; eqz dest
+    // Emit sealed raw length; eqz dest (#822 — avoid generic vec.len shell).
     let len_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call("vec_len", 1, len_dest))
-    ctx_api_local_types::ctx_set_local_type(ctx, len_dest, "i32")
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(String_from("raw_array_len"), 1, len_dest))
+    ctx_api_local_types::ctx_set_local_type(ctx, len_dest, String_from("i32"))
     ctx_api_local_types::ctx_set_local_vt(ctx, len_dest, value_types::VT_I32())
     let eqz_dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_misc_control::MirInst_eqz(eqz_dest, len_dest))
-    ctx_api_local_types::ctx_set_local_type(ctx, eqz_dest, "bool")
+    ctx_api_local_types::ctx_set_local_type(ctx, eqz_dest, String_from("bool"))
     ctx_api_local_types::ctx_set_local_vt(ctx, eqz_dest, value_types::VT_I32())
     eqz_dest
 }
@@ -111,8 +115,9 @@ fn mir_rewrite_vec_is_empty_to_local(ctx: LowerCtx, first_arg_idx: i32) -> i32 {
 fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_len = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if eq(clone(arg_type_len), "Vec") || starts_with(clone(arg_type_len), "vec:") {
-            return "vec_len"
+        if eq(clone(arg_type_len), String_from("Vec")) || starts_with(clone(arg_type_len), "vec:") {
+            // Prefer sealed raw at the call site so GC sees the concrete vec local.
+            return String_from("raw_array_len")
         }
     }
     callee_name
@@ -121,10 +126,10 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 fn mir_rewrite_vec_basic(callee_name: String) -> String {
     let mut rewritten = callee_name
     if eq(clone(rewritten), "pop") {
-        rewritten = "vec_pop"
+        rewritten = String_from("vec_pop")
     }
-    if eq(clone(rewritten), "set") {
-        rewritten = "vec_set"
+    if eq(clone(rewritten), "set") || eq(clone(rewritten), "vec_set") {
+        rewritten = String_from("raw_array_set_unchecked")
     }
     rewritten
 }

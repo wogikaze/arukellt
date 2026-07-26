@@ -5,33 +5,7 @@ use corehir::core_op_id
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
 // #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
 // are not listed here and are lowered normally.
-//
-// `assert_eq` / typed `assert_eq_*` helpers are intentionally excluded so
-// `std::test` Ark bodies (Debug failure messages, generic `assert_eq_debug`)
-// lower normally. Bare prelude `assert_eq` still resolves to
-// `runtime.assert_eq` via core-op binding when no matching function is in scope.
 fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
-    if eq(clone(decl_name), String_from("assert_eq")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_i32")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_i64")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_f64")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_string")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_bool")) {
-        return false
-    }
-    if eq(clone(decl_name), String_from("assert_eq_debug")) {
-        return false
-    }
     let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
     if core_op_id::core_op_id_is_some(coid) {
         return true
@@ -40,41 +14,41 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
-    if eq(clone(decl_name), "contains") { return true }
-    if eq(clone(decl_name), "contains_string") { return true }
-    if eq(clone(decl_name), "i32_to_u16") { return true }
-    if eq(clone(decl_name), "i32_to_i16") { return true }
-    if eq(clone(decl_name), "u64_to_u32") { return true }
-    if eq(clone(decl_name), "sort_String") { return true }
-    if eq(clone(decl_name), "map_i32_i32") { return true }
-    if eq(clone(decl_name), "filter_i32") { return true }
-    if eq(clone(decl_name), "fold_i32_i32") { return true }
-    if eq(clone(decl_name), "map_option_i32_i32") { return true }
-    if eq(clone(decl_name), "any_i32") { return true }
-    if eq(clone(decl_name), "find_i32") { return true }
-    if eq(clone(decl_name), "map_String_String") { return true }
-    if eq(clone(decl_name), "filter_String") { return true }
-    if eq(clone(decl_name), "map_i64_i64") { return true }
-    if eq(clone(decl_name), "filter_i64") { return true }
-    if eq(clone(decl_name), "fold_i64_i64") { return true }
-    if eq(clone(decl_name), "map_f64_f64") { return true }
-    if eq(clone(decl_name), "filter_f64") { return true }
-    if eq(clone(decl_name), "get") { return true }
-    if eq(clone(decl_name), "pop") { return true }
-    if eq(clone(decl_name), "set") { return true }
-    if eq(clone(decl_name), "values") { return true }
-    if eq(clone(decl_name), "exit") { return true }
-    if eq(clone(decl_name), "lines") { return true }
-    if eq(clone(decl_name), "byte_len") { return true }
-    if eq(clone(decl_name), "byte_at") { return true }
-    if eq(clone(decl_name), "format_i32") { return true }
-    if eq(clone(decl_name), "format_bool") { return true }
-    if eq(clone(decl_name), "any_i64") { return true }
-    if eq(clone(decl_name), "any_f64") { return true }
-    if eq(clone(decl_name), "any_String") { return true }
-    if eq(clone(decl_name), "find_i64") { return true }
-    if eq(clone(decl_name), "find_f64") { return true }
-    if eq(clone(decl_name), "find_String") { return true }
-    if eq(clone(decl_name), "fold_f64_f64") { return true }
+    if eq(clone(decl_name), String_from("contains")) { return true }
+    if eq(clone(decl_name), String_from("contains_string")) { return true }
+    if eq(clone(decl_name), String_from("i32_to_u16")) { return true }
+    if eq(clone(decl_name), String_from("i32_to_i16")) { return true }
+    if eq(clone(decl_name), String_from("u64_to_u32")) { return true }
+    if eq(clone(decl_name), String_from("sort_String")) { return true }
+    if eq(clone(decl_name), String_from("map_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("filter_i32")) { return true }
+    if eq(clone(decl_name), String_from("fold_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("map_option_i32_i32")) { return true }
+    if eq(clone(decl_name), String_from("any_i32")) { return true }
+    if eq(clone(decl_name), String_from("find_i32")) { return true }
+    if eq(clone(decl_name), String_from("map_String_String")) { return true }
+    if eq(clone(decl_name), String_from("filter_String")) { return true }
+    if eq(clone(decl_name), String_from("map_i64_i64")) { return true }
+    if eq(clone(decl_name), String_from("filter_i64")) { return true }
+    if eq(clone(decl_name), String_from("fold_i64_i64")) { return true }
+    if eq(clone(decl_name), String_from("map_f64_f64")) { return true }
+    if eq(clone(decl_name), String_from("filter_f64")) { return true }
+    if eq(clone(decl_name), String_from("get")) { return true }
+    if eq(clone(decl_name), String_from("pop")) { return true }
+    if eq(clone(decl_name), String_from("set")) { return true }
+    if eq(clone(decl_name), String_from("values")) { return true }
+    if eq(clone(decl_name), String_from("exit")) { return true }
+    if eq(clone(decl_name), String_from("lines")) { return true }
+    if eq(clone(decl_name), String_from("byte_len")) { return true }
+    if eq(clone(decl_name), String_from("byte_at")) { return true }
+    if eq(clone(decl_name), String_from("format_i32")) { return true }
+    // format_bool is CoreOp-bound via legacy alias → text.format_bool (#822).
+    if eq(clone(decl_name), String_from("any_i64")) { return true }
+    if eq(clone(decl_name), String_from("any_f64")) { return true }
+    if eq(clone(decl_name), String_from("any_String")) { return true }
+    if eq(clone(decl_name), String_from("find_i64")) { return true }
+    if eq(clone(decl_name), String_from("find_f64")) { return true }
+    if eq(clone(decl_name), String_from("find_String")) { return true }
+    if eq(clone(decl_name), String_from("fold_f64_f64")) { return true }
     false
 }

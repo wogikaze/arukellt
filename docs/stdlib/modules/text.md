@@ -94,7 +94,7 @@ surfaces, not a guaranteed-stable text-processing facade.
 | `pad_right` | `(String, i32, String) -> String` | `stable` | ✅ functional | Right-pads the string with fill until width bytes are reached. |
 | `format_i32` | `(i32) -> String` | `stable` | ✅ functional | Formats an i32 as a decimal string. |
 | `format_i64` | `(i64) -> String` | `stable` | ✅ functional | Formats an i64 as a decimal string. |
-| `format_f64` | `(f64) -> String` | `stable` | ✅ functional | Formats an f64 using the intrinsic formatter. |
+| `format_f64` | `(f64) -> String` | `stable` | ✅ functional | Formats an f64 using the sealed-raw formatter. |
 | `format_bool` | `(bool) -> String` | `stable` | ✅ functional | Formats a boolean as true or false. |
 | `builder_new` | `() -> String` | `stable` | ✅ functional | Creates a new empty StringBuilder (represented internally as a String). |
 | `builder_append` | `(String, String) -> String` | `stable` | ✅ functional | Appends a string to the builder and returns the updated builder. |

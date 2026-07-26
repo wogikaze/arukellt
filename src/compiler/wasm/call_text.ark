@@ -82,7 +82,8 @@ fn try_emit_char_text_format_call(w: WasmWriter, handler_id: i32, inst: MirInst,
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_text_push_char(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_text_push_char()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_string_push_char() {
         let _result_on_stack = intrinsic_string_format::emit_push_char(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
@@ -116,7 +117,8 @@ fn try_emit_numeric_text_format_call(w: WasmWriter, handler_id: i32, inst: MirIn
         finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
         return true
     }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_f64(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_text_format_f64()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_f64_to_string() {
         let _result_on_stack = intrinsic_string_format::emit_f64_to_string(w, inst, ctx)
         finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, text_call_result_on_stack(inst, _result_on_stack))
         return true

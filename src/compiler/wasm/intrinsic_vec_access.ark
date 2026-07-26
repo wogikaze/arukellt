@@ -22,16 +22,66 @@ use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
+fn lm_get_unchecked_elem_kind(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    // Mirror intrinsic_vec_set LM typing so raw.array_get_unchecked and
+    // sealed-raw Ark bodies can load i64/f64 lanes (#822).
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+    if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+        return 1
+    }
+    if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+        return 2
+    }
+    0
+}
+
+fn lm_get_unchecked_stride(elem_kind: i32) -> i32 {
+    if elem_kind == 0 {
+        return 4
+    }
+    8
+}
+
+fn lm_get_unchecked_load_opcode(elem_kind: i32) -> i32 {
+    if elem_kind == 1 {
+        return opcodes::OP_I64_LOAD()
+    }
+    if elem_kind == 2 {
+        return opcodes::OP_F64_LOAD()
+    }
+    opcodes::OP_I32_LOAD()
+}
+
+fn lm_get_unchecked_load_align(elem_kind: i32) -> i32 {
+    if elem_kind == 0 {
+        return 2
+    }
+    3
+}
+
 fn emit_get_unchecked(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_access_gc::emit_get_unchecked_gc(w, ctx, inst)
     }
+    let elem_kind = lm_get_unchecked_elem_kind(ctx, inst)
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_vec2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     emit_vec_access_setup(w, s_idx, s_vec2)
-    emit_vec_i32_element_addr(w, s_vec2, s_idx)
+    helpers_core::emit_local_get(w, s_vec2)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, 8)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
     writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
+    helpers_core::emit_local_get(w, s_idx)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_leb::emit_leb128_s(w, lm_get_unchecked_stride(elem_kind))
+    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, lm_get_unchecked_load_opcode(elem_kind))
+    writer_core::emit_byte(w, lm_get_unchecked_load_align(elem_kind))
     writer_core::emit_byte(w, 0)
     return true
 }

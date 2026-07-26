@@ -14,7 +14,8 @@ fn try_emit_parse_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfE
 }
 
 fn try_emit_parse_float_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_f64(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_f64()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_parse_f64() {
         let _result_on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
         if !_result_on_stack {
             return false
@@ -26,7 +27,8 @@ fn try_emit_parse_float_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx:
 }
 
 fn try_emit_parse_int_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_i32(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_i32()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_parse_i32() {
         let _result_on_stack = intrinsic_parse_i32::emit_parse_i32(w, inst, ctx)
         if !_result_on_stack {
             return false
@@ -34,7 +36,8 @@ fn try_emit_parse_int_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: S
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_i64(){
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_parse_parse_i64()
+    || handler_id == corehir::core_op_registry_generated::core_op_handler_raw_parse_i64() {
         let _result_on_stack = intrinsic_parse_i64::emit_parse_i64(w, inst, ctx)
         if !_result_on_stack {
             return false

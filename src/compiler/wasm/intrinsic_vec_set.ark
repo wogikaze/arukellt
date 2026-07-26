@@ -1,19 +1,69 @@
-use wasm::opcodes
 //
 // GC target delegated to intrinsic_vec_set_gc.ark.
+// LM path selects i32/i64/f64 stores from the Vec element type (#822).
 
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_vec_set_gc
+use wasm::intrinsic_vec_type
+use mir::inst_accessors_literals
 
-// Handler for: vec_set
+// Element kind for LM Vec storage: 0 = i32 (4-byte), 1 = i64, 2 = f64 (8-byte).
+fn lm_vec_elem_kind(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let elem = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
+    if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
+        return 1
+    }
+    if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
+        return 2
+    }
+    0
+}
+
+fn lm_vec_value_scratch(ctx: SelfEmitCtx, elem_kind: i32) -> i32 {
+    if elem_kind == 1 {
+        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    }
+    if elem_kind == 2 {
+        return ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12)
+    }
+    ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+}
+
+fn lm_vec_elem_stride(elem_kind: i32) -> i32 {
+    if elem_kind == 0 {
+        return 4
+    }
+    8
+}
+
+fn lm_vec_store_opcode(elem_kind: i32) -> i32 {
+    if elem_kind == 1 {
+        return opcodes::OP_I64_STORE()
+    }
+    if elem_kind == 2 {
+        return opcodes::OP_F64_STORE()
+    }
+    opcodes::OP_I32_STORE()
+}
+
+fn lm_vec_store_align(elem_kind: i32) -> i32 {
+    if elem_kind == 0 {
+        return 2
+    }
+    3
+}
+
+// Handler for: vec_set / raw.array_set_unchecked
 fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: bool) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return intrinsic_vec_set_gc::emit_vec_set_gc(w, inst, ctx, is_void_set)
     }
-    let s_val_set = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
+    let elem_kind = lm_vec_elem_kind(ctx, inst)
+    let s_val_set = lm_vec_value_scratch(ctx, elem_kind)
     let s_idx_set = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_vec_set = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -33,13 +83,13 @@ fn emit_vec_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: boo
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_idx_set)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
+    writer_core::emit_leb128_s(w, lm_vec_elem_stride(elem_kind))
     writer_core::emit_byte(w, opcodes::OP_I32_MUL())
     writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, s_val_set)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, lm_vec_store_opcode(elem_kind))
+    writer_core::emit_byte(w, lm_vec_store_align(elem_kind))
     writer_core::emit_byte(w, 0)
     if is_void_set {
         return false

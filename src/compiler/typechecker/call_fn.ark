@@ -5,7 +5,9 @@ use typechecker::call_args
 use typechecker::call_generic
 use typechecker::call_unknown
 use typechecker::contract_fn_sig
+use typechecker::contract_type_access
 use typechecker::sigs
+use typechecker::vec_core_mono
 
 fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
@@ -35,6 +37,18 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         }
     }
     if !contract_fn_sig::FnSig_has_name(sig) {
+        if child_count > 1 {
+            let recv_ty = infer_expr(
+                env,
+                scope,
+                fn_sigs,
+                enum_defs,
+                ast_access::node_child_at(node, 1)
+            )
+            if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
+                vec_core_mono::record_vec_core_mono_for_callee(env, clone(callee_name), recv_ty)
+            }
+        }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }

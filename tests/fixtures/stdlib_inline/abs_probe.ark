@@ -97,14 +97,14 @@ pub fn probe_string_padding() -> bool {
     let left_fill = "x".pad_left_with(4, "ab")
     let right_fill = "x".pad_right_with(4, "ab")
     left.len() == 3 &&
-        left.char_at(0) == 32 &&
-        left.char_at(2) == 120 &&
-        right.char_at(0) == 120 &&
-        right.char_at(2) == 32 &&
-        left_fill.char_at(0) == 98 &&
-        left_fill.char_at(3) == 120 &&
-        right_fill.char_at(0) == 120 &&
-        right_fill.char_at(3) == 97
+    left.char_at(0) == 32 &&
+    left.char_at(2) == 120 &&
+    right.char_at(0) == 120 &&
+    right.char_at(2) == 32 &&
+    left_fill.char_at(0) == 98 &&
+    left_fill.char_at(3) == 120 &&
+    right_fill.char_at(0) == 120 &&
+    right_fill.char_at(3) == 97
 }
 
 pub fn probe_string_replace() -> bool {
@@ -120,9 +120,9 @@ pub fn probe_string_split() -> bool {
 pub fn probe_string_lines() -> bool {
     let parts = "a\r\nb\n".lines()
     len(parts) == 3 &&
-        get_unchecked(parts, 0).len() == 1 &&
-        get_unchecked(parts, 1).char_at(0) == 98 &&
-        get_unchecked(parts, 2).len() == 0
+    get_unchecked(parts, 0).len() == 1 &&
+    get_unchecked(parts, 1).char_at(0) == 98 &&
+    get_unchecked(parts, 2).len() == 0
 }
 
 pub fn probe_string_storage_ops() -> bool {
@@ -133,22 +133,22 @@ pub fn probe_string_storage_ops() -> bool {
     let copied = text.clone()
     let chars = copied.chars()
     String_new().is_empty() &&
-        copied.len_bytes() == 2 &&
-        string::eq(text, copied) &&
-        len(chars) == 2 &&
-        get_unchecked(chars, 0).char_at(0) == 79 &&
-        get_unchecked(chars, 1).char_at(0) == 75
+    copied.len_bytes() == 2 &&
+    string::eq(text, copied) &&
+    len(chars) == 2 &&
+    get_unchecked(chars, 0).char_at(0) == 79 &&
+    get_unchecked(chars, 1).char_at(0) == 75
 }
 
 pub fn probe_scalar_format_ops() -> bool {
     let i32_text = (0 - 2147483647 - 1).to_string()
     let i64_text = (0_i64 - 9223372036854775807_i64 - 1_i64).to_string()
     i32_text.len() == 11 &&
-        i32_text.char_at(0) == 45 &&
-        i32_text.char_at(10) == 56 &&
-        i64_text.len() == 20 &&
-        i64_text.char_at(0) == 45 &&
-        i64_text.char_at(19) == 56
+    i32_text.char_at(0) == 45 &&
+    i32_text.char_at(10) == 56 &&
+    i64_text.len() == 20 &&
+    i64_text.char_at(0) == 45 &&
+    i64_text.char_at(19) == 56
 }
 
 pub fn probe_string_join() -> bool {
@@ -176,9 +176,9 @@ pub fn probe_vec_string_mutation() -> bool {
     let first = get_unchecked(values, 0)
     let second = get_unchecked(values, 1)
     first.len() == 5 &&
-        first.char_at(0) == 114 &&
-        second.len() == 4 &&
-        second.char_at(0) == 108
+    first.char_at(0) == 114 &&
+    second.len() == 4 &&
+    second.char_at(0) == 108
 }
 
 pub fn probe_seq_read_ops() -> bool {
@@ -200,11 +200,11 @@ pub fn probe_seq_allocation_ops() -> bool {
     let skipped = seq::skip_i32(values, 2)
     let unique_values = seq::unique(values)
     len(taken) == 3 &&
-        get_unchecked(taken, 2) == 3 &&
-        len(skipped) == 2 &&
-        get_unchecked(skipped, 0) == 3 &&
-        len(unique_values) == 3 &&
-        get_unchecked(unique_values, 2) == 7
+    get_unchecked(taken, 2) == 3 &&
+    len(skipped) == 2 &&
+    get_unchecked(skipped, 0) == 3 &&
+    len(unique_values) == 3 &&
+    get_unchecked(unique_values, 2) == 7
 }
 
 pub fn probe_seq_sort_i32() -> bool {
@@ -216,6 +216,172 @@ pub fn probe_seq_sort_i32() -> bool {
     get_unchecked(i32_values, 0) == 2 && get_unchecked(i32_values, 2) == 7
 }
 
+pub fn probe_format_bool_ops() -> bool {
+    let true_text = format_bool(true)
+    let false_text = format_bool(false)
+    true_text.len() == 4 &&
+    true_text.char_at(0) == 116 &&
+    false_text.len() == 5 &&
+    false_text.char_at(0) == 102
+}
+
+pub fn probe_char_to_string_ops() -> bool {
+    let text = char_to_string('A')
+    text.len() == 1 && text.char_at(0) == 65
+}
+
+pub fn probe_range_new_ops() -> bool {
+    // Avoid `range.len() == N` in the same expression as contains: O1 inlining
+    // of range_len currently drops the left operand of `==` (#822 follow-up).
+    let range: Range = core::range_new(3, 8)
+    let length = range.len()
+    range.contains(5) && length == 5 && !range.contains(8)
+}
+
+pub fn probe_sqrt_ops() -> bool {
+    let root = sqrt(4.0)
+    let lo = f64_bits_lo(root)
+    let hi = f64_bits_hi(root)
+    lo == f64_bits_lo(2.0) && hi == f64_bits_hi(2.0)
+}
+
+pub fn probe_f64_bits_ops() -> bool {
+    // 1.0 = 0x3FF0000000000000 → lo=0, hi=0x3FF00000
+    f64_bits_lo(1.0) == 0 && f64_bits_hi(1.0) == 1072693248
+}
+
+pub fn probe_format_f64_ops() -> bool {
+    let text = text::format_f64(0.5)
+    text.len() == 3 && text.char_at(0) == 48 && text.char_at(1) == 46 && text.char_at(2) == 53
+}
+
+pub fn probe_f32_to_string_ops() -> bool {
+    let value: f32 = 0.5f32
+    let text = f32_to_string(value)
+    text.len() == 3 && text.char_at(0) == 48 && text.char_at(2) == 53
+}
+
+pub fn probe_push_char_ops() -> bool {
+    let text = String_new()
+    push_char(text, 'A')
+    text.len() == 1 && text.char_at(0) == 65
+}
+
+pub fn probe_sort_i64_ops() -> bool {
+    let mut values: Vec<i64> = Vec_new_i64()
+    push(values, 30_i64)
+    push(values, 10_i64)
+    push(values, 20_i64)
+    sort_i64(values)
+    len(values) == 3 && get_unchecked(values, 0) == 10_i64 && get_unchecked(values, 1) == 20_i64 && get_unchecked(values, 2) == 30_i64
+}
+
+pub fn probe_sort_f64_ops() -> bool {
+    let mut values: Vec<f64> = Vec_new_f64()
+    push(values, 3.0)
+    push(values, 1.0)
+    push(values, 2.0)
+    sort_f64(values)
+    len(values) == 3 && get_unchecked(values, 0) == 1.0 && get_unchecked(values, 1) == 2.0 && get_unchecked(values, 2) == 3.0
+}
+
+pub fn probe_remove_i32_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 1)
+    push(values, 2)
+    push(values, 3)
+    remove_i32(values, 1)
+    len(values) == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 3
+}
+
+pub fn probe_vec_generic_mutation_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 4)
+    push(values, 5)
+    set(values, 0, 9)
+    let n = len(values)
+    !is_empty(values) &&
+    n == 2 &&
+    get_unchecked(values, 0) == 9 &&
+    get_unchecked(values, 1) == 5
+}
+
+pub fn probe_vec_typed_push_get_ops() -> bool {
+    let mut i64s: Vec<i64> = Vec_new_i64()
+    push(i64s, 7_i64)
+    push(i64s, 8_i64)
+    let mut f64s: Vec<f64> = Vec_new_f64()
+    push(f64s, 1.5)
+    push(f64s, 2.5)
+    len(i64s) == 2 &&
+    get_unchecked(i64s, 0) == 7_i64 &&
+    get_unchecked(i64s, 1) == 8_i64 &&
+    len(f64s) == 2 &&
+    get_unchecked(f64s, 0) == 1.5 &&
+    get_unchecked(f64s, 1) == 2.5
+}
+
+pub fn probe_vec_push_pop_get_ops() -> bool {
+    let values = Vec_new_i32()
+    push(values, 1)
+    push(values, 2)
+    push(values, 3)
+    let mid = match get(values, 1) {
+        Some(n) => n == 2,
+        None => false,
+    }
+    let missing = match get(values, 9) {
+        Some(_) => false,
+        None => true,
+    }
+    let popped = match pop(values) {
+        Some(n) => n == 3,
+        None => false,
+    }
+    mid && missing && popped && len(values) == 2 && get_unchecked(values, 0) == 1 && get_unchecked(values, 1) == 2
+}
+
+pub fn probe_vec_new_capacity_ops() -> bool {
+    let a = Vec_new_i32()
+    let b = Vec_new_i32_with_cap(4)
+    let c = Vec_new_i64()
+    push(a, 10)
+    push(b, 20)
+    push(c, 30_i64)
+    len(a) == 1 && get_unchecked(a, 0) == 10 &&
+    len(b) == 1 && get_unchecked(b, 0) == 20 &&
+    len(c) == 1 && get_unchecked(c, 0) == 30_i64
+}
+
+pub fn probe_parse_ops() -> bool {
+    let ok_i32 = match parse_i32("42") {
+        Ok(n) => n == 42,
+        Err(_) => false,
+    }
+    let bad_i32 = match parse_i32("abc") {
+        Ok(_) => false,
+        Err(_) => true,
+    }
+    let ok_i64 = match parse_i64("-7") {
+        Ok(n) => n == 0_i64 - 7_i64,
+        Err(_) => false,
+    }
+    let ok_f64 = match parse_f64("0.5") {
+        Ok(n) => n > 0.49 && n < 0.51,
+        Err(_) => false,
+    }
+    let opt_ok = match convert::parse_i32("9") {
+        Some(n) => n == 9,
+        None => false,
+    }
+    let opt_bad = match convert::parse_f64("nope") {
+        Some(_) => false,
+        None => true,
+    }
+    ok_i32 && bad_i32 && ok_i64 && ok_f64 && opt_ok && opt_bad
+}
+
 fn main() {}
 use std::core
 use std::seq
+use std::text
