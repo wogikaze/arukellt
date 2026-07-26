@@ -47,6 +47,24 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
         }
     }
     if eq(clone(callee_name), String_from("is_empty")) {
+        // Prefer String::is_empty before vec rewrite — String_from locals can
+        // look like byte arrays and must not take the Vec struct.get path (#807).
+        if first_arg_idx >= 0 {
+            let arg_ty = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+            let is_string_arg = eq(clone(arg_ty), String_from("String")) ||
+            eq(clone(arg_ty), String_from("string")) ||
+            (
+                !eq(clone(arg_ty), String_from("Vec")) &&
+                !starts_with(clone(arg_ty), String_from("vec:")) &&
+                (
+                    ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_REF() ||
+                    ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_GC_REF()
+                )
+            )
+            if is_string_arg {
+                return MirCallRewrite_new(String_from("String::is_empty"), return_local, push_i64_needs_extend)
+            }
+        }
         let is_empty_local = call_rewrite_vec::mir_rewrite_vec_is_empty_to_local(ctx, first_arg_idx)
         if is_empty_local >= 0 {
             return MirCallRewrite_new(callee_name, is_empty_local, push_i64_needs_extend)

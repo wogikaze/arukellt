@@ -78,6 +78,16 @@
 計測: 全 suite **PASS=1167 FAIL=189 SKIP=259**（wasm-invalid=223）。L7 の FAIL=203 から -14。  
 ディレクトリ: core 19→11、trait 27→22。残り top: trait 22、io 21、string 18、text 16、bytes 15。
 
+### L9 tranche（2026-07-26）— assert_eq fallback + json pretty/Bool
+
+1. **`assert_eq` / `assert_ne` / `assert_eq_str`:** core_op miss → drop+unreachable を name fallback で intrinsic 化（GC の `assert_eq_str` は string_eq+assert）。
+2. **`i32_to_i64` / `i64_to_i32` / `assert_eq_i64`:** 同様の miss を fallback（into / i64 assert 経路）。
+3. **`is_empty`:** String 引数を Vec struct.get 経路へ落とさない。
+4. **json:** pretty indent を `indent * (depth + 1)` に修正；`Bool(true/false)` パターンを `Bool(b)`+分岐へ（GC で payload 未判別）。
+
+計測: 全 suite **PASS=1192 FAIL=164 SKIP=259**（wasm-invalid=223）。L8 の FAIL=189 から -25。  
+残り top: io 20、string 17、text 16、trait 15、vec 13、bytes 12。io の Write 経路は GC type mismatch が残る。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

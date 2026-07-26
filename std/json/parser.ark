@@ -387,8 +387,15 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
 pub fn stringify(v: JsonValue) -> String {
     match v {
         JsonValue::Null => "null",
-        JsonValue::Bool(true) => "true",
-        JsonValue::Bool(false) => "false",
+        // Bind payload then branch — Bool(true)/Bool(false) arms do not
+        // discriminate the bool field on wasm32-gc (#807).
+        JsonValue::Bool(b) => {
+            if b {
+                "true"
+            } else {
+                "false"
+            }
+        },
         JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
@@ -443,8 +450,13 @@ fn repeat_spaces(count: i32) -> String {
 fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
     match v {
         JsonValue::Null => "null",
-        JsonValue::Bool(true) => "true",
-        JsonValue::Bool(false) => "false",
+        JsonValue::Bool(b) => {
+            if b {
+                "true"
+            } else {
+                "false"
+            }
+        },
         JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
@@ -457,7 +469,7 @@ fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> Str
     if len(items) == 0 {
         return "[]"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
     let n = len(items)
@@ -477,7 +489,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
     if len(fields) == 0 {
         return "{}"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
     let n = len(fields)
@@ -502,7 +514,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
     if i0 < n && char_at(raw, i0) == 93 {
         return "[]"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
     let mut i = skip_ws(raw, 1)
@@ -543,7 +555,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
     if i0 < n && char_at(raw, i0) == 125 {
         return "{}"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
     let mut i = skip_ws(raw, 1)

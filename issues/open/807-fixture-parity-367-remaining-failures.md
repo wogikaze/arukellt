@@ -60,6 +60,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L6 (2026-07-26):** `PASS=1094 FAIL=262 SKIP=259` (wasm-invalid=229).
 - **After L7 (2026-07-26):** `PASS=1153 FAIL=203 SKIP=259` (wasm-invalid=223).
 - **After L8 (2026-07-26):** `PASS=1167 FAIL=189 SKIP=259` (wasm-invalid=223).
+- **After L9 (2026-07-26):** `PASS=1192 FAIL=164 SKIP=259` (wasm-invalid=223).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -77,6 +78,10 @@ trait 33→27. Remaining top dirs: trait/io/core/string/text.
 L8: math free wrappers inlined (no method→free recursion); `String::eq`
 via `__intrinsic_string_eq` fallback; i32 `Not` bitwise; unary/postfix
 fixture parens. core 19→11, trait 27→22.
+L9: `assert_eq`/`assert_ne`/`assert_eq_str` + `i32_to_i64` name fallbacks;
+`String::is_empty` before vec rewrite; json pretty `indent*(depth+1)` and
+`Bool(b)` stringify branch. Remaining top: io 20, string 17, text 16,
+trait 15, vec 13, bytes 12.
 
 ## New-failure ratchet
 
