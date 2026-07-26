@@ -130,6 +130,29 @@ class DiagnosticsMatchTests(unittest.TestCase):
 
 
 class ExpectationMatchedNegativeTests(unittest.TestCase):
+    def test_warning_pattern_matches_even_when_check_exits_zero(self) -> None:
+        mod = load_measure()
+        matched, reason = mod._expectation_matched(
+            expectation={
+                "expected_compile": False,
+                "expected_run_kind": "not_run",
+                "expected_exit_code": None,
+                "expected_signal": None,
+                "expected_stdout_pattern": None,
+                "expected_stderr_pattern": "unused binding `unused_val`",
+            },
+            compile_kind="compile_pass",
+            compile_ok=True,
+            combined_compile="warning[W0007|typecheck]: unused binding `unused_val`\n",
+            ran=False,
+            run_rc=None,
+            run_out="",
+            run_err="",
+            run_signal=None,
+        )
+        self.assertTrue(matched)
+        self.assertEqual(reason, "negative_ok")
+
     def test_compile_negative_ignores_expected_signal(self) -> None:
         mod = load_measure()
         matched, reason = mod._expectation_matched(

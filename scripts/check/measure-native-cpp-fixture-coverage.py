@@ -28,7 +28,7 @@ MANIFEST = FIXTURES / "manifest.txt"
 CAPABILITIES = REPO_ROOT / "data" / "native-cpp-capabilities.toml"
 DEFAULT_OUTPUT = REPO_ROOT / "docs" / "data" / "native-cpp-fixture-coverage-receipt.json"
 DEFAULT_PARTIAL = REPO_ROOT / ".build" / "native-cpp-fixture-measure" / "partial-results.jsonl"
-
+NEGATIVE_LIMITATIONS = REPO_ROOT / "docs" / "data" / "native-cpp-expected-negative-limitations.toml"
 POSITIVE_KINDS = frozenset({"run", "module-run", "t3-run"})
 NEGATIVE_KINDS = frozenset(
     {"compile-error", "diag", "module-diag", "component-world-error"}
@@ -193,6 +193,34 @@ def _clang_version() -> str | None:
         return out.stdout.splitlines()[0].strip() if out.stdout else None
     except (OSError, subprocess.TimeoutExpired):
         return None
+
+
+def _load_expected_negative_limitations() -> dict[str, dict[str, str]]:
+    """Return fixture -> {reason, owner} for documented expected-negative exclusions."""
+    if not NEGATIVE_LIMITATIONS.is_file():
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    current: dict[str, str] = {}
+    for raw in NEGATIVE_LIMITATIONS.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line.startswith("[[limitation]]"):
+            if current.get("fixture"):
+                out[current["fixture"]] = {
+                    "reason": current.get("reason", ""),
+                    "owner": current.get("owner", ""),
+                }
+            current = {}
+            continue
+        if " = " not in line or line.startswith("#") or line.startswith("schema"):
+            continue
+        key, value = line.split(" = ", 1)
+        current[key.strip()] = value.strip().strip('"')
+    if current.get("fixture"):
+        out[current["fixture"]] = {
+            "reason": current.get("reason", ""),
+            "owner": current.get("owner", ""),
+        }
+    return out
 
 
 def _load_capability_status() -> dict[str, str]:
@@ -513,9 +541,16 @@ def _expectation_matched(
     if not expected_compile:
         # Compile-negative path: match diagnostics only. Do not consult
         # expected_signal / run stderr — those belong to runtime trap fixtures.
+        # Warning-only goldens (W000x) may exit 0 from `check`; accept when the
+        # committed pattern is present. Hard errors still require failure when
+        # no pattern matches.
+        stderr_pat = expectation.get("expected_stderr_pattern")
+        if stderr_pat and _diagnostics_match(stderr_pat, combined_compile):
+            if compile_kind == "ice":
+                return False, "ice"
+            return True, "negative_ok"
         if compile_ok:
             return False, "compile_expected_fail"
-        stderr_pat = expectation.get("expected_stderr_pattern")
         if stderr_pat and not _diagnostics_match(stderr_pat, combined_compile):
             return False, "diagnostic_mismatch"
         if compile_kind == "ice":
@@ -901,6 +936,21 @@ def _aggregate(
 ) -> dict[str, object]:
     positive = [r for r in results if r["population"] == "positive_run"]
     negative = [r for r in results if r["population"] == "expected_negative"]
+    limitations = _load_expected_negative_limitations()
+    negative_limited: list[dict[str, object]] = []
+    negative_in_scope: list[dict[str, object]] = []
+    for row in negative:
+        fixture = str(row.get("fixture", ""))
+        rel = fixture
+        if rel.startswith("tests/fixtures/"):
+            rel = rel[len("tests/fixtures/") :]
+        if rel in limitations:
+            annotated = dict(row)
+            annotated["limitation_reason"] = limitations[rel].get("reason", "")
+            annotated["limitation_owner"] = limitations[rel].get("owner", "")
+            negative_limited.append(annotated)
+        else:
+            negative_in_scope.append(row)
     compile_expected = [r for r in positive if r.get("expected_compile") is True]
     compile_pass = [r for r in compile_expected if r.get("compile_kind") == "compile_pass"]
     semantic_run_pass = [
@@ -912,13 +962,12 @@ def _aggregate(
     ]
     compiled_positive = [r for r in positive_runnable if r.get("compile_kind") == "compile_pass"]
     compiled_semantic = [r for r in compiled_positive if r.get("expectation_matched") is True]
-    neg_pass = [r for r in negative if r.get("expectation_matched") is True]
+    neg_pass = [r for r in negative_in_scope if r.get("expectation_matched") is True]
     ice_total = sum(1 for r in results if r.get("is_ice"))
     ice_positive = sum(1 for r in positive if r.get("is_ice"))
     host_trap_total = sum(1 for r in results if r.get("is_host_trap"))
     unexpected_crash = sum(1 for r in results if r.get("unexpected_crash"))
     safe_rejects = sum(1 for r in results if r.get("safe_capability_reject"))
-
     reject_hist: dict[str, int] = {}
     for r in results:
         rid = r.get("compile_reject_id")
@@ -959,7 +1008,10 @@ def _aggregate(
         "positive_compile_pass_rate": rate(len(compile_pass), len(compile_expected)),
         "positive_semantic_run_pass_rate": rate(len(semantic_run_pass), len(positive_runnable)),
         "compiled_positive_semantic_run_pass_rate": rate(len(compiled_semantic), len(compiled_positive)),
-        "expected_negative_diagnostic_pass_rate": rate(len(neg_pass), len(negative)),
+        "expected_negative_diagnostic_pass_rate": rate(len(neg_pass), len(negative_in_scope)),
+        "expected_negative_diagnostic_pass_rate_including_limitations": rate(
+            len(neg_pass), len(negative)
+        ),
     }
 
     prev_clusters = {}
@@ -994,6 +1046,8 @@ def _aggregate(
             "compiled_positive": len(compiled_positive),
             "compiled_positive_semantic_run_pass": len(compiled_semantic),
             "expected_negative": len(negative),
+            "expected_negative_in_scope": len(negative_in_scope),
+            "expected_negative_limited": len(negative_limited),
             "expected_negative_diagnostic_pass": len(neg_pass),
             "ice_total": ice_total,
             "ice_positive": ice_positive,
@@ -1002,6 +1056,15 @@ def _aggregate(
             "safe_capability_reject": safe_rejects,
         },
         "rates": rates,
+        "expected_negative_limitations": [
+            {
+                "fixture": str(r.get("fixture", "")),
+                "reason": r.get("limitation_reason"),
+                "owner": r.get("limitation_owner"),
+                "match_reason": r.get("match_reason"),
+            }
+            for r in sorted(negative_limited, key=lambda row: str(row.get("fixture", "")))
+        ],
         "safe_capability_reject_histogram": dict(sorted(reject_hist.items(), key=lambda kv: (-kv[1], kv[0]))),
         "clusters": cluster_list,
         "cluster_delta_from_previous": delta,

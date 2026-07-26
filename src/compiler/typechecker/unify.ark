@@ -11,6 +11,10 @@ fn type_error(env: TypeEnv, msg: String) {
     unify_env::type_error(env, msg)
 }
 
+fn type_error_bad_arity(env: TypeEnv, msg: String) {
+    unify_env::type_error_bad_arity(env, msg)
+}
+
 fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     unify_core::unify(env, a, b)
 }
