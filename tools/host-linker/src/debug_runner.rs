@@ -247,16 +247,30 @@ fn register_blocking_write_and_flush(
     Ok(())
 }
 
-/// Register an exit stub that traps.
+/// Register exit that terminates the host process with the guest status.
+/// A trap-style stub appended "runtime error: ..." after panic/assert messages
+/// and broke fixture goldens that expect a clean non-zero exit (#807).
 fn register_exit_stub(
     linker: &mut Linker<()>,
     _engine: &Engine,
     ft: &FuncType,
 ) -> Result<(), String> {
     let ft = ft.clone();
-    linker.func_new("wasi:cli/exit@0.2.0", "exit", ft, move |_: Caller<'_, ()>, _p: &[Val], _r: &mut [Val]| {
-        Err(wasmtime::Error::msg("exit"))
-    }).map_err(|e| format!("exit: {}", e))?;
+    linker
+        .func_new(
+            "wasi:cli/exit@0.2.0",
+            "exit",
+            ft,
+            move |_: Caller<'_, ()>, p: &[Val], _r: &mut [Val]| {
+                let code = match p.first() {
+                    Some(Val::I32(c)) => *c,
+                    Some(Val::I64(c)) => *c as i32,
+                    _ => 1,
+                };
+                std::process::exit(code);
+            },
+        )
+        .map_err(|e| format!("exit: {}", e))?;
     Ok(())
 }
 

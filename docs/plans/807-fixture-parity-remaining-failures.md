@@ -151,6 +151,14 @@
 計測: 全 suite **PASS=1292 FAIL=75 SKIP=248**（wasm-invalid=198）。L14 の FAIL=81 から -6（new FAIL=0）。  
 残り top: trait 12、io 11、hashmap 6、core 5、host 5。
 
+### L16 tranche（2026-07-26）— P2 process exit import index
+
+1. **P2 exit index:** guest-native import 列で `exit` は 7。`WASI_IMPORT_PROC_EXIT=6` は fs `close` を呼んでいた → `P2_IMPORT_EXIT` + `proc_exit_import_idx`。
+2. **host-linker:** P2 `wasi:cli/exit@0.2.0` stub を trap から `process::exit(code)` へ（panic/assert 後の `runtime error:` 付記を除去）。
+
+計測: 全 suite **PASS=1302 FAIL=64 SKIP=249**（wasm-invalid=198）。L15 の FAIL=75 から -11（new FAIL=0）。  
+残り top: trait 12、io 11、hashmap 6、core 5、host 4。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。
