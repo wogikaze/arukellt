@@ -10,7 +10,13 @@ use mir::value_types
 
 fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
-    let variant_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let variant_name = if len(canon) > 0 {
+        canon
+    } else {
+        raw_name
+    }
     let var_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
     if var_tag < 0 || child_count <= 1 {
         return 0 - 2
