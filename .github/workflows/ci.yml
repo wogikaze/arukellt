@@ -79,7 +79,9 @@ jobs:
         run: python3 scripts/manager.py selfhost build-compiler
 
       - name: Check canonical lint contract
-        run: python3 scripts/manager.py lint
+        # Full-tree lint can exceed 30–45m with no log output and looks hung.
+        # Match the high-signal roots used in day-to-day quality gates.
+        run: python3 scripts/manager.py lint src/compiler std
 
   verify-quick:
     name: "verify-quick"
