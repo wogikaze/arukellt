@@ -49,8 +49,20 @@ MAIN_NO_PARAM_RE = re.compile(r"\bfn\s+main\s*\(\s*\)\s*(?:->|[;{])")
 MAIN_ANY_RE = re.compile(r"\bfn\s+main\s*\(")
 HEX_ADDR_RE = re.compile(r"0x[0-9a-fA-F]+")
 PATH_RE = re.compile(r"(?:/|(?:[A-Za-z]:\\))[^\s:]+")
+TEMP_PATH_RE = re.compile(
+    r"(?:/tmp|/var/folders|/private/var/folders|.*?[/\\]\.build(?:-[^/\\]+)?)[/\\][^\s:]+",
+    re.I,
+)
 LINECOL_RE = re.compile(r":\d+:\d+")
+DIAG_CODE_RE = re.compile(r"\b([EW]\d{4})\b")
+WARNING_DIAG_LINE_RE = re.compile(r"(?:^|\s)warning\[|:\s*warning:", re.I)
+NOISE_LINE_RE = re.compile(
+    r"^(?:core-op-shadow:|reg-vt-audit:|\+\s|compilation succeeded|wrote\s|native-cpp-runner:\s*cache)",
+    re.I,
+)
+LOCATION_ONLY_RE = re.compile(r"^-->\s*")
 STACK_FRAME_RE = re.compile(r"^\s*(?:#\d+\s+)?(?:0x[0-9a-fA-F]+\s+)?(.+)$", re.M)
+REGEXISH_NEEDLE_RE = re.compile(r"(?:\\[dDwWsSbA]|\\[0-9]|\[.+\]|\.\*|\{.+\})")
 
 SIGNAL_NAMES = {
     -signal.SIGABRT: "SIGABRT",
@@ -206,11 +218,101 @@ def _load_capability_status() -> dict[str, str]:
 
 
 def _normalize_message(text: str) -> str:
+    text = TEMP_PATH_RE.sub("<TEMP>", text)
     text = PATH_RE.sub("<PATH>", text)
     text = HEX_ADDR_RE.sub("<ADDR>", text)
     text = LINECOL_RE.sub(":<LINE>:<COL>", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text[:400]
+
+
+def _parse_required_diagnostics(pattern: object) -> list[str]:
+    """Split a .diag / override pattern into order-independent required needles."""
+    if pattern is None:
+        return []
+    text = str(pattern)
+    if not text.strip():
+        return []
+    required: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if LOCATION_ONLY_RE.match(stripped) and "error[" not in stripped and "warning[" not in stripped:
+            continue
+        required.append(stripped)
+    return required or [text.strip()]
+
+
+def _needle_matches(needle: str, haystack: str) -> bool:
+    if not needle:
+        return True
+    if needle in haystack:
+        return True
+    norm_needle = _normalize_message(needle)
+    norm_haystack = _normalize_message(haystack)
+    if norm_needle and norm_needle in norm_haystack:
+        return True
+    # Bare diagnostic code (E0401 / W0005): accept bracket form or bare code.
+    if re.fullmatch(r"[EW]\d{4}", needle):
+        code_re = re.compile(
+            rf"(?:error|warning)\[{re.escape(needle)}\b|\b{re.escape(needle)}\b",
+            re.I,
+        )
+        return bool(code_re.search(haystack))
+    if REGEXISH_NEEDLE_RE.search(needle):
+        try:
+            if re.search(needle, haystack):
+                return True
+            if re.search(needle, norm_haystack):
+                return True
+        except re.error:
+            pass
+    return False
+
+
+def _diagnostics_match(pattern: object, haystack: str) -> bool:
+    """All required diagnostics must appear; order does not matter."""
+    required = _parse_required_diagnostics(pattern)
+    if not required:
+        return True
+    return all(_needle_matches(needle, haystack) for needle in required)
+
+
+def _primary_diagnostic_line(text: str) -> str:
+    """Prefer error diagnostics over leading warnings / harness noise."""
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    if not lines:
+        return ""
+
+    def is_noise(line: str) -> bool:
+        stripped = line.lstrip()
+        if NOISE_LINE_RE.match(stripped):
+            return True
+        if "compilation succeeded" in stripped or stripped.startswith("wrote "):
+            return True
+        return False
+
+    candidates = [ln for ln in lines if not is_noise(ln)]
+    pool = candidates or lines
+
+    for ln in pool:
+        lower = ln.lower()
+        if "error[" in lower or re.search(r"(?:^|:\s)error:", ln):
+            return ln
+    for ln in pool:
+        if DIAG_CODE_RE.search(ln) and "warning[" not in ln.lower():
+            return ln
+    for ln in pool:
+        stripped = ln.lstrip().lower()
+        if stripped.startswith("warning"):
+            continue
+        if "error" in stripped or "failed to" in stripped:
+            return ln
+    for ln in pool:
+        if WARNING_DIAG_LINE_RE.search(ln) or "warning[" in ln.lower():
+            return ln
+    return pool[0]
 
 
 def _top_stack_frame(text: str) -> str:
@@ -378,6 +480,7 @@ def _classify_compile(
 
 
 def _pattern_match(pattern: object, text: str) -> bool:
+    """Substring match for a single runtime stderr/stdout needle."""
     if pattern is None:
         return True
     needle = str(pattern)
@@ -406,10 +509,12 @@ def _expectation_matched(
     if expected_compile and not compile_ok:
         return False, "compile_expected_pass"
     if not expected_compile:
+        # Compile-negative path: match diagnostics only. Do not consult
+        # expected_signal / run stderr — those belong to runtime trap fixtures.
         if compile_ok:
             return False, "compile_expected_fail"
         stderr_pat = expectation.get("expected_stderr_pattern")
-        if stderr_pat and not _pattern_match(stderr_pat, combined_compile):
+        if stderr_pat and not _diagnostics_match(stderr_pat, combined_compile):
             return False, "diagnostic_mismatch"
         if compile_kind == "ice":
             return False, "ice"
@@ -431,22 +536,26 @@ def _expectation_matched(
         golden = str(stdout_pat).strip()
         if golden not in {norm_out, norm_combined} and golden not in norm_combined:
             return False, "stdout_mismatch"
-    if stderr_pat is not None and not _pattern_match(stderr_pat, combined_run):
-        return False, "stderr_mismatch"
 
     expected_signal = expectation.get("expected_signal")
     if run_kind in {"trap", "panic", "signal"}:
+        # Runtime signal expectations are not compile diagnostics.
+        if stderr_pat is not None and not _diagnostics_match(stderr_pat, combined_run):
+            return False, "stderr_mismatch"
         if expected_signal and run_signal != expected_signal:
             # panic/trap may surface as SIGABRT; allow if stderr matched and signal is abort.
             if not (run_signal == "SIGABRT" and run_kind in {"trap", "panic"}):
                 return False, "signal_mismatch"
-        if run_kind == "panic" and not _pattern_match(
+        if run_kind == "panic" and not _diagnostics_match(
             expectation.get("expected_stderr_pattern") or "panic", combined_run
         ):
             return False, "panic_mismatch"
         if run_kind == "trap" and run_signal is None and run_rc == 0:
             return False, "trap_missing"
         return True, "abnormal_ok"
+
+    if stderr_pat is not None and not _diagnostics_match(stderr_pat, combined_run):
+        return False, "stderr_mismatch"
 
     if run_signal is not None:
         return False, "unexpected_signal"
@@ -641,9 +750,7 @@ def _measure_one(
 
     result.update(classified)
     result["compile_seconds"] = round(time.time() - started, 3)
-    result["actual_stderr_primary"] = _normalize_message(
-        next((ln for ln in combined.splitlines() if ln.strip()), "")
-    )[:240]
+    result["actual_stderr_primary"] = _normalize_message(_primary_diagnostic_line(combined))[:240]
 
     ran = False
     run_rc: int | None = None
@@ -677,19 +784,10 @@ def _measure_one(
         result["actual_signal"] = run_signal
         result["actual_stdout_digest"] = _digest(run_out)
         result["run_seconds"] = round(time.time() - run_started, 3)
-        primary = next(
-            (
-                ln
-                for ln in (run_err + run_out).splitlines()
-                if ln.strip()
-                and not ln.lstrip().startswith("+ ")
-                and "compilation succeeded" not in ln
-                and "wrote " not in ln
-                and "native-cpp-runner: cache" not in ln
-            ),
-            next((ln for ln in (run_err + run_out).splitlines() if ln.strip()), ""),
-        )
-        result["actual_stderr_primary"] = _normalize_message(primary)[:240]
+        # Prefer error diagnostics; do not let signal/abort banners mask them.
+        result["actual_stderr_primary"] = _normalize_message(
+            _primary_diagnostic_line(run_err + "\n" + run_out)
+        )[:240]
         # Ark `--emit c` success is not a native compile success when clang fails.
         if ("native-cpp-runner: clang failed" in run_err) or (
             "error:" in run_err and "program.c:" in run_err
