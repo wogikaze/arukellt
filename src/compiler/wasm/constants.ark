@@ -70,7 +70,11 @@ fn P2_IMPORT_GET_STDOUT() -> i32 { 0 }
 fn P2_IMPORT_BWAF() -> i32 { 1 }
 fn P2_IMPORT_ARGS_SIZES() -> i32 { 2 }
 fn P2_IMPORT_ARGUMENTS() -> i32 { 3 }
-// open-at=4, stdin read=5, fs close=6, exit=7 (must not reuse WASI_IMPORT_PROC_EXIT=6).
+// open-at=4, stdin/fd read=5, fs close=6, exit=7 (must not reuse WASI_IMPORT_PROC_EXIT=6).
+fn P2_IMPORT_OPEN_AT() -> i32 { 4 }
+// Guest import is named stdin read; ABI matches fd_read and is reused for files (#807).
+fn P2_IMPORT_FD_READ() -> i32 { 5 }
+fn P2_IMPORT_FS_CLOSE() -> i32 { 6 }
 fn P2_IMPORT_EXIT() -> i32 { 7 }
 fn P2_IMPORT_GET_STDERR() -> i32 { 8 }
 fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 9 }

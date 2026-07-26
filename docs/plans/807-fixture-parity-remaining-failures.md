@@ -170,6 +170,17 @@
 計測: 全 suite **PASS=1310 FAIL=56 SKIP=249**（wasm-invalid=198）。L16 の FAIL=64 から -8（new FAIL=0）。  
 残り top: trait 12、io 10、hashmap 6、core 5、json 3。
 
+### L18 tranche（2026-07-26）— GC fs read + P2 open/read/close host stubs
+
+1. **GC `read_to_string`:** stub `ref.null` をやめ、path を linear へ stage → open/read/close → Result local（void-if）。
+2. **P2 import indices:** `P2_IMPORT_OPEN_AT` / `FD_READ` / `FS_CLOSE`（旧 hardcode 3/4/5 は arguments/stdin/close と衝突）。
+3. **host-linker:** 実 `open-at`（fd 表）、`close`、stdin `read` を fd_read ABI として実装。
+4. **GC string from scratch:** len を `STRPTR-4` から読む（heap+BUFSTART 誤ロードを修正）。
+
+計測: 全 suite **PASS=1318 FAIL=48 SKIP=249**（wasm-invalid=198）。L17 の FAIL=56 から -8（new FAIL=0）。  
+残り top: trait 12、hashmap 6、io 5、core 5、json 3。  
+残: `host_capability`（`read_dir`/`metadata` が FsError Result で unreachable）。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。
