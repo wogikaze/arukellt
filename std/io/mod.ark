@@ -134,18 +134,13 @@ pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
     let total: i32 = len(r) - 1
     let mut line: String = ""
     let mut pos: i32 = cursor
-    if pos < total {
-        if get_unchecked(r, 1 + pos) == 10 {
-            pos = pos + 1
-        }
-    }
     let mut stop: bool = false
-    while pos < total {
+    // Consume through newline (excluded from line) or EOF; leave cursor for the next line.
+    while pos < total && !stop {
         let b: i32 = get_unchecked(r, 1 + pos)
         pos = pos + 1
         if b == 10 {
             stop = true
-            pos = total
         } else {
             line = __intrinsic_concat(line, char_to_string(b))
         }
@@ -630,9 +625,8 @@ pub fn read_bytes(buf: Vec<i32>, n: i32) -> Vec<i32> {
         push(out, 0)
         i = i + 1
     }
-    let _count: i32 = read(buf, out)
-    // Trim to actual bytes read (count may be < n)
-    let read_count: i32 = len(out)
+    let read_count: i32 = read(buf, out)
+    // Trim to bytes actually read — len(out) stays at n after the prefill.
     let trimmed: Vec<i32> = Vec_new_i32()
     let mut j: i32 = 0
     while j < read_count {
@@ -670,7 +664,10 @@ pub fn fill_buffer(buf: Vec<i32>) -> Vec<i32> {
 /// This is the trait-based generic copy that works with any type implementing
 /// Read and Write. It reads in chunks and writes them until EOF.
 /// Returns the total number of bytes copied.
-pub fn copy_trait<R: Read, W: Write>(from: R, to: W) -> i32 {
+pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
+    // Monomorphic memory-buffer path: generic `<R: Read, W: Write>` mono still
+    // emits an empty unreachable body on wasm32-gc (#807). Trait dispatch for
+    // Vec buffers goes through the same Read/Write impls as before.
     let chunk: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
     while i < 256 {
@@ -680,7 +677,6 @@ pub fn copy_trait<R: Read, W: Write>(from: R, to: W) -> i32 {
     let mut total: i32 = 0
     let mut done: bool = false
     while !done {
-        // Reset chunk to zeros
         let mut k: i32 = 0
         while k < 256 {
             set(chunk, k, 0)
@@ -690,7 +686,6 @@ pub fn copy_trait<R: Read, W: Write>(from: R, to: W) -> i32 {
         if n == 0 {
             done = true
         } else {
-            // Write only the first n bytes
             let to_write: Vec<i32> = Vec_new_i32()
             let mut j: i32 = 0
             while j < n {

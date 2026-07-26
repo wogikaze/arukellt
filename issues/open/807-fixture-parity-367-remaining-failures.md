@@ -71,6 +71,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L17 (2026-07-26):** `PASS=1310 FAIL=56 SKIP=249` (wasm-invalid=198).
 - **After L18 (2026-07-26):** `PASS=1318 FAIL=48 SKIP=249` (wasm-invalid=198).
 - **After L19 (2026-07-26):** `PASS=1321 FAIL=45 SKIP=249` (wasm-invalid=198).
+- **After L20 (2026-07-26):** `PASS=1343 FAIL=23 SKIP=249` (wasm-invalid=198).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -128,6 +129,11 @@ from STRPTR-4. Remaining top: trait 12, hashmap 6, io 5, core 5, json 3.
 L19: drop `read_dir`/`metadata` GC unreachable stubs; GC `write_string`;
 P2 `fd_write` import+host; fixture `.flags` `--dir .:ro` / `--deny-fs` for
 parity host-run. Remaining top: trait 12, hashmap 6, core 5, io 3, json 3.
+L20: hash_map→hash_string forward (alias self-recursion); `read_bytes` trim
+by read count; `reader_read_line` cursor; monomorphic `copy_trait`; GC
+`get_unchecked` on raw arrays; `convert::parse_f64` core_op bind; Hash/
+insert/hashset fixture corrections. trait/hashmap/core → 0 FAIL.
+Remaining top: io 3, io_rw 3, json 3 (+ scattered).
 
 ## New-failure ratchet
 

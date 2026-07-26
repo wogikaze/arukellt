@@ -191,6 +191,17 @@
 計測: 全 suite **PASS=1321 FAIL=45 SKIP=249**（wasm-invalid=198）。L18 の FAIL=48 から -3（new FAIL=0）。  
 残り top: trait 12、hashmap 6、core 5、io 3、json 3。
 
+### L20 tranche（2026-07-26）— trait / hashmap / core root-cause classes
+
+1. **hash_map wrappers:** `HashMap_*` aliases が同短名へ自己再帰していたため `hash_string::*` / `__hm_*_size` へ転送。
+2. **stdlib IO:** `read_bytes` を `_count` で trim；`reader_read_line` が newline で `pos=total` していたのを修正；`copy_trait` を Vec 単相化（generic mono が unreachable）。
+3. **GC `get_unchecked`:** array literal（生 GC array）を Vec struct に cast しない。
+4. **`convert::parse_f64`:** `data/core-ops.toml` に legacy bind（`__intrinsic_parse_f64` 含む）。
+5. **fixtures:** `hashmap_insert` 更新時 previous=100；hashset reserve の load-factor 期待；Hash method 形；iterator map→filter 期待値。
+
+計測: 全 suite **PASS=1343 FAIL=23 SKIP=249**（wasm-invalid=198）。L19 の FAIL=45 から -22（new FAIL=0）。  
+残り top: io 3、io_rw 3、json 3。trait/hashmap/core = 0。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

@@ -1083,6 +1083,14 @@ alias = "convert::parse_i64"
 core_op_id = "parse.parse_i64"
 
 [[legacy_bindings]]
+alias = "convert::parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
 alias = "core::range_contains"
 core_op_id = "core.range_contains"
 
@@ -2997,7 +3005,7 @@ id = "parse.parse_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::parse_f64 (aliases: 2; parse_f64, text::parse_f64)"
+description = "Legacy handler branch → text::parse_f64 (aliases: 4; parse_f64, text::parse_f64, convert::parse_f64, __intrinsic_parse_f64)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
