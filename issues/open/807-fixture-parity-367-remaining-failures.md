@@ -62,6 +62,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L8 (2026-07-26):** `PASS=1167 FAIL=189 SKIP=259` (wasm-invalid=223).
 - **After L9 (2026-07-26):** `PASS=1192 FAIL=164 SKIP=259` (wasm-invalid=223).
 - **After L10 (2026-07-26):** `PASS=1224 FAIL=142 SKIP=249` (wasm-invalid=213).
+- **After L11 (2026-07-26):** `PASS=1239 FAIL=127 SKIP=249` (wasm-invalid=203).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -86,6 +87,10 @@ trait 15, vec 13, bytes 12.
 L10: bare `write_bytes` core_op no longer steals `io::write_bytes`; defer
 fs overload by String param0; join via concat (avoid scrambled push_range).
 Remaining top: io 14, vec 13, trait/string/bytes 12, text 10.
+L11: `byte_len`/`byte_at` core_op aliases; wall-clock i64 scratch offset 15;
+exclude `get_unchecked*` from i64 trailing-arg name heuristic; GC
+`push_char` writeback to pre-stage receiver. Remaining top: io 13, bytes 12,
+trait 12, host/text 10, vec 9.
 
 ## New-failure ratchet
 

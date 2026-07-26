@@ -915,6 +915,14 @@ alias = "char_at"
 core_op_id = "string.char_at"
 
 [[legacy_bindings]]
+alias = "byte_at"
+core_op_id = "raw.string_byte_at_unchecked"
+
+[[legacy_bindings]]
+alias = "byte_len"
+core_op_id = "text.len_bytes"
+
+[[legacy_bindings]]
 alias = "raw_string_byte_at_unchecked"
 core_op_id = "raw.string_byte_at_unchecked"
 

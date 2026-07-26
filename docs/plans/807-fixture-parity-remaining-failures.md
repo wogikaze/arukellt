@@ -97,6 +97,16 @@
 計測: 全 suite **PASS=1224 FAIL=142 SKIP=249**（wasm-invalid=213）。L9 の FAIL=164 から -22。  
 残り top: io 14、vec 13、trait/string/bytes 12、text 10。
 
+### L11 tranche（2026-07-26）— byte_len/at、clock i64 scratch、get_unchecked i64、push_char writeback
+
+1. **byte_len / byte_at:** prelude shim が defer されるのに bare core_op がなく `unreachable`。`byte_len`→`text.len_bytes`、`byte_at`→`raw.string_byte_at_unchecked` を alias。
+2. **now_ms / wasi_clock:** `emit_wall_datetime_to_ms` が i64 を i32 scratch(0) に格納 → validate fail。offset 15（i64 slot）へ。
+3. **vec_*_i64 get_unchecked:** `vec_get_unchecked_i64` 名が `contains("i64")` ヒューリスティックに引っかかり index を `i64.extend_i32_s` → validate fail。`get_unchecked` を除外。
+4. **push_char GC:** 新配列を作って破棄していた。CALL.arg0 へ writeback。ただし staging 後の temp ではなく pre-stage receiver を記録。
+
+計測: 全 suite **PASS=1239 FAIL=127 SKIP=249**（wasm-invalid=203）。L10 の FAIL=142 から -15。  
+残り top: io 13、bytes 12、trait 12、host/text 10、vec 9。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

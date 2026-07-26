@@ -246,11 +246,13 @@ fn is_clone_callee(callee: String) -> bool {
 fn is_len_callee(callee: String) -> bool {
     eq(clone(callee), String_from("len")) ||
     eq(clone(callee), String_from("len_bytes")) ||
+    eq(clone(callee), String_from("byte_len")) ||
     eq(clone(callee), String_from("__intrinsic_len")) ||
     ends_with(clone(callee), String_from("::len")) ||
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
-    ends_with(clone(callee), String_from("__len_bytes"))
+    ends_with(clone(callee), String_from("__len_bytes")) ||
+    ends_with(clone(callee), String_from("::byte_len"))
 }
 
 fn is_concat_callee(callee: String) -> bool {
