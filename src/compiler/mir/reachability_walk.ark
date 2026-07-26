@@ -8,6 +8,8 @@ use mir::core_op_call
 use mir::reachability_names
 use mir::reachability_index
 use mir::types
+use corehir::core_op_binding
+use corehir::core_op_id
 use corehir::function_id
 use corehir::signature_registry
 use mir::module_spine
@@ -19,7 +21,8 @@ fn mir_enqueue_call_edges(
     functions: Vec<MirFunction>,
     reachable: Vec<i32>,
     queue: Vec<i32>,
-    f: MirFunction
+    f: MirFunction,
+    target: String
 ) {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
@@ -31,12 +34,12 @@ fn mir_enqueue_call_edges(
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             if op == opcodes::MIR_CALL() || op == opcodes::MIR_REF_FUNC() {
-                mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst)
+                mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, clone(target))
             }
             if op == opcodes::MIR_CALL() {
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
                 if len(fallback) > 0 {
-                    mir_enqueue_symbol(m, index, functions, reachable, queue, fallback)
+                    mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, clone(target))
                 }
             }
             ii = ii + 1
@@ -51,7 +54,8 @@ fn mir_enqueue_inst_callee(
     functions: Vec<MirFunction>,
     reachable: Vec<i32>,
     queue: Vec<i32>,
-    inst: MirInst
+    inst: MirInst,
+    target: String
 ) {
     let fid_raw = inst_record::mir_inst_func_id_raw(inst)
     if fid_raw >= 0 {
@@ -60,7 +64,19 @@ fn mir_enqueue_inst_callee(
         }
     }
     // Unresolved FunctionId (or core-op-only id): string fallback.
-    mir_enqueue_symbol(m, index, functions, reachable, queue, inst_accessors_literals::MirInst_str_val(inst))
+    mir_enqueue_symbol(
+        m,
+        index,
+        functions,
+        reachable,
+        queue,
+        inst_accessors_literals::MirInst_str_val(inst),
+        target
+    )
+}
+
+fn mir_reachability_skips_hashmap_alias_bodies(target: String) -> bool {
+    starts_with(clone(target), String_from("native"))
 }
 
 fn mir_enqueue_symbol(
@@ -69,7 +85,8 @@ fn mir_enqueue_symbol(
     functions: Vec<MirFunction>,
     reachable: Vec<i32>,
     queue: Vec<i32>,
-    symbol: String
+    symbol: String,
+    target: String
 ) {
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
@@ -90,9 +107,17 @@ fn mir_enqueue_symbol(
     }
     // Builtin HashMap_* names resolve at emit via hash_aliases; keep the same
     // stdlib bodies reachable so DCE does not leave call sites as unreachable.
+    // native-cpp lowers CoreOp-bound HashMap_* directly; chasing hash_string /
+    // __hm_* Ark bodies would pull Wasm-GC slot intrinsics that native rejects.
     let alias = hash_aliases::hashmap_builtin_alias(clone(symbol))
     if eq(clone(alias), clone(symbol)) {
         return
     }
-    mir_enqueue_symbol(m, index, functions, reachable, queue, alias)
+    if mir_reachability_skips_hashmap_alias_bodies(clone(target)) {
+        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
+        if core_op_id::core_op_id_is_some(coid) {
+            return
+        }
+    }
+    mir_enqueue_symbol(m, index, functions, reachable, queue, alias, target)
 }

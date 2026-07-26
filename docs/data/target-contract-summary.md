@@ -11,12 +11,12 @@
 > Host profiles are separate from language targets.
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
-| Target | Support Tier | Implementation | Contract Stability | Run | Notes |
-|--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
-| `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | scaffold | experimental | No | Scaffold target with Phase 1A constant-return C99 emit; executor lane remains unimplemented |
-| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
+| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
+|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
+| `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
+| `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
+| `native-cpp` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
+| `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 <!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
 
 <!-- BEGIN GENERATED:HOST_PROFILE_SUMMARY_SOURCE -->

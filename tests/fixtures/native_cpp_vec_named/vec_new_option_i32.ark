@@ -1,0 +1,15 @@
+use std::host::stdio
+
+fn main() {
+    let mut items = Vec_new_Option_i32()
+    items = push(items, Some(9))
+    items = push(items, None)
+    match get_unchecked(items, 0) {
+        Option::Some(n) => { stdio::println(n.to_string()) }
+        None => { stdio::println(String_from("none")) }
+    }
+    match get_unchecked(items, 1) {
+        Option::Some(n) => { stdio::println(n.to_string()) }
+        None => { stdio::println(String_from("none")) }
+    }
+}

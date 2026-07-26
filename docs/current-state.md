@@ -67,12 +67,12 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Support Tier | Implementation | Contract Stability | Run | Notes |
-|--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
-| `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | scaffold | experimental | No | Scaffold target with Phase 1A constant-return C99 emit; executor lane remains unimplemented |
-| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
+| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
+|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
+| `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
+| `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
+| `native-cpp` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
+| `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
 
@@ -117,9 +117,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2811 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1223 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2811 is tests/fixtures/manifest.txt registry size. The 1223 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2868 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1280 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2868 is tests/fixtures/manifest.txt registry size. The 1280 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -308,7 +308,7 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 - `--deny-clock` / `--deny-random`: **intended** compile-time MIR scan on `run` (transitive; not on `compile`), but **not implemented** on the current selfhost CLI. Fixtures remain in `DIAG_PARITY_SKIP` (#459). See [`process/policy.md`](process/policy.md) and [`data/capabilities.toml`](data/capabilities.toml).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
-- `native-cpp` remains a **scaffold target** with `run_supported=false`. Its Phase 1A path emits portable C99 only for an i32 constant-return MIR function; all other opcodes are rejected through target capability diagnostics. Clang orchestration and the selfhost executor lane remain unimplemented. `native-llvm` retains its fixed GNU assembler scaffold. See [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md) and [RFC-008](rfcs/008-native-cpp-c99-backend-runtime-abi.md).
+- `native-cpp` is a **scaffold / partial / experimental** target with **`run_supported=true`** (not production-ready; `support_tier` remains scaffold): public `arukellt run --target native-cpp` is offered on Linux x86-64 with clang 14+ for the supported subset (ADR-050). Guaranteed public corpus: 16/16 (`docs/data/native-cpp-public-coverage-receipt.json`). **General backend readiness (measure v2) is COMPLETE** for the documented gates: positive compile ≥80.5%, compiled-positive semantic ≥95%, in-scope expected-negative diagnostic match 100% (14 fixtures listed in `docs/data/native-cpp-expected-negative-limitations.toml`), ICE 0, unexpected crash 0 (`docs/data/native-cpp-fixture-coverage-receipt.json`, baseline `docs/data/native-cpp-fixture-coverage-baseline.json`). Plan: [native-cpp-general-backend-readiness.md](plans/native-cpp-general-backend-readiness.md). The **internal** C99 selfhost executor lane remains **experimental**: production root clears, arena/GC dual mode, S2/S3 equality+determinism, and strict wall/RSS dual gate without `--allow-high-rss` (CI rejects that flag). Latest strict 3× evidence: warm wall 238–249 s, peak RSS ≤ 2.345 GiB (`docs/data/native-cpp-executor-promotion-receipt.json`). `native-llvm` retains its fixed GNU assembler scaffold. See [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md), [ADR-050](adr/ADR-050-experimental-public-native-c99-run.md), and [RFC-008](rfcs/008-native-cpp-c99-backend-runtime-abi.md).
 - some historical docs remain archived / historical and should not override current-state
 - **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [Capability surface](platform/target-runtime-and-surfaces.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.

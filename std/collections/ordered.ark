@@ -23,7 +23,7 @@ pub fn sorted_map_find_idx(m: Vec<i32>, key: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = count
     while lo < hi {
-        let mid: i32 = lo + hi / 2
+        let mid: i32 = (lo + hi) / 2
         let mk: i32 = get_unchecked(m, 1 + mid * 2)
         if mk < key {
             lo = mid + 1
@@ -166,7 +166,7 @@ pub fn btree_set_find_idx(s: Vec<i32>, value: i32) -> i32 {
     let mut lo: i32 = 0
     let mut hi: i32 = count
     while lo < hi {
-        let mid: i32 = lo + hi / 2
+        let mid: i32 = (lo + hi) / 2
         let v: i32 = get_unchecked(s, 1 + mid)
         if v < value {
             lo = mid + 1
@@ -385,7 +385,7 @@ pub fn bitset_count(bs: Vec<i32>) -> i32 {
     while w < words {
         let mut val: i32 = get_unchecked(bs, 1 + w)
         while val != 0 {
-            val = val & val - 1
+            val = val & (val - 1)
             total = total + 1
         }
         w = w + 1

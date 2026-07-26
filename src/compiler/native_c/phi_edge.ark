@@ -1,0 +1,138 @@
+use mir::block_phi_access
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+use mir::phi_access
+
+/// Predecessor→join parallel copies for `block.phis` (RFC-008 de-SSA).
+/// Cyclic pairs use an `int64_t` bit-pattern scratch that is valid for all
+/// scalar locals the native-cpp MVP lowers through phis.
+fn native_c_phi_edge_copies(
+    function: MirFunction,
+    pred_block: i32,
+    join_block: i32
+) -> String {
+    if join_block < 0 || join_block >= function_block_queries::MirFunction_block_count(function) {
+        return String_new()
+    }
+    let block = function_block_queries::MirFunction_block_at(function, join_block)
+    let phi_count = block_phi_access::MirBlock_phi_count(block)
+    if phi_count == 0 {
+        return String_new()
+    }
+    let mut out = String_new()
+    let mut phi_index = 0
+    while phi_index < phi_count {
+        let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
+        let dest = phi_access::MirPhi_dest(phi)
+        let arg_count = phi_access::MirPhi_arg_count(phi)
+        let mut arg_index = 0
+        let mut source = 0 - 1
+        while arg_index < arg_count {
+            let arg = phi_access::MirPhi_arg_at(phi, arg_index)
+            if phi_access::MirPhiArg_pred_block(arg) == pred_block {
+                source = phi_access::MirPhiArg_local(arg)
+            }
+            arg_index = arg_index + 1
+        }
+        if source >= 0 && dest >= 0 && source != dest {
+            if native_c_phi_edge_needs_scratch(block, pred_block, dest, source) {
+                out = concat(
+                    out,
+                    concat(
+                        String_from("    { int64_t ark_phi_scratch = 0; memcpy(&ark_phi_scratch, &ark_v_"),
+                        concat(
+                            i32_to_string(source),
+                            concat(
+                                String_from(", sizeof(ark_v_"),
+                                concat(
+                                    i32_to_string(source),
+                                    concat(
+                                        String_from(")); memcpy(&ark_v_"),
+                                        concat(
+                                            i32_to_string(dest),
+                                            concat(
+                                                String_from(", &ark_phi_scratch, sizeof(ark_v_"),
+                                                concat(i32_to_string(dest), String_from(")); }\n"))
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            } else {
+                out = concat(
+                    out,
+                    concat(
+                        String_from("    ark_v_"),
+                        concat(
+                            i32_to_string(dest),
+                            concat(
+                                String_from(" = ark_v_"),
+                                concat(i32_to_string(source), String_from(";\n"))
+                            )
+                        )
+                    )
+                )
+            }
+        }
+        phi_index = phi_index + 1
+    }
+    out
+}
+
+fn native_c_phi_edge_needs_scratch(
+    block: MirBlock,
+    pred_block: i32,
+    dest: i32,
+    source: i32
+) -> bool {
+    let phi_count = block_phi_access::MirBlock_phi_count(block)
+    let mut phi_index = 0
+    while phi_index < phi_count {
+        let phi = block_phi_access::MirBlock_phi_at(block, phi_index)
+        let other_dest = phi_access::MirPhi_dest(phi)
+        if other_dest == source {
+            let arg_count = phi_access::MirPhi_arg_count(phi)
+            let mut arg_index = 0
+            while arg_index < arg_count {
+                let arg = phi_access::MirPhi_arg_at(phi, arg_index)
+                if phi_access::MirPhiArg_pred_block(arg) == pred_block &&
+                phi_access::MirPhiArg_local(arg) == dest {
+                    return true
+                }
+                arg_index = arg_index + 1
+            }
+        }
+        phi_index = phi_index + 1
+    }
+    false
+}
+
+fn native_c_phi_opcode_is_noop(instruction: MirInst) -> bool {
+    inst_accessors_shape::MirInst_op(instruction) == opcodes::MIR_PHI()
+}
+
+fn native_c_function_has_block_phis(function: MirFunction) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        if block_phi_access::MirBlock_phi_count(block) > 0 {
+            return true
+        }
+        block_index = block_index + 1
+    }
+    false
+}
+
+fn native_c_branch_target_block(instruction: MirInst) -> i32 {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() {
+        return inst_accessors_operands::MirInst_arg0(instruction)
+    }
+    0 - 1
+}

@@ -832,16 +832,67 @@ def gate_641() -> tuple[int, str]:
         return 1, "native-llvm scaffold is not preserved"
     if "emit_native_scaffold" in native_text or "emit_native_scaffold" in emit_text:
         return 1, "obsolete shared native scaffold routing remains"
-    for required in ("INT32_C(", "ark_f_", "int main(int argc, char **argv)"):
-        if required not in native_c_text:
+    emitter_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "function_emitter.ark"
+    abi_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "abi.ark"
+    if not emitter_ark.is_file() or not abi_ark.is_file():
+        return 1, "missing native-cpp function_emitter.ark or abi.ark"
+    emitter_text = emitter_ark.read_text(encoding="utf-8")
+    abi_text = abi_ark.read_text(encoding="utf-8")
+    for required, haystack in (
+        ("INT32_C(", emitter_text),
+        ("ark_f_", abi_text),
+        ("int main(int argc, char **argv)", native_c_text),
+    ):
+        if required not in haystack:
             return 1, f"native-cpp emitter lacks {required}"
     state = (REPO_ROOT / "docs/data/project-state.toml").read_text(encoding="utf-8")
-    match = re.search(r'id = "native-cpp"(?P<body>.*?)(?=\n\[\[target_profiles\]\]|\Z)', state, re.S)
+    match = re.search(r'id = "native-cpp"(?P<body>.*?)(?=\n\[\[(?:target_profiles|executor_lanes)\]\]|\Z)', state, re.S)
     if match is None:
         return 1, "project-state lacks native-cpp"
-    for required in ('support_tier = "scaffold"', 'implementation_state = "scaffold"', "run_supported = false"):
+    # ADR-050 experimental public run keeps scaffold/partial but enables run_supported.
+    for required in (
+        'support_tier = "scaffold"',
+        'implementation_state = "partial"',
+        "run_supported = true",
+    ):
         if required not in match.group("body"):
             return 1, f"native-cpp project-state must retain {required}"
+    lane = re.search(
+        r'id = "native-cpp-selfhost"(?P<body>.*?)(?=\n\[\[|\Z)',
+        state,
+        re.S,
+    )
+    if lane is None:
+        return 1, "project-state lacks native-cpp-selfhost executor lane"
+    for required in (
+        'state = "experimental"',
+        "strict_gate_supported = true",
+        "high_rss_override_allowed_in_ci = false",
+    ):
+        if required not in lane.group("body"):
+            return 1, f"executor lane must retain {required}"
+    promo = REPO_ROOT / "docs/data/native-cpp-executor-promotion-receipt.json"
+    if not promo.is_file():
+        return 1, "missing docs/data/native-cpp-executor-promotion-receipt.json"
+    try:
+        receipt = json.loads(promo.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return 1, f"invalid promotion receipt: {exc}"
+    if receipt.get("high_rss_override") is not False:
+        return 1, "promotion receipt high_rss_override must be false"
+    if int(receipt.get("strict_runs_passed") or 0) < 3:
+        return 1, "promotion receipt must record strict_runs_passed >= 3"
+    if int(receipt.get("worst_warm_wall_time_ms") or 10**12) >= 300000:
+        return 1, "promotion receipt worst warm wall must be < 300000 ms"
+    if int(receipt.get("worst_peak_rss_bytes") or 10**18) > int(2.4 * 1024**3):
+        return 1, "promotion receipt worst RSS must be <= 2.4 GiB"
+    rl = receipt.get("root_liveness_summary") or {}
+    if rl.get("root_liveness_enabled") is not True:
+        return 1, "promotion receipt must show root_liveness_enabled"
+    if "root_functions_skipped" not in rl or int(rl["root_functions_skipped"]) != 0:
+        return 1, "promotion receipt root_functions_skipped must be 0"
+    if rl.get("root_planned_equals_emitted") is not True:
+        return 1, "promotion receipt planned clears must equal emitted clears"
     validation = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts/check/check-native-cpp-capabilities.py")],
         cwd=REPO_ROOT,

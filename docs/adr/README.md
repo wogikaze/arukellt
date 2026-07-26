@@ -20,7 +20,7 @@
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | （2026-07-05 追補: wasmtime / Node.js / ブラウザの 3 ランタイムクロス計測で再確認。結論は不変） |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ADR-002 により Wasm GC を採用した。generics の実装戦略を決定する。 |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | 公開 ABI を無秩序に増やすと保守コストが増大する。一方で raw Wasm の GC 型表現 （String / Vec の (ref $…) layout）を stable に固定すると、内部表現の進化 （inline string、rope、capacity layout、nullable 最適化、recursive type group 等）を |
-| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native-cpp の限定されたセルフホストexecutor契約は ADR-049が所有する。 |
+| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native-cpp の内部セルフホストexecutor契約は ADR-049が、公開 experimental run 契約は |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Component Model 対応にあたり、core Wasm モジュールを .component.wasm に変換する 方法を決める必要がある。 |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Arukellt には 2 種類の「モジュール参照」が混在している。 |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | WebAssembly Extended Const 提案により、定数式の中で i32.add, i32.sub, i32.mul (および i64 版) が使用可能になった。これにより、グローバル変数の 初期値・データセグメントのオフセット・要素セグメントのオフセットで算術演算を 記述できる。 |
@@ -51,6 +51,7 @@
 | [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
+| [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 
 ## 提案
 

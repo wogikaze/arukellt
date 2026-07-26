@@ -159,11 +159,34 @@ id = "native_targets"
 tier = "not_guaranteed"
 cadence = "release-only"
 summary = "native-cpp / native-llvm"
-known_limitation = "Both targets remain scaffold; ADR-049 adopts only the compiler-private native-cpp executor ABI"
+known_limitation = "Both targets remain scaffold/partial; native-cpp adds experimental public run (ADR-050) on top of the compiler-private executor ABI (ADR-049); native-llvm stays assembler scaffold"
+
+[[guarantees]]
+id = "run_native_cpp_experimental"
+tier = "experimental"
+cadence = "ci"
+summary = "Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only)"
+known_limitation = "Guarantee scope remains tests/fixtures/native_cpp_public + parity/sanitizer (not production-ready; support_tier=scaffold). Full-tree measure v2 readiness gates are COMPLETE per docs/plans/native-cpp-general-backend-readiness.md with documented expected-negative limitations; zero-capture HOF only; no public C ABI/FFI"
 
 # ── Checks (executable verification items) ────────────────────────────────────
 # The release-blocker set is exactly {check | release_blocking = true}.
 # No supplemental lists — release-checklist.md is generated from these entries.
+
+[[checks]]
+id = "check_run_native_cpp_experimental"
+guarantee_id = "run_native_cpp_experimental"
+command = "python3 scripts/check/check-native-cpp-run-promotion-receipt.py && python3 -m unittest scripts.tests.test_native_cpp_runner scripts.tests.test_native_cpp_parity && python3 scripts/check/check-native-cpp-public-sanitizer.py"
+ci_job = "native-executor-gates"
+release_blocking = false
+included_in_full = false
+included_in_quick = false
+result = "pass"
+evidence_type = "fixture-set"
+verification_environment = "linux; clang 14+; repository verification toolchain"
+last_verified_commit = "local"
+verified_at = "2026-07-25"
+stale_after_days = 30
+platforms = ["linux"]
 
 [[checks]]
 id = "check_compile_wasm32_gc"

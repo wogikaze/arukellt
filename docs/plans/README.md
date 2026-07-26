@@ -25,12 +25,15 @@
 | [822-representation-dependent-stdlib-migration.md](822-representation-dependent-stdlib-migration.md) | #822 — Representation-dependent and allocating stdlib migration クローズ計画 | Archive | legacy_emitter: 31 → … → 10 → 3（残は simd.i32x4.add/sub, simd.f32x4.add のみ。#822 非担当）。 |
 | [824-early-body-lowering-worklist.md](824-early-body-lowering-worklist.md) | #824 — Early body lowering (worklist; design first) クローズ計画 | Archive | wontfix: decl_emit gate missed (L5 11.1% / #829 after 17.9%); no early body lowering code. |
 | [826-symbol-path-intern-clone-audit.md](826-symbol-path-intern-clone-audit.md) | #826 — Symbol / path interning + hot-path clone audit クローズ計画 | Archive | 親 issue: #826 前提: #823, #829 done 担当 subagent lane: wave/826-intern-clone 作業 worktree: .worktrees/wave-826-intern-clone |
-| [834-wasm32-gc-bootstrap-pin.md](834-wasm32-gc-bootstrap-pin.md) | #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画 | Archive | 親 issue: #834 前駆 issue: #730 |
+| [843-wasm32-gc-bootstrap-pin.md](843-wasm32-gc-bootstrap-pin.md) | #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画 | Archive | 親 issue: #834 前駆 issue: #730 |
 | [arukellt-host-bridge-retirement.md](arukellt-host-bridge-retirement.md) | #727 — arukellt_host bridge retirement 実装計画 | Archive | 親 issue: #727 |
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
-| [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | 詳細仕様: RFC-008 Capability SSOT: data/native-cpp-capabilities.toml |
+| [native-cpp-experimental-promotion.md](native-cpp-experimental-promotion.md) | native-cpp selfhost executor experimental 昇格計画 | Archive | Owner: native-cpp / umbrella #834 / root-liveness #833 Created: 2026-07-23 Last updated: 2026-07-23 Phase 0 baseline: .build-native-recovery/selfhost/native/baselines/20260723-221402/ |
+| [native-cpp-general-backend-readiness.md](native-cpp-general-backend-readiness.md) | native-cpp general backend readiness | Archive | 公開 run 昇格（完了）: native-cpp-public-run-promotion.md |
+| [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | native-cpp-experimental-promotion.md と docs/data/native-cpp-executor-promotion-receipt.json を正とする） |
+| [native-cpp-public-run-promotion.md](native-cpp-public-run-promotion.md) | native-cpp public run (run_supported=true) 昇格計画 | Archive | 詳細仕様: RFC-008 |
 | [selfhost-latency-phase-reprofile.md](selfhost-latency-phase-reprofile.md) | Selfhost compile latency: Memory64後の作業計画 | Archive | 親 issue: #829 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |

@@ -1,0 +1,30 @@
+use std::test
+
+fn main() {
+    let m = HashMap_new_String_String()
+    HashMap_String_String_insert(m, "k1", "v1")
+    HashMap_String_String_insert(m, "k2", "v2")
+    HashMap_String_String_insert(m, "k1", "v1b")
+    test::assert_eq_i32(HashMap_String_String_len(m), 2)
+    test::assert_true(HashMap_String_String_contains_key(m, "k1"))
+    test::assert_false(HashMap_String_String_contains_key(m, "missing"))
+    match HashMap_String_String_get(m, "k1") {
+        Option::Some(v) => test::assert_eq_string(v, "v1b"),
+        None => panic("expected Some(v1b)"),
+    }
+    match HashMap_String_String_get(m, "missing") {
+        Option::Some(_) => panic("expected None"),
+        None => {
+        },
+    }
+    match HashMap_String_String_remove(m, "k2") {
+        Option::Some(v) => test::assert_eq_string(v, "v2"),
+        None => panic("expected Some(v2)"),
+    }
+    HashMap_String_String_insert(m, "k2", "v2b")
+    match HashMap_String_String_get(m, "k2") {
+        Option::Some(v) => test::assert_eq_string(v, "v2b"),
+        None => panic("expected Some(v2b)"),
+    }
+    test::assert_eq_i32(HashMap_String_String_len(m), 2)
+}

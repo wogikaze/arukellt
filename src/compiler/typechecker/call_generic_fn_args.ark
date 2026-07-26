@@ -16,6 +16,17 @@ fn constrain_generic_fn_args(
 ) {
     let arg_count = ast_access::node_child_count(node) - 1
     let param_count = contract_fn_sig::FnSig_param_count(sig)
+    // Arity only: overload-unaware name lookup makes param unify unsafe for stdlib.
+    if arg_count != param_count {
+        let fname = contract_fn_sig::FnSig_name(sig)
+        unify::type_error_bad_arity(
+            env,
+            concat(
+                String_from("wrong number of arguments for `"),
+                concat(clone(fname), concat(String_from("`: expected "), concat(to_string(param_count), concat(String_from(", found "), to_string(arg_count)))))
+            )
+        )
+    }
     let mut a = 0
     while a < arg_count && a < param_count {
         let arg_node = ast_access::node_child_at(node, a + 1)

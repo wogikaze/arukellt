@@ -1,0 +1,4 @@
+fn main() {
+    let zero = 0
+    let _unused = 1 / zero
+}

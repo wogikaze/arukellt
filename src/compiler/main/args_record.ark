@@ -34,6 +34,8 @@ struct CliOptions {
     lint_deny: Vec<String>,
     cache_dir: String,
     strip_debug: bool,
+    deny_clock: bool,
+    deny_random: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
@@ -70,6 +72,8 @@ fn CliOptions_default() -> CliOptions {
         lint_deny: Vec_new_String(),
         cache_dir: String_new(),
         strip_debug: false,
+        deny_clock: false,
+        deny_random: false,
     }
 }
 
@@ -223,3 +227,8 @@ fn cli_has_cache_dir(opts: CliOptions) -> bool { len(opts.cache_dir) > 0 }
 fn cli_set_cache_dir(opts: CliOptions, cache_dir: String) { opts.cache_dir = cache_dir }
 fn cli_strip_debug(opts: CliOptions) -> bool { opts.strip_debug }
 fn cli_set_strip_debug(opts: CliOptions, strip_debug: bool) { opts.strip_debug = strip_debug }
+
+fn cli_deny_clock(opts: CliOptions) -> bool { opts.deny_clock }
+fn cli_set_deny_clock(opts: CliOptions, deny_clock: bool) { opts.deny_clock = deny_clock }
+fn cli_deny_random(opts: CliOptions) -> bool { opts.deny_random }
+fn cli_set_deny_random(opts: CliOptions, deny_random: bool) { opts.deny_random = deny_random }

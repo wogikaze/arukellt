@@ -1,0 +1,36 @@
+use std::host::fs
+use std::host::process
+use std::host::stdio
+
+fn transform_line(line: String) -> Result<String, String> {
+    if len(line) == 0 {
+        Err(String_from("empty-line"))
+    } else {
+        Ok(concat(String_from("OK:"), line))
+    }
+}
+
+fn main() {
+    let path = String_from("native_cpp_scenario_transform.txt")
+    match fs::write_string(clone(path), String_from("payload")) {
+        Result::Ok(_) => {
+        },
+        Result::Err(err) => {
+            stdio::eprintln(err)
+            process::exit(2)
+        },
+    }
+    match fs::read_to_string(path) {
+        Result::Ok(text) => match transform_line(text) {
+            Result::Ok(out) => stdio::println(out),
+            Result::Err(err) => {
+                stdio::eprintln(err)
+                process::exit(4)
+            },
+        },
+        Result::Err(err) => {
+            stdio::eprintln(err)
+            process::exit(3)
+        },
+    }
+}

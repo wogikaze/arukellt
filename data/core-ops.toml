@@ -106,6 +106,22 @@ core_op_id = "raw.array_new"
 alias = "Vec_new_v128"
 core_op_id = "raw.array_new"
 
+# Prefix family bindings evaluated only after exact legacy_bindings / manifest
+# aliases miss. Used by MIR call_func_id; Wasm exact lookup stays unchanged.
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "__intrinsic_Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
 [[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
 core_op_id = "text.format_bool"
@@ -183,6 +199,10 @@ core_op_id = "raw.string_push_char"
 alias = "raw::raw_string_push_char"
 core_op_id = "raw.string_push_char"
 
+
+[[legacy_bindings]]
+alias = "__intrinsic_concat"
+core_op_id = "string.concat"
 
 [[legacy_bindings]]
 alias = "__intrinsic_clock_now"
@@ -291,6 +311,22 @@ core_op_id = "panic"
 [[legacy_bindings]]
 alias = "__intrinsic_println"
 core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "__intrinsic_print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
+alias = "__intrinsic_eprintln"
+core_op_id = "runtime.eprintln"
+
+[[legacy_bindings]]
+alias = "__intrinsic_join"
+core_op_id = "string.join"
+
+[[legacy_bindings]]
+alias = "__intrinsic_split"
+core_op_id = "string.split"
 
 [[legacy_bindings]]
 alias = "__intrinsic_process_abort"
@@ -1181,6 +1217,10 @@ alias = "concat"
 core_op_id = "string.concat"
 
 [[legacy_bindings]]
+alias = "contains"
+core_op_id = "string.contains"
+
+[[legacy_bindings]]
 alias = "convert::bool_to_string"
 core_op_id = "text.format_bool"
 
@@ -1432,6 +1472,8 @@ core_op_id = "runtime.is_ok"
 alias = "is_some"
 core_op_id = "runtime.is_ok"
 
+# Bare `join` binds string.join for prelude/text call sites. `path::join` must
+# resolve via qualified mangled registration (not short-name fallback).
 [[legacy_bindings]]
 alias = "join"
 core_op_id = "string.join"
@@ -1562,6 +1604,10 @@ core_op_id = "runtime.process.abort"
 
 [[legacy_bindings]]
 alias = "process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
@@ -2024,13 +2070,122 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
+# HashMap prelude builtins → CoreOp (exact aliases only; no prefix families).
 [[legacy_bindings]]
-alias = "write_bytes"
-core_op_id = "runtime.write_bytes"
+alias = "HashMap_i32_i32_new"
+core_op_id = "hashmap.new"
 
 [[legacy_bindings]]
-alias = "write_string"
-core_op_id = "runtime.write_string"
+alias = "HashMap_new_i32_i32"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_String_i32"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_i32_String"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_String_String"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_len"
+core_op_id = "hashmap.len"
+
+# Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps:
+# `io::write_bytes` / `io::write_string` share those short names and must keep
+# their Ark Writer bodies. Use `fs::write_*` / `fs_write_*` / intrinsic aliases.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types
@@ -5281,7 +5436,7 @@ id = "runtime.write_bytes"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_bytes (aliases: 4; fs::write_bytes, write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
+description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5318,7 +5473,7 @@ id = "runtime.write_string"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_string (aliases: 4; fs::write_string, write_string, fs_write_file, __intrinsic_fs_write_file)"
+description = "Legacy handler branch → fs::write_string (aliases: fs::write_string, fs_write_file, __intrinsic_fs_write_file)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -13005,7 +13160,8 @@ id = "vec.Vec_new_fallback"
 visibility = "internal"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "forbidden" }
-description = "Default/i32 Vec constructor via sealed raw.array_new (issue 822)."
+
+description = "Internal family handler for named-type Vec constructors via legacy_binding_patterns (exact scalar aliases still win)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
@@ -13551,3 +13707,220 @@ kind = "normal_call"
 [operations.fallback]
 implementation_symbol = "__core_vec_set_impl"
 required = true
+
+[[operations]]
+id = "hashmap.new"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Construct an empty HashMap; key/value kinds come from the destination type."
+[operations.signature]
+inputs = []
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.new"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.insert"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Insert or overwrite a HashMap entry (unit return for prelude builtins)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+  { name = "value", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.insert"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.get"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Look up a HashMap key and return Option<V> (None when missing)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.get"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.contains"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Return true when a HashMap contains the given key."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bool"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.contains"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.remove"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Remove a HashMap key and return Option<V> (None when missing)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.remove"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.len"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Return the number of live entries in a HashMap."
+[operations.signature]
+inputs = [{ name = "map", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.len"
+tracking_issue = "818"

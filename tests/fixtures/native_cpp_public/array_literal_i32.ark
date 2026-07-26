@@ -1,0 +1,5 @@
+// Array literals lower via MIR_ARRAY_NEW (supported on native-cpp).
+fn main() {
+    let xs = [1, 2, 3]
+    let _n = xs
+}

@@ -42,6 +42,8 @@ support_tier = "supported"
 implementation_state = "complete"
 contract_stability = "stable"
 run_supported = true
+default_emit_kind = "wasm"
+allowed_emit_kinds = ["wasm", "wat"]
 default_host_profile = "wasi-p1"
 role = "Supported: AtCoder / linear-memory competition path"
 display = "WebAssembly linear-memory target (WASI P1)"
@@ -52,6 +54,8 @@ support_tier = "primary"
 implementation_state = "partial"
 contract_stability = "stable"
 run_supported = true
+default_emit_kind = "wasm"
+allowed_emit_kinds = ["wasm", "wat", "component", "wit", "all"]
 default_host_profile = "wasi-p2"
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 display = "WebAssembly GC target (WASI P2, default)"
@@ -59,11 +63,21 @@ display = "WebAssembly GC target (WASI P2, default)"
 [[target_profiles]]
 id = "native-cpp"
 support_tier = "scaffold"
-implementation_state = "scaffold"
+implementation_state = "partial"
 contract_stability = "experimental"
-run_supported = false
-role = "Scaffold target with Phase 1A constant-return C99 emit; executor lane remains unimplemented"
-display = "Native C99 executor scaffold"
+run_supported = true
+default_emit_kind = "c"
+allowed_emit_kinds = ["c"]
+role = "Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json)"
+display = "Native C99 backend (scaffold; experimental public run + --emit c)"
+
+[[executor_lanes]]
+id = "native-cpp-selfhost"
+target_id = "native-cpp"
+state = "experimental"
+strict_gate_supported = true
+high_rss_override_allowed_in_ci = false
+promotion_receipt = "docs/data/native-cpp-executor-promotion-receipt.json"
 
 [[target_profiles]]
 id = "native-llvm"
@@ -71,6 +85,8 @@ support_tier = "scaffold"
 implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
+default_emit_kind = "llvm"
+allowed_emit_kinds = ["llvm"]
 role = "Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided"
 display = "Native LLVM backend scaffold"
 
@@ -194,12 +210,14 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2811
+
+fixture_manifest_count = 2868
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1223
-fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2811 is tests/fixtures/manifest.txt registry size. The 1223 remainder were not part of that run (not proof they fail)."
+
+fixture_not_in_last_harness_snapshot = 1280
+fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2868 is tests/fixtures/manifest.txt registry size. The 1280 remainder were not part of that run (not proof they fail)."
 checks_passed = 166
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"

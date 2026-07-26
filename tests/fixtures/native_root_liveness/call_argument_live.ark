@@ -1,0 +1,11 @@
+fn consume(value: String) -> i32 {
+    len(value)
+}
+
+fn main() -> i32 {
+    let keep = String_from("keep-arg")
+    let arg = concat(String_from("call-arg-"), String_from("payload"))
+    let n = consume(arg)
+    let keep_len = len(keep)
+    n + keep_len - n - keep_len
+}

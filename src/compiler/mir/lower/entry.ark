@@ -56,7 +56,11 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     if prune_enabled {
         // Sync/propagate is O(locals^2) per function; prune with export roots first
         // so selfhost-scale modules do not sync the full emitter graph (#730).
-        let _pruned = reachability::mir_prune_unreachable_with_roots(module, export_roots)
+        let _pruned = reachability::mir_prune_unreachable_with_roots_for_target(
+            module,
+            export_roots,
+            clone(input.target)
+        )
     }
     let fns_after = module_functions::MirModule_function_count(module)
     let blocks_after = module_functions::MirModule_block_count(module)

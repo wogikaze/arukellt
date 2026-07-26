@@ -1,0 +1,30 @@
+use std::test
+
+fn main() {
+    let m = HashMap_new_i32_String()
+    HashMap_i32_String_insert(m, 1, "one")
+    HashMap_i32_String_insert(m, 2, "two")
+    HashMap_i32_String_insert(m, 1, "uno")
+    test::assert_eq_i32(HashMap_i32_String_len(m), 2)
+    test::assert_true(HashMap_i32_String_contains_key(m, 1))
+    test::assert_false(HashMap_i32_String_contains_key(m, 9))
+    match HashMap_i32_String_get(m, 1) {
+        Option::Some(v) => test::assert_eq_string(v, "uno"),
+        None => panic("expected Some(uno)"),
+    }
+    match HashMap_i32_String_get(m, 9) {
+        Option::Some(_) => panic("expected None"),
+        None => {
+        },
+    }
+    match HashMap_i32_String_remove(m, 2) {
+        Option::Some(v) => test::assert_eq_string(v, "two"),
+        None => panic("expected Some(two)"),
+    }
+    HashMap_i32_String_insert(m, 2, "dos")
+    match HashMap_i32_String_get(m, 2) {
+        Option::Some(v) => test::assert_eq_string(v, "dos"),
+        None => panic("expected Some(dos)"),
+    }
+    test::assert_eq_i32(HashMap_i32_String_len(m), 2)
+}

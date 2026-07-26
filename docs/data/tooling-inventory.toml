@@ -197,7 +197,7 @@ canonical_fmt = "clang-format"
 canonical_lint = "clang-tidy"
 status = "deferred"
 owner = "bootstrap-tooling"
-notes = "Native C runtime headers share the deferred C toolchain family"
+notes = "native-cpp runtime headers alongside ark_native_runtime.c"
 
 [[families]]
 ext = ".grain"

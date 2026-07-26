@@ -2,7 +2,7 @@
 Status: done
 Created: 2026-07-25
 Updated: 2026-07-25
-ID: 832
+ID: 844
 Track: compiler-internal
 Depends on: 831
 Related: ADR-033, ADR-035, #722, #726, #831
@@ -55,7 +55,7 @@ validate-fail / unreachable / runtime trap が残る。
   Option 抽出は substring のみだった
 - **修正済み**: `b64548d0`（`core_match_payload_bind_core` /
   `match_payload_fields` + fixture `option_match_vec_i32_get.ark`）
-- **#832 追記**: local ann が `Option<Vec<fn>>` を裸の `Option_Vec` に潰し、
+- **#844 追記**: local ann が `Option<Vec<fn>>` を裸の `Option_Vec` に潰し、
   `gc_struct_container_ref_suffix(vec:fn*)` が structref `_ref25` に落ちていた。
   ann を再帰 shape（`Option_vec:fn…`）し、suffix に `_ref27` / `_ref29` を追加。
   fixtures: `collections/option_vec_fn.ark`, `result_vec_fn.ark`

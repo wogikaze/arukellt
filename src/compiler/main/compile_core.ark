@@ -151,8 +151,12 @@ pub fn cmd_compile_single(opts: CliOptions) {
         process::exit(1)
         return
     }
-    let config = build_command_config(opts)
     let input_file = args_record::cli_input_file(opts)
+    if !enforce_capability_denies(opts, clone(input_file)) {
+        process::exit(1)
+        return
+    }
+    let config = build_command_config(opts)
     let json_mode = args_record::cli_json_output(opts)
     let result = file::compile_file(clone(input_file), config)
     let has_messages = result_record::compile_result_error_message_count(result) > 0 || len(result_record::compile_result_diagnostics(result)) > 0
@@ -207,4 +211,40 @@ fn validate_wit_paths(opts: CliOptions) -> bool {
         i = i + 1
     }
     true
+}
+
+fn source_uses_clock_intrinsics(source: String) -> bool {
+    contains(clone(source), String_from("clock::")) ||
+    contains(clone(source), String_from("monotonic_now")) ||
+    contains(source, String_from("std::host::clock"))
+}
+
+fn source_uses_random_intrinsics(source: String) -> bool {
+    contains(clone(source), String_from("random::")) ||
+    contains(clone(source), String_from("random_i32")) ||
+    contains(source, String_from("std::host::random"))
+}
+
+fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
+    if !args_record::cli_deny_clock(opts) && !args_record::cli_deny_random(opts) {
+        return true
+    }
+    let read_result = fs::read_to_string(clone(input_file))
+    match read_result {
+        Result::Ok(source) => {
+            if args_record::cli_deny_clock(opts) && source_uses_clock_intrinsics(clone(source)) {
+                stdio::eprintln(String_from("--deny-clock: this program uses clock intrinsics"))
+                return false
+            }
+            if args_record::cli_deny_random(opts) && source_uses_random_intrinsics(source) {
+                stdio::eprintln(String_from("--deny-random: this program uses random intrinsics"))
+                return false
+            }
+            true
+        },
+        Result::Err(e) => {
+            stdio::eprintln(concat(String_from("error: unable to read input file "), concat(clone(input_file), concat(String_from(": "), e))))
+            false
+        },
+    }
 }

@@ -1,0 +1,18 @@
+---
+description: Continue native-cpp selfhost experimental promotion through the final checklist
+alwaysApply: true
+---
+
+# Active native-cpp experimental promotion mission
+
+When work touches native-cpp, native executor, root liveness, native GC, issue #833, or issue #834:
+
+- Treat `docs/plans/native-cpp-experimental-promotion.md` as the canonical executable plan.
+- Phase 0 and Phase 1 are complete; continue from the first unchecked Phase 2 item.
+- Do not stop at phase boundaries, commits, partial test success, #833 closure, or one strict PASS.
+- Continue through the Final Experimental Promotion Checklist and #834 closure.
+- Commit validated work units, update plan checkboxes and receipts, then immediately continue.
+- Use only the hard-stop conditions defined in the plan.
+- If one subtask blocks, continue independent work and record the blocker.
+- `--allow-high-rss`, stress-only green, or stale-reference equality N/A cannot satisfy promotion.
+- Final completion requires strict 3/3 PASS, high_rss_override=false, docs/state/CI sync, and clean issue closure.

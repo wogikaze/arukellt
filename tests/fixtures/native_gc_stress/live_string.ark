@@ -1,0 +1,9 @@
+fn main() -> i32 {
+    let keep = String_from("alive")
+    let mut i = 0
+    while i < 64 {
+        let _junk = String_from("temporary-allocation-payload")
+        i = i + 1
+    }
+    if eq(keep, String_from("alive")) { 0 } else { 1 }
+}

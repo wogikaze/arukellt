@@ -1,0 +1,16 @@
+struct Node {
+    label: String,
+    next: i32,
+}
+
+fn main() -> i32 {
+    let a = Node { label: String_from("a"), next: 1 }
+    let b = Node { label: String_from("b"), next: 0 }
+    let mut i = 0
+    while i < 2000 {
+        let junk = Node { label: String_from("tmp"), next: i }
+        let _ = len(junk.label)
+        i = i + 1
+    }
+    if eq(a.label, String_from("a")) && eq(b.label, String_from("b")) { 0 } else { 1 }
+}

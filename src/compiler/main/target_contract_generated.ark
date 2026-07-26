@@ -135,10 +135,101 @@ fn target_display_line(input: String) -> String {
         return "  wasm32-gc  WebAssembly GC target (WASI P2, default)"
     }
     if eq(clone(input), "native-cpp") {
-        return "  native-cpp  Native C99 executor scaffold"
+        return "  native-cpp  Native C99 backend (scaffold; experimental public run + --emit c)"
     }
     if eq(clone(input), "native-llvm") {
         return "  native-llvm  Native LLVM backend scaffold"
+    }
+    String_new()
+}
+
+fn target_run_supported(input: String) -> bool {
+    if eq(clone(input), String_from("wasm32")) {
+        return true
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return true
+    }
+    if eq(clone(input), String_from("native-cpp")) {
+        return true
+    }
+    if eq(clone(input), String_from("native-llvm")) {
+        return false
+    }
+    false
+}
+
+fn target_default_emit_kind(input: String) -> String {
+    if eq(clone(input), String_from("wasm32")) {
+        return String_from("wasm")
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return String_from("wasm")
+    }
+    if eq(clone(input), String_from("native-cpp")) {
+        return String_from("c")
+    }
+    if eq(clone(input), String_from("native-llvm")) {
+        return String_from("llvm")
+    }
+    String_from("wasm")
+}
+
+fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {
+    if eq(clone(target), String_from("wasm32")) {
+        if eq(clone(emit_kind), String_from("wasm")) {
+            return true
+        }
+        if eq(clone(emit_kind), String_from("wat")) {
+            return true
+        }
+        return false
+    }
+    if eq(clone(target), String_from("wasm32-gc")) {
+        if eq(clone(emit_kind), String_from("wasm")) {
+            return true
+        }
+        if eq(clone(emit_kind), String_from("wat")) {
+            return true
+        }
+        if eq(clone(emit_kind), String_from("component")) {
+            return true
+        }
+        if eq(clone(emit_kind), String_from("wit")) {
+            return true
+        }
+        if eq(clone(emit_kind), String_from("all")) {
+            return true
+        }
+        return false
+    }
+    if eq(clone(target), String_from("native-cpp")) {
+        if eq(clone(emit_kind), String_from("c")) {
+            return true
+        }
+        return false
+    }
+    if eq(clone(target), String_from("native-llvm")) {
+        if eq(clone(emit_kind), String_from("llvm")) {
+            return true
+        }
+        return false
+    }
+    false
+}
+
+fn target_allowed_emit_kinds_message(input: String) -> String {
+    if eq(clone(input), String_from("wasm32")) {
+        return String_from("wasm, wat")
+    }
+    if eq(clone(input), String_from("wasm32-gc")) {
+        return String_from("wasm, wat, component, wit, all")
+    }
+    if eq(clone(input), String_from("native-cpp")) {
+        return String_from("c")
+    }
+    if eq(clone(input), String_from("native-llvm")) {
+        return String_from("llvm")
     }
     String_new()
 }
@@ -148,6 +239,23 @@ test mod "target_contract_generated" {
     test "canonical_1" { assert(target_is_canonical("wasm32-gc")) }
     test "canonical_2" { assert(target_is_canonical("native-cpp")) }
     test "canonical_3" { assert(target_is_canonical("native-llvm")) }
+    test "default_emit_0" { assert(eq(target_default_emit_kind(String_from("wasm32")), String_from("wasm"))) }
+    test "run_supported_0" { assert(target_run_supported(String_from("wasm32")) == true) }
+    test "allows_0_0" { assert(target_allows_emit_kind(String_from("wasm32"), String_from("wasm"))) }
+    test "allows_0_1" { assert(target_allows_emit_kind(String_from("wasm32"), String_from("wat"))) }
+    test "default_emit_1" { assert(eq(target_default_emit_kind(String_from("wasm32-gc")), String_from("wasm"))) }
+    test "run_supported_1" { assert(target_run_supported(String_from("wasm32-gc")) == true) }
+    test "allows_1_0" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wasm"))) }
+    test "allows_1_1" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wat"))) }
+    test "allows_1_2" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("component"))) }
+    test "allows_1_3" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("wit"))) }
+    test "allows_1_4" { assert(target_allows_emit_kind(String_from("wasm32-gc"), String_from("all"))) }
+    test "default_emit_2" { assert(eq(target_default_emit_kind(String_from("native-cpp")), String_from("c"))) }
+    test "run_supported_2" { assert(target_run_supported(String_from("native-cpp")) == true) }
+    test "allows_2_0" { assert(target_allows_emit_kind(String_from("native-cpp"), String_from("c"))) }
+    test "default_emit_3" { assert(eq(target_default_emit_kind(String_from("native-llvm")), String_from("llvm"))) }
+    test "run_supported_3" { assert(target_run_supported(String_from("native-llvm")) == false) }
+    test "allows_3_0" { assert(target_allows_emit_kind(String_from("native-llvm"), String_from("llvm"))) }
     test "policy_0" { assert(eq(target_alias_policy("wasm32-wasi-p1"), "warning")) }
     test "canonicalize_0" { assert(eq(target_alias_canonical_target("wasm32-wasi-p1"), "wasm32")) }
     test "host_0" { assert(eq(target_alias_host_profile("wasm32-wasi-p1"), "wasi-p1")) }

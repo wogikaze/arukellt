@@ -1,0 +1,25 @@
+use std::host::stdio
+
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn is_positive(x: i32) -> bool {
+    x > 0
+}
+
+fn main() {
+    let mut xs = Vec_new_i32()
+    push(xs, 0 - 1)
+    push(xs, 2)
+    push(xs, 3)
+    push(xs, 0)
+    let mapped = map_i32_i32(xs, double)
+    let filtered = filter_i32(mapped, is_positive)
+    let mut i = 0
+    let n = len(filtered)
+    while i < n {
+        stdio::println(to_string(get_unchecked(filtered, i)))
+        i = i + 1
+    }
+}

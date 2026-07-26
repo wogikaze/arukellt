@@ -10,7 +10,7 @@
 
 ## 2. レーン一覧
 
-- L1 `#834` — Memory64 wasm32-gc bootstrap pin (`docs/plans/834-wasm32-gc-bootstrap-pin.md`)
+- L1 `#843` — Memory64 wasm32-gc bootstrap pin (`docs/plans/843-wasm32-gc-bootstrap-pin.md`)
 - L2 `#807` — Fixture parity 367 failures (`docs/plans/807-fixture-parity-remaining-failures.md`)
 - L3 `#822` — Representation-dependent stdlib migration (`docs/plans/822-representation-dependent-stdlib-migration.md`)
 - L4 `#727` — arukellt_host bridge retirement (`docs/plans/727-host-bridge-retirement.md`) — **done / verified 2026-07-26**
@@ -61,7 +61,7 @@ python3 scripts/manager.py verify lane
 5. L4 `#727` — host-linker / Rust（影響範囲が別）
 6. L7 `#810` — component model（大規模、最後にまとめて）
 7. L2 `#807` — fixture parity は継続的に減らし、好機にマージ
-8. L1 `#834` — bootstrap pin は大容量メモリ環境で実施し、最後または独立 CI でマージ
+8. L1 `#843` — bootstrap pin は大容量メモリ環境で実施し、最後または独立 CI でマージ
 
 ## 6. マージ毎の検証
 
