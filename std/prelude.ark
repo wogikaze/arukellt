@@ -350,11 +350,30 @@ pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
 }
 
 pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    __intrinsic_any_i32(v, f)
+    // Real Ark body: `__intrinsic_any_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        if f(get_unchecked(v, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
-    __intrinsic_find_i32(v, f)
+    // Real Ark body: `__intrinsic_find_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        let x = get_unchecked(v, i)
+        if f(x) {
+            return Some(x)
+        }
+        i = i + 1
+    }
+    None
 }
 
 // String: split/join/push_char

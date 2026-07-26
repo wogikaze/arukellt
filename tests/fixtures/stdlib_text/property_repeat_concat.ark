@@ -2,13 +2,11 @@ use std::test
 use std::text
 
 fn main() {
-    // repeat(concat(a, b), n) == concat(repeat(a, n), repeat(b, n))
+    // repeat(concat(a, b), n) is NOT equal to concat(repeat(a, n), repeat(b, n)).
     let a = "ab"
     let b = "cd"
     let n = 3
     let left = text::repeat(text::concat(a, b), n)
-    let right = text::concat(text::repeat(a, n), text::repeat(b, n))
-    test::assert_eq_string(left, right)
     test::assert_eq_string(left, "abcdabcdabcd")
 
     // repeat(a, m+n) == concat(repeat(a, m), repeat(a, n))

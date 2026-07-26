@@ -15,8 +15,8 @@ use wasm::emit_target
 // first k that round-trips is the shortest printable form.  Digits are then
 // extracted from the integer-valued `scaled = round(value * 10^k)` via f64
 // div/mod (exact for scaled < 2^53) and assembled with the decimal point k
-// digits from the right.  At least one fractional digit is always emitted so
-// integer-valued f64 render as `5.0` (matches the `.expected` golden).
+// digits from the right.  k may be 0 so integer-valued f64 render as `5`
+// (fixtures / stdlib_string construct_from_f64 expect no trailing `.0`).
 fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_wpos = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
@@ -63,12 +63,14 @@ fn emit_f64_prepare_value(w: WasmWriter, s_neg: i32, f_val: i32) {
     helpers_core::emit_local_set(w, s_neg)
     helpers_control::emit_end(w)
 }
-// Find the smallest k in [1, 17] such that round(f_val * 10^k) / 10^k == f_val.
+// Find the smallest k in [0, 17] such that round(f_val * 10^k) / 10^k == f_val.
 // Leaves s_k = k and f_scale = 10^k.  f_work is used as a scratch candidate.
+// k=0 (scale=1) covers integer-valued floats ("0", "100") without a fraction.
 fn emit_f64_find_shortest_k(w: WasmWriter, s_k: i32, f_val: i32, f_scale: i32, f_work: i32) {
-    helpers_numeric_f64::emit_f64_const_words(w, 0, 1076101120)
+    // 1.0 — IEEE754 hi word 0x3FF00000
+    helpers_numeric_f64::emit_f64_const_words(w, 0, 1072693248)
     helpers_core::emit_local_set(w, f_scale)
-    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_k)
     helpers_control::emit_block_loop_header(w)
     // candidate = round(f_val * f_scale) / f_scale

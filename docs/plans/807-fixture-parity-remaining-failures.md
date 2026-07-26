@@ -107,6 +107,16 @@
 計測: 全 suite **PASS=1239 FAIL=127 SKIP=249**（wasm-invalid=203）。L10 の FAIL=142 から -15。  
 残り top: io 13、bytes 12、trait 12、host/text 10、vec 9。
 
+### L12 tranche（2026-07-26）— bitops precedence、any/find、f64 integer format
+
+1. **base64 / leb128:** Ark は `==`/`<<` が `&` より強い（C 寄）。`byte & 128 == 0` や `b0 & 3 << 4` が誤評価 → 括弧で `(byte & 128) == 0` / `((b0 & 3) << 4) | …`。誤 golden（旧バグ出力）も正しい値へ更新。
+2. **any_i32 / find_i32:** `__intrinsic_*` に emitter がなく `unreachable`。prelude に実ループ本体を置き defer 解除。
+3. **format_f64:** shortest k を 0 から探索し整数値は `"0"` / `"100"`（末尾 `.0` なし）。関連 `.expected` を同期。
+4. **pad_left / property_repeat:** fixture 期待値を stdlib 意味論（ababtest、false な分配律の削除）へ修正。
+
+計測: 全 suite **PASS=1259 FAIL=107 SKIP=249**（wasm-invalid=203）。L11 の FAIL=127 から -20。  
+残り top: io 13、trait 12、host 10、hashmap 8、core 7、text 6。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。
