@@ -1,0 +1,27 @@
+use std::host::stdio
+use std::json
+use std::toml
+
+fn main() {
+    match json::parse(String_from("{\"port\":8080,\"name\":\"svc\"}")) {
+        Result::Ok(root) => match json::json_get(root, String_from("port")) {
+            Option::Some(port_v) => match json::json_as_i32(port_v) {
+                Option::Some(port) => stdio::println(concat(String_from("json.port="), to_string(port))),
+                None => stdio::println(String_from("json.port=missing")),
+            },
+            None => stdio::println(String_from("json.port=missing")),
+        },
+        Result::Err(_) => stdio::println(String_from("json.parse=err")),
+    }
+
+    match toml::toml_parse(String_from("name = \"toml-svc\"")) {
+        Result::Ok(table) => match toml::toml_get(table, "name") {
+            Option::Some(v) => match toml::toml_as_string(v) {
+                Option::Some(name) => stdio::println(concat(String_from("toml.name="), name)),
+                None => stdio::println(String_from("toml.name=missing")),
+            },
+            None => stdio::println(String_from("toml.name=missing")),
+        },
+        Result::Err(_) => stdio::println(String_from("toml.parse=err")),
+    }
+}
