@@ -5,7 +5,33 @@ use corehir::core_op_id
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
 // #821/#822 after the #820 inliner exists. Pure Ark helpers (e.g. contains_i32)
 // are not listed here and are lowered normally.
+//
+// `assert_eq` / typed `assert_eq_*` helpers are intentionally excluded so
+// `std::test` Ark bodies (Debug failure messages, generic `assert_eq_debug`)
+// lower normally. Bare prelude `assert_eq` still resolves to
+// `runtime.assert_eq` via core-op binding when no matching function is in scope.
 fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
+    if eq(clone(decl_name), String_from("assert_eq")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_i32")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_i64")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_f64")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_string")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_bool")) {
+        return false
+    }
+    if eq(clone(decl_name), String_from("assert_eq_debug")) {
+        return false
+    }
     let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(decl_name))
     if core_op_id::core_op_id_is_some(coid) {
         return true

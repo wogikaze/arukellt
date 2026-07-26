@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 394 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -1033,8 +1033,9 @@ Expected output: `hello world`
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_debug` | `(T, T) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is… |
 | `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | Typed i32 equality assertion; failure messages use Debug renderings. |
 | `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |

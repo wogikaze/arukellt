@@ -1,0 +1,12 @@
+use std::core::convert
+use std::host::stdio
+use std::test
+
+fn main() {
+    let n: i32 = 42
+    let s: String = String_from("hi")
+    test::assert_eq_string(f"{n:?}", "42")
+    test::assert_eq_string(f"{s:?}", "\"hi\"")
+    test::assert_eq_string(f"n={n:?} s={s:?}", "n=42 s=\"hi\"")
+    stdio::println("fstring_debug_specifier ok")
+}

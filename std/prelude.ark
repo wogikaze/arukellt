@@ -397,9 +397,18 @@ pub fn assert(cond: bool) {
     }
 }
 
+/// Legacy i32 equality assertion (compat). Prefer `test::assert_eq_i32` or
+/// generic `test::assert_eq_debug` (#696) for Debug-backed diagnostics.
+///
+/// Residual: bare `assert_eq` call sites are still CoreOp-inlined today, so
+/// this Ark body is not what most call sites execute. A generic named exactly
+/// `assert_eq` also mis-lowers scalar monomorphizations — use
+/// `test::assert_eq_debug` instead. Do not `use std::core::convert` here:
+/// pulling Convert/Debug into the auto-prelude regresses W0011 on clean fixtures.
 pub fn assert_eq(a: i32, b: i32) {
     if a != b {
-        panic(String_from("assertion failed"))
+        let msg = concat("assert_eq failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        panic(msg)
     }
 }
 
@@ -409,15 +418,19 @@ pub fn assert_ne(a: i32, b: i32) {
     }
 }
 
+/// Legacy i64 equality assertion (compat). Prefer `test::assert_eq_i64`.
 pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
-        panic(String_from("assertion failed"))
+        let msg = concat("assert_eq_i64 failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        panic(msg)
     }
 }
 
+/// Legacy String equality assertion (compat). Prefer `test::assert_eq_string`.
 pub fn assert_eq_str(a: String, b: String) {
-    if !eq(a, b) {
-        panic(String_from("assertion failed"))
+    if a != b {
+        let msg = concat("assert_eq_str failed: expected \"", concat(b, concat("\", got \"", concat(a, "\""))))
+        panic(msg)
     }
 }
 

@@ -156,7 +156,7 @@ impl Debug for char {
 /// best-effort scalar impl (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md).
 impl Debug for String {
     fn fmt_debug(self: String) -> String {
-        __intrinsic_concat("\"", __intrinsic_concat(self, "\""))
+        concat("\"", concat(self, "\""))
     }
 }
 

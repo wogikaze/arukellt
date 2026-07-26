@@ -1,6 +1,6 @@
 # #696 — `Debug` trait and `format!` / `write!` equivalent クローズ計画
 
-ステータス: 計画  
+ステータス: 完了  
 親 issue: [#696](../../issues/open/696-debug-trait-format-macros.md)  
 前提: #688, #692 done  
 担当 subagent lane: `wave/696-debug-trait`  

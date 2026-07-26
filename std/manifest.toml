@@ -1601,12 +1601,22 @@ params = ["bool"]
 returns = "()"
 
 [[functions]]
+name = "assert_eq_debug"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["T", "T"]
+returns = "()"
+doc = "Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is CoreOp-bound; failure messages render both values via Debug."
+
+[[functions]]
 name = "assert_eq_i32"
 module = "std::test"
 doc_category = "test"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "()"
+doc = "Typed i32 equality assertion; failure messages use Debug renderings."
 
 [[functions]]
 name = "assert_eq_i64"

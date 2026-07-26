@@ -17,6 +17,18 @@ fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
     ts_node
 }
 
+/// Desugar `{expr:?}` to `expr.fmt_debug()`.
+///
+/// Equivalent to `fmt::format_debug(expr)` (`std::text::fmt` just forwards to
+/// the `Debug` method). A method call avoids requiring `fmt` in scope at the
+/// f-string site.
+fn fstring_format_debug_call(expr: AstNode, span: Span) -> AstNode {
+    let fd_node = core_ast_factory::AstNode_new(kinds::NK_METHOD_CALL(), span)
+    core_ast_text_fields::AstNode_set_text(fd_node, String_from("fmt_debug"))
+    core_ast_children::AstNode_push_child(fd_node, expr)
+    fd_node
+}
+
 fn fstring_concat_call(lhs: AstNode, rhs: AstNode, span: Span) -> AstNode {
     let concat_call = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
     let fn_concat = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), "concat", span)

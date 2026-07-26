@@ -48,7 +48,7 @@
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
-| `std::test` | 17 | 16 | 0 | 1 | 0 | 17/17 (100%) | no |
+| `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::text` | 34 | 32 | 0 | 2 | 0 | 34/34 (100%) | no |
 | `std::text::rope` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
@@ -56,7 +56,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 754 APIs, 394 stable, 52 provisional, 305 experimental, 3 deprecated, 631/751 (84%) fixture coverage
+**Total**: 755 APIs, 395 stable, 52 provisional, 305 experimental, 3 deprecated, 632/752 (84%) fixture coverage
 
 ## Legend
 

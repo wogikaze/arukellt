@@ -27,7 +27,6 @@ graph LR
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
-  I696["696 696 — `Debug` trait and `format!` / `write!` equivalent formatting"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
   I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
@@ -132,7 +131,6 @@ graph LR
 - **693** depends on: 688, 692; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
-- **696** depends on: none; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
 - **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
