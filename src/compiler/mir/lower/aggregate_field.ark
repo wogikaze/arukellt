@@ -12,7 +12,7 @@ use mir::value_types
 // (ctx_field_index, ctx_struct_byte_size, etc.) match the registered name.
 // Passes through non-"struct:" type names unchanged.
 fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("struct:")) {
+    if !starts_with(clone(type_name), "struct:") {
         return type_name
     }
     let n = len(type_name)
@@ -66,7 +66,7 @@ fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String
         if eq(clone(ft_vt), "i64") {
             dest_vt = value_types::VT_I64()
         }
-        // Typed funcref fields must not stay VT_I32 or (self.f)(x) skips call_ref.
+        // fn fields are typed funcrefs so `(self.f)(x)` can call_ref (#807).
         if eq(clone(ft_vt), "fnref") ||
         eq(clone(ft_vt), "fn") ||
         starts_with(clone(ft_vt), String_from("fn(")) {
@@ -120,7 +120,7 @@ fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i3
         } else if dest_vt == value_types::VT_GC_REF() || dest_vt == value_types::VT_REF() {
             // Missing field type metadata must not fall through to string
             // inference (#726 json JsonParseStep.value).
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:open"))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, "enum:open")
         }
     }
     let mut struct_byte_size = 0

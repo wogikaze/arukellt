@@ -1,19 +1,56 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
+use mir::function_identity
+use mir::function_param_view
 use mir::inst_const_i32
 use mir::inst_local_get
 use mir::inst_ref_func
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
+use mir::module_functions
+use mir::module_spine
 use mir::lower::variants
 use mir::value_types
 
 fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+}
+
+fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+    // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if module_spine::MirModule_signature_spine_populated(m) {
+        let registry = module_spine::MirModule_signature_registry(m)
+        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fn_name))
+        if function_id::function_id_is_valid(fid) {
+            let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+            if signature_entry::signature_entry_param_count(entry) >= 2 {
+                return String_from("fnref2")
+            }
+            return String_from("fnref")
+        }
+    }
+    let n = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(m, i)
+        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+            if function_param_view::MirFunction_param_count(f) >= 2 {
+                return String_from("fnref2")
+            }
+            return String_from("fnref")
+        }
+        i = i + 1
+    }
+    String_from("fnref")
 }
 
 fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
@@ -23,37 +60,24 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
             return idx
         }
-        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
-        let variant_name = if len(canon) > 0 {
-            canon
-        } else {
-            clone(raw_name)
-        }
-        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
         if ident_tag >= 0 {
-            return variants::lower_variant_value(ctx, variant_name, ident_tag)
+            return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), ident_tag)
         }
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(raw_name))
+        let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
             let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
-            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(raw_name, dest))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, mir_fnref_type_name_for_function(ctx, clone(fn_name)))
+            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
             return dest
         }
         return 0 - 1
     }
     if core_expr_shape_atoms::mir_core_expr_is_path(expr) {
-        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
-        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
-        let variant_name = if len(canon) > 0 {
-            canon
-        } else {
-            raw_name
-        }
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
         if tag >= 0 {
-            return variants::lower_variant_value(ctx, variant_name, tag)
+            return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), tag)
         }
         return 0 - 1
     }

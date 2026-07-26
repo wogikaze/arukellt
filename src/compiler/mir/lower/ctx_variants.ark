@@ -1,59 +1,38 @@
 use mir::lower::ctx_variant_storage
 use mir::lower::ctx_variants_builtin
 
-fn ctx_strip_first_path_segment(name: String) -> String {
-    let pos = index_of(clone(name), String_from("::"))
-    if pos < 0 {
-        return String_new()
-    }
-    substring(name, pos + 2, len(name))
-}
-
-fn ctx_variant_name_index(ctx: LowerCtx, name: String) -> i32 {
+fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
     let count = ctx_variant_storage::ctx_variant_count(ctx)
     let mut i = 0
     while i < count {
-        if eq(ctx_variant_storage::ctx_variant_name_at(ctx, i), clone(name)) {
-            return i
+        let vn = ctx_variant_storage::ctx_variant_name_at(ctx, i)
+        if eq(clone(vn), clone(name)) {
+            return ctx_variant_storage::ctx_variant_tag_at(ctx, i)
         }
         i = i + 1
     }
-    0 - 1
-}
-
-// Resolve `module::Enum::Variant` to the layout name `Enum::Variant` used by
-// MIR struct/enum lowering. Prefer exact matches, then strip leading segments.
-fn ctx_canonical_variant_name(ctx: LowerCtx, name: String) -> String {
-    if ctx_variant_name_index(ctx, clone(name)) >= 0 {
-        return clone(name)
-    }
-    let mut rest = clone(name)
-    while true {
-        let next = ctx_strip_first_path_segment(clone(rest))
-        if len(next) == 0 {
-            return String_new()
+    // Module-aliased patterns like `types::WitType::Bool` must resolve to the
+    // registered layout name `WitType::Bool`. Match on the Enum::Variant key.
+    let query_key = variant_enum_variant_key(clone(name))
+    let mut best_tag = 0 - 1
+    let mut best_len = 0 - 1
+    i = 0
+    while i < count {
+        let vn = ctx_variant_storage::ctx_variant_name_at(ctx, i)
+        let registered_key = variant_enum_variant_key(clone(vn))
+        if eq(clone(registered_key), clone(query_key)) {
+            let vn_len = len(vn)
+            if vn_len > best_len {
+                best_len = vn_len
+                best_tag = ctx_variant_storage::ctx_variant_tag_at(ctx, i)
+            }
         }
-        if ctx_variant_name_index(ctx, clone(next)) >= 0 {
-            return next
-        }
-        rest = next
+        i = i + 1
     }
-    String_new()
+    best_tag
 }
 
-fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
-    let canon = ctx_canonical_variant_name(ctx, clone(name))
-    if len(canon) == 0 {
-        return 0 - 1
-    }
-    let idx = ctx_variant_name_index(ctx, clone(canon))
-    if idx < 0 {
-        return 0 - 1
-    }
-    ctx_variant_storage::ctx_variant_tag_at(ctx, idx)
-}
-
-fn ctx_is_payload_variant_exact(ctx: LowerCtx, name: String) -> bool {
+fn ctx_is_payload_variant(ctx: LowerCtx, name: String) -> bool {
     let count = ctx_variant_storage::ctx_payload_variant_count(ctx)
     let mut i = 0
     while i < count {
@@ -62,29 +41,43 @@ fn ctx_is_payload_variant_exact(ctx: LowerCtx, name: String) -> bool {
         }
         i = i + 1
     }
+    let query_key = variant_enum_variant_key(clone(name))
+    i = 0
+    while i < count {
+        let vn = ctx_variant_storage::ctx_payload_variant_name_at(ctx, i)
+        if eq(variant_enum_variant_key(clone(vn)), clone(query_key)) {
+            return true
+        }
+        i = i + 1
+    }
     false
 }
 
-fn ctx_is_payload_variant(ctx: LowerCtx, name: String) -> bool {
-    if ctx_is_payload_variant_exact(ctx, clone(name)) {
-        return true
-    }
-    let canon = ctx_canonical_variant_name(ctx, clone(name))
-    if len(canon) == 0 {
-        let mut rest = clone(name)
-        while true {
-            let next = ctx_strip_first_path_segment(clone(rest))
-            if len(next) == 0 {
-                return false
-            }
-            if ctx_is_payload_variant_exact(ctx, clone(next)) {
-                return true
-            }
-            rest = next
+/// Last two `::`-separated segments (`Enum::Variant`), or the whole name.
+///
+/// Lets `types::WitType::Bool` and `WitType::Bool` share one lookup key without
+/// treating bare `Bool` as an alias for every `*::Bool` variant.
+fn variant_enum_variant_key(name: String) -> String {
+    let n = len(name)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            prev_sep = last_sep
+            last_sep = i
+            i = i + 2
+            continue
         }
-        return false
+        i = i + 1
     }
-    ctx_is_payload_variant_exact(ctx, canon)
+    if last_sep < 0 {
+        return name
+    }
+    if prev_sep < 0 {
+        return name
+    }
+    substring(name, prev_sep + 2, n)
 }
 
 fn ctx_register_builtin_variants(ctx: LowerCtx) {

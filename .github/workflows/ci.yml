@@ -11,6 +11,7 @@ jobs:
   quality-format:
     name: "quality-format"
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     # Pre-existing: CI selfhost compiler fmt output differs from local
     # for 30 corehir files. Non-blocking until CI fmt parity is resolved.
     continue-on-error: true
@@ -21,15 +22,27 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
+        run: python3 scripts/manager.py selfhost build-compiler
 
       - name: Check canonical formatting
         run: python3 scripts/manager.py fmt --check
@@ -37,20 +50,33 @@ jobs:
   quality-lint:
     name: "quality-lint"
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
+        run: python3 scripts/manager.py selfhost build-compiler
 
       - name: Check canonical lint contract
         run: python3 scripts/manager.py lint
@@ -58,6 +84,7 @@ jobs:
   verify-quick:
     name: "verify-quick"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     # Pre-existing: false-done close-gate #510, GC array smoke, and CI fmt
     # parity issues. Non-blocking until underlying issues are resolved.
     continue-on-error: true
@@ -68,8 +95,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -97,6 +136,7 @@ jobs:
   verification:
     name: "Verification harness"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     # Pre-existing: false-done close-gate #510 and GC array smoke failures.
     # Non-blocking until underlying issues are resolved.
     continue-on-error: true
@@ -107,8 +147,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -148,8 +200,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -192,8 +256,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install clang
         run: |
@@ -294,8 +370,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Ensure bootstrap wasm exists
         run: test -f bootstrap/arukellt-selfhost.wasm
