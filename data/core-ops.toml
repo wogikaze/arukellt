@@ -1910,9 +1910,9 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
-[[legacy_bindings]]
-alias = "write_bytes"
-core_op_id = "runtime.write_bytes"
+# Bare "write_bytes" must NOT bind to runtime.write_bytes — that steals
+# std::io::write_bytes (Vec,Vec)->i32 and defers its Ark body (#807).
+# Keep only fs-qualified / intrinsic aliases below.
 
 [[legacy_bindings]]
 alias = "write_string"
@@ -4733,7 +4733,7 @@ id = "runtime.write_bytes"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_bytes (aliases: 4; fs::write_bytes, write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
+description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes; bare write_bytes excluded for std::io)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

@@ -2,7 +2,7 @@
 // Do not edit by hand.
 
 fn core_op_binding_count() -> i32 {
-    469
+    468
 }
 
 fn core_op_binding_callee_at(index: i32) -> String {
@@ -473,8 +473,7 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if index == 464 { return String_from("vec_push") }
     if index == 465 { return String_from("vec_push_i64") }
     if index == 466 { return String_from("vec_set") }
-    if index == 467 { return String_from("write_bytes") }
-    if index == 468 { return String_from("write_string") }
+    if index == 467 { return String_from("write_string") }
     return String_new()
 }
 
@@ -946,8 +945,7 @@ fn core_op_binding_core_op_id_at(index: i32) -> String {
     if index == 464 { return String_from("vec.push") }
     if index == 465 { return String_from("vec.push_i64") }
     if index == 466 { return String_from("vec.set") }
-    if index == 467 { return String_from("runtime.write_bytes") }
-    if index == 468 { return String_from("runtime.write_string") }
+    if index == 467 { return String_from("runtime.write_string") }
     return String_new()
 }
 

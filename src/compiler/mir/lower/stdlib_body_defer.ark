@@ -1,5 +1,6 @@
 use corehir::core_op_binding
 use corehir::core_op_id
+use corehir::param
 
 // RFC-005 D3: CoreOp-bound and intrinsic-shim stdlib symbols keep call-site
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
@@ -11,6 +12,21 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
         return true
     }
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
+}
+
+/// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
+/// using the first parameter type when needed.
+fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirParam) -> bool {
+    // std::io::write_bytes(Vec,Vec)->i32 must lower (Write dispatch).
+    // std::host::fs::write_bytes(String,Vec)->Result stays deferred and
+    // reaches the fs intrinsic via fs:: / __intrinsic_ aliases (#807).
+    if eq(clone(decl_name), String_from("write_bytes")) {
+        let p0 = param::param_type_name(param0)
+        let is_fs_path = eq(clone(p0), String_from("String")) ||
+        eq(clone(p0), String_from("string"))
+        return is_fs_path
+    }
+    mir_should_defer_stdlib_body(decl_name)
 }
 
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {

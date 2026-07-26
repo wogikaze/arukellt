@@ -88,6 +88,15 @@
 計測: 全 suite **PASS=1192 FAIL=164 SKIP=259**（wasm-invalid=223）。L8 の FAIL=189 から -25。  
 残り top: io 20、string 17、text 16、trait 15、vec 13、bytes 12。io の Write 経路は GC type mismatch が残る。
 
+### L10 tranche（2026-07-26）— io write_bytes vs fs + join concat
+
+1. **Root cause:** bare `write_bytes` → `runtime.write_bytes` core_op が `std::io::write_bytes` 本体を defer し、呼び出しが fs intrinsic / Result 型付けへ吸い込まれて `drop+unreachable` + i32.ne(ref) validate 失敗。
+2. **Fix:** `data/core-ops.toml` から bare alias を削除；type fallback は fs 修飾名のみ Result；`write_bytes` は param0=`String` のときだけ defer（io の Vec 本体は lower）。
+3. **join:** `__core_string_push_range` の GC ローカル取り違えを避け、`__core_string_join_impl` を `concat` ループへ。
+
+計測: 全 suite **PASS=1224 FAIL=142 SKIP=249**（wasm-invalid=213）。L9 の FAIL=164 から -22。  
+残り top: io 14、vec 13、trait/string/bytes 12、text 10。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

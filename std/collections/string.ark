@@ -254,19 +254,20 @@ fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
 }
 
 fn __core_string_join_impl(parts: Vec<String>, separator: String) -> String {
+    // Avoid __core_string_push_range: mixed GC-ref/i32 params scramble MIR
+    // locals on wasm32-gc and trap mid-join (#807). concat is intrinsic-backed.
     let part_count = len(parts)
-    let separator_len = raw::raw_string_len_bytes(separator)
-    let bytes = raw::raw_array_new(0)
-    let mut index = 0
+    if part_count == 0 {
+        return String_from("")
+    }
+    let mut out = get_unchecked(parts, 0)
+    let mut index = 1
     while index < part_count {
-        if index > 0 {
-            __core_string_push_range(bytes, separator, 0, separator_len)
-        }
-        let part = get_unchecked(parts, index)
-        __core_string_push_range(bytes, part, 0, raw::raw_string_len_bytes(part))
+        out = concat(out, separator)
+        out = concat(out, get_unchecked(parts, index))
         index = index + 1
     }
-    raw::raw_string_from_bytes(bytes)
+    out
 }
 
 fn __core_string_lines_impl(s: String) -> Vec<String> {

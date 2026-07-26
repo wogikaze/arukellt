@@ -35,7 +35,7 @@ RUNTIME_EXACT = {
     "exists",
     "read_to_string",
     "write_string",
-    "write_bytes",
+    # bare write_bytes omitted: conflicts with std::io::write_bytes (#807)
     "stdin_read_to_string",
     "env_var",
     "env_get_var",
