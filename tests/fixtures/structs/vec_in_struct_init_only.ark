@@ -1,0 +1,13 @@
+// Phase1 A: Struct init + field read, no push / no reconstruction.
+use std::host::stdio
+
+struct Holder {
+    name: String,
+    items: Vec<String>,
+}
+
+fn main() {
+    let h = Holder { name: String_from("test"), items: Vec_new_String() }
+    stdio::println(h.name)
+    stdio::println((len(h.items)).to_string())
+}
