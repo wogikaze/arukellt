@@ -2815,6 +2815,12 @@ t3-run:variables/mut_var.ark
 t3-run:variables/string_lit.ark
 t3-run:variables/tuple.ark
 t4-compile:t4/native_scaffold.ark
+# native-cpp practical scenario corpus (Phase 4 readiness scaffolding)
+run:native_cpp_scenarios/config_loader.ark
+run:native_cpp_scenarios/word_frequency.ark
+run:native_cpp_scenarios/hof_pipeline.ark
+run:native_cpp_scenarios/error_file_transform.ark
+run:native_cpp_scenarios/cli_app.ark
 t4-compile:native_cpp/constant_return.ark
 t4-compile:native_cpp/scalar_cfg_call.ark
 t4-compile:native_cpp/unsupported_string.ark

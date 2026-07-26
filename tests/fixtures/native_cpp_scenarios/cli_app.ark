@@ -1,0 +1,14 @@
+use std::host::env
+use std::host::process
+use std::host::stdio
+
+fn main() {
+    let values = env::args()
+    let n = len(values)
+    stdio::eprintln(concat(String_from("argc="), to_string(n)))
+    if n >= 2 {
+        stdio::println(concat(String_from("hello="), get_unchecked(values, 1)))
+        process::exit(0)
+    }
+    stdio::println(String_from("hello=default"))
+}

@@ -1,0 +1,18 @@
+use std::host::stdio
+
+fn main() {
+    let m = HashMap_new_String_i32()
+    HashMap_String_i32_insert(m, "the", 1)
+    HashMap_String_i32_insert(m, "cat", 1)
+    HashMap_String_i32_insert(m, "sat", 1)
+    HashMap_String_i32_insert(m, "the", 2)
+    match HashMap_String_i32_get(m, "the") {
+        Option::Some(n) => stdio::println(concat(String_from("the="), to_string(n))),
+        None => stdio::println(String_from("the=0")),
+    }
+    match HashMap_String_i32_get(m, "cat") {
+        Option::Some(n) => stdio::println(concat(String_from("cat="), to_string(n))),
+        None => stdio::println(String_from("cat=0")),
+    }
+    stdio::println(concat(String_from("size="), to_string(HashMap_String_i32_len(m))))
+}

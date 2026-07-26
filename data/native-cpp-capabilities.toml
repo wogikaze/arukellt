@@ -592,25 +592,25 @@ reason = "SIMD is outside the native-cpp MVP scope"
 id = "core.range_contains"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_range_contains"
 
 [[core_ops]]
 id = "core.range_len"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_range_len"
 
 [[core_ops]]
 id = "core.range_new"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_range_new"
 
 [[core_ops]]
 id = "math.abs"
@@ -775,9 +775,9 @@ implementation = "ark_rt_assert_eq_str"
 id = "runtime.assert_ne"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_assert_ne_i32"
 
 [[core_ops]]
 id = "runtime.clock_now"
@@ -869,7 +869,7 @@ implementation = "c_emitter"
 id = "runtime.i32_to_i8"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -877,7 +877,7 @@ implementation = "c_emitter"
 id = "runtime.i32_to_u32"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -893,7 +893,7 @@ implementation = "c_emitter"
 id = "runtime.i8_to_i32"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -992,7 +992,7 @@ reason = "network runtime is outside the native-cpp MVP scope"
 id = "runtime.u32_to_u64"
 registry_layer = "runtime"
 registry_lowering = "runtime_call"
-status = "planned"
+status = "supported"
 phase = 1
 implementation = "c_emitter"
 
@@ -1119,9 +1119,9 @@ implementation = "ark_fallback"
 id = "seq.sort_f64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_sort_f64"
 
 [[core_ops]]
 id = "seq.sort_i32"
@@ -1135,9 +1135,9 @@ implementation = "ark_fallback"
 id = "seq.sort_i64"
 registry_layer = "semantic_stdlib"
 registry_lowering = "legacy_emitter"
-status = "planned"
+status = "supported"
 phase = 2
-implementation = "ark_fallback"
+implementation = "ark_rt_vec_sort_i64"
 
 [[core_ops]]
 id = "seq.sum_i32"

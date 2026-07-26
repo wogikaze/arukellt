@@ -1501,6 +1501,39 @@ void ark_rt_assert_eq_str(ark_string *left, ark_string *right) {
     }
 }
 
+void ark_rt_assert_ne_i32(int32_t left, int32_t right) {
+    if (left == right) {
+        const char *function = ark_gc_current_function != NULL ? ark_gc_current_function : "<unknown>";
+        fprintf(stderr, "arukellt: panic in `%s`: assertion failed\n", function);
+        exit(1);
+    }
+}
+
+ark_object_header *ark_rt_range_new(int32_t start, int32_t end) {
+    /* Match std::core::Range { start, end } / Wasm half-open layout. */
+    ark_object_header *range = (ark_object_header *)ark_rt_struct_new(0u, 2u);
+    ark_rt_struct_set(range, 0u, (ark_value){ .i32 = start });
+    ark_rt_struct_set(range, 1u, (ark_value){ .i32 = end });
+    return range;
+}
+
+int32_t ark_rt_range_contains(ark_object_header *range, int32_t value) {
+    if (range == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t start = ark_rt_struct_get(range, 0u).i32;
+    int32_t end = ark_rt_struct_get(range, 1u).i32;
+    return value >= start && value < end;
+}
+
+int32_t ark_rt_range_len(ark_object_header *range) {
+    if (range == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t start = ark_rt_struct_get(range, 0u).i32;
+    int32_t end = ark_rt_struct_get(range, 1u).i32;
+    if (end > start) {
+        return end - start;
+    }
+    return 0;
+}
+
 static int ark_rt_is_ascii_space(uint8_t byte) {
     return byte == ' ' || byte == '\t' || byte == '\n' || byte == '\r';
 }
@@ -1987,6 +2020,32 @@ void ark_rt_vec_sort_i32(ark_vec *vector) {
             insertion -= 1u;
         }
         vector->data[insertion].i32 = value;
+    }
+}
+
+void ark_rt_vec_sort_i64(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    for (uint32_t i = 1; i < vector->length; i += 1) {
+        int64_t value = vector->data[i].i64;
+        uint32_t insertion = i;
+        while (insertion > 0 && vector->data[insertion - 1u].i64 > value) {
+            vector->data[insertion] = vector->data[insertion - 1u];
+            insertion -= 1u;
+        }
+        vector->data[insertion].i64 = value;
+    }
+}
+
+void ark_rt_vec_sort_f64(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    for (uint32_t i = 1; i < vector->length; i += 1) {
+        double value = vector->data[i].f64;
+        uint32_t insertion = i;
+        while (insertion > 0 && vector->data[insertion - 1u].f64 > value) {
+            vector->data[insertion] = vector->data[insertion - 1u];
+            insertion -= 1u;
+        }
+        vector->data[insertion].f64 = value;
     }
 }
 

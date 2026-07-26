@@ -1360,7 +1360,12 @@ fn native_c_wrap_binary_expression(op: i32, vt: i32, left: String, right: String
 
 fn native_c_emit_binary(state: NativeCFunctionEmitState, instruction: MirInst) -> bool {
     let op = inst_accessors_shape::MirInst_op(instruction)
+    // MIR_NEG / MIR_NOT / MIR_EQZ sit inside the ADD..SHR numeric band but are
+    // unary; handling them here steals sibling stack values (e.g. (-3).mul(-4)).
     if op < opcodes::MIR_ADD() || op > opcodes::MIR_SHR() {
+        return false
+    }
+    if op == opcodes::MIR_NEG() || op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() {
         return false
     }
     let destination = inst_accessors_operands::MirInst_dest(instruction)
@@ -1998,7 +2003,22 @@ fn native_c_emit_call(
                 String_from("target `native-cpp` does not support call in function `"),
                 concat(
                     function_identity::MirFunction_name(function),
-                    String_from("` (argument stack underflow; unsupported call shape)")
+                    concat(
+                        String_from("` (argument stack underflow; unsupported call shape; callee=`"),
+                        concat(
+                            inst_record::mir_inst_str_val(instruction),
+                            concat(
+                                String_from("`; argc="),
+                                concat(
+                                    i32_to_string(argument_count),
+                                    concat(
+                                        String_from("; stack="),
+                                        concat(i32_to_string(len(state.value_stack)), String_from(")"))
+                                    )
+                                )
+                            )
+                        )
+                    )
                 )
             )
         )
