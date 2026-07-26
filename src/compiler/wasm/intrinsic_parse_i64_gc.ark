@@ -107,7 +107,10 @@ fn emit_parse_i64_gc_digit_loop(
     helpers_numeric_i32::emit_i32_gt_s(w)
     helpers_numeric_i32::emit_i32_or(w)
     helpers_control::emit_if_empty(w)
-    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
+    // Trailing junk: clear ok, br 2 out of (block+loop). Depths from this
+    // `if`: 0=if, 1=loop, 2=block. Cleared ok prevents post-loop Ok (#807).
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_ok)
     helpers_control::emit_br(w, 2)
     helpers_control::emit_end(w)
 

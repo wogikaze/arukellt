@@ -66,6 +66,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L12 (2026-07-26):** `PASS=1259 FAIL=107 SKIP=249` (wasm-invalid=203).
 - **After L13 (2026-07-26):** `PASS=1276 FAIL=90 SKIP=249` (wasm-invalid=202).
 - **After L14 (2026-07-26):** `PASS=1286 FAIL=81 SKIP=248` (wasm-invalid=198).
+- **After L15 (2026-07-26):** `PASS=1292 FAIL=75 SKIP=248` (wasm-invalid=198).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -106,6 +107,10 @@ L14: peek wide `2147483648` as i64 for `0 - lit`; allowlisted i64→i32 wrap
 for format_i32/hashmap; `__intrinsic_split`/`join`/`pop` name fallbacks;
 GC parse Err message; Option::None tag=1 on vec_pop; chars/join goldens.
 Remaining top: trait 12, io 11, core 6, hashmap 6, host 5.
+L15: parse_i32/i64/f64 GC trailing junk clears ok then br out of block
+(not loop); parse_f64 Err message + scientific exponent; BitSet
+`(cap+31)/32`; vec grow from cap=0 → 8; edge_special/parse_f64_decimal
+fixtures. Remaining top: trait 12, io 11, hashmap 6, core 5, host 5.
 
 ## New-failure ratchet
 

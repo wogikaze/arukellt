@@ -368,7 +368,7 @@ pub fn bitset_clear(bs: Vec<i32>, bit: i32) {
 pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
     let bs: Vec<i32> = Vec_new_i32()
     push(bs, cap)
-    let words: i32 = cap + 31 / 32
+    let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0
     while i < words {
         push(bs, 0)
@@ -379,7 +379,7 @@ pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
 
 pub fn bitset_count(bs: Vec<i32>) -> i32 {
     let cap: i32 = get_unchecked(bs, 0)
-    let words: i32 = cap + 31 / 32
+    let words: i32 = (cap + 31) / 32
     let mut total: i32 = 0
     let mut w: i32 = 0
     while w < words {
@@ -401,9 +401,9 @@ pub fn bitset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
         cap = cap_b
     }
     let result: Vec<i32> = bitset_with_capacity(cap)
-    let words_a: i32 = cap_a + 31 / 32
-    let words_b: i32 = cap_b + 31 / 32
-    let words: i32 = cap + 31 / 32
+    let words_a: i32 = (cap_a + 31) / 32
+    let words_b: i32 = (cap_b + 31) / 32
+    let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0
     while i < words {
         let mut va: i32 = 0
@@ -428,7 +428,7 @@ pub fn bitset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
         cap = cap_b
     }
     let result: Vec<i32> = bitset_with_capacity(cap)
-    let words: i32 = cap + 31 / 32
+    let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0
     while i < words {
         let va: i32 = get_unchecked(a, 1 + i)

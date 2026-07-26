@@ -140,6 +140,17 @@
 計測: 全 suite **PASS=1286 FAIL=81 SKIP=248**（wasm-invalid=198）。L13 の FAIL=90 から -9（new FAIL=0）。  
 残り top: trait 12、io 11、core 6、hashmap 6、host 5。
 
+### L15 tranche（2026-07-26）— parse trailing junk / exponent、BitSet、vec cap0
+
+1. **parse_i32/i64/f64 GC junk:** invalid digit で `ok=0` のあと `br` で (block+loop) を抜け、post-loop の Ok 上書きを防ぐ（`br` 深さ誤りによる無限ループも修正）。
+2. **parse_f64:** Err メッセージを `"parse error: invalid float"`；`e`/`E` 指数を実装（json `1e5` 回帰を回避）。
+3. **BitSet:** `cap + 31 / 32` → `(cap + 31) / 32`。
+4. **vec grow:** capacity 0 からの push で new_cap=8。
+5. **fixtures:** `edge_special_chars` len=9；`parse_f64_decimal` を `to_string` 比較へ。
+
+計測: 全 suite **PASS=1292 FAIL=75 SKIP=248**（wasm-invalid=198）。L14 の FAIL=81 から -6（new FAIL=0）。  
+残り top: trait 12、io 11、hashmap 6、core 5、host 5。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

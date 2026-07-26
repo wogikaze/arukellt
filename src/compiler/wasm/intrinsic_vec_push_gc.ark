@@ -267,9 +267,18 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_set(w, arr_old)
 
+    // cap*2, but empty (cap=0) must grow to at least 1 (#807 vec_new_capacity_zero).
     helpers_core::emit_local_get(w, s_cap)
     helpers_numeric_i32::emit_i32_const(w, 2)
     helpers_numeric_i32::emit_i32_mul(w)
+    helpers_core::emit_local_tee(w, s_cap)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_core::emit_local_set(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    helpers_core::emit_local_get(w, s_cap)
     writer_gc::emit_gc_array_new_from_widened(w, i32_array_type)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     helpers_core::emit_local_set(w, arr_tmp)
