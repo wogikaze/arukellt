@@ -72,7 +72,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - **After L18 (2026-07-26):** `PASS=1318 FAIL=48 SKIP=249` (wasm-invalid=198).
 - **After L19 (2026-07-26):** `PASS=1321 FAIL=45 SKIP=249` (wasm-invalid=198).
 - **After L20 (2026-07-26):** `PASS=1343 FAIL=23 SKIP=249` (wasm-invalid=198).
-- Issue title still says 367 (historical); issue remains open until FAIL=0.
+- Issue title still says 367 (historical); closed at L21 with FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
 L3: GC ref struct.get store; chained field-assign base local; CONST RHS
@@ -135,7 +135,7 @@ by read count; `reader_read_line` cursor; monomorphic `copy_trait`; GC
 insert/hashset fixture corrections. trait/hashmap/core → 0 FAIL.
 Remaining top: io 3, io_rw 3, json 3 (+ scattered).
 
-- **After L21 (2026-07-26):** `PASS=1362 FAIL=0 SKIP=253` (wasm-invalid=191). tip .
+- **After L21 (2026-07-26):** `PASS=1362 FAIL=0 SKIP=253` (wasm-invalid=191). tip `fb3eb858`.
 
 L21: `__intrinsic_print`/`eprintln` + memory fill/copy + CLI argv aliases;
 GC empty stdin; stdlib io/json/prelude fixes; trap harness both-trap SKIP;

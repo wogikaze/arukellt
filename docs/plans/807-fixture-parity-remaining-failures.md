@@ -210,7 +210,7 @@
 4. **Result mono:** `result:T:E` 置換（旧 `enum:Result:T` は Ok payload 誤選択）；`enum:Result:` match 回収。
 5. **neg_wrapper:** `-self.val`（`0 - self.val` の CONST;STRUCT_GET force-SET）。
 
-計測: 全 suite **PASS=1362 FAIL=0 SKIP=253**（wasm-invalid=191）。L20 の FAIL=23 から -23。issue → `issues/done/`。
+計測: 全 suite **PASS=1362 FAIL=0 SKIP=253**（wasm-invalid=191）。L20 の FAIL=23 から -23。issue → `issues/done/`。 tip `fb3eb858`。
 
 
 ## 2. 前提・依存
