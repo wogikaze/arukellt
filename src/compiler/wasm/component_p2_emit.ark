@@ -19,10 +19,12 @@ use wasm::component_p2_strip
 use wasm::writer_core
 
 fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
-    // 1. Strip only wasi:clocks/ and wasi:random/
+    // 1. Strip clocks/random and bridged arukellt:fs (host-linker only; #834).
+    // Stock wasi:cli component worlds have no arukellt:fs instance.
     let prefixes = Vec_new_String()
     push(prefixes, String_from("wasi:clocks/"))
     push(prefixes, String_from("wasi:random/"))
+    push(prefixes, String_from("arukellt:fs@"))
     let stripped = component_p2_strip::strip_wit_imports(core_wasm, prefixes)
 
     // 2. Build component

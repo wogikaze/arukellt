@@ -37,15 +37,12 @@ PY
 ```
 
 Guest memory is **memory32** (`(memory 8192)`), not Memory64. Memory64 applies to the
-**host** s2-runtime that performs the emit. Validate:
+**host** s2-runtime that performs the emit (until the pin itself is GC). Validate:
 
 ```bash
 wasm-tools validate --features gc,function-references,memory64 \
-  .build/selfhost/834-probe/selfhost-wasm32-gc-v17.wasm
+  .build/selfhost/834-probe/selfhost-wasm32-gc-v19.wasm
 ```
-
-Latest receipt: `selfhost-wasm32-gc-v17.wasm` — size 5 545 942 bytes,
-sha256 `184d555483b3e359a995590b9b853a78697487b58f5ffd74aeece7a52bfaed52`, validate PASS.
 
 ## Phase 2 — P2 FS + host-linker (landed)
 
@@ -58,59 +55,34 @@ sha256 `184d555483b3e359a995590b9b853a78697487b58f5ffd74aeece7a52bfaed52`, valid
 | Host argv: placeholder after prog so legacy `parse_args` index-1 command works | landed |
 | GC initial memory pages = `initial_memory_pages()` (8192) for active data | landed |
 
-### Smoke under host-linker (v17)
-
-| Command | Result |
-|---------|--------|
-| `version` / `targets` | PASS |
-| `fmt hello_min.ark` | PASS |
-| `compile hello_min.ark` / `hello_probe.ark` → wasm32-gc/wasi-p2 | PASS (wrote output) |
-| content probe `fs::read_to_string` + `starts_with` | PASS |
-| write probe | PASS |
-| **`compile src/compiler/main.ark` (self-compile / stdlib load)** | **FAIL** — trap in `finish_decimal_number` during `register_stdlib_source` |
-
 ## Phase 3 — GC emit correctness fixes (landed)
 
-These unblocked parse/corehir for small programs:
+1. **`len(p.errors)` / vec field len** — `intrinsic_vec_type.ark`
+2. **Nested field `node.span.start` / `get_unchecked(...).field`** — `inst_struct_record.ark`
+3. **`parse_f64` GC stub → real emit** — `intrinsic_parse_f64_gc.ark`: copy String to
+   linear, reuse LM digit scanner, wrap `Result::Ok(_f1_f64)` / `Err(String)`.
+   Prior stub emitted `ref.null` Result and trapped in `finish_decimal_number` match.
+4. **`mir_int_literal_needs_i64` OOB** — `literal_int.ark`: guard every `char_at(..., 1)`
+   behind `raw_len >= 2` (flat `a && b || c` let OR arms run when `a` is false; GC
+   `array.get_u` traps on one-digit literals).
 
-1. **`len(p.errors)` / vec field len** — `find_call_source_local` preferred the struct base
-   (`Parser`) over the field temp when no `LOCAL_GET` of the vec; fell back to `Vec<i32>`
-   and `ref.cast` trapped. Fix: prefer vec-typed locals; resolve from preceding
-   `STRUCT_GET`/`CALL` dest (`intrinsic_vec_type.ark`).
-2. **Nested field `node.span.start`** — after outer `struct.get`, emitter reloaded an unset
-   temp. Fix: when `prev` is `STRUCT_GET`/`GC_STRUCT_GET`/`CALL`, keep stack base
-   (`inst_struct_record.ark`).
-3. **`get_unchecked(...).field`** — same stack-base rule for preceding `CALL`.
+## Phase 4 — self-compile + pin (landed)
 
-Probes under `.build/selfhost/834-probe/`: `len_field_probe.ark`, `nested_field.ark`,
-`get_field.ark`, `content_probe.ark` (not committed fixtures yet).
+| Check | Result |
+|-------|--------|
+| host-linker `compile float_only.ark` (v19) | PASS |
+| host-linker flat-src `compile src/compiler/main.ark` (v19) | PASS (~133s, ~1.4 GiB RSS) |
+| `sha256(v19) == sha256(selfhost-from-v19)` | PASS `4d2da710…` |
+| `wasm-tools validate` v19 | PASS |
+| Pin `bootstrap/arukellt-selfhost.wasm` | memory32 GC / wasi-p2 (no `--to-memory64`) |
+| `BOOTSTRAP_EMIT_*=wasm32-gc/wasi-p2` | flipped |
+| #813 stage-3 bootstrap-only path | dropped → s2-runtime |
 
-## Pin blockers (leave #834 open)
+Pinned fixpoint: `bootstrap/arukellt-selfhost.wasm` — size 5 553 192 bytes,
+sha256 `4d2da710115215965514608fe8f1d70cedabba35adf1c729abb0c0d2aa7539bd`
+(`sha256(pin)==sha256(s2)==sha256(s3)` after GC bootstrap chain).
 
-Do **not** pin / flip `BOOTSTRAP_EMIT_*` / drop #813 while the GC guest cannot
-compile `src/compiler/main.ark` (stdlib lex). That would break `build-compiler`.
+## References
 
-Remaining:
-
-1. Fix GC lex path that traps in `finish_decimal_number` when loading stdlib
-   (likely substring / decimal finish emit under GC).
-2. Re-emit → host-linker self-compile main → validate.
-3. Pin `bootstrap/arukellt-selfhost.wasm` (memory32 GC / wasi-p2; **do not**
-   `--to-memory64` in `_ensure_bootstrap_compiler_wasm`).
-4. Flip `BOOTSTRAP_EMIT_TARGET=wasm32-gc` / `BOOTSTRAP_EMIT_WASI_VERSION=wasi-p2`.
-5. Drop #813 `_fixpoint_stage3_compiler` bootstrap-only path → s2-runtime.
-6. `verify lane` then `verify quick`.
-
-### Removal condition (for close)
-
-All of:
-
-- Flat-src emit+validate of `wasm32-gc`/`wasi-p2` selfhost (done).
-- Host-linker P2 FS read/write usable for bootstrap (done for hello-scale).
-- **GC guest can compile `src/compiler/main.ark`** (blocked — stdlib lex).
-- `BOOTSTRAP_EMIT_*=wasm32-gc/wasi-p2` + drop #813 + `verify quick` green.
-
-## Next actions
-
-1. Root-cause `finish_decimal_number` GC emit (substring / float path).
-2. Self-compile main under host-linker → pin → flip → drop #813 → verify.
+- [#834](../../issues/done/834-wasm32-gc-bootstrap-pin.md) (closed)
+- `bootstrap/PROVENANCE.md`

@@ -109,8 +109,16 @@ fn try_register_known(
         ("wasi:cli/stdin@0.2.0", "read") => register_stdin_read(linker, ft),
         ("wasi:cli/exit@0.2.0", "exit") => register_exit(linker, ft),
         ("wasi:filesystem/types@0.2.0", "open-at") => register_open_at(linker, ft),
-        ("wasi:filesystem/types@0.2.0", "read") => register_fs_read(linker, ft),
-        ("wasi:filesystem/types@0.2.0", "write") => register_fs_write(linker, ft),
+        // Bridged fd_read/fd_write ABI: prefer arukellt:fs (#834 close-gates).
+        // Keep wasi:filesystem aliases so the previous pin can still bootstrap.
+        ("arukellt:fs@0.1.0", "read") => register_fs_read(linker, ft, "arukellt:fs@0.1.0"),
+        ("arukellt:fs@0.1.0", "write") => register_fs_write(linker, ft, "arukellt:fs@0.1.0"),
+        ("wasi:filesystem/types@0.2.0", "read") => {
+            register_fs_read(linker, ft, "wasi:filesystem/types@0.2.0")
+        }
+        ("wasi:filesystem/types@0.2.0", "write") => {
+            register_fs_write(linker, ft, "wasi:filesystem/types@0.2.0")
+        }
         ("wasi:filesystem/types@0.2.0", "close") => register_fs_close(linker, ft),
         ("wasi:clocks/monotonic-clock@0.2.0", "now") => register_clock_now(linker, mod_name, field_name, ft),
         ("wasi:clocks/wall-clock@0.2.0", "now") => register_clock_now(linker, mod_name, field_name, ft),
@@ -451,11 +459,15 @@ fn register_open_at(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), S
     Ok(())
 }
 
-fn register_fs_read(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), String> {
+fn register_fs_read(
+    linker: &mut Linker<P2Store>,
+    ft: &FuncType,
+    module: &'static str,
+) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
-            "wasi:filesystem/types@0.2.0",
+            module,
             "read",
             ft,
             move |mut caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
@@ -470,11 +482,15 @@ fn register_fs_read(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), S
     Ok(())
 }
 
-fn register_fs_write(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), String> {
+fn register_fs_write(
+    linker: &mut Linker<P2Store>,
+    ft: &FuncType,
+    module: &'static str,
+) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
-            "wasi:filesystem/types@0.2.0",
+            module,
             "write",
             ft,
             move |mut caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
