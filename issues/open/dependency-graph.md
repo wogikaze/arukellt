@@ -28,7 +28,6 @@ graph LR
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
-  I704["704 std::json Full JSON RFC 8259 Compliance"]
   I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
@@ -132,7 +131,6 @@ graph LR
 - **694** depends on: 690, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
 - **702** depends on: 688, 700, 692; blocks: none
-- **704** depends on: 606; blocks: none
 - **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none

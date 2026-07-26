@@ -11,6 +11,13 @@ pub struct JsonStrResult {
     ok: bool,
 }
 
+/// Result of decoding one JSON string escape sequence.
+pub struct JsonEscapeResult {
+    value: String,
+    advance: i32,
+    ok: bool,
+}
+
 // ─── Internal parsing helpers ────────────────────────────────────────────────
 /// Skip whitespace (space, tab, LF, CR) starting at `pos`, returning the
 /// index of the first non-whitespace character (or `len(s)` if all remaining
@@ -78,6 +85,12 @@ pub fn json_escape(s: String) -> String {
         i = i + 1
     }
     out
+}
+
+/// Quote and escape `s` as a JSON string literal (including surrounding quotes).
+/// Replaces the former LSP `json_escape::quote_string` helper.
+pub fn quote_string(s: String) -> String {
+    concat("\"", concat(json_escape(s), "\""))
 }
 
 /// Return the lowercase hex nibble for `n` (0–15).
@@ -192,57 +205,140 @@ pub fn json_hex_value(c: i32) -> i32 {
     0
 }
 
-/// Decode a `\uXXXX` escape sequence.  `pos` points at the `u` character
-/// (i.e. `s[pos] == 'u'`).  Returns the decoded ASCII character string if
-/// the code point is in the ASCII range (1–127), otherwise an empty string.
-/// Surrogate pairs are not yet supported (tracked under #704).
-pub fn json_decode_unicode_ascii(s: String, pos: i32) -> String {
+/// Construct a `JsonEscapeResult`.
+pub fn JsonEscapeResult_new(value: String, advance: i32, ok: bool) -> JsonEscapeResult {
+    JsonEscapeResult { value: value, advance: advance, ok: ok }
+}
+
+fn json_is_hex_digit(c: i32) -> bool {
+    c >= 48 && c <= 57 || c >= 97 && c <= 102 || c >= 65 && c <= 70
+}
+
+/// Read four hex digits starting at `pos`. Returns -1 if any digit is invalid
+/// or the input is too short.
+fn json_read_hex4(s: String, pos: i32) -> i32 {
     let n = len(s)
-    if pos + 4 >= n {
-        return ""
+    if pos + 3 >= n {
+        return 0 - 1
     }
-    let hi = json_hex_value(char_at(s, pos + 1)) * 16 + json_hex_value(char_at(s, pos + 2))
-    let lo = json_hex_value(char_at(s, pos + 3)) * 16 + json_hex_value(char_at(s, pos + 4))
-    let cv = hi * 256 + lo
-    if cv > 0 && cv < 128 {
-        return char_to_string(cv)
+    let mut i = 0
+    while i < 4 {
+        if !json_is_hex_digit(char_at(s, pos + i)) {
+            return 0 - 1
+        }
+        i = i + 1
     }
-    ""
+    json_hex_value(char_at(s, pos)) * 4096 + json_hex_value(char_at(s, pos + 1)) * 256 + json_hex_value(char_at(s, pos + 2)) * 16 + json_hex_value(char_at(s, pos + 3))
+}
+
+/// Encode a Unicode code point as UTF-8 bytes in a `String`.
+fn json_codepoint_to_utf8(cp: i32) -> String {
+    let bytes = Vec_new_i32()
+    if cp < 128 {
+        push(bytes, cp)
+    } else if cp < 2048 {
+        push(bytes, 192 + cp / 64)
+        push(bytes, 128 + cp % 64)
+    } else if cp < 65536 {
+        push(bytes, 224 + cp / 4096)
+        push(bytes, 128 + cp / 64 % 64)
+        push(bytes, 128 + cp % 64)
+    } else {
+        push(bytes, 240 + cp / 262144)
+        push(bytes, 128 + cp / 4096 % 64)
+        push(bytes, 128 + cp / 64 % 64)
+        push(bytes, 128 + cp % 64)
+    }
+    let mut out = ""
+    let bn = len(bytes)
+    let mut bi = 0
+    while bi < bn {
+        out = concat(out, char_to_string(get_unchecked(bytes, bi)))
+        bi = bi + 1
+    }
+    out
+}
+
+/// Decode a `\uXXXX` escape (and an optional trailing low-surrogate pair).
+/// `pos` points at the `u` character. `advance` counts characters from `pos`.
+pub fn json_decode_unicode_at(s: String, pos: i32) -> JsonEscapeResult {
+    let cv = json_read_hex4(s, pos + 1)
+    if cv < 0 {
+        return JsonEscapeResult_new("", 0, false)
+    }
+    // High surrogate U+D800..U+DBFF — look for a following \u low surrogate.
+    if cv >= 55296 && cv <= 56319 {
+        let after = pos + 5
+        let n = len(s)
+        if after + 5 < n && char_at(s, after) == 92 && char_at(s, after + 1) == 117 {
+            let low = json_read_hex4(s, after + 2)
+            if low >= 56320 && low <= 57343 {
+                let cp = 65536 + (cv - 55296) * 1024 + (low - 56320)
+                return JsonEscapeResult_new(json_codepoint_to_utf8(cp), 11, true)
+            }
+        }
+        return JsonEscapeResult_new(json_codepoint_to_utf8(cv), 5, true)
+    }
+    JsonEscapeResult_new(json_codepoint_to_utf8(cv), 5, true)
+}
+
+/// Decode a `\uXXXX` escape sequence.  `pos` points at the `u` character.
+/// Supports surrogate pairs and non-ASCII BMP code points (UTF-8).
+pub fn json_decode_unicode_ascii(s: String, pos: i32) -> String {
+    let r = json_decode_unicode_at(s, pos)
+    if r.ok {
+        r.value
+    } else {
+        ""
+    }
+}
+
+/// Decode a single JSON string escape character with advance count.
+/// `pos` points at the character immediately after the backslash.
+/// Unknown escapes set `ok` to false (RFC 8259 §7).
+pub fn json_decode_escape_at(s: String, pos: i32) -> JsonEscapeResult {
+    let esc = char_at(s, pos)
+    if esc == 34 {
+        return JsonEscapeResult_new("\"", 1, true)
+    }
+    if esc == 92 {
+        return JsonEscapeResult_new("\\", 1, true)
+    }
+    if esc == 47 {
+        return JsonEscapeResult_new("/", 1, true)
+    }
+    if esc == 110 {
+        return JsonEscapeResult_new("\n", 1, true)
+    }
+    if esc == 114 {
+        return JsonEscapeResult_new("\r", 1, true)
+    }
+    if esc == 116 {
+        return JsonEscapeResult_new("\t", 1, true)
+    }
+    if esc == 98 {
+        return JsonEscapeResult_new(char_to_string(8), 1, true)
+    }
+    if esc == 102 {
+        return JsonEscapeResult_new(char_to_string(12), 1, true)
+    }
+    if esc == 117 {
+        return json_decode_unicode_at(s, pos)
+    }
+    JsonEscapeResult_new("", 0, false)
 }
 
 /// Decode a single JSON string escape character.  `pos` points at the
 /// character immediately after the backslash.  Handles `"`, `\`, `/`, `n`,
-/// `r`, `t`, `b`, `f`, and `u` (via `json_decode_unicode_ascii`).
+/// `r`, `t`, `b`, `f`, and `u` (via `json_decode_unicode_at`).  Returns an
+/// empty string for unknown or incomplete escapes.
 pub fn json_decode_escape(s: String, pos: i32) -> String {
-    let esc = char_at(s, pos)
-    if esc == 34 {
-        return "\""
+    let r = json_decode_escape_at(s, pos)
+    if r.ok {
+        r.value
+    } else {
+        ""
     }
-    if esc == 92 {
-        return "\\"
-    }
-    if esc == 47 {
-        return "/"
-    }
-    if esc == 110 {
-        return "\n"
-    }
-    if esc == 114 {
-        return "\r"
-    }
-    if esc == 116 {
-        return "\t"
-    }
-    if esc == 98 {
-        return char_to_string(8)
-    }
-    if esc == 102 {
-        return char_to_string(12)
-    }
-    if esc == 117 {
-        return json_decode_unicode_ascii(s, pos)
-    }
-    slice(s, pos, pos + 1)
 }
 
 /// Construct a `JsonStrResult`.
@@ -268,7 +364,7 @@ pub fn json_str_result_next(result: JsonStrResult) -> i32 {
 /// Parse a JSON string literal starting at `pos` (which must point at `"`).
 /// Returns a `JsonStrResult` with the decoded value, the position after the
 /// closing quote, and an `ok` flag.  Handles all standard escape sequences
-/// including `\uXXXX` (ASCII range only).
+/// including `\uXXXX` surrogate pairs; unknown escapes fail the parse.
 pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
     let n = len(s)
     if pos >= n || char_at(s, pos) != 34 {
@@ -293,13 +389,18 @@ pub fn json_parse_string_at(s: String, pos: i32) -> JsonStrResult {
             if p >= n {
                 return JsonStrResult_new(out, p, false)
             }
-            out = concat(out, json_decode_escape(s, p))
-            if char_at(s, p) == 117 && p + 4 < n {
-                p = p + 4
+            let decoded = json_decode_escape_at(s, p)
+            if !decoded.ok {
+                return JsonStrResult_new(out, p, false)
             }
-            p = p + 1
+            out = concat(out, decoded.value)
+            p = p + decoded.advance
             span_start = p
         } else {
+            // Unescaped control characters are illegal in JSON strings.
+            if c < 32 {
+                return JsonStrResult_new(out, p, false)
+            }
             p = p + 1
         }
     }

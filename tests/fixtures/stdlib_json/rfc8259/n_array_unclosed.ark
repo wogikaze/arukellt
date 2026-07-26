@@ -1,0 +1,9 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("[true") {
+        Result::Ok(_) => panic("expected error for unclosed array"),
+        Result::Err(_) => {},
+    }
+}

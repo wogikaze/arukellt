@@ -1,0 +1,14 @@
+use std::json
+use std::test
+
+fn main() {
+    // Use bool elements so this fixture does not depend on parse_f64.
+    match json::parse("[true,]") {
+        Result::Ok(_) => panic("expected error for trailing comma in array"),
+        Result::Err(_) => {},
+    }
+    match json::parse("{\"a\":true,}") {
+        Result::Ok(_) => panic("expected error for trailing comma in object"),
+        Result::Err(_) => {},
+    }
+}

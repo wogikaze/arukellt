@@ -36,8 +36,8 @@ let parsed = json_parse_i32("42")    // 42
 ## Module `std::json`
 
 - Source: [`../../../std/json.ark`](../../../std/json.ark)
-- Manifest-backed functions: 22
-- Stability: experimental 22
+- Manifest-backed functions: 32
+- Stability: experimental 32
 
 JSON streaming scanner and escape utilities for `std::json`.
 
@@ -50,11 +50,22 @@ The full JSON parser with `pub enum JsonValue` lives in
 | Name | Kind | Summary |
 |------|------|---------|
 | `JsonStrResult` | `struct` | Result of a streaming string parse. |
+| `JsonEscapeResult` | `struct` | Result of decoding one JSON string escape sequence. |
 
 ### `std::json` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
+| `skip_ws` | `(String, i32) -> i32` | `experimental` | ✅ functional | Skip whitespace (space, tab, LF, CR) starting at pos, returning the |
+| `json_escape` | `(String) -> String` | `experimental` | ✅ functional | Encode a plain string as a JSON string body (without surrounding quotes), |
+| `quote_string` | `(String) -> String` | `experimental` | ✅ functional | Quote and escape s as a JSON string literal (including surrounding quotes). |
+| `parse_int_at` | `(String, i32) -> i32` | `experimental` | ✅ functional | Parse a decimal integer (optionally signed) starting at pos, skipping |
+| `parse_content_length` | `(String) -> i32` | `experimental` | ✅ functional | Extract the Content-Length value from an LSP/DAP header block. |
+| `find_key_pos` | `(String, String, i32) -> i32` | `experimental` | ✅ functional | Find the position immediately after the first occurrence of "key" in |
+| `json_decode_escape` | `(String, i32) -> String` | `experimental` | ✅ functional | Decode a single JSON string escape character. pos points at the |
+| `json_parse_string_at` | `(String, i32) -> JsonStrResult` | `experimental` | ✅ functional | Parse a JSON string literal starting at pos (which must point at "). |
+| `json_get_str` | `(String, String) -> String` | `experimental` | ✅ functional | Extract the string value of field key from json, searching from |
+| `json_get_int` | `(String, String) -> i32` | `experimental` | ✅ functional | Extract the integer value of field key from json, searching from |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `experimental` | ✅ functional | - |
 | `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | ✅ functional | - |
 | `stringify` | `(JsonValue) -> String` | `experimental` | ✅ functional | - |
@@ -77,6 +88,46 @@ The full JSON parser with `pub enum JsonValue` lives in
 | `json_stringify_i32` | `(i32) -> String` | `experimental` | ✅ functional | - |
 | `json_stringify_string` | `(String) -> String` | `experimental` | ✅ functional | - |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | ✅ functional | - |
+
+#### `std::json::skip_ws`
+
+Skip JSON whitespace starting at pos; return index of next non-whitespace.
+
+#### `std::json::json_escape`
+
+Escape a plain string for use inside a JSON string (no surrounding quotes).
+
+#### `std::json::quote_string`
+
+Quote and escape a plain string as a JSON string literal.
+
+#### `std::json::parse_int_at`
+
+Parse a signed decimal integer starting at pos (after optional whitespace).
+
+#### `std::json::parse_content_length`
+
+Extract Content-Length from an LSP/DAP header block, or -1 if absent.
+
+#### `std::json::find_key_pos`
+
+Find the position after the first "key" occurrence at or after from.
+
+#### `std::json::json_decode_escape`
+
+Decode one JSON string escape at pos (char after backslash).
+
+#### `std::json::json_parse_string_at`
+
+Parse a JSON string literal at pos; supports escapes and surrogate pairs.
+
+#### `std::json::json_get_str`
+
+Extract a string field by key from a JSON object text.
+
+#### `std::json::json_get_int`
+
+Extract an integer field by key from a JSON object text.
 
 #### `std::json::parse`
 

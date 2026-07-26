@@ -10,7 +10,7 @@
 |------|-------|-------------|
 | `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
+| `experimental` | 315 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -737,6 +737,7 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `find_key_pos` | `(String, String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Find the position after the first "key" occurrence at or after from. |
 | `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -747,16 +748,25 @@ let input = read_to_string()
 | `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_decode_escape` | `(String, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Decode one JSON string escape at pos (char after backslash). |
 | `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
+| `json_escape` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Escape a plain string for use inside a JSON string (no surrounding quotes). |
 | `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Look up a named field in a JSON object value. |
 | `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Return the element at index in a JSON array value. |
+| `json_get_int` | `(String, String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract an integer field by key from a JSON object text. |
+| `json_get_str` | `(String, String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract a string field by key from a JSON object text. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_parse_string_at` | `(String, i32) -> JsonStrResult` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a JSON string literal at pos; supports escapes and surrogate pairs. |
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
+| `parse_content_length` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract Content-Length from an LSP/DAP header block, or -1 if absent. |
+| `parse_int_at` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a signed decimal integer starting at pos (after optional whitespace). |
+| `quote_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Quote and escape a plain string as a JSON string literal. |
+| `skip_ws` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Skip JSON whitespace starting at pos; return index of next non-whitespace. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 

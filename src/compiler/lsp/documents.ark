@@ -1,9 +1,8 @@
+use std::json
 use analysis
 use lsp::diagnostics
 use lsp::framing
 use lsp::init_workspace
-use lsp::json_fields
-use lsp::json_parse_core
 use lsp::lsp_package_definition
 use lsp::state_docs
 use lsp::state_record
@@ -13,9 +12,9 @@ use lsp::symbol_index_update
 use lsp::project_resolve_modules
 
 pub fn handle_did_open(state: LspState, body: String) {
-    let uri = json_fields::extract_string_field(clone(body), "uri")
-    let text = json_fields::extract_string_field(clone(body), "text")
-    let version = json_fields::extract_int_field(clone(body), "version")
+    let uri = json::json_get_str(clone(body), String_from("uri"))
+    let text = json::json_get_str(clone(body), String_from("text"))
+    let version = json::json_get_int(clone(body), String_from("version"))
     state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
     symbol_index_stdlib::symbol_index_load_stdlib(state)
     symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
@@ -23,13 +22,13 @@ pub fn handle_did_open(state: LspState, body: String) {
 }
 
 pub fn handle_did_change(state: LspState, body: String) {
-    let uri = json_fields::extract_string_field(clone(body), "uri")
-    let version = json_fields::extract_int_field(clone(body), "version")
-    let cc = json_parse_core::find_key_pos(clone(body), "contentChanges", 0)
+    let uri = json::json_get_str(clone(body), String_from("uri"))
+    let version = json::json_get_int(clone(body), String_from("version"))
+    let cc = json::find_key_pos(clone(body), String_from("contentChanges"), 0)
     let text = if cc < 0 {
-        json_fields::extract_string_field(clone(body), "text")
+        json::json_get_str(clone(body), String_from("text"))
     } else {
-        json_fields::extract_string_field_after(clone(body), "text", cc)
+        json::json_get_str_after(clone(body), String_from("text"), cc)
     }
     state_docs::lsp_doc_store_set(state_record::lsp_state_doc_store(state), clone(uri), clone(text), version)
     symbol_index_update::symbol_index_update_uri(state, clone(uri), clone(text))
@@ -37,7 +36,7 @@ pub fn handle_did_change(state: LspState, body: String) {
 }
 
 pub fn handle_did_close(state: LspState, body: String) {
-    let uri = json_fields::extract_string_field(clone(body), "uri")
+    let uri = json::json_get_str(clone(body), String_from("uri"))
     symbol_index::symbol_index_remove_file(state, clone(uri))
 }
 
@@ -52,7 +51,7 @@ pub fn handle_did_save(state: LspState, body: String) {
     if !state_record::lsp_state_check_on_save(state) {
         return
     }
-    let uri = json_fields::extract_string_field(clone(body), "uri")
+    let uri = json::json_get_str(clone(body), String_from("uri"))
     let text = state_docs::lsp_doc_store_lookup_text(state_record::lsp_state_doc_store(state), clone(uri))
     if len(text) > 0 {
         publish_for(state, clone(uri), clone(text))

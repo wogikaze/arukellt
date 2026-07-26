@@ -5417,6 +5417,96 @@ params = ["String"]
 returns = "String"
 doc = "Encode a plain string as a JSON string literal with escape sequences."
 
+[[functions]]
+name = "quote_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Quote and escape a plain string as a JSON string literal."
+
+[[functions]]
+name = "json_escape"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Escape a plain string for use inside a JSON string (no surrounding quotes)."
+
+[[functions]]
+name = "skip_ws"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "i32"
+doc = "Skip JSON whitespace starting at pos; return index of next non-whitespace."
+
+[[functions]]
+name = "parse_int_at"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "i32"
+doc = "Parse a signed decimal integer starting at pos (after optional whitespace)."
+
+[[functions]]
+name = "parse_content_length"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Extract Content-Length from an LSP/DAP header block, or -1 if absent."
+
+[[functions]]
+name = "find_key_pos"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String", "i32"]
+returns = "i32"
+doc = "Find the position after the first \"key\" occurrence at or after from."
+
+[[functions]]
+name = "json_parse_string_at"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "JsonStrResult"
+doc = "Parse a JSON string literal at pos; supports escapes and surrogate pairs."
+
+[[functions]]
+name = "json_decode_escape"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "String"
+doc = "Decode one JSON string escape at pos (char after backslash)."
+
+[[functions]]
+name = "json_get_str"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract a string field by key from a JSON object text."
+
+[[functions]]
+name = "json_get_int"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String"]
+returns = "i32"
+doc = "Extract an integer field by key from a JSON object text."
+
 # ── std::toml module functions ────────────────────────────────────────────────
 
 [[functions]]

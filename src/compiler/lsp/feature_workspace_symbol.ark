@@ -1,6 +1,6 @@
 use std::host::fs
+use std::json
 use lsp::framing
-use lsp::json_fields
 use lsp::responses
 use lsp::symbol_index
 use lsp::symbol_index_paths
@@ -9,8 +9,8 @@ use lsp::state_docs
 use lsp::state_record
 
 pub fn handle_workspace_symbol(state: LspState, body: String) {
-    let id = json_fields::extract_int_field(clone(body), "id")
-    let query = json_fields::extract_string_field(clone(body), "query")
+    let id = json::json_get_int(clone(body), String_from("id"))
+    let query = json::json_get_str(clone(body), String_from("query"))
     let matches = symbol_index::symbol_index_search_query(state, clone(query))
     let source_texts = Vec_new_String()
     let mn = len(matches)

@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    // Raw tab inside a JSON string is illegal (must be \\t).
+    match json::parse("\"a\tb\"") {
+        Result::Ok(_) => panic("expected error for unescaped tab in string"),
+        Result::Err(_) => {},
+    }
+}

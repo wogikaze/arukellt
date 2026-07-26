@@ -1,40 +1,39 @@
 use std::text
+use std::json
 use fmt
-use lsp::json_escape
-use lsp::json_fields
 use lsp::positions
 use lsp::source_text
 
 fn extract_section_line(body: String, section: String) -> i32 {
-    let marker = concat(section, "\"line\"")
+    let marker = concat(section, String_from("\"line\""))
     let pos = index_of(clone(body), marker)
     if pos < 0 {
         return 0
     }
     let after = substring(body, pos, len(body))
-    json_fields::extract_int_field(after, "line")
+    json::json_get_int(after, String_from("line"))
 }
 
 fn build_full_document_edit(text: String, formatted: String) -> String {
     let end_pos = positions::offset_to_position(clone(text), len(text))
-    let mut out = "[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":"
+    let mut out = String_from("[{\"range\":{\"start\":{\"line\":0,\"character\":0},\"end\":{\"line\":")
     out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
-    out = text::builder_append(out, ",\"character\":")
+    out = text::builder_append(out, String_from(",\"character\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
-    out = text::builder_append(out, "}},\"newText\":")
-    out = text::builder_append(out, json_escape::quote_string(formatted))
-    out = text::builder_append(out, "}]")
+    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, json::quote_string(formatted))
+    out = text::builder_append(out, String_from("}]"))
     out
 }
 
 fn build_formatting_result(text: String) -> String {
     match fmt::format_source(clone(text)) {
         Option::None => {
-            "[]"
+            String_from("[]")
         },
         Option::Some(formatted) => {
             if eq(clone(formatted), clone(text)) {
-                return "[]"
+                return String_from("[]")
             }
             build_full_document_edit(text, formatted)
         },
@@ -42,37 +41,37 @@ fn build_formatting_result(text: String) -> String {
 }
 
 pub fn build_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json_fields::extract_string_field(clone(body), "uri")
+    let uri = json::json_get_str(clone(body), String_from("uri"))
     let text = source_text::text_for_uri(state, clone(uri))
     let edits = build_formatting_result(text)
-    let mut out = "{\"jsonrpc\":\"2.0\",\"id\":"
+    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, ",\"result\":")
+    out = text::builder_append(out, String_from(",\"result\":"))
     out = text::builder_append(out, edits)
-    out = text::builder_append(out, "}")
+    out = text::builder_append(out, String_from("}"))
     out
 }
 
 pub fn build_range_formatting_response_for_request(state: LspState, body: String, id: i32) -> String {
-    let uri = json_fields::extract_string_field(clone(body), "uri")
+    let uri = json::json_get_str(clone(body), String_from("uri"))
     let text = source_text::text_for_uri(state, clone(uri))
-    let start_line = extract_section_line(clone(body), "\"start\":{")
-    let end_line = extract_section_line(clone(body), "\"end\":{")
-    let mut out = "{\"jsonrpc\":\"2.0\",\"id\":"
+    let start_line = extract_section_line(clone(body), String_from("\"start\":{"))
+    let end_line = extract_section_line(clone(body), String_from("\"end\":{"))
+    let mut out = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
     out = text::builder_append(out, to_string(id))
-    out = text::builder_append(out, ",\"result\":")
+    out = text::builder_append(out, String_from(",\"result\":"))
     match fmt::format_range(clone(text), start_line, end_line) {
         Option::None => {
-            out = text::builder_append(out, "[]")
+            out = text::builder_append(out, String_from("[]"))
         },
         Option::Some(formatted) => {
             if eq(clone(formatted), clone(text)) {
-                out = text::builder_append(out, "[]")
+                out = text::builder_append(out, String_from("[]"))
             } else {
                 out = text::builder_append(out, build_full_document_edit(text, formatted))
             }
         },
     }
-    out = text::builder_append(out, "}")
+    out = text::builder_append(out, String_from("}"))
     out
 }

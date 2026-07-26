@@ -11,11 +11,11 @@
 //!   `parse_content_length`, `find_key_pos`, `json_parse_string_at`,
 //!   `json_decode_escape`, `json_decode_unicode_ascii`, `json_get_str`,
 //!   `json_get_int`) provide low-level field extraction without building a
-//!   DOM.  `\uXXXX` surrogate pairs are not yet supported (#704).
+//!   DOM.  `\uXXXX` decoding supports surrogate pairs and non-ASCII BMP.
 //! - Legacy primitive stringify/parse helpers (`json_stringify_i32`,
 //!   `json_parse_i32`, etc.) are preserved for backward compatibility
 //!   with existing fixtures and are not a complete typed serializer.
-//! - Full RFC 8259 conformance (surrogate pairs, strict number grammar) is
+//! - Remaining RFC 8259 gaps (strict number grammar, full JSONTestSuite) are
 //!   tracked under #704.
 
 use std::json
@@ -189,7 +189,8 @@ fn find_string_end(s: String, pos: i32) -> i32 {
         }
         i = i + 1
     }
-    n
+    // Unterminated string — distinguish from a valid empty `""` (end == pos+1).
+    0 - 1
 }
 
 fn find_number_end(s: String, pos: i32) -> i32 {
@@ -213,7 +214,12 @@ fn find_value_end(s: String, pos: i32) -> i32 {
     }
     let c = char_at(s, pos)
     if c == 34 {
-        find_string_end(s, pos + 1)
+        let end = find_string_end(s, pos + 1)
+        if end < 0 {
+            n
+        } else {
+            end
+        }
     } else {
         if c == 91 {
             find_closing(s, pos + 1, 91, 93)
@@ -300,7 +306,22 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     }
     if c == 34 {
         let end = find_string_end(s, pos + 1)
-        let inner = json_decode_string(slice(s, pos + 1, end - 1))
+        if end < 0 {
+            return JsonParseStep_err(JsonParseError::InvalidLiteral("string"), pos)
+        }
+        let decoded = json_try_decode_string(slice(s, pos + 1, end - 1))
+        let mut inner = ""
+        let mut decode_ok = false
+        match decoded {
+            Option::Some(sval) => {
+                inner = sval
+                decode_ok = true
+            },
+            None => {},
+        }
+        if !decode_ok {
+            return JsonParseStep_err(JsonParseError::InvalidLiteral("string escape"), pos)
+        }
         return JsonParseStep_ok(JsonValue::Str(inner), end)
     }
     if c == 91 {
@@ -318,6 +339,10 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             }
             i = skip_ws(s, step.next)
             if i < n && char_at(s, i) == 44 {
+                let after_comma = skip_ws(s, i + 1)
+                if after_comma < n && char_at(s, after_comma) == 93 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(44), i)
+                }
                 i = i + 1
             }
         }
@@ -335,7 +360,22 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
             }
             let key_end = find_string_end(s, i + 1)
-            let key = json_decode_string(slice(s, i + 1, key_end - 1))
+            if key_end < 0 {
+                return JsonParseStep_err(JsonParseError::InvalidLiteral("string"), i)
+            }
+            let key_decoded = json_try_decode_string(slice(s, i + 1, key_end - 1))
+            let mut key = ""
+            let mut key_ok = false
+            match key_decoded {
+                Option::Some(k) => {
+                    key = k
+                    key_ok = true
+                },
+                None => {},
+            }
+            if !key_ok {
+                return JsonParseStep_err(JsonParseError::InvalidLiteral("string escape"), i)
+            }
             i = skip_ws(s, key_end)
             if i >= n || char_at(s, i) != 58 {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(58), i)
@@ -347,6 +387,10 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
             }
             i = skip_ws(s, step.next)
             if i < n && char_at(s, i) == 44 {
+                let after_comma = skip_ws(s, i + 1)
+                if after_comma < n && char_at(s, after_comma) == 125 {
+                    return JsonParseStep_err(JsonParseError::UnexpectedCharacter(44), i)
+                }
                 i = i + 1
             }
         }
@@ -560,6 +604,9 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
             return raw
         }
         let key_end = find_string_end(raw, i + 1)
+        if key_end < 0 {
+            return raw
+        }
         let key_raw = slice(raw, i, key_end)
         i = skip_ws(raw, key_end)
         if i >= n || char_at(raw, i) != 58 {
@@ -773,67 +820,33 @@ pub fn json_arr_string(items: Vec<JsonValue>) -> String {
 }
 
 // ─── String encoding ─────────────────────────────────────────────────────────
-fn json_decode_string(s: String) -> String {
+/// Decode JSON string body escapes. Returns None on unknown/incomplete escapes
+/// or unescaped control characters (RFC 8259 §7).
+fn json_try_decode_string(s: String) -> Option<String> {
     let n = len(s)
     let mut result = ""
     let mut i = 0
     while i < n {
         let c = char_at(s, i)
-        if c == 92 && i + 1 < n {
-            let nxt = char_at(s, i + 1)
-            if nxt == 34 {
-                result = concat(result, "\"")
-                i = i + 2
-            } else {
-                if nxt == 92 {
-                    result = concat(result, "\\")
-                    i = i + 2
-                } else {
-                    if nxt == 110 {
-                        result = concat(result, "\n")
-                        i = i + 2
-                    } else {
-                        if nxt == 116 {
-                            result = concat(result, "\t")
-                            i = i + 2
-                        } else {
-                            if nxt == 114 {
-                                result = concat(result, "\r")
-                                i = i + 2
-                            } else {
-                                if nxt == 98 {
-                                    result = concat(result, char_to_string(8))
-                                    i = i + 2
-                                } else {
-                                    if nxt == 102 {
-                                        result = concat(result, char_to_string(12))
-                                        i = i + 2
-                                    } else {
-                                        if nxt == 47 {
-                                            result = concat(result, "/")
-                                            i = i + 2
-                                        } else {
-                                            if nxt == 117 && i + 5 < n {
-                                                result = concat(result, json_decode_unicode_ascii(s, i + 1))
-                                                i = i + 6
-                                            } else {
-                                                result = concat(result, slice(s, i + 1, i + 2))
-                                                i = i + 2
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        if c == 92 {
+            if i + 1 >= n {
+                return None
             }
+            let decoded = json_decode_escape_at(s, i + 1)
+            if !decoded.ok {
+                return None
+            }
+            result = concat(result, decoded.value)
+            i = i + 1 + decoded.advance
         } else {
+            if c < 32 {
+                return None
+            }
             result = concat(result, slice(s, i, i + 1))
             i = i + 1
         }
     }
-    result
+    Some(result)
 }
 
 /// Encode a plain string as a JSON string literal with surrounding quotes

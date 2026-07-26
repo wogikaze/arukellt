@@ -1,13 +1,13 @@
+use std::json
 use lsp::framing
-use lsp::json_fields
 use lsp::rename_semantic
 
 pub fn handle_prepare_rename(state: LspState, body: String) {
-    let id = json_fields::extract_int_field(clone(body), "id")
+    let id = json::json_get_int(clone(body), String_from("id"))
     framing::append_framed(state, rename_semantic::build_prepare_rename_response_for_request(state, clone(body), id))
 }
 
 pub fn handle_rename(state: LspState, body: String) {
-    let id = json_fields::extract_int_field(clone(body), "id")
+    let id = json::json_get_int(clone(body), String_from("id"))
     framing::append_framed(state, rename_semantic::build_rename_response_for_request(state, clone(body), id))
 }
