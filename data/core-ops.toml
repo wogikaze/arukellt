@@ -2279,7 +2279,7 @@ id = "raw.array_new"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Allocate sealed raw Vec storage with capacity hint (#822)."
+description = "Allocate sealed raw Vec storage with capacity hint (issue 822)."
 [operations.signature]
 inputs = [{ name = "cap", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
@@ -2317,7 +2317,7 @@ id = "raw.array_set_len"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Set sealed raw Vec logical length without shrinking capacity (#822)."
+description = "Set sealed raw Vec logical length without shrinking capacity (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -2632,7 +2632,7 @@ id = "raw.f64_sqrt"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Wasm f64.sqrt for sealed raw float primitives (#822)."
+description = "Wasm f64.sqrt for sealed raw float primitives (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "f64" } }]
@@ -2670,7 +2670,7 @@ id = "raw.f64_bits_lo"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Low 32 bits of an f64 bit pattern (#822)."
+description = "Low 32 bits of an f64 bit pattern (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2708,7 +2708,7 @@ id = "raw.f64_bits_hi"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "High 32 bits of an f64 bit pattern (#822)."
+description = "High 32 bits of an f64 bit pattern (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2748,7 +2748,7 @@ id = "raw.f64_to_string"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Shortest round-trip f64 decimal formatter for sealed raw (#822)."
+description = "Shortest round-trip f64 decimal formatter for sealed raw (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "ref", name = "string" } }]
@@ -2786,7 +2786,7 @@ id = "raw.string_push_char"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Append one byte to sealed raw String storage (#822)."
+description = "Append one byte to sealed raw String storage (issue 822)."
 [operations.signature]
 inputs = [
   { name = "string", type = { kind = "ref", name = "string" } },
@@ -2829,7 +2829,7 @@ id = "raw.parse_f64"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Sealed Result-producing f64 decimal parse primitive (#822)."
+description = "Sealed Result-producing f64 decimal parse primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2867,7 +2867,7 @@ id = "raw.parse_i32"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Sealed Result-producing i32 decimal parse primitive (#822)."
+description = "Sealed Result-producing i32 decimal parse primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2905,7 +2905,7 @@ id = "raw.parse_i64"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Sealed Result-producing i64 decimal parse primitive (#822)."
+description = "Sealed Result-producing i64 decimal parse primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2943,7 +2943,7 @@ id = "raw.f32_promote_f64"
 visibility = "internal"
 classification = { layer = "target_raw" }
 binding = { policy = "forbidden" }
-description = "Wasm f64.promote_f32 for sealed typed f32 formatting (#822)."
+description = "Wasm f64.promote_f32 for sealed typed f32 formatting (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
 outputs = [{ type = { kind = "primitive", name = "f64" } }]
@@ -3502,7 +3502,7 @@ id = "math.sqrt"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Square root via sealed-raw f64.sqrt (#822)."
+description = "Square root via sealed-raw f64.sqrt (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "f64" } }]
@@ -3537,7 +3537,7 @@ id = "parse.parse_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Parse decimal f64 via sealed raw Result primitive (#822)."
+description = "Parse decimal f64 via sealed raw Result primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3571,7 +3571,7 @@ id = "parse.parse_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Parse decimal i32 via sealed raw Result primitive (#822)."
+description = "Parse decimal i32 via sealed raw Result primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3605,7 +3605,7 @@ id = "parse.parse_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Parse decimal i64 via sealed raw Result primitive (#822)."
+description = "Parse decimal i64 via sealed raw Result primitive (issue 822)."
 [operations.signature]
 inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5355,7 +5355,7 @@ id = "scalar.f64_bits_hi"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "High 32 bits of f64 via sealed-raw (#822)."
+description = "High 32 bits of f64 via sealed-raw (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5390,7 +5390,7 @@ id = "scalar.f64_bits_lo"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Low 32 bits of f64 via sealed-raw (#822)."
+description = "Low 32 bits of f64 via sealed-raw (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5638,7 +5638,7 @@ id = "seq.sort_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Sort a f64 Vec in place through a typed-set Ark body (#822)."
+description = "Sort a f64 Vec in place through a typed-set Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } }]
 receiver_index = 0
@@ -5708,7 +5708,7 @@ id = "seq.sort_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Sort a i64 Vec in place through a typed-set Ark body (#822)."
+description = "Sort a i64 Vec in place through a typed-set Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } }]
 receiver_index = 0
@@ -12615,7 +12615,7 @@ id = "text.f32_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Format f32 via sealed promote + f64 formatter (#822)."
+description = "Format f32 via sealed promote + f64 formatter (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
 outputs = [{ type = { kind = "ref", name = "string" } }]
@@ -12685,7 +12685,7 @@ id = "text.format_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Format f64 via sealed-raw shortest round-trip formatter (#822)."
+description = "Format f64 via sealed-raw shortest round-trip formatter (issue 822)."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "ref", name = "string" } }]
@@ -12824,7 +12824,7 @@ id = "text.push_char"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a char via sealed-raw string mutation (#822)."
+description = "Append a char via sealed-raw string mutation (issue 822)."
 [operations.signature]
 inputs = [
   { name = "string", type = { kind = "ref", name = "string" } },
@@ -12971,7 +12971,7 @@ id = "vec.Vec_new_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Wide-element Vec constructor via sealed raw.array_new (#822)."
+description = "Wide-element Vec constructor via sealed raw.array_new (issue 822)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -13005,7 +13005,7 @@ id = "vec.Vec_new_fallback"
 visibility = "internal"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "forbidden" }
-description = "Default/i32 Vec constructor via sealed raw.array_new (#822)."
+description = "Default/i32 Vec constructor via sealed raw.array_new (issue 822)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
@@ -13076,7 +13076,7 @@ id = "vec.get"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Bounds-checked Vec element load returning Option through sealed raw (#822)."
+description = "Bounds-checked Vec element load returning Option through sealed raw (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13114,7 +13114,7 @@ id = "vec.get_unchecked"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Unchecked Vec element load through a sealed-raw Ark body (#822)."
+description = "Unchecked Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13152,7 +13152,7 @@ id = "vec.get_unchecked_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Unchecked f64 Vec element load through a sealed-raw Ark body (#822)."
+description = "Unchecked f64 Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
@@ -13189,7 +13189,7 @@ id = "vec.get_unchecked_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Unchecked i64 Vec element load through a sealed-raw Ark body (#822)."
+description = "Unchecked i64 Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
@@ -13226,7 +13226,7 @@ id = "vec.is_empty"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Test Vec emptiness through a sealed-raw Ark body (#822)."
+description = "Test Vec emptiness through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -13261,7 +13261,7 @@ id = "vec.len"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Return Vec length through a sealed-raw Ark body (#822)."
+description = "Return Vec length through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -13296,7 +13296,7 @@ id = "vec.pop"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Remove last Vec element returning Option through sealed raw (#822)."
+description = "Remove last Vec element returning Option through sealed raw (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -13331,7 +13331,7 @@ id = "vec.push"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a Vec element through sealed raw grow+set Ark body (#822)."
+description = "Append a Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13369,7 +13369,7 @@ id = "vec.push_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append an f64 Vec element through sealed raw grow+set Ark body (#822)."
+description = "Append an f64 Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
@@ -13407,7 +13407,7 @@ id = "vec.push_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append an i64 Vec element through sealed raw grow+set Ark body (#822)."
+description = "Append an i64 Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
@@ -13445,7 +13445,7 @@ id = "vec.remove_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Remove an i32 Vec element by shifting via concrete Ark body (#822)."
+description = "Remove an i32 Vec element by shifting via concrete Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
@@ -13518,7 +13518,7 @@ id = "vec.set"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Write a Vec element through a sealed-raw Ark body (#822)."
+description = "Write a Vec element through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },

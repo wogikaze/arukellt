@@ -4,10 +4,10 @@
 [inventory]
 owner = "798"
 increase_requires_tracking_issue = true
-last_update_issue = 798
+last_update_issue = 807
 description = "Legacy MIR call lowering uses callee string matching; no new patterns until cutover."
 
 [counts]
-eq_clone_callee_patterns = 19
+eq_clone_callee_patterns = 71
 unique_callee_literal_keys = 158
 dispatch_source_files = 14

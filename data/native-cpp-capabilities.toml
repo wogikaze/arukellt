@@ -518,7 +518,95 @@ phase = 2
 implementation = "native_runtime"
 
 [[core_ops]]
+id = "raw.array_new"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_set_len"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
 id = "raw.array_set_unchecked"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f32_promote_f64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_bits_hi"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_bits_lo"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_sqrt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_to_string"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_f64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_i32"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_i64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_byte_at_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "planned"
@@ -542,6 +630,14 @@ phase = 2
 implementation = "native_runtime"
 
 [[core_ops]]
+id = "raw.string_len_bytes"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
 id = "raw.string_new"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
@@ -550,15 +646,7 @@ phase = 2
 implementation = "native_runtime"
 
 [[core_ops]]
-id = "raw.string_byte_at_unchecked"
-registry_layer = "target_raw"
-registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
-implementation = "native_runtime"
-
-[[core_ops]]
-id = "raw.string_len_bytes"
+id = "raw.string_push_char"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "planned"

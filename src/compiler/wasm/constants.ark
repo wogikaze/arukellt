@@ -171,3 +171,63 @@ fn GC_MEMBER_ENUM_VARIANT() -> i32 { 2 }
 fn STORAGE_CONTEXT_AGGREGATE_FIELD() -> i32 { 1 }
 fn STORAGE_CONTEXT_VEC_BACKING() -> i32 { 2 }
 fn STORAGE_CONTEXT_DEFAULT_LOCAL() -> i32 { 3 }
+
+// Component string-adapter core type indices / boundary kinds (#810).
+// Fixed core type indices in the adapter module.
+fn ADAPTER_TY_ARRAY_I8() -> i32 { 0 }
+fn ADAPTER_TY_REALLOC() -> i32 { 1 }
+fn ADAPTER_TY_ENUM_BASE() -> i32 { 2 }
+fn ADAPTER_TY_SHAPE_F64() -> i32 { 3 }
+fn ADAPTER_TY_POINT() -> i32 { 4 }
+fn ADAPTER_TY_OPTION_SOME_I32() -> i32 { 5 }
+fn ADAPTER_TY_OPTION_SOME_I64() -> i32 { 6 }
+fn ADAPTER_TY_ARRAY_I32() -> i32 { 7 }
+fn ADAPTER_TY_VEC_I32() -> i32 { 8 }
+fn ADAPTER_TY_RESULT_ERR_STRING() -> i32 { 9 }
+fn ADAPTER_TY_TUPLE_I64() -> i32 { 10 }
+fn ADAPTER_FIXED_TYPE_COUNT() -> i32 { 11 }
+// Boundary kind for one GC value.
+fn KIND_SCALAR() -> i32 { 0 }
+fn KIND_STRING() -> i32 { 1 }
+fn KIND_COLOR() -> i32 { 2 }
+fn KIND_POINT() -> i32 { 3 }
+fn KIND_SHAPE() -> i32 { 4 }
+fn KIND_OPTION_BOOL() -> i32 { 5 }
+fn KIND_OPTION_I32() -> i32 { 6 }
+fn KIND_OPTION_I64() -> i32 { 7 }
+fn KIND_RESULT_BOOL_BOOL() -> i32 { 8 }
+fn KIND_RESULT_I32_I32() -> i32 { 9 }
+fn KIND_RESULT_I32_STRING() -> i32 { 10 }
+fn KIND_LIST_I32() -> i32 { 11 }
+fn KIND_TUPLE_I32_I32() -> i32 { 12 }
+fn KIND_TUPLE_BOOL_BOOL() -> i32 { 13 }
+fn KIND_TUPLE_I32_BOOL() -> i32 { 14 }
+fn KIND_TUPLE_I64_I64() -> i32 { 15 }
+// GC Option tags (ctx_variants_builtin): Some=0, None=1.
+// Canonical ABI option: none=0, some=1.
+fn GC_OPTION_TAG_SOME() -> i32 { 0 }
+fn GC_OPTION_TAG_NONE() -> i32 { 1 }
+fn CANON_OPTION_NONE() -> i32 { 0 }
+fn CANON_OPTION_SOME() -> i32 { 1 }
+// GC Result and Canonical ABI share Ok=0 / Err=1 (no invert).
+fn GC_RESULT_TAG_OK() -> i32 { 0 }
+fn GC_RESULT_TAG_ERR() -> i32 { 1 }
+fn CANON_RESULT_OK() -> i32 { 0 }
+fn CANON_RESULT_ERR() -> i32 { 1 }
+
+// Component adapter WIT type slot indices (#810).
+fn WIT_SLOT_COUNT() -> i32 { 14 }
+fn WIT_SLOT_COLOR() -> i32 { 0 }
+fn WIT_SLOT_POINT() -> i32 { 1 }
+fn WIT_SLOT_SHAPE() -> i32 { 2 }
+fn WIT_SLOT_OPTION_BOOL() -> i32 { 3 }
+fn WIT_SLOT_OPTION_I32() -> i32 { 4 }
+fn WIT_SLOT_OPTION_I64() -> i32 { 5 }
+fn WIT_SLOT_RESULT_BOOL_BOOL() -> i32 { 6 }
+fn WIT_SLOT_RESULT_I32_I32() -> i32 { 7 }
+fn WIT_SLOT_RESULT_I32_STRING() -> i32 { 8 }
+fn WIT_SLOT_LIST_I32() -> i32 { 9 }
+fn WIT_SLOT_TUPLE_I32_I32() -> i32 { 10 }
+fn WIT_SLOT_TUPLE_BOOL_BOOL() -> i32 { 11 }
+fn WIT_SLOT_TUPLE_I32_BOOL() -> i32 { 12 }
+fn WIT_SLOT_TUPLE_I64_I64() -> i32 { 13 }

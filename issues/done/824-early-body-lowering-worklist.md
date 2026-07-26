@@ -143,8 +143,8 @@ Register all signatures / FunctionIds / layouts / types
 - [x] Implementation starts only after #829 phase-ms re-judge selects decl_emit
       — **gate not met; no implementation**
 - [x] Measurement receipt recorded; issue closed wontfix without code land
-- [ ] `python3 scripts/manager.py verify quick` + selfhost build-compiler smoke
-      when code lands — **N/A (no code)**
+- [x] `python3 scripts/manager.py verify quick` + selfhost build-compiler smoke
+      when code lands — **N/A (no code; wontfix/defer)**
 
 ## Evidence / parent receipt
 
