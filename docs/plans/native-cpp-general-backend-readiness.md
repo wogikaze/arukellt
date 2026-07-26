@@ -40,25 +40,25 @@
 
 ## 3. 目標値
 
-- [ ] unexpected ICE（全母集団）: `0`
-- [ ] unexpected crash: `0`
-- [ ] expected-negative diagnostic match: `100%`
-- [ ] positive compile: `≥80%`
-- [ ] compiled-positive semantic run: `≥95%`
-- [ ] public corpus: `100%` 維持
-- [ ] Wasm/native parity: `100%` 維持
+- [x] unexpected ICE（全母集団）: `0`
+- [x] unexpected crash: `0`
+- [ ] expected-negative diagnostic match: `100%`（2026-07-26 candidate: 37/124 ≈ 29.8%; Phase 5.2 分類は `.build-native-recovery/native-cpp-readiness/final-evidence/expected-negative-remaining.md`）
+- [x] positive compile: `≥80%`（2026-07-26 candidate: 1346/1672 = 80.50%）
+- [x] compiled-positive semantic run: `≥95%`（96.43%）
+- [x] public corpus: `100%` 維持（16/16）
+- [x] Wasm/native parity: `100%` 維持（hostable subset; HOF は native public corpus で担保）
 
 ## 4. 実行順
 
 - [x] 評価文言を暫定値として同期（Phase 0）
-- [ ] manifest 起点の measure v2
-- [ ] expected outcome との semantic 判定
-- [ ] v2 baseline と ratchet 導入
-- [ ] unexpected crash cluster を 0 へ
-- [ ] ICE を全母集団で 0 へ
-- [ ] capability reject 上位を実装
-- [ ] positive compile 80% / compiled-positive run 95%
-- [ ] docs と release guarantee の評価文言を昇格
+- [x] manifest 起点の measure v2
+- [x] expected outcome との semantic 判定
+- [ ] v2 baseline と ratchet 導入（expected-negative 100% 未達のため canonical 未昇格）
+- [x] unexpected crash cluster を 0 へ
+- [x] ICE を全母集団で 0 へ
+- [x] capability reject 上位を実装（HashMap / Range / assert / sort 等; 残差あり）
+- [x] positive compile 80% / compiled-positive run 95%
+- [ ] docs と release guarantee の評価文言を昇格（gates 未完了のため禁止）
 
 ## 5. Ratchet（悪化禁止）
 
