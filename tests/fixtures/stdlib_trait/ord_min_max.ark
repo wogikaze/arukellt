@@ -10,7 +10,7 @@ fn main() {
     test::assert_eq_i32(7.max(3), 7)
     test::assert_eq_i32(5.max(5), 5)
 
-    // Negative values
-    test::assert_eq_i32(-5.min(3), -5)
-    test::assert_eq_i32(-5.max(3), 3)
+    // Negative values (parenthesize: unary vs postfix precedence).
+    test::assert_eq_i32((-5).min(3), -5)
+    test::assert_eq_i32((-5).max(3), 3)
 }

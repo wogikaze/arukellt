@@ -68,6 +68,16 @@
 計測: 全 suite **PASS=1153 FAIL=203 SKIP=259**（wasm-invalid=223）。L6 の FAIL=262 から -59。  
 ディレクトリ: json 62→11、trait 33→27、string 20→18。残り top: trait 27、io 21、core 19、string 18、text 16。
 
+### L8 tranche（2026-07-26）— method/free recursion + unary fixtures
+
+1. **math wrappers:** ADR-046 free `popcount` 等が `n.popcount()` → 同名 free へ再帰していたのをインライン実装へ。
+2. **`String::eq`:** free `eq` ↔ `String::eq` 循環を `__intrinsic_string_eq` + name fallback で切断。
+3. **`Not for i32`:** `!` が eqz になるため `^ -1` の bitwise complement。
+4. **fixtures:** `-5.max/min/clamp` を `(-5).…` に（仕様どおり unary < postfix）。
+
+計測: 全 suite **PASS=1167 FAIL=189 SKIP=259**（wasm-invalid=223）。L7 の FAIL=203 から -14。  
+ディレクトリ: core 19→11、trait 27→22。残り top: trait 22、io 21、string 18、text 16、bytes 15。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。
