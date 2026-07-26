@@ -191,6 +191,8 @@ fn emit_p2_import_entries(
     emit_host_func_import(import_sec, String_from("wasi:clocks/monotonic-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 5))
     emit_host_func_import(import_sec, String_from("wasi:clocks/wall-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 6))
     emit_host_func_import(import_sec, String_from("wasi:random/random@0.2.0"), String_from("get-random-u64"), get_unchecked(host_type_map, 5))
+    // P1-shaped fd_write; type 0 is (i32,i32,i32,i32)->i32 like stdin read (#807).
+    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("write"), get_unchecked(host_type_map, 0))
     if needs_wasi_http_outgoing == 1 {
         emit_p2_outgoing_handler_import(import_sec, host_type_map)
         emit_p2_incoming_handler_import(import_sec, host_type_map)

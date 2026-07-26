@@ -808,15 +808,58 @@ def _wasm_run_cmd(
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
-def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
+def _fixture_host_run_flags(root: Path, fixture: str | None) -> tuple[list[str], bool]:
+    """Parse sibling ``.flags`` for host-run: ``--dir …`` lines and ``--deny-fs``.
+
+    Returns (dir_args, deny_fs). When ``.flags`` lists ``--dir``, those replace
+    the default repo-root preopen so ``--dir .:ro`` can honor read-only (#807).
+    """
+    dir_args = [f"--dir={root}"]
+    deny_fs = False
+    if not fixture:
+        return dir_args, deny_fs
+    flags_path = root / "tests" / "fixtures" / (fixture[:-4] + ".flags")
+    if not flags_path.is_file():
+        return dir_args, deny_fs
+    custom_dirs: list[str] = []
+    for raw in flags_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line == "--deny-fs":
+            deny_fs = True
+            continue
+        if line.startswith("--dir="):
+            custom_dirs.append(line)
+            continue
+        if line.startswith("--dir ") or line == "--dir":
+            # Support "--dir .:ro" (single line with space).
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                custom_dirs.append(f"--dir={parts[1]}")
+            continue
+    if custom_dirs:
+        dir_args = custom_dirs
+    return dir_args, deny_fs
+
+
+def _wasm_run_argv(
+    root: Path, wasm_path: Path, *, fixture: str | None = None
+) -> list[str]:
     """Return argv to execute user wasm, using host-linker when imports need it."""
+    dir_args, deny_fs = _fixture_host_run_flags(root, fixture)
     if _wasm_needs_host_linker(wasm_path):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
         if hosted.is_file():
-            return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
+            argv = ["bash", str(hosted), *dir_args]
+            if deny_fs:
+                argv.append("--deny-fs")
+            argv.append(str(wasm_path))
+            return argv
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
-            "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
+    argv = [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
+            "--wasm", "max-wasm-stack=16777216", *dir_args, str(wasm_path)]
+    return argv
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -4413,14 +4456,13 @@ def _run_fixture_parity_locked(
                 lines.append(f"  note: {fixture} (pinned wasm invalid, current OK — improvement!)")
 
             # ── Execution ─────────────────────────────────────────────────
-            r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
+            r_p = _run(_wasm_run_argv(root, out_pinned, fixture=fixture), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
 
-            r_c = _run(_wasm_run_argv(root, out_current), root, timeout=15)
+            r_c = _run(_wasm_run_argv(root, out_current, fixture=fixture), root, timeout=15)
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
-
             # A trap (exit 134) after successful wasm validation indicates a
             # runtime crash.
             # - If only current traps → FAIL (new regression).

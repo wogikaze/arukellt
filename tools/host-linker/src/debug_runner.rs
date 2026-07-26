@@ -12,6 +12,24 @@ use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 use wasmtime::*;
 
+#[derive(Clone, Copy, Default)]
+struct P2FsPolicy {
+    deny_fs: bool,
+    read_only: bool,
+}
+
+fn p2_fs_policy() -> &'static Mutex<P2FsPolicy> {
+    static POLICY: OnceLock<Mutex<P2FsPolicy>> = OnceLock::new();
+    POLICY.get_or_init(|| Mutex::new(P2FsPolicy::default()))
+}
+
+/// Install filesystem policy for guest-native P2 open-at / write stubs.
+pub fn install_p2_fs_policy(caps: &RuntimeCaps) {
+    let mut policy = p2_fs_policy().lock().unwrap_or_else(|e| e.into_inner());
+    policy.deny_fs = caps.deny_fs;
+    policy.read_only = caps.dirs.iter().any(|d| d.read_only);
+}
+
 /// Guest fds allocated by P2 open-at (starts above stdio-ish handles).
 fn p2_files() -> &'static Mutex<HashMap<i32, File>> {
     static FILES: OnceLock<Mutex<HashMap<i32, File>>> = OnceLock::new();
@@ -168,6 +186,7 @@ fn try_register_known(
         ("wasi:cli/exit@0.2.0", "exit") => register_exit_stub(linker, engine, ft),
         ("wasi:filesystem/types@0.2.0", "open-at") => register_open_at_stub(linker, engine, ft),
         ("wasi:filesystem/types@0.2.0", "close") => register_fs_close_stub(linker, engine, ft),
+        ("wasi:filesystem/types@0.2.0", "write") => register_fd_write_stub(linker, engine, ft),
         ("wasi:clocks/monotonic-clock@0.2.0", "now") => {
             register_monotonic_now_stub(linker, engine, ft)
         }
@@ -344,6 +363,10 @@ fn open_at_impl(caller: &mut Caller<'_, ()>, p: &[Val]) -> i32 {
     else {
         return 28;
     };
+    let policy = *p2_fs_policy().lock().unwrap_or_else(|e| e.into_inner());
+    if policy.deny_fs {
+        return 44;
+    }
     let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) else {
         return 28;
     };
@@ -364,6 +387,10 @@ fn open_at_impl(caller: &mut Caller<'_, ()>, p: &[Val]) -> i32 {
     // oflags bit 0 = creat (WASI PATH_OPEN_CREATE); bit 3 often create+trunc in guest emit (9).
     let create = (oflags & 1) != 0 || (oflags & 8) != 0;
     let trunc = (oflags & 8) != 0;
+    let wants_write = create || trunc;
+    if wants_write && policy.read_only {
+        return 30; // EROFS-ish — matches fixture `--dir .:ro`
+    }
     let mut opts = OpenOptions::new();
     opts.read(true);
     if create {
@@ -438,6 +465,72 @@ fn register_fd_read_stub(
         )
         .map_err(|e| format!("fd_read: {e}"))?;
     Ok(())
+}
+
+/// P1-shaped fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) -> errno.
+fn register_fd_write_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    linker
+        .func_new(
+            "wasi:filesystem/types@0.2.0",
+            "write",
+            ft,
+            move |mut caller: Caller<'_, ()>, p: &[Val], r: &mut [Val]| {
+                let errno = fd_write_impl(&mut caller, p);
+                if !r.is_empty() {
+                    r[0] = Val::I32(errno);
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("fd_write: {e}"))?;
+    Ok(())
+}
+
+fn fd_write_impl(caller: &mut Caller<'_, ()>, p: &[Val]) -> i32 {
+    if p.len() < 4 {
+        return 28;
+    }
+    let (Val::I32(fd), Val::I32(iovs_ptr), Val::I32(iovs_len), Val::I32(nwritten_ptr)) =
+        (p[0], p[1], p[2], p[3])
+    else {
+        return 28;
+    };
+    let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) else {
+        return 28;
+    };
+    if iovs_len <= 0 {
+        let _ = mem.write(&mut *caller, nwritten_ptr as usize, &0i32.to_le_bytes());
+        return 0;
+    }
+    let mut iov = [0u8; 8];
+    if mem.read(&*caller, iovs_ptr as usize, &mut iov).is_err() {
+        return 28;
+    }
+    let buf_ptr = i32::from_le_bytes([iov[0], iov[1], iov[2], iov[3]]);
+    let buf_len = i32::from_le_bytes([iov[4], iov[5], iov[6], iov[7]]);
+    if buf_len < 0 {
+        return 28;
+    }
+    let mut buf = vec![0u8; buf_len as usize];
+    if buf_len > 0 && mem.read(&*caller, buf_ptr as usize, &mut buf).is_err() {
+        return 28;
+    }
+    let n = {
+        use std::io::Write;
+        let mut files = p2_files().lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(file) = files.get_mut(&fd) {
+            file.write(&buf).unwrap_or(0) as i32
+        } else {
+            return 8;
+        }
+    };
+    let _ = mem.write(&mut *caller, nwritten_ptr as usize, &n.to_le_bytes());
+    0
 }
 
 fn fd_read_impl(caller: &mut Caller<'_, ()>, p: &[Val]) -> i32 {

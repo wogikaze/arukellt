@@ -22,13 +22,21 @@ pub struct DirGrant {
 
 pub struct RuntimeCaps {
     pub dirs: Vec<DirGrant>,
+    /// When true, all filesystem open-at calls fail (fixture `--deny-fs`).
+    pub deny_fs: bool,
 }
 
 impl RuntimeCaps {
     pub fn from_cli(dirs: &[String]) -> Self {
         RuntimeCaps {
             dirs: dirs.iter().map(|s| DirGrant::parse(s)).collect(),
+            deny_fs: false,
         }
+    }
+
+    pub fn with_deny_fs(mut self, deny_fs: bool) -> Self {
+        self.deny_fs = deny_fs;
+        self
     }
 }
 
@@ -150,10 +158,11 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     }
 }
 
-fn run_wasm_p2(engine: &Engine, module: &Module, _caps: &RuntimeCaps) -> Result<(), String> {
+fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
     // P2 path uses import stubs for wasi:cli / filesystem, but bridged guest ABI
     // (http_get / sockets_*) must bind the real host implementations — otherwise
     // auto-stubs return 0 and GC Result finalize incorrectly yields Ok.
+    crate::debug_runner::install_p2_fs_policy(caps);
     let mut linker = Linker::<()>::new(engine);
     linker.allow_shadowing(true);
     crate::debug_runner::register_import_stubs(&mut linker, module)

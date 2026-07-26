@@ -181,6 +181,16 @@
 残り top: trait 12、hashmap 6、io 5、core 5、json 3。  
 残: `host_capability`（`read_dir`/`metadata` が FsError Result で unreachable）。
 
+### L19 tranche（2026-07-26）— host_capability stubs + GC write + ro/deny flags
+
+1. **stub collision:** `read_dir` / `metadata` を `host_intrinsic_stub_names` から外し、Ark 本体を emit（GC unreachable 衝突を解消）。
+2. **GC `write_string`:** path/contents を linear へ stage → open/write/close → Result local。
+3. **P2 `fd_write`:** import index 14 + host-linker write stub（旧 call 0=get-stdout 衝突を解消）。
+4. **fixture `.flags`:** parity の host-run が `--dir .:ro` / `--deny-fs` を渡す；P2 open-at が read-only / deny を拒否。
+
+計測: 全 suite **PASS=1321 FAIL=45 SKIP=249**（wasm-invalid=198）。L18 の FAIL=48 から -3（new FAIL=0）。  
+残り top: trait 12、hashmap 6、core 5、io 3、json 3。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。
