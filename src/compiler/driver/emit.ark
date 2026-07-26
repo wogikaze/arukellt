@@ -61,7 +61,7 @@ fn emit_output(
     if eq(clone(emit_mode), "component") {
         return emit_component_output(mir_module, program, config, t0, t_lex, t_parse, t_resolve, t_typecheck, t_lower, t_mir_opt, t_mir_verify)
     }
-    result_record::CompileResult_err(phases::PHASE_EMIT(), concat("unsupported emit mode: ", clone(emit_mode)))
+    result_record::CompileResult_err(phases::PHASE_EMIT(), concat(String_from("unsupported emit mode: "), clone(emit_mode)))
 }
 
 fn emit_component_output(
@@ -89,7 +89,7 @@ fn emit_component_output(
         config_record::config_source_file(config)
     )
     if config_record::config_dump_wasm(config) {
-        stdio::eprintln(concat("core wasm size: ", concat(to_string(len(core_wasm)), " bytes")))
+        stdio::eprintln(concat(String_from("core wasm size: "), concat(to_string(len(core_wasm)), String_from(" bytes"))))
     }
     let comp_bytes = component::emit_component(core_wasm, mir_module, config_record::config_target(config), core_wasi, config_record::config_world(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
@@ -99,22 +99,22 @@ fn emit_component_output(
 }
 
 fn normalize_emit_mode(emit_mode: String) -> String {
-    if eq(clone(emit_mode), "core-wasm") {
-        return "wasm"
+    if eq(clone(emit_mode), String_from("core-wasm")) {
+        return String_from("wasm")
     }
     emit_mode
 }
 
 fn emit_component_core_wasi_version(config: DriverConfig, mir_module: MirModule) -> String {
     let configured = config_record::config_wasi_version(config)
-    // Explicit wasi-p2 keeps the command-world bridged path. Std helpers such as
-    // env::var lower to short MIR names (`var`) that look like library exports
-    // and must not force p1-component wrapping for P2 command fixtures (#668).
-    if eq(clone(configured), "wasi-p2") {
+    // Explicit `--wasi-version wasi-p2` keeps the command-world bridged path for
+    // P2 fixtures such as env::var (#668). Target-inferred default wasi-p2 must
+    // not win over library-shaped worlds used by component interop (#810).
+    if config_record::config_wasi_version_explicit(config) && eq(clone(configured), String_from("wasi-p2")) {
         return configured
     }
     if component::mir_has_library_exports(mir_module) {
-        return "p1-component"
+        return String_from("p1-component")
     }
     configured
 }
@@ -124,11 +124,11 @@ fn world_target_error(config: DriverConfig, emit_mode: String) -> String {
 }
 
 fn component_target_error(config: DriverConfig, emit_mode: String) -> String {
-    if eq(config_record::config_wasi_version(config), "wasi-p3") {
-        return "host profile wasi-p3 is not yet implemented"
+    if eq(config_record::config_wasi_version(config), String_from("wasi-p3")) {
+        return String_from("host profile wasi-p3 is not yet implemented")
     }
-    if eq(clone(emit_mode), "component") && !eq(config_record::config_target(config), "wasm32-gc") {
-        return "component model requires --target wasm32-gc"
+    if eq(clone(emit_mode), "component") && !eq(config_record::config_target(config), String_from("wasm32-gc")) {
+        return String_from("component model requires --target wasm32-gc")
     }
     String_new()
 }
@@ -184,7 +184,7 @@ fn emit_native_output(
         return result
     }
     if !target::is_native_llvm_target(target_name) {
-        return result_record::CompileResult_err(phases::PHASE_EMIT(), "compiler ICE: native emit routing received an unknown target")
+        return result_record::CompileResult_err(phases::PHASE_EMIT(), String_from("compiler ICE: native emit routing received an unknown target"))
     }
     let native_bytes = driver::native::emit_native_llvm_scaffold(mir_module)
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())

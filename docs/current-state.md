@@ -11,8 +11,8 @@
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 3 additional full-verification blocker group(s)
-> Distinct incidents: 4 (derived from incident_id in release-guarantees.toml; 4 failing checks)
+> Blocking: 1089 fixture failure(s), 2 additional full-verification blocker group(s)
+> Distinct incidents: 3 (derived from incident_id in release-guarantees.toml; 3 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -38,8 +38,8 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | Component emit | ADR-008: in-tree | P2 command は guest-native in-tree（#714 / #668）。library / 一部 packaging は移行中 |
 | Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
-| jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。scalar `pub fn` の Node.js E2E は `tests/component-interop/jco/calculator/` で `ARUKELLT_TEST_JCO=1` gate として稼働。String/record/variant canonical ABI adapters は未実装 |
-| Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816、inliner は #820、pure/#821 と representation-dependent/#822 の Ark body 移行は完了。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 305 CoreOp（`normal_call` 80、`legacy_emitter` 3、`runtime_call` 45、`target_intrinsic` 175、`mir_op` 2）。残 `legacy_emitter` は portable SIMD 3 ops（`simd.i32x4.add/sub`, `simd.f32x4.add`）のみで #698 / ADR-037 が owner。`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
+| jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。`verify component-interop` wasmtime スイートは通過（#810）。Node.js jco E2E は `ARUKELLT_TEST_JCO=1`（`tests/component-interop/jco/`）。library GC Option/Result/List/Record/Tuple adapters は実装済み；browser Chrome HTTP E2E は別 |
+| Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816 で backend 結合対象に復帰し、#820 の bounded stdlib-only inliner と #821/#822 の Ark body 移行を開始した。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 294 CoreOp（`normal_call` 52、`legacy_emitter` 31、`runtime_call` 45、`target_intrinsic` 164、`mir_op` 2）で、`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
 
 ### Proposed migration gaps（normative ではない）
 
@@ -48,7 +48,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | 項目 | 提案 ADR | 現行 |
 |------|----------|------|
 | Trait stdlib redesign | ADR-046 根絶 + ADR-036（D5 撤回）+ ADR-014 削除方針 | モノモルフィック / free 公開面が残存 → **移行前**（根絶方針は採択済み） |
-| SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前**。#822 から carve-out した `legacy_emitter` 3 ops（`simd.i32x4.add/sub`, `simd.f32x4.add`）も #698 owner |
+| SIMD API shape | ADR-037: nominal `I32x4`/`F32x4`/`Mask4` + `std::wasm::V128` | #698 experimental lane モジュール + 無印 `v128` → **移行前** |
 | SIMD capabilities | ADR-037: portable/raw/relaxed 三軸 | `is_simd_target()` が全 target で `true` → **未実装** |
 | Portable SIMD op semantics | RFC-003: 初期核の NativeSimd↔Scalar 同値 | 未固定 → **RFC DRAFT** |
 | Trait expressiveness | RFC-004: Self + 型引数、associated type 先送り | 未実装 → **RFC DRAFT** |
@@ -130,7 +130,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
-| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #810 | `a80b4181` | `2cd10f16` | `fresh` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

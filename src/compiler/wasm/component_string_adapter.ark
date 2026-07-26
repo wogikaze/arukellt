@@ -4,15 +4,59 @@ use mir::function_return_view
 use mir::module_functions
 use mir::value_types
 use wasm::constants
+use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_string
 
-// Canonical ABI adapter core module for component functions that take or
-// return WIT strings. Each exported function gets a tiny adapter that
-// converts between the WIT string representation (i32 pointer/length in
-// linear memory) and Arukellt's internal GC array-of-i8 representation
-// (ref null (array (mut i8))). Scalar parameters and results are passed
-// through unchanged.
+// Canonical ABI adapter core module for component exports whose guest ABI uses
+// GC refs (String / unit enum / Point record / Shape variant). Adapters own the
+// GC ↔ canonical flatten conversion; ordinary MIR call sites do not.
+
+// Fixed core type indices in the adapter module.
+fn ADAPTER_TY_ARRAY_I8() -> i32 { 0 }
+fn ADAPTER_TY_REALLOC() -> i32 { 1 }
+fn ADAPTER_TY_ENUM_BASE() -> i32 { 2 }
+fn ADAPTER_TY_SHAPE_F64() -> i32 { 3 }
+fn ADAPTER_TY_POINT() -> i32 { 4 }
+// Option::Some / Result::Ok with i32/bool payload (sub final enum_base).
+fn ADAPTER_TY_OPTION_SOME_I32() -> i32 { 5 }
+fn ADAPTER_TY_OPTION_SOME_I64() -> i32 { 6 }
+fn ADAPTER_TY_ARRAY_I32() -> i32 { 7 }
+fn ADAPTER_TY_VEC_I32() -> i32 { 8 }
+// Result::Err(String) payload variant (sub final enum_base).
+fn ADAPTER_TY_RESULT_ERR_STRING() -> i32 { 9 }
+fn ADAPTER_TY_TUPLE_I64() -> i32 { 10 }
+fn ADAPTER_FIXED_TYPE_COUNT() -> i32 { 11 }
+
+// Boundary kind for one GC value.
+fn KIND_SCALAR() -> i32 { 0 }
+fn KIND_STRING() -> i32 { 1 }
+fn KIND_COLOR() -> i32 { 2 }
+fn KIND_POINT() -> i32 { 3 }
+fn KIND_SHAPE() -> i32 { 4 }
+fn KIND_OPTION_BOOL() -> i32 { 5 }
+fn KIND_OPTION_I32() -> i32 { 6 }
+fn KIND_OPTION_I64() -> i32 { 7 }
+fn KIND_RESULT_BOOL_BOOL() -> i32 { 8 }
+fn KIND_RESULT_I32_I32() -> i32 { 9 }
+fn KIND_RESULT_I32_STRING() -> i32 { 10 }
+fn KIND_LIST_I32() -> i32 { 11 }
+fn KIND_TUPLE_I32_I32() -> i32 { 12 }
+fn KIND_TUPLE_BOOL_BOOL() -> i32 { 13 }
+fn KIND_TUPLE_I32_BOOL() -> i32 { 14 }
+fn KIND_TUPLE_I64_I64() -> i32 { 15 }
+
+// GC Option tags (ctx_variants_builtin): Some=0, None=1.
+// Canonical ABI option: none=0, some=1.
+fn GC_OPTION_TAG_SOME() -> i32 { 0 }
+fn GC_OPTION_TAG_NONE() -> i32 { 1 }
+fn CANON_OPTION_NONE() -> i32 { 0 }
+fn CANON_OPTION_SOME() -> i32 { 1 }
+// GC Result and Canonical ABI share Ok=0 / Err=1 (no invert).
+fn GC_RESULT_TAG_OK() -> i32 { 0 }
+fn GC_RESULT_TAG_ERR() -> i32 { 1 }
+fn CANON_RESULT_OK() -> i32 { 0 }
+fn CANON_RESULT_ERR() -> i32 { 1 }
 
 pub fn emit_string_adapter_module(mir: MirModule, adapter_indices: Vec<i32>) -> Vec<i32> {
     let out = writer_core::WasmWriter_new()
@@ -53,12 +97,48 @@ pub fn adapter_func_needs_adapter(f: MirFunction) -> bool {
     let param_count = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < param_count {
-        if adapter_is_gc_ref(function_param_view::MirFunction_param_val_type(f, pi)) {
+        if adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        ) != KIND_SCALAR() {
             return true
         }
         pi = pi + 1
     }
-    adapter_is_gc_ref(function_return_view::MirFunction_return_type(f))
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    if ret_type == value_types::VT_VOID() {
+        return false
+    }
+    adapter_value_kind(function_return_view::MirFunction_return_type_name(f), ret_type) != KIND_SCALAR()
+}
+
+pub fn adapter_func_needs_canon_memory_opts(f: MirFunction) -> bool {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        // Flat compounds (enum/option/result scalars/tuples) do not need memory;
+        // pointer+len payloads do.
+        if kind == KIND_STRING() || kind == KIND_LIST_I32() || kind == KIND_RESULT_I32_STRING() {
+            return true
+        }
+        pi = pi + 1
+    }
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    if ret_type == value_types::VT_VOID() {
+        return false
+    }
+    let ret_kind = adapter_value_kind(function_return_view::MirFunction_return_type_name(f), ret_type)
+    ret_kind == KIND_STRING() ||
+    ret_kind == KIND_POINT() ||
+    ret_kind == KIND_SHAPE() ||
+    adapter_kind_is_option(ret_kind) ||
+    adapter_kind_is_result(ret_kind) ||
+    ret_kind == KIND_LIST_I32() ||
+    adapter_kind_is_tuple(ret_kind)
 }
 
 pub fn adapter_func_name(f: MirFunction) -> String {
@@ -71,7 +151,10 @@ pub fn adapter_func_has_param(f: MirFunction) -> bool {
 
 pub fn adapter_func_param_is_string(f: MirFunction) -> bool {
     let param_count = function_param_view::MirFunction_param_count(f)
-    param_count > 0 && adapter_is_gc_ref(function_param_view::MirFunction_param_val_type(f, 0))
+    param_count > 0 && adapter_value_kind(
+        function_param_view::MirFunction_param_type_name(f, 0),
+        function_param_view::MirFunction_param_val_type(f, 0)
+    ) == KIND_STRING()
 }
 
 pub fn adapter_func_param_type_byte(f: MirFunction) -> i32 {
@@ -85,12 +168,277 @@ pub fn adapter_func_has_return(f: MirFunction) -> bool {
 
 pub fn adapter_func_return_is_string(f: MirFunction) -> bool {
     let ret_type = function_return_view::MirFunction_return_type(f)
-    ret_type != value_types::VT_VOID() && adapter_is_gc_ref(ret_type)
+    ret_type != value_types::VT_VOID() && adapter_value_kind(
+        function_return_view::MirFunction_return_type_name(f),
+        ret_type
+    ) == KIND_STRING()
 }
 
 pub fn adapter_func_return_type_byte(f: MirFunction) -> i32 {
     let type_name = function_return_view::MirFunction_return_type_name(f)
     adapter_core_type_byte(type_name)
+}
+
+fn adapter_type_name_is(type_name: String, bare: String) -> bool {
+    if eq(clone(type_name), clone(bare)) {
+        return true
+    }
+    // MIR sig names use `enum:Color` / `struct:Point:8` after layout lowering.
+    if eq(clone(type_name), concat(String_from("enum:"), clone(bare))) {
+        return true
+    }
+    if starts_with(clone(type_name), concat(String_from("struct:"), concat(clone(bare), String_from(":")))) {
+        return true
+    }
+    if starts_with(clone(type_name), concat(String_from("enum:"), concat(clone(bare), String_from(":")))) {
+        return true
+    }
+    false
+}
+
+pub fn adapter_value_kind(type_name: String, vt: i32) -> i32 {
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+        return KIND_STRING()
+    }
+    if adapter_type_name_is(clone(type_name), String_from("Color")) {
+        return KIND_COLOR()
+    }
+    if adapter_type_name_is(clone(type_name), String_from("Point")) {
+        return KIND_POINT()
+    }
+    if adapter_type_name_is(clone(type_name), String_from("Shape")) {
+        return KIND_SHAPE()
+    }
+    let option_kind = adapter_option_kind_from_name(clone(type_name))
+    if option_kind != KIND_SCALAR() {
+        return option_kind
+    }
+    let result_kind = adapter_result_kind_from_name(clone(type_name))
+    if result_kind != KIND_SCALAR() {
+        return result_kind
+    }
+    let list_kind = adapter_list_kind_from_name(clone(type_name))
+    if list_kind != KIND_SCALAR() {
+        return list_kind
+    }
+    let tuple_kind = adapter_tuple_kind_from_name(clone(type_name))
+    if tuple_kind != KIND_SCALAR() {
+        return tuple_kind
+    }
+    if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
+        // Unknown GC ref: keep string-shaped boundary only when name is empty
+        // (legacy), otherwise treat as scalar-opaque so we do not invent ABI.
+        if len(type_name) == 0 {
+            return KIND_STRING()
+        }
+    }
+    KIND_SCALAR()
+}
+
+fn adapter_option_payload_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("option:")) {
+        return substring(type_name, 7, len(type_name))
+    }
+    if starts_with(clone(type_name), String_from("Option_")) {
+        return substring(type_name, 7, len(type_name))
+    }
+    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
+        return substring(type_name, 7, len(type_name) - 1)
+    }
+    String_from("")
+}
+
+fn adapter_option_kind_from_name(type_name: String) -> i32 {
+    let payload = adapter_option_payload_name(type_name)
+    if len(payload) == 0 {
+        return KIND_SCALAR()
+    }
+    if eq(clone(payload), String_from("bool")) {
+        return KIND_OPTION_BOOL()
+    }
+    if eq(clone(payload), String_from("i32")) || eq(clone(payload), String_from("s32")) {
+        return KIND_OPTION_I32()
+    }
+    if eq(clone(payload), String_from("i64")) || eq(clone(payload), String_from("s64")) {
+        return KIND_OPTION_I64()
+    }
+    KIND_SCALAR()
+}
+
+fn adapter_kind_is_option(kind: i32) -> bool {
+    kind == KIND_OPTION_BOOL() || kind == KIND_OPTION_I32() || kind == KIND_OPTION_I64()
+}
+
+fn adapter_kind_is_result(kind: i32) -> bool {
+    kind == KIND_RESULT_BOOL_BOOL() || kind == KIND_RESULT_I32_I32() || kind == KIND_RESULT_I32_STRING()
+}
+
+fn adapter_kind_is_tuple(kind: i32) -> bool {
+    kind == KIND_TUPLE_I32_I32() ||
+    kind == KIND_TUPLE_BOOL_BOOL() ||
+    kind == KIND_TUPLE_I32_BOOL() ||
+    kind == KIND_TUPLE_I64_I64()
+}
+
+fn adapter_kind_is_tuple_i32_pair(kind: i32) -> bool {
+    kind == KIND_TUPLE_I32_I32() || kind == KIND_TUPLE_BOOL_BOOL() || kind == KIND_TUPLE_I32_BOOL()
+}
+
+fn adapter_result_kind_from_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("result:bool:bool")) ||
+    eq(clone(type_name), String_from("Result_bool_bool")) ||
+    eq(clone(type_name), String_from("Result:bool:bool")) {
+        return KIND_RESULT_BOOL_BOOL()
+    }
+    if eq(clone(type_name), String_from("result:i32:i32")) ||
+    eq(clone(type_name), String_from("Result_i32_i32")) ||
+    eq(clone(type_name), String_from("result:s32:s32")) ||
+    eq(clone(type_name), String_from("Result:i32:i32")) {
+        return KIND_RESULT_I32_I32()
+    }
+    if eq(clone(type_name), String_from("result:i32:String")) ||
+    eq(clone(type_name), String_from("Result_i32_String")) ||
+    eq(clone(type_name), String_from("result:i32:string")) ||
+    eq(clone(type_name), String_from("result:s32:string")) ||
+    eq(clone(type_name), String_from("Result:i32:String")) ||
+    eq(clone(type_name), String_from("Result:i32:string")) {
+        return KIND_RESULT_I32_STRING()
+    }
+    KIND_SCALAR()
+}
+
+fn adapter_list_kind_from_name(type_name: String) -> i32 {
+    if eq(clone(type_name), String_from("vec:i32")) || eq(clone(type_name), String_from("Vec<i32>")) {
+        return KIND_LIST_I32()
+    }
+    KIND_SCALAR()
+}
+
+fn adapter_tuple_kind_from_name(type_name: String) -> i32 {
+    // Param ann names use Tuple:A:B; returns use struct:tuple:A,B:size / tuple:A,B.
+    if eq(clone(type_name), String_from("tuple:i32,i32")) ||
+    eq(clone(type_name), String_from("tuple:s32,s32")) ||
+    eq(clone(type_name), String_from("Tuple:i32:i32")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:i32,i32:")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:s32,s32:")) {
+        return KIND_TUPLE_I32_I32()
+    }
+    if eq(clone(type_name), String_from("tuple:bool,bool")) ||
+    eq(clone(type_name), String_from("Tuple:bool:bool")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:bool,bool:")) {
+        return KIND_TUPLE_BOOL_BOOL()
+    }
+    if eq(clone(type_name), String_from("tuple:i32,bool")) ||
+    eq(clone(type_name), String_from("tuple:s32,bool")) ||
+    eq(clone(type_name), String_from("Tuple:i32:bool")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:i32,bool:")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:s32,bool:")) {
+        return KIND_TUPLE_I32_BOOL()
+    }
+    if eq(clone(type_name), String_from("tuple:i64,i64")) ||
+    eq(clone(type_name), String_from("tuple:s64,s64")) ||
+    eq(clone(type_name), String_from("Tuple:i64:i64")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:i64,i64:")) ||
+    starts_with(clone(type_name), String_from("struct:tuple:s64,s64:")) {
+        return KIND_TUPLE_I64_I64()
+    }
+    KIND_SCALAR()
+}
+
+pub fn adapter_type_is_color(type_name: String) -> bool {
+    adapter_type_name_is(type_name, String_from("Color"))
+}
+
+pub fn adapter_type_is_point(type_name: String) -> bool {
+    adapter_type_name_is(type_name, String_from("Point"))
+}
+
+pub fn adapter_type_is_shape(type_name: String) -> bool {
+    adapter_type_name_is(type_name, String_from("Shape"))
+}
+
+pub fn adapter_type_is_option_bool(type_name: String) -> bool {
+    adapter_option_kind_from_name(type_name) == KIND_OPTION_BOOL()
+}
+
+pub fn adapter_type_is_option_i32(type_name: String) -> bool {
+    adapter_option_kind_from_name(type_name) == KIND_OPTION_I32()
+}
+
+pub fn adapter_type_is_option_i64(type_name: String) -> bool {
+    adapter_option_kind_from_name(type_name) == KIND_OPTION_I64()
+}
+
+pub fn adapter_type_is_result_bool_bool(type_name: String) -> bool {
+    adapter_result_kind_from_name(type_name) == KIND_RESULT_BOOL_BOOL()
+}
+
+pub fn adapter_type_is_result_i32_i32(type_name: String) -> bool {
+    adapter_result_kind_from_name(type_name) == KIND_RESULT_I32_I32()
+}
+
+pub fn adapter_type_is_result_i32_string(type_name: String) -> bool {
+    adapter_result_kind_from_name(type_name) == KIND_RESULT_I32_STRING()
+}
+
+pub fn adapter_type_is_list_i32(type_name: String) -> bool {
+    adapter_list_kind_from_name(type_name) == KIND_LIST_I32()
+}
+
+pub fn adapter_type_is_tuple_i32_i32(type_name: String) -> bool {
+    adapter_tuple_kind_from_name(type_name) == KIND_TUPLE_I32_I32()
+}
+
+pub fn adapter_type_is_tuple_bool_bool(type_name: String) -> bool {
+    adapter_tuple_kind_from_name(type_name) == KIND_TUPLE_BOOL_BOOL()
+}
+
+pub fn adapter_type_is_tuple_i32_bool(type_name: String) -> bool {
+    adapter_tuple_kind_from_name(type_name) == KIND_TUPLE_I32_BOOL()
+}
+
+pub fn adapter_type_is_tuple_i64_i64(type_name: String) -> bool {
+    adapter_tuple_kind_from_name(type_name) == KIND_TUPLE_I64_I64()
+}
+
+pub fn adapter_type_is_compound_wit(type_name: String, vt: i32) -> bool {
+    adapter_compound_wit_slot(type_name, vt) >= 0
+}
+
+// Stable WIT type-pool slots for library_component_emit.
+pub fn WIT_SLOT_COUNT() -> i32 { 14 }
+pub fn WIT_SLOT_COLOR() -> i32 { 0 }
+pub fn WIT_SLOT_POINT() -> i32 { 1 }
+pub fn WIT_SLOT_SHAPE() -> i32 { 2 }
+pub fn WIT_SLOT_OPTION_BOOL() -> i32 { 3 }
+pub fn WIT_SLOT_OPTION_I32() -> i32 { 4 }
+pub fn WIT_SLOT_OPTION_I64() -> i32 { 5 }
+pub fn WIT_SLOT_RESULT_BOOL_BOOL() -> i32 { 6 }
+pub fn WIT_SLOT_RESULT_I32_I32() -> i32 { 7 }
+pub fn WIT_SLOT_RESULT_I32_STRING() -> i32 { 8 }
+pub fn WIT_SLOT_LIST_I32() -> i32 { 9 }
+pub fn WIT_SLOT_TUPLE_I32_I32() -> i32 { 10 }
+pub fn WIT_SLOT_TUPLE_BOOL_BOOL() -> i32 { 11 }
+pub fn WIT_SLOT_TUPLE_I32_BOOL() -> i32 { 12 }
+pub fn WIT_SLOT_TUPLE_I64_I64() -> i32 { 13 }
+
+pub fn adapter_compound_wit_slot(type_name: String, vt: i32) -> i32 {
+    let kind = adapter_value_kind(type_name, vt)
+    if kind == KIND_COLOR() { return WIT_SLOT_COLOR() }
+    if kind == KIND_POINT() { return WIT_SLOT_POINT() }
+    if kind == KIND_SHAPE() { return WIT_SLOT_SHAPE() }
+    if kind == KIND_OPTION_BOOL() { return WIT_SLOT_OPTION_BOOL() }
+    if kind == KIND_OPTION_I32() { return WIT_SLOT_OPTION_I32() }
+    if kind == KIND_OPTION_I64() { return WIT_SLOT_OPTION_I64() }
+    if kind == KIND_RESULT_BOOL_BOOL() { return WIT_SLOT_RESULT_BOOL_BOOL() }
+    if kind == KIND_RESULT_I32_I32() { return WIT_SLOT_RESULT_I32_I32() }
+    if kind == KIND_RESULT_I32_STRING() { return WIT_SLOT_RESULT_I32_STRING() }
+    if kind == KIND_LIST_I32() { return WIT_SLOT_LIST_I32() }
+    if kind == KIND_TUPLE_I32_I32() { return WIT_SLOT_TUPLE_I32_I32() }
+    if kind == KIND_TUPLE_BOOL_BOOL() { return WIT_SLOT_TUPLE_BOOL_BOOL() }
+    if kind == KIND_TUPLE_I32_BOOL() { return WIT_SLOT_TUPLE_I32_BOOL() }
+    if kind == KIND_TUPLE_I64_I64() { return WIT_SLOT_TUPLE_I64_I64() }
+    0 - 1
 }
 
 fn adapter_core_type_byte(type_name: String) -> i32 {
@@ -107,10 +455,6 @@ fn adapter_core_type_byte(type_name: String) -> i32 {
     if eq(clone(type_name), "f32") { return constants::WASM_F32() }
     if eq(clone(type_name), "f64") { return constants::WASM_F64() }
     constants::WASM_I32()
-}
-
-fn adapter_is_gc_ref(vt: i32) -> bool {
-    vt == value_types::VT_REF() || vt == value_types::VT_GC_REF()
 }
 
 fn emit_module_header(out: writer_core::WasmWriter) {
@@ -131,16 +475,15 @@ fn emit_core_section(out: writer_core::WasmWriter, section_id: i32, contents: wr
 }
 
 fn emit_type_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
-    // type 0: array (mut i8)
-    // type 1: realloc (i32, i32, i32, i32) -> i32
-    // per function: user import type, adapter export type
     let n = len(adapter_indices)
-    writer_core::emit_leb128_u(sec, 2 + n * 2)
+    writer_core::emit_leb128_u(sec, ADAPTER_FIXED_TYPE_COUNT() + n * 2)
 
+    // 0: array (mut i8)
     writer_core::emit_byte(sec, 0x5e)
     writer_core::emit_byte(sec, 0x78)
     writer_core::emit_byte(sec, 0x01)
 
+    // 1: realloc (i32,i32,i32,i32)->i32
     writer_core::emit_byte(sec, 0x60)
     writer_core::emit_leb128_u(sec, 4)
     writer_core::emit_byte(sec, 0x7f)
@@ -149,6 +492,95 @@ fn emit_type_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indic
     writer_core::emit_byte(sec, 0x7f)
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_byte(sec, 0x7f)
+
+    // 2: enum base (sub (struct (field (mut i32))))
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_SUB())
+    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 3: Shape f64 variant (sub final enum_base (struct tag, f64))
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_ENUM_BASE())
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_F64())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 4: Point (sub final (struct x,y))
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 5: Option::Some with i32/bool payload (sub final enum_base (struct tag, i32))
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_ENUM_BASE())
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 6: Option::Some with i64 payload
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_ENUM_BASE())
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_I64())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 7: array (mut i32) for list<s32>
+    writer_core::emit_byte(sec, 0x5e)
+    writer_core::emit_byte(sec, 0x7f)
+    writer_core::emit_byte(sec, 0x01)
+
+    // 8: Vec<i32> (data array, len)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, 0x63)
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_ARRAY_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 9: Result::Err(String)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_ENUM_BASE())
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I32())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, 0x63)
+    writer_core::emit_byte(sec, ADAPTER_TY_ARRAY_I8())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+
+    // 10: tuple<i64,i64>
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_FINAL_SUB())
+    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_byte(sec, opcodes::SEC_TYPE_STRUCT())
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, constants::WASM_I64())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
+    writer_core::emit_byte(sec, constants::WASM_I64())
+    writer_core::emit_byte(sec, constants::WASM_MUTABLE())
 
     let mut fi = 0
     while fi < n {
@@ -160,70 +592,179 @@ fn emit_type_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_indic
     }
 }
 
-fn emit_user_import_type(sec: writer_core::WasmWriter, f: MirFunction) {
-    let has_param = adapter_func_has_param(f)
-    let param_is_string = adapter_func_param_is_string(f)
-    let param_type_byte = adapter_func_param_type_byte(f)
-    let has_return = adapter_func_has_return(f)
-    let return_is_string = adapter_func_return_is_string(f)
-    let return_type_byte = adapter_func_return_type_byte(f)
-
-    writer_core::emit_byte(sec, 0x60)
-    if has_param {
-        writer_core::emit_leb128_u(sec, 1)
-        if param_is_string {
-            writer_core::emit_byte(sec, 0x63)
-            writer_core::emit_byte(sec, 0x00)
-        } else {
-            writer_core::emit_byte(sec, param_type_byte)
-        }
+fn emit_gc_ref_type(sec: writer_core::WasmWriter, kind: i32) {
+    writer_core::emit_byte(sec, 0x63)
+    if kind == KIND_STRING() {
+        writer_core::emit_byte(sec, ADAPTER_TY_ARRAY_I8())
+    } else if kind == KIND_POINT() || adapter_kind_is_tuple_i32_pair(kind) {
+        writer_core::emit_leb128_u(sec, ADAPTER_TY_POINT())
+    } else if kind == KIND_TUPLE_I64_I64() {
+        writer_core::emit_leb128_u(sec, ADAPTER_TY_TUPLE_I64())
+    } else if kind == KIND_LIST_I32() {
+        writer_core::emit_leb128_u(sec, ADAPTER_TY_VEC_I32())
     } else {
-        writer_core::emit_leb128_u(sec, 0)
+        // Color / Shape / Option / Result guest values use the open enum base.
+        writer_core::emit_leb128_u(sec, ADAPTER_TY_ENUM_BASE())
     }
-    if has_return {
-        writer_core::emit_leb128_u(sec, 1)
-        if return_is_string {
-            writer_core::emit_byte(sec, 0x63)
-            writer_core::emit_byte(sec, 0x00)
+}
+
+fn emit_user_import_type(sec: writer_core::WasmWriter, f: MirFunction) {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    writer_core::emit_byte(sec, 0x60)
+    writer_core::emit_leb128_u(sec, param_count)
+    let mut pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        if kind == KIND_SCALAR() {
+            writer_core::emit_byte(sec, adapter_core_type_byte(function_param_view::MirFunction_param_type_name(f, pi)))
         } else {
-            writer_core::emit_byte(sec, return_type_byte)
+            emit_gc_ref_type(sec, kind)
         }
-    } else {
+        pi = pi + 1
+    }
+
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    if ret_type == value_types::VT_VOID() {
         writer_core::emit_leb128_u(sec, 0)
+    } else {
+        writer_core::emit_leb128_u(sec, 1)
+        let ret_kind = adapter_value_kind(function_return_view::MirFunction_return_type_name(f), ret_type)
+        if ret_kind == KIND_SCALAR() {
+            writer_core::emit_byte(sec, adapter_core_type_byte(function_return_view::MirFunction_return_type_name(f)))
+        } else {
+            emit_gc_ref_type(sec, ret_kind)
+        }
+    }
+}
+
+fn flatten_slots_for_kind(kind: i32) -> i32 {
+    if kind == KIND_STRING() {
+        return 2
+    }
+    if kind == KIND_POINT() {
+        return 2
+    }
+    if kind == KIND_SHAPE() {
+        return 2
+    }
+    if kind == KIND_COLOR() {
+        return 1
+    }
+    if kind == KIND_OPTION_BOOL() || kind == KIND_OPTION_I32() {
+        // Canonical flat: (disc i32, payload i32)
+        return 2
+    }
+    if kind == KIND_OPTION_I64() {
+        return 2
+    }
+    if kind == KIND_RESULT_BOOL_BOOL() || kind == KIND_RESULT_I32_I32() {
+        return 2
+    }
+    if kind == KIND_RESULT_I32_STRING() {
+        // disc + max(ok=s32, err=string) → 3 i32 flats
+        return 3
+    }
+    if kind == KIND_LIST_I32() {
+        return 2
+    }
+    if adapter_kind_is_tuple_i32_pair(kind) {
+        return 2
+    }
+    if kind == KIND_TUPLE_I64_I64() {
+        return 2
+    }
+    1
+}
+
+fn emit_flatten_param_types(sec: writer_core::WasmWriter, kind: i32, scalar_byte: i32) {
+    if kind == KIND_STRING() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_POINT() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_SHAPE() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, constants::WASM_F64())
+    } else if kind == KIND_COLOR() {
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_OPTION_BOOL() || kind == KIND_OPTION_I32() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_OPTION_I64() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, constants::WASM_I64())
+    } else if kind == KIND_RESULT_BOOL_BOOL() || kind == KIND_RESULT_I32_I32() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_RESULT_I32_STRING() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_LIST_I32() {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if adapter_kind_is_tuple_i32_pair(kind) {
+        writer_core::emit_byte(sec, 0x7f)
+        writer_core::emit_byte(sec, 0x7f)
+    } else if kind == KIND_TUPLE_I64_I64() {
+        writer_core::emit_byte(sec, constants::WASM_I64())
+        writer_core::emit_byte(sec, constants::WASM_I64())
+    } else {
+        writer_core::emit_byte(sec, scalar_byte)
     }
 }
 
 fn emit_adapter_export_type(sec: writer_core::WasmWriter, f: MirFunction) {
-    let has_param = adapter_func_has_param(f)
-    let param_is_string = adapter_func_param_is_string(f)
-    let param_type_byte = adapter_func_param_type_byte(f)
-    let has_return = adapter_func_has_return(f)
-    let return_is_string = adapter_func_return_is_string(f)
-    let return_type_byte = adapter_func_return_type_byte(f)
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut flat_params = 0
+    let mut pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        flat_params = flat_params + flatten_slots_for_kind(kind)
+        pi = pi + 1
+    }
 
     writer_core::emit_byte(sec, 0x60)
-    if has_param {
-        if param_is_string {
-            writer_core::emit_leb128_u(sec, 2)
-            writer_core::emit_byte(sec, 0x7f)
-            writer_core::emit_byte(sec, 0x7f)
-        } else {
-            writer_core::emit_leb128_u(sec, 1)
-            writer_core::emit_byte(sec, param_type_byte)
-        }
-    } else {
-        writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_leb128_u(sec, flat_params)
+    pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        emit_flatten_param_types(sec, kind, adapter_core_type_byte(function_param_view::MirFunction_param_type_name(f, pi)))
+        pi = pi + 1
     }
-    if has_return {
-        if return_is_string {
+
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    if ret_type == value_types::VT_VOID() {
+        writer_core::emit_leb128_u(sec, 0)
+    } else {
+        let ret_kind = adapter_value_kind(function_return_view::MirFunction_return_type_name(f), ret_type)
+        // Multi-flat results use a result-area pointer.
+        if ret_kind == KIND_STRING() ||
+        ret_kind == KIND_POINT() ||
+        ret_kind == KIND_SHAPE() ||
+        adapter_kind_is_option(ret_kind) ||
+        adapter_kind_is_result(ret_kind) ||
+        ret_kind == KIND_LIST_I32() ||
+        adapter_kind_is_tuple(ret_kind) {
+            writer_core::emit_leb128_u(sec, 1)
+            writer_core::emit_byte(sec, 0x7f)
+        } else if ret_kind == KIND_COLOR() {
             writer_core::emit_leb128_u(sec, 1)
             writer_core::emit_byte(sec, 0x7f)
         } else {
             writer_core::emit_leb128_u(sec, 1)
-            writer_core::emit_byte(sec, return_type_byte)
+            writer_core::emit_byte(sec, adapter_core_type_byte(function_return_view::MirFunction_return_type_name(f)))
         }
-    } else {
-        writer_core::emit_leb128_u(sec, 0)
     }
 }
 
@@ -234,7 +775,7 @@ fn emit_import_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_ind
     while fi < n {
         let idx = get_unchecked(adapter_indices, fi)
         let f = module_functions::MirModule_function_at(mir, idx)
-        let type_idx = 2 + fi * 2
+        let type_idx = ADAPTER_FIXED_TYPE_COUNT() + fi * 2
         let name = function_identity::MirFunction_name(f)
         writer_string::emit_string(sec, "user")
         writer_string::emit_string(sec, clone(name))
@@ -247,12 +788,10 @@ fn emit_import_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_ind
 fn emit_func_section(sec: writer_core::WasmWriter, adapter_indices: Vec<i32>) {
     let n = len(adapter_indices)
     writer_core::emit_leb128_u(sec, n + 1)
-    // realloc
-    writer_core::emit_leb128_u(sec, 1)
-    // adapter functions
+    writer_core::emit_leb128_u(sec, ADAPTER_TY_REALLOC())
     let mut fi = 0
     while fi < n {
-        writer_core::emit_leb128_u(sec, 2 + fi * 2 + 1)
+        writer_core::emit_leb128_u(sec, ADAPTER_FIXED_TYPE_COUNT() + fi * 2 + 1)
         fi = fi + 1
     }
 }
@@ -319,7 +858,9 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
     emit_i32_const(body, 0)
     emit_i32_eq(body)
     emit_if(body)
-    emit_i32_const(body, 1)
+    // Canonical ABI allows 0 for zero-sized realloc; returning 1 breaks
+    // list/string empty payloads (misaligned pointer).
+    emit_i32_const(body, 0)
     emit_return(body)
     emit_end(body)
 
@@ -373,88 +914,630 @@ fn emit_realloc_body(sec: writer_core::WasmWriter) {
 }
 
 fn emit_adapter_func_body(sec: writer_core::WasmWriter, f: MirFunction, func_idx: i32, realloc_idx: i32) {
-    let body = writer_core::WasmWriter_new()
-
-    let has_param = adapter_func_has_param(f)
-    let param_is_string = adapter_func_param_is_string(f)
-    let has_return = adapter_func_has_return(f)
-    let return_is_string = adapter_func_return_is_string(f)
-
-    let param_local_count = if has_param {
-        if param_is_string { 2 } else { 1 }
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    let has_return = ret_type != value_types::VT_VOID()
+    let ret_kind = if has_return {
+        adapter_value_kind(function_return_view::MirFunction_return_type_name(f), ret_type)
     } else {
-        0
+        KIND_SCALAR()
     }
-    let mut next_local = param_local_count
-    let mut arr_local = -1
-    let mut ret_local = -1
-    let mut out_ptr_local = -1
-    let mut out_len_local = -1
-    let mut i_local = -1
-    let mut ret_ptr_local = -1
-    let mut group_count = 0
 
-    if param_is_string {
-        arr_local = next_local
-        next_local = next_local + 1
-        group_count = group_count + 1
+    let mut flat_param_count = 0
+    let mut pi = 0
+    while pi < param_count {
+        flat_param_count = flat_param_count + flatten_slots_for_kind(adapter_value_kind(
+                function_param_view::MirFunction_param_type_name(f, pi),
+                function_param_view::MirFunction_param_val_type(f, pi)
+            ))
+        pi = pi + 1
     }
-    if return_is_string {
+
+    // Locals after flattened params: one GC temp per compound param, plus return temps.
+    let mut next_local = flat_param_count
+    let mut compound_param_locals = Vec_new_i32()
+    pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        if kind == KIND_SCALAR() {
+            push(compound_param_locals, 0 - 1)
+        } else {
+            push(compound_param_locals, next_local)
+            next_local = next_local + 1
+        }
+        pi = pi + 1
+    }
+
+    let mut ret_local = 0 - 1
+    let mut out_ptr_local = 0 - 1
+    let mut out_len_local = 0 - 1
+    let mut i_local = 0 - 1
+    let mut ret_ptr_local = 0 - 1
+    let mut arr_i8_tmp_local = 0 - 1
+    let mut arr_i32_tmp_local = 0 - 1
+    let mut scratch_i32_count = 0
+    let mut needs_arr_i8_tmp = false
+    let mut needs_arr_i32_tmp = false
+    pi = 0
+    while pi < param_count {
+        let pk = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        if pk == KIND_RESULT_I32_STRING() {
+            needs_arr_i8_tmp = true
+        }
+        if pk == KIND_LIST_I32() {
+            needs_arr_i32_tmp = true
+        }
+        pi = pi + 1
+    }
+    if has_return && ret_kind == KIND_RESULT_I32_STRING() {
+        needs_arr_i8_tmp = true
+    }
+
+    // Array scratch locals are declared immediately after compound GC params,
+    // so allocate them before return / i32 scratch slots.
+    if needs_arr_i8_tmp {
+        arr_i8_tmp_local = next_local
+        next_local = next_local + 1
+    }
+    if needs_arr_i32_tmp {
+        arr_i32_tmp_local = next_local
+        next_local = next_local + 1
+    }
+
+    if has_return && (ret_kind == KIND_STRING() || ret_kind == KIND_RESULT_I32_STRING() || ret_kind == KIND_LIST_I32()) {
         ret_local = next_local
         next_local = next_local + 1
-        group_count = group_count + 1
         out_ptr_local = next_local
         out_len_local = next_local + 1
         i_local = next_local + 2
         ret_ptr_local = next_local + 3
         next_local = next_local + 4
-        group_count = group_count + 1
-    } else if param_is_string {
-        i_local = next_local
+        scratch_i32_count = 4
+    } else if has_return && (
+        ret_kind == KIND_POINT() ||
+        ret_kind == KIND_SHAPE() ||
+        adapter_kind_is_option(ret_kind) ||
+        adapter_kind_is_result(ret_kind) ||
+        adapter_kind_is_tuple(ret_kind)
+    ) {
+        ret_local = next_local
         next_local = next_local + 1
-        group_count = group_count + 1
+        ret_ptr_local = next_local
+        next_local = next_local + 1
+        scratch_i32_count = 1
+    } else if has_return && ret_kind == KIND_COLOR() {
+        ret_local = next_local
+        next_local = next_local + 1
+    } else {
+        // String / list param copy loops need an index local.
+        pi = 0
+        while pi < param_count {
+            let pk = adapter_value_kind(
+                function_param_view::MirFunction_param_type_name(f, pi),
+                function_param_view::MirFunction_param_val_type(f, pi)
+            )
+            if pk == KIND_STRING() || pk == KIND_LIST_I32() || pk == KIND_RESULT_I32_STRING() {
+                i_local = next_local
+                next_local = next_local + 1
+                scratch_i32_count = 1
+                break
+            }
+            pi = pi + 1
+        }
     }
 
-    writer_core::emit_leb128_u(body, group_count)
-    if param_is_string {
-        writer_core::emit_leb128_u(body, 1)
-        writer_core::emit_byte(body, 0x64)
-        writer_core::emit_byte(body, 0x00)
+    let compound_count = len(compound_param_locals)
+    let mut local_decls = writer_core::WasmWriter_new()
+    let mut decl_groups = 0
+    let mut ci = 0
+    while ci < compound_count {
+        let loc = get_unchecked(compound_param_locals, ci)
+        if loc >= 0 {
+            let kind = adapter_value_kind(
+                function_param_view::MirFunction_param_type_name(f, ci),
+                function_param_view::MirFunction_param_val_type(f, ci)
+            )
+            writer_core::emit_leb128_u(local_decls, 1)
+            if kind == KIND_STRING() {
+                writer_core::emit_byte(local_decls, 0x64)
+                writer_core::emit_byte(local_decls, ADAPTER_TY_ARRAY_I8())
+            } else if kind == KIND_POINT() || adapter_kind_is_tuple_i32_pair(kind) {
+                writer_core::emit_byte(local_decls, 0x63)
+                writer_core::emit_leb128_u(local_decls, ADAPTER_TY_POINT())
+            } else if kind == KIND_TUPLE_I64_I64() {
+                writer_core::emit_byte(local_decls, 0x63)
+                writer_core::emit_leb128_u(local_decls, ADAPTER_TY_TUPLE_I64())
+            } else if kind == KIND_LIST_I32() {
+                writer_core::emit_byte(local_decls, 0x63)
+                writer_core::emit_leb128_u(local_decls, ADAPTER_TY_VEC_I32())
+            } else {
+                // Color / Shape / Option / Result params: open enum base ref.
+                writer_core::emit_byte(local_decls, 0x63)
+                writer_core::emit_leb128_u(local_decls, ADAPTER_TY_ENUM_BASE())
+            }
+            decl_groups = decl_groups + 1
+        }
+        ci = ci + 1
     }
-    if return_is_string {
-        writer_core::emit_leb128_u(body, 1)
-        writer_core::emit_byte(body, 0x63)
-        writer_core::emit_byte(body, 0x00)
+    if arr_i8_tmp_local >= 0 {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_byte(local_decls, ADAPTER_TY_ARRAY_I8())
+        decl_groups = decl_groups + 1
     }
-    if return_is_string || param_is_string {
-        let i32_count = if return_is_string { 4 } else { 1 }
-        writer_core::emit_leb128_u(body, i32_count)
-        writer_core::emit_byte(body, 0x7f)
+    if arr_i32_tmp_local >= 0 {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_leb128_u(local_decls, ADAPTER_TY_ARRAY_I32())
+        decl_groups = decl_groups + 1
+    }
+    if ret_local >= 0 && ret_kind == KIND_STRING() {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_byte(local_decls, ADAPTER_TY_ARRAY_I8())
+        decl_groups = decl_groups + 1
+    } else if ret_local >= 0 && (ret_kind == KIND_POINT() || adapter_kind_is_tuple_i32_pair(ret_kind)) {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_leb128_u(local_decls, ADAPTER_TY_POINT())
+        decl_groups = decl_groups + 1
+    } else if ret_local >= 0 && ret_kind == KIND_TUPLE_I64_I64() {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_leb128_u(local_decls, ADAPTER_TY_TUPLE_I64())
+        decl_groups = decl_groups + 1
+    } else if ret_local >= 0 && ret_kind == KIND_LIST_I32() {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_leb128_u(local_decls, ADAPTER_TY_VEC_I32())
+        decl_groups = decl_groups + 1
+    } else if ret_local >= 0 && (
+        ret_kind == KIND_COLOR() ||
+        ret_kind == KIND_SHAPE() ||
+        adapter_kind_is_option(ret_kind) ||
+        adapter_kind_is_result(ret_kind)
+    ) {
+        writer_core::emit_leb128_u(local_decls, 1)
+        writer_core::emit_byte(local_decls, 0x63)
+        writer_core::emit_leb128_u(local_decls, ADAPTER_TY_ENUM_BASE())
+        decl_groups = decl_groups + 1
+    }
+    if scratch_i32_count > 0 {
+        writer_core::emit_leb128_u(local_decls, scratch_i32_count)
+        writer_core::emit_byte(local_decls, 0x7f)
+        decl_groups = decl_groups + 1
     }
 
-    if param_is_string {
-        // arr = array.new_default (len)
-        emit_local_get(body, 1)
-        emit_array_new_default(body, 0)
-        emit_local_set(body, arr_local)
+    // Rewrite body header with correct group count.
+    let body2 = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(body2, decl_groups)
+    writer_core::emit_bytes(body2, writer_core::writer_bytes(local_decls))
 
-        // i = 0
+    // Lower each compound param into a GC local.
+    let mut flat_i = 0
+    pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        let dest = get_unchecked(compound_param_locals, pi)
+        if kind == KIND_STRING() {
+            emit_lower_string_param(body2, flat_i, dest, i_local)
+            flat_i = flat_i + 2
+        } else if kind == KIND_COLOR() {
+            emit_local_get(body2, flat_i)
+            emit_struct_new(body2, ADAPTER_TY_ENUM_BASE())
+            emit_local_set(body2, dest)
+            flat_i = flat_i + 1
+        } else if kind == KIND_POINT() {
+            emit_local_get(body2, flat_i)
+            emit_local_get(body2, flat_i + 1)
+            emit_struct_new(body2, ADAPTER_TY_POINT())
+            emit_local_set(body2, dest)
+            flat_i = flat_i + 2
+        } else if kind == KIND_SHAPE() {
+            emit_local_get(body2, flat_i)
+            emit_local_get(body2, flat_i + 1)
+            emit_struct_new(body2, ADAPTER_TY_SHAPE_F64())
+            emit_local_set(body2, dest)
+            flat_i = flat_i + 2
+        } else if adapter_kind_is_option(kind) {
+            emit_lower_option_param(body2, kind, flat_i, dest)
+            flat_i = flat_i + 2
+        } else if adapter_kind_is_result(kind) {
+            emit_lower_result_param(body2, kind, flat_i, dest, i_local, arr_i8_tmp_local)
+            flat_i = flat_i + flatten_slots_for_kind(kind)
+        } else if kind == KIND_LIST_I32() {
+            emit_lower_list_i32_param(body2, flat_i, dest, i_local, arr_i32_tmp_local)
+            flat_i = flat_i + 2
+        } else if adapter_kind_is_tuple_i32_pair(kind) {
+            emit_local_get(body2, flat_i)
+            emit_local_get(body2, flat_i + 1)
+            emit_struct_new(body2, ADAPTER_TY_POINT())
+            emit_local_set(body2, dest)
+            flat_i = flat_i + 2
+        } else if kind == KIND_TUPLE_I64_I64() {
+            emit_local_get(body2, flat_i)
+            emit_local_get(body2, flat_i + 1)
+            emit_struct_new(body2, ADAPTER_TY_TUPLE_I64())
+            emit_local_set(body2, dest)
+            flat_i = flat_i + 2
+        } else {
+            flat_i = flat_i + 1
+        }
+        pi = pi + 1
+    }
+
+    // Push guest call args.
+    flat_i = 0
+    pi = 0
+    while pi < param_count {
+        let kind = adapter_value_kind(
+            function_param_view::MirFunction_param_type_name(f, pi),
+            function_param_view::MirFunction_param_val_type(f, pi)
+        )
+        let dest = get_unchecked(compound_param_locals, pi)
+        if kind == KIND_SCALAR() {
+            emit_local_get(body2, flat_i)
+            flat_i = flat_i + 1
+        } else {
+            emit_local_get(body2, dest)
+            flat_i = flat_i + flatten_slots_for_kind(kind)
+        }
+        pi = pi + 1
+    }
+
+    emit_call(body2, func_idx)
+
+    if has_return {
+        if ret_kind == KIND_STRING() {
+            emit_lift_string_result(body2, ret_local, out_ptr_local, out_len_local, i_local, ret_ptr_local, realloc_idx)
+        } else if ret_kind == KIND_POINT() {
+            emit_lift_point_result(body2, ret_local, ret_ptr_local, realloc_idx)
+        } else if ret_kind == KIND_SHAPE() {
+            emit_lift_shape_result(body2, ret_local, ret_ptr_local, realloc_idx)
+        } else if adapter_kind_is_option(ret_kind) {
+            emit_lift_option_result(body2, ret_kind, ret_local, ret_ptr_local, realloc_idx)
+        } else if adapter_kind_is_result(ret_kind) {
+            emit_lift_result_result(
+                body2,
+                ret_kind,
+                ret_local,
+                out_ptr_local,
+                out_len_local,
+                i_local,
+                ret_ptr_local,
+                arr_i8_tmp_local,
+                realloc_idx
+            )
+        } else if ret_kind == KIND_LIST_I32() {
+            emit_lift_list_i32_result(body2, ret_local, out_ptr_local, out_len_local, i_local, ret_ptr_local, realloc_idx)
+        } else if adapter_kind_is_tuple(ret_kind) {
+            emit_lift_tuple_result(body2, ret_kind, ret_local, ret_ptr_local, realloc_idx)
+        } else if ret_kind == KIND_COLOR() {
+            emit_local_set(body2, ret_local)
+            emit_local_get(body2, ret_local)
+            // struct.get accepts (ref null ht); avoid ref.as_non_null so
+            // wasmtime --wasm gc is enough without function-references.
+            emit_struct_get(body2, ADAPTER_TY_ENUM_BASE(), 0)
+        }
+        // Scalar results stay on stack.
+    }
+
+    emit_return(body2)
+    emit_end(body2)
+
+    let bytes = writer_core::writer_bytes(body2)
+    writer_core::emit_leb128_u(sec, len(bytes))
+    writer_core::emit_bytes(sec, bytes)
+}
+
+fn emit_lower_string_param(body: writer_core::WasmWriter, ptr_local: i32, arr_local: i32, i_local: i32) {
+    emit_local_get(body, ptr_local + 1)
+    emit_array_new_default(body, ADAPTER_TY_ARRAY_I8())
+    emit_local_set(body, arr_local)
+
+    emit_i32_const(body, 0)
+    emit_local_set(body, i_local)
+
+    emit_loop(body)
+    emit_local_get(body, i_local)
+    emit_local_get(body, ptr_local + 1)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, arr_local)
+    emit_local_get(body, i_local)
+    emit_local_get(body, ptr_local)
+    emit_local_get(body, i_local)
+    emit_i32_add(body)
+    emit_i32_load8_u(body)
+    emit_array_set(body, ADAPTER_TY_ARRAY_I8())
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, i_local)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+}
+
+fn emit_lift_string_result(
+    body: writer_core::WasmWriter,
+    ret_local: i32,
+    out_ptr_local: i32,
+    out_len_local: i32,
+    i_local: i32,
+    ret_ptr_local: i32,
+    realloc_idx: i32
+) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    emit_local_get(body, ret_local)
+    emit_ref_as_non_null(body)
+    emit_array_len(body)
+    emit_local_set(body, out_len_local)
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 1)
+    emit_local_get(body, out_len_local)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, out_ptr_local)
+
+    emit_i32_const(body, 0)
+    emit_local_set(body, i_local)
+
+    emit_loop(body)
+    emit_local_get(body, i_local)
+    emit_local_get(body, out_len_local)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, out_ptr_local)
+    emit_local_get(body, i_local)
+    emit_i32_add(body)
+    emit_local_get(body, ret_local)
+    emit_ref_as_non_null(body)
+    emit_local_get(body, i_local)
+    emit_array_get_u(body, ADAPTER_TY_ARRAY_I8())
+    emit_i32_store8(body)
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, i_local)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_i32_const(body, 8)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, out_ptr_local)
+    emit_i32_store(body, 0)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, out_len_local)
+    emit_i32_store(body, 4)
+
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_lower_option_param(body: writer_core::WasmWriter, kind: i32, flat_i: i32, dest: i32) {
+    // flat_i = canon disc, flat_i+1 = payload. Map canon none/some → GC None/Some tags.
+    emit_local_get(body, flat_i)
+    emit_i32_const(body, CANON_OPTION_NONE())
+    emit_i32_eq(body)
+    emit_if(body)
+    // None → GC tag 1 on open enum base
+    emit_i32_const(body, GC_OPTION_TAG_NONE())
+    emit_struct_new(body, ADAPTER_TY_ENUM_BASE())
+    emit_local_set(body, dest)
+    emit_else(body)
+    // Some → GC tag 0 + payload on typed Some variant
+    emit_i32_const(body, GC_OPTION_TAG_SOME())
+    emit_local_get(body, flat_i + 1)
+    if kind == KIND_OPTION_I64() {
+        emit_struct_new(body, ADAPTER_TY_OPTION_SOME_I64())
+    } else {
+        emit_struct_new(body, ADAPTER_TY_OPTION_SOME_I32())
+    }
+    emit_local_set(body, dest)
+    emit_end(body)
+}
+
+fn emit_lift_option_result(
+    body: writer_core::WasmWriter,
+    kind: i32,
+    ret_local: i32,
+    ret_ptr_local: i32,
+    realloc_idx: i32
+) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    // Canonical layouts:
+    //   option<bool>: disc@0 (u8), payload@1 (u8), size 2
+    //   option<s32>:  disc@0 (u8), payload@4 (i32), size 8
+    //   option<s64>:  disc@0 (u8), payload@8 (i64), size 16
+    let mut align = 1
+    let mut size = 2
+    if kind == KIND_OPTION_I32() {
+        align = 4
+        size = 8
+    } else if kind == KIND_OPTION_I64() {
+        align = 8
+        size = 16
+    }
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, align)
+    emit_i32_const(body, size)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    // Branch on GC tag: Some(0) → canon some(1); None(1) → canon none(0).
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_ENUM_BASE(), 0)
+    emit_i32_const(body, GC_OPTION_TAG_NONE())
+    emit_i32_eq(body)
+    emit_if(body)
+    emit_local_get(body, ret_ptr_local)
+    emit_i32_const(body, CANON_OPTION_NONE())
+    emit_i32_store8_at(body, 0)
+    emit_else(body)
+    emit_local_get(body, ret_ptr_local)
+    emit_i32_const(body, CANON_OPTION_SOME())
+    emit_i32_store8_at(body, 0)
+    if kind == KIND_OPTION_I64() {
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I64())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I64(), 1)
+        emit_i64_store(body, 8)
+    } else if kind == KIND_OPTION_I32() {
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store(body, 4)
+    } else {
+        // option<bool>: payload at offset 1
+        emit_local_get(body, ret_ptr_local)
+        emit_i32_const(body, 1)
+        emit_i32_add(body)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store8(body)
+    }
+    emit_end(body)
+
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_lower_result_param(
+    body: writer_core::WasmWriter,
+    kind: i32,
+    flat_i: i32,
+    dest: i32,
+    i_local: i32,
+    arr_i8_tmp: i32
+) {
+    // flat_i = canon disc. Ok=0 / Err=1 matches GC tags (no invert).
+    emit_local_get(body, flat_i)
+    emit_i32_const(body, CANON_RESULT_OK())
+    emit_i32_eq(body)
+    emit_if(body)
+    emit_i32_const(body, GC_RESULT_TAG_OK())
+    emit_local_get(body, flat_i + 1)
+    emit_struct_new(body, ADAPTER_TY_OPTION_SOME_I32())
+    emit_local_set(body, dest)
+    emit_else(body)
+    if kind == KIND_RESULT_I32_STRING() {
+        emit_lower_string_param(body, flat_i + 1, arr_i8_tmp, i_local)
+        emit_i32_const(body, GC_RESULT_TAG_ERR())
+        emit_local_get(body, arr_i8_tmp)
+        emit_struct_new(body, ADAPTER_TY_RESULT_ERR_STRING())
+        emit_local_set(body, dest)
+    } else {
+        emit_i32_const(body, GC_RESULT_TAG_ERR())
+        emit_local_get(body, flat_i + 1)
+        emit_struct_new(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_local_set(body, dest)
+    }
+    emit_end(body)
+}
+
+fn emit_lift_result_result(
+    body: writer_core::WasmWriter,
+    kind: i32,
+    ret_local: i32,
+    out_ptr_local: i32,
+    out_len_local: i32,
+    i_local: i32,
+    ret_ptr_local: i32,
+    arr_i8_tmp: i32,
+    realloc_idx: i32
+) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    let mut align = 1
+    let mut size = 2
+    if kind == KIND_RESULT_I32_I32() {
+        align = 4
+        size = 8
+    } else if kind == KIND_RESULT_I32_STRING() {
+        align = 4
+        size = 12
+    }
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, align)
+    emit_i32_const(body, size)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_ENUM_BASE(), 0)
+    emit_i32_const(body, GC_RESULT_TAG_ERR())
+    emit_i32_eq(body)
+    emit_if(body)
+    emit_local_get(body, ret_ptr_local)
+    emit_i32_const(body, CANON_RESULT_ERR())
+    emit_i32_store8_at(body, 0)
+    if kind == KIND_RESULT_I32_STRING() {
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_RESULT_ERR_STRING())
+        emit_struct_get(body, ADAPTER_TY_RESULT_ERR_STRING(), 1)
+        emit_local_set(body, arr_i8_tmp)
+
+        // Prefer null-tolerant GC ops so --wasm gc is enough (no function-references).
+        emit_local_get(body, arr_i8_tmp)
+        emit_array_len(body)
+        emit_local_set(body, out_len_local)
+
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 1)
+        emit_local_get(body, out_len_local)
+        emit_call(body, realloc_idx)
+        emit_local_set(body, out_ptr_local)
+
         emit_i32_const(body, 0)
         emit_local_set(body, i_local)
-
-        // copy input bytes from linear memory to array
         emit_loop(body)
         emit_local_get(body, i_local)
-        emit_local_get(body, 1)
+        emit_local_get(body, out_len_local)
         emit_i32_lt_u(body)
         emit_if(body)
-        emit_local_get(body, arr_local)
-        emit_local_get(body, i_local)
-        emit_local_get(body, 0)
+        emit_local_get(body, out_ptr_local)
         emit_local_get(body, i_local)
         emit_i32_add(body)
-        emit_i32_load8_u(body)
-        emit_array_set(body, 0)
+        emit_local_get(body, arr_i8_tmp)
+        emit_local_get(body, i_local)
+        emit_array_get_u(body, ADAPTER_TY_ARRAY_I8())
+        emit_i32_store8(body)
         emit_local_get(body, i_local)
         emit_i32_const(body, 1)
         emit_i32_add(body)
@@ -462,98 +1545,349 @@ fn emit_adapter_func_body(sec: writer_core::WasmWriter, f: MirFunction, func_idx
         emit_br(body, 1)
         emit_end(body)
         emit_end(body)
+
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, out_ptr_local)
+        emit_i32_store(body, 4)
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, out_len_local)
+        emit_i32_store(body, 8)
+    } else if kind == KIND_RESULT_I32_I32() {
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store(body, 4)
+    } else {
+        emit_local_get(body, ret_ptr_local)
+        emit_i32_const(body, 1)
+        emit_i32_add(body)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store8(body)
     }
-
-    if has_param {
-        if param_is_string {
-            emit_local_get(body, arr_local)
-        } else {
-            emit_local_get(body, 0)
-        }
+    emit_else(body)
+    emit_local_get(body, ret_ptr_local)
+    emit_i32_const(body, CANON_RESULT_OK())
+    emit_i32_store8_at(body, 0)
+    if kind == KIND_RESULT_I32_I32() || kind == KIND_RESULT_I32_STRING() {
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store(body, 4)
+    } else {
+        emit_local_get(body, ret_ptr_local)
+        emit_i32_const(body, 1)
+        emit_i32_add(body)
+        emit_local_get(body, ret_local)
+        emit_ref_cast_null(body, ADAPTER_TY_OPTION_SOME_I32())
+        emit_struct_get(body, ADAPTER_TY_OPTION_SOME_I32(), 1)
+        emit_i32_store8(body)
     }
-
-    emit_call(body, func_idx)
-
-    if has_return {
-        if return_is_string {
-            emit_local_set(body, ret_local)
-
-            // reset bump to canonical scratch start before output allocation
-            emit_i32_const(body, 256)
-            emit_global_set(body, 0)
-
-            // out_len = len(ret)
-            emit_local_get(body, ret_local)
-            emit_ref_as_non_null(body)
-            emit_array_len(body)
-            emit_local_set(body, out_len_local)
-
-            // out_ptr = realloc(0, 0, 1, out_len)
-            emit_i32_const(body, 0)
-            emit_i32_const(body, 0)
-            emit_i32_const(body, 1)
-            emit_local_get(body, out_len_local)
-            emit_call(body, realloc_idx)
-            emit_local_set(body, out_ptr_local)
-
-            // i = 0
-            emit_i32_const(body, 0)
-            emit_local_set(body, i_local)
-
-            // copy output bytes from array to linear memory
-            emit_loop(body)
-            emit_local_get(body, i_local)
-            emit_local_get(body, out_len_local)
-            emit_i32_lt_u(body)
-            emit_if(body)
-            emit_local_get(body, out_ptr_local)
-            emit_local_get(body, i_local)
-            emit_i32_add(body)
-            emit_local_get(body, ret_local)
-            emit_ref_as_non_null(body)
-            emit_local_get(body, i_local)
-            emit_array_get_u(body, 0)
-            emit_i32_store8(body)
-            emit_local_get(body, i_local)
-            emit_i32_const(body, 1)
-            emit_i32_add(body)
-            emit_local_set(body, i_local)
-            emit_br(body, 1)
-            emit_end(body)
-            emit_end(body)
-
-            // ret_ptr = realloc(0, 0, 4, 8)
-            emit_i32_const(body, 0)
-            emit_i32_const(body, 0)
-            emit_i32_const(body, 4)
-            emit_i32_const(body, 8)
-            emit_call(body, realloc_idx)
-            emit_local_set(body, ret_ptr_local)
-
-            // [ret_ptr + 0] = out_ptr
-            emit_local_get(body, ret_ptr_local)
-            emit_local_get(body, out_ptr_local)
-            emit_i32_store(body, 0)
-
-            // [ret_ptr + 4] = out_len
-            emit_local_get(body, ret_ptr_local)
-            emit_local_get(body, out_len_local)
-            emit_i32_store(body, 4)
-
-            // return ret_ptr
-            emit_local_get(body, ret_ptr_local)
-        }
-    }
-
-    emit_return(body)
     emit_end(body)
 
-    let bytes = writer_core::writer_bytes(body)
-    writer_core::emit_leb128_u(sec, len(bytes))
-    writer_core::emit_bytes(sec, bytes)
+    emit_local_get(body, ret_ptr_local)
 }
 
-// ---- Core instruction emitters (one-byte opcodes) ----
+fn emit_lower_list_i32_param(
+    body: writer_core::WasmWriter,
+    flat_i: i32,
+    dest: i32,
+    i_local: i32,
+    arr_tmp: i32
+) {
+    emit_local_get(body, flat_i + 1)
+    emit_array_new_default(body, ADAPTER_TY_ARRAY_I32())
+    emit_local_set(body, arr_tmp)
+
+    emit_i32_const(body, 0)
+    emit_local_set(body, i_local)
+    emit_loop(body)
+    emit_local_get(body, i_local)
+    emit_local_get(body, flat_i + 1)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, arr_tmp)
+    emit_local_get(body, i_local)
+    emit_local_get(body, flat_i)
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 2)
+    emit_i32_shl(body)
+    emit_i32_add(body)
+    emit_i32_load(body)
+    emit_array_set(body, ADAPTER_TY_ARRAY_I32())
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, i_local)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+
+    emit_local_get(body, arr_tmp)
+    emit_local_get(body, flat_i + 1)
+    emit_struct_new(body, ADAPTER_TY_VEC_I32())
+    emit_local_set(body, dest)
+}
+
+fn emit_lift_list_i32_result(
+    body: writer_core::WasmWriter,
+    ret_local: i32,
+    out_ptr_local: i32,
+    out_len_local: i32,
+    i_local: i32,
+    ret_ptr_local: i32,
+    realloc_idx: i32
+) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_VEC_I32(), 1)
+    emit_local_set(body, out_len_local)
+
+    // Empty list: store ptr=0 (aligned) without asking realloc(0) which returns 1.
+    emit_local_get(body, out_len_local)
+    emit_i32_const(body, 0)
+    emit_i32_eq(body)
+    emit_if(body)
+    emit_i32_const(body, 0)
+    emit_local_set(body, out_ptr_local)
+    emit_else(body)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_local_get(body, out_len_local)
+    emit_i32_const(body, 2)
+    emit_i32_shl(body)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, out_ptr_local)
+
+    emit_i32_const(body, 0)
+    emit_local_set(body, i_local)
+    emit_loop(body)
+    emit_local_get(body, i_local)
+    emit_local_get(body, out_len_local)
+    emit_i32_lt_u(body)
+    emit_if(body)
+    emit_local_get(body, out_ptr_local)
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 2)
+    emit_i32_shl(body)
+    emit_i32_add(body)
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_VEC_I32(), 0)
+    emit_local_get(body, i_local)
+    emit_array_get(body, ADAPTER_TY_ARRAY_I32())
+    emit_i32_store(body, 0)
+    emit_local_get(body, i_local)
+    emit_i32_const(body, 1)
+    emit_i32_add(body)
+    emit_local_set(body, i_local)
+    emit_br(body, 1)
+    emit_end(body)
+    emit_end(body)
+    emit_end(body)
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_i32_const(body, 8)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, out_ptr_local)
+    emit_i32_store(body, 0)
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, out_len_local)
+    emit_i32_store(body, 4)
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_lift_tuple_result(
+    body: writer_core::WasmWriter,
+    kind: i32,
+    ret_local: i32,
+    ret_ptr_local: i32,
+    realloc_idx: i32
+) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    if kind == KIND_TUPLE_I64_I64() {
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 8)
+        emit_i32_const(body, 16)
+        emit_call(body, realloc_idx)
+        emit_local_set(body, ret_ptr_local)
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_TUPLE_I64(), 0)
+        emit_i64_store(body, 0)
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_TUPLE_I64(), 1)
+        emit_i64_store(body, 8)
+        emit_local_get(body, ret_ptr_local)
+        return
+    }
+
+    if kind == KIND_TUPLE_BOOL_BOOL() {
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 0)
+        emit_i32_const(body, 1)
+        emit_i32_const(body, 2)
+        emit_call(body, realloc_idx)
+        emit_local_set(body, ret_ptr_local)
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_POINT(), 0)
+        emit_i32_store8(body)
+        emit_local_get(body, ret_ptr_local)
+        emit_i32_const(body, 1)
+        emit_i32_add(body)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_POINT(), 1)
+        emit_i32_store8(body)
+        emit_local_get(body, ret_ptr_local)
+        return
+    }
+
+    // tuple<s32,s32> and tuple<s32,bool>: 8-byte record area.
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_i32_const(body, 8)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_POINT(), 0)
+    emit_i32_store(body, 0)
+    if kind == KIND_TUPLE_I32_BOOL() {
+        emit_local_get(body, ret_ptr_local)
+        emit_i32_const(body, 4)
+        emit_i32_add(body)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_POINT(), 1)
+        emit_i32_store8(body)
+    } else {
+        emit_local_get(body, ret_ptr_local)
+        emit_local_get(body, ret_local)
+        emit_struct_get(body, ADAPTER_TY_POINT(), 1)
+        emit_i32_store(body, 4)
+    }
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_else(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x05)
+}
+
+fn emit_i32_shl(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x74)
+}
+
+fn emit_i32_load(w: writer_core::WasmWriter) {
+    writer_core::emit_byte(w, 0x28)
+    writer_core::emit_byte(w, 0x02)
+    writer_core::emit_byte(w, 0x00)
+}
+
+fn emit_array_get(w: writer_core::WasmWriter, typeidx: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x0b)
+    writer_core::emit_leb128_u(w, typeidx)
+}
+
+fn emit_i32_store8_at(w: writer_core::WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, 0x3a)
+    writer_core::emit_byte(w, 0x00)
+    writer_core::emit_leb128_u(w, offset)
+}
+
+fn emit_i64_store(w: writer_core::WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, 0x37)
+    writer_core::emit_byte(w, 0x03)
+    writer_core::emit_leb128_u(w, offset)
+}
+
+fn emit_lift_point_result(body: writer_core::WasmWriter, ret_local: i32, ret_ptr_local: i32, realloc_idx: i32) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 4)
+    emit_i32_const(body, 8)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_POINT(), 0)
+    emit_i32_store(body, 0)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, ret_local)
+    emit_struct_get(body, ADAPTER_TY_POINT(), 1)
+    emit_i32_store(body, 4)
+
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_lift_shape_result(body: writer_core::WasmWriter, ret_local: i32, ret_ptr_local: i32, realloc_idx: i32) {
+    emit_local_set(body, ret_local)
+
+    emit_i32_const(body, 256)
+    emit_global_set(body, 0)
+
+    // Canonical variant layout: i32 discriminant + f64 payload (16 bytes with align).
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 0)
+    emit_i32_const(body, 8)
+    emit_i32_const(body, 16)
+    emit_call(body, realloc_idx)
+    emit_local_set(body, ret_ptr_local)
+
+    // Both Circle/Square share (tag:i32, payload:f64); cast base → f64 variant.
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, ret_local)
+    emit_ref_cast_null(body, ADAPTER_TY_SHAPE_F64())
+    emit_struct_get(body, ADAPTER_TY_SHAPE_F64(), 0)
+    emit_i32_store(body, 0)
+
+    emit_local_get(body, ret_ptr_local)
+    emit_local_get(body, ret_local)
+    emit_ref_cast_null(body, ADAPTER_TY_SHAPE_F64())
+    emit_struct_get(body, ADAPTER_TY_SHAPE_F64(), 1)
+    emit_f64_store(body, 8)
+
+    emit_local_get(body, ret_ptr_local)
+}
+
+fn emit_ref_cast_null(w: writer_core::WasmWriter, typeidx: i32) {
+    // ref.cast ht — GC opcode 0xfb + GC_REF_CAST; heap type is signed LEB.
+    writer_core::emit_byte(w, opcodes::GC_PREFIX())
+    writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
+    writer_core::emit_leb128_s(w, typeidx)
+}
+
+fn emit_f64_store(w: writer_core::WasmWriter, offset: i32) {
+    writer_core::emit_byte(w, 0x39)
+    writer_core::emit_byte(w, 0x03)
+    writer_core::emit_leb128_u(w, offset)
+}
 
 fn emit_i32_const(w: writer_core::WasmWriter, v: i32) {
     writer_core::emit_byte(w, 0x41)
@@ -694,4 +2028,17 @@ fn emit_array_len(w: writer_core::WasmWriter) {
 
 fn emit_ref_as_non_null(w: writer_core::WasmWriter) {
     writer_core::emit_byte(w, 0xd4)
+}
+
+fn emit_struct_new(w: writer_core::WasmWriter, typeidx: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x00)
+    writer_core::emit_leb128_u(w, typeidx)
+}
+
+fn emit_struct_get(w: writer_core::WasmWriter, typeidx: i32, field: i32) {
+    writer_core::emit_byte(w, 0xfb)
+    writer_core::emit_byte(w, 0x02)
+    writer_core::emit_leb128_u(w, typeidx)
+    writer_core::emit_leb128_u(w, field)
 }

@@ -77,7 +77,7 @@ fn lib_comp_emit_wasi_core_instance_section(out: writer_core::WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, "wasi_snapshot_preview1")
+    writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 0)
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
@@ -90,33 +90,44 @@ fn lib_comp_emit_core_instance_ref(sec: writer_core::WasmWriter, module_index: i
 }
 
 fn lib_comp_should_export(name: String) -> bool {
-    if eq(clone(name), "main") || eq(clone(name), "_start") {
+    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
         return false
     }
-    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
+    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
         return false
     }
-    if contains(clone(name), "::") {
+    // Keep parity with component::naming so std host helpers never become
+    // accidental component exports (#668 / #810).
+    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+        return false
+    }
+    if eq(clone(name), String_from("var_or_default")) || eq(clone(name), String_from("args")) {
+        return false
+    }
+    if eq(clone(name), String_from("arg_count")) || eq(clone(name), String_from("arg_at")) {
+        return false
+    }
+    if contains(clone(name), String_from("::")) {
         return false
     }
     let nlen = len(name)
     if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
         return false
     }
-    if text::starts_with(clone(name), "raw_") {
+    if text::starts_with(clone(name), String_from("raw_")) {
         return false
     }
     true
 }
 
 fn lib_comp_export_name_kebab(name: String) -> String {
-    let mut out = ""
+    let mut out = String_from("")
     let n = len(name)
     let mut i = 0
     while i < n {
         let ch = char_at(name, i)
         if ch == 95 {
-            out = text::builder_append(out, "-")
+            out = text::builder_append(out, String_from("-"))
         } else {
             out = text::builder_append(out, substring(name, i, i + 1))
         }
@@ -126,43 +137,43 @@ fn lib_comp_export_name_kebab(name: String) -> String {
 }
 
 fn lib_comp_wit_type(type_name: String, vt: i32) -> i32 {
-    if eq(clone(type_name), "bool") {
+    if eq(clone(type_name), String_from("bool")) {
         return constants::LIB_WIT_BOOL()
     }
-    if eq(clone(type_name), "char") {
+    if eq(clone(type_name), String_from("char")) {
         return constants::LIB_WIT_CHAR()
     }
-    if eq(clone(type_name), "u8") {
+    if eq(clone(type_name), String_from("u8")) {
         return constants::LIB_WIT_U8()
     }
-    if eq(clone(type_name), "u16") {
+    if eq(clone(type_name), String_from("u16")) {
         return constants::LIB_WIT_U16()
     }
-    if eq(clone(type_name), "u32") {
+    if eq(clone(type_name), String_from("u32")) {
         return constants::LIB_WIT_U32()
     }
-    if eq(clone(type_name), "u64") {
+    if eq(clone(type_name), String_from("u64")) {
         return constants::LIB_WIT_U64()
     }
-    if eq(clone(type_name), "i8") {
+    if eq(clone(type_name), String_from("i8")) {
         return constants::LIB_WIT_S8()
     }
-    if eq(clone(type_name), "i16") {
+    if eq(clone(type_name), String_from("i16")) {
         return constants::LIB_WIT_S16()
     }
-    if eq(clone(type_name), "i32") {
+    if eq(clone(type_name), String_from("i32")) {
         return constants::LIB_WIT_S32()
     }
-    if eq(clone(type_name), "i64") {
+    if eq(clone(type_name), String_from("i64")) {
         return constants::LIB_WIT_S64()
     }
-    if eq(clone(type_name), "f32") {
+    if eq(clone(type_name), String_from("f32")) {
         return constants::LIB_WIT_F32()
     }
-    if eq(clone(type_name), "f64") {
+    if eq(clone(type_name), String_from("f64")) {
         return constants::LIB_WIT_F64()
     }
-    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
         return constants::LIB_WIT_STRING()
     }
     if vt == value_types::VT_I64() {
@@ -173,6 +184,10 @@ fn lib_comp_wit_type(type_name: String, vt: i32) -> i32 {
     }
     if vt == value_types::VT_F32() {
         return constants::LIB_WIT_F32()
+    }
+    // Named compound GC types are emitted as defined component types, not string.
+    if component_string_adapter::adapter_type_is_compound_wit(clone(type_name), vt) {
+        return 0 - 1
     }
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
         return constants::LIB_WIT_STRING()
@@ -273,7 +288,7 @@ fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
     writer_core::emit_leb128_u(w, param_count)
     let mut pi = 0
     while pi < param_count {
-        writer_string::emit_string(w, concat("arg", to_string(pi)))
+        writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
         let vt = function_param_view::MirFunction_param_val_type(f, pi)
         let type_name = function_param_view::MirFunction_param_type_name(f, pi)
         writer_core::emit_byte(w, lib_comp_wit_type(type_name, vt))
@@ -348,14 +363,14 @@ fn lib_comp_emit_adapter_core_instance_section(out: writer_core::WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, "wasi_snapshot_preview1")
+    writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 0)
     // instance 2: adapter core, importing "user" instance 1
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 2)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, "user")
+    writer_string::emit_string(sec, String_from("user"))
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 1)
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
@@ -370,7 +385,7 @@ fn lib_comp_emit_adapter_alias_section(out: writer_core::WasmWriter, mir: MirMod
     writer_core::emit_byte(sec, 0x02)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, "memory")
+    writer_string::emit_string(sec, String_from("memory"))
     // alias core funcs for each adapter export
     let mut fi = 0
     while fi < n {
@@ -389,38 +404,284 @@ fn lib_comp_emit_adapter_alias_section(out: writer_core::WasmWriter, mir: MirMod
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, "realloc")
+    writer_string::emit_string(sec, String_from("realloc"))
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_ALIAS(), sec)
+}
+
+fn lib_comp_adapter_needs_slot(mir: MirModule, adapter_indices: Vec<i32>, slot: i32) -> bool {
+    let n = len(adapter_indices)
+    let mut fi = 0
+    while fi < n {
+        let f = module_functions::MirModule_function_at(mir, get_unchecked(adapter_indices, fi))
+        let pc = function_param_view::MirFunction_param_count(f)
+        let mut pi = 0
+        while pi < pc {
+            if component_string_adapter::adapter_compound_wit_slot(
+                function_param_view::MirFunction_param_type_name(f, pi),
+                function_param_view::MirFunction_param_val_type(f, pi)
+            ) == slot {
+                return true
+            }
+            pi = pi + 1
+        }
+        let ret = function_return_view::MirFunction_return_type(f)
+        if ret != value_types::VT_VOID() {
+            if component_string_adapter::adapter_compound_wit_slot(
+                function_return_view::MirFunction_return_type_name(f),
+                ret
+            ) == slot {
+                return true
+            }
+        }
+        fi = fi + 1
+    }
+    false
+}
+
+fn lib_comp_emit_wit_option(sec: writer_core::WasmWriter, inner: i32) {
+    writer_core::emit_byte(sec, 0x6b)
+    writer_core::emit_byte(sec, inner)
+}
+
+fn lib_comp_emit_wit_result(sec: writer_core::WasmWriter, ok_inner: i32, err_inner: i32) {
+    writer_core::emit_byte(sec, 0x6a)
+    writer_core::emit_byte(sec, 0x01)
+    writer_core::emit_byte(sec, ok_inner)
+    writer_core::emit_byte(sec, 0x01)
+    writer_core::emit_byte(sec, err_inner)
+}
+
+fn lib_comp_emit_wit_list(sec: writer_core::WasmWriter, elem: i32) {
+    writer_core::emit_byte(sec, 0x70)
+    writer_core::emit_byte(sec, elem)
+}
+
+fn lib_comp_emit_wit_tuple2(sec: writer_core::WasmWriter, a: i32, b: i32) {
+    writer_core::emit_byte(sec, 0x6f)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_core::emit_byte(sec, a)
+    writer_core::emit_byte(sec, b)
+}
+
+fn lib_comp_emit_wit_enum_color(sec: writer_core::WasmWriter) {
+    writer_core::emit_byte(sec, 0x6d)
+    writer_core::emit_leb128_u(sec, 3)
+    writer_string::emit_string(sec, String_from("red"))
+    writer_string::emit_string(sec, String_from("green"))
+    writer_string::emit_string(sec, String_from("blue"))
+}
+
+fn lib_comp_emit_wit_record_point(sec: writer_core::WasmWriter) {
+    writer_core::emit_byte(sec, 0x72)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_string::emit_string(sec, String_from("x"))
+    writer_core::emit_byte(sec, constants::LIB_WIT_S32())
+    writer_string::emit_string(sec, String_from("y"))
+    writer_core::emit_byte(sec, constants::LIB_WIT_S32())
+}
+
+fn lib_comp_emit_wit_variant_shape(sec: writer_core::WasmWriter) {
+    writer_core::emit_byte(sec, 0x71)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_string::emit_string(sec, String_from("circle"))
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, constants::LIB_WIT_F64())
+    writer_core::emit_byte(sec, 0x00)
+    writer_string::emit_string(sec, String_from("square"))
+    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_byte(sec, constants::LIB_WIT_F64())
+    writer_core::emit_byte(sec, 0x00)
+}
+
+fn lib_comp_emit_wit_for_slot(sec: writer_core::WasmWriter, slot: i32) {
+    if slot == component_string_adapter::WIT_SLOT_COLOR() {
+        lib_comp_emit_wit_enum_color(sec)
+    } else if slot == component_string_adapter::WIT_SLOT_POINT() {
+        lib_comp_emit_wit_record_point(sec)
+    } else if slot == component_string_adapter::WIT_SLOT_SHAPE() {
+        lib_comp_emit_wit_variant_shape(sec)
+    } else if slot == component_string_adapter::WIT_SLOT_OPTION_BOOL() {
+        lib_comp_emit_wit_option(sec, constants::LIB_WIT_BOOL())
+    } else if slot == component_string_adapter::WIT_SLOT_OPTION_I32() {
+        lib_comp_emit_wit_option(sec, constants::LIB_WIT_S32())
+    } else if slot == component_string_adapter::WIT_SLOT_OPTION_I64() {
+        lib_comp_emit_wit_option(sec, constants::LIB_WIT_S64())
+    } else if slot == component_string_adapter::WIT_SLOT_RESULT_BOOL_BOOL() {
+        lib_comp_emit_wit_result(sec, constants::LIB_WIT_BOOL(), constants::LIB_WIT_BOOL())
+    } else if slot == component_string_adapter::WIT_SLOT_RESULT_I32_I32() {
+        lib_comp_emit_wit_result(sec, constants::LIB_WIT_S32(), constants::LIB_WIT_S32())
+    } else if slot == component_string_adapter::WIT_SLOT_RESULT_I32_STRING() {
+        lib_comp_emit_wit_result(sec, constants::LIB_WIT_S32(), constants::LIB_WIT_STRING())
+    } else if slot == component_string_adapter::WIT_SLOT_LIST_I32() {
+        lib_comp_emit_wit_list(sec, constants::LIB_WIT_S32())
+    } else if slot == component_string_adapter::WIT_SLOT_TUPLE_I32_I32() {
+        lib_comp_emit_wit_tuple2(sec, constants::LIB_WIT_S32(), constants::LIB_WIT_S32())
+    } else if slot == component_string_adapter::WIT_SLOT_TUPLE_BOOL_BOOL() {
+        lib_comp_emit_wit_tuple2(sec, constants::LIB_WIT_BOOL(), constants::LIB_WIT_BOOL())
+    } else if slot == component_string_adapter::WIT_SLOT_TUPLE_I32_BOOL() {
+        lib_comp_emit_wit_tuple2(sec, constants::LIB_WIT_S32(), constants::LIB_WIT_BOOL())
+    } else if slot == component_string_adapter::WIT_SLOT_TUPLE_I64_I64() {
+        lib_comp_emit_wit_tuple2(sec, constants::LIB_WIT_S64(), constants::LIB_WIT_S64())
+    }
+}
+
+fn lib_comp_wit_slot_export_name(slot: i32) -> String {
+    if slot == component_string_adapter::WIT_SLOT_COLOR() { return String_from("color") }
+    if slot == component_string_adapter::WIT_SLOT_POINT() { return String_from("point") }
+    if slot == component_string_adapter::WIT_SLOT_SHAPE() { return String_from("shape") }
+    if slot == component_string_adapter::WIT_SLOT_OPTION_BOOL() { return String_from("option-bool") }
+    if slot == component_string_adapter::WIT_SLOT_OPTION_I32() { return String_from("option-s32") }
+    if slot == component_string_adapter::WIT_SLOT_OPTION_I64() { return String_from("option-s64") }
+    if slot == component_string_adapter::WIT_SLOT_RESULT_BOOL_BOOL() { return String_from("result-bool-bool") }
+    if slot == component_string_adapter::WIT_SLOT_RESULT_I32_I32() { return String_from("result-s32-s32") }
+    if slot == component_string_adapter::WIT_SLOT_RESULT_I32_STRING() { return String_from("result-s32-string") }
+    if slot == component_string_adapter::WIT_SLOT_LIST_I32() { return String_from("list-s32") }
+    if slot == component_string_adapter::WIT_SLOT_TUPLE_I32_I32() { return String_from("tuple-s32-s32") }
+    if slot == component_string_adapter::WIT_SLOT_TUPLE_BOOL_BOOL() { return String_from("tuple-bool-bool") }
+    if slot == component_string_adapter::WIT_SLOT_TUPLE_I32_BOOL() { return String_from("tuple-s32-bool") }
+    if slot == component_string_adapter::WIT_SLOT_TUPLE_I64_I64() { return String_from("tuple-s64-s64") }
+    String_from("compound")
+}
+
+fn lib_comp_resolve_adapter_wit_type(type_name: String, vt: i32, pool: Vec<i32>) -> i32 {
+    let slot = component_string_adapter::adapter_compound_wit_slot(clone(type_name), vt)
+    if slot >= 0 {
+        return get_unchecked(pool, slot)
+    }
+    lib_comp_wit_type(type_name, vt)
+}
+
+fn lib_comp_emit_adapter_func_type_bytes(f: MirFunction, pool: Vec<i32>) -> Vec<i32> {
+    let w = writer_core::WasmWriter_new()
+    writer_core::emit_byte(w, constants::LIB_COMP_SORT_FUNC())
+    let param_count = function_param_view::MirFunction_param_count(f)
+    writer_core::emit_leb128_u(w, param_count)
+    let mut pi = 0
+    while pi < param_count {
+        writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
+        let vt = function_param_view::MirFunction_param_val_type(f, pi)
+        let type_name = function_param_view::MirFunction_param_type_name(f, pi)
+        let wit = lib_comp_resolve_adapter_wit_type(type_name, vt, pool)
+        writer_core::emit_byte(w, wit)
+        pi = pi + 1
+    }
+    let ret_type = function_return_view::MirFunction_return_type(f)
+    let ret_type_name = function_return_view::MirFunction_return_type_name(f)
+    if ret_type != value_types::VT_VOID() {
+        writer_core::emit_byte(w, 0x00)
+        writer_core::emit_byte(w, lib_comp_resolve_adapter_wit_type(ret_type_name, ret_type, pool))
+    } else {
+        writer_core::emit_byte(w, 0x01)
+        writer_core::emit_leb128_u(w, 0)
+    }
+    writer_core::writer_bytes(w)
+}
+
+fn lib_comp_emit_type_export_alias(exp: writer_core::WasmWriter, name: String, def_idx: i32) {
+    writer_core::emit_byte(exp, 0x00)
+    writer_string::emit_string(exp, name)
+    writer_core::emit_byte(exp, 0x03)
+    writer_core::emit_leb128_u(exp, def_idx)
+    writer_core::emit_byte(exp, 0x00)
+}
+
+fn lib_comp_wit_pool_aliases(needed: Vec<i32>, defined_count: i32) -> Vec<i32> {
+    let slot_count = component_string_adapter::WIT_SLOT_COUNT()
+    let pool = Vec_new_i32()
+    let mut slot = 0
+    while slot < slot_count {
+        let mut alias = 0 - 1
+        let mut di = 0
+        while di < defined_count {
+            if get_unchecked(needed, di) == slot {
+                alias = defined_count + di
+                di = defined_count
+            }
+            di = di + 1
+        }
+        push(pool, alias)
+        slot = slot + 1
+    }
+    pool
 }
 
 fn lib_comp_emit_adapter_type_section(out: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
     let n = len(adapter_indices)
+    let slot_count = component_string_adapter::WIT_SLOT_COUNT()
+    let needed = Vec_new_i32()
+    let mut slot = 0
+    while slot < slot_count {
+        if lib_comp_adapter_needs_slot(mir, adapter_indices, slot) {
+            push(needed, slot)
+        }
+        slot = slot + 1
+    }
+    let defined_count = len(needed)
+
+    let pool = lib_comp_wit_pool_aliases(needed, defined_count)
+
+    if defined_count > 0 {
+        let sec = writer_core::WasmWriter_new()
+        writer_core::emit_leb128_u(sec, defined_count)
+        let mut di = 0
+        while di < defined_count {
+            lib_comp_emit_wit_for_slot(sec, get_unchecked(needed, di))
+            di = di + 1
+        }
+        lib_comp_emit_section(out, constants::LIB_COMP_SEC_TYPE(), sec)
+
+        let exp = writer_core::WasmWriter_new()
+        writer_core::emit_leb128_u(exp, defined_count)
+        di = 0
+        while di < defined_count {
+            let s = get_unchecked(needed, di)
+            lib_comp_emit_type_export_alias(exp, lib_comp_wit_slot_export_name(s), di)
+            di = di + 1
+        }
+        lib_comp_emit_section(out, constants::LIB_COMP_SEC_EXPORT(), exp)
+    }
+
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, n)
     let mut fi = 0
     while fi < n {
         let idx = get_unchecked(adapter_indices, fi)
         let f = module_functions::MirModule_function_at(mir, idx)
-        let type_bytes = lib_comp_emit_func_type_bytes(f)
-        writer_core::emit_bytes(sec, type_bytes)
+        writer_core::emit_bytes(sec, lib_comp_emit_adapter_func_type_bytes(f, pool))
         fi = fi + 1
     }
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_TYPE(), sec)
 }
 
+fn lib_comp_adapter_func_type_base(mir: MirModule, adapter_indices: Vec<i32>) -> i32 {
+    let slot_count = component_string_adapter::WIT_SLOT_COUNT()
+    let mut defined_count = 0
+    let mut slot = 0
+    while slot < slot_count {
+        if lib_comp_adapter_needs_slot(mir, adapter_indices, slot) {
+            defined_count = defined_count + 1
+        }
+        slot = slot + 1
+    }
+    defined_count * 2
+}
+
 fn lib_comp_emit_adapter_canon_section(out: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
     let n = len(adapter_indices)
+    let type_base = lib_comp_adapter_func_type_base(mir, adapter_indices)
+
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, n)
     let mut fi = 0
     while fi < n {
         let idx = get_unchecked(adapter_indices, fi)
         let f = module_functions::MirModule_function_at(mir, idx)
-        let needs_opts = component_string_adapter::adapter_func_needs_adapter(f)
+        let needs_mem = component_string_adapter::adapter_func_needs_canon_memory_opts(f)
+        let type_idx = type_base + fi
         writer_core::emit_byte(sec, 0x00)
         writer_core::emit_byte(sec, 0x00)
         writer_core::emit_leb128_u(sec, fi)
-        if needs_opts {
+        if needs_mem {
             // options: utf8, memory 0, realloc <n>
             writer_core::emit_leb128_u(sec, 3)
             writer_core::emit_byte(sec, 0x00)
@@ -431,7 +692,7 @@ fn lib_comp_emit_adapter_canon_section(out: writer_core::WasmWriter, mir: MirMod
         } else {
             writer_core::emit_leb128_u(sec, 0)
         }
-        writer_core::emit_leb128_u(sec, fi)
+        writer_core::emit_leb128_u(sec, type_idx)
         fi = fi + 1
     }
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CANON(), sec)
@@ -439,6 +700,7 @@ fn lib_comp_emit_adapter_canon_section(out: writer_core::WasmWriter, mir: MirMod
 
 fn lib_comp_emit_adapter_export_section(out: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
     let n = len(adapter_indices)
+    let type_base = lib_comp_adapter_func_type_base(mir, adapter_indices)
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, n)
     let mut fi = 0
@@ -447,13 +709,14 @@ fn lib_comp_emit_adapter_export_section(out: writer_core::WasmWriter, mir: MirMo
         let f = module_functions::MirModule_function_at(mir, idx)
         let name = component_string_adapter::adapter_func_name(f)
         let export_name = lib_comp_export_name_kebab(name)
+        let type_idx = type_base + fi
         writer_core::emit_byte(sec, 0x00)
         writer_string::emit_string(sec, export_name)
         writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
         writer_core::emit_leb128_u(sec, fi)
         writer_core::emit_byte(sec, 0x01)
         writer_core::emit_byte(sec, constants::LIB_COMP_EXI_SORT_FUNC())
-        writer_core::emit_leb128_u(sec, fi)
+        writer_core::emit_leb128_u(sec, type_idx)
         fi = fi + 1
     }
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_EXPORT(), sec)

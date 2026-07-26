@@ -19,7 +19,9 @@ pub fn is_positive(x: i32) -> bool {
     x > 0
 }
 
-pub fn abs_i32(x: i32) -> i32 {
+// Avoid the CoreOp-bound name `abs_i32` — stdlib defer skips user bodies for
+// that symbol, so the export would never appear in the component (#810).
+pub fn absolute_i32(x: i32) -> i32 {
     if x < 0 {
         -x
     } else {

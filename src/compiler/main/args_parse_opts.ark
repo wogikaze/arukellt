@@ -14,19 +14,23 @@ pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions,
     let next = i + 1
     if next < argc {
         let input = clone(get_unchecked(argv, next))
-        if eq(clone(input), "p1") {
-            args_record::cli_set_wasi_version(opts, "wasi-p1")
-        } else if eq(clone(input), "p2") {
-            args_record::cli_set_wasi_version(opts, "wasi-p2")
-        } else if eq(clone(input), "p3") {
-            args_record::cli_set_wasi_version(opts, "wasi-p3")
-        } else if eq(clone(input), "wasi-p1") || eq(clone(input), "wasi-p2") || eq(clone(input), "wasi-p3") {
+        if eq(clone(input), String_from("p1")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p1"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
+        } else if eq(clone(input), String_from("p2")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p2"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
+        } else if eq(clone(input), String_from("p3")) {
+            args_record::cli_set_wasi_version(opts, String_from("wasi-p3"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
+        } else if eq(clone(input), String_from("wasi-p1")) || eq(clone(input), String_from("wasi-p2")) || eq(clone(input), String_from("wasi-p3")) {
             args_record::cli_set_wasi_version(opts, input)
+            args_record::cli_set_wasi_version_explicit(opts, true)
         } else {
-            args_record::cli_set_error(opts, "--wasi-version requires wasi-p1, wasi-p2, or wasi-p3")
+            args_record::cli_set_error(opts, String_from("--wasi-version requires wasi-p1, wasi-p2, or wasi-p3"))
         }
     } else {
-        args_record::cli_set_error(opts, "--wasi-version requires wasi-p1, wasi-p2, or wasi-p3")
+        args_record::cli_set_error(opts, String_from("--wasi-version requires wasi-p1, wasi-p2, or wasi-p3"))
     }
     next
 }
@@ -61,7 +65,7 @@ pub fn parse_wit_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) 
     if next < argc {
         args_record::cli_add_wit_path(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, "--wit requires a path")
+        args_record::cli_set_error(opts, String_from("--wit requires a path"))
     }
     next
 }
@@ -70,7 +74,7 @@ pub fn parse_output_option(argv: Vec<String>, argc: i32, opts: CliOptions, arg: 
     let next = i + 1
     if next < argc {
         let out_arg = clone(get_unchecked(argv, next))
-        if commands::cli_str_eq(clone(arg), "--output") && commands::cli_str_eq(clone(out_arg), "json") {
+        if commands::cli_str_eq(clone(arg), String_from("--output")) && commands::cli_str_eq(clone(out_arg), String_from("json")) {
             args_record::cli_set_json_output(opts, true)
         } else {
             args_record::cli_set_output_file(opts, clone(out_arg))
@@ -84,7 +88,7 @@ pub fn parse_template_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: 
     if next < argc {
         args_record::cli_set_init_template(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, "--template requires a template name")
+        args_record::cli_set_error(opts, String_from("--template requires a template name"))
     }
     next
 }

@@ -80,6 +80,7 @@ fn build_test_driver_config(opts: CliOptions) -> DriverConfig {
     if args_record::cli_has_wasi_version(opts) {
         config_record::config_set_wasi_version(config, args_record::cli_wasi_version(opts))
     }
+    config_record::config_set_wasi_version_explicit(config, args_record::cli_wasi_version_explicit(opts))
     config_record::config_set_opt_level(config, args_record::cli_opt_level(opts))
     config_record::config_set_emit_mode(config, args_record::cli_emit_mode(opts))
     config_record::config_set_wit_paths(config, args_record::cli_wit_paths(opts))

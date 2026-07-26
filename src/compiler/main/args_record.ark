@@ -7,6 +7,8 @@ struct CliOptions {
     output_file: String,
     target: String,
     wasi_version: String,
+    // True only when the user passed `--wasi-version` (not target-inferred default).
+    wasi_version_explicit: bool,
     wit_paths: Vec<String>,
     opt_level: i32,
     dump_phases: String,
@@ -42,6 +44,7 @@ fn CliOptions_default() -> CliOptions {
         output_file: String_new(),
         target: "wasm32-gc",
         wasi_version: String_new(),
+        wasi_version_explicit: false,
         wit_paths: Vec_new_String(),
         opt_level: 0,
         dump_phases: String_new(),
@@ -79,6 +82,7 @@ fn cli_error_msg(opts: CliOptions) -> String { clone(opts.error_msg) }
 fn cli_target(opts: CliOptions) -> String { clone(opts.target) }
 fn cli_wasi_version(opts: CliOptions) -> String { clone(opts.wasi_version) }
 fn cli_has_wasi_version(opts: CliOptions) -> bool { len(opts.wasi_version) > 0 }
+fn cli_wasi_version_explicit(opts: CliOptions) -> bool { opts.wasi_version_explicit }
 fn cli_wit_paths(opts: CliOptions) -> Vec<String> { opts.wit_paths }
 fn cli_wit_path_count(opts: CliOptions) -> i32 { len(opts.wit_paths) }
 fn cli_wit_path_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.wit_paths, index)) }
@@ -116,6 +120,10 @@ fn cli_set_target(opts: CliOptions, target: String) {
 
 fn cli_set_wasi_version(opts: CliOptions, wasi_version: String) {
     opts.wasi_version = wasi_version
+}
+
+fn cli_set_wasi_version_explicit(opts: CliOptions, wasi_version_explicit: bool) {
+    opts.wasi_version_explicit = wasi_version_explicit
 }
 
 fn cli_add_wit_path(opts: CliOptions, wit_path: String) {
