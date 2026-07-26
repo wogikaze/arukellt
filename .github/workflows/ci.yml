@@ -11,6 +11,7 @@ jobs:
   quality-format:
     name: "quality-format"
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     # Pre-existing: CI selfhost compiler fmt output differs from local
     # for 30 corehir files. Non-blocking until CI fmt parity is resolved.
     continue-on-error: true
@@ -21,15 +22,27 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
+        run: python3 scripts/manager.py selfhost build-compiler
 
       - name: Check canonical formatting
         run: python3 scripts/manager.py fmt --check
@@ -37,20 +50,33 @@ jobs:
   quality-lint:
     name: "quality-lint"
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
+        run: python3 scripts/manager.py selfhost build-compiler
 
       - name: Check canonical lint contract
         run: python3 scripts/manager.py lint
@@ -58,6 +84,7 @@ jobs:
   verify-quick:
     name: "verify-quick"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     # Pre-existing: false-done close-gate #510, GC array smoke, and CI fmt
     # parity issues. Non-blocking until underlying issues are resolved.
     continue-on-error: true
@@ -68,8 +95,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -97,6 +136,7 @@ jobs:
   verification:
     name: "Verification harness"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     # Pre-existing: false-done close-gate #510 and GC array smoke failures.
     # Non-blocking until underlying issues are resolved.
     continue-on-error: true
@@ -107,8 +147,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -148,8 +200,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Install wasm-tools
         run: |
@@ -180,6 +244,112 @@ jobs:
         continue-on-error: true
         run: python3 scripts/manager.py selfhost diag-parity
 
+  native-executor-gates:
+    name: "Native executor gates"
+    runs-on: ubuntu-latest
+    needs: verification
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install wasmtime
+        run: |
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
+
+      - name: Install clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
+      - name: Build current selfhost compiler
+        run: python3 scripts/manager.py selfhost build-compiler
+
+      - name: Native capability / safepoint / CI contract / C99 -Werror
+        env:
+          ARUKELLT_CC: clang
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          python3 scripts/check/check-native-cpp-capabilities.py
+          python3 scripts/check/check-native-cpp-safepoint-audit.py
+          python3 scripts/check/check-native-executor-ci-contract.py
+          python3 scripts/check/check-native-runtime-c99-werror.py
+          python3 scripts/tests/test_native_cpp_executor.py
+
+      - name: Public native-cpp run corpus / parity / sanitizer / installed layout
+        env:
+          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
+          ARUKELLT_CC: clang
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          python3 -m unittest scripts.tests.test_native_toolchain scripts.tests.test_native_cpp_runner
+          python3 -m unittest scripts.tests.test_native_cpp_parity
+          python3 scripts/check/check-native-cpp-public-sanitizer.py
+          python3 scripts/check/collect-native-cpp-public-coverage.py --write
+          python3 scripts/check/check-native-cpp-run-promotion-receipt.py
+
+      # Advisory: full-manifest measure is local/scheduled; CI only forbids
+      # regression vs the committed v2 baseline receipt floors.
+      - name: Native-cpp fixture readiness ratchet (advisory baseline)
+        run: python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py
+
+      - name: Forbid allow-high-rss under CI
+        env:
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          if python3 scripts/manager.py selfhost native-executor --build --allow-high-rss --dry-run; then
+            echo "expected --allow-high-rss to be rejected under CI" >&2
+            exit 1
+          fi
+
+      # Full strict native-executor (warm wall/RSS) is a local/scheduled promotion
+      # gate; PR CI enforces source/contract gates and forbids --allow-high-rss.
+      # GC stress + sanitizer run when a native binary is available from a prior
+      # native-executor cache on the runner (optional) or from local promotion.
+      - name: GC stress / sanitizer when native binary present
+        env:
+          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
+          ARUKELLT_CC: clang
+        run: |
+          native=".build/selfhost/native/arukellt-native"
+          if [ -x "$native" ]; then
+            python3 scripts/tests/test_native_gc_stress.py
+            python3 scripts/tests/test_native_root_liveness_sanitizer.py
+          else
+            echo "native binary absent on runner; stress/sanitizer deferred to local promotion evidence"
+          fi
+
+      - name: Upload committed promotion receipt if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-executor-promotion-receipt-${{ github.run_id }}
+          path: |
+            docs/data/native-cpp-executor-promotion-receipt.json
+            .build/selfhost/native/native-executor-receipt.json
+          if-no-files-found: warn
+
   docs:
     name: "Docs consistency"
     runs-on: ubuntu-latest
@@ -200,8 +370,20 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          set -euo pipefail
+          # Pin version: install.sh "latest" can resolve to "{" when GitHub API is flaky.
+          WASMTIME_VERSION="v46.0.1"
+          ARCH="x86_64-linux"
+          BASE="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          ARCHIVE="wasmtime-${WASMTIME_VERSION}-${ARCH}.tar.xz"
+          curl -fsSL "${BASE}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/.wasmtime/bin"
+          tar -xJf "/tmp/${ARCHIVE}" -C /tmp
+          install -m 755 "/tmp/wasmtime-${WASMTIME_VERSION}-${ARCH}/wasmtime" "$HOME/.wasmtime/bin/wasmtime"
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.wasmtime/bin:$PATH"
+          command -v wasmtime
+          wasmtime --version
 
       - name: Ensure bootstrap wasm exists
         run: test -f bootstrap/arukellt-selfhost.wasm
@@ -240,7 +422,7 @@ jobs:
   verify:
     name: "Final gate"
     runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, docs, extension-tests]
+    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests]
     steps:
       - run: echo "Required CI gates passed"
 
@@ -248,7 +430,7 @@ jobs:
     name: "CI category summary"
     if: always()
     runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, docs, extension-tests, release-tag, verify]
+    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests, release-tag, verify]
     steps:
       - name: Write category summary
         run: |
@@ -263,6 +445,7 @@ jobs:
             echo "| quick verification | ${{ needs['verify-quick'].result }} | [verify-quick] |"
             echo "| verification / fixtures | ${{ needs['verification'].result }} | [verification] |"
             echo "| bootstrap / selfhost parity | ${{ needs['selfhost'].result }} | [selfhost] |"
+            echo "| native executor gates | ${{ needs['native-executor-gates'].result }} | [native-executor-gates] |"
             echo "| docs | ${{ needs['docs'].result }} | [docs] |"
             echo "| editor-tooling / extension | ${{ needs['extension-tests'].result }} | [extension-tests] |"
             echo "| release tag | ${{ needs['release-tag'].result }} | [release-tag] |"
