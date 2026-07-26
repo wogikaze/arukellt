@@ -1,0 +1,15 @@
+use std::host::stdio
+use std::toml
+use std::test
+
+fn main() {
+    let content = "allow = [\"W0006\", \"unused-import\"]\ndeny = [\"W0004\"]"
+    let allow_raw = toml::toml_find_raw_value(content, "allow")
+    test::assert_eq_string(allow_raw, "[\"W0006\", \"unused-import\"]")
+    let items = toml::toml_parse_string_array(allow_raw)
+    test::assert_eq_i32(len(items), 2)
+    test::assert_eq_string(get_unchecked(items, 0), "W0006")
+    test::assert_eq_string(get_unchecked(items, 1), "unused-import")
+    stdio::println("OK")
+}
+// toml_find_raw_value + toml_parse_string_array handle lint allow arrays

@@ -4560,7 +4560,7 @@ returns = "bool"
 name = "std::toml"
 stability = "experimental"
 family = "data"
-doc = "Bounded TOML parser/serializer. Supports simple top-level key=value pairs (with comments and blank lines); arrays of tables, inline tables, dotted keys, datetimes, and most other TOML grammar return Err. Partial subset by design; not a conforming TOML 1.0 implementation."
+doc = "TOML 1.0 parser/serializer plus streaming section/value scanners. Supports table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; exposes toml_get / toml_table_keys for nested tables and find_toml_* helpers for compiler manifests."
 
 [[functions]]
 name = "toml_parse_line"
@@ -5516,7 +5516,7 @@ doc_category = "toml"
 stability = "experimental"
 params = ["String"]
 returns = "Result<TomlValue, String>"
-doc = "Parse a TOML document (key=value pairs)."
+doc = "Parse a TOML 1.0 document into a TomlValue tree."
 
 [[functions]]
 name = "toml_stringify"
@@ -5534,7 +5534,7 @@ doc_category = "toml"
 stability = "experimental"
 params = ["TomlValue", "String"]
 returns = "Option<TomlValue>"
-doc = "Look up a key in a TOML table value."
+doc = "Look up a key in a TOML table value (nested tables via successive calls)."
 
 [[functions]]
 name = "toml_table_keys"
@@ -5568,6 +5568,60 @@ doc_category = "toml"
 stability = "experimental"
 params = ["TomlValue"]
 returns = "Option<bool>"
+
+[[functions]]
+name = "toml_find_section"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract the body of a [section] from raw TOML text."
+
+[[functions]]
+name = "toml_find_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract a double-quoted string value for key = \"...\" from raw TOML text."
+
+[[functions]]
+name = "find_toml_section"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Public alias of toml_find_section."
+
+[[functions]]
+name = "find_toml_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Public alias of toml_find_value."
+
+[[functions]]
+name = "toml_find_raw_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract the raw text after key = (for arrays and unquoted values)."
+
+[[functions]]
+name = "toml_parse_string_array"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Parse a TOML string-array literal like [\"a\", \"b\"] into Vec<String>."
 
 # ── std::csv module functions ─────────────────────────────────────────────────
 
