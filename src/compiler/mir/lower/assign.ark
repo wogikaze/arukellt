@@ -11,7 +11,7 @@ use mir::value_types
 // Strip "struct:TypeName:byte_size" → "TypeName" so struct layout lookups
 // match the registered name. Passes through non-"struct:" type names unchanged.
 fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("struct:")) {
+    if !starts_with(clone(type_name), "struct:") {
         return type_name
     }
     let n = len(type_name)

@@ -77,7 +77,7 @@ fn lib_comp_emit_wasi_core_instance_section(out: writer_core::WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
+    writer_string::emit_string(sec, "wasi_snapshot_preview1")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 0)
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
@@ -90,33 +90,33 @@ fn lib_comp_emit_core_instance_ref(sec: writer_core::WasmWriter, module_index: i
 }
 
 fn lib_comp_should_export(name: String) -> bool {
-    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+    if eq(clone(name), "main") || eq(clone(name), "_start") {
         return false
     }
-    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
         return false
     }
-    if contains(clone(name), String_from("::")) {
+    if contains(clone(name), "::") {
         return false
     }
     let nlen = len(name)
     if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
         return false
     }
-    if text::starts_with(clone(name), String_from("raw_")) {
+    if text::starts_with(clone(name), "raw_") {
         return false
     }
     true
 }
 
 fn lib_comp_export_name_kebab(name: String) -> String {
-    let mut out = String_from("")
+    let mut out = ""
     let n = len(name)
     let mut i = 0
     while i < n {
         let ch = char_at(name, i)
         if ch == 95 {
-            out = text::builder_append(out, String_from("-"))
+            out = text::builder_append(out, "-")
         } else {
             out = text::builder_append(out, substring(name, i, i + 1))
         }
@@ -126,43 +126,43 @@ fn lib_comp_export_name_kebab(name: String) -> String {
 }
 
 fn lib_comp_wit_type(type_name: String, vt: i32) -> i32 {
-    if eq(clone(type_name), String_from("bool")) {
+    if eq(clone(type_name), "bool") {
         return constants::LIB_WIT_BOOL()
     }
-    if eq(clone(type_name), String_from("char")) {
+    if eq(clone(type_name), "char") {
         return constants::LIB_WIT_CHAR()
     }
-    if eq(clone(type_name), String_from("u8")) {
+    if eq(clone(type_name), "u8") {
         return constants::LIB_WIT_U8()
     }
-    if eq(clone(type_name), String_from("u16")) {
+    if eq(clone(type_name), "u16") {
         return constants::LIB_WIT_U16()
     }
-    if eq(clone(type_name), String_from("u32")) {
+    if eq(clone(type_name), "u32") {
         return constants::LIB_WIT_U32()
     }
-    if eq(clone(type_name), String_from("u64")) {
+    if eq(clone(type_name), "u64") {
         return constants::LIB_WIT_U64()
     }
-    if eq(clone(type_name), String_from("i8")) {
+    if eq(clone(type_name), "i8") {
         return constants::LIB_WIT_S8()
     }
-    if eq(clone(type_name), String_from("i16")) {
+    if eq(clone(type_name), "i16") {
         return constants::LIB_WIT_S16()
     }
-    if eq(clone(type_name), String_from("i32")) {
+    if eq(clone(type_name), "i32") {
         return constants::LIB_WIT_S32()
     }
-    if eq(clone(type_name), String_from("i64")) {
+    if eq(clone(type_name), "i64") {
         return constants::LIB_WIT_S64()
     }
-    if eq(clone(type_name), String_from("f32")) {
+    if eq(clone(type_name), "f32") {
         return constants::LIB_WIT_F32()
     }
-    if eq(clone(type_name), String_from("f64")) {
+    if eq(clone(type_name), "f64") {
         return constants::LIB_WIT_F64()
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return constants::LIB_WIT_STRING()
     }
     if vt == value_types::VT_I64() {
@@ -273,7 +273,7 @@ fn lib_comp_emit_func_type_bytes(f: MirFunction) -> Vec<i32> {
     writer_core::emit_leb128_u(w, param_count)
     let mut pi = 0
     while pi < param_count {
-        writer_string::emit_string(w, concat(String_from("arg"), to_string(pi)))
+        writer_string::emit_string(w, concat("arg", to_string(pi)))
         let vt = function_param_view::MirFunction_param_val_type(f, pi)
         let type_name = function_param_view::MirFunction_param_type_name(f, pi)
         writer_core::emit_byte(w, lib_comp_wit_type(type_name, vt))
@@ -348,14 +348,14 @@ fn lib_comp_emit_adapter_core_instance_section(out: writer_core::WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("wasi_snapshot_preview1"))
+    writer_string::emit_string(sec, "wasi_snapshot_preview1")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 0)
     // instance 2: adapter core, importing "user" instance 1
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 2)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("user"))
+    writer_string::emit_string(sec, "user")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 1)
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_CORE_INSTANCE(), sec)
@@ -370,7 +370,7 @@ fn lib_comp_emit_adapter_alias_section(out: writer_core::WasmWriter, mir: MirMod
     writer_core::emit_byte(sec, 0x02)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, String_from("memory"))
+    writer_string::emit_string(sec, "memory")
     // alias core funcs for each adapter export
     let mut fi = 0
     while fi < n {
@@ -389,7 +389,7 @@ fn lib_comp_emit_adapter_alias_section(out: writer_core::WasmWriter, mir: MirMod
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, String_from("realloc"))
+    writer_string::emit_string(sec, "realloc")
     lib_comp_emit_section(out, constants::LIB_COMP_SEC_ALIAS(), sec)
 }
 

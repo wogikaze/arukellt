@@ -15,7 +15,7 @@ pub fn cmd_ide_analyze(opts: CliOptions) {
             stdio::print(analysis::snapshot_summary(snap))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error reading input: "), e))
+            stdio::eprintln(concat("error reading input: ", e))
             process::exit(1)
         },
     }
@@ -33,7 +33,7 @@ pub fn cmd_dap(opts: CliOptions) {
             stdio::print(dap::run_dap_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error reading input: "), e))
+            stdio::eprintln(concat("error reading input: ", e))
             process::exit(1)
         },
     }
@@ -51,7 +51,7 @@ pub fn cmd_lsp(opts: CliOptions) {
             stdio::print(lsp::run_session(text))
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error reading input: "), e))
+            stdio::eprintln(concat("error reading input: ", e))
             process::exit(1)
         },
     }

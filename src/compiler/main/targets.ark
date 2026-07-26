@@ -1,23 +1,23 @@
 use std::host::stdio
 
 pub fn cmd_targets() {
-    stdio::println(String_from("Available targets:"))
-    stdio::println(target_contract_generated::target_display_line(String_from("wasm32")))
-    stdio::println(target_contract_generated::target_display_line(String_from("wasm32-gc")))
-    stdio::println(target_contract_generated::target_display_line(String_from("native-cpp")))
-    stdio::println(target_contract_generated::target_display_line(String_from("native-llvm")))
+    stdio::println("Available targets:")
+    stdio::println(target_contract_generated::target_display_line("wasm32"))
+    stdio::println(target_contract_generated::target_display_line("wasm32-gc"))
+    stdio::println(target_contract_generated::target_display_line("native-cpp"))
+    stdio::println(target_contract_generated::target_display_line("native-llvm"))
 }
 test mod "targets_contract" {
     test "canonical_targets_are_non_empty" {
-        let line = target_contract_generated::target_display_line(String_from("wasm32-gc"))
+        let line = target_contract_generated::target_display_line("wasm32-gc")
         assert(len(line) > 0)
     }
     test "wasm32_gc_display_contains_gc" {
-        let line = target_contract_generated::target_display_line(String_from("wasm32-gc"))
-        assert(contains(line, String_from("wasm32-gc")))
+        let line = target_contract_generated::target_display_line("wasm32-gc")
+        assert(contains(line, "wasm32-gc"))
     }
     test "native_cpp_display_contains_cpp" {
-        let line = target_contract_generated::target_display_line(String_from("native-cpp"))
-        assert(contains(line, String_from("native-cpp")))
+        let line = target_contract_generated::target_display_line("native-cpp")
+        assert(contains(line, "native-cpp"))
     }
 }

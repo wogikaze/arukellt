@@ -16,7 +16,7 @@ fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySourc
         param_count = entry_view_fn::mir_entry_fn_param_count_at(entry_view, fn_info_index, param_count)
         is_entry_main = entry_view_fn::mir_entry_fn_is_entry_main_at(entry_view, fn_info_index, is_entry_main)
     }
-    let skip_shadow_main = eq(clone(decl_name), String_from("main")) && !is_entry_main
+    let skip_shadow_main = eq(clone(decl_name), "main") && !is_entry_main
     let defer_stdlib_body = stdlib_body_defer::mir_should_defer_stdlib_body(clone(decl_name))
     if !skip_shadow_main && !defer_stdlib_body {
         let body_input = entry_body_source::mir_entry_body_source_fn_input(body_source, decl_index, fn_info_index, body_idx)

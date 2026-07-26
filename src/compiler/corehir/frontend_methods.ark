@@ -33,7 +33,7 @@ fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
                 let param_count = decl_member_collections::method_param_count(method)
                 let params = build_method_params(method, param_count)
                 let method_name = decl_node_identity::method_name(method)
-                let mangled = concat(clone(owner_name), concat(String_from("::"), clone(method_name)))
+                let mangled = concat(clone(owner_name), concat("::", clone(method_name)))
                 let return_vt = return_type::return_value_type_tag(method)
                 let return_type_name = return_type::return_index_type_name(method)
                 push(

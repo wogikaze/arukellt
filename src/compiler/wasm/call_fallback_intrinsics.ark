@@ -79,48 +79,48 @@ fn try_emit_name_intrinsic_fallback(
 }
 
 fn is_vec_new_callee(callee: String) -> bool {
-    if starts_with(clone(callee), String_from("Vec_new_")) {
+    if starts_with(clone(callee), "Vec_new_") {
         return true
     }
-    if eq(clone(callee), String_from("Vec_new")) {
+    if eq(clone(callee), "Vec_new") {
         return true
     }
-    if contains(clone(callee), String_from("::Vec_new_")) {
+    if contains(clone(callee), "::Vec_new_") {
         return true
     }
-    ends_with(clone(callee), String_from("Vec_new_fallback"))
+    ends_with(clone(callee), "Vec_new_fallback")
 }
 
 fn is_contains_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("contains")) ||
-    eq(clone(callee), String_from("__intrinsic_contains")) ||
-    ends_with(clone(callee), String_from("::contains"))
+    eq(clone(callee), "contains") ||
+    eq(clone(callee), "__intrinsic_contains") ||
+    ends_with(clone(callee), "::contains")
 }
 
 fn is_starts_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("starts_with")) ||
-    ends_with(clone(callee), String_from("::starts_with"))
+    eq(clone(callee), "starts_with") ||
+    ends_with(clone(callee), "::starts_with")
 }
 
 fn is_ends_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("ends_with")) ||
-    ends_with(clone(callee), String_from("::ends_with"))
+    eq(clone(callee), "ends_with") ||
+    ends_with(clone(callee), "::ends_with")
 }
 
 fn is_clock_now_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("clock_now")) ||
-    eq(clone(callee), String_from("monotonic_now")) ||
-    eq(clone(callee), String_from("__intrinsic_clock_now")) ||
-    ends_with(clone(callee), String_from("::monotonic_now")) ||
-    ends_with(clone(callee), String_from("::clock_now"))
+    eq(clone(callee), "clock_now") ||
+    eq(clone(callee), "monotonic_now") ||
+    eq(clone(callee), "__intrinsic_clock_now") ||
+    ends_with(clone(callee), "::monotonic_now") ||
+    ends_with(clone(callee), "::clock_now")
 }
 
 fn is_clock_now_ms_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("clock_now_ms")) ||
-    eq(clone(callee), String_from("now_ms")) ||
-    eq(clone(callee), String_from("__intrinsic_clock_now_ms")) ||
-    ends_with(clone(callee), String_from("::now_ms")) ||
-    ends_with(clone(callee), String_from("::clock_now_ms"))
+    eq(clone(callee), "clock_now_ms") ||
+    eq(clone(callee), "now_ms") ||
+    eq(clone(callee), "__intrinsic_clock_now_ms") ||
+    ends_with(clone(callee), "::now_ms") ||
+    ends_with(clone(callee), "::clock_now_ms")
 }
 
 fn is_clone_callee(callee: String) -> bool {
@@ -128,31 +128,31 @@ fn is_clone_callee(callee: String) -> bool {
     // core_op_handler_raw_string_clone), not actual clone operations.
     // Treating them as identity clone intrinsics omits their return value
     // and leaves the stack unbalanced.
-    if contains(clone(callee), String_from("core_op_handler_")) {
+    if contains(clone(callee), "core_op_handler_") {
         return false
     }
     // Kind-1 core_op rewrites `clone` → `__core_string_clone_impl` (and
     // similar string-clone symbols). Those must stay identity intrinsics too;
     // a direct call is typed String→String and rejects GC struct args.
-    eq(clone(callee), String_from("clone")) ||
-    eq(clone(callee), String_from("__intrinsic_clone")) ||
-    eq(clone(callee), String_from("__intrinsic_string_clone")) ||
-    eq(clone(callee), String_from("__core_string_clone_impl")) ||
-    eq(clone(callee), String_from("raw_string_clone")) ||
-    ends_with(clone(callee), String_from("::clone")) ||
-    ends_with(clone(callee), String_from("__clone")) ||
-    ends_with(clone(callee), String_from("::raw_string_clone")) ||
-    ends_with(clone(callee), String_from("string_clone"))
+    eq(clone(callee), "clone") ||
+    eq(clone(callee), "__intrinsic_clone") ||
+    eq(clone(callee), "__intrinsic_string_clone") ||
+    eq(clone(callee), "__core_string_clone_impl") ||
+    eq(clone(callee), "raw_string_clone") ||
+    ends_with(clone(callee), "::clone") ||
+    ends_with(clone(callee), "__clone") ||
+    ends_with(clone(callee), "::raw_string_clone") ||
+    ends_with(clone(callee), "string_clone")
 }
 
 fn is_len_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("len")) ||
-    eq(clone(callee), String_from("len_bytes")) ||
-    eq(clone(callee), String_from("__intrinsic_len")) ||
-    ends_with(clone(callee), String_from("::len")) ||
-    ends_with(clone(callee), String_from("__len")) ||
-    ends_with(clone(callee), String_from("::len_bytes")) ||
-    ends_with(clone(callee), String_from("__len_bytes"))
+    eq(clone(callee), "len") ||
+    eq(clone(callee), "len_bytes") ||
+    eq(clone(callee), "__intrinsic_len") ||
+    ends_with(clone(callee), "::len") ||
+    ends_with(clone(callee), "__len") ||
+    ends_with(clone(callee), "::len_bytes") ||
+    ends_with(clone(callee), "__len_bytes")
 }
 
 fn finish_intrinsic_fallback(

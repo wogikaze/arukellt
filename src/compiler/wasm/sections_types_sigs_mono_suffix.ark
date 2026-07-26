@@ -52,14 +52,14 @@ fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) ||
-    eq(clone(key), String_from("i64")) ||
-    eq(clone(key), String_from("f64")) ||
-    eq(clone(key), String_from("f32")) ||
-    eq(clone(key), String_from("bool")) ||
-    eq(clone(key), String_from("char")) ||
-    eq(clone(key), String_from("String")) ||
-    eq(clone(key), String_from("string")) {
+    if eq(clone(key), "i32") ||
+    eq(clone(key), "i64") ||
+    eq(clone(key), "f64") ||
+    eq(clone(key), "f32") ||
+    eq(clone(key), "bool") ||
+    eq(clone(key), "char") ||
+    eq(clone(key), "String") ||
+    eq(clone(key), "string") {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
@@ -97,7 +97,7 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
 // Uses common naming conventions for generic type parameters.
 fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
     // Strip leading "?" if present.
-    let name = if starts_with(clone(type_var_name), String_from("?")) {
+    let name = if starts_with(clone(type_var_name), "?") {
         substring(clone(type_var_name), 1, len(type_var_name))
     } else {
         clone(type_var_name)
@@ -105,7 +105,7 @@ fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
     // Common single-letter type variable conventions:
     // T→0, E→1, U→2, V→3, W→4, K→0, A→0, B→1, C→2, D→3
     // Ordinal fresh vars (t0, t1, …) map by suffix number.
-    if starts_with(clone(name), String_from("t")) {
+    if starts_with(clone(name), "t") {
         let slen = len(name)
         if slen >= 2 {
             let mut num = 0
@@ -125,41 +125,41 @@ fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
             }
         }
     }
-    if eq(clone(name), String_from("T")) { return 0 }
-    if eq(clone(name), String_from("E")) { return 1 }
-    if eq(clone(name), String_from("U")) { return 2 }
-    if eq(clone(name), String_from("V")) { return 3 }
-    if eq(clone(name), String_from("W")) { return 4 }
-    if eq(clone(name), String_from("K")) { return 0 }
-    if eq(clone(name), String_from("A")) { return 0 }
-    if eq(clone(name), String_from("B")) { return 1 }
-    if eq(clone(name), String_from("C")) { return 2 }
-    if eq(clone(name), String_from("D")) { return 3 }
+    if eq(clone(name), "T") { return 0 }
+    if eq(clone(name), "E") { return 1 }
+    if eq(clone(name), "U") { return 2 }
+    if eq(clone(name), "V") { return 3 }
+    if eq(clone(name), "W") { return 4 }
+    if eq(clone(name), "K") { return 0 }
+    if eq(clone(name), "A") { return 0 }
+    if eq(clone(name), "B") { return 1 }
+    if eq(clone(name), "C") { return 2 }
+    if eq(clone(name), "D") { return 3 }
     0
 }
 
 // Map a mono type key string to a wasm type signature.
 fn mono_type_key_to_sig(key: String) -> String {
-    if eq(clone(key), String_from("i32")) {
-        return String_from("i32")
+    if eq(clone(key), "i32") {
+        return "i32"
     }
-    if eq(clone(key), String_from("i64")) {
-        return String_from("i64")
+    if eq(clone(key), "i64") {
+        return "i64"
     }
-    if eq(clone(key), String_from("f64")) {
-        return String_from("f64")
+    if eq(clone(key), "f64") {
+        return "f64"
     }
-    if eq(clone(key), String_from("f32")) {
-        return String_from("f32")
+    if eq(clone(key), "f32") {
+        return "f32"
     }
-    if eq(clone(key), String_from("bool")) {
-        return String_from("i32")
+    if eq(clone(key), "bool") {
+        return "i32"
     }
-    if eq(clone(key), String_from("String")) {
+    if eq(clone(key), "String") {
         return sections_types_gc::gc_string_type_sig()
     }
-    if eq(clone(key), String_from("char")) {
-        return String_from("i32")
+    if eq(clone(key), "char") {
+        return "i32"
     }
     String_new()
 }

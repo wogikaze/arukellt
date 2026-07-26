@@ -3,22 +3,22 @@ use lsp::json_parse_string_unicode
 fn json_escape_char(s: String, pos: i32) -> String {
     let esc = char_at(s, pos)
     if esc == 34 {
-        return String_from("\"")
+        return "\""
     }
     if esc == 92 {
-        return String_from("\\")
+        return "\\"
     }
     if esc == 47 {
-        return String_from("/")
+        return "/"
     }
     if esc == 110 {
-        return String_from("\n")
+        return "\n"
     }
     if esc == 114 {
-        return String_from("\r")
+        return "\r"
     }
     if esc == 116 {
-        return String_from("\t")
+        return "\t"
     }
     if esc == 98 {
         return char_to_string(8)

@@ -11,7 +11,7 @@ fn fstring_string_lit(text: String, span: Span) -> AstNode {
 
 fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
     let ts_node = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
-    let fn_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("to_string"), span)
+    let fn_node = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), "to_string", span)
     core_ast_children::AstNode_push_child(ts_node, fn_node)
     core_ast_children::AstNode_push_child(ts_node, expr)
     ts_node
@@ -19,7 +19,7 @@ fn fstring_to_string_call(expr: AstNode, span: Span) -> AstNode {
 
 fn fstring_concat_call(lhs: AstNode, rhs: AstNode, span: Span) -> AstNode {
     let concat_call = core_ast_factory::AstNode_new(kinds::NK_CALL(), span)
-    let fn_concat = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), String_from("concat"), span)
+    let fn_concat = core_ast_factory::AstNode_leaf(kinds::NK_IDENT(), "concat", span)
     core_ast_children::AstNode_push_child(concat_call, fn_concat)
     core_ast_children::AstNode_push_child(concat_call, lhs)
     core_ast_children::AstNode_push_child(concat_call, rhs)

@@ -28,7 +28,7 @@ fn fn_return_type_text(decl: AstNode) -> String {
     let mut i = 0
     while i < tn {
         let ann = node_type_ann_at(decl, i)
-        if eq(node_text(ann), String_from("__return")) && node_child_count(ann) > 0 {
+        if eq(node_text(ann), "__return") && node_child_count(ann) > 0 {
             return node_text(node_child_at(ann, 0))
         }
         i = i + 1
@@ -42,37 +42,37 @@ fn infer_let_type(decl: AstNode) -> String {
     if node_child_count(decl) > 0 {
         let init = node_child_at(decl, 0)
         let ik = node_kind(init)
-        if ik == AT_NK_INT_LIT() { return String_from("i32") }
-        if ik == AT_NK_BOOL_LIT() { return String_from("bool") }
-        if ik == AT_NK_FLOAT_LIT() { return String_from("f64") }
+        if ik == AT_NK_INT_LIT() { return "i32" }
+        if ik == AT_NK_BOOL_LIT() { return "bool" }
+        if ik == AT_NK_FLOAT_LIT() { return "f64" }
     }
     String_new()
 }
 
 pub fn render_signature(decl: AstNode) -> String {
     if node_is_fn_decl(decl) {
-        let mut sig = String_from("fn ")
+        let mut sig = "fn "
         sig = text::builder_append(sig, node_text(decl))
-        sig = text::builder_append(sig, String_from("("))
+        sig = text::builder_append(sig, "(")
         let cn = node_child_count(decl)
         let last = if cn > 0 { cn - 1 } else { 0 }
         let mut i = 0
         let mut first = true
         while i < last {
             let p = node_child_at(decl, i)
-            if !first { sig = text::builder_append(sig, String_from(", ")) }
+            if !first { sig = text::builder_append(sig, ", ") }
             first = false
             sig = text::builder_append(sig, node_text(p))
             i = i + 1
         }
-        sig = text::builder_append(sig, String_from(")"))
+        sig = text::builder_append(sig, ")")
         let ret = fn_return_type_text(decl)
-        if len(ret) > 0 { sig = text::builder_append(sig, concat(String_from(" -> "), ret)) }
+        if len(ret) > 0 { sig = text::builder_append(sig, concat(" -> ", ret)) }
         return sig
     }
-    if node_is_struct_decl(decl) { return concat(String_from("struct "), node_text(decl)) }
-    if node_is_enum_decl(decl) { return concat(String_from("enum "), node_text(decl)) }
-    if node_is_let(decl) { return concat(String_from("let "), node_text(decl)) }
+    if node_is_struct_decl(decl) { return concat("struct ", node_text(decl)) }
+    if node_is_enum_decl(decl) { return concat("enum ", node_text(decl)) }
+    if node_is_let(decl) { return concat("let ", node_text(decl)) }
     node_text(decl)
 }
 
@@ -80,7 +80,7 @@ pub fn enrich_signature_for_decl(decl: AstNode, name: String, kind: i32, base_si
     if kind == AT_NK_LET() {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return concat(concat(String_from("let "), clone(name)), concat(String_from(": "), ty))
+            return concat(concat("let ", clone(name)), concat(": ", ty))
         }
     }
     base_sig
@@ -90,7 +90,7 @@ pub fn use_site_signature(decl: AstNode, name: String) -> String {
     if node_is_let(decl) {
         let ty = infer_let_type(decl)
         if len(ty) > 0 {
-            return concat(concat(clone(name), String_from(": ")), ty)
+            return concat(concat(clone(name), ": "), ty)
         }
     }
     String_new()

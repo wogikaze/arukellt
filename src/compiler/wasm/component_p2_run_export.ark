@@ -15,11 +15,11 @@ use wasm::component_p2_strip
 
 // Main entry: ensure the core wasm has `run` and `wasi:cli/run@0.2.0#run` exports.
 fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
-    let start_idx = export_func_index(core_wasm, String_from("_start"))
+    let start_idx = export_func_index(core_wasm, "_start")
     if start_idx < 0 {
         return core_wasm
     }
-    if export_func_index(core_wasm, String_from("run")) >= 0 {
+    if export_func_index(core_wasm, "run") >= 0 {
         return core_wasm
     }
 
@@ -105,14 +105,14 @@ fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
         wasm = replace_section(wasm, 10, new_code_payload)
 
         // Now add exports
-        wasm = add_export(wasm, String_from("run"), run_idx)
-        wasm = add_export(wasm, String_from("wasi:cli/run@0.2.0#run"), run_idx)
+        wasm = add_export(wasm, "run", run_idx)
+        wasm = add_export(wasm, "wasi:cli/run@0.2.0#run", run_idx)
         return wasm
     }
 
     // _start is already () -> i32, just add exports
-    let wasm2 = add_export(core_wasm, String_from("run"), run_idx)
-    add_export(wasm2, String_from("wasi:cli/run@0.2.0#run"), run_idx)
+    let wasm2 = add_export(core_wasm, "run", run_idx)
+    add_export(wasm2, "wasi:cli/run@0.2.0#run", run_idx)
 }
 
 fn add_export(wasm: Vec<i32>, name: String, func_idx: i32) -> Vec<i32> {

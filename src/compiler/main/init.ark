@@ -11,20 +11,20 @@ pub fn cmd_init(opts: CliOptions) {
     }
     let project_name = args_record::cli_input_file(opts)
     if len(project_name) == 0 {
-        stdio::eprintln(String_from("usage: arukellt init <project-name> [--template minimal|cli|with-tests|wasi-host]"))
-        stdio::eprintln(String_from("       arukellt init --list-templates"))
+        stdio::eprintln("usage: arukellt init <project-name> [--template minimal|cli|with-tests|wasi-host]")
+        stdio::eprintln("       arukellt init --list-templates")
         process::exit(2)
     }
     let template = init_templates::init_template_normalize(args_record::cli_init_template(opts))
     if !init_templates::init_template_is_valid(clone(template)) {
-        stdio::eprintln(concat(String_from("error: unknown template '"), concat(clone(template), String_from("' (use --list-templates)"))))
+        stdio::eprintln(concat("error: unknown template '", concat(clone(template), "' (use --list-templates)")))
         process::exit(2)
     }
-    let src_main = concat(clone(project_name), String_from("/main.ark"))
-    let ark_toml = concat(clone(project_name), String_from("/ark.toml"))
+    let src_main = concat(clone(project_name), "/main.ark")
+    let ark_toml = concat(clone(project_name), "/ark.toml")
     match fs::read_to_string(clone(ark_toml)) {
         Result::Ok(_) => {
-            stdio::eprintln(concat(String_from("error: ark.toml already exists in "), clone(project_name)))
+            stdio::eprintln(concat("error: ark.toml already exists in ", clone(project_name)))
             process::exit(1)
         },
         Result::Err(_) => {},
@@ -40,13 +40,13 @@ pub fn cmd_init(opts: CliOptions) {
                     init_templates::init_template_print_next_steps(clone(project_name), clone(template))
                 },
                 Result::Err(e) => {
-                    stdio::eprintln(concat(String_from("error creating ark.toml: "), fs::fs_error_message(e)))
+                    stdio::eprintln(concat("error creating ark.toml: ", fs::fs_error_message(e)))
                     process::exit(1)
                 },
             }
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error creating project: "), fs::fs_error_message(e)))
+            stdio::eprintln(concat("error creating project: ", fs::fs_error_message(e)))
             process::exit(1)
         },
     }

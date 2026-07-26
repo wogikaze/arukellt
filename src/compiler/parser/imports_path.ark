@@ -9,5 +9,5 @@ fn parse_first_use_segment(p: Parser) -> String {
 
 fn parse_next_use_segment(p: Parser, path: String) -> String {
     let seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
-    concat(path, concat(String_from("::"), token_state::Token_text(seg)))
+    concat(path, concat("::", token_state::Token_text(seg)))
 }

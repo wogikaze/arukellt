@@ -91,7 +91,7 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
         }
         return value_types::VT_REF()
     }
-    if ends_with(clone(bare_name), String_from("::to_string")) {
+    if ends_with(clone(bare_name), "::to_string") {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             return value_types::VT_GC_REF()
         }
@@ -139,24 +139,24 @@ fn ctx_fn_return_vt_builtin(ctx: LowerCtx, bare_name: String) -> i32 {
 
 fn ctx_bare_builtin_name(name: String) -> String {
     let mut bare_name = clone(name)
-    if len(bare_name) > 12 && starts_with(clone(bare_name), String_from("__intrinsic_")) {
+    if len(bare_name) > 12 && starts_with(clone(bare_name), "__intrinsic_") {
         bare_name = substring(bare_name, 12, len(bare_name))
     }
     bare_name
 }
 
 fn ctx_is_i64_clock_callee(name: String) -> bool {
-    if ends_with(clone(name), String_from("::monotonic_now")) ||
-    ends_with(clone(name), String_from("::now_ms")) ||
-    ends_with(clone(name), String_from("::clock_now")) ||
-    ends_with(clone(name), String_from("::clock_now_ms")) {
+    if ends_with(clone(name), "::monotonic_now") ||
+    ends_with(clone(name), "::now_ms") ||
+    ends_with(clone(name), "::clock_now") ||
+    ends_with(clone(name), "::clock_now_ms") {
         return true
     }
     let bare = ctx_bare_builtin_name(name)
-    eq(clone(bare), String_from("clock_now")) ||
-    eq(clone(bare), String_from("clock_now_ms")) ||
-    eq(clone(bare), String_from("monotonic_now")) ||
-    eq(clone(bare), String_from("now_ms"))
+    eq(clone(bare), "clock_now") ||
+    eq(clone(bare), "clock_now_ms") ||
+    eq(clone(bare), "monotonic_now") ||
+    eq(clone(bare), "now_ms")
 }
 
 fn is_void_returning_builtin(bare_name: String) -> bool {

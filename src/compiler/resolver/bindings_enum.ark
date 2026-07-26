@@ -8,7 +8,7 @@ fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
     let mut i = 0
     while i < child_count {
         let variant = ast_access::node_child_at(node, i)
-        let full_name = concat(clone(enum_name), concat(String_from("::"), ast_access::node_text(variant)))
+        let full_name = concat(clone(enum_name), concat("::", ast_access::node_text(variant)))
         scope_define::define_with_vis(ctx, full_name, commands::SYM_VARIANT(), ast_access::node_is_pub(node))
         i = i + 1
     }

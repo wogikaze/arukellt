@@ -22,7 +22,7 @@ pub fn parse_let(p: Parser) -> AstNode {
     }
     if core_api_cursor::peek_kind(p) == tokens::TK_LPAREN() {
         let pat = patterns::parse_pattern(p)
-        core_ast_text_fields::AstNode_set_text(node, String_from("__tuple_destructure"))
+        core_ast_text_fields::AstNode_set_text(node, "__tuple_destructure")
         core_ast_children::AstNode_push_child(node, pat)
         stmt_let_init::parse_let_initializer(p, node)
         return node

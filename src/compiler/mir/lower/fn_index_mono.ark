@@ -111,11 +111,11 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
 }
 
 fn mono_type_var_index(var_name: String) -> i32 {
-    if eq(clone(var_name), String_from("T")) || eq(clone(var_name), String_from("A")) || eq(clone(var_name), String_from("K")) { return 0 }
-    if eq(clone(var_name), String_from("E")) || eq(clone(var_name), String_from("B")) { return 1 }
-    if eq(clone(var_name), String_from("U")) || eq(clone(var_name), String_from("C")) { return 2 }
-    if eq(clone(var_name), String_from("V")) || eq(clone(var_name), String_from("D")) { return 3 }
-    if eq(clone(var_name), String_from("W")) { return 4 }
+    if eq(clone(var_name), "T") || eq(clone(var_name), "A") || eq(clone(var_name), "K") { return 0 }
+    if eq(clone(var_name), "E") || eq(clone(var_name), "B") { return 1 }
+    if eq(clone(var_name), "U") || eq(clone(var_name), "C") { return 2 }
+    if eq(clone(var_name), "V") || eq(clone(var_name), "D") { return 3 }
+    if eq(clone(var_name), "W") { return 4 }
     0
 }
 

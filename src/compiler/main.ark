@@ -22,7 +22,7 @@ fn main() {
         return
     }
     if args_record::cli_has_error(opts) {
-        stdio::eprintln(concat(String_from("error: "), args_record::cli_error_msg(opts)))
+        stdio::eprintln(concat("error: ", args_record::cli_error_msg(opts)))
         process::exit(2)
         return
     }

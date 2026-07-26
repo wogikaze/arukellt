@@ -21,52 +21,52 @@ use wasm::writer_string
 //   component types: 0=error_inst, 1=error, 2=streams_inst, 3=output_stream,
 //                    4=stdout_inst, 5=stderr_inst, 6=environment_inst
 fn p2_host_import_prefix_bytes() -> Vec<i32> {
-    let mut hex = String_from("070d0142010400056572726f7203010a18010013776173693a696f2f6572726f7240302e322e300500060a01030000056572726f7207ce0201421202030201010400056572726f7203000004000d6f75")
-    hex = concat(hex, String_from("747075742d73747265616d030104000c696e7075742d73747265616d0301016901017102156c6173742d6f7065726174696f6e2d6661696c656401040006636c6f736564000004000c73747265616d2d"))
-    hex = concat(hex, String_from("6572726f72030005016802016a017701060140010473656c660700080400215b6d6574686f645d6f75747075742d73747265616d2e636865636b2d7772697465010901707d016a000106014002047365"))
-    hex = concat(hex, String_from("6c660708636f6e74656e74730a000b04001b5b6d6574686f645d6f75747075742d73747265616d2e7772697465010c04002e5b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e67"))
-    hex = concat(hex, String_from("2d77726974652d616e642d666c757368010c0140010473656c6607000b0400245b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e672d666c757368010d0a1a010015776173693a"))
-    hex = concat(hex, String_from("696f2f73747265616d7340302e322e3005020644020100012e5b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e672d77726974652d616e642d666c7573680300010d6f75747075"))
-    hex = concat(hex, String_from("742d73747265616d0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d7374646f757401030a1a010015776173693a636c692f7374646f7574"))
-    hex = concat(hex, String_from("40302e322e300504060f010100020a6765742d7374646f7574"))
+    let mut hex = "070d0142010400056572726f7203010a18010013776173693a696f2f6572726f7240302e322e300500060a01030000056572726f7207ce0201421202030201010400056572726f7203000004000d6f75"
+    hex = concat(hex, "747075742d73747265616d030104000c696e7075742d73747265616d0301016901017102156c6173742d6f7065726174696f6e2d6661696c656401040006636c6f736564000004000c73747265616d2d")
+    hex = concat(hex, "6572726f72030005016802016a017701060140010473656c660700080400215b6d6574686f645d6f75747075742d73747265616d2e636865636b2d7772697465010901707d016a000106014002047365")
+    hex = concat(hex, "6c660708636f6e74656e74730a000b04001b5b6d6574686f645d6f75747075742d73747265616d2e7772697465010c04002e5b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e67")
+    hex = concat(hex, "2d77726974652d616e642d666c757368010c0140010473656c6607000b0400245b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e672d666c757368010d0a1a010015776173693a")
+    hex = concat(hex, "696f2f73747265616d7340302e322e3005020644020100012e5b6d6574686f645d6f75747075742d73747265616d2e626c6f636b696e672d77726974652d616e642d666c7573680300010d6f75747075")
+    hex = concat(hex, "742d73747265616d0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d7374646f757401030a1a010015776173693a636c692f7374646f7574")
+    hex = concat(hex, "40302e322e300504060f010100020a6765742d7374646f7574")
     // stderr_inst type + wasi:cli/stderr import + get-stderr alias (instance 3)
-    hex = concat(hex, String_from("0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d73746465727201030a1a010015776173693a636c692f73746465727240302e322e300505"))
-    hex = concat(hex, String_from("060f010100030a6765742d737464657272"))
+    hex = concat(hex, "0732014205020302010304000d6f75747075742d73747265616d030000016901014000000204000a6765742d73746465727201030a1a010015776173693a636c692f73746465727240302e322e300505")
+    hex = concat(hex, "060f010100030a6765742d737464657272")
     // environment_inst (type 6) + import + get-arguments/get-environment aliases (instance 4)
-    hex = concat(hex, String_from("073e014207016f027373017000014000000104000f6765742d656e7669726f6e6d656e740102017073014000000304000d6765742d617267756d656e747301040a1f01001a776173693a636c692f"))
+    hex = concat(hex, "073e014207016f027373017000014000000104000f6765742d656e7669726f6e6d656e740102017073014000000304000d6765742d617267756d656e747301040a1f01001a776173693a636c692f")
     // Alias section size is 0x25 (37): count + two instance-export aliases.
-    hex = concat(hex, String_from("656e7669726f6e6d656e7440302e322e3005060625020100040d6765742d617267756d656e74730100040f6765742d656e7669726f6e6d656e74"))
+    hex = concat(hex, "656e7669726f6e6d656e7440302e322e3005060625020100040d6765742d617267756d656e74730100040f6765742d656e7669726f6e6d656e74")
     p2_bridged_hex_to_bytes(hex)
 }
 
 // Shared memory core module (38 bytes).
 //   (memory (export "memory") 1)
 fn p2_shared_mem_module_bytes() -> Vec<i32> {
-    p2_bridged_hex_to_bytes(String_from("0061736d010000000503010001070a01066d656d6f72790200000b046e616d650004036d656d"))
+    p2_bridged_hex_to_bytes("0061736d010000000503010001070a01066d656d6f72790200000b046e616d650004036d656d")
 }
 
 // Realloc core module — bump allocator that honors the canon ABI align arg.
 // Without alignment, list<string> lowering from get-arguments traps
 // ("realloc return: result not aligned") under wasmtime (#668).
 fn p2_realloc_module_bytes() -> Vec<i32> {
-    let mut hex = String_from("0061736d0100000001090160047f7f7f7f017f030201000607017f014180200b070b01077265616c6c6f63")
-    hex = concat(hex, String_from("00000a26012401017f230021042004200241016b6a200241016b417f73712104200420036a240020040b"))
+    let mut hex = "0061736d0100000001090160047f7f7f7f017f030201000607017f014180200b070b01077265616c6c6f63"
+    hex = concat(hex, "00000a26012401017f230021042004200241016b6a200241016b417f73712104200420036a240020040b")
     p2_bridged_hex_to_bytes(hex)
 }
 
 // Environment bridge: host get-arguments/get-environment → guest P1-shaped ABI.
 fn p2_env_bridge_bytes() -> Vec<i32> {
-    let mut hex = String_from("0061736d01000000010b0260017f0060027f7f017f023a0303656e760d6765742d617267756d656e7473000003656e760f6765742d656e7669726f6e")
-    hex = concat(hex, String_from("6d656e74000004686f7374066d656d6f7279020001030504010101010607017f0041801e0b0738040a617267732d73697a6573000209617267756d65"))
-    hex = concat(hex, String_from("6e747300030d656e7669726f6e2d73697a657300040b656e7669726f6e2d67657400050aee03045f01067f2300100023002802002102230028020421"))
-    hex = concat(hex, String_from("0320002003360200410021074100210402400340200420034f0d012002200441086c6a2105200528020421062007200641016a6a2107200441016a21"))
-    hex = concat(hex, String_from("040c000b0b2001200736020041000b7901077f230010002300280200210223002802042103200121084100210402400340200420034f0d0120022004"))
-    hex = concat(hex, String_from("41086c6a210520052802002106200528020421072000200441046c6a2008360200200820062007fc0a0000200820076a41003a00002008200741016a"))
-    hex = concat(hex, String_from("6a2108200441016a21040c000b0b41000b6901077f230010012300280200210223002802042103200020033602004100210841002104024003402004"))
-    hex = concat(hex, String_from("20034f0d012002200441106c6a210520052802042106200528020c21072008200620076a41026a6a2108200441016a21040c000b0b20012008360200"))
-    hex = concat(hex, String_from("41000ba70101097f2300100123002802002102230028020421032001210a4100210402400340200420034f0d012002200441106c6a21052005280200"))
-    hex = concat(hex, String_from("21062005280204210720052802082108200528020c21092000200441046c6a200a360200200a20062007fc0a0000200a20076a210a200a413d3a0000"))
-    hex = concat(hex, String_from("200a41016a210a200a20082009fc0a0000200a20096a210a200a41003a0000200a41016a210a200441016a21040c000b0b41000b"))
+    let mut hex = "0061736d01000000010b0260017f0060027f7f017f023a0303656e760d6765742d617267756d656e7473000003656e760f6765742d656e7669726f6e"
+    hex = concat(hex, "6d656e74000004686f7374066d656d6f7279020001030504010101010607017f0041801e0b0738040a617267732d73697a6573000209617267756d65")
+    hex = concat(hex, "6e747300030d656e7669726f6e2d73697a657300040b656e7669726f6e2d67657400050aee03045f01067f2300100023002802002102230028020421")
+    hex = concat(hex, "0320002003360200410021074100210402400340200420034f0d012002200441086c6a2105200528020421062007200641016a6a2107200441016a21")
+    hex = concat(hex, "040c000b0b2001200736020041000b7901077f230010002300280200210223002802042103200121084100210402400340200420034f0d0120022004")
+    hex = concat(hex, "41086c6a210520052802002106200528020421072000200441046c6a2008360200200820062007fc0a0000200820076a41003a00002008200741016a")
+    hex = concat(hex, "6a2108200441016a21040c000b0b41000b6901077f230010012300280200210223002802042103200020033602004100210841002104024003402004")
+    hex = concat(hex, "20034f0d012002200441106c6a210520052802042106200528020c21072008200620076a41026a6a2108200441016a21040c000b0b20012008360200")
+    hex = concat(hex, "41000ba70101097f2300100123002802002102230028020421032001210a4100210402400340200420034f0d012002200441106c6a21052005280200")
+    hex = concat(hex, "21062005280204210720052802082108200528020c21092000200441046c6a200a360200200a20062007fc0a0000200a20076a210a200a413d3a0000")
+    hex = concat(hex, "200a41016a210a200a20082009fc0a0000200a20096a210a200a41003a0000200a41016a210a200441016a21040c000b0b41000b")
     p2_bridged_hex_to_bytes(hex)
 }
 
@@ -75,7 +75,7 @@ fn p2_env_bridge_bytes() -> Vec<i32> {
 //   (import "guest" "_start" (func))
 //   (func (export "run") (result i32) call 0  i32.const 0)
 fn p2_wrapper_module_bytes() -> Vec<i32> {
-    p2_bridged_hex_to_bytes(String_from("0061736d010000000108026000006000017f021001056775657374065f73746172740000030201010707010372756e00010a08010600100041000b000f046e616d6500080777726170706572"))
+    p2_bridged_hex_to_bytes("0061736d010000000108026000006000017f021001056775657374065f73746172740000030201010707010372756e00010a08010600100041000b000f046e616d6500080777726170706572")
 }
 
 fn p2_bridged_hex_to_bytes(hex: String) -> Vec<i32> {
@@ -128,13 +128,13 @@ fn p2_bridged_emit_core_alias_section(out: WasmWriter) {
     writer_core::emit_byte(sec, 0x02)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 0)
-    writer_string::emit_string(sec, String_from("memory"))
+    writer_string::emit_string(sec, "memory")
     // alias core export 1 "realloc" → core func 0
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("realloc"))
+    writer_string::emit_string(sec, "realloc")
     p2_bridged_emit_section(out, 6, sec)
 }
 
@@ -173,22 +173,22 @@ fn p2_bridged_emit_instance_section_2(out: WasmWriter) {
     // Instance 6: inline stdio exports (wired directly to guest)
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 3)
-    writer_string::emit_string(sec, String_from("get-stdout"))
+    writer_string::emit_string(sec, "get-stdout")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("blocking-write-and-flush"))
+    writer_string::emit_string(sec, "blocking-write-and-flush")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, String_from("get-stderr"))
+    writer_string::emit_string(sec, "get-stderr")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 3)
     // Instance 7: inline environment exports
     writer_core::emit_byte(sec, 0x01)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, String_from("get-arguments"))
+    writer_string::emit_string(sec, "get-arguments")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 4)
-    writer_string::emit_string(sec, String_from("get-environment"))
+    writer_string::emit_string(sec, "get-environment")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 5)
     // Instance 8: env bridge (module 6, env→7, host→0)
@@ -200,10 +200,10 @@ fn p2_bridged_emit_bridge_instance(sec: WasmWriter, module_index: i32, env_insta
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, module_index)
     writer_core::emit_leb128_u(sec, 2)
-    writer_string::emit_string(sec, String_from("env"))
+    writer_string::emit_string(sec, "env")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, env_instance)
-    writer_string::emit_string(sec, String_from("host"))
+    writer_string::emit_string(sec, "host")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 0)
 }
@@ -217,18 +217,18 @@ fn p2_bridged_emit_instance_section_3(out: WasmWriter) {
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 8)
     writer_core::emit_leb128_u(sec, 8)
-    p2_bridged_emit_instance_arg(sec, String_from("shared"), 0)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stdout@0.2.0"), 6)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:io/streams@0.2.0"), 6)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/environment@0.2.0"), 8)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:filesystem/types@0.2.0"), 3)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stdin@0.2.0"), 4)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/exit@0.2.0"), 5)
-    p2_bridged_emit_instance_arg(sec, String_from("wasi:cli/stderr@0.2.0"), 6)
+    p2_bridged_emit_instance_arg(sec, "shared", 0)
+    p2_bridged_emit_instance_arg(sec, "wasi:cli/stdout@0.2.0", 6)
+    p2_bridged_emit_instance_arg(sec, "wasi:io/streams@0.2.0", 6)
+    p2_bridged_emit_instance_arg(sec, "wasi:cli/environment@0.2.0", 8)
+    p2_bridged_emit_instance_arg(sec, "wasi:filesystem/types@0.2.0", 3)
+    p2_bridged_emit_instance_arg(sec, "wasi:cli/stdin@0.2.0", 4)
+    p2_bridged_emit_instance_arg(sec, "wasi:cli/exit@0.2.0", 5)
+    p2_bridged_emit_instance_arg(sec, "wasi:cli/stderr@0.2.0", 6)
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 7)
     writer_core::emit_leb128_u(sec, 1)
-    writer_string::emit_string(sec, String_from("guest"))
+    writer_string::emit_string(sec, "guest")
     writer_core::emit_byte(sec, 0x12)
     writer_core::emit_leb128_u(sec, 9)
     p2_bridged_emit_section(out, 2, sec)

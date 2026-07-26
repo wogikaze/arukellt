@@ -95,7 +95,7 @@ fn comp_emit_f32_general_import_section(out: writer_core::ComponentWriter, plan:
     while i < count {
         let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
         let name = export_shapes_f32_general::F32GeneralExport_name(entry)
-        writer_core::comp_emit_string(import_sec, String_from("user"))
+        writer_core::comp_emit_string(import_sec, "user")
         writer_core::comp_emit_string(import_sec, clone(name))
         writer_core::comp_emit_byte(import_sec, 0x00)
         writer_core::comp_emit_leb128_u(import_sec, i * 2 + 1)

@@ -27,37 +27,37 @@ fn is_get_unchecked_callee_name(name: String) -> bool {
     eq(clone(name), "__intrinsic_get_unchecked") {
         return true
     }
-    starts_with(clone(name), String_from("get_unchecked__")) ||
-    starts_with(clone(name), String_from("vec_get_unchecked__")) ||
-    starts_with(clone(name), String_from("__intrinsic_get_unchecked__"))
+    starts_with(clone(name), "get_unchecked__") ||
+    starts_with(clone(name), "vec_get_unchecked__") ||
+    starts_with(clone(name), "__intrinsic_get_unchecked__")
 }
 
 fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
-    if eq(clone(type_name), String_from("i32")) ||
-    eq(clone(type_name), String_from("I32")) ||
-    eq(clone(type_name), String_from("bool")) ||
-    eq(clone(type_name), String_from("char")) ||
-    eq(clone(type_name), String_from("i64")) ||
-    eq(clone(type_name), String_from("I64")) ||
-    eq(clone(type_name), String_from("f64")) ||
-    eq(clone(type_name), String_from("F64")) {
+    if eq(clone(type_name), "i32") ||
+    eq(clone(type_name), "I32") ||
+    eq(clone(type_name), "bool") ||
+    eq(clone(type_name), "char") ||
+    eq(clone(type_name), "i64") ||
+    eq(clone(type_name), "I64") ||
+    eq(clone(type_name), "f64") ||
+    eq(clone(type_name), "F64") {
         return true
     }
     vt == value_types::mir_value_types__VT_I32() || vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
 }
 
 fn is_container_return_type_name(ret_name: String) -> bool {
-    starts_with(clone(ret_name), String_from("vec:")) ||
-    starts_with(clone(ret_name), String_from("option:")) ||
-    starts_with(clone(ret_name), String_from("Option_")) ||
-    starts_with(clone(ret_name), String_from("Option:")) ||
-    starts_with(clone(ret_name), String_from("Option<")) ||
-    starts_with(clone(ret_name), String_from("result:")) ||
-    starts_with(clone(ret_name), String_from("Result_")) ||
-    starts_with(clone(ret_name), String_from("Result:")) ||
-    starts_with(clone(ret_name), String_from("Result<")) ||
-    starts_with(clone(ret_name), String_from("hashmap:")) ||
-    starts_with(clone(ret_name), String_from("hashset:"))
+    starts_with(clone(ret_name), "vec:") ||
+    starts_with(clone(ret_name), "option:") ||
+    starts_with(clone(ret_name), "Option_") ||
+    starts_with(clone(ret_name), "Option:") ||
+    starts_with(clone(ret_name), "Option<") ||
+    starts_with(clone(ret_name), "result:") ||
+    starts_with(clone(ret_name), "Result_") ||
+    starts_with(clone(ret_name), "Result:") ||
+    starts_with(clone(ret_name), "Result<") ||
+    starts_with(clone(ret_name), "hashmap:") ||
+    starts_with(clone(ret_name), "hashset:")
 }
 
 fn strip_module_prefix_type_name(type_name: String) -> String {
@@ -79,15 +79,15 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     }
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
-    if starts_with(clone(vec_tn), String_from("vec:")) {
+    if starts_with(clone(vec_tn), "vec:") {
         elem = substring(clone(vec_tn), 4, len(vec_tn))
-    } else if starts_with(clone(vec_tn), String_from("Vec_")) {
+    } else if starts_with(clone(vec_tn), "Vec_") {
         elem = substring(clone(vec_tn), 4, len(vec_tn))
     } else {
         return Option::None
     }
     elem = strip_module_prefix_type_name(clone(elem))
-    if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
+    if eq(clone(elem), "String") || eq(clone(elem), "string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     if is_scalar_get_unchecked_result(clone(elem), 0 - 1) {
@@ -218,8 +218,8 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                                 let pc = function_param_view::MirFunction_param_count(called)
                                 if pc > 0 {
                                     let pname = function_param_view::MirFunction_param_type_name(called, pc - 1)
-                                    if !starts_with(clone(pname), String_from("vec:")) &&
-                                    !starts_with(clone(pname), String_from("Vec")) {
+                                    if !starts_with(clone(pname), "vec:") &&
+                                    !starts_with(clone(pname), "Vec") {
                                         let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(pname))
                                         match named {
                                             Option::Some(named_v) => {
@@ -369,7 +369,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
             let fields = sections_types_gc::wasm_sections_types_gc__struct_field_sigs(get_unchecked(sigs, type_slot))
             if field_idx >= 0 && field_idx < len(fields) {
                 let field_sig = get_unchecked(fields, field_idx)
-                if starts_with(clone(field_sig), String_from("ref")) {
+                if starts_with(clone(field_sig), "ref") {
                     let offset_str = substring(clone(field_sig), 3, len(field_sig))
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
                     return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
@@ -392,7 +392,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                     }
                     Option::None => {}
                 }
-                if eq(clone(arg_tn), String_from("String")) || eq(clone(arg_tn), String_from("string")) {
+                if eq(clone(arg_tn), "String") || eq(clone(arg_tn), "string") {
                     return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
                 }
                 let from_local = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, arg0)
@@ -407,7 +407,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         // Vec<i32> results in functions that return Vec<Struct> (#730).
         if is_get_unchecked_callee_name(clone(callee)) {
             let dest_local = inst_accessors_shape::MirInst_dest(inst)
-            let mut dest_tn = String_from("")
+            let mut dest_tn = ""
             let mut dest_vt = 0 - 1
             if dest_local >= 0 && dest_local < function_locals_view::MirFunction_local_count(f) {
                 let loc = function_locals_view::MirFunction_local_at(f, dest_local)
@@ -440,7 +440,7 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 }
                 Option::None => {}
             }
-            if eq(clone(dest_tn), String_from("String")) || eq(clone(dest_tn), String_from("string")) {
+            if eq(clone(dest_tn), "String") || eq(clone(dest_tn), "string") {
                 return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
             }
             let named_dest = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(dest_tn))

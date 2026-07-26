@@ -19,22 +19,22 @@ use mir::type_contracts
 fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     let tag = type_contracts::TypeInfo_tag(ty)
     if tag == lower_kinds::TY_TYPE_VAR() {
-        return concat(String_from("?"), type_contracts::TypeInfo_name(ty))
+        return concat("?", type_contracts::TypeInfo_name(ty))
     }
-    if tag == lower_kinds::TY_I32() { return String_from("i32") }
-    if tag == lower_kinds::TY_I64() { return String_from("i64") }
-    if tag == lower_kinds::TY_F64() { return String_from("f64") }
-    if tag == lower_kinds::TY_F32() { return String_from("f32") }
-    if tag == lower_kinds::TY_BOOL() { return String_from("bool") }
-    if tag == lower_kinds::TY_STRING() { return String_from("String") }
-    if tag == lower_kinds::TY_CHAR() { return String_from("char") }
-    if tag == lower_kinds::TY_UNIT() { return String_from("()") }
+    if tag == lower_kinds::TY_I32() { return "i32" }
+    if tag == lower_kinds::TY_I64() { return "i64" }
+    if tag == lower_kinds::TY_F64() { return "f64" }
+    if tag == lower_kinds::TY_F32() { return "f32" }
+    if tag == lower_kinds::TY_BOOL() { return "bool" }
+    if tag == lower_kinds::TY_STRING() { return "String" }
+    if tag == lower_kinds::TY_CHAR() { return "char" }
+    if tag == lower_kinds::TY_UNIT() { return "()" }
     if tag == lower_kinds::TY_VEC() {
         let vec_name = return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
         if len(vec_name) > 0 {
             return vec_name
         }
-        return String_from("vec:i32")
+        return "vec:i32"
     }
     if tag == lower_kinds::TY_STRUCT() || tag == lower_kinds::TY_ENUM() {
         return type_contracts::TypeInfo_name(ty)
@@ -108,10 +108,10 @@ fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
 
 fn ctx_extract_type_var_name(ty_name: String) -> String {
     // Composite types: "?Option:T" → "T", "?Result:T:U" → "T"
-    if starts_with(clone(ty_name), String_from("?Option:")) {
+    if starts_with(clone(ty_name), "?Option:") {
         return substring(clone(ty_name), 8, len(ty_name))
     }
-    if starts_with(clone(ty_name), String_from("?Result:")) {
+    if starts_with(clone(ty_name), "?Result:") {
         let rest = substring(clone(ty_name), 8, len(ty_name))
         // "T:U" → take first part "T" (find colon by scanning)
         let rlen = len(rest)
@@ -125,7 +125,7 @@ fn ctx_extract_type_var_name(ty_name: String) -> String {
         return rest
     }
     // Prefixed type variable: "?T" → "T"
-    if starts_with(clone(ty_name), String_from("?")) {
+    if starts_with(clone(ty_name), "?") {
         return substring(clone(ty_name), 1, len(ty_name))
     }
     // Plain type variable names like "K" / "V" / "T"

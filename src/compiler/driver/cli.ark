@@ -13,7 +13,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
             Result::Ok(_) => {
             },
             Result::Err(e) => {
-                stdio::eprintln(concat(String_from("error writing output: "), e))
+                stdio::eprintln(concat("error writing output: ", e))
                 process::exit(1)
             },
         }
@@ -22,7 +22,7 @@ fn write_legacy_compile_result(output_path: String, result: CompileResult) {
         let mut j = 0
         while j < err_count {
             let msg = result_record::compile_result_error_message_at(result, j)
-            stdio::eprintln(concat(String_from("error: "), clone(msg)))
+            stdio::eprintln(concat("error: ", clone(msg)))
             j = j + 1
         }
         process::exit(1)
@@ -34,18 +34,18 @@ fn main() {
     let argc = env::arg_count()
     let arg_start = cli_args::legacy_arg_start(args, argc)
     if !cli_args::has_min_compile_args(argc, arg_start) {
-        stdio::eprintln(String_from("usage: arukellt compile <input> --target <target> -o <output>"))
+        stdio::eprintln("usage: arukellt compile <input> --target <target> -o <output>")
         process::exit(1)
     }
     let subcommand = get_unchecked(args, arg_start)
-    if !eq(clone(subcommand), String_from("compile")) {
-        stdio::eprintln(concat(String_from("unknown subcommand: "), clone(subcommand)))
+    if !eq(clone(subcommand), "compile") {
+        stdio::eprintln(concat("unknown subcommand: ", clone(subcommand)))
         process::exit(1)
     }
     let config = config_record::DriverConfig_default()
     let parsed = cli_args::parse_legacy_compile_args(args, argc, arg_start, config)
     if !cli_args::legacy_compile_args_has_output(parsed) {
-        stdio::eprintln(String_from("error: missing -o <output> flag"))
+        stdio::eprintln("error: missing -o <output> flag")
         process::exit(1)
     }
     let result = file::compile_file(cli_args::legacy_compile_args_input_path(parsed), cli_args::legacy_compile_args_config(parsed))

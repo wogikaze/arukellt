@@ -16,7 +16,7 @@ fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
 }
 
 fn default_type_info() -> TypeInfo {
-    TypeInfo { tag: 1, name: String_from("i32"), type_args: Vec_new_TypeInfo() }
+    TypeInfo { tag: 1, name: "i32", type_args: Vec_new_TypeInfo() }
 }
 
 fn scan_locals_in_node(node: AstNode, locals: Vec<CoreHirTypedLocal>) {

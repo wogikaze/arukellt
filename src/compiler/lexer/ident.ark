@@ -33,7 +33,7 @@ fn lex_fstring(lex: Lexer, start: i32) -> Token {
             return Token_new(tokens::TK_FSTRING(), content, start, lex.pos)
         }
         if c == 10 {
-            return Token_new(tokens::TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
+            return Token_new(tokens::TK_ERROR(), "unterminated f-string", start, lex.pos)
         }
         if c == 123 {
             depth = depth + 1
@@ -43,5 +43,5 @@ fn lex_fstring(lex: Lexer, start: i32) -> Token {
         }
         lex.pos = lex.pos + 1
     }
-    Token_new(tokens::TK_ERROR(), String_from("unterminated f-string"), start, lex.pos)
+    Token_new(tokens::TK_ERROR(), "unterminated f-string", start, lex.pos)
 }

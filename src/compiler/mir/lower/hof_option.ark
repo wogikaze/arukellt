@@ -21,7 +21,7 @@ fn mir_lower_map_option_i32(ctx: LowerCtx, mopt_fn_name: String, mopt_opt_local:
     // Phase 5e: set type_name so the emitter can infer the open Option type
     // without relying on the instruction tracer.
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_api_local_types::ctx_set_local_type(ctx, mopt_new_local, String_from("option:i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, mopt_new_local, "option:i32")
     }
     call_type_fallback::mir_promote_gc_enum_container_vt(ctx, mopt_opt_local)
     hof_option_setup::emit_map_option_setup(ctx, mopt_opt_local, mopt_tag_local, mopt_new_local)

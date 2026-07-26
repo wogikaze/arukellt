@@ -19,7 +19,7 @@ fn parse_sub_super_offset(sig: String) -> i32 {
 }
 
 fn parse_sub_struct_sig(sig: String) -> String {
-    let marker = String_from("_GS_")
+    let marker = "_GS_"
     let start = find_type_sig_str(sig, marker)
     if start >= 0 {
         let body_start = start + 1
@@ -30,17 +30,17 @@ fn parse_sub_struct_sig(sig: String) -> String {
         return substring(clone(sig), body_start, len(sig))
     }
     // Enum variant sigs use _S_ instead of _GS_ (e.g. SubF+14_S_f0_i32_f1_i32)
-    let s_marker = String_from("_S_")
+    let s_marker = "_S_"
     let s_start = find_type_sig_str(sig, s_marker)
     if s_start >= 0 {
         let body_start = s_start + 3
         let at = find_type_sig_char(sig, 64)
         if at >= body_start {
-            return concat(String_from("GS_"), substring(clone(sig), body_start, at))
+            return concat("GS_", substring(clone(sig), body_start, at))
         }
-        return concat(String_from("GS_"), substring(clone(sig), body_start, len(sig)))
+        return concat("GS_", substring(clone(sig), body_start, len(sig)))
     }
-    String_from("GS_f0_i32")
+    "GS_f0_i32"
 }
 
 fn find_type_sig_char(s: String, c: i32) -> i32 {
@@ -94,10 +94,10 @@ fn parse_type_sig_int(s: String) -> i32 {
 }
 
 fn parse_gcref_offset(sig: String) -> i32 {
-    if eq(clone(sig), String_from("gcref")) {
+    if eq(clone(sig), "gcref") {
         return 2
     }
-    if starts_with(clone(sig), String_from("gcref")) {
+    if starts_with(clone(sig), "gcref") {
         return parse_type_sig_int(substring(sig, 5, len(sig)))
     }
     2

@@ -27,12 +27,12 @@ fn print_project_compile_errors(entry: String, result: CompileResult) {
 }
 
 fn exit_missing_build_entry() {
-    stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
+    stdio::eprintln("error: no 'path' (under [bin]) or 'entry' field found in ark.toml")
     process::exit(1)
 }
 
 fn exit_build_manifest_read_error(manifest_path: String, error: String) {
-    stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), error))))
+    stdio::eprintln(concat("error: cannot read ", concat(clone(manifest_path), concat(": ", error))))
     process::exit(1)
 }
 
@@ -45,12 +45,12 @@ fn print_build_start(info: ProjectBuildManifest, manifest_path: String, entry: S
     if manifest_has_pkg_name(info) {
         stdio::eprintln(
             concat(
-                String_from("building "),
-                concat(manifest_pkg_name(info), concat(String_from(" v"), concat(manifest_pkg_version(info), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))
+                "building ",
+                concat(manifest_pkg_name(info), concat(" v", concat(manifest_pkg_version(info), concat(" (", concat(clone(entry), ")")))))
             )
         )
     } else {
-        stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+        stdio::eprintln(concat("building ", concat(clone(manifest_path), concat(" (entry: ", concat(clone(entry), ")")))))
     }
 }
 
@@ -59,9 +59,9 @@ fn build_output_path(opts: CliOptions, info: ProjectBuildManifest) -> String {
         return args_record::cli_output_file(opts)
     }
     if manifest_has_pkg_name(info) {
-        return concat(manifest_pkg_name(info), String_from(".wasm"))
+        return concat(manifest_pkg_name(info), ".wasm")
     }
-    String_from("output.wasm")
+    "output.wasm"
 }
 
 fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
@@ -71,13 +71,13 @@ fn write_build_output(entry: String, out_path: String, bytes: Vec<i32>) {
         Result::Ok(_) => {
             stdio::eprintln(
                 concat(
-                    String_from("built "),
-                    concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(byte_count), String_from(" bytes)"))))))
+                    "built ",
+                    concat(clone(entry), concat(" -> ", concat(clone(out_path), concat(" (", concat(to_string(byte_count), " bytes)")))))
                 )
             )
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error writing output: "), e))
+            stdio::eprintln(concat("error writing output: ", e))
             process::exit(1)
         },
     }
@@ -141,15 +141,15 @@ fn build_manifest_path(opts: CliOptions) -> String {
     if args_record::cli_has_input_file(opts) {
         return args_record::cli_input_file(opts)
     }
-    String_from("ark.toml")
+    "ark.toml"
 }
 
 fn parse_project_manifest(content: String) -> ProjectBuildManifest {
     ProjectBuildManifest_new(
-        project_run::find_toml_value(clone(content), String_from("name")),
-        project_run::find_toml_value(clone(content), String_from("version")),
-        project_run::find_toml_value(clone(content), String_from("path")),
-        project_run::find_toml_value(clone(content), String_from("entry"))
+        project_run::find_toml_value(clone(content), "name"),
+        project_run::find_toml_value(clone(content), "version"),
+        project_run::find_toml_value(clone(content), "path"),
+        project_run::find_toml_value(clone(content), "entry")
     )
 }
 

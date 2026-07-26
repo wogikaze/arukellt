@@ -33,5 +33,5 @@ fn mono_instance_mangled_at(instances: Vec<MonoInstance>, fn_name: String, ordin
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }

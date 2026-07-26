@@ -42,16 +42,16 @@ pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
 }
 
 fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
-    let pos = index_of(clone(body), String_from("workspaceFolders"))
+    let pos = index_of(clone(body), "workspaceFolders")
     if pos < 0 {
         return Vec_new_String()
     }
     let tail = substring(body, pos, len(body))
-    let arr_start = index_of(clone(tail), String_from("["))
+    let arr_start = index_of(clone(tail), "[")
     if arr_start < 0 {
         return Vec_new_String()
     }
-    let arr_end = index_of(clone(tail), String_from("]"))
+    let arr_end = index_of(clone(tail), "]")
     if arr_end < arr_start {
         return Vec_new_String()
     }
@@ -61,11 +61,11 @@ fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
     let section_len = len(section)
     while scan < section_len {
         let rest = substring(section, scan, section_len)
-        let uri_pos = index_of(clone(rest), String_from("\"uri\""))
+        let uri_pos = index_of(clone(rest), "\"uri\"")
         if uri_pos < 0 {
             break
         }
-        let uri = symbol_index_paths::extract_json_string_field(substring(rest, uri_pos, len(rest)), String_from("uri"))
+        let uri = symbol_index_paths::extract_json_string_field(substring(rest, uri_pos, len(rest)), "uri")
         if len(uri) > 0 {
             out = roots_push_unique(out, uri)
         }
@@ -79,7 +79,7 @@ pub fn find_package_root(start_dir: String) -> String {
         return String_new()
     }
     // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
-    let manifest = symbol_index_paths::join_path(clone(start_dir), String_from("ark.toml"))
+    let manifest = symbol_index_paths::join_path(clone(start_dir), "ark.toml")
     match fs::read_to_string(clone(manifest)) {
         Result::Ok(_) => {
             return start_dir
@@ -94,5 +94,5 @@ pub fn find_package_root(start_dir: String) -> String {
 }
 
 pub fn watched_files_body_has_ark_toml(body: String) -> bool {
-    contains(clone(body), String_from("ark.toml"))
+    contains(clone(body), "ark.toml")
 }

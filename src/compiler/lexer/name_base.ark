@@ -2,31 +2,31 @@ use lexer::tokens
 
 pub fn token_base_name(kind: i32) -> String {
     if kind == tokens::TK_EOF() {
-        return String_from("EOF")
+        return "EOF"
     }
     if kind == tokens::TK_IDENT() {
-        return String_from("IDENT")
+        return "IDENT"
     }
     if kind == tokens::TK_INT() {
-        return String_from("INT")
+        return "INT"
     }
     if kind == tokens::TK_FLOAT() {
-        return String_from("FLOAT")
+        return "FLOAT"
     }
     if kind == tokens::TK_STRING() {
-        return String_from("STRING")
+        return "STRING"
     }
     if kind == tokens::TK_BOOL() {
-        return String_from("BOOL")
+        return "BOOL"
     }
     if kind == tokens::TK_NEWLINE() {
-        return String_from("NEWLINE")
+        return "NEWLINE"
     }
     if kind == tokens::TK_ERROR() {
-        return String_from("ERROR")
+        return "ERROR"
     }
     if kind == tokens::TK_CHAR() {
-        return String_from("CHAR")
+        return "CHAR"
     }
     String_new()
 }

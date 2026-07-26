@@ -41,7 +41,7 @@ fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
 
 fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if mir_return_type_name_is_fnref(typeinfo_shape::mir_type_info_name(ty)) {
-        return String_from("fnref")
+        return "fnref"
     }
     let tag = mir_return_tag_from_type_info(ty)
     match tag {
@@ -50,41 +50,41 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
             if len(name) > 0 {
                 return name
             }
-            String_from("i32")
+            "i32"
         },
         2 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
             if len(name) > 0 {
                 return name
             }
-            String_from("i64")
+            "i64"
         },
         3 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
             if len(name) > 0 {
                 return name
             }
-            String_from("f64")
+            "f64"
         },
         4 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
             if len(name) > 0 {
                 return name
             }
-            String_from("bool")
+            "bool"
         },
-        6 => String_from("char"),
+        6 => "char",
         9 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
             if len(name) > 0 {
                 return name
             }
-            String_from("f32")
+            "f32"
         },
         5 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
             if len(name) == 0 {
-                return String_from("String")
+                return "String"
             }
             name
         },
@@ -94,24 +94,24 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         13 => return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty),
         21 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
-            if eq(clone(name), String_from("HashSet")) {
+            if eq(clone(name), "HashSet") {
                 return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
             }
-            if eq(clone(name), String_from("HashMap")) {
+            if eq(clone(name), "HashMap") {
                 return return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty)
             }
             name
         },
         22 => return_typeinfo_names::mir_enum_return_type_name_from_type_info(ty),
         23 => return_typeinfo_names::mir_tuple_return_type_name_from_type_info(ty),
-        _ => String_from(""),
+        _ => "",
     }
 }
 
 fn mir_return_type_name_is_fnref(type_name: String) -> bool {
-    eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn("))
+    eq(clone(type_name), "fnref") ||
+    eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fn(")
 }
 
 // Build a return type name for enum types.  For Result, include type

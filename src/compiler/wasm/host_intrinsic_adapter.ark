@@ -30,44 +30,44 @@ use wasm::writer_core
 // pointer into linear memory which must be converted to a GC ref.
 fn host_intrinsic_abi_kind(name: String) -> i32 {
     // Scalar intrinsics: return plain numeric values, no GC ref needed.
-    if eq(clone(name), String_from("clock_now")) {
+    if eq(clone(name), "clock_now") {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("exists")) {
+    if eq(clone(name), "exists") {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_file")) {
+    if eq(clone(name), "is_file") {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_dir")) {
+    if eq(clone(name), "is_dir") {
         return kinds::HOST_ABI_SCALAR()
     }
-    if eq(clone(name), String_from("is_readable_file")) {
+    if eq(clone(name), "is_readable_file") {
         return kinds::HOST_ABI_SCALAR()
     }
     // HTTP/sockets host wrappers emit GC Result enums directly (#727).
-    if eq(clone(name), String_from("get")) {
+    if eq(clone(name), "get") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("request")) {
+    if eq(clone(name), "request") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("serve")) {
+    if eq(clone(name), "serve") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("connect")) {
+    if eq(clone(name), "connect") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("read")) {
+    if eq(clone(name), "read") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("write")) {
+    if eq(clone(name), "write") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("listen")) {
+    if eq(clone(name), "listen") {
         return kinds::HOST_ABI_GC_REF()
     }
-    if eq(clone(name), String_from("accept")) {
+    if eq(clone(name), "accept") {
         return kinds::HOST_ABI_GC_REF()
     }
     // All other host intrinsics return i32 pointers (string handles,

@@ -7,7 +7,7 @@ fn return_ann_child(node: AstNode) -> AstNode {
     let mut i = 0
     while i < count {
         let ann = decl_ann_member::decl_ann_at(node, i)
-        if decl_ann_name::decl_ann_is_name(ann, String_from("__return")) {
+        if decl_ann_name::decl_ann_is_name(ann, "__return") {
             if decl_ann_children::decl_ann_child_count(ann) > 0 {
                 return decl_ann_children::decl_ann_child_at(ann, 0)
             }
@@ -22,7 +22,7 @@ fn return_ann_child_count(node: AstNode) -> i32 {
     let mut i = 0
     while i < count {
         let ann = decl_ann_member::decl_ann_at(node, i)
-        if decl_ann_name::decl_ann_is_name(ann, String_from("__return")) {
+        if decl_ann_name::decl_ann_is_name(ann, "__return") {
             return decl_ann_children::decl_ann_child_count(ann)
         }
         i = i + 1

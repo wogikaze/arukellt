@@ -146,7 +146,7 @@ fn try_emit_result_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
 
 fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
     if export_shapes_presence::comp_has_shape_area_exports(export_names) {
-        return shape::emit_shape_area_component(core_wasm, String_from("area"))
+        return shape::emit_shape_area_component(core_wasm, "area")
     }
     let shape_to_f64_name = comp_single_shape_to_f64_export_name(mir)
     if len(shape_to_f64_name) > 0 {

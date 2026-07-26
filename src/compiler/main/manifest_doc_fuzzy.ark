@@ -1,7 +1,7 @@
 use main::manifest_doc_record
 
 fn doc_qualified_name(module: String, name: String) -> String {
-    concat(clone(module), concat(String_from("::"), clone(name)))
+    concat(clone(module), concat("::", clone(name)))
 }
 
 fn doc_score_name(query: String, candidate: String) -> i32 {

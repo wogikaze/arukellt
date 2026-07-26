@@ -29,12 +29,12 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     if len(local_type_name) > 0 {
         mir_type_name = clone(local_type_name)
         sig_type_name = clone(local_type_name)
-        if starts_with(clone(local_type_name), String_from("vec:")) ||
-        starts_with(clone(local_type_name), String_from("hashmap:")) ||
-        starts_with(clone(local_type_name), String_from("Option_")) ||
-        starts_with(clone(local_type_name), String_from("option:")) ||
-        starts_with(clone(local_type_name), String_from("Result_")) ||
-        starts_with(clone(local_type_name), String_from("result:")) {
+        if starts_with(clone(local_type_name), "vec:") ||
+        starts_with(clone(local_type_name), "hashmap:") ||
+        starts_with(clone(local_type_name), "Option_") ||
+        starts_with(clone(local_type_name), "option:") ||
+        starts_with(clone(local_type_name), "Result_") ||
+        starts_with(clone(local_type_name), "result:") {
             pvt = value_types::VT_GC_REF()
         } else {
             // Qualified names like "parser::TomlValue" need the bare enum
@@ -64,7 +64,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
             pvt = value_types::VT_GC_REF()
             mir_type_name = get_unchecked(resolved, 0)
             sig_type_name = get_unchecked(resolved, 1)
-            if starts_with(clone(mir_type_name), String_from("?")) {
+            if starts_with(clone(mir_type_name), "?") {
                 is_type_var = true
             }
         }
@@ -91,17 +91,17 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     }
     // Keep Option<fn> as option:fnref across MVT aliasing (#831).
     if mir_param_type_is_option_fnref(clone(preserved_type_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, param_local, String_from("option:fnref"))
+        ctx_api_local_types::ctx_set_local_type(ctx, param_local, "option:fnref")
         ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_GC_REF())
-        ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), String_from("option:fnref"))
+        ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), "option:fnref")
     }
 }
 
 fn mir_param_type_is_option_fnref(type_name: String) -> bool {
-    eq(clone(type_name), String_from("option:fnref")) ||
-    eq(clone(type_name), String_from("Option:fnref")) ||
-    eq(clone(type_name), String_from("Option:fn")) ||
-    ends_with(clone(type_name), String_from(":fnref"))
+    eq(clone(type_name), "option:fnref") ||
+    eq(clone(type_name), "Option:fnref") ||
+    eq(clone(type_name), "Option:fn") ||
+    ends_with(clone(type_name), ":fnref")
 }
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
@@ -115,7 +115,7 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
-        let mt = concat(String_from("enum:"), p_type_name)
+        let mt = concat("enum:", p_type_name)
         push(result, mt)
         push(result, clone(mt))
         return result
@@ -126,7 +126,7 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
-        let mt = concat(String_from("?"), clone(p_type_name))
+        let mt = concat("?", clone(p_type_name))
         push(result, mt)
         push(result, clone(mt))
         return result
@@ -135,29 +135,29 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
 }
 
 fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) {
+    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "result:") {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("Option_")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Option_") {
+        return concat("option:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option:")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Option:") {
+        return concat("option:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("?Option:")) {
-        return concat(String_from("option:"), substring(type_name, 8, len(type_name)))
+    if starts_with(clone(type_name), "?Option:") {
+        return concat("option:", substring(type_name, 8, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+    if starts_with(clone(type_name), "Option<") && ends_with(clone(type_name), ">") {
+        return concat("option:", substring(type_name, 7, len(type_name) - 1))
     }
-    if starts_with(clone(type_name), String_from("Result:")) {
-        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Result:") {
+        return concat("result:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("?Result:")) {
-        return concat(String_from("result:"), substring(type_name, 8, len(type_name)))
+    if starts_with(clone(type_name), "?Result:") {
+        return concat("result:", substring(type_name, 8, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Result_")) {
-        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Result_") {
+        return concat("result:", substring(type_name, 7, len(type_name)))
     }
     String_new()
 }
@@ -189,7 +189,7 @@ fn mir_param_name_is_type_param(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), String_from("?")) {
+    if starts_with(clone(name), "?") {
         return mir_param_name_is_type_param(substring(name, 1, len(name)))
     }
     if len(name) == 1 {

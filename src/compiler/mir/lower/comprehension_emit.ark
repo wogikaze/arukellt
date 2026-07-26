@@ -13,7 +13,7 @@ fn mir_emit_comprehension_push_prefix(ctx: LowerCtx, state: ComprehensionState) 
 }
 
 fn mir_emit_comprehension_push_call(ctx: LowerCtx) {
-    ctx_emit(ctx, inst_call::MirInst_call(String_from("push"), 2, 0 - 1))
+    ctx_emit(ctx, inst_call::MirInst_call("push", 2, 0 - 1))
 }
 
 fn mir_emit_comprehension_increment_and_end(ctx: LowerCtx, state: ComprehensionState) {

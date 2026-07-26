@@ -47,7 +47,7 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return type_name
     }
     // Normalize angle-bracket forms so GC locals / match payload see
@@ -56,50 +56,50 @@ fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
     if !eq(clone(normalized), clone(type_name)) {
         return ctx_maybe_enum_return_type_name(ctx, normalized)
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         return type_name
     }
-    if eq(clone(type_name), String_from("HashMap")) {
+    if eq(clone(type_name), "HashMap") {
         return type_name
     }
-    if eq(clone(type_name), String_from("HashSet")) {
+    if eq(clone(type_name), "HashSet") {
         return type_name
     }
-    if eq(clone(type_name), String_from("Vec")) {
+    if eq(clone(type_name), "Vec") {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
         return type_name
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+    if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
         return type_name
     }
     if ctx_is_registered_enum_type(ctx, clone(type_name)) {
-        return concat(String_from("enum:"), type_name)
+        return concat("enum:", type_name)
     }
     if ctx_is_registered_struct_type(ctx, clone(type_name)) {
         let byte_size = ctx_struct_byte_size(ctx, clone(type_name))
-        return concat(concat(String_from("struct:"), type_name), concat(String_from(":"), i32_to_string(byte_size)))
+        return concat(concat("struct:", type_name), concat(":", i32_to_string(byte_size)))
     }
     type_name
 }
 
 fn ctx_normalize_generic_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 4, len(type_name) - 1)
-        return concat(String_from("vec:"), inner)
+        return concat("vec:", inner)
     }
-    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
+    if starts_with(clone(type_name), "Option<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 7, len(type_name) - 1)
-        return concat(String_from("option:"), inner)
+        return concat("option:", inner)
     }
-    if starts_with(clone(type_name), String_from("Result<")) && ends_with(clone(type_name), String_from(">")) {
+    if starts_with(clone(type_name), "Result<") && ends_with(clone(type_name), ">") {
         let inner = substring(clone(type_name), 7, len(type_name) - 1)
         let sep = find_top_level_comma(clone(inner))
         if sep >= 0 {
@@ -114,9 +114,9 @@ fn ctx_normalize_generic_type_name(type_name: String) -> String {
             // result:vec:T:String (#726 toml navigate Result match).
             let ok_norm = ctx_normalize_generic_type_name(ok_ty)
             let err_norm = ctx_normalize_generic_type_name(err)
-            return concat(concat(String_from("result:"), ok_norm), concat(String_from(":"), err_norm))
+            return concat(concat("result:", ok_norm), concat(":", err_norm))
         }
-        return concat(String_from("result:"), inner)
+        return concat("result:", inner)
     }
     type_name
 }
@@ -141,7 +141,7 @@ fn find_top_level_comma(s: String) -> i32 {
 
 fn ctx_struct_semantic_type_name(type_name: String) -> String {
     let mut s = clone(type_name)
-    if starts_with(clone(s), String_from("struct:")) {
+    if starts_with(clone(s), "struct:") {
         s = substring(s, 7, len(s))
         let n = len(s)
         let mut last_colon = 0 - 1
@@ -257,7 +257,7 @@ fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
                     off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
                     li = li + 1
                 }
-                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), String_from("_tag")) {
+                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag") {
                     return true
                 }
             }

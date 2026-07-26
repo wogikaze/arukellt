@@ -24,7 +24,7 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
         if len(rtn) == 0 {
             let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
                 clone(name),
-                String_from("T")
+                "T"
             )
             if is_concrete_mono_return_type_name(clone(from_mangled)) {
                 rtn = from_mangled
@@ -71,7 +71,7 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     if !is_container_mono_return_type_name(clone(fallback_name)) {
         if len(fallback_name) > 0 &&
         !fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) &&
-        !starts_with(clone(fallback_name), String_from("?")) {
+        !starts_with(clone(fallback_name), "?") {
             return fallback_name
         }
         // Only mangled-substitute when fn_index says the return is a type var.
@@ -99,13 +99,13 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
 }
 
 fn is_container_mono_return_type_name(type_name: String) -> bool {
-    starts_with(clone(type_name), String_from("vec:")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result")) ||
-    starts_with(clone(type_name), String_from("hashmap:")) ||
-    starts_with(clone(type_name), String_from("HashMap"))
+    starts_with(clone(type_name), "vec:") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result") ||
+    starts_with(clone(type_name), "hashmap:") ||
+    starts_with(clone(type_name), "HashMap")
 }
 
 fn mono_resolve_return_type_name(ctx: LowerCtx, name: String) -> String {
@@ -117,29 +117,29 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("?")) {
+    if starts_with(clone(type_name), "?") {
         return false
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         return !type_name_has_type_var_suffix(clone(type_name))
     }
-    if starts_with(clone(type_name), String_from("option:")) {
+    if starts_with(clone(type_name), "option:") {
         return !type_name_has_type_var_suffix(clone(type_name))
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         return true
     }
-    if eq(clone(type_name), String_from("i32")) ||
-    eq(clone(type_name), String_from("i64")) ||
-    eq(clone(type_name), String_from("f64")) ||
-    eq(clone(type_name), String_from("f32")) ||
-    eq(clone(type_name), String_from("bool")) ||
-    eq(clone(type_name), String_from("char")) ||
-    eq(clone(type_name), String_from("String")) ||
-    eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "i32") ||
+    eq(clone(type_name), "i64") ||
+    eq(clone(type_name), "f64") ||
+    eq(clone(type_name), "f32") ||
+    eq(clone(type_name), "bool") ||
+    eq(clone(type_name), "char") ||
+    eq(clone(type_name), "String") ||
+    eq(clone(type_name), "string") {
         return true
     }
     false

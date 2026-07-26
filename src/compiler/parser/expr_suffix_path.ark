@@ -16,7 +16,7 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
     p.pos = p.pos + 1
     let seg = expect_token(p, tokens::TK_IDENT())
     let node = AstNode_new(kinds::NK_PATH(), core_ast_span_fields::AstNode_span(lhs))
-    core_ast_text_fields::AstNode_set_text(node, concat(core_ast_text_fields::AstNode_text(lhs), concat(String_from("::"), token_state::Token_text(seg))))
+    core_ast_text_fields::AstNode_set_text(node, concat(core_ast_text_fields::AstNode_text(lhs), concat("::", token_state::Token_text(seg))))
     core_ast_children::AstNode_push_child(node, lhs)
     if expr_prefix_struct_probe::next_prefix_is_struct_lit(p) {
         let lit = expr_prefix_struct_fields::parse_struct_lit_fields(p, seg)
@@ -42,9 +42,9 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
                 // Rewrite Vec::new<T>() path text to Vec_new_<T> so the
                 // resolver/typechecker/lowering see the intrinsic name directly.
                 let path_text = core_ast_text_fields::AstNode_text(node)
-                if eq(clone(path_text), String_from("Vec::new")) {
+                if eq(clone(path_text), "Vec::new") {
                     let elem_name = core_ast_text_fields::AstNode_text(get_unchecked(type_args, 0))
-                    core_ast_text_fields::AstNode_set_text(node, concat(String_from("Vec_new_"), elem_name))
+                    core_ast_text_fields::AstNode_set_text(node, concat("Vec_new_", elem_name))
                 }
             } else {
                 state_record::parser_set_position(p, saved_pos)
@@ -57,11 +57,11 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
     // String::from(x) → String_from, i32::from(s) → parse_i32.
     // This lets the resolver/typechecker/lowering see the prelude function directly.
     let final_text = core_ast_text_fields::AstNode_text(node)
-    if eq(clone(final_text), String_from("String::from")) {
-        core_ast_text_fields::AstNode_set_text(node, String_from("String_from"))
+    if eq(clone(final_text), "String::from") {
+        core_ast_text_fields::AstNode_set_text(node, "String_from")
     }
-    if eq(clone(final_text), String_from("i32::from")) {
-        core_ast_text_fields::AstNode_set_text(node, String_from("parse_i32"))
+    if eq(clone(final_text), "i32::from") {
+        core_ast_text_fields::AstNode_set_text(node, "parse_i32")
     }
     node
 }
@@ -80,7 +80,7 @@ fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
         if core_api_cursor::peek_kind(p) == tokens::TK_SHR() {
             // Split >> into > and remaining >
             let t = core_api_cursor::cur(p)
-            let gt_tok = token_state::Token_new(tokens::TK_GT(), String_from(">"), token_state::Token_start(t), token_state::Token_end(t))
+            let gt_tok = token_state::Token_new(tokens::TK_GT(), ">", token_state::Token_start(t), token_state::Token_end(t))
             state_record::parser_set_current_token(p, gt_tok)
             return args
         }

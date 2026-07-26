@@ -1,24 +1,24 @@
 fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
-    if starts_with(clone(bare_name), String_from("__simd_v128_")) {
+    if starts_with(clone(bare_name), "__simd_v128_") {
         if eq(clone(bare_name), "__simd_v128_any_true") {
             return false
         }
         return true
     }
-    if starts_with(clone(bare_name), String_from("__simd_f32x4_")) {
-        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+    if starts_with(clone(bare_name), "__simd_f32x4_") {
+        if ends_with(clone(bare_name), "_extract_lane") {
             return false
         }
         return true
     }
-    if starts_with(clone(bare_name), String_from("__simd_f64x2_")) {
-        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+    if starts_with(clone(bare_name), "__simd_f64x2_") {
+        if ends_with(clone(bare_name), "_extract_lane") {
             return false
         }
-        if ends_with(clone(bare_name), String_from("_convert_low_i32x4_s")) {
+        if ends_with(clone(bare_name), "_convert_low_i32x4_s") {
             return false
         }
-        if ends_with(clone(bare_name), String_from("_convert_low_i32x4_u")) {
+        if ends_with(clone(bare_name), "_convert_low_i32x4_u") {
             return false
         }
         return true
@@ -26,8 +26,8 @@ fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
     if simd_i32x4_is_v128(clone(bare_name)) {
         return true
     }
-    if starts_with(clone(bare_name), String_from("__simd_i64x2_")) {
-        if ends_with(clone(bare_name), String_from("_extract_lane")) {
+    if starts_with(clone(bare_name), "__simd_i64x2_") {
+        if ends_with(clone(bare_name), "_extract_lane") {
             return false
         }
         return true
@@ -42,54 +42,54 @@ fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
 }
 
 fn simd_i32x4_is_v128(bare_name: String) -> bool {
-    if !starts_with(clone(bare_name), String_from("__simd_i32x4_")) {
+    if !starts_with(clone(bare_name), "__simd_i32x4_") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_extract_lane")) {
+    if ends_with(clone(bare_name), "_extract_lane") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_alltrue")) {
+    if ends_with(clone(bare_name), "_alltrue") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_bitmask")) {
+    if ends_with(clone(bare_name), "_bitmask") {
         return false
     }
     true
 }
 
 fn simd_i8x16_is_v128(bare_name: String) -> bool {
-    if !starts_with(clone(bare_name), String_from("__simd_i8x16_")) {
+    if !starts_with(clone(bare_name), "__simd_i8x16_") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_extract_lane_s")) {
+    if ends_with(clone(bare_name), "_extract_lane_s") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_extract_lane_u")) {
+    if ends_with(clone(bare_name), "_extract_lane_u") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_alltrue")) {
+    if ends_with(clone(bare_name), "_alltrue") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_bitmask")) {
+    if ends_with(clone(bare_name), "_bitmask") {
         return false
     }
     true
 }
 
 fn simd_i16x8_is_v128(bare_name: String) -> bool {
-    if !starts_with(clone(bare_name), String_from("__simd_i16x8_")) {
+    if !starts_with(clone(bare_name), "__simd_i16x8_") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_extract_lane_s")) {
+    if ends_with(clone(bare_name), "_extract_lane_s") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_extract_lane_u")) {
+    if ends_with(clone(bare_name), "_extract_lane_u") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_alltrue")) {
+    if ends_with(clone(bare_name), "_alltrue") {
         return false
     }
-    if ends_with(clone(bare_name), String_from("_bitmask")) {
+    if ends_with(clone(bare_name), "_bitmask") {
         return false
     }
     true

@@ -121,21 +121,21 @@ fn append_missing_string_layout_bool_literals(mir: MirModule, string_offsets: Ve
     let mut assert_idx = EmitStringBoolLiteralPlan_assert_idx(plan)
     if true_idx < 0 {
         true_idx = module_strings::MirModule_string_constant_count(mir)
-        module_strings::MirModule_push_string_constant(mir, String_from("true"))
+        module_strings::MirModule_push_string_constant(mir, "true")
         push(string_offsets, data_offset + 4)
         push(string_lengths, 4)
         data_offset = data_offset + 4 + 4
     }
     if false_idx < 0 {
         false_idx = module_strings::MirModule_string_constant_count(mir)
-        module_strings::MirModule_push_string_constant(mir, String_from("false"))
+        module_strings::MirModule_push_string_constant(mir, "false")
         push(string_offsets, data_offset + 4)
         push(string_lengths, 5)
         data_offset = data_offset + 4 + 5
     }
     if assert_idx < 0 {
         assert_idx = module_strings::MirModule_string_constant_count(mir)
-        module_strings::MirModule_push_string_constant(mir, String_from("assertion failed"))
+        module_strings::MirModule_push_string_constant(mir, "assertion failed")
         push(string_offsets, data_offset + 4)
         push(string_lengths, 16)
         data_offset = data_offset + 4 + 16

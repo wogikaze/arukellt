@@ -2,34 +2,34 @@ use parser::kinds
 
 fn decl_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_FN_DECL() {
-        return String_from("FnDecl")
+        return "FnDecl"
     }
     if kind == kinds::NK_STRUCT_DECL() {
-        return String_from("StructDecl")
+        return "StructDecl"
     }
     if kind == kinds::NK_RESOURCE_DECL() {
-        return String_from("ResourceDecl")
+        return "ResourceDecl"
     }
     if kind == kinds::NK_ENUM_DECL() {
-        return String_from("EnumDecl")
+        return "EnumDecl"
     }
     if kind == kinds::NK_IMPORT() {
-        return String_from("Import")
+        return "Import"
     }
     if kind == kinds::NK_USE() {
-        return String_from("Use")
+        return "Use"
     }
     if kind == kinds::NK_TRAIT_DECL() {
-        return String_from("TraitDecl")
+        return "TraitDecl"
     }
     if kind == kinds::NK_IMPL_DECL() {
-        return String_from("ImplDecl")
+        return "ImplDecl"
     }
     if kind == kinds::NK_TEST_DECL() {
-        return String_from("TestDecl")
+        return "TestDecl"
     }
     if kind == kinds::NK_TEST_MOD() {
-        return String_from("TestMod")
+        return "TestMod"
     }
     String_new()
 }

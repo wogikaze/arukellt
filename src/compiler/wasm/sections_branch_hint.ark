@@ -5,7 +5,7 @@ use wasm::writer_string
 
 fn emit_branch_hint_custom_section(out: WasmWriter) {
     let payload = writer_core::WasmWriter_new()
-    writer_string::emit_string(payload, String_from("metadata.code.branch_hint"))
+    writer_string::emit_string(payload, "metadata.code.branch_hint")
     writer_core::emit_leb128_u(payload, 0)
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
 }

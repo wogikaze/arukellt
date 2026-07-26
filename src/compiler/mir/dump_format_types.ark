@@ -2,22 +2,22 @@ use mir::value_types
 
 fn mir_value_type_name(vt: i32) -> String {
     if vt == value_types::VT_I32() {
-        return String_from("i32")
+        return "i32"
     }
     if vt == value_types::VT_I64() {
-        return String_from("i64")
+        return "i64"
     }
     if vt == value_types::VT_F64() {
-        return String_from("f64")
+        return "f64"
     }
     if vt == value_types::VT_REF() {
-        return String_from("ref")
+        return "ref"
     }
     if vt == value_types::VT_GC_REF() {
-        return String_from("gc_ref")
+        return "gc_ref"
     }
     if vt == value_types::VT_VOID() {
-        return String_from("void")
+        return "void"
     }
-    String_from("?")
+    "?"
 }

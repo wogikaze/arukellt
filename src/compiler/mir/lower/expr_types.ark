@@ -6,16 +6,16 @@ use mir::lower::ctx_types
 use mir::value_types
 fn mir_literal_kind_type_name(kind: i32) -> String {
     if kind == lower_kinds::NK_INT_LIT() {
-        return String_from("i32")
+        return "i32"
     }
     if kind == lower_kinds::NK_FLOAT_LIT() {
-        return String_from("f64")
+        return "f64"
     }
     if kind == lower_kinds::NK_BOOL_LIT() {
-        return String_from("bool")
+        return "bool"
     }
     if kind == lower_kinds::NK_CHAR_LIT() {
-        return String_from("char")
+        return "char"
     }
     String_new()
 }

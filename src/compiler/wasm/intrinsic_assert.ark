@@ -57,7 +57,7 @@ fn emit_assertion_failed_if_true(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx)
 }
 
 fn emit_static_assertion_failed(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    intrinsic_process::emit_static_panic_message_exit(w, inst, ctx, String_from("assertion failed"), 16)
+    intrinsic_process::emit_static_panic_message_exit(w, inst, ctx, "assertion failed", 16)
 }
 
 fn emit_panic_message_exit(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) -> bool {

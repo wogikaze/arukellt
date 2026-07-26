@@ -2,11 +2,11 @@ use component::sections
 use component::writer_core
 
 fn comp_p2_stdout_stub_core_module() -> Vec<i32> {
-    comp_p2_single_export_stub_core_module(String_from("write"), 0)
+    comp_p2_single_export_stub_core_module("write", 0)
 }
 
 fn comp_p2_environment_stub_core_module() -> Vec<i32> {
-    comp_p2_two_export_stub_core_module(String_from("args-sizes"), String_from("arguments"), 1)
+    comp_p2_two_export_stub_core_module("args-sizes", "arguments", 1)
 }
 
 fn comp_p2_filesystem_stub_core_module() -> Vec<i32> {
@@ -14,11 +14,11 @@ fn comp_p2_filesystem_stub_core_module() -> Vec<i32> {
 }
 
 fn comp_p2_stdin_stub_core_module() -> Vec<i32> {
-    comp_p2_single_export_stub_core_module(String_from("read"), 0)
+    comp_p2_single_export_stub_core_module("read", 0)
 }
 
 fn comp_p2_exit_stub_core_module() -> Vec<i32> {
-    comp_p2_void_export_stub_core_module(String_from("exit"), 4)
+    comp_p2_void_export_stub_core_module("exit", 4)
 }
 
 fn comp_p2_single_export_stub_core_module(export_name: String, type_idx: i32) -> Vec<i32> {
@@ -101,8 +101,8 @@ fn comp_p2_fs_stub_core_module() -> Vec<i32> {
     writer_core::comp_emit_leb128_u(func_sec, 1)
     sections::comp_emit_wasm_section(out, 3, func_sec)
     let export_names = Vec_new_String()
-    push(export_names, String_from("open-at"))
-    push(export_names, String_from("close"))
+    push(export_names, "open-at")
+    push(export_names, "close")
     let func_idxs = Vec_new_i32()
     push(func_idxs, 0)
     push(func_idxs, 1)

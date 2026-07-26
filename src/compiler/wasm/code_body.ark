@@ -62,7 +62,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     while j < pc {
         let p = function_param_view::MirFunction_param_at(f, j)
         let tn = local_access::MirLocal_type_name(p)
-        if starts_with(clone(tn), String_from("?")) && !is_concrete_option_result_wrapper(clone(tn)) {
+        if starts_with(clone(tn), "?") && !is_concrete_option_result_wrapper(clone(tn)) {
             return true
         }
         j = j + 1
@@ -71,11 +71,11 @@ fn is_generic_function(f: MirFunction) -> bool {
 }
 
 fn is_concrete_option_result_wrapper(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("?Option:")) {
+    if starts_with(clone(type_name), "?Option:") {
         let inner = substring(type_name, 8, len(type_name))
         return len(inner) > 0 && !is_generic_type_var_name(inner)
     }
-    if starts_with(clone(type_name), String_from("?Result:")) {
+    if starts_with(clone(type_name), "?Result:") {
         let inner = substring(type_name, 8, len(type_name))
         if len(inner) == 0 {
             return false
@@ -97,7 +97,7 @@ fn is_generic_type_var_name(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), String_from("?")) {
+    if starts_with(clone(name), "?") {
         return is_generic_type_var_name(substring(name, 1, len(name)))
     }
     if len(name) == 1 {

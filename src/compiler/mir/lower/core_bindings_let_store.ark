@@ -24,8 +24,8 @@ fn lower_core_let_store_value(ctx: LowerCtx, local_idx: i32, val_idx: i32, type_
     if len(init_type) > 1 && len(type_name) == 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
-        if starts_with(clone(init_type), String_from("vec:")) || len(init_type) == 0 {
+    if starts_with(clone(type_name), "vec:") {
+        if starts_with(clone(init_type), "vec:") || len(init_type) == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
         }
     }

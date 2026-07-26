@@ -41,9 +41,9 @@ fn is_t3_wasm_emit(config: DriverConfig, emit_mode: String) -> bool {
     let target = config_record::config_target(config)
     // Primary GC target is T3 even when wasi-version is a separate CLI flag
     // (config_target is often just "wasm32-gc", without "-p2" in the string).
-    eq(clone(target), String_from("wasm32-gc"))
-    || contains(clone(target), String_from("wasm32-gc"))
-    || contains(clone(target), String_from("-p2"))
+    eq(clone(target), "wasm32-gc")
+    || contains(clone(target), "wasm32-gc")
+    || contains(clone(target), "-p2")
 }
 
 fn lower_t3_wasm_program(program: CheckedProgram, config: DriverConfig, source: String) -> MirModule {

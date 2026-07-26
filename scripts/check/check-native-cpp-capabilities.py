@@ -168,12 +168,12 @@ def render_generated_ark(entries: list[dict[str, object]]) -> str:
     ]
     for entry in entries:
         identifier = str(entry["id"])
-        lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return String_from({json.dumps(identifier)})", "    }"])
-    lines.extend(['    concat(String_from("MIR_OPCODE_"), i32_to_string(op))', "}", "", "fn native_c_capability_status_detail(op: i32) -> String {"])
+        lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return {json.dumps(identifier)}", "    }"])
+    lines.extend(['    concat("MIR_OPCODE_", i32_to_string(op))', "}", "", "fn native_c_capability_status_detail(op: i32) -> String {"])
     for entry in entries:
         identifier = str(entry["id"])
-        lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return String_from({json.dumps(_status_detail(entry))})", "    }"])
-    lines.extend(['    String_from("unknown capability")', "}", "", "fn native_c_capability_is_supported(op: i32) -> bool {"])
+        lines.extend([f"    if op == opcodes::{identifier}() {{", f"        return {json.dumps(_status_detail(entry))}", "    }"])
+    lines.extend(['    "unknown capability"', "}", "", "fn native_c_capability_is_supported(op: i32) -> bool {"])
     supported = [str(entry["id"]) for entry in entries if entry["status"] == "supported"]
     for index, identifier in enumerate(supported):
         lines.append(f"    op == opcodes::{identifier}()" + (" ||" if index < len(supported) - 1 else ""))

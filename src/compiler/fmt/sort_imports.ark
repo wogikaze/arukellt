@@ -20,7 +20,7 @@ fn fmt_import_sort_group(path: String, has_alias: bool) -> i32 {
     if has_alias {
         return 2
     }
-    if starts_with(clone(path), String_from("std::")) {
+    if starts_with(clone(path), "std::") {
         return 0
     }
     1

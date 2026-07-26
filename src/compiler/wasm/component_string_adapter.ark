@@ -94,18 +94,18 @@ pub fn adapter_func_return_type_byte(f: MirFunction) -> i32 {
 }
 
 fn adapter_core_type_byte(type_name: String) -> i32 {
-    if eq(clone(type_name), String_from("u8")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("u16")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("u32")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("i8")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("i16")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("i32")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("bool")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("char")) { return constants::WASM_I32() }
-    if eq(clone(type_name), String_from("u64")) { return constants::WASM_I64() }
-    if eq(clone(type_name), String_from("i64")) { return constants::WASM_I64() }
-    if eq(clone(type_name), String_from("f32")) { return constants::WASM_F32() }
-    if eq(clone(type_name), String_from("f64")) { return constants::WASM_F64() }
+    if eq(clone(type_name), "u8") { return constants::WASM_I32() }
+    if eq(clone(type_name), "u16") { return constants::WASM_I32() }
+    if eq(clone(type_name), "u32") { return constants::WASM_I32() }
+    if eq(clone(type_name), "i8") { return constants::WASM_I32() }
+    if eq(clone(type_name), "i16") { return constants::WASM_I32() }
+    if eq(clone(type_name), "i32") { return constants::WASM_I32() }
+    if eq(clone(type_name), "bool") { return constants::WASM_I32() }
+    if eq(clone(type_name), "char") { return constants::WASM_I32() }
+    if eq(clone(type_name), "u64") { return constants::WASM_I64() }
+    if eq(clone(type_name), "i64") { return constants::WASM_I64() }
+    if eq(clone(type_name), "f32") { return constants::WASM_F32() }
+    if eq(clone(type_name), "f64") { return constants::WASM_F64() }
     constants::WASM_I32()
 }
 
@@ -236,7 +236,7 @@ fn emit_import_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_ind
         let f = module_functions::MirModule_function_at(mir, idx)
         let type_idx = 2 + fi * 2
         let name = function_identity::MirFunction_name(f)
-        writer_string::emit_string(sec, String_from("user"))
+        writer_string::emit_string(sec, "user")
         writer_string::emit_string(sec, clone(name))
         writer_core::emit_byte(sec, 0x00)
         writer_core::emit_leb128_u(sec, type_idx)
@@ -276,7 +276,7 @@ fn emit_export_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_ind
     let n = len(adapter_indices)
     writer_core::emit_leb128_u(sec, n + 2)
 
-    writer_string::emit_string(sec, String_from("realloc"))
+    writer_string::emit_string(sec, "realloc")
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, n)
 
@@ -291,7 +291,7 @@ fn emit_export_section(sec: writer_core::WasmWriter, mir: MirModule, adapter_ind
         fi = fi + 1
     }
 
-    writer_string::emit_string(sec, String_from("memory"))
+    writer_string::emit_string(sec, "memory")
     writer_core::emit_byte(sec, 0x02)
     writer_core::emit_leb128_u(sec, 0)
 }

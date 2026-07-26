@@ -5,22 +5,22 @@ fn json_escape(s: String) -> String {
     while i < n {
         let c = char_at(s, i)
         if c == 34 {
-            out = concat(out, String_from("\\\""))
+            out = concat(out, "\\\"")
         } else {
             if c == 92 {
-                out = concat(out, String_from("\\\\"))
+                out = concat(out, "\\\\")
             } else {
                 if c == 10 {
-                    out = concat(out, String_from("\\n"))
+                    out = concat(out, "\\n")
                 } else {
                     if c == 13 {
-                        out = concat(out, String_from("\\r"))
+                        out = concat(out, "\\r")
                     } else {
                         if c == 9 {
-                            out = concat(out, String_from("\\t"))
+                            out = concat(out, "\\t")
                         } else {
                             if c < 32 {
-                                out = concat(out, String_from("\\u00"))
+                                out = concat(out, "\\u00")
                                 out = concat(out, hex_byte(c))
                             } else {
                                 out = concat(out, substring(clone(s), i, i + 1))
@@ -35,7 +35,7 @@ fn json_escape(s: String) -> String {
     out
 }
 fn quote_string(s: String) -> String {
-    concat(String_from("\""), concat(json_escape(s), String_from("\"")))
+    concat("\"", concat(json_escape(s), "\""))
 }
 fn hex_nibble(n: i32) -> String {
     if n < 10 {

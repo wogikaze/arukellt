@@ -2,49 +2,49 @@ use mir::opcodes
 
 fn mir_arith_op_name(op: i32) -> String {
     if op == opcodes::MIR_ADD() {
-        return String_from("add")
+        return "add"
     }
     if op == opcodes::MIR_SUB() {
-        return String_from("sub")
+        return "sub"
     }
     if op == opcodes::MIR_MUL() {
-        return String_from("mul")
+        return "mul"
     }
     if op == opcodes::MIR_DIV() {
-        return String_from("div")
+        return "div"
     }
     if op == opcodes::MIR_MOD() {
-        return String_from("mod")
+        return "mod"
     }
     if op == opcodes::MIR_EQ() {
-        return String_from("eq")
+        return "eq"
     }
     if op == opcodes::MIR_NEQ() {
-        return String_from("neq")
+        return "neq"
     }
     if op == opcodes::MIR_LT() {
-        return String_from("lt")
+        return "lt"
     }
     if op == opcodes::MIR_LTEQ() {
-        return String_from("le")
+        return "le"
     }
     if op == opcodes::MIR_GT() {
-        return String_from("gt")
+        return "gt"
     }
     if op == opcodes::MIR_GTEQ() {
-        return String_from("ge")
+        return "ge"
     }
     if op == opcodes::MIR_AND() {
-        return String_from("and")
+        return "and"
     }
     if op == opcodes::MIR_OR() {
-        return String_from("or")
+        return "or"
     }
     if op == opcodes::MIR_NEG() {
-        return String_from("neg")
+        return "neg"
     }
     if op == opcodes::MIR_NOT() {
-        return String_from("not")
+        return "not"
     }
-    String_from("")
+    ""
 }

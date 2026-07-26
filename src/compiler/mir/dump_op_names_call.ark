@@ -2,19 +2,19 @@ use mir::opcodes
 
 fn mir_call_op_name(op: i32) -> String {
     if op == opcodes::MIR_CALL() {
-        return String_from("call")
+        return "call"
     }
     if op == opcodes::MIR_RETURN() {
-        return String_from("return")
+        return "return"
     }
     if op == opcodes::MIR_WIT_CALL() {
-        return String_from("wit-call")
+        return "wit-call"
     }
     if op == opcodes::MIR_FUTURE_NEW() {
-        return String_from("future-new")
+        return "future-new"
     }
     if op == opcodes::MIR_AWAIT() {
-        return String_from("await")
+        return "await"
     }
-    String_from("")
+    ""
 }

@@ -31,7 +31,7 @@ fn register_prelude_bare_names(ctx: ResolveCtx, modules: Vec<ModuleDecls>) {
     while mi < mod_count {
         let m = get_unchecked(modules, mi)
         let module_name = modules::module_name(m)
-        if eq(clone(module_name), String_from("prelude")) {
+        if eq(clone(module_name), "prelude") {
             register_prelude_module_bare_names(ctx, m)
         }
         mi = mi + 1
@@ -135,7 +135,7 @@ fn register_pub_use_reexports_for_module(ctx: ResolveCtx, m: ModuleDecls, module
 }
 
 fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module: String) {
-    let prefix = concat(clone(source_module), String_from("::"))
+    let prefix = concat(clone(source_module), "::")
     let prefix_len = len(clone(prefix))
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, 0)
     let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
@@ -146,7 +146,7 @@ fn reexport_module_symbols(ctx: ResolveCtx, target_module: String, source_module
         if starts_with(clone(sym_name), clone(prefix)) {
             if scope_stack_symbols::Symbol_is_pub(sym) {
                 let suffix = substring(clone(sym_name), prefix_len, len(clone(sym_name)))
-                let qualified = concat(clone(target_module), concat(String_from("::"), clone(suffix)))
+                let qualified = concat(clone(target_module), concat("::", clone(suffix)))
                 let existing = scope_lookup::lookup(ctx, clone(qualified))
                 if existing < 0 {
                     let kind = scope_stack_symbols::Symbol_kind(sym)

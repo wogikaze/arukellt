@@ -68,7 +68,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         let node = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
-            if !eq(clone(name), String_from("main")) {
+            if !eq(clone(name), "main") {
                 push(fn_names, clone(name))
                 push(fn_spans_start, ast_access::node_decl_name_span_start(node))
                 push(fn_spans_end, ast_access::node_decl_name_span_end(node))
@@ -89,7 +89,7 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         let name = clone(get_unchecked(fn_names, fi))
         if !name_in_vec(clone(name), referenced) &&
         !core_op_registry_generated::core_op_registry_has_fallback_symbol(clone(name)) {
-            let msg = concat(String_from("unused symbol `"), concat(clone(name), String_from("`")))
+            let msg = concat("unused symbol `", concat(clone(name), "`"))
             let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))
         }
@@ -135,15 +135,15 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
         if ast_decl_predicates::node_is_fn_decl(node) && !ast_access::node_is_pub(node) {
             let name = ast_access::node_text(node)
             // Skip main and private helpers starting with _
-            if eq(clone(name), String_from("main")) {
+            if eq(clone(name), "main") {
                 i = i + 1
                 continue
             }
-            if starts_with(clone(name), String_from("_")) {
+            if starts_with(clone(name), "_") {
                 i = i + 1
                 continue
             }
-            let msg = concat(String_from("non-exportable function `"), concat(clone(name), String_from("` will be skipped from component exports")))
+            let msg = concat("non-exportable function `", concat(clone(name), "` will be skipped from component exports"))
             let span = record::DiagnosticSpan_from_raw(ast_access::node_decl_name_span_start(node), ast_access::node_decl_name_span_end(node))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_CAPABILITY_STUB(), diag_mod::SEV_WARNING(), span, msg))
         }
@@ -153,7 +153,7 @@ pub fn check_capability_stubs(decls: Vec<AstNode>, target: String) -> Vec<Diagno
 }
 
 fn is_component_target(target: String) -> bool {
-    eq(clone(target), String_from("wasm32-gc"))
+    eq(clone(target), "wasm32-gc")
 }
 
 // ── W0008: doc drift ───────────────────────────────────────────────────

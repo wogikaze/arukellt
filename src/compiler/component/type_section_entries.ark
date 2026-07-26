@@ -32,8 +32,8 @@ fn point_s32_value() -> i32 {
 
 fn point_record_type_bytes() -> Vec<i32> {
     let field_names = Vec_new_String()
-    push(field_names, String_from("x"))
-    push(field_names, String_from("y"))
+    push(field_names, "x")
+    push(field_names, "y")
     let field_types = Vec_new_i32()
     push(field_types, point_s32_value())
     push(field_types, point_s32_value())
@@ -42,5 +42,5 @@ fn point_record_type_bytes() -> Vec<i32> {
 
 fn emit_point_record_type_sections(out: writer_core::ComponentWriter) {
     emit_single_type_section(out, point_record_type_bytes())
-    emit_single_type_export_section(out, String_from("point"), 0)
+    emit_single_type_export_section(out, "point", 0)
 }

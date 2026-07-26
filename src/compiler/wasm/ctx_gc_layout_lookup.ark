@@ -163,8 +163,8 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_n
 // materialized by typed-MIR synchronization and leave misses to the observed
 // legacy offset fallback.
 fn gc_layout_type_id_for_name(tt: TypeTable, type_name: String) -> TypeId {
-    let name = if eq(clone(type_name), String_from("string")) {
-        String_from("String")
+    let name = if eq(clone(type_name), "string") {
+        "String"
     } else {
         clone(type_name)
     }

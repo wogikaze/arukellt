@@ -3,7 +3,7 @@ use lsp::source_text
 use lsp::symbol_index_lookup
 
 fn is_stdlib_uri(uri: String) -> bool {
-    starts_with(clone(uri), String_from("file://std/"))
+    starts_with(clone(uri), "file://std/")
 }
 
 pub fn lookup_stdlib_definition(state: LspState, short_name: String) -> bool {

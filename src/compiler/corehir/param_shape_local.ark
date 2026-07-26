@@ -27,72 +27,72 @@ fn fn_param_local_type_name(node: AstNode) -> String {
     }
     let ann = param_shape_node::param_type_ann(node)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
-        return String_from("fnref")
+        return "fnref"
     }
     if decl_ann_name::decl_ann_is_generic(ann) {
-        if decl_ann_name::decl_ann_is_name(ann, String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
+        if decl_ann_name::decl_ann_is_name(ann, "HashMap") && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ann, 1)
             let val = decl_ann_children::decl_ann_child_at(ann, 2)
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
-                return String_from("hashmap:si32")
+            if decl_ann_name::decl_ann_is_name(key, "String") && decl_ann_name::decl_ann_is_name(val, "i32") {
+                return "hashmap:si32"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
-                return String_from("hashmap:i32str")
+            if decl_ann_name::decl_ann_is_name(key, "i32") && decl_ann_name::decl_ann_is_name(val, "String") {
+                return "hashmap:i32str"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
-                return String_from("hashmap:strstr")
+            if decl_ann_name::decl_ann_is_name(key, "String") && decl_ann_name::decl_ann_is_name(val, "String") {
+                return "hashmap:strstr"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
-                return String_from("hashmap:i32i32")
+            if decl_ann_name::decl_ann_is_name(key, "i32") && decl_ann_name::decl_ann_is_name(val, "i32") {
+                return "hashmap:i32i32"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && (
+            if decl_ann_name::decl_ann_is_name(key, "i32") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+                decl_ann_name::decl_ann_is_name(val, "fnref")
             ) {
-                return String_from("hashmap:i32fn")
+                return "hashmap:i32fn"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && (
+            if decl_ann_name::decl_ann_is_name(key, "String") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+                decl_ann_name::decl_ann_is_name(val, "fnref")
             ) {
-                return String_from("hashmap:strfn")
+                return "hashmap:strfn"
             }
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "Vec") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return concat("vec:", decl_ann_name::decl_ann_name(elem))
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "HashSet") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
-                return String_from("vec:String")
+            if decl_ann_name::decl_ann_is_name(elem, "String") {
+                return "vec:String"
             }
-            return String_from("vec:i32")
+            return "vec:i32"
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "Option") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
             // Keep Option_i32/i64/f64 aliases for existing scalar match helpers,
             // and emit option:T for every other payload (String, structs, ...).
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem2)) {
-                return String_from("option:fnref")
+                return "option:fnref"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
-                return String_from("Option_i64")
+            if decl_ann_name::decl_ann_is_name(elem2, "i64") {
+                return "Option_i64"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("f64")) {
-                return String_from("Option_f64")
+            if decl_ann_name::decl_ann_is_name(elem2, "f64") {
+                return "Option_f64"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
-                return String_from("Option_i32")
+            if decl_ann_name::decl_ann_is_name(elem2, "i32") {
+                return "Option_i32"
             }
-            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return concat("option:", decl_ann_name::decl_ann_name(elem2))
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
+        if decl_ann_name::decl_ann_is_name(ann, "Result") && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return concat(
-                String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                "result:",
+                concat(decl_ann_name::decl_ann_name(ok_ty), concat(":", decl_ann_name::decl_ann_name(err_ty)))
             )
         }
     } else {
@@ -107,68 +107,68 @@ fn method_param_local_type_name(node: AstNode) -> String {
     }
     let ann = param_shape_node::param_type_ann(node)
     if decl_ann_name::decl_ann_is_generic(ann) {
-        if decl_ann_name::decl_ann_is_name(ann, String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
+        if decl_ann_name::decl_ann_is_name(ann, "HashMap") && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ann, 1)
             let val = decl_ann_children::decl_ann_child_at(ann, 2)
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
-                return String_from("hashmap:si32")
+            if decl_ann_name::decl_ann_is_name(key, "String") && decl_ann_name::decl_ann_is_name(val, "i32") {
+                return "hashmap:si32"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
-                return String_from("hashmap:i32str")
+            if decl_ann_name::decl_ann_is_name(key, "i32") && decl_ann_name::decl_ann_is_name(val, "String") {
+                return "hashmap:i32str"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && decl_ann_name::decl_ann_is_name(val, String_from("String")) {
-                return String_from("hashmap:strstr")
+            if decl_ann_name::decl_ann_is_name(key, "String") && decl_ann_name::decl_ann_is_name(val, "String") {
+                return "hashmap:strstr"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && decl_ann_name::decl_ann_is_name(val, String_from("i32")) {
-                return String_from("hashmap:i32i32")
+            if decl_ann_name::decl_ann_is_name(key, "i32") && decl_ann_name::decl_ann_is_name(val, "i32") {
+                return "hashmap:i32i32"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("i32")) && (
+            if decl_ann_name::decl_ann_is_name(key, "i32") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+                decl_ann_name::decl_ann_is_name(val, "fnref")
             ) {
-                return String_from("hashmap:i32fn")
+                return "hashmap:i32fn"
             }
-            if decl_ann_name::decl_ann_is_name(key, String_from("String")) && (
+            if decl_ann_name::decl_ann_is_name(key, "String") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                decl_ann_name::decl_ann_is_name(val, String_from("fnref"))
+                decl_ann_name::decl_ann_is_name(val, "fnref")
             ) {
-                return String_from("hashmap:strfn")
+                return "hashmap:strfn"
             }
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Vec")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "Vec") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return concat("vec:", decl_ann_name::decl_ann_name(elem))
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("HashSet")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "HashSet") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ann, 1)
-            if decl_ann_name::decl_ann_is_name(elem, String_from("String")) {
-                return String_from("vec:String")
+            if decl_ann_name::decl_ann_is_name(elem, "String") {
+                return "vec:String"
             }
-            return String_from("vec:i32")
+            return "vec:i32"
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Option")) && decl_ann_children::decl_ann_child_count(ann) >= 2 {
+        if decl_ann_name::decl_ann_is_name(ann, "Option") && decl_ann_children::decl_ann_child_count(ann) >= 2 {
             let elem2 = decl_ann_children::decl_ann_child_at(ann, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem2)) ||
-            eq(decl_ann_name::decl_ann_name(elem2), String_from("fnref")) {
-                return String_from("option:fnref")
+            eq(decl_ann_name::decl_ann_name(elem2), "fnref") {
+                return "option:fnref"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("i64")) {
-                return String_from("Option_i64")
+            if decl_ann_name::decl_ann_is_name(elem2, "i64") {
+                return "Option_i64"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("f64")) {
-                return String_from("Option_f64")
+            if decl_ann_name::decl_ann_is_name(elem2, "f64") {
+                return "Option_f64"
             }
-            if decl_ann_name::decl_ann_is_name(elem2, String_from("i32")) {
-                return String_from("Option_i32")
+            if decl_ann_name::decl_ann_is_name(elem2, "i32") {
+                return "Option_i32"
             }
-            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem2))
+            return concat("option:", decl_ann_name::decl_ann_name(elem2))
         }
-        if decl_ann_name::decl_ann_is_name(ann, String_from("Result")) && decl_ann_children::decl_ann_child_count(ann) >= 3 {
+        if decl_ann_name::decl_ann_is_name(ann, "Result") && decl_ann_children::decl_ann_child_count(ann) >= 3 {
             let ok_ty = decl_ann_children::decl_ann_child_at(ann, 1)
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return concat(
-                String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                "result:",
+                concat(decl_ann_name::decl_ann_name(ok_ty), concat(":", decl_ann_name::decl_ann_name(err_ty)))
             )
         }
     } else {

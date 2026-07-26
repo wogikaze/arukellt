@@ -34,7 +34,7 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
@@ -52,7 +52,7 @@ fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
     let mut j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, Vec_new_String())
@@ -93,7 +93,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
     j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, type_params)

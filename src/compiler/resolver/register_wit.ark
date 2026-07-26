@@ -39,41 +39,41 @@ fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: 
         wit_register::register_wit_doc(ctx, clone(alias), doc)
         return
     }
-    if eq(clone(package_id), String_from("test:host/math")) {
+    if eq(clone(package_id), "test:host/math") {
         register_wit_host_math(ctx, clone(alias))
         return
     }
-    if eq(clone(package_id), String_from("test:doc/parse")) {
+    if eq(clone(package_id), "test:doc/parse") {
         register_wit_doc_parse(ctx, clone(alias))
         return
     }
-    if eq(clone(package_id), String_from("test:host/host")) {
+    if eq(clone(package_id), "test:host/host") {
         register_wit_host_flags(ctx, clone(alias))
         return
     }
-    if eq(clone(package_id), String_from("test:host/handles")) {
+    if eq(clone(package_id), "test:host/handles") {
         register_wit_host_resource_handles(ctx, clone(alias))
     }
 }
 
 fn register_wit_host_math(ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
-    register_exports::register_module_export(ctx, clone(alias), String_from("add"), commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), "add", commands::SYM_FN(), true)
 }
 
 fn register_wit_doc_parse(ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
-    register_exports::register_module_export(ctx, clone(alias), String_from("parse_markdown"), commands::SYM_FN(), true)
-    register_exports::register_module_export(ctx, clone(alias), String_from("Document"), commands::SYM_STRUCT(), true)
+    register_exports::register_module_export(ctx, clone(alias), "parse_markdown", commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), "Document", commands::SYM_STRUCT(), true)
 }
 
 fn register_wit_host_flags(ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
-    register_exports::register_module_export(ctx, clone(alias), String_from("set_perms"), commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), "set_perms", commands::SYM_FN(), true)
 }
 
 fn register_wit_host_resource_handles(ctx: ResolveCtx, alias: String) {
     register_wit_module_alias(ctx, clone(alias))
-    register_exports::register_module_export(ctx, clone(alias), String_from("take"), commands::SYM_FN(), true)
-    register_exports::register_module_export(ctx, clone(alias), String_from("peek"), commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), "take", commands::SYM_FN(), true)
+    register_exports::register_module_export(ctx, clone(alias), "peek", commands::SYM_FN(), true)
 }

@@ -40,8 +40,8 @@ fn core_op_shadow_log_unresolved(ctx: SelfEmitCtx, callee: String, func_id_raw: 
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
     stdio::eprintln(
         concat(
-            String_from("core-op-shadow unresolved callee="),
-            concat(callee, concat(String_from(" function_id="), i32_to_string(func_id_raw)))
+            "core-op-shadow unresolved callee=",
+            concat(callee, concat(" function_id=", i32_to_string(func_id_raw)))
         )
     )
 }
@@ -58,15 +58,15 @@ fn core_op_shadow_log_mismatch(
     ctx_record::SelfEmitCtx_core_op_shadow_dec_mismatch_budget(ctx)
     stdio::eprintln(
         concat(
-            String_from("core-op-shadow mismatch callee="),
+            "core-op-shadow mismatch callee=",
             concat(
                 clone(callee),
                 concat(
-                    String_from(" legacy_handler="),
+                    " legacy_handler=",
                     concat(
                         clone(legacy.handler_id),
                         concat(
-                            String_from(" modern_handler="),
+                            " modern_handler=",
                             clone(modern.handler_id)
                         )
                     )
@@ -90,19 +90,19 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
     let mismatched = ctx_record::SelfEmitCtx_core_op_shadow_mismatched(ctx)
     let unresolved = ctx_record::SelfEmitCtx_core_op_shadow_unresolved(ctx)
     let line = concat(
-        String_from("core-op-shadow: summary candidates="),
+        "core-op-shadow: summary candidates=",
         concat(
             i32_to_string(candidates),
             concat(
-                String_from(" matched="),
+                " matched=",
                 concat(
                     i32_to_string(matched),
                     concat(
-                        String_from(" mismatched="),
+                        " mismatched=",
                         concat(
                             i32_to_string(mismatched),
                             concat(
-                                String_from(" unresolved="),
+                                " unresolved=",
                                 i32_to_string(unresolved)
                             )
                         )
@@ -111,6 +111,6 @@ fn core_op_shadow_print_summary(ctx: SelfEmitCtx) {
             )
         )
     )
-    let spine = if ctx_record::SelfEmitCtx_spine_populated(ctx) { String_from("1") } else { String_from("0") }
-    stdio::eprintln(concat(line, concat(String_from(" spine="), spine)))
+    let spine = if ctx_record::SelfEmitCtx_spine_populated(ctx) { "1" } else { "0" }
+    stdio::eprintln(concat(line, concat(" spine=", spine)))
 }

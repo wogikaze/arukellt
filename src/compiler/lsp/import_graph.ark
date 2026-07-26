@@ -22,15 +22,15 @@ pub fn is_path_imported(text: String, import_path: String) -> bool {
 }
 
 pub fn stdlib_import_path(module_path: String, symbol_name: String) -> String {
-    concat(module_path, concat(String_from("::"), symbol_name))
+    concat(module_path, concat("::", symbol_name))
 }
 
 pub fn build_use_statement(import_path: String) -> String {
-    concat(String_from("use "), concat(import_path, String_from("\n")))
+    concat("use ", concat(import_path, "\n"))
 }
 
 pub fn first_use_insert_offset(text: String) -> i32 {
-    let use_pos = index_of(clone(text), String_from("use "))
+    let use_pos = index_of(clone(text), "use ")
     if use_pos < 0 {
         return 0
     }

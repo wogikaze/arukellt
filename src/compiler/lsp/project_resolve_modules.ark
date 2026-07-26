@@ -25,7 +25,7 @@ fn ark_stem_from_path(path: String) -> String {
     }
     let name = substring(path, start, n)
     let nl = len(name)
-    if nl > 4 && eq(substring(clone(name), nl - 4, nl), String_from(".ark")) {
+    if nl > 4 && eq(substring(clone(name), nl - 4, nl), ".ark") {
         return substring(name, 0, nl - 4)
     }
     name

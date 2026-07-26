@@ -8,7 +8,7 @@ use lexer::names
 use lexer::token_state
 
 pub fn dump_ast(decls: Vec<AstNode>) {
-    stdio::eprintln(String_from("=== AST ==="))
+    stdio::eprintln("=== AST ===")
     let decl_count = len(decls)
     let mut j = 0
     while j < decl_count {
@@ -35,7 +35,7 @@ fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
         // Bind the header first so CONST_STRING gets a real dest. A bare
         // eprintln(String_from(...)) can leave dest=-1 with SKIP and then
         // LOCAL_GET+SET, leaving the pointer on the stack (KEEP_CLOCK validate).
-        let header = String_from("=== HIR (post-resolve) ===")
+        let header = "=== HIR (post-resolve) ==="
         stdio::eprintln(header)
         dump_resolved_scope(resolve_ctx)
     }
@@ -43,7 +43,7 @@ fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
 
 fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult) {
     if config_record::config_dump_hir(config) {
-        let header = String_from("=== TYPED HIR ===")
+        let header = "=== TYPED HIR ==="
         stdio::eprintln(header)
         dump_checked_hir(check_result)
     }
@@ -64,12 +64,12 @@ fn dump_checked_hir(result: TypeCheckResult) {
 }
 
 pub fn dump_tokens(tokens: Vec<Token>) {
-    stdio::eprintln(String_from("=== TOKENS ==="))
+    stdio::eprintln("=== TOKENS ===")
     let token_count = len(tokens)
     let mut i = 0
     while i < token_count {
         let tok = get_unchecked(tokens, i)
-        stdio::eprintln(concat(names::token_kind_name(token_state::Token_kind(tok)), concat(String_from(" "), token_state::Token_text(tok))))
+        stdio::eprintln(concat(names::token_kind_name(token_state::Token_kind(tok)), concat(" ", token_state::Token_text(tok))))
         i = i + 1
     }
 }
@@ -94,13 +94,13 @@ pub fn emit_phase_timing(
     t_mir_verify: i64,
     t_emit: i64
 ) {
-    stdio::eprintln(concat(String_from("[arukellt] lex: "), concat(to_string(phase_timing_ms(t0, t_lex)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] parse: "), concat(to_string(phase_timing_ms(t_lex, t_parse)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] resolve: "), concat(to_string(phase_timing_ms(t_parse, t_resolve)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] typecheck: "), concat(to_string(phase_timing_ms(t_resolve, t_typecheck)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] lower: "), concat(to_string(phase_timing_ms(t_typecheck, t_lower)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] mir_opt: "), concat(to_string(phase_timing_ms(t_lower, t_mir_opt)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] mir_verify: "), concat(to_string(phase_timing_ms(t_mir_opt, t_mir_verify)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] emit: "), concat(to_string(phase_timing_ms(t_mir_verify, t_emit)), String_from("ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] total: "), concat(to_string(phase_timing_ms(t0, t_emit)), String_from("ms"))))
+    stdio::eprintln(concat("[arukellt] lex: ", concat(to_string(phase_timing_ms(t0, t_lex)), "ms")))
+    stdio::eprintln(concat("[arukellt] parse: ", concat(to_string(phase_timing_ms(t_lex, t_parse)), "ms")))
+    stdio::eprintln(concat("[arukellt] resolve: ", concat(to_string(phase_timing_ms(t_parse, t_resolve)), "ms")))
+    stdio::eprintln(concat("[arukellt] typecheck: ", concat(to_string(phase_timing_ms(t_resolve, t_typecheck)), "ms")))
+    stdio::eprintln(concat("[arukellt] lower: ", concat(to_string(phase_timing_ms(t_typecheck, t_lower)), "ms")))
+    stdio::eprintln(concat("[arukellt] mir_opt: ", concat(to_string(phase_timing_ms(t_lower, t_mir_opt)), "ms")))
+    stdio::eprintln(concat("[arukellt] mir_verify: ", concat(to_string(phase_timing_ms(t_mir_opt, t_mir_verify)), "ms")))
+    stdio::eprintln(concat("[arukellt] emit: ", concat(to_string(phase_timing_ms(t_mir_verify, t_emit)), "ms")))
+    stdio::eprintln(concat("[arukellt] total: ", concat(to_string(phase_timing_ms(t0, t_emit)), "ms")))
 }

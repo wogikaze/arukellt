@@ -4,16 +4,16 @@ fn mir_is_primitive_operator_type(type_name: String) -> bool {
     if len(type_name) == 0 {
         return true
     }
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) {
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "i64") || eq(clone(type_name), "f64") {
         return true
     }
-    if eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+    if eq(clone(type_name), "bool") || eq(clone(type_name), "char") {
         return true
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("option:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "option:") {
         return true
     }
     false
@@ -45,16 +45,16 @@ fn mir_is_builtin_type_name(name: String) -> bool {
 
 fn mir_binop_dest_type_name(dest_vt: i32, is_cmp: bool) -> String {
     if is_cmp {
-        return String_from("bool")
+        return "bool"
     }
     if dest_vt == value_types::VT_F64() {
-        return String_from("f64")
+        return "f64"
     }
     if dest_vt == value_types::VT_I64() {
-        return String_from("i64")
+        return "i64"
     }
     if dest_vt == value_types::VT_GC_REF() || dest_vt == value_types::VT_REF() {
-        return String_from("string")
+        return "string"
     }
-    String_from("i32")
+    "i32"
 }

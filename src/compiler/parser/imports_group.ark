@@ -11,7 +11,7 @@ fn parse_use_group(p: Parser, node: AstNode, path: String) {
     p.pos = p.pos + 1
     core_api_cursor::skip_newlines(p)
     let first_item = core_api_expect::expect_token(p, tokens::TK_IDENT())
-    core_ast_text_fields::AstNode_set_text(node, concat(clone(path), concat(String_from("::"), token_state::Token_text(first_item))))
+    core_ast_text_fields::AstNode_set_text(node, concat(clone(path), concat("::", token_state::Token_text(first_item))))
     core_api_cursor::skip_newlines(p)
     while core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
         p.pos = p.pos + 1
@@ -20,7 +20,7 @@ fn parse_use_group(p: Parser, node: AstNode, path: String) {
             break
         }
         let extra_item = core_api_expect::expect_token(p, tokens::TK_IDENT())
-        let child_path = concat(clone(path), concat(String_from("::"), token_state::Token_text(extra_item)))
+        let child_path = concat(clone(path), concat("::", token_state::Token_text(extra_item)))
         let child_node = core_ast_factory::AstNode_new(kinds::NK_USE(), core_api_expect::tok_span(extra_item))
         core_ast_text_fields::AstNode_set_text(child_node, child_path)
         core_ast_children::AstNode_push_child(node, child_node)

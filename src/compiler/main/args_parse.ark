@@ -32,11 +32,11 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
 fn canonicalize_target_input(opts: CliOptions) {
     let input = args_record::cli_target(opts)
     let policy = target_contract_generated::target_alias_policy(clone(input))
-    if eq(clone(policy), String_from("error")) {
+    if eq(clone(policy), "error") {
         args_record::cli_set_error(opts, target_contract_generated::target_alias_message(input))
         return
     }
-    if eq(clone(policy), String_from("warning")) {
+    if eq(clone(policy), "warning") {
         stdio::eprintln(target_contract_generated::target_alias_message(clone(input)))
         args_record::cli_set_target(opts, target_contract_generated::target_alias_canonical_target(clone(input)))
         if !args_record::cli_has_wasi_version(opts) {
@@ -45,7 +45,7 @@ fn canonicalize_target_input(opts: CliOptions) {
         return
     }
     if !target_contract_generated::target_is_canonical(clone(input)) {
-        args_record::cli_set_error(opts, concat(String_from("unknown target: "), input))
+        args_record::cli_set_error(opts, concat("unknown target: ", input))
         return
     }
     if !args_record::cli_has_wasi_version(opts) {
@@ -127,11 +127,11 @@ fn parse_component_subcommand(argv: Vec<String>, argc: i32, opts: CliOptions) {
         return
     }
     let sub = get_unchecked(argv, 2)
-    if commands::cli_str_eq(clone(sub), String_from("inspect")) {
+    if commands::cli_str_eq(clone(sub), "inspect") {
         args_record::cli_set_component_action(opts, kinds::COMP_ACTION_INSPECT())
         return
     }
-    if commands::cli_str_eq(clone(sub), String_from("validate")) {
+    if commands::cli_str_eq(clone(sub), "validate") {
         args_record::cli_set_component_action(opts, kinds::COMP_ACTION_VALIDATE())
     }
 }
@@ -141,7 +141,7 @@ fn component_option_start(argv: Vec<String>, argc: i32, opts: CliOptions) -> i32
         return 2
     }
     let sub = get_unchecked(argv, 2)
-    if commands::cli_str_eq(clone(sub), String_from("build")) || args_record::cli_component_action(opts) != kinds::COMP_ACTION_BUILD() {
+    if commands::cli_str_eq(clone(sub), "build") || args_record::cli_component_action(opts) != kinds::COMP_ACTION_BUILD() {
         return 3
     }
     2
@@ -151,14 +151,14 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
     let mut i = 2
     while i < argc {
         let arg = get_unchecked(argv, i)
-        if commands::cli_str_eq(clone(arg), String_from("--validate")) {
+        if commands::cli_str_eq(clone(arg), "--validate") {
             args_record::cli_set_compose_validate_only(opts, true)
             i = i + 1
             continue
         }
-        if commands::cli_str_eq(clone(arg), String_from("--plug")) {
+        if commands::cli_str_eq(clone(arg), "--plug") {
             if i + 2 >= argc {
-                args_record::cli_set_error(opts, String_from("--plug requires <provider> and <socket> paths"))
+                args_record::cli_set_error(opts, "--plug requires <provider> and <socket> paths")
                 return
             }
             args_record::cli_set_compose_plug(opts, get_unchecked(argv, i + 1))
@@ -166,16 +166,16 @@ fn parse_compose_args(argv: Vec<String>, argc: i32, opts: CliOptions) {
             i = i + 3
             continue
         }
-        if commands::cli_str_eq(clone(arg), String_from("-o")) || commands::cli_str_eq(clone(arg), String_from("--output")) {
+        if commands::cli_str_eq(clone(arg), "-o") || commands::cli_str_eq(clone(arg), "--output") {
             if i + 1 >= argc {
-                args_record::cli_set_error(opts, String_from("-o requires an output path"))
+                args_record::cli_set_error(opts, "-o requires an output path")
                 return
             }
             args_record::cli_set_output_file(opts, get_unchecked(argv, i + 1))
             i = i + 2
             continue
         }
-        args_record::cli_set_error(opts, concat(String_from("unknown compose option: "), arg))
+        args_record::cli_set_error(opts, concat("unknown compose option: ", arg))
         return
     }
 }
@@ -200,40 +200,40 @@ fn parse_option_args(argv: Vec<String>, argc: i32, opts: CliOptions, start_index
     let mut i = start_index
     while i < argc {
         let arg = get_unchecked(argv, i)
-        if commands::cli_str_eq(clone(arg), String_from("--target")) {
+        if commands::cli_str_eq(clone(arg), "--target") {
             i = args_parse_opts::parse_target_option(argv, argc, opts, i)
         } else {
-            if commands::cli_str_eq(clone(arg), String_from("--wasi-version")) {
+            if commands::cli_str_eq(clone(arg), "--wasi-version") {
                 i = args_parse_opts::parse_wasi_version_option(argv, argc, opts, i)
             } else {
-                if commands::cli_str_eq(clone(arg), String_from("--opt-level")) {
+                if commands::cli_str_eq(clone(arg), "--opt-level") {
                     i = args_parse_opts::parse_opt_level_option(argv, argc, opts, i)
                 } else {
-                    if commands::cli_str_eq(clone(arg), String_from("--world")) {
+                    if commands::cli_str_eq(clone(arg), "--world") {
                         i = parse_world_option(argv, argc, opts, i)
                     } else {
-                        if commands::cli_str_eq(clone(arg), String_from("--emit")) {
+                        if commands::cli_str_eq(clone(arg), "--emit") {
                             i = args_parse_opts::parse_emit_option(argv, argc, opts, i)
                         } else {
-                            if commands::cli_str_eq(clone(arg), String_from("--wit")) {
+                            if commands::cli_str_eq(clone(arg), "--wit") {
                                 i = args_parse_opts::parse_wit_option(argv, argc, opts, i)
                             } else {
-                                if commands::cli_str_eq(clone(arg), String_from("-o")) || commands::cli_str_eq(clone(arg), String_from("--output")) {
+                                if commands::cli_str_eq(clone(arg), "-o") || commands::cli_str_eq(clone(arg), "--output") {
                                     i = args_parse_opts::parse_output_option(argv, argc, opts, arg, i)
                                 } else {
-                                    if commands::cli_str_eq(clone(arg), String_from("--dump-phases")) {
+                                    if commands::cli_str_eq(clone(arg), "--dump-phases") {
                                         i = args_parse_opts::parse_dump_phases_option(argv, argc, opts, i)
                                     } else {
-                                        if commands::cli_str_eq(clone(arg), String_from("--template")) {
+                                        if commands::cli_str_eq(clone(arg), "--template") {
                                             i = args_parse_opts::parse_template_option(argv, argc, opts, i)
                                         } else {
-                                            if commands::cli_str_eq(clone(arg), String_from("--cache-dir")) {
+                                            if commands::cli_str_eq(clone(arg), "--cache-dir") {
                                                 i = args_parse_opts_cache::parse_cache_dir_option(argv, argc, opts, i)
                                             } else {
-                                                if commands::cli_str_eq(clone(arg), String_from("--allow")) {
+                                                if commands::cli_str_eq(clone(arg), "--allow") {
                                                     i = args_parse_opts_lint::parse_lint_allow_option(argv, argc, opts, i)
                                                 } else {
-                                                    if commands::cli_str_eq(clone(arg), String_from("--deny")) {
+                                                    if commands::cli_str_eq(clone(arg), "--deny") {
                                                         i = args_parse_opts_lint::parse_lint_deny_option(argv, argc, opts, i)
                                                     } else {
                                                         if !args_parse_flags::parse_flag_option(opts, arg) {
@@ -260,7 +260,7 @@ fn parse_world_option(argv: Vec<String>, argc: i32, opts: CliOptions, i: i32) ->
     if next < argc {
         args_record::cli_set_world(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, String_from("--world requires a world name"))
+        args_record::cli_set_error(opts, "--world requires a world name")
     }
     next
 }
@@ -273,6 +273,6 @@ fn parse_input_or_error(opts: CliOptions, arg: String) {
     if args_record::cli_input_file_len(opts) == 0 {
         args_record::cli_set_input_file(opts, clone(arg))
     } else {
-        args_record::cli_set_error(opts, concat(String_from("unexpected argument: "), clone(arg)))
+        args_record::cli_set_error(opts, concat("unexpected argument: ", clone(arg)))
     }
 }

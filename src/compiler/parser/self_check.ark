@@ -38,12 +38,12 @@ fn issue652_parser_malformed_self_check() -> String {
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
 fn main() {
-    let src = String_from("fn main() { 42 }")
+    let src = "fn main() { 42 }"
     let tokens = scan::tokenize(src)
     let p = core_api_token::Parser_new(tokens)
     let decls = decl::parse_module(p)
     let n = len(decls)
-    stdio::println(concat(String_from("Parsed "), concat(to_string(n), String_from(" declaration(s)"))))
+    stdio::println(concat("Parsed ", concat(to_string(n), " declaration(s)")))
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
@@ -52,15 +52,15 @@ fn main() {
     }
     let err_count = state_record::parser_error_count(p)
     if err_count > 0 {
-        stdio::println(concat(String_from("Parse errors: "), to_string(err_count)))
+        stdio::println(concat("Parse errors: ", to_string(err_count)))
         let mut j = 0
         while j < err_count {
             let e = state_record::parser_error_at(p, j)
-            stdio::println(concat(String_from("  "), clone(e.message)))
+            stdio::println(concat("  ", clone(e.message)))
             j = j + 1
         }
     } else {
-        stdio::println(String_from("No parse errors."))
+        stdio::println("No parse errors.")
     }
     stdio::println(issue499_parser_self_check())
     stdio::println(issue499_parser_pipepipe_self_check())

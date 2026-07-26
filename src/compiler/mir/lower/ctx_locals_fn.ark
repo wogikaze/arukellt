@@ -35,9 +35,9 @@ fn ctx_set_current_return_type_name(ctx: LowerCtx, type_name: String) {
     function_return_mutation::MirFunction_set_return_type_name(f, type_name)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
     // TYPE_FN ann becomes name "fnref" (often TY_STRUCT); align VT with param ABI (#832).
-    if eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn(")) {
+    if eq(clone(type_name), "fnref") ||
+    eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fn(") {
         ctx_set_current_return_type(ctx, value_types::VT_FUNCREF())
     }
 }

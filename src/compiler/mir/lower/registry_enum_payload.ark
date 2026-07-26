@@ -13,14 +13,14 @@ fn mir_register_payload_variant_layout(ctx: LowerCtx, full_name: String, variant
     ctx_api_variants::ctx_register_payload_variant(ctx, clone(full_name))
     let payload_count = layout_variant::layout_variant_payload_type_count(variant)
     ctx_struct_storage::ctx_struct_push_layout(ctx, clone(full_name), payload_count + 1)
-    ctx_struct_storage::ctx_struct_push_field(ctx, String_from("_tag"), String_from(""))
+    ctx_struct_storage::ctx_struct_push_field(ctx, "_tag", "")
     let mut pfi = 0
     while pfi < payload_count {
         let field_name = layout_variant::layout_variant_payload_field_name_at(variant, pfi)
         let effective_name = if len(field_name) > 0 {
             field_name
         } else {
-            concat(String_from("_"), to_string(pfi))
+            concat("_", to_string(pfi))
         }
         // Normalize Vec</Result</Option< so GC enum sigs and match binds
         // see vec:/result:/option: prefixes (#726 toml Table / json Result).

@@ -27,7 +27,7 @@ fn name_matches_query(name: String, query: String) -> bool {
 }
 
 fn result_key(uri: String, name: String) -> String {
-    concat(concat(uri, String_from(":")), name)
+    concat(concat(uri, ":"), name)
 }
 
 fn results_contains(results: Vec<symbol_index_record::IndexedSymbol>, uri: String, name: String) -> bool {

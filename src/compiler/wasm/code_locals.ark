@@ -22,9 +22,9 @@ fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx) -> i32 {
 
 fn is_string_byte_vec_fn(f: MirFunction) -> bool {
     let name = function_identity::MirFunction_name(f)
-    eq(clone(name), String_from("__core_string_push_range")) ||
-    eq(clone(name), String_from("__core_string_push_byte")) ||
-    eq(clone(name), String_from("__core_string_ascii_case_impl"))
+    eq(clone(name), "__core_string_push_range") ||
+    eq(clone(name), "__core_string_push_byte") ||
+    eq(clone(name), "__core_string_ascii_case_impl")
 }
 
 fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_count: i32, ctx: SelfEmitCtx) {
@@ -62,8 +62,8 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     // Typed funcref locals: non-null `(ref $callback)` matching unary i32/i64 callbacks.
     if vt == value_types::VT_FUNCREF() ||
-    eq(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnref")) {
+    eq(clone(type_name), "fnref") ||
+    starts_with(clone(type_name), "fnref") {
         let type_idx = resolve_fnref_local_type_idx(ctx)
         writer_core::emit_byte(body, constants::WASM_REF())
         writer_core::emit_leb128_s(body, type_idx)
@@ -104,7 +104,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     if code_locals_struct::emit_gc_local_enum_like(body, f, local_idx, clone(type_name), variant_slot, ctx) {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         // String byte-buffer helpers must keep Vec<i32> even if MIR type_name
         // was mis-resolved to a structref-element vec.
         if is_string_byte_vec_fn(f) {
@@ -184,17 +184,17 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
 fn vec_elem_is_nested_container_name(elem_name: String) -> bool {
     // HashMap/HashSet remain i32-vec-backed containers. Nested Vec elements
     // use the structref-array layout so push/get can store GC vec refs.
-    if eq(clone(elem_name), String_from("HashMap")) || eq(clone(elem_name), String_from("HashSet")) {
+    if eq(clone(elem_name), "HashMap") || eq(clone(elem_name), "HashSet") {
         return true
     }
-    if starts_with(clone(elem_name), String_from("hashmap:")) || starts_with(clone(elem_name), String_from("hashset:")) {
+    if starts_with(clone(elem_name), "hashmap:") || starts_with(clone(elem_name), "hashset:") {
         return true
     }
     false
 }
 
 fn emit_vec_struct_ref_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
-    if !starts_with(clone(type_name), String_from("vec:")) {
+    if !starts_with(clone(type_name), "vec:") {
         return false
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))
@@ -210,7 +210,7 @@ fn emit_vec_struct_ref_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmi
 }
 
 fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i32, ctx: SelfEmitCtx) -> bool {
-    if !starts_with(clone(type_name), String_from("vec:")) {
+    if !starts_with(clone(type_name), "vec:") {
         return false
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))
@@ -221,32 +221,32 @@ fn vec_inferred_type_conflicts_with_type_name(type_name: String, inferred_gc: i3
 }
 
 fn emit_explicit_vec_gc_type(body: WasmWriter, type_name: String, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
+    if eq(clone(type_name), "vec:String") || eq(clone(type_name), "vec:string") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
         return true
     }
-    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+    if eq(clone(type_name), "vec:v128") || eq(clone(type_name), "vec:V128") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
         return true
     }
-    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+    if eq(clone(type_name), "vec:i64") || eq(clone(type_name), "vec:I64") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
         return true
     }
-    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+    if eq(clone(type_name), "vec:f64") || eq(clone(type_name), "vec:F64") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
         return true
     }
-    if eq(clone(type_name), String_from("vec:fnref")) || eq(clone(type_name), String_from("vec:fn")) {
+    if eq(clone(type_name), "vec:fnref") || eq(clone(type_name), "vec:fn") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx))
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         let elem = substring(clone(type_name), 4, len(type_name))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())

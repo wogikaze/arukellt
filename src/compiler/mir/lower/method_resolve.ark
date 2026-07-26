@@ -87,10 +87,10 @@ fn mir_strip_type_instance_suffix(name: String) -> String {
 
 fn mir_normalize_type_name(t: String) -> String {
     let mut n = clone(t)
-    if starts_with(clone(n), String_from("struct:")) {
+    if starts_with(clone(n), "struct:") {
         n = substring(n, 7, len(n))
     }
-    if starts_with(clone(n), String_from("enum:")) {
+    if starts_with(clone(n), "enum:") {
         n = substring(n, 5, len(n))
     }
     n = mir_strip_type_instance_suffix(clone(n))
@@ -118,28 +118,28 @@ fn mir_resolve_short_method_name(ctx: LowerCtx, name: String) -> String {
             return clone(ctx_fn_index::ctx_fn_index_name_at(ctx, found))
         }
     }
-    String_from("")
+    ""
 }
 
 fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String {
     if first_method_arg_idx < 0 {
-        return String_from("")
+        return ""
     }
     let mut method_mono_type_key = ctx_get_local_type(ctx, first_method_arg_idx)
     if len(method_mono_type_key) == 0 {
         let method_arg_vt = ctx_local_vt(ctx, first_method_arg_idx)
         if method_arg_vt == value_types::VT_I64() {
-            method_mono_type_key = String_from("i64")
+            method_mono_type_key = "i64"
         } else {
             if method_arg_vt == value_types::VT_F64() {
-                method_mono_type_key = String_from("f64")
+                method_mono_type_key = "f64"
             } else {
-                method_mono_type_key = String_from("i32")
+                method_mono_type_key = "i32"
             }
         }
     }
-    if eq(clone(method_mono_type_key), String_from("string")) {
-        method_mono_type_key = String_from("String")
+    if eq(clone(method_mono_type_key), "string") {
+        method_mono_type_key = "String"
     }
     method_mono_type_key
 }
@@ -147,7 +147,7 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
 fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
     let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
     if len(method_mono_type_key) > 0 {
-        let method_mono_candidate = mono::mono_safe_name(concat(clone(callee_name), concat(String_from("__"), method_mono_type_key)))
+        let method_mono_candidate = mono::mono_safe_name(concat(clone(callee_name), concat("__", method_mono_type_key)))
         if ctx_has_fn_name(ctx, clone(method_mono_candidate)) {
             return method_mono_candidate
         }
@@ -157,8 +157,8 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     // before span-based mono lookup so `get_unchecked(v, i).len()` does not
     // reuse the receiver call's `get_unchecked__String` specialization.
     let bare_builtin = mir_bare_method_name(clone(callee_name))
-    if eq(mir_type_prefix(clone(callee_name)), String_from("String")) &&
-    (eq(clone(bare_builtin), String_from("len")) || eq(clone(bare_builtin), String_from("char_at"))) {
+    if eq(mir_type_prefix(clone(callee_name)), "String") &&
+    (eq(clone(bare_builtin), "len") || eq(clone(bare_builtin), "char_at")) {
         return bare_builtin
     }
     let mono_target = ctx_mono_lookup_call(ctx, span_start, clone(callee_name))
@@ -193,60 +193,60 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
 fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String {
     let prefix = mir_type_prefix(mangled)
     // Vec methods: some intrinsics use bare name, others use vec_ prefix.
-    if eq(clone(prefix), String_from("Vec")) {
-        if eq(clone(bare_name), String_from("len")) { return String_from("vec_len") }
-        if eq(clone(bare_name), String_from("get")) { return String_from("vec_get") }
-        if eq(clone(bare_name), String_from("set")) { return String_from("vec_set") }
-        if eq(clone(bare_name), String_from("pop")) { return String_from("vec_pop") }
+    if eq(clone(prefix), "Vec") {
+        if eq(clone(bare_name), "len") { return "vec_len" }
+        if eq(clone(bare_name), "get") { return "vec_get" }
+        if eq(clone(bare_name), "set") { return "vec_set" }
+        if eq(clone(bare_name), "pop") { return "vec_pop" }
         // push, get_unchecked, is_empty use bare name — no mapping needed.
-        return String_from("")
+        return ""
     }
     // String methods: len, char_at, etc. use bare name — no mapping needed.
     // Scalar methods: map trait dispatch names to compare intrinsics so
     // prelude String `eq` is not used for i32/i64/f64/bool/char receivers.
-    if eq(clone(bare_name), String_from("eq")) {
-        if eq(clone(prefix), String_from("i32")) { return String_from("__intrinsic_i32_eq") }
-        if eq(clone(prefix), String_from("i64")) { return String_from("__intrinsic_i64_eq") }
-        if eq(clone(prefix), String_from("f64")) { return String_from("__intrinsic_f64_eq") }
-        if eq(clone(prefix), String_from("bool")) { return String_from("__intrinsic_i32_eq") }
-        if eq(clone(prefix), String_from("char")) { return String_from("__intrinsic_i32_eq") }
+    if eq(clone(bare_name), "eq") {
+        if eq(clone(prefix), "i32") { return "__intrinsic_i32_eq" }
+        if eq(clone(prefix), "i64") { return "__intrinsic_i64_eq" }
+        if eq(clone(prefix), "f64") { return "__intrinsic_f64_eq" }
+        if eq(clone(prefix), "bool") { return "__intrinsic_i32_eq" }
+        if eq(clone(prefix), "char") { return "__intrinsic_i32_eq" }
     }
-    if eq(clone(bare_name), String_from("hash")) {
-        if eq(clone(prefix), String_from("i32")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("String")) { return String_from("hash_string") }
-        if eq(clone(prefix), String_from("i64")) { return String_from("hash_i64") }
-        if eq(clone(prefix), String_from("bool")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("char")) { return String_from("hash_i32") }
-        if eq(clone(prefix), String_from("f64")) { return String_from("hash_f64") }
+    if eq(clone(bare_name), "hash") {
+        if eq(clone(prefix), "i32") { return "hash_i32" }
+        if eq(clone(prefix), "String") { return "hash_string" }
+        if eq(clone(prefix), "i64") { return "hash_i64" }
+        if eq(clone(prefix), "bool") { return "hash_i32" }
+        if eq(clone(prefix), "char") { return "hash_i32" }
+        if eq(clone(prefix), "f64") { return "hash_f64" }
     }
-    String_from("")
+    ""
 }
 
 fn mir_bare_method_name(mangled: String) -> String {
-    let pos = index_of(clone(mangled), String_from("::"))
+    let pos = index_of(clone(mangled), "::")
     if pos < 0 {
-        return String_from("")
+        return ""
     }
     substring(mangled, pos + 2, len(mangled))
 }
 
 fn mir_is_builtin_type_prefix(mangled: String) -> bool {
     let prefix = mir_type_prefix(mangled)
-    if eq(clone(prefix), String_from("Vec")) { return true }
-    if eq(clone(prefix), String_from("String")) { return true }
-    if eq(clone(prefix), String_from("i32")) { return true }
-    if eq(clone(prefix), String_from("i64")) { return true }
-    if eq(clone(prefix), String_from("f64")) { return true }
-    if eq(clone(prefix), String_from("f32")) { return true }
-    if eq(clone(prefix), String_from("bool")) { return true }
-    if eq(clone(prefix), String_from("char")) { return true }
+    if eq(clone(prefix), "Vec") { return true }
+    if eq(clone(prefix), "String") { return true }
+    if eq(clone(prefix), "i32") { return true }
+    if eq(clone(prefix), "i64") { return true }
+    if eq(clone(prefix), "f64") { return true }
+    if eq(clone(prefix), "f32") { return true }
+    if eq(clone(prefix), "bool") { return true }
+    if eq(clone(prefix), "char") { return true }
     false
 }
 
 fn mir_type_prefix(mangled: String) -> String {
-    let pos = index_of(clone(mangled), String_from("::"))
+    let pos = index_of(clone(mangled), "::")
     if pos < 0 {
-        return String_from("")
+        return ""
     }
     substring(mangled, 0, pos)
 }

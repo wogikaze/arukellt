@@ -10,9 +10,9 @@ fn core_match_variant_is_err(variant_name: String) -> bool {
 }
 
 fn core_payload_type_is_fnref(type_name: String) -> bool {
-    eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn("))
+    eq(clone(type_name), "fnref") ||
+    eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fn(")
 }
 
 fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
@@ -34,7 +34,7 @@ fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, sc
     let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if slot >= 0 && field_idx == 0 {
         let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
-        if contains(clone(sig), String_from("_f1_fnref")) {
+        if contains(clone(sig), "_f1_fnref") {
             return value_types::VT_FUNCREF()
         }
     }
@@ -84,10 +84,10 @@ fn core_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: 
     let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
     if field_idx == 0 {
         // Typed funcref payload is not an open enum/GC struct ref (#831).
-        if contains(clone(sig), String_from("_f1_fnref")) {
+        if contains(clone(sig), "_f1_fnref") {
             return false
         }
-        if contains(clone(sig), String_from("_f1_ref")) {
+        if contains(clone(sig), "_f1_ref") {
             return true
         }
     }
@@ -104,7 +104,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
     }
     let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
     if eq(clone(field_type), "String") || eq(clone(field_type), "string") {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "string")
         return
     }
     // Vec<T> must stay a container type — never enum:Vec<...> (#726 toml Table).
@@ -115,7 +115,7 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         return
     }
     if len(field_type) > 0 && ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(field_type)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat("enum:", field_type))
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
@@ -124,30 +124,30 @@ fn set_gc_payload_bind_type_if_needed(ctx: LowerCtx, variant_name: String, bind_
         if ctx_gc_struct::ctx_gc_struct_slot(ctx, clone(field_type)) >= 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(field_type))
         } else {
-            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat(String_from("enum:"), field_type))
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, concat("enum:", field_type))
         }
         ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
         return
     }
     if core_match_variant_is_err(clone(variant_name)) && field_idx == 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("string"))
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "string")
     }
 }
 
 fn normalize_core_payload_vec_type_name(field_type: String) -> String {
-    if starts_with(clone(field_type), String_from("vec:")) {
+    if starts_with(clone(field_type), "vec:") {
         return field_type
     }
-    if eq(clone(field_type), String_from("Vec")) {
-        return String_from("vec:i32")
+    if eq(clone(field_type), "Vec") {
+        return "vec:i32"
     }
-    if starts_with(clone(field_type), String_from("Vec<")) && ends_with(clone(field_type), String_from(">")) {
+    if starts_with(clone(field_type), "Vec<") && ends_with(clone(field_type), ">") {
         let inner = substring(clone(field_type), 4, len(field_type) - 1)
-        return concat(String_from("vec:"), inner)
+        return concat("vec:", inner)
     }
-    if starts_with(clone(field_type), String_from("Vec_")) {
+    if starts_with(clone(field_type), "Vec_") {
         let inner = substring(clone(field_type), 4, len(field_type))
-        return concat(String_from("vec:"), inner)
+        return concat("vec:", inner)
     }
     String_new()
 }
@@ -179,15 +179,15 @@ fn core_payload_scalar_type_name(type_name: String) -> bool {
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {
-    if eq(clone(elem_ty), String_from("Vec")) {
-        return String_from("vec:i32")
+    if eq(clone(elem_ty), "Vec") {
+        return "vec:i32"
     }
-    if starts_with(clone(elem_ty), String_from("Vec<")) && ends_with(clone(elem_ty), String_from(">")) {
+    if starts_with(clone(elem_ty), "Vec<") && ends_with(clone(elem_ty), ">") {
         let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
-        return concat(String_from("vec:"), inner)
+        return concat("vec:", inner)
     }
-    if starts_with(clone(elem_ty), String_from("Vec_")) {
-        return concat(String_from("vec:"), substring(clone(elem_ty), 4, len(elem_ty)))
+    if starts_with(clone(elem_ty), "Vec_") {
+        return concat("vec:", substring(clone(elem_ty), 4, len(elem_ty)))
     }
     elem_ty
 }
@@ -196,11 +196,11 @@ fn payload_bind_needs_variant_slot(type_name: String, variant_name: String) -> b
     if core_match_variant_is_some_or_ok(clone(variant_name)) || core_match_variant_is_err(clone(variant_name)) {
         return false
     }
-    if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) {
+    if len(type_name) == 0 || eq(clone(type_name), "enum:open") {
         return false
     }
     // Nested enum payloads must stay enum-open (#726 nested_enum).
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return false
     }
     false
@@ -210,7 +210,7 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
     // Split Ok/Err on the LAST encoding separator (#726 toml/json).
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last > 0 {
         return normalize_payload_elem_type_name(substring(rest, 0, last))
@@ -221,7 +221,7 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
 fn core_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last >= 0 && last + 1 < len(rest) {
         return substring(rest, last + 1, len(rest))
@@ -246,22 +246,22 @@ fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("enum:")) ||
-    starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "enum:") ||
+    starts_with(clone(type_name), "struct:") {
         return true
     }
     false

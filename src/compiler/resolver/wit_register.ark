@@ -42,7 +42,7 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
         register_exports::register_module_export(ctx, clone(alias), clone(en.ark_name), commands::SYM_ENUM(), true)
         for vi in 0..len(en.variant_ark_names) {
             let variant = get_unchecked(en.variant_ark_names, vi)
-            let qual_variant = concat(clone(en.ark_name), concat(String_from("::"), clone(variant)))
+            let qual_variant = concat(clone(en.ark_name), concat("::", clone(variant)))
             register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
         }
     }
@@ -58,5 +58,5 @@ fn wit_binding_type_sig(func: wit_parse_text::WitParsedFunc, doc: wit_parse_text
 }
 
 fn wit_binding_qualified_name(alias: String, func: wit_parse_text::WitParsedFunc) -> String {
-    concat(clone(alias), concat(String_from("::"), clone(func.ark_name)))
+    concat(clone(alias), concat("::", clone(func.ark_name)))
 }

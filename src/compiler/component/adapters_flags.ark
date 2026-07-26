@@ -33,7 +33,7 @@ fn comp_emit_flags_lower_type_section(out: writer_core::ComponentWriter) {
 fn comp_emit_flags_lower_import_section(out: writer_core::ComponentWriter, import_name: String) {
     let import_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(import_sec, 1)
-    writer_core::comp_emit_string(import_sec, String_from("host"))
+    writer_core::comp_emit_string(import_sec, "host")
     writer_core::comp_emit_string(import_sec, clone(import_name))
     writer_core::comp_emit_byte(import_sec, 0x00)
     writer_core::comp_emit_leb128_u(import_sec, 1)

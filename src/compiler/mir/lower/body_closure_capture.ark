@@ -26,7 +26,7 @@ fn mir_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
         cap_type = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(cap_type))
     } else {
         if ctx_api_local_types::ctx_local_vt(ctx, cli) == value_types::VT_GC_REF() {
-            cap_type = String_from("String")
+            cap_type = "String"
         }
     }
     cap_type
@@ -43,13 +43,13 @@ fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
         if cli >= 0 {
             pvt = ctx_api_local_types::ctx_local_vt(ctx, cli)
             let cap_type = mir_closure_lookup_capture_type(ctx, cli)
-            if starts_with(clone(cap_type), String_from("struct:")) ||
-            eq(clone(cap_type), String_from("String")) ||
-            eq(clone(cap_type), String_from("string")) ||
-            starts_with(clone(cap_type), String_from("enum:")) ||
-            starts_with(clone(cap_type), String_from("vec:")) ||
-            starts_with(clone(cap_type), String_from("Option_")) ||
-            starts_with(clone(cap_type), String_from("Result_")) {
+            if starts_with(clone(cap_type), "struct:") ||
+            eq(clone(cap_type), "String") ||
+            eq(clone(cap_type), "string") ||
+            starts_with(clone(cap_type), "enum:") ||
+            starts_with(clone(cap_type), "vec:") ||
+            starts_with(clone(cap_type), "Option_") ||
+            starts_with(clone(cap_type), "Result_") {
                 pvt = value_types::VT_GC_REF()
             }
         }

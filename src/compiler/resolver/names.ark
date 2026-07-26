@@ -2,34 +2,34 @@ use resolver::kinds
 
 fn sym_kind_name(kind: i32) -> String {
     if kind == commands::SYM_LOCAL() {
-        return String_from("local")
+        return "local"
     }
     if kind == commands::SYM_PARAM() {
-        return String_from("param")
+        return "param"
     }
     if kind == commands::SYM_FN() {
-        return String_from("fn")
+        return "fn"
     }
     if kind == commands::SYM_STRUCT() {
-        return String_from("struct")
+        return "struct"
     }
     if kind == commands::SYM_ENUM() {
-        return String_from("enum")
+        return "enum"
     }
     if kind == commands::SYM_RESOURCE() {
-        return String_from("resource")
+        return "resource"
     }
     if kind == commands::SYM_VARIANT() {
-        return String_from("variant")
+        return "variant"
     }
     if kind == commands::SYM_IMPORT() {
-        return String_from("import")
+        return "import"
     }
     if kind == commands::SYM_BUILTIN() {
-        return String_from("builtin")
+        return "builtin"
     }
     if kind == commands::SYM_MODULE() {
-        return String_from("module")
+        return "module"
     }
-    String_from("unknown")
+    "unknown"
 }

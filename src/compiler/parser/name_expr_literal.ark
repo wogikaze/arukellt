@@ -2,16 +2,16 @@ use parser::kinds
 
 fn expr_literal_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_INT_LIT() {
-        return String_from("IntLit")
+        return "IntLit"
     }
     if kind == kinds::NK_FLOAT_LIT() {
-        return String_from("FloatLit")
+        return "FloatLit"
     }
     if kind == kinds::NK_STRING_LIT() {
-        return String_from("StringLit")
+        return "StringLit"
     }
     if kind == kinds::NK_BOOL_LIT() {
-        return String_from("BoolLit")
+        return "BoolLit"
     }
     String_new()
 }

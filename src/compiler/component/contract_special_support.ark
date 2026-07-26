@@ -6,43 +6,43 @@ use component::contract_string_fn
 use component::contract_tuple_functions
 
 fn component_record_special_signature_name(name: String) -> bool {
-    eq(clone(name), String_from("distance_sq")) ||
-    eq(clone(name), String_from("add_points")) ||
-    eq(clone(name), String_from("next_color")) ||
-    eq(clone(name), String_from("color_to_value")) ||
-    eq(clone(name), String_from("color_code")) ||
-    eq(clone(name), String_from("area"))
+    eq(clone(name), "distance_sq") ||
+    eq(clone(name), "add_points") ||
+    eq(clone(name), "next_color") ||
+    eq(clone(name), "color_to_value") ||
+    eq(clone(name), "color_code") ||
+    eq(clone(name), "area")
 }
 
 fn component_record_special_signature_supported(name: String, f: AstNode) -> bool {
-    if eq(clone(name), String_from("distance_sq")) {
+    if eq(clone(name), "distance_sq") {
         return contract_record_shape::component_fn_is_point_to_i32(f)
     }
-    if eq(clone(name), String_from("add_points")) {
+    if eq(clone(name), "add_points") {
         return contract_record_shape::component_fn_is_point_point_to_point(f)
     }
-    if eq(clone(name), String_from("next_color")) {
+    if eq(clone(name), "next_color") {
         return contract_record_shape::component_fn_is_color_to_color(f)
     }
-    if eq(clone(name), String_from("color_to_value")) {
+    if eq(clone(name), "color_to_value") {
         return contract_record_shape::component_fn_is_color_to_i32(f)
     }
-    if eq(clone(name), String_from("color_code")) {
+    if eq(clone(name), "color_code") {
         return contract_record_shape::component_fn_is_color_to_i32(f)
     }
-    if eq(clone(name), String_from("area")) {
+    if eq(clone(name), "area") {
         return contract_record_shape::component_fn_is_shape_to_f64(f)
     }
     false
 }
 
 fn component_string_special_signature_name(name: String) -> bool {
-    eq(clone(name), String_from("greet"))
+    eq(clone(name), "greet")
 }
 
 fn component_string_special_signature_supported(name: String, f: AstNode) -> bool {
     let func = contract_helpers::component_func_from_decl(f)
-    if eq(clone(name), String_from("greet")) {
+    if eq(clone(name), "greet") {
         return contract_string_fn::component_fn_is_string_unary(func) ||
         contract_string_fn::component_fn_is_string_to_i32(func) ||
         contract_string_fn::component_fn_is_string_to_narrow_i32(func) ||
@@ -57,31 +57,31 @@ fn component_string_special_signature_supported(name: String, f: AstNode) -> boo
 }
 
 fn component_collection_special_signature_name(name: String) -> bool {
-    eq(clone(name), String_from("first_or_zero")) || eq(clone(name), String_from("maybe_double")) || eq(clone(name), String_from("safe_div"))
+    eq(clone(name), "first_or_zero") || eq(clone(name), "maybe_double") || eq(clone(name), "safe_div")
 }
 
 fn component_collection_special_signature_supported(name: String, f: AstNode) -> bool {
-    if eq(clone(name), String_from("first_or_zero")) {
+    if eq(clone(name), "first_or_zero") {
         return contract_collection_fn::component_fn_is_vec_i32_to_i32(contract_helpers::component_func_from_decl(f))
     }
-    if eq(clone(name), String_from("maybe_double")) {
+    if eq(clone(name), "maybe_double") {
         return contract_collection_fn::component_fn_is_i32_to_option_i32(contract_helpers::component_func_from_decl(f))
     }
-    if eq(clone(name), String_from("safe_div")) {
+    if eq(clone(name), "safe_div") {
         return contract_collection_fn::component_fn_is_i32_i32_to_result_i32_string(contract_helpers::component_func_from_decl(f))
     }
     false
 }
 
 fn component_numeric_tuple_special_signature_name(name: String) -> bool {
-    eq(clone(name), String_from("square32")) || eq(clone(name), String_from("swap"))
+    eq(clone(name), "square32") || eq(clone(name), "swap")
 }
 
 fn component_numeric_tuple_special_signature_supported(name: String, f: AstNode) -> bool {
-    if eq(clone(name), String_from("square32")) {
+    if eq(clone(name), "square32") {
         return contract_numeric::component_fn_is_f32_unary(contract_helpers::component_func_from_decl(f))
     }
-    if eq(clone(name), String_from("swap")) {
+    if eq(clone(name), "swap") {
         return contract_tuple_functions::component_fn_is_i32_i32_to_tuple_i32_i32(contract_helpers::component_func_from_decl(f))
     }
     false

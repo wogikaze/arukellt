@@ -1,7 +1,7 @@
 use lsp::json_parse_core
 
 fn extract_position_field(body: String, key: String) -> i32 {
-    let p = json_parse_core::find_key_pos(clone(body), String_from("position"), 0)
+    let p = json_parse_core::find_key_pos(clone(body), "position", 0)
     if p < 0 {
         return 0
     }

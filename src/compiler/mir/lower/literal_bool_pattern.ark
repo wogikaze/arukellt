@@ -8,7 +8,7 @@ use mir::value_types
 
 fn lower_bool_literal(ctx: LowerCtx, node: AstNode) -> i32 {
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, "bool")
     let mut bval = 0
     if eq(ast_node::node_text(node), "true") {
         bval = 1

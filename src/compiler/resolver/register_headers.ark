@@ -61,7 +61,7 @@ fn register_impl_method_headers(ctx: ResolveCtx, d: AstNode) {
     let mut mi = 0
     while mi < mcount {
         let method = ast_access::node_child_at(d, mi)
-        let mangled = concat(clone(struct_name), concat(String_from("::"), ast_access::node_text(method)))
+        let mangled = concat(clone(struct_name), concat("::", ast_access::node_text(method)))
         scope_define::define_with_vis(ctx, mangled, commands::SYM_FN(), true)
         if has_trait && !eq(clone(trait_name), clone(struct_name)) {
             let bare_name = ast_access::node_text(method)

@@ -63,7 +63,7 @@ fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32)
         if get_unchecked(variant_types, variant_id) == type_idx && variant_id < len(variant_sigs) {
             let fields = sections_types_gc::struct_field_sigs(get_unchecked(variant_sigs, variant_id))
             if field_idx >= 0 && field_idx < len(fields) {
-                return eq(get_unchecked(fields, field_idx), String_from("i32"))
+                return eq(get_unchecked(fields, field_idx), "i32")
             }
             return false
         }
@@ -92,9 +92,9 @@ fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> 
 }
 
 fn gc_struct_field_sig_is_i32_scalar(field_sig: String) -> bool {
-    eq(clone(field_sig), String_from("i32")) ||
-    eq(clone(field_sig), String_from("bool")) ||
-    eq(clone(field_sig), String_from("char"))
+    eq(clone(field_sig), "i32") ||
+    eq(clone(field_sig), "bool") ||
+    eq(clone(field_sig), "char")
 }
 
 // Prefer declared field sigs for user structs over dest-local heuristics

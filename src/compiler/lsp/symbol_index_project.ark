@@ -30,7 +30,7 @@ fn pending_push_unique(pending: Vec<String>, path: String) -> Vec<String> {
 }
 
 fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: String, project_root: String) -> String {
-    let base = if contains(clone(import_path), String_from("::")) {
+    let base = if contains(clone(import_path), "::") {
         root_dir
     } else {
         base_dir
@@ -39,7 +39,7 @@ fn resolve_import_to_path(import_path: String, base_dir: String, root_dir: Strin
     if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
         module_file_load_local::DriverLoadedSource_path(loaded)
     } else {
-        if contains(clone(import_path), String_from("::")) {
+        if contains(clone(import_path), "::") {
             return String_new()
         }
         dependency_module_file(clone(project_root), clone(import_path))
@@ -50,7 +50,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
     if len(project_root) == 0 || len(import_name) == 0 {
         return String_new()
     }
-    let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
+    let manifest_path = symbol_index_paths::join_path(clone(project_root), "ark.toml")
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
@@ -59,19 +59,19 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
                 return String_new()
             }
             let dep_root = symbol_index_paths::resolve_relative_path(clone(project_root), dep_rel)
-            let dep_manifest = symbol_index_paths::join_path(clone(dep_root), String_from("ark.toml"))
+            let dep_manifest = symbol_index_paths::join_path(clone(dep_root), "ark.toml")
             let dep_read = fs::read_to_string(dep_manifest)
             match dep_read {
                 Result::Ok(dep_content) => {
-                    let pkg_name = symbol_index_paths::find_toml_value(clone(dep_content), String_from("name"))
+                    let pkg_name = symbol_index_paths::find_toml_value(clone(dep_content), "name")
                     if len(pkg_name) > 0 && eq(clone(import_name), clone(pkg_name)) {
-                        let lib_path = symbol_index_paths::find_toml_value(clone(dep_content), String_from("path"))
+                        let lib_path = symbol_index_paths::find_toml_value(clone(dep_content), "path")
                         if len(lib_path) > 0 {
                             return symbol_index_paths::join_path(clone(dep_root), lib_path)
                         }
-                        return symbol_index_paths::join_path(clone(dep_root), String_from("src/lib.ark"))
+                        return symbol_index_paths::join_path(clone(dep_root), "src/lib.ark")
                     }
-                    let dep_src = symbol_index_paths::join_path(clone(dep_root), String_from("src"))
+                    let dep_src = symbol_index_paths::join_path(clone(dep_root), "src")
                     let loaded = module_file_load_local::read_local_module_source(clone(import_name), dep_src)
                     if module_file_load_local::DriverLoadedSource_is_ok(loaded) {
                         module_file_load_local::DriverLoadedSource_path(loaded)
@@ -97,7 +97,7 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
     let mut i = 0
     while i < n {
         let import_path = get_unchecked(paths, i)
-        if !contains(clone(import_path), String_from("std::")) {
+        if !contains(clone(import_path), "std::") {
             let file_path = resolve_import_to_path(clone(import_path), clone(base_dir), clone(root_dir), clone(project_root))
             if len(file_path) > 0 {
                 push(out, file_path)
@@ -109,11 +109,11 @@ pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir
 }
 
 fn project_entry_path(project_root: String) -> String {
-    let manifest_path = symbol_index_paths::join_path(clone(project_root), String_from("ark.toml"))
+    let manifest_path = symbol_index_paths::join_path(clone(project_root), "ark.toml")
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
-            let entry = symbol_index_paths::find_toml_value(clone(content), String_from("path"))
+            let entry = symbol_index_paths::find_toml_value(clone(content), "path")
             if len(entry) > 0 {
                 let candidate = symbol_index_paths::join_path(clone(project_root), entry)
                 match fs::read_to_string(clone(candidate)) {
@@ -123,7 +123,7 @@ fn project_entry_path(project_root: String) -> String {
                     Result::Err(_) => {},
                 }
             }
-            let lib = symbol_index_paths::join_path(clone(project_root), String_from("src/lib.ark"))
+            let lib = symbol_index_paths::join_path(clone(project_root), "src/lib.ark")
             match fs::read_to_string(clone(lib)) {
                 Result::Ok(_) => {
                     return lib

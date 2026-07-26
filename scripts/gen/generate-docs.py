@@ -1472,23 +1472,23 @@ def render_compiler_target_contract(state: dict) -> str:
     ]
     for target in canonical:
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(target)}")) {{',
+            f'    if eq(clone(input), "{_ark_string(target)}") {{',
             "        return true",
             "    }",
         ])
     lines.extend(["    false", "}", "", "fn target_alias_policy(input: String) -> String {"])
     for alias in aliases:
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
-            f'        return String_from("{_ark_string(alias["policy"])}")',
+            f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+            f'        return "{_ark_string(alias["policy"])}"',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_alias_canonical_target(input: String) -> String {"])
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
-                f'        return String_from("{_ark_string(alias["canonical_target"])}")',
+                f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+                f'        return "{_ark_string(alias["canonical_target"])}"',
                 "    }",
             ])
     lines.extend(["    input", "}", "", "fn target_default_host_profile(input: String) -> String {"])
@@ -1496,16 +1496,16 @@ def render_compiler_target_contract(state: dict) -> str:
         host = profile.get("default_host_profile")
         if host:
             lines.extend([
-                f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
-                f'        return String_from("{_ark_string(host)}")',
+                f'    if eq(clone(input), "{_ark_string(profile["id"])}") {{',
+                f'        return "{_ark_string(host)}"',
                 "    }",
             ])
     lines.extend(["    String_new()", "}", "", "fn target_alias_host_profile(input: String) -> String {"])
     for alias in aliases:
         if alias["policy"] == "warning":
             lines.extend([
-                f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
-                f'        return String_from("{_ark_string(alias["host_profile"])}")',
+                f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+                f'        return "{_ark_string(alias["host_profile"])}"',
                 "    }",
             ])
     lines.extend(["    String_new()", "}", "", "fn target_alias_message(input: String) -> String {"])
@@ -1515,8 +1515,8 @@ def render_compiler_target_contract(state: dict) -> str:
         else:
             message = f'target `{alias["input"]}` is not accepted; {alias["replacement"]}'
         lines.extend([
-            f'    if eq(clone(input), String_from("{_ark_string(alias["input"])}")) {{',
-            f'        return String_from("{_ark_string(message)}")',
+            f'    if eq(clone(input), "{_ark_string(alias["input"])}") {{',
+            f'        return "{_ark_string(message)}"',
             "    }",
         ])
     lines.extend(["    String_new()", "}", "", "fn target_display_line(input: String) -> String {"])
@@ -1524,30 +1524,30 @@ def render_compiler_target_contract(state: dict) -> str:
         target_id = _ark_string(profile["id"])
         display = _ark_string(profile.get("display", profile.get("role", "")))
         lines.extend([
-            f'    if eq(clone(input), String_from("{target_id}")) {{',
-            f'        return String_from("  {target_id}  {display}")',
+            f'    if eq(clone(input), "{target_id}") {{',
+            f'        return "  {target_id}  {display}"',
             "    }",
         ])
     lines.extend(["    String_new()", "}", ""])
     lines.extend(['test mod "target_contract_generated" {'])
     for index, target in enumerate(canonical):
         lines.append(
-            f'    test "canonical_{index}" {{ assert(target_is_canonical(String_from("{_ark_string(target)}"))) }}'
+            f'    test "canonical_{index}" {{ assert(target_is_canonical("{_ark_string(target)}")) }}'
         )
     for index, alias in enumerate(aliases):
         spelling = _ark_string(alias["input"])
         lines.append(
-            f'    test "policy_{index}" {{ assert(eq(target_alias_policy(String_from("{spelling}")), String_from("{alias["policy"]}"))) }}'
+            f'    test "policy_{index}" {{ assert(eq(target_alias_policy("{spelling}"), "{alias["policy"]}")) }}'
         )
         if alias["policy"] == "warning":
             lines.append(
-                f'    test "canonicalize_{index}" {{ assert(eq(target_alias_canonical_target(String_from("{spelling}")), String_from("{_ark_string(alias["canonical_target"])}"))) }}'
+                f'    test "canonicalize_{index}" {{ assert(eq(target_alias_canonical_target("{spelling}"), "{_ark_string(alias["canonical_target"])}")) }}'
             )
             lines.append(
-                f'    test "host_{index}" {{ assert(eq(target_alias_host_profile(String_from("{spelling}")), String_from("{_ark_string(alias["host_profile"])}"))) }}'
+                f'    test "host_{index}" {{ assert(eq(target_alias_host_profile("{spelling}"), "{_ark_string(alias["host_profile"])}")) }}'
             )
             lines.append(
-                f'    test "warning_{index}" {{ assert(contains(target_alias_message(String_from("{spelling}")), String_from("W0002"))) }}'
+                f'    test "warning_{index}" {{ assert(contains(target_alias_message("{spelling}"), "W0002")) }}'
             )
     lines.extend(["}", ""])
     return "\n".join(lines)

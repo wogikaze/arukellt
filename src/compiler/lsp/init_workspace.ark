@@ -8,7 +8,7 @@ use lsp::symbol_index_update
 
 fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
     let out = Vec_new_String()
-    let needle = String_from("path = \"")
+    let needle = "path = \""
     let content_len = len(content)
     let needle_len = len(needle)
     let mut search_from = 0
@@ -20,7 +20,7 @@ fn collect_path_dependency_rel_paths(content: String) -> Vec<String> {
         }
         let abs = search_from + pos + needle_len
         let rest = substring(content, abs, content_len)
-        let end = index_of(clone(rest), String_from("\""))
+        let end = index_of(clone(rest), "\"")
         if end < 0 {
             return out
         }
@@ -72,7 +72,7 @@ fn discover_path_dependency_roots(seed_root: String) -> Vec<String> {
             continue
         }
         visited = roots_push_unique(visited, clone(next))
-        let manifest_path = symbol_index_paths::join_path(clone(next), String_from("ark.toml"))
+        let manifest_path = symbol_index_paths::join_path(clone(next), "ark.toml")
         let read_result = fs::read_to_string(clone(manifest_path))
         match read_result {
             Result::Ok(content) => {

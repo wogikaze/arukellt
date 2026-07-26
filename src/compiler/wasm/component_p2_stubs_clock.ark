@@ -14,7 +14,7 @@ fn p2_stub_monotonic_clock_module() -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 1)
     writer_core::emit_leb128_u(func_sec, 0)
     component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
-    p2_stub_emit_i64_zero_export(out, String_from("now"))
+    p2_stub_emit_i64_zero_export(out, "now")
     writer_core::writer_bytes(out)
 }
 
@@ -32,7 +32,7 @@ fn p2_stub_wall_clock_module() -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 1)
     writer_core::emit_leb128_u(func_sec, 0)
     component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
-    p2_stub_emit_i64_i32_zero_export(out, String_from("now"))
+    p2_stub_emit_i64_i32_zero_export(out, "now")
     writer_core::writer_bytes(out)
 }
 
@@ -49,7 +49,7 @@ fn p2_stub_random_module() -> Vec<i32> {
     writer_core::emit_leb128_u(func_sec, 1)
     writer_core::emit_leb128_u(func_sec, 0)
     component_p2_stubs::p2_stub_emit_wasm_section(out, 3, func_sec)
-    p2_stub_emit_i64_zero_export(out, String_from("get-random-u64"))
+    p2_stub_emit_i64_zero_export(out, "get-random-u64")
     writer_core::writer_bytes(out)
 }
 

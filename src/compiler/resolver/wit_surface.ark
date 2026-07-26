@@ -34,7 +34,7 @@ fn wit_interface_id(doc: wit_parse_text::WitParsedInterface) -> String {
 }
 
 fn wit_interface_id_parts(package: String, interface: String) -> String {
-    concat(clone(package), concat(String_from("/"), clone(interface)))
+    concat(clone(package), concat("/", clone(interface)))
 }
 
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
@@ -66,5 +66,5 @@ fn wit_func_ret_ark_type(func: wit_parse_text::WitParsedFunc, alias: String, doc
 }
 
 fn wit_binding_key(interface_id: String, wit_func_name: String) -> String {
-    concat(clone(interface_id), concat(String_from("\x1f"), clone(wit_func_name)))
+    concat(clone(interface_id), concat("\x1f", clone(wit_func_name)))
 }

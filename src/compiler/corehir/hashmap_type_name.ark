@@ -3,32 +3,32 @@
 // call it without pulling the typed-spine overlay into annotation lowering.
 
 fn hashmap_type_alias(k_name: String, v_name: String) -> String {
-    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("i32")) {
-        return String_from("si32")
+    if eq(clone(k_name), "String") && eq(clone(v_name), "i32") {
+        return "si32"
     }
-    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("String")) {
-        return String_from("i32str")
+    if eq(clone(k_name), "i32") && eq(clone(v_name), "String") {
+        return "i32str"
     }
-    if eq(clone(k_name), String_from("String")) && eq(clone(v_name), String_from("String")) {
-        return String_from("strstr")
+    if eq(clone(k_name), "String") && eq(clone(v_name), "String") {
+        return "strstr"
     }
-    if eq(clone(k_name), String_from("i32")) && eq(clone(v_name), String_from("i32")) {
-        return String_from("i32i32")
+    if eq(clone(k_name), "i32") && eq(clone(v_name), "i32") {
+        return "i32i32"
     }
     // TYPE_FN ann text is "fnref" (#831); also accept bare fn / fn(...).
-    if eq(clone(k_name), String_from("i32")) && (
-        eq(clone(v_name), String_from("fnref")) ||
-        eq(clone(v_name), String_from("fn")) ||
-        starts_with(clone(v_name), String_from("fn("))
+    if eq(clone(k_name), "i32") && (
+        eq(clone(v_name), "fnref") ||
+        eq(clone(v_name), "fn") ||
+        starts_with(clone(v_name), "fn(")
     ) {
-        return String_from("i32fn")
+        return "i32fn"
     }
-    if eq(clone(k_name), String_from("String")) && (
-        eq(clone(v_name), String_from("fnref")) ||
-        eq(clone(v_name), String_from("fn")) ||
-        starts_with(clone(v_name), String_from("fn("))
+    if eq(clone(k_name), "String") && (
+        eq(clone(v_name), "fnref") ||
+        eq(clone(v_name), "fn") ||
+        starts_with(clone(v_name), "fn(")
     ) {
-        return String_from("strfn")
+        return "strfn"
     }
-    concat(concat(k_name, String_from(":")), v_name)
+    concat(concat(k_name, ":"), v_name)
 }

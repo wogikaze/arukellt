@@ -91,7 +91,7 @@ fn emit_fs_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
 
 fn emit_fs_write_unit_ok_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Result::Ok"))
+    let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Result::Ok")
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     // Result<(), String> Ok: tag=0 with i32 payload 0 (builtin _f1_i32 Ok).
     // GC struct i32 fields must stay true i32 under Memory64 (#730).

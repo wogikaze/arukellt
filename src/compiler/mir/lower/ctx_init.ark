@@ -11,11 +11,11 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
 fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn_source_locations: Vec<SourceLocation>) -> LowerCtx {
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
-        effective_target = String_from("wasm32-gc")
+        effective_target = "wasm32-gc"
     }
     LowerCtx {
         module: m,
-        func: function_factory::MirFunction_new(String_from(""), source_location_record::SourceLocation_unmapped()),
+        func: function_factory::MirFunction_new("", source_location_record::SourceLocation_unmapped()),
         cur_block: 0,
         local_names: Vec_new_String(), local_indices: Vec_new_i32(),
         fn_names: Vec_new_String(),

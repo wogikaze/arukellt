@@ -35,7 +35,7 @@ fn mir_store_if_branch_result(ctx: LowerCtx, result: i32, branch_result: i32) {
             // of all variants — rather than picking one variant's type.
             let current_type = ctx_api_local_types::ctx_get_local_type(ctx, result)
             if len(current_type) == 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, result, String_from("enum:open"))
+                ctx_api_local_types::ctx_set_local_type(ctx, result, "enum:open")
             }
         }
     }

@@ -5,7 +5,7 @@ pub fn parse_lint_allow_option(argv: Vec<String>, argc: i32, opts: CliOptions, i
     if next < argc {
         args_record::cli_add_lint_allow(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, String_from("--allow requires a rule name or code"))
+        args_record::cli_set_error(opts, "--allow requires a rule name or code")
     }
     next
 }
@@ -15,7 +15,7 @@ pub fn parse_lint_deny_option(argv: Vec<String>, argc: i32, opts: CliOptions, i:
     if next < argc {
         args_record::cli_add_lint_deny(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, String_from("--deny requires a rule name or code"))
+        args_record::cli_set_error(opts, "--deny requires a rule name or code")
     }
     next
 }

@@ -6,17 +6,17 @@ fn lex_equal_or_bang_punct(lex: Lexer, start: i32, c: i32) -> Token {
     if c == 61 {
         if punct_compound_peek::punct_peek(lex) == 61 {
             cursor::advance_by(lex, 1)
-            return Token_new(tokens::TK_EQEQ(), String_from("=="), start, cursor::lexer_position(lex))
+            return Token_new(tokens::TK_EQEQ(), "==", start, cursor::lexer_position(lex))
         }
         if punct_compound_peek::punct_peek(lex) == 62 {
             cursor::advance_by(lex, 1)
-            return Token_new(tokens::TK_FATARROW(), String_from("=>"), start, cursor::lexer_position(lex))
+            return Token_new(tokens::TK_FATARROW(), "=>", start, cursor::lexer_position(lex))
         }
-        return Token_new(tokens::TK_EQ(), String_from("="), start, cursor::lexer_position(lex))
+        return Token_new(tokens::TK_EQ(), "=", start, cursor::lexer_position(lex))
     }
     if punct_compound_peek::punct_peek(lex) == 61 {
         cursor::advance_by(lex, 1)
-        return Token_new(tokens::TK_BANGEQ(), String_from("!="), start, cursor::lexer_position(lex))
+        return Token_new(tokens::TK_BANGEQ(), "!=", start, cursor::lexer_position(lex))
     }
-    Token_new(tokens::TK_BANG(), String_from("!"), start, cursor::lexer_position(lex))
+    Token_new(tokens::TK_BANG(), "!", start, cursor::lexer_position(lex))
 }

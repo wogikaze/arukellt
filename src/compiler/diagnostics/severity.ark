@@ -12,13 +12,13 @@ fn SEV_NOTE() -> i32 {
 
 fn severity_name(sev: i32) -> String {
     if sev == SEV_ERROR() {
-        return String_from("error")
+        return "error"
     }
     if sev == SEV_WARNING() {
-        return String_from("warning")
+        return "warning"
     }
     if sev == SEV_NOTE() {
-        return String_from("note")
+        return "note"
     }
-    String_from("unknown")
+    "unknown"
 }

@@ -48,10 +48,10 @@ fn is_unused_lower_core_expr_before_next_call(inst: MirInst, dest: i32, next_op:
         return false
     }
     let callee = inst_accessors_literals::MirInst_str_val(inst)
-    if eq(clone(callee), String_from("lower_core_expr")) {
+    if eq(clone(callee), "lower_core_expr") {
         return true
     }
-    eq(clone(callee), String_from("lower_expr"))
+    eq(clone(callee), "lower_expr")
 }
 
 fn call_result_next_consumes_stack(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {

@@ -27,10 +27,10 @@ fn is_ref_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "struct:") {
         return true
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
     false
@@ -74,19 +74,19 @@ fn is_open_enum_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") {
         return true
     }
-    if starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") {
         return true
     }
     false
@@ -174,10 +174,10 @@ fn process_local_set_variant_slot(f: MirFunction, local_idx: i32, inst: MirInst,
 }
 
 fn payload_extract_local_keeps_variant_slot(f: MirFunction, local_idx: i32, type_name: String) -> bool {
-    if eq(clone(type_name), String_from("enum:open")) {
+    if eq(clone(type_name), "enum:open") {
         return false
     }
-    if !starts_with(clone(type_name), String_from("enum:")) {
+    if !starts_with(clone(type_name), "enum:") {
         return false
     }
     let mut get_count = 0
@@ -241,20 +241,20 @@ fn normalize_type_name_to_open_enum(type_name: String) -> String {
     if is_open_enum_container_type_name(clone(type_name)) {
         return clone(type_name)
     }
-    if starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result<")) {
-        return String_from("result:")
+    if starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") {
+        return "result:"
     }
-    if starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) {
-        return String_from("option:")
+    if starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") {
+        return "option:"
     }
     if len(type_name) == 0 {
-        return String_from("enum:")
+        return "enum:"
     }
-    String_from("enum:")
+    "enum:"
 }

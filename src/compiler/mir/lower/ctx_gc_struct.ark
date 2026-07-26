@@ -56,7 +56,7 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(struct_name)) {
         return 0 - 1
     }
-    if contains(clone(struct_name), String_from("::")) {
+    if contains(clone(struct_name), "::") {
         return 0 - 1
     }
     let field_count = ctx_struct_size::ctx_struct_layout_field_count(ctx, clone(struct_name))
@@ -64,7 +64,7 @@ fn ctx_ensure_gc_struct_registered(ctx: LowerCtx, struct_name: String) -> i32 {
         return 0 - 1
     }
     // Placeholder slot breaks cycles (A→B→A) while nested fields resolve.
-    ctx_register_gc_struct(ctx, clone(struct_name), String_from("GS"))
+    ctx_register_gc_struct(ctx, clone(struct_name), "GS")
     let sig = gc_struct_build_sig(ctx, clone(struct_name), field_count)
     ctx_set_gc_struct_sig(ctx, clone(struct_name), sig)
     ctx_gc_struct_slot(ctx, clone(struct_name))
@@ -91,43 +91,43 @@ fn ctx_flush_gc_structs(ctx: LowerCtx) {
 }
 fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
-        return String_from("_f64")
+        return "_f64"
     }
     if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
-        return String_from("_i64")
+        return "_i64"
     }
     if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
-        return String_from("_v128")
+        return "_v128"
     }
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
-        return String_from("_ref0")
+        return "_ref0"
     }
     if eq(clone(type_name), "bool") || eq(clone(type_name), "Bool") {
-        return String_from("_i32")
+        return "_i32"
     }
     if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") {
-        return String_from("_i32")
+        return "_i32"
     }
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
-        return String_from("_i32")
+        return "_i32"
     }
     // Function refs are typed funcrefs, not GC struct refs. Struct-field
     // storage still uses i32 until field layouts gain `(ref $sig)` (#831).
-    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
-        return String_from("_i32")
+    if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), "fn(") {
+        return "_i32"
     }
     // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
     if gc_struct_field_type_is_type_param(clone(type_name)) {
-        return String_from("_i32")
+        return "_i32"
     }
     String_new()
 }
 fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32) -> String {
-    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    let prefix = concat("_f", i32_to_string(field_idx))
     // Empty field types are discriminant/_tag slots on enum layouts — i32, not
     // the unknown→ref14 fallback (which produced GS_f0_ref14 enum boxes).
     if len(type_name) == 0 {
-        return concat(prefix, String_from("_i32"))
+        return concat(prefix, "_i32")
     }
     let scalar = gc_struct_scalar_field_suffix(clone(type_name))
     if len(scalar) > 0 {
@@ -136,7 +136,7 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     // Enum-typed fields must use the GC enum open type (gcref14), not the
     // all-i32 generic struct slot derived from byte size (#726 TomlValStep).
     if ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(type_name)) {
-        return concat(prefix, String_from("_ref14"))
+        return concat(prefix, "_ref14")
     }
     // Container fields: pick the concrete GC vec/map type when the
     // element type is known (Vec<String> ≠ Vec<i32>; #726 TomlKeyStep).
@@ -147,18 +147,18 @@ fn gc_struct_field_sig_for_type(ctx: LowerCtx, type_name: String, field_idx: i32
     // when decl order registers the parent first (AstNode before Span).
     let struct_slot = ctx_ensure_gc_struct_registered(ctx, clone(type_name))
     if struct_slot >= 0 {
-        return concat(prefix, concat(String_from("_gcsref"), i32_to_string(struct_slot)))
+        return concat(prefix, concat("_gcsref", i32_to_string(struct_slot)))
     }
-    concat(prefix, String_from("_ref14"))
+    concat(prefix, "_ref14")
 }
 fn gc_struct_field_type_is_container(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+    if eq(clone(type_name), "Vec") || eq(clone(type_name), "HashMap") || eq(clone(type_name), "HashSet") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("hashset:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "hashset:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+    if starts_with(clone(type_name), "Vec<") || starts_with(clone(type_name), "HashMap<") || starts_with(clone(type_name), "HashSet<") {
         return true
     }
     false
@@ -166,117 +166,117 @@ fn gc_struct_field_type_is_container(type_name: String) -> bool {
 // Map container type names to the fixed GC type-section offsets used by
 // sections_types_gc (vec i32=10, vec string≈15/string-array vec, etc.).
 fn gc_struct_container_ref_suffix(type_name: String) -> String {
-    if eq(clone(type_name), String_from("vec:String")) ||
-    eq(clone(type_name), String_from("vec:string")) ||
-    eq(clone(type_name), String_from("Vec<String>")) ||
-    eq(clone(type_name), String_from("Vec<string>")) ||
-    eq(clone(type_name), String_from("Vec_String")) {
+    if eq(clone(type_name), "vec:String") ||
+    eq(clone(type_name), "vec:string") ||
+    eq(clone(type_name), "Vec<String>") ||
+    eq(clone(type_name), "Vec<string>") ||
+    eq(clone(type_name), "Vec_String") {
         // Vec<String> fixed GC slot is gcref19 (SubF_GS_f0_ref15_f1_i32 in
         // sections_types_gc — string-array vec, not the A_ref0 at offset 15).
-        return String_from("_ref19")
+        return "_ref19"
     }
-    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
-        return String_from("_ref21")
+    if eq(clone(type_name), "vec:v128") || eq(clone(type_name), "vec:V128") {
+        return "_ref21"
     }
-    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
-        return String_from("_ref22")
+    if eq(clone(type_name), "vec:i64") || eq(clone(type_name), "vec:I64") {
+        return "_ref22"
     }
-    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
-        return String_from("_ref23")
+    if eq(clone(type_name), "vec:f64") || eq(clone(type_name), "vec:F64") {
+        return "_ref23"
     }
     // Vec<fn> / funcref array header (gcref27). Must win over structref (#832).
-    if eq(clone(type_name), String_from("vec:fnref")) ||
-    eq(clone(type_name), String_from("vec:fn")) ||
-    starts_with(clone(type_name), String_from("vec:fn(")) {
-        return String_from("_ref27")
+    if eq(clone(type_name), "vec:fnref") ||
+    eq(clone(type_name), "vec:fn") ||
+    starts_with(clone(type_name), "vec:fn(") {
+        return "_ref27"
     }
     // Vec<Option/Result/enum> open-enum array header (gcref29).
-    if starts_with(clone(type_name), String_from("vec:Option_")) ||
-    starts_with(clone(type_name), String_from("vec:Result_")) ||
-    starts_with(clone(type_name), String_from("vec:option:")) ||
-    starts_with(clone(type_name), String_from("vec:result:")) ||
-    starts_with(clone(type_name), String_from("vec:enum:")) {
-        return String_from("_ref29")
+    if starts_with(clone(type_name), "vec:Option_") ||
+    starts_with(clone(type_name), "vec:Result_") ||
+    starts_with(clone(type_name), "vec:option:") ||
+    starts_with(clone(type_name), "vec:result:") ||
+    starts_with(clone(type_name), "vec:enum:") {
+        return "_ref29"
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
-        return String_from("_ref30")
+    if starts_with(clone(type_name), "hashmap:i32fn") {
+        return "_ref30"
     }
-    if starts_with(clone(type_name), String_from("hashmap:strfn")) {
-        return String_from("_ref31")
+    if starts_with(clone(type_name), "hashmap:strfn") {
+        return "_ref31"
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-        return String_from("_ref17")
+    if starts_with(clone(type_name), "hashmap:i32str") {
+        return "_ref17"
     }
-    if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-        return String_from("_ref18")
+    if starts_with(clone(type_name), "hashmap:strstr") {
+        return "_ref18"
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("HashMap")) {
-        return String_from("_ref16")
+    if starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "HashMap") {
+        return "_ref16"
     }
-    if starts_with(clone(type_name), String_from("hashset:")) || starts_with(clone(type_name), String_from("HashSet")) {
-        return String_from("_ref16")
+    if starts_with(clone(type_name), "hashset:") || starts_with(clone(type_name), "HashSet") {
+        return "_ref16"
     }
     // Nested / struct-element Vec → structref-array vec (gcref25).
-    if eq(clone(type_name), String_from("vec:Vec_String")) || starts_with(clone(type_name), String_from("vec:Vec")) || starts_with(clone(type_name), String_from("vec:vec:")) {
-        return String_from("_ref25")
+    if eq(clone(type_name), "vec:Vec_String") || starts_with(clone(type_name), "vec:Vec") || starts_with(clone(type_name), "vec:vec:") {
+        return "_ref25"
     }
     // Angle-bracket Vec<T> for non-scalar T (TomlField, TomlValue, …) (#726).
-    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
         let elem = substring(clone(type_name), 4, len(type_name) - 1)
-        if eq(clone(elem), String_from("String")) || eq(clone(elem), String_from("string")) {
-            return String_from("_ref19")
+        if eq(clone(elem), "String") || eq(clone(elem), "string") {
+            return "_ref19"
         }
-        if eq(clone(elem), String_from("i64")) || eq(clone(elem), String_from("I64")) {
-            return String_from("_ref22")
+        if eq(clone(elem), "i64") || eq(clone(elem), "I64") {
+            return "_ref22"
         }
-        if eq(clone(elem), String_from("f64")) || eq(clone(elem), String_from("F64")) {
-            return String_from("_ref23")
+        if eq(clone(elem), "f64") || eq(clone(elem), "F64") {
+            return "_ref23"
         }
-        if eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char")) {
-            return String_from("_ref10")
+        if eq(clone(elem), "i32") || eq(clone(elem), "I32") || eq(clone(elem), "bool") || eq(clone(elem), "char") {
+            return "_ref10"
         }
-        if eq(clone(elem), String_from("fnref")) ||
-        eq(clone(elem), String_from("fn")) ||
-        starts_with(clone(elem), String_from("fn(")) {
-            return String_from("_ref27")
+        if eq(clone(elem), "fnref") ||
+        eq(clone(elem), "fn") ||
+        starts_with(clone(elem), "fn(") {
+            return "_ref27"
         }
-        if starts_with(clone(elem), String_from("Option")) ||
-        starts_with(clone(elem), String_from("Result")) ||
-        starts_with(clone(elem), String_from("option:")) ||
-        starts_with(clone(elem), String_from("result:")) ||
-        starts_with(clone(elem), String_from("enum:")) {
-            return String_from("_ref29")
+        if starts_with(clone(elem), "Option") ||
+        starts_with(clone(elem), "Result") ||
+        starts_with(clone(elem), "option:") ||
+        starts_with(clone(elem), "result:") ||
+        starts_with(clone(elem), "enum:") {
+            return "_ref29"
         }
-        return String_from("_ref25")
+        return "_ref25"
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         let elem = substring(clone(type_name), 4, len(type_name))
-        if eq(clone(elem), String_from("fnref")) ||
-        eq(clone(elem), String_from("fn")) ||
-        starts_with(clone(elem), String_from("fn(")) {
-            return String_from("_ref27")
+        if eq(clone(elem), "fnref") ||
+        eq(clone(elem), "fn") ||
+        starts_with(clone(elem), "fn(") {
+            return "_ref27"
         }
-        if starts_with(clone(elem), String_from("Option")) ||
-        starts_with(clone(elem), String_from("Result")) ||
-        starts_with(clone(elem), String_from("option:")) ||
-        starts_with(clone(elem), String_from("result:")) ||
-        starts_with(clone(elem), String_from("enum:")) {
-            return String_from("_ref29")
+        if starts_with(clone(elem), "Option") ||
+        starts_with(clone(elem), "Result") ||
+        starts_with(clone(elem), "option:") ||
+        starts_with(clone(elem), "result:") ||
+        starts_with(clone(elem), "enum:") {
+            return "_ref29"
         }
-        if !(eq(clone(elem), String_from("i32")) || eq(clone(elem), String_from("I32")) || eq(clone(elem), String_from("bool")) || eq(clone(elem), String_from("char"))) {
-            if !eq(clone(elem), String_from("String")) && !eq(clone(elem), String_from("string")) {
-                return String_from("_ref25")
+        if !(eq(clone(elem), "i32") || eq(clone(elem), "I32") || eq(clone(elem), "bool") || eq(clone(elem), "char")) {
+            if !eq(clone(elem), "String") && !eq(clone(elem), "string") {
+                return "_ref25"
             }
         }
     }
     // Default Vec / vec:i32 / bare Vec → i32-array vec (gcref10).
-    String_from("_ref10")
+    "_ref10"
 }
 fn gc_struct_field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("?")) {
+    if starts_with(clone(type_name), "?") {
         return gc_struct_field_type_is_type_param(substring(type_name, 1, len(type_name)))
     }
     // Single uppercase letter (T, U, V, ...) — unsubstituted generic field.
@@ -310,7 +310,7 @@ fn gc_struct_needs_named_type(ctx: LowerCtx, struct_name: String, field_count: i
 }
 
 fn gc_struct_build_sig(ctx: LowerCtx, struct_name: String, field_count: i32) -> String {
-    let mut sig = String_from("GS")
+    let mut sig = "GS"
     let mut fi = 0
     while fi < field_count {
         let ft = ctx_struct_storage::ctx_struct_field_type_at_offset(ctx, ctx_struct_offset_for_field(ctx, clone(struct_name), fi))

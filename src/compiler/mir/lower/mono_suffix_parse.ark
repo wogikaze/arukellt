@@ -19,16 +19,16 @@ fn split_mono_suffix(suffix: String) -> Vec<String> {
 }
 
 fn mono_type_var_to_index(type_var: String) -> i32 {
-    if eq(clone(type_var), String_from("T")) { return 0 }
-    if eq(clone(type_var), String_from("E")) { return 1 }
-    if eq(clone(type_var), String_from("U")) { return 2 }
-    if eq(clone(type_var), String_from("V")) { return 3 }
-    if eq(clone(type_var), String_from("W")) { return 4 }
-    if eq(clone(type_var), String_from("K")) { return 0 }
-    if eq(clone(type_var), String_from("A")) { return 0 }
-    if eq(clone(type_var), String_from("B")) { return 1 }
-    if eq(clone(type_var), String_from("C")) { return 2 }
-    if eq(clone(type_var), String_from("D")) { return 3 }
+    if eq(clone(type_var), "T") { return 0 }
+    if eq(clone(type_var), "E") { return 1 }
+    if eq(clone(type_var), "U") { return 2 }
+    if eq(clone(type_var), "V") { return 3 }
+    if eq(clone(type_var), "W") { return 4 }
+    if eq(clone(type_var), "K") { return 0 }
+    if eq(clone(type_var), "A") { return 0 }
+    if eq(clone(type_var), "B") { return 1 }
+    if eq(clone(type_var), "C") { return 2 }
+    if eq(clone(type_var), "D") { return 3 }
     0
 }
 
@@ -82,7 +82,7 @@ fn mono_elem_is_substitutable_type_var(elem: String) -> bool {
     if len(elem) == 0 {
         return false
     }
-    if starts_with(clone(elem), String_from("?")) {
+    if starts_with(clone(elem), "?") {
         return mono_elem_is_substitutable_type_var(substring(elem, 1, len(elem)))
     }
     if len(elem) == 1 {
@@ -124,25 +124,25 @@ fn all_valid_mono_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_mono_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) ||
-    eq(clone(key), String_from("i64")) ||
-    eq(clone(key), String_from("f64")) ||
-    eq(clone(key), String_from("f32")) ||
-    eq(clone(key), String_from("bool")) ||
-    eq(clone(key), String_from("char")) ||
-    eq(clone(key), String_from("String")) ||
-    eq(clone(key), String_from("string")) {
+    if eq(clone(key), "i32") ||
+    eq(clone(key), "i64") ||
+    eq(clone(key), "f64") ||
+    eq(clone(key), "f32") ||
+    eq(clone(key), "bool") ||
+    eq(clone(key), "char") ||
+    eq(clone(key), "String") ||
+    eq(clone(key), "string") {
         return true
     }
     // Nested container mangling uses underscores for type args
     // (Vec_i32_, Option_String, HashMap_i32_String_). These must be
     // accepted so count__Vec_i32_ substitutes vec:T → vec:Vec_i32_ and
     // takes the structref-array vec ABI (#808 nested_generic_call).
-    if starts_with(clone(key), String_from("Vec_")) ||
-    starts_with(clone(key), String_from("Option_")) ||
-    starts_with(clone(key), String_from("Result_")) ||
-    starts_with(clone(key), String_from("HashMap_")) ||
-    starts_with(clone(key), String_from("HashSet_")) {
+    if starts_with(clone(key), "Vec_") ||
+    starts_with(clone(key), "Option_") ||
+    starts_with(clone(key), "Result_") ||
+    starts_with(clone(key), "HashMap_") ||
+    starts_with(clone(key), "HashSet_") {
         return true
     }
     // Nominal keys are PascalCase type names (Point). Reject snake_case

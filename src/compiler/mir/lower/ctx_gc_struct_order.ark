@@ -111,7 +111,7 @@ fn gc_struct_rewrite_gcsref_slots(sig: String, remap: Vec<i32>) -> String {
             let slot = get_unchecked(parsed, 0)
             let end = get_unchecked(parsed, 1)
             if end > i + 6 && slot >= 0 && slot < len(remap) {
-                out = concat(out, concat(String_from("gcsref"), i32_to_string(get_unchecked(remap, slot))))
+                out = concat(out, concat("gcsref", i32_to_string(get_unchecked(remap, slot))))
                 i = end
                 continue
             }
@@ -126,7 +126,7 @@ fn gc_struct_at_gcsref_marker(sig: String, i: i32) -> bool {
     if i + 6 > len(sig) {
         return false
     }
-    eq(substring(clone(sig), i, i + 6), String_from("gcsref"))
+    eq(substring(clone(sig), i, i + 6), "gcsref")
 }
 
 // Returns [slot, end_index] after parsing digits at `start`.

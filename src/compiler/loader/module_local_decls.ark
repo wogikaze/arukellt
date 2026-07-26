@@ -52,13 +52,13 @@ pub fn load_local_module_decls(module_name: String, base_dir: String, state: Loa
 fn try_load_registry_module(module_name: String, base_dir: String, state: LoadState) -> DriverLocalModuleDecls {
     let package_root = module_package_root::find_package_root(clone(base_dir))
     if !registry_config::is_registry_dependency(clone(package_root), clone(module_name)) {
-        module_state_errors::LoadState_push_error(state, concat(String_from("failed to load module `"), concat(clone(module_name), String_from("`"))))
+        module_state_errors::LoadState_push_error(state, concat("failed to load module `", concat(clone(module_name), "`")))
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
     let registry_result = registry_resolve::resolve_registry_module_source(clone(package_root), clone(module_name))
     match registry_result {
         Result::Ok(source) => {
-            let virtual_path = concat(clone(package_root), concat(String_from("/.registry/"), concat(clone(module_name), String_from(".ark"))))
+            let virtual_path = concat(clone(package_root), concat("/.registry/", concat(clone(module_name), ".ark")))
             register_local_module_source(clone(module_name), virtual_path, source, state)
         },
         Result::Err(e) => {
@@ -83,7 +83,7 @@ fn local_candidate_loaded_or_loading(module_name: String, path: String, state: L
         return true
     }
     if module_state_loading::LoadState_has_loading(state, clone(path)) {
-        module_state_errors::LoadState_push_error(state, concat(String_from("circular import detected: "), module_name))
+        module_state_errors::LoadState_push_error(state, concat("circular import detected: ", module_name))
         return true
     }
     false
@@ -94,7 +94,7 @@ fn register_local_module_source(module_name: String, canonical_path: String, sou
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
     if module_state_loading::LoadState_has_loading(state, clone(canonical_path)) {
-        module_state_errors::LoadState_push_error(state, concat(String_from("circular import detected: "), clone(module_name)))
+        module_state_errors::LoadState_push_error(state, concat("circular import detected: ", clone(module_name)))
         return DriverLocalModuleDecls_new(Vec_new_AstNode(), String_new(), false)
     }
     module_state_loading::LoadState_push_loading(state, clone(canonical_path))

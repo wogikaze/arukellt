@@ -22,10 +22,10 @@ fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> Strin
             if ordinal < idx_count {
                 return mono_index_types::mono_index_mangled_at_offset(idx, name_start + ordinal)
             }
-            return String_from("")
+            return ""
         }
         name_start = name_start + mono_index_types::mono_index_count_at(idx, i)
         i = i + 1
     }
-    String_from("")
+    ""
 }

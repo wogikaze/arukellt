@@ -47,7 +47,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
     let t_after_decl = entry_timing::mir_lower_phase_now()
-    entry_timing::mir_lower_phase_note(timing, String_from("decl_emit"), t_enter, t_after_decl)
+    entry_timing::mir_lower_phase_note(timing, "decl_emit", t_enter, t_after_decl)
 
     let module = ctx_api_module::ctx_current_module(ctx)
     let fns_before = module_functions::MirModule_function_count(module)
@@ -62,19 +62,19 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let blocks_after = module_functions::MirModule_block_count(module)
     let insts_after = module_functions::MirModule_inst_count(module)
     let t_after_reach = entry_timing::mir_lower_phase_now()
-    entry_timing::mir_lower_phase_note(timing, String_from("reachability"), t_after_decl, t_after_reach)
+    entry_timing::mir_lower_phase_note(timing, "reachability", t_after_decl, t_after_reach)
     entry_timing::mir_lower_phase_fns(timing, fns_before, fns_after)
     entry_timing::mir_lower_phase_mir_size(timing, blocks_before, blocks_after, insts_before, insts_after)
 
     typed_mir_sync_module::mir_module_sync_all_value_types(module)
     let t_after_sync = entry_timing::mir_lower_phase_now()
-    entry_timing::mir_lower_phase_note(timing, String_from("sync"), t_after_reach, t_after_sync)
+    entry_timing::mir_lower_phase_note(timing, "sync", t_after_reach, t_after_sync)
 
     // TypeTable re-sync is fused into type_name writes during propagate (#823).
     post_pass_type_propagate::mir_module_propagate_local_types_report(module, timing)
     let t_after_prop = entry_timing::mir_lower_phase_now()
-    entry_timing::mir_lower_phase_note(timing, String_from("propagate"), t_after_sync, t_after_prop)
-    entry_timing::mir_lower_phase_note(timing, String_from("total"), t_enter, t_after_prop)
+    entry_timing::mir_lower_phase_note(timing, "propagate", t_after_sync, t_after_prop)
+    entry_timing::mir_lower_phase_note(timing, "total", t_enter, t_after_prop)
 
     module
 }

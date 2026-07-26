@@ -39,5 +39,5 @@ fn try_emit_wit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, bindings: V
 fn wit_binding_has_result(bindings: Vec<wit_import_bind::WitImportBinding>, bind_idx: i32) -> bool {
     let sig = module_wit_imports::wit_import_type_sig(bindings, bind_idx)
     let result_seg = sections_type_plan::type_sig_result_segment(sig)
-    return !eq(clone(result_seg), String_from("0"))
+    return !eq(clone(result_seg), "0")
 }

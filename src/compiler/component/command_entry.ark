@@ -7,7 +7,7 @@ fn comp_mir_has_command_entry(mir: MirModule) -> bool {
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(mir, fi)
         let name = function_identity::MirFunction_name(f)
-        if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+        if eq(clone(name), "main") || eq(clone(name), "_start") {
             return true
         }
         fi = fi + 1

@@ -69,14 +69,14 @@ pub fn lookup_name_at_offset(text: String, offset: i32) -> String {
                 if len(qual) == 0 {
                     qual = part.text
                 } else {
-                    qual = concat(part.text, concat(String_from("::"), qual))
+                    qual = concat(part.text, concat("::", qual))
                 }
                 qual_end = part.start
             }
         }
     }
     if len(qual) > 0 {
-        return concat(qual, concat(String_from("::"), name))
+        return concat(qual, concat("::", name))
     }
     name
 }

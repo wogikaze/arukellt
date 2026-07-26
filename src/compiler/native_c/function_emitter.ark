@@ -93,9 +93,9 @@ fn native_c_fail(state: NativeCFunctionEmitState, diagnostic: String) {
 
 fn native_c_local_name(local_id: i32) -> String {
     if local_id < 0 {
-        return concat(String_from("ark_t_"), i32_to_string((0 - local_id) - 2))
+        return concat("ark_t_", i32_to_string((0 - local_id) - 2))
     }
-    concat(String_from("ark_v_"), i32_to_string(local_id))
+    concat("ark_v_", i32_to_string(local_id))
 }
 
 fn native_c_allocate_temporary(state: NativeCFunctionEmitState, c_type: String) -> i32 {
@@ -103,8 +103,8 @@ fn native_c_allocate_temporary(state: NativeCFunctionEmitState, c_type: String) 
     state.next_temporary_id = state.next_temporary_id + 1
     let encoded_id = (0 - temporary_id) - 2
     let declaration = concat(
-        String_from("    "),
-        concat(c_type, concat(String_from(" "), concat(native_c_local_name(encoded_id), String_from(";\n"))))
+        "    ",
+        concat(c_type, concat(" ", concat(native_c_local_name(encoded_id), ";\n")))
     )
     let mut index = 0
     while index < len(declaration) {
@@ -122,7 +122,7 @@ fn native_c_stack_pop(state: NativeCFunctionEmitState, context: String) -> i32 {
     if len(state.value_stack) == 0 {
         native_c_fail(
             state,
-            concat(String_from("compiler ICE: native-cpp value stack underflow while emitting "), context)
+            concat("compiler ICE: native-cpp value stack underflow while emitting ", context)
         )
         return 0 - 1
     }
@@ -140,8 +140,8 @@ fn native_c_stack_discard_to(state: NativeCFunctionEmitState, depth: i32) {
 
 fn native_c_control_label(control_id: i32, suffix: String) -> String {
     concat(
-        String_from("ark_ctl_"),
-        concat(i32_to_string(control_id), concat(String_from("_"), suffix))
+        "ark_ctl_",
+        concat(i32_to_string(control_id), concat("_", suffix))
     )
 }
 
@@ -152,8 +152,8 @@ fn native_c_emit_label(state: NativeCFunctionEmitState, label: String) {
     native_c_append(
         state,
         concat(
-            String_from("    if (0) goto "),
-            concat(clone(label), concat(String_from(";\n"), concat(label, String_from(":;\n"))))
+            "    if (0) goto ",
+            concat(clone(label), concat(";\n", concat(label, ":;\n")))
         )
     )
 }
@@ -171,22 +171,22 @@ fn native_c_control_push(state: NativeCFunctionEmitState, kind: i32) -> i32 {
 fn native_c_control_target(state: NativeCFunctionEmitState, depth: i32) -> String {
     let index = len(state.control_ids) - 1 - depth
     if index < 0 || index >= len(state.control_ids) {
-        native_c_fail(state, String_from("compiler ICE: native-cpp branch depth exceeds control stack"))
+        native_c_fail(state, "compiler ICE: native-cpp branch depth exceeds control stack")
         return String_new()
     }
     let control_id = get_unchecked(state.control_ids, index)
     if get_unchecked(state.control_kinds, index) == opcodes::MIR_LOOP() {
-        return native_c_control_label(control_id, String_from("loop"))
+        return native_c_control_label(control_id, "loop")
     }
-    native_c_control_label(control_id, String_from("end"))
+    native_c_control_label(control_id, "end")
 }
 
 fn native_c_emit_assignment(state: NativeCFunctionEmitState, destination: i32, expression: String) {
     native_c_append(
         state,
         concat(
-            String_from("    "),
-            concat(native_c_local_name(destination), concat(String_from(" = "), concat(expression, String_from(";\n"))))
+            "    ",
+            concat(native_c_local_name(destination), concat(" = ", concat(expression, ";\n")))
         )
     )
 }
@@ -199,8 +199,8 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             state,
             destination,
             concat(
-                String_from("INT32_C("),
-                concat(i32_to_string(inst_accessors_literals::MirInst_int_val(instruction)), String_from(")"))
+                "INT32_C(",
+                concat(i32_to_string(inst_accessors_literals::MirInst_int_val(instruction)), ")")
             )
         )
         native_c_stack_push(state, destination)
@@ -210,7 +210,7 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
         let raw_literal = inst_accessors_literals::MirInst_str_val(instruction)
         let literal_length = len(raw_literal)
         let literal = if literal_length >= 3 &&
-        eq(substring(clone(raw_literal), literal_length - 3, literal_length), String_from("i64")) {
+        eq(substring(clone(raw_literal), literal_length - 3, literal_length), "i64") {
             substring(raw_literal, 0, literal_length - 3)
         } else {
             raw_literal
@@ -219,8 +219,8 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
             state,
             destination,
             concat(
-                String_from("INT64_C("),
-                concat(literal, String_from(")"))
+                "INT64_C(",
+                concat(literal, ")")
             )
         )
         native_c_stack_push(state, destination)
@@ -230,7 +230,7 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
         native_c_emit_assignment(
             state,
             destination,
-            concat(String_from("(double)"), f64_to_string(inst_accessors_literals::MirInst_float_val(instruction)))
+            concat("(double)", f64_to_string(inst_accessors_literals::MirInst_float_val(instruction)))
         )
         native_c_stack_push(state, destination)
         return true
@@ -238,20 +238,20 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
     if op == opcodes::MIR_CONST_STRING() {
         let literal = inst_accessors_literals::MirInst_str_val(instruction)
         let length = len(literal)
-        let mut expression = String_from("(ark_object_header *)ark_rt_string_from_bytes(")
+        let mut expression = "(ark_object_header *)ark_rt_string_from_bytes("
         if length == 0 {
-            expression = concat(expression, String_from("NULL, UINT32_C(0))"))
+            expression = concat(expression, "NULL, UINT32_C(0))")
         } else {
-            expression = concat(expression, String_from("(const uint8_t[]){"))
+            expression = concat(expression, "(const uint8_t[]){")
             let mut index = 0
             while index < length {
-                if index > 0 { expression = concat(expression, String_from(",")) }
+                if index > 0 { expression = concat(expression, ",") }
                 expression = concat(expression, i32_to_string(char_at(literal, index)))
                 index = index + 1
             }
             expression = concat(
                 expression,
-                concat(String_from("}, UINT32_C("), concat(i32_to_string(length), String_from("))")))
+                concat("}, UINT32_C(", concat(i32_to_string(length), "))"))
             )
         }
         native_c_emit_assignment(state, destination, expression)
@@ -262,18 +262,18 @@ fn native_c_emit_constant(state: NativeCFunctionEmitState, instruction: MirInst)
 }
 
 fn native_c_value_member_for_legacy_type(value_type: i32) -> String {
-    if value_type == value_types::VT_I64() { return String_from("i64") }
-    if value_type == value_types::VT_F32() { return String_from("f32") }
-    if value_type == value_types::VT_F64() { return String_from("f64") }
+    if value_type == value_types::VT_I64() { return "i64" }
+    if value_type == value_types::VT_F32() { return "f32" }
+    if value_type == value_types::VT_F64() { return "f64" }
     if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() {
-        return String_from("ref")
+        return "ref"
     }
-    String_from("i32")
+    "i32"
 }
 
 fn native_c_value_member_for_local(function: MirFunction, local_id: i32) -> String {
     if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(function) {
-        return String_from("i32")
+        return "i32"
     }
     native_c_value_member_for_legacy_type(
         local_record::mir_local_val_type(
@@ -289,7 +289,7 @@ fn native_c_value_member_for_emission(
 ) -> String {
     if local_id >= 0 && local_id < len(state.reference_locals) &&
     get_unchecked(state.reference_locals, local_id) != 0 {
-        return String_from("ref")
+        return "ref"
     }
     native_c_value_member_for_local(function, local_id)
 }
@@ -324,15 +324,15 @@ fn native_c_emit_struct(
         let destination = if explicit_destination >= 0 {
             explicit_destination
         } else {
-            native_c_allocate_temporary(state, String_from("ark_object_header *"))
+            native_c_allocate_temporary(state, "ark_object_header *")
         }
         let byte_size = inst_accessors_literals::MirInst_int_val(instruction)
         let field_count = (byte_size + 3) / 4
         let expression = concat(
-            String_from("(ark_object_header *)ark_rt_struct_new(UINT32_C("),
+            "(ark_object_header *)ark_rt_struct_new(UINT32_C(",
             concat(
                 i32_to_string(native_c_local_type_id(function, destination)),
-                concat(String_from("), UINT32_C("), concat(i32_to_string(field_count), String_from("))")))
+                concat("), UINT32_C(", concat(i32_to_string(field_count), "))"))
             )
         )
         native_c_emit_assignment(state, destination, expression)
@@ -344,23 +344,23 @@ fn native_c_emit_struct(
         let base = if inst_accessors_operands::MirInst_arg0(instruction) >= 0 {
             inst_accessors_operands::MirInst_arg0(instruction)
         } else {
-            native_c_stack_pop(state, String_from("MIR_STRUCT_GET base"))
+            native_c_stack_pop(state, "MIR_STRUCT_GET base")
         }
         let member = if explicit_destination >= 0 {
             native_c_value_member_for_emission(state, function, explicit_destination)
         } else {
             native_c_value_member_for_legacy_type(inst_accessors_shape::MirInst_val_type(instruction))
         }
-        let c_type = if eq(clone(member), String_from("ref")) {
-            String_from("ark_object_header *")
-        } else if eq(clone(member), String_from("i64")) {
-            String_from("int64_t")
-        } else if eq(clone(member), String_from("f32")) {
-            String_from("float")
-        } else if eq(clone(member), String_from("f64")) {
-            String_from("double")
+        let c_type = if eq(clone(member), "ref") {
+            "ark_object_header *"
+        } else if eq(clone(member), "i64") {
+            "int64_t"
+        } else if eq(clone(member), "f32") {
+            "float"
+        } else if eq(clone(member), "f64") {
+            "double"
         } else {
-            String_from("int32_t")
+            "int32_t"
         }
         let destination = if explicit_destination >= 0 {
             explicit_destination
@@ -368,12 +368,12 @@ fn native_c_emit_struct(
             native_c_allocate_temporary(state, c_type)
         }
         let expression = concat(
-            String_from("ark_rt_struct_get("),
+            "ark_rt_struct_get(",
             concat(
                 native_c_local_name(base),
                 concat(
-                    String_from(", UINT32_C("),
-                    concat(i32_to_string(native_c_struct_field_index(instruction)), concat(String_from("))."), member))
+                    ", UINT32_C(",
+                    concat(i32_to_string(native_c_struct_field_index(instruction)), concat(")).", member))
                 )
             )
         )
@@ -387,25 +387,25 @@ fn native_c_emit_struct(
         let value = if explicit_value >= 0 {
             explicit_value
         } else {
-            native_c_stack_pop(state, String_from("MIR_STRUCT_SET value"))
+            native_c_stack_pop(state, "MIR_STRUCT_SET value")
         }
         let base = if explicit_base >= 0 {
             explicit_base
         } else {
-            native_c_stack_pop(state, String_from("MIR_STRUCT_SET base"))
+            native_c_stack_pop(state, "MIR_STRUCT_SET base")
         }
         let member = native_c_value_member_for_emission(state, function, value)
         let statement = concat(
-            String_from("    ark_rt_struct_set("),
+            "    ark_rt_struct_set(",
             concat(
                 native_c_local_name(base),
                 concat(
-                    String_from(", UINT32_C("),
+                    ", UINT32_C(",
                     concat(
                         i32_to_string(native_c_struct_field_index(instruction)),
                         concat(
-                            String_from("), (ark_value){ ."),
-                            concat(member, concat(String_from(" = "), concat(native_c_local_name(value), String_from(" });\n"))))
+                            "), (ark_value){ .",
+                            concat(member, concat(" = ", concat(native_c_local_name(value), " });\n")))
                         )
                     )
                 )
@@ -443,8 +443,8 @@ fn native_c_emit_local(
             native_c_stack_pop(
                 state,
                 concat(
-                    String_from("MIR_LOCAL_SET in function `"),
-                    concat(function_identity::MirFunction_name(function), String_from("`"))
+                    "MIR_LOCAL_SET in function `",
+                    concat(function_identity::MirFunction_name(function), "`")
                 )
             )
         }
@@ -459,49 +459,49 @@ fn native_c_emit_local(
 }
 
 fn native_c_binary_operator(op: i32) -> String {
-    if op == opcodes::MIR_EQ() { return String_from("==") }
-    if op == opcodes::MIR_NEQ() { return String_from("!=") }
-    if op == opcodes::MIR_LT() { return String_from("<") }
-    if op == opcodes::MIR_LTEQ() { return String_from("<=") }
-    if op == opcodes::MIR_GT() { return String_from(">") }
-    if op == opcodes::MIR_GTEQ() { return String_from(">=") }
-    if op == opcodes::MIR_AND() { return String_from("&&") }
-    if op == opcodes::MIR_OR() { return String_from("||") }
-    if op == opcodes::MIR_BIT_AND() { return String_from("&") }
-    if op == opcodes::MIR_BIT_OR() { return String_from("|") }
-    if op == opcodes::MIR_BIT_XOR() { return String_from("^") }
+    if op == opcodes::MIR_EQ() { return "==" }
+    if op == opcodes::MIR_NEQ() { return "!=" }
+    if op == opcodes::MIR_LT() { return "<" }
+    if op == opcodes::MIR_LTEQ() { return "<=" }
+    if op == opcodes::MIR_GT() { return ">" }
+    if op == opcodes::MIR_GTEQ() { return ">=" }
+    if op == opcodes::MIR_AND() { return "&&" }
+    if op == opcodes::MIR_OR() { return "||" }
+    if op == opcodes::MIR_BIT_AND() { return "&" }
+    if op == opcodes::MIR_BIT_OR() { return "|" }
+    if op == opcodes::MIR_BIT_XOR() { return "^" }
     String_new()
 }
 
 fn native_c_wrap_binary_expression(op: i32, vt: i32, left: String, right: String) -> String {
-    let unsigned_type = if vt == value_types::VT_I64() { String_from("uint64_t") } else { String_from("uint32_t") }
-    let signed_type = if vt == value_types::VT_I64() { String_from("int64_t") } else { String_from("int32_t") }
+    let unsigned_type = if vt == value_types::VT_I64() { "uint64_t" } else { "uint32_t" }
+    let signed_type = if vt == value_types::VT_I64() { "int64_t" } else { "int32_t" }
     let operator = if op == opcodes::MIR_ADD() {
-        String_from("+")
+        "+"
     } else if op == opcodes::MIR_SUB() {
-        String_from("-")
+        "-"
     } else {
-        String_from("*")
+        "*"
     }
     concat(
-        String_from("("),
+        "(",
         concat(
             signed_type,
             concat(
-                String_from(")(("),
+                ")((",
                 concat(
                     unsigned_type,
                     concat(
-                        String_from(")"),
+                        ")",
                         concat(
                             left,
                             concat(
-                                String_from(" "),
+                                " ",
                                 concat(
                                     operator,
                                     concat(
-                                        String_from(" ("),
-                                        concat(unsigned_type, concat(String_from(")"), concat(right, String_from(")"))))
+                                        " (",
+                                        concat(unsigned_type, concat(")", concat(right, ")")))
                                     )
                                 )
                             )
@@ -526,11 +526,11 @@ fn native_c_emit_binary(state: NativeCFunctionEmitState, instruction: MirInst) -
     // the distinct left operand; ordinary explicitly annotated instructions
     // remain authoritative so stale enclosing-expression values cannot leak in.
     if left_id == right_id && len(state.value_stack) >= 2 {
-        right_id = native_c_stack_pop(state, String_from("binary rhs"))
-        left_id = native_c_stack_pop(state, String_from("binary lhs"))
+        right_id = native_c_stack_pop(state, "binary rhs")
+        left_id = native_c_stack_pop(state, "binary lhs")
     } else if len(state.value_stack) >= 2 {
-        let _right_stack = native_c_stack_pop(state, String_from("binary rhs"))
-        let _left_stack = native_c_stack_pop(state, String_from("binary lhs"))
+        let _right_stack = native_c_stack_pop(state, "binary rhs")
+        let _left_stack = native_c_stack_pop(state, "binary lhs")
     }
     let left = native_c_local_name(left_id)
     let right = native_c_local_name(right_id)
@@ -539,11 +539,11 @@ fn native_c_emit_binary(state: NativeCFunctionEmitState, instruction: MirInst) -
     if op == opcodes::MIR_ADD() || op == opcodes::MIR_SUB() || op == opcodes::MIR_MUL() {
         if vt == value_types::VT_F32() || vt == value_types::VT_F64() {
             let operator = if op == opcodes::MIR_ADD() {
-                String_from("+")
+                "+"
             } else if op == opcodes::MIR_SUB() {
-                String_from("-")
+                "-"
             } else {
-                String_from("*")
+                "*"
             }
             expression = concat(left, concat(operator, right))
         } else {
@@ -551,29 +551,29 @@ fn native_c_emit_binary(state: NativeCFunctionEmitState, instruction: MirInst) -
         }
     } else if op == opcodes::MIR_DIV() {
         if vt == value_types::VT_F32() || vt == value_types::VT_F64() {
-            expression = concat(left, concat(String_from(" / "), right))
+            expression = concat(left, concat(" / ", right))
         } else if vt == value_types::VT_I64() {
-            expression = concat(String_from("ark_div_i64("), concat(left, concat(String_from(", "), concat(right, String_from(")")))))
+            expression = concat("ark_div_i64(", concat(left, concat(", ", concat(right, ")"))))
         } else {
-            expression = concat(String_from("ark_div_i32("), concat(left, concat(String_from(", "), concat(right, String_from(")")))))
+            expression = concat("ark_div_i32(", concat(left, concat(", ", concat(right, ")"))))
         }
     } else if op == opcodes::MIR_MOD() {
         if vt == value_types::VT_F64() {
-            expression = concat(String_from("ark_rem_f64("), concat(left, concat(String_from(", "), concat(right, String_from(")")))))
+            expression = concat("ark_rem_f64(", concat(left, concat(", ", concat(right, ")"))))
         } else if vt == value_types::VT_I64() {
-            expression = concat(String_from("ark_rem_i64("), concat(left, concat(String_from(", "), concat(right, String_from(")")))))
+            expression = concat("ark_rem_i64(", concat(left, concat(", ", concat(right, ")"))))
         } else {
-            expression = concat(String_from("ark_rem_i32("), concat(left, concat(String_from(", "), concat(right, String_from(")")))))
+            expression = concat("ark_rem_i32(", concat(left, concat(", ", concat(right, ")"))))
         }
     } else if op == opcodes::MIR_SHL() {
         expression = concat(
-            if vt == value_types::VT_I64() { String_from("ark_shl_i64(") } else { String_from("ark_shl_i32(") },
-            concat(left, concat(String_from(", "), concat(right, String_from(")"))))
+            if vt == value_types::VT_I64() { "ark_shl_i64(" } else { "ark_shl_i32(" },
+            concat(left, concat(", ", concat(right, ")")))
         )
     } else if op == opcodes::MIR_SHR() {
         expression = concat(
-            if vt == value_types::VT_I64() { String_from("ark_shr_i64(") } else { String_from("ark_shr_i32(") },
-            concat(left, concat(String_from(", "), concat(right, String_from(")"))))
+            if vt == value_types::VT_I64() { "ark_shr_i64(" } else { "ark_shr_i32(" },
+            concat(left, concat(", ", concat(right, ")")))
         )
     } else {
         let operator = native_c_binary_operator(op)
@@ -584,37 +584,37 @@ fn native_c_emit_binary(state: NativeCFunctionEmitState, instruction: MirInst) -
             get_unchecked(state.reference_locals, right_id) != 0)
         if compares_references && (op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ()) {
             expression = concat(
-                String_from("("),
-                concat(left, concat(String_from(" "), concat(operator, concat(String_from(" "), concat(right, String_from(")"))))))
+                "(",
+                concat(left, concat(" ", concat(operator, concat(" ", concat(right, ")")))))
             )
             native_c_emit_assignment(state, destination, expression)
             native_c_stack_push(state, destination)
             return true
         }
         let comparison_type = if vt == value_types::VT_I64() {
-            String_from("int64_t")
+            "int64_t"
         } else if vt == value_types::VT_F32() {
-            String_from("float")
+            "float"
         } else if vt == value_types::VT_F64() {
-            String_from("double")
+            "double"
         } else {
-            String_from("int32_t")
+            "int32_t"
         }
         expression = concat(
-            String_from("(("),
+            "((",
             concat(
                 comparison_type,
                 concat(
-                    String_from(")"),
+                    ")",
                     concat(
                         left,
                         concat(
-                            String_from(" "),
+                            " ",
                             concat(
                                 operator,
                                 concat(
-                                    String_from(" ("),
-                                    concat(comparison_type, concat(String_from(")"), concat(right, String_from(")"))))
+                                    " (",
+                                    concat(comparison_type, concat(")", concat(right, ")")))
                                 )
                             )
                         )
@@ -634,7 +634,7 @@ fn native_c_emit_unary(state: NativeCFunctionEmitState, instruction: MirInst) ->
         return false
     }
     if len(state.value_stack) > 0 {
-        let _stack_source = native_c_stack_pop(state, String_from("unary operand"))
+        let _stack_source = native_c_stack_pop(state, "unary operand")
     }
     let source_id = inst_accessors_operands::MirInst_arg0(instruction)
     let explicit_destination = inst_accessors_operands::MirInst_dest(instruction)
@@ -643,20 +643,20 @@ fn native_c_emit_unary(state: NativeCFunctionEmitState, instruction: MirInst) ->
     // local breaks short-circuit OR, whose original left value is the result
     // when the right side is skipped.
     let destination = if explicit_destination == source_id {
-        native_c_allocate_temporary(state, String_from("int32_t"))
+        native_c_allocate_temporary(state, "int32_t")
     } else {
         explicit_destination
     }
     let source = native_c_local_name(source_id)
-    let mut expression = concat(String_from("("), concat(source, String_from(" == 0)")))
+    let mut expression = concat("(", concat(source, " == 0)"))
     if op == opcodes::MIR_NEG() {
         let vt = inst_accessors_shape::MirInst_val_type(instruction)
         if vt == value_types::VT_F32() || vt == value_types::VT_F64() {
-            expression = concat(String_from("-"), source)
+            expression = concat("-", source)
         } else if vt == value_types::VT_I64() {
-            expression = concat(String_from("(int64_t)(UINT64_C(0) - (uint64_t)"), concat(source, String_from(")")))
+            expression = concat("(int64_t)(UINT64_C(0) - (uint64_t)", concat(source, ")"))
         } else {
-            expression = concat(String_from("(int32_t)(UINT32_C(0) - (uint32_t)"), concat(source, String_from(")")))
+            expression = concat("(int32_t)(UINT32_C(0) - (uint32_t)", concat(source, ")"))
         }
     }
     native_c_emit_assignment(state, destination, expression)
@@ -670,14 +670,14 @@ fn native_c_emit_conversion(state: NativeCFunctionEmitState, instruction: MirIns
         return false
     }
     if len(state.value_stack) > 0 {
-        let _stack_source = native_c_stack_pop(state, String_from("conversion operand"))
+        let _stack_source = native_c_stack_pop(state, "conversion operand")
     }
     let destination = inst_accessors_operands::MirInst_dest(instruction)
     let source = native_c_local_name(inst_accessors_operands::MirInst_arg0(instruction))
     let expression = if op == opcodes::MIR_EXTEND_I32_TO_I64() {
-        concat(String_from("(int64_t)(int32_t)"), source)
+        concat("(int64_t)(int32_t)", source)
     } else {
-        concat(String_from("(int32_t)(uint32_t)(uint64_t)"), source)
+        concat("(int32_t)(uint32_t)(uint64_t)", source)
     }
     native_c_emit_assignment(state, destination, expression)
     native_c_stack_push(state, destination)
@@ -698,12 +698,12 @@ fn native_c_emit_call(
         native_c_fail(
             state,
             concat(
-                String_from("compiler ICE: native-cpp direct call in function `"),
+                "compiler ICE: native-cpp direct call in function `",
                 concat(
                     function_identity::MirFunction_name(function),
                     concat(
-                        String_from("` is missing FunctionId for callee `"),
-                        concat(inst_record::mir_inst_str_val(instruction), String_from("`"))
+                        "` is missing FunctionId for callee `",
+                        concat(inst_record::mir_inst_str_val(instruction), "`")
                     )
                 )
             )
@@ -718,12 +718,12 @@ fn native_c_emit_call(
     let table = module_spine::MirModule_type_table(mir_module)
     let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
     if len(symbol) == 0 {
-        native_c_fail(state, String_from("compiler ICE: native-cpp cannot mangle direct call signature"))
+        native_c_fail(state, "compiler ICE: native-cpp cannot mangle direct call signature")
         return true
     }
     let argument_count = inst_accessors_literals::MirInst_int_val(instruction)
     if len(state.value_stack) < argument_count {
-        native_c_fail(state, String_from("compiler ICE: native-cpp direct call argument stack underflow"))
+        native_c_fail(state, "compiler ICE: native-cpp direct call argument stack underflow")
         return true
     }
     let first_argument = len(state.value_stack) - argument_count
@@ -738,7 +738,7 @@ fn native_c_emit_call(
                 table,
                 signature_entry::signature_entry_param_at(signature, argument_index)
             ),
-            String_from("ark_object_header *")
+            "ark_object_header *"
         ) && argument_local >= 0 && argument_local < len(state.reference_locals) {
             set(state.reference_locals, argument_local, 1)
         }
@@ -754,21 +754,21 @@ fn native_c_emit_call(
     let mut call = if is_specialized {
         core_call::native_c_core_call_source(specialized)
     } else {
-        concat(symbol, String_from("("))
+        concat(symbol, "(")
     }
     argument_index = 0
     if !is_specialized {
         while argument_index < argument_count {
-            if argument_index > 0 { call = concat(call, String_from(", ")) }
+            if argument_index > 0 { call = concat(call, ", ") }
             call = concat(call, native_c_local_name(get_unchecked(arguments, argument_index)))
             argument_index = argument_index + 1
         }
-        call = concat(call, String_from(")"))
+        call = concat(call, ")")
     }
     native_c_stack_discard_to(state, first_argument)
     let return_count = if eq(
         abi::native_c_signature_return_type(table, signature),
-        String_from("void")
+        "void"
     ) {
         0
     } else {
@@ -779,7 +779,7 @@ fn native_c_emit_call(
         native_c_emit_assignment(state, destination, call)
         native_c_stack_push(state, destination)
     } else if is_specialized || return_count == 0 {
-        native_c_append(state, concat(String_from("    "), concat(call, String_from(";\n"))))
+        native_c_append(state, concat("    ", concat(call, ";\n")))
     } else if return_count == 1 {
         let assigned_destination = if destination >= 0 {
             destination
@@ -795,7 +795,7 @@ fn native_c_emit_call(
         native_c_emit_assignment(state, assigned_destination, call)
         native_c_stack_push(state, assigned_destination)
     } else {
-        native_c_fail(state, String_from("compiler ICE: native-cpp direct call result does not match its signature"))
+        native_c_fail(state, "compiler ICE: native-cpp direct call result does not match its signature")
     }
     true
 }
@@ -804,25 +804,25 @@ fn native_c_emit_control(state: NativeCFunctionEmitState, instruction: MirInst) 
     let op = inst_accessors_shape::MirInst_op(instruction)
     if op == opcodes::MIR_BLOCK() || op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() {
         if op == opcodes::MIR_IF() {
-            let condition = native_c_stack_pop(state, String_from("MIR_IF"))
+            let condition = native_c_stack_pop(state, "MIR_IF")
             let control_id = native_c_control_push(state, op)
-            let false_label = native_c_control_label(control_id, String_from("false"))
+            let false_label = native_c_control_label(control_id, "false")
             native_c_append(
                 state,
-                concat(String_from("    if (!"), concat(native_c_local_name(condition), concat(String_from(") goto "), concat(false_label, String_from(";\n")))))
+                concat("    if (!", concat(native_c_local_name(condition), concat(") goto ", concat(false_label, ";\n"))))
             )
             return true
         }
         let control_id = native_c_control_push(state, op)
         if op == opcodes::MIR_LOOP() {
-            native_c_emit_label(state, native_c_control_label(control_id, String_from("loop")))
+            native_c_emit_label(state, native_c_control_label(control_id, "loop"))
         }
         return true
     }
     if op == opcodes::MIR_ELSE() {
         let index = len(state.control_ids) - 1
         if index < 0 || get_unchecked(state.control_kinds, index) != opcodes::MIR_IF() {
-            native_c_fail(state, String_from("compiler ICE: native-cpp MIR_ELSE has no matching MIR_IF"))
+            native_c_fail(state, "compiler ICE: native-cpp MIR_ELSE has no matching MIR_IF")
             return true
         }
         let control_id = get_unchecked(state.control_ids, index)
@@ -831,26 +831,26 @@ fn native_c_emit_control(state: NativeCFunctionEmitState, instruction: MirInst) 
         native_c_append(
             state,
             concat(
-                String_from("    goto "),
-                concat(native_c_control_label(control_id, String_from("end")), String_from(";\n"))
+                "    goto ",
+                concat(native_c_control_label(control_id, "end"), ";\n")
             )
         )
-        native_c_emit_label(state, native_c_control_label(control_id, String_from("false")))
+        native_c_emit_label(state, native_c_control_label(control_id, "false"))
         return true
     }
     if op == opcodes::MIR_END() {
         let index = len(state.control_ids) - 1
         if index < 0 {
-            native_c_fail(state, String_from("compiler ICE: native-cpp MIR_END has no matching control marker"))
+            native_c_fail(state, "compiler ICE: native-cpp MIR_END has no matching control marker")
             return true
         }
         let kind = get_unchecked(state.control_kinds, index)
         let control_id = get_unchecked(state.control_ids, index)
         native_c_stack_discard_to(state, get_unchecked(state.control_stack_depths, index))
         if kind == opcodes::MIR_IF() && get_unchecked(state.control_has_else, index) == 0 {
-            native_c_emit_label(state, native_c_control_label(control_id, String_from("false")))
+            native_c_emit_label(state, native_c_control_label(control_id, "false"))
         }
-        native_c_emit_label(state, native_c_control_label(control_id, String_from("end")))
+        native_c_emit_label(state, native_c_control_label(control_id, "end"))
         pop(state.control_kinds)
         pop(state.control_ids)
         pop(state.control_stack_depths)
@@ -860,12 +860,12 @@ fn native_c_emit_control(state: NativeCFunctionEmitState, instruction: MirInst) 
     if op == opcodes::MIR_BR() || op == opcodes::MIR_BR_IF() {
         let target = native_c_control_target(state, inst_accessors_literals::MirInst_int_val(instruction))
         if op == opcodes::MIR_BR() {
-            native_c_append(state, concat(String_from("    goto "), concat(target, String_from(";\n"))))
+            native_c_append(state, concat("    goto ", concat(target, ";\n")))
         } else {
-            let condition = native_c_stack_pop(state, String_from("MIR_BR_IF"))
+            let condition = native_c_stack_pop(state, "MIR_BR_IF")
             native_c_append(
                 state,
-                concat(String_from("    if ("), concat(native_c_local_name(condition), concat(String_from(") goto "), concat(target, String_from(";\n")))))
+                concat("    if (", concat(native_c_local_name(condition), concat(") goto ", concat(target, ";\n"))))
             )
         }
         return true
@@ -885,9 +885,9 @@ fn native_c_emit_return(
     }
     if eq(
         abi::native_c_signature_return_type(module_spine::MirModule_type_table(mir_module), signature),
-        String_from("void")
+        "void"
     ) {
-        native_c_append(state, String_from("    return;\n"))
+        native_c_append(state, "    return;\n")
         state.is_unreachable = true
         return true
     }
@@ -898,14 +898,14 @@ fn native_c_emit_return(
         native_c_stack_pop(
             state,
             concat(
-                String_from("MIR_RETURN in function `"),
-                concat(function_identity::MirFunction_name(function), String_from("`"))
+                "MIR_RETURN in function `",
+                concat(function_identity::MirFunction_name(function), "`")
             )
         )
     }
     native_c_append(
         state,
-        concat(String_from("    return "), concat(native_c_local_name(returned_local), String_from(";\n")))
+        concat("    return ", concat(native_c_local_name(returned_local), ";\n"))
     )
     state.is_unreachable = true
     true
@@ -915,11 +915,11 @@ fn native_c_emit_misc(state: NativeCFunctionEmitState, instruction: MirInst) -> 
     let op = inst_accessors_shape::MirInst_op(instruction)
     if op == opcodes::MIR_NOP() { return true }
     if op == opcodes::MIR_DROP() {
-        let _dropped = native_c_stack_pop(state, String_from("MIR_DROP"))
+        let _dropped = native_c_stack_pop(state, "MIR_DROP")
         return true
     }
     if op == opcodes::MIR_UNREACHABLE() {
-        native_c_append(state, String_from("    ark_rt_trap();\n"))
+        native_c_append(state, "    ark_rt_trap();\n")
         return true
     }
     false
@@ -963,7 +963,7 @@ fn native_c_emit_instruction(
     native_c_fail(
         state,
         concat(
-            String_from("compiler ICE: native-cpp reached validated opcode "),
+            "compiler ICE: native-cpp reached validated opcode ",
             i32_to_string(inst_accessors_shape::MirInst_op(instruction))
         )
     )
@@ -983,8 +983,8 @@ fn native_c_emit_local_declarations(
         native_c_append(
             state,
             concat(
-                String_from("    (void)&"),
-                concat(native_c_local_name(parameter_index), String_from(";\n"))
+                "    (void)&",
+                concat(native_c_local_name(parameter_index), ";\n")
             )
         )
         parameter_index = parameter_index + 1
@@ -1002,7 +1002,7 @@ fn native_c_emit_local_declarations(
             reference_producers,
             if prior_reference != 0 || eq(
                 abi::native_c_type_for_local(table, producer_local),
-                String_from("ark_object_header *")
+                "ark_object_header *"
             ) { 1 } else { 0 }
         )
         producer_index = producer_index + 1
@@ -1010,7 +1010,7 @@ fn native_c_emit_local_declarations(
     let block_count = function_block_queries::MirFunction_block_count(function)
     let return_is_reference = eq(
         abi::native_c_signature_return_type(table, signature),
-        String_from("ark_object_header *")
+        "ark_object_header *"
     )
     let mut propagation_pass = 0
     while propagation_pass < local_count {
@@ -1041,7 +1041,7 @@ fn native_c_emit_local_declarations(
                         )
                         produces_reference = eq(
                             abi::native_c_signature_return_type(table, called_signature),
-                            String_from("ark_object_header *")
+                            "ark_object_header *"
                         )
                     }
                 }
@@ -1091,7 +1091,7 @@ fn native_c_emit_local_declarations(
     while local_id < local_count {
         let local = function_locals_view::MirFunction_local_at(function, local_id)
         let c_type = if get_unchecked(reference_producers, local_id) != 0 {
-            String_from("ark_object_header *")
+            "ark_object_header *"
         } else {
             abi::native_c_type_for_local(table, local)
         }
@@ -1099,8 +1099,8 @@ fn native_c_emit_local_declarations(
             native_c_fail(
                 state,
                 concat(
-                    String_from("compiler ICE: native-cpp cannot lower local type in function `"),
-                    concat(function_identity::MirFunction_name(function), String_from("`"))
+                    "compiler ICE: native-cpp cannot lower local type in function `",
+                    concat(function_identity::MirFunction_name(function), "`")
                 )
             )
             return
@@ -1108,15 +1108,15 @@ fn native_c_emit_local_declarations(
         native_c_append(
             state,
             concat(
-                String_from("    "),
-                concat(c_type, concat(String_from(" "), concat(native_c_local_name(local_id), String_from(";\n"))))
+                "    ",
+                concat(c_type, concat(" ", concat(native_c_local_name(local_id), ";\n")))
             )
         )
         native_c_append(
             state,
             concat(
-                String_from("    (void)&"),
-                concat(native_c_local_name(local_id), String_from(";\n"))
+                "    (void)&",
+                concat(native_c_local_name(local_id), ";\n")
             )
         )
         local_id = local_id + 1
@@ -1149,7 +1149,7 @@ fn native_c_emit_function_instructions(
         block_index = block_index + 1
     }
     if len(state.control_ids) != 0 {
-        native_c_fail(state, String_from("compiler ICE: native-cpp function has unterminated control markers"))
+        native_c_fail(state, "compiler ICE: native-cpp function has unterminated control markers")
     }
 }
 

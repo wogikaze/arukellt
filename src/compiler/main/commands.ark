@@ -55,68 +55,68 @@ fn parse_named_command(name: String) -> i32 {
 }
 
 fn parse_implemented_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), String_from("parse")) {
+    if cli_str_eq(clone(name), "parse") {
         return kinds::CMD_PARSE()
     }
-    if cli_str_eq(clone(name), String_from("compile")) {
+    if cli_str_eq(clone(name), "compile") {
         return kinds::CMD_COMPILE()
     }
-    if cli_str_eq(clone(name), String_from("check")) {
+    if cli_str_eq(clone(name), "check") {
         return kinds::CMD_CHECK()
     }
-    if cli_str_eq(clone(name), String_from("run")) {
+    if cli_str_eq(clone(name), "run") {
         return kinds::CMD_RUN()
     }
-    if cli_str_eq(clone(name), String_from("build")) {
+    if cli_str_eq(clone(name), "build") {
         return kinds::CMD_BUILD()
     }
-    if cli_str_eq(clone(name), String_from("test")) {
+    if cli_str_eq(clone(name), "test") {
         return kinds::CMD_TEST()
     }
-    if cli_str_eq(clone(name), String_from("help")) {
+    if cli_str_eq(clone(name), "help") {
         return kinds::CMD_HELP()
     }
-    if cli_str_eq(clone(name), String_from("version")) {
+    if cli_str_eq(clone(name), "version") {
         return kinds::CMD_VERSION()
     }
-    if cli_str_eq(clone(name), String_from("init")) {
+    if cli_str_eq(clone(name), "init") {
         return kinds::CMD_INIT()
     }
-    if cli_str_eq(clone(name), String_from("fmt")) {
+    if cli_str_eq(clone(name), "fmt") {
         return kinds::CMD_FMT()
     }
-    if cli_str_eq(clone(name), String_from("targets")) {
+    if cli_str_eq(clone(name), "targets") {
         return kinds::CMD_TARGETS()
     }
-    if cli_str_eq(clone(name), String_from("script")) {
+    if cli_str_eq(clone(name), "script") {
         return kinds::CMD_SCRIPT()
     }
-    if cli_str_eq(clone(name), String_from("component")) {
+    if cli_str_eq(clone(name), "component") {
         return kinds::CMD_COMPONENT()
     }
-    if cli_str_eq(clone(name), String_from("lint")) {
+    if cli_str_eq(clone(name), "lint") {
         return kinds::CMD_LINT()
     }
-    if cli_str_eq(clone(name), String_from("analyze")) {
+    if cli_str_eq(clone(name), "analyze") {
         return kinds::CMD_ANALYZE()
     }
-    if cli_str_eq(clone(name), String_from("doc")) {
+    if cli_str_eq(clone(name), "doc") {
         return kinds::CMD_DOC()
     }
-    if cli_str_eq(clone(name), String_from("compose")) {
+    if cli_str_eq(clone(name), "compose") {
         return kinds::CMD_COMPOSE()
     }
     kinds::CMD_UNKNOWN()
 }
 
 fn parse_service_command(name: String) -> i32 {
-    if cli_str_eq(clone(name), String_from("lsp")) {
+    if cli_str_eq(clone(name), "lsp") {
         return kinds::CMD_LSP()
     }
-    if cli_str_eq(clone(name), String_from("debug-adapter")) {
+    if cli_str_eq(clone(name), "debug-adapter") {
         return kinds::CMD_DAP()
     }
-    if cli_str_eq(clone(name), String_from("ide-analyze")) {
+    if cli_str_eq(clone(name), "ide-analyze") {
         return kinds::CMD_IDE_ANALYZE()
     }
     kinds::CMD_UNKNOWN()

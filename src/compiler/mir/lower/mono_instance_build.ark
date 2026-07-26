@@ -53,15 +53,15 @@ fn mono_instance_table_register_from_instances(
 }
 
 fn mono_subst_kind_for_type_name(type_name: String) -> i32 {
-    if eq(clone(type_name), String_from("i32")) ||
-    eq(clone(type_name), String_from("bool")) ||
-    eq(clone(type_name), String_from("char")) {
+    if eq(clone(type_name), "i32") ||
+    eq(clone(type_name), "bool") ||
+    eq(clone(type_name), "char") {
         return kinds::TYPE_KIND_PRIMITIVE()
     }
-    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("f32")) {
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "f64") || eq(clone(type_name), "f32") {
         return kinds::TYPE_KIND_PRIMITIVE()
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return kinds::TYPE_KIND_STRING()
     }
     if fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
@@ -71,12 +71,12 @@ fn mono_subst_kind_for_type_name(type_name: String) -> i32 {
 }
 
 fn mono_type_var_name_at(index: i32) -> String {
-    if index == 0 { return String_from("T") }
-    if index == 1 { return String_from("E") }
-    if index == 2 { return String_from("U") }
-    if index == 3 { return String_from("V") }
-    if index == 4 { return String_from("W") }
-    concat(String_from("T"), i32_to_string(index))
+    if index == 0 { return "T" }
+    if index == 1 { return "E" }
+    if index == 2 { return "U" }
+    if index == 3 { return "V" }
+    if index == 4 { return "W" }
+    concat("T", i32_to_string(index))
 }
 
 fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> MonoInstance {

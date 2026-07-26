@@ -139,7 +139,7 @@ fn emit_fs_read_result_pair_gc(w: WasmWriter, tag: i32, ctx: SelfEmitCtx) {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     emit_fs_read_gc_string_from_scratch(w, s_str, s_i, s_len, string_type)
-    let variant_name = if tag == 0 { String_from("Result::Ok") } else { String_from("Result::Err") }
+    let variant_name = if tag == 0 { "Result::Ok" } else { "Result::Err" }
     let variant_type = find_result_string_variant_type(ctx, clone(variant_name))
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let type_idx = if variant_type >= 0 { variant_type } else { open_type }
@@ -165,7 +165,7 @@ fn find_result_string_variant_type(ctx: SelfEmitCtx, variant_name: String) -> i3
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 if variant_type != open_type {
-                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), String_from("_f1_ref0")) {
+                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), "_f1_ref0") {
                         return variant_type
                     }
                     if fallback < 0 {

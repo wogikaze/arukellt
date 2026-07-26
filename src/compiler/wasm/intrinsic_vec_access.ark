@@ -118,21 +118,21 @@ fn emit_vec_get_gc_some(w: WasmWriter, ctx: SelfEmitCtx, s_idx: i32, s_vec: i32,
     }
     if is_i64_elem {
         // Must use scratch_base+15 (i64 slot), not absolute local 15 (#726 debug_vec).
-        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), String_from("_f1_i64"), enum_type)
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15), "_f1_i64", enum_type)
         return
     }
     if is_f64_elem {
-        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), String_from("_f1_f64"), enum_type)
+        emit_vec_get_gc_some_scalar(w, ctx, s_opt, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 12), "_f1_f64", enum_type)
         return
     }
     // Vec<i32>/bool: element is an i32 value
-    emit_vec_get_gc_some_scalar(w, ctx, s_opt, s_idx, String_from("_f1_i32"), enum_type)
+    emit_vec_get_gc_some_scalar(w, ctx, s_opt, s_idx, "_f1_i32", enum_type)
 }
 
 fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_struct_ref_elem: bool, is_vec_string: bool, enum_type: i32, callee: String, inst: MirInst) {
     // Ref payload: cast structref elems to concrete type, then wrap in
     // Option::Some with a matching ref field (#726 display_trait_vec).
-    let mut some_suffix = String_from("_f1_ref0")
+    let mut some_suffix = "_f1_ref0"
     if is_struct_ref_elem {
         let elem_name = intrinsic_vec_type::vec_element_type_name_for_call(ctx, clone(callee), inst)
         if len(elem_name) > 0 {
@@ -155,11 +155,11 @@ fn emit_vec_get_gc_some_ref(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, is_stru
                     // payload — never string _f1_ref0 (#726 json_get_index).
                     let open_ty = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
                     if elem_gc_type >= 0 && elem_gc_type == open_ty {
-                        some_suffix = String_from("_f1_ref14")
-                    } else if starts_with(clone(elem_name), String_from("enum:")) {
-                        some_suffix = String_from("_f1_ref14")
+                        some_suffix = "_f1_ref14"
+                    } else if starts_with(clone(elem_name), "enum:") {
+                        some_suffix = "_f1_ref14"
                     } else if intrinsic_vec_access_gc::elem_name_looks_like_enum(ctx, clone(elem_name)) {
-                        some_suffix = String_from("_f1_ref14")
+                        some_suffix = "_f1_ref14"
                     }
                 }
             }
@@ -198,7 +198,7 @@ fn emit_vec_get_gc_some_scalar(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, s_va
     writer_core::emit_leb128_s(w, 0)
     helpers_core::emit_local_get(w, s_val)
     // Option::Some(i32) fields stay true i32; Memory64 scratch locals hold i64.
-    if eq(clone(suffix), String_from("_f1_i32")) {
+    if eq(clone(suffix), "_f1_i32") {
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     }
     writer_gc::emit_gc_struct_new(w, some_type_idx)
@@ -209,7 +209,7 @@ fn emit_vec_get_gc_none(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32, enum_type: 
     // Allocate Option::None as GC struct. struct.new_default leaves the
     // discriminant field at 0 (Same as Some); literal None lowers with an
     // explicit tag=1 store — match treats tag==0 as Some (#832).
-    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Option::None"))
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Option::None")
     let none_type_idx = if none_type >= 0 { none_type } else { enum_type }
     writer_gc::emit_gc_struct_new_default(w, none_type_idx)
     helpers_core::emit_local_set(w, s_opt)

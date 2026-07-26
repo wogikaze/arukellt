@@ -146,15 +146,15 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
 }
 
 fn push_gc_primitive_vec_elem(elem: String) -> bool {
-    eq(clone(elem), String_from("i32")) ||
-    eq(clone(elem), String_from("i64")) ||
-    eq(clone(elem), String_from("f64")) ||
-    eq(clone(elem), String_from("f32")) ||
-    eq(clone(elem), String_from("bool")) ||
-    eq(clone(elem), String_from("char")) ||
-    eq(clone(elem), String_from("fnref")) ||
-    eq(clone(elem), String_from("fn")) ||
-    starts_with(clone(elem), String_from("fn("))
+    eq(clone(elem), "i32") ||
+    eq(clone(elem), "i64") ||
+    eq(clone(elem), "f64") ||
+    eq(clone(elem), "f32") ||
+    eq(clone(elem), "bool") ||
+    eq(clone(elem), "char") ||
+    eq(clone(elem), "fnref") ||
+    eq(clone(elem), "fn") ||
+    starts_with(clone(elem), "fn(")
 }
 
 // Array scratch locals must match the vec's element array type.

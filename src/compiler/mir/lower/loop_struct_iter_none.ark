@@ -16,12 +16,12 @@ fn mir_emit_struct_iterator_none_break(ctx: LowerCtx, opt_local: i32, tag_local:
         // Tag lives on the enum open type (field 0); any variant slot works
         // for the cast because all variants share the open supertype layout
         // for field 0. Prefer Option::None / None unit slot when present.
-        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Option::None"))
+        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::None")
         if type_slot < 0 {
-            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("None"))
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "None")
         }
         if type_slot < 0 {
-            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Option::Some"))
+            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::Some")
         }
         if type_slot < 0 {
             type_slot = 0

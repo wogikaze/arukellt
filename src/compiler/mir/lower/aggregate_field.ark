@@ -12,7 +12,7 @@ use mir::value_types
 // (ctx_field_index, ctx_struct_byte_size, etc.) match the registered name.
 // Passes through non-"struct:" type names unchanged.
 fn strip_struct_type_prefix(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("struct:")) {
+    if !starts_with(clone(type_name), "struct:") {
         return type_name
     }
     let n = len(type_name)
@@ -114,7 +114,7 @@ fn mir_emit_field_access(ctx: LowerCtx, field_name: String, base_idx: i32) -> i3
         } else if dest_vt == value_types::VT_GC_REF() || dest_vt == value_types::VT_REF() {
             // Missing field type metadata must not fall through to string
             // inference (#726 json JsonParseStep.value).
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:open"))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, "enum:open")
         }
     }
     let mut struct_byte_size = 0

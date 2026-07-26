@@ -54,9 +54,9 @@ fn type_interner_emit_section(out: writer_core::ComponentWriter, interner: TypeI
 fn comp_ensure_color_export_type(interner: TypeInterner, export_name: String, color_type_idx: i32) -> i32 {
     if naming::comp_export_uses_color(export_name) && color_type_idx < 0 {
         let color_names = Vec_new_String()
-        push(color_names, String_from("red"))
-        push(color_names, String_from("green"))
-        push(color_names, String_from("blue"))
+        push(color_names, "red")
+        push(color_names, "green")
+        push(color_names, "blue")
         return type_interner_add(interner, types_wit_compound::comp_wit_enum_type(color_names))
     }
     color_type_idx

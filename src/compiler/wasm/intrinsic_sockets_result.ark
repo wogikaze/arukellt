@@ -154,7 +154,7 @@ fn find_result_variant_type_by_suffix(ctx: SelfEmitCtx, variant_name: String, su
 
 fn emit_sockets_gc_result_i32_ok(w: WasmWriter, ctx: SelfEmitCtx, ret_slot: i32) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    let ok_type = find_result_variant_type_by_suffix(ctx, String_from("Result::Ok"), String_from("_f1_i32"))
+    let ok_type = find_result_variant_type_by_suffix(ctx, "Result::Ok", "_f1_i32")
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_scratch_addr(w, ret_slot)
@@ -166,7 +166,7 @@ fn emit_sockets_gc_result_i32_ok(w: WasmWriter, ctx: SelfEmitCtx, ret_slot: i32)
 fn emit_sockets_gc_result_vec_ok(w: WasmWriter, ctx: SelfEmitCtx, s_vec: i32) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
-    let ok_type = find_result_variant_type_by_suffix(ctx, String_from("Result::Ok"), String_from("_f1_ref10"))
+    let ok_type = find_result_variant_type_by_suffix(ctx, "Result::Ok", "_f1_ref10")
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     helpers_io_const::emit_i32_const(w, 0)
     // scratch_gc_vec_local is typed structref; cast to Vec before Result::Ok.

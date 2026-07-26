@@ -22,7 +22,7 @@ fn lower_core_struct_lit(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirEx
     if tag >= 0 {
         let tag_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_local))
-        struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, String_from("_tag"), tag_local)
+        struct_lit::mir_emit_struct_field_set(ctx, clone(struct_name), dest, "_tag", tag_local)
     }
     let mut i = 0
     while i < child_count {

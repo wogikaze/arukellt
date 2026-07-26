@@ -35,7 +35,7 @@ fn comp_emit_core_func_results(w: writer_core::ComponentWriter, result_vts: Vec<
 fn comp_emit_component_func_params(w: writer_core::ComponentWriter, param_wit_types: Vec<i32>) {
     writer_core::comp_emit_leb128_u(w, len(param_wit_types))
     for i in 0..len(param_wit_types) {
-        writer_core::comp_emit_string(w, concat(String_from("arg"), to_string(i)))
+        writer_core::comp_emit_string(w, concat("arg", to_string(i)))
         writer_core::comp_emit_byte(w, get_unchecked(param_wit_types, i))
     }
 }

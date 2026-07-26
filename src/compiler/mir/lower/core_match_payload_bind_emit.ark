@@ -23,10 +23,10 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
         effective_vt = bind_vt
     }
     if effective_vt == value_types::VT_FUNCREF() {
-        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("fnref"))
+        ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "fnref")
     } else if ctx_gc_enum::ctx_is_gc_target(ctx) && effective_vt != value_types::VT_GC_REF() {
         let bind_ty = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
-        let is_fnref_bind = eq(clone(bind_ty), String_from("fnref")) || starts_with(clone(bind_ty), String_from("fn("))
+        let is_fnref_bind = eq(clone(bind_ty), "fnref") || starts_with(clone(bind_ty), "fn(")
         let scalar_bind = is_fnref_bind ||
         core_match_payload_bind_types::core_payload_scalar_type_name(clone(bind_ty)) ||
         eq(clone(bind_ty), "i32") ||
@@ -36,7 +36,7 @@ fn emit_payload_field_bind(ctx: LowerCtx, variant_name: String, bi: i32, scrut_i
             effective_vt = value_types::VT_GC_REF()
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             if len(ctx_api_local_types::ctx_get_local_type(ctx, bind_local)) == 0 {
-                ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("enum:open"))
+                ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "enum:open")
             }
         } else if !scalar_bind && core_match_payload_type_extract::core_payload_type_name_is_gc_ref(ctx, bind_local) {
             // The local type name indicates a GC ref type (String, Vec, etc.)
@@ -85,24 +85,24 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
     let mut eff_vt = effective_vt
     if bi == 0 {
         let bind_type_name = emit_payload_field_bind_gc_resolve_type(ctx, clone(variant_name), bi, bind_local)
-        let is_fnref_payload = eq(clone(bind_type_name), String_from("fnref")) ||
-        eq(clone(bind_type_name), String_from("fn")) ||
-        starts_with(clone(bind_type_name), String_from("fn(")) ||
-        eq(clone(bind_type_name), String_from("option:fnref")) ||
+        let is_fnref_payload = eq(clone(bind_type_name), "fnref") ||
+        eq(clone(bind_type_name), "fn") ||
+        starts_with(clone(bind_type_name), "fn(") ||
+        eq(clone(bind_type_name), "option:fnref") ||
         eff_vt == value_types::VT_FUNCREF()
         let mut typed_payload_name = clone(bind_type_name)
         if is_fnref_payload {
             eff_vt = value_types::VT_FUNCREF()
-            typed_payload_name = String_from("fnref")
+            typed_payload_name = "fnref"
             ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_FUNCREF())
-            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, String_from("fnref"))
-        } else if starts_with(clone(bind_type_name), String_from("vec:")) ||
-            starts_with(clone(bind_type_name), String_from("Vec")) ||
-            starts_with(clone(bind_type_name), String_from("enum:")) ||
-            starts_with(clone(bind_type_name), String_from("result:")) ||
-            starts_with(clone(bind_type_name), String_from("option:")) ||
-            eq(clone(bind_type_name), String_from("string")) ||
-            eq(clone(bind_type_name), String_from("String")) ||
+            ctx_api_local_types::ctx_set_local_type(ctx, bind_local, "fnref")
+        } else if starts_with(clone(bind_type_name), "vec:") ||
+            starts_with(clone(bind_type_name), "Vec") ||
+            starts_with(clone(bind_type_name), "enum:") ||
+            starts_with(clone(bind_type_name), "result:") ||
+            starts_with(clone(bind_type_name), "option:") ||
+            eq(clone(bind_type_name), "string") ||
+            eq(clone(bind_type_name), "String") ||
             ctx_struct_field_type::field_type_is_registered_enum(ctx, clone(bind_type_name)) {
                 eff_vt = value_types::VT_GC_REF()
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
@@ -117,7 +117,7 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         let bind_ty_for_slot = ctx_api_local_types::ctx_get_local_type(ctx, bind_local)
         if eff_vt == value_types::VT_GC_REF() &&
         type_slot >= 0 &&
-        !starts_with(clone(bind_ty_for_slot), String_from("enum:")) &&
+        !starts_with(clone(bind_ty_for_slot), "enum:") &&
         core_match_payload_bind_types::payload_bind_needs_variant_slot(clone(bind_ty_for_slot), clone(variant_name)) {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, bind_local, type_slot)
         }
@@ -130,39 +130,39 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
         let layout_ft = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), bi + 1)
         let layout_norm = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(layout_ft))
         let mut layout_vec = String_new()
-        if starts_with(clone(layout_norm), String_from("vec:")) {
+        if starts_with(clone(layout_norm), "vec:") {
             layout_vec = clone(layout_norm)
-        } else if starts_with(clone(layout_norm), String_from("Vec<")) && ends_with(clone(layout_norm), String_from(">")) {
-            layout_vec = concat(String_from("vec:"), substring(clone(layout_norm), 4, len(layout_norm) - 1))
-        } else if starts_with(clone(layout_norm), String_from("Vec_")) {
-            layout_vec = concat(String_from("vec:"), substring(clone(layout_norm), 4, len(layout_norm)))
-        } else if eq(clone(layout_norm), String_from("Vec")) {
-            layout_vec = String_from("vec:i32")
+        } else if starts_with(clone(layout_norm), "Vec<") && ends_with(clone(layout_norm), ">") {
+            layout_vec = concat("vec:", substring(clone(layout_norm), 4, len(layout_norm) - 1))
+        } else if starts_with(clone(layout_norm), "Vec_") {
+            layout_vec = concat("vec:", substring(clone(layout_norm), 4, len(layout_norm)))
+        } else if eq(clone(layout_norm), "Vec") {
+            layout_vec = "vec:i32"
         }
         if len(layout_vec) > 0 {
             bind_type_name = layout_vec
             ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
-        } else if len(bind_type_name) == 0 || eq(clone(bind_type_name), String_from("enum:open")) {
+        } else if len(bind_type_name) == 0 || eq(clone(bind_type_name), "enum:open") {
             if len(layout_norm) > 0 {
                 bind_type_name = layout_norm
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
             }
         }
         if ctx_gc_enum::gc_enum_variant_is_vec_container(clone(variant_name)) {
-            if !starts_with(clone(bind_type_name), String_from("vec:")) && !starts_with(clone(bind_type_name), String_from("Vec")) {
+            if !starts_with(clone(bind_type_name), "vec:") && !starts_with(clone(bind_type_name), "Vec") {
                 let bare = ctx_gc_enum::ctx_gc_enum_bare_variant_name(clone(variant_name))
-                if eq(clone(bare), String_from("Table")) {
-                    bind_type_name = String_from("vec:TomlField")
-                } else if eq(clone(bare), String_from("Object")) {
-                    bind_type_name = String_from("vec:JsonField")
-                } else if eq(clone(bare), String_from("Array")) {
-                    if starts_with(clone(variant_name), String_from("Json")) || contains(clone(variant_name), String_from("JsonValue")) {
-                        bind_type_name = String_from("vec:JsonValue")
+                if eq(clone(bare), "Table") {
+                    bind_type_name = "vec:TomlField"
+                } else if eq(clone(bare), "Object") {
+                    bind_type_name = "vec:JsonField"
+                } else if eq(clone(bare), "Array") {
+                    if starts_with(clone(variant_name), "Json") || contains(clone(variant_name), "JsonValue") {
+                        bind_type_name = "vec:JsonValue"
                     } else {
-                        bind_type_name = String_from("vec:TomlValue")
+                        bind_type_name = "vec:TomlValue"
                     }
                 } else {
-                    bind_type_name = String_from("vec:TomlValue")
+                    bind_type_name = "vec:TomlValue"
                 }
                 ctx_api_local_types::ctx_set_local_type(ctx, bind_local, clone(bind_type_name))
             }

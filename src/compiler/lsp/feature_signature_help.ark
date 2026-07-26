@@ -28,7 +28,7 @@ pub fn handle_signature_help(state: LspState, body: String) {
         return
     }
     let mut short_name = clone(callee)
-    if contains(clone(callee), String_from("::")) {
+    if contains(clone(callee), "::") {
         let mut last_colon = 0
         let mut pos = len(callee) - 1
         while pos >= 0 {

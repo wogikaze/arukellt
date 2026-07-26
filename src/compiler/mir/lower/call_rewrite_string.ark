@@ -26,21 +26,21 @@ fn mir_rewrite_to_string(ctx: LowerCtx, callee_name: String, first_arg_idx: i32)
     if first_arg_idx >= 0 {
         let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if eq(clone(arg_type), "char") {
-            rewritten = String_from("char_to_string")
+            rewritten = "char_to_string"
         } else {
             if eq(clone(arg_type), "f64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_F64() {
-                rewritten = String_from("f64_to_string")
+                rewritten = "f64_to_string"
             } else {
                 if eq(clone(arg_type), "bool") {
-                    rewritten = String_from("bool_to_string")
+                    rewritten = "bool_to_string"
                 } else {
                     if eq(clone(arg_type), "i64") || eq(clone(arg_type), "u64") || ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_I64() {
-                        rewritten = String_from("i64_to_string")
+                        rewritten = "i64_to_string"
                     } else {
                         if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
                             return_local = first_arg_idx
                         } else {
-                            rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, String_from("to_string"), first_arg_idx)
+                            rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, "to_string", first_arg_idx)
                         }
                     }
                 }

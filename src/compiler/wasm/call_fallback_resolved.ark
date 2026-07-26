@@ -130,21 +130,21 @@ fn resolve_call_param_gc_cast_type(ctx: SelfEmitCtx, param_type_name: String) ->
 }
 
 fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bool {
-    if starts_with(clone(param_type_name), String_from("enum:")) {
+    if starts_with(clone(param_type_name), "enum:") {
         return true
     }
-    if starts_with(clone(param_type_name), String_from("Option")) || starts_with(clone(param_type_name), String_from("option")) {
+    if starts_with(clone(param_type_name), "Option") || starts_with(clone(param_type_name), "option") {
         return true
     }
-    if starts_with(clone(param_type_name), String_from("Result")) || starts_with(clone(param_type_name), String_from("result")) {
+    if starts_with(clone(param_type_name), "Result") || starts_with(clone(param_type_name), "result") {
         return true
     }
-    let bare = if starts_with(clone(param_type_name), String_from("enum:")) {
+    let bare = if starts_with(clone(param_type_name), "enum:") {
         substring(clone(param_type_name), 5, len(param_type_name))
     } else {
         clone(param_type_name)
     }
-    let prefix = concat(clone(bare), String_from("::"))
+    let prefix = concat(clone(bare), "::")
     let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
     let mut ei = 0
     while ei < len(ev_names) {

@@ -68,10 +68,10 @@ fn comp_function_is_point_to_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "i32") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Point")
 }
 
 fn comp_function_is_point_point_to_point_export(f: MirFunction) -> bool {
@@ -81,10 +81,10 @@ fn comp_function_is_point_point_to_point_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 2 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Point")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Point") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point")) && eq(export_function_view::export_function_param_type_name(f, 1), String_from("Point"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Point") && eq(export_function_view::export_function_param_type_name(f, 1), "Point")
 }
 
 fn comp_function_is_point_to_point_export(f: MirFunction) -> bool {
@@ -94,10 +94,10 @@ fn comp_function_is_point_to_point_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Point")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Point") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Point"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Point")
 }
 
 fn comp_record_single_point_to_i32_name(scan: ComponentRecordExportScan) -> String {

@@ -9,7 +9,7 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
     while i < ann_count {
         let ann = get_unchecked(type_ann, i)
         let ann_name = ast_access::node_text(ann)
-        if !eq(clone(ann_name), String_from("__return")) {
+        if !eq(clone(ann_name), "__return") {
             let info = contract_type_param_bounds::TypeParamBounds_new(ann_name)
             let ann_count = ast_access::node_type_ann_count(ann)
             let mut j = 0

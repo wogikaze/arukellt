@@ -9,8 +9,8 @@ use lsp::state_docs
 use lsp::state_record
 
 pub fn handle_workspace_symbol(state: LspState, body: String) {
-    let id = json_fields::extract_int_field(clone(body), String_from("id"))
-    let query = json_fields::extract_string_field(clone(body), String_from("query"))
+    let id = json_fields::extract_int_field(clone(body), "id")
+    let query = json_fields::extract_string_field(clone(body), "query")
     let matches = symbol_index::symbol_index_search_query(state, clone(query))
     let source_texts = Vec_new_String()
     let mn = len(matches)

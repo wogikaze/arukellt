@@ -27,10 +27,10 @@ fn node_kind_name(kind: i32) -> String {
         return type_name
     }
     if kind == kinds::NK_ERROR() {
-        return String_from("Error")
+        return "Error"
     }
     if kind == kinds::NK_MISSING() {
-        return String_from("Missing")
+        return "Missing"
     }
-    String_from("Unknown")
+    "Unknown"
 }

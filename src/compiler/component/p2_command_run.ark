@@ -2,7 +2,7 @@ use component::constants_sections_linkage
 use component::writer_core
 
 fn comp_p2_run_inner_component_bytes() -> Vec<i32> {
-    comp_p2_run_bytes_from_hex(String_from("0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103"))
+    comp_p2_run_bytes_from_hex("0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103")
 }
 
 fn comp_p2_run_bytes_from_hex(hex: String) -> Vec<i32> {
@@ -48,7 +48,7 @@ fn comp_p2_run_emit_alias_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_byte(sec, 0x01)
     writer_core::comp_emit_leb128_u(sec, 8)
-    writer_core::comp_emit_string(sec, String_from("_start"))
+    writer_core::comp_emit_string(sec, "_start")
     comp_p2_run_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), sec)
 }
 
@@ -88,7 +88,7 @@ fn comp_p2_run_emit_instance_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_leb128_u(sec, 0)
     writer_core::comp_emit_leb128_u(sec, 1)
-    writer_core::comp_emit_string(sec, String_from("import-func-run"))
+    writer_core::comp_emit_string(sec, "import-func-run")
     writer_core::comp_emit_byte(sec, 0x01)
     writer_core::comp_emit_leb128_u(sec, 0)
     comp_p2_run_emit_section(out, 5, sec)
@@ -98,7 +98,7 @@ fn comp_p2_run_emit_export_section(out: writer_core::ComponentWriter) {
     let sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(sec, 1)
     writer_core::comp_emit_byte(sec, 0x00)
-    writer_core::comp_emit_string(sec, String_from("wasi:cli/run@0.2.0"))
+    writer_core::comp_emit_string(sec, "wasi:cli/run@0.2.0")
     writer_core::comp_emit_byte(sec, 0x05)
     writer_core::comp_emit_leb128_u(sec, 0)
     writer_core::comp_emit_byte(sec, 0x00)

@@ -4,7 +4,7 @@ use corehir::hashmap_type_name
 fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> String {
     let ann_name = type_ann_node::type_ann_name(ann)
     if type_ann_node::type_ann_is_generic(ann) {
-        if eq(clone(ann_name), String_from("Vec")) {
+        if eq(clone(ann_name), "Vec") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(ann, 1)
                 // Shape nested Option/Result so Vec<Option<i32>> → vec:Option_i32
@@ -12,87 +12,87 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
                 if type_ann_node::type_ann_is_generic(elem_ty) {
                     let shaped = type_ann_shape_local_type_name(elem_ty, 0)
                     if len(shaped) > 0 {
-                        return concat(String_from("vec:"), shaped)
+                        return concat("vec:", shaped)
                     }
                 }
-                return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
             }
-            return String_from("vec")
+            return "vec"
         }
-        if eq(clone(ann_name), String_from("HashMap")) {
+        if eq(clone(ann_name), "HashMap") {
             if type_ann_node::type_ann_child_count(ann) >= 3 {
                 let key = type_ann_node::type_ann_child_at(ann, 1)
                 let val = type_ann_node::type_ann_child_at(ann, 2)
                 let k_name = type_ann_node::type_ann_name(key)
                 let v_name = type_ann_node::type_ann_name(val)
-                return concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
+                return concat("hashmap:", hashmap_type_name::hashmap_type_alias(k_name, v_name))
             }
-            return String_from("hashmap:")
+            return "hashmap:"
         }
-        if eq(clone(ann_name), String_from("Result")) {
+        if eq(clone(ann_name), "Result") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
-                if type_ann_node::type_ann_is_name(ok_ty, String_from("f64")) {
-                    return String_from("Result_f64")
+                if type_ann_node::type_ann_is_name(ok_ty, "f64") {
+                    return "Result_f64"
                 }
-                if type_ann_node::type_ann_is_name(ok_ty, String_from("i64")) {
-                    return String_from("Result_i64")
+                if type_ann_node::type_ann_is_name(ok_ty, "i64") {
+                    return "Result_i64"
                 }
                 // Nested Vec so Result<Vec<fn>, E> → Result_vec:fn… (#832).
                 if type_ann_node::type_ann_is_generic(ok_ty) {
                     let shaped = type_ann_shape_local_type_name(ok_ty, 0)
                     if len(shaped) > 0 {
-                        return concat(String_from("Result_"), shaped)
+                        return concat("Result_", shaped)
                     }
                 }
                 let ok_name = type_ann_node::type_ann_name(ok_ty)
                 if len(ok_name) > 0 {
-                    return concat(String_from("Result_"), ok_name)
+                    return concat("Result_", ok_name)
                 }
             }
-            return String_from("enum:Result")
+            return "enum:Result"
         }
-        if eq(clone(ann_name), String_from("Option")) {
+        if eq(clone(ann_name), "Option") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
                 let some_ty = type_ann_node::type_ann_child_at(ann, 1)
-                if type_ann_node::type_ann_is_name(some_ty, String_from("f64")) {
-                    return String_from("Option_f64")
+                if type_ann_node::type_ann_is_name(some_ty, "f64") {
+                    return "Option_f64"
                 }
-                if type_ann_node::type_ann_is_name(some_ty, String_from("i64")) {
-                    return String_from("Option_i64")
+                if type_ann_node::type_ann_is_name(some_ty, "i64") {
+                    return "Option_i64"
                 }
-                if type_ann_node::type_ann_is_name(some_ty, String_from("i32")) {
-                    return String_from("Option_i32")
+                if type_ann_node::type_ann_is_name(some_ty, "i32") {
+                    return "Option_i32"
                 }
                 // Nested Vec so Option<Vec<fn>> → Option_vec:fn (#832).
                 if type_ann_node::type_ann_is_generic(some_ty) {
                     let shaped = type_ann_shape_local_type_name(some_ty, 0)
                     if len(shaped) > 0 {
-                        return concat(String_from("Option_"), shaped)
+                        return concat("Option_", shaped)
                     }
                 }
                 let some_name = type_ann_node::type_ann_name(some_ty)
                 if len(some_name) > 0 {
-                    return concat(String_from("Option_"), some_name)
+                    return concat("Option_", some_name)
                 }
             }
-            return String_from("enum:Option")
+            return "enum:Option"
         }
         return String_new()
     }
-    if eq(clone(ann_name), String_from("Vec")) {
-        return String_from("vec")
+    if eq(clone(ann_name), "Vec") {
+        return "vec"
     }
-    if eq(clone(ann_name), String_from("char")) ||
-    eq(clone(ann_name), String_from("u8")) ||
-    eq(clone(ann_name), String_from("u16")) ||
-    eq(clone(ann_name), String_from("u32")) ||
-    eq(clone(ann_name), String_from("u64")) ||
-    eq(clone(ann_name), String_from("i16")) ||
-    eq(clone(ann_name), String_from("i32")) ||
-    eq(clone(ann_name), String_from("i64")) ||
-    eq(clone(ann_name), String_from("bool")) ||
-    eq(clone(ann_name), String_from("f64")) {
+    if eq(clone(ann_name), "char") ||
+    eq(clone(ann_name), "u8") ||
+    eq(clone(ann_name), "u16") ||
+    eq(clone(ann_name), "u32") ||
+    eq(clone(ann_name), "u64") ||
+    eq(clone(ann_name), "i16") ||
+    eq(clone(ann_name), "i32") ||
+    eq(clone(ann_name), "i64") ||
+    eq(clone(ann_name), "bool") ||
+    eq(clone(ann_name), "f64") {
         return ann_name
     }
     if known_struct_fields > 0 {

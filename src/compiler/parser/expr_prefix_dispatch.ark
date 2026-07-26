@@ -30,7 +30,7 @@ pub fn parse_prefix(p: Parser) -> AstNode {
     if expr_prefix_controls::is_control_prefix(kind) {
         return expr_prefix_controls::parse_control_prefix(p)
     }
-    core_api_expect::error(p, concat(String_from("unexpected token in expression: "), to_string(kind)))
+    core_api_expect::error(p, concat("unexpected token in expression: ", to_string(kind)))
     p.pos = p.pos + 1
-    core_ast_factory::AstNode_error(String_from("expr"), core_api_expect::tok_span(t))
+    core_ast_factory::AstNode_error("expr", core_api_expect::tok_span(t))
 }

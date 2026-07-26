@@ -5,10 +5,10 @@ use typechecker::contract_type_access
 
 fn dump_typed_hir(result: TypeCheckResult) {
     let fn_count = contract_result_state::typecheck_result_typed_fn_count(result)
-    stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
+    stdio::eprintln(concat("typed functions: ", to_string(fn_count)))
     let type_error_count = contract_result_state::typecheck_result_error_count(result)
     if type_error_count > 0 {
-        stdio::eprintln(concat(to_string(type_error_count), String_from(" type error(s)")))
+        stdio::eprintln(concat(to_string(type_error_count), " type error(s)"))
     }
     let mi_count = contract_result_state::typecheck_result_mono_instance_count(result)
     let mut visible_mi_count = 0
@@ -26,7 +26,7 @@ fn dump_typed_hir(result: TypeCheckResult) {
         vc = vc + 1
     }
     if visible_mi_count > 0 {
-        stdio::eprintln(concat(String_from("mono instances: "), to_string(visible_mi_count)))
+        stdio::eprintln(concat("mono instances: ", to_string(visible_mi_count)))
         let mut k = 0
         while k < mi_count {
             let mi = contract_result_state::typecheck_result_mono_instance_at(result, k)
@@ -36,7 +36,7 @@ fn dump_typed_hir(result: TypeCheckResult) {
                 is_marker2 = contract_type_access::TypeInfo_tag(marker_ty2) < 0
             }
             if !is_marker2 {
-                stdio::eprintln(concat(String_from("  "), contract_mono::MonoInstance_mangled_name(mi)))
+                stdio::eprintln(concat("  ", contract_mono::MonoInstance_mangled_name(mi)))
             }
             k = k + 1
         }

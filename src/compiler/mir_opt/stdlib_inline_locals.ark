@@ -12,12 +12,12 @@ fn stdlib_inline_build_local_map(caller: MirFunction, callee: MirFunction) -> Ve
         let source = function_locals_view::MirFunction_local_at(callee, index)
         let mapped = function_local_alloc::alloc_local(
             caller,
-            concat(String_from("_inl_"), local_access::MirLocal_name(source)),
+            concat("_inl_", local_access::MirLocal_name(source)),
             local_access::MirLocal_val_type(source)
         )
         let copied = local_factory::MirLocal_copy_with_ssa(
             source,
-            concat(String_from("_inl_"), local_access::MirLocal_ssa_name(source)),
+            concat("_inl_", local_access::MirLocal_ssa_name(source)),
             local_access::MirLocal_ssa_version(source)
         )
         function_local_mutation::MirFunction_set_local(caller, mapped, copied)

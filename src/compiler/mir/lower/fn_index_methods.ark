@@ -27,7 +27,7 @@ fn mir_index_impl_methods(
         }
         push(fn_names, mangled)
         let mrvt = fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, value_types::VT_I32())
-        let mrtn = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, String_from(""))
+        let mrtn = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
         let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(mrtn), mono::mono_index_count(midx, clone(mangled)) > 0)
         push(fn_return_vts, mrvt)
         push(fn_return_type_names, mrtn)

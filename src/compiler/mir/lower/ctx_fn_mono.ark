@@ -37,7 +37,7 @@ fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> Strin
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }
 
 fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
@@ -68,7 +68,7 @@ fn mono_bare_source(source: String) -> String {
 
 fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = mono_bare_source(source)
-    let prefix = concat(clone(bare_source), String_from("__"))
+    let prefix = concat(clone(bare_source), "__")
     if starts_with(clone(target), clone(prefix)) {
         let rest = substring(target, len(prefix), len(target))
         // Reject opaque numeric stubs like eq__1; accept type keys
@@ -82,7 +82,7 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         }
         return true
     }
-    contains(target, concat(String_from("__"), concat(bare_source, String_from("__"))))
+    contains(target, concat("__", concat(bare_source, "__")))
 }
 
 fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
@@ -110,7 +110,7 @@ fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }
 
 fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
@@ -125,5 +125,5 @@ fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }

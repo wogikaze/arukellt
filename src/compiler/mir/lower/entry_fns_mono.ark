@@ -173,16 +173,16 @@ fn mono_return_type_arg_index_from_var_name(var_name: String, arg_count: i32) ->
 }
 
 fn type_var_to_index(var_name: String) -> i32 {
-    if eq(clone(var_name), String_from("T")) { return 0 }
-    if eq(clone(var_name), String_from("E")) { return 1 }
-    if eq(clone(var_name), String_from("U")) { return 2 }
-    if eq(clone(var_name), String_from("V")) { return 3 }
-    if eq(clone(var_name), String_from("W")) { return 4 }
-    if eq(clone(var_name), String_from("K")) { return 0 }
-    if eq(clone(var_name), String_from("A")) { return 0 }
-    if eq(clone(var_name), String_from("B")) { return 1 }
-    if eq(clone(var_name), String_from("C")) { return 2 }
-    if eq(clone(var_name), String_from("D")) { return 3 }
+    if eq(clone(var_name), "T") { return 0 }
+    if eq(clone(var_name), "E") { return 1 }
+    if eq(clone(var_name), "U") { return 2 }
+    if eq(clone(var_name), "V") { return 3 }
+    if eq(clone(var_name), "W") { return 4 }
+    if eq(clone(var_name), "K") { return 0 }
+    if eq(clone(var_name), "A") { return 0 }
+    if eq(clone(var_name), "B") { return 1 }
+    if eq(clone(var_name), "C") { return 2 }
+    if eq(clone(var_name), "D") { return 3 }
     0
 }
 
@@ -195,7 +195,7 @@ fn mir_entry_typed_return_type_name_at(view: MirLowerEntryView, typed_index: i32
     let ts = entry_view_record::entry_view_type_source(view)
     let count = type_source::mir_type_source_typed_fn_count(ts)
     if typed_index < 0 || typed_index >= count {
-        return String_from("")
+        return ""
     }
     let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
     return_types::mir_return_type_name_from_typed_fn(tf)
@@ -215,12 +215,12 @@ fn mir_entry_typed_return_type_var_name(view: MirLowerEntryView, typed_index: i3
     let ts = entry_view_record::entry_view_type_source(view)
     let count = type_source::mir_type_source_typed_fn_count(ts)
     if typed_index < 0 || typed_index >= count {
-        return String_from("")
+        return ""
     }
     let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
     let ret_ty = typeinfo_shape::mir_typed_fn_return_type(tf)
     if typeinfo_shape::mir_type_info_tag(ret_ty) == lower_kinds::TY_TYPE_VAR() {
         return typeinfo_shape::mir_type_info_name(ret_ty)
     }
-    String_from("")
+    ""
 }

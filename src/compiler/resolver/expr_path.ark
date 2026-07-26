@@ -42,7 +42,7 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
     }
     let mod_idx = scope_lookup::lookup(ctx, clone(module_part))
     if mod_idx < 0 {
-        scope_error::resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
+        scope_error::resolve_error(ctx, concat("undefined module: ", clone(module_part)))
         return
     }
     let sym_idx = scope_lookup::lookup(ctx, clone(path))
@@ -53,8 +53,8 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
                 scope_error::resolve_error(
                     ctx,
                     concat(
-                        String_from("visibility error: `"),
-                        concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))
+                        "visibility error: `",
+                        concat(clone(symbol_part), concat("` is private and cannot be accessed from module `", concat(clone(module_part), "`")))
                     )
                 )
             }
@@ -65,13 +65,13 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
 // Builtin type names that support associated function syntax (Type::method).
 // These are not modules, so a path like `Vec::new` must bypass module lookup.
 fn is_builtin_type_name(name: String) -> bool {
-    if eq(clone(name), String_from("Vec")) { return true }
-    if eq(clone(name), String_from("String")) { return true }
-    if eq(clone(name), String_from("i32")) { return true }
-    if eq(clone(name), String_from("i64")) { return true }
-    if eq(clone(name), String_from("f64")) { return true }
-    if eq(clone(name), String_from("f32")) { return true }
-    if eq(clone(name), String_from("bool")) { return true }
-    if eq(clone(name), String_from("char")) { return true }
+    if eq(clone(name), "Vec") { return true }
+    if eq(clone(name), "String") { return true }
+    if eq(clone(name), "i32") { return true }
+    if eq(clone(name), "i64") { return true }
+    if eq(clone(name), "f64") { return true }
+    if eq(clone(name), "f32") { return true }
+    if eq(clone(name), "bool") { return true }
+    if eq(clone(name), "char") { return true }
     false
 }

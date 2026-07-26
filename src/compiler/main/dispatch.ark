@@ -21,12 +21,12 @@ pub fn dispatch(opts: CliOptions) {
 
 fn dispatch_preflight(opts: CliOptions, command: i32) -> bool {
     if command == kinds::CMD_NOT_YET() {
-        stdio::eprintln(String_from("error: command not yet implemented in selfhost compiler"))
+        stdio::eprintln("error: command not yet implemented in selfhost compiler")
         process::exit(1)
         return false
     }
     if !args_record::cli_has_input_file(opts) && !dispatch_command_allows_missing_input(opts, command) {
-        stdio::eprintln(String_from("error: no input file specified"))
+        stdio::eprintln("error: no input file specified")
         usage::print_usage()
         process::exit(2)
         return false

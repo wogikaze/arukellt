@@ -37,23 +37,23 @@ fn ctx_struct_field_type_name_for_payload(ctx: LowerCtx, struct_name: String, fi
 }
 
 fn ctx_normalize_payload_field_type_name(type_name: String) -> String {
-    if eq(clone(type_name), String_from("string")) {
-        return String_from("String")
+    if eq(clone(type_name), "string") {
+        return "String"
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return substring(type_name, 5, len(type_name))
     }
-    if starts_with(clone(type_name), String_from("option:")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "option:") {
+        return concat("option:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option_")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Option_") {
+        return concat("option:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option:")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    if starts_with(clone(type_name), "Option:") {
+        return concat("option:", substring(type_name, 7, len(type_name)))
     }
-    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
-        return concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+    if starts_with(clone(type_name), "Option<") && ends_with(clone(type_name), ">") {
+        return concat("option:", substring(type_name, 7, len(type_name) - 1))
     }
     type_name
 }
@@ -67,7 +67,7 @@ fn ctx_payload_field_types_match(layout_ft: String, want: String) -> bool {
     if eq(clone(layout_norm), clone(want_norm)) {
         return true
     }
-    if eq(clone(layout_norm), String_from("String")) && eq(clone(want_norm), String_from("String")) {
+    if eq(clone(layout_norm), "String") && eq(clone(want_norm), "String") {
         return true
     }
     false
@@ -126,10 +126,10 @@ fn ctx_struct_layout_exists(ctx: LowerCtx, struct_name: String) -> bool {
 }
 
 fn ctx_resolve_variant_layout_name(ctx: LowerCtx, variant_name: String) -> String {
-    if contains(clone(variant_name), String_from("::")) {
+    if contains(clone(variant_name), "::") {
         return variant_name
     }
-    let suffix = concat(String_from("::"), clone(variant_name))
+    let suffix = concat("::", clone(variant_name))
     let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
     let mut si = 0
     let mut found = String_new()
@@ -161,7 +161,7 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
         return false
     }
     // Function refs are i32 table indices.
-    if eq(clone(ft), "fnref") || eq(clone(ft), "fn") || starts_with(clone(ft), String_from("fn(")) {
+    if eq(clone(ft), "fnref") || eq(clone(ft), "fn") || starts_with(clone(ft), "fn(") {
         return false
     }
     // Vec/HashMap/HashSet container fields are GC refs (not i32 handles).
@@ -178,20 +178,20 @@ fn ctx_struct_field_is_gc_ref(ctx: LowerCtx, struct_name: String, field_idx: i32
 }
 
 fn field_type_is_container_ref(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("Vec")) || eq(clone(type_name), String_from("HashMap")) || eq(clone(type_name), String_from("HashSet")) {
+    if eq(clone(type_name), "Vec") || eq(clone(type_name), "HashMap") || eq(clone(type_name), "HashSet") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("hashset:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "hashset:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Vec<")) || starts_with(clone(type_name), String_from("HashMap<")) || starts_with(clone(type_name), String_from("HashSet<")) {
+    if starts_with(clone(type_name), "Vec<") || starts_with(clone(type_name), "HashMap<") || starts_with(clone(type_name), "HashSet<") {
         return true
     }
     // Result/Option angle-bracket forms are GC enum-open refs (#726 json).
-    if starts_with(clone(type_name), String_from("Result<")) || starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+    if starts_with(clone(type_name), "Result<") || starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Option<")) || starts_with(clone(type_name), String_from("Option_")) || starts_with(clone(type_name), String_from("option:")) {
+    if starts_with(clone(type_name), "Option<") || starts_with(clone(type_name), "Option_") || starts_with(clone(type_name), "option:") {
         return true
     }
     false
@@ -201,7 +201,7 @@ fn field_type_is_type_param(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("?")) {
+    if starts_with(clone(type_name), "?") {
         return field_type_is_type_param(substring(type_name, 1, len(type_name)))
     }
     if len(type_name) == 1 {
@@ -237,7 +237,7 @@ fn field_type_is_registered_enum(ctx: LowerCtx, type_name: String) -> bool {
                     off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
                     li = li + 1
                 }
-                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), String_from("_tag")) {
+                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag") {
                     return true
                 }
             }

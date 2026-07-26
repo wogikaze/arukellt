@@ -38,15 +38,15 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
             return true
         }
     }
-    if starts_with(clone(type_name), String_from("enum:")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), "enum:") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") {
         emit_gc_enum_open_local(body, ctx)
         return true
     }
@@ -60,10 +60,10 @@ fn enum_payload_type_name(type_name: String) -> bool {
     if len(type_name) <= 5 {
         return false
     }
-    if !starts_with(clone(type_name), String_from("enum:")) {
+    if !starts_with(clone(type_name), "enum:") {
         return false
     }
-    if eq(clone(type_name), String_from("enum:open")) {
+    if eq(clone(type_name), "enum:open") {
         return false
     }
     true
@@ -72,30 +72,30 @@ fn local_has_container_type_name(type_name: String) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) || starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "struct:") {
         return true
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
     false
 }
 // GC-target local val type for hashmap/string/option/inferred types.
 fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+            if starts_with(clone(type_name), "hashmap:i32str") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+            } else if starts_with(clone(type_name), "hashmap:i32fn") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:strfn")) {
+            } else if starts_with(clone(type_name), "hashmap:strfn") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+            } else if starts_with(clone(type_name), "hashmap:strstr") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
-            } else if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
+            } else if starts_with(clone(type_name), "hashmap:i32i32") {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
             } else {
                 writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
@@ -103,7 +103,7 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             return true
         }
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
@@ -112,10 +112,10 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
             return true
         }
     }
-    if starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
             // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
@@ -128,15 +128,15 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
 }
 // GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
-    if eq(clone(type_name), String_from("HashMap")) ||
-    eq(clone(type_name), String_from("HashSet")) ||
-    starts_with(clone(type_name), String_from("struct:HashMap:")) ||
-    starts_with(clone(type_name), String_from("struct:HashSet:")) {
+    if eq(clone(type_name), "HashMap") ||
+    eq(clone(type_name), "HashSet") ||
+    starts_with(clone(type_name), "struct:HashMap:") ||
+    starts_with(clone(type_name), "struct:HashSet:") {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))

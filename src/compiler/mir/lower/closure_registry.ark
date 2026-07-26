@@ -27,7 +27,7 @@ fn closure_flush_pending_bind(ctx: LowerCtx, bind_name: String) {
 
 fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, extra: i32) -> i32 {
     ctx_api_module::ctx_push_module_function(ctx, mf)
-    ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), String_from(""))
+    ctx_fn_mono::ctx_register_fn_signature(ctx, function_identity::MirFunction_name(mf), function_return_view::MirFunction_return_type(mf), "")
     closure_storage::closure_storage_set_pending_bind(ctx, function_identity::MirFunction_name(mf), packed, extra)
     let dest = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, dest))

@@ -15,14 +15,14 @@ fn resolve_error(ctx: ResolveCtx, msg: String) {
 }
 
 fn resolve_unknown_name(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
-    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), concat(String_from("undefined name: "), name), span_start, span_end)
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_UNKNOWN_NAME(), concat("undefined name: ", name), span_start, span_end)
 }
 
 fn resolve_duplicate_symbol(ctx: ResolveCtx, name: String, span_start: i32, span_end: i32) {
-    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), concat(String_from("duplicate definition: "), name), span_start, span_end)
+    resolve_diagnostic(ctx, codes::DIAG_RESOLVE_DUPLICATE_SYMBOL(), concat("duplicate definition: ", name), span_start, span_end)
 }
 
 fn resolve_target_gated_module(ctx: ResolveCtx, module_path: String, span_start: i32, span_end: i32) {
-    let msg = concat(String_from("module `"), concat(module_path, String_from("` requires target wasm32-gc with host profile wasi-p2")))
+    let msg = concat("module `", concat(module_path, "` requires target wasm32-gc with host profile wasi-p2"))
     resolve_diagnostic(ctx, codes::DIAG_EMIT_FAILED(), msg, span_start, span_end)
 }

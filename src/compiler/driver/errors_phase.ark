@@ -16,7 +16,7 @@ pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) 
 }
 
 pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
-    let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), String_from("module loading error(s)"))
+    let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), "module loading error(s)")
     let mut le = 0
     while le < len(errors) {
         result_record::compile_result_push_error_message(result, clone(get_unchecked(errors, le)))
@@ -84,5 +84,5 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
 }
 
 pub fn mir_verify_failed_result() -> CompileResult {
-    result_record::CompileResult_err(phases::PHASE_LOWER(), String_from("MIR verify failed"))
+    result_record::CompileResult_err(phases::PHASE_LOWER(), "MIR verify failed")
 }

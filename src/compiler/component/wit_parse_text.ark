@@ -82,7 +82,7 @@ fn wit_parse_func_decl(line: String) -> WitParsedFunc {
     for pi in 0..len(param_items) {
         push(param_types, wit_parse_text_scan::wit_split_param_txt(get_unchecked(param_items, pi)))
     }
-    let arrow = index_of(line, String_from("->"))
+    let arrow = index_of(line, "->")
     let ret_type = if arrow < 0 {
         String_new()
     } else {
@@ -157,7 +157,7 @@ fn wit_parse_interface_body(body: String) -> WitParsedInterface {
     let n = len(body)
     let mut i = 0
     while i < n {
-        let func_mark = index_of(substring(body, i, n), String_from(": func"))
+        let func_mark = index_of(substring(body, i, n), ": func")
         if func_mark < 0 {
             break
         }
@@ -172,7 +172,7 @@ fn wit_parse_interface_body(body: String) -> WitParsedInterface {
     }
     let mut rec_pos = 0
     while rec_pos < len(body) {
-        let rec_mark = index_of(substring(body, rec_pos, len(body)), String_from("record "))
+        let rec_mark = index_of(substring(body, rec_pos, len(body)), "record ")
         if rec_mark < 0 {
             break
         }
@@ -182,7 +182,7 @@ fn wit_parse_interface_body(body: String) -> WitParsedInterface {
     }
     let mut enum_pos = 0
     while enum_pos < len(body) {
-        let enum_mark = index_of(substring(body, enum_pos, len(body)), String_from("enum "))
+        let enum_mark = index_of(substring(body, enum_pos, len(body)), "enum ")
         if enum_mark < 0 {
             break
         }

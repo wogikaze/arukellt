@@ -49,7 +49,7 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         // initializer temp so Vec_new emission uses the structref-vec layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
         if len(type_name) > 0 {
-            if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
+            if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") {
                 ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(type_name))
                 ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
             }
@@ -61,7 +61,7 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
     if child_count >= 1 {
         let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
         if core_expr_shape_calls::mir_core_expr_is_closure(init_expr) {
-            if !eq(clone(binding_name), String_from("_")) {
+            if !eq(clone(binding_name), "_") {
                 closure_registry::closure_flush_pending_bind(ctx, clone(binding_name))
             } else {
                 closure_registry::closure_clear_pending_bind(ctx)

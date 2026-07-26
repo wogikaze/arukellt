@@ -5,7 +5,7 @@ use mir::lower_kinds
 
 fn lower_let_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
     let binding_name = ast_node::node_text(node)
-    if eq(clone(binding_name), String_from("__tuple_destructure")) {
+    if eq(clone(binding_name), "__tuple_destructure") {
         stmt_let_tuple::lower_tuple_destructure_let(ctx, node)
         return 0 - 1
     }

@@ -14,22 +14,22 @@ fn null_result(id: i32) -> String {
 }
 
 fn is_keyword_name(name: String) -> bool {
-    if eq(clone(name), String_from("fn")) { return true }
-    if eq(clone(name), String_from("let")) { return true }
-    if eq(clone(name), String_from("mut")) { return true }
-    if eq(clone(name), String_from("if")) { return true }
-    if eq(clone(name), String_from("else")) { return true }
-    if eq(clone(name), String_from("match")) { return true }
-    if eq(clone(name), String_from("use")) { return true }
-    if eq(clone(name), String_from("pub")) { return true }
-    if eq(clone(name), String_from("return")) { return true }
-    if eq(clone(name), String_from("while")) { return true }
-    if eq(clone(name), String_from("loop")) { return true }
-    if eq(clone(name), String_from("for")) { return true }
-    if eq(clone(name), String_from("struct")) { return true }
-    if eq(clone(name), String_from("enum")) { return true }
-    if eq(clone(name), String_from("trait")) { return true }
-    if eq(clone(name), String_from("impl")) { return true }
+    if eq(clone(name), "fn") { return true }
+    if eq(clone(name), "let") { return true }
+    if eq(clone(name), "mut") { return true }
+    if eq(clone(name), "if") { return true }
+    if eq(clone(name), "else") { return true }
+    if eq(clone(name), "match") { return true }
+    if eq(clone(name), "use") { return true }
+    if eq(clone(name), "pub") { return true }
+    if eq(clone(name), "return") { return true }
+    if eq(clone(name), "while") { return true }
+    if eq(clone(name), "loop") { return true }
+    if eq(clone(name), "for") { return true }
+    if eq(clone(name), "struct") { return true }
+    if eq(clone(name), "enum") { return true }
+    if eq(clone(name), "trait") { return true }
+    if eq(clone(name), "impl") { return true }
     false
 }
 
@@ -69,28 +69,28 @@ fn build_prepare_rename_response(id: i32, text: String, offset: i32) -> String {
     }
     let start_pos = positions::offset_to_position(clone(text), start)
     let end_pos = positions::offset_to_position(text, end)
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
     body = text::builder_append(body, to_string(id))
-    body = text::builder_append(body, String_from(",\"result\":{\"range\":{\"start\":{\"line\":"))
+    body = text::builder_append(body, ",\"result\":{\"range\":{\"start\":{\"line\":")
     body = text::builder_append(body, to_string(positions::lsp_position_line(start_pos)))
-    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, ",\"character\":")
     body = text::builder_append(body, to_string(positions::lsp_position_character(start_pos)))
-    body = text::builder_append(body, String_from("},\"end\":{\"line\":"))
+    body = text::builder_append(body, "},\"end\":{\"line\":")
     body = text::builder_append(body, to_string(positions::lsp_position_line(end_pos)))
-    body = text::builder_append(body, String_from(",\"character\":"))
+    body = text::builder_append(body, ",\"character\":")
     body = text::builder_append(body, to_string(positions::lsp_position_character(end_pos)))
-    body = text::builder_append(body, String_from("}},\"placeholder\":"))
+    body = text::builder_append(body, "}},\"placeholder\":")
     body = text::builder_append(body, json_escape::quote_string(name))
-    body = text::builder_append(body, String_from("}}"))
+    body = text::builder_append(body, "}}")
     body
 }
 
 fn build_rename_response(id: i32, changes: String) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
     body = text::builder_append(body, to_string(id))
-    body = text::builder_append(body, String_from(",\"result\":{\"changes\":{"))
+    body = text::builder_append(body, ",\"result\":{\"changes\":{")
     body = text::builder_append(body, changes)
-    body = text::builder_append(body, String_from("}}}"))
+    body = text::builder_append(body, "}}}")
     body
 }
 
@@ -112,7 +112,7 @@ pub fn build_rename_response_for_request(state: LspState, body: String, id: i32)
     if !is_renamable_at_offset(clone(req_text), offset) {
         return null_result(id)
     }
-    let new_name = json_fields::extract_string_field(clone(body), String_from("newName"))
+    let new_name = json_fields::extract_string_field(clone(body), "newName")
     if len(new_name) == 0 || is_keyword_name(clone(new_name)) {
         return null_result(id)
     }

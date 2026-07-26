@@ -19,23 +19,23 @@ fn LINT_DENY() -> i32 {
 
 // Lint categories.
 fn CAT_CORRECTNESS() -> String {
-    String_from("correctness")
+    "correctness"
 }
 
 fn CAT_STYLE() -> String {
-    String_from("style")
+    "style"
 }
 
 fn CAT_MIGRATION() -> String {
-    String_from("migration")
+    "migration"
 }
 
 fn CAT_PERFORMANCE() -> String {
-    String_from("performance")
+    "performance"
 }
 
 fn CAT_DOCS() -> String {
-    String_from("docs")
+    "docs"
 }
 
 struct LintRule {
@@ -78,39 +78,39 @@ fn lint_rule_count() -> i32 {
 // Return the LintRule at the given index (0-based).
 fn lint_rule_at(index: i32) -> LintRule {
     if index == 0 {
-        return LintRule_new(codes::DIAG_WARN_SHARED_MUT_ALIAS(), String_from("shared-mut-alias"), LINT_WARN(), CAT_CORRECTNESS(), String_from("possible unintended sharing of reference type"))
+        return LintRule_new(codes::DIAG_WARN_SHARED_MUT_ALIAS(), "shared-mut-alias", LINT_WARN(), CAT_CORRECTNESS(), "possible unintended sharing of reference type")
     }
     if index == 1 {
-        return LintRule_new(codes::DIAG_WARN_DEPRECATED_TARGET_ALIAS(), String_from("deprecated-target-alias"), LINT_WARN(), CAT_MIGRATION(), String_from("deprecated target alias"))
+        return LintRule_new(codes::DIAG_WARN_DEPRECATED_TARGET_ALIAS(), "deprecated-target-alias", LINT_WARN(), CAT_MIGRATION(), "deprecated target alias")
     }
     if index == 2 {
-        return LintRule_new(codes::DIAG_WARN_UNUSED_SYMBOL(), String_from("unused-symbol"), LINT_WARN(), CAT_STYLE(), String_from("unused symbol"))
+        return LintRule_new(codes::DIAG_WARN_UNUSED_SYMBOL(), "unused-symbol", LINT_WARN(), CAT_STYLE(), "unused symbol")
     }
     if index == 3 {
-        return LintRule_new(codes::DIAG_WARN_WASM_VALIDATION(), String_from("wasm-validation"), LINT_DENY(), CAT_CORRECTNESS(), String_from("generated Wasm module failed validation"))
+        return LintRule_new(codes::DIAG_WARN_WASM_VALIDATION(), "wasm-validation", LINT_DENY(), CAT_CORRECTNESS(), "generated Wasm module failed validation")
     }
     if index == 4 {
-        return LintRule_new(codes::DIAG_WARN_CAPABILITY_STUB(), String_from("capability-stub"), LINT_WARN(), CAT_CORRECTNESS(), String_from("non-exportable function skipped from component exports"))
+        return LintRule_new(codes::DIAG_WARN_CAPABILITY_STUB(), "capability-stub", LINT_WARN(), CAT_CORRECTNESS(), "non-exportable function skipped from component exports")
     }
     if index == 5 {
-        return LintRule_new(codes::DIAG_WARN_UNUSED_IMPORT(), String_from("unused-import"), LINT_WARN(), CAT_STYLE(), String_from("unused import"))
+        return LintRule_new(codes::DIAG_WARN_UNUSED_IMPORT(), "unused-import", LINT_WARN(), CAT_STYLE(), "unused import")
     }
     if index == 6 {
-        return LintRule_new(codes::DIAG_WARN_UNUSED_BINDING(), String_from("unused-binding"), LINT_WARN(), CAT_STYLE(), String_from("unused binding"))
+        return LintRule_new(codes::DIAG_WARN_UNUSED_BINDING(), "unused-binding", LINT_WARN(), CAT_STYLE(), "unused binding")
     }
     if index == 7 {
-        return LintRule_new(codes::DIAG_WARN_DOC_DRIFT(), String_from("doc-drift"), LINT_WARN(), CAT_DOCS(), String_from("documentation drift"))
+        return LintRule_new(codes::DIAG_WARN_DOC_DRIFT(), "doc-drift", LINT_WARN(), CAT_DOCS(), "documentation drift")
     }
     if index == 8 {
-        return LintRule_new(codes::DIAG_WARN_DEPRECATED_API(), String_from("deprecated-api"), LINT_WARN(), CAT_MIGRATION(), String_from("deprecated API usage"))
+        return LintRule_new(codes::DIAG_WARN_DEPRECATED_API(), "deprecated-api", LINT_WARN(), CAT_MIGRATION(), "deprecated API usage")
     }
     if index == 9 {
-        return LintRule_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), String_from("prefer-use-import"), LINT_WARN(), CAT_STYLE(), String_from("prefer use import for frequently qualified paths"))
+        return LintRule_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), "prefer-use-import", LINT_WARN(), CAT_STYLE(), "prefer use import for frequently qualified paths")
     }
     if index == 10 {
-        return LintRule_new(codes::DIAG_WARN_PREFER_ELSE_IF(), String_from("prefer-else-if"), LINT_WARN(), CAT_STYLE(), String_from("prefer else-if over nested else { if }"))
+        return LintRule_new(codes::DIAG_WARN_PREFER_ELSE_IF(), "prefer-else-if", LINT_WARN(), CAT_STYLE(), "prefer else-if over nested else { if }")
     }
-    LintRule_new(codes::DIAG_WARN_COMPONENT_LOWERING_NOTE(), String_from("component-lowering-note"), LINT_WARN(), CAT_DOCS(), String_from("component lowering note"))
+    LintRule_new(codes::DIAG_WARN_COMPONENT_LOWERING_NOTE(), "component-lowering-note", LINT_WARN(), CAT_DOCS(), "component lowering note")
 }
 
 // Look up a lint rule by its W-code string. Returns -1 if not found.
@@ -141,37 +141,37 @@ fn lint_rule_index_by_name(name: String) -> i32 {
 
 // Format a single lint rule as a list line: "  W0006  unused-import      warn  style  unused import".
 fn format_lint_rule_line(rule: LintRule) -> String {
-    let mut out = String_from("  ")
+    let mut out = "  "
     out = text::builder_append(out, lint_rule_code(rule))
-    out = text::builder_append(out, String_from("  "))
+    out = text::builder_append(out, "  ")
     out = text::builder_append(out, lint_rule_name(rule))
-    out = text::builder_append(out, String_from("  "))
+    out = text::builder_append(out, "  ")
     out = text::builder_append(out, severity_label(lint_rule_default_severity(rule)))
-    out = text::builder_append(out, String_from("  "))
+    out = text::builder_append(out, "  ")
     out = text::builder_append(out, lint_rule_category(rule))
-    out = text::builder_append(out, String_from("  "))
+    out = text::builder_append(out, "  ")
     out = text::builder_append(out, lint_rule_description(rule))
     out
 }
 
 fn severity_label(sev: i32) -> String {
     if sev == LINT_ALLOW() {
-        return String_from("allow")
+        return "allow"
     }
     if sev == LINT_DENY() {
-        return String_from("deny")
+        return "deny"
     }
-    String_from("warn")
+    "warn"
 }
 
 // Format the full `arukellt lint --list` output.
 pub fn format_lint_rule_list() -> String {
-    let mut out = String_from("lint rules:\n")
+    let mut out = "lint rules:\n"
     let count = lint_rule_count()
     let mut i = 0
     while i < count {
         out = text::builder_append(out, format_lint_rule_line(lint_rule_at(i)))
-        out = text::builder_append(out, String_from("\n"))
+        out = text::builder_append(out, "\n")
         i = i + 1
     }
     out

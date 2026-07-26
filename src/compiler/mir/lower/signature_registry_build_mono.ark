@@ -77,10 +77,10 @@ fn sig_reg_register_mono_fn(
     (
         len(return_type_name) == 0 &&
         (
-            eq(clone(concrete), String_from("f64")) ||
-            eq(clone(concrete), String_from("f32")) ||
-            eq(clone(concrete), String_from("F64")) ||
-            eq(clone(concrete), String_from("F32"))
+            eq(clone(concrete), "f64") ||
+            eq(clone(concrete), "f32") ||
+            eq(clone(concrete), "F64") ||
+            eq(clone(concrete), "F32")
         )
     )
     if apply_concrete && len(concrete) > 0 {

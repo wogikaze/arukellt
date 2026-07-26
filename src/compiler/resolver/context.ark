@@ -5,11 +5,11 @@ use resolver::kinds
 use resolver::ctx_record
 
 fn ResolveCtx_new() -> ResolveCtx {
-    ResolveCtx_new_for_target_and_host(String_from("wasm32-gc"), String_from("wasi-p2"))
+    ResolveCtx_new_for_target_and_host("wasm32-gc", "wasi-p2")
 }
 
 fn ResolveCtx_new_for_target(target: String) -> ResolveCtx {
-    let host_profile = if eq(clone(target), String_from("wasm32")) { String_from("wasi-p1") } else { String_from("wasi-p2") }
+    let host_profile = if eq(clone(target), "wasm32") { "wasi-p1" } else { "wasi-p2" }
     ResolveCtx_new_for_target_and_host(target, host_profile)
 }
 

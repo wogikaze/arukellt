@@ -59,11 +59,11 @@ fn emit_color_single_alias_section(out: writer_core::ComponentWriter, export_nam
 
 fn emit_color_type_export_sections(out: writer_core::ComponentWriter) {
     let color_names = Vec_new_String()
-    push(color_names, String_from("red"))
-    push(color_names, String_from("green"))
-    push(color_names, String_from("blue"))
+    push(color_names, "red")
+    push(color_names, "green")
+    push(color_names, "blue")
     type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_enum_type(color_names))
-    type_section_entries::emit_single_type_export_section(out, String_from("color"), 0)
+    type_section_entries::emit_single_type_export_section(out, "color", 0)
 }
 
 fn emit_color_pair_func_type_section(out: writer_core::ComponentWriter) {

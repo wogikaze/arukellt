@@ -61,11 +61,11 @@ fn split_param_list(inner: String) -> Vec<String> {
 }
 
 fn params_from_detail(detail: String) -> Vec<String> {
-    let open = index_of(clone(detail), String_from("("))
+    let open = index_of(clone(detail), "(")
     if open < 0 {
         return Vec_new_String()
     }
-    let close = index_of(substring(detail, open + 1, len(detail)), String_from(")"))
+    let close = index_of(substring(detail, open + 1, len(detail)), ")")
     if close < 0 {
         return Vec_new_String()
     }

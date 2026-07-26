@@ -2,34 +2,34 @@ use lexer::tokens
 
 fn token_control_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_IF() {
-        return String_from("IF")
+        return "IF"
     }
     if kind == tokens::TK_ELSE() {
-        return String_from("ELSE")
+        return "ELSE"
     }
     if kind == tokens::TK_MATCH() {
-        return String_from("MATCH")
+        return "MATCH"
     }
     if kind == tokens::TK_WHILE() {
-        return String_from("WHILE")
+        return "WHILE"
     }
     if kind == tokens::TK_LOOP() {
-        return String_from("LOOP")
+        return "LOOP"
     }
     if kind == tokens::TK_FOR() {
-        return String_from("FOR")
+        return "FOR"
     }
     if kind == tokens::TK_IN() {
-        return String_from("IN")
+        return "IN"
     }
     if kind == tokens::TK_BREAK() {
-        return String_from("BREAK")
+        return "BREAK"
     }
     if kind == tokens::TK_CONTINUE() {
-        return String_from("CONTINUE")
+        return "CONTINUE"
     }
     if kind == tokens::TK_RETURN() {
-        return String_from("RETURN")
+        return "RETURN"
     }
     String_new()
 }

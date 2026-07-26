@@ -7,81 +7,81 @@ fn mir_mono_key_for_type_info(ty: TypeInfo) -> String {
         if len(vec_name) > 0 {
             return vec_name
         }
-        return String_from("vec:i32")
+        return "vec:i32"
     }
     return mir_type_info_to_mono_key(ty)
 }
 
 fn mir_vec_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
-        return String_from("")
+        return ""
     }
     let vec_elem = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
     let elem_tag = mir_return_tag_from_type_info(vec_elem)
     if elem_tag == 1 {
-        return String_from("vec:i32")
+        return "vec:i32"
     }
     if elem_tag == 2 {
-        return String_from("vec:i64")
+        return "vec:i64"
     }
     if elem_tag == 3 {
-        return String_from("vec:f64")
+        return "vec:f64"
     }
     if elem_tag == 5 {
-        return String_from("vec:String")
+        return "vec:String"
     }
     if elem_tag == 10 {
-        return String_from("vec:Vec")
+        return "vec:Vec"
     }
     // Struct/enum elems (TomlField, TomlValue, JsonField, …) must keep
     // their names — collapsing to vec:i32 breaks Result::Ok(Vec) match
     // payload typing (#726 toml/json).
     let n = typeinfo_shape::mir_type_info_name(vec_elem)
     if len(n) > 0 {
-        return concat(String_from("vec:"), n)
+        return concat("vec:", n)
     }
-    String_from("vec:i32")
+    "vec:i32"
 }
 
 fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) < 2 {
-        return String_from("hashmap:si32")
+        return "hashmap:si32"
     }
     let key = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
     let val = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
     let key_tag = mir_return_tag_from_type_info(key)
     let val_tag = mir_return_tag_from_type_info(val)
     if key_tag == 5 && val_tag == 1 {
-        return String_from("hashmap:si32")
+        return "hashmap:si32"
     }
     if key_tag == 1 && val_tag == 5 {
-        return String_from("hashmap:i32str")
+        return "hashmap:i32str"
     }
     if key_tag == 5 && val_tag == 5 {
-        return String_from("hashmap:strstr")
+        return "hashmap:strstr"
     }
     if key_tag == 1 && val_tag == 1 {
-        return String_from("hashmap:i32i32")
+        return "hashmap:i32i32"
     }
     // TY_FN = 20; also accept TY_STRUCT named fnref from typechecker.
     let val_name = typeinfo_shape::mir_type_info_name(val)
     if key_tag == 1 && (
         val_tag == 20 ||
-        eq(clone(val_name), String_from("fnref")) ||
-        eq(clone(val_name), String_from("fn")) ||
-        starts_with(clone(val_name), String_from("fn("))
+        eq(clone(val_name), "fnref") ||
+        eq(clone(val_name), "fn") ||
+        starts_with(clone(val_name), "fn(")
     ) {
-        return String_from("hashmap:i32fn")
+        return "hashmap:i32fn"
     }
     if key_tag == 5 && (
         val_tag == 20 ||
-        eq(clone(val_name), String_from("fnref")) ||
-        eq(clone(val_name), String_from("fn")) ||
-        starts_with(clone(val_name), String_from("fn("))
+        eq(clone(val_name), "fnref") ||
+        eq(clone(val_name), "fn") ||
+        starts_with(clone(val_name), "fn(")
     ) {
-        return String_from("hashmap:strfn")
+        return "hashmap:strfn"
     }
-    String_from("hashmap:si32")
+    "hashmap:si32"
 }
 
 fn mir_tuple_elem_byte_size(ty: TypeInfo) -> i32 {
@@ -123,12 +123,12 @@ fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
     if arg_count <= 0 {
         return String_new()
     }
-    let mut name = String_from("tuple:")
+    let mut name = "tuple:"
     let mut i = 0
     while i < arg_count {
         let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
         if i > 0 {
-            name = concat(name, String_from(","))
+            name = concat(name, ",")
         }
         name = concat(name, mir_type_info_to_mono_key(elem))
         i = i + 1
@@ -139,7 +139,7 @@ fn mir_tuple_inner_name_from_type_info(ty: TypeInfo) -> String {
 fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
     if arg_count <= 0 {
-        return String_from("struct:tuple:0")
+        return "struct:tuple:0"
     }
     let mut has_type_var = false
     let mut i = 0
@@ -153,12 +153,12 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     let byte_size = mir_tuple_byte_size_from_type_info(ty)
     if has_type_var {
-        let mut name = String_from("struct:tuple:v:")
+        let mut name = "struct:tuple:v:"
         i = 0
         while i < arg_count {
             let elem = typeinfo_shape::mir_type_info_type_arg_at(ty, i)
             if i > 0 {
-                name = concat(name, String_from(","))
+                name = concat(name, ",")
             }
             if typeinfo_shape::mir_type_info_tag(elem) == 30 {
                 name = concat(name, typeinfo_shape::mir_type_info_name(elem))
@@ -171,18 +171,18 @@ fn mir_tuple_return_type_name_from_type_info(ty: TypeInfo) -> String {
     }
     if mir_tuple_has_gc_ref_elem(ty) {
         let inner = mir_tuple_inner_name_from_type_info(ty)
-        return concat(String_from("struct:"), concat(inner, concat(String_from(":"), i32_to_string(byte_size))))
+        return concat("struct:", concat(inner, concat(":", i32_to_string(byte_size))))
     }
-    concat(String_from("struct:tuple:"), i32_to_string(byte_size))
+    concat("struct:tuple:", i32_to_string(byte_size))
 }
 
 fn mir_option_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
-        return String_from("option:")
+        return "option:"
     }
     let inner = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
     let inner_key = mir_type_info_to_mono_key(inner)
-    concat(String_from("option:"), inner_key)
+    concat("option:", inner_key)
 }
 
 // Build a return type name for Result types.  Produces "Result_<ok>_<err>"
@@ -195,20 +195,20 @@ fn mir_result_return_type_name_from_type_info(ty: TypeInfo) -> String {
         let err_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 1)
         let ok_key = mir_mono_key_for_type_info(ok_arg)
         let err_key = mir_mono_key_for_type_info(err_arg)
-        return concat(String_from("Result_"), concat(ok_key, concat(String_from("_"), err_key)))
+        return concat("Result_", concat(ok_key, concat("_", err_key)))
     }
     if arg_count == 1 {
         let ok_arg = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
         let ok_key = mir_mono_key_for_type_info(ok_arg)
-        return concat(String_from("Result_"), ok_key)
+        return concat("Result_", ok_key)
     }
-    String_from("Result")
+    "Result"
 }
 
 fn mir_enum_return_type_name_from_type_info(ty: TypeInfo) -> String {
     let name = typeinfo_shape::mir_type_info_name(ty)
-    if eq(clone(name), String_from("Result")) {
+    if eq(clone(name), "Result") {
         return mir_result_return_type_name_from_type_info(ty)
     }
-    concat(String_from("enum:"), name)
+    concat("enum:", name)
 }

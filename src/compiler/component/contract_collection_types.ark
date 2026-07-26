@@ -2,7 +2,7 @@ use component::contract_helpers
 use component::type_node
 
 fn component_type_is_vec_i32(ty: ComponentTypeNode) -> bool {
-    type_node::type_node_is_generic_named_unary(ty, String_from("Vec"), String_from("i32"))
+    type_node::type_node_is_generic_named_unary(ty, "Vec", "i32")
 }
 
 fn component_return_type_is_vec_i32(f: ComponentExportFunc) -> bool {
@@ -33,27 +33,27 @@ fn component_return_type_is_generic_named_pair(f: ComponentExportFunc, generic_n
 }
 
 fn component_type_is_option_i32(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_unary(ty, String_from("Option"), String_from("i32"))
+    component_type_is_generic_named_unary(ty, "Option", "i32")
 }
 
 fn component_type_is_option_bool(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_unary(ty, String_from("Option"), String_from("bool"))
+    component_type_is_generic_named_unary(ty, "Option", "bool")
 }
 
 fn component_type_is_option_i64(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_unary(ty, String_from("Option"), String_from("i64"))
+    component_type_is_generic_named_unary(ty, "Option", "i64")
 }
 
 fn component_return_type_is_option_i32(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("i32"))
+    component_return_type_is_generic_named_unary(f, "Option", "i32")
 }
 
 fn component_return_type_is_option_bool(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("bool"))
+    component_return_type_is_generic_named_unary(f, "Option", "bool")
 }
 
 fn component_return_type_is_option_i64(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_unary(f, String_from("Option"), String_from("i64"))
+    component_return_type_is_generic_named_unary(f, "Option", "i64")
 }
 
 fn component_param_type_is_option_i32(f: ComponentExportFunc, idx: i32) -> bool {
@@ -71,27 +71,27 @@ fn component_param_type_is_option_i64(f: ComponentExportFunc, idx: i32) -> bool 
 }
 
 fn component_type_is_result_i32_string(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_pair(ty, String_from("Result"), String_from("i32"), String_from("String"))
+    component_type_is_generic_named_pair(ty, "Result", "i32", "String")
 }
 
 fn component_type_is_result_i32_i32(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_pair(ty, String_from("Result"), String_from("i32"), String_from("i32"))
+    component_type_is_generic_named_pair(ty, "Result", "i32", "i32")
 }
 
 fn component_type_is_result_bool_bool(ty: ComponentTypeNode) -> bool {
-    component_type_is_generic_named_pair(ty, String_from("Result"), String_from("bool"), String_from("bool"))
+    component_type_is_generic_named_pair(ty, "Result", "bool", "bool")
 }
 
 fn component_return_type_is_result_i32_string(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("i32"), String_from("String"))
+    component_return_type_is_generic_named_pair(f, "Result", "i32", "String")
 }
 
 fn component_return_type_is_result_i32_i32(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("i32"), String_from("i32"))
+    component_return_type_is_generic_named_pair(f, "Result", "i32", "i32")
 }
 
 fn component_return_type_is_result_bool_bool(f: ComponentExportFunc) -> bool {
-    component_return_type_is_generic_named_pair(f, String_from("Result"), String_from("bool"), String_from("bool"))
+    component_return_type_is_generic_named_pair(f, "Result", "bool", "bool")
 }
 
 fn component_param_type_is_result_i32_string(f: ComponentExportFunc, idx: i32) -> bool {

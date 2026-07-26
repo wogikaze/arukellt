@@ -34,7 +34,7 @@ fn emit_string_general_alias_section(out: writer_core::ComponentWriter, plan: ex
     let count = export_shapes_string_general::StringGeneralPlan_count(plan)
     writer_core::comp_emit_leb128_u(alias_sec, 2 + count)
     export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
-    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, "realloc")
     let mut i = 0
     while i < count {
         let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)

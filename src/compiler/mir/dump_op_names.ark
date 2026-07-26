@@ -25,5 +25,5 @@ fn mir_op_name(op: i32) -> String {
     if len(aggregate_name) > 0 {
         return aggregate_name
     }
-    String_from("?op")
+    "?op"
 }

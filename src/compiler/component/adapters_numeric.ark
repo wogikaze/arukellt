@@ -79,7 +79,7 @@ fn comp_emit_numeric_type_section(out: writer_core::ComponentWriter, user_param_
 fn comp_emit_numeric_import_section(out: writer_core::ComponentWriter, export_name: String) {
     let import_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(import_sec, 1)
-    writer_core::comp_emit_string(import_sec, String_from("user"))
+    writer_core::comp_emit_string(import_sec, "user")
     writer_core::comp_emit_string(import_sec, clone(export_name))
     writer_core::comp_emit_byte(import_sec, 0x00)
     writer_core::comp_emit_leb128_u(import_sec, 0)

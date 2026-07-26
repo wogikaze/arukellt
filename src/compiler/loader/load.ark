@@ -5,34 +5,34 @@ use driver::config_record
 
 pub fn load_prelude_modules() -> Vec<ModuleDecls> {
     let state = module_state::LoadState_new()
-    module_graph::load_stdlib_module(String_from("std::prelude"), state)
+    module_graph::load_stdlib_module("std::prelude", state)
     module_state_modules::LoadState_modules(state)
 }
 
 fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverConfig) -> LoadState {
     let load_state = module_state::LoadState_new()
     module_state::LoadState_set_cache_dir(load_state, config_record::config_cache_dir(config))
-    module_graph::load_stdlib_module(String_from("std::prelude"), load_state)
+    module_graph::load_stdlib_module("std::prelude", load_state)
     module_graph::load_imported_modules(decls, config_record::config_source_dir(config), load_state)
-    if contains(clone(source), String_from("HashMap_")) || contains(clone(source), String_from("HashSet_")) {
-        module_graph::load_stdlib_module(String_from("std::collections::hash"), load_state)
+    if contains(clone(source), "HashMap_") || contains(clone(source), "HashSet_") {
+        module_graph::load_stdlib_module("std::collections::hash", load_state)
     }
-    if contains(clone(source), String_from("HashMap_String")) ||
-    contains(clone(source), String_from("HashMap_new_String")) ||
-    contains(clone(source), String_from("HashMap_i32_String")) ||
-    contains(clone(source), String_from("HashMap_new_i32_String")) ||
-    contains(clone(source), String_from("HashSet_String")) {
-        module_graph::load_stdlib_module(String_from("std::collections::hash_string"), load_state)
+    if contains(clone(source), "HashMap_String") ||
+    contains(clone(source), "HashMap_new_String") ||
+    contains(clone(source), "HashMap_i32_String") ||
+    contains(clone(source), "HashMap_new_i32_String") ||
+    contains(clone(source), "HashSet_String") {
+        module_graph::load_stdlib_module("std::collections::hash_string", load_state)
     }
     // Separate module so HashMap_i32_String rebuilds do not require __hm_if_* (#833).
-    if contains(clone(source), String_from("HashMap_i32_fn")) ||
-    contains(clone(source), String_from("HashMap_new_i32_fn")) {
-        module_graph::load_stdlib_module(String_from("std::collections::hash_fn"), load_state)
+    if contains(clone(source), "HashMap_i32_fn") ||
+    contains(clone(source), "HashMap_new_i32_fn") {
+        module_graph::load_stdlib_module("std::collections::hash_fn", load_state)
     }
     // Separate module so String/String rebuilds do not require __hm_sf_* (#838).
-    if contains(clone(source), String_from("HashMap_String_fn")) ||
-    contains(clone(source), String_from("HashMap_new_String_fn")) {
-        module_graph::load_stdlib_module(String_from("std::collections::hash_str_fn"), load_state)
+    if contains(clone(source), "HashMap_String_fn") ||
+    contains(clone(source), "HashMap_new_String_fn") {
+        module_graph::load_stdlib_module("std::collections::hash_str_fn", load_state)
     }
     load_state
 }

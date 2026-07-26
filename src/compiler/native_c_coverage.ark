@@ -45,7 +45,7 @@ fn native_c_coverage_increment(counts: Vec<i32>, index: i32) {
 fn native_c_coverage_append_metric(report: String, category: String, id: i32, count: i32) -> String {
     let line = concat(
         category,
-        concat(String_from("|"), concat(to_string(id), concat(String_from("|"), concat(to_string(count), String_from("\n")))))
+        concat("|", concat(to_string(id), concat("|", concat(to_string(count), "\n"))))
     )
     text::builder_append(report, line)
 }
@@ -88,22 +88,22 @@ fn native_c_coverage_append_type_entries(report: String, table: TypeTable, type_
     while index < count {
         let entry = type_table::TypeTable_entry_at(table, index)
         let line = concat(
-            String_from("type_entry|"),
+            "type_entry|",
             concat(
                 to_string(type_id::TypeId_raw(type_table::type_entry_id(entry))),
                 concat(
-                    String_from("|"),
+                    "|",
                     concat(
                         to_string(type_table::type_entry_kind(entry)),
                         concat(
-                            String_from("|"),
+                            "|",
                             concat(
                                 to_string(get_unchecked(type_counts, index)),
                                 concat(
-                                    String_from("|"),
+                                    "|",
                                     concat(
                                         to_string(type_table::type_entry_type_param_count(entry)),
-                                        concat(String_from("|"), concat(type_table::type_entry_name(entry), String_from("\n")))
+                                        concat("|", concat(type_table::type_entry_name(entry), "\n"))
                                     )
                                 )
                             )
@@ -131,12 +131,12 @@ fn native_c_coverage_append_host_functions(
         if used > 0 {
             let entry = signature_registry::signature_registry_entry_at(registry, index)
             let line = concat(
-                String_from("host_function|"),
+                "host_function|",
                 concat(
                     to_string(index),
                     concat(
-                        String_from("|"),
-                        concat(to_string(used), concat(String_from("|"), concat(signature_entry::signature_entry_base_name(entry), String_from("\n"))))
+                        "|",
+                        concat(to_string(used), concat("|", concat(signature_entry::signature_entry_base_name(entry), "\n")))
                     )
                 )
             )
@@ -225,12 +225,12 @@ pub fn native_c_coverage_report(mir_module: MirModule) -> String {
                         unresolved_calls = text::builder_append(
                             unresolved_calls,
                             concat(
-                                String_from("unresolved_call|"),
+                                "unresolved_call|",
                                 concat(
                                     function_identity::MirFunction_name(function),
                                     concat(
-                                        String_from("|"),
-                                        concat(inst_record::mir_inst_str_val(instruction), String_from("\n"))
+                                        "|",
+                                        concat(inst_record::mir_inst_str_val(instruction), "\n")
                                     )
                                 )
                             )
@@ -255,44 +255,44 @@ pub fn native_c_coverage_report(mir_module: MirModule) -> String {
         }
         function_index = function_index + 1
     }
-    let mut report = String_from("NATIVE_CPP_COVERAGE_V1\n")
-    report = text::builder_append(report, concat(String_from("summary|functions|"), concat(to_string(function_count), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|blocks|"), concat(to_string(block_total), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|instructions|"), concat(to_string(instruction_total), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|phis|"), concat(to_string(phi_total), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|max_blocks|"), concat(to_string(max_blocks), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|max_locals|"), concat(to_string(max_locals), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|max_function_instructions|"), concat(to_string(max_function_instructions), String_from("\n"))))
-    report = text::builder_append(report, concat(String_from("summary|max_block_instructions|"), concat(to_string(max_block_instructions), String_from("\n"))))
+    let mut report = "NATIVE_CPP_COVERAGE_V1\n"
+    report = text::builder_append(report, concat("summary|functions|", concat(to_string(function_count), "\n")))
+    report = text::builder_append(report, concat("summary|blocks|", concat(to_string(block_total), "\n")))
+    report = text::builder_append(report, concat("summary|instructions|", concat(to_string(instruction_total), "\n")))
+    report = text::builder_append(report, concat("summary|phis|", concat(to_string(phi_total), "\n")))
+    report = text::builder_append(report, concat("summary|max_blocks|", concat(to_string(max_blocks), "\n")))
+    report = text::builder_append(report, concat("summary|max_locals|", concat(to_string(max_locals), "\n")))
+    report = text::builder_append(report, concat("summary|max_function_instructions|", concat(to_string(max_function_instructions), "\n")))
+    report = text::builder_append(report, concat("summary|max_block_instructions|", concat(to_string(max_block_instructions), "\n")))
     report = text::builder_append(
         report,
         concat(
-            String_from("summary|gc_structs|"),
-            concat(to_string(module_gc_struct::MirModule_gc_struct_sig_count(mir_module)), String_from("\n"))
+            "summary|gc_structs|",
+            concat(to_string(module_gc_struct::MirModule_gc_struct_sig_count(mir_module)), "\n")
         )
     )
     report = text::builder_append(
         report,
         concat(
-            String_from("summary|gc_enum_variants|"),
-            concat(to_string(module_gc_enum::MirModule_gc_enum_variant_sig_count(mir_module)), String_from("\n"))
+            "summary|gc_enum_variants|",
+            concat(to_string(module_gc_enum::MirModule_gc_enum_variant_sig_count(mir_module)), "\n")
         )
     )
     report = text::builder_append(
         report,
         concat(
-            String_from("summary|mono_instances|"),
+            "summary|mono_instances|",
             concat(
                 to_string(mono_instance_table::mono_instance_table_entry_count(module_spine::MirModule_mono_instance_table(mir_module))),
-                String_from("\n")
+                "\n"
             )
         )
     )
-    report = native_c_coverage_append_counts(report, String_from("opcode"), opcode_counts)
-    report = native_c_coverage_append_counts(report, String_from("core_op"), core_op_counts)
-    report = native_c_coverage_append_counts(report, String_from("legacy_type"), legacy_counts)
+    report = native_c_coverage_append_counts(report, "opcode", opcode_counts)
+    report = native_c_coverage_append_counts(report, "core_op", core_op_counts)
+    report = native_c_coverage_append_counts(report, "legacy_type", legacy_counts)
     report = native_c_coverage_append_type_entries(report, table, type_counts)
     report = native_c_coverage_append_host_functions(report, registry, host_counts)
     report = text::builder_append(report, unresolved_calls)
-    text::builder_append(report, String_from("NATIVE_CPP_COVERAGE_END"))
+    text::builder_append(report, "NATIVE_CPP_COVERAGE_END")
 }

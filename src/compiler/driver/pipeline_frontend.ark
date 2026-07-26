@@ -37,7 +37,7 @@ fn run_lex_parse(source: String, config: DriverConfig, t0: i64) -> DriverFronten
     if lex_errors > 0 {
         // Canonical i64 zeros. Stub overlay (fields→i32) narrows `0i64`→`0`
         // in scripts/selfhost/checks.py so bootstrap still type-checks.
-        return frontend_stop(result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)"))), t0, 0i64, 0i64)
+        return frontend_stop(result_record::CompileResult_err(phases::PHASE_LEX(), concat(to_string(lex_errors), " lexer error(s)")), t0, 0i64, 0i64)
     }
     let t_lex = clock::monotonic_now()
     let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)

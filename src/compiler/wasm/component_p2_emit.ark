@@ -21,8 +21,8 @@ use wasm::writer_core
 fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     // 1. Strip only wasi:clocks/ and wasi:random/
     let prefixes = Vec_new_String()
-    push(prefixes, String_from("wasi:clocks/"))
-    push(prefixes, String_from("wasi:random/"))
+    push(prefixes, "wasi:clocks/")
+    push(prefixes, "wasi:random/")
     let stripped = component_p2_strip::strip_wit_imports(core_wasm, prefixes)
 
     // 2. Build component
@@ -39,8 +39,8 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     p2_comp_emit_core_module(out, component_p2_bridged::p2_realloc_module_bytes())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_env_module())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_fs_module())
-    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("read"), String_from("stub_read"), 0))
-    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("exit"), String_from("stub_exit"), 1))
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named("read", "stub_read", 0))
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named("exit", "stub_exit", 1))
     p2_comp_emit_core_module(out, component_p2_bridged::p2_env_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_wrapper_module_bytes())
 

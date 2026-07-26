@@ -7,84 +7,84 @@ use corehir::return_ann_shape
 fn return_index_type_name(node: AstNode) -> String {
     let child_count = return_ann_shape::return_ann_child_count(node)
     if child_count <= 0 {
-        return String_from("")
+        return ""
     }
     let ret = return_ann_shape::return_ann_child(node)
     let name = decl_ann_name::decl_ann_name(ret)
-    if eq(clone(name), String_from("f64")) {
-        return String_from("f64")
+    if eq(clone(name), "f64") {
+        return "f64"
     }
-    if eq(clone(name), String_from("i64")) || eq(clone(name), String_from("u64")) {
+    if eq(clone(name), "i64") || eq(clone(name), "u64") {
         return clone(name)
     }
-    if eq(clone(name), String_from("void")) || eq(clone(name), String_from("()")) {
-        return String_from("")
+    if eq(clone(name), "void") || eq(clone(name), "()") {
+        return ""
     }
-    if eq(clone(name), String_from("i32")) ||
-    eq(clone(name), String_from("u32")) ||
-    eq(clone(name), String_from("u8")) ||
-    eq(clone(name), String_from("u16")) ||
-    eq(clone(name), String_from("i16")) ||
-    eq(clone(name), String_from("i8")) {
-        return String_from("i32")
+    if eq(clone(name), "i32") ||
+    eq(clone(name), "u32") ||
+    eq(clone(name), "u8") ||
+    eq(clone(name), "u16") ||
+    eq(clone(name), "i16") ||
+    eq(clone(name), "i8") {
+        return "i32"
     }
-    if eq(clone(name), String_from("bool")) {
-        return String_from("bool")
+    if eq(clone(name), "bool") {
+        return "bool"
     }
-    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("str")) {
-        return String_from("String")
+    if eq(clone(name), "String") || eq(clone(name), "str") {
+        return "String"
     }
     if decl_ann_name::decl_ann_is_generic(ret) {
-        if eq(clone(name), String_from("Vec")) && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+        if eq(clone(name), "Vec") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem = decl_ann_children::decl_ann_child_at(ret, 1)
-            return concat(String_from("vec:"), decl_ann_name::decl_ann_name(elem))
+            return concat("vec:", decl_ann_name::decl_ann_name(elem))
         }
-        if eq(clone(name), String_from("Option")) && decl_ann_children::decl_ann_child_count(ret) >= 2 {
+        if eq(clone(name), "Option") && decl_ann_children::decl_ann_child_count(ret) >= 2 {
             let elem_opt = decl_ann_children::decl_ann_child_at(ret, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem_opt)) ||
-            eq(decl_ann_name::decl_ann_name(elem_opt), String_from("fnref")) {
-                return String_from("option:fnref")
+            eq(decl_ann_name::decl_ann_name(elem_opt), "fnref") {
+                return "option:fnref"
             }
-            return concat(String_from("option:"), decl_ann_name::decl_ann_name(elem_opt))
+            return concat("option:", decl_ann_name::decl_ann_name(elem_opt))
         }
-        if eq(clone(name), String_from("HashMap")) && decl_ann_children::decl_ann_child_count(ret) >= 3 {
+        if eq(clone(name), "HashMap") && decl_ann_children::decl_ann_child_count(ret) >= 3 {
             let key = decl_ann_children::decl_ann_child_at(ret, 1)
             let val = decl_ann_children::decl_ann_child_at(ret, 2)
             let key_name = decl_ann_name::decl_ann_name(key)
             let val_name = decl_ann_name::decl_ann_name(val)
-            if eq(clone(key_name), String_from("String")) && eq(clone(val_name), String_from("i32")) {
-                return String_from("hashmap:si32")
+            if eq(clone(key_name), "String") && eq(clone(val_name), "i32") {
+                return "hashmap:si32"
             }
-            if eq(clone(key_name), String_from("i32")) && eq(clone(val_name), String_from("String")) {
-                return String_from("hashmap:i32str")
+            if eq(clone(key_name), "i32") && eq(clone(val_name), "String") {
+                return "hashmap:i32str"
             }
-            if eq(clone(key_name), String_from("String")) && eq(clone(val_name), String_from("String")) {
-                return String_from("hashmap:strstr")
+            if eq(clone(key_name), "String") && eq(clone(val_name), "String") {
+                return "hashmap:strstr"
             }
-            if eq(clone(key_name), String_from("i32")) && eq(clone(val_name), String_from("i32")) {
-                return String_from("hashmap:i32i32")
+            if eq(clone(key_name), "i32") && eq(clone(val_name), "i32") {
+                return "hashmap:i32i32"
             }
-            if eq(clone(key_name), String_from("i32")) && (
+            if eq(clone(key_name), "i32") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                eq(clone(val_name), String_from("fnref"))
+                eq(clone(val_name), "fnref")
             ) {
-                return String_from("hashmap:i32fn")
+                return "hashmap:i32fn"
             }
-            if eq(clone(key_name), String_from("String")) && (
+            if eq(clone(key_name), "String") && (
                 frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(val)) ||
-                eq(clone(val_name), String_from("fnref"))
+                eq(clone(val_name), "fnref")
             ) {
-                return String_from("hashmap:strfn")
+                return "hashmap:strfn"
             }
         }
         return clone(name)
     }
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ret)) ||
-    eq(clone(name), String_from("fnref")) {
-        return String_from("fnref")
+    eq(clone(name), "fnref") {
+        return "fnref"
     }
     if len(name) > 1 {
         return name
     }
-    String_from("")
+    ""
 }

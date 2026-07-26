@@ -36,13 +36,13 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 }
 
 fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, name: String) {
-    let ret_id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
+    let ret_id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec_new_TypeId())
     let ret_mv = mir_value_type::MirValueType_new(ret_id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     let returns = Vec_new_MirValueType()
     push(returns, ret_mv)
     let params = Vec_new_MirValueType()
     let receiver = mir_value_type::MirValueType_new(
-        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()),
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec_new_TypeId()),
         kinds::VALUE_REPR_SCALAR(),
         kinds::NULLABILITY_NOT_REF()
     )
@@ -73,6 +73,6 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
         i = i + 1
     }
     if diff > 0 {
-        stdio::eprintln(concat(String_from("sig-reg: host intrinsic stub diff count="), i32_to_string(diff)))
+        stdio::eprintln(concat("sig-reg: host intrinsic stub diff count=", i32_to_string(diff)))
     }
 }

@@ -4,23 +4,23 @@ use typechecker::match_coverage_record
 
 fn record_variant_pattern(coverage: MatchCoverage, pat: AstNode) {
     let pat_name = ast_access::node_text(pat)
-    if eq(clone(pat_name), String_from("Some")) || ends_with(clone(pat_name), String_from("::Some")) {
+    if eq(clone(pat_name), "Some") || ends_with(clone(pat_name), "::Some") {
         match_coverage_mark_record::match_coverage_mark_option_some(coverage)
     }
-    if eq(clone(pat_name), String_from("None")) || ends_with(clone(pat_name), String_from("::None")) {
+    if eq(clone(pat_name), "None") || ends_with(clone(pat_name), "::None") {
         match_coverage_mark_record::match_coverage_mark_option_none(coverage)
     }
-    if eq(clone(pat_name), String_from("Ok")) || ends_with(clone(pat_name), String_from("::Ok")) {
+    if eq(clone(pat_name), "Ok") || ends_with(clone(pat_name), "::Ok") {
         match_coverage_mark_record::match_coverage_mark_result_ok(coverage)
     }
-    if eq(clone(pat_name), String_from("Err")) || ends_with(clone(pat_name), String_from("::Err")) {
+    if eq(clone(pat_name), "Err") || ends_with(clone(pat_name), "::Err") {
         match_coverage_mark_record::match_coverage_mark_result_err(coverage)
     }
     match_coverage_mark_record::match_coverage_push_variant(coverage, variant_base_name(pat_name))
 }
 
 fn variant_base_name(name: String) -> String {
-    let colon_pos = index_of(clone(name), String_from("::"))
+    let colon_pos = index_of(clone(name), "::")
     if colon_pos >= 0 {
         return substring(name, colon_pos + 2, len(name))
     }

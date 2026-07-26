@@ -25,13 +25,13 @@ fn mir_lower_trace_line(on: i32, phase: i32, np: i32, nl: i32, nb: i32, rt: i32)
         return
     }
     let mut s = to_string(phase)
-    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, " ")
     s = text::builder_append(s, to_string(np))
-    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, " ")
     s = text::builder_append(s, to_string(nl))
-    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, " ")
     s = text::builder_append(s, to_string(nb))
-    s = text::builder_append(s, String_from(" "))
+    s = text::builder_append(s, " ")
     s = text::builder_append(s, to_string(rt))
     stdio::eprintln(s)
 }

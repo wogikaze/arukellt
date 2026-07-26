@@ -47,32 +47,32 @@ fn decl_layout_member_type_ann_at(member: AstNode, index: i32) -> AstNode {
 
 fn decl_layout_field_type_name(field: AstNode) -> String {
     if decl_layout_member_type_ann_count(field) == 0 {
-        return String_from("")
+        return ""
     }
     let fty = decl_layout_member_type_ann_at(field, 0)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(fty)) {
-        return String_from("fnref")
+        return "fnref"
     }
     if type_ann_node::type_ann_is_generic(fty) {
-        if type_ann_node::type_ann_is_name(fty, String_from("Vec")) {
+        if type_ann_node::type_ann_is_name(fty, "Vec") {
             if type_ann_node::type_ann_child_count(fty) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(fty, 1)
-                return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
             }
         }
         // Struct fields like JsonParseStep.value: Result<JsonValue, E>
         // must keep Ok/Err params for match payload typing (#726 json).
-        if type_ann_node::type_ann_is_name(fty, String_from("Option")) {
+        if type_ann_node::type_ann_is_name(fty, "Option") {
             if type_ann_node::type_ann_child_count(fty) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(fty, 1)
-                return concat(String_from("option:"), type_ann_node::type_ann_name(elem_ty))
+                return concat("option:", type_ann_node::type_ann_name(elem_ty))
             }
         }
-        if type_ann_node::type_ann_is_name(fty, String_from("Result")) {
+        if type_ann_node::type_ann_is_name(fty, "Result") {
             if type_ann_node::type_ann_child_count(fty) >= 3 {
                 let ok_ty = type_ann_node::type_ann_child_at(fty, 1)
                 let err_ty = type_ann_node::type_ann_child_at(fty, 2)
-                return concat(concat(String_from("result:"), type_ann_node::type_ann_name(ok_ty)), concat(String_from(":"), type_ann_node::type_ann_name(err_ty)))
+                return concat(concat("result:", type_ann_node::type_ann_name(ok_ty)), concat(":", type_ann_node::type_ann_name(err_ty)))
             }
         }
         let gname = type_ann_node::type_ann_name(fty)
@@ -83,12 +83,12 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
         if type_ann_node::type_ann_is_named(fty) {
             let ty_text = type_ann_node::type_ann_name(fty)
             if eq(clone(ty_text), "u8") {
-                return String_from("i32")
+                return "i32"
             }
             return ty_text
         }
     }
-    String_from("")
+    ""
 }
 
 fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
@@ -96,26 +96,26 @@ fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
     // Array(Vec<TomlValue>) / Table(Vec<TomlField>) register as vec:*
     // instead of empty → _f1_ref14 (#726 toml/json).
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(pfield)) {
-        return String_from("fnref")
+        return "fnref"
     }
     if type_ann_node::type_ann_is_generic(pfield) {
-        if type_ann_node::type_ann_is_name(pfield, String_from("Vec")) {
+        if type_ann_node::type_ann_is_name(pfield, "Vec") {
             if type_ann_node::type_ann_child_count(pfield) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(pfield, 1)
-                return concat(String_from("vec:"), type_ann_node::type_ann_name(elem_ty))
+                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
             }
         }
-        if type_ann_node::type_ann_is_name(pfield, String_from("Option")) {
+        if type_ann_node::type_ann_is_name(pfield, "Option") {
             if type_ann_node::type_ann_child_count(pfield) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(pfield, 1)
-                return concat(String_from("option:"), type_ann_node::type_ann_name(elem_ty))
+                return concat("option:", type_ann_node::type_ann_name(elem_ty))
             }
         }
-        if type_ann_node::type_ann_is_name(pfield, String_from("Result")) {
+        if type_ann_node::type_ann_is_name(pfield, "Result") {
             if type_ann_node::type_ann_child_count(pfield) >= 3 {
                 let ok_ty = type_ann_node::type_ann_child_at(pfield, 1)
                 let err_ty = type_ann_node::type_ann_child_at(pfield, 2)
-                return concat(concat(String_from("result:"), type_ann_node::type_ann_name(ok_ty)), concat(String_from(":"), type_ann_node::type_ann_name(err_ty)))
+                return concat(concat("result:", type_ann_node::type_ann_name(ok_ty)), concat(":", type_ann_node::type_ann_name(err_ty)))
             }
         }
         // Fallback: preserve GenericName<...> text via local-name helper shape.
@@ -127,9 +127,9 @@ fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
     if type_ann_node::type_ann_is_named(pfield) {
         let ty_text = type_ann_node::type_ann_name(pfield)
         if eq(clone(ty_text), "u8") {
-            return String_from("i32")
+            return "i32"
         }
         return ty_text
     }
-    String_from("")
+    ""
 }

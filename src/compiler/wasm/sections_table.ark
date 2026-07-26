@@ -18,7 +18,7 @@ fn module_has_funcref_params(mir: MirModule) -> bool {
         while pi < pc {
             let p = function_param_view::MirFunction_param_at(f, pi)
             let type_name = local_access::MirLocal_type_name(p)
-            if eq(clone(type_name), String_from("fnref")) {
+            if eq(clone(type_name), "fnref") {
                 return true
             }
             pi = pi + 1

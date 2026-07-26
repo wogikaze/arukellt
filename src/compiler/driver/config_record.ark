@@ -24,10 +24,10 @@ struct DriverConfig {
 
 fn DriverConfig_default() -> DriverConfig {
     DriverConfig {
-        target: String_from("wasm32-gc"),
-        wasi_version: String_from("wasi-p2"),
+        target: "wasm32-gc",
+        wasi_version: "wasi-p2",
         opt_level: 0,
-        emit_mode: String_from("wasm"),
+        emit_mode: "wasm",
         wit_paths: Vec_new_String(),
         dump_tokens: false,
         dump_ast: false,
@@ -36,7 +36,7 @@ fn DriverConfig_default() -> DriverConfig {
         dump_wasm: false,
         parse_only: false,
         check_only: false,
-        source_dir: String_from("."),
+        source_dir: ".",
         source_file: String_new(),
         show_timing: false,
         world: String_new(),

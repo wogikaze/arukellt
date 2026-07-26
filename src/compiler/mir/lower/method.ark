@@ -5,7 +5,7 @@ use mir::lower::method_emit
 use mir::lower::method_resolve
 
 fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i32) -> String {
-    let mut struct_name = String_from("")
+    let mut struct_name = ""
     if receiver_idx >= 0 {
         struct_name = ctx_get_local_type(ctx, receiver_idx)
     }
@@ -13,7 +13,7 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // resolve it to a concrete type via the monomorphization type
     // parameter mapping. This enables `x.method()` inside generic
     // functions `<T: Trait>` to resolve to `ConcreteType::method`.
-    if len(struct_name) > 0 && starts_with(clone(struct_name), String_from("?")) {
+    if len(struct_name) > 0 && starts_with(clone(struct_name), "?") {
         let bare_name = substring(clone(struct_name), 1, len(struct_name))
         let resolved = ctx_mono_type_params::ctx_resolve_mono_type_param(ctx, bare_name)
         if len(resolved) > 0 {
@@ -23,18 +23,18 @@ fn mir_initial_method_callee(ctx: LowerCtx, method_name: String, receiver_idx: i
     // Normalize builtin type names so method calls resolve correctly.
     // Vec locals carry type "vec:i32" / "vec:String" etc.; normalize to "Vec".
     // String locals carry type "string"; normalize to "String".
-    if starts_with(clone(struct_name), String_from("vec:")) {
-        struct_name = String_from("Vec")
+    if starts_with(clone(struct_name), "vec:") {
+        struct_name = "Vec"
     }
-    if eq(clone(struct_name), String_from("string")) {
-        struct_name = String_from("String")
+    if eq(clone(struct_name), "string") {
+        struct_name = "String"
     }
     // Strip aggregate classifiers, module path prefixes, and per-use instance
     // suffixes (e.g. "struct:VecIter:12" or "std::core::iter::VecIter:12")
     // so method calls resolve to the unqualified base type name.
     struct_name = method_resolve::mir_normalize_type_name(clone(struct_name))
     if len(struct_name) > 0 {
-        return concat(clone(struct_name), concat(String_from("::"), clone(method_name)))
+        return concat(clone(struct_name), concat("::", clone(method_name)))
     }
     method_name
 }

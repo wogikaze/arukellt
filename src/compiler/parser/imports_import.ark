@@ -18,6 +18,6 @@ fn parse_import_decl(p: Parser) -> AstNode {
     if k == tokens::TK_IDENT() {
         return imports_local::parse_local_import(p, span)
     }
-    diagnostics::parser_push_unexpected_error(p, String_from("expected string literal or identifier after import"))
+    diagnostics::parser_push_unexpected_error(p, "expected string literal or identifier after import")
     core_ast_factory::AstNode_new(kinds::NK_IMPORT(), span)
 }

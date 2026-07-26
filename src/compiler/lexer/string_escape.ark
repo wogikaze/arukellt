@@ -15,7 +15,7 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
             return Token_new(tokens::TK_STRING(), result, start, lex.pos)
         }
         if c == 10 {
-            return Token_new(tokens::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+            return Token_new(tokens::TK_ERROR(), "unterminated string", start, lex.pos)
         }
         if c == 92 {
             if span_start < lex.pos {
@@ -23,7 +23,7 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
             }
             lex.pos = lex.pos + 1
             if lex.pos >= lex.src_len {
-                return Token_new(tokens::TK_ERROR(), String_from("unterminated escape"), start, lex.pos)
+                return Token_new(tokens::TK_ERROR(), "unterminated escape", start, lex.pos)
             }
             let esc = peek(lex)
             lex.pos = lex.pos + 1
@@ -33,5 +33,5 @@ fn lex_escaped_string(lex: Lexer, start: i32) -> Token {
             lex.pos = lex.pos + 1
         }
     }
-    Token_new(tokens::TK_ERROR(), String_from("unterminated string"), start, lex.pos)
+    Token_new(tokens::TK_ERROR(), "unterminated string", start, lex.pos)
 }

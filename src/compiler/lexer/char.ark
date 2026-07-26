@@ -16,7 +16,7 @@ fn lex_char_literal(lex: Lexer) -> Token {
                 return char_token::Token_char_value(lex, char_start, cv)
             }
         }
-        return Token_new(tokens::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+        return Token_new(tokens::TK_ERROR(), "unterminated char literal", char_start, lex.pos)
     }
     if lex.pos < lex.src_len {
         let cv = char_at(lex.src, lex.pos)
@@ -26,5 +26,5 @@ fn lex_char_literal(lex: Lexer) -> Token {
             return char_token::Token_char_value(lex, char_start, cv)
         }
     }
-    Token_new(tokens::TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+    Token_new(tokens::TK_ERROR(), "unterminated char literal", char_start, lex.pos)
 }

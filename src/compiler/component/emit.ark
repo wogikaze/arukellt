@@ -6,10 +6,10 @@ use component::writer_core
 use wasm
 
 fn emit_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, wasi_version: String, _world: String) -> Vec<i32> {
-    if eq(clone(wasi_version), String_from("wasi-p2")) {
+    if eq(clone(wasi_version), "wasi-p2") {
         return wasm::emit_p2_command_component(core_wasm)
     }
-    if eq(clone(wasi_version), String_from("p1-component")) {
+    if eq(clone(wasi_version), "p1-component") {
         return wasm::emit_library_component(core_wasm, mir)
     }
     // Specialized emit lowered to drop+unreachable with an i64 return temp and

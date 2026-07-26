@@ -14,7 +14,7 @@ fn SEMANTIC_TRAIT_ID_FROM() -> i32 {
 // Map an impl-header trait name discovered in CoreHIR to a canonical id.
 // Discovery may read the declaration name; resolution of `?` uses the id.
 fn semantic_trait_id_from_trait_name(trait_name: String) -> i32 {
-    if eq(clone(trait_name), String_from("From")) {
+    if eq(clone(trait_name), "From") {
         return SEMANTIC_TRAIT_ID_FROM()
     }
     SEMANTIC_TRAIT_ID_NONE()

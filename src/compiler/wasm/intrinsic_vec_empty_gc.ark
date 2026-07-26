@@ -54,7 +54,7 @@ fn is_empty_arg_is_string(inst: MirInst, ctx: SelfEmitCtx) -> bool {
             let cur = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(cur) == mir_opcodes::MIR_CALL() {
                 let callee = inst_accessors_literals::MirInst_str_val(cur)
-                if eq(clone(callee), String_from("is_empty")) {
+                if eq(clone(callee), "is_empty") {
                     if ii > 0 {
                         let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
                         if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
@@ -82,7 +82,7 @@ fn check_local_is_vec_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if local_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("vec:String")) {
+        if eq(clone(tname), "vec:String") {
             return true
         }
     }
@@ -98,7 +98,7 @@ fn check_local_is_string(local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if local_idx < function_locals_view::MirFunction_local_count(f) {
         let loc = function_locals_view::MirFunction_local_at(f, local_idx)
         let tname = local_access::MirLocal_type_name(loc)
-        if eq(clone(tname), String_from("String")) || eq(clone(tname), String_from("string")) {
+        if eq(clone(tname), "String") || eq(clone(tname), "string") {
             return true
         }
     }

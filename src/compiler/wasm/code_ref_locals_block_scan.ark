@@ -52,7 +52,7 @@ fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEm
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         let scanned_over_string = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
         match scanned_over_string {
             Option::Some(scanned_v) => {

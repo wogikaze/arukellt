@@ -62,7 +62,7 @@ fn node_first_type_ann(node: AstNode) -> AstNode {
 }
 
 fn node_is_return_ann(node: AstNode) -> bool {
-    eq(node_text(node), String_from("__return"))
+    eq(node_text(node), "__return")
 }
 
 fn node_is_type_named(node: AstNode) -> bool {

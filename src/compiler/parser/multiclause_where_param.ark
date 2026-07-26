@@ -8,5 +8,5 @@ fn where_multiclause_param_name(first: AstNode) -> String {
     if ast_kind_fields::AstNode_kind(first_param) == kinds::NK_IDENT() {
         return core_ast_text_fields::AstNode_text(first_param)
     }
-    String_from("__arg0")
+    "__arg0"
 }

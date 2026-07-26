@@ -6,28 +6,28 @@ use mir::phi_access
 
 fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
     let count = len(args)
-    let mut out = String_from("[")
+    let mut out = "["
     let mut i = 0
     while i < count {
         let arg = get_unchecked(args, i)
         if i > 0 {
-            out = text::builder_append(out, String_from(", "))
+            out = text::builder_append(out, ", ")
         }
-        out = text::builder_append(out, String_from("bb"))
+        out = text::builder_append(out, "bb")
         out = text::builder_append(out, to_string(phi_access::MirPhiArg_pred_block(arg)))
-        out = text::builder_append(out, String_from(" -> "))
+        out = text::builder_append(out, " -> ")
         out = text::builder_append(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhiArg_local(arg)))
         i = i + 1
     }
-    concat(out, String_from("]"))
+    concat(out, "]")
 }
 
 fn mir_format_phi(f: MirFunction, phi: MirPhi) -> String {
     let mut out = dump_op_names::mir_op_name(phi_access::MirPhi_op(phi))
-    out = text::builder_append(out, String_from(" "))
+    out = text::builder_append(out, " ")
     out = text::builder_append(out, dump_format_local::mir_format_local_ref(f, phi_access::MirPhi_dest(phi)))
-    out = text::builder_append(out, String_from(" = "))
+    out = text::builder_append(out, " = ")
     out = text::builder_append(out, mir_format_phi_args(f, phi_access::MirPhi_args(phi)))
-    out = text::builder_append(out, String_from(" : "))
+    out = text::builder_append(out, " : ")
     concat(out, dump_format_types::mir_value_type_name(phi_access::MirPhi_val_type(phi)))
 }

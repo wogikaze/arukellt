@@ -17,23 +17,23 @@ fn build_semantic_fix_edit(
         import_block::ImportBlockSpan_start(span)
     )
     let end_pos = positions::offset_to_position(text, import_block::ImportBlockSpan_end(span))
-    let mut out = String_from("{\"title\":")
+    let mut out = "{\"title\":"
     out = text::builder_append(out, json_escape::quote_string(title))
-    out = text::builder_append(out, String_from(",\"kind\":"))
+    out = text::builder_append(out, ",\"kind\":")
     out = text::builder_append(out, json_escape::quote_string(kind))
-    out = text::builder_append(out, String_from(",\"edit\":{\"changes\":{"))
+    out = text::builder_append(out, ",\"edit\":{\"changes\":{")
     out = text::builder_append(out, json_escape::quote_string(uri))
-    out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
+    out = text::builder_append(out, ":[{\"range\":{\"start\":{\"line\":")
     out = text::builder_append(out, to_string(positions::lsp_position_line(start_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, ",\"character\":")
     out = text::builder_append(out, to_string(positions::lsp_position_character(start_pos)))
-    out = text::builder_append(out, String_from("},\"end\":{\"line\":"))
+    out = text::builder_append(out, "},\"end\":{\"line\":")
     out = text::builder_append(out, to_string(positions::lsp_position_line(end_pos)))
-    out = text::builder_append(out, String_from(",\"character\":"))
+    out = text::builder_append(out, ",\"character\":")
     out = text::builder_append(out, to_string(positions::lsp_position_character(end_pos)))
-    out = text::builder_append(out, String_from("}},\"newText\":"))
+    out = text::builder_append(out, "}},\"newText\":")
     out = text::builder_append(out, json_escape::quote_string(fixed_block))
-    out = text::builder_append(out, String_from("}]}}}"))
+    out = text::builder_append(out, "}]}}}")
     out
 }
 
@@ -49,17 +49,17 @@ fn build_semantic_fix_action(uri: String, text: String, title: String, kind: Str
 }
 
 pub fn build_organize_imports_action(uri: String, text: String) -> String {
-    build_semantic_fix_action(uri, text, String_from("Organize Imports"), String_from("source.organizeImports"))
+    build_semantic_fix_action(uri, text, "Organize Imports", "source.organizeImports")
 }
 
 pub fn build_fix_all_action(uri: String, text: String) -> String {
-    build_semantic_fix_action(uri, text, String_from("Fix All"), String_from("source.fixAll"))
+    build_semantic_fix_action(uri, text, "Fix All", "source.fixAll")
 }
 
 pub fn request_wants_organize_imports(body: String) -> bool {
-    index_of(clone(body), String_from("source.organizeImports")) >= 0
+    index_of(clone(body), "source.organizeImports") >= 0
 }
 
 pub fn request_wants_fix_all(body: String) -> bool {
-    index_of(clone(body), String_from("source.fixAll")) >= 0
+    index_of(clone(body), "source.fixAll") >= 0
 }

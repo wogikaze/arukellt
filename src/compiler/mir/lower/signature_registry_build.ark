@@ -57,7 +57,7 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     let host_count = signature_registry::signature_registry_host_intrinsic_count(registry)
     let reg_normal = reg_count - host_count
     if fn_count != reg_normal {
-        stdio::eprintln(concat(String_from("sig-reg: fn_index/registry count mismatch fn="), concat(i32_to_string(fn_count), concat(String_from(" reg="), i32_to_string(reg_normal)))))
+        stdio::eprintln(concat("sig-reg: fn_index/registry count mismatch fn=", concat(i32_to_string(fn_count), concat(" reg=", i32_to_string(reg_normal)))))
     }
 }
 
@@ -77,7 +77,7 @@ fn sig_reg_index_top_level_fn(
         typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)
     }
     let entry_main = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow = eq(clone(decl_name), String_from("main")) && decl_index != entry_main
+    let skip_shadow = eq(clone(decl_name), "main") && decl_index != entry_main
     if !skip_shadow {
         signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
         signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)

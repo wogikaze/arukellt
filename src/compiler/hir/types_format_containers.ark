@@ -1,31 +1,31 @@
 fn vec_type_name(elem_name: String) -> String {
-    concat(String_from("Vec<"), concat(elem_name, String_from(">")))
+    concat("Vec<", concat(elem_name, ">"))
 }
 
 fn vec_type_name_empty() -> String {
-    String_from("Vec")
+    "Vec"
 }
 
 fn option_type_name(elem_name: String) -> String {
-    concat(String_from("Option<"), concat(elem_name, String_from(">")))
+    concat("Option<", concat(elem_name, ">"))
 }
 
 fn option_type_name_empty() -> String {
-    String_from("Option")
+    "Option"
 }
 
 fn future_type_name(elem_name: String) -> String {
-    concat(String_from("Future<"), concat(elem_name, String_from(">")))
+    concat("Future<", concat(elem_name, ">"))
 }
 
 fn future_type_name_empty() -> String {
-    String_from("Future")
+    "Future"
 }
 
 fn stream_type_name(elem_name: String) -> String {
-    concat(String_from("Stream<"), concat(elem_name, String_from(">")))
+    concat("Stream<", concat(elem_name, ">"))
 }
 
 fn stream_type_name_empty() -> String {
-    String_from("Stream")
+    "Stream"
 }

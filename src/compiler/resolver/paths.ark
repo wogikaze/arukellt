@@ -1,5 +1,5 @@
 fn path_module_part(path: String) -> String {
-    let pos = index_of(clone(path), String_from("::"))
+    let pos = index_of(clone(path), "::")
     if pos < 0 {
         return clone(path)
     }
@@ -7,7 +7,7 @@ fn path_module_part(path: String) -> String {
 }
 
 fn path_symbol_part(path: String) -> String {
-    let pos = index_of(clone(path), String_from("::"))
+    let pos = index_of(clone(path), "::")
     if pos < 0 {
         return String_new()
     }
@@ -19,7 +19,7 @@ fn use_module_short_name(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if eq(substring(path, i, i + 2), String_from("::")) {
+        if eq(substring(path, i, i + 2), "::") {
             last_sep = i
             i = 0 - 1
         } else {
@@ -38,7 +38,7 @@ fn use_module_parent_path(path: String) -> String {
     let mut last_sep = 0 - 1
     let mut i = n - 2
     while i >= 0 {
-        if eq(substring(path, i, i + 2), String_from("::")) {
+        if eq(substring(path, i, i + 2), "::") {
             last_sep = i
             i = 0 - 1
         } else {

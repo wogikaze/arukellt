@@ -6,27 +6,27 @@ use parser::token_state
 
 fn parser_token_kind_name(kind: i32) -> String {
     if kind == tokens::TK_RBRACE() {
-        return String_from("RBrace")
+        return "RBrace"
     }
     if kind == tokens::TK_LBRACE() {
-        return String_from("LBrace")
+        return "LBrace"
     }
     if kind == tokens::TK_RPAREN() {
-        return String_from("RParen")
+        return "RParen"
     }
     if kind == tokens::TK_LPAREN() {
-        return String_from("LParen")
+        return "LParen"
     }
     if kind == tokens::TK_SEMI() {
-        return String_from("Semi")
+        return "Semi"
     }
     if kind == tokens::TK_COMMA() {
-        return String_from("Comma")
+        return "Comma"
     }
     if kind == tokens::TK_EOF() {
-        return String_from("Eof")
+        return "Eof"
     }
-    String_from("token")
+    "token"
 }
 
 fn parser_expected_code(expected: i32) -> String {
@@ -38,7 +38,7 @@ fn parser_expected_code(expected: i32) -> String {
 
 fn parser_push_expected_token_error(p: Parser, expected: i32, actual: i32, tok: Token) {
     let expected_name = parser_token_kind_name(expected)
-    let message = concat(String_from("expected `"), concat(expected_name, String_from("`")))
+    let message = concat("expected `", concat(expected_name, "`"))
     let diag = record::Diagnostic_new_parse(parser_expected_code(expected), message, token_state::Token_start(tok), token_state::Token_end(tok))
     push(p.errors, diag)
 }

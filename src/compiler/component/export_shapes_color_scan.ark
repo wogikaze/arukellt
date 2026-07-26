@@ -55,10 +55,10 @@ fn comp_function_is_color_to_color_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Color")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Color") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Color"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Color")
 }
 
 fn comp_function_is_color_to_i32_export(f: MirFunction) -> bool {
@@ -68,10 +68,10 @@ fn comp_function_is_color_to_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "i32") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Color"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Color")
 }
 
 fn comp_color_pair_color_to_color_name(scan: ComponentColorExportScan) -> String {

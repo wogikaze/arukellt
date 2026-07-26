@@ -1,22 +1,22 @@
 use typechecker::kinds
 
 fn type_tag_name(tag: i32) -> String {
-    if tag == commands::TY_I32() { return String_from("i32") }
-    if tag == commands::TY_I64() { return String_from("i64") }
-    if tag == commands::TY_F64() { return String_from("f64") }
-    if tag == commands::TY_F32() { return String_from("f32") }
-    if tag == commands::TY_V128() { return String_from("v128") }
-    if tag == commands::TY_BOOL() { return String_from("bool") }
-    if tag == commands::TY_STRING() { return String_from("String") }
-    if tag == commands::TY_CHAR() { return String_from("char") }
-    if tag == commands::TY_UNIT() { return String_from("()") }
-    if tag == commands::TY_VEC() { return String_from("Vec") }
-    if tag == commands::TY_FUTURE() { return String_from("Future") }
-    if tag == commands::TY_STREAM() { return String_from("Stream") }
-    if tag == commands::TY_FN() { return String_from("fn") }
-    if tag == commands::TY_STRUCT() { return String_from("struct") }
-    if tag == commands::TY_ENUM() { return String_from("enum") }
-    if tag == commands::TY_RESOURCE() { return String_from("resource") }
-    if tag == commands::TY_TYPE_VAR() { return String_from("var") }
-    String_from("?")
+    if tag == commands::TY_I32() { return "i32" }
+    if tag == commands::TY_I64() { return "i64" }
+    if tag == commands::TY_F64() { return "f64" }
+    if tag == commands::TY_F32() { return "f32" }
+    if tag == commands::TY_V128() { return "v128" }
+    if tag == commands::TY_BOOL() { return "bool" }
+    if tag == commands::TY_STRING() { return "String" }
+    if tag == commands::TY_CHAR() { return "char" }
+    if tag == commands::TY_UNIT() { return "()" }
+    if tag == commands::TY_VEC() { return "Vec" }
+    if tag == commands::TY_FUTURE() { return "Future" }
+    if tag == commands::TY_STREAM() { return "Stream" }
+    if tag == commands::TY_FN() { return "fn" }
+    if tag == commands::TY_STRUCT() { return "struct" }
+    if tag == commands::TY_ENUM() { return "enum" }
+    if tag == commands::TY_RESOURCE() { return "resource" }
+    if tag == commands::TY_TYPE_VAR() { return "var" }
+    "?"
 }

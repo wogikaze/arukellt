@@ -14,7 +14,7 @@ use diagnostics::mod as diag_mod
 fn prefer_use_import_threshold() -> i32 { 3 }
 
 fn is_module_style_qualified_path(path: String) -> bool {
-    let pos = index_of(clone(path), String_from("::"))
+    let pos = index_of(clone(path), "::")
     if pos < 0 {
         return false
     }
@@ -103,7 +103,7 @@ pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
         }
         let uses = count_same_path(paths, clone(path))
         if uses >= threshold {
-            let msg = concat(concat(String_from("qualified path `"), clone(path)), String_from("` used repeatedly; prefer `use` and call the short name"))
+            let msg = concat(concat("qualified path `", clone(path)), "` used repeatedly; prefer `use` and call the short name")
             let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_USE_IMPORT(), diag_mod::SEV_WARNING(), span, msg))
         }

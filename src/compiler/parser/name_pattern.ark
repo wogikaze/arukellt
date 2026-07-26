@@ -2,16 +2,16 @@ use parser::kinds
 
 fn pattern_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_PAT_IDENT() {
-        return String_from("PatIdent")
+        return "PatIdent"
     }
     if kind == kinds::NK_PAT_WILDCARD() {
-        return String_from("PatWild")
+        return "PatWild"
     }
     if kind == kinds::NK_PAT_LITERAL() {
-        return String_from("PatLit")
+        return "PatLit"
     }
     if kind == kinds::NK_PAT_VARIANT() {
-        return String_from("PatVariant")
+        return "PatVariant"
     }
     String_new()
 }

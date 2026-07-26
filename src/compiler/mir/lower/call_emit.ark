@@ -11,16 +11,16 @@ use mir::lower::call_types
 use mir::value_types
 
 fn mir_is_simd_lane_immediate_callee(callee_name: String) -> bool {
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_replace_lane")) {
+    if starts_with(clone(callee_name), "__simd_") && ends_with(clone(callee_name), "_replace_lane") {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane")) {
+    if starts_with(clone(callee_name), "__simd_") && ends_with(clone(callee_name), "_extract_lane") {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane_s")) {
+    if starts_with(clone(callee_name), "__simd_") && ends_with(clone(callee_name), "_extract_lane_s") {
         return true
     }
-    if starts_with(clone(callee_name), String_from("__simd_")) && ends_with(clone(callee_name), String_from("_extract_lane_u")) {
+    if starts_with(clone(callee_name), "__simd_") && ends_with(clone(callee_name), "_extract_lane_u") {
         return true
     }
     false
@@ -68,9 +68,9 @@ fn mir_emit_direct_call(
     if first_arg_idx >= 0 && (
         call_args::mir_is_printlike_callee(clone(callee_name)) ||
         call_type_vec::is_get_unchecked_callee(clone(callee_name)) ||
-        eq(clone(callee_name), String_from("push")) ||
-        eq(clone(callee_name), String_from("vec_push")) ||
-        starts_with(clone(callee_name), String_from("push__"))
+        eq(clone(callee_name), "push") ||
+        eq(clone(callee_name), "vec_push") ||
+        starts_with(clone(callee_name), "push__")
     ) {
         ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call_with_first_arg_vt(clone(callee_name), arg_count, dest, first_arg_idx, dest_vt))
     } else if lane_immediate >= 0 && mir_is_simd_lane_immediate_callee(clone(callee_name)) {

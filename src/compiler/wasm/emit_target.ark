@@ -1,7 +1,7 @@
 use wasm::constants
 
 fn is_gc_target(target: String) -> bool {
-    eq(clone(target), String_from("wasm32-gc"))
+    eq(clone(target), "wasm32-gc")
 }
 
 // ADR-007: Memory64 is default emit OK for wasm32-gc only (not wasm32/iwasm).
@@ -24,11 +24,11 @@ fn is_simd_target(target: String) -> bool {
 }
 
 fn is_p2_wasi(wasi_version: String) -> bool {
-    eq(clone(wasi_version), String_from("wasi-p2"))
+    eq(clone(wasi_version), "wasi-p2")
 }
 
 fn is_component_stub_wasi(wasi_version: String) -> bool {
-    eq(clone(wasi_version), String_from("p1-component"))
+    eq(clone(wasi_version), "p1-component")
 }
 
 // Canonical wasm32 modules without arukellt_host use the same 7-import WASI

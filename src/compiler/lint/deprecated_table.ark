@@ -6,20 +6,20 @@
 
 // Returns a non-empty replacement message if the `use` path is deprecated.
 pub fn deprecated_use_message(path: String) -> String {
-    if eq(clone(path), String_from("std::io")) {
-        return String_from("module `std::io` has moved to `std::host::stdio`")
+    if eq(clone(path), "std::io") {
+        return "module `std::io` has moved to `std::host::stdio`"
     }
-    if eq(clone(path), String_from("std::time")) {
-        return String_from("import `use std::host::clock` and call `clock::monotonic_now()`")
+    if eq(clone(path), "std::time") {
+        return "import `use std::host::clock` and call `clock::monotonic_now()`"
     }
-    if eq(clone(path), String_from("std::fs")) {
-        return String_from("module `std::fs` has moved to `std::host::fs`")
+    if eq(clone(path), "std::fs") {
+        return "module `std::fs` has moved to `std::host::fs`"
     }
-    if eq(clone(path), String_from("std::env")) {
-        return String_from("module `std::env` has moved to `std::host::env`")
+    if eq(clone(path), "std::env") {
+        return "module `std::env` has moved to `std::host::env`"
     }
-    if eq(clone(path), String_from("std::process")) {
-        return String_from("module `std::process` has moved to `std::host::process`")
+    if eq(clone(path), "std::process") {
+        return "module `std::process` has moved to `std::host::process`"
     }
     String_new()
 }
@@ -28,30 +28,30 @@ pub fn deprecated_use_message(path: String) -> String {
 
 // Returns a non-empty replacement message if the bare function name is deprecated.
 pub fn deprecated_call_message(name: String) -> String {
-    if eq(clone(name), String_from("println")) {
-        return String_from("import `use std::host::stdio` and call `stdio::println(...)`")
+    if eq(clone(name), "println") {
+        return "import `use std::host::stdio` and call `stdio::println(...)`"
     }
-    if eq(clone(name), String_from("print")) {
-        return String_from("import `use std::host::stdio` and call `stdio::print(...)`")
+    if eq(clone(name), "print") {
+        return "import `use std::host::stdio` and call `stdio::print(...)`"
     }
-    if eq(clone(name), String_from("eprintln")) {
-        return String_from("import `use std::host::stdio` and call `stdio::eprintln(...)`")
+    if eq(clone(name), "eprintln") {
+        return "import `use std::host::stdio` and call `stdio::eprintln(...)`"
     }
-    if eq(clone(name), String_from("read_to_string")) {
-        return String_from("import `use std::host::stdio` and call `stdio::read_stdin()`")
+    if eq(clone(name), "read_to_string") {
+        return "import `use std::host::stdio` and call `stdio::read_stdin()`"
     }
     // Deprecated prelude free functions (issue #718, ADR-036)
-    if eq(clone(name), String_from("i32_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on i32) instead")
+    if eq(clone(name), "i32_to_string") {
+        return "use `x.to_string()` (inherent method on i32) instead"
     }
-    if eq(clone(name), String_from("i64_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on i64) instead")
+    if eq(clone(name), "i64_to_string") {
+        return "use `x.to_string()` (inherent method on i64) instead"
     }
-    if eq(clone(name), String_from("f64_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on f64) instead")
+    if eq(clone(name), "f64_to_string") {
+        return "use `x.to_string()` (inherent method on f64) instead"
     }
-    if eq(clone(name), String_from("bool_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on bool) instead")
+    if eq(clone(name), "bool_to_string") {
+        return "use `x.to_string()` (inherent method on bool) instead"
     }
     String_new()
 }
@@ -78,95 +78,95 @@ pub fn deprecated_qualified_call_message(path: String) -> String {
 
 fn deprecated_math_qualified_message(path: String) -> String {
     // std::core::math functions
-    if eq(clone(path), String_from("math::abs")) {
-        return String_from("use `x.abs()` (inherent method on i32) instead")
+    if eq(clone(path), "math::abs") {
+        return "use `x.abs()` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::abs_i32")) {
-        return String_from("use `x.abs()` (inherent method on i32) instead")
+    if eq(clone(path), "math::abs_i32") {
+        return "use `x.abs()` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::min")) {
-        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    if eq(clone(path), "math::min") {
+        return "use `a.min(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::min_i32")) {
-        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    if eq(clone(path), "math::min_i32") {
+        return "use `a.min(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::max")) {
-        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    if eq(clone(path), "math::max") {
+        return "use `a.max(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::max_i32")) {
-        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    if eq(clone(path), "math::max_i32") {
+        return "use `a.max(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::sqrt")) {
-        return String_from("use `x.sqrt()` (inherent method on f64) instead")
+    if eq(clone(path), "math::sqrt") {
+        return "use `x.sqrt()` (inherent method on f64) instead"
     }
-    if eq(clone(path), String_from("math::clamp")) {
-        return String_from("use `x.clamp(lo, hi)` (inherent method on i32) instead")
+    if eq(clone(path), "math::clamp") {
+        return "use `x.clamp(lo, hi)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::pow_i32")) {
-        return String_from("use `base.pow(exp)` (inherent method on i32) instead")
+    if eq(clone(path), "math::pow_i32") {
+        return "use `base.pow(exp)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("math::is_power_of_two")) {
-        return String_from("use `n.is_power_of_two()` (Integer trait) instead")
+    if eq(clone(path), "math::is_power_of_two") {
+        return "use `n.is_power_of_two()` (Integer trait) instead"
     }
-    if eq(clone(path), String_from("math::next_power_of_two")) {
-        return String_from("use `n.next_power_of_two()` (Integer trait) instead")
+    if eq(clone(path), "math::next_power_of_two") {
+        return "use `n.next_power_of_two()` (Integer trait) instead"
     }
-    if eq(clone(path), String_from("math::leading_zeros")) {
-        return String_from("use `n.leading_zeros()` (Integer trait) instead")
+    if eq(clone(path), "math::leading_zeros") {
+        return "use `n.leading_zeros()` (Integer trait) instead"
     }
-    if eq(clone(path), String_from("math::trailing_zeros")) {
-        return String_from("use `n.trailing_zeros()` (Integer trait) instead")
+    if eq(clone(path), "math::trailing_zeros") {
+        return "use `n.trailing_zeros()` (Integer trait) instead"
     }
-    if eq(clone(path), String_from("math::popcount")) {
-        return String_from("use `n.popcount()` (Integer trait) instead")
+    if eq(clone(path), "math::popcount") {
+        return "use `n.popcount()` (Integer trait) instead"
     }
     String_new()
 }
 
 fn deprecated_cmp_qualified_message(path: String) -> String {
     // std::core::cmp functions
-    if eq(clone(path), String_from("cmp::cmp")) {
-        return String_from("use `a.cmp(b)` (Ord trait method) instead")
+    if eq(clone(path), "cmp::cmp") {
+        return "use `a.cmp(b)` (Ord trait method) instead"
     }
-    if eq(clone(path), String_from("cmp::min")) {
-        return String_from("use `a.min(b)` (inherent method on i32) instead")
+    if eq(clone(path), "cmp::min") {
+        return "use `a.min(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("cmp::max")) {
-        return String_from("use `a.max(b)` (inherent method on i32) instead")
+    if eq(clone(path), "cmp::max") {
+        return "use `a.max(b)` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("cmp::clamp")) {
-        return String_from("use `x.clamp(lo, hi)` (inherent method on i32) instead")
+    if eq(clone(path), "cmp::clamp") {
+        return "use `x.clamp(lo, hi)` (inherent method on i32) instead"
     }
     String_new()
 }
 
 fn deprecated_convert_qualified_message(path: String) -> String {
     // std::core::convert functions
-    if eq(clone(path), String_from("convert::i32_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on i32) instead")
+    if eq(clone(path), "convert::i32_to_string") {
+        return "use `x.to_string()` (inherent method on i32) instead"
     }
-    if eq(clone(path), String_from("convert::i64_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on i64) instead")
+    if eq(clone(path), "convert::i64_to_string") {
+        return "use `x.to_string()` (inherent method on i64) instead"
     }
-    if eq(clone(path), String_from("convert::f64_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on f64) instead")
+    if eq(clone(path), "convert::f64_to_string") {
+        return "use `x.to_string()` (inherent method on f64) instead"
     }
-    if eq(clone(path), String_from("convert::bool_to_string")) {
-        return String_from("use `x.to_string()` (inherent method on bool) instead")
+    if eq(clone(path), "convert::bool_to_string") {
+        return "use `x.to_string()` (inherent method on bool) instead"
     }
     String_new()
 }
 
 fn deprecated_hash_qualified_message(path: String) -> String {
     // std::core::hash functions
-    if eq(clone(path), String_from("hash::hash_i32")) {
-        return String_from("use `value.hash()` (Hash trait method) instead")
+    if eq(clone(path), "hash::hash_i32") {
+        return "use `value.hash()` (Hash trait method) instead"
     }
-    if eq(clone(path), String_from("hash::hash_string")) {
-        return String_from("use `value.hash()` (Hash trait method) instead")
+    if eq(clone(path), "hash::hash_string") {
+        return "use `value.hash()` (Hash trait method) instead"
     }
-    if eq(clone(path), String_from("hash::hash_combine")) {
-        return String_from("use `combine(h1, h2)` instead")
+    if eq(clone(path), "hash::hash_combine") {
+        return "use `combine(h1, h2)` instead"
     }
     String_new()
 }

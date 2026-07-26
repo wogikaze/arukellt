@@ -55,13 +55,13 @@ fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package
         wit_push_fn_sigs_for_doc(sigs, clone(alias), doc)
         return
     }
-    if eq(clone(package_id), String_from("test:host/host")) {
-        push(sigs, wit_fn_sig_flags_param(clone(alias), String_from("set_perms")))
+    if eq(clone(package_id), "test:host/host") {
+        push(sigs, wit_fn_sig_flags_param(clone(alias), "set_perms"))
         return
     }
-    if eq(clone(package_id), String_from("test:host/handles")) {
-        push(sigs, wit_fn_sig_i32_param(clone(alias), String_from("take")))
-        push(sigs, wit_fn_sig_i32_param(clone(alias), String_from("peek")))
+    if eq(clone(package_id), "test:host/handles") {
+        push(sigs, wit_fn_sig_i32_param(clone(alias), "take"))
+        push(sigs, wit_fn_sig_i32_param(clone(alias), "peek"))
     }
 }
 
@@ -87,14 +87,14 @@ fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit
 }
 
 fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitParsedInterface, func: component::wit_parse_text::WitParsedFunc) -> FnSig {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(func.ark_name)))
+    let qualified = concat(clone(alias), concat("::", clone(func.ark_name)))
     let params = Vec_new_TypeInfo()
     let param_types = wit_surface::wit_func_param_ark_types(func, clone(alias), doc)
     for pi in 0..len(param_types) {
         push(params, type_names::resolve_type_name(get_unchecked(param_types, pi)))
     }
     let ret_name = wit_surface::wit_func_ret_ark_type(func, clone(alias), doc)
-    let ret_ty = if len(ret_name) == 0 || eq(clone(ret_name), String_from("()")) {
+    let ret_ty = if len(ret_name) == 0 || eq(clone(ret_name), "()") {
         contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
     } else {
         type_names::resolve_type_name(ret_name)
@@ -103,19 +103,19 @@ fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitPars
 }
 
 fn wit_enum_info_from_parsed(alias: String, en: component::wit_parse_text::WitParsedEnum) -> EnumInfo {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(en.ark_name)))
+    let qualified = concat(clone(alias), concat("::", clone(en.ark_name)))
     contract_enum_info::EnumInfo_new(qualified, en.variant_ark_names)
 }
 
 fn wit_fn_sig_flags_param(alias: String, func_name: String) -> FnSig {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
+    let qualified = concat(clone(alias), concat("::", clone(func_name)))
     let params = Vec_new_TypeInfo()
     push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
     contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_UNIT()), Vec_new_String(), Vec_new_TypeParamBounds())
 }
 
 fn wit_fn_sig_i32_param(alias: String, func_name: String) -> FnSig {
-    let qualified = concat(clone(alias), concat(String_from("::"), clone(func_name)))
+    let qualified = concat(clone(alias), concat("::", clone(func_name)))
     let params = Vec_new_TypeInfo()
     push(params, contract_type_constructors::TypeInfo_simple(commands::TY_I32()))
     contract_fn_sig::FnSig_new(qualified, params, contract_type_constructors::TypeInfo_simple(commands::TY_UNIT()), Vec_new_String(), Vec_new_TypeParamBounds())

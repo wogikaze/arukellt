@@ -37,7 +37,7 @@ fn occurs_in_type_depth(env: TypeEnv, var_name: String, ty: TypeInfo, depth: i32
 
 fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
     if occurs_in_type(env, clone(var_name), ty) {
-        unify_env::type_error(env, concat(String_from("occurs check failed: "), concat(clone(var_name), String_from(" appears in its own type"))))
+        unify_env::type_error(env, concat("occurs check failed: ", concat(clone(var_name), " appears in its own type")))
         return
     }
     let count = contract_env_vars_record::type_env_var_count(env)

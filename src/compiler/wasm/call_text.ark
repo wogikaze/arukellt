@@ -158,7 +158,7 @@ fn to_string_arg_is_ref(inst: MirInst, ctx: SelfEmitCtx) -> bool {
     }
     let loc = call_text_mir_view::local_at(f, arg0)
     let type_name = call_text_mir_view::local_type_name(loc)
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return true
     }
     false
@@ -184,10 +184,10 @@ fn to_string_arg_vt(inst: MirInst, ctx: SelfEmitCtx) -> i32 {
     }
     let loc = call_text_mir_view::local_at(f, arg0)
     let type_name = call_text_mir_view::local_type_name(loc)
-    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) {
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") {
         return call_text_mir_view::VT_I64()
     }
-    if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
         return call_text_mir_view::VT_F64()
     }
     // Fallback: check the local's val_type for i64/f64.

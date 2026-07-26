@@ -16,7 +16,7 @@ fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -
 
 fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
     // Conversion intrinsics that take i32 must keep CONST_I32 args.
-    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+    if contains(clone(callee_name), "i32_to_i64") || contains(clone(callee_name), "u32_to_u64") {
         return false
     }
     let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
@@ -59,19 +59,19 @@ fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: 
 }
 
 fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
-    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+    if contains(clone(callee_name), "i32_to_i64") || contains(clone(callee_name), "u32_to_u64") {
         return false
     }
-    if contains(clone(callee_name), String_from("i64")) {
+    if contains(clone(callee_name), "i64") {
         return true
     }
-    if ends_with(clone(callee_name), String_from("seek_to")) {
+    if ends_with(clone(callee_name), "seek_to") {
         return true
     }
-    if eq(clone(callee_name), String_from("seek")) {
+    if eq(clone(callee_name), "seek") {
         return true
     }
-    ends_with(clone(callee_name), String_from("::seek"))
+    ends_with(clone(callee_name), "::seek")
 }
 
 fn mir_callee_short_name(callee_name: String) -> String {

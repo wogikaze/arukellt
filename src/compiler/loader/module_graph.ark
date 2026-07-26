@@ -12,7 +12,7 @@ use loader::wit_manifest
 pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
     // Stdlib modules may import sealed raw APIs.
-    load_imported_modules_at(mod_decls, String_from("."), String_from("."), state, true)
+    load_imported_modules_at(mod_decls, ".", ".", state, true)
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
@@ -88,7 +88,7 @@ fn load_single_module(module_name: String, base_dir: String, root_dir: String, s
 }
 
 fn module_base_dir_for_import(use_path: String, current_dir: String, root_dir: String) -> String {
-    if contains(use_path, String_from("::")) {
+    if contains(use_path, "::") {
         return root_dir
     }
     current_dir

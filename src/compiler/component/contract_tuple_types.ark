@@ -2,19 +2,19 @@ use component::contract_helpers
 use component::type_node
 
 fn component_type_is_tuple_i32_i32(ty: ComponentTypeNode) -> bool {
-    component_type_is_named_pair(ty, String_from("i32"), String_from("i32"))
+    component_type_is_named_pair(ty, "i32", "i32")
 }
 
 fn component_type_is_tuple_i32_bool(ty: ComponentTypeNode) -> bool {
-    component_type_is_named_pair(ty, String_from("i32"), String_from("bool"))
+    component_type_is_named_pair(ty, "i32", "bool")
 }
 
 fn component_type_is_tuple_bool_bool(ty: ComponentTypeNode) -> bool {
-    component_type_is_named_pair(ty, String_from("bool"), String_from("bool"))
+    component_type_is_named_pair(ty, "bool", "bool")
 }
 
 fn component_type_is_tuple_i64_i64(ty: ComponentTypeNode) -> bool {
-    component_type_is_named_pair(ty, String_from("i64"), String_from("i64"))
+    component_type_is_named_pair(ty, "i64", "i64")
 }
 
 fn component_type_is_named_pair(ty: ComponentTypeNode, left_name: String, right_name: String) -> bool {

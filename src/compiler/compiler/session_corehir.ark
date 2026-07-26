@@ -60,5 +60,5 @@ fn session_lower_mir_component(
 }
 
 fn session_validate_corehir(program: CoreHirRawProgram) -> String {
-    String_from("")
+    ""
 }

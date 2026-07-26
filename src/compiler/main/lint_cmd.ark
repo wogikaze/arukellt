@@ -10,7 +10,7 @@ pub fn cmd_lint(opts: CliOptions) {
         stdio::println(registry::format_lint_rule_list())
         return
     }
-    let config = lint_config::load_lint_config(String_from("."))
+    let config = lint_config::load_lint_config(".")
     let cli_allow = args_record::cli_lint_allow(opts)
     let cli_deny = args_record::cli_lint_deny(opts)
     lint_config::merge_lint_config(cli_allow, cli_deny, config)

@@ -97,17 +97,17 @@ fn toml_find_raw_value(content: String, key: String) -> String {
 // Returns an empty LintConfig if ark.toml doesn't exist or has no [lint] section.
 pub fn load_lint_config(project_dir: String) -> LintConfig {
     let config = LintConfig_new()
-    let manifest_path = concat(clone(project_dir), String_from("/ark.toml"))
+    let manifest_path = concat(clone(project_dir), "/ark.toml")
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
-            let lint_section = toml::toml_find_section(content, String_from("lint"))
+            let lint_section = toml::toml_find_section(content, "lint")
             if len(clone(lint_section)) > 0 {
-                let allow_raw = toml_find_raw_value(clone(lint_section), String_from("allow"))
+                let allow_raw = toml_find_raw_value(clone(lint_section), "allow")
                 if len(clone(allow_raw)) > 0 {
                     config.allow = parse_toml_string_array(allow_raw)
                 }
-                let deny_raw = toml_find_raw_value(clone(lint_section), String_from("deny"))
+                let deny_raw = toml_find_raw_value(clone(lint_section), "deny")
                 if len(clone(deny_raw)) > 0 {
                     config.deny = parse_toml_string_array(deny_raw)
                 }

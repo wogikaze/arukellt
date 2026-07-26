@@ -22,7 +22,7 @@ fn emit_i64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_neg64)
     emit_i64_digits(w, s_val64, s_wpos64, s_neg64)
-    if contains(clone(ctx.target), String_from("-p2")) || contains(clone(ctx.target), String_from("-p3")) {
+    if contains(clone(ctx.target), "-p2") || contains(clone(ctx.target), "-p3") {
         let string_type = ctx.gc_type_base
         emit_i64_string_alloc_gc(w, buf_end64, s_wpos64, s_len64, string_type, ctx, inst)
     } else {

@@ -26,7 +26,7 @@ fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
 fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     let idx = function_local_alloc::MirFunction_next_local(f)
-    function_local_alloc::alloc_local(f, concat(String_from("_t"), to_string(idx)), vt)
+    function_local_alloc::alloc_local(f, concat("_t", to_string(idx)), vt)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
     idx
 }

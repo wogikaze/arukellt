@@ -5,14 +5,14 @@ use loader::registry_config
 use main::script_toml
 
 pub fn is_wit_package_id(name: String) -> bool {
-    if starts_with(clone(name), String_from("std::")) {
+    if starts_with(clone(name), "std::") {
         return false
     }
     // Rust module paths use `::`; WIT package ids use a single `namespace:package` colon.
-    if contains(clone(name), String_from("::")) {
+    if contains(clone(name), "::") {
         return false
     }
-    index_of(clone(name), String_from(":")) >= 0
+    index_of(clone(name), ":") >= 0
 }
 
 pub fn merge_wit_paths_for_source(source_file: String, cli_paths: Vec<String>) -> Vec<String> {
@@ -43,7 +43,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
     if len(content) == 0 {
         return paths
     }
-    let deps_section = script_toml::find_toml_section(clone(content), String_from("dependencies"))
+    let deps_section = script_toml::find_toml_section(clone(content), "dependencies")
     if len(deps_section) == 0 {
         return paths
     }
@@ -65,7 +65,7 @@ fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
 // Side-effecting collector: no bool result. A discarded i32 return was left on
 // the wasm stack under the caller's loop increment (KEEP_CLOCK validate fail).
 fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: String) {
-    let eq_pos = index_of(clone(line), String_from("="))
+    let eq_pos = index_of(clone(line), "=")
     if eq_pos < 0 {
         return
     }
@@ -86,13 +86,13 @@ fn wit_collect_line_dependency(paths: Vec<String>, package_root: String, line: S
 }
 
 fn wit_vendor_rel_from_line(line: String) -> String {
-    let path_marker = String_from("path = \"")
+    let path_marker = "path = \""
     let pos = index_of(clone(line), path_marker)
     if pos < 0 {
         return String_new()
     }
     let tail = substring(line, pos + len(path_marker), len(line))
-    let end = index_of(clone(tail), String_from("\""))
+    let end = index_of(clone(tail), "\"")
     if end < 0 {
         return String_new()
     }
@@ -120,21 +120,21 @@ fn wit_join_path(base: String, rel: String) -> String {
     if len(base) == 0 {
         return rel
     }
-    if ends_with(clone(base), String_from("/")) {
+    if ends_with(clone(base), "/") {
         return concat(base, rel)
     }
-    concat(concat(base, String_from("/")), rel)
+    concat(concat(base, "/"), rel)
 }
 
 fn wit_resolve_relative_path(base: String, rel: String) -> String {
     if len(rel) == 0 {
         return clone(base)
     }
-    if starts_with(clone(rel), String_from("../")) {
+    if starts_with(clone(rel), "../") {
         let parent = module_paths::parent_dir(clone(base))
         return wit_resolve_relative_path(parent, substring(rel, 3, len(rel)))
     }
-    if starts_with(clone(rel), String_from("./")) {
+    if starts_with(clone(rel), "./") {
         return wit_resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
     }
     wit_join_path(clone(base), rel)
@@ -142,13 +142,13 @@ fn wit_resolve_relative_path(base: String, rel: String) -> String {
 
 fn wit_vendor_wit_file(vendor_dir: String) -> String {
     // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
-    let mod_wit = wit_join_path(clone(vendor_dir), String_from("mod.wit"))
+    let mod_wit = wit_join_path(clone(vendor_dir), "mod.wit")
     match fs::read_to_string(clone(mod_wit)) {
         Result::Ok(_) => {
             mod_wit
         },
         Result::Err(_) => {
-            let iface_wit = wit_join_path(clone(vendor_dir), String_from("interface.wit"))
+            let iface_wit = wit_join_path(clone(vendor_dir), "interface.wit")
             match fs::read_to_string(clone(iface_wit)) {
                 Result::Ok(_) => {
                     iface_wit

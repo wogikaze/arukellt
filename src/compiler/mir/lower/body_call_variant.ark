@@ -26,11 +26,11 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         // so emit does not cast them to the enclosing variant type.
         let src_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, p_idx)
         if src_slot >= 0 &&
-        (starts_with(clone(src_type), String_from("enum:")) ||
-            starts_with(clone(src_type), String_from("Option")) ||
-            starts_with(clone(src_type), String_from("option")) ||
-            starts_with(clone(src_type), String_from("Result")) ||
-            starts_with(clone(src_type), String_from("result"))) {
+        (starts_with(clone(src_type), "enum:") ||
+            starts_with(clone(src_type), "Option") ||
+            starts_with(clone(src_type), "option") ||
+            starts_with(clone(src_type), "Result") ||
+            starts_with(clone(src_type), "result")) {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, src_slot)
         } else {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)

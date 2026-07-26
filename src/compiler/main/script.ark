@@ -6,11 +6,11 @@ use main::script_list
 use main::script_toml
 
 pub fn cmd_script(opts: CliOptions) {
-    let manifest_result = fs::read_to_string(String_from("ark.toml"))
+    let manifest_result = fs::read_to_string("ark.toml")
     match manifest_result {
         Result::Ok(content) => {
             let script_name = args_record::cli_input_file(opts)
-            let scripts_content = script_toml::find_toml_section(clone(content), String_from("scripts"))
+            let scripts_content = script_toml::find_toml_section(clone(content), "scripts")
             if len(script_name) == 0 {
                 script_list::print_script_list(scripts_content)
                 return
@@ -20,11 +20,11 @@ pub fn cmd_script(opts: CliOptions) {
                 stdio::println(clone(found))
                 return
             }
-            stdio::eprintln(concat(String_from("error: script '"), concat(clone(script_name), String_from("' not found in ark.toml [scripts]"))))
+            stdio::eprintln(concat("error: script '", concat(clone(script_name), "' not found in ark.toml [scripts]")))
             process::exit(1)
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: cannot read ark.toml: "), e))
+            stdio::eprintln(concat("error: cannot read ark.toml: ", e))
             process::exit(1)
         },
     }

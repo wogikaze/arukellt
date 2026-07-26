@@ -5,7 +5,7 @@ use parser::token_state
 
 fn cur(p: Parser) -> Token {
     if state_record::parser_at_end(p) {
-        let tok = token_state::Token_new(tokens::TK_EOF(), String_from(""), 0, 0)
+        let tok = token_state::Token_new(tokens::TK_EOF(), "", 0, 0)
         return tok
     }
     state_record::parser_current_token(p)

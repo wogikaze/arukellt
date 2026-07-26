@@ -31,5 +31,5 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths:
 }
 
 fn main() {
-    stdio::println(String_from("TypeChecker module loaded."))
+    stdio::println("TypeChecker module loaded.")
 }

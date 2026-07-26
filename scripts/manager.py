@@ -823,7 +823,7 @@ def _driver_module_graph_relative_import_violations(root: Path) -> list[str]:
         "current_dir: String",
         "root_dir: String",
         "module_base_dir_for_import(",
-        'contains(use_path, String_from("::"))',
+        'contains(use_path, "::")',
         "module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))",
         "load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state, false)",
     )

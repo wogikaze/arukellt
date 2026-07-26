@@ -6,7 +6,7 @@ fn TypeVar_new(id: i32, bound: TypeInfo) -> TypeVar {
 }
 
 fn TypeVar_name(tv: TypeVar) -> String {
-    concat(String_from("t"), to_string(contract_typevar_record::type_var_id(tv)))
+    concat("t", to_string(contract_typevar_record::type_var_id(tv)))
 }
 
 fn TypeVar_bound_name(tv: TypeVar) -> String {

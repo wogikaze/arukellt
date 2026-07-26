@@ -12,7 +12,7 @@ use lexer::token_state
 fn next_token(lex: Lexer) -> Token {
     char_skip::skip_whitespace_impl(lex)
     if lex.pos >= lex.src_len {
-        return token_state::Token_new(tokens::TK_EOF(), String_from(""), lex.pos, lex.pos)
+        return token_state::Token_new(tokens::TK_EOF(), "", lex.pos, lex.pos)
     }
     let start = lex.pos
     let c = peek(lex)
@@ -21,7 +21,7 @@ fn next_token(lex: Lexer) -> Token {
     }
     if c == 10 {
         lex.pos = lex.pos + 1
-        return token_state::Token_new(tokens::TK_NEWLINE(), String_from("\n"), start, lex.pos)
+        return token_state::Token_new(tokens::TK_NEWLINE(), "\n", start, lex.pos)
     }
     if char_class::is_alpha(c) {
         return ident::lex_ident(lex)

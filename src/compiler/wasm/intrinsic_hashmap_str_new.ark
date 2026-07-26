@@ -14,7 +14,7 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_si_new_gc(w, ctx)
     } else {
-        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, "hashmap_new")
         writer_core::emit_byte(w, opcodes::OP_CALL())
         writer_core::emit_leb128_u(
             w,
@@ -79,7 +79,7 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_is_new_gc(w, ctx)
     } else {
-        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, "hashmap_new")
         writer_core::emit_byte(w, opcodes::OP_CALL())
         writer_core::emit_leb128_u(
             w,
@@ -164,7 +164,7 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_hm_ss_new_gc(w, ctx)
     } else {
-        let fn_idx = inst_ctx::resolve_fn_index(ctx, String_from("hashmap_new"))
+        let fn_idx = inst_ctx::resolve_fn_index(ctx, "hashmap_new")
         writer_core::emit_byte(w, opcodes::OP_CALL())
         writer_core::emit_leb128_u(
             w,

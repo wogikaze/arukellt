@@ -56,10 +56,10 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i3
 
 fn mir_legacy_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
     let mut root_count = 0
-    if mir_legacy_mark_reachable_name(functions, reachable, String_from("main")) {
+    if mir_legacy_mark_reachable_name(functions, reachable, "main") {
         root_count = root_count + 1
     }
-    if mir_legacy_mark_reachable_name(functions, reachable, String_from("_start")) {
+    if mir_legacy_mark_reachable_name(functions, reachable, "_start") {
         root_count = root_count + 1
     }
     let extra_count = len(extra_roots)

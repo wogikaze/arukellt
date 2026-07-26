@@ -102,13 +102,13 @@ fn emit_shape_alias_section(out: writer_core::ComponentWriter, export_name: Stri
 
 fn emit_shape_type_sections(out: writer_core::ComponentWriter) {
     let names = Vec_new_String()
-    push(names, String_from("circle"))
-    push(names, String_from("square"))
+    push(names, "circle")
+    push(names, "square")
     let payloads = Vec_new_i32()
     push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
     push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
     type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_variant_type(names, payloads))
-    type_section_entries::emit_single_type_export_section(out, String_from("shape"), 0)
+    type_section_entries::emit_single_type_export_section(out, "shape", 0)
 }
 
 fn emit_shape_func_type_section(out: writer_core::ComponentWriter, result_type: i32) {
@@ -141,13 +141,13 @@ fn emit_shape_export_section(out: writer_core::ComponentWriter, export_name: Str
 }
 
 fn shape_export_name(name: String) -> String {
-    let mut out = String_from("")
+    let mut out = ""
     let n = len(name)
     let mut i = 0
     while i < n {
         let ch = char_at(name, i)
         if ch == 95 {
-            out = text::builder_append(out, String_from("-"))
+            out = text::builder_append(out, "-")
         } else {
             out = text::builder_append(out, substring(name, i, i + 1))
         }

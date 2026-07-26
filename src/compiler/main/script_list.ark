@@ -1,9 +1,9 @@
 use std::host::stdio
 
 pub fn print_script_list(scripts_content: String) {
-    stdio::println(String_from("Available scripts:"))
+    stdio::println("Available scripts:")
     if len(scripts_content) == 0 {
-        stdio::println(String_from("  (none defined)"))
+        stdio::println("  (none defined)")
         return
     }
     let sc_len = len(scripts_content)
@@ -53,5 +53,5 @@ fn print_script_line(scripts_content: String, line_start: i32, i: i32, sc_len: i
         j = j + 1
     }
     let val = substring(line, val_start, j)
-    stdio::println(concat(String_from("  "), concat(clone(key), concat(String_from(" = "), clone(val)))))
+    stdio::println(concat("  ", concat(clone(key), concat(" = ", clone(val)))))
 }

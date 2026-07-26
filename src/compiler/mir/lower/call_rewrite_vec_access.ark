@@ -6,7 +6,7 @@ fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
     if first_arg_idx >= 0 {
         let arg_type_get2 = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
         if starts_with(clone(arg_type_get2), "vec:") {
-            return String_from("vec_get")
+            return "vec_get"
         }
     }
     callee_name
@@ -16,13 +16,13 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
     if first_arg_idx >= 0 {
         let arg_type_get = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
         if eq(clone(arg_type_get), "vec:i64") {
-            return String_from("vec_get_unchecked_i64")
+            return "vec_get_unchecked_i64"
         } else {
             if eq(clone(arg_type_get), "vec:f64") {
-                return String_from("vec_get_unchecked_f64")
+                return "vec_get_unchecked_f64"
             } else {
                 if starts_with(clone(arg_type_get), "vec:") {
-                    return String_from("vec_get_unchecked")
+                    return "vec_get_unchecked"
                 }
             }
         }
@@ -32,15 +32,15 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
 
 fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if starts_with(clone(receiver_type), String_from("vec:")) {
+    if starts_with(clone(receiver_type), "vec:") {
         return receiver_type
     }
     let mono_suffix = mono_suffix_parse::extract_mono_suffix(callee_name)
-    if len(mono_suffix) == 0 || contains(clone(mono_suffix), String_from("__")) {
+    if len(mono_suffix) == 0 || contains(clone(mono_suffix), "__") {
         return receiver_type
     }
     // Infer only for rewrite decisions. Do not overwrite the receiver local:
     // a wrong mono suffix (get_unchecked__String) would poison Vec<Struct>
     // params as vec:String and break structref array.get casts (wit_find).
-    concat(String_from("vec:"), mono_suffix)
+    concat("vec:", mono_suffix)
 }

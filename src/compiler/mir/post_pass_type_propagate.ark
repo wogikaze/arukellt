@@ -151,15 +151,15 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
     let dst_type_name = local_access::MirLocal_type_name(dst_loc)
     let mut updated = false
     let mut new_loc = dst_loc
-    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), String_from("_t"))
+    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), "_t")
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.
     let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) ||
-    eq(clone(dst_type_name), String_from("string")) ||
-    eq(clone(dst_type_name), String_from("String"))
+    eq(clone(dst_type_name), "string") ||
+    eq(clone(dst_type_name), "String")
     let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(src_type_name)) ||
-    eq(clone(src_type_name), String_from("string")) ||
-    eq(clone(src_type_name), String_from("String"))
+    eq(clone(src_type_name), "string") ||
+    eq(clone(src_type_name), "String")
     if !dst_is_payload_container && !src_is_payload_container {
         if destination_is_temporary && dst_variant_slot != src_variant_slot {
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)

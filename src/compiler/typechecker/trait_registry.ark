@@ -23,7 +23,7 @@ fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
         return
     }
     let trait_name = ast_access::node_text(node)
-    if eq(clone(trait_name), String_from("")) {
+    if eq(clone(trait_name), "") {
         return
     }
     if ast_access::node_type_ann_count(node) < 2 {

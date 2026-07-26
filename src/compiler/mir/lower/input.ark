@@ -22,7 +22,7 @@ fn mir_lower_input_new(
     let body_source = entry_body_source::mir_entry_body_source_new(entry_body_source::mir_entry_body_source_view_from_core(view), fallback_source)
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
-        effective_target = String_from("wasm32-gc")
+        effective_target = "wasm32-gc"
     }
     MirLowerInput {
         view: view,
