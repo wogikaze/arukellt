@@ -1939,6 +1939,18 @@ fn native_c_emit_call(
             )
             return true
         }
+        if argument_count == 1 && len(state.value_stack) >= 1 &&
+        eq(clone(unresolved), String_from("clear")) {
+            let vec_local = native_c_stack_pop(state, String_from("clear vector"))
+            native_c_append(
+                state,
+                concat(
+                    String_from("    ark_rt_vec_clear((ark_vec *)"),
+                    concat(native_c_local_name(vec_local), String_from(");\n"))
+                )
+            )
+            return true
+        }
         native_c_fail(
             state,
             concat(

@@ -161,6 +161,7 @@ ark_unit ark_rt_vec_remove(ark_vec *vector, int32_t index);
 int32_t ark_rt_vec_contains_i32(ark_vec *vector, int32_t value);
 ark_unit ark_rt_vec_set(ark_vec *vector, int32_t index, ark_value value);
 ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value);
+ark_unit ark_rt_vec_clear(ark_vec *vector);
 ark_value ark_rt_vec_pop(ark_vec *vector);
 int32_t ark_rt_arg_count(void);
 ark_unit ark_rt_string_push_char(ark_string *string, uint32_t codepoint);

@@ -2065,6 +2065,12 @@ ark_unit ark_rt_vec_push(ark_vec *vector, ark_value value) {
     return 0;
 }
 
+ark_unit ark_rt_vec_clear(ark_vec *vector) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    vector->length = 0u;
+    return 0;
+}
+
 ark_value ark_rt_vec_pop(ark_vec *vector) {
     if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     if (vector->length == 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
