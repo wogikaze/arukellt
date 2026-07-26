@@ -1947,45 +1947,49 @@ ark_vec *ark_rt_array_new(uint32_t type_id, int32_t length) {
     return vector;
 }
 
-/* FNV-1 matching std::core::hash for i32 (absolute value, 4 base-256 bytes). */
+/* FNV-1 matching std::core::hash for i32 (absolute value, 4 base-256 bytes).
+ * Multiply/xor use wrapping uint32 math so UBSan agrees with Ark i32 wrap. */
 static int32_t ark_rt_hash_i32_key(int32_t value) {
-    int32_t h = 216613626;
+    uint32_t h = 216613626u;
     int32_t v = value;
     if (v < 0) {
         v = 0 - v;
     }
     int32_t b0 = v - v / 256 * 256;
-    h = h * 16777619 ^ b0;
+    h = (h * 16777619u) ^ (uint32_t)b0;
     v = v / 256;
     int32_t b1 = v - v / 256 * 256;
-    h = h * 16777619 ^ b1;
+    h = (h * 16777619u) ^ (uint32_t)b1;
     v = v / 256;
     int32_t b2 = v - v / 256 * 256;
-    h = h * 16777619 ^ b2;
+    h = (h * 16777619u) ^ (uint32_t)b2;
     v = v / 256;
     int32_t b3 = v - v / 256 * 256;
-    h = h * 16777619 ^ b3;
-    if (h < 0) {
-        h = 0 - h;
+    h = (h * 16777619u) ^ (uint32_t)b3;
+    int32_t result = (int32_t)h;
+    if (result < 0) {
+        result = 0 - result;
     }
-    return h;
+    return result;
 }
 
 /* FNV-1 matching std::core::hash for String (byte-indexed char_at / len). */
 static int32_t ark_rt_hash_string_key(ark_string *source) {
     if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
-    int32_t h = 216613626;
+    uint32_t h = 216613626u;
     int32_t n = ark_rt_string_len(source);
     int32_t i = 0;
     while (i < n) {
         int32_t ch = ark_rt_string_char_at(source, i);
-        h = h * 16777619 ^ ch;
-        if (h < 0) {
-            h = 0 - h;
+        h = (h * 16777619u) ^ (uint32_t)ch;
+        int32_t signed_h = (int32_t)h;
+        if (signed_h < 0) {
+            signed_h = 0 - signed_h;
+            h = (uint32_t)signed_h;
         }
         i += 1;
     }
-    return h;
+    return (int32_t)h;
 }
 
 static int32_t ark_rt_hashmap_hash_key(ark_hashmap *map, ark_value key) {
