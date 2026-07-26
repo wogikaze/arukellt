@@ -135,7 +135,7 @@ by read count; `reader_read_line` cursor; monomorphic `copy_trait`; GC
 insert/hashset fixture corrections. trait/hashmap/core → 0 FAIL.
 Remaining top: io 3, io_rw 3, json 3 (+ scattered).
 
-- **After L21 (2026-07-26):** `PASS=1362 FAIL=0 SKIP=253` (wasm-invalid=191). tip after close commit.
+- **After L21 (2026-07-26):** `PASS=1362 FAIL=0 SKIP=253` (wasm-invalid=191). tip .
 
 L21: `__intrinsic_print`/`eprintln` + memory fill/copy + CLI argv aliases;
 GC empty stdin; stdlib io/json/prelude fixes; trap harness both-trap SKIP;
