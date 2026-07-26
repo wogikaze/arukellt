@@ -13,10 +13,11 @@ HOSTED = ROOT / "scripts" / "run" / "arukellt-run-hosted.sh"
 PUBLIC = ROOT / "tests" / "fixtures" / "native_cpp_public"
 
 # Program argv is covered by native-only E2E; arukellt-host-run accepts no trailing args.
+# Zero-capture HOF (`hof_named_callback.ark`) is native-covered in the public corpus;
+# classic wasi host rejects the wasm32 encoding that carries funcref/GC shapes.
 PARITY_FIXTURES = [
     ("stdio_hello.ark", 0, ["hello-stdout"], ["hello-stderr"]),
     ("phi_if_join_i32.ark", 0, ["value=10"], []),
-    ("hof_named_callback.ark", 0, ["result=42"], []),
     ("scalar_cfg.ark", 0, ["scalar-ok"], []),
     ("process_exit_7.ark", 7, ["before-exit"], []),
 ]

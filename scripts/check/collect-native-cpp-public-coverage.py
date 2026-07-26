@@ -18,7 +18,6 @@ DEFAULT_OUTPUT = REPO_ROOT / "docs" / "data" / "native-cpp-public-coverage-recei
 
 # Compile-only / trap negative fixtures: expect non-zero status + diagnostic.
 NEGATIVE = {
-    "unsupported_array_new.ark": "MIR_ARRAY_NEW",
     "main_with_param.ark": "requires `fn main()`",
     "panic_message.ark": "panic",
     "trap_div_zero.ark": "divide by zero",

@@ -74,12 +74,6 @@ SIGNAL_NAMES = {
 
 # Relative to tests/fixtures/. Explicit overrides when sidecars are insufficient.
 FIXTURE_OVERRIDES: dict[str, dict[str, object]] = {
-    "native_cpp_public/unsupported_array_new.ark": {
-        "expected_compile": False,
-        "expected_run_kind": "not_run",
-        "expected_stderr_pattern": "MIR_ARRAY_NEW",
-        "population_force": "expected_negative",
-    },
     "native_cpp_public/main_with_param.ark": {
         "expected_compile": False,
         "expected_run_kind": "not_run",
@@ -671,7 +665,11 @@ def _measure_one(
     if population_effective == "expected_negative":
         if kind in {"diag", "module-diag"}:
             diag_cmd = [str(WRAPPER), "check", fixture_arg]
-        elif kind == "component-world-error":
+        elif kind == "component-world-error" or (
+            kind == "compile-error" and rel.startswith("component/")
+        ):
+            # Component shape/signature negatives are only diagnosed on
+            # --emit component; core wasm/native C emit often succeeds.
             diag_cmd = [
                 str(WRAPPER),
                 "compile",

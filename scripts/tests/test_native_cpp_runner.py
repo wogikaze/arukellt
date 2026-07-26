@@ -33,7 +33,7 @@ PUBLIC_FS_WRITE_ERR = PUBLIC / "fs_write_missing_parent.ark"
 PUBLIC_HOF = PUBLIC / "hof_named_callback.ark"
 PUBLIC_PHI = PUBLIC / "phi_if_join_i32.ark"
 PUBLIC_SCALAR = PUBLIC / "scalar_cfg.ark"
-PUBLIC_UNSUPPORTED = PUBLIC / "unsupported_array_new.ark"
+PUBLIC_ARRAY_LITERAL = PUBLIC / "array_literal_i32.ark"
 RUNTIME_C = ROOT / "src" / "compiler" / "native_c" / "runtime" / "ark_native_runtime.c"
 
 
@@ -418,20 +418,20 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("hello-stdout", result.stdout)
 
-    def test_unsupported_opcode_is_capability_diagnostic(self) -> None:
+    def test_array_literal_emits_without_ice(self) -> None:
         build_dir = ROOT / ".build" / "native-run-smoke-test"
         build_dir.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             [
                 str(WRAPPER),
                 "compile",
-                str(PUBLIC_UNSUPPORTED.relative_to(ROOT)),
+                str(PUBLIC_ARRAY_LITERAL.relative_to(ROOT)),
                 "--target",
                 "native-cpp",
                 "--emit",
                 "c",
                 "-o",
-                ".build/native-run-smoke-test/unsupported.c",
+                ".build/native-run-smoke-test/array_literal.c",
             ],
             cwd=ROOT,
             env=self._env(build_dir),
@@ -439,10 +439,10 @@ class NativeCppRunnerSmokeTest(unittest.TestCase):
             text=True,
             check=False,
         )
-        self.assertNotEqual(result.returncode, 0)
         combined = result.stdout + result.stderr
-        self.assertIn("does not support MIR opcode MIR_ARRAY_NEW", combined)
+        self.assertEqual(result.returncode, 0, combined)
         self.assertNotIn("compiler ICE", combined)
+        self.assertIn("ark_rt_array_new", Path(".build/native-run-smoke-test/array_literal.c").read_text())
 
 
 if __name__ == "__main__":
