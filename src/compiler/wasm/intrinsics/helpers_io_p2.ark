@@ -28,3 +28,12 @@ fn emit_p2_write_newline(w: WasmWriter, get_stream_import_idx: i32) {
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
     helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())
 }
+
+// Write a linear-memory byte range (static data / scratch) via P2 bwaf.
+fn emit_p2_write_ptr_len(w: WasmWriter, ptr: i32, len: i32, get_stream_import_idx: i32) {
+    helpers_io_calls::emit_call(w, get_stream_import_idx)
+    helpers_io_const::emit_i32_const(w, ptr)
+    helpers_io_const::emit_i32_const(w, len)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_I32BUF())
+    helpers_io_calls::emit_call(w, constants::P2_IMPORT_BWAF())
+}

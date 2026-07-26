@@ -6,5 +6,7 @@ fn main() {
     test::assert_eq_string(text::pad_left("abc", 6, " "), "   abc")
     test::assert_eq_string(text::pad_left("x", 4, "-"), "---x")
     test::assert_eq_string(text::pad_left("hi", 4, "0"), "00hi")
-    test::assert_eq_string(text::pad_left("test", 8, "ab"), "babatest")
+    // repeat("ab", 4) ++ "test", then take last 8 bytes → "ababtest"
+    // (end-aligned multi-char fill per std::text::pad_left / string pad_left_fill).
+    test::assert_eq_string(text::pad_left("test", 8, "ab"), "ababtest")
 }

@@ -6978,6 +6978,16 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     ]:
         q = sub.add_parser(name, help=help_text)
         q.add_argument("--dry-run", action="store_true")
+    sub.choices["fixture-parity"].add_argument(
+        "--filter-dir",
+        action="append",
+        default=[],
+        metavar="DIR",
+        help=(
+            "Only check run: fixtures under tests/fixtures/DIR/ "
+            "(repeatable; for #807 tranche iteration)"
+        ),
+    )
     p_par = sub.add_parser("parity", help="Run selfhost parity (fixture/cli/diag)")
     p_par.add_argument("--dry-run", action="store_true")
     p_par.add_argument("--mode", choices=["", "--fixture", "--cli", "--diag"], default="")
@@ -7548,10 +7558,14 @@ def cmd_verify_full_fixpoint(args: argparse.Namespace) -> int:
 def cmd_selfhost_fixture_parity(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
+    filter_dirs: list[str] = list(getattr(args, "filter_dir", None) or [])
     h = Harness(repo_root=root, dry_run=dry_run)
 
-    print(f"\n{YELLOW}[selfhost] Running selfhost fixture parity check...{NC}")
-    rc, out = run_fixture_parity(root, dry_run)
+    scope = f" (filter-dir={','.join(filter_dirs)})" if filter_dirs else ""
+    print(f"\n{YELLOW}[selfhost] Running selfhost fixture parity check{scope}...{NC}")
+    rc, out = run_fixture_parity(root, dry_run, filter_dirs=filter_dirs or None)
+    if out:
+        print(out, end="" if out.endswith("\n") else "\n")
     if rc == 0:
         h.check_pass("selfhost fixture parity")
     else:

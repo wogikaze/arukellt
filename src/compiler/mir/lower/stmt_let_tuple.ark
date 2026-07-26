@@ -5,6 +5,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower_kinds
 use mir::inst_local_get
+use mir::inst_local_set
 use mir::inst_struct_get
 use mir::value_types
 
@@ -40,6 +41,10 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
             } else {
                 ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(tuple_local, String_new(), byte_off, total_bytes, field_vt, dest))
             }
+            // Store policy may leave STRUCT_GET on the stack when the next
+            // op is LOCAL_GET (next field base). Consume into dest explicitly
+            // so bindings are not left at 0 (#807 variables/tuple).
+            ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(dest))
         }
         byte_off = byte_off + 4
         ei = ei + 1

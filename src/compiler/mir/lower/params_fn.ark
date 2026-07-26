@@ -3,7 +3,6 @@ use corehir::type_info_to_mir_value
 use mir::function_identity
 use mir::legacy_vt_compat
 use mir::lower::binary_type_names
-use mir::lower::aggregate_tuple
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
@@ -35,10 +34,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         starts_with(clone(local_type_name), String_from("Option_")) ||
         starts_with(clone(local_type_name), String_from("option:")) ||
         starts_with(clone(local_type_name), String_from("Result_")) ||
-        starts_with(clone(local_type_name), String_from("result:")) ||
-        starts_with(clone(local_type_name), String_from("Result:")) ||
-        starts_with(clone(local_type_name), String_from("Tuple:")) ||
-        starts_with(clone(local_type_name), String_from("tuple:")) {
+        starts_with(clone(local_type_name), String_from("result:")) {
             pvt = value_types::VT_GC_REF()
         } else {
             // Qualified names like "parser::TomlValue" need the bare enum
@@ -99,19 +95,23 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_GC_REF())
         ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), String_from("option:fnref"))
     }
-    if starts_with(clone(preserved_type_name), String_from("Tuple:")) {
-        let _ = aggregate_tuple::ctx_register_tuple_gc_struct_from_param_name(ctx, clone(preserved_type_name))
-        // Emitter looks up the GC struct by tuple:A,B (comma form), not Tuple:A:B.
-        let wasm_name = aggregate_tuple::tuple_wasm_name_from_param_alias(clone(preserved_type_name))
-        ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_GC_REF())
-        if len(wasm_name) > 0 {
-            ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), clone(wasm_name))
-            ctx_api_local_types::ctx_set_local_type(ctx, param_local, wasm_name)
-        } else {
-            ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), clone(preserved_type_name))
-            ctx_api_local_types::ctx_set_local_type(ctx, param_local, preserved_type_name)
-        }
+    // Keep unary/binary fn params as VT_FUNCREF (fnref2 must not become GC_REF) (#807).
+    if mir_param_type_is_fnref(clone(preserved_type_name)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(preserved_type_name))
+        ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_FUNCREF())
+        ctx_api_function_frame::ctx_set_func_param_type(
+            ctx,
+            param_local,
+            value_types::VT_FUNCREF(),
+            clone(preserved_type_name)
+        )
     }
+}
+
+fn mir_param_type_is_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fn("))
 }
 
 fn mir_param_type_is_option_fnref(type_name: String) -> bool {

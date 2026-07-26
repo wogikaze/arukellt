@@ -304,7 +304,7 @@ pub fn leb128_encode_i32(x: i32) -> Vec<i32> {
         let byte: i32 = val & 127
         val = val >> 7
         if val == 0 {
-            if byte & 64 == 0 {
+            if (byte & 64) == 0 {
                 push(result, byte)
                 done = true
             } else {
@@ -314,7 +314,7 @@ pub fn leb128_encode_i32(x: i32) -> Vec<i32> {
             }
         } else {
             if val == 0 - 1 {
-                if byte & 64 != 0 {
+                if (byte & 64) != 0 {
                     push(result, byte)
                     done = true
                 } else {
@@ -940,9 +940,11 @@ pub fn base64_encode(b: Vec<i32>) -> String {
         } else {
             0
         }
+        // Parenthesize: `==`/`<<` bind tighter than `&` in Ark (unlike the
+        // intended `(x & mask) << n` form).
         let idx0 = b0 >> 2
-        let idx1 = b0 & 3 << 4 | b1 >> 4
-        let idx2 = b1 & 15 << 2 | b2 >> 6
+        let idx1 = ((b0 & 3) << 4) | (b1 >> 4)
+        let idx2 = ((b1 & 15) << 2) | (b2 >> 6)
         let idx3 = b2 & 63
         result = concat(result, base64_char(idx0))
         result = concat(result, base64_char(idx1))
@@ -972,11 +974,11 @@ pub fn base64_decode(s: String) -> Vec<i32> {
         let c3 = base64_val(slice(s, i + 3, i + 4))
         if c0 >= 0 {
             if c1 >= 0 {
-                push(result, c0 << 2 | c1 >> 4)
+                push(result, (c0 << 2) | (c1 >> 4))
                 if c2 >= 0 {
-                    push(result, c1 & 15 << 4 | c2 >> 2)
+                    push(result, ((c1 & 15) << 4) | (c2 >> 2))
                     if c3 >= 0 {
-                        push(result, c2 & 3 << 6 | c3)
+                        push(result, ((c2 & 3) << 6) | c3)
                     }
                 }
             }
@@ -999,9 +1001,9 @@ pub fn leb128_decode_u32(c: Vec<i32>) -> i32 {
             done = true
         } else {
             let byte = read_u8(c)
-            result = result | byte & 127 << shift
+            result = result | ((byte & 127) << shift)
             shift = shift + 7
-            if byte & 128 == 0 {
+            if (byte & 128) == 0 {
                 done = true
             }
             if shift >= 35 {
@@ -1025,9 +1027,9 @@ pub fn leb128_decode_i32(c: Vec<i32>) -> i32 {
         } else {
             let byte = read_u8(c)
             last_byte = byte
-            result = result | byte & 127 << shift
+            result = result | ((byte & 127) << shift)
             shift = shift + 7
-            if byte & 128 == 0 {
+            if (byte & 128) == 0 {
                 done = true
             }
             if shift >= 35 {
@@ -1036,8 +1038,8 @@ pub fn leb128_decode_i32(c: Vec<i32>) -> i32 {
         }
     }
     if shift < 32 {
-        if last_byte & 64 != 0 {
-            result = result | 0 - 1 << shift
+        if (last_byte & 64) != 0 {
+            result = result | ((0 - 1) << shift)
         }
     }
     result
@@ -1076,7 +1078,7 @@ pub fn leb128_decode_u64(c: Vec<i32>) -> i64 {
             let chunk = i32_to_i64(byte & 127) << shift
             result = result | chunk
             shift = shift + i32_to_i64(7)
-            if byte & 128 == 0 {
+            if (byte & 128) == 0 {
                 done = true
             }
             if shift >= i32_to_i64(70) {

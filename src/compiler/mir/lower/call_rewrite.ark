@@ -37,7 +37,7 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     let mut push_i64_needs_extend = false
     // String identity for x.to_string() must run before impl resolution
     // rewrites plain "to_string" into "Type::to_string".
-    if eq(clone(callee_name), "to_string") {
+    if eq(clone(callee_name), String_from("to_string")) {
         let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, callee_name, first_arg_idx)
         return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
         rewritten = call_rewrite_string::mir_string_call_rewrite_callee_name(string_rewrite)
@@ -46,13 +46,31 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
             return MirCallRewrite_new(rewritten, return_local, push_i64_needs_extend)
         }
     }
-    if eq(clone(callee_name), "is_empty") {
+    if eq(clone(callee_name), String_from("is_empty")) {
+        // Prefer String::is_empty before vec rewrite — String_from locals can
+        // look like byte arrays and must not take the Vec struct.get path (#807).
+        if first_arg_idx >= 0 {
+            let arg_ty = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+            let is_string_arg = eq(clone(arg_ty), String_from("String")) ||
+            eq(clone(arg_ty), String_from("string")) ||
+            (
+                !eq(clone(arg_ty), String_from("Vec")) &&
+                !starts_with(clone(arg_ty), String_from("vec:")) &&
+                (
+                    ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_REF() ||
+                    ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx) == value_types::VT_GC_REF()
+                )
+            )
+            if is_string_arg {
+                return MirCallRewrite_new(String_from("String::is_empty"), return_local, push_i64_needs_extend)
+            }
+        }
         let is_empty_local = call_rewrite_vec::mir_rewrite_vec_is_empty_to_local(ctx, first_arg_idx)
         if is_empty_local >= 0 {
             return MirCallRewrite_new(callee_name, is_empty_local, push_i64_needs_extend)
         }
     }
-    if first_arg_idx >= 0 && !contains(clone(rewritten), "::") {
+    if first_arg_idx >= 0 && !contains(clone(rewritten), String_from("::")) {
         rewritten = call_rewrite_method::mir_try_resolve_impl_method(ctx, clone(rewritten), first_arg_idx)
     }
     if eq(clone(rewritten), "to_string") {
@@ -81,20 +99,20 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
         }
     }
     // write_debug_to is specialized on arg1 (value), not arg0 (buffer).
-    let skip_first_arg_mono = eq(clone(rewritten), "write_debug_to") ||
-    starts_with(clone(rewritten), "write_debug_to__") ||
-    ends_with(clone(rewritten), "::write_debug_to") ||
-    contains(clone(rewritten), "write_debug_to__")
+    let skip_first_arg_mono = eq(clone(rewritten), String_from("write_debug_to")) ||
+    starts_with(clone(rewritten), String_from("write_debug_to__")) ||
+    ends_with(clone(rewritten), String_from("::write_debug_to")) ||
+    contains(clone(rewritten), String_from("write_debug_to__"))
     if !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     }
     rewritten = call_rewrite_vec::mir_rewrite_vec_access_after_mono(ctx, rewritten, first_arg_idx)
     // Only re-dispatch format_debug / format_debug__?t0 shells — applying
     // mono_by_type to every callee regresses modules/multi_import (to_string).
-    if eq(clone(rewritten), "format_debug") ||
-    starts_with(clone(rewritten), "format_debug__") ||
-    ends_with(clone(rewritten), "::format_debug") ||
-    contains(clone(rewritten), "format_debug__") {
+    if eq(clone(rewritten), String_from("format_debug")) ||
+    starts_with(clone(rewritten), String_from("format_debug__")) ||
+    ends_with(clone(rewritten), String_from("::format_debug")) ||
+    contains(clone(rewritten), String_from("format_debug__")) {
         rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, first_arg_idx)
     }
     // write_debug_to<T>(buf, value) is monomorphized on the *value* (2nd arg),
@@ -103,12 +121,12 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     // Strip any first-arg (buffer) specialization such as write_debug_to__String
     // before resolving on the value arg — otherwise i32 sites stay stuck on
     // the String specialization and get pruned wrongly.
-    if eq(clone(rewritten), "write_debug_to") ||
-    starts_with(clone(rewritten), "write_debug_to__") ||
-    ends_with(clone(rewritten), "::write_debug_to") ||
-    contains(clone(rewritten), "write_debug_to__") ||
-    contains(clone(rewritten), "::write_debug_to") {
-        rewritten = "write_debug_to"
+    if eq(clone(rewritten), String_from("write_debug_to")) ||
+    starts_with(clone(rewritten), String_from("write_debug_to__")) ||
+    ends_with(clone(rewritten), String_from("::write_debug_to")) ||
+    contains(clone(rewritten), String_from("write_debug_to__")) ||
+    contains(clone(rewritten), String_from("::write_debug_to")) {
+        rewritten = String_from("write_debug_to")
         let mono_arg = if second_arg_idx >= 0 { second_arg_idx } else { first_arg_idx }
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, mono_arg, span_start)
         rewritten = call_mono_by_type::mir_resolve_mono_call_by_type(ctx, rewritten, mono_arg)
@@ -117,16 +135,16 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
 }
 
 fn callee_needs_i64_trailing_arg(callee_name: String) -> bool {
-    if ends_with(clone(callee_name), "assert_eq_i64") {
+    if ends_with(clone(callee_name), String_from("assert_eq_i64")) {
         return true
     }
-    if ends_with(clone(callee_name), "seek_to") {
+    if ends_with(clone(callee_name), String_from("seek_to")) {
         return true
     }
-    if eq(clone(callee_name), "seek") {
+    if eq(clone(callee_name), String_from("seek")) {
         return true
     }
-    if ends_with(clone(callee_name), "::seek") {
+    if ends_with(clone(callee_name), String_from("::seek")) {
         return true
     }
     false

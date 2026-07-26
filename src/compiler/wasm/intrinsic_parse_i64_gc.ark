@@ -10,16 +10,20 @@ use wasm::intrinsic_http_result
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_arith
+use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::intrinsics::helpers_numeric_i64_convert
 
-// GC parse_i32: scan the String (array i8) and build Result<i32, String>.
-// Must not return Option::None — tag 0 looks like Ok and traps on payload cast (#807).
-fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+// GC parse_i64: scan String (array i8) and build Result<i64, String>.
+// Must not reuse parse_i32_gc — Ok payload would be i32 and trap on match (#807).
+fn emit_parse_i64_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let _inst = inst
     let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_result = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let s_acc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    // i64 accumulator must use offset 15 (dedicated i64 scratch slot).
+    let s_acc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s_ok = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
@@ -27,27 +31,24 @@ fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
     helpers_core::emit_local_set(w, s_str)
 
-    // len = array.len(str); i = 0; acc = 0; neg = 0; ok = 0
     helpers_core::emit_local_get(w, s_str)
     string_gc_helpers::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_len)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_i)
-    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_core::emit_local_set(w, s_acc)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_neg)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_ok)
 
-    // Empty string → Err
     helpers_core::emit_local_get(w, s_len)
     helpers_numeric_i32::emit_i32_eqz(w)
     helpers_control::emit_if_empty(w)
-    emit_parse_i32_gc_err(w, ctx, s_str, s_result, open_type)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
     helpers_control::emit_else(w)
 
-    // Optional leading '-'
     helpers_core::emit_local_get(w, s_str)
     helpers_numeric_i32::emit_i32_const(w, 0)
     writer_gc::emit_gc_array_get_u(w, string_type)
@@ -58,17 +59,16 @@ fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_neg)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_core::emit_local_set(w, s_i)
-    // Lone "-" is invalid
     helpers_core::emit_local_get(w, s_len)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_eq(w)
     helpers_control::emit_if_empty(w)
-    emit_parse_i32_gc_err(w, ctx, s_str, s_result, open_type)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
     helpers_control::emit_else(w)
-    emit_parse_i32_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
+    emit_parse_i64_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
     helpers_control::emit_end(w)
     helpers_control::emit_else(w)
-    emit_parse_i32_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
+    emit_parse_i64_gc_digit_loop(w, ctx, s_str, s_i, s_len, s_acc, s_ok, s_neg, s_result, string_type, open_type)
     helpers_control::emit_end(w)
 
     helpers_control::emit_end(w)
@@ -76,7 +76,7 @@ fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     true
 }
 
-fn emit_parse_i32_gc_digit_loop(
+fn emit_parse_i64_gc_digit_loop(
     w: WasmWriter,
     ctx: SelfEmitCtx,
     s_str: i32,
@@ -98,7 +98,6 @@ fn emit_parse_i32_gc_digit_loop(
     helpers_core::emit_local_get(w, s_str)
     helpers_core::emit_local_get(w, s_i)
     writer_gc::emit_gc_array_get_u(w, string_type)
-    // byte in 0..=9 after subtracting '0'? keep on stack as ch
     let s_ch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     helpers_core::emit_local_tee(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 48)
@@ -108,22 +107,21 @@ fn emit_parse_i32_gc_digit_loop(
     helpers_numeric_i32::emit_i32_gt_s(w)
     helpers_numeric_i32::emit_i32_or(w)
     helpers_control::emit_if_empty(w)
-    // Trailing junk: clear ok, then br 2 out of (block+loop). Depths from
-    // inside this `if` are 0=if, 1=loop, 2=block. Clearing ok stops the
-    // post-loop `if ok → Ok` from overwriting Err (#807).
+    // Trailing junk: clear ok, br 2 out of (block+loop). Depths from this
+    // `if`: 0=if, 1=loop, 2=block. Cleared ok prevents post-loop Ok (#807).
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_ok)
     helpers_control::emit_br(w, 2)
     helpers_control::emit_end(w)
 
-    // acc = acc * 10 + (ch - '0'); ok = 1
     helpers_core::emit_local_get(w, s_acc)
-    helpers_numeric_i32::emit_i32_const(w, 10)
-    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i64_const::emit_i64_const(w, 10i64)
+    helpers_numeric_i64_arith::emit_i64_mul(w)
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 48)
     helpers_numeric_i32::emit_i32_sub(w)
-    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i64_convert::emit_i64_extend_i32_s(w)
+    helpers_numeric_i64_arith::emit_i64_add(w)
     helpers_core::emit_local_set(w, s_acc)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_core::emit_local_set(w, s_ok)
@@ -134,27 +132,26 @@ fn emit_parse_i32_gc_digit_loop(
     helpers_control::emit_br(w, 0)
     helpers_control::emit_block_loop_footer(w)
 
-    // After loop: if ok then Ok(±acc) else Err
     helpers_core::emit_local_get(w, s_ok)
     helpers_control::emit_if_empty(w)
     helpers_core::emit_local_get(w, s_neg)
     helpers_control::emit_if_empty(w)
-    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_core::emit_local_get(w, s_acc)
-    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_numeric_i64_arith::emit_i64_sub(w)
     helpers_core::emit_local_set(w, s_acc)
     helpers_control::emit_end(w)
-    emit_parse_i32_gc_ok(w, ctx, s_acc, s_result, open_type)
+    emit_parse_i64_gc_ok(w, ctx, s_acc, s_result, open_type)
     helpers_control::emit_else(w)
-    emit_parse_i32_gc_err(w, ctx, s_str, s_result, open_type)
+    emit_parse_i64_gc_err(w, ctx, s_str, s_result, open_type)
     helpers_control::emit_end(w)
 }
 
-fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
+fn emit_parse_i64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
     let ok_type = intrinsic_sockets_result::find_result_variant_type_by_suffix(
         ctx,
         String_from("Result::Ok"),
-        String_from("_f1_i32")
+        String_from("_f1_i64")
     )
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     helpers_numeric_i32::emit_i32_const(w, 0)
@@ -164,12 +161,11 @@ fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i
     helpers_core::emit_local_set(w, s_result)
 }
 
-fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
-    // Prefer String-payload Err with the canonical message (not the input).
+fn emit_parse_i64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
     let err_type = intrinsic_http_result::find_result_string_variant_type(ctx, String_from("Result::Err"))
     if err_type >= 0 {
         let s_err = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
-        emit_parse_i32_gc_invalid_integer_string(w, ctx, s_err)
+        emit_parse_gc_invalid_integer_string(w, ctx, s_err)
         helpers_numeric_i32::emit_i32_const(w, 1)
         helpers_core::emit_local_get(w, s_err)
         writer_gc::emit_gc_struct_new(w, err_type)
@@ -182,7 +178,7 @@ fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result:
     helpers_core::emit_local_set(w, s_result)
 }
 
-fn emit_parse_i32_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
+fn emit_parse_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
     let msg = "parse error: invalid integer"
     let msg_len = len(msg)
     let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)

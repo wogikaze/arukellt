@@ -101,23 +101,23 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let tname = local_access::MirLocal_type_name(loc)
-    if eq(clone(tname), "vec:String") || eq(clone(tname), "vec:string") {
+    let tname = normalize_vec_type_name(local_access::MirLocal_type_name(loc))
+    if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
         return SelfEmitCtx_vec_string_type(ctx)
     }
-    if eq(clone(tname), "vec:v128") || eq(clone(tname), "vec:V128") {
+    if eq(clone(tname), String_from("vec:v128")) || eq(clone(tname), String_from("vec:V128")) {
         return SelfEmitCtx_vec_v128_type(ctx)
     }
-    if eq(clone(tname), "vec:i64") || eq(clone(tname), "vec:I64") {
+    if eq(clone(tname), String_from("vec:i64")) || eq(clone(tname), String_from("vec:I64")) {
         return SelfEmitCtx_vec_i64_type(ctx)
     }
-    if eq(clone(tname), "vec:f64") || eq(clone(tname), "vec:F64") {
+    if eq(clone(tname), String_from("vec:f64")) || eq(clone(tname), String_from("vec:F64")) {
         return SelfEmitCtx_vec_f64_type(ctx)
     }
-    if eq(clone(tname), "vec:fnref") || eq(clone(tname), "vec:fn") {
+    if eq(clone(tname), String_from("vec:fnref")) || eq(clone(tname), String_from("vec:fn")) {
         return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
     }
-    if starts_with(clone(tname), "vec:") {
+    if starts_with(clone(tname), String_from("vec:")) {
         let elem = substring(clone(tname), 4, len(tname))
         if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
@@ -125,12 +125,29 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
         if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem)) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
         }
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), "Vec") || starts_with(clone(elem), "vec:") {
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) || eq(clone(elem), String_from("Vec")) || starts_with(clone(elem), String_from("vec:")) {
             return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
         }
         return SelfEmitCtx_vec_type(ctx)
     }
     0 - 1
+}
+
+// Normalize Vec<T> / Vec_T / bare Vec onto the vec: prefix used by emit.
+fn normalize_vec_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("Vec<")) && ends_with(clone(type_name), String_from(">")) {
+        return concat(String_from("vec:"), substring(clone(type_name), 4, len(type_name) - 1))
+    }
+    if starts_with(clone(type_name), String_from("Vec_")) {
+        return concat(String_from("vec:"), substring(clone(type_name), 4, len(type_name)))
+    }
+    if eq(clone(type_name), String_from("Vec")) {
+        return String_from("vec:i32")
+    }
+    type_name
 }
 
 fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {

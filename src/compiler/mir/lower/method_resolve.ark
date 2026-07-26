@@ -181,6 +181,11 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
         if len(intrinsic_name) > 0 {
             return intrinsic_name
         }
+        // Prefer Type::method when present. Falling back to a free function of
+        // the same bare name recurses through ADR-046 wrappers (#807 popcount).
+        if ctx_has_fn_name(ctx, clone(callee_name)) {
+            return callee_name
+        }
         return bare_name
     }
     let short_name = mir_resolve_short_method_name(ctx, clone(callee_name))

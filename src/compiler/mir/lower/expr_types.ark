@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower_kinds
 use mir::lower::ctx_types
+use mir::lower::literal_int
 use mir::value_types
 fn mir_literal_kind_type_name(kind: i32) -> String {
     if kind == lower_kinds::NK_INT_LIT() {
@@ -37,6 +38,11 @@ fn peek_expr_vt(ctx: LowerCtx, node: AstNode) -> i32 {
     }
     if ast_node::node_kind_is(node, lower_kinds::NK_FLOAT_LIT()) {
         return value_types::VT_F64()
+    }
+    // Wide decimal literals (e.g. 2147483648) must peek as i64 so `0 - lit`
+    // extends the left before the right const is emitted (#807).
+    if ast_node::node_kind_is(node, lower_kinds::NK_INT_LIT()) && literal_int::mir_int_literal_needs_i64(node) {
+        return value_types::VT_I64()
     }
     value_types::VT_I32()
 }

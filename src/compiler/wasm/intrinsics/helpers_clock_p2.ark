@@ -6,7 +6,8 @@ use wasm::opcodes
 use wasm::writer_core
 
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
-    let nsec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    // i64 nsec scratch must use offset 15 (i64 slot); scratch 0 is i32 (#807 now_ms).
+    let nsec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
     let million: i64 = 1000000
     emit_i64_const(w, million)

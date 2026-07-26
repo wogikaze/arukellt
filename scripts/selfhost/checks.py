@@ -735,10 +735,39 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
+    """True when guest imports need tools/host-linker (P2 stdio / bridged ABI).
+
+    Plain ``wasmtime run`` does not define guest-native P2 stdio imports
+    (``get-stdout`` / ``blocking-write-and-flush`` / legacy ``write``). After
+    #668/#727 those imports are the default for ``stdio::println`` fixtures, so
+    fixture-parity must route them through ``arukellt-host-run`` (#807).
+    """
     try:
-        return b"arukellt_host" in wasm_path.read_bytes()
+        data = wasm_path.read_bytes()
     except OSError:
         return False
+    # Guest-native / legacy P2 stdio (#668) — required for println fixtures.
+    if (
+        b"wasi:cli/stdout@" in data
+        or b"wasi:cli/stderr@" in data
+        or b"wasi:io/streams@" in data
+        or b"get-stdout" in data
+        or b"get-stderr" in data
+        or b"blocking-write-and-flush" in data
+    ):
+        return True
+    # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
+    return (
+        b"arukellt_host" in data
+        or b"wasi:http/outgoing-handler@" in data
+        or b"wasi:http/incoming-handler@" in data
+        or b"wasi:sockets/tcp@" in data
+        or b"sockets_connect" in data
+        or b"sockets_listen" in data
+        or b"http_get" in data
+        or b"http_request" in data
+        or b"http_serve" in data
+    )
 
 
 def _ensure_aot_cwasm(wasm_path: Path) -> Path:
@@ -779,15 +808,58 @@ def _wasm_run_cmd(
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
-def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
+def _fixture_host_run_flags(root: Path, fixture: str | None) -> tuple[list[str], bool]:
+    """Parse sibling ``.flags`` for host-run: ``--dir …`` lines and ``--deny-fs``.
+
+    Returns (dir_args, deny_fs). When ``.flags`` lists ``--dir``, those replace
+    the default repo-root preopen so ``--dir .:ro`` can honor read-only (#807).
+    """
+    dir_args = [f"--dir={root}"]
+    deny_fs = False
+    if not fixture:
+        return dir_args, deny_fs
+    flags_path = root / "tests" / "fixtures" / (fixture[:-4] + ".flags")
+    if not flags_path.is_file():
+        return dir_args, deny_fs
+    custom_dirs: list[str] = []
+    for raw in flags_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line == "--deny-fs":
+            deny_fs = True
+            continue
+        if line.startswith("--dir="):
+            custom_dirs.append(line)
+            continue
+        if line.startswith("--dir ") or line == "--dir":
+            # Support "--dir .:ro" (single line with space).
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                custom_dirs.append(f"--dir={parts[1]}")
+            continue
+    if custom_dirs:
+        dir_args = custom_dirs
+    return dir_args, deny_fs
+
+
+def _wasm_run_argv(
+    root: Path, wasm_path: Path, *, fixture: str | None = None
+) -> list[str]:
     """Return argv to execute user wasm, using host-linker when imports need it."""
+    dir_args, deny_fs = _fixture_host_run_flags(root, fixture)
     if _wasm_needs_host_linker(wasm_path):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
         if hosted.is_file():
-            return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
+            argv = ["bash", str(hosted), *dir_args]
+            if deny_fs:
+                argv.append("--deny-fs")
+            argv.append(str(wasm_path))
+            return argv
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
-            "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
+    argv = [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
+            "--wasm", "max-wasm-stack=16777216", *dir_args, str(wasm_path)]
+    return argv
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -1486,18 +1558,15 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
     text = path.read_text(encoding="utf-8")
     old = (
         "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
-        "driver_config_record::config_target(config), core_wasi, "
+        "driver_config_record::config_target(config), driver_config_record::config_wasi_version(config), "
         "driver_config_record::config_world(config))"
     )
-    # Key off core_wasi (already respects explicit wasi-p2 vs library worlds),
-    # not bare mir_has_library_exports — otherwise env::var command fixtures are
-    # forced through the p1 library wrapper (#668 / #810).
     new = (
-        "    let comp_bytes = if eq(clone(core_wasi), String_from(\"p1-component\")) {\n"
+        "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
         "        wasm::emit_library_component(core_wasm, mir_module)\n"
         "    } else {\n"
         "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
-        "core_wasi, driver_config_record::config_world(config))\n"
+        "driver_config_record::config_wasi_version(config), driver_config_record::config_world(config))\n"
         "    }"
     )
     if old in text and "emit_library_component" not in text:
@@ -1505,22 +1574,7 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
             text,
             old,
             new,
-            "route p1-component emit through wasm::emit_library_component in driver_emit",
-        )
-        path.write_text(text, encoding="utf-8")
-    elif (
-        "if component::mir_has_library_exports(mir_module)" in text
-        and "eq(clone(core_wasi), String_from(\"p1-component\"))" not in text
-    ):
-        text = text.replace(
-            "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
-            "        wasm::emit_library_component(core_wasm, mir_module)\n"
-            "    } else {\n"
-            "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
-            "core_wasi, driver_config_record::config_world(config))\n"
-            "    }",
-            new,
-            1,
+            "route library component emit through wasm::emit_library_component in driver_emit",
         )
         path.write_text(text, encoding="utf-8")
 
@@ -3284,10 +3338,18 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
     host_text = host_path.read_text(encoding="utf-8")
     text = fn_path.read_text(encoding="utf-8")
     for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
-        if not re.search(
-            rf"pub fn (?:mir_module_host_calls__)?{re.escape(symbol)}\(callee: String\) -> bool",
+        renamed = f"mir_module_host_calls__{symbol}"
+        if re.search(
+            rf"pub fn {re.escape(renamed)}\(callee: String\) -> bool",
             host_text,
         ):
+            callee_name = renamed
+        elif re.search(
+            rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool",
+            host_text,
+        ):
+            callee_name = f"mir_module_host_calls::{symbol}"
+        else:
             continue
         # Facades may already be stripped as thin overlay delegates.
         text = _sub_optional(
@@ -3297,13 +3359,19 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
             f"drop recursive host-call facade {symbol} from mir_module_functions",
             count=1,
         )
-        text = _replace_optional(
+        # Flat-overlay publish renames host helpers to mir_module_host_calls__*.
+        # Rewrite both bare and module-qualified call sites to the published name.
+        if callee_name.startswith("mir_module_host_calls__"):
+            text = text.replace(
+                f"mir_module_host_calls::{symbol}(",
+                f"{callee_name}(",
+            )
+        text = re.sub(
+            rf"(?<![:_]){re.escape(symbol)}\(",
+            f"{callee_name}(",
             text,
-            f"{symbol}(",
-            f"mir_module_host_calls::{symbol}(",
-            f"rewrite {symbol} call sites to mir_module_host_calls delegation",
         )
-    if "use mir_module_host_calls" not in text:
+    if "use mir_module_host_calls" not in text and "mir_module_host_calls::" in text:
         text = _replace_required(
             text,
             "use mir_opcodes\n",
@@ -3314,24 +3382,135 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
 
 
 def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
-    """Bootstrap overlay: host-import scans trap after flat-module symbol renames."""
+    """Replace host-import needs scans with an overlay-safe inline version (#727).
+
+    The live tree scans via ``mir_module_host_calls::*`` helpers, but after
+    flat-module symbol renaming those call paths still trap during bootstrap
+    emission. Keep the scan local to ``mir_module_functions`` with direct
+    string compares so WIT-shaped HTTP/sockets imports are emitted.
+    """
     path = compiler_out / "mir_module_functions.ark"
     if not path.is_file():
         return
     text = path.read_text(encoding="utf-8")
-    stubs: tuple[tuple[str, str], ...] = (
-        ("mir_module_needs_arukellt_host", "mir: MirModule"),
-        ("mir_module_needs_wasi_http_outgoing", "mir: MirModule"),
-        ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
+    inline_match = """
+fn _overlay_callee_needs_network_host(callee: String) -> bool {
+    if eq(clone(callee), String_from("http_get")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }
+    if eq(clone(callee), String_from("http::get")) { return true }
+    if eq(clone(callee), String_from("std::host::http::get")) { return true }
+    if eq(clone(callee), String_from("runtime.get")) { return true }
+    if eq(clone(callee), String_from("http_request")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
+    if eq(clone(callee), String_from("http::request")) { return true }
+    if eq(clone(callee), String_from("std::host::http::request")) { return true }
+    if eq(clone(callee), String_from("runtime.request")) { return true }
+    if eq(clone(callee), String_from("http_serve")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
+    if eq(clone(callee), String_from("http::serve")) { return true }
+    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
+    if eq(clone(callee), String_from("runtime.serve")) { return true }
+    if eq(clone(callee), String_from("sockets_connect")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) { return true }
+    if eq(clone(callee), String_from("sockets::connect")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
+    if eq(clone(callee), String_from("runtime.connect")) { return true }
+    if eq(clone(callee), String_from("sockets_read")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_read")) { return true }
+    if eq(clone(callee), String_from("sockets::read")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
+    if eq(clone(callee), String_from("runtime.read")) { return true }
+    if eq(clone(callee), String_from("sockets_write")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
+    if eq(clone(callee), String_from("sockets::write")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
+    if eq(clone(callee), String_from("runtime.write")) { return true }
+    if eq(clone(callee), String_from("sockets_listen")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_listen")) { return true }
+    if eq(clone(callee), String_from("sockets::listen")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
+    if eq(clone(callee), String_from("runtime.listen")) { return true }
+    if eq(clone(callee), String_from("sockets_accept")) { return true }
+    if eq(clone(callee), String_from("__intrinsic_sockets_accept")) { return true }
+    if eq(clone(callee), String_from("sockets::accept")) { return true }
+    if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
+    if eq(clone(callee), String_from("runtime.accept")) { return true }
+    false
+}
+""".lstrip()
+    scan_body = """
+    let fn_count = MirModule_function_count(mir)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(mir, fi)
+        let block_count = mir_function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < block_count {
+            let block = mir_function_block_queries::MirFunction_block_at(f, bi)
+            let inst_count = mir_block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = mir_block_inst_access::MirBlock_inst_at(block, ii)
+                if mir_inst_accessors_shape::MirInst_op(inst) == mir_opcodes::MIR_CALL() {
+                    let callee = mir_inst_accessors_literals::MirInst_str_val(inst)
+                    if _overlay_callee_needs_network_host(clone(callee)) {
+                        return 1
+                    }
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        fi = fi + 1
+    }
+    0
+""".rstrip()
+    http_only_body = scan_body.replace(
+        "_overlay_callee_needs_network_host(clone(callee))",
+        "("
+        + "eq(clone(callee), String_from(\"http_get\")) || "
+        + "eq(clone(callee), String_from(\"__intrinsic_http_get\")) || "
+        + "eq(clone(callee), String_from(\"http::get\")) || "
+        + "eq(clone(callee), String_from(\"std::host::http::get\")) || "
+        + "eq(clone(callee), String_from(\"runtime.get\")) || "
+        + "eq(clone(callee), String_from(\"http_request\")) || "
+        + "eq(clone(callee), String_from(\"__intrinsic_http_request\")) || "
+        + "eq(clone(callee), String_from(\"http::request\")) || "
+        + "eq(clone(callee), String_from(\"std::host::http::request\")) || "
+        + "eq(clone(callee), String_from(\"runtime.request\")) || "
+        + "eq(clone(callee), String_from(\"http_serve\")) || "
+        + "eq(clone(callee), String_from(\"__intrinsic_http_serve\")) || "
+        + "eq(clone(callee), String_from(\"http::serve\")) || "
+        + "eq(clone(callee), String_from(\"std::host::http::serve\")) || "
+        + "eq(clone(callee), String_from(\"runtime.serve\"))"
+        + ")",
     )
-    for name, params in stubs:
-        text = _sub_required(
+    if "_overlay_callee_needs_network_host" not in text:
+        # Insert helper before the first needs_* function.
+        text = _replace_required(
             text,
-            rf"pub fn {re.escape(name)}\({re.escape(params)}\) -> i32 \{{[\s\S]*?\n\}}",
-            f"pub fn {name}({params}) -> i32 {{\n    0\n}}",
-            f"stub {name} to return 0 for pinned bootstrap",
-            count=1,
+            "pub fn mir_module_needs_wasi_http_outgoing_if_p2",
+            inline_match + "\npub fn mir_module_needs_wasi_http_outgoing_if_p2",
+            "insert overlay-safe network callee matcher",
         )
+    text = _sub_required(
+        text,
+        r"pub fn mir_module_needs_arukellt_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
+        "pub fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {"
+        + scan_body
+        + "\n}",
+        "inline overlay-safe mir_module_needs_arukellt_host scan",
+        count=1,
+    )
+    text = _sub_required(
+        text,
+        r"pub fn mir_module_needs_wasi_http_outgoing\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
+        "pub fn mir_module_needs_wasi_http_outgoing(mir: MirModule) -> i32 {"
+        + http_only_body
+        + "\n}",
+        "inline overlay-safe mir_module_needs_wasi_http_outgoing scan",
+        count=1,
+    )
     path.write_text(text, encoding="utf-8")
 
 
@@ -3833,17 +4012,35 @@ def _run_fixpoint_locked(
 
 # ── Shared manifest parsing ───────────────────────────────────────────────────
 
-def _load_manifest_fixtures(root: Path, kind: str) -> tuple[list[str], str]:
-    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string."""
+def _load_manifest_fixtures(
+    root: Path,
+    kind: str,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[list[str], str]:
+    """Return list of fixture paths for kind='run' or kind='diag'. Also returns error string.
+
+    When ``filter_dirs`` is set, keep only fixtures whose first path segment
+    matches one of the given directory names (e.g. ``control``, ``scalar``).
+    """
     manifest = root / "tests" / "fixtures" / "manifest.txt"
     if not manifest.is_file():
         return [], f"{RED}error: manifest not found: {manifest}{NC}"
     pattern = re.compile(rf"^{kind}:\s*(.+\.ark)$")
     fixtures: list[str] = []
+    allowed: set[str] | None = None
+    if filter_dirs:
+        allowed = {d.strip().strip("/") for d in filter_dirs if d and d.strip()}
     for line in manifest.read_text().splitlines():
         m = pattern.match(line)
-        if m:
-            fixtures.append(m.group(1))
+        if not m:
+            continue
+        fixture = m.group(1)
+        if allowed is not None:
+            top = fixture.split("/", 1)[0]
+            if top not in allowed:
+                continue
+        fixtures.append(fixture)
     return fixtures, ""
 
 
@@ -3968,6 +4165,10 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
 
     Output is ``.build/selfhost/arukellt-s2.wasm``. If it already exists, it is
     reused (callers may invoke ``run_fixpoint`` / ``rebuild_current_s2`` to refresh).
+
+    Callers already hold ``selfhost-runtime.lock`` (fixture/diag/cli parity).
+    Rebuild via ``_rebuild_current_s2_locked`` — never ``rebuild_current_s2``,
+    which would re-enter flock and deadlock on Linux.
     """
     build_dir = _selfhost_dir(root)
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -3979,7 +4180,7 @@ def _ensure_current_selfhost(root: Path, wasmtime: str, pinned: Path) -> tuple[P
                 f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
             )
         return runtime, ""
-    runtime, err, _elapsed = rebuild_current_s2(root, force=True)
+    runtime, err, _elapsed = _rebuild_current_s2_locked(root, force=True)
     return runtime, err
 
 
@@ -4117,19 +4318,35 @@ def _normalize_fixture_parity_output(out: str) -> str:
 
 # ── run_fixture_parity ────────────────────────────────────────────────────────
 
-def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
+def run_fixture_parity(
+    root: Path,
+    dry_run: bool,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     Serialized via runtime_lock to prevent concurrent agents from
     overwriting shared s2/s3 wasm artifacts.
+
+    ``filter_dirs`` limits the run to fixtures under the given top-level
+    directories (Phase 1 of #807). When set, the minimum-fixture floor is
+    skipped so small directories remain usable for iteration.
     """
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root), root)
+    return _with_runtime_lock(
+        lambda: _run_fixture_parity_locked(root, filter_dirs=filter_dirs),
+        root,
+    )
 
 
-def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
+def _run_fixture_parity_locked(
+    root: Path,
+    *,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     For each ``run:`` fixture in the manifest:
@@ -4153,11 +4370,15 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
     if current is None:
         return (1, err)
 
-    fixtures, err = _load_manifest_fixtures(root, "run")
+    fixtures, err = _load_manifest_fixtures(root, "run", filter_dirs=filter_dirs)
     if err:
         return (1, err + "\n")
 
-    if len(fixtures) < 10:
+    if filter_dirs and not fixtures:
+        dirs = ", ".join(filter_dirs)
+        return (1, f"{RED}error: no run: fixtures matched --filter-dir ({dirs}){NC}\n")
+
+    if not filter_dirs and len(fixtures) < 10:
         return (1, f"{RED}error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found){NC}\n")
 
     pinned_sha = _sha256(pinned)
@@ -4235,14 +4456,13 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
                 lines.append(f"  note: {fixture} (pinned wasm invalid, current OK — improvement!)")
 
             # ── Execution ─────────────────────────────────────────────────
-            r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
+            r_p = _run(_wasm_run_argv(root, out_pinned, fixture=fixture), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
 
-            r_c = _run(_wasm_run_argv(root, out_current), root, timeout=15)
+            r_c = _run(_wasm_run_argv(root, out_current, fixture=fixture), root, timeout=15)
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
-
             # A trap (exit 134) after successful wasm validation indicates a
             # runtime crash.
             # - If only current traps → FAIL (new regression).
@@ -4251,8 +4471,17 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
             def _is_trap(code: int) -> bool:
                 return code == 134
 
-            p_trapped = _is_trap(p_code)
-            c_trapped = _is_trap(c_code)
+            def _is_runtime_error_output(out: str) -> bool:
+                # Hosted runner often exits 0 while printing a wasm trap
+                # backtrace; treat that as a trap for both-trap skip (#807).
+                return (
+                    "runtime error:" in out
+                    or "Error: failed to run main module" in out
+                    or "wasm trap:" in out
+                )
+
+            p_trapped = _is_trap(p_code) or _is_runtime_error_output(p_out)
+            c_trapped = _is_trap(c_code) or _is_runtime_error_output(c_out)
             p_was_invalid = p_val_rc != 0
 
             if c_trapped and not p_trapped and not p_was_invalid:

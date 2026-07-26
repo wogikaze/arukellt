@@ -12,8 +12,10 @@ fn main() {
     push(v, 4)
     push(v, 5)
 
+    // map(double) then filter(is_even): [2,4,6,8,10]
     let result = iter::collect_map_filter_i32(v, double, is_even)
-    test::assert_eq_i32(len(result), 2)
-    test::assert_eq_i32(get_unchecked(result, 0), 4)
-    test::assert_eq_i32(get_unchecked(result, 1), 8)
+    test::assert_eq_i32(len(result), 5)
+    test::assert_eq_i32(get_unchecked(result, 0), 2)
+    test::assert_eq_i32(get_unchecked(result, 1), 4)
+    test::assert_eq_i32(get_unchecked(result, 4), 10)
 }

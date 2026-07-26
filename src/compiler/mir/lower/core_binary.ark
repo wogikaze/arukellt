@@ -28,6 +28,7 @@ fn lower_core_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) 
         return overloaded
     }
     binop_vt = binary_type_refine::mir_refine_binop_vt_from_left(ctx, binop_vt, l_idx, binary_type_select::mir_peek_core_expr_vt(ctx, right_expr))
+    // Extend left before lowering right so stack-fused CONST+EXTEND stays ordered (#807).
     let actual_l = binary_cast::mir_extend_i32_to_i64_if_needed(ctx, binop_vt, l_idx)
     let r_idx = lower_core_expr(ctx, exprs, right_expr_index)
     binop_vt = binary_type_refine::mir_refine_binop_vt_from_local(ctx, binop_vt, r_idx)

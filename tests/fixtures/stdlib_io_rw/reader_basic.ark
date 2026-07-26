@@ -22,26 +22,23 @@ fn main() {
         Result::Ok(chunk) => stdio::println(bytes::string_from_bytes(chunk)),
         Result::Err(e) => stdio::println(e),
     }
+    // After reading "Hello", cursor sits on '\n'. First read_line consumes it
+    // (empty line); second returns the remainder "World".
     let res2: Result<String, io::IoError> = io::reader_read_line(r)
     match res2 {
+        Result::Ok(line) => stdio::println(line),
+        Result::Err(e) => stdio::println(e),
+    }
+    let res3: Result<String, io::IoError> = io::reader_read_line(r)
+    match res3 {
         Result::Ok(line) => stdio::println(line),
         Result::Err(e) => stdio::println(e),
     }
     stdio::println((io::reader_eof(r)).to_string())
 }
 // Build bytes: "Hello\nWorld"
-// H
-// e
-// l
-// l
-// o
-// \n
-// W
-// o
-// r
-// l
-// d
 // reader_eof should be false
 // read 5 bytes -> "Hello"
-// read_line -> "World" (skips the \n)
+// read_line -> "" (newline after Hello)
+// read_line -> "World"
 // reader_eof should now be true

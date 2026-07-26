@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-26T11:39:55Z",
+  "generated_at": "2026-07-26T11:40:23Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -664,26 +664,6 @@
       }
     },
     {
-      "id": "807",
-      "path": "807-fixture-parity-367-remaining-failures.md",
-      "title": "807 — Fixture parity: 367 remaining failures",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [
-        "287",
-        "framework)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "815",
       "path": "815-diagnostic-t3-compile-skips.md",
       "title": "815 — Diagnostic/T3 compile skips",
@@ -777,25 +757,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "840",
-      "path": "840-question-mark-from-wasm32-gc.md",
-      "title": "840 — Enable `?` From conversion on wasm32-gc",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "839"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": 839
       }
     },
     {

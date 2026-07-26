@@ -1,5 +1,6 @@
 use mir::lower::ast_node
 use mir::lower_kinds
+use mir::lower::binary_cast
 use mir::lower::call_arg_i64
 use mir::lower::call_args
 use mir::lower::call_emit
@@ -15,8 +16,9 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
         }
     }
-    // Expression callee: id(f)(x) / get_unchecked(fs, 0)(x) → call_ref (#832).
-    if ast_node::node_kind_is(callee, lower_kinds::NK_CALL()) {
+    // Expression callee: id(f)(x) / get_unchecked(fs, 0)(x) / (self.f)(x) → call_ref.
+    if ast_node::node_kind_is(callee, lower_kinds::NK_CALL()) ||
+    ast_node::node_kind_is(callee, lower_kinds::NK_FIELD_ACCESS()) {
         let callee_local = lower_expr(ctx, callee)
         if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
             return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
@@ -29,6 +31,7 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
     let mut first_arg_idx = 0 - 1
     let mut second_arg_idx = 0 - 1
     let mut lane_immediate = 0 - 1
+    let mut receiver_writeback = 0 - 1
     let mut a = 1
     while a < child_count {
         let arg = ast_node::node_child_at(node, a)
@@ -59,7 +62,14 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         } else {
             arg_idx = lower_expr(ctx, arg)
         }
+        if arg_idx >= 0 && call_arg_i64::mir_should_wrap_i64_arg_to_i32(ctx, clone(callee_name), param_idx) {
+            arg_idx = binary_cast::mir_wrap_i64_to_i32_if_needed(ctx, arg_idx)
+        }
         arg_idx = lower_direct_call_print_convert(ctx, is_println, a, arg, arg_idx)
+        // Capture pre-stage receiver for GC void mutators (push_char).
+        if a == 1 && eq(clone(callee_name), String_from("push_char")) && arg_idx >= 0 {
+            receiver_writeback = arg_idx
+        }
         if stage_call_args && arg_idx >= 0 {
             arg_idx = call_args::mir_stage_call_arg(ctx, staged_arg_locals, arg_idx)
         }
@@ -71,7 +81,18 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
         }
         a = a + 1
     }
-    call_emit::mir_emit_direct_call(ctx, callee_name, child_count - 1, first_arg_idx, second_arg_idx, staged_arg_locals, stage_call_args, ast_node::node_span_start(node), lane_immediate)
+    call_emit::mir_emit_direct_call(
+        ctx,
+        callee_name,
+        child_count - 1,
+        first_arg_idx,
+        second_arg_idx,
+        staged_arg_locals,
+        stage_call_args,
+        ast_node::node_span_start(node),
+        lane_immediate,
+        receiver_writeback
+    )
 }
 
 fn lower_direct_call_print_convert(ctx: LowerCtx, is_println: bool, a: i32, arg: AstNode, arg_idx: i32) -> i32 {

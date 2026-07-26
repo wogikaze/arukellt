@@ -63,19 +63,27 @@ fn SCRATCH_SOCK_RET() -> i32 { 100 }
 fn SCRATCH_SOCK_ABSLEN() -> i32 { 104 }
 fn SCRATCH_SOCK_ENUMPTR() -> i32 { 108 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
-// Guest-native P2 stdio: get-stdout, bwaf, …, get-stderr, environ, clocks/random.
-fn NUM_P2_IMPORTS_BASE() -> i32 { 14 }
+// Guest-native P2 stdio: get-stdout, bwaf, …, get-stderr, environ, clocks/random, fd_write.
+fn NUM_P2_IMPORTS_BASE() -> i32 { 15 }
 fn NUM_P2_HTTP_OUTGOING_IMPORTS() -> i32 { 2 }
 fn P2_IMPORT_GET_STDOUT() -> i32 { 0 }
 fn P2_IMPORT_BWAF() -> i32 { 1 }
 fn P2_IMPORT_ARGS_SIZES() -> i32 { 2 }
 fn P2_IMPORT_ARGUMENTS() -> i32 { 3 }
+// open-at=4, stdin/fd read=5, fs close=6, exit=7 (must not reuse WASI_IMPORT_PROC_EXIT=6).
+fn P2_IMPORT_OPEN_AT() -> i32 { 4 }
+// Guest import is named stdin read; ABI matches fd_read and is reused for files (#807).
+fn P2_IMPORT_FD_READ() -> i32 { 5 }
+fn P2_IMPORT_FS_CLOSE() -> i32 { 6 }
+fn P2_IMPORT_EXIT() -> i32 { 7 }
 fn P2_IMPORT_GET_STDERR() -> i32 { 8 }
 fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 9 }
 fn P2_IMPORT_ENVIRON_GET() -> i32 { 10 }
 fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 11 }
 fn P2_IMPORT_WALL_NOW() -> i32 { 12 }
 fn P2_IMPORT_RANDOM_U64() -> i32 { 13 }
+// P1-shaped fd_write ABI on wasi:filesystem/types@0.2.0 "write" (#807).
+fn P2_IMPORT_FD_WRITE() -> i32 { 14 }
 // Host type map indices for guest-native stdio (after base WASI + P2 clock types).
 fn P2_HOST_TYPE_GET_STREAM() -> i32 { 7 }
 fn P2_HOST_TYPE_BWAF() -> i32 { 8 }

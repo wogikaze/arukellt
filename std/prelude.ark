@@ -332,7 +332,15 @@ pub fn sort_String(v: Vec<String>) {
 // Vec higher-order (deprecated)
 // @deprecated: use `v.map(f)` (Iterator trait, #691) instead. See ADR-036.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    __intrinsic_map_i32_i32(v, f)
+    // Real Ark body: `__intrinsic_map_i32_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let out: Vec<i32> = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(out, f(get_unchecked(v, i)))
+        i = i + 1
+    }
+    out
 }
 
 // @deprecated: use `v.filter(f)` (Iterator trait, #691) instead. See ADR-036.
@@ -350,11 +358,30 @@ pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
 }
 
 pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    __intrinsic_any_i32(v, f)
+    // Real Ark body: `__intrinsic_any_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        if f(get_unchecked(v, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
-    __intrinsic_find_i32(v, f)
+    // Real Ark body: `__intrinsic_find_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        let x = get_unchecked(v, i)
+        if f(x) {
+            return Some(x)
+        }
+        i = i + 1
+    }
+    None
 }
 
 // String: split/join/push_char
@@ -697,7 +724,8 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
 }
 
 pub fn pop(v: Vec<i32>) -> Option<i32> {
-    panic(String_new()); return None
+    // Rewrite to vec_pop intrinsic (prelude panic stub had no emitter) (#807).
+    vec_pop(v)
 }
 
 pub fn set<T>(v: Vec<T>, idx: i32, val: T) {
@@ -865,7 +893,17 @@ pub fn any_String(v: Vec<String>, f: fn(String) -> bool) -> bool {
 }
 
 pub fn find_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Option<i64> {
-    __intrinsic_find_i64(v, f)
+    // Real Ark body: `__intrinsic_find_i64` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        let x = get_unchecked(v, i)
+        if f(x) {
+            return Some(x)
+        }
+        i = i + 1
+    }
+    None
 }
 
 pub fn find_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Option<f64> {

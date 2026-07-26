@@ -1,3 +1,4 @@
+use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_stdio_read_buffer
 use wasm::intrinsic_stdio_read_gc
@@ -7,14 +8,23 @@ use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::string_gc_helpers
 
 fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
-    } else {
-        emit_wasi_read_stdin_string(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // GC WASI stdin.read path still yields invalid/garbage strings (#807).
+        // Emit a true empty GC string until that path is stable.
+        emit_gc_empty_stdin_string(w, ctx)
+        return true
     }
+    emit_wasi_read_stdin_string(w)
     return true
+}
+
+fn emit_gc_empty_stdin_string(w: WasmWriter, ctx: SelfEmitCtx) {
+    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
 }
 
 fn emit_finish_stdin_string_buffer(w: WasmWriter) {

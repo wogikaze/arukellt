@@ -1,19 +1,56 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_index
 use mir::lower::ctx_types
+use mir::function_identity
+use mir::function_param_view
 use mir::inst_const_i32
 use mir::inst_local_get
 use mir::inst_ref_func
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
+use mir::module_functions
+use mir::module_spine
 use mir::lower::variants
 use mir::value_types
 
 fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+}
+
+fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+    // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    if module_spine::MirModule_signature_spine_populated(m) {
+        let registry = module_spine::MirModule_signature_registry(m)
+        let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fn_name))
+        if function_id::function_id_is_valid(fid) {
+            let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+            if signature_entry::signature_entry_param_count(entry) >= 2 {
+                return String_from("fnref2")
+            }
+            return String_from("fnref")
+        }
+    }
+    let n = module_functions::MirModule_function_count(m)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(m, i)
+        if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
+            if function_param_view::MirFunction_param_count(f) >= 2 {
+                return String_from("fnref2")
+            }
+            return String_from("fnref")
+        }
+        i = i + 1
+    }
+    String_from("fnref")
 }
 
 fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
@@ -27,11 +64,12 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         if ident_tag >= 0 {
             return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), ident_tag)
         }
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+        let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
             let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, "fnref")
-            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(core_expr_shape_accessors::mir_core_expr_text(expr), dest))
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, mir_fnref_type_name_for_function(ctx, clone(fn_name)))
+            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
             return dest
         }
         return 0 - 1

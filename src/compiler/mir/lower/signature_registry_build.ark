@@ -11,6 +11,8 @@ use mir::lower::signature_registry_build_mono
 use mir::lower::signature_registry_entry
 use mir::lower::signature_registry_host
 use mir::lower::signature_spine
+use corehir::param
+use corehir::mir_signature_fn
 
 fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, expected_fn_names: Vec<String>) -> MirSignatureSpine {
     let table = type_table::TypeTable_new()
@@ -57,7 +59,7 @@ fn sig_reg_log_count_match(expected_fn_names: Vec<String>, registry: SignatureRe
     let host_count = signature_registry::signature_registry_host_intrinsic_count(registry)
     let reg_normal = reg_count - host_count
     if fn_count != reg_normal {
-        stdio::eprintln(concat("sig-reg: fn_index/registry count mismatch fn=", concat(i32_to_string(fn_count), concat(" reg=", i32_to_string(reg_normal)))))
+        stdio::eprintln(concat(String_from("sig-reg: fn_index/registry count mismatch fn="), concat(i32_to_string(fn_count), concat(String_from(" reg="), i32_to_string(reg_normal)))))
     }
 }
 
@@ -77,11 +79,31 @@ fn sig_reg_index_top_level_fn(
         typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)
     }
     let entry_main = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow = eq(clone(decl_name), "main") && decl_index != entry_main
-    if !skip_shadow {
+    let skip_shadow = eq(clone(decl_name), String_from("main")) && decl_index != entry_main
+    // string.join(Vec,…) stays CoreOp-only; registering it as bare `join`
+    // overwrites path::join(String,String) and yields invalid wasm (#807).
+    if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, clone(decl_name)) {
         signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
         signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
     }
+}
+
+fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, decl_name: String) -> bool {
+    if !eq(clone(decl_name), String_from("join")) {
+        return false
+    }
+    if fn_info_index < 0 {
+        return false
+    }
+    let param_count = mir_signature_fn::mir_signature_fn_param_count_at(sig_source, fn_info_index, 0)
+    if param_count <= 0 {
+        return false
+    }
+    let param0 = mir_signature_fn::mir_signature_fn_param_at(sig_source, fn_info_index, 0)
+    let p0 = param::param_type_name(param0)
+    eq(clone(p0), String_from("Vec")) ||
+    starts_with(clone(p0), String_from("Vec<")) ||
+    starts_with(clone(p0), String_from("vec"))
 }
 
 fn sig_reg_index_impl_methods(

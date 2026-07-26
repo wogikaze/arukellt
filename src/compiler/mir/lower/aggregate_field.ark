@@ -66,6 +66,12 @@ fn mir_field_access_dest_vt(ctx: LowerCtx, base_type: String, field_name: String
         if eq(clone(ft_vt), "i64") {
             dest_vt = value_types::VT_I64()
         }
+        // fn fields are typed funcrefs so `(self.f)(x)` can call_ref (#807).
+        if eq(clone(ft_vt), "fnref") ||
+        eq(clone(ft_vt), "fn") ||
+        starts_with(clone(ft_vt), String_from("fn(")) {
+            dest_vt = value_types::VT_FUNCREF()
+        }
     }
     if len(base_type) > 0 && ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(base_type), field_idx) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {

@@ -5,38 +5,42 @@ use corehir::hashmap_type_name
 
 fn type_ann_shape_param_type_name(ty: AstNode) -> String {
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ty)) {
-        return "fnref"
+        // Preserve binary arity for fold callbacks (fn(i32,i32)->i32 → fnref2) (#807).
+        if type_ann_node::type_ann_child_count(ty) >= 2 {
+            return String_from("fnref2")
+        }
+        return String_from("fnref")
     }
     if type_ann_node::type_ann_is_generic(ty) {
-        if type_ann_node::type_ann_is_name(ty, "Vec") && type_ann_node::type_ann_child_count(ty) >= 2 {
+        if type_ann_node::type_ann_is_name(ty, String_from("Vec")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
-            return concat("vec:", type_ann_node::type_ann_name(elem))
+            return concat(String_from("vec:"), type_ann_node::type_ann_name(elem))
         }
-        if type_ann_node::type_ann_is_name(ty, "HashMap") && type_ann_node::type_ann_child_count(ty) >= 3 {
+        if type_ann_node::type_ann_is_name(ty, String_from("HashMap")) && type_ann_node::type_ann_child_count(ty) >= 3 {
             let key = type_ann_node::type_ann_child_at(ty, 1)
             let val = type_ann_node::type_ann_child_at(ty, 2)
             let k_name = type_ann_node::type_ann_name(key)
             let v_name = type_ann_node::type_ann_name(val)
-            return concat("hashmap:", hashmap_type_name::hashmap_type_alias(k_name, v_name))
+            return concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
         }
-        if type_ann_node::type_ann_is_name(ty, "Option") && type_ann_node::type_ann_child_count(ty) >= 2 {
+        if type_ann_node::type_ann_is_name(ty, String_from("Option")) && type_ann_node::type_ann_child_count(ty) >= 2 {
             let elem = type_ann_node::type_ann_child_at(ty, 1)
             if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(elem)) ||
-            eq(type_ann_node::type_ann_name(elem), "fnref") {
-                return "Option:fnref"
+            eq(type_ann_node::type_ann_name(elem), String_from("fnref")) {
+                return String_from("Option:fnref")
             }
-            return concat("Option:", type_ann_node::type_ann_name(elem))
+            return concat(String_from("Option:"), type_ann_node::type_ann_name(elem))
         }
-        if type_ann_node::type_ann_is_name(ty, "Result") && type_ann_node::type_ann_child_count(ty) >= 3 {
+        if type_ann_node::type_ann_is_name(ty, String_from("Result")) && type_ann_node::type_ann_child_count(ty) >= 3 {
             let ok_ty = type_ann_node::type_ann_child_at(ty, 1)
             let err_ty = type_ann_node::type_ann_child_at(ty, 2)
-            return concat("Result:", concat(type_ann_node::type_ann_name(ok_ty), concat(":", type_ann_node::type_ann_name(err_ty))))
+            return concat(String_from("Result:"), concat(type_ann_node::type_ann_name(ok_ty), concat(String_from(":"), type_ann_node::type_ann_name(err_ty))))
         }
     }
     if type_ann_node::type_ann_is_tuple(ty) && type_ann_node::type_ann_child_count(ty) == 2 {
         let a = type_ann_node::type_ann_child_at(ty, 0)
         let b = type_ann_node::type_ann_child_at(ty, 1)
-        return concat("Tuple:", concat(type_ann_node::type_ann_name(a), concat(":", type_ann_node::type_ann_name(b))))
+        return concat(String_from("Tuple:"), concat(type_ann_node::type_ann_name(a), concat(String_from(":"), type_ann_node::type_ann_name(b))))
     }
     type_ann_node::type_ann_name(ty)
 }

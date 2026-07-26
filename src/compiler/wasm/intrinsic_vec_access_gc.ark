@@ -5,6 +5,7 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
+use wasm::code_ref_locals
 use wasm::intrinsics::helpers_core
 use wasm::inst_ctx
 use mir::function_return_view
@@ -175,11 +176,53 @@ fn lookup_struct_byte_size_in_func(f: MirFunction, struct_name: String) -> i32 {
     0
 }
 
+fn receiver_is_raw_gc_array(ctx: SelfEmitCtx, callee: String, inst: MirInst, array_type: i32) -> bool {
+    let src_local = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
+    if src_local < 0 {
+        return false
+    }
+    let tname = intrinsic_vec_type::local_type_name(ctx, src_local)
+    if starts_with(clone(tname), String_from("vec:")) ||
+    starts_with(clone(tname), String_from("Vec_")) ||
+    starts_with(clone(tname), String_from("Vec<")) {
+        return false
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    match code_ref_locals::infer_ref_local_gc_type(f, src_local, ctx) {
+        Option::Some(idx) => {
+            idx == array_type ||
+            idx == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_i64_array_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_f64_array_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_v128_array_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx)
+        }
+        Option::None => false
+    }
+}
+
 fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {
     let s_idx = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let callee = inst_accessors_literals::MirInst_str_val(inst)
     let array_type = intrinsic_vec_type::resolve_array_type_for_call(ctx, callee, inst)
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    // Array literals are raw GC arrays, not Vec structs. Casting them to the
+    // Vec layout traps on `get_unchecked(values, i)` (#807 core/property).
+    if receiver_is_raw_gc_array(ctx, clone(callee), inst, array_type) {
+        helpers_core::emit_local_set(w, s_idx)
+        writer_gc::emit_gc_ref_cast(w, array_type)
+        helpers_core::emit_local_get(w, s_idx)
+        if array_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+            writer_gc::emit_gc_array_get_i32(w, array_type)
+        } else {
+            writer_gc::emit_gc_array_get(w, array_type)
+        }
+        return true
+    }
     helpers_core::emit_local_set(w, s_idx)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)

@@ -9,6 +9,7 @@ use std::process;
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
     let mut dirs: Vec<String> = Vec::new();
+    let mut deny_fs = false;
     let mut wasm_path: Option<PathBuf> = None;
     let mut i = 0;
     while i < args.len() {
@@ -26,6 +27,11 @@ fn main() {
             i += 1;
             continue;
         }
+        if args[i] == "--deny-fs" {
+            deny_fs = true;
+            i += 1;
+            continue;
+        }
         if args[i].starts_with('-') {
             eprintln!("arukellt-host-run: unknown flag: {}", args[i]);
             process::exit(2);
@@ -37,7 +43,7 @@ fn main() {
     let wasm_path = match wasm_path {
         Some(p) => p,
         None => {
-            eprintln!("usage: arukellt-host-run [--dir <path>] <module.wasm>");
+            eprintln!("usage: arukellt-host-run [--dir <path>] [--deny-fs] <module.wasm>");
             process::exit(2);
         }
     };
@@ -50,7 +56,7 @@ fn main() {
         }
     };
 
-    let caps = RuntimeCaps::from_cli(&dirs);
+    let caps = RuntimeCaps::from_cli(&dirs).with_deny_fs(deny_fs);
     if let Err(e) = run_wasm(&wasm_bytes, &caps) {
         if !e.is_empty() {
             eprintln!("{}", e);

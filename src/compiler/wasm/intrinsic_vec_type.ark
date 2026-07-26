@@ -14,8 +14,10 @@ use mir::function_identity
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_record
+use wasm::code_ref_locals
 use wasm::intrinsic_vec_type_new
 use wasm::sections_types_gc_phase7
+use mir::function_locals_view
 use mir::opcodes as mir_opcodes
 
 fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
@@ -72,10 +74,43 @@ fn resolve_vec_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) ->
     }
     let src_local = find_call_source_local(ctx, callee, inst)
     let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, src_local)
-    if vt < 0 {
-        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+    if vt >= 0 {
+        return vt
     }
-    vt
+    // Chained field temps may keep a stale/empty MIR type_name while the
+    // producer-inferred Wasm local type is already the concrete vec (#807).
+    let inferred = vec_type_from_inferred_local(ctx, src_local)
+    if inferred >= 0 {
+        return inferred
+    }
+    ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+}
+
+fn vec_type_from_inferred_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    if local_idx < 0 {
+        return 0 - 1
+    }
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    if local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    match code_ref_locals::infer_ref_local_gc_type(f, local_idx, ctx) {
+        Option::Some(idx) => {
+            if idx == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) ||
+            idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx) ||
+            idx == ctx_gc_type::SelfEmitCtx_vec_type(ctx) {
+                return idx
+            }
+            0 - 1
+        }
+        Option::None => 0 - 1
+    }
 }
 
 fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i32 {
@@ -175,9 +210,9 @@ fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirIns
 
 fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur_arg_count: i32) -> i32 {
     // Prefer the first call argument that is a vec: local.
-    // Collect LOCAL_GET sources while skipping stack-only
+    // Collect LOCAL_GET / STRUCT_GET destinations while skipping stack-only
     // converts (i32→i64 extend before push_i64), then pick
-    // the earliest (arg0) vec-typed local (#726 debug_vec).
+    // the earliest (arg0) vec-typed local (#726 debug_vec, #807 chained field).
     let mut found = 0 - 1
     let mut gets_seen = 0
     let mut look = 1
@@ -188,6 +223,12 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
         if pop == mir_opcodes::MIR_LOCAL_GET() {
             push(arg_srcs, inst_accessors_operands::MirInst_arg0(prev))
             gets_seen = gets_seen + 1
+        } else if pop == mir_opcodes::MIR_STRUCT_GET() || pop == mir_opcodes::MIR_GC_STRUCT_GET() {
+            let dest = inst_accessors_operands::MirInst_dest(prev)
+            if dest >= 0 {
+                push(arg_srcs, dest)
+                gets_seen = gets_seen + 1
+            }
         }
         look = look + 1
     }
@@ -196,14 +237,16 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     while ai >= 0 {
         let src = get_unchecked(arg_srcs, ai)
         let tname = local_type_name(ctx, src)
-        if starts_with(clone(tname), String_from("vec:")) || starts_with(clone(tname), String_from("Vec_")) {
+        if starts_with(clone(tname), String_from("vec:")) ||
+        starts_with(clone(tname), String_from("Vec_")) ||
+        starts_with(clone(tname), String_from("Vec<")) {
             found = src
             ai = 0 - 1
         } else {
             ai = ai - 1
         }
     }
-    // type_name may be missing after typed-sync; farthest LOCAL_GET is arg0 (the vec).
+    // type_name may be missing after typed-sync; farthest producer is arg0 (the vec).
     if found < 0 && len(arg_srcs) > 0 {
         found = get_unchecked(arg_srcs, len(arg_srcs) - 1)
     }
@@ -242,8 +285,15 @@ fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i3
                         }
                         if ii > 0 {
                             let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
-                            if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
+                            let pop = inst_accessors_shape::MirInst_op(prev)
+                            if pop == mir_opcodes::MIR_LOCAL_GET() {
                                 return inst_accessors_operands::MirInst_arg0(prev)
+                            }
+                            if pop == mir_opcodes::MIR_STRUCT_GET() || pop == mir_opcodes::MIR_GC_STRUCT_GET() {
+                                let dest_local = inst_accessors_operands::MirInst_dest(prev)
+                                if dest_local >= 0 {
+                                    return dest_local
+                                }
                             }
                         }
                     }

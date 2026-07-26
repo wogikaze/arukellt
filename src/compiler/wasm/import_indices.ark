@@ -16,6 +16,34 @@ fn arguments_import_idx(ctx: SelfEmitCtx) -> i32 {
     2
 }
 
+fn path_open_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_OPEN_AT()
+    }
+    3
+}
+
+fn fd_read_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_FD_READ()
+    }
+    4
+}
+
+fn fd_close_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_FS_CLOSE()
+    }
+    5
+}
+
+fn fd_write_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_FD_WRITE()
+    }
+    0
+}
+
 fn p2_outgoing_import_offset(ctx: SelfEmitCtx) -> i32 {
     constants::NUM_P2_IMPORTS_BASE()
 }

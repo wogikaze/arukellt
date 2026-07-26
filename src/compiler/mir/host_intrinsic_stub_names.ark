@@ -1,32 +1,29 @@
 fn host_intrinsic_stub_count() -> i32 {
-    // read_to_string / write_string / write_bytes are stdlib wrappers that
-    // call __intrinsic_fs_* — do not treat them as GC unreachable stubs
-    // (that collided with std::host::fs and left fs_read_* validate-fail).
-    21
+    // read_to_string / write_string / write_bytes / read_dir / metadata are
+    // stdlib Ark bodies — do not treat them as GC unreachable stubs (#807).
+    19
 }
 
 fn host_intrinsic_stub_name_at(index: i32) -> String {
-    if index == 0 { return "args" }
-    if index == 1 { return "arg_at" }
-    if index == 2 { return "var" }
-    if index == 3 { return "get_var" }
-    if index == 4 { return "var_or_default" }
-    if index == 5 { return "read_stdin" }
-    if index == 6 { return "read_dir" }
-    if index == 7 { return "metadata" }
-    if index == 8 { return "is_readable_file" }
-    if index == 9 { return "exists" }
-    if index == 10 { return "is_file" }
-    if index == 11 { return "is_dir" }
-    if index == 12 { return "connect" }
-    if index == 13 { return "read" }
-    if index == 14 { return "write" }
-    if index == 15 { return "listen" }
-    if index == 16 { return "accept" }
-    if index == 17 { return "get" }
-    if index == 18 { return "request" }
-    if index == 19 { return "serve" }
-    if index == 20 { return "clock_now" }
+    if index == 0 { return String_from("args") }
+    if index == 1 { return String_from("arg_at") }
+    if index == 2 { return String_from("var") }
+    if index == 3 { return String_from("get_var") }
+    if index == 4 { return String_from("var_or_default") }
+    if index == 5 { return String_from("read_stdin") }
+    if index == 6 { return String_from("is_readable_file") }
+    if index == 7 { return String_from("exists") }
+    if index == 8 { return String_from("is_file") }
+    if index == 9 { return String_from("is_dir") }
+    if index == 10 { return String_from("connect") }
+    if index == 11 { return String_from("read") }
+    if index == 12 { return String_from("write") }
+    if index == 13 { return String_from("listen") }
+    if index == 14 { return String_from("accept") }
+    if index == 15 { return String_from("get") }
+    if index == 16 { return String_from("request") }
+    if index == 17 { return String_from("serve") }
+    if index == 18 { return String_from("clock_now") }
     String_new()
 }
 

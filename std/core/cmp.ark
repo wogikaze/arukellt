@@ -1,5 +1,5 @@
 //! Comparison utilities for core scalar values.
-use std::core::raw
+use std::core
 
 /// Trait for types that support equality comparison.
 ///
@@ -42,25 +42,13 @@ impl Eq for i64 {
     }
 }
 
-/// Built-in `String` equality via raw byte comparison.
+/// Built-in `String` equality via the string eq intrinsic.
 ///
-/// Avoid calling the free prelude `eq` / `string::eq` from this method body:
-/// those names can resolve back to `Eq::eq` and recurse forever.
+/// Must not call free `eq` / `String::eq` — call rewrite maps those back here
+/// and recurses (#807). Same pattern as `Clone for String` + `__intrinsic_clone`.
 impl Eq for String {
     fn eq(self: String, other: String) -> bool {
-        let string_len = raw::raw_string_len_bytes(self)
-        if string_len != raw::raw_string_len_bytes(other) {
-            return false
-        }
-        let mut index = 0
-        while index < string_len {
-            if raw::raw_string_byte_at_unchecked(self, index) !=
-            raw::raw_string_byte_at_unchecked(other, index) {
-                return false
-            }
-            index = index + 1
-        }
-        true
+        __intrinsic_string_eq(self, other)
     }
 }
 
