@@ -27,6 +27,10 @@ fn fn_param_local_type_name(node: AstNode) -> String {
     }
     let ann = param_shape_node::param_type_ann(node)
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
+        // Binary fold callbacks keep fnref2 so Wasm param type matches call_ref (#807).
+        if decl_ann_children::decl_ann_child_count(ann) >= 2 {
+            return String_from("fnref2")
+        }
         return String_from("fnref")
     }
     if decl_ann_name::decl_ann_is_generic(ann) {

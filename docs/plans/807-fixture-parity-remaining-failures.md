@@ -59,6 +59,15 @@
 計測: 全 suite **PASS=1094 FAIL=262 SKIP=259**（wasm-invalid=229）。L5 の FAIL=294 から -32。  
 ディレクトリ: text 24→16、trait 55→33、json 62→62。
 
+### L7 tranche（2026-07-26）— GC parse_f64 + binary fold fnref2
+
+1. **`parse_f64` GC:** stub `ref.null` Result をやめ、String 走査の実実装（`intrinsic_parse_f64_gc`）。json `parse_value_at` の number trap を解消。
+2. **`fnref2`:** binary `fn(i32,i32)->i32` を CoreHIR type_name / MIR param / Wasm type / `ref.func` dest で保持。
+3. **call_ref:** `mir_is_funcref_local` と param bind が `fnref2` を VT_FUNCREF として認識（direct CALL→unreachable を回避）。
+
+計測: 全 suite **PASS=1153 FAIL=203 SKIP=259**（wasm-invalid=223）。L6 の FAIL=262 から -59。  
+ディレクトリ: json 62→11、trait 33→27、string 20→18。残り top: trait 27、io 21、core 19、string 18、text 16。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

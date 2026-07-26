@@ -58,6 +58,7 @@ python3 scripts/manager.py selfhost fixture-parity
 - After L4 (`c75ab1f3`): `PASS=1057 FAIL=299 SKIP=259`.
 - After L5 (`7f78190d`): `PASS=1062 FAIL=294 SKIP=259` (wasm-invalid=242).
 - **After L6 (2026-07-26):** `PASS=1094 FAIL=262 SKIP=259` (wasm-invalid=229).
+- **After L7 (2026-07-26):** `PASS=1153 FAIL=203 SKIP=259` (wasm-invalid=223).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -69,6 +70,9 @@ L5: #840 GC `?` From Err rewrite (`from_error`); ARRAY_* stack compose
 L6: unresolved `__intrinsic_concat` → string concat fallback; GC struct fn
 fields as `_fnref`; field-access callee `call_ref`; funcref STRUCT_GET
 materialize + `ref.as_non_null`. json cluster unchanged (62).
+L7: GC `parse_f64` real impl (json number parse); binary fold `fnref2`
+arity through CoreHIR/MIR/Wasm + `call_ref` recognition. json 62→11,
+trait 33→27. Remaining top dirs: trait/io/core/string/text.
 
 ## New-failure ratchet
 

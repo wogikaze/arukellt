@@ -16,7 +16,11 @@ use mir::value_types
 use wasm::writer_core
 use wasm::sections_types_gc_phase7
 
-fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx) -> i32 {
+fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    // Binary fold callbacks: fn(i32, i32) -> i32 → type index for (i32,i32)->i32.
+    if contains(clone(type_name), String_from(",")) || eq(clone(type_name), String_from("fnref2")) {
+        return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())
+    }
     call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
 }
 
@@ -60,11 +64,14 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    // Typed funcref locals: non-null `(ref $callback)` matching unary i32/i64 callbacks.
+    // Typed funcref locals: non-null `(ref $callback)` — unary map/filter or
+    // binary fold from the local's fn(...) type name (#807).
     if vt == value_types::VT_FUNCREF() ||
     eq(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fnref")) {
-        let type_idx = resolve_fnref_local_type_idx(ctx)
+    eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fn(")) {
+        let type_idx = resolve_fnref_local_type_idx(ctx, clone(type_name))
         writer_core::emit_byte(body, constants::WASM_REF())
         writer_core::emit_leb128_s(body, type_idx)
         return true

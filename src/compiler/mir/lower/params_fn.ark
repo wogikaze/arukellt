@@ -95,6 +95,23 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_GC_REF())
         ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), String_from("option:fnref"))
     }
+    // Keep unary/binary fn params as VT_FUNCREF (fnref2 must not become GC_REF) (#807).
+    if mir_param_type_is_fnref(clone(preserved_type_name)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(preserved_type_name))
+        ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_FUNCREF())
+        ctx_api_function_frame::ctx_set_func_param_type(
+            ctx,
+            param_local,
+            value_types::VT_FUNCREF(),
+            clone(preserved_type_name)
+        )
+    }
+}
+
+fn mir_param_type_is_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fn("))
 }
 
 fn mir_param_type_is_option_fnref(type_name: String) -> bool {

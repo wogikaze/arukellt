@@ -219,6 +219,18 @@ fn find_unary_callback_type_idx(canon_types: Vec<String>) -> i32 {
     3
 }
 
+fn find_binary_callback_type_idx(canon_types: Vec<String>) -> i32 {
+    let n = len(canon_types)
+    let mut i = 0
+    while i < n {
+        if eq(get_unchecked(canon_types, i), String_from("i32_i32_1i32")) {
+            return i
+        }
+        i = i + 1
+    }
+    1
+}
+
 fn emit_sig_val_type(
     type_sec: WasmWriter,
     sig: String,
@@ -226,6 +238,12 @@ fn emit_sig_val_type(
     gc_struct_type_map: Vec<i32>,
     canon_types: Vec<String>
 ) {
+    if eq(clone(sig), String_from("fnref2")) {
+        let type_idx = find_binary_callback_type_idx(canon_types)
+        writer_core::emit_byte(type_sec, constants::WASM_REF())
+        writer_core::emit_leb128_s(type_sec, type_idx)
+        return
+    }
     if eq(clone(sig), String_from("fnref")) {
         let type_idx = find_unary_callback_type_idx(canon_types)
         writer_core::emit_byte(type_sec, constants::WASM_REF())

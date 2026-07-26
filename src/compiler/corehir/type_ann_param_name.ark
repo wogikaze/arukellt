@@ -5,6 +5,10 @@ use corehir::hashmap_type_name
 
 fn type_ann_shape_param_type_name(ty: AstNode) -> String {
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ty)) {
+        // Preserve binary arity for fold callbacks (fn(i32,i32)->i32 → fnref2) (#807).
+        if type_ann_node::type_ann_child_count(ty) >= 2 {
+            return String_from("fnref2")
+        }
         return String_from("fnref")
     }
     if type_ann_node::type_ann_is_generic(ty) {
