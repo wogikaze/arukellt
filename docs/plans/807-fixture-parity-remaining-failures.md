@@ -159,6 +159,17 @@
 計測: 全 suite **PASS=1302 FAIL=64 SKIP=249**（wasm-invalid=198）。L15 の FAIL=75 から -11（new FAIL=0）。  
 残り top: trait 12、io 11、hashmap 6、core 5、host 4。
 
+### L17 tranche（2026-07-26）— host P2 args/clock/random + assert panic + env arg_at
+
+1. **host-linker P2 stubs:** `args-sizes` / `arguments`（argc=1, prog `arukellt-host-run`）、`monotonic-now` / wall-clock `now`、`get-random-u64`。
+2. **P2 static panic:** `emit_static_panic_message_exit` が `emit_p2_write_ptr_len` 経由で stderr に書く（`assert_fail` → `"assertion failed"`）。
+3. **GC `env::arg_at`:** 範囲外で `unreachable` ではなく `Option::None`。
+4. **`__intrinsic_random_i32`:** name fallback（clock_random / wasi_random）。
+5. **golden:** `stdlib_host/host_module_contract.ark.expected`。
+
+計測: 全 suite **PASS=1310 FAIL=56 SKIP=249**（wasm-invalid=198）。L16 の FAIL=64 から -8（new FAIL=0）。  
+残り top: trait 12、io 10、hashmap 6、core 5、json 3。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

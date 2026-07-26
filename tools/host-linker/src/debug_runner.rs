@@ -145,12 +145,23 @@ fn try_register_known(
         ("wasi:io/streams@0.2.0", "blocking-write-and-flush") => {
             register_blocking_write_and_flush(linker, engine, ft)
         }
-        ("wasi:cli/environment@0.2.0", "args-sizes") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
-        ("wasi:cli/environment@0.2.0", "arguments") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
+        ("wasi:cli/environment@0.2.0", "args-sizes") => {
+            register_args_sizes_stub(linker, engine, ft)
+        }
+        ("wasi:cli/environment@0.2.0", "arguments") => {
+            register_arguments_stub(linker, engine, ft)
+        }
         ("wasi:cli/stdin@0.2.0", "read") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:cli/exit@0.2.0", "exit") => register_exit_stub(linker, engine, ft),
         ("wasi:filesystem/types@0.2.0", "open-at") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
         ("wasi:filesystem/types@0.2.0", "close") => register_retptr_stub(linker, engine, mod_name, field_name, ft),
+        ("wasi:clocks/monotonic-clock@0.2.0", "now") => {
+            register_monotonic_now_stub(linker, engine, ft)
+        }
+        ("wasi:clocks/wall-clock@0.2.0", "now") => register_wall_now_stub(linker, engine, ft),
+        ("wasi:random/random@0.2.0", "get-random-u64") => {
+            register_random_u64_stub(linker, engine, ft)
+        }
         // Future WASI P3 imports can be added here as they are implemented.
         _ => Err("unknown import".into()),
     }
@@ -283,6 +294,158 @@ fn register_retptr_stub(
     ft: &FuncType,
 ) -> Result<(), String> {
     register_auto_stub(linker, engine, mod_name, field_name, ft)
+}
+
+/// P1-shaped args-sizes: (argc_ptr, argv_buf_size_ptr) -> errno.
+/// Report argc=1 (program name only) so env::arg_count = argc-1 = 0 (#807).
+fn register_args_sizes_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    let prog = b"arukellt-host-run\0";
+    linker
+        .func_new(
+            "wasi:cli/environment@0.2.0",
+            "args-sizes",
+            ft,
+            move |mut caller: Caller<'_, ()>, p: &[Val], r: &mut [Val]| {
+                if p.len() >= 2 {
+                    if let (Val::I32(argc_ptr), Val::I32(size_ptr)) = (p[0], p[1]) {
+                        if let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) {
+                            let _ = mem.write(&mut caller, argc_ptr as usize, &1i32.to_le_bytes());
+                            let _ = mem.write(
+                                &mut caller,
+                                size_ptr as usize,
+                                &(prog.len() as i32).to_le_bytes(),
+                            );
+                        }
+                    }
+                }
+                if !r.is_empty() {
+                    r[0] = Val::I32(0);
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("args-sizes: {e}"))?;
+    Ok(())
+}
+
+/// P1-shaped arguments: (argv_ptr, argv_buf_ptr) -> errno.
+fn register_arguments_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    let prog = b"arukellt-host-run\0";
+    linker
+        .func_new(
+            "wasi:cli/environment@0.2.0",
+            "arguments",
+            ft,
+            move |mut caller: Caller<'_, ()>, p: &[Val], r: &mut [Val]| {
+                if p.len() >= 2 {
+                    if let (Val::I32(argv_ptr), Val::I32(buf_ptr)) = (p[0], p[1]) {
+                        if let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) {
+                            let _ = mem.write(
+                                &mut caller,
+                                argv_ptr as usize,
+                                &buf_ptr.to_le_bytes(),
+                            );
+                            let _ = mem.write(&mut caller, buf_ptr as usize, prog);
+                        }
+                    }
+                }
+                if !r.is_empty() {
+                    r[0] = Val::I32(0);
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("arguments: {e}"))?;
+    Ok(())
+}
+
+fn register_monotonic_now_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    linker
+        .func_new(
+            "wasi:clocks/monotonic-clock@0.2.0",
+            "now",
+            ft,
+            move |_: Caller<'_, ()>, _p: &[Val], r: &mut [Val]| {
+                let nanos = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_nanos() as i64)
+                    .unwrap_or(1);
+                if !r.is_empty() {
+                    r[0] = Val::I64(nanos.max(1));
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("monotonic now: {e}"))?;
+    Ok(())
+}
+
+fn register_wall_now_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    let ft = ft.clone();
+    linker
+        .func_new(
+            "wasi:clocks/wall-clock@0.2.0",
+            "now",
+            ft,
+            move |_: Caller<'_, ()>, _p: &[Val], r: &mut [Val]| {
+                let dur = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default();
+                if !r.is_empty() {
+                    r[0] = Val::I64(dur.as_secs() as i64);
+                }
+                if r.len() >= 2 {
+                    r[1] = Val::I32(dur.subsec_nanos() as i32);
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("wall now: {e}"))?;
+    Ok(())
+}
+
+fn register_random_u64_stub(
+    linker: &mut Linker<()>,
+    _engine: &Engine,
+    ft: &FuncType,
+) -> Result<(), String> {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0x9e37_79b9_7f4a_7c15);
+    let ft = ft.clone();
+    linker
+        .func_new(
+            "wasi:random/random@0.2.0",
+            "get-random-u64",
+            ft,
+            move |_: Caller<'_, ()>, _p: &[Val], r: &mut [Val]| {
+                let n = COUNTER.fetch_add(0x2545_f491_4f6c_dd1d, Ordering::Relaxed);
+                if !r.is_empty() {
+                    r[0] = Val::I64(n as i64);
+                }
+                Ok(())
+            },
+        )
+        .map_err(|e| format!("get-random-u64: {e}"))?;
+    Ok(())
 }
 
 /// Auto-generate a stub that returns zero values for any function type.

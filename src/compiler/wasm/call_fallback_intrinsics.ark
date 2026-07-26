@@ -10,6 +10,7 @@ use wasm::intrinsic_assert
 use wasm::intrinsic_cast
 use wasm::intrinsic_clock
 use wasm::intrinsic_math
+use wasm::intrinsic_random
 use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
 use wasm::intrinsic_string_contains_bytes
@@ -153,6 +154,12 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_clock::emit_clock_now_ms(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Same unresolved-intrinsic hole as clock: `__intrinsic_random_i32` can
+    // miss core_op and become `unreachable` (#807 wasi_random / clock_random).
+    if is_random_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_random::emit_random_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
 }
 
@@ -199,6 +206,12 @@ fn is_clock_now_ms_callee(callee: String) -> bool {
     eq(clone(callee), String_from("__intrinsic_clock_now_ms")) ||
     ends_with(clone(callee), String_from("::now_ms")) ||
     ends_with(clone(callee), String_from("::clock_now_ms"))
+}
+
+fn is_random_i32_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("random_i32")) ||
+    eq(clone(callee), String_from("__intrinsic_random_i32")) ||
+    ends_with(clone(callee), String_from("::random_i32"))
 }
 
 fn is_string_eq_callee(callee: String) -> bool {
