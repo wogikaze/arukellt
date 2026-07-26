@@ -74,6 +74,7 @@ static uint64_t ark_gc_bytes_since_collection;
 static uint64_t ark_gc_object_bytes;
 static uint64_t ark_gc_string_buffer_bytes;
 static uint64_t ark_gc_vec_buffer_bytes;
+static uint64_t ark_gc_hashmap_buffer_bytes;
 static uint64_t ark_gc_root_frame_bytes;
 static uint64_t ark_gc_total_mark_time_ns;
 static uint64_t ark_gc_total_sweep_time_ns;
@@ -225,6 +226,7 @@ static void ark_gc_write_stats_file(void) {
 #define ARK_GC_KIND_STRING 1u
 #define ARK_GC_KIND_VEC 2u
 #define ARK_GC_KIND_STRUCT 3u
+#define ARK_GC_KIND_HASHMAP 4u
 #define ARK_GC_SIZE_FREE_LIMIT_DEFAULT (8ull * 1024ull * 1024ull)
 /* Soft budget for live heap buffers (leaves headroom under 2.4 GiB RSS).
  * Freelist bytes are capped separately and excluded from the soft trigger so
@@ -631,6 +633,39 @@ static void *ark_side_bytes_vec(size_t size) {
     return ark_side_bytes_accounted(size, &ark_gc_vec_buffer_bytes);
 }
 
+static void *ark_side_bytes_hashmap(size_t size) {
+    return ark_side_bytes_accounted(size, &ark_gc_hashmap_buffer_bytes);
+}
+
+static void ark_gc_hashmap_release_buffers(ark_hashmap *map) {
+    if (map == NULL) return;
+    if (map->flags != NULL) {
+        uint64_t flag_bytes = (uint64_t)map->capacity;
+        if (ark_gc_hashmap_buffer_bytes >= flag_bytes) ark_gc_hashmap_buffer_bytes -= flag_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+        ark_reclaimed_side_buffer_bytes += flag_bytes;
+        free(map->flags);
+        map->flags = NULL;
+    }
+    if (map->keys != NULL) {
+        uint64_t key_bytes = (uint64_t)map->capacity * (uint64_t)sizeof(ark_value);
+        if (ark_gc_hashmap_buffer_bytes >= key_bytes) ark_gc_hashmap_buffer_bytes -= key_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+        ark_reclaimed_side_buffer_bytes += key_bytes;
+        free(map->keys);
+        map->keys = NULL;
+    }
+    if (map->values != NULL) {
+        uint64_t value_bytes = (uint64_t)map->capacity * (uint64_t)sizeof(ark_value);
+        if (ark_gc_hashmap_buffer_bytes >= value_bytes) ark_gc_hashmap_buffer_bytes -= value_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+        ark_reclaimed_side_buffer_bytes += value_bytes;
+        free(map->values);
+        map->values = NULL;
+    }
+    map->capacity = 0;
+}
+
 static void ark_gc_mark_object(ark_object_header *object);
 
 static void ark_gc_mark_value(ark_value value) {
@@ -663,6 +698,10 @@ static void ark_gc_free_side_buffers(ark_object_header *object) {
             vector->data = NULL;
             vector->capacity = 0;
         }
+        return;
+    }
+    if (kind == ARK_GC_KIND_HASHMAP) {
+        ark_gc_hashmap_release_buffers((ark_hashmap *)object);
     }
 }
 
@@ -707,6 +746,20 @@ static void ark_gc_mark_drain(size_t *len) {
             if (vector->data == NULL) continue;
             for (uint32_t i = 0; i < vector->length; i += 1) {
                 ark_gc_mark_push(len, vector->data[i].ref);
+            }
+            continue;
+        }
+        if (kind == ARK_GC_KIND_HASHMAP) {
+            ark_hashmap *map = (ark_hashmap *)current;
+            if (map->flags == NULL || map->keys == NULL || map->values == NULL) continue;
+            for (uint32_t i = 0; i < map->capacity; i += 1) {
+                if (map->flags[i] != ARK_HM_FLAG_OCCUPIED) continue;
+                if (map->key_kind == ARK_HM_KIND_STRING) {
+                    ark_gc_mark_push(len, map->keys[i].ref);
+                }
+                if (map->value_kind == ARK_HM_KIND_STRING) {
+                    ark_gc_mark_push(len, map->values[i].ref);
+                }
             }
             continue;
         }
@@ -1925,6 +1978,272 @@ ark_vec *ark_rt_array_new(uint32_t type_id, int32_t length) {
         memset(vector->data, 0, (size_t)length * sizeof(*vector->data));
     }
     return vector;
+}
+
+/* FNV-1 matching std::core::hash for i32 (absolute value, 4 base-256 bytes).
+ * Multiply/xor use wrapping uint32 math so UBSan agrees with Ark i32 wrap. */
+static int32_t ark_rt_hash_i32_key(int32_t value) {
+    uint32_t h = 216613626u;
+    int32_t v = value;
+    if (v < 0) {
+        v = 0 - v;
+    }
+    int32_t b0 = v - v / 256 * 256;
+    h = (h * 16777619u) ^ (uint32_t)b0;
+    v = v / 256;
+    int32_t b1 = v - v / 256 * 256;
+    h = (h * 16777619u) ^ (uint32_t)b1;
+    v = v / 256;
+    int32_t b2 = v - v / 256 * 256;
+    h = (h * 16777619u) ^ (uint32_t)b2;
+    v = v / 256;
+    int32_t b3 = v - v / 256 * 256;
+    h = (h * 16777619u) ^ (uint32_t)b3;
+    int32_t result = (int32_t)h;
+    if (result < 0) {
+        result = 0 - result;
+    }
+    return result;
+}
+
+/* FNV-1 matching std::core::hash for String (byte-indexed char_at / len). */
+static int32_t ark_rt_hash_string_key(ark_string *source) {
+    if (source == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    uint32_t h = 216613626u;
+    int32_t n = ark_rt_string_len(source);
+    int32_t i = 0;
+    while (i < n) {
+        int32_t ch = ark_rt_string_char_at(source, i);
+        h = (h * 16777619u) ^ (uint32_t)ch;
+        int32_t signed_h = (int32_t)h;
+        if (signed_h < 0) {
+            signed_h = 0 - signed_h;
+            h = (uint32_t)signed_h;
+        }
+        i += 1;
+    }
+    return (int32_t)h;
+}
+
+static int32_t ark_rt_hashmap_hash_key(ark_hashmap *map, ark_value key) {
+    if (map->key_kind == ARK_HM_KIND_STRING) {
+        return ark_rt_hash_string_key((ark_string *)key.ref);
+    }
+    return ark_rt_hash_i32_key(key.i32);
+}
+
+static int ark_rt_hashmap_keys_equal(ark_hashmap *map, ark_value left, ark_value right) {
+    if (map->key_kind == ARK_HM_KIND_STRING) {
+        return ark_rt_string_eq((ark_string *)left.ref, (ark_string *)right.ref);
+    }
+    return left.i32 == right.i32;
+}
+
+static void ark_rt_hashmap_allocate_slots(ark_hashmap *map, uint32_t capacity) {
+    if (capacity == 0u) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    map->flags = ark_side_bytes_hashmap(capacity);
+    map->keys = ark_side_bytes_hashmap(ark_checked_mul(capacity, sizeof(ark_value)));
+    map->values = ark_side_bytes_hashmap(ark_checked_mul(capacity, sizeof(ark_value)));
+    memset(map->flags, 0, capacity);
+    memset(map->keys, 0, (size_t)capacity * sizeof(ark_value));
+    memset(map->values, 0, (size_t)capacity * sizeof(ark_value));
+    map->capacity = capacity;
+}
+
+static void ark_rt_hashmap_insert_no_resize(ark_hashmap *map, ark_value key, ark_value value);
+
+static void ark_rt_hashmap_rehash(ark_hashmap *map, uint32_t new_capacity) {
+    uint32_t old_capacity = map->capacity;
+    uint8_t *old_flags = map->flags;
+    ark_value *old_keys = map->keys;
+    ark_value *old_values = map->values;
+    uint64_t old_flag_bytes = (uint64_t)old_capacity;
+    uint64_t old_kv_bytes = (uint64_t)old_capacity * (uint64_t)sizeof(ark_value);
+
+    map->flags = NULL;
+    map->keys = NULL;
+    map->values = NULL;
+    map->capacity = 0;
+    map->size = 0;
+    ark_rt_hashmap_allocate_slots(map, new_capacity);
+
+    for (uint32_t i = 0; i < old_capacity; i += 1) {
+        if (old_flags[i] != ARK_HM_FLAG_OCCUPIED) continue;
+        ark_rt_hashmap_insert_no_resize(map, old_keys[i], old_values[i]);
+    }
+
+    if (ark_gc_mode) {
+        if (ark_gc_hashmap_buffer_bytes >= old_flag_bytes) ark_gc_hashmap_buffer_bytes -= old_flag_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+        if (ark_gc_hashmap_buffer_bytes >= old_kv_bytes) ark_gc_hashmap_buffer_bytes -= old_kv_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+        if (ark_gc_hashmap_buffer_bytes >= old_kv_bytes) ark_gc_hashmap_buffer_bytes -= old_kv_bytes;
+        else ark_gc_hashmap_buffer_bytes = 0;
+    }
+    free(old_flags);
+    free(old_keys);
+    free(old_values);
+}
+
+static void ark_rt_hashmap_ensure_insert_capacity(ark_hashmap *map) {
+    /* Grow before live entries would exceed load factor 0.75. */
+    uint32_t needed = map->size + 1u;
+    if (map->capacity * 3u < needed * 4u) {
+        uint32_t next = map->capacity == 0u ? 16u : map->capacity * 2u;
+        while (next * 3u < needed * 4u) {
+            if (next > UINT32_MAX / 2u) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+            next *= 2u;
+        }
+        ark_rt_hashmap_rehash(map, next);
+    }
+}
+
+static int32_t ark_rt_hashmap_probe_index(ark_hashmap *map, ark_value key, int32_t *first_tombstone) {
+    if (map == NULL || map->capacity == 0u) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t cap = (int32_t)map->capacity;
+    int32_t h = ark_rt_hashmap_hash_key(map, key);
+    int32_t idx = h % cap;
+    if (idx < 0) idx = 0 - idx;
+    int32_t probes = 0;
+    *first_tombstone = -1;
+    while (probes < cap) {
+        uint8_t flag = map->flags[idx];
+        if (flag == ARK_HM_FLAG_EMPTY) {
+            return -1;
+        }
+        if (flag == ARK_HM_FLAG_TOMBSTONE) {
+            if (*first_tombstone < 0) {
+                *first_tombstone = idx;
+            }
+        } else if (ark_rt_hashmap_keys_equal(map, map->keys[idx], key)) {
+            return idx;
+        }
+        idx = (idx + 1) % cap;
+        probes += 1;
+    }
+    return -1;
+}
+
+static void ark_rt_hashmap_insert_no_resize(ark_hashmap *map, ark_value key, ark_value value) {
+    int32_t first_tombstone = -1;
+    int32_t found = ark_rt_hashmap_probe_index(map, key, &first_tombstone);
+    if (found >= 0) {
+        map->values[found] = value;
+        return;
+    }
+    int32_t cap = (int32_t)map->capacity;
+    int32_t h = ark_rt_hashmap_hash_key(map, key);
+    int32_t idx = h % cap;
+    if (idx < 0) idx = 0 - idx;
+    int32_t slot = first_tombstone;
+    if (slot < 0) {
+        int32_t probes = 0;
+        while (probes < cap) {
+            uint8_t flag = map->flags[idx];
+            if (flag == ARK_HM_FLAG_EMPTY || flag == ARK_HM_FLAG_TOMBSTONE) {
+                slot = idx;
+                break;
+            }
+            idx = (idx + 1) % cap;
+            probes += 1;
+        }
+    }
+    if (slot < 0) ark_rt_trap_kind(ARK_TRAP_ALLOC);
+    map->keys[slot] = key;
+    map->values[slot] = value;
+    map->flags[slot] = ARK_HM_FLAG_OCCUPIED;
+    map->size += 1u;
+}
+
+static ark_object_header *ark_rt_hashmap_option_none(uint32_t option_type_id) {
+    ark_struct_object *option = ark_rt_struct_new(option_type_id, 2u);
+    option->fields[0].i32 = 1;
+    option->fields[1].i32 = 0;
+    return &option->header;
+}
+
+static ark_object_header *ark_rt_hashmap_option_some(uint32_t option_type_id, ark_value value) {
+    ark_struct_object *option = ark_rt_struct_new(option_type_id, 2u);
+    option->fields[0].i32 = 0;
+    option->fields[1] = value;
+    return &option->header;
+}
+
+ark_hashmap *ark_rt_hashmap_new(uint32_t type_id, uint32_t key_kind, uint32_t value_kind) {
+    if (key_kind > ARK_HM_KIND_STRING || value_kind > ARK_HM_KIND_STRING) {
+        ark_rt_trap_kind(ARK_TRAP_INVALID_CAST);
+    }
+    ark_hashmap *map = ark_rt_alloc_aligned(sizeof(*map), 16u);
+    ark_gc_set_kind(map, ARK_GC_KIND_HASHMAP);
+    map->header.type_id = type_id;
+    map->header.flags = 0;
+    map->capacity = 0;
+    map->size = 0;
+    map->key_kind = (uint8_t)key_kind;
+    map->value_kind = (uint8_t)value_kind;
+    map->reserved0 = 0;
+    map->reserved1 = 0;
+    map->flags = NULL;
+    map->keys = NULL;
+    map->values = NULL;
+    ark_rt_hashmap_allocate_slots(map, 16u);
+    return map;
+}
+
+ark_unit ark_rt_hashmap_insert(ark_hashmap *map, ark_value key, ark_value value) {
+    if (map == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (map->key_kind == ARK_HM_KIND_STRING && key.ref == NULL) {
+        ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    }
+    if (map->value_kind == ARK_HM_KIND_STRING && value.ref == NULL) {
+        ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    }
+    int32_t first_tombstone = -1;
+    int32_t found = ark_rt_hashmap_probe_index(map, key, &first_tombstone);
+    if (found < 0) {
+        ark_rt_hashmap_ensure_insert_capacity(map);
+    }
+    ark_rt_hashmap_insert_no_resize(map, key, value);
+    return 0;
+}
+
+ark_object_header *ark_rt_hashmap_get(ark_hashmap *map, ark_value key, uint32_t option_type_id) {
+    if (map == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t first_tombstone = -1;
+    int32_t found = ark_rt_hashmap_probe_index(map, key, &first_tombstone);
+    if (found < 0) {
+        return ark_rt_hashmap_option_none(option_type_id);
+    }
+    return ark_rt_hashmap_option_some(option_type_id, map->values[found]);
+}
+
+int32_t ark_rt_hashmap_contains(ark_hashmap *map, ark_value key) {
+    if (map == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t first_tombstone = -1;
+    return ark_rt_hashmap_probe_index(map, key, &first_tombstone) >= 0 ? 1 : 0;
+}
+
+ark_object_header *ark_rt_hashmap_remove(ark_hashmap *map, ark_value key, uint32_t option_type_id) {
+    if (map == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    int32_t first_tombstone = -1;
+    int32_t found = ark_rt_hashmap_probe_index(map, key, &first_tombstone);
+    if (found < 0) {
+        return ark_rt_hashmap_option_none(option_type_id);
+    }
+    ark_value old = map->values[found];
+    map->flags[found] = ARK_HM_FLAG_TOMBSTONE;
+    map->keys[found].ref = NULL;
+    map->values[found].ref = NULL;
+    if (map->size > 0u) {
+        map->size -= 1u;
+    }
+    return ark_rt_hashmap_option_some(option_type_id, old);
+}
+
+int32_t ark_rt_hashmap_len(ark_hashmap *map) {
+    if (map == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (map->size > INT32_MAX) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    return (int32_t)map->size;
 }
 
 int32_t ark_rt_arg_count(void) {

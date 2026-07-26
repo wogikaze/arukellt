@@ -793,6 +793,10 @@ run:stdlib_hashmap/extend_into_empty.ark
 run:stdlib_hashmap/extend_merges.ark
 run:stdlib_hashmap/get_missing.ark
 run:stdlib_hashmap/hashmap_basic.ark
+run:stdlib_hashmap/native_hashmap_i32_i32_family.ark
+run:stdlib_hashmap/native_hashmap_i32_string_family.ark
+run:stdlib_hashmap/native_hashmap_string_i32_family.ark
+run:stdlib_hashmap/native_hashmap_string_string_family.ark
 run:stdlib_hashmap/hashmap_capacity_extend.ark
 run:stdlib_hashmap/hashmap_capacity_reserve.ark
 run:stdlib_hashmap/hashmap_extended.ark

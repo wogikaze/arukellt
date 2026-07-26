@@ -1,0 +1,39 @@
+use std::test
+
+fn main() {
+    let m = HashMap_i32_i32_new()
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 0)
+    test::assert_false(HashMap_i32_i32_contains_key(m, 1))
+
+    HashMap_i32_i32_insert(m, 1, 100)
+    HashMap_i32_i32_insert(m, 2, 200)
+    HashMap_i32_i32_insert(m, 0 - 7, 70)
+    HashMap_i32_i32_insert(m, 1, 111)
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
+    test::assert_true(HashMap_i32_i32_contains_key(m, 1))
+    test::assert_true(HashMap_i32_i32_contains_key(m, 0 - 7))
+    test::assert_false(HashMap_i32_i32_contains_key(m, 99))
+
+    match HashMap_i32_i32_get(m, 1) {
+        Option::Some(v) => test::assert_eq_i32(v, 111),
+        None => panic("expected Some(111)"),
+    }
+    match HashMap_i32_i32_get(m, 99) {
+        Option::Some(_) => panic("expected None for missing key"),
+        None => {
+        },
+    }
+
+    match HashMap_i32_i32_remove(m, 2) {
+        Option::Some(v) => test::assert_eq_i32(v, 200),
+        None => panic("expected Some(200)"),
+    }
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 2)
+    test::assert_false(HashMap_i32_i32_contains_key(m, 2))
+    HashMap_i32_i32_insert(m, 2, 222)
+    match HashMap_i32_i32_get(m, 2) {
+        Option::Some(v) => test::assert_eq_i32(v, 222),
+        None => panic("expected Some(222) after reinsert"),
+    }
+    test::assert_eq_i32(HashMap_i32_i32_len(m), 3)
+}

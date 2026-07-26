@@ -2,13 +2,21 @@ use mir::reachability_entry
 use mir::types
 
 fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
-    reachability_entry::mir_prune_unreachable_with_roots(m, extra_roots)
+    reachability_entry::mir_prune_unreachable_with_roots_for_target(m, extra_roots, String_new())
+}
+
+fn mir_prune_unreachable_with_roots_for_target(
+    m: MirModule,
+    extra_roots: Vec<String>,
+    target: String
+) -> i32 {
+    reachability_entry::mir_prune_unreachable_with_roots_for_target(m, extra_roots, target)
 }
 
 fn mir_prune_unreachable(m: MirModule) -> i32 {
-    reachability_entry::mir_prune_unreachable_with_roots(m, Vec_new_String())
+    reachability_entry::mir_prune_unreachable_with_roots_for_target(m, Vec_new_String(), String_new())
 }
 
 fn mir_prune_unreachable_for_t3(m: MirModule, export_names: Vec<String>) -> i32 {
-    reachability_entry::mir_prune_unreachable_with_roots(m, export_names)
+    reachability_entry::mir_prune_unreachable_with_roots_for_target(m, export_names, String_new())
 }
