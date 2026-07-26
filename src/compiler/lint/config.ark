@@ -1,0 +1,63 @@
+//
+// Reads the `[lint]` section from ark.toml and provides allow/deny lists
+// that are merged with CLI --allow/--deny flags.
+//
+// Example ark.toml:
+//   [lint]
+//   allow = ["W0007", "unused-binding"]
+//   deny = ["W0004"]
+
+use std::host::fs
+use std::toml
+use collections::vec_extend
+
+struct LintConfig {
+    allow: Vec<String>,
+    deny: Vec<String>,
+}
+
+fn LintConfig_new() -> LintConfig {
+    LintConfig { allow: Vec_new_String(), deny: Vec_new_String() }
+}
+
+fn LintConfig_empty() -> LintConfig {
+    LintConfig_new()
+}
+
+fn lint_config_allow(config: LintConfig) -> Vec<String> { config.allow }
+fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
+
+// Load lint config from ark.toml in the given directory.
+// Returns an empty LintConfig if ark.toml doesn't exist or has no [lint] section.
+pub fn load_lint_config(project_dir: String) -> LintConfig {
+    let config = LintConfig_new()
+    let manifest_path = concat(clone(project_dir), String_from("/ark.toml"))
+    let read_result = fs::read_to_string(clone(manifest_path))
+    match read_result {
+        Result::Ok(content) => {
+            let lint_section = toml::toml_find_section(content, String_from("lint"))
+            if len(clone(lint_section)) > 0 {
+                let allow_raw = toml::toml_find_raw_value(clone(lint_section), String_from("allow"))
+                if len(clone(allow_raw)) > 0 {
+                    config.allow = toml::toml_parse_string_array(allow_raw)
+                }
+                let deny_raw = toml::toml_find_raw_value(clone(lint_section), String_from("deny"))
+                if len(clone(deny_raw)) > 0 {
+                    config.deny = toml::toml_parse_string_array(deny_raw)
+                }
+            }
+        },
+        Result::Err(_) => {
+            // No ark.toml — return empty config
+        },
+    }
+    config
+}
+
+// Merge config allow/deny lists into the CLI-provided vectors.
+pub fn merge_lint_config(cli_allow: Vec<String>, cli_deny: Vec<String>, config: LintConfig) {
+    let config_allow = lint_config_allow(config)
+    vec_extend::Vec_extend_String(cli_allow, config_allow)
+    let config_deny = lint_config_deny(config)
+    vec_extend::Vec_extend_String(cli_deny, config_deny)
+}
