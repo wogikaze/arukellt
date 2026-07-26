@@ -56,7 +56,8 @@ python3 scripts/manager.py selfhost fixture-parity
 - After L2: `PASS=1029 FAIL=327 SKIP=259`.
 - After L3: `PASS=1032 FAIL=324 SKIP=259`.
 - After L4 (`c75ab1f3`): `PASS=1057 FAIL=299 SKIP=259`.
-- **After L5 (2026-07-26):** `PASS=1062 FAIL=294 SKIP=259` (wasm-invalid=242).
+- After L5 (`7f78190d`): `PASS=1062 FAIL=294 SKIP=259` (wasm-invalid=242).
+- **After L6 (2026-07-26):** `PASS=1094 FAIL=262 SKIP=259` (wasm-invalid=229).
 - Issue title still says 367 (historical); issue remains open until FAIL=0.
 
 L2: P2 stdio host-linker; bool type names; i8/u8/i16/u16→i32 widen.
@@ -65,6 +66,9 @@ store before STRUCT_GET; tuple destructure LOCAL_SET (no struct_eq regress).
 L4: enum multi-field bind; chained vec len; GC parse_i32.
 L5: #840 GC `?` From Err rewrite (`from_error`); ARRAY_* stack compose
 (`array_literal` / `array_repeat`). `from_trait_not_inherent` still FAIL.
+L6: unresolved `__intrinsic_concat` → string concat fallback; GC struct fn
+fields as `_fnref`; field-access callee `call_ref`; funcref STRUCT_GET
+materialize + `ref.as_non_null`. json cluster unchanged (62).
 
 ## New-failure ratchet
 

@@ -49,6 +49,16 @@
 
 計測: 全 suite **PASS=1062 FAIL=294 SKIP=259**（wasm-invalid=242）。L4 の FAIL=299 から -5。
 
+### L6 tranche（2026-07-26）— concat fallback + MapIter funcref field call_ref
+
+1. **`__intrinsic_concat` fallback:** unresolved concat → `intrinsic_string_basic::emit_concat`（`builder_*` / Debug writers）。
+2. **GC struct fn fields:** scalar suffix `_fnref`（was `_i32`）+ field-access dest `VT_FUNCREF`。
+3. **`(self.f)(x)`:** field-access callee → `call_ref`；funcref STRUCT_GET を dest に materialize；nullable field → `ref.as_non_null`。
+4. **残クラス:** `stdlib_json` parse_value_at trap（62）；binary fold funcref typed as unary（iterator_fold_* invalid）；`from_trait_not_inherent`。
+
+計測: 全 suite **PASS=1094 FAIL=262 SKIP=259**（wasm-invalid=229）。L5 の FAIL=294 から -32。  
+ディレクトリ: text 24→16、trait 55→33、json 62→62。
+
 ## 2. 前提・依存
 
 - #287（fixture parity harness）done。

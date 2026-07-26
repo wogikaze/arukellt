@@ -160,6 +160,11 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         } else {
             writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
         }
+        // Named GC struct funcref fields are nullable; call_ref / typed fn
+        // locals need non-null `(ref $sig)` (#807 MapIter.f).
+        if val_type == value_types::VT_FUNCREF() {
+            writer_gc::emit_gc_ref_as_non_null(w)
+        }
         return
     }
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {

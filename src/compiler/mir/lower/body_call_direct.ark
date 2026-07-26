@@ -15,8 +15,9 @@ fn lower_direct_call_expr(ctx: LowerCtx, node: AstNode, callee: AstNode, child_c
             return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)
         }
     }
-    // Expression callee: id(f)(x) / get_unchecked(fs, 0)(x) → call_ref (#832).
-    if ast_node::node_kind_is(callee, lower_kinds::NK_CALL()) {
+    // Expression callee: id(f)(x) / get_unchecked(fs, 0)(x) / (self.f)(x) → call_ref.
+    if ast_node::node_kind_is(callee, lower_kinds::NK_CALL()) ||
+    ast_node::node_kind_is(callee, lower_kinds::NK_FIELD_ACCESS()) {
         let callee_local = lower_expr(ctx, callee)
         if callee_local >= 0 && call_indirect_emit::mir_is_funcref_local(ctx, callee_local) {
             return call_indirect_emit::mir_lower_ast_indirect_call(ctx, node, child_count, callee_local)

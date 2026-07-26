@@ -44,6 +44,12 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Std builder_append / write_debug_to bodies call __intrinsic_concat; when
+    // core_op rewrite misses, drop+unreachable traps (#807 text/debug clusters).
+    if is_concat_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
     // core_op binding and become unresolved → unreachable in tokenize.
     if is_vec_new_callee(clone(callee)) {
@@ -153,6 +159,14 @@ fn is_len_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
     ends_with(clone(callee), String_from("__len_bytes"))
+}
+
+fn is_concat_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("concat")) ||
+    eq(clone(callee), String_from("__intrinsic_concat")) ||
+    eq(clone(callee), String_from("__core_string_concat_impl")) ||
+    eq(clone(callee), String_from("text::concat")) ||
+    ends_with(clone(callee), String_from("::concat"))
 }
 
 fn finish_intrinsic_fallback(

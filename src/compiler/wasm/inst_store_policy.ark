@@ -51,12 +51,15 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
     inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_FUNCREF() {
         return false
     }
-    // GC/ref STRUCT_GET / ARRAY_GET must materialize into dest. Skipping leaves
-    // the value on the stack while println's LOCAL_GET;LOCAL_SET copy reads an
-    // uninitialized temp (structs/field_access → null array.len trap) (#807).
+    // GC/ref/funcref STRUCT_GET / ARRAY_GET must materialize into dest. Skipping
+    // leaves the value on the stack while a later LOCAL_GET of dest (println
+    // copy, or call_ref callee reload after arg loads) reads an uninitialized
+    // temp (structs/field_access; MapIter `(self.f)(x)`) (#807).
     if cur_op == opcodes::MIR_STRUCT_GET() || cur_op == opcodes::MIR_ARRAY_GET() {
         let vt = inst_accessors_shape::MirInst_val_type(inst)
-        if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        if vt == value_types::VT_GC_REF() ||
+        vt == value_types::VT_REF() ||
+        vt == value_types::VT_FUNCREF() {
             if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
                 return true
             }
