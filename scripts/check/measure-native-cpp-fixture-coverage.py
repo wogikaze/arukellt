@@ -351,6 +351,14 @@ def _read_diag_pattern(rel_fixture: str) -> str:
     return ""
 
 
+def _read_fixture_flags(rel_fixture: str) -> list[str]:
+    """Return extra CLI args from a sibling ``.flags`` file (one token per line)."""
+    path = Path(str(_sidecar_base(rel_fixture)) + ".flags")
+    if not path.is_file():
+        return []
+    return [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
 def _read_expected_output(rel_fixture: str) -> str | None:
     path = Path(str(_sidecar_base(rel_fixture)) + ".expected")
     if not path.is_file():
@@ -663,8 +671,9 @@ def _measure_one(
     # native-cpp --emit c is still probed for ICE (component compile-error often
     # succeeds on native C emit and must not skew diagnostic rates).
     if population_effective == "expected_negative":
+        fixture_flags = _read_fixture_flags(rel)
         if kind in {"diag", "module-diag"}:
-            diag_cmd = [str(WRAPPER), "check", fixture_arg]
+            diag_cmd = [str(WRAPPER), "check", fixture_arg, *fixture_flags]
         elif kind == "component-world-error" or (
             kind == "compile-error" and rel.startswith("component/")
         ):
@@ -676,6 +685,7 @@ def _measure_one(
                 fixture_arg,
                 "--emit",
                 "component",
+                *fixture_flags,
                 "-o",
                 str((out_root / f"{digest}.component.wasm").relative_to(REPO_ROOT)),
             ]
@@ -684,6 +694,7 @@ def _measure_one(
                 str(WRAPPER),
                 "compile",
                 fixture_arg,
+                *fixture_flags,
                 "-o",
                 str((out_root / f"{digest}.wasm").relative_to(REPO_ROOT)),
             ]

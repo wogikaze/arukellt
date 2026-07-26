@@ -264,6 +264,8 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
 use component_component_base
+use component_contract
+use component_contract_preflight
 use component_emit
 use component_export_plan
 use component_wit_text
@@ -355,43 +357,14 @@ pub fn validate_wit_import_surface(paths: Vec<String>) -> String {
 }
 
 pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
-    String_from("")
-}
-
-fn bootstrap_decl_is_command_entry(decl: AstNode) -> bool {
-    if !component_ast_node__node_is_fn_decl(decl) {
-        return false
-    }
-    let name = component_ast_node__node_text(decl)
-    eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start"))
-}
-
-fn bootstrap_world_command_has_run(decls: Vec<AstNode>, export_roots: Vec<String>) -> bool {
-    let mut ri = 0
-    while ri < len(export_roots) {
-        if eq(clone(get_unchecked(export_roots, ri)), String_from("run")) {
-            return true
-        }
-        ri = ri + 1
-    }
-    let mut di = 0
-    while di < len(decls) {
-        if bootstrap_decl_is_command_entry(get_unchecked(decls, di)) {
-            return true
-        }
-        di = di + 1
-    }
-    false
+    // Keep canonical ABI export validation alive through the bootstrap facade.
+    // Flat-overlay dedupe renames the real helpers; bootstrap_* bridges are
+    // patched in after rename (see _patch_bootstrap_component_contract_delegate).
+    component_contract::bootstrap_validate_export_surface(decls)
 }
 
 pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
-    if eq(clone(world), String_from("wasi:cli/command")) {
-        let export_roots = bootstrap_collect_wit_export_roots(decls)
-        if !bootstrap_world_command_has_run(decls, export_roots) {
-            return concat(String_from("world `"), concat(clone(world), String_from("` requires export `wasi:cli/run/run`, but no matching function found")))
-        }
-    }
-    String_from("")
+    component_contract_preflight::bootstrap_preflight_frontend(config_emit_mode, wit_paths, decls, world)
 }
 """
 
@@ -1466,6 +1439,84 @@ def _patch_bootstrap_component_wit_stub_calls(compiler_out: Path) -> None:
             wit_text = wit_text + "\n"
         wit_text = wit_text + BOOTSTRAP_WIT_EMIT_PATCH
         wit_path.write_text(wit_text, encoding="utf-8")
+
+
+def _patch_bootstrap_component_contract_delegate(compiler_out: Path) -> None:
+    """Wire stub export-surface validation to real contract helpers after rename."""
+    contract_path = compiler_out / "component_contract.ark"
+    preflight_path = compiler_out / "component_contract_preflight.ark"
+    stub_path = compiler_out / _COMPONENT_STUB_REL
+    if not contract_path.is_file() or not preflight_path.is_file() or not stub_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap component contract delegate requires "
+            "component_contract.ark, component_contract_preflight.ark, and component.ark"
+        )
+
+    contract_text = contract_path.read_text(encoding="utf-8")
+    validate_match = re.search(
+        r"^(?:pub )?fn (\w*validate_export_surface)\(decls: Vec<AstNode>\)",
+        contract_text,
+        flags=re.M,
+    )
+    if validate_match is None:
+        raise BootstrapOverlayError(
+            "component_contract.ark missing validate_export_surface after overlay rename"
+        )
+    validate_fn = validate_match.group(1)
+    if "bootstrap_validate_export_surface" not in contract_text:
+        if contract_text and not contract_text.endswith("\n"):
+            contract_text = contract_text + "\n"
+        contract_text = (
+            contract_text
+            + "\n"
+            + "pub fn bootstrap_validate_export_surface(decls: Vec<AstNode>) -> String {\n"
+            + f"    {validate_fn}(decls)\n"
+            + "}\n"
+        )
+        contract_path.write_text(contract_text, encoding="utf-8")
+
+    preflight_text = preflight_path.read_text(encoding="utf-8")
+    preflight_match = re.search(
+        r"^(?:pub )?fn (\w*preflight_frontend)\(",
+        preflight_text,
+        flags=re.M,
+    )
+    if preflight_match is None:
+        raise BootstrapOverlayError(
+            "component_contract_preflight.ark missing preflight_frontend after overlay rename"
+        )
+    preflight_fn = preflight_match.group(1)
+    if "bootstrap_preflight_frontend" not in preflight_text:
+        if preflight_text and not preflight_text.endswith("\n"):
+            preflight_text = preflight_text + "\n"
+        preflight_text = (
+            preflight_text
+            + "\n"
+            + "pub fn bootstrap_preflight_frontend("
+            + "config_emit_mode: String, wit_paths: Vec<String>, "
+            + "decls: Vec<AstNode>, world: String) -> String {\n"
+            + f"    {preflight_fn}(config_emit_mode, wit_paths, decls, world)\n"
+            + "}\n"
+        )
+        preflight_path.write_text(preflight_text, encoding="utf-8")
+
+    stub_text = stub_path.read_text(encoding="utf-8")
+    if "use component_contract\n" not in stub_text:
+        stub_text = _replace_required(
+            stub_text,
+            "use component_component_base\n",
+            "use component_component_base\nuse component_contract\nuse component_contract_preflight\n",
+            "add contract imports to component stub",
+        )
+    if "bootstrap_validate_export_surface" not in stub_text:
+        raise BootstrapOverlayError(
+            "component.ark stub must call bootstrap_validate_export_surface"
+        )
+    if "bootstrap_preflight_frontend" not in stub_text:
+        raise BootstrapOverlayError(
+            "component.ark stub must call bootstrap_preflight_frontend"
+        )
+    stub_path.write_text(stub_text, encoding="utf-8")
 
 
 def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
@@ -3178,6 +3229,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_component_wit_bridge(compiler_out)
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_component_wit_stub_calls(compiler_out)
+    _patch_bootstrap_component_contract_delegate(compiler_out)
     _patch_bootstrap_driver_wit_delegate(compiler_out)
     _patch_bootstrap_driver_component_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)

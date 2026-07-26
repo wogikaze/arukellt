@@ -79,6 +79,17 @@ class NormalizeMessageTests(unittest.TestCase):
         self.assertNotIn("12:34", normalized)
 
 
+class FixtureFlagsTests(unittest.TestCase):
+    def test_read_fixture_flags_splits_tokens(self) -> None:
+        mod = load_measure()
+        flags = mod._read_fixture_flags("component/world_command_missing_run.ark")
+        self.assertEqual(flags, ["--world", "wasi:cli/command"])
+
+    def test_missing_flags_file_returns_empty(self) -> None:
+        mod = load_measure()
+        self.assertEqual(mod._read_fixture_flags("component/export_flags.ark"), [])
+
+
 class DiagnosticsMatchTests(unittest.TestCase):
     def test_order_independent_multiple_required(self) -> None:
         mod = load_measure()
