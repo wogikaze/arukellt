@@ -914,6 +914,12 @@ def main() -> int:
     parser.add_argument("--partial", type=Path, default=None)
     parser.add_argument("--previous", type=Path, default=None, help="Previous receipt for cluster delta")
     parser.add_argument("--complete", action="store_true", help="Mark receipt complete (default with --write)")
+    parser.add_argument(
+        "--fixture-list",
+        type=Path,
+        default=None,
+        help="Optional path list of fixtures (tests/fixtures/... or relative). Cohort/targeted runs only.",
+    )
     args = parser.parse_args()
 
     build_dir = _build_dir()
@@ -954,6 +960,39 @@ def main() -> int:
         if prev is None or _kind_rank(entry["kind"]) < _kind_rank(prev["kind"]):
             best[rel] = entry
     unique = sorted(best.values(), key=lambda e: e["path"])
+
+    fixture_list_path = None
+    fixture_list_hash = None
+    if args.fixture_list is not None:
+        fixture_list_path = args.fixture_list.resolve()
+        if not fixture_list_path.is_file():
+            print(f"--fixture-list not found: {fixture_list_path}", file=sys.stderr)
+            return 2
+        wanted: set[str] = set()
+        for raw in fixture_list_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            rel = line
+            if rel.startswith("tests/fixtures/"):
+                rel = rel[len("tests/fixtures/") :]
+            if rel.endswith(".ark"):
+                wanted.add(rel)
+            else:
+                wanted.add(rel + ".ark")
+        before = len(unique)
+        unique = [e for e in unique if e["path"] in wanted]
+        missing = sorted(wanted - {e["path"] for e in unique})
+        if missing:
+            print(
+                f"--fixture-list: {len(missing)} paths not in manifest (showing up to 10): {missing[:10]}",
+                file=sys.stderr,
+            )
+        fixture_list_hash = hashlib.sha256(fixture_list_path.read_bytes()).hexdigest()
+        print(
+            f"fixture-list selected {len(unique)}/{before} manifest entries from {fixture_list_path}",
+            file=sys.stderr,
+        )
 
     if args.shard_count < 1:
         print("--shard-count must be >= 1", file=sys.stderr)
@@ -1059,13 +1098,23 @@ def main() -> int:
     # Shard runs are incomplete unless shard-count==1.
     if args.shard_count != 1:
         complete = False
+    # Targeted fixture-list runs keep the same result schema but are never
+    # canonical full-tree receipts (do not compute full-tree readiness rates).
+    if fixture_list_path is not None:
+        complete = False
 
     receipt = {
         "schema": "native-cpp-fixture-coverage-receipt/v2",
         "complete": complete,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fixture_root": "tests/fixtures",
-        "selection": "manifest.txt (non-bench), classified by kind; positive_run requires native entry",
+        "selection": {
+            "mode": "fixture-list" if fixture_list_path is not None else "full-manifest",
+            "description": "manifest.txt (non-bench), classified by kind; positive_run requires native entry",
+            "fixture_list_path": str(fixture_list_path) if fixture_list_path is not None else None,
+            "fixture_list_sha256": fixture_list_hash,
+            "canonical_full_tree": fixture_list_path is None and args.shard_count == 1,
+        },
         "total_manifest_entries_selected": len(unique),
         "total_results": len(results),
         "elapsed_seconds": round(time.time() - started, 1),

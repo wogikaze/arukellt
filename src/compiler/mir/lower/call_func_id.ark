@@ -17,7 +17,9 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: Stri
     let registry = module_spine::MirModule_signature_registry(m)
     let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(symbol))
     if !function_id::function_id_is_valid(fid) {
-        let coid = core_op_binding::core_op_binding_lookup_for_callee(clone(symbol))
+        // Exact SignatureRegistry miss → exact CoreOp alias → family pattern.
+        // Do not use short-name / param-count FunctionId search.
+        let coid = core_op_binding::core_op_binding_lookup_for_callee_exact_then_family(clone(symbol))
         if core_op_id::core_op_id_is_some(coid) {
             fid = signature_registry::signature_registry_register_core_op_alias(
                 registry,

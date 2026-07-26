@@ -1,0 +1,12 @@
+use std::host::stdio
+
+struct Item {
+    n: i32,
+}
+
+fn main() {
+    let mut items = Vec_new_Item_with_cap(4)
+    items = push(items, Item { n: 3 })
+    stdio::println((len(items)).to_string())
+    stdio::println(get_unchecked(items, 0).n.to_string())
+}

@@ -8,6 +8,7 @@ use mir::inst_accessors_operands
 use mir::local_record
 use mir::value_types
 use native_c::abi
+use native_c::enum_abi
 
 struct NativeCCoreCall {
     handled: bool,
@@ -102,8 +103,23 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
         return String_from("i32")
     }
     let local = function_locals_view::MirFunction_local_at(function, local_id)
-    if abi::native_c_type_name_is_funcref(local_record::mir_local_type_name(local)) {
+    let type_name = local_record::mir_local_type_name(local)
+    if abi::native_c_type_name_is_funcref(clone(type_name)) {
         return String_from("i64")
+    }
+    // Named enum/struct payloads may keep VT_I32 while the C local is a heap pointer.
+    // Prefer type_name so vec_push/get use .ref instead of .i32.
+    if enum_abi::native_c_type_name_is_unit_tag_enum(clone(type_name)) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(
+        enum_abi::native_c_type_name_enum_basename(clone(type_name))
+    ) {
+        return String_from("i32")
+    }
+    if starts_with(clone(type_name), String_from("enum:")) ||
+    starts_with(clone(type_name), String_from("struct:")) ||
+    abi::native_c_type_name_is_heap_object(clone(type_name)) ||
+    enum_abi::native_c_type_name_is_open_payload_enum(clone(type_name)) {
+        return String_from("ref")
     }
     let value_type = local_record::mir_local_val_type(local)
     if value_type == value_types::VT_I64() || value_type == value_types::VT_FUNCREF() {
@@ -115,6 +131,65 @@ fn native_c_core_value_member(function: MirFunction, local_id: i32) -> String {
         return String_from("ref")
     }
     String_from("i32")
+}
+
+fn native_c_core_vec_element_type_name(vec_type: String) -> String {
+    if starts_with(clone(vec_type), String_from("vec:")) {
+        return substring(vec_type, 4, len(vec_type))
+    }
+    if starts_with(clone(vec_type), String_from("Vec<")) && ends_with(clone(vec_type), String_from(">")) {
+        return substring(vec_type, 4, len(vec_type) - 1)
+    }
+    String_new()
+}
+
+// Prefer Vec element type over stale VT_I32 on named enum/struct values.
+fn native_c_core_member_for_vec_element(element_type: String) -> String {
+    if len(element_type) == 0 {
+        return String_new()
+    }
+    if abi::native_c_type_name_is_funcref(clone(element_type)) ||
+    starts_with(clone(element_type), String_from("fn(")) {
+        return String_from("i64")
+    }
+    if eq(clone(element_type), String_from("i64")) {
+        return String_from("i64")
+    }
+    if eq(clone(element_type), String_from("f32")) {
+        return String_from("f32")
+    }
+    if eq(clone(element_type), String_from("f64")) {
+        return String_from("f64")
+    }
+    if eq(clone(element_type), String_from("i32")) ||
+    eq(clone(element_type), String_from("bool")) ||
+    eq(clone(element_type), String_from("char")) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(clone(element_type)) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(
+        enum_abi::native_c_type_name_enum_basename(clone(element_type))
+    ) {
+        return String_from("i32")
+    }
+    String_from("ref")
+}
+
+fn native_c_core_override_member_from_vec_local(
+    function: MirFunction,
+    vec_local: i32,
+    member: String
+) -> String {
+    if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(function) {
+        return member
+    }
+    let vec_type = local_record::mir_local_type_name(
+        function_locals_view::MirFunction_local_at(function, vec_local)
+    )
+    let element = native_c_core_vec_element_type_name(vec_type)
+    let override_member = native_c_core_member_for_vec_element(element)
+    if len(override_member) == 0 {
+        return member
+    }
+    override_member
 }
 
 fn native_c_core_destination_type_id(function: MirFunction, instruction: MirInst) -> i32 {
@@ -568,10 +643,41 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() ||
     handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() {
+        // Variable arity contract: 0 args (default capacity) or 1 i32 capacity.
         if len(arguments) > 1 {
             return native_c_core_call_error(
                 String_from("compiler ICE: native-cpp Vec constructor accepts at most one capacity")
             )
+        }
+        let dest = inst_accessors_operands::MirInst_dest(instruction)
+        if dest < 0 || dest >= function_locals_view::MirFunction_local_count(function) {
+            return native_c_core_call_error(
+                String_from("compiler ICE: native-cpp Vec constructor missing destination local")
+            )
+        }
+        let dest_local = function_locals_view::MirFunction_local_at(function, dest)
+        let dest_type = local_record::mir_local_type_name(dest_local)
+        if !starts_with(clone(dest_type), String_from("vec:")) &&
+        !starts_with(clone(dest_type), String_from("Vec<")) {
+            return native_c_core_call_error(
+                String_from("compiler ICE: native-cpp Vec constructor destination is not a vec type")
+            )
+        }
+        if len(arguments) == 1 {
+            let cap_local = get_unchecked(arguments, 0)
+            if cap_local < 0 || cap_local >= function_locals_view::MirFunction_local_count(function) {
+                return native_c_core_call_error(
+                    String_from("compiler ICE: native-cpp Vec constructor capacity local invalid")
+                )
+            }
+            let cap_vt = local_record::mir_local_val_type(
+                function_locals_view::MirFunction_local_at(function, cap_local)
+            )
+            if cap_vt != value_types::VT_I32() {
+                return native_c_core_call_error(
+                    String_from("compiler ICE: native-cpp Vec constructor capacity must be i32")
+                )
+            }
         }
         let constructor = if len(arguments) == 0 {
             String_from("ark_rt_vec_new")
@@ -608,17 +714,12 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_vec_push() {
         let value_local = get_unchecked(arguments, 1)
-        let mut member = native_c_core_value_member(function, value_local)
         let vec_local = get_unchecked(arguments, 0)
-        if vec_local >= 0 && vec_local < function_locals_view::MirFunction_local_count(function) {
-            let vec_type = local_record::mir_local_type_name(
-                function_locals_view::MirFunction_local_at(function, vec_local)
-            )
-            if starts_with(clone(vec_type), String_from("vec:fn(")) ||
-            starts_with(clone(vec_type), String_from("Vec<fn(")) {
-                member = String_from("i64")
-            }
-        }
+        let member = native_c_core_override_member_from_vec_local(
+            function,
+            vec_local,
+            native_c_core_value_member(function, value_local)
+        )
         let operation = concat(
             String_from("ark_rt_vec_push("),
             concat(
@@ -633,7 +734,11 @@ fn native_c_emit_core_call(
     }
     if handler == core_op_registry_generated::core_op_handler_vec_set() {
         let value_local = get_unchecked(arguments, 2)
-        let member = native_c_core_value_member(function, value_local)
+        let member = native_c_core_override_member_from_vec_local(
+            function,
+            get_unchecked(arguments, 0),
+            native_c_core_value_member(function, value_local)
+        )
         let operation = concat(
             String_from("ark_rt_vec_set("),
             concat(
@@ -929,17 +1034,11 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_vec_get_unchecked() ||
     handler == core_op_registry_generated::core_op_handler_vec_get_unchecked_f64() ||
     handler == core_op_registry_generated::core_op_handler_vec_get_unchecked_i64() {
-        let mut member = native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
-        let vec_local = get_unchecked(arguments, 0)
-        if vec_local >= 0 && vec_local < function_locals_view::MirFunction_local_count(function) {
-            let vec_type = local_record::mir_local_type_name(
-                function_locals_view::MirFunction_local_at(function, vec_local)
-            )
-            if starts_with(clone(vec_type), String_from("vec:fn(")) ||
-            starts_with(clone(vec_type), String_from("Vec<fn(")) {
-                member = String_from("i64")
-            }
-        }
+        let member = native_c_core_override_member_from_vec_local(
+            function,
+            get_unchecked(arguments, 0),
+            native_c_core_value_member(function, inst_accessors_operands::MirInst_dest(instruction))
+        )
         return native_c_core_call_expression(
             concat(
                 String_from("ark_rt_vec_get("),
@@ -1047,4 +1146,3 @@ fn native_c_emit_core_call(
         )
     )
 }
-

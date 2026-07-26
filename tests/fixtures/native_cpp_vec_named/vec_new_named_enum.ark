@@ -1,0 +1,23 @@
+// Named-enum Vec constructor via CoreOp family binding.
+use std::host::stdio
+
+enum Cell {
+    Num(i32),
+    Text(String),
+}
+
+fn main() {
+    let mut items = Vec_new_Cell()
+    items = push(items, Cell::Num(7))
+    items = push(items, Cell::Text(String_from("ok")))
+    let a = get_unchecked(items, 0)
+    let b = get_unchecked(items, 1)
+    match a {
+        Cell::Num(n) => { stdio::println(n.to_string()) }
+        Cell::Text(s) => { stdio::println(s) }
+    }
+    match b {
+        Cell::Num(n) => { stdio::println(n.to_string()) }
+        Cell::Text(s) => { stdio::println(s) }
+    }
+}

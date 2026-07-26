@@ -1,0 +1,27 @@
+// Phase1 E: named enum Vec field with push/get/match.
+use std::host::stdio
+
+enum Cell {
+    Num(i32),
+    Text(String),
+}
+
+struct Holder {
+    items: Vec<Cell>,
+}
+
+fn main() {
+    let mut h = Holder { items: Vec_new_Cell() }
+    h = Holder { items: push(h.items, Cell::Num(7)) }
+    h = Holder { items: push(h.items, Cell::Text(String_from("ok"))) }
+    let a = get_unchecked(h.items, 0)
+    let b = get_unchecked(h.items, 1)
+    match a {
+        Cell::Num(n) => { stdio::println(n.to_string()) }
+        Cell::Text(s) => { stdio::println(s) }
+    }
+    match b {
+        Cell::Num(n) => { stdio::println(n.to_string()) }
+        Cell::Text(s) => { stdio::println(s) }
+    }
+}
