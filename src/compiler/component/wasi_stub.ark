@@ -12,7 +12,7 @@ fn comp_wasi_stub_core_module() -> Vec<i32> {
 
 fn comp_emit_wasi_stub_type_section(out: writer_core::ComponentWriter) {
     let type_sec = writer_core::ComponentWriter_new()
-    writer_core::comp_emit_leb128_u(type_sec, 5)
+    writer_core::comp_emit_leb128_u(type_sec, 7)
     let p4 = Vec_new_i32()
     push(p4, 0x7f)
     push(p4, 0x7f)
@@ -41,12 +41,23 @@ fn comp_emit_wasi_stub_type_section(out: writer_core::ComponentWriter) {
     sections::comp_emit_core_func_type(type_sec, p1, r_i32)
     let r_void = Vec_new_i32()
     sections::comp_emit_core_func_type(type_sec, p1, r_void)
+    let p_clock = Vec_new_i32()
+    push(p_clock, 0x7f)
+    push(p_clock, 0x7e)
+    push(p_clock, 0x7f)
+    sections::comp_emit_core_func_type(type_sec, p_clock, r_i32)
+    let p_seek = Vec_new_i32()
+    push(p_seek, 0x7f)
+    push(p_seek, 0x7e)
+    push(p_seek, 0x7f)
+    push(p_seek, 0x7f)
+    sections::comp_emit_core_func_type(type_sec, p_seek, r_i32)
     sections::comp_emit_wasm_section(out, 1, type_sec)
 }
 
 fn comp_emit_wasi_stub_func_section(out: writer_core::ComponentWriter) {
     let func_sec = writer_core::ComponentWriter_new()
-    writer_core::comp_emit_leb128_u(func_sec, 7)
+    writer_core::comp_emit_leb128_u(func_sec, 15)
     writer_core::comp_emit_leb128_u(func_sec, 0)
     writer_core::comp_emit_leb128_u(func_sec, 1)
     writer_core::comp_emit_leb128_u(func_sec, 1)
@@ -54,12 +65,20 @@ fn comp_emit_wasi_stub_func_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_leb128_u(func_sec, 0)
     writer_core::comp_emit_leb128_u(func_sec, 3)
     writer_core::comp_emit_leb128_u(func_sec, 4)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 5)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 6)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
+    writer_core::comp_emit_leb128_u(func_sec, 1)
     sections::comp_emit_wasm_section(out, 3, func_sec)
 }
 
 fn comp_emit_wasi_stub_export_section(out: writer_core::ComponentWriter) {
     let export_sec = writer_core::ComponentWriter_new()
-    writer_core::comp_emit_leb128_u(export_sec, 7)
+    writer_core::comp_emit_leb128_u(export_sec, 15)
     writer_core::comp_emit_string(export_sec, String_from("fd_write"))
     writer_core::comp_emit_byte(export_sec, 0x00)
     writer_core::comp_emit_leb128_u(export_sec, 0)
@@ -81,12 +100,36 @@ fn comp_emit_wasi_stub_export_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_string(export_sec, String_from("proc_exit"))
     writer_core::comp_emit_byte(export_sec, 0x00)
     writer_core::comp_emit_leb128_u(export_sec, 6)
+    writer_core::comp_emit_string(export_sec, String_from("clock_res_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 7)
+    writer_core::comp_emit_string(export_sec, String_from("clock_time_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 8)
+    writer_core::comp_emit_string(export_sec, String_from("environ_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 9)
+    writer_core::comp_emit_string(export_sec, String_from("environ_sizes_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 10)
+    writer_core::comp_emit_string(export_sec, String_from("fd_fdstat_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 11)
+    writer_core::comp_emit_string(export_sec, String_from("fd_seek"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 12)
+    writer_core::comp_emit_string(export_sec, String_from("fd_tell"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 13)
+    writer_core::comp_emit_string(export_sec, String_from("random_get"))
+    writer_core::comp_emit_byte(export_sec, 0x00)
+    writer_core::comp_emit_leb128_u(export_sec, 14)
     sections::comp_emit_wasm_section(out, 7, export_sec)
 }
 
 fn comp_emit_wasi_stub_code_section(out: writer_core::ComponentWriter) {
     let code_sec = writer_core::ComponentWriter_new()
-    writer_core::comp_emit_leb128_u(code_sec, 7)
+    writer_core::comp_emit_leb128_u(code_sec, 15)
     let mut ci = 0
     while ci < 6 {
         writer_core::comp_emit_leb128_u(code_sec, 4)
@@ -99,5 +142,14 @@ fn comp_emit_wasi_stub_code_section(out: writer_core::ComponentWriter) {
     writer_core::comp_emit_leb128_u(code_sec, 2)
     writer_core::comp_emit_leb128_u(code_sec, 0)
     writer_core::comp_emit_byte(code_sec, 0x0b)
+    let mut cj = 0
+    while cj < 8 {
+        writer_core::comp_emit_leb128_u(code_sec, 4)
+        writer_core::comp_emit_leb128_u(code_sec, 0)
+        writer_core::comp_emit_byte(code_sec, 0x41)
+        writer_core::comp_emit_leb128_u(code_sec, 0)
+        writer_core::comp_emit_byte(code_sec, 0x0b)
+        cj = cj + 1
+    }
     sections::comp_emit_wasm_section(out, 10, code_sec)
 }

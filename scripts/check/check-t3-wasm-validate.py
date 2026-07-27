@@ -35,9 +35,18 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 T3_TARGET = "wasm32-gc"
 VALIDATE_FEATURES = "gc"
+# wasmtime flags used to run the selfhost compiler. Must match
+# scripts/run/arukellt-selfhost.sh so that the Memory64 s2-runtime wasm
+# starts under the same feature set during T3 validation.
+WASMTIME_COMPILE_FLAGS = [
+    "--wasm", "gc",
+    "--wasm", "function-references",
+    "-W", "memory64=y",
+]
 COMPILE_TIMEOUT = 60  # seconds per fixture
 VALIDATE_TIMEOUT = 30  # seconds per fixture
 T3_CACHE_DIR = REPO_ROOT / ".build" / "t3-cache"
+T3_CACHE_SCHEMA_VERSION = "2"
 DEFAULT_JOBS = max(1, (os.cpu_count() or 4) // 2)
 
 # Fixtures that are known to require special flags / WIT imports and are
@@ -97,16 +106,20 @@ def load_t3_fixtures(manifest: Path) -> list[str]:
 def find_selfhost_wasm(root: Path) -> Path | None:
     """Resolve the selfhost compiler WASM to use.
 
-    Prefer s2 over s3 because s3 is a self-compiled output that may
-    contain emitter bugs from the very issue we are trying to detect.
+    Prefer the heap-patched s2-runtime wasm (4 GiB linear memory) over the
+    unpatched s3 wasm (512 MiB), matching scripts/run/arukellt-selfhost.sh.
+    The s3 wasm is a self-compiled output that may contain emitter bugs
+    from the very issue we are trying to detect, so it is tried last.
     """
     env = os.environ.get("ARUKELLT_SELFHOST_WASM")
     if env and Path(env).is_file():
         return Path(env)
     for candidate in (
-        root / ".build" / "selfhost" / "arukellt-s2.wasm",
+        root / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
         root / ".build" / "selfhost" / "arukellt-s3.wasm",
+        root / ".build" / "selfhost" / "arukellt-s2.wasm",
         root / ".bootstrap-build" / "arukellt-s2.wasm",
+        root / ".build" / "selfhost" / "arukellt-pinned-bootstrap.wasm",
         root / "bootstrap" / "arukellt-selfhost.wasm",
     ):
         if candidate.is_file():
@@ -153,7 +166,7 @@ def compile_fixture(
         result = subprocess.run(
             [
                 wasmtime, "run",
-                "--wasm", "gc", "--wasm", "function-references",
+                *WASMTIME_COMPILE_FLAGS,
                 "--dir", str(root),
                 str(compiler_wasm), "--",
                 "compile", src,
@@ -252,11 +265,24 @@ def _tool_fingerprint(tool: str) -> str:
     return (result.stdout or result.stderr).strip()
 
 
-def _cache_key(compiler_wasm: Path, fixture_path: Path, wasm_tools: str) -> str:
-    """Compute a cache key from compiler, validator, and fixture source."""
+def _cache_key(
+    compiler_wasm: Path,
+    fixture_path: Path,
+    wasm_tools: str,
+    wasmtime: str,
+) -> str:
+    """Compute a cache key from compiler, runtime feature flags, validator, and fixture source."""
     return hashlib.sha256(
         (
-            _file_hash(compiler_wasm)
+            T3_CACHE_SCHEMA_VERSION
+            + ":"
+            + _file_hash(compiler_wasm)
+            + ":"
+            + _tool_fingerprint(wasmtime)
+            + ":"
+            + " ".join(WASMTIME_COMPILE_FLAGS)
+            + ":"
+            + T3_TARGET
             + ":"
             + _tool_fingerprint(wasm_tools)
             + ":"
@@ -444,7 +470,7 @@ def main() -> int:
             continue
 
         if use_cache:
-            key = _cache_key(compiler_wasm, src_abs, wasm_tools)
+            key = _cache_key(compiler_wasm, src_abs, wasm_tools, wasmtime)
             cached = _cache_lookup(fixture, key)
             if cached is not None:
                 status, detail = cached

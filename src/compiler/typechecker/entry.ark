@@ -5,8 +5,23 @@ use typechecker::contract_result_state
 use typechecker::context
 use typechecker::module
 use typechecker::module_env_merge
+use typechecker::module_fns
 use typechecker::module_wit
 use typechecker::resolver_errors
+use typechecker::contract_fn_sig
+use collections::name_index
+
+fn build_fn_sig_index(fn_sigs: Vec<FnSig>) -> NameIndex {
+    let count = len(fn_sigs)
+    let index = name_index::NameIndex_new(count)
+    let mut i = 0
+    while i < count {
+        let sig = get_unchecked(fn_sigs, i)
+        name_index::name_index_insert_first(index, contract_fn_sig::FnSig_name(sig), i)
+        i = i + 1
+    }
+    index
+}
 
 fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec<String>) -> TypeCheckResult {
     let result = contract_result_state::TypeCheckResult_new()
@@ -15,6 +30,7 @@ fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx, wit_paths: Vec
     let decl_count = len(decls)
     module::register_trait_impl_decls(env, decls)
     let fn_sigs = module_wit::merge_fn_sigs(module::collect_fn_sigs(decls), module_wit::collect_wit_fn_sigs(wit_paths, decls))
+    env.fn_sig_index = build_fn_sig_index(fn_sigs)
     let enum_defs = module_wit::merge_enum_defs(module::collect_enum_defs(decls), module_wit::collect_wit_enum_defs(wit_paths, decls))
     let mut i = 0
     while i < decl_count {
@@ -51,7 +67,8 @@ fn check_impl_methods(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo
         let meth = ast_access::node_child_at(node, ic)
         if ast_decl_predicates::node_is_fn_decl(meth) {
             let meth_env = module_env_merge::type_env_for_fn_check(env)
-            body::check_fn_body(meth_env, fn_sigs, enum_defs, meth)
+            let method_sig = module_fns::impl_method_sig(node, meth)
+            body::check_fn_body_with_sig(meth_env, fn_sigs, enum_defs, meth, method_sig)
             module_env_merge::merge_type_env(env, meth_env)
         }
         ic = ic + 1

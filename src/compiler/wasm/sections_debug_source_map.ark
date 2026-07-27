@@ -1,0 +1,51 @@
+use mir::function_identity
+use mir::source_location_record
+use wasm::ctx_record
+use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_sections
+use wasm::writer_string
+
+fn emit_debug_source_map_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32, strip_debug: bool, source_file: String) {
+    if strip_debug || opt_level >= 2 {
+        return
+    }
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    if fn_count <= 0 {
+        return
+    }
+    let payload = writer_core::WasmWriter_new()
+    writer_string::emit_string(payload, String_from("metadata.debug.source_map"))
+    writer_core::emit_leb128_u(payload, 2) // version 2 (function-level with file table)
+    // File table: always include source_file as file_id 1
+    writer_core::emit_leb128_u(payload, 1) // file_count
+    writer_core::emit_leb128_u(payload, 1) // file_id 1
+    writer_string::emit_string(payload, clone(ctx.source_file))
+    // Map entries
+    let offsets = ctx_record::SelfEmitCtx_code_section_offsets(ctx)
+    let mut entry_count = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
+        let loc = function_identity::MirFunction_source_location(f)
+        if !source_location_record::SourceLocation_is_unmapped(loc) {
+            entry_count = entry_count + 1
+        }
+        fi = fi + 1
+    }
+    writer_core::emit_leb128_u(payload, entry_count)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
+        let loc = function_identity::MirFunction_source_location(f)
+        if !source_location_record::SourceLocation_is_unmapped(loc) {
+            let offset = if fi < len(offsets) { get_unchecked(offsets, fi) } else { 0 }
+            writer_core::emit_leb128_u(payload, offset)
+            writer_core::emit_leb128_u(payload, source_location_record::SourceLocation_file_id(loc))
+            writer_core::emit_leb128_u(payload, source_location_record::SourceLocation_line(loc))
+            writer_core::emit_leb128_u(payload, source_location_record::SourceLocation_column(loc))
+        }
+        fi = fi + 1
+    }
+    writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}

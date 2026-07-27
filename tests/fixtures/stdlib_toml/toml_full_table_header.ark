@@ -9,27 +9,27 @@ fn main() {
         Result::Ok(table) => {
             // toml_get on nested table
             match toml::toml_get(table, String_from("server")) {
-                Result::Ok(server) => {
+                Option::Some(server) => {
                     match toml::toml_get(server, String_from("host")) {
-                        Result::Ok(host) => {
+                        Option::Some(host) => {
                             match toml::toml_as_string(host) {
-                                Result::Ok(s) => assert(eq(s, String_from("localhost"))),
-                                Result::Err(_) => assert(false),
+                                Option::Some(s) => assert(eq(s, String_from("localhost"))),
+                                None => assert(false),
                             }
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                     match toml::toml_get(server, String_from("port")) {
-                        Result::Ok(port) => {
+                        Option::Some(port) => {
                             match toml::toml_as_int(port) {
-                                Result::Ok(n) => assert(n == 8080),
-                                Result::Err(_) => assert(false),
+                                Option::Some(n) => assert(n == 8080),
+                                None => assert(false),
                             }
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                 },
-                Result::Err(_) => assert(false),
+                None => assert(false),
             }
         },
         Result::Err(e) => {

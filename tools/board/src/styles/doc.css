@@ -1,0 +1,373 @@
+/* Document view: header, metadata grid, rendered markdown, outline rail. */
+
+.doc {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.doc__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    flex: none;
+}
+
+.doc__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    flex: 1;
+}
+
+.doc__path {
+    color: var(--fg-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--transition-fast);
+}
+
+.doc__path:hover {
+    color: var(--accent);
+}
+
+.doc__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: none;
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3) var(--space-5);
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    flex: none;
+}
+
+.meta-grid__cell dt {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 3px;
+}
+
+.meta-grid__cell dd {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+    font-size: var(--text-sm);
+}
+
+.meta-grid__refs {
+    gap: var(--space-1);
+}
+
+.ref-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    background: var(--bg-inset);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.ref-chip:hover:not(:disabled) {
+    border-color: var(--accent-border);
+    color: var(--fg-default);
+}
+
+.ref-chip:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.doc__body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    /* Panes are resized independently, so layout decisions here must react to
+       the pane's own width rather than the viewport's. */
+    container-type: inline-size;
+}
+
+.doc__content {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+}
+
+.markdown-host {
+    position: relative;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-6) var(--space-7);
+}
+
+.markdown__code-copy {
+    position: absolute;
+    z-index: 4;
+    padding: 1px var(--space-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: var(--bg-overlay);
+    color: var(--fg-muted);
+    font-size: 10px;
+    font-family: var(--font-mono);
+}
+
+.markdown__code-copy:hover {
+    color: var(--accent);
+    border-color: var(--accent-border);
+}
+
+/* --- outline rail ---------------------------------------------------------- */
+
+.outline {
+    width: 210px;
+    flex: none;
+    padding: var(--space-5) var(--space-3);
+    border-left: 1px solid var(--border-subtle);
+    overflow-y: auto;
+}
+
+.outline__title {
+    margin: 0 0 var(--space-2);
+    padding-left: var(--space-2);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+}
+
+.outline__item {
+    display: block;
+    padding: 2px var(--space-2);
+    border-left: 2px solid transparent;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.outline__item:hover {
+    color: var(--fg-default);
+    border-left-color: var(--accent);
+    text-decoration: none;
+}
+
+.outline__item--h1 {
+    font-weight: 600;
+    color: var(--fg-default);
+}
+
+.outline__item--h3 {
+    padding-left: var(--space-5);
+}
+
+.outline__item--h4 {
+    padding-left: var(--space-6);
+    font-size: var(--text-xs);
+}
+
+/* In a narrow pane the outline would take a third of the reading column. */
+@container (max-width: 720px) {
+    .outline {
+        display: none;
+    }
+}
+
+@container (max-width: 560px) {
+    .markdown-host {
+        padding: var(--space-4) var(--space-4) var(--space-6);
+    }
+}
+
+/* --- rendered markdown ------------------------------------------------------ */
+
+.markdown {
+    color: var(--fg-default);
+    line-height: 1.75;
+    overflow-wrap: break-word;
+}
+
+.markdown > *:first-child {
+    margin-top: 0;
+}
+
+.md-heading {
+    position: relative;
+    scroll-margin-top: var(--space-5);
+    line-height: 1.4;
+}
+
+.md-heading__anchor {
+    position: absolute;
+    left: -0.9em;
+    color: var(--fg-subtle);
+    opacity: 0;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+.md-heading:hover .md-heading__anchor {
+    opacity: 1;
+}
+
+.markdown h1 {
+    font-size: 26px;
+    margin: var(--space-6) 0 var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.markdown h2 {
+    font-size: 19px;
+    margin: var(--space-6) 0 var(--space-3);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.markdown h3 {
+    font-size: var(--text-lg);
+    margin: var(--space-5) 0 var(--space-2);
+}
+
+.markdown h4 {
+    font-size: var(--text-md);
+    margin: var(--space-4) 0 var(--space-2);
+    color: var(--fg-muted);
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol {
+    margin: 0 0 var(--space-4);
+}
+
+.markdown li {
+    margin-bottom: var(--space-1);
+}
+
+.markdown li::marker {
+    color: var(--fg-subtle);
+}
+
+.markdown blockquote {
+    margin: 0 0 var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border-left: 3px solid var(--accent-border);
+    background: var(--bg-surface);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--fg-muted);
+}
+
+.markdown code {
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-inset);
+    border: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+.markdown pre {
+    position: relative;
+    margin: 0 0 var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-inset);
+    overflow-x: auto;
+    line-height: 1.6;
+}
+
+.markdown pre code {
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: var(--text-sm);
+}
+
+.markdown pre[data-language]::after {
+    content: attr(data-language);
+    position: absolute;
+    top: var(--space-1);
+    left: var(--space-3);
+    color: var(--fg-subtle);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+}
+
+.markdown table {
+    width: 100%;
+    margin: 0 0 var(--space-4);
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+}
+
+.markdown th,
+.markdown td {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-subtle);
+    text-align: left;
+    vertical-align: top;
+}
+
+.markdown th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    color: var(--fg-muted);
+}
+
+.markdown tr:nth-child(even) td {
+    background: var(--bg-surface);
+}
+
+.markdown hr {
+    margin: var(--space-6) 0;
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.markdown img {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+}
+
+.markdown input[type="checkbox"] {
+    margin-right: var(--space-2);
+    accent-color: var(--status-done);
+}
+
+.markdown .mermaid-source {
+    margin-bottom: var(--space-4);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    /* Diagrams get a bounded box so a wide flowchart cannot stretch the column. */
+    max-height: 560px;
+    display: flex;
+}

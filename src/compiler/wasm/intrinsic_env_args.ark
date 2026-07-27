@@ -2,18 +2,21 @@ use wasm::constants
 use wasm::ctx_scratch
 use wasm::intrinsic_env_arg_at_body
 use wasm::intrinsic_env_arg_list_populate
+use wasm::intrinsic_env_args_gc
 use wasm::intrinsic_env_has_flag_body
 use wasm::intrinsic_env_var
 use wasm::emit_target
 use wasm::ctx_record
+use wasm::import_indices
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::host_intrinsic_adapter
 
 fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
-    helpers_core::emit_call(w, 1)
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core::emit_call(w, import_indices::args_sizes_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
     helpers_memory::emit_i32_load_default(w)
@@ -24,8 +27,7 @@ fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core::emit_unreachable(w)
-        return true
+        return intrinsic_env_args_gc::emit_env_args_gc(w, ctx)
     }
     emit_env_args_prepare_vec(w, ctx)
     intrinsic_env_arg_list_populate::emit_env_args_populate(w, ctx)
@@ -72,9 +74,9 @@ fn emit_env_args_prepare_vec(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_env_args_load_argc(w: WasmWriter, ctx: SelfEmitCtx) {
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
-    helpers_core::emit_call(w, 1)
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
+    host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core::emit_call(w, import_indices::args_sizes_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
     helpers_memory::emit_i32_load_default(w)

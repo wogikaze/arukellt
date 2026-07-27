@@ -6,19 +6,37 @@ struct MirLowerInput {
     wit_paths: Vec<String>,
     decl_nodes: Vec<AstNode>,
     target: String,
+    report_phase_timing: i32,
+    source_text: String,
 }
 
-fn mir_lower_input_new(view: CoreHirMirView, fallback_source: MirLowerFallbackSource, wit_paths: Vec<String>, decl_nodes: Vec<AstNode>, target: String) -> MirLowerInput {
+fn mir_lower_input_new(
+    view: CoreHirMirView,
+    fallback_source: MirLowerFallbackSource,
+    wit_paths: Vec<String>,
+    decl_nodes: Vec<AstNode>,
+    target: String,
+    report_phase_timing: i32,
+    source_text: String
+) -> MirLowerInput {
     let body_source = entry_body_source::mir_entry_body_source_new(entry_body_source::mir_entry_body_source_view_from_core(view), fallback_source)
     let mut effective_target = clone(target)
     if len(effective_target) == 0 {
         effective_target = String_from("wasm32-gc")
     }
-    MirLowerInput { view: view, body_source: body_source, wit_paths: wit_paths, decl_nodes: decl_nodes, target: effective_target }
+    MirLowerInput {
+        view: view,
+        body_source: body_source,
+        wit_paths: wit_paths,
+        decl_nodes: decl_nodes,
+        target: effective_target,
+        report_phase_timing: report_phase_timing,
+        source_text: source_text
+    }
 }
 
 fn mir_lower_input_wit_paths(input: MirLowerInput) -> Vec<String> {
-    clone(input.wit_paths)
+    input.wit_paths
 }
 
 fn mir_lower_input_decl_nodes(input: MirLowerInput) -> Vec<AstNode> {

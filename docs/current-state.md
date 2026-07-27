@@ -4,15 +4,15 @@
 > including the last observed stale evidence where applicable.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-07-15.
+> Updated: 2026-07-22.
 > Generated-At: 2026-07-15
 > Implementation-Commit: `982f3102`
 > Documentation-Commit: `148c1184`
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 1 verification check failure(s), 5 additional full-verification blocker group(s)
-> Distinct incidents: 7 (derived from incident_id in release-guarantees.toml; 7 failing checks)
+> Blocking: 1089 fixture failure(s), 4 additional full-verification blocker group(s)
+> Distinct incidents: 5 (derived from incident_id in release-guarantees.toml; 5 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -22,22 +22,24 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 - **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - Component path (v2):
   - **ADR-008 契約**: `--emit component` は in-tree（`wasm-tools component new` への恒久依存なし）
-  - **現行実装ギャップ**: 一部経路はまだ `WIT generation → wasm-tools component embed/new` や
-    Python wrap helper（例: `p2_component_wrap.py`）を使う。理想と現状の差であり、
-    公開契約は ADR-008。詳細は下記「Accepted ADR contract gaps」
+  - **P2 command（#714 / #668）**: in-tree emit（`component_p2_emit.ark`）。component は
+    `wasi:cli/stdout` + `wasi:io/streams` + `wasi:cli/stderr` を import し、guest は
+    `get-stdout` / `get-stderr` + `blocking-write-and-flush` を直接呼ぶ（疑似 `::write`
+    bridge なし）。`p2_component_wrap.py` は削除済み。environment は P1 形 bridge 経由。
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
-### Accepted ADR contract gaps（2026-07-13）
+### Accepted ADR contract gaps（2026-07-18）
 
 採択済み ADR / research と食い違う現行コード・記述（公開契約との差）:
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
-| Component emit | ADR-008: in-tree | 一部で `wasm-tools` / Python wrap が残る → **移行中** |
+| Component emit | ADR-008: in-tree | P2 command は guest-native in-tree（#714 / #668）。library / 一部 packaging は移行中 |
+| Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
-| jco browser | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。component E2E は別途 |
-| Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。backend helper の callee 文字列意味判定は 0 件。`data/core-ops.toml` は `status = "migration"` で、80 個の移行 emitter、resolver 境界の frozen alias、空 signature の synthetic alias entry は #818 で production lowering と実 signature entry へ置換する |
+| jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。scalar `pub fn` の Node.js E2E は `tests/component-interop/jco/calculator/` で `ARUKELLT_TEST_JCO=1` gate として稼働。String/record/variant canonical ABI adapters は未実装 |
+| Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816 で backend 結合対象に復帰し、#820 の bounded stdlib-only inliner と #821/#822 の Ark body 移行を開始した。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 294 CoreOp（`normal_call` 52、`legacy_emitter` 31、`runtime_call` 45、`target_intrinsic` 164、`mir_op` 2）で、`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
 
 ### Proposed migration gaps（normative ではない）
 
@@ -65,12 +67,12 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Support Tier | Implementation | Contract Stability | Run | Notes |
-|--------|--------------|----------------|--------------------|-----|-------|
-| `wasm32` | supported | complete | stable | Yes | Supported: AtCoder / linear-memory competition path |
-| `wasm32-gc` | primary | partial | stable | Yes | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
-| `native-cpp` | scaffold | scaffold | experimental | No | Scaffold C99 emit path |
-| `native-llvm` | scaffold | scaffold | experimental | No | Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided |
+| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |
+|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|
+| `wasm32` | supported | complete | stable | Yes | `wasm` | `wasm`, `wat` | Supported: AtCoder / linear-memory competition path |
+| `wasm32-gc` | primary | partial | stable | Yes | `wasm` | `wasm`, `wat`, `component`, `wit`, `all` | Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial |
+| `native-cpp` | scaffold | partial | experimental | Yes | `c` | `c` | Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json) |
+| `native-llvm` | scaffold | scaffold | experimental | No | `llvm` | `llvm` | Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided |
 
 ### Host profiles
 
@@ -94,6 +96,11 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 `wasm32-gc` ⊆ wasmtime ∩ Node ∩ Browser ∩ jco≥1.25.2（**multiple memories は default 禁止**）。
 運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
+**Memory64（living）:** `wasm32-gc` の default emit は Memory64（memory limits flag + i64 heap /
+アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。selfhost bootstrap の実行中
+コンパイラは `wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB
+上限を外す（[#730](../issues/open/730-bootstrap-wasm-4gb-memory-limit.md)）。
+
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
 **ADR-007 では廃止済み**（公開ターゲット名はハードエラー。alias にもしない）。
@@ -108,11 +115,11 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2693 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1105 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2842 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1254 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2842 is tests/fixtures/manifest.txt registry size. The 1254 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `python3 scripts/manager.py verify quick` — **165/166 checks pass**
+- Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
 ### Active blockers
 
@@ -121,8 +128,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
-| `check_t3_wasm_validate` | `quick` | `verification` | 1 | `incident_t3_wasm_validate` | T3 fixture Wasm validation: 1 aggregate gate failure + 100 fixture-level validate failures (func N failed to validate) | `python3 scripts/check/check-t3-wasm-validate.py` | Wasm backend | #808 | `fd14539c23288d3ed993c03600aeed36cd478d06` | `982f3102` | `fresh` |
-| `check_selfhost_fixpoint` | `full` | `bootstrap` | 1 | `incident_selfhost_fixpoint` | Stage 2 and Stage 3 compiler hashes differ; fixpoint not reached | `python3 scripts/manager.py selfhost fixpoint --build` | selfhost compiler | #813 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |
@@ -163,7 +168,7 @@ shape. MIR/CoreHIR include a distinct `VT_GC_REF` tag for aggregate reference
 locals, params, and struct/enum returns. This is an implementation slice, not the
 complete GC-native data model: strings, Vec, enums, options/results, and generic
 payloads may still use linear-memory or fixed-shape representation in places.
-Layout policy (compiler-private) is proposed in ADR-035; phases live in
+Layout policy (compiler-private) is accepted in ADR-035; implementation phases live in
 `docs/plans/wasm-gc-implementation.md`.
 
 The data model across all targets:
@@ -177,7 +182,7 @@ The data model across all targets:
 | `Vec<T>` | `i32` pointer to heap-allocated buffer with length/capacity |
 | Structs | `wasm32`: `i32` pointer to heap-allocated struct; `wasm32-gc`: GC struct references for supported field shapes |
 | Enums / Option / Result | Discriminated union in linear memory (GC layout migration in progress; ADR-035) |
-| Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
+| Closures | Parameter-passing captures; Class A/B HOF uses typed funcref + `call_ref` (`ref.func`); Class C / dynamic keeps `call_indirect` + table (ADR-033) |
 
 `wasm32-gc` differs from `wasm32` both in WASI/host profile / component emit and in
 this GC aggregate emission path. `wasm32` remains the linear-memory compatibility backend.
@@ -301,9 +306,9 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Known Limitations
 
-- `--deny-clock` / `--deny-random`: **intended** compile-time MIR scan on `run` (transitive; not on `compile`), but **not implemented** on the current selfhost CLI. Fixtures remain in `DIAG_PARITY_SKIP` (#459). See [`process/policy.md`](process/policy.md) and [`data/capabilities.toml`](data/capabilities.toml).
+- `--deny-clock` / `--deny-random`: selfhost CLI accepts the flags and rejects entry files that reference clock/random APIs (source-level scan on `check`/`compile`). Transitive MIR capability scan remains a follow-up; see [`process/policy.md`](process/policy.md) and [`data/capabilities.toml`](data/capabilities.toml).
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
-- `native-*` is **scaffold-only** (#641): compile-only GNU assembler stub via `native::emit_native_scaffold`; `run_supported=false`. Full selfhost-native lowering remains #529 Phase 7 follow-up.
+- `native-cpp` is a **scaffold / partial / experimental** target with **`run_supported=true`** (not production-ready; `support_tier` remains scaffold): public `arukellt run --target native-cpp` is offered on Linux x86-64 with clang 14+ for the supported subset (ADR-050). Guaranteed public corpus: 16/16 (`docs/data/native-cpp-public-coverage-receipt.json`). **General backend readiness (measure v2) is COMPLETE** for the documented gates: positive compile ≥80.5%, compiled-positive semantic ≥95%, in-scope expected-negative diagnostic match 100% (14 fixtures listed in `docs/data/native-cpp-expected-negative-limitations.toml`), ICE 0, unexpected crash 0 (`docs/data/native-cpp-fixture-coverage-receipt.json`, baseline `docs/data/native-cpp-fixture-coverage-baseline.json`). Plan: [native-cpp-general-backend-readiness.md](plans/native-cpp-general-backend-readiness.md). The **internal** C99 selfhost executor lane remains **experimental**: production root clears, arena/GC dual mode, S2/S3 equality+determinism, and strict wall/RSS dual gate without `--allow-high-rss` (CI rejects that flag). Latest strict 3× evidence: warm wall 238–249 s, peak RSS ≤ 2.345 GiB (`docs/data/native-cpp-executor-promotion-receipt.json`). `native-llvm` retains its fixed GNU assembler scaffold. See [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md), [ADR-050](adr/ADR-050-experimental-public-native-c99-run.md), and [RFC-008](rfcs/008-native-cpp-c99-backend-runtime-abi.md).
 - some historical docs remain archived / historical and should not override current-state
 - **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [Capability surface](platform/target-runtime-and-surfaces.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
 - **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.
@@ -324,6 +329,11 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 要約: command component は pinned compiler で利用可能、library component は s2 compiler が必要、WIT emit は partial。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
+
+P2 command component は guest-native in-tree emit で `wasm-tools validate` + `wasmtime run` が緑
+（`hello p2`、`gate-714-p2-emitter-native.py`、`gate-668-p2-native-polish.py`）。WASI P2 経路では
+Memory64 を切り、i32 linear memory を host canon lower と共有する。guest は `get-stdout` /
+`get-stderr` + `blocking-write-and-flush` を直接 import する。
 
 Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes
 such as non-`Color` enums, non-`Shape` payload variants, and non-`Point` records

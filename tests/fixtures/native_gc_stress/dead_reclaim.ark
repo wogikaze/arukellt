@@ -1,0 +1,10 @@
+fn main() -> i32 {
+    let keep = String_from("keep")
+    let mut i = 0
+    while i < 4000 {
+        let junk = concat(String_from("dead-payload-0123456789"), String_from("x"))
+        let _n = len(junk)
+        i = i + 1
+    }
+    if eq(keep, String_from("keep")) { 0 } else { 1 }
+}

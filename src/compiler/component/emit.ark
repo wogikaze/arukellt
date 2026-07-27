@@ -2,29 +2,26 @@ use component::component_base
 use component::export_plan
 use component::export_sections
 use component::export_types
-use component::emit_specialized
 use component::writer_core
-use component::world_spec
+use wasm
 
-fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    let out = component_base::comp_new_component_writer()
-    let plan = export_plan::collect_component_exports(mir)
-    if world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
+fn emit_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, wasi_version: String, _world: String) -> Vec<i32> {
+    if eq(clone(wasi_version), String_from("wasi-p2")) {
         return wasm::emit_p2_command_component(core_wasm)
     }
-    let specialized = emit_specialized::emit_specialized_component(core_wasm, mir, export_plan::export_plan_names(plan))
-    if len(specialized) > 0 { return specialized }
-    if export_plan::export_plan_count(plan) > 0 {
-        return emit_component_generic_exports(out, core_wasm, plan, mir)
+    if eq(clone(wasi_version), String_from("p1-component")) {
+        return wasm::emit_library_component(core_wasm, mir)
     }
+    // Specialized emit lowered to drop+unreachable with an i64 return temp and
+    // failed validate (#730). Generic export path is enough for selfhost fixpoint.
+    let out = component_base::comp_new_component_writer()
+    let plan = export_plan::collect_component_exports(mir)
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
-fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
+fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, _wasi_version: String, _world: String) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()
     let plan = export_plan::collect_component_exports(mir)
-    let specialized = emit_specialized::emit_specialized_component(core_wasm, mir, export_plan::export_plan_names(plan))
-    if len(specialized) > 0 { return specialized }
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 

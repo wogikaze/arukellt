@@ -73,8 +73,25 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
     if vt == value_types::VT_I64() {
         return String_from("i64")
     }
+    if vt == value_types::VT_FUNCREF() ||
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fn(")) {
+        return String_from("fnref")
+    }
     if vt == value_types::VT_I32() && (len(type_name) == 0 || gc_payload_is_scalar_type_name(clone(type_name))) {
         return String_from("i32")
+    }
+    // Named struct payloads (TomlValStep, etc.) must win over a stray
+    // variant_slot inherited from an inner enum field. Otherwise Ok(step)
+    // selects the open-enum layout and struct.set fails (#726 toml).
+    if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
+        if starts_with(clone(type_name), String_from("struct:")) {
+            return type_name
+        }
+        if len(type_name) > 0 && ctx_struct_field_type::field_type_is_registered_struct(ctx, clone(type_name)) {
+            return type_name
+        }
     }
     // Enum-valued locals (TomlValue::Table etc.) must win over Ok's default
     // String layout before layout_result collapses them to _f1_ref0 (#726).
@@ -206,6 +223,9 @@ fn gc_payload_type_name_needs_typed_variant(type_name: String) -> bool {
 
 fn gc_payload_promote_vt(ctx: LowerCtx, local_idx: i32, vt: i32, type_name: String) -> i32 {
     if gc_payload_type_name_needs_typed_variant(clone(type_name)) || gc_payload_is_string_type_name(clone(type_name)) {
+        // Payload locals must not keep a stray enclosing-variant slot;
+        // otherwise emit casts String → Ok/String-variant before struct.set.
+        ctx_api_local_types::ctx_set_local_variant_slot(ctx, local_idx, 0 - 1)
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, value_types::VT_GC_REF())
             return value_types::VT_GC_REF()
@@ -231,7 +251,7 @@ fn emit_variant_tag_field(ctx: LowerCtx, dest: i32, tag: i32, type_slot: i32) {
     let tag_tmp = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(tag, tag_tmp))
     if type_slot >= 0 {
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, tag_tmp, type_slot, 0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, tag_tmp, type_slot, 0, value_types::VT_I32()))
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(dest, tag_tmp, 0, value_types::VT_VOID()))
     }
@@ -246,10 +266,10 @@ fn emit_gc_variant_payload_fields(ctx: LowerCtx, dest: i32, type_slot: i32, payl
         let mut set_vt = value_types::VT_VOID()
         if field_vt == value_types::VT_F64() {
             set_vt = value_types::VT_F64()
-        } else {
-            if field_vt == value_types::VT_I64() {
-                set_vt = value_types::VT_I64()
-            }
+        } else if field_vt == value_types::VT_I64() {
+            set_vt = value_types::VT_I64()
+        } else if field_vt == value_types::VT_FUNCREF() {
+            set_vt = value_types::VT_FUNCREF()
         }
         ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_set(dest, field_local, type_slot, fi + 1, set_vt))
         fi = fi + 1

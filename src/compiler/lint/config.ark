@@ -24,8 +24,8 @@ fn LintConfig_empty() -> LintConfig {
     LintConfig_new()
 }
 
-fn lint_config_allow(config: LintConfig) -> Vec<String> { clone(config.allow) }
-fn lint_config_deny(config: LintConfig) -> Vec<String> { clone(config.deny) }
+fn lint_config_allow(config: LintConfig) -> Vec<String> { config.allow }
+fn lint_config_deny(config: LintConfig) -> Vec<String> { config.deny }
 
 // Parse a TOML array string like `["W0006", "unused-import"]` into a Vec<String>.
 fn parse_toml_string_array(raw: String) -> Vec<String> {

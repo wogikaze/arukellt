@@ -1387,18 +1387,22 @@ def join_pipeline(parts: list[str]) -> str:
 
 def render_target_table(state: dict) -> str:
     rows = [
-        "| Target | Support Tier | Implementation | Contract Stability | Run | Notes |",
-        "|--------|--------------|----------------|--------------------|-----|-------|",
+        "| Target | Support Tier | Implementation | Contract Stability | Run | Default Emit | Allowed Emits | Notes |",
+        "|--------|--------------|----------------|--------------------|-----|--------------|---------------|-------|",
     ]
     for profile in state.get("target_profiles", []):
         run = "Yes" if profile.get("run_supported") else "No"
+        default_emit = profile.get("default_emit_kind", "—")
+        allowed = ", ".join(f"`{kind}`" for kind in profile.get("allowed_emit_kinds", [])) or "—"
         rows.append(
-            "| `{}` | {} | {} | {} | {} | {} |".format(
+            "| `{}` | {} | {} | {} | {} | `{}` | {} | {} |".format(
                 profile["id"],
                 profile["support_tier"],
                 profile["implementation_state"],
                 profile["contract_stability"],
                 run,
+                default_emit,
+                allowed,
                 escape_table(profile.get("role", "")),
             )
         )
@@ -1434,6 +1438,29 @@ def validate_target_contract(state: dict) -> list[str]:
     canonical = {p.get("id") for p in state.get("target_profiles", [])}
     hosts = {p.get("id") for p in state.get("host_profiles", [])}
     seen: set[str] = set()
+    known_emit_kinds = {"wasm", "wat", "component", "wit", "all", "c", "llvm"}
+    for profile in state.get("target_profiles", []):
+        target_id = profile.get("id")
+        default_emit = profile.get("default_emit_kind")
+        allowed = profile.get("allowed_emit_kinds")
+        if not isinstance(default_emit, str) or not default_emit:
+            errors.append(f"target {target_id}: default_emit_kind must be a non-empty string")
+            continue
+        if not isinstance(allowed, list) or not allowed:
+            errors.append(f"target {target_id}: allowed_emit_kinds must be a non-empty list")
+            continue
+        if any(not isinstance(kind, str) or not kind for kind in allowed):
+            errors.append(f"target {target_id}: allowed_emit_kinds entries must be non-empty strings")
+            continue
+        unknown = [kind for kind in allowed if kind not in known_emit_kinds]
+        if unknown:
+            errors.append(f"target {target_id}: unknown emit kinds {unknown}")
+        if default_emit not in allowed:
+            errors.append(
+                f"target {target_id}: default_emit_kind `{default_emit}` must be listed in allowed_emit_kinds"
+            )
+        if not isinstance(profile.get("run_supported"), bool):
+            errors.append(f"target {target_id}: run_supported must be a bool")
     for alias in state.get("target_aliases", []):
         spelling = alias.get("input")
         if not isinstance(spelling, str) or not spelling:
@@ -1528,12 +1555,60 @@ def render_compiler_target_contract(state: dict) -> str:
             f'        return String_from("  {target_id}  {display}")',
             "    }",
         ])
+    lines.extend(["    String_new()", "}", "", "fn target_run_supported(input: String) -> bool {"])
+    for profile in state.get("target_profiles", []):
+        supported = "true" if profile.get("run_supported") else "false"
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f"        return {supported}",
+            "    }",
+        ])
+    lines.extend(["    false", "}", "", "fn target_default_emit_kind(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'        return String_from("{_ark_string(profile["default_emit_kind"])}")',
+            "    }",
+        ])
+    lines.extend(['    String_from("wasm")', "}", "", "fn target_allows_emit_kind(target: String, emit_kind: String) -> bool {"])
+    for profile in state.get("target_profiles", []):
+        target_id = _ark_string(profile["id"])
+        lines.append(f'    if eq(clone(target), String_from("{target_id}")) {{')
+        for kind in profile.get("allowed_emit_kinds", []):
+            lines.extend([
+                f'        if eq(clone(emit_kind), String_from("{_ark_string(kind)}")) {{',
+                "            return true",
+                "        }",
+            ])
+        lines.extend(["        return false", "    }"])
+    lines.extend(["    false", "}", "", "fn target_allowed_emit_kinds_message(input: String) -> String {"])
+    for profile in state.get("target_profiles", []):
+        allowed = ", ".join(profile.get("allowed_emit_kinds", []))
+        lines.extend([
+            f'    if eq(clone(input), String_from("{_ark_string(profile["id"])}")) {{',
+            f'        return String_from("{_ark_string(allowed)}")',
+            "    }",
+        ])
     lines.extend(["    String_new()", "}", ""])
     lines.extend(['test mod "target_contract_generated" {'])
     for index, target in enumerate(canonical):
         lines.append(
             f'    test "canonical_{index}" {{ assert(target_is_canonical(String_from("{_ark_string(target)}"))) }}'
         )
+    for index, profile in enumerate(state.get("target_profiles", [])):
+        target_id = _ark_string(profile["id"])
+        default_emit = _ark_string(profile["default_emit_kind"])
+        run_supported = "true" if profile.get("run_supported") else "false"
+        lines.append(
+            f'    test "default_emit_{index}" {{ assert(eq(target_default_emit_kind(String_from("{target_id}")), String_from("{default_emit}"))) }}'
+        )
+        lines.append(
+            f'    test "run_supported_{index}" {{ assert(target_run_supported(String_from("{target_id}")) == {run_supported}) }}'
+        )
+        for kind_index, kind in enumerate(profile.get("allowed_emit_kinds", [])):
+            lines.append(
+                f'    test "allows_{index}_{kind_index}" {{ assert(target_allows_emit_kind(String_from("{target_id}"), String_from("{_ark_string(kind)}"))) }}'
+            )
     for index, alias in enumerate(aliases):
         spelling = _ark_string(alias["input"])
         lines.append(
@@ -1961,6 +2036,7 @@ def render_root_docs_readme(
         "| [data/component-availability.md](data/component-availability.md) | Component availability axes |",
         "| [data/target-contract-summary.md](data/target-contract-summary.md) | Generated target contract summary |",
         "| [directory-ownership.md](directory-ownership.md) | Directory ownership map |",
+        "| [board/index.html](board/index.html) | Project board (kanban for issues, ADRs, docs) |",
         "| [release/README.md](release/README.md) | Release criteria + checklist entry |",
         "| [governance/document-ownership.md](governance/document-ownership.md) | Shared ownership schema |",
         "",
@@ -2042,6 +2118,8 @@ def render_sidebar(sections: list[dict]) -> str:
             lines.append(f"  - [{section['title']}](#/{section['dir']}/README)")
             if section["dir"] == "playground":
                 lines.append("    - [▶ Try Playground](#/playground/index.html)")
+        if category == "current":
+            lines.append("  - [▶ プロジェクトボード](#/board/)")
     return "\n".join(lines) + "\n"
 
 

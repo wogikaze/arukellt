@@ -1,4 +1,3 @@
-use std::host::env
 use std::host::stdio
 use std::text
 use mir::lower::ctx_api_local_frame
@@ -11,15 +10,9 @@ use mir::lower::ctx_types
 // When MIR_LOWER_TRACE=1 in the environment, lower_to_mir prints five integers per phase:
 // phase, len(params), len(locals), len(blocks), return_type tag.
 fn MIR_LOWER_TRACE() -> i32 {
-    match env::var(String_from("MIR_LOWER_TRACE")) {
-        Option::Some(s) => {
-            if eq(s, String_from("1")) {
-                return 1
-            }
-            0
-        },
-        None => 0,
-    }
+    // Env override disabled on wasm32-gc until Option-from-env::var locals
+    // validate; use MIR_LOWER_TRACE_FORCE for source-level enable.
+    MIR_LOWER_TRACE_FORCE()
 }
 
 // Set to 1 in source to force mir_lower trace without env (e.g. if env::var is unavailable).

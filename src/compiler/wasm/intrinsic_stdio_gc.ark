@@ -1,4 +1,5 @@
 use mir::inst_accessors_operands
+use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::opcodes
@@ -6,6 +7,8 @@ use wasm::string_gc_helpers
 use wasm::writer_core
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_p2
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
 use mir::opcodes as mir_opcodes
 
 fn emit_gc_heap_get(w: WasmWriter) {
@@ -20,13 +23,13 @@ fn emit_gc_heap_set(w: WasmWriter) {
 
 fn emit_gc_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
-    helpers_io_p2::emit_p2_write_newline(w, 0)
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
+    helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDOUT())
 }
 
 fn emit_gc_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, constants::P2_IMPORT_GET_STDOUT())
 }
 
 fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
@@ -34,13 +37,11 @@ fn emit_gc_alloc_heap_buf(w: WasmWriter, s_buf: i32, s_len: i32) {
     helpers_core::emit_local_set(w, s_buf)
     emit_gc_heap_get(w)
     helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 7)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, -4)
-    writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 7)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 0 - 4)
+    helpers_numeric_i32::emit_i32_and(w)
     emit_gc_heap_set(w)
 }
 
@@ -53,20 +54,17 @@ fn emit_gc_copy_loop(w: WasmWriter, s_buf: i32, s_gc: i32, s_len: i32, s_i: i32,
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, s_buf)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_get(w, s_i)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_get(w, s_gc)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE8())
-    writer_core::emit_byte(w, 0)
-    writer_core::emit_byte(w, 0)
+    helpers_memory::emit_i32_store8_default(w)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_br(w, 0)
     string_gc_helpers::emit_gc_block_loop_end(w)
@@ -82,10 +80,31 @@ fn emit_gc_string_to_heap(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32
 
 fn emit_gc_string_to_heap_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> i32 {
     let arg_local = inst_accessors_operands::MirInst_arg0(inst)
-    if arg_local >= 0 && prev_op != mir_opcodes::MIR_LOCAL_GET() {
+    // CONST_STRING / LOCAL_GET leave the string on the stack when store policy
+    // SKIP-stores before a direct consumer CALL. Reloading via from_local then
+    // duplicates the ref and fails validate ("values remaining on stack") (#730).
+    // CALL results are not listed here: normal calls force-SET before a local-arg
+    // CALL (#832 store policy / should_force_call_dest_store), so from_local is
+    // correct for `println(n.to_string())`.
+    let prev_leaves_string_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() ||
+    prev_op == mir_opcodes::MIR_CONST_STRING()
+    if arg_local >= 0 && !prev_leaves_string_on_stack {
         return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
     }
     emit_gc_string_to_heap_from_stack(w, inst, ctx)
+}
+
+fn emit_gc_store_len_prefix(w: WasmWriter, s_buf: i32, s_len: i32) {
+    helpers_core::emit_local_get(w, s_buf)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_memory::emit_i32_store_default(w)
+}
+
+fn emit_gc_advance_past_len(w: WasmWriter, s_buf: i32) {
+    helpers_core::emit_local_get(w, s_buf)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_buf)
 }
 
 fn emit_gc_string_to_heap_from_stack(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> i32 {
@@ -101,20 +120,9 @@ fn emit_gc_string_to_heap_from_stack(w: WasmWriter, inst: MirInst, ctx: SelfEmit
     helpers_core::emit_local_set(w, s_len)
 
     emit_gc_alloc_heap_buf(w, s_buf, s_len)
-
-    helpers_core::emit_local_get(w, s_buf)
-    helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-
+    emit_gc_store_len_prefix(w, s_buf, s_len)
     emit_gc_copy_loop(w, s_buf, s_gc, s_len, s_i, string_type)
-
-    helpers_core::emit_local_get(w, s_buf)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core::emit_local_set(w, s_buf)
+    emit_gc_advance_past_len(w, s_buf)
     s_buf
 }
 
@@ -132,28 +140,15 @@ fn emit_gc_string_to_heap_from_local(w: WasmWriter, string_local: i32, ctx: Self
     helpers_core::emit_local_set(w, s_len)
 
     emit_gc_alloc_heap_buf(w, s_buf, s_len)
-
-    helpers_core::emit_local_get(w, s_buf)
-    helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_STORE())
-    writer_core::emit_byte(w, 2)
-    writer_core::emit_byte(w, 0)
-
+    emit_gc_store_len_prefix(w, s_buf, s_len)
     emit_gc_copy_loop(w, s_buf, s_gc, s_len, s_i, string_type)
-
-    helpers_core::emit_local_get(w, s_buf)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 4)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    helpers_core::emit_local_set(w, s_buf)
+    emit_gc_advance_past_len(w, s_buf)
     s_buf
 }
 
 fn emit_gc_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let buf_local = emit_gc_string_to_heap_with_prev(w, inst, ctx, prev_op)
-    // P2 import table has stdout write at index 0; there is no stderr write
-    // import. Using index 1 hits args-sizes (2-param) and leaves stack junk
-    // (#726 writer_write / io_* "values remaining on stack").
-    helpers_io_p2::emit_p2_write_string_local(w, buf_local, 0)
-    helpers_io_p2::emit_p2_write_newline(w, 0)
+    let stderr_idx = constants::P2_IMPORT_GET_STDERR()
+    helpers_io_p2::emit_p2_write_string_local(w, buf_local, stderr_idx)
+    helpers_io_p2::emit_p2_write_newline(w, stderr_idx)
 }

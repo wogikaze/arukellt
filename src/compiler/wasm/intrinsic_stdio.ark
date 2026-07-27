@@ -1,5 +1,6 @@
 use mir::inst_accessors_operands
 use mir::opcodes
+use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::intrinsic_stdio_gc
@@ -31,15 +32,10 @@ fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> b
 }
 
 fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-        helpers_io_p2::emit_p2_write_newline(w, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
+        helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDOUT())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 1)
@@ -48,14 +44,9 @@ fn emit_println_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
 }
 
 fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDOUT())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 1)
@@ -72,18 +63,48 @@ fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -
 }
 
 fn emit_eprintln_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
-    let string_local = inst_accessors_operands::MirInst_dest(inst)
-    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-    if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
-        helpers_core::emit_local_get(w, arg0)
-    }
-    helpers_core::emit_local_set(w, string_local)
+    let string_local = resolve_stdio_string_local(w, inst, prev_op)
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        helpers_io_p2::emit_p2_write_string_local(w, string_local, 0)
-        helpers_io_p2::emit_p2_write_newline(w, 0)
+        helpers_io_p2::emit_p2_write_string_local(w, string_local, constants::P2_IMPORT_GET_STDERR())
+        helpers_io_p2::emit_p2_write_newline(w, constants::P2_IMPORT_GET_STDERR())
     } else {
         helpers_io::emit_iov_from_string_local(w, string_local)
         helpers_io::emit_fd_write_call(w, 2)
         helpers_io::emit_write_newline(w, 2)
     }
+}
+
+// Void stdio calls use dest=-1. Encoding that as leb128_u becomes local 0 and
+// clobbers i64 params (emit_phase_timing under KEEP_CLOCK). Prefer arg0.
+//
+// CONST_STRING before CALL is SKIP-stored (direct consumer), so the pointer
+// remains on the stack while iov reloads from arg0. Capture it into arg0/dest
+// or the if-block in dump_wasm eprintln fails validate (stack leftover).
+// Do not treat CALL the same way: concat force-SETs, so the stack is already empty.
+fn resolve_stdio_string_local(w: WasmWriter, inst: MirInst, prev_op: i32) -> i32 {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+    if dest >= 0 {
+        if prev_op == opcodes::MIR_CONST_STRING() {
+            helpers_core::emit_local_set(w, dest)
+            return dest
+        }
+        if arg0 >= 0 && prev_op != opcodes::MIR_LOCAL_GET() {
+            helpers_core::emit_local_get(w, arg0)
+        }
+        helpers_core::emit_local_set(w, dest)
+        return dest
+    }
+    if arg0 < 0 {
+        return arg0
+    }
+    if prev_op == opcodes::MIR_LOCAL_GET() {
+        helpers_core::emit_drop(w)
+        return arg0
+    }
+    if prev_op == opcodes::MIR_CONST_STRING() {
+        helpers_core::emit_local_set(w, arg0)
+        return arg0
+    }
+    arg0
 }

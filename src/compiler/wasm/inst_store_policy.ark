@@ -1,6 +1,7 @@
 use mir::inst_accessors_shape
 use mir::inst_accessors_operands
 use mir::opcodes
+use mir::value_types
 use wasm::constants
 
 fn store_result_action(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> i32 {
@@ -43,6 +44,13 @@ fn should_tee_store_early(inst: MirInst, next_op: i32, next_arg1: i32) -> bool {
 }
 
 fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
+    // Funcref CALL results are reloaded via local.get before call_ref; never
+    // leave them on the stack under following CONST/arg loads (#832).
+    let cur_op = inst_accessors_shape::MirInst_op(inst)
+    if (cur_op == opcodes::MIR_CALL() || cur_op == opcodes::MIR_WIT_CALL()) &&
+    inst_accessors_shape::MirInst_val_type(inst) == value_types::VT_FUNCREF() {
+        return false
+    }
     if next_op == opcodes::MIR_RETURN() {
         if next_arg0 < 0 {
             return true
@@ -52,14 +60,27 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
         return true
     }
     if is_direct_consumer_op(next_op) {
-        if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 >= 0 {
+        // Do not force-SET before a CALL just because it has a first-arg
+        // local: char_at; char_at; ne relies on leaving both results on the
+        // stack. Discarded results are handled below via LOCAL_GET(other)+CALL.
+        // Intrinsic CALL results are different: when the next CALL's first
+        // local arg *is* this dest, store — otherwise println(get_unchecked)
+        // reads an uninitialized temp (#832). Do not apply this to LOCAL_GET /
+        // CONST_STRING; those rely on leaving the value on the stack (#730).
+        let cur = inst_accessors_shape::MirInst_op(inst)
+        if (cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL()) &&
+        (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) &&
+        next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
             return false
         }
         return true
     }
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() || inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_WIT_CALL() {
         if next_op == opcodes::MIR_LOCAL_GET() && next_arg0 == inst_accessors_operands::MirInst_dest(inst) {
-            if next2_op == opcodes::MIR_CALL() || next2_op == opcodes::MIR_WIT_CALL() || next2_op == opcodes::MIR_CALL_INDIRECT() {
+            if next2_op == opcodes::MIR_CALL() ||
+            next2_op == opcodes::MIR_WIT_CALL() ||
+            next2_op == opcodes::MIR_CALL_INDIRECT() ||
+            next2_op == opcodes::MIR_CALL_REF() {
                 return false
             }
         }
@@ -67,6 +88,36 @@ fn should_skip_store_after_early_tee(inst: MirInst, next_op: i32, next_arg0: i32
     if next_op == opcodes::MIR_LOCAL_GET() {
         if next_arg0 != inst_accessors_operands::MirInst_dest(inst) {
             if is_load_followed_by_consumer(next2_op) {
+                // CONST_STRING; GET(other); SET must SET — SKIP leaves the
+                // string pointer under the copy and fails dump_resolved_hir.
+                // Do not force-SET all CONST_STRING: CONST; stack LOCAL_SET
+                // still needs the value on the stack (format_diagnostic_text).
+                let cur = inst_accessors_shape::MirInst_op(inst)
+                if cur == opcodes::MIR_CONST_STRING() && next2_op == opcodes::MIR_LOCAL_SET() {
+                    return false
+                }
+                // Discarded GC/ref CALL results must not sit under the next
+                // call's local.get args (expect_token then skip_newlines).
+                // Scalar CALL results (len/len/ne, float_val/make_float_lit)
+                // stay on the stack for composition.
+                if cur == opcodes::MIR_CALL() || cur == opcodes::MIR_WIT_CALL() {
+                    // String concat materializes via call_text_core force-SET/TEE.
+                    // Other CALL results: SKIP for numeric stack composition
+                    // (array elem load then LOCAL_GET+SET then ne); SET only for
+                    // GC/ref results under a following CALL.
+                    if next2_op == opcodes::MIR_CALL() ||
+                    next2_op == opcodes::MIR_WIT_CALL() ||
+                    next2_op == opcodes::MIR_CALL_INDIRECT() ||
+                    next2_op == opcodes::MIR_CALL_REF() {
+                        let vt = inst_accessors_shape::MirInst_val_type(inst)
+                        if vt == value_types::VT_GC_REF() ||
+                        vt == value_types::VT_REF() ||
+                        vt == value_types::VT_FUNCREF() {
+                            return false
+                        }
+                        return true
+                    }
+                }
                 return true
             }
         }
@@ -142,6 +193,9 @@ fn is_direct_consumer_op(op: i32) -> bool {
     if op == opcodes::MIR_CALL_INDIRECT() {
         return true
     }
+    if op == opcodes::MIR_CALL_REF() {
+        return true
+    }
     if op == opcodes::MIR_STRUCT_GET() {
         return true
     }
@@ -193,6 +247,9 @@ fn is_load_followed_by_consumer(op: i32) -> bool {
         return true
     }
     if op == opcodes::MIR_CALL_INDIRECT() {
+        return true
+    }
+    if op == opcodes::MIR_CALL_REF() {
         return true
     }
     if opcodes::is_arith_opcode(op) {

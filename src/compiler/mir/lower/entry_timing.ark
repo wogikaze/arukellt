@@ -1,0 +1,79 @@
+use std::host::clock
+use std::host::stdio
+
+fn mir_lower_phase_timing_enabled(report_flag: i32) -> i32 {
+    // Env override disabled on wasm32-gc until Option-from-env::var locals
+    // validate; --time / report_flag remains the supported enable path.
+    if report_flag != 0 {
+        return 1
+    }
+    0
+}
+
+fn mir_lower_phase_now() -> i64 {
+    clock::monotonic_now()
+}
+
+fn mir_lower_phase_ms(t_start: i64, t_end: i64) -> i32 {
+    // Inline ns→ms: `time::duration_ms` lowers to unreachable under pinned→s2 (#823).
+    let diff = t_end - t_start
+    if diff < 0i64 {
+        return 0
+    }
+    i64_to_i32(diff / 1000000i64)
+}
+
+fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
+    if enabled == 0 {
+        return
+    }
+    let ms = mir_lower_phase_ms(t_start, t_end)
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower."),
+            concat(clone(label), concat(String_from(": "), concat(to_string(ms), String_from("ms"))))
+        )
+    )
+}
+
+fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_fns: before="),
+            concat(to_string(before), concat(String_from(" after="), to_string(after)))
+        )
+    )
+}
+
+fn mir_lower_phase_mir_size(
+    enabled: i32,
+    blocks_before: i32,
+    blocks_after: i32,
+    insts_before: i32,
+    insts_after: i32
+) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_blocks: before="),
+            concat(
+                to_string(blocks_before),
+                concat(String_from(" after="), to_string(blocks_after))
+            )
+        )
+    )
+    stdio::eprintln(
+        concat(
+            String_from("[arukellt] lower.reachability_insts: before="),
+            concat(
+                to_string(insts_before),
+                concat(String_from(" after="), to_string(insts_after))
+            )
+        )
+    )
+}

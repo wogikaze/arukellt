@@ -32,9 +32,8 @@ fn extract_mono_suffix(fn_name: String) -> String {
         }
         si = si + 1
     }
-    // Fallback: use the first "__" separator (original behavior)
-    let first_sep = get_unchecked(sep_positions, 0)
-    substring(fn_name, first_sep + 2, name_len)
+    // No valid mono type-key suffix (e.g. "__core_*" intrinsic names).
+    String_new()
 }
 
 // Check if all type keys in a list are valid mono type keys.

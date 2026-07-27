@@ -13,10 +13,29 @@
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
 | [000-writing-plans.md](000-writing-plans.md) | 実装計画の書き方 | Archive | docs/plans/ は、ADR / RFC で決まった方針をどう実装するかの計画を置く場所である。 |
+| [001-parallel-issue-close-wave.md](001-parallel-issue-close-wave.md) | 並列 issue close wave オーケストレーション計画 | Archive | 対象 issue: #834, #807, #822, #727, #824, #826, #810, #809, #696, #704, #705 |
+| [675-host-capability-reachability-flags.md](675-host-capability-reachability-flags.md) | \#675 — Host capability user-reachability and runtime permission flags 実装計画 | Archive | 親 issue: #675 |
+| [696-debug-trait-format-macros.md](696-debug-trait-format-macros.md) | #696 — Debug trait and format! / write! equivalent クローズ計画 | Archive | 親 issue: #696 前提: #688, #692 done 担当 subagent lane: wave/696-debug-trait 作業 worktree: .worktrees/wave-696-debug-trait |
+| [704-std-json-full-compliance.md](704-std-json-full-compliance.md) | #704 — std::json Full JSON RFC 8259 Compliance クローズ計画 | Archive | 親 issue: #704 前提: #606 done 担当 subagent lane: wave/704-json-full 作業 worktree: .worktrees/wave-704-json-full |
+| [705-std-toml-full-compliance.md](705-std-toml-full-compliance.md) | #705 — std::toml Full TOML 1.0 Compliance クローズ計画 | Archive | 親 issue: #705 前提: #606 done 担当 subagent lane: wave/705-toml-full 作業 worktree: .worktrees/wave-705-toml-full |
+| [727-host-bridge-retirement.md](727-host-bridge-retirement.md) | #727 — Retire arukellt_host custom host bridge クローズ計画 | Archive | 親 issue: #727 関連計画: arukellt-host-bridge-retirement.md |
+| [807-fixture-parity-remaining-failures.md](807-fixture-parity-remaining-failures.md) | #807 — Fixture parity: 367 remaining failures クローズ計画 | Archive | 親 issue: #807 担当 subagent lane: wave/807-fixture-parity 作業 worktree: .worktrees/wave-807-fixture-parity |
+| [809-wat-roundtrip-failure.md](809-wat-roundtrip-failure.md) | #809 — WAT roundtrip failure クローズ計画 | Archive | 親 issue: #809 担当 subagent lane: wave/809-wat-roundtrip 作業 worktree: .worktrees/wave-809-wat-roundtrip |
+| [810-component-interop-failures.md](810-component-interop-failures.md) | #810 — Component interop failures クローズ計画 | Archive | 親 issue: #810 担当 subagent lane: wave/810-component-interop 作業 worktree: .worktrees/wave-810-component-interop |
+| [822-representation-dependent-stdlib-migration.md](822-representation-dependent-stdlib-migration.md) | #822 — Representation-dependent and allocating stdlib migration クローズ計画 | Archive | 親 issue: #822 |
+| [824-early-body-lowering-worklist.md](824-early-body-lowering-worklist.md) | #824 — Early body lowering (worklist; design first) クローズ計画 | Archive | 親 issue: #824 前提: #823, #829, #730 done 担当 subagent lane: wave/824-early-body 作業 worktree: .worktrees/wave-824-early-body |
+| [826-symbol-path-intern-clone-audit.md](826-symbol-path-intern-clone-audit.md) | #826 — Symbol / path interning + hot-path clone audit クローズ計画 | Archive | 親 issue: #826 前提: #823, #829 done 担当 subagent lane: wave/826-intern-clone 作業 worktree: .worktrees/wave-826-intern-clone |
+| [843-wasm32-gc-bootstrap-pin.md](843-wasm32-gc-bootstrap-pin.md) | #834 — Pin bootstrap to validating Memory64 wasm32-gc クローズ計画 | Archive | 親 issue: #843 前駆 issue: #730 |
+| [arukellt-host-bridge-retirement.md](arukellt-host-bridge-retirement.md) | #727 — arukellt_host bridge retirement 実装計画 | Archive | 親 issue: #727 |
 | [component-canonical-memory.md](component-canonical-memory.md) | Component Canonical ABI 一時メモリ（現行実装） | Archive | ADR-008 は「canonical ABI 用の一時領域と再確保契約を in-tree 実装が管理する」までを 契約とする。具体的なページ数・offset・bump 戦略はここに置く。 |
 | [docs-manual-split-plan.md](docs-manual-split-plan.md) | Docs size / split plan (manual documents) | Archive | Tracked under #770 (Phase 4) / originally #765. |
 | [intrinsic-layer-separation.md](intrinsic-layer-separation.md) | Intrinsic 層分離 移行計画 | Archive | callee 文字列 dispatch を廃止し、semantic stdlib / runtime ABI / target intrinsic の 責務分離を完了する。emitter から stdlib 操作の実装本体を除去する。 |
+| [native-cpp-experimental-promotion.md](native-cpp-experimental-promotion.md) | native-cpp selfhost executor experimental 昇格計画 | Archive | Owner: native-cpp / umbrella #834 / root-liveness #833 Created: 2026-07-23 Last updated: 2026-07-23 Phase 0 baseline: .build-native-recovery/selfhost/native/baselines/20260723-221402/ |
+| [native-cpp-general-backend-readiness.md](native-cpp-general-backend-readiness.md) | native-cpp general backend readiness | Archive | 公開 run 昇格（完了）: native-cpp-public-run-promotion.md |
+| [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | native-cpp-experimental-promotion.md と docs/data/native-cpp-executor-promotion-receipt.json を正とする） |
+| [native-cpp-public-run-promotion.md](native-cpp-public-run-promotion.md) | native-cpp public run (run_supported=true) 昇格計画 | Archive | 詳細仕様: RFC-008 |
+| [selfhost-latency-phase-reprofile.md](selfhost-latency-phase-reprofile.md) | Selfhost compile latency: Memory64後の作業計画 | Archive | 親 issue: #829 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |
-| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | wasm32-gc ターゲットで既存フィクスチャスイートが全通過すること。 wasm-tools validate --features gc を検証ゲートとする。 |
+| [wasm-gc-implementation.md](wasm-gc-implementation.md) | Wasm GC 実装計画 | Archive | 詳細設計: RFC-007 |
 | [wasm32-linear-memory-lowering.md](wasm32-linear-memory-lowering.md) | wasm32 linear-memory lowering（arena + RC） | Archive | wasm32（AtCoder / 非 GC ランタイム向け）への lowering 実装方針。 言語仕様の正本は ADR-002（Wasm GC）。本ファイルは backend 実装計画のみ。 |

@@ -222,7 +222,7 @@ fn handle_message(state: &mut DapState, msg: &Value, stdout: &mut impl Write) {
                     json!({
                         "name": name,
                         "value": value,
-                        "type": "i32",
+                        "type": "i64",
                         "variablesReference": 0,
                         "evaluateName": name,
                         "indexedVariables": 0,
@@ -282,9 +282,27 @@ fn run_debug_session(state: &mut DapState) -> Result<(), String> {
     Ok(())
 }
 
+fn resolve_selfhost_wasm(repo_root: &Path) -> Result<PathBuf, String> {
+    let candidates = [
+        ".build/selfhost/arukellt-s2-runtime.wasm",
+        ".build/selfhost/arukellt-s3.wasm",
+        ".build/selfhost/arukellt-s2.wasm",
+        ".bootstrap-build/arukellt-s2.wasm",
+        ".build/selfhost/arukellt-pinned-bootstrap.wasm",
+        "bootstrap/arukellt-selfhost.wasm",
+    ];
+    for cand in candidates {
+        let path = repo_root.join(cand);
+        if path.is_file() {
+            return Ok(path);
+        }
+    }
+    Err("no selfhost wasm found for compile".to_string())
+}
+
 fn compile_to_wasm(repo_root: &Path, program: &Path) -> Result<PathBuf, String> {
     let wrapper = repo_root.join("scripts/run/arukellt-selfhost.sh");
-    let pinned = repo_root.join("bootstrap/arukellt-selfhost.wasm");
+    let compiler_wasm = resolve_selfhost_wasm(repo_root)?;
     let build_dir = repo_root.join(".build").join("debug-dap");
     std::fs::create_dir_all(&build_dir).map_err(|e| e.to_string())?;
     let wasm_name = format!("{}.wasm", program.file_stem().and_then(|s| s.to_str()).unwrap_or("out"));
@@ -296,7 +314,7 @@ fn compile_to_wasm(repo_root: &Path, program: &Path) -> Result<PathBuf, String> 
         .arg("-o")
         .arg(&wasm_rel)
         .current_dir(repo_root)
-        .env("ARUKELLT_SELFHOST_WASM", pinned)
+        .env("ARUKELLT_SELFHOST_WASM", compiler_wasm)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()

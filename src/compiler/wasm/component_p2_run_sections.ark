@@ -1,3 +1,12 @@
+// Arukellt Selfhost - wasi:cli/run wrapper section emitters for P2 command components.
+//
+// Emits the run export sections for a bridged P2 component:
+//   - alias "run" from wrapper core instance → core func 6
+//   - type: result + func as types 7/8 (after environment_inst=6)
+//   - canon lift: core func 6 → comp func 5
+//   - instance: instantiate run_comp with comp func 5
+//   - export: wasi:cli/run@0.2.0 (component instance 5)
+
 use wasm::component_p2_run_tail
 use wasm::writer_core
 use wasm::writer_string
@@ -8,9 +17,8 @@ fn p2_run_emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
     writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
 }
 
-fn p2_run_emit_command_world_sections(out: WasmWriter) {
-    p2_run_emit_type_section(out)
-    p2_run_emit_alias_section(out)
+fn p2_run_emit_command_world_sections_bridged(out: WasmWriter, wrapper_instance_index: i32) {
+    p2_run_emit_alias_section(out, wrapper_instance_index, String_from("run"))
     p2_run_emit_type_section(out)
     p2_run_emit_canon_section(out)
     p2_run_emit_component_section(out)
@@ -18,35 +26,42 @@ fn p2_run_emit_command_world_sections(out: WasmWriter) {
     p2_run_emit_export_section(out)
 }
 
-fn p2_run_emit_alias_section(out: WasmWriter) {
+fn p2_run_emit_alias_section(out: WasmWriter, wrapper_instance_index: i32, entry_name: String) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 1)
+    // alias core export wrapper_instance_index "run" → core func 6
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, 8)
-    writer_string::emit_string(sec, String_from("_start"))
+    writer_core::emit_leb128_u(sec, wrapper_instance_index)
+    writer_string::emit_string(sec, entry_name)
     p2_run_emit_section(out, 6, sec)
 }
 
 fn p2_run_emit_type_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, 2)
+    // type 7: result; types 0-6 come from the host prefix (incl. environment)
+    writer_core::emit_byte(sec, 0x6A)
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_byte(sec, 0x00)
+    // type 8: func (result 7)
     writer_core::emit_byte(sec, 0x40)
     writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_byte(sec, 0x01)
     writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_byte(sec, 0x07)
     p2_run_emit_section(out, 7, sec)
 }
 
 fn p2_run_emit_canon_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 1)
+    // canon lift: core func 6 → comp func 5, type 8
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 6)
     writer_core::emit_leb128_u(sec, 0)
-    writer_core::emit_byte(sec, 0x00)
-    writer_core::emit_leb128_u(sec, 1)
+    writer_core::emit_leb128_u(sec, 8)
     p2_run_emit_section(out, 8, sec)
 }
 
@@ -59,12 +74,13 @@ fn p2_run_emit_component_section(out: WasmWriter) {
 fn p2_run_emit_instance_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 1)
+    // instantiate run_comp (comp 0) with import-func-run → comp func 5
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 0)
     writer_core::emit_leb128_u(sec, 1)
     writer_string::emit_string(sec, String_from("import-func-run"))
     writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, 0)
+    writer_core::emit_leb128_u(sec, 5)
     p2_run_emit_section(out, 5, sec)
 }
 
@@ -72,9 +88,10 @@ fn p2_run_emit_export_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 1)
     writer_core::emit_byte(sec, 0x00)
-    writer_string::emit_string(sec, String_from("wasi:cli/run@0.2.6"))
+    writer_string::emit_string(sec, String_from("wasi:cli/run@0.2.0"))
     writer_core::emit_byte(sec, 0x05)
-    writer_core::emit_leb128_u(sec, 0)
+    // Host imports occupy instances 0-4; run_comp instance is 5
+    writer_core::emit_leb128_u(sec, 5)
     writer_core::emit_byte(sec, 0x00)
     p2_run_emit_section(out, 11, sec)
 }

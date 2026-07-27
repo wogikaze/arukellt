@@ -1,8 +1,11 @@
 use wasm::constants
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
 use wasm::intrinsic_env_var_result
 use wasm::intrinsic_env_var_scan
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
@@ -23,11 +26,25 @@ fn emit_env_var_read_name_len(w: WasmWriter, name_ptr: i32, name_len: i32) {
     helpers_core::emit_local_set(w, name_len)
 }
 
+fn environ_sizes_import_index(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ENVIRON_SIZES()
+    }
+    constants::WASI_IMPORT_ENVIRON_SIZES_GET()
+}
+
+fn environ_get_import_index(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ENVIRON_GET()
+    }
+    constants::WASI_IMPORT_ENVIRON_GET()
+}
+
 fn emit_env_var_fetch_environ(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_env_var_align_heap(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
-    helpers_core::emit_call(w, constants::WASI_IMPORT_ENVIRON_SIZES_GET())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGC())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core::emit_call(w, environ_sizes_import_index(ctx))
     helpers_core::emit_drop(w)
     let env_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let buf_size = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -41,9 +58,9 @@ fn emit_env_var_fetch_environ(w: WasmWriter, ctx: SelfEmitCtx) {
     let buf_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     emit_env_var_alloc_table(w, env_count, ptrs_base)
     emit_env_var_alloc_buffer(w, buf_size, buf_base)
-    helpers_core::emit_local_get(w, ptrs_base)
-    helpers_core::emit_local_get(w, buf_base)
-    helpers_core::emit_call(w, constants::WASI_IMPORT_ENVIRON_GET())
+    helpers_io_layout::emit_wasi_i32_from_local(w, ptrs_base)
+    helpers_io_layout::emit_wasi_i32_from_local(w, buf_base)
+    helpers_core::emit_call(w, environ_get_import_index(ctx))
     helpers_core::emit_drop(w)
 }
 

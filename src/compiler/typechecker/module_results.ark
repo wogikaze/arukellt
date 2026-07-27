@@ -1,30 +1,38 @@
 use typechecker::kinds
 use typechecker::ast_access
+use typechecker::ast_decl_predicates
+use typechecker::contract_fn_sig
 use typechecker::contract_result_state
-use typechecker::sig_bounds
-use typechecker::types
+use typechecker::sigs
+
+fn typed_fn_sig(node: AstNode) -> FnSig {
+    if ast_decl_predicates::node_is_const_decl(node) {
+        return sigs::fn_sig_from_const_decl(node)
+    }
+    sigs::fn_sig_from_fn_decl(node)
+}
+
+fn typed_fn_param_types(node: AstNode) -> Vec<TypeInfo> {
+    let sig = typed_fn_sig(node)
+    let result = Vec_new_TypeInfo()
+    let count = contract_fn_sig::FnSig_param_count(sig)
+    let mut i = 0
+    while i < count {
+        push(result, contract_fn_sig::FnSig_param_at(sig, i))
+        i = i + 1
+    }
+    result
+}
 
 fn typed_fn_return_type(node: AstNode) -> TypeInfo {
-    let mut return_type = TypeInfo_simple(commands::TY_UNIT())
-    // Collect type parameter names so that generic return types (e.g. `T`)
-    // are resolved as TY_TYPE_VAR instead of TY_STRUCT (#707).
-    let type_param_bounds = sig_bounds::collect_type_param_bounds(ast_access::node_type_ann(node))
-    let type_params = sig_bounds::collect_type_param_names(type_param_bounds)
-    let ann_count = ast_access::node_type_ann_count(node)
-    let mut j = 0
-    while j < ann_count {
-        let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), "__return") {
-            if ast_access::node_child_count(ann) > 0 {
-                let ret_node = ast_access::node_child_at(ann, 0)
-                return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
-            }
-        }
-        j = j + 1
-    }
-    return_type
+    contract_fn_sig::FnSig_return_type(typed_fn_sig(node))
 }
 
 fn append_typed_fn(result: TypeCheckResult, node: AstNode) {
-    contract_result_state::typecheck_result_push_typed_fn(result, ast_access::node_text(node), typed_fn_return_type(node))
+    contract_result_state::typecheck_result_push_typed_fn(
+        result,
+        ast_access::node_text(node),
+        typed_fn_param_types(node),
+        typed_fn_return_type(node)
+    )
 }

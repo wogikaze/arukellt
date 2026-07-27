@@ -1,4 +1,6 @@
-//! Host TCP socket helpers via the `arukellt_host` Wasmtime linker.
+//! Host TCP socket helpers via WIT-shaped guest imports (bridged ABI, #727).
+//! Modules: `wasi:sockets/tcp@0.2.0` / `wasi:io/streams@0.2.0`.
+//! Function names remain the simplified guest ABI until #841 (real WASI methods).
 //!
 //! Client surface: `connect`, `read`, and `write` on placeholder fd `3`.
 //! Server surface: `listen` on fd `4`, `accept` returning connected fd `3`.

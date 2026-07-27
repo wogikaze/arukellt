@@ -25,10 +25,16 @@ fn build_checked_program_from_bundle(bundle: FrontendBundle) -> CoreHirRawProgra
         modules,
         frontend_resolved_calls::scan_resolved_calls(decls),
         frontend_typed_locals::scan_typed_locals(decls),
-        frontend_export_surface::build_export_surface(decls)
+        frontend_export_surface::build_export_surface(frontend_bundle::bundle_export_decls(bundle))
     )
 }
 
 fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
-    build_checked_program_from_bundle(frontend_bundle::FrontendBundle_new(decls, check_result, Vec_new_String(), Vec_new_i32()))
+    build_checked_program_from_bundle(frontend_bundle::FrontendBundle_new(
+            decls,
+            check_result,
+            Vec_new_String(),
+            Vec_new_i32(),
+            decls
+        ))
 }

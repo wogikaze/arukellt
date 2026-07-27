@@ -45,8 +45,7 @@ fn emit_split_gc_fill(
 // On match: create substring, copy bytes, advance segidx/pos/start.
 fn emit_split_gc_fill_match(w: WasmWriter, s_src: i32, s_arr: i32, s_pos: i32, s_start: i32, s_segidx: i32, s_seglen: i32, s_k: i32, s_seplen: i32, s_match: i32, arr_type: i32, string_type: i32) {
     helpers_core::emit_local_get(w, s_match)
-    string_gc_helpers::emit_gc_i32_const(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     string_gc_helpers::emit_gc_if_void(w)
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_start)

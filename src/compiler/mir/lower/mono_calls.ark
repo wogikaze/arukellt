@@ -9,18 +9,22 @@ fn mir_register_mono_rewrites(ctx: LowerCtx, mono_instances: Vec<MonoInstance>) 
     let mut mono_site_i = 0
     while mono_site_i < mono_site_count {
         let site_marker = get_unchecked(mono_instances, mono_site_i)
-        let mut is_marker_entry = false
         if mono_instance_shape::mir_mono_instance_type_arg_count(site_marker) > 0 {
-            let is_marker = mono_instance_shape::mir_mono_instance_is_marker(site_marker)
-            is_marker_entry = is_marker
-            if is_marker {
-                let safe_target = mono::mono_safe_name(mono_instance_shape::mir_mono_instance_mangled_name(site_marker))
-                ctx_fn_mono::ctx_register_mono_span_rewrite(ctx, mono_instance_shape::mir_mono_instance_marker_span_start(site_marker), safe_target)
+            let safe_target = mono::mono_safe_name(mono_instance_shape::mir_mono_instance_mangled_name(site_marker))
+            let source_name = mono_instance_shape::mir_mono_instance_fn_name(site_marker)
+            if mono_instance_shape::mir_mono_instance_is_marker(site_marker) {
+                // Span rewrite only. Name rewrites come from the concrete
+                // (non-marker) MonoInstance with the same mangled name; registering
+                // both would duplicate unused-name slots and steal later sites.
+                ctx_fn_mono::ctx_register_mono_span_rewrite(
+                    ctx,
+                    mono_instance_shape::mir_mono_instance_marker_span_start(site_marker),
+                    clone(source_name),
+                    clone(safe_target)
+                )
+            } else {
+                ctx_fn_mono::ctx_register_mono_name_rewrite(ctx, source_name, safe_target)
             }
-        }
-        if !is_marker_entry {
-            let safe_target2 = mono::mono_safe_name(mono_instance_shape::mir_mono_instance_mangled_name(site_marker))
-            ctx_fn_mono::ctx_register_mono_name_rewrite(ctx, mono_instance_shape::mir_mono_instance_fn_name(site_marker), safe_target2)
         }
         mono_site_i = mono_site_i + 1
     }

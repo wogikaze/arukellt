@@ -27,15 +27,15 @@ comparison = "n/a"
 [[stages]]
 id = "build_s2"
 name = "current_selfhost"
-description = "Pinned compiles src/compiler/main.ark → s2"
+description = "Pinned compiles src/compiler/main.ark → s2 (stage-2 only; use for emitter refresh)"
 artifact = ".build/selfhost/arukellt-s2.wasm"
-command = "python3 scripts/manager.py selfhost fixpoint --build"
+command = "python3 scripts/manager.py selfhost build-compiler"
 comparison = "build succeeds"
 
 [[stages]]
 id = "fixpoint"
 name = "s2_equals_s3"
-description = "sha256(s2) == sha256(s3)"
+description = "sha256(s2) == sha256(s3) (ADR-029 gate; not for routine s2 refresh)"
 artifact = ".build/selfhost/arukellt-s3.wasm"
 command = "python3 scripts/manager.py selfhost fixpoint"
 comparison = "sha256"

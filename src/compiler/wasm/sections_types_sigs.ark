@@ -23,6 +23,9 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_aru
     if emit_target::is_p2_wasi(clone(wasi_version)) {
         push(type_sigs, String_from("1i64"))
         push(type_sigs, String_from("MR_i64_i32"))
+        // Guest-native get-stdout/get-stderr + blocking-write-and-flush (#668).
+        push(type_sigs, String_from("1i32"))
+        push(type_sigs, String_from("i32_i32_i32_i32_0"))
     } else {
         push(type_sigs, String_from("i32_i64_i32_1i32"))
     }
@@ -40,11 +43,21 @@ fn append_t2_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("i32_i32_1i32"))
 }
 
-fn append_function_type_sigs(type_sigs: Vec<String>, functions: Vec<MirFunction>, fn_count: i32, target: String, mir: MirModule) {
+fn append_function_type_sigs(
+    type_sigs: Vec<String>,
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    target: String,
+    wasi_version: String,
+    mir: MirModule
+) {
     let mut ui = 0
     while ui < fn_count {
         let uf = get_unchecked(functions, ui)
-        push(type_sigs, sections_types_sigs_detail::build_function_type_sig(uf, clone(target), mir))
+        push(
+            type_sigs,
+            sections_types_sigs_detail::build_function_type_sig(uf, clone(target), clone(wasi_version), mir)
+        )
         ui = ui + 1
     }
 }

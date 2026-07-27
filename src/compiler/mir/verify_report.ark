@@ -6,11 +6,22 @@ struct MirVerifyReport {
     w005: i32,
     w006: i32,
     w007: i32,
+    w008: i32,
     detail_messages: Vec<String>,
 }
 
 fn MirVerifyReport_new() -> MirVerifyReport {
-    MirVerifyReport { w001: 0, w002: 0, w003: 0, w004: 0, w005: 0, w006: 0, w007: 0, detail_messages: Vec_new_String() }
+    MirVerifyReport {
+        w001: 0,
+        w002: 0,
+        w003: 0,
+        w004: 0,
+        w005: 0,
+        w006: 0,
+        w007: 0,
+        w008: 0,
+        detail_messages: Vec_new_String(),
+    }
 }
 
 fn mir_verify_report_w001(report: MirVerifyReport) -> i32 { report.w001 }
@@ -20,9 +31,10 @@ fn mir_verify_report_w004(report: MirVerifyReport) -> i32 { report.w004 }
 fn mir_verify_report_w005(report: MirVerifyReport) -> i32 { report.w005 }
 fn mir_verify_report_w006(report: MirVerifyReport) -> i32 { report.w006 }
 fn mir_verify_report_w007(report: MirVerifyReport) -> i32 { report.w007 }
+fn mir_verify_report_w008(report: MirVerifyReport) -> i32 { report.w008 }
 
 fn mir_verify_report_total(report: MirVerifyReport) -> i32 {
-    report.w001 + report.w002 + report.w003 + report.w004 + report.w005 + report.w006 + report.w007
+    report.w001 + report.w002 + report.w003 + report.w004 + report.w005 + report.w006 + report.w007 + report.w008
 }
 
 fn mir_verify_report_add_w001(report: MirVerifyReport) {
@@ -53,6 +65,10 @@ fn mir_verify_report_add_w007(report: MirVerifyReport) {
     report.w007 = report.w007 + 1
 }
 
+fn mir_verify_report_add_w008(report: MirVerifyReport) {
+    report.w008 = report.w008 + 1
+}
+
 fn mir_verify_report_push_detail(report: MirVerifyReport, message: String) {
     if len(report.detail_messages) < 32 {
         push(report.detail_messages, message)
@@ -80,6 +96,15 @@ fn mir_verify_report_print_summary(report: MirVerifyReport) {
             )
         )
     )
-    let tail = concat(String_from(" W006="), concat(i32_to_string(report.w006), concat(String_from(" W007="), i32_to_string(report.w007))))
+    let tail = concat(
+        String_from(" W006="),
+        concat(
+            i32_to_string(report.w006),
+            concat(
+                String_from(" W007="),
+                concat(i32_to_string(report.w007), concat(String_from(" W008="), i32_to_string(report.w008)))
+            )
+        )
+    )
     stdio::eprintln(concat(head, tail))
 }

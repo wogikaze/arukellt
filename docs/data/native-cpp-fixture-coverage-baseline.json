@@ -1,0 +1,37 @@
+{
+  "counts": {
+    "compiled_positive": 1349,
+    "compiled_positive_semantic_run_pass": 1301,
+    "compiler_host_trap_total": 2,
+    "expected_negative": 121,
+    "expected_negative_diagnostic_pass": 107,
+    "expected_negative_in_scope": 107,
+    "expected_negative_limited": 14,
+    "ice_positive": 0,
+    "ice_total": 0,
+    "positive_compile_expected": 1674,
+    "positive_compile_pass": 1349,
+    "positive_runnable": 1674,
+    "positive_semantic_run_pass": 1301,
+    "safe_capability_reject": 19,
+    "unexpected_crash": 0
+  },
+  "hard_zero": {
+    "ice_total": true,
+    "unexpected_crash": true
+  },
+  "notes": [
+    "Worsening is forbidden relative to these floors/ceilings.",
+    "When ice_total or unexpected_crash reaches 0, hard_zero locks that metric at 0."
+  ],
+  "rates": {
+    "compiled_positive_semantic_run_pass_rate": 0.9644,
+    "expected_negative_diagnostic_pass_rate": 1.0,
+    "expected_negative_diagnostic_pass_rate_including_limitations": 0.8843,
+    "positive_compile_pass_rate": 0.8059,
+    "positive_semantic_run_pass_rate": 0.7772
+  },
+  "schema": "native-cpp-fixture-coverage-baseline/v1",
+  "source_commit": "1844ff27fe43262977132fbe8c04ee514966f393",
+  "source_receipt_generated_at": "2026-07-26T11:43:15Z"
+}

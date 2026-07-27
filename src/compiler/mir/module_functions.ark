@@ -24,22 +24,43 @@ fn MirModule_set_functions(m: MirModule, functions: Vec<MirFunction>) {
 }
 
 fn MirModule_set_function_at(m: MirModule, idx: i32, f: MirFunction) {
-    let out = Vec_new_MirFunction()
-    let n = len(m.functions)
-    let mut i = 0
-    while i < n {
-        if i == idx {
-            push(out, f)
-        } else {
-            push(out, get_unchecked(m.functions, i))
-        }
-        i = i + 1
-    }
-    m.functions = out
+    // In-place slot update: rebuilding the whole functions Vec per call is
+    // Θ(F) alloc+copy and compounds under bump allocation (#823 / #730).
+    set(m.functions, idx, f)
 }
 
 fn MirModule_push_function(m: MirModule, f: MirFunction) {
     push(m.functions, f)
+}
+
+fn MirModule_block_count(m: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(m)
+    let mut total = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(m, fi)
+        total = total + function_block_queries::MirFunction_block_count(f)
+        fi = fi + 1
+    }
+    total
+}
+
+fn MirModule_inst_count(m: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(m)
+    let mut total = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(m, fi)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            total = total + block_inst_access::MirBlock_inst_count(block)
+            bi = bi + 1
+        }
+        fi = fi + 1
+    }
+    total
 }
 
 fn mir_call_is_arukellt_host(callee: String) -> bool {

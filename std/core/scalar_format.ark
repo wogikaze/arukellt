@@ -1,0 +1,65 @@
+//! Internal integer formatting bodies selected by the CoreOp registry.
+use std::core::raw
+
+fn __core_i64_digit_ascii(digit: i64) -> i32 {
+    if digit == 0_i64 { return 48 }
+    if digit == 1_i64 { return 49 }
+    if digit == 2_i64 { return 50 }
+    if digit == 3_i64 { return 51 }
+    if digit == 4_i64 { return 52 }
+    if digit == 5_i64 { return 53 }
+    if digit == 6_i64 { return 54 }
+    if digit == 7_i64 { return 55 }
+    if digit == 8_i64 { return 56 }
+    57
+}
+
+fn __core_format_i32_impl(value: i32) -> String {
+    let reversed = raw::raw_array_new(12)
+    let mut remaining = value
+    if remaining > 0 {
+        remaining = 0 - remaining
+    }
+    while remaining <= 0 - 10 {
+        let quotient = remaining / 10
+        push(reversed, 48 + (0 - (remaining - quotient * 10)))
+        remaining = quotient
+    }
+    push(reversed, 48 + (0 - remaining))
+
+    let bytes = raw::raw_array_new(len(reversed) + 1)
+    if value < 0 {
+        push(bytes, 45)
+    }
+    let mut index = len(reversed)
+    while index > 0 {
+        push(bytes, get_unchecked(reversed, index - 1))
+        index = index - 1
+    }
+    raw::raw_string_from_bytes(bytes)
+}
+
+fn __core_format_i64_impl(value: i64) -> String {
+    let reversed = raw::raw_array_new(21)
+    let mut remaining = value
+    if remaining > 0_i64 {
+        remaining = 0_i64 - remaining
+    }
+    while remaining <= 0_i64 - 10_i64 {
+        let quotient = remaining / 10_i64
+        push(reversed, __core_i64_digit_ascii(0_i64 - (remaining - quotient * 10_i64)))
+        remaining = quotient
+    }
+    push(reversed, __core_i64_digit_ascii(0_i64 - remaining))
+
+    let bytes = raw::raw_array_new(len(reversed) + 1)
+    if value < 0_i64 {
+        push(bytes, 45)
+    }
+    let mut index = len(reversed)
+    while index > 0 {
+        push(bytes, get_unchecked(reversed, index - 1))
+        index = index - 1
+    }
+    raw::raw_string_from_bytes(bytes)
+}

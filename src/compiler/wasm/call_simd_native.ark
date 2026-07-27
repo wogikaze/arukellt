@@ -10,14 +10,14 @@ fn try_emit_simd_native(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Self
     let dest = inst_accessors_operands::MirInst_dest(inst)
     let arg0 = inst_accessors_operands::MirInst_arg0(inst)
     let arg1 = inst_accessors_operands::MirInst_arg1(inst)
-    if try_emit_simd_native_v128(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_f32x4(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_f64x2(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_i32x4(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_i64x2(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_i8x16(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_i16x8(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
-    if try_emit_simd_native_alltrue_bitmask(w, clone(handler_id), inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_v128(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_f32x4(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_f64x2(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_i32x4(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_i64x2(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_i8x16(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_i16x8(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
+    if try_emit_simd_native_alltrue_bitmask(w, handler_id, inst, dest, arg0, arg1, next_op, next_arg0, next_arg1, next2_op) { return true }
     false
 }
 

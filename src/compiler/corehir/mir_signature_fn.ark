@@ -9,6 +9,10 @@ fn mir_signature_fn_typed_index_at(source: CoreHirMirSignatureSource, info_index
     fn_info::fn_info_typed_index_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
 }
 
+fn mir_signature_fn_qualified_name_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: String) -> String {
+    fn_info::fn_info_qualified_name_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
+}
+
 fn mir_signature_fn_body_index_at(source: CoreHirMirSignatureSource, info_index: i32, fallback: i32) -> i32 {
     fn_info::fn_info_body_index_at(signature_source_record::mir_signature_source_fn_infos(source), info_index, fallback)
 }

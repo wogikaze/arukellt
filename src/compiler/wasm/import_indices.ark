@@ -2,6 +2,20 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
 
+fn args_sizes_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ARGS_SIZES()
+    }
+    1
+}
+
+fn arguments_import_idx(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ARGUMENTS()
+    }
+    2
+}
+
 fn p2_outgoing_import_offset(ctx: SelfEmitCtx) -> i32 {
     constants::NUM_P2_IMPORTS_BASE()
 }

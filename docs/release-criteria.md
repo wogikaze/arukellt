@@ -43,7 +43,7 @@ These work but the API or behavior may change without a deprecation cycle:
 ### Not guaranteed
 
 - `wasm32-freestanding` as a public target（ADR-007: retired / hard error）
-- `--target native-cpp` / `native-llvm`（scaffold; ABI undecided per ADR-045）
+- `--target native-cpp` / `native-llvm`（scaffold。native-cppのprivate executor設計はADR-049、native-llvm ABIは未決定）
 - `--target wasm32-gc --wasi p3`（host profile on primary language target; not started as a separate product）
 
 ## Stability Policy

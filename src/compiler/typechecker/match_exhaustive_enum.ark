@@ -10,15 +10,23 @@ fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_
     let enum_def_count = len(enum_defs)
     while enum_idx < enum_def_count {
         let edef = get_unchecked(enum_defs, enum_idx)
-        if eq(contract_enum_info::EnumInfo_name(edef), clone(enum_name)) {
+        let declared_name = contract_enum_info::EnumInfo_name(edef)
+        if enum_name_matches(clone(enum_name), clone(declared_name)) {
             found_enum = true
-            check_enum_variants_covered(env, enum_name, edef, coverage)
+            check_enum_variants_covered(env, declared_name, edef, coverage)
         }
         enum_idx = enum_idx + 1
     }
     if !found_enum {
         unify::type_error(env, concat(String_from("non-exhaustive match: unknown enum '"), clone(enum_name)))
     }
+}
+
+fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
+    if eq(clone(resolved_name), clone(declared_name)) {
+        return true
+    }
+    ends_with(resolved_name, concat(String_from("::"), declared_name))
 }
 
 fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {

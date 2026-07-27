@@ -1,29 +1,22 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
 use wasm::intrinsic_fs_write_bytes_buffer
+use wasm::intrinsic_fs_write_bytes_gc
 use wasm::intrinsic_fs_write_result
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::writer_gc
 
 // Handler for: fs::write_bytes
 fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // Validate stub: drop path+bytes, return null Result (#726 fs import).
-        let _inst = inst
-        let s_a = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-        let s_b = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
-        helpers_core::emit_local_set(w, s_b)
-        helpers_core::emit_local_set(w, s_a)
-        let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-        writer_gc::emit_gc_ref_null(w, open_type)
-        return true
+        return intrinsic_fs_write_bytes_gc::emit_fs_write_bytes_gc(w, inst, ctx)
     }
     intrinsic_fs_write_bytes_buffer::emit_fs_write_bytes_buffer(w, ctx)
     emit_fs_write_bytes_result(w, ctx)
@@ -32,19 +25,21 @@ fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_fs_write_bytes_result(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_path3 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
-    helpers_numeric_i32::emit_i32_const(w, 3)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_core::emit_local_get(w, s_path3)
+    helpers_io_const::emit_i32_const(w, 3)
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_wasi_i32_from_local(w, s_path3)
     helpers_core::emit_local_get(w, s_path3)
     helpers_numeric_i32::emit_i32_const(w, 4)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i32::emit_i32_const(w, 9)
-    helpers_numeric_i64_const::emit_i64_const(w, 64)
-    helpers_numeric_i64_const::emit_i64_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    helpers_io_const::emit_i32_const(w, 9)
+    helpers_numeric_i64_const::emit_i64_const(w, 64i64)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_FD())
     helpers_core::emit_call(w, 3)
+    helpers_numeric_i32::emit_widen_i32_result(w)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_ne(w)
     helpers_control::emit_if_i32(w)
@@ -63,11 +58,10 @@ fn emit_fs_write_bytes_success_result(w: WasmWriter, ctx: SelfEmitCtx) {
     let s_bcount = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_bbuf = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     emit_fs_write_bytes_iov(w, s_bbuf, s_bcount)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
-    helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
-    helpers_numeric_i32::emit_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
+    helpers_io_const::emit_i32_const(w, 1)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_NWRITTEN())
     intrinsic_fs_write_result::emit_fs_write_success_writev_and_close(w)
     intrinsic_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
 }

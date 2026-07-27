@@ -27,15 +27,15 @@ except ModuleNotFoundError:  # Python 3.10 on supported development hosts
 ARK_PACKAGE_ROOTS = ("src/compiler/", "std/")
 TEXT_FINAL_NEWLINE_SUFFIXES = {
     ".ark", ".css", ".html", ".js", ".json", ".jsonc", ".py", ".rs",
-    ".sh", ".toml", ".ts", ".wit", ".yaml", ".yml",
+    ".sh", ".toml", ".ts", ".tsx", ".wit", ".yaml", ".yml",
 }
 TEXT_TRAILING_WHITESPACE_SUFFIXES = {
     ".css", ".html", ".js", ".json", ".jsonc", ".py", ".rs", ".sh",
-    ".toml", ".ts", ".yaml", ".yml",
+    ".toml", ".ts", ".tsx", ".yaml", ".yml",
 }
 INDENT_SUFFIXES = {
     ".ark", ".css", ".html", ".js", ".json", ".jsonc", ".md", ".py",
-    ".rs", ".sh", ".toml", ".ts", ".wit", ".yaml", ".yml",
+    ".rs", ".sh", ".toml", ".ts", ".tsx", ".wit", ".yaml", ".yml",
 }
 
 
@@ -172,6 +172,7 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, ti
             cwd=root,
             capture_output=True,
             text=True,
+            errors="replace",
             check=False,
             env=env,
             timeout=timeout,
@@ -373,6 +374,12 @@ def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_outpu
     workers = min(16, max(1, os.cpu_count() or 1))
     batch_count = max(1, workers * 2)
     batch_size = max(1, (len(other_paths) + batch_count - 1) // batch_count) if other_paths else 1
+    # Keep batches small: each wasmtime instance keeps state in linear memory,
+    # and 512 MiB s2/s3 wasm can OOM or return truncated output on batches that
+    # include many large generated sources (e.g. core_op_registry_generated.ark).
+    # A 5-file cap keeps per-process heap growth bounded on CI runners while
+    # still amortizing wasmtime cold start.
+    batch_size = min(batch_size, 5)
     jobs: list[tuple[str, tuple[str, ...]]] = []
     batch_groups: list[list[str]] = []
     for path in baseline_paths:
@@ -628,7 +635,14 @@ def run_quality(
 
     base = quality_base(root)
     selected = changed_paths(root, base) if mode in {"changed", "quick", "full"} else None
-    ark_selected = [path for path in (selected or []) if path.endswith(".ark")]
+    # Negative diagnostic fixtures are expected to fail typecheck; lint them via
+    # diag-parity, not quality changed/quick (otherwise adding a diag: fixture
+    # always fails the lane).
+    ark_selected = [
+        path for path in (selected or [])
+        if path.endswith(".ark")
+        and not path.startswith("tests/fixtures/diagnostics/")
+    ]
     failures = 0
     failures += check_editorconfig_basics(root, selected) if not dry_run else _run_command(
         root, ["python3", "scripts/check/check-editorconfig-basics.py"], True,
@@ -637,16 +651,21 @@ def run_quality(
         root, ["python3", "scripts/check/check-code-quality-contract.py"], True,
     )
     failures += _run_command(root, ["python3", "scripts/check/check-comment-policy.py"], dry_run)
-    failures += run_fmt(
-        root,
-        ark_selected if mode in {"changed", "quick"} else [],
-        True,
-        dry_run,
-        json_output,
-    )
+    failures += _run_command(root, ["python3", "scripts/check/check-semantic-debt.py"], dry_run)
+    # ark_paths([]) means "all inventory roots". For changed/quick, an empty
+    # .ark diff must skip fmt/lint instead of expanding to the whole tree.
+    scoped_ark = mode in {"changed", "quick"}
+    if scoped_ark and ark_selected:
+        failures += run_fmt(root, ark_selected, True, dry_run, json_output)
+    elif not scoped_ark:
+        failures += run_fmt(root, [], True, dry_run, json_output)
+    elif dry_run:
+        print("DRY-RUN: fmt/lint skipped (no .ark files in changed set)")
+
     if mode == "changed":
-        failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-        failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+        if ark_selected:
+            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
+            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
         failures += _run_command(
             root,
             [
@@ -656,8 +675,9 @@ def run_quality(
             dry_run,
         )
     elif mode == "quick":
-        failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-        failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+        if ark_selected:
+            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
+            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
         failures += _run_command(
             root,
             [

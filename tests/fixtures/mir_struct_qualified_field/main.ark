@@ -1,0 +1,8 @@
+use std::host::stdio
+
+import span_mod
+
+fn main() {
+    let s = span_mod::make()
+    stdio::println((s.start + s.end).to_string())
+}

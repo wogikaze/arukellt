@@ -2,11 +2,12 @@ use typechecker::contract_types_record
 
 struct TypedFn {
     name: String,
+    param_types: Vec<TypeInfo>,
     return_type: TypeInfo,
 }
 
-fn TypedFn_new(name: String, return_type: TypeInfo) -> TypedFn {
-    TypedFn { name: name, return_type: return_type }
+fn TypedFn_new(name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) -> TypedFn {
+    TypedFn { name: name, param_types: param_types, return_type: return_type }
 }
 
 fn TypedFn_name(fn_info: TypedFn) -> String {

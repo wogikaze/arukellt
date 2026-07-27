@@ -48,6 +48,16 @@ owner = "editor-tooling"
 notes = "Single Biome stack when introduced; do not pair with Prettier"
 
 [[families]]
+ext = ".tsx"
+formatter = "biome"
+linter = "biome"
+canonical_fmt = "biome format"
+canonical_lint = "biome check"
+status = "deferred"
+owner = "editor-tooling"
+notes = "React TSX tracked by the board tooling under tools/board/"
+
+[[families]]
 ext = ".js"
 formatter = "biome"
 linter = "biome"
@@ -178,6 +188,16 @@ canonical_fmt = "clang-format"
 canonical_lint = "clang-tidy"
 status = "deferred"
 owner = "bootstrap-tooling"
+
+[[families]]
+ext = ".h"
+formatter = "clang-format"
+linter = "clang-tidy"
+canonical_fmt = "clang-format"
+canonical_lint = "clang-tidy"
+status = "deferred"
+owner = "bootstrap-tooling"
+notes = "native-cpp runtime headers alongside ark_native_runtime.c"
 
 [[families]]
 ext = ".grain"

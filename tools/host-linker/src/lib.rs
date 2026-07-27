@@ -1,4 +1,4 @@
-//! Wasmtime runner with conditional `arukellt_host` HTTP and TCP socket linking.
+//! Wasmtime runner with conditional WIT-shaped HTTP/TCP guest import linking (#727).
 
 mod debug_runner;
 mod host_http;
@@ -88,23 +88,25 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
         )
         .map_err(|e| format!("proc_exit override error: {}", e))?;
 
-    let needs_http = module
-        .imports()
-        .any(|imp| imp.module() == "arukellt_host" && matches!(imp.name(), "http_get" | "http_request" | "http_serve"));
+    let needs_http = module.imports().any(|imp| {
+        matches!(
+            (imp.module(), imp.name()),
+            ("wasi:http/outgoing-handler@0.2.0", "http_get" | "http_request")
+                | ("wasi:http/incoming-handler@0.2.0", "http_serve")
+        )
+    });
     if needs_http {
         host_http::register_http_host_fns(&mut linker)?;
     }
 
     let needs_sockets = module.imports().any(|imp| {
-        imp.module() == "arukellt_host"
-            && matches!(
-                imp.name(),
-                "sockets_connect"
-                    | "sockets_read"
-                    | "sockets_write"
-                    | "sockets_listen"
-                    | "sockets_accept"
-            )
+        matches!(
+            (imp.module(), imp.name()),
+            (
+                "wasi:sockets/tcp@0.2.0",
+                "sockets_connect" | "sockets_listen" | "sockets_accept"
+            ) | ("wasi:io/streams@0.2.0", "sockets_read" | "sockets_write")
+        )
     });
     if needs_sockets {
         host_sockets::register_sockets_host_fns(&mut linker)?;
@@ -148,13 +150,42 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     }
 }
 
-fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
-    let mut linker = Linker::<()>::new(&engine);
+fn run_wasm_p2(engine: &Engine, module: &Module, _caps: &RuntimeCaps) -> Result<(), String> {
+    // P2 path uses import stubs for wasi:cli / filesystem, but bridged guest ABI
+    // (http_get / sockets_*) must bind the real host implementations — otherwise
+    // auto-stubs return 0 and GC Result finalize incorrectly yields Ok.
+    let mut linker = Linker::<()>::new(engine);
+    linker.allow_shadowing(true);
     crate::debug_runner::register_import_stubs(&mut linker, module)
         .map_err(|e| format!("p2 stubs: {}", e))?;
-    let mut store = Store::new(&engine, ());
+
+    let needs_http = module.imports().any(|imp| {
+        matches!(
+            (imp.module(), imp.name()),
+            ("wasi:http/outgoing-handler@0.2.0", "http_get" | "http_request")
+                | ("wasi:http/incoming-handler@0.2.0", "http_serve")
+        )
+    });
+    if needs_http {
+        host_http::register_http_host_fns(&mut linker)?;
+    }
+
+    let needs_sockets = module.imports().any(|imp| {
+        matches!(
+            (imp.module(), imp.name()),
+            (
+                "wasi:sockets/tcp@0.2.0",
+                "sockets_connect" | "sockets_listen" | "sockets_accept"
+            ) | ("wasi:io/streams@0.2.0", "sockets_read" | "sockets_write")
+        )
+    });
+    if needs_sockets {
+        host_sockets::register_sockets_host_fns(&mut linker)?;
+    }
+
+    let mut store = Store::new(engine, ());
     let instance = linker
-        .instantiate(&mut store, &module)
+        .instantiate(&mut store, module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
     let start = instance
         .get_typed_func::<(), ()>(&mut store, "_start")
@@ -165,8 +196,8 @@ fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(
     }
 }
 
-pub(crate) fn read_string_from_mem(
-    caller: &Caller<'_, WasiP1Ctx>,
+pub(crate) fn read_string_from_mem<T>(
+    caller: &Caller<'_, T>,
     mem: &Memory,
     ptr: i32,
     len: i32,
@@ -183,8 +214,8 @@ pub(crate) fn read_string_from_mem(
     String::from_utf8(data[ptr..ptr + len].to_vec()).map_err(|_| "invalid UTF-8".into())
 }
 
-pub(crate) fn write_ok(
-    caller: &mut Caller<'_, WasiP1Ctx>,
+pub(crate) fn write_ok<T>(
+    caller: &mut Caller<'_, T>,
     mem: &Memory,
     resp_ptr: i32,
     body: &[u8],
@@ -198,8 +229,8 @@ pub(crate) fn write_ok(
     body.len() as i32
 }
 
-pub(crate) fn write_error(
-    caller: &mut Caller<'_, WasiP1Ctx>,
+pub(crate) fn write_error<T>(
+    caller: &mut Caller<'_, T>,
     resp_ptr: i32,
     msg: &str,
 ) -> i32 {

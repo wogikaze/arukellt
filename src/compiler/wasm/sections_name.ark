@@ -1,14 +1,75 @@
+use mir::function_identity
+use mir::function_locals_view
+use mir::function_param_view
+use mir::local_access
+use wasm::ctx_record
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 use wasm::writer_string
 
-fn emit_name_custom_section(out: WasmWriter, opt_level: i32) {
-    if opt_level >= 2 {
+fn emit_name_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32, opt_level: i32, strip_debug: bool) {
+    if strip_debug || opt_level >= 2 {
+        return
+    }
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    if fn_count <= 0 {
         return
     }
     let payload = writer_core::WasmWriter_new()
     writer_string::emit_string(payload, String_from("name"))
-    writer_core::emit_leb128_u(payload, 0)
+    emit_function_name_subsection(payload, ctx, fn_count, import_count)
+    emit_local_name_subsection(payload, ctx, fn_count, import_count)
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)
+}
+
+fn emit_function_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
+    let fn_payload = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(fn_payload, fn_count)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
+        let name = function_identity::MirFunction_name(f)
+        writer_core::emit_leb128_u(fn_payload, import_count + fi)
+        writer_string::emit_string(fn_payload, name)
+        fi = fi + 1
+    }
+    writer_core::emit_byte(payload, 1)
+    writer_core::emit_leb128_u(payload, writer_core::writer_size(fn_payload))
+    writer_core::emit_bytes(payload, writer_core::writer_bytes(fn_payload))
+}
+
+fn emit_local_name_subsection(payload: WasmWriter, ctx: SelfEmitCtx, fn_count: i32, import_count: i32) {
+    let local_payload = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(local_payload, fn_count)
+    let mut fi = 0
+    while fi < fn_count {
+        let f = ctx_record::SelfEmitCtx_function_at(ctx, fi)
+        let param_count = function_param_view::MirFunction_param_count(f)
+        let local_count = function_locals_view::MirFunction_local_count(f)
+        writer_core::emit_leb128_u(local_payload, import_count + fi)
+        writer_core::emit_leb128_u(local_payload, param_count + local_count)
+        emit_local_entries(local_payload, f, param_count, local_count)
+        fi = fi + 1
+    }
+    writer_core::emit_byte(payload, 2)
+    writer_core::emit_leb128_u(payload, writer_core::writer_size(local_payload))
+    writer_core::emit_bytes(payload, writer_core::writer_bytes(local_payload))
+}
+
+fn emit_local_entries(local_payload: WasmWriter, f: MirFunction, param_count: i32, local_count: i32) {
+    let mut pi = 0
+    while pi < param_count {
+        let loc = function_param_view::MirFunction_param_at(f, pi)
+        writer_core::emit_leb128_u(local_payload, pi)
+        writer_string::emit_string(local_payload, local_access::MirLocal_name(loc))
+        pi = pi + 1
+    }
+    let mut li = 0
+    while li < local_count {
+        let loc = function_locals_view::MirFunction_local_at(f, li)
+        writer_core::emit_leb128_u(local_payload, param_count + li)
+        writer_string::emit_string(local_payload, local_access::MirLocal_name(loc))
+        li = li + 1
+    }
 }

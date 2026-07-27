@@ -24,7 +24,7 @@ fn emit_map_option_bind_input(ctx: LowerCtx, mopt_opt_local: i32) {
 
 fn emit_map_option_extract_tag(ctx: LowerCtx, mopt_opt_local: i32, mopt_tag_local: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(mopt_tag_local, mopt_opt_local, 0 - 1, 0, value_types::VT_VOID()))
+        ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(mopt_tag_local, mopt_opt_local, 0 - 1, 0, value_types::VT_I32()))
         return
     }
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(mopt_opt_local))

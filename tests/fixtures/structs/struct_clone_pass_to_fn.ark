@@ -1,0 +1,19 @@
+use std::host::stdio
+
+struct Pair {
+    a: i32,
+    b: i32,
+}
+
+fn take_pair(p: Pair) -> i32 {
+    p.a + p.b
+}
+
+fn main() {
+    let mut state = Pair { a: 3, b: 4 }
+    let n = take_pair(clone(state))
+    state = Pair { a: 1, b: 2 }
+    let m = take_pair(clone(state))
+    stdio::println(n.to_string())
+    stdio::println(m.to_string())
+}

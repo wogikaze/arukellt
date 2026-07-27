@@ -124,5 +124,5 @@ Design accepted and implementation issues (or a deliberate "not worth the cost" 
 - `issues/open/646-t5-wasm32-wasi-p3-target-scaffold.md`
 - `issues/open/649-t4-native-full-lowering.md`
 - `issues/open/680-target-tier-honesty-audit.md`
-- `issues/open/727-arukellt-host-bridge-retirement.md`
-- `issues/open/668-p2-native-component-polish.md`
+- `issues/done/727-arukellt-host-bridge-retirement.md`
+- `issues/done/668-p2-native-component-polish.md`

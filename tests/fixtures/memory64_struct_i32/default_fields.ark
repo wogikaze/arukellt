@@ -1,0 +1,21 @@
+// Memory64 GC: i32 struct fields must narrow (i32.wrap_i64) before struct.set.
+// Regression for invalid compiler wasm (expected i32, found i64) on CliOptions-like inits.
+
+struct Opts {
+    a: i32,
+    b: i32,
+    name: String,
+}
+
+fn Opts_default() -> Opts {
+    Opts {
+        a: 1,
+        b: 2,
+        name: String_from("x"),
+    }
+}
+
+fn main() {
+    let o = Opts_default()
+    let _ = o.a + o.b
+}

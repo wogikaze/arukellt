@@ -1,0 +1,145 @@
+{
+  "failed": 0,
+  "fixture_count": 16,
+  "generated_at": "2026-07-25T10:17:55Z",
+  "hof": {
+    "capture_closures": "rejected_known_limitation",
+    "zero_capture": "supported"
+  },
+  "passed": 16,
+  "phi": {
+    "edge_parallel_copy": "supported",
+    "note": "structured if/else joins use shared locals; block.phis use edge copies"
+  },
+  "results": [
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/args_print.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/fs_roundtrip.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/fs_write_missing_parent.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/hello_main.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/hof_named_callback.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "requires `fn main()`",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/main_with_param.ark",
+      "kind": "negative",
+      "ok": true,
+      "returncode": 1
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/option_result.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "panic",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/panic_message.ark",
+      "kind": "negative",
+      "ok": true,
+      "returncode": 1
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/phi_if_join_i32.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 7,
+      "fixture": "tests/fixtures/native_cpp_public/process_exit_7.ark",
+      "kind": "positive_exit",
+      "ok": true,
+      "returncode": 7
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/scalar_cfg.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/stdin_echo.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/stdio_hello.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/string_vec_struct.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "divide by zero",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/trap_div_zero.ark",
+      "kind": "negative",
+      "ok": true,
+      "returncode": -6
+    },
+    {
+      "expected_diagnostic": "MIR_ARRAY_NEW",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/unsupported_array_new.ark",
+      "kind": "negative",
+      "ok": true,
+      "returncode": 1
+    }
+  ],
+  "schema": "native-cpp-public-coverage-receipt/v1"
+}

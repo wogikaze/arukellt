@@ -16,7 +16,97 @@ use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_ref_locals
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32_convert
+use mir::function_local_queries
 use mir::value_types
+use wasm::sections_types_gc
+
+fn memory64_struct_local_is_i32_field(w: WasmWriter, ctx: SelfEmitCtx, val_type: i32, local_idx: i32) -> bool {
+    if !writer_core::writer_memory64(w) {
+        return false
+    }
+    if local_idx < 0 {
+        // Unknown dest: only VT_I32 is a definite scalar. VT_VOID must not
+        // imply i32 — many string/struct/enum payload fields still use VT_VOID
+        // and must stay structref on the stack (structref<-i64 otherwise).
+        return val_type == value_types::VT_I32()
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    let local_vt = function_local_queries::mir_local_vt_for_function(f, local_idx)
+    let local_is_ref = code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx)
+    helpers_numeric_i32_convert::is_memory64_i32_field_scalar(val_type, local_vt, local_is_ref)
+}
+
+fn fixed_gc_struct_field_is_i32(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> bool {
+    if type_idx == ctx_gc_type::SelfEmitCtx_vec_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx) {
+        return field_idx == 1
+    }
+    if type_idx == ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx) {
+        return field_idx == 0 || field_idx == 1
+    }
+    let user_sig = user_gc_struct_field_sig(ctx, type_idx, field_idx)
+    if len(user_sig) > 0 {
+        return gc_struct_field_sig_is_i32_scalar(user_sig)
+    }
+    let variant_types = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let variant_sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
+    let count = len(variant_types)
+    let mut variant_id = 0
+    while variant_id < count {
+        if get_unchecked(variant_types, variant_id) == type_idx && variant_id < len(variant_sigs) {
+            let fields = sections_types_gc::struct_field_sigs(get_unchecked(variant_sigs, variant_id))
+            if field_idx >= 0 && field_idx < len(fields) {
+                return eq(get_unchecked(fields, field_idx), String_from("i32"))
+            }
+            return false
+        }
+        variant_id = variant_id + 1
+    }
+    false
+}
+
+// Field type from a registered user gc_struct (by wasm type index). Empty when
+// the type is not a registered struct or the field is out of range.
+fn user_gc_struct_field_sig(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> String {
+    let map = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
+    let sigs = ctx_record::SelfEmitCtx_gc_struct_sigs(ctx)
+    let mut i = 0
+    while i < len(map) {
+        if get_unchecked(map, i) == type_idx && i < len(sigs) {
+            let fields = sections_types_gc::struct_field_sigs(get_unchecked(sigs, i))
+            if field_idx >= 0 && field_idx < len(fields) {
+                return get_unchecked(fields, field_idx)
+            }
+            return String_new()
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn gc_struct_field_sig_is_i32_scalar(field_sig: String) -> bool {
+    eq(clone(field_sig), String_from("i32")) ||
+    eq(clone(field_sig), String_from("bool")) ||
+    eq(clone(field_sig), String_from("char"))
+}
+
+// Prefer declared field sigs for user structs over dest-local heuristics
+// (reused i64 scratches would otherwise widen String/ref fields).
+fn memory64_gc_struct_get_uses_i32(w: WasmWriter, ctx: SelfEmitCtx, type_idx: i32, field_idx: i32, val_type: i32, dest: i32) -> bool {
+    let user_sig = user_gc_struct_field_sig(ctx, type_idx, field_idx)
+    if len(user_sig) > 0 {
+        return gc_struct_field_sig_is_i32_scalar(user_sig)
+    }
+    fixed_gc_struct_field_is_i32(ctx, type_idx, field_idx) ||
+    memory64_struct_local_is_i32_field(w, ctx, val_type, dest)
+}
 
 fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
     let dest = inst_accessors_operands::MirInst_dest(inst)
@@ -61,7 +151,15 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
             }
         }
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-        writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+        let val_type = inst_accessors_shape::MirInst_val_type(inst)
+        // Prefer MirInst_dest when set (field gets / get_to). Fall back to
+        // val_type-only gating when dest is absent (true stack-leave).
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, dest) {
+            writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
+        } else {
+            writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+        }
         return
     }
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {
@@ -104,9 +202,15 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, base_local)
+        let value_local = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
-        writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
+        writer_core::emit_leb128_u(w, value_local)
+        let val_type = inst_accessors_shape::MirInst_val_type(inst)
+        if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, value_local) {
+            writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
+        } else {
+            writer_gc::emit_gc_struct_set(w, gc_type_idx, field_idx)
+        }
         return
     }
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -173,8 +277,9 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
         let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
         let inferred = code_ref_locals::infer_ref_local_gc_type(f, base_local, ctx)
-        if inferred >= 0 {
-            return inferred
+        match inferred {
+            Option::Some(v) => return v,
+            Option::None => {}
         }
     }
     let size_hint_val = size_hint

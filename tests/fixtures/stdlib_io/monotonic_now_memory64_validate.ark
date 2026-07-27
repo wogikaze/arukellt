@@ -1,0 +1,9 @@
+use std::host::clock
+use std::test
+
+// Regression: Memory64 clock load address must be i64 (not i32.const),
+// and unresolved monotonic_now must not become unreachable+i32 return.
+fn main() {
+    let t: i64 = clock::monotonic_now()
+    test::assert_true(t >= 0 || t < 0)
+}

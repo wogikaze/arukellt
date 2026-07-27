@@ -1,10 +1,11 @@
 ---
 Status: open
 Created: 2026-07-15
+Updated: 2026-07-25
 ID: 724
 Track: compiler-internal
 Depends on: —
-Related: ADR-040, #707
+Related: ADR-040, #707, #725, #729, #726, #730
 Orchestration class: design-then-implement
 Blocks v4 exit: False
 ---
@@ -12,8 +13,13 @@ Blocks v4 exit: False
 
 ## Summary
 
-ADR-040 (Semantic Type Spine) は Phase 1-2, 4 と PR-4 が完了したが、**Phase 3（Typed MIR）は部分完了**のまま
-Phase 5-7 が未実装。本 issue は残作業の追跡と完了基準の明確化を目的とする。
+ADR-040 (Semantic Type Spine) の **umbrella**。Phase 1–4 / PR-4 / Phase 3c / Phase 5 前半 /
+Phase 6a–6b / Phase 7 骨格は完了。
+
+**クリティカルパス上の T3 validate / bootstrap pin は本 issue の完了条件ではない。**
+それらは `#726`（validate-fail=0、narrow-close）と `#730`（Memory64 / wasm32-gc pin /
+`verify quick`）へ移管済み。本 issue の残は Phase 7 の未チェック完了条件と、
+並行トラック `#725`（Phase 5e tracer 削除）・`#729`（intrinsic layer epic）への依存整理。
 
 ## 現在の完了状態
 
@@ -151,3 +157,7 @@ Phase 3b → 3c → 5 → 6b ∥ 7
 
 - [ADR-040: Semantic Type Spine](../../docs/adr/ADR-040-typed-mir-signature-registry.md)
 - #707 — trait self return type support (ADR-040 関連)
+- #725 — Phase 5e tracer 完全削除（本 umbrella の残 Phase 5）
+- #729 — Intrinsic layer separation epic（並行）
+- #726 — T3 validate-fail=0（done, narrow-close）
+- #730 — bootstrap Memory64 / wasm32-gc pin / verify quick（クリティカルパス）

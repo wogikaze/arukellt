@@ -1,0 +1,29 @@
+pub struct SourceLocation {
+    file_id: i32,
+    line: i32,
+    column: i32,
+}
+
+fn SourceLocation_unmapped() -> SourceLocation {
+    SourceLocation {
+        file_id: 0,
+        line: 0,
+        column: 0,
+    }
+}
+
+fn SourceLocation_new(file_id: i32, line: i32, column: i32) -> SourceLocation {
+    SourceLocation {
+        file_id: file_id,
+        line: line,
+        column: column,
+    }
+}
+
+fn SourceLocation_is_unmapped(loc: SourceLocation) -> bool {
+    loc.line == 0
+}
+
+fn SourceLocation_file_id(loc: SourceLocation) -> i32 { loc.file_id }
+fn SourceLocation_line(loc: SourceLocation) -> i32 { loc.line }
+fn SourceLocation_column(loc: SourceLocation) -> i32 { loc.column }

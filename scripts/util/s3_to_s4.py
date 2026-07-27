@@ -23,11 +23,11 @@ print(f"overlay: {overlay}")
 s3_path = root / ".build" / "selfhost" / "s3_det_a.wasm"
 print(f"s3: {s3_path} ({s3_path.stat().st_size} bytes)")
 
-# Patch s3 for runtime (4GiB + heap grow)
+# Patch s3 for runtime (heap grow + memory64)
 pinned = _find_pinned_wasm(root)
 patcher = root / "scripts" / "bootstrap" / "wasm-heap-grow-patcher" / "target" / "release" / "wasm-heap-grow-patcher"
 s3_runtime = overlay / "s3rt.wasm"
-r = subprocess.run([str(patcher), str(s3_path), str(s3_runtime)], capture_output=True, text=True)
+r = subprocess.run([str(patcher), str(s3_path), str(s3_runtime), "--to-memory64"], capture_output=True, text=True)
 print(f"patched s3: {r.stderr.strip()}")
 
 # Compile selfhost source with s3-runtime → s4
@@ -35,9 +35,9 @@ out_name = "s4.wasm"
 out_path = overlay / out_name
 if out_path.exists():
     out_path.unlink()
-cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references",
+cmd = [wasmtime, "run", "--wasm", "gc", "--wasm", "function-references", "-W", "memory64=y",
        "--dir", f"{overlay}::.", str(s3_runtime), "--",
-       "compile", "src/compiler/main.ark", "--target", "wasm32", "--wasi-version", "wasi-p1",
+       "compile", "src/compiler/main.ark", "--target", "wasm32-gc", "--wasi-version", "wasi-p2",
        "-o", out_name]
 r = subprocess.run(cmd, cwd=str(overlay), capture_output=True, text=True, timeout=180)
 if out_path.exists() and out_path.stat().st_size > 0:

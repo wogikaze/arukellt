@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Component interop smoke test for the calculator component.
+# Component interop smoke test: jco-transpiled calculator.
 #
-# Uses wasmtime CLI (--wasm gc --wasm component-model --invoke) to verify
-# that Arukellt scalar exports are accessible via the Component Model ABI.
+# Compiles calculator.ark to a component, runs `jco transpile` to generate
+# Node-compatible ESM glue, then runs `test.mjs` to assert the exports.
 #
-# jco (JavaScript component toolchain) is NOT used here because jco 1.x does
-# not support Wasm GC types. All Arukellt T3 components embed GC type
-# definitions in their core module, which causes jco transpile to fail with:
-#   "array indexed types not supported without the gc feature"
-# This is a jco limitation, not an Arukellt limitation. When jco gains GC
-# support, a Node.js test (test.mjs) should be added alongside this script.
-# Track: https://github.com/bytecodealliance/jco/issues (search "gc")
+# Requires:
+#   - Node.js >= 18 (tested on 23.6; v25 may not need --experimental-wasm-memory64)
+#   - npm  (for `npm exec --package=@bytecodealliance/jco@<version>`)
+#   - or a local `jco` binary matching the pinned version
 #
 # Usage:
-#   ./run.sh                        # run from repo root or this directory
+#   ./run.sh
 #   ARUKELLT_BIN=path/to/arukellt ./run.sh
-#   WASMTIME_BIN=path/to/wasmtime ./run.sh
 
 set -euo pipefail
 
@@ -25,59 +21,46 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 source "$REPO_ROOT/tests/component-interop/common.sh"
 interop_setup_s2_compiler
 
+JCO_VERSION="1.25.2"
+NODE="${NODE_BIN:-$(command -v node 2>/dev/null || echo "")}"
+NPM="${NPM_BIN:-$(command -v npm 2>/dev/null || echo "")}"
+JCO_LOCAL="${JCO_BIN:-$(command -v jco 2>/dev/null || echo "")}"
 
-WASMTIME="${WASMTIME_BIN:-$(command -v wasmtime 2>/dev/null || echo "")}"
 COMPONENT_WASM="tests/component-interop/jco/calculator/calculator.component.wasm"
 SOURCE_REL="tests/component-interop/jco/calculator/calculator.ark"
+JCO_OUT="tests/component-interop/jco/calculator/jco-out"
+
 cd "$REPO_ROOT"
 
-# ── Dependency checks ──────────────────────────────────────────────────────
-
-
-if [[ -z "$WASMTIME" ]]; then
-    echo "SKIP: wasmtime not found in PATH"
-    exit 0
+if [[ -n "$NPM" ]]; then
+    JCO="$NPM exec --package=@bytecodealliance/jco@${JCO_VERSION} -- jco"
+elif [[ -n "$JCO_LOCAL" ]]; then
+    installed_version="$($JCO_LOCAL --version 2>/dev/null)"
+    if [[ "$installed_version" != "$JCO_VERSION" ]]; then
+        echo "FAIL: jco version mismatch (expected ${JCO_VERSION}, got ${installed_version})"
+        exit 1
+    fi
+    JCO="$JCO_LOCAL"
+else
+    echo "FAIL: npm or jco required"
+    exit 1
 fi
 
+if [[ -z "$NODE" ]]; then
+    echo "FAIL: node not found in PATH"
+    exit 1
 fi
-
-# ── Build ──────────────────────────────────────────────────────────────────
 
 echo "[1/3] Compiling calculator.ark -> calculator.component.wasm"
 interop_compile_component "$SOURCE_REL" "$COMPONENT_WASM"
 echo "      OK ($(wc -c < "$COMPONENT_WASM") bytes)"
 
-# ── Run tests ─────────────────────────────────────────────────────────────
+echo "[2/3] Transpiling component with jco ${JCO_VERSION}"
+rm -rf "$JCO_OUT"
+$JCO transpile "$COMPONENT_WASM" -o "$JCO_OUT"
+echo "      OK"
 
-PASS=0
-FAIL=0
+echo "[3/3] Running Node.js assertions"
+"$NODE" --experimental-wasm-memory64 "$SCRIPT_DIR/test.mjs"
 
-run_test() {
-    local desc="$1"
-    local expected="$2"
-    local invocation="$3"
-    local actual
-    actual="$("$WASMTIME" run --wasm gc --wasm component-model --invoke "$invocation" "$COMPONENT_WASM" 2>&1)"
-    if [[ "$actual" == "$expected" ]]; then
-        echo "      PASS: $desc"
-        ((PASS++)) || true
-    else
-        echo "      FAIL: $desc — expected '$expected', got '$actual'"
-        ((FAIL++)) || true
-    fi
-}
-
-echo "[2/3] Running component-model invocations via wasmtime"
-run_test "add(3, 4) = 7"      "7"   "add(3, 4)"
-run_test "add(0, 0) = 0"      "0"   "add(0, 0)"
-run_test "add(-1, 1) = 0"     "0"   "add(-1, 1)"
-run_test "mul(6, 7) = 42"     "42"  "mul(6, 7)"
-run_test "mul(0, 100) = 0"    "0"   "mul(0, 100)"
-run_test "negate(5) = -5"     "-5"  "negate(5)"
-run_test "negate(-3) = 3"     "3"   "negate(-3)"
-
-echo "[3/3] Results: $PASS passed, $FAIL failed"
-
-if [[ $FAIL -gt 0 ]]; then
-    exit 1
-fi
+echo "      All assertions passed"

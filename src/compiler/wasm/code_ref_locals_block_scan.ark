@@ -1,18 +1,8 @@
 // inference for ref locals (replaces the instruction tracer).
 //
-// This file contains the depth-aware recursive inference function and
-// the block-scanning producer inspection.  It replaces the tracer
-// (infer_ref_local_gc_type_depth) with a structured approach:
-//
-// 1. variant_slot → GcLayoutTable lookup (structured type ID)
-// 2. type_name → GcLayoutTable lookup, then string-prefix fallback
-// 3. function parameter type_name lookup
-// 4. Block scan for direct dest assignments (ARRAY_NEW, GC_STRUCT_NEW,
-//    STRUCT_NEW, CALL, CONST_STRING) and LOCAL_SET source tracing
-//
-// LOCAL_SET chain propagation is handled by post_pass_type_propagate.ark
-// at MIR lowering time, but this scan still traces LOCAL_SET sources
-// recursively (up to depth 3) for cases the post-pass didn't cover.
+// Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
+// Cache: cached_infer_* three-state (uncomputed / miss / hit) via helpers.
+// See docs/research/infer-local-gc-type-option.md.
 
 use mir::block_inst_access
 use mir::function_locals_view
@@ -25,137 +15,278 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::code_ref_locals_typename
+use wasm::code_ref_locals_fn_cache
 use wasm::code_ref_locals_infer_dest
 use wasm::code_ref_locals_stack_scan
+use wasm::code_ref_locals_scan
+use wasm::ctx_record
 
-// Public entry point: infer GC type for a local's storage.
-fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
-    infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
+fn infer_local_storage_gc_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> Option<i32> {
+    if code_ref_locals_fn_cache::cached_infer_is_computed(ctx, local_idx) {
+        return code_ref_locals_fn_cache::cached_infer_as_option(ctx, local_idx)
+    }
+    let inferred = infer_local_storage_gc_type_depth(f, local_idx, ctx, 0)
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        code_ref_locals_fn_cache::cached_infer_set(ctx, local_idx, inferred)
+    }
+    inferred
 }
 
-// Depth-aware recursive inference.  Depth limit prevents infinite
-// recursion in cyclic LOCAL_SET chains.
-fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+fn infer_local_storage_gc_type_depth(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
     if depth > 3 {
-        return 0 - 1
+        return Option::None
     }
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
-        return 0 - 1
+        return Option::None
+    }
+    if depth > 0 && code_ref_locals_fn_cache::cached_infer_is_computed(ctx, local_idx) {
+        return code_ref_locals_fn_cache::cached_infer_as_option(ctx, local_idx)
+    }
+    // mut Option/Result: None then Some via LOCAL_SET must stay open-enum (#835).
+    // Otherwise the first write (None) sticks and later Some is cast to the None type.
+    if code_ref_locals_infer_dest::local_has_multiple_enum_variant_types(f, local_idx) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = clone(loc.type_name)
-    // 1. variant_slot direct lookup (structured type ID)
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if variant_slot >= 0 {
-        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
-        if variant_gc >= 0 {
-            return variant_gc
+    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
+    let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
+    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+        let scanned_over_string = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
+        match scanned_over_string {
+            Option::Some(scanned_v) => {
+                if scanned_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+                scanned_v != ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+                    return scanned_over_string
+                }
+            }
+            Option::None => {}
         }
     }
-    // 2. type_name → GcLayoutTable lookup, then string-prefix fallback
+    if !is_struct_new_dest && len(type_name) > 0 &&
+    code_ref_locals_scan::local_has_local_set_source(f, local_idx) {
+        let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
+        if tn_gc >= 0 && !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, tn_gc) {
+            let scanned = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
+            match scanned {
+                Option::Some(scanned_v) => {
+                    if scanned_v != tn_gc {
+                        return scanned
+                    }
+                }
+                Option::None => {}
+            }
+        }
+    }
     if len(type_name) > 0 {
         let tn_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
         if tn_gc >= 0 {
-            return tn_gc
-        }
-        let tn_fallback = code_ref_locals_typename::infer_gc_type_from_type_name(clone(type_name), ctx)
-        if tn_fallback >= 0 {
-            return tn_fallback
+            if is_struct_new_dest || !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, tn_gc) {
+                return Option::Some(tn_gc)
+            }
+        } else {
+            let tn_fallback = code_ref_locals_typename::infer_gc_type_from_type_name(clone(type_name), ctx)
+            match tn_fallback {
+                Option::Some(tn_fallback_v) => {
+                    if is_struct_new_dest || !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, tn_fallback_v) {
+                        return tn_fallback
+                    }
+                }
+                Option::None => {}
+            }
         }
     }
-    if code_ref_locals_types::is_option_type_name(clone(type_name)) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    if !is_payload_with_stray_variant && code_ref_locals_types::is_option_type_name(clone(type_name)) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    // 3. function parameter type_name lookup
+    if variant_slot >= 0 && is_struct_new_dest {
+        let variant_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
+        if variant_gc >= 0 {
+            return Option::Some(variant_gc)
+        }
+    }
+    if is_payload_with_stray_variant {
+        let scanned = infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
+        match scanned {
+            Option::Some(_opt_v) => {
+                return scanned
+            }
+            Option::None => {}
+        }
+    }
     let param_count = function_param_view::MirFunction_param_count(f)
     if local_idx >= 0 && local_idx < param_count {
         let param_type_name = function_param_view::MirFunction_param_type_name(f, local_idx)
         if len(param_type_name) > 0 {
             let param_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(param_type_name))
             if param_gc >= 0 {
-                return param_gc
+                return Option::Some(param_gc)
             }
             let param_fallback = code_ref_locals_typename::infer_gc_type_from_type_name(param_type_name, ctx)
-            if param_fallback >= 0 {
-                return param_fallback
+            match param_fallback {
+                Option::Some(_opt_v) => {
+                    return param_fallback
+                }
+                Option::None => {}
             }
         }
     }
-    // 4. Block scan for producer inspection
     infer_gc_type_from_block_scan(f, local_idx, ctx, depth)
 }
 
-// Scan all blocks for instructions that assign to local_idx and infer
-// the GC type from the producer instruction.
-fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+fn infer_gc_type_from_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
+    if code_ref_locals_fn_cache::is_local_producer_index_active(ctx) {
+        return infer_gc_type_from_producer_index(f, local_idx, ctx, depth)
+    }
+    infer_gc_type_from_full_block_scan(f, local_idx, ctx, depth)
+}
+
+fn infer_gc_type_from_producer_index(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
+    let count = code_ref_locals_fn_cache::local_producer_index_count(ctx, local_idx)
+    let mut n = 0
+    while n < count {
+        let bi = code_ref_locals_fn_cache::local_producer_index_block(ctx, local_idx, n)
+        let ii = code_ref_locals_fn_cache::local_producer_index_inst(ctx, local_idx, n)
+        if bi < 0 || ii < 0 || bi >= len(f.blocks) {
+            n = n + 1
+            continue
+        }
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        if ii >= inst_count {
+            n = n + 1
+            continue
+        }
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let matched = infer_from_indexed_write_site(f, block, inst, inst_count, ii, local_idx, ctx, depth)
+        match matched {
+            Option::Some(_opt_v) => {
+                return matched
+            }
+            Option::None => {}
+        }
+        n = n + 1
+    }
+    Option::None
+}
+
+fn infer_from_indexed_write_site(
+    f: MirFunction,
+    block: MirBlock,
+    inst: MirInst,
+    inst_count: i32,
+    ii: i32,
+    local_idx: i32,
+    ctx: SelfEmitCtx,
+    depth: i32
+) -> Option<i32> {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if dest == local_idx &&
+    op != opcodes::MIR_GC_STRUCT_SET() &&
+    op != opcodes::MIR_STRUCT_SET() {
+        let matched = infer_from_dest_match(f, inst, op, ctx, depth)
+        match matched {
+            Option::Some(_opt_v) => {
+                return matched
+            }
+            Option::None => {}
+        }
+    }
+    if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+        let source = inst_accessors_operands::MirInst_arg1(inst)
+        if source >= 0 {
+            return infer_local_storage_gc_type_depth(f, source, ctx, depth + 1)
+        }
+        let prev_op = 0 - 1
+        let prev_arg0 = 0 - 1
+        let prev_dest = 0 - 1
+        if ii > 0 {
+            let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+            return infer_from_stack_set(
+                f,
+                block,
+                inst_count,
+                ii,
+                inst_accessors_shape::MirInst_op(prev),
+                inst_accessors_operands::MirInst_arg0(prev),
+                inst_accessors_operands::MirInst_dest(prev),
+                ctx,
+                depth
+            )
+        }
+        return infer_from_stack_set(f, block, inst_count, ii, prev_op, prev_arg0, prev_dest, ctx, depth)
+    }
+    Option::None
+}
+
+fn infer_gc_type_from_full_block_scan(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
     let block_count = len(f.blocks)
-    let mut bi = 0
+    let mut start_bi = 0
+    let mut start_ii = 0
+    if code_ref_locals_fn_cache::is_function_local_gc_cache_active(ctx) {
+        let def_bi = code_ref_locals_fn_cache::cached_def_block(ctx, local_idx)
+        if def_bi >= 0 {
+            start_bi = def_bi
+            start_ii = code_ref_locals_fn_cache::cached_def_inst(ctx, local_idx)
+            if start_ii < 0 {
+                start_ii = 0
+            }
+        }
+    }
+    let mut bi = start_bi
     while bi < block_count {
         let block = get_unchecked(f.blocks, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
-        let mut prev_op = 0 - 1
-        let mut prev_arg0 = 0 - 1
-        let mut prev_dest = 0 - 1
+        if bi == start_bi {
+            ii = start_ii
+        }
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            let dest = inst_accessors_operands::MirInst_dest(inst)
-            if dest == local_idx {
-                let matched = infer_from_dest_match(f, inst, op, ctx, depth)
-                if matched >= 0 {
+            let matched = infer_from_indexed_write_site(f, block, inst, inst_count, ii, local_idx, ctx, depth)
+            match matched {
+                Option::Some(_opt_v) => {
                     return matched
                 }
+                Option::None => {}
             }
-            if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
-                let source = inst_accessors_operands::MirInst_arg1(inst)
-                if source >= 0 {
-                    let inferred = infer_local_storage_gc_type_depth(f, source, ctx, depth + 1)
-                    if inferred >= 0 {
-                        return inferred
-                    }
-                } else {
-                    let stacked = infer_from_stack_set(f, block, inst_count, ii, prev_op, prev_arg0, prev_dest, ctx, depth)
-                    if stacked >= 0 {
-                        return stacked
-                    }
-                }
-            }
-            prev_op = op
-            prev_arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            prev_dest = dest
             ii = ii + 1
         }
         bi = bi + 1
     }
-    0 - 1
+    Option::None
 }
 
-// For direct dest match: if LOCAL_GET, trace the source local;
-// otherwise, inspect the producer instruction.
-fn infer_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+fn infer_from_dest_match(f: MirFunction, inst: MirInst, op: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
     if op == opcodes::MIR_LOCAL_GET() {
         let src = inst_accessors_operands::MirInst_arg0(inst)
         if src >= 0 {
             return infer_local_storage_gc_type_depth(f, src, ctx, depth + 1)
         }
-        return 0 - 1
+        return Option::None
     }
     code_ref_locals_infer_dest::infer_ref_local_from_producer(f, inst, op, ctx)
 }
 
-// Stack-based LOCAL_SET (arg1 < 0): find the stack value producer.
-fn infer_from_stack_set(f: MirFunction, block: MirBlock, inst_count: i32, ii: i32, prev_op: i32, prev_arg0: i32, prev_dest: i32, ctx: SelfEmitCtx, depth: i32) -> i32 {
+fn infer_from_stack_set(f: MirFunction, block: MirBlock, inst_count: i32, ii: i32, prev_op: i32, prev_arg0: i32, prev_dest: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
     if prev_op == opcodes::MIR_LOCAL_GET() && prev_arg0 >= 0 {
         let inferred = infer_local_storage_gc_type_depth(f, prev_arg0, ctx, depth + 1)
-        if inferred >= 0 {
-            return inferred
+        match inferred {
+            Option::Some(_opt_v) => {
+                return inferred
+            }
+            Option::None => {}
         }
     }
     if prev_dest >= 0 {
         let inferred = infer_local_storage_gc_type_depth(f, prev_dest, ctx, depth + 1)
-        if inferred >= 0 {
-            return inferred
+        match inferred {
+            Option::Some(_opt_v) => {
+                return inferred
+            }
+            Option::None => {}
         }
     }
     let src_ii = code_ref_locals_stack_scan::find_stack_value_source(block, inst_count, ii)
@@ -166,20 +297,29 @@ fn infer_from_stack_set(f: MirFunction, block: MirBlock, inst_count: i32, ii: i3
         let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
         if src_op == opcodes::MIR_LOCAL_GET() && src_arg0 >= 0 {
             let inferred = infer_local_storage_gc_type_depth(f, src_arg0, ctx, depth + 1)
-            if inferred >= 0 {
-                return inferred
+            match inferred {
+                Option::Some(_opt_v) => {
+                    return inferred
+                }
+                Option::None => {}
             }
         }
         if src_dest >= 0 {
             let inferred = infer_local_storage_gc_type_depth(f, src_dest, ctx, depth + 1)
-            if inferred >= 0 {
-                return inferred
+            match inferred {
+                Option::Some(_opt_v) => {
+                    return inferred
+                }
+                Option::None => {}
             }
         }
         let inferred = infer_from_dest_match(f, src_inst, src_op, ctx, depth)
-        if inferred >= 0 {
-            return inferred
+        match inferred {
+            Option::Some(_opt_v) => {
+                return inferred
+            }
+            Option::None => {}
         }
     }
-    0 - 1
+    Option::None
 }

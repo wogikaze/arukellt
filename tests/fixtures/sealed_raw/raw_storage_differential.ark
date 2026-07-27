@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let bytes = Vec_new_i32_with_cap(2)
+    push(bytes, 79)
+    push(bytes, 75)
+    let text = __intrinsic_string_from_bytes(bytes)
+    stdio::print(char_at(clone(text), 0))
+    stdio::print(len(clone(text)))
+    stdio::print(len(String_new()))
+}

@@ -17,7 +17,7 @@
 | Compiler-private | GC layout、呼び出し規約など。互換保証なし |
 | Stable interoperability | WIT / Canonical ABI |
 | Experimental raw Wasm | スカラー / opaque handle 等に限定 |
-| Reserved native | 未決定（ADR-045） |
+| Reserved native | 公開ABIは未決定。native-cpp内部executor ABIだけADR-049でcompiler-private |
 
 ## ABI guidance
 
@@ -29,7 +29,7 @@
 ## 関連
 
 - [../current-state.md](../current-state.md)
-- [ADR-006](../adr/ADR-006-abi-policy.md) / [ADR-007](../adr/ADR-007-targets.md)
+- [ADR-006](../adr/ADR-006-abi-policy.md) / [ADR-007](../adr/ADR-007-targets.md) / [ADR-049](../adr/ADR-049-native-c99-selfhost-executor.md)
 - [../language/memory-model.md](../language/memory-model.md)
 - [../plans/component-canonical-memory.md](../plans/component-canonical-memory.md)
 

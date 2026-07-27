@@ -4,6 +4,19 @@ fn is_gc_target(target: String) -> bool {
     eq(clone(target), String_from("wasm32-gc"))
 }
 
+// ADR-007: Memory64 is default emit OK for wasm32-gc only (not wasm32/iwasm).
+// WASI P2 command/component path keeps i32 linear memory so the bridged
+// stdout canon lowering can share guest memory (#714).
+fn uses_memory64(target: String, wasi_version: String) -> bool {
+    if is_p2_wasi(clone(wasi_version)) {
+        return false
+    }
+    if is_component_stub_wasi(clone(wasi_version)) {
+        return false
+    }
+    is_gc_target(clone(target))
+}
+
 fn is_simd_target(target: String) -> bool {
     // SIMD is available on both canonical Wasm targets; host profile does not
     // change the value representation.
@@ -48,7 +61,8 @@ fn p2_host_import_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32)
 }
 
 fn p2_host_type_count(needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
-    let mut count = 7
+    // Base WASI shapes (5) + P2 clocks (2) + get-stream/bwaf (2).
+    let mut count = 9
     if needs_wasi_http_outgoing == 1 { count = count + 1 }
     if needs_arukellt_host == 1 { count = count + 3 }
     return count

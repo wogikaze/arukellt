@@ -6,13 +6,14 @@ use mir::function_local_alloc
 use mir::function_return_mutation
 use mir::module_factory
 use mir::module_functions
+use mir::source_location_record
 use mir::value_types
 use mir::dump_smoke_dominance_emit
 use mir::dump_smoke_dominance_fixture_record
 
 fn mir_dump_dominance_fixture_new() -> MirDumpDominanceFixture {
     let m = module_factory::MirModule_new()
-    let f = function_factory::MirFunction_new(String_from("cfg_pred_sample"))
+    let f = function_factory::MirFunction_new(String_from("cfg_pred_sample"), source_location_record::SourceLocation_unmapped())
     let pa = function_local_alloc::alloc_local(f, String_from("a"), value_types::VT_I32())
     let pb = function_local_alloc::alloc_local(f, String_from("b"), value_types::VT_I32())
     let tmp = function_local_alloc::alloc_local(f, String_from("_t0"), value_types::VT_I32())

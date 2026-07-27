@@ -2,11 +2,15 @@ use std::host::fs
 use loader::module_path_local
 
 pub fn find_package_root(base_dir: String) -> String {
+    // Prefer read_to_string over exists: wasm32-gc exists lowering stores a
+    // GC String ref into an i64 linear-memory scratch (validate fail).
     let manifest = concat(clone(base_dir), String_from("/ark.toml"))
-    let found = fs::exists(clone(manifest))
-    match found {
-        Result::Ok(true) => clone(base_dir),
-        Result::Ok(false) => {
+    let read = fs::read_to_string(clone(manifest))
+    match read {
+        Result::Ok(_) => {
+            clone(base_dir)
+        },
+        Result::Err(_) => {
             let parent = module_path_local::path_parent_dir(clone(base_dir))
             if eq(clone(parent), clone(base_dir)) {
                 clone(base_dir)
@@ -14,6 +18,5 @@ pub fn find_package_root(base_dir: String) -> String {
                 find_package_root(parent)
             }
         },
-        Result::Err(_) => clone(base_dir),
     }
 }

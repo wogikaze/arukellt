@@ -1,0 +1,33 @@
+use corehir::fn_info
+use corehir::mir_signature_source_record
+use corehir::mod
+use diagnostics::source_map_offsets
+use mir::lower::ast_node
+use mir::source_location_record
+
+fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, source_text: String) -> Vec<SourceLocation> {
+    let sig_source = corehir::mod::view_signature_source(view)
+    let fn_infos = mir_signature_source_record::mir_signature_source_fn_infos(sig_source)
+    let fn_count = len(fn_infos)
+    let locations = Vec_new_SourceLocation()
+    let mut fi = 0
+    while fi < fn_count {
+        let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)
+        let loc = if decl_index >= 0 && decl_index < len(decl_nodes) {
+            let node = get_unchecked(decl_nodes, decl_index)
+            if ast_node::node_kind(node) == ast_node::fn_decl_kind() {
+                let span_start = ast_node::node_span_start(node)
+                let line = source_map_offsets::offset_to_line(clone(source_text), span_start)
+                let column = source_map_offsets::offset_to_column(source_text, span_start)
+                source_location_record::SourceLocation_new(1, line, column)
+            } else {
+                source_location_record::SourceLocation_unmapped()
+            }
+        } else {
+            source_location_record::SourceLocation_unmapped()
+        }
+        push(locations, loc)
+        fi = fi + 1
+    }
+    locations
+}

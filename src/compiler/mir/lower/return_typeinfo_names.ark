@@ -63,6 +63,24 @@ fn mir_hashmap_return_type_name_from_type_info(ty: TypeInfo) -> String {
     if key_tag == 1 && val_tag == 1 {
         return String_from("hashmap:i32i32")
     }
+    // TY_FN = 20; also accept TY_STRUCT named fnref from typechecker.
+    let val_name = typeinfo_shape::mir_type_info_name(val)
+    if key_tag == 1 && (
+        val_tag == 20 ||
+        eq(clone(val_name), String_from("fnref")) ||
+        eq(clone(val_name), String_from("fn")) ||
+        starts_with(clone(val_name), String_from("fn("))
+    ) {
+        return String_from("hashmap:i32fn")
+    }
+    if key_tag == 5 && (
+        val_tag == 20 ||
+        eq(clone(val_name), String_from("fnref")) ||
+        eq(clone(val_name), String_from("fn")) ||
+        starts_with(clone(val_name), String_from("fn("))
+    ) {
+        return String_from("hashmap:strfn")
+    }
     String_from("hashmap:si32")
 }
 

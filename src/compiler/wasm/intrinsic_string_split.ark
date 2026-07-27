@@ -79,6 +79,7 @@ fn emit_split_scan_loop(w: WasmWriter, s_sp_src: i32, s_sp_sep: i32, s_sp_slen: 
     helpers_core::emit_local_set(w, s_sp_j)
     emit_split_match_separator_loop(w, s_sp_src, s_sp_sep, s_sp_pos, s_sp_seplen, s_sp_match, s_sp_j)
     helpers_core::emit_local_get(w, s_sp_match)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_control::emit_if_empty(w)
     emit_split_push_segment(w, s_sp_vec, s_sp_sub, s_sp_src, s_sp_start, s_sp_pos)
     helpers_core::emit_local_get(w, s_sp_pos)

@@ -11,10 +11,10 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
         let ann_name = ast_access::node_text(ann)
         if !eq(clone(ann_name), String_from("__return")) {
             let info = contract_type_param_bounds::TypeParamBounds_new(ann_name)
-            let child_count = ast_access::node_child_count(ann)
+            let ann_count = ast_access::node_type_ann_count(ann)
             let mut j = 0
-            while j < child_count {
-                let bound_node = ast_access::node_child_at(ann, j)
+            while j < ann_count {
+                let bound_node = ast_access::node_type_ann_at(ann, j)
                 contract_type_param_bounds::TypeParamBounds_push_bound(info, types::resolve_type_ann_node(bound_node))
                 j = j + 1
             }

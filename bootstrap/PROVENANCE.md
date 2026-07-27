@@ -13,46 +13,35 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 1 968 692 bytes (≈ 1.88 MiB) |
-| sha256 | `8e33faa7c47c0f1ae3570070c935bd00d4f8c28e99ee38d61f3311270406dad4` |
-| Built from commit | `cc0c5f579` — fix(resolver): fix register_headers nesting + typecheck const decls + pin const-aware wasm; refreshed from prior pinned reference (`eee048b…`) via stage-2 bootstrap + stage-3 fixpoint verification |
+| Size | 2 331 913 bytes (≈ 2.22 MiB) |
+| sha256 | `48ad40ee4edde5193819b3b2cfd4a530b0740965cb78c616e5ac51fe9d02afd8` |
+| Built from commit | `9951fd2b` — two-round pinned refresh to stable wasm32 fixpoint (prior `08dfbfcbf913…` → `06b61c60ddbb…` → `48ad40ee4edd…`); `sha256(pinned)==sha256(s2)==sha256(s3)`; BOOTSTRAP_EMIT remains wasm32/wasi-p1 until wasm32-gc self-emit validates (#730) |
 | Build target | `wasm32` |
-| Producer | Modular selfhost compiler stage 3 (`s3.wasm`), confirmed by Stage-2→3 fixpoint (`sha256(s2) == sha256(s3)`); includes const declaration syntax support with __return type annotation, pub use re-export semantics, opcodes.ark split into 4 categorized modules, enum-with-payload GC support, Phase 2 control flow modernization (match + for-in), Phase 3 boilerplate reduction (Vec_extend helpers, struct literals), and std/text bootstrap overlay |
+| Producer | Modular selfhost compiler Stage-2/3 fixpoint artifact (`arukellt-s2.wasm` / `arukellt-s3.wasm`). Emit remains `wasm32` until a validating `wasm32-gc` self-compile path exists (#730 follow-up: current s2→`wasm32-gc` emit fails `wasm-tools validate` at `func 8204`) |
 
 ## Reproducibility recipe
 
 The pinned wasm is the deterministic Stage-2 output of the selfhost compiler
-when compiled from the recorded source commit plus the refresh worktree:
+when compiled from the recorded source commit. Gates use
+`scripts/selfhost/checks.py` which Memory64-widens the pinned wasm before
+running it; a minimal recipe matching that emit target:
 
 ```bash
 # 1. Check out the recorded source commit
-git checkout cc0c5f579
+git checkout 9951fd2b
 
-# 2. Rebuild Stage-1 selfhost wasm using the previous pinned reference
-mkdir -p .build/selfhost
-wasmtime run --dir=. bootstrap/arukellt-selfhost.wasm -- \
-  compile src/compiler/main.ark \
-  --target wasm32 \
-  -o .build/selfhost/arukellt-s2.wasm
+# 2. Rebuild via the official gate (Memory64 bootstrap + overlay)
+python3 scripts/manager.py selfhost fixpoint --build
 
 # 3. Verify byte-for-byte identity with the pinned wasm
 sha256sum bootstrap/arukellt-selfhost.wasm .build/selfhost/arukellt-s2.wasm
 # ⇒ both sums must be identical.
-```
-
-A Stage-3 round confirms the fixpoint:
-
-```bash
-wasmtime run --dir=. .build/selfhost/arukellt-s2.wasm -- \
-  compile src/compiler/main.ark \
-  --target wasm32 \
-  -o .build/selfhost/arukellt-s3.wasm
 sha256sum .build/selfhost/arukellt-s2.wasm .build/selfhost/arukellt-s3.wasm
 # ⇒ identical sums = fixpoint reached
 ```
 
 The `selfhost fixpoint` gate (`scripts/selfhost/checks.py::run_fixpoint`)
-performs steps 2–3 automatically.
+performs the bootstrap → s2 → s3 chain automatically.
 
 ## Refresh policy
 
@@ -62,7 +51,7 @@ required when an intentional behavioural change in the selfhost compiler
 reference. Refresh procedure:
 
 1. Locally bootstrap a new Stage-2 wasm from the previous pinned reference and
-   the new compiler source (the recipe above, but using the new source HEAD).
+   the new compiler source (`python3 scripts/manager.py selfhost fixpoint --build`).
 2. Verify the Stage-3 fixpoint holds (`s2 == s3`). If the refresh path needs an
    intermediate Stage-3 artifact, verify one more round (`s3 == s4`) and pin the
    stable fixpoint artifact.
@@ -77,6 +66,15 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
+### wasm32-gc pinned (blocked)
+
+Refreshing the pinned artifact to native `wasm32-gc` / `wasi-p2` / Memory64
+emit is tracked in **#834** (split from #730). The former `func 8204`
+`doc_parse_manifest` String-cast failure is fixed in source (`clone(T)→T`,
+`06ba2d35`); full selfhost wasm32-gc compile/pin still needs a host that can
+grow past 4GiB without ~21GiB RSS OOM. Keep `BOOTSTRAP_EMIT_TARGET = "wasm32"`
+in `scripts/selfhost/checks.py` until #834 lands.
+
 ## Why this artifact is committed
 
 The four selfhost gates (`fixpoint`, `fixture-parity`, `diag-parity`,
@@ -89,6 +87,6 @@ and is committed so that:
 - CI never needs to rebuild the Rust crate before running selfhost gates
 - The bootstrap base is byte-pinned and reproducible from a git SHA
 
-The artifact size (~842 KiB) is well under the 10 MiB ceiling discussed in
+The artifact size (~2.22 MiB) is well under the 10 MiB ceiling discussed in
 ADR-029. This file is exempted from the repo-wide `*.wasm` ignore in
 `.gitignore` via an explicit allow-list entry.

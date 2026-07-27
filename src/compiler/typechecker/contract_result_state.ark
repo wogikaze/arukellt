@@ -43,8 +43,8 @@ fn typecheck_result_set_mono_instances(result: TypeCheckResult, instances: Vec<M
     result.mono_instances = instances
 }
 
-fn typecheck_result_push_typed_fn(result: TypeCheckResult, name: String, return_type: TypeInfo) {
-    push(result.typed_fns, contract_typed_fn::TypedFn_new(name, return_type))
+fn typecheck_result_push_typed_fn(result: TypeCheckResult, name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) {
+    push(result.typed_fns, contract_typed_fn::TypedFn_new(name, param_types, return_type))
 }
 
 fn typecheck_result_error_count(result: TypeCheckResult) -> i32 {

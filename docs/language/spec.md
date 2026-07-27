@@ -445,8 +445,26 @@ expr[index]
 expr?
 ```
 
-Propagates the `Err` variant of a `Result`. The enclosing function must
-return `Result<_, E>`.
+`expr?` early-returns from the enclosing function when the operand is a
+failure variant. Two forms are defined:
+
+**`Result<T, E_source>`** — the enclosing function must return
+`Result<_, E_target>`. On `Ok(v)`, the value of `expr?` is `v`. On `Err(e)`:
+
+- if `E_source` and `E_target` are the same type, return `Err(e)` (identity)
+- otherwise return `Err(From::from(e))`, resolved via the canonical `From`
+  trait for language-syntax desugaring (import not required; ADR-039 D2)
+
+**`Option<T>`** — the enclosing function must return `Option<_>`. On
+`Some(v)`, the value of `expr?` is `v`. On `None`, return `None`. There is
+no error-type conversion. Converting `Option` to `Result` is out of scope
+for `?` (use an explicit `ok_or` / `ok_or_else`).
+
+Any other operand type, or a mismatch between the operand and the enclosing
+return type (`Result` vs `Option`), is a type error.
+
+Evidence: `tests/fixtures/question_mark/basic_propagate.ark`,
+`from_error.ark`, `option_propagate.ark`.
 
 ### 3.10 If Expression
 
@@ -1614,7 +1632,8 @@ canonical compilation targets are:
 |--------|------|-------|
 | `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-008). |
 | `wasm32` | supported | Same language semantics, linear-memory lowering. AtCoder / non-GC compatibility. |
-| `native-cpp` / `native-llvm` | scaffold | Experimental. ABI / semantics undecided (ADR-045). |
+| `native-cpp` | scaffold | Experimental selfhost executor design accepted in ADR-049; C99 lowering remains unimplemented. |
+| `native-llvm` | scaffold | Experimental. ABI and semantics remain undecided. |
 
 Retired / not public contracts:
 
@@ -1640,4 +1659,5 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR-013 | Primary target = `wasm32-gc` (default host WASI P2) |
 | ADR-031 | Import / WIT package syntax unification (supersedes ADR-025/026 exploration) |
 | ADR-044 | Trait / method syntax adopted (supersedes ADR-004) |
-| ADR-045 | Old LLVM-as-required-backend policy withdrawn; native ABI undecided |
+| ADR-045 | Native/LLVM decision deferral, superseded by ADR-049 for the limited native-cpp executor scope |
+| ADR-049 | Native C99 selfhost executor with a compiler-private ABI; current implementation remains scaffold |

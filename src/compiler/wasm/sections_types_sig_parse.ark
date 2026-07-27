@@ -1,7 +1,7 @@
 fn parse_sub_super_offset(sig: String) -> i32 {
     let plus = find_type_sig_char(sig, 43)
     if plus < 0 {
-        return 0
+        return 0 - 1
     }
     let mut val = 0
     let mut i = plus + 1

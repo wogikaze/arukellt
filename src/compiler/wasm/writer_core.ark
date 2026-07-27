@@ -1,9 +1,22 @@
 pub struct WasmWriter {
     bytes: Vec<i32>,
+    memory64: bool,
 }
 
 fn WasmWriter_new() -> WasmWriter {
-    WasmWriter { bytes: Vec_new_i32() }
+    WasmWriter { bytes: Vec_new_i32(), memory64: false }
+}
+
+fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
+    WasmWriter { bytes: Vec_new_i32(), memory64: memory64 }
+}
+
+fn writer_memory64(w: WasmWriter) -> bool {
+    w.memory64
+}
+
+fn writer_set_memory64(w: WasmWriter, memory64: bool) {
+    w.memory64 = memory64
 }
 
 fn emit_byte(w: WasmWriter, b: i32) {

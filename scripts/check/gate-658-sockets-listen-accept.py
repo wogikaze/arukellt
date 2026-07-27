@@ -23,6 +23,10 @@ def _static_evidence() -> tuple[int, str]:
     text = (REPO_ROOT / "src/compiler/wasm/sections_imports.ark").read_text(encoding="utf-8")
     if "sockets_listen" not in text or "sockets_accept" not in text:
         return 1, "sections_imports.ark lacks sockets_listen/accept imports"
+    if "wasi:sockets/tcp@0.2.0" not in text:
+        return 1, "sections_imports.ark lacks wasi:sockets/tcp@0.2.0"
+    if '"arukellt_host"' in text or "'arukellt_host'" in text:
+        return 1, "sections_imports.ark still emits arukellt_host module string"
     manifest = (REPO_ROOT / "tests/fixtures/manifest.txt").read_text(encoding="utf-8")
     if "t3-run:host/sockets/listen_accept.ark" not in manifest:
         return 1, "manifest missing t3-run:host/sockets/listen_accept.ark"

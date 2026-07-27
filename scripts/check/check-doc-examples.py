@@ -22,6 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 TMP_DIR = ROOT / "target" / "tmp" / "doc-examples"
+CURRENT_SELFHOST = ROOT / ".build" / "selfhost" / "arukellt-s2.wasm"
 BOOTSTRAP_SELFHOST = ROOT / "bootstrap" / "arukellt-selfhost.wasm"
 
 BLOCK_PATTERN = re.compile(r"```ark\n(.*?)```", re.DOTALL)
@@ -117,8 +118,11 @@ def check_block(
     try:
         arg_path = str(tmp_path.relative_to(ROOT))
         env = os.environ.copy()
-        if "ARUKELLT_SELFHOST_WASM" not in env and BOOTSTRAP_SELFHOST.exists():
-            env["ARUKELLT_SELFHOST_WASM"] = str(BOOTSTRAP_SELFHOST)
+        if "ARUKELLT_SELFHOST_WASM" not in env:
+            if CURRENT_SELFHOST.exists():
+                env["ARUKELLT_SELFHOST_WASM"] = str(CURRENT_SELFHOST)
+            elif BOOTSTRAP_SELFHOST.exists():
+                env["ARUKELLT_SELFHOST_WASM"] = str(BOOTSTRAP_SELFHOST)
         result = subprocess.run(
             [arukellt, "check", arg_path, "--target", target],
             capture_output=True,

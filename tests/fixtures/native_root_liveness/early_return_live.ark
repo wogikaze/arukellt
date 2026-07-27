@@ -1,0 +1,13 @@
+fn main() -> i32 {
+    let keep = String_from("early")
+    if len(keep) == 0 {
+        return 1
+    }
+    let mut i = 0
+    while i < 16 {
+        let junk = concat(String_from("e"), String_from("r"))
+        let _n = len(junk)
+        i = i + 1
+    }
+    if eq(keep, String_from("early")) { 0 } else { 1 }
+}

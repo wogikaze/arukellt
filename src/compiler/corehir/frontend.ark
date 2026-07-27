@@ -27,7 +27,7 @@ fn build_program_from_facts_with_dto(
 ) -> CoreHirRawProgram {
     raw::build_program_from_facts(
         frontend_decls::build_decl_infos(decls),
-        frontend_fns::build_fn_infos(decls),
+        frontend_fns::build_fn_infos(decls, modules),
         frontend_methods::build_method_infos(decls),
         frontend_layouts::build_layout_decls(decls),
         facts,

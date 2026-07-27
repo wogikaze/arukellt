@@ -20,6 +20,15 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
+# Match scripts/selfhost/checks.py WASMTIME_SELFHOST_WASM_FLAGS so Memory64
+# s2-runtime modules can grow past the wasm32 4GiB ceiling.
+WASMTIME_SELFHOST_FLAGS=(
+  --wasm gc
+  --wasm function-references
+  -W memory64=y
+  -W max-memory-size=17179869184
+)
+
 is_truthy() {
   case "${1:-}" in
     1|true|TRUE|True|yes|YES|on|ON) return 0 ;;
@@ -61,7 +70,8 @@ EOF
   exit 2
 fi
 
-if ! command -v wasmtime >/dev/null 2>&1; then
+WASMTIME_BIN="${ARUKELLT_WASMTIME_BIN:-wasmtime}"
+if ! command -v "$WASMTIME_BIN" >/dev/null 2>&1; then
   echo "arukellt-selfhost: error — wasmtime not found in PATH; install wasmtime ≥ 30" >&2
   exit 127
 fi
@@ -103,11 +113,90 @@ if [[ "${1:-}" == "doc" ]]; then
   fi
 fi
 
+# ADR-050: public `run --target native-cpp` is owned by the host launcher.
+# Detect target only from compiler options before `--` so program args cannot
+# force or suppress routing (e.g. `run prog.ark -- --target native-cpp`).
+is_native_cpp_public_run() {
+  local i=2
+  local arg next
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--" ]]; then
+      break
+    fi
+    if [[ "$arg" == "--target=native-cpp" ]]; then
+      return 0
+    fi
+    if [[ "$arg" == "--target=native-llvm" ]]; then
+      return 1
+    fi
+    if [[ "$arg" == "--target" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        if [[ "${!next}" == "native-cpp" ]]; then
+          return 0
+        fi
+        if [[ "${!next}" == "native-llvm" ]]; then
+          return 1
+        fi
+      fi
+    fi
+    i=$((i + 1))
+  done
+  return 1
+}
+
+if [[ "${1:-}" == "run" ]] && [[ -z "${ARUKELLT_NATIVE_CPP_INTERNAL_COMPILE:-}" ]] && is_native_cpp_public_run "$@"; then
+  exec python3 "$REPO_ROOT/scripts/run/native-cpp-runner.py" "$@"
+fi
+
 if [[ "${1:-}" == "run" ]]; then
+  # Driver `run` ignores `--emit component` and writes a core module. For the
+  # bridged P2 path (#714), compile to a component then execute with wasmtime.
+  emit_mode=""
+  i=1
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--emit" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        emit_mode="${!next}"
+      fi
+    fi
+    i=$((i + 1))
+  done
+  if [[ "$emit_mode" == "component" ]]; then
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
+    set +e
+    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- compile "${@:2}" \
+      >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    rc=$?
+    set -e
+    cat "$tmpdir/stdout"
+    if [[ "$rc" -ne 0 ]]; then
+      cat "$tmpdir/stderr" >&2
+      exit "$rc"
+    fi
+    out_path="$(sed -n 's/^wrote .* to //p' "$tmpdir/stderr" | tail -n 1)"
+    if [[ -z "$out_path" ]]; then
+      out_path="$(sed -n 's/^compiled .* -> //p' "$tmpdir/stderr" | tail -n 1)"
+    fi
+    if [[ -z "$out_path" ]]; then
+      cat "$tmpdir/stderr" >&2
+      echo "arukellt-selfhost: error — component compile produced no output path" >&2
+      exit 1
+    fi
+    if [[ "$out_path" != /* ]]; then
+      out_path="$REPO_ROOT/$out_path"
+    fi
+    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  fi
+
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   set +e
-  wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+  "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then
@@ -125,10 +214,18 @@ if [[ "${1:-}" == "run" ]]; then
   if [[ "$out_path" != /* ]]; then
     out_path="$REPO_ROOT/$out_path"
   fi
-  if grep -aq 'arukellt_host' "$out_path" 2>/dev/null; then
+  # Component Model binaries use version 0x0d; run with wasmtime (bridged P2 path, #714).
+  # Do not route them through arukellt-run-hosted.sh just because the payload contains "wasi:".
+  wasm_ver="$(od -An -tu1 -j4 -N1 "$out_path" 2>/dev/null | tr -d ' ')"
+  if [[ "$wasm_ver" == "13" ]]; then
+    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  fi
+  # Hosted runner for simplified guest ABI on WIT-shaped modules (#727 Phase 2/3).
+  # Real WASI method names (handle / start-connect / …) go through wasmtime once Phase 4 lands.
+  if grep -aqE 'http_get|http_request|http_serve|sockets_connect|sockets_read|sockets_write|sockets_listen|sockets_accept' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
-  exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
+  exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
 
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
@@ -143,7 +240,7 @@ if [[ "${1:-}" == "compose" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
     cat "$tmpdir/stdout"
@@ -192,7 +289,7 @@ fi
 
 if [[ "${1:-}" == "debug-adapter" ]]; then
   if [[ "${2:-}" == *.dap-script ]]; then
-    exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@"
+    exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"
   fi
   DEBUG_ADAPTER="$REPO_ROOT/target/release/arukellt-debug-adapter"
   if [[ ! -x "$DEBUG_ADAPTER" ]]; then
@@ -204,4 +301,4 @@ if [[ "${1:-}" == "debug-adapter" ]]; then
   fi
 fi
 
-exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$wasm" -- "$@"
+exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@"

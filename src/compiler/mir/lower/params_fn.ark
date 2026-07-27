@@ -1,11 +1,18 @@
 use corehir::param
+use corehir::type_info_to_mir_value
+use mir::function_identity
+use mir::legacy_vt_compat
 use mir::lower::binary_type_names
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_types
 use mir::local_factory
+use mir::module_spine
+use mir::spine_lookup
+use mir::typed_mir_compat
 use mir::types
 use mir::value_types
 
@@ -66,10 +73,47 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+    let func = ctx_current_storage::ctx_current_func_value(ctx)
+    let func_name = function_identity::MirFunction_name(func)
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let table = module_spine::MirModule_type_table(m)
+    let preserved_type_name = clone(mir_type_name)
+    let param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    if !typed_mir_compat::mvt_is_invalid(param_mvt) {
+        ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
+        let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
+        if len(alias) > 0 && !type_info_to_mir_value::concrete_type_outranks_mvt_alias(clone(preserved_type_name), clone(alias)) {
+            let mvt_vt = legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt)
+            ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
+            ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
+            ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+        }
+    }
+    // Keep Option<fn> as option:fnref across MVT aliasing (#831).
+    if mir_param_type_is_option_fnref(clone(preserved_type_name)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, param_local, String_from("option:fnref"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, param_local, value_types::VT_GC_REF())
+        ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, value_types::VT_GC_REF(), String_from("option:fnref"))
+    }
+}
+
+fn mir_param_type_is_option_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("option:fnref")) ||
+    eq(clone(type_name), String_from("Option:fnref")) ||
+    eq(clone(type_name), String_from("Option:fn")) ||
+    ends_with(clone(type_name), String_from(":fnref"))
 }
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
     let result = Vec_new_String()
+    // Surface Option:/Result: forms must become option:/result: — never
+    // "?Option:..." which makes is_generic_function emit unreachable bodies.
+    let normalized = mir_param_normalize_option_result_type_name(clone(p_type_name))
+    if len(normalized) > 0 {
+        push(result, clone(normalized))
+        push(result, clone(normalized))
+        return result
+    }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
         let mt = concat(String_from("enum:"), p_type_name)
         push(result, mt)
@@ -88,6 +132,34 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         return result
     }
     result
+}
+
+fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("result:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("Option_")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Option:")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("?Option:")) {
+        return concat(String_from("option:"), substring(type_name, 8, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Option<")) && ends_with(clone(type_name), String_from(">")) {
+        return concat(String_from("option:"), substring(type_name, 7, len(type_name) - 1))
+    }
+    if starts_with(clone(type_name), String_from("Result:")) {
+        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("?Result:")) {
+        return concat(String_from("result:"), substring(type_name, 8, len(type_name)))
+    }
+    if starts_with(clone(type_name), String_from("Result_")) {
+        return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    }
+    String_new()
 }
 
 fn mir_param_resolve_named_user_type(ctx: LowerCtx, bare: String) -> String {

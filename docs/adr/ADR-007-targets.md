@@ -11,7 +11,10 @@
 
 複数ランタイム向けにコードを生成するため、ターゲットを
 **表現モデル × 製品 profile** で固定する。旧 T1–T5 表記は廃止する。
-native の意味論・ABI は [ADR-045](ADR-045-llvm-scope-withdrawn.md) まで未決定。
+`native-cpp` の内部セルフホストexecutor契約は
+[ADR-049](ADR-049-native-c99-selfhost-executor.md)が、公開 experimental `run` 契約は
+[ADR-050](ADR-050-experimental-public-native-c99-run.md)が所有する。
+`native-llvm`と公開安定C ABI / 外部FFIは未決定のままである。
 
 現行のランタイム版・fixture・CI・host 到達可能性は
 [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md)
@@ -27,7 +30,8 @@ native の意味論・ABI は [ADR-045](ADR-045-llvm-scope-withdrawn.md) まで�
 |------|------|------|----------------------|
 | `wasm32` | AtCoder / 非 GC 互換 | linear memory（同一言語意味の lowering） | **supported** |
 | `wasm32-gc` | 主製品 profile | Wasm GC | **primary**（ADR-013） |
-| `native-cpp` / `native-llvm` | 試験 | 未決定 | **scaffold** |
+| `native-cpp` | セルフホストexecutor + 公開 experimental run | C99 private ABI（ADR-049 / ADR-050） | **scaffold** |
+| `native-llvm` | 試験 | 未決定 | **scaffold** |
 
 ### 2. `wasm32-gc` は製品 profile として束ねる
 
@@ -54,8 +58,10 @@ WASI 非依存の旧 freestanding は提供しない。
 
 ### 4. `native-*`
 
-- scaffold のみ（`native_scaffold`）。emit kind・拡張子・object 生成・link・ABI・FFI は **未決定**
-- 試験実装の現状だけ current-state / platform 文書に置く。本 ADR では契約化しない
+- 両targetのsupport tierはscaffoldであり、詳細な実装状態はcurrent-stateとproject-stateを正とする。
+- `native-cpp`のC99出力、private ABI、runtime、manager責務はADR-049とRFC-008が所有する。
+- `native-llvm`のemit kind、object生成、link、ABI、FFIは未決定である。
+- 設計採択や部分的なemitter実装をtarget完成と扱わない。
 
 ### 5. Emit 契約（Wasm のみ）
 
@@ -63,7 +69,7 @@ WASI 非依存の旧 freestanding は提供しない。
 
 | Emit kind | `wasm32` | `wasm32-gc` | `native-*` |
 |-----------|----------|-------------|------------|
-| `core-wasm` | Yes | Yes | —（未決定） |
+| `core-wasm` | Yes | Yes | —（native-cppはADR-049/RFC-008を参照） |
 | `wat` | Yes | Yes | — |
 | `component` | No | Yes（in-tree, ADR-008） | — |
 | `wit` | No | Yes | — |
@@ -174,7 +180,7 @@ opt-in（明示フラグや将来プロファイル）で積集合外の機能�
 ## 禁止事項
 
 - `wasm32` の linear 実装を `wasm32-gc` の意味論に持ち込まない
-- native の ABI・言語機能を ADR-045 後継採択前に固定しない
+- native-cppのprivate executor契約を公開native ABIまたは新しい言語意味論へ拡張しない
 - primary を複数にしない
 
 ---
@@ -186,7 +192,9 @@ opt-in（明示フラグや将来プロファイル）で積集合外の機能�
 - [ADR-008](ADR-008-component-wrapping.md) — component in-tree
 - [ADR-013](ADR-013-primary-target.md) — primary = `wasm32-gc`
 - [ADR-037](ADR-037-std-simd.md) — SIMD 軸（fixed / relaxed）
-- [ADR-045](ADR-045-llvm-scope-withdrawn.md) — native 未決定
+- [ADR-045](ADR-045-llvm-scope-withdrawn.md) — native判断の保留（ADR-049により後継済み）
+- [ADR-049](ADR-049-native-c99-selfhost-executor.md) — native-cppセルフホストexecutor
+- [RFC-008](../rfcs/008-native-cpp-c99-backend-runtime-abi.md) — native-cpp C99 ABI詳細
 - [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md) — 現行実行面・feature emit 表
 - [`docs/research/target-runtime-verification.md`](../research/target-runtime-verification.md) — 機能別 WAT プローブ証拠
 - `docs/current-state.md`

@@ -1,28 +1,8 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-15T12:14:28Z",
+  "generated_at": "2026-07-26T11:56:03Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
-    {
-      "id": "30",
-      "path": "036-jco-javascript-interop.md",
-      "title": "036-jco-javascript-interop",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "27",
-        "037"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 5,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "partially-blocked",
-        "upstream_notes": "#037 jco GC upstream"
-      }
-    },
     {
       "id": "474",
       "path": "474-async-component-support-v5.md",
@@ -34,35 +14,13 @@
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [
-        "646"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 4,
         "unchecked": 4
       },
       "orchestration": {
         "class": "blocked-by-upstream",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "60",
-      "path": "074-wasi-p2-native-component.md",
-      "title": "074-wasi-p2-native-component",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "510",
-        "121"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -83,28 +41,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "649",
-      "path": "649-t4-native-full-lowering.md",
-      "title": "649 — T4 native full lowering (beyond scaffold #641)",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "641"
-      ],
-      "blocks_issue_ids": [
-        "698",
-        "699"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },
@@ -224,33 +160,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "446",
-        "447",
-        "655",
-        "656",
-        "657",
-        "658",
-        "done)"
-      ],
-      "blocks_issue_ids": [
-        "727"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
       },
       "orchestration": {
         "class": "implementation-ready",
@@ -403,9 +312,7 @@
       "depends_on": [],
       "blocks_issue_ids": [
         "698",
-        "716",
-        "801",
-        "808"
+        "801"
       ],
       "acceptance": {
         "checked": 12,
@@ -414,46 +321,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "687",
-      "path": "687-hashmap-hashset-rust-parity-gap.md",
-      "title": "687 — HashMap / HashSet Rust parity gap audit and closure",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "495"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "690",
-      "path": "690-question-mark-operator.md",
-      "title": "690 — `?` operator and `From<E>` error conversion",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "688"
-      ],
-      "blocks_issue_ids": [
-        "694"
-      ],
-      "acceptance": {
-        "checked": 11,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "None"
       }
     },
     {
@@ -502,6 +369,26 @@
       }
     },
     {
+      "id": "694",
+      "path": "694-error-trait-unified-ecosystem.md",
+      "title": "694 — `Error` trait and unified error type ecosystem",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "690",
+        "692"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#690 ? operator + From, #692 From trait"
+      }
+    },
+    {
       "id": "695",
       "path": "695-ord-partialord-traits.md",
       "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
@@ -527,21 +414,18 @@
     {
       "id": "696",
       "path": "696-debug-trait-format-macros.md",
-      "title": "696 — `Debug` trait and `format!` / `write!` formatting ecosystem",
+      "title": "696 — `Debug` trait and `format!` / `write!` equivalent formatting",
       "track": "stdlib-api",
       "status": "open",
-      "depends_on": [
-        "688",
-        "692"
-      ],
+      "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 13
+        "checked": 6,
+        "unchecked": 8
       },
       "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait dispatch, #692 Display/From"
+        "class": "implementation",
+        "upstream_notes": "none"
       }
     },
     {
@@ -643,29 +527,6 @@
       }
     },
     {
-      "id": "714",
-      "path": "714-wasi-p2-emitter-native-component-output.md",
-      "title": "714 — Emitter-native WASI P2 component output without wrapper",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "668",
-        "727"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "715",
       "path": "715-in-file-test-coverage-targets.md",
       "title": "715 — In-file test coverage targets for compiler and stdlib",
@@ -726,23 +587,6 @@
       }
     },
     {
-      "id": "722",
-      "path": "722-typed-funcref-call-ref-benchmark.md",
-      "title": "Typed Function References (`call_ref`) ベンチマーク計測",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "723",
       "path": "723-exception-handling-exnref-evaluation.md",
       "title": "Wasm Exception Handling (`exnref`) 統合の検討",
@@ -751,8 +595,8 @@
       "depends_on": [],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 5
+        "checked": 4,
+        "unchecked": 1
       },
       "orchestration": {
         "class": "design-required",
@@ -767,7 +611,6 @@
       "status": "open",
       "depends_on": [],
       "blocks_issue_ids": [
-        "726",
         "729"
       ],
       "acceptance": {
@@ -842,7 +685,6 @@
         "785"
       ],
       "blocks_issue_ids": [
-        "800",
         "814"
       ],
       "acceptance": {
@@ -909,60 +751,6 @@
       }
     },
     {
-      "id": "811",
-      "path": "811-selfhost-cli-parity-drift.md",
-      "title": "811 — Selfhost CLI parity drift",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "812",
-      "path": "812-selfhost-diagnostic-parity-drift.md",
-      "title": "812 — Selfhost diagnostic parity drift",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "813",
-      "path": "813-selfhost-fixpoint-not-reached.md",
-      "title": "813 — Selfhost fixpoint not reached",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [
-        "459",
-        "framework)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "815",
       "path": "815-diagnostic-t3-compile-skips.md",
       "title": "815 — Diagnostic/T3 compile skips",
@@ -980,19 +768,17 @@
       }
     },
     {
-      "id": "816",
-      "path": "816-prelude-compilation-restoration.md",
-      "title": "816 — Prelude compilation restoration",
+      "id": "819",
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
+        "727",
         "798"
       ],
       "blocks_issue_ids": [
-        "818",
-        "820",
-        "821",
-        "822"
+        "818"
       ],
       "acceptance": {
         "checked": 0,
@@ -1000,47 +786,182 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "prelude-restoration-rfc"
+        "upstream_notes": "727"
       }
     },
     {
-      "id": "817",
-      "path": "817-sealed-raw-api-module.md",
-      "title": "817 — Sealed raw API module for Vec/String internal representation",
-      "track": "compiler-internal",
+      "id": "822",
+      "path": "822-representation-dependent-stdlib-migration.md",
+      "title": "822 — Representation-dependent and allocating stdlib migration",
+      "track": "stdlib",
       "status": "open",
       "depends_on": [
-        "798"
+        "798",
+        "816",
+        "817",
+        "820"
       ],
       "blocks_issue_ids": [
-        "818",
-        "822"
+        "818"
       ],
       "acceptance": {
         "checked": 0,
-        "unchecked": 7
+        "unchecked": 6
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "sealed-raw-api-rfc"
+        "upstream_notes": "816, 817, 820"
       }
     },
     {
-      "id": "646",
-      "path": "646-t5-wasm32-wasi-p3-target-scaffold.md",
-      "title": "646 — T5 wasm32-wasi-p3 target scaffold",
-      "track": "wasm-feature",
+      "id": "824",
+      "path": "824-early-body-lowering-worklist.md",
+      "title": "Early body lowering (worklist; design first)",
+      "track": "selfhost-infra",
       "status": "open",
       "depends_on": [
-        "474"
+        "829"
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 3,
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "design",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "825",
+      "path": "825-ast-cache-format-repair.md",
+      "title": "AST cache format repair (not “re-enable as-is”)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "826",
+      "path": "826-symbol-path-intern-clone-audit.md",
+      "title": "P2a: symbol / path interning + hot-path clone audit",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "823"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
+      },
+      "orchestration": {
+        "class": "investigation",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "830",
+      "path": "830-wasm-heap-grow-patcher-retirement.md",
+      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "840",
+      "path": "840-question-mark-from-wasm32-gc.md",
+      "title": "840 — Enable `?` From conversion on wasm32-gc",
+      "track": "language-design",
+      "status": "open",
+      "depends_on": [
+        "839"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation",
+        "upstream_notes": 839
+      }
+    },
+    {
+      "id": "841",
+      "path": "841-wit-network-real-wasi-abi.md",
+      "title": "841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims",
+      "track": "wasi-feature",
+      "status": "open",
+      "depends_on": [
+        "727"
+      ],
+      "blocks_issue_ids": [
+        "675"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "842",
+      "path": "842-native-executor-wasm32-gc-func118-validation.md",
+      "title": "native-executor wasm32-gc S3 validation drift (func 118)",
+      "track": "main",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
         "unchecked": 0
       },
       "orchestration": {
-        "class": "design-ready",
+        "class": null,
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "843",
+      "path": "843-wasm32-gc-bootstrap-pin.md",
+      "title": "Pin bootstrap to validating Memory64 wasm32-gc",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "730"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1110,25 +1031,6 @@
       }
     },
     {
-      "id": "716",
-      "path": "716-gc-intrinsic-stub-completion.md",
-      "title": "GC target intrinsic stub completion (silent-wrong-result backfill)",
-      "track": "gc-native",
-      "status": "open",
-      "depends_on": [
-        "686"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 17,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "#686 Wasm GC Selfhost Implementation"
-      }
-    },
-    {
       "id": "801",
       "path": "801-gc-rebuild-plan.md",
       "title": "GC 完了までのプラン",
@@ -1145,45 +1047,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": 686
-      }
-    },
-    {
-      "id": "808",
-      "path": "808-t3-wasm-validation-failures.md",
-      "title": "808 — T3/Wasm validation failures",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [
-        "686"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": 686
-      }
-    },
-    {
-      "id": "694",
-      "path": "694-error-trait-unified-ecosystem.md",
-      "title": "694 — `Error` trait and unified error type ecosystem",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "690",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#690 ? operator + From, #692 From trait"
       }
     },
     {
@@ -1234,49 +1097,6 @@
       }
     },
     {
-      "id": "668",
-      "path": "668-p2-native-component-polish.md",
-      "title": "668 — P2 native component polish (post-#074)",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510",
-        "714"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 9
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "727",
-      "path": "727-arukellt-host-bridge-retirement.md",
-      "title": "727 — Retire `arukellt_host` custom host bridge; migrate HTTP/sockets to standard WASI P2/P3 imports",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "714",
-        "675"
-      ],
-      "blocks_issue_ids": [
-        "819"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "719",
       "path": "719-test-execution-harness.md",
       "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
@@ -1317,27 +1137,6 @@
       }
     },
     {
-      "id": "726",
-      "path": "726-t3-wasm-validation-32-failures.md",
-      "title": "T3 WASM validation failures: validate-fail 修正（GC ref 型推論バグ）",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [
-        "730"
-      ],
-      "acceptance": {
-        "checked": 7,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "729",
       "path": "729-intrinsic-layer-separation.md",
       "title": "729 — Intrinsic layer separation (unblocked epic)",
@@ -1354,25 +1153,6 @@
       "orchestration": {
         "class": "unblocked",
         "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "800",
-      "path": "800-fmt-multi-file-batching.md",
-      "title": "800 — Batch multi-file fmt to amortize wasmtime cold-start",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [
-        "791"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -1395,27 +1175,47 @@
       }
     },
     {
-      "id": "820",
-      "path": "820-stdlib-only-inliner.md",
-      "title": "820 — Bounded stdlib-only inliner",
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
         "798",
-        "816"
-      ],
-      "blocks_issue_ids": [
-        "818",
+        "816",
+        "817",
+        "819",
+        "820",
         "821",
         "822"
       ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 5
+        "unchecked": 11
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "816"
+        "upstream_notes": "816, 817, 819, 820, 821, 822"
+      }
+    },
+    {
+      "id": "675",
+      "path": "675-host-capability-reachability-flags.md",
+      "title": "675 — Host capability user-reachability and runtime permission flags",
+      "track": "capability",
+      "status": "open",
+      "depends_on": [
+        "841"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
       }
     },
     {
@@ -1486,94 +1286,6 @@
       }
     },
     {
-      "id": "819",
-      "path": "819-runtime-abi-core-op-lowering.md",
-      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "727",
-        "798"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "727"
-      }
-    },
-    {
-      "id": "730",
-      "path": "730-bootstrap-wasm-4gb-memory-limit.md",
-      "title": "730 — Bootstrap wasm 4GB memory limit blocks pinned wasm refresh",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "726"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "architecture-investigation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "821",
-      "path": "821-pure-semantic-stdlib-migration.md",
-      "title": "821 — Pure semantic stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 820"
-      }
-    },
-    {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
-      }
-    },
-    {
       "id": "710",
       "path": "710-stdlib-linear-collections-type-surface.md",
       "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
@@ -1596,31 +1308,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
-      }
-    },
-    {
-      "id": "818",
-      "path": "818-core-op-production-scaffold-exit.md",
-      "title": "818 — CoreOpRegistry production scaffold exit",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "819",
-        "820",
-        "821",
-        "822"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 819, 820, 821, 822"
       }
     },
     {
@@ -1691,16 +1378,5 @@
       }
     }
   ],
-  "blocked_external": [
-    {
-      "id": "31",
-      "path": "037-jco-gc-support.md",
-      "title": "jco: Wasm GC 型サポート待ち (upstream blocked)",
-      "track": "component-model",
-      "blocked_by": "jco upstream (<https://github.com/bytecodealliance/jco>)",
-      "depends_on": [
-        "30"
-      ]
-    }
-  ]
+  "blocked_external": []
 }

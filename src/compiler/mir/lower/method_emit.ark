@@ -4,9 +4,7 @@ use mir::lower::call_emit_dest
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower::call_types
-use mir::lower::ctx_fn_return_vt
 use mir::inst_call
-use mir::value_types
 
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
@@ -25,14 +23,14 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
     }
     callee_name = call_rewrite::MirCallRewrite_callee_name(call_rewrite)
     // Match direct-call dest allocation (including ::to_string GC-ref override).
-    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name))
+    let dest = call_emit_dest::mir_prepare_direct_call_dest(ctx, clone(callee_name), first_arg_idx)
     // Reuse the same result-type propagation as direct calls so that
     // String/Vec/Hash/struct return types are inferred consistently.
     // first_arg_idx is the receiver's local index, which corresponds to
     // the first argument of the resolved intrinsic (e.g. vec_get_unchecked).
     call_types::mir_mark_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     ctx_emit(ctx, inst_call::MirInst_call(callee_name, arg_count, dest))
-    if ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(callee_name)) == value_types::VT_VOID() {
+    if dest < 0 {
         return 0 - 1
     }
     dest

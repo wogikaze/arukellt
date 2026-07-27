@@ -375,22 +375,170 @@ fn patch_vec_new(
     *patched += 1;
 }
 
+mod wasm32to64;
+
+/// Rewrite the first memory's initial page count in a memory64 module.
+fn set_memory64_initial_pages(data: &[u8], initial_pages: u64) -> Result<Vec<u8>, String> {
+    if data.len() < 8 || &data[0..4] != b"\0asm" {
+        return Err("not a wasm module".into());
+    }
+    let mut offset = 8usize;
+    let mut sections: Vec<(u8, usize, usize)> = Vec::new();
+    while offset < data.len() {
+        let section_id = data[offset];
+        offset += 1;
+        let Some((size, payload_start)) = read_leb_u32(data, offset) else {
+            return Err("bad section size".into());
+        };
+        let payload_end = payload_start + size as usize;
+        if payload_end > data.len() {
+            return Err("section overrun".into());
+        }
+        sections.push((section_id, payload_start, payload_end));
+        offset = payload_end;
+    }
+
+    let mut rebuilt = Vec::with_capacity(data.len() + 16);
+    rebuilt.extend_from_slice(&data[0..8]);
+    let mut saw_memory = false;
+    for (section_id, start, end) in sections {
+        let payload = &data[start..end];
+        if section_id != 5 {
+            rebuilt.push(section_id);
+            rebuilt.extend(write_leb_u32(payload.len() as u32));
+            rebuilt.extend_from_slice(payload);
+            continue;
+        }
+        saw_memory = true;
+        // memory section: count, flags(memory64), min, [max]
+        let Some((count, mut pos)) = read_leb_u32(payload, 0) else {
+            return Err("bad memory count".into());
+        };
+        if count == 0 {
+            return Err("empty memory section".into());
+        }
+        let flags = payload[pos];
+        pos += 1;
+        if flags & 0x04 == 0 {
+            return Err("memory is not memory64".into());
+        }
+        // skip old min (and max if present)
+        let Some((_, after_min)) = read_leb_u64(payload, pos) else {
+            return Err("bad memory min".into());
+        };
+        pos = after_min;
+        if flags & 0x01 != 0 {
+            let Some((_, after_max)) = read_leb_u64(payload, pos) else {
+                return Err("bad memory max".into());
+            };
+            pos = after_max;
+        }
+        let rest = &payload[pos..];
+        // flags: memory64, no max
+        let mut new_payload = write_leb_u32(count);
+        new_payload.push(0x04);
+        new_payload.extend(write_leb_u64(initial_pages));
+        // keep any additional memories raw (rare)
+        new_payload.extend_from_slice(rest);
+        rebuilt.push(5);
+        rebuilt.extend(write_leb_u32(new_payload.len() as u32));
+        rebuilt.extend(new_payload);
+    }
+    if !saw_memory {
+        return Err("no memory section".into());
+    }
+    Ok(rebuilt)
+}
+
+fn read_leb_u64(data: &[u8], mut offset: usize) -> Option<(u64, usize)> {
+    let mut result = 0u64;
+    let mut shift = 0u32;
+    while offset < data.len() {
+        let byte = data[offset];
+        offset += 1;
+        result |= u64::from(byte & 0x7f) << shift;
+        if byte & 0x80 == 0 {
+            return Some((result, offset));
+        }
+        shift += 7;
+        if shift >= 70 {
+            return None;
+        }
+    }
+    None
+}
+
+fn write_leb_u64(mut value: u64) -> Vec<u8> {
+    let mut out = Vec::new();
+    loop {
+        let mut byte = (value & 0x7f) as u8;
+        value >>= 7;
+        if value != 0 {
+            byte |= 0x80;
+        }
+        out.push(byte);
+        if value == 0 {
+            break;
+        }
+    }
+    out
+}
+
 fn main() {
     let path = env::args().nth(1).expect("input wasm");
     let out = env::args().nth(2).expect("output wasm");
-    let dedupe_only = env::args().nth(3).as_deref() == Some("--dedupe-exports");
-    let mut module = load_module(&path);
+    let extra: Vec<String> = env::args().skip(3).collect();
+    let dedupe_only = extra.iter().any(|a| a == "--dedupe-exports");
+    let to_memory64 = extra.iter().any(|a| a == "--to-memory64");
+    // Convert without walrus heap-grow injection. Prefer this when the grow-site
+    // heuristic false-positives on newer selfhost compilers; pair with a large
+    // memory64 initial size so the bump allocator never needs memory.grow.
+    let convert_only = extra.iter().any(|a| a == "--convert-only");
+    let initial_pages: Option<u64> = extra.iter().find_map(|a| {
+        a.strip_prefix("--initial-pages=")
+            .and_then(|v| v.parse::<u64>().ok())
+    });
 
     if dedupe_only {
+        let mut module = load_module(&path);
         let removed = dedupe_export_names(&mut module);
         module.emit_wasm_file(&out).expect("write wasm");
         eprintln!("removed {} duplicate exports (no GC); wrote {}", removed, out);
         return;
     }
 
+    if convert_only {
+        let bytes = std::fs::read(&path).expect("read wasm");
+        match wasm32to64::convert_to_memory64(&bytes) {
+            Ok(mut converted) => {
+                if let Some(pages) = initial_pages {
+                    converted = set_memory64_initial_pages(&converted, pages)
+                        .expect("set memory64 initial pages");
+                }
+                std::fs::write(&out, &converted).expect("write memory64 wasm");
+                eprintln!(
+                    "converted to memory64 (no heap-grow patch){}; wrote {}",
+                    initial_pages
+                        .map(|p| format!(", initial_pages={p}"))
+                        .unwrap_or_default(),
+                    out
+                );
+            }
+            Err(err) => {
+                eprintln!("memory64 conversion failed: {err}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
+
+    // Heap-grow patch while still memory32, then optionally widen to memory64
+    // so the bump allocator can pass the wasm32 4GiB ceiling (#730).
+    let mut module = load_module(&path);
+
     for mem in module.memories.iter_mut() {
-        mem.initial = 65535;
-        mem.maximum = Some(65536);
+        mem.initial = initial_pages.unwrap_or(65535);
+        mem.maximum = Some(524288);
     }
 
     let heap_global = module
@@ -410,20 +558,25 @@ fn main() {
         .memory_size(memory_id)
         .i32_const(16)
         .binop(walrus::ir::BinaryOp::I32Shl)
-        .binop(walrus::ir::BinaryOp::I32GtU)
+        .binop(walrus::ir::BinaryOp::I32GeU)
         .if_else(
             None,
             |then_| {
+                // pages = ceil((end - size_bytes) / 65536) + 1 spare page.
+                // The spare avoids OOB when a store lands exactly at the
+                // current memory size (address == size) after a tight grow.
                 then_
                     .local_get(end)
                     .memory_size(memory_id)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32Shl)
                     .binop(walrus::ir::BinaryOp::I32Sub)
-                    .i32_const(65535)
+                    .i32_const(65536)
                     .binop(walrus::ir::BinaryOp::I32Add)
                     .i32_const(16)
                     .binop(walrus::ir::BinaryOp::I32ShrU)
+                    .i32_const(1)
+                    .binop(walrus::ir::BinaryOp::I32Add)
                     .memory_grow(memory_id)
                     .drop();
             },
@@ -461,6 +614,40 @@ fn main() {
     }
 
     let _ = dedupe_export_names(&mut module);
+
+    if to_memory64 {
+        let tmp = format!("{}.pre64.wasm", out);
+        module.emit_wasm_file(&tmp).expect("write pre-memory64 wasm");
+        let bytes = std::fs::read(&tmp).expect("read pre-memory64 wasm");
+        match wasm32to64::convert_to_memory64(&bytes) {
+            Ok(mut converted) => {
+                // Default 4GiB-1 initial still traps once the bump allocator
+                // crosses the wasm32 ceiling; honor --initial-pages so full
+                // selfhost compiles can reserve a larger Memory64 heap without
+                // relying on the i32-shaped grow helper past 4GiB.
+                if let Some(pages) = initial_pages {
+                    converted = set_memory64_initial_pages(&converted, pages)
+                        .expect("set memory64 initial pages after widen");
+                }
+                std::fs::write(&out, &converted).expect("write memory64 wasm");
+                let _ = std::fs::remove_file(&tmp);
+                eprintln!(
+                    "patched {} heap growth sites; converted to memory64{}; wrote {}",
+                    total_patched,
+                    initial_pages
+                        .map(|p| format!(", initial_pages={p}"))
+                        .unwrap_or_default(),
+                    out
+                );
+            }
+            Err(err) => {
+                let _ = std::fs::remove_file(&tmp);
+                eprintln!("memory64 conversion failed: {err}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
 
     module.emit_wasm_file(&out).expect("write wasm");
     eprintln!(

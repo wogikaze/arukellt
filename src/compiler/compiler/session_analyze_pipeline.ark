@@ -177,7 +177,7 @@ pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<
     if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
         let empty_names = Vec_new_String()
         let empty_counts = Vec_new_i32()
-        let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts)
+        let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts, decls)
         let core_program = mod::build_from_frontend_bundle(bundle)
         let _sess = session::CompileSession_build(core_program)
     }

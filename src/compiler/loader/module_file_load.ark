@@ -5,6 +5,6 @@ fn read_stdlib_module_source(stdlib_path: String) -> Result<String, String> {
     module_file_load_stdlib::read_stdlib_module_source(stdlib_path)
 }
 
-fn read_local_module_source(module_name: String, base_dir: String) -> Result<DriverLoadedSource, String> {
+fn read_local_module_source(module_name: String, base_dir: String) -> DriverLoadedSource {
     module_file_load_local::read_local_module_source(module_name, base_dir)
 }

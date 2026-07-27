@@ -6,6 +6,7 @@ use wasm::emit_target
 use wasm::intrinsic_string_basic
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
@@ -22,10 +23,14 @@ fn emit_add(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
                         intrinsic_string_basic::emit_concat(w, inst, ctx)
                     } else {
-                        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+                        helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                            w, opcodes::OP_I32_ADD(), opcodes::OP_I64_ADD()
+                        )
                     }
                 } else {
-                    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+                    helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                        w, opcodes::OP_I32_ADD(), opcodes::OP_I64_ADD()
+                    )
                 }
             }
         }
@@ -43,7 +48,9 @@ fn emit_sub(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             if val_type == value_types::VT_I64() {
                 writer_core::emit_byte(w, opcodes::OP_I64_SUB())
             } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+                helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                    w, opcodes::OP_I32_SUB(), opcodes::OP_I64_SUB()
+                )
             }
         }
     }
@@ -60,7 +67,9 @@ fn emit_mul(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             if val_type == value_types::VT_I64() {
                 writer_core::emit_byte(w, opcodes::OP_I64_MUL())
             } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_MUL())
+                helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                    w, opcodes::OP_I32_MUL(), opcodes::OP_I64_MUL()
+                )
             }
         }
     }
@@ -77,7 +86,9 @@ fn emit_div(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             if val_type == value_types::VT_I64() {
                 writer_core::emit_byte(w, opcodes::OP_I64_DIV_S())
             } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_DIV_S())
+                helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                    w, opcodes::OP_I32_DIV_S(), opcodes::OP_I64_DIV_S()
+                )
             }
         }
     }
@@ -112,7 +123,9 @@ fn emit_mod(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         if val_type == value_types::VT_I64() {
             writer_core::emit_byte(w, opcodes::OP_I64_REM_S())
         } else {
-            writer_core::emit_byte(w, opcodes::OP_I32_REM_S())
+            helpers_numeric_i32_convert::emit_i32_or_widened_op(
+                w, opcodes::OP_I32_REM_S(), opcodes::OP_I64_REM_S()
+            )
         }
     }
 }

@@ -21,17 +21,23 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Build wasm-heap-grow-patcher
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
+      - name: Build host-linker
+        run: cargo build --release --quiet
+        working-directory: tools/host-linker
+
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
       - name: Check canonical formatting
+        env:
+          ARUKELLT_LINT_WORKERS: "4"
         run: python3 scripts/manager.py fmt --check
 
   quality-lint:
@@ -42,7 +48,7 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Build wasm-heap-grow-patcher
@@ -53,6 +59,8 @@ jobs:
         run: python3 scripts/manager.py selfhost fixpoint --build
 
       - name: Check canonical lint contract
+        env:
+          ARUKELLT_LINT_WORKERS: "4"
         run: python3 scripts/manager.py lint
 
   verify-quick:
@@ -68,7 +76,7 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Install wasm-tools
@@ -83,7 +91,9 @@ jobs:
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build host-linker
-        run: cargo build --release --quiet
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
       - name: Build current selfhost compiler
@@ -92,6 +102,8 @@ jobs:
       - name: Run quick verification
         env:
           ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          ARUKELLT_WASM_INITIAL_PAGES: "131072"
+          ARUKELLT_LINT_WORKERS: "2"
         run: python3 scripts/manager.py verify quick
 
   verification:
@@ -107,7 +119,7 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Install wasm-tools
@@ -122,7 +134,9 @@ jobs:
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build host-linker
-        run: cargo build --release --quiet
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
       - name: Build current selfhost compiler
@@ -137,6 +151,8 @@ jobs:
       - name: Run repository verification
         env:
           ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          ARUKELLT_WASM_INITIAL_PAGES: "131072"
+          ARUKELLT_LINT_WORKERS: "2"
         run: python3 scripts/manager.py verify
 
   selfhost:
@@ -148,7 +164,7 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Install wasm-tools
@@ -180,6 +196,100 @@ jobs:
         continue-on-error: true
         run: python3 scripts/manager.py selfhost diag-parity
 
+  native-executor-gates:
+    name: "Native executor gates"
+    runs-on: ubuntu-latest
+    needs: verification
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Install clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
+      - name: Build current selfhost compiler
+        run: python3 scripts/manager.py selfhost build-compiler
+
+      - name: Native capability / safepoint / CI contract / C99 -Werror
+        env:
+          ARUKELLT_CC: clang
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          python3 scripts/check/check-native-cpp-capabilities.py
+          python3 scripts/check/check-native-cpp-safepoint-audit.py
+          python3 scripts/check/check-native-executor-ci-contract.py
+          python3 scripts/check/check-native-runtime-c99-werror.py
+          python3 scripts/tests/test_native_cpp_executor.py
+
+      - name: Public native-cpp run corpus / parity / sanitizer / installed layout
+        env:
+          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
+          ARUKELLT_CC: clang
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          python3 -m unittest scripts.tests.test_native_toolchain scripts.tests.test_native_cpp_runner
+          python3 -m unittest scripts.tests.test_native_cpp_parity
+          python3 scripts/check/check-native-cpp-public-sanitizer.py
+          python3 scripts/check/collect-native-cpp-public-coverage.py --write
+          python3 scripts/check/check-native-cpp-run-promotion-receipt.py
+
+      # Advisory: full-manifest measure is local/scheduled; CI only forbids
+      # regression vs the committed v2 baseline receipt floors.
+      - name: Native-cpp fixture readiness ratchet (advisory baseline)
+        run: python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py
+
+      - name: Forbid allow-high-rss under CI
+        env:
+          CI: "true"
+          GITHUB_ACTIONS: "true"
+        run: |
+          if python3 scripts/manager.py selfhost native-executor --build --allow-high-rss --dry-run; then
+            echo "expected --allow-high-rss to be rejected under CI" >&2
+            exit 1
+          fi
+
+      # Full strict native-executor (warm wall/RSS) is a local/scheduled promotion
+      # gate; PR CI enforces source/contract gates and forbids --allow-high-rss.
+      # GC stress + sanitizer run when a native binary is available from a prior
+      # native-executor cache on the runner (optional) or from local promotion.
+      - name: GC stress / sanitizer when native binary present
+        env:
+          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
+          ARUKELLT_CC: clang
+        run: |
+          native=".build/selfhost/native/arukellt-native"
+          if [ -x "$native" ]; then
+            python3 scripts/tests/test_native_gc_stress.py
+            python3 scripts/tests/test_native_root_liveness_sanitizer.py
+          else
+            echo "native binary absent on runner; stress/sanitizer deferred to local promotion evidence"
+          fi
+
+      - name: Upload committed promotion receipt if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-executor-promotion-receipt-${{ github.run_id }}
+          path: |
+            docs/data/native-cpp-executor-promotion-receipt.json
+            .build/selfhost/native/native-executor-receipt.json
+          if-no-files-found: warn
+
   docs:
     name: "Docs consistency"
     runs-on: ubuntu-latest
@@ -200,7 +310,7 @@ jobs:
 
       - name: Install wasmtime
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Ensure bootstrap wasm exists
@@ -240,7 +350,7 @@ jobs:
   verify:
     name: "Final gate"
     runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, docs, extension-tests]
+    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests]
     steps:
       - run: echo "Required CI gates passed"
 
@@ -248,7 +358,7 @@ jobs:
     name: "CI category summary"
     if: always()
     runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, docs, extension-tests, release-tag, verify]
+    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests, release-tag, verify]
     steps:
       - name: Write category summary
         run: |
@@ -263,6 +373,7 @@ jobs:
             echo "| quick verification | ${{ needs['verify-quick'].result }} | [verify-quick] |"
             echo "| verification / fixtures | ${{ needs['verification'].result }} | [verification] |"
             echo "| bootstrap / selfhost parity | ${{ needs['selfhost'].result }} | [selfhost] |"
+            echo "| native executor gates | ${{ needs['native-executor-gates'].result }} | [native-executor-gates] |"
             echo "| docs | ${{ needs['docs'].result }} | [docs] |"
             echo "| editor-tooling / extension | ${{ needs['extension-tests'].result }} | [extension-tests] |"
             echo "| release tag | ${{ needs['release-tag'].result }} | [release-tag] |"

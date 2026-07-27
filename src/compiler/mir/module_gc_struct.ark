@@ -16,6 +16,10 @@ fn MirModule_gc_struct_names(m: MirModule) -> Vec<String> {
     m.gc_struct_names
 }
 
+fn MirModule_gc_struct_sigs(m: MirModule) -> Vec<String> {
+    m.gc_struct_sigs
+}
+
 fn MirModule_push_gc_struct(m: MirModule, name: String, sig: String) {
     push(m.gc_struct_names, name)
     push(m.gc_struct_sigs, sig)

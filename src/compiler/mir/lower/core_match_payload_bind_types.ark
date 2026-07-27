@@ -9,6 +9,12 @@ fn core_match_variant_is_err(variant_name: String) -> bool {
     eq(clone(variant_name), "Err") || eq(clone(variant_name), "Result::Err")
 }
 
+fn core_payload_type_is_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fn("))
+}
+
 fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
     if eq(clone(variant_name), "Ok") || eq(clone(variant_name), "Result::Ok") {
         return true
@@ -20,10 +26,21 @@ fn core_match_variant_is_some_or_ok(variant_name: String) -> bool {
 }
 
 fn core_payload_field_vt(ctx: LowerCtx, variant_name: String, field_idx: i32, scrut_ok_is_f64: bool, scrut_ok_is_i64: bool, scrut_ok_is_ref: bool) -> i32 {
+    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
+    if core_payload_type_is_fnref(clone(field_type)) {
+        return value_types::VT_FUNCREF()
+    }
+    // _f1_fnref must not be treated as an open GC ref payload (#831).
+    let slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
+    if slot >= 0 && field_idx == 0 {
+        let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
+        if contains(clone(sig), String_from("_f1_fnref")) {
+            return value_types::VT_FUNCREF()
+        }
+    }
     if ctx_struct_layout::ctx_struct_field_is_gc_ref(ctx, clone(variant_name), field_idx + 1) {
         return value_types::VT_GC_REF()
     }
-    let field_type = ctx_struct_field_type::ctx_struct_field_type_name(ctx, clone(variant_name), field_idx + 1)
     if len(field_type) > 0 && !core_payload_scalar_type_name(clone(field_type)) {
         return value_types::VT_GC_REF()
     }
@@ -66,6 +83,10 @@ fn core_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: 
     }
     let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, slot))
     if field_idx == 0 {
+        // Typed funcref payload is not an open enum/GC struct ref (#831).
+        if contains(clone(sig), String_from("_f1_fnref")) {
+            return false
+        }
         if contains(clone(sig), String_from("_f1_ref")) {
             return true
         }

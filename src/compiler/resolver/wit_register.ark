@@ -31,12 +31,14 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
         return
     }
     wit_ensure_module_alias(ctx, clone(alias))
-    for ri in 0..len(doc.records) {
-        let rec = get_unchecked(doc.records, ri)
+    let records = wit_parse_text::WitParsedInterface_records(doc)
+    for ri in 0..len(records) {
+        let rec = get_unchecked(records, ri)
         register_exports::register_module_export(ctx, clone(alias), clone(rec.ark_name), commands::SYM_STRUCT(), true)
     }
-    for ei in 0..len(doc.enums) {
-        let en = get_unchecked(doc.enums, ei)
+    let enums = wit_parse_text::WitParsedInterface_enums(doc)
+    for ei in 0..len(enums) {
+        let en = get_unchecked(enums, ei)
         register_exports::register_module_export(ctx, clone(alias), clone(en.ark_name), commands::SYM_ENUM(), true)
         for vi in 0..len(en.variant_ark_names) {
             let variant = get_unchecked(en.variant_ark_names, vi)
@@ -44,8 +46,9 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
             register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
         }
     }
-    for fi in 0..len(doc.funcs) {
-        let func = get_unchecked(doc.funcs, fi)
+    let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
+    for fi in 0..len(funcs) {
+        let func = get_unchecked(funcs, fi)
         register_exports::register_module_export(ctx, clone(alias), clone(func.ark_name), commands::SYM_FN(), true)
     }
 }

@@ -5,6 +5,7 @@ use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use wasm::opcodes
 use wasm::writer_core
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 fn emit_br(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_byte(w, opcodes::OP_BR())
@@ -12,6 +13,7 @@ fn emit_br(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_br_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     writer_core::emit_byte(w, opcodes::OP_BR_IF())
     writer_core::emit_leb128_u(w, inst_accessors_literals::MirInst_int_val(inst))
 }
@@ -27,6 +29,7 @@ fn emit_loop(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_if(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 }

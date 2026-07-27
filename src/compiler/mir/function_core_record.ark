@@ -1,3 +1,4 @@
+use mir::source_location_record
 use mir::types_block
 use mir::value_types
 
@@ -10,9 +11,10 @@ pub struct MirFunction {
     return_type_name: String,
     next_local: i32,
     next_block: i32,
+    source_location: SourceLocation,
 }
 
-fn MirFunction_new(name: String) -> MirFunction {
+fn MirFunction_new(name: String, source_location: SourceLocation) -> MirFunction {
     MirFunction {
         name: name,
         params: Vec_new_MirLocal(),
@@ -21,6 +23,9 @@ fn MirFunction_new(name: String) -> MirFunction {
         return_type: value_types::VT_VOID(),
         return_type_name: String_new(),
         next_local: 0,
-        next_block: 0
+        next_block: 0,
+        source_location: source_location,
     }
 }
+
+fn MirFunction_source_location(f: MirFunction) -> SourceLocation { f.source_location }

@@ -1,6 +1,7 @@
 use corehir::decl_ann_member
 use corehir::decl_ann_name
 use corehir::decl_node_identity
+use corehir::semantic_trait_id
 
 // Return the concrete type that owns methods in an impl block.
 // - `impl Trait for Type` → Type (type_ann[1])
@@ -14,4 +15,14 @@ fn impl_self_type_name(decl: AstNode) -> String {
         return decl_ann_name::decl_ann_name(decl_ann_member::decl_ann_at(decl, 0))
     }
     return decl_node_identity::decl_name(decl)
+}
+
+// Canonical SemanticTraitId for `impl Trait for Type`, or NONE for inherent impls.
+fn impl_semantic_trait_id(decl: AstNode) -> i32 {
+    let ann_count = decl_ann_member::decl_ann_count(decl)
+    if ann_count < 2 {
+        return semantic_trait_id::SEMANTIC_TRAIT_ID_NONE()
+    }
+    let trait_ann = decl_ann_member::decl_ann_at(decl, 0)
+    semantic_trait_id::semantic_trait_id_from_trait_name(decl_ann_name::decl_ann_name(trait_ann))
 }

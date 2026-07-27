@@ -11,22 +11,30 @@ fn check_return_type_compat(env: TypeEnv, fn_name: String, ret_type: TypeInfo, v
     if ret_tag == commands::TY_UNKNOWN() || val_tag == commands::TY_UNKNOWN() {
         return
     }
+    if ret_tag == commands::TY_I32() && val_tag == commands::TY_CHAR() {
+        return
+    }
     if ret_tag != val_tag {
         let ret_name = names::type_display_name(resolved_ret)
         let val_name = names::type_display_name(resolved_val)
-        unify::type_error(env, concat(String_from("return type mismatch: '"),
-            concat(clone(fn_name),
-            concat(String_from("' declared to return "),
-            concat(ret_name,
-            concat(String_from(" but body returns "), val_name))))))
+        let prefix = concat(String_from("return type mismatch: '"), clone(fn_name))
+        let expected = concat(prefix, concat(String_from("' declared to return "), ret_name))
+        unify::type_error(env, concat(expected, concat(String_from(" but body returns "), val_name)))
         return
     }
     if (ret_tag == commands::TY_STRUCT() || ret_tag == commands::TY_ENUM() || ret_tag == commands::TY_RESOURCE())
-        && !eq(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
-        unify::type_error(env, concat(String_from("return type mismatch: '"),
-            concat(clone(fn_name),
-            concat(String_from("' declared to return "),
-            concat(contract_type_access::TypeInfo_name(resolved_ret),
-            concat(String_from(" but body returns "), contract_type_access::TypeInfo_name(resolved_val))))))))
+    && !eq(contract_type_access::TypeInfo_name(resolved_ret), contract_type_access::TypeInfo_name(resolved_val)) {
+        let prefix = concat(String_from("return type mismatch: '"), clone(fn_name))
+        let expected = concat(
+            prefix,
+            concat(String_from("' declared to return "), contract_type_access::TypeInfo_name(resolved_ret))
+        )
+        unify::type_error(
+            env,
+            concat(
+                expected,
+                concat(String_from(" but body returns "), contract_type_access::TypeInfo_name(resolved_val))
+            )
+        )
     }
 }

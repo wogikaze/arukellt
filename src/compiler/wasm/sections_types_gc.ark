@@ -1,9 +1,10 @@
 //
 // Type sig format:
-//   A_{elem}      - array type with element type {elem}
-//   S_f{N}_{T}... - struct type with fields at offsets {N} of types {T}
-//   Sub{N}_S_...  - subtype of type at index {N} with struct body S_...
-//   SubF{N}_S_... - final subtype of type at index {N} with struct body S_...
+//   A_{elem}        - array type with element type {elem}
+//   S_f{N}_{T}...   - struct type with fields at offsets {N} of types {T}
+//   Sub{N}_S_...    - subtype of type at index {N} with struct body S_...
+//   SubF{N}_S_...   - final subtype of type at index {N} with struct body S_...
+//   SubF_GS_f...    - final struct with no supertype (user-defined structs)
 
 use mir::module_gc_enum
 use mir::module_gc_struct
@@ -135,34 +136,44 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
 fn append_gc_type_sigs(type_sigs: Vec<String>) {
     push(type_sigs, String_from("A_i8"))
     push(type_sigs, String_from("A_i32"))
-    push(type_sigs, String_from("GS_f0_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
-    push(type_sigs, String_from("GS_f0_ref1_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_ref1_f1_i32"))
     push(type_sigs, String_from("A_i64"))
     push(type_sigs, String_from("A_f64"))
-    push(type_sigs, String_from("GS_f0_i64"))
+    push(type_sigs, String_from("SubF_GS_f0_i64"))
     push(type_sigs, String_from("Sub0_GS_f0_i32"))
     push(type_sigs, String_from("A_ref0"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("GS_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("GS_f0_ref15_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1"))
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1"))
+    push(type_sigs, String_from("SubF_GS_f0_ref15_f1_i32"))
     push(type_sigs, String_from("A_v128"))
-    push(type_sigs, String_from("GS_f0_ref20_f1_i32"))
-    push(type_sigs, String_from("GS_f0_ref11_f1_i32"))
-    push(type_sigs, String_from("GS_f0_ref12_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_ref20_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_ref11_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_ref12_f1_i32"))
     push(type_sigs, String_from("A_structref"))
-    push(type_sigs, String_from("GS_f0_ref24_f1_i32"))
+    push(type_sigs, String_from("SubF_GS_f0_ref24_f1_i32"))
+    // Vec<fn>: nullable funcref array + vec header (#832).
+    push(type_sigs, String_from("A_fnref"))
+    push(type_sigs, String_from("SubF_GS_f0_ref26_f1_i32"))
+    // Vec<Option/Result>: nullable open-enum array + vec header (#832).
+    push(type_sigs, String_from("A_ref14"))
+    push(type_sigs, String_from("SubF_GS_f0_ref28_f1_i32"))
+    // HashMap<i32, fn>: keys A_i32, vals A_fnref (offset 26), flags A_i32 (#833).
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref26_f4_ref1"))
+    // HashMap<String, fn>: keys A_ref0 (offset 15), vals A_fnref (offset 26) (#838).
+    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref26_f4_ref1"))
 }
 
 fn gc_type_sig_count() -> i32 {
-    26
+    32
 }
 
 fn gc_enum_open_type_offset() -> i32 {
@@ -209,6 +220,14 @@ fn gc_vec_f64_type_sig() -> String {
     String_from("gcref23")
 }
 
+fn gc_vec_fnref_type_sig() -> String {
+    String_from("gcref27")
+}
+
+fn gc_vec_enum_ref_type_sig() -> String {
+    String_from("gcref29")
+}
+
 fn gc_string_type_sig() -> String {
     String_from("gcref0")
 }
@@ -225,6 +244,14 @@ fn gc_hashmap_str_str_type_sig() -> String {
     String_from("gcref18")
 }
 
+fn gc_hashmap_i32_fn_type_sig() -> String {
+    String_from("gcref30")
+}
+
+fn gc_hashmap_str_fn_type_sig() -> String {
+    String_from("gcref31")
+}
+
 fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
     let count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
     let mut i = 0
@@ -234,11 +261,19 @@ fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
     }
 }
 
+fn gc_struct_sig_as_final(sig: String) -> String {
+    if starts_with(clone(sig), String_from("GS_f")) {
+        return concat(String_from("SubF_"), sig)
+    }
+    sig
+}
+
 fn append_gc_struct_sigs(type_sigs: Vec<String>, mir: MirModule) {
     let count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
     let mut i = 0
     while i < count {
-        push(type_sigs, module_gc_struct::MirModule_gc_struct_sig_at(mir, i))
+        let sig = module_gc_struct::MirModule_gc_struct_sig_at(mir, i)
+        push(type_sigs, gc_struct_sig_as_final(sig))
         i = i + 1
     }
 }

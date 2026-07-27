@@ -1,5 +1,6 @@
 use diagnostics::codes
 use diagnostics::record
+use corehir::core_op_registry_generated
 use lint::deprecated_table
 use parser::ast
 use resolver::ast_access
@@ -86,7 +87,8 @@ pub fn check_unused_symbols(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut fi = 0
     while fi < fn_count {
         let name = clone(get_unchecked(fn_names, fi))
-        if !name_in_vec(clone(name), referenced) {
+        if !name_in_vec(clone(name), referenced) &&
+        !core_op_registry_generated::core_op_registry_has_fallback_symbol(clone(name)) {
             let msg = concat(String_from("unused symbol `"), concat(clone(name), String_from("`")))
             let span = record::DiagnosticSpan_from_raw(get_unchecked(fn_spans_start, fi), get_unchecked(fn_spans_end, fi))
             push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_UNUSED_SYMBOL(), diag_mod::SEV_WARNING(), span, msg))

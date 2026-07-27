@@ -6,6 +6,7 @@ use typechecker::call_generic
 use typechecker::call_unknown
 use typechecker::contract_fn_sig
 use typechecker::sigs
+use typechecker::unify
 
 fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, node: AstNode) -> TypeInfo {
     let child_count = ast_access::node_child_count(node)
@@ -19,11 +20,11 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
     }
     let callee_name = ast_access::node_text(callee)
     let mut mono_fn_name = clone(callee_name)
-    let mut sig = sigs::lookup_fn_sig(fn_sigs, clone(callee_name))
+    let mut sig = sigs::lookup_fn_sig(env, fn_sigs, clone(callee_name))
     if !contract_fn_sig::FnSig_has_name(sig) {
         let stripped = tc_strip_module_prefix(clone(callee_name))
         if !eq(clone(stripped), clone(callee_name)) {
-            let bare_sig = sigs::lookup_fn_sig(fn_sigs, clone(stripped))
+            let bare_sig = sigs::lookup_fn_sig(env, fn_sigs, clone(stripped))
             // Module-qualified stdlib generic calls (e.g. fmt::format_debug) register
             // mono instances under the bare decl name. Only rewrite when the bare sig
             // is generic so compiler-local qualified calls (fmt::format_source,
@@ -39,9 +40,38 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }
     if contract_fn_sig::FnSig_type_param_count(sig) == 0 {
-        return contract_fn_sig::FnSig_return_type(sig)
+        return infer_concrete_call_expr(env, scope, fn_sigs, enum_defs, node, sig, child_count - 1)
     }
     call_generic::infer_generic_call_expr(env, scope, fn_sigs, enum_defs, node, sig, mono_fn_name)
+}
+
+fn infer_concrete_call_expr(
+    env: TypeEnv,
+    scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    sig: FnSig,
+    arg_count: i32
+) -> TypeInfo {
+    let param_count = contract_fn_sig::FnSig_param_count(sig)
+    if arg_count != param_count {
+        let fname = contract_fn_sig::FnSig_name(sig)
+        unify::type_error_bad_arity(
+            env,
+            concat(
+                String_from("wrong number of arguments for `"),
+                concat(clone(fname), concat(String_from("`: expected "), concat(to_string(param_count), concat(String_from(", found "), to_string(arg_count)))))
+            )
+        )
+        call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
+        return TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    // Infer argument expressions for side effects / nested diagnostics, but do not
+    // unify against FnSig params yet: flat name lookup is not overload-aware and
+    // would false-fail stdlib bodies that share short names.
+    call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, arg_count)
+    contract_fn_sig::FnSig_return_type(sig)
 }
 
 fn tc_strip_module_prefix(name: String) -> String {

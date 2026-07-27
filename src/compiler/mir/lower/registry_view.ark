@@ -20,4 +20,6 @@ fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
         }
         sd = sd + 1
     }
+    // GC named types after all layouts exist (nested Span under AstNode, etc.).
+    registry_structs::mir_register_struct_gc_types(ctx)
 }

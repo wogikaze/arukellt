@@ -34,7 +34,14 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
     }
-    if eq(clone(callee_name), "vec_get_unchecked") || eq(clone(callee_name), "get_unchecked") || eq(clone(callee_name), "__intrinsic_get_unchecked") {
+    if eq(clone(callee_name), "vec_is_empty") || eq(clone(callee_name), "is_empty") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
+    }
+    if is_get_unchecked_callee(clone(callee_name)) {
+        // Prefer the vec argument's element type over a mono suffix
+        // (get_unchecked__String). Shared spans can attach the wrong
+        // specialization while the receiver is Vec<Struct> (wit_find).
         mark_vec_get_unchecked_result_type(ctx, dest, first_arg_idx)
     }
     if eq(clone(callee_name), "vec_get_unchecked_i64") {
@@ -50,11 +57,35 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     }
 }
 
+fn is_get_unchecked_callee(callee_name: String) -> bool {
+    if eq(clone(callee_name), "vec_get_unchecked") ||
+    eq(clone(callee_name), "get_unchecked") ||
+    eq(clone(callee_name), "__intrinsic_get_unchecked") {
+        return true
+    }
+    starts_with(clone(callee_name), String_from("get_unchecked__")) ||
+    starts_with(clone(callee_name), String_from("vec_get_unchecked__")) ||
+    starts_with(clone(callee_name), String_from("__intrinsic_get_unchecked__"))
+}
+
+fn strip_module_prefix_elem_name(elem_ty: String) -> String {
+    let n = len(elem_ty)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(elem_ty, i) == 58 && char_at(elem_ty, i + 1) == 58 {
+            return substring(elem_ty, i + 2, n)
+        }
+        i = i - 1
+    }
+    elem_ty
+}
+
 fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if starts_with(clone(vec_type), "vec:") {
-            let elem_ty = substring(vec_type, 4, len(vec_type))
+            let raw_elem = substring(vec_type, 4, len(vec_type))
+            let elem_ty = strip_module_prefix_elem_name(clone(raw_elem))
             // Normalize mono names: Vec_String → vec:String so emitter casts
             // structref elems to the string-vec GC type (#726 csv_perf).
             let mut set_ty = clone(elem_ty)
@@ -122,6 +153,12 @@ fn ensure_option_some_for_vec_elem(ctx: LowerCtx, elem_ty: String) {
 // This prevents the emitter from declaring the local as i32 and then
 // storing a GC reference value into it, which produces invalid wasm.
 fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
+    if eq(clone(elem_ty), String_from("fnref")) ||
+    eq(clone(elem_ty), String_from("fn")) ||
+    starts_with(clone(elem_ty), String_from("fn(")) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
+        return
+    }
     if eq(clone(elem_ty), String_from("i32")) || eq(clone(elem_ty), String_from("I32")) || eq(clone(elem_ty), String_from("bool")) || eq(clone(elem_ty), String_from("char")) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
@@ -161,7 +198,9 @@ fn set_ref_vt_for_elem_type(ctx: LowerCtx, dest: i32, elem_ty: String) {
     !eq(clone(elem_ty), String_from("String")) &&
     !eq(clone(elem_ty), String_from("string")) &&
     !eq(clone(elem_ty), String_from("bool")) &&
-    !eq(clone(elem_ty), String_from("char")) {
+    !eq(clone(elem_ty), String_from("char")) &&
+    !eq(clone(elem_ty), String_from("fnref")) &&
+    !eq(clone(elem_ty), String_from("fn")) {
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
@@ -187,13 +226,23 @@ fn vec_string_producer_base_matches(name: String) -> bool {
     eq(clone(name), "split") ||
     eq(clone(name), "text::split") ||
     eq(clone(name), "string::split") ||
+    eq(clone(name), "lines") ||
+    eq(clone(name), "text::lines") ||
+    eq(clone(name), "string::lines") ||
     eq(clone(name), "__intrinsic_split") {
         return true
     }
-    if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) {
+    if ends_with(clone(name), String_from("::split")) ||
+    ends_with(clone(name), String_from("::chars")) ||
+    ends_with(clone(name), String_from("::lines")) ||
+    ends_with(clone(name), String_from("__split")) ||
+    ends_with(clone(name), String_from("__chars")) ||
+    ends_with(clone(name), String_from("__lines")) {
         return true
     }
-    if starts_with(clone(name), String_from("split__")) || starts_with(clone(name), String_from("chars__")) {
+    if starts_with(clone(name), String_from("split__")) ||
+    starts_with(clone(name), String_from("chars__")) ||
+    starts_with(clone(name), String_from("lines__")) {
         return true
     }
     false

@@ -10,6 +10,7 @@
 | `verify-quick` | PR-required quick verification, including quality quick. |
 | `verification` | Runs `python3 scripts/manager.py verify` (and related verify lanes). |
 | `selfhost` | Selfhost fixpoint + fixture/CLI/diag parity (ADR-029). |
+| `native-executor-gates` | See workflow definition. |
 | `docs` | Docs consistency / freshness / structure checks. |
 | `extension-tests` | VS Code extension activation and live CLI E2E. |
 | `release-tag` | Tag-only: project-state.toml version vs git tag. |

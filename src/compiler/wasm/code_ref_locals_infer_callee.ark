@@ -1,4 +1,7 @@
+// Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
+// See docs/research/infer-local-gc-type-option.md.
 use mir::function_return_view
+use mir::post_pass_callee_lookup
 use mir::value_types
 use wasm::ctx_record
 use wasm::ctx_gc_type
@@ -8,99 +11,135 @@ use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
 // Infer GC type for string-returning callees. Returns -1 if not a string callee.
-fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
-    if eq(clone(callee), "String_new") ||
-    eq(clone(callee), "String_from") ||
-    eq(clone(callee), "concat") ||
-    eq(clone(callee), "clone") ||
-    eq(clone(callee), "to_string") ||
-    eq(clone(callee), "char_to_string") ||
-    eq(clone(callee), "bool_to_string") ||
-    eq(clone(callee), "f64_to_string") ||
-    eq(clone(callee), "__intrinsic_i32_to_string") ||
-    eq(clone(callee), "__intrinsic_i64_to_string") ||
-    eq(clone(callee), "__intrinsic_f64_to_string") ||
-    eq(clone(callee), "__intrinsic_bool_to_string") ||
-    eq(clone(callee), "__intrinsic_char_to_string") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    if post_pass_callee_lookup::is_string_returning_intrinsic(callee) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
-    if ends_with(clone(callee), String_from("::to_string")) || ends_with(clone(callee), String_from("::to_string__1")) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if eq(clone(callee), "__hm_si_get_key") ||
-    eq(clone(callee), "__hm_is_get_val") ||
-    eq(clone(callee), "__hm_ss_get_key") ||
-    eq(clone(callee), "__hm_ss_get_val") ||
-    eq(clone(callee), "hash_string::hashmap_str_str_get_key") ||
-    eq(clone(callee), "hash_string::hashmap_str_str_get_val") ||
-    eq(clone(callee), "hash_string::hashmap_i32_str_get_val") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    0 - 1
+    Option::None
 }
 
 // Infer GC type for hashmap-returning callees. Returns -1 if not a hashmap callee.
-fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") || eq(clone(callee), "HashMap_new_String_i32") || eq(clone(callee), "HashMap_String_i32_new") {
-        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
     }
     if eq(clone(callee), "__hm_is_new") || eq(clone(callee), "hash_string::hashmap_i32_str_new") || eq(clone(callee), "HashMap_new_i32_String") || eq(clone(callee), "HashMap_i32_String_new") {
-        return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+    }
+    if eq(clone(callee), "__hm_if_new") || eq(clone(callee), "hash_fn::hashmap_i32_fn_new") || eq(clone(callee), "HashMap_new_i32_fn") || eq(clone(callee), "HashMap_i32_fn_new") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
+    }
+    if eq(clone(callee), "__hm_sf_new") ||
+    eq(clone(callee), "hash_str_fn::hashmap_str_fn_new") ||
+    eq(clone(callee), "HashMap_new_String_fn") ||
+    eq(clone(callee), "HashMap_String_fn_new") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
     }
     if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
-        return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
     }
-    0 - 1
+    Option::None
 }
 
 // Fallback: infer GC type from the called function's return type signature.
-fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> i32 {
+fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
     if fn_idx < 0 {
-        return 0 - 1
+        return Option::None
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
     let ret_name = function_return_view::MirFunction_return_type_name(called)
+    // Prefer a registered gc_struct when the return type names one. Typed-spine
+    // / layout lookup can still report enum-open for user structs
+    // (WitParsedInterface), which then types call-result locals incorrectly.
+    let named_struct = resolve_named_struct_gc_type(ctx, clone(ret_name))
+    match named_struct {
+        Option::Some(_opt_v) => {
+            return named_struct
+        }
+        Option::None => {}
+    }
     // Phase 5e: structured lookup (GcLayoutTable + centralized name→offset
     // fallback) handles vec/string/hashmap/option/result/enum.
     if len(ret_name) > 0 {
         let structured_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(ret_name))
         if structured_gc >= 0 {
-            return structured_gc
+            return Option::Some(structured_gc)
         }
     }
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
+}
+
+fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
+    if len(ret_name) == 0 {
+        return Option::None
+    }
+    if starts_with(clone(ret_name), String_from("struct:")) {
+        let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
+        }
+        return Option::None
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name)))
+    }
+    let name_len = len(ret_name)
+    let mut colon_pos = 0 - 1
+    let mut ci = name_len - 1
+    while ci >= 0 {
+        if char_at(ret_name, ci) == 58 {
+            colon_pos = ci
+            ci = 0 - 1
+        }
+        ci = ci - 1
+    }
+    if colon_pos >= 0 {
+        let bare = substring(ret_name, colon_pos + 1, name_len)
+        if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare))
+        }
+    }
+    Option::None
 }
 
 // Struct/enum-oriented tail of infer_call_result_gc_type_from_fn.
 // Struct name extraction from "struct:TypeName:byte_size" remains here
 // because the format requires parsing.  Option/enum is a safety net for
 // cases where the GcLayoutTable lookup doesn't find the type name.
-fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> i32 {
+fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> Option<i32> {
     if starts_with(clone(ret_name), String_from("struct:")) {
         let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
         }
         let byte_size = parse_struct_byte_size_from_ret_name(clone(ret_name))
         if byte_size > 0 {
-            return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
         }
     }
-    if ret_type == value_types::VT_GC_REF() {
-        if is_option_type_name(clone(ret_name)) || starts_with(clone(ret_name), String_from("enum:")) {
-            return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    if ret_type == value_types::mir_value_types__VT_GC_REF() {
+        if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
+        starts_with(clone(ret_name), String_from("enum:")) ||
+        starts_with(clone(ret_name), String_from("Result_")) ||
+        starts_with(clone(ret_name), String_from("Result:")) ||
+        starts_with(clone(ret_name), String_from("Result<")) ||
+        starts_with(clone(ret_name), String_from("result:")) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
-        if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
+        let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
+        match named {
+            Option::Some(_opt_v) => {
+                return named
+            }
+            Option::None => {}
         }
-        return ctx_gc_type::SelfEmitCtx_struct_type(ctx, 0)
+        // Unknown GC ref without a registered struct name: do not guess the
+        // 1-field size-class (collides with enum-open at base+2).
+        return Option::None
     }
-    if len(ret_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(ret_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(ret_name))
-    }
-    0 - 1
+    resolve_named_struct_gc_type(ctx, ret_name)
 }
 
 // Extract struct name from "struct:TypeName:byte_size" format.
@@ -152,43 +191,52 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     byte_size
 }
 
-fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let string_type = infer_string_callee_gc_type(ctx, callee)
-    if string_type >= 0 {
-        return string_type
+    match string_type {
+        Option::Some(_opt_v) => {
+            return string_type
+        }
+        Option::None => {}
     }
     let hm_type = infer_hashmap_callee_gc_type(ctx, callee)
-    if hm_type >= 0 {
-        return hm_type
+    match hm_type {
+        Option::Some(_opt_v) => {
+            return hm_type
+        }
+        Option::None => {}
     }
     let builtin = infer_builtin_callee_gc_type(ctx, callee)
-    if builtin >= 0 {
-        return builtin
+    match builtin {
+        Option::Some(_opt_v) => {
+            return builtin
+        }
+        Option::None => {}
     }
     infer_call_result_gc_type_from_fn(ctx, callee)
 }
 
-fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     if starts_with(clone(callee), String_from("Vec_new_")) {
         return infer_vec_new_callee_gc_type(ctx, callee)
     }
     if eq(clone(callee), "vec_pop") || eq(clone(callee), "vec_get") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if eq(clone(callee), "find_i32") || eq(clone(callee), "find_i64") || eq(clone(callee), "find_f64") || eq(clone(callee), "find_String") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if eq(clone(callee), "vec_push") {
-        return 0 - 1
+        return Option::None
     }
     if eq(clone(callee), "vec_set") || eq(clone(callee), "vec_reverse") || eq(clone(callee), "vec_remove") {
-        return ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
     }
     if eq(clone(callee), "filter_String") || eq(clone(callee), "__intrinsic_filter_String") || eq(clone(callee), "map_String_String") || eq(clone(callee), "__intrinsic_map_String_String") {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
     if eq(clone(callee), "filter_i32") || eq(clone(callee), "__intrinsic_filter_i32") || eq(clone(callee), "map_i32_i32") || eq(clone(callee), "__intrinsic_map_i32_i32") {
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
     if eq(clone(callee), "parse_i32") ||
     eq(clone(callee), "convert::parse_i32") ||
@@ -198,52 +246,32 @@ fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
     eq(clone(callee), "convert::parse_f64") ||
     eq(clone(callee), "parse_u64") ||
     eq(clone(callee), "convert::parse_u64") {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if eq(clone(callee), "split") || eq(clone(callee), "text::split") || eq(clone(callee), "string::split") || eq(clone(callee), "__intrinsic_split") {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+    if post_pass_callee_lookup::is_vec_string_returning_intrinsic(callee) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
-    if eq(clone(callee), "join") || eq(clone(callee), "text::join") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    if eq(clone(callee), "trim") ||
-    eq(clone(callee), "trim_start") ||
-    eq(clone(callee), "trim_end") ||
-    eq(clone(callee), "to_uppercase") ||
-    eq(clone(callee), "to_lowercase") ||
-    eq(clone(callee), "replace") ||
-    eq(clone(callee), "replace_all") ||
-    eq(clone(callee), "repeat") ||
-    eq(clone(callee), "slice") ||
-    eq(clone(callee), "substring") ||
-    eq(clone(callee), "reverse") ||
-    eq(clone(callee), "pad_left") ||
-    eq(clone(callee), "pad_right") ||
-    eq(clone(callee), "pad_start") ||
-    eq(clone(callee), "pad_end") {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
-    }
-    0 - 1
+    Option::None
 }
 
-fn infer_vec_new_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> i32 {
+fn infer_vec_new_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     if eq(clone(callee), String_from("Vec_new_String")) {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
     if eq(clone(callee), String_from("Vec_new_i64")) {
-        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
     }
     if eq(clone(callee), String_from("Vec_new_f64")) {
-        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
     if eq(clone(callee), String_from("Vec_new_v128")) {
-        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
     if starts_with(clone(callee), String_from("Vec_new_")) {
         let elem = substring(clone(callee), 8, len(callee))
         if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
-            return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+            return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
         }
     }
-    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
 }

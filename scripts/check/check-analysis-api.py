@@ -30,6 +30,8 @@ def _find_wasmtime() -> str | None:
 
 
 def _wasmtime_run_prefix(wasmtime: str) -> list[str]:
+    # Match scripts/selfhost/checks.py WASMTIME_SELFHOST_WASM_FLAGS so
+    # Memory64 s2-runtime modules start correctly.
     return [
         wasmtime,
         "run",
@@ -39,6 +41,10 @@ def _wasmtime_run_prefix(wasmtime: str) -> list[str]:
         "function-references",
         "--wasm",
         "max-wasm-stack=16777216",
+        "-W",
+        "memory64=y",
+        "-W",
+        "max-memory-size=17179869184",
     ]
 
 

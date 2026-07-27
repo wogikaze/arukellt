@@ -1,0 +1,86 @@
+use mir::legacy_vt_compat
+use mir::lower::ctx_api_module
+use mir::lower::ctx_types
+use mir::module_spine
+use mir::spine_lookup
+use mir::typed_mir_compat
+use mir::value_types
+
+// True when callee param at param_idx (0-based) is i64 per signature spine.
+// Used to force bare int literals to CONST_I64 / extend i32 locals before call.
+fn mir_callee_param_is_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
+    let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
+    // 1 = i64, 0 = not i64, -1 = spine miss
+    decided == 1
+}
+
+fn mir_should_force_int_lit_i64(ctx: LowerCtx, callee_name: String, param_idx: i32) -> bool {
+    // Conversion intrinsics that take i32 must keep CONST_I32 args.
+    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+        return false
+    }
+    let decided = mir_callee_param_i64_decision(ctx, clone(callee_name), param_idx)
+    if decided == 1 {
+        return true
+    }
+    if decided == 0 {
+        // Spine knows this param is not i64 — do not apply name heuristics
+        // (parse_i64_digits(base: i32, x: i64) must keep base as i32).
+        return false
+    }
+    // Spine miss fallback: historic name / seek heuristics.
+    mir_callee_name_suggests_i64_args(callee_name)
+}
+
+// 1 = i64, 0 = known non-i64, -1 = spine unavailable / lookup miss.
+fn mir_callee_param_i64_decision(ctx: LowerCtx, callee_name: String, param_idx: i32) -> i32 {
+    if param_idx < 0 {
+        return 0 - 1
+    }
+    let m = ctx_api_module::ctx_current_module(ctx)
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return 0 - 1
+    }
+    let mut param_mvt = spine_lookup::function_param_mvt(m, clone(callee_name), param_idx)
+    if typed_mir_compat::mvt_is_invalid(param_mvt) {
+        let short = mir_callee_short_name(clone(callee_name))
+        if !eq(clone(short), clone(callee_name)) {
+            param_mvt = spine_lookup::function_param_mvt(m, short, param_idx)
+        }
+    }
+    if typed_mir_compat::mvt_is_invalid(param_mvt) {
+        return 0 - 1
+    }
+    let table = module_spine::MirModule_type_table(m)
+    if legacy_vt_compat::legacy_vt_from_mir_value_type(table, param_mvt) == value_types::VT_I64() {
+        return 1
+    }
+    0
+}
+
+fn mir_callee_name_suggests_i64_args(callee_name: String) -> bool {
+    if contains(clone(callee_name), String_from("i32_to_i64")) || contains(clone(callee_name), String_from("u32_to_u64")) {
+        return false
+    }
+    if contains(clone(callee_name), String_from("i64")) {
+        return true
+    }
+    if ends_with(clone(callee_name), String_from("seek_to")) {
+        return true
+    }
+    if eq(clone(callee_name), String_from("seek")) {
+        return true
+    }
+    ends_with(clone(callee_name), String_from("::seek"))
+}
+
+fn mir_callee_short_name(callee_name: String) -> String {
+    let mut i = len(callee_name) - 1
+    while i >= 0 {
+        if char_at(callee_name, i) == 58 {
+            return substring(clone(callee_name), i + 1, len(callee_name))
+        }
+        i = i - 1
+    }
+    callee_name
+}

@@ -59,8 +59,8 @@ that other stdlib modules build upon.
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
 | `range_new` | `(i32, i32) -> Range` | `stable` | ✅ functional | Builds a half-open range [start, end). |
-| `range_contains` | `(Range, i32) -> bool` | `stable` | ✅ functional | Returns true when value lies inside the half-open range. |
-| `range_len` | `(Range) -> i32` | `stable` | ✅ functional | Returns the non-negative length of the half-open range. |
+| `range_contains` | `(Range, i32) -> bool` | `stable` | ✅ functional | - |
+| `range_len` | `(Range) -> i32` | `stable` | ✅ functional | - |
 | `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | ✅ functional | - |
 | `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `stable` | ✅ functional | - |
 | `cmp_i32` | `(i32, i32) -> Ordering` | `stable` | ✅ functional | Compares two integers and returns their ordering relationship. |

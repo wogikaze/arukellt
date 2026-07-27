@@ -20,7 +20,8 @@ Arukellt の言語意味論は **Wasm GC 前提**である（ADR-002）。
 |-----------|------|----------|
 | `wasm32-gc` | **primary**（ADR-013） | Wasm GC references（移行途中の箇所あり — current-state） |
 | `wasm32` | **supported** 互換 | 同一言語意味論の **linear-memory lowering** |
-| `native-*` | scaffold | 未決定（ADR-045） |
+| `native-cpp` | scaffold | ADR-049のexecutor設計では同一GC意味論をprocess-lifetime arenaへlower。未実装 |
+| `native-llvm` | scaffold | 未決定。ADR-049の対象外 |
 
 「設計上の primary」と「ある時点の実装完成度」は分ける:
 
@@ -61,8 +62,8 @@ push(v2, 20)
 closures は MIR lowerer により **named functions** としてコンパイルされる。
 キャプチャはヒープ環境 struct ではなく関数パラメータ経由で渡す（現行 fixture 集合向け）。
 
-- 関数値は `funcref` テーブル index（i32）
-- `call_indirect` でディスパッチ
+- Class A/B の関数値は typed funcref（`(ref $sig)`）+ `ref.func` / `call_ref`
+- Class C / 動的ディスパッチは当面 `call_indirect` + table（ADR-033）
 - エスケープするクロージャが必要になった場合は別途環境 struct を検討する
 
 ## 参照先

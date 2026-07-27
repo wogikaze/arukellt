@@ -1,0 +1,28 @@
+// Environment-equivalent: nested frames keep an outer String live while
+// callees allocate temporary payloads (no MIR_CALL_INDIRECT).
+
+fn inner(label: String) -> i32 {
+    let _tmp = String_from("inner-temp")
+    len(label)
+}
+
+fn outer(label: String) -> i32 {
+    let mut i = 0
+    while i < 16 {
+        let _junk = String_from("outer-temp")
+        let n = inner(label)
+        if n < 1 {
+            return 1
+        }
+        i = i + 1
+    }
+    0
+}
+
+fn main() -> i32 {
+    let keep = String_from("env-keep")
+    if outer(keep) != 0 {
+        return 1
+    }
+    if eq(keep, String_from("env-keep")) { 0 } else { 1 }
+}

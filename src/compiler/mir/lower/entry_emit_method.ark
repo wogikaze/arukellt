@@ -9,6 +9,7 @@ use mir::function_factory
 use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::ctx_struct_layout
+use mir::source_location_record
 
 fn mir_emit_method_body(
     ctx: LowerCtx,
@@ -22,7 +23,7 @@ fn mir_emit_method_body(
     return_vt: i32,
     rt_type_name: String
 ) {
-    let mf = function_factory::MirFunction_new(emit_method_name)
+    let mf = function_factory::MirFunction_new(emit_method_name, source_location_record::SourceLocation_unmapped())
     let _entry_fn = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
     entry_params::mir_bind_method_params(ctx, entry_view, method_info_index, struct_name, method_param_count)
     // For monomorphized method instances, setup the type parameter mapping

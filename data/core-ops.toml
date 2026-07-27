@@ -51,6 +51,10 @@ alias = "String_new"
 core_op_id = "text.String_new"
 
 [[legacy_bindings]]
+alias = "__intrinsic_string_new"
+core_op_id = "raw.string_new"
+
+[[legacy_bindings]]
 alias = "Vec_new_f64"
 core_op_id = "vec.Vec_new_f64"
 
@@ -102,6 +106,22 @@ core_op_id = "vec.Vec_new_fallback"
 alias = "Vec_new_v128"
 core_op_id = "vec.Vec_new_f64"
 
+# Prefix family bindings evaluated only after exact legacy_bindings / manifest
+# aliases miss. Used by MIR call_func_id; Wasm exact lookup stays unchanged.
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
+[[legacy_binding_patterns]]
+kind = "prefix"
+pattern = "__intrinsic_Vec_new_"
+core_op_id = "vec.Vec_new_fallback"
+precedence = "after_exact"
+require_nonempty_suffix = true
+
 [[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
 core_op_id = "text.format_bool"
@@ -109,6 +129,10 @@ core_op_id = "text.format_bool"
 [[legacy_bindings]]
 alias = "__intrinsic_char_to_string"
 core_op_id = "text.char_to_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_concat"
+core_op_id = "string.concat"
 
 [[legacy_bindings]]
 alias = "__intrinsic_clock_now"
@@ -183,6 +207,22 @@ alias = "__intrinsic_println"
 core_op_id = "runtime.println"
 
 [[legacy_bindings]]
+alias = "__intrinsic_print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
+alias = "__intrinsic_eprintln"
+core_op_id = "runtime.eprintln"
+
+[[legacy_bindings]]
+alias = "__intrinsic_join"
+core_op_id = "string.join"
+
+[[legacy_bindings]]
+alias = "__intrinsic_split"
+core_op_id = "string.split"
+
+[[legacy_bindings]]
 alias = "__intrinsic_process_abort"
 core_op_id = "runtime.process.abort"
 
@@ -224,7 +264,11 @@ core_op_id = "runtime.read_stdin"
 
 [[legacy_bindings]]
 alias = "__intrinsic_string_from_bytes"
-core_op_id = "text.string_from_bytes"
+core_op_id = "raw.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "__intrinsic_string_clone"
+core_op_id = "raw.string_clone"
 
 [[legacy_bindings]]
 alias = "__intrinsic_string_slice"
@@ -907,6 +951,114 @@ alias = "char_at"
 core_op_id = "string.char_at"
 
 [[legacy_bindings]]
+alias = "raw_string_byte_at_unchecked"
+core_op_id = "raw.string_byte_at_unchecked"
+
+[[legacy_bindings]]
+alias = "raw_string_clone"
+core_op_id = "raw.string_clone"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_clone"
+core_op_id = "raw.string_clone"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_string_clone"
+core_op_id = "raw.string_clone"
+
+[[legacy_bindings]]
+alias = "raw_string_from_bytes"
+core_op_id = "raw.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_from_bytes"
+core_op_id = "raw.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_string_from_bytes"
+core_op_id = "raw.string_from_bytes"
+
+[[legacy_bindings]]
+alias = "raw_string_new"
+core_op_id = "raw.string_new"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_new"
+core_op_id = "raw.string_new"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_string_new"
+core_op_id = "raw.string_new"
+
+[[legacy_bindings]]
+alias = "raw_array_get_unchecked"
+core_op_id = "raw.array_get_unchecked"
+
+[[legacy_bindings]]
+alias = "raw_array_grow"
+core_op_id = "raw.array_grow"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_grow"
+core_op_id = "raw.array_grow"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_grow"
+core_op_id = "raw.array_grow"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_get_unchecked"
+core_op_id = "raw.array_get_unchecked"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_get_unchecked"
+core_op_id = "raw.array_get_unchecked"
+
+[[legacy_bindings]]
+alias = "raw_array_len"
+core_op_id = "raw.array_len"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_len"
+core_op_id = "raw.array_len"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_len"
+core_op_id = "raw.array_len"
+
+[[legacy_bindings]]
+alias = "raw_array_set_unchecked"
+core_op_id = "raw.array_set_unchecked"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_set_unchecked"
+core_op_id = "raw.array_set_unchecked"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_set_unchecked"
+core_op_id = "raw.array_set_unchecked"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_byte_at_unchecked"
+core_op_id = "raw.string_byte_at_unchecked"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_string_byte_at_unchecked"
+core_op_id = "raw.string_byte_at_unchecked"
+
+[[legacy_bindings]]
+alias = "raw_string_len_bytes"
+core_op_id = "raw.string_len_bytes"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_len_bytes"
+core_op_id = "raw.string_len_bytes"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_string_len_bytes"
+core_op_id = "raw.string_len_bytes"
+
+[[legacy_bindings]]
 alias = "char_to_string"
 core_op_id = "text.char_to_string"
 
@@ -933,6 +1085,10 @@ core_op_id = "text.clone"
 [[legacy_bindings]]
 alias = "concat"
 core_op_id = "string.concat"
+
+[[legacy_bindings]]
+alias = "contains"
+core_op_id = "string.contains"
 
 [[legacy_bindings]]
 alias = "convert::bool_to_string"
@@ -963,7 +1119,15 @@ alias = "core::range_contains"
 core_op_id = "core.range_contains"
 
 [[legacy_bindings]]
+alias = "Range::contains"
+core_op_id = "core.range_contains"
+
+[[legacy_bindings]]
 alias = "core::range_len"
+core_op_id = "core.range_len"
+
+[[legacy_bindings]]
+alias = "Range::len"
 core_op_id = "core.range_len"
 
 [[legacy_bindings]]
@@ -1163,6 +1327,10 @@ alias = "is_empty"
 core_op_id = "vec.is_empty"
 
 [[legacy_bindings]]
+alias = "vec_is_empty"
+core_op_id = "vec.is_empty"
+
+[[legacy_bindings]]
 alias = "is_err"
 core_op_id = "runtime.is_err"
 
@@ -1178,6 +1346,8 @@ core_op_id = "runtime.is_ok"
 alias = "is_some"
 core_op_id = "runtime.is_ok"
 
+# Bare `join` binds string.join for prelude/text call sites. `path::join` must
+# resolve via qualified mangled registration (not short-name fallback).
 [[legacy_bindings]]
 alias = "join"
 core_op_id = "string.join"
@@ -1185,6 +1355,10 @@ core_op_id = "string.join"
 [[legacy_bindings]]
 alias = "len"
 core_op_id = "string.len"
+
+[[legacy_bindings]]
+alias = "lines"
+core_op_id = "string.lines"
 
 [[legacy_bindings]]
 alias = "math::abs"
@@ -1221,6 +1395,18 @@ core_op_id = "math.min"
 [[legacy_bindings]]
 alias = "math::pow_i32"
 core_op_id = "math.pow_i32"
+
+[[legacy_bindings]]
+alias = "i32::pow"
+core_op_id = "math.pow_i32"
+
+[[legacy_bindings]]
+alias = "i32::to_string"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "i64::to_string"
+core_op_id = "text.format_i64"
 
 [[legacy_bindings]]
 alias = "math::sqrt"
@@ -1279,6 +1465,10 @@ alias = "pow_i32"
 core_op_id = "math.pow_i32"
 
 [[legacy_bindings]]
+alias = "pow"
+core_op_id = "math.pow_i32"
+
+[[legacy_bindings]]
 alias = "print"
 core_op_id = "runtime.print"
 
@@ -1300,6 +1490,10 @@ core_op_id = "runtime.process.abort"
 
 [[legacy_bindings]]
 alias = "process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
@@ -1385,6 +1579,10 @@ core_op_id = "seq.skip_i32"
 [[legacy_bindings]]
 alias = "seq::sum_i32"
 core_op_id = "seq.sum_i32"
+
+[[legacy_bindings]]
+alias = "set"
+core_op_id = "vec.set"
 
 [[legacy_bindings]]
 alias = "seq::take_i32"
@@ -1531,6 +1729,14 @@ alias = "string_eq"
 core_op_id = "text.string_eq"
 
 [[legacy_bindings]]
+alias = "string::eq"
+core_op_id = "text.string_eq"
+
+[[legacy_bindings]]
+alias = "std::collections::string::eq"
+core_op_id = "text.string_eq"
+
+[[legacy_bindings]]
 alias = "string_from_bytes"
 core_op_id = "text.string_from_bytes"
 
@@ -1599,12 +1805,16 @@ alias = "text::len_bytes"
 core_op_id = "text.len_bytes"
 
 [[legacy_bindings]]
+alias = "text::lines"
+core_op_id = "string.lines"
+
+[[legacy_bindings]]
 alias = "text::pad_left"
-core_op_id = "string.pad_left"
+core_op_id = "string.pad_left_fill"
 
 [[legacy_bindings]]
 alias = "text::pad_right"
-core_op_id = "string.pad_right"
+core_op_id = "string.pad_right_fill"
 
 [[legacy_bindings]]
 alias = "text::parse_f64"
@@ -1746,13 +1956,122 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
+# HashMap prelude builtins → CoreOp (exact aliases only; no prefix families).
 [[legacy_bindings]]
-alias = "write_bytes"
-core_op_id = "runtime.write_bytes"
+alias = "HashMap_i32_i32_new"
+core_op_id = "hashmap.new"
 
 [[legacy_bindings]]
-alias = "write_string"
-core_op_id = "runtime.write_string"
+alias = "HashMap_new_i32_i32"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_i32_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_String_i32"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_String_i32_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_i32_String"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_i32_String_len"
+core_op_id = "hashmap.len"
+
+[[legacy_bindings]]
+alias = "HashMap_new_String_String"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_new"
+core_op_id = "hashmap.new"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_insert"
+core_op_id = "hashmap.insert"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_get"
+core_op_id = "hashmap.get"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_contains_key"
+core_op_id = "hashmap.contains"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_remove"
+core_op_id = "hashmap.remove"
+
+[[legacy_bindings]]
+alias = "HashMap_String_String_len"
+core_op_id = "hashmap.len"
+
+# Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps:
+# `io::write_bytes` / `io::write_string` share those short names and must keep
+# their Ark Writer bodies. Use `fs::write_*` / `fs_write_*` / intrinsic aliases.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types
@@ -1834,10 +2153,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.starts_with"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_starts_with_impl"
+required = true
 
 [[operations]]
 id = "string.ends_with"
@@ -1872,10 +2191,10 @@ volatile = false
 [operations.inline]
 policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.ends_with"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_ends_with_impl"
+required = true
 
 [[operations]]
 id = "panic"
@@ -1911,6 +2230,361 @@ kind = "runtime_call"
 kind = "internal"
 symbol = "panic"
 abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_get_unchecked"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Read an element from sealed raw Vec storage without a bounds check."
+[operations.signature]
+inputs = [
+  { name = "array", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "var", name = "T" } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_get_unchecked"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_grow"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Grow sealed raw Vec storage and extend its logical length."
+[operations.signature]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "new_len", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_grow"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_len"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Return the logical length stored in sealed raw Vec storage."
+[operations.signature]
+inputs = [{ name = "array", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_len"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_set_unchecked"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Write sealed raw Vec storage without a bounds check."
+[operations.signature]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+  { name = "value", type = { kind = "var", name = "T" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_set_unchecked"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_clone"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Clone sealed raw String storage."
+[operations.signature]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_clone"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_from_bytes"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Create sealed raw String storage from i32 byte values."
+[operations.signature]
+inputs = [{ name = "bytes", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_from_bytes"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_new"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Create empty sealed raw String storage."
+[operations.signature]
+inputs = []
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_new"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_byte_at_unchecked"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Read one byte from sealed raw string storage without a semantic bounds check."
+[operations.signature]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_byte_at_unchecked"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_len_bytes"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Return the byte length stored in sealed raw string storage."
+[operations.signature]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_len_bytes"
+required_capabilities = []
+required_target_features = []
 [operations.fallback]
 required = false
 
@@ -2113,7 +2787,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → core::range_contains (aliases: 2; core::range_contains, range_contains)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "range", type = { kind = "primitive", name = "i32" } },
+  { name = "value", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2133,12 +2810,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "core.range_contains"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_range_contains_impl"
+required = true
 
 [[operations]]
 id = "core.range_len"
@@ -2147,7 +2824,7 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → core::range_len (aliases: 2; core::range_len, range_len)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "range", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2167,12 +2844,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "core.range_len"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_range_len_impl"
+required = true
 
 [[operations]]
 id = "core.range_new"
@@ -2213,7 +2890,7 @@ id = "math.abs"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → math::abs (aliases: 4; abs, math::abs, math::abs_i32, abs_i32)"
+description = "Absolute value implemented by the compiler-shipped Ark standard library body."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -2235,12 +2912,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.abs"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_abs_impl"
+required = true
 
 [[operations]]
 id = "math.clamp"
@@ -2249,7 +2926,11 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → math::clamp (aliases: 3; clamp_i32, math::clamp, clamp)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "value", type = { kind = "primitive", name = "i32" } },
+  { name = "lower", type = { kind = "primitive", name = "i32" } },
+  { name = "upper", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2269,12 +2950,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.clamp"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_clamp_impl"
+required = true
 
 [[operations]]
 id = "math.gcd"
@@ -2283,7 +2964,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → math::gcd (aliases: 2; gcd, math::gcd)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "left", type = { kind = "primitive", name = "i32" } },
+  { name = "right", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2303,12 +2987,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.gcd"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_gcd_impl"
+required = true
 
 [[operations]]
 id = "math.max"
@@ -2317,7 +3001,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → math::max (aliases: 4; max, math::max, math::max_i32, max_i32)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "left", type = { kind = "primitive", name = "i32" } },
+  { name = "right", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2337,12 +3024,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.max"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_max_impl"
+required = true
 
 [[operations]]
 id = "math.min"
@@ -2351,7 +3038,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → math::min (aliases: 4; min, math::min, math::min_i32, min_i32)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "left", type = { kind = "primitive", name = "i32" } },
+  { name = "right", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2371,12 +3061,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.min"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_min_impl"
+required = true
 
 [[operations]]
 id = "math.pow_i32"
@@ -2385,7 +3075,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → math::pow_i32 (aliases: 2; pow_i32, math::pow_i32)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "base", type = { kind = "primitive", name = "i32" } },
+  { name = "exponent", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2405,12 +3098,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.pow_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_pow_i32_impl"
+required = true
 
 [[operations]]
 id = "math.sqrt"
@@ -2651,9 +3344,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_accept"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "accept"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3058,9 +3753,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_connect"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "start-connect"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3243,9 +3940,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_get"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "outgoing-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3613,9 +4312,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_listen"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:sockets"
+interface = "tcp"
+function = "start-listen"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3835,9 +4536,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_read"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:io"
+interface = "streams"
+function = "[method]input-stream.read"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3909,9 +4612,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_request"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "outgoing-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -3920,7 +4625,7 @@ id = "runtime.serve"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::serve (aliases: 4; http_serve, __intrinsic_http_serve, http::serve, std::host::http::serve)"
+description = "Guest export contract wasi:http/incoming-handler::handle (legacy http::serve aliases: http_serve, __intrinsic_http_serve, http::serve, std::host::http::serve)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -3946,9 +4651,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "http_serve"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:http"
+interface = "incoming-handler"
+function = "handle"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4168,9 +4875,11 @@ policy = "never"
 [operations.lowering]
 kind = "runtime_call"
 [operations.lowering.runtime]
-kind = "internal"
-symbol = "sockets_write"
-abi_version = "0.1"
+kind = "wit"
+package = "wasi:io"
+interface = "streams"
+function = "[method]output-stream.write"
+version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4179,7 +4888,7 @@ id = "runtime.write_bytes"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_bytes (aliases: 4; fs::write_bytes, write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
+description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4216,7 +4925,7 @@ id = "runtime.write_string"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_string (aliases: 4; fs::write_string, write_string, fs_write_file, __intrinsic_fs_write_file)"
+description = "Legacy handler branch → fs::write_string (aliases: fs::write_string, fs_write_file, __intrinsic_fs_write_file)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4321,9 +5030,12 @@ id = "seq.binary_search"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::binary_search (aliases: 1; seq::binary_search)"
+description = "Search a sorted i32 Vec through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "target", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4334,7 +5046,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4343,21 +5055,24 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.binary_search"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_binary_search_impl"
+required = true
 
 [[operations]]
 id = "seq.count_eq"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::count_eq (aliases: 1; seq::count_eq)"
+description = "Count equal i32 Vec elements through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "target", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4368,7 +5083,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4377,21 +5092,21 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.count_eq"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_count_eq_impl"
+required = true
 
 [[operations]]
 id = "seq.max_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::max_i32 (aliases: 1; seq::max_i32)"
+description = "Return the maximum i32 Vec element through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4399,33 +5114,33 @@ constraints = []
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.max_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_max_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.min_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::min_i32 (aliases: 1; seq::min_i32)"
+description = "Return the minimum i32 Vec element through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4433,33 +5148,33 @@ constraints = []
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.min_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_min_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.product_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → product_i32 (aliases: 1; product_i32)"
+description = "Multiply i32 Vec elements through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4470,7 +5185,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4479,22 +5194,25 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.product_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_product_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.skip_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::skip_i32 (aliases: 1; seq::skip_i32)"
+description = "Skip an i32 Vec prefix in an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "count", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -4504,8 +5222,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -4513,12 +5231,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.skip_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_skip_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.sort_f64"
@@ -4559,10 +5277,11 @@ id = "seq.sort_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sort_i32 (aliases: 1; sort_i32)"
+description = "Sort an i32 Vec in place in an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -4572,7 +5291,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4581,12 +5300,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.sort_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_sort_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.sort_i64"
@@ -4627,9 +5346,9 @@ id = "seq.sum_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::sum_i32 (aliases: 2; sum_i32, seq::sum_i32)"
+description = "Sum i32 Vec elements through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4640,7 +5359,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4649,22 +5368,25 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.sum_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_sum_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.take_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::take_i32 (aliases: 1; seq::take_i32)"
+description = "Take an i32 Vec prefix in an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "count", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -4674,8 +5396,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -4683,22 +5405,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.take_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_take_i32_impl"
+required = true
 
 [[operations]]
 id = "seq.unique"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → seq::unique (aliases: 1; seq::unique)"
+description = "Deduplicate an i32 Vec in stable order in an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -4708,8 +5430,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -4717,12 +5439,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.unique"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_unique_i32_impl"
+required = true
 
 [[operations]]
 id = "simd.f32x4.abs"
@@ -10580,10 +11302,14 @@ required = false
 id = "string.char_at"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → char_at (aliases: 1; char_at)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return the byte at an unchecked String index through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -10594,31 +11320,35 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.char_at"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_char_at_impl"
+required = true
 
 [[operations]]
 id = "string.concat"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::concat (aliases: 4; concat, text::concat, text::builder_append, std::text::builder_append)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Concatenate two Strings through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "left", type = { kind = "ref", name = "string" } },
+  { name = "right", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10628,8 +11358,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10637,12 +11367,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.concat"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_concat_impl"
+required = true
 
 [[operations]]
 id = "string.contains"
@@ -10651,7 +11381,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → text::contains (aliases: 3; text::contains, contains, contains_String)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "needle", type = { kind = "ref", name = "string" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -10671,12 +11404,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.contains"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_contains_impl"
+required = true
 
 [[operations]]
 id = "string.index_of"
@@ -10685,7 +11418,10 @@ classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
 description = "Legacy handler branch → text::index_of (aliases: 2; index_of, text::index_of)"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "needle", type = { kind = "ref", name = "string" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -10705,22 +11441,25 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.index_of"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_index_of_impl"
+required = true
 
 [[operations]]
 id = "string.join"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::join (aliases: 2; join, text::join)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Join String elements with a separator through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "parts", type = { kind = "ref", name = "vec", args = [{ kind = "ref", name = "string" }] } },
+  { name = "separator", type = { kind = "ref", name = "string" } },
+]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10730,8 +11469,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10739,21 +11478,57 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.join"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_join_impl"
+required = true
+
+[[operations]]
+id = "string.lines"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Split a String into lines after CRLF normalization through a sealed-raw Ark body."
+[operations.signature]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "ref", name = "string" }] } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "hint"
+[operations.lowering]
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_lines_impl"
+required = true
 
 [[operations]]
 id = "string.len"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → len (aliases: 1; len)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return the byte length of a String through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -10764,7 +11539,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -10773,22 +11548,26 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.len"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_len_impl"
+required = true
 
 [[operations]]
 id = "string.pad_left"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::pad_left (aliases: 2; pad_left, text::pad_left)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Left-pad a String with spaces through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "width", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10798,8 +11577,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10807,22 +11586,26 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.pad_left"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_pad_left_impl"
+required = true
 
 [[operations]]
 id = "string.pad_right"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::pad_right (aliases: 2; pad_right, text::pad_right)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Right-pad a String with spaces through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "width", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10832,8 +11615,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10841,22 +11624,104 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.pad_right"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_pad_right_impl"
+required = true
+
+[[operations]]
+id = "string.pad_left_fill"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Left-pad a String with an explicit fill String through a sealed-raw Ark body."
+[operations.signature]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "width", type = { kind = "primitive", name = "i32" } },
+  { name = "fill", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "hint"
+[operations.lowering]
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_pad_left_fill_impl"
+required = true
+
+[[operations]]
+id = "string.pad_right_fill"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Right-pad a String with an explicit fill String through a sealed-raw Ark body."
+[operations.signature]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "width", type = { kind = "primitive", name = "i32" } },
+  { name = "fill", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "hint"
+[operations.lowering]
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_pad_right_fill_impl"
+required = true
 
 [[operations]]
 id = "string.repeat"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::repeat (aliases: 3; repeat, text::repeat, string::repeat)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Repeat a String into newly allocated storage through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "count", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10866,8 +11731,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10875,22 +11740,27 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.repeat"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_repeat_impl"
+required = true
 
 [[operations]]
 id = "string.replace"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::replace (aliases: 2; replace, text::replace)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Replace non-overlapping byte patterns through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "pattern", type = { kind = "ref", name = "string" } },
+  { name = "replacement", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10900,8 +11770,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10909,56 +11779,62 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.replace"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_replace_impl"
+required = true
 
 [[operations]]
 id = "string.reverse"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → reverse_String (aliases: 1; reverse_String)"
+description = "Reverse a String Vec in place through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "ref", name = "string" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.reverse"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_reverse_string_impl"
+required = true
 
 [[operations]]
 id = "string.slice"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::slice_bytes (aliases: 4; slice, substring, text::slice_bytes, __intrinsic_string_slice)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Copy a checked byte range into a new String through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "start", type = { kind = "primitive", name = "i32" } },
+  { name = "end", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -10968,8 +11844,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -10977,22 +11853,26 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.slice"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_slice_impl"
+required = true
 
 [[operations]]
 id = "string.split"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::split (aliases: 3; split, text::split, string::split)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Split a String on non-overlapping delimiters through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "delimiter", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "ref", name = "string" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11002,8 +11882,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11011,22 +11891,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.split"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_split_impl"
+required = true
 
 [[operations]]
 id = "string.to_lowercase"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::to_lower (aliases: 4; to_lowercase, to_lower, text::to_lower, text::to_lowercase)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return an ASCII-lowercased String built through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11036,8 +11917,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11045,22 +11926,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.to_lowercase"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_to_lowercase_impl"
+required = true
 
 [[operations]]
 id = "string.to_uppercase"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::to_upper (aliases: 4; to_uppercase, to_upper, text::to_upper, text::to_uppercase)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return an ASCII-uppercased String built through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11070,8 +11952,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11079,22 +11961,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.to_uppercase"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_to_uppercase_impl"
+required = true
 
 [[operations]]
 id = "string.trim"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::trim (aliases: 2; trim, text::trim)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Trim ASCII whitespace from both ends through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11104,8 +11987,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11113,22 +11996,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.trim"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_trim_impl"
+required = true
 
 [[operations]]
 id = "string.trim_end"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::trim_end (aliases: 2; trim_end, text::trim_end)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Trim trailing ASCII whitespace through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11138,8 +12022,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11147,22 +12031,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.trim_end"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_trim_end_impl"
+required = true
 
 [[operations]]
 id = "string.trim_start"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::trim_start (aliases: 2; trim_start, text::trim_start)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Trim leading ASCII whitespace through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11172,8 +12057,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11181,22 +12066,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "string.trim_start"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_trim_start_impl"
+required = true
 
 [[operations]]
 id = "text.String_new"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → String_new (aliases: 1; String_new)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Create an empty String through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = []
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11206,8 +12091,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11215,12 +12100,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.String_new"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_new_impl"
+required = true
 
 [[operations]]
 id = "text.char_to_string"
@@ -11260,11 +12145,12 @@ tracking_issue = "818"
 id = "text.chars"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::chars (aliases: 1; text::chars)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Split a String into one-byte Strings through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "ref", name = "string" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11274,8 +12160,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11283,22 +12169,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.chars"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_chars_impl"
+required = true
 
 [[operations]]
 id = "text.clone"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → String_from (aliases: 2; String_from, clone)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Clone a String through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11308,8 +12195,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11317,12 +12204,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.clone"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_clone_impl"
+required = true
 
 [[operations]]
 id = "text.f32_to_string"
@@ -11363,10 +12250,11 @@ id = "text.format_bool"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_bool (aliases: 4; bool_to_string, text::format_bool, convert::bool_to_string, __intrinsic_bool_to_string)"
+description = "Legacy handler branch → text::format_bool"
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "bool" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11376,8 +12264,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11430,11 +12318,12 @@ tracking_issue = "818"
 id = "text.format_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_i64 (aliases: 4; i64_to_string, text::format_i64, convert::i64_to_string, __intrinsic_i64_to_string)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Format an i64 through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "i64" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11444,8 +12333,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11453,22 +12342,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.format_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_i64_impl"
+required = true
 
 [[operations]]
 id = "text.is_empty"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::is_empty (aliases: 1; text::is_empty)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Test String emptiness through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11478,7 +12368,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -11487,21 +12377,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.is_empty"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_is_empty_impl"
+required = true
 
 [[operations]]
 id = "text.len_bytes"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::len_bytes (aliases: 1; text::len_bytes)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return String byte length through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "string", type = { kind = "ref", name = "string" } }]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -11512,7 +12403,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -11521,12 +12412,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.len_bytes"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_len_bytes_impl"
+required = true
 
 [[operations]]
 id = "text.push_char"
@@ -11566,11 +12457,15 @@ tracking_issue = "818"
 id = "text.string_eq"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → string_eq (aliases: 1; string_eq)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Compare String bytes through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "left", type = { kind = "ref", name = "string" } },
+  { name = "right", type = { kind = "ref", name = "string" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11580,7 +12475,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -11589,22 +12484,24 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.string_eq"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_eq_impl"
+required = true
 
 [[operations]]
 id = "text.string_from_bytes"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → string_from_bytes (aliases: 2; string_from_bytes, __intrinsic_string_from_bytes)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Create a String from byte values through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "bytes", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11614,8 +12511,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11623,22 +12520,23 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.string_from_bytes"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_string_from_bytes_impl"
+required = true
 
 [[operations]]
 id = "text.to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_i32 (aliases: 5; to_string, i32_to_string, text::format_i32, convert::i32_to_string, __intrinsic_i32_to_string)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Format an i32 through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "i32" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11648,8 +12546,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -11657,12 +12555,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.to_string"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.Vec_new_f64"
@@ -11703,10 +12601,10 @@ id = "vec.Vec_new_fallback"
 visibility = "internal"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "forbidden" }
-description = "Migration handler for Vec constructors formerly selected by a callee prefix."
+description = "Internal family handler for named-type Vec constructors via legacy_binding_patterns (exact scalar aliases still win)."
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11736,11 +12634,14 @@ tracking_issue = "818"
 id = "vec.contains_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Migration handler for the concrete i32 Vec contains operation."
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Search an i32 Vec through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "needle", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -11750,7 +12651,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -11759,12 +12660,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.contains_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_contains_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.get"
@@ -11906,12 +12807,13 @@ tracking_issue = "818"
 id = "vec.is_empty"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → is_empty (aliases: 1; is_empty)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Test Vec emptiness through its sealed raw length."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -11920,7 +12822,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -11940,12 +12842,13 @@ tracking_issue = "818"
 id = "vec.len"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_len (aliases: 1; vec_len)"
+binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
+description = "Return Vec length through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -11954,7 +12857,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
 may_trap = false
 noreturn = false
@@ -12009,22 +12912,26 @@ id = "vec.push"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_push (aliases: 2; vec_push, push)"
+description = "Append a Vec element through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "value", type = { kind = "var", name = "T" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
+memory = "read-write"
+allocates = true
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
@@ -12145,56 +13052,62 @@ id = "vec.reverse_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → reverse_i32 (aliases: 1; reverse_i32)"
+description = "Reverse an i32 Vec in place through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.reverse_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_reverse_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.set"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_set (aliases: 1; vec_set)"
+description = "Set a Vec element through the sealed raw API."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+  { name = "value", type = { kind = "var", name = "T" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "write"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
@@ -12206,4 +13119,221 @@ policy = "never"
 kind = "legacy_emitter"
 [operations.lowering.legacy]
 handler_id = "vec.set"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.new"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Construct an empty HashMap; key/value kinds come from the destination type."
+[operations.signature]
+inputs = []
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.new"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.insert"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Insert or overwrite a HashMap entry (unit return for prelude builtins)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+  { name = "value", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.insert"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.get"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Look up a HashMap key and return Option<V> (None when missing)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.get"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.contains"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Return true when a HashMap contains the given key."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "bool" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bool"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.contains"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.remove"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Remove a HashMap key and return Option<V> (None when missing)."
+[operations.signature]
+inputs = [
+  { name = "map", type = { kind = "primitive", name = "i32" } },
+  { name = "key", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.remove"
+tracking_issue = "818"
+
+[[operations]]
+id = "hashmap.len"
+visibility = "public"
+classification = { layer = "semantic_stdlib" }
+binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
+description = "Return the number of live entries in a HashMap."
+[operations.signature]
+inputs = [{ name = "map", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "legacy_emitter"
+[operations.lowering.legacy]
+handler_id = "hashmap.len"
 tracking_issue = "818"

@@ -87,6 +87,10 @@ fn mono_instance_entry_return_at(entry: MonoInstanceEntry, index: i32) -> MirVal
     get_unchecked(entry.instantiated_return_types, index)
 }
 
+fn mono_instance_entry_param_types(entry: MonoInstanceEntry) -> Vec<MirValueType> {
+    entry.instantiated_param_types
+}
+
 fn mono_instance_entry_return_count(entry: MonoInstanceEntry) -> i32 {
     len(entry.instantiated_return_types)
 }

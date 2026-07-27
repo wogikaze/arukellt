@@ -19,8 +19,9 @@ fn vec_ref_dest_storage_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
         return 0 - 1
     }
     let inferred = code_ref_locals::infer_local_storage_gc_type(f, dest, ctx)
-    if inferred >= 0 {
-        return inferred
+    match inferred {
+        Option::Some(v) => return v,
+        Option::None => {}
     }
     let loc = function_locals_view::MirFunction_local_at(f, dest)
     let vt = local_access::MirLocal_val_type(loc)

@@ -3,31 +3,65 @@ use loader::module_import_paths
 use loader::module_local_decls
 use loader::module_package_root
 use loader::module_paths
+use loader::module_sealed_raw
 use loader::module_state
+use loader::module_state_errors
 use loader::module_stdlib_decls
 use loader::wit_manifest
 
 pub fn load_stdlib_module(stdlib_path: String, state: LoadState) {
     let mod_decls = module_stdlib_decls::load_stdlib_module_decls(stdlib_path, state)
-    load_imported_modules_at(mod_decls, String_from("."), String_from("."), state)
+    // Stdlib modules may import sealed raw APIs.
+    load_imported_modules_at(mod_decls, String_from("."), String_from("."), state, true)
 }
 
 pub fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
     let root_dir = module_package_root::find_package_root(clone(base_dir))
-    load_imported_modules_at(decls, clone(base_dir), root_dir, state)
+    // User/package modules cannot import sealed raw APIs.
+    load_imported_modules_at(decls, clone(base_dir), root_dir, state, false)
 }
 
-fn load_imported_modules_at(decls: Vec<AstNode>, current_dir: String, root_dir: String, state: LoadState) {
+fn load_imported_modules_at(
+    decls: Vec<AstNode>,
+    current_dir: String,
+    root_dir: String,
+    state: LoadState,
+    importer_is_stdlib: bool
+) {
     let paths = module_import_paths::collect_import_paths(decls)
     let count = len(paths)
     let mut i = 0
     while i < count {
-        load_import_path(clone(get_unchecked(paths, i)), clone(current_dir), clone(root_dir), state)
+        load_import_path(
+            clone(get_unchecked(paths, i)),
+            clone(current_dir),
+            clone(root_dir),
+            state,
+            importer_is_stdlib
+        )
         i = i + 1
     }
 }
 
-fn load_import_path(use_path: String, current_dir: String, root_dir: String, state: LoadState) {
+fn load_import_path(
+    use_path: String,
+    current_dir: String,
+    root_dir: String,
+    state: LoadState,
+    importer_is_stdlib: bool
+) {
+    if module_sealed_raw::is_sealed_raw_api_path(clone(use_path)) {
+        if !importer_is_stdlib {
+            module_state_errors::LoadState_push_error(
+                state,
+                module_sealed_raw::sealed_raw_api_reject_message(clone(use_path))
+            )
+            return
+        }
+        let std_path = module_sealed_raw::sealed_raw_api_stdlib_path(clone(use_path))
+        load_stdlib_module(std_path, state)
+        return
+    }
     if module_paths::is_stdlib_path(clone(use_path)) {
         load_stdlib_module(clone(use_path), state)
         return
@@ -35,13 +69,19 @@ fn load_import_path(use_path: String, current_dir: String, root_dir: String, sta
     if wit_manifest::is_wit_package_id(clone(use_path)) {
         return
     }
-    load_single_module(clone(use_path), module_base_dir_for_import(clone(use_path), current_dir, clone(root_dir)), root_dir, state)
+    load_single_module(
+        clone(use_path),
+        module_base_dir_for_import(clone(use_path), current_dir, clone(root_dir)),
+        root_dir,
+        state
+    )
 }
 
 fn load_single_module(module_name: String, base_dir: String, root_dir: String, state: LoadState) {
     let loaded = module_local_decls::load_local_module_decls(clone(module_name), clone(base_dir), state)
     let next_dir = module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))
-    load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state)
+    // Local package modules are never stdlib importers.
+    load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state, false)
     if module_local_decls::DriverLocalModuleDecls_pushed_stack(loaded) {
         module_state_loading::LoadState_pop_loading(state)
     }

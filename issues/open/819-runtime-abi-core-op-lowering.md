@@ -48,7 +48,7 @@ for HTTP/sockets standard WASI imports and cover the remaining host families her
 
 ## References
 
-- `issues/open/727-arukellt-host-bridge-retirement.md`
+- `issues/done/727-arukellt-host-bridge-retirement.md`
 - `issues/open/729-intrinsic-layer-separation.md`
 - `issues/open/818-core-op-production-scaffold-exit.md`
 - `data/core-ops.toml`

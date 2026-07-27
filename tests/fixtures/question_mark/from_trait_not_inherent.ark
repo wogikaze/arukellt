@@ -1,0 +1,45 @@
+use std::host::stdio
+
+// Inherent `AppError::from` must not be selected by `?` (ADR-039 D2).
+// If lookup fell back to mangled `::from`, the Err path would hit assert(false).
+
+enum AppError {
+    Io(String),
+    Parse,
+}
+
+impl AppError {
+    fn from(e: String) -> AppError {
+        assert(false)
+        AppError::Io(e)
+    }
+}
+
+fn read_line(s: String) -> Result<String, String> {
+    if eq(s, "ok") {
+        Ok(String_from("data"))
+    } else {
+        Err(String_from("read failed"))
+    }
+}
+
+fn process(s: String) -> Result<i32, AppError> {
+    let line: String = read_line(s)?
+    Ok(len(line))
+}
+
+fn main() {
+    let r1 = process(String_from("ok"))
+    match r1 {
+        Result::Ok(n) => assert(n == 4),
+        Result::Err(_) => assert(false),
+    }
+
+    let r2 = process(String_from("bad"))
+    match r2 {
+        Result::Ok(_) => assert(false),
+        Result::Err(_) => {},
+    }
+
+    stdio::println(String_from("OK"))
+}

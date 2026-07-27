@@ -1,0 +1,14 @@
+use std::host::stdio
+
+// Regression: CONST_STRING before void eprintln must not leave a pointer on
+// the wasm32 stack at end of if (dump_wasm / emit_wasm_output validate fail).
+fn maybe_dump(flag: bool, n: i32) {
+    if flag {
+        stdio::eprintln(String_from("=== WASM ==="))
+        stdio::eprintln(concat(String_from("output size: "), concat(to_string(n), String_from(" bytes"))))
+    }
+}
+
+fn main() {
+    maybe_dump(true, 42)
+}

@@ -5,6 +5,6 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
     ctx_init::LowerCtx_new(m)
 }
 
-fn LowerCtx_new_for_target(m: MirModule, target: String) -> LowerCtx {
-    ctx_init::LowerCtx_new_for_target(m, target)
+fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn_source_locations: Vec<SourceLocation>) -> LowerCtx {
+    ctx_init::LowerCtx_new_for_target(m, target, source_text, fn_source_locations)
 }

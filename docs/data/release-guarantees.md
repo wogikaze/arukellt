@@ -28,7 +28,8 @@
 | `dap` | `experimental` | `manual` | ark-dap / debug-adapter | — | ⬜ not-run | ❓ unknown | manual | — | Scaffold only |
 | `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | 🟢 fresh | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
-| `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Scaffold; ABI undecided (ADR-045) |
+| `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Both targets remain scaffold/partial; native-cpp adds experimental public run (ADR-050) on top of the compiler-private executor ABI (ADR-049); native-llvm stays assembler scaffold |
+| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only) | — | ✅ pass | 🟢 fresh | fixture-set | `local` | Guarantee scope remains tests/fixtures/native_cpp_public + parity/sanitizer (not production-ready; support_tier=scaffold). Full-tree measure v2 readiness gates are COMPLETE per docs/plans/native-cpp-general-backend-readiness.md with documented expected-negative limitations; zero-capture HOF only; no public C ABI/FFI |
 
 ## Check catalogue
 
@@ -42,6 +43,7 @@ incidents, not by individual checks.
 
 | Check ID | Guarantee | Blocking | In full | In quick | Result | Freshness | Evidence | Affected | Incident | Last verified | Command |
 |----------|-----------|:--------:|:-------:|:--------:|--------|-----------|----------|---------:|----------|---------------|---------|
+| `check_run_native_cpp_experimental` | `run_native_cpp_experimental` | no | — | — | ✅ pass | 🟢 fresh | `fixture-set` | — | — | `local` | `python3 scripts/check/check-native-cpp-run-promotion-receipt.py && python3 -m unittest scripts.tests.test_native_cpp_runner scripts.tests.test_native_cpp_parity && python3 scripts/check/check-native-cpp-public-sanitizer.py` |
 | `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
 | `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
@@ -53,8 +55,8 @@ incidents, not by individual checks.
 | `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
 | `check_cli_help` | `cli_help` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py help` |
 | `check_close_gate_076` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | — | — | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-false-done-close-gates.py` |
-| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ❌ fail | 🟢 fresh | `smoke` | 1 | `incident_t3_wasm_validate` | `982f3102` | `python3 scripts/check/check-t3-wasm-validate.py` |
-| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `exhaustive` | 1 | `incident_selfhost_fixpoint` | `2cd10f16` | `python3 scripts/manager.py selfhost fixpoint --build` |
+| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `e18c09aa` | `python3 scripts/check/check-t3-wasm-validate.py` |
+| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `exhaustive` | 0 | `incident_selfhost_fixpoint` | `fb8a3827` | `python3 scripts/manager.py selfhost fixpoint --build` |
 | `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
 | `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
 | `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 6 | `incident_wat_roundtrip` | `2cd10f16` | `bash scripts/run/wat-roundtrip.sh` |

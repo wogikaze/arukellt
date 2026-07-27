@@ -1,0 +1,66 @@
+---
+description: Never auto-stash foreign WIP; isolate agent work via git worktree instead
+alwaysApply: true
+---
+
+# No auto-stash — move to a worktree
+
+## Forbidden
+
+- Do **not** `git stash` (including `stash push -u`) to clear or sidestep
+  uncommitted work that the agent did not create in this session.
+- Do **not** ask the user to stash, or treat stash as the default conflict
+  resolution for a dirty checkout.
+
+Stash hides another agent's or the user's in-progress work and is easy to
+forget. It is not an isolation mechanism.
+
+## Required when the checkout is contested
+
+Treat any of these as a **contested checkout** and isolate immediately:
+
+- `git status` shows dirty / untracked files the agent did not just write
+- Another process holds `.build/selfhost-runtime.lock` or heavy selfhost jobs
+- Parallel agent / other worktree activity on the same paths
+- The agent's planned edits would overwrite or mix with foreign WIP
+
+### Isolation steps (do this without asking)
+
+```bash
+# From repo root; pick a unique lane name
+git worktree add .worktrees/lane-<short-desc> -b wave/<short-desc>
+cd .worktrees/lane-<short-desc>
+# optional: isolate build artifacts
+export ARUKELLT_BUILD_DIR="$PWD/.build"
+```
+
+1. Create the worktree + branch under `.worktrees/` (same policy as
+   `.cursor/rules/parallel-worktree.mdc`).
+2. Continue **all** further edits, builds, and commits only inside that worktree.
+3. Leave the original worktree's foreign WIP untouched.
+4. Merge/rebase the lane branch back when the unit of work is done (orchestrator
+   or same agent), then remove the worktree.
+
+### If the agent already dirtied the shared worktree
+
+Prefer moving **the agent's own commits/branch** into a new worktree over
+stashing foreign files:
+
+```bash
+git worktree add .worktrees/lane-<short-desc> -b wave/<short-desc> HEAD
+# continue in that worktree; reset/clean only the agent's accidental local
+# edits in the shared tree if they are clearly yours and uncommitted
+```
+
+Never `git stash` someone else's changes to make room.
+
+## Allowed stash (narrow)
+
+Only when the user **explicitly** asks to stash, or when stashing **only**
+files this agent created in the current turn and immediately pops them in the
+new worktree in the same turn (prefer `git worktree` + branch instead).
+
+## Related
+
+- `.cursor/rules/parallel-worktree.mdc` — parallel subagent isolation
+- `.cursor/rules/selfhost-rebuild.mdc` — `ARUKELLT_BUILD_DIR` for concurrent builds

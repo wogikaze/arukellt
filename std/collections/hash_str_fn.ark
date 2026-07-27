@@ -1,0 +1,134 @@
+//! HashMap<String, fn> helpers for GC funcref value ABI (#838).
+//!
+//! Kept separate from `hash_string.ark` / `hash_fn.ark` so stage-2 rebuilds that
+//! still load those modules do not require the previous compiler to know `__hm_sf_*`.
+
+use std::core::hash
+
+pub fn hashmap_str_fn_new() -> HashMap<String, fn(i32) -> i32> {
+    __hm_sf_new()
+}
+
+pub fn hashmap_str_fn_set(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String,
+    value: fn(i32) -> i32
+) -> bool {
+    let cap: i32 = __hm_sf_cap(m)
+    let h: i32 = key.hash()
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut done: bool = false
+    while probes < cap {
+        let flag: i32 = __hm_sf_get_flag(m, idx)
+        if flag == 0 || flag == 2 {
+            __hm_sf_set_key(m, idx, key)
+            __hm_sf_set_val(m, idx, value)
+            __hm_sf_set_flag(m, idx, 1)
+            __hm_sf_set_size(m, __hm_sf_size(m) + 1)
+            done = true
+            probes = cap
+        } else if eq(__hm_sf_get_key(m, idx), key) {
+            __hm_sf_set_val(m, idx, value)
+            done = true
+            probes = cap
+        } else {
+            idx = (idx + 1) % cap
+            probes = probes + 1
+        }
+    }
+    done
+}
+
+pub fn hashmap_str_fn_get(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String
+) -> Option<fn(i32) -> i32> {
+    let cap: i32 = __hm_sf_cap(m)
+    let hashed: i32 = key.hash()
+    let mut idx: i32 = hashed % cap
+    let mut probes: i32 = 0
+    let mut result: Option<fn(i32) -> i32> = None
+    while probes < cap {
+        let flag: i32 = __hm_sf_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else if flag == 1 {
+            let k: String = __hm_sf_get_key(m, idx)
+            if eq(k, key) {
+                result = Some(__hm_sf_get_val(m, idx))
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        } else {
+            idx = (idx + 1) % cap
+            probes = probes + 1
+        }
+    }
+    result
+}
+
+pub fn hashmap_str_fn_contains(m: HashMap<String, fn(i32) -> i32>, key: String) -> bool {
+    let cap: i32 = __hm_sf_cap(m)
+    let h: i32 = key.hash()
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut found: bool = false
+    while probes < cap {
+        let flag: i32 = __hm_sf_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else if flag == 1 {
+            let k: String = __hm_sf_get_key(m, idx)
+            if eq(k, key) {
+                found = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        } else {
+            idx = (idx + 1) % cap
+            probes = probes + 1
+        }
+    }
+    found
+}
+
+pub fn hashmap_str_fn_remove(
+    m: HashMap<String, fn(i32) -> i32>,
+    key: String
+) -> Option<fn(i32) -> i32> {
+    let cap: i32 = __hm_sf_cap(m)
+    let hashed: i32 = key.hash()
+    let mut idx: i32 = hashed % cap
+    let mut probes: i32 = 0
+    let mut result: Option<fn(i32) -> i32> = None
+    while probes < cap {
+        let flag: i32 = __hm_sf_get_flag(m, idx)
+        if flag == 0 {
+            probes = cap
+        } else if flag == 1 {
+            let k: String = __hm_sf_get_key(m, idx)
+            if eq(k, key) {
+                result = Some(__hm_sf_get_val(m, idx))
+                __hm_sf_set_flag(m, idx, 2)
+                __hm_sf_set_size(m, __hm_sf_size(m) - 1)
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        } else {
+            idx = (idx + 1) % cap
+            probes = probes + 1
+        }
+    }
+    result
+}
+
+pub fn hashmap_str_fn_len(m: HashMap<String, fn(i32) -> i32>) -> i32 {
+    __hm_sf_size(m)
+}

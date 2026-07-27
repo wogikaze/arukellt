@@ -1,0 +1,280 @@
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::local_record
+use mir::module_functions
+use mir::module_spine
+use mir::opcodes
+
+/// Classification for native-cpp enum/struct ABI.
+/// `heap_enum_flags[type_id] == 1` → emit `ark_object_header *`
+/// (payload enums and ordinary structs). 0 + enum-shaped → `int32_t` tags.
+fn native_c_heap_enum_type_flags(mir_module: MirModule) -> Vec<i32> {
+    let table = module_spine::MirModule_type_table(mir_module)
+    let type_count = type_table::TypeTable_entry_count(table)
+    let flags = Vec_new_i32()
+    let mut type_index = 0
+    while type_index < type_count {
+        push(flags, 0)
+        type_index = type_index + 1
+    }
+
+    // Product structs constructed via STRUCT_NEW with a bare layout name.
+    let product_struct_names = Vec_new_String()
+    // Payload enum basenames from `Enum::Variant` layout names on struct ops.
+    let payload_enum_names = Vec_new_String()
+
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(function)
+        let mut block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(function, block_index)
+            let instruction_count = block_inst_access::MirBlock_inst_count(block)
+            let mut instruction_index = 0
+            while instruction_index < instruction_count {
+                let instruction = block_inst_access::MirBlock_inst_at(block, instruction_index)
+                let op = inst_accessors_shape::MirInst_op(instruction)
+                // Payload evidence comes from construction (NEW/SET with
+                // `Enum::Variant`). STRUCT_GET may mention unit variant names
+                // during match lowering and must not flip Ordering to heap.
+                if op == opcodes::MIR_STRUCT_NEW() || op == opcodes::MIR_GC_STRUCT_NEW() {
+                    let named = inst_accessors_literals::MirInst_str_val(instruction)
+                    if native_c_type_name_has_variant_path(clone(named)) {
+                        native_c_push_unique_string(
+                            payload_enum_names,
+                            native_c_type_name_enum_basename(named)
+                        )
+                    } else if len(named) > 0 {
+                        // Only named STRUCT_NEW (Range { … }). Do not infer from
+                        // dest type_id: unit-enum layouts reuse the enum name as a
+                        // STRUCT entry and would be misclassified as heap.
+                        native_c_push_unique_string(product_struct_names, named)
+                    }
+                } else if op == opcodes::MIR_STRUCT_SET() {
+                    let named = inst_accessors_literals::MirInst_str_val(instruction)
+                    // named_idx packs field_idx into dest as field_idx*100000+size.
+                    // field_idx 0 is the tag; only payload fields prove heap ABI.
+                    let packed = inst_accessors_operands::MirInst_dest(instruction)
+                    if packed >= 100000 {
+                        if native_c_type_name_has_variant_path(clone(named)) {
+                            native_c_push_unique_string(
+                                payload_enum_names,
+                                native_c_type_name_enum_basename(named)
+                            )
+                        }
+                        // Bare variant names (UnexpectedEof) still prove payload;
+                        // recover the enum from the STRUCT_SET base local.
+                        native_c_collect_payload_enum_from_local(
+                            payload_enum_names,
+                            table,
+                            function,
+                            inst_accessors_operands::MirInst_arg0(instruction)
+                        )
+                    }
+                }
+                instruction_index = instruction_index + 1
+            }
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
+
+    // Builtin open payload enums always use heap objects on native-cpp.
+    native_c_push_unique_string(payload_enum_names, String_from("Option"))
+    native_c_push_unique_string(payload_enum_names, String_from("Result"))
+    native_c_push_unique_string(payload_enum_names, String_from("Either"))
+
+    type_index = 0
+    while type_index < type_count {
+        let entry = type_table::TypeTable_entry_at(table, type_index)
+        let kind = type_table::type_entry_kind(entry)
+        if kind != kinds::TYPE_KIND_ENUM() && kind != kinds::TYPE_KIND_STRUCT() {
+            type_index = type_index + 1
+            continue
+        }
+        let entry_name = type_table::type_entry_name(entry)
+        let basename = native_c_type_name_enum_basename(clone(entry_name))
+        let in_payload = native_c_string_list_contains(payload_enum_names, clone(basename)) ||
+        native_c_type_name_is_open_payload_enum(clone(entry_name)) ||
+        native_c_type_name_is_open_payload_enum(clone(basename))
+        let in_product = native_c_string_list_contains(product_struct_names, clone(basename))
+        if in_payload || in_product {
+            set(flags, type_index, 1)
+        }
+        type_index = type_index + 1
+    }
+    flags
+}
+
+fn native_c_type_name_is_open_payload_enum(name: String) -> bool {
+    if eq(clone(name), String_from("Option")) || eq(clone(name), String_from("Result")) ||
+    eq(clone(name), String_from("Either")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("option:")) ||
+    starts_with(clone(name), String_from("Option_")) ||
+    starts_with(clone(name), String_from("result:")) ||
+    starts_with(clone(name), String_from("Result_")) ||
+    starts_with(clone(name), String_from("either:")) {
+        return true
+    }
+    false
+}
+
+/// Unit-only enums that native-cpp lowers with CONST_I32 tags.
+fn native_c_type_name_is_unit_tag_enum(name: String) -> bool {
+    let basename = native_c_type_name_enum_basename(name)
+    if eq(clone(basename), String_from("Ordering")) {
+        return true
+    }
+    if eq(clone(basename), String_from("Direction")) {
+        return true
+    }
+    if eq(clone(basename), String_from("RpnOp")) {
+        return true
+    }
+    false
+}
+
+fn native_c_collect_payload_enum_from_local(
+    payload_enum_names: Vec<String>,
+    table: TypeTable,
+    function: MirFunction,
+    local_id: i32
+) {
+    if local_id < 0 || local_id >= function_locals_view::MirFunction_local_count(function) {
+        return
+    }
+    let local = function_locals_view::MirFunction_local_at(function, local_id)
+    let type_name = local_record::mir_local_type_name(local)
+    if starts_with(clone(type_name), String_from("enum:")) ||
+    native_c_type_name_has_variant_path(clone(type_name)) ||
+    native_c_type_name_is_open_payload_enum(clone(type_name)) {
+        native_c_push_unique_string(
+            payload_enum_names,
+            native_c_type_name_enum_basename(type_name)
+        )
+        return
+    }
+    let raw_type_id = type_id::TypeId_raw(
+        mir_value_type::mir_value_type_type_id(local_record::mir_local_value_type(local))
+    )
+    if raw_type_id < 0 || raw_type_id >= type_table::TypeTable_entry_count(table) {
+        return
+    }
+    let entry = type_table::TypeTable_entry_at(table, raw_type_id)
+    let kind = type_table::type_entry_kind(entry)
+    if kind != kinds::TYPE_KIND_ENUM() && kind != kinds::TYPE_KIND_STRUCT() {
+        return
+    }
+    let entry_name = type_table::type_entry_name(entry)
+    if len(entry_name) == 0 {
+        return
+    }
+    native_c_push_unique_string(
+        payload_enum_names,
+        native_c_type_name_enum_basename(entry_name)
+    )
+}
+
+fn native_c_push_unique_string(values: Vec<String>, value: String) {
+    if len(value) == 0 {
+        return
+    }
+    if native_c_string_list_contains(values, clone(value)) {
+        return
+    }
+    push(values, value)
+}
+
+fn native_c_string_list_contains(values: Vec<String>, value: String) -> bool {
+    let count = len(values)
+    let mut index = 0
+    while index < count {
+        if eq(get_unchecked(values, index), clone(value)) {
+            return true
+        }
+        index = index + 1
+    }
+    false
+}
+
+fn native_c_type_name_has_variant_path(name: String) -> bool {
+    let length = len(name)
+    let mut index = 0
+    while index + 1 < length {
+        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+            return true
+        }
+        index = index + 1
+    }
+    false
+}
+
+fn native_c_type_name_enum_basename(name: String) -> String {
+    let mut base = name
+    if starts_with(clone(base), String_from("enum:")) {
+        base = substring(base, 5, len(base))
+    }
+    let length = len(base)
+    let mut index = 0
+    while index + 1 < length {
+        if char_at(base, index) == 58 && char_at(base, index + 1) == 58 {
+            return substring(base, 0, index)
+        }
+        index = index + 1
+    }
+    base
+}
+
+fn native_c_enum_type_is_heap(heap_enum_flags: Vec<i32>, raw_type_id: i32) -> bool {
+    if raw_type_id < 0 || raw_type_id >= len(heap_enum_flags) {
+        return false
+    }
+    get_unchecked(heap_enum_flags, raw_type_id) != 0
+}
+
+/// True when an ENUM entry with this basename exists and is not heap-marked.
+fn native_c_table_has_unit_enum_named(
+    table: TypeTable,
+    heap_enum_flags: Vec<i32>,
+    name: String
+) -> bool {
+    let basename = native_c_type_name_enum_basename(name)
+    if len(basename) == 0 {
+        return false
+    }
+    let type_count = type_table::TypeTable_entry_count(table)
+    let mut saw_enum = false
+    let mut type_index = 0
+    while type_index < type_count {
+        let entry = type_table::TypeTable_entry_at(table, type_index)
+        let kind = type_table::type_entry_kind(entry)
+        if kind != kinds::TYPE_KIND_ENUM() && kind != kinds::TYPE_KIND_STRUCT() {
+            type_index = type_index + 1
+            continue
+        }
+        if !eq(native_c_type_name_enum_basename(type_table::type_entry_name(entry)), clone(basename)) {
+            type_index = type_index + 1
+            continue
+        }
+        if native_c_enum_type_is_heap(heap_enum_flags, type_index) {
+            return false
+        }
+        if kind == kinds::TYPE_KIND_ENUM() {
+            saw_enum = true
+        }
+        type_index = type_index + 1
+    }
+    saw_enum
+}

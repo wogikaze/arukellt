@@ -1,5 +1,4 @@
 use std::host::stdio
-use std::time
 use driver::config_record
 use driver::parser_dump_view
 use driver::resolver_dump_view
@@ -33,14 +32,19 @@ fn dump_ast_if_enabled(config: DriverConfig, decls: Vec<AstNode>) {
 
 fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
     if config_record::config_dump_hir(config) {
-        stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
+        // Bind the header first so CONST_STRING gets a real dest. A bare
+        // eprintln(String_from(...)) can leave dest=-1 with SKIP and then
+        // LOCAL_GET+SET, leaving the pointer on the stack (KEEP_CLOCK validate).
+        let header = String_from("=== HIR (post-resolve) ===")
+        stdio::eprintln(header)
         dump_resolved_scope(resolve_ctx)
     }
 }
 
 fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult) {
     if config_record::config_dump_hir(config) {
-        stdio::eprintln(String_from("=== TYPED HIR ==="))
+        let header = String_from("=== TYPED HIR ===")
+        stdio::eprintln(header)
         dump_checked_hir(check_result)
     }
 }
@@ -70,12 +74,33 @@ pub fn dump_tokens(tokens: Vec<Token>) {
     }
 }
 
-pub fn emit_phase_timing(t0: i64, t_lex: i64, t_parse: i64, t_resolve: i64, t_typecheck: i64, t_lower: i64, t_emit: i64) {
-    stdio::eprintln(concat(String_from("[arukellt] lex: "), concat(to_string(time::duration_ms(t0, t_lex)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] parse: "), concat(to_string(time::duration_ms(t_lex, t_parse)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] resolve: "), concat(to_string(time::duration_ms(t_parse, t_resolve)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] typecheck: "), concat(to_string(time::duration_ms(t_resolve, t_typecheck)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] lower: "), concat(to_string(time::duration_ms(t_typecheck, t_lower)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] emit: "), concat(to_string(time::duration_ms(t_lower, t_emit)), String_from(".000ms"))))
-    stdio::eprintln(concat(String_from("[arukellt] total: "), concat(to_string(time::duration_ms(t0, t_emit)), String_from(".000ms"))))
+fn phase_timing_ms(start: i64, end: i64) -> i32 {
+    // Inline ns→ms: `time::duration_ms` lowers to unreachable under pinned→s2 (#823).
+    let diff = end - start
+    if diff < 0i64 {
+        return 0
+    }
+    i64_to_i32(diff / 1000000i64)
+}
+
+pub fn emit_phase_timing(
+    t0: i64,
+    t_lex: i64,
+    t_parse: i64,
+    t_resolve: i64,
+    t_typecheck: i64,
+    t_lower: i64,
+    t_mir_opt: i64,
+    t_mir_verify: i64,
+    t_emit: i64
+) {
+    stdio::eprintln(concat(String_from("[arukellt] lex: "), concat(to_string(phase_timing_ms(t0, t_lex)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] parse: "), concat(to_string(phase_timing_ms(t_lex, t_parse)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] resolve: "), concat(to_string(phase_timing_ms(t_parse, t_resolve)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] typecheck: "), concat(to_string(phase_timing_ms(t_resolve, t_typecheck)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] lower: "), concat(to_string(phase_timing_ms(t_typecheck, t_lower)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] mir_opt: "), concat(to_string(phase_timing_ms(t_lower, t_mir_opt)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] mir_verify: "), concat(to_string(phase_timing_ms(t_mir_opt, t_mir_verify)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] emit: "), concat(to_string(phase_timing_ms(t_mir_verify, t_emit)), String_from("ms"))))
+    stdio::eprintln(concat(String_from("[arukellt] total: "), concat(to_string(phase_timing_ms(t0, t_emit)), String_from("ms"))))
 }

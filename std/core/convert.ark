@@ -379,44 +379,27 @@ impl i32 {
 
     /// Returns the smaller of `self` and `other`.
     fn min(self: i32, other: i32) -> i32 {
-        if self < other {
-            self
-        } else {
-            other
-        }
+        __core_math_min_impl(self, other)
     }
 
     /// Returns the larger of `self` and `other`.
     fn max(self: i32, other: i32) -> i32 {
-        if self > other {
-            self
-        } else {
-            other
-        }
+        __core_math_max_impl(self, other)
     }
 
     /// Clamps `self` to the range `[lo, hi]`.
     fn clamp(self: i32, lo: i32, hi: i32) -> i32 {
-        if self < lo {
-            lo
-        } else {
-            if self > hi {
-                hi
-            } else {
-                self
-            }
-        }
+        __core_math_clamp_impl(self, lo, hi)
     }
 
     /// Returns `self` raised to the power `exp`.
     fn pow(self: i32, exp: i32) -> i32 {
-        let mut result = 1
-        let mut i = 0
-        while i < exp {
-            result = result * self
-            i = i + 1
-        }
-        result
+        __core_math_pow_i32_impl(self, exp)
+    }
+
+    /// Returns the greatest common divisor of `self` and `other`.
+    fn gcd(self: i32, other: i32) -> i32 {
+        __core_math_gcd_impl(self, other)
     }
 }
 

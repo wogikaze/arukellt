@@ -1,0 +1,113 @@
+pub struct NameIndex {
+    capacity: i32,
+    buckets: Vec<i32>,
+    keys: Vec<String>,
+    values: Vec<i32>,
+}
+
+fn name_index_capacity(expected_entries: i32) -> i32 {
+    let mut capacity = 16
+    let required = expected_entries * 2
+    while capacity < required {
+        capacity = capacity * 2
+    }
+    capacity
+}
+
+pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
+    let capacity = name_index_capacity(expected_entries)
+    let buckets = Vec_new_i32()
+    let keys = Vec_new_String()
+    let values = Vec_new_i32()
+    let mut i = 0
+    while i < capacity {
+        push(buckets, 0)
+        i = i + 1
+    }
+    NameIndex {
+        capacity: capacity,
+        buckets: buckets,
+        keys: keys,
+        values: values,
+    }
+}
+
+fn name_index_hash(name: String) -> i32 {
+    let mut hash = 216613626
+    let count = len(name)
+    let mut i = 0
+    while i < count {
+        hash = hash * 16777619 ^ char_at(name, i)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        i = i + 1
+    }
+    if hash < 0 {
+        return 0
+    }
+    hash
+}
+
+fn name_index_find_slot(index: NameIndex, name: String) -> i32 {
+    let mut slot = name_index_hash(clone(name)) % index.capacity
+    let mut probes = 0
+    while probes < index.capacity {
+        let bucket = get_unchecked(index.buckets, slot)
+        if bucket == 0 {
+            return slot
+        }
+        if eq(get_unchecked(index.keys, bucket - 1), clone(name)) {
+            return slot
+        }
+        slot = (slot + 1) % index.capacity
+        probes = probes + 1
+    }
+    0 - 1
+}
+
+pub fn name_index_get(index: NameIndex, name: String) -> i32 {
+    let slot = name_index_find_slot(index, name)
+    if slot < 0 {
+        return 0 - 1
+    }
+    let bucket = get_unchecked(index.buckets, slot)
+    if bucket == 0 {
+        return 0 - 1
+    }
+    get_unchecked(index.values, bucket - 1)
+}
+
+pub fn name_index_insert_first(index: NameIndex, name: String, value: i32) {
+    let slot = name_index_find_slot(index, clone(name))
+    if slot < 0 || get_unchecked(index.buckets, slot) != 0 {
+        return
+    }
+    push(index.keys, name)
+    push(index.values, value)
+    set(index.buckets, slot, len(index.keys))
+}
+
+pub fn name_index_set(index: NameIndex, name: String, value: i32) {
+    let slot = name_index_find_slot(index, clone(name))
+    if slot < 0 {
+        return
+    }
+    let bucket = get_unchecked(index.buckets, slot)
+    if bucket == 0 {
+        push(index.keys, name)
+        push(index.values, value)
+        set(index.buckets, slot, len(index.keys))
+        return
+    }
+    set(index.values, bucket - 1, value)
+}
+
+pub fn name_index_increment(index: NameIndex, name: String) {
+    let current = name_index_get(index, clone(name))
+    if current < 0 {
+        name_index_set(index, name, 1)
+        return
+    }
+    name_index_set(index, name, current + 1)
+}

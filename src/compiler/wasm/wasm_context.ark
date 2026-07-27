@@ -1,7 +1,15 @@
 use wasm::strings
 use wasm::ctx_record
 
-fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePlan, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) -> SelfEmitCtx {
+fn emit_wasm_context_new(
+    functions: Vec<MirFunction>,
+    strings: EmitStringTablePlan,
+    target: String,
+    wasi_version: String,
+    needs_arukellt_host: i32,
+    needs_wasi_http_outgoing: i32,
+    source_file: String
+) -> SelfEmitCtx {
     let string_values = strings::EmitStringTablePlan_values(strings)
     ctx_record::SelfEmitCtx_new(
         functions,
@@ -13,7 +21,8 @@ fn emit_wasm_context_new(functions: Vec<MirFunction>, strings: EmitStringTablePl
         target,
         wasi_version,
         needs_arukellt_host,
-        needs_wasi_http_outgoing
+        needs_wasi_http_outgoing,
+        source_file
     )
 }
 
@@ -47,6 +56,10 @@ fn emit_wasm_context_set_gc_struct_type_map(ctx: SelfEmitCtx, gc_struct_type_map
 
 fn emit_wasm_context_set_gc_struct_names(ctx: SelfEmitCtx, gc_struct_names: Vec<String>) {
     ctx_record::SelfEmitCtx_set_gc_struct_names(ctx, gc_struct_names)
+}
+
+fn emit_wasm_context_set_gc_struct_sigs(ctx: SelfEmitCtx, gc_struct_sigs: Vec<String>) {
+    ctx_record::SelfEmitCtx_set_gc_struct_sigs(ctx, gc_struct_sigs)
 }
 
 fn emit_wasm_context_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {

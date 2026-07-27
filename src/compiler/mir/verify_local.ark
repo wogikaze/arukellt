@@ -7,6 +7,11 @@ use mir::function_return_view
 use mir::local_access
 use mir::verify_report
 use mir::value_types
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
 
 fn verify_locals_in_function(f: MirFunction, report: MirVerifyReport, verbose: bool, fn_name: String) {
     let pc = function_param_view::MirFunction_param_count(f)
@@ -20,6 +25,41 @@ fn verify_locals_in_function(f: MirFunction, report: MirVerifyReport, verbose: b
     while li < lc {
         verify_one_local(function_locals_view::MirFunction_local_at(f, li), report, verbose, fn_name, String_from("local"))
         li = li + 1
+    }
+    verify_local_instruction_operands(f, lc, report, verbose, fn_name)
+}
+
+fn verify_local_instruction_operands(
+    f: MirFunction,
+    local_count: i32,
+    report: MirVerifyReport,
+    verbose: bool,
+    fn_name: String
+) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let operand = inst_accessors_operands::MirInst_arg0(inst)
+            let is_invalid_get = op == opcodes::MIR_LOCAL_GET() && (operand < 0 || operand >= local_count)
+            let is_invalid_set = op == opcodes::MIR_LOCAL_SET() && (operand < 0 || operand >= local_count)
+            if is_invalid_get || is_invalid_set {
+                mir_verify_report_add_w008(report)
+                if verbose {
+                    mir_verify_report_push_detail(
+                        report,
+                        concat(String_from("W008 invalid-local-operand "), fn_name)
+                    )
+                }
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
     }
 }
 

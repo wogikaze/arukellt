@@ -1,3 +1,4 @@
+use fmt::import_block
 use fmt::parse_gate
 use fmt::program
 use fmt::prune_imports
@@ -17,7 +18,7 @@ pub fn sorted_import_block(input: String) -> Option<String> {
     sort_imports::fmt_sorted_import_block(input)
 }
 
-pub fn import_block_span(input: String) -> i32 {
+pub fn import_block_span(input: String) -> Option<import_block::ImportBlockSpan> {
     sort_imports::fmt_import_block_span_value(input)
 }
 

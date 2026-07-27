@@ -9,3 +9,8 @@ pub fn lower_to_mir(input: MirLowerInput) -> MirModule {
 pub fn lower_to_mir_no_prune(input: MirLowerInput) -> MirModule {
     mir::lower_to_mir_no_prune(input)
 }
+
+/// Lowers typed input to MIR, prunes with export roots, then runs typed sync.
+pub fn lower_to_mir_with_roots(input: MirLowerInput, export_roots: Vec<String>) -> MirModule {
+    mir::lower_to_mir_with_roots(input, export_roots)
+}

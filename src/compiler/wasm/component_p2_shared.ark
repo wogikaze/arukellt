@@ -1,0 +1,146 @@
+// Arukellt Selfhost - shared-memory import transformation for P2 bridged guest.
+//
+// Transforms a core wasm module to import memory from "shared" instead of
+// defining its own.  Required for the bridged P2 component path where the
+// guest must share memory with the bridge module.
+//
+// Changes:
+//   1. Remove the memory section (id=5)
+//   2. Add `import "shared" "memory" (memory 1)` to the import section
+//   3. Remove the "memory" export from the export section
+
+use wasm::component_p2_strip
+
+fn replace_memory_with_shared_import(wasm: Vec<i32>) -> Vec<i32> {
+    let packed = component_p2_strip::parse_wasm_sections(wasm)
+    let ids = component_p2_strip::section_ids(packed)
+    let offsets = component_p2_strip::section_offsets(packed)
+    let sizes = component_p2_strip::section_sizes(packed)
+
+    let new_imp = build_shared_import(wasm, ids, offsets, sizes)
+    let new_exp = build_export_without_memory(wasm, ids, offsets, sizes)
+    reassemble_shared(wasm, ids, offsets, sizes, new_imp, new_exp)
+}
+
+fn build_shared_import(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>) -> Vec<i32> {
+    let imp_idx = component_p2_strip::find_section(ids, 2)
+    let new_imp = Vec_new_i32()
+    if imp_idx >= 0 {
+        let imp_off = get_unchecked(offsets, imp_idx)
+        let imp_sz = get_unchecked(sizes, imp_idx)
+        let imp_data = Vec_new_i32()
+        component_p2_strip::copy_range(imp_data, wasm, imp_off, imp_off + imp_sz)
+
+        let r = component_p2_strip::WasmReader_new(imp_data)
+        let old_count = component_p2_strip::reader_uleb(r)
+        let rest_start = r.pos
+
+        component_p2_strip::write_uleb(new_imp, old_count + 1)
+        component_p2_strip::copy_range(new_imp, imp_data, rest_start, len(imp_data))
+    } else {
+        component_p2_strip::write_uleb(new_imp, 1)
+    }
+
+    // Append: import "shared" "memory" (memory 1)
+    component_p2_strip::write_uleb(new_imp, 6)
+    push(new_imp, 0x73) // s
+    push(new_imp, 0x68) // h
+    push(new_imp, 0x61) // a
+    push(new_imp, 0x72) // r
+    push(new_imp, 0x65) // e
+    push(new_imp, 0x64) // d
+    component_p2_strip::write_uleb(new_imp, 6)
+    push(new_imp, 0x6d) // m
+    push(new_imp, 0x65) // e
+    push(new_imp, 0x6d) // m
+    push(new_imp, 0x6f) // o
+    push(new_imp, 0x72) // r
+    push(new_imp, 0x79) // y
+    push(new_imp, 0x02) // kind: memory
+    push(new_imp, 0x00) // limits: no max
+    push(new_imp, 0x01) // 1 page
+    new_imp
+}
+
+fn build_export_without_memory(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>) -> Vec<i32> {
+    let exp_idx = component_p2_strip::find_section(ids, 7)
+    if exp_idx < 0 {
+        return Vec_new_i32()
+    }
+    let exp_off = get_unchecked(offsets, exp_idx)
+    let exp_sz = get_unchecked(sizes, exp_idx)
+    let exp_data = Vec_new_i32()
+    component_p2_strip::copy_range(exp_data, wasm, exp_off, exp_off + exp_sz)
+
+    let r2 = component_p2_strip::WasmReader_new(exp_data)
+    let exp_count = component_p2_strip::reader_uleb(r2)
+    let mut kept = 0
+    let kept_entries = Vec_new_i32()
+    let mut i = 0
+    while i < exp_count {
+        let entry_start = r2.pos
+        let name_len = component_p2_strip::reader_uleb(r2)
+        let name_start = r2.pos
+        r2.pos = name_start + name_len
+        let kind = component_p2_strip::reader_byte(r2)
+        let _ = component_p2_strip::reader_uleb(r2)
+        let entry_end = r2.pos
+
+        if !is_memory_export(kind, name_len, exp_data, name_start) {
+            component_p2_strip::copy_range(kept_entries, exp_data, entry_start, entry_end)
+            kept = kept + 1
+        }
+        i = i + 1
+    }
+    let new_exp = Vec_new_i32()
+    component_p2_strip::write_uleb(new_exp, kept)
+    component_p2_strip::append_bytes(new_exp, kept_entries)
+    new_exp
+}
+
+fn is_memory_export(kind: i32, name_len: i32, exp_data: Vec<i32>, name_start: i32) -> i32 {
+    if kind != 2 || name_len != 6 {
+        return 0
+    }
+    let expected = Vec_new_i32()
+    push(expected, 0x6d) // m
+    push(expected, 0x65) // e
+    push(expected, 0x6d) // m
+    push(expected, 0x6f) // o
+    push(expected, 0x72) // r
+    push(expected, 0x79) // y
+    let mut j = 0
+    while j < 6 {
+        if get_unchecked(exp_data, name_start + j) != get_unchecked(expected, j) {
+            return 0
+        }
+        j = j + 1
+    }
+    1
+}
+
+fn reassemble_shared(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>, new_imp: Vec<i32>, new_exp: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    component_p2_strip::copy_range(out, wasm, 0, 8)
+    let has_exp = component_p2_strip::find_section(ids, 7) >= 0
+    let n = len(ids)
+    let mut i = 0
+    while i < n {
+        let sid = get_unchecked(ids, i)
+        if sid == 5 {
+            // skip memory section
+        } else if sid == 2 {
+            component_p2_strip::emit_rebuilt_section(out, sid, new_imp)
+        } else if sid == 7 && has_exp {
+            component_p2_strip::emit_rebuilt_section(out, sid, new_exp)
+        } else {
+            let off = get_unchecked(offsets, i)
+            let sz = get_unchecked(sizes, i)
+            push(out, sid)
+            component_p2_strip::write_uleb(out, sz)
+            component_p2_strip::copy_range(out, wasm, off, off + sz)
+        }
+        i = i + 1
+    }
+    out
+}

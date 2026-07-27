@@ -6,12 +6,17 @@ use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use wasm::string_gc_helpers
 use wasm::writer_core
 
 fn emit_clone(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let _nop = 0
-    return true
+    // GC strings are immutable array refs: clone is identity (arg already
+    // on stack from the call's local.get). Linear-memory clone is the
+    // same handle copy. Keep the value for finish_text_call / store.
+    let _ctx = ctx
+    let _inst = inst
+    true
 }
 
 // Handler for: len
@@ -33,6 +38,7 @@ fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     helpers_core::emit_local_set(w, s_tmp)
     helpers_core::emit_local_get(w, s_tmp)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_i32(w)
     let true_offset = ctx_string_view::SelfEmitCtx_true_string_offset(ctx)
     helpers_numeric_i32::emit_i32_const(w, true_offset)
@@ -50,6 +56,7 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     helpers_core::emit_local_set(w, s_tmp)
     helpers_core::emit_local_get(w, s_tmp)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_true_string_offset(ctx), 4, dest, string_type, s_i)
     helpers_control::emit_else(w)
@@ -70,12 +77,16 @@ fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32,
     string_gc_helpers::emit_gc_br_if(w, 1)
     string_gc_helpers::emit_gc_local_get(w, dest)
     string_gc_helpers::emit_gc_local_get(w, s_i)
+    // array.set index is true i32; Memory64 loop counters are widened.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     string_gc_helpers::emit_gc_i32_const(w, data_offset)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_add(w)
     writer_core::emit_byte(w, 45)
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
+    // i32.load8_u leaves a true i32; array.set_i32 path expects a widened scalar.
+    helpers_numeric_i32_convert::emit_widen_i32_result(w)
     string_gc_helpers::emit_gc_array_set(w, string_type)
     string_gc_helpers::emit_gc_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -97,7 +108,10 @@ fn emit_concat(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         let s_b = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
         let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
         let s_rp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
-        let total_len = inst_accessors_operands::MirInst_dest(inst)
+        // Must not reuse MirInst_dest: setup writes the length into this slot, and
+        // finish_text_call then SETs the string pointer into dest. Clobbering dest
+        // made next LOCAL_GET(dest) look like an identity reload and SKIP'd the store.
+        let total_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
         emit_concat_setup(w, s_a, s_b, s_la, total_len)
         emit_concat_alloc(w, s_rp, total_len)
         emit_concat_copy(w, s_a, s_b, s_la, s_rp, total_len)
@@ -146,6 +160,7 @@ fn emit_gc_copy_loop(w: WasmWriter, s_i: i32, s_len: i32, dest: i32, src: i32, s
     string_gc_helpers::emit_gc_br_if(w, 1)
     helpers_core::emit_local_get(w, dest)
     helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, src)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)
@@ -170,6 +185,7 @@ fn emit_gc_copy_loop_offset(w: WasmWriter, s_i: i32, s_len: i32, dest: i32, src:
     helpers_core::emit_local_get(w, offset)
     helpers_core::emit_local_get(w, s_i)
     helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, src)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_array_get_u(w, string_type)

@@ -77,8 +77,8 @@ fn DocManifestTable_new(functions: Vec<DocFnEntry>, modules: Vec<DocModuleEntry>
     DocManifestTable { functions: functions, modules: modules }
 }
 
-fn DocManifestTable_functions(t: DocManifestTable) -> Vec<DocFnEntry> { clone(t.functions) }
-fn DocManifestTable_modules(t: DocManifestTable) -> Vec<DocModuleEntry> { clone(t.modules) }
+fn DocManifestTable_functions(t: DocManifestTable) -> Vec<DocFnEntry> { t.functions }
+fn DocManifestTable_modules(t: DocManifestTable) -> Vec<DocModuleEntry> { t.modules }
 fn DocManifestTable_function_count(t: DocManifestTable) -> i32 { len(t.functions) }
 fn DocManifestTable_module_count(t: DocManifestTable) -> i32 { len(t.modules) }
 fn DocManifestTable_function_at(t: DocManifestTable, idx: i32) -> DocFnEntry { get_unchecked(t.functions, idx) }
@@ -123,5 +123,5 @@ fn DocQuery_new(hits: Vec<i32>, show_module: i32) -> DocQuery {
     DocQuery { hits: hits, show_module: show_module }
 }
 
-fn DocQuery_hits(q: DocQuery) -> Vec<i32> { clone(q.hits) }
+fn DocQuery_hits(q: DocQuery) -> Vec<i32> { q.hits }
 fn DocQuery_show_module(q: DocQuery) -> i32 { q.show_module }

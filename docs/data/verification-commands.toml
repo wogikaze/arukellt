@@ -73,12 +73,36 @@ purpose = "Check structured comments and derived A/B public API documentation co
 coverage = ["CQ-API-001", "CQ-DOC-001", "CQ-DOC-003", "CQ-DOC-004", "CQ-DOC-005", "CQ-DOC-006"]
 
 [[commands]]
+id = "semantic_debt"
+canonical = "python3 scripts/check/check-semantic-debt.py"
+aliases = []
+alias_status = "none"
+purpose = "Forbid new packed-encoding / untracked workaround debt; allowlist must shrink"
+coverage = ["semantic-debt-allowlist"]
+
+[[commands]]
+id = "verify_lane"
+canonical = "python3 scripts/manager.py verify lane"
+aliases = []
+alias_status = "none"
+purpose = "Fast agent/lane gate: quality changed plus optional --gate (cli-parity, t3, …)"
+coverage = ["lane", "changed-code"]
+
+[[commands]]
 id = "verify_quick"
 canonical = "python3 scripts/manager.py verify quick"
 aliases = ["python3 scripts/manager.py verify --quick"]
 alias_status = "compatibility"
-purpose = "Run the fast local verification gate"
-coverage = ["quick"]
+purpose = "Merge/CI core local verification gate (not the default per-edit agent loop)"
+coverage = ["quick", "core"]
+
+[[commands]]
+id = "verify_quick_extended"
+canonical = "python3 scripts/manager.py verify quick --extended"
+aliases = []
+alias_status = "none"
+purpose = "verify quick plus extended LSP/component/opt-equivalence checks"
+coverage = ["quick", "extended"]
 
 [[commands]]
 id = "verify_release"
@@ -117,8 +141,16 @@ id = "verify_component_interop"
 canonical = "python3 scripts/manager.py verify component-interop"
 aliases = ["python3 scripts/manager.py verify component", "python3 scripts/manager.py verify --component"]
 alias_status = "compatibility"
-purpose = "Run the wasmtime Component Model interop fixture set"
-coverage = ["tests/component-interop/jco/*/run.sh"]
+purpose = "Run the wasmtime Component Model interop fixture set (jco/Node opt-in with ARUKELLT_TEST_JCO=1)"
+coverage = ["tests/component-interop/jco/*/run.sh", "ARUKELLT_TEST_JCO=1"]
+
+[[commands]]
+id = "verify_component_interop_jco"
+canonical = "ARUKELLT_TEST_JCO=1 python3 scripts/manager.py verify component-interop"
+aliases = []
+alias_status = "none"
+purpose = "Run the optional jco/Node JavaScript interop smoke test for the calculator fixture"
+coverage = ["tests/component-interop/jco/calculator/run.sh"]
 
 [[commands]]
 id = "verify_component_emit"
@@ -141,8 +173,19 @@ id = "selfhost_fixpoint"
 canonical = "python3 scripts/manager.py selfhost fixpoint"
 aliases = []
 alias_status = "none"
-purpose = "Check selfhost bootstrap fixpoint"
+purpose = "ADR-029 gate: check sha256(s2)==sha256(s3). Not for refreshing the emitter after edits."
 coverage = ["s2", "s3"]
+
+[[commands]]
+id = "selfhost_build_compiler"
+canonical = "python3 scripts/manager.py selfhost build-compiler"
+aliases = [
+  "python3 scripts/manager.py selfhost build-s2",
+  "python3 scripts/manager.py selfhost rebuild-s2",
+]
+alias_status = "compatibility"
+purpose = "Refresh arukellt-s2.wasm after src/compiler edits (stage-2 only; ~45-50s full-compile floor). Batch edits — do not rebuild per one-line try."
+coverage = ["s2"]
 
 [[commands]]
 id = "selfhost_fixture_parity"
@@ -239,3 +282,40 @@ aliases = []
 alias_status = "none"
 purpose = "Run reproducible build gate"
 coverage = ["reproducibility"]
+
+[[commands]]
+id = "no_prune_invariant"
+canonical = "python3 scripts/check/gate-no-prune-invariant.py"
+aliases = []
+alias_status = "none"
+purpose = "Verify MIR reachability pruning preserves export-root reachability and ref.func targets"
+coverage = [
+    "tests/fixtures/reachability/call_export_roots.ark",
+    "tests/fixtures/reachability/ref_func_only_target.ark",
+    "tests/fixtures/hello/hello.ark",
+]
+
+[[commands]]
+id = "selfhost_native_executor"
+canonical = "python3 scripts/manager.py selfhost native-executor --build"
+aliases = []
+alias_status = "none"
+purpose = "ADR-049 native executor lane: inherit S2 build profile, generate S3, require same-profile byte equality"
+coverage = ["selfhost", "native-cpp", "adr-049"]
+
+[[commands]]
+id = "native_cpp_fixture_coverage_measure"
+canonical = "python3 scripts/check/measure-native-cpp-fixture-coverage.py --write --jobs 6"
+aliases = []
+alias_status = "none"
+purpose = "Advisory full-manifest native-cpp readiness measure (schema v2, semantic expectations)"
+coverage = ["native-cpp", "adr-050", "tests/fixtures"]
+
+[[commands]]
+id = "native_cpp_fixture_readiness_ratchet"
+canonical = "python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py"
+aliases = []
+alias_status = "none"
+purpose = "Forbid regression vs native-cpp fixture coverage baseline (ICE/crash/rates)"
+coverage = ["native-cpp", "adr-050"]
+

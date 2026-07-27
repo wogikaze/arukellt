@@ -1,10 +1,12 @@
 use corehir::mir_value_type
 use corehir::kinds
 use corehir::type_contracts
+use corehir::type_id
 use corehir::type_info_kind
 use corehir::type_info_to_type_id
 use corehir::type_table
 use corehir::value_types
+use corehir::hashmap_type_name
 
 fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
     let type_id = type_info_to_type_id::type_info_to_type_id(table, ty)
@@ -13,8 +15,11 @@ fn type_info_to_mir_value(table: TypeTable, ty: TypeInfo) -> MirValueType {
 }
 
 fn type_info_repr_approx(tag: i32) -> i32 {
-    if tag == 5 || tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
+    if tag == 10 || tag == 11 || tag == 12 || tag == 13 || tag == 21 || tag == 22 || tag == 23 {
         return kinds::VALUE_REPR_GC_REF()
+    }
+    if tag == 5 {
+        return kinds::VALUE_REPR_LINEAR_PTR()
     }
     kinds::VALUE_REPR_SCALAR()
 }
@@ -45,9 +50,9 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
 }
 
 fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
-    if eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("struct:")) {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec_new_TypeId())
@@ -108,4 +113,163 @@ fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType
     let result = Vec_new_MirValueType()
     push(result, type_info_to_mir_value(table, ty))
     result
+}
+
+// True when a MirValueType is fully concrete (contains no open type variables).
+// Concreteness is checked by attempting to produce a type alias string: if the
+// type tree contains a TYPE_VAR entry, mvt_to_type_name returns empty.
+fn mvt_is_concrete(table: TypeTable, mvt: MirValueType) -> bool {
+    len(mvt_to_type_name(table, mvt)) > 0
+}
+
+// Return a GC-layout alias string only when the MirValueType is a concrete
+// container kind (Vec/Option/Result/HashMap). Structs, enums, and primitives
+// are left to the existing string-based type_name path to avoid alias
+// mismatches in the current emitter.
+fn mvt_gc_layout_alias(table: TypeTable, mvt: MirValueType) -> String {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    if kind == kinds::TYPE_KIND_VEC() || kind == kinds::TYPE_KIND_OPTION() ||
+    kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_HASHMAP() {
+        let name = type_id_to_type_name(table, tid, 0)
+        // Tag-only spine intern (type_info_to_type_id) yields bare container
+        // names without element aliases. Those must not overwrite concrete
+        // CoreHIR names such as option:fnref / vec:String (#831).
+        if mvt_gc_layout_alias_is_bare_container(clone(name)) {
+            return String_new()
+        }
+        return name
+    }
+    String_new()
+}
+
+fn mvt_gc_layout_alias_is_bare_container(name: String) -> bool {
+    eq(clone(name), String_from("Option")) ||
+    eq(clone(name), String_from("Result")) ||
+    eq(clone(name), String_from("Vec")) ||
+    eq(clone(name), String_from("HashMap"))
+}
+
+// True when a CoreHIR-shaped local type must be kept over a tag-only MVT alias.
+fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
+    if len(local_type) == 0 {
+        return false
+    }
+    if !mvt_gc_layout_alias_is_bare_container(clone(alias)) {
+        return false
+    }
+    starts_with(clone(local_type), String_from("option:")) ||
+    starts_with(clone(local_type), String_from("Option_")) ||
+    starts_with(clone(local_type), String_from("Option:")) ||
+    starts_with(clone(local_type), String_from("result:")) ||
+    starts_with(clone(local_type), String_from("Result_")) ||
+    starts_with(clone(local_type), String_from("Result:")) ||
+    starts_with(clone(local_type), String_from("vec:")) ||
+    starts_with(clone(local_type), String_from("hashmap:")) ||
+    eq(clone(local_type), String_from("fnref"))
+}
+
+// Convert a concrete MirValueType back to the GC-layout alias string used by
+// the emitter (e.g. "vec:String", "hashmap:strstr", "option:i32"). Returns an
+// empty string when the type is invalid or contains an open type variable.
+fn mvt_to_type_name(table: TypeTable, mvt: MirValueType) -> String {
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return String_new()
+    }
+    type_id_to_type_name(table, tid, 0)
+}
+
+fn type_id_to_type_name(table: TypeTable, tid: TypeId, depth: i32) -> String {
+    if depth > 6 {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    let name = type_table::type_entry_name(entry)
+    if kind == kinds::TYPE_KIND_TYPE_VAR() {
+        return String_new()
+    }
+    if string_contains_char(name, 63) {
+        return String_new()
+    }
+    if kind == kinds::TYPE_KIND_PRIMITIVE() {
+        return name
+    }
+    if kind == kinds::TYPE_KIND_STRING() {
+        return String_from("String")
+    }
+    if kind == kinds::TYPE_KIND_STRUCT() || kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_HASHSET() || kind == kinds::TYPE_KIND_TUPLE() {
+        if !type_params_are_concrete(table, entry, depth) {
+            return String_new()
+        }
+        return name
+    }
+    let arg_count = type_table::type_entry_type_param_count(entry)
+    if kind == kinds::TYPE_KIND_VEC() && arg_count == 1 {
+        let elem = type_table::type_entry_type_param_at(entry, 0)
+        let elem_name = type_id_to_type_name(table, elem, depth + 1)
+        if len(elem_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("vec:"), elem_name)
+    }
+    if kind == kinds::TYPE_KIND_OPTION() && arg_count == 1 {
+        let inner = type_table::type_entry_type_param_at(entry, 0)
+        let inner_name = type_id_to_type_name(table, inner, depth + 1)
+        if len(inner_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("option:"), inner_name)
+    }
+    if kind == kinds::TYPE_KIND_RESULT() && arg_count == 2 {
+        let ok = type_table::type_entry_type_param_at(entry, 0)
+        let err = type_table::type_entry_type_param_at(entry, 1)
+        let ok_name = type_id_to_type_name(table, ok, depth + 1)
+        let err_name = type_id_to_type_name(table, err, depth + 1)
+        if len(ok_name) == 0 || len(err_name) == 0 {
+            return String_new()
+        }
+        return concat(concat(String_from("result:"), ok_name), concat(String_from(":"), err_name))
+    }
+    if kind == kinds::TYPE_KIND_HASHMAP() && arg_count == 2 {
+        let k = type_table::type_entry_type_param_at(entry, 0)
+        let v = type_table::type_entry_type_param_at(entry, 1)
+        let k_name = type_id_to_type_name(table, k, depth + 1)
+        let v_name = type_id_to_type_name(table, v, depth + 1)
+        if len(k_name) == 0 || len(v_name) == 0 {
+            return String_new()
+        }
+        return concat(String_from("hashmap:"), hashmap_type_name::hashmap_type_alias(k_name, v_name))
+    }
+    name
+}
+
+fn type_params_are_concrete(table: TypeTable, entry: TypeEntry, depth: i32) -> bool {
+    let arg_count = type_table::type_entry_type_param_count(entry)
+    let mut ai = 0
+    while ai < arg_count {
+        let arg = type_table::type_entry_type_param_at(entry, ai)
+        if len(type_id_to_type_name(table, arg, depth + 1)) == 0 {
+            return false
+        }
+        ai = ai + 1
+    }
+    true
+}
+
+fn string_contains_char(s: String, c: i32) -> bool {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        if char_at(s, i) == c {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }

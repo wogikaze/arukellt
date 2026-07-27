@@ -7,6 +7,7 @@ use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 
 // GC-target case conversion: strings are (ref null array_i8) refs.
 fn emit_case_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, range_start: i32, range_end: i32, to_upper: bool) {
@@ -72,10 +73,13 @@ fn emit_ascii_case_convert_if_needed(w: WasmWriter, s_ch: i32, range_start: i32,
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, range_start)
     helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, range_end)
     helpers_numeric_i32::emit_i32_le_s(w)
+    helpers_numeric_i32_convert::emit_widen_compare_result(w)
     helpers_numeric_i32::emit_i32_and(w)
+    helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
     helpers_core::emit_local_get(w, s_ch)
     helpers_numeric_i32::emit_i32_const(w, 32)

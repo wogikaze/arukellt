@@ -1,0 +1,14 @@
+// Phase1 D: alias Vec field, get via alias; Holder not used after alias.
+use std::host::stdio
+
+struct Holder {
+    name: String,
+    items: Vec<String>,
+}
+
+fn main() {
+    let mut h = Holder { name: String_from("test"), items: Vec_new_String() }
+    h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
+    let local_ref = h.items
+    stdio::println(get_unchecked(local_ref, 0))
+}

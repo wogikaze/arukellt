@@ -7,6 +7,7 @@ use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors
 use typechecker::contract_enum_info
 use typechecker::type_names
+use component::wit_parse_text
 use resolver::wit_register
 use resolver::wit_surface
 
@@ -72,14 +73,16 @@ fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String
     if !wit_register::wit_doc_has_surface(doc) {
         return
     }
-    for ei in 0..len(doc.enums) {
-        push(enum_defs, wit_enum_info_from_parsed(clone(alias), get_unchecked(doc.enums, ei)))
+    let enums = wit_parse_text::WitParsedInterface_enums(doc)
+    for ei in 0..len(enums) {
+        push(enum_defs, wit_enum_info_from_parsed(clone(alias), get_unchecked(enums, ei)))
     }
 }
 
 fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit_parse_text::WitParsedInterface) {
-    for fi in 0..len(doc.funcs) {
-        push(sigs, wit_fn_sig_from_parsed(clone(alias), doc, get_unchecked(doc.funcs, fi)))
+    let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
+    for fi in 0..len(funcs) {
+        push(sigs, wit_fn_sig_from_parsed(clone(alias), doc, get_unchecked(funcs, fi)))
     }
 }
 

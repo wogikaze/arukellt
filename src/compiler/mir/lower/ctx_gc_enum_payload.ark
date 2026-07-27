@@ -28,11 +28,10 @@ fn ctx_ensure_gc_enum_payload_variant(ctx: LowerCtx, variant_name: String, paylo
     let field_sigs = ctx_gc_enum_sig::ctx_gc_enum_payload_field_sigs_from_vts(payload_vts)
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), field_sigs)
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String) -> i32 {
-    let layout_field_sigs = gc_enum_build_payload_field_sigs(ctx, clone(variant_name))
+    let layout_field_sigs = gc_enum_build_payload_field_sigs_for_type(ctx, clone(variant_name), clone(type_name))
     let field_sigs = gc_enum_payload_typed_resolve_field_sigs(ctx, clone(variant_name), payload_vts, clone(type_name), clone(layout_field_sigs))
     let normalized = ctx_gc_enum::ctx_gc_enum_normalize_variant_name(clone(variant_name))
     let want_sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(0, clone(field_sigs))
@@ -42,7 +41,6 @@ fn ctx_ensure_gc_enum_payload_variant_typed(ctx: LowerCtx, variant_name: String,
     }
     let sig = ctx_gc_enum_sig::gc_enum_payload_variant_sig(len(ctx.gc_enum_variant_names), clone(field_sigs))
     ctx_gc_enum::ctx_register_gc_enum_variant(ctx, clone(normalized), sig)
-    len(ctx.gc_enum_variant_names) - 1
 }
 
 fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String, payload_vts: Vec<i32>, type_name: String, layout_field_sigs: String) -> String {
@@ -60,12 +58,20 @@ fn gc_enum_payload_typed_resolve_field_sigs(ctx: LowerCtx, variant_name: String,
             }
         }
     }
-    if len(layout_field_sigs) > 0 {
-        if len(type_name) == 0 || eq(clone(type_name), String_from("enum:open")) || contains(clone(field_sigs), String_from("ref14")) {
-            if contains(clone(layout_field_sigs), String_from("ref")) || contains(clone(layout_field_sigs), String_from("gcsref")) {
-                if !(is_vec_container && contains(clone(layout_field_sigs), String_from("ref14"))) {
-                    field_sigs = layout_field_sigs
-                }
+    // Only reuse layout field sigs when the typed want is still open/enum-open
+    // and the layout itself was selected for this payload type. Never let a
+    // first-name Option::Some(String) layout override a concrete Inner want.
+    let typed_is_open = len(type_name) == 0 || eq(clone(type_name), String_from("enum:open"))
+    if len(layout_field_sigs) > 0 && typed_is_open {
+        if contains(clone(layout_field_sigs), String_from("ref")) || contains(clone(layout_field_sigs), String_from("gcsref")) {
+            if !(is_vec_container && contains(clone(layout_field_sigs), String_from("ref14"))) {
+                field_sigs = layout_field_sigs
+            }
+        }
+    } else if len(layout_field_sigs) > 0 && contains(clone(field_sigs), String_from("ref14")) && is_vec_container {
+        if contains(clone(layout_field_sigs), String_from("ref")) || contains(clone(layout_field_sigs), String_from("gcsref")) {
+            if !contains(clone(layout_field_sigs), String_from("ref14")) {
+                field_sigs = layout_field_sigs
             }
         }
     }
@@ -97,6 +103,12 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
         }
         i = i + 1
     }
+    // When the typed want field sig is known, never fall back to the first
+    // same-named slot unless its payload sig matches exactly. Name-only reuse
+    // is how Option::Some(i32) steals Option::Some(String) / gcsref binds.
+    if len(field_sigs) > 0 {
+        return 0 - 1
+    }
     let name_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, clone(variant_name))
     if name_slot >= 0 {
         let existing_sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, name_slot))
@@ -119,7 +131,11 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
                     }
                 }
             }
-            if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
+            if len(field_sigs) > 0 &&
+            !ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(field_sigs)) &&
+            ctx_gc_enum_sig::gc_enum_payload_is_scalar_sig(clone(existing_payload)) {
+                // fall through
+            } else if ctx_gc_enum_sig::gc_enum_payload_sigs_compatible(existing_sig, clone(field_sigs)) {
                 return name_slot
             }
         }
@@ -128,13 +144,20 @@ fn gc_enum_payload_typed_find_slot(ctx: LowerCtx, variant_name: String, normaliz
 }
 
 fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> String {
+    gc_enum_build_payload_field_sigs_for_type(ctx, variant_name, String_new())
+}
+
+fn gc_enum_build_payload_field_sigs_for_type(ctx: LowerCtx, variant_name: String, type_name: String) -> String {
     let mut sig = String_new()
     let layout_name = ctx_struct_field_type::ctx_resolve_variant_layout_name(ctx, clone(variant_name))
     let layout_count = len(ctx.struct_names)
     let mut li = 0
+    let mut first_sig = String_new()
     while li < layout_count {
         if eq(get_unchecked(ctx.struct_names, li), clone(layout_name)) || eq(get_unchecked(ctx.struct_names, li), clone(variant_name)) {
             let field_count = get_unchecked(ctx.struct_field_counts, li)
+            let mut row_sig = String_new()
+            let mut payload_ft = String_new()
             let mut fi = 1
             while fi < field_count {
                 let mut off = 0
@@ -145,12 +168,26 @@ fn gc_enum_build_payload_field_sigs(ctx: LowerCtx, variant_name: String) -> Stri
                 }
                 off = off + fi
                 let ft = get_unchecked(ctx.struct_field_types, off)
-                sig = text::builder_append(sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
+                if fi == 1 {
+                    payload_ft = clone(ft)
+                }
+                row_sig = text::builder_append(row_sig, ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(ft)))
                 fi = fi + 1
             }
-            return sig
+            if len(first_sig) == 0 {
+                first_sig = clone(row_sig)
+            }
+            if len(type_name) > 0 && ctx_struct_field_type::ctx_payload_field_types_match(clone(payload_ft), clone(type_name)) {
+                return row_sig
+            }
+            if len(type_name) == 0 {
+                return row_sig
+            }
         }
         li = li + 1
+    }
+    if len(first_sig) > 0 {
+        return first_sig
     }
     sig
 }

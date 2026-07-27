@@ -1,0 +1,12 @@
+use std::host::stdio
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn main() {
+    let fs: Vec<fn(i32) -> i32> = Vec_new_i32()
+    push(fs, double)
+    let f = get_unchecked(fs, 0)
+    stdio::println((f(5)).to_string())
+}

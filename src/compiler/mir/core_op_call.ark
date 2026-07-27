@@ -1,0 +1,49 @@
+use corehir::core_op_id
+use corehir::core_op_registry_generated
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::inst_record
+use mir::module_spine
+
+fn mir_call_core_op_index(m: MirModule, inst: MirInst) -> i32 {
+    if !module_spine::MirModule_signature_spine_populated(m) {
+        return 0 - 1
+    }
+    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
+    if fid_raw < 0 {
+        return 0 - 1
+    }
+    let registry = module_spine::MirModule_signature_registry(m)
+    let entry = signature_registry::signature_registry_lookup_by_id(
+        registry,
+        function_id::FunctionId_new(fid_raw)
+    )
+    core_op_id::CoreOpId_raw(signature_entry::signature_entry_core_op_id(entry))
+}
+
+fn mir_call_normal_fallback_symbol(m: MirModule, inst: MirInst) -> String {
+    let index = mir_call_core_op_index(m, inst)
+    if index < 0 {
+        return String_new()
+    }
+    if core_op_registry_generated::core_op_registry_layer_at(index) != 3 {
+        return String_new()
+    }
+    if core_op_registry_generated::core_op_registry_lowering_kind_at(index) != 1 {
+        return String_new()
+    }
+    core_op_registry_generated::core_op_registry_fallback_symbol_at(index)
+}
+
+fn mir_call_inline_fallback_symbol(m: MirModule, inst: MirInst) -> String {
+    let fallback = mir_call_normal_fallback_symbol(m, inst)
+    if len(fallback) == 0 {
+        return fallback
+    }
+    let index = mir_call_core_op_index(m, inst)
+    if core_op_registry_generated::core_op_registry_inline_policy_at(index) <= 0 {
+        return String_new()
+    }
+    fallback
+}

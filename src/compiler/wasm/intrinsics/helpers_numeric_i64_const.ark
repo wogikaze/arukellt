@@ -1,7 +1,11 @@
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_i64_const(w: WasmWriter, value: i32) {
+// OP_I64_CONST immediate is i64. Keep the param i64 so int-lit lowering that
+// keys off the "i64" name (call_arg_i64) matches the callee wasm type; an i32
+// param here fails KEEP_CLOCK validate (expected i32, found i64) on call sites
+// such as emit_fs_read_open_call(w, 2) / (w, 0).
+fn emit_i64_const(w: WasmWriter, value: i64) {
     writer_core::emit_byte(w, opcodes::OP_I64_CONST())
-    writer_core::emit_leb128_s(w, value)
+    writer_core::emit_leb128_s_i64(w, value)
 }

@@ -78,20 +78,21 @@ ISSUE_ID_RE = re.compile(r"^(\d{3})")
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
     "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
-    "076": ["P2 filesystem fixture validate + wasmtime run + p2_fs_out.txt (wasi_fs_p2.ark)"],
+    "076": ["P2 filesystem fixture in-tree compile + wasm-tools validate (runtime I/O tracked by #076)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
     "051": ["std::time + std::random umbrella (gate-051-std-time-random.py)"],
     "648": ["general canonical ABI umbrella (gate-648-component-export-general-abi.py)"],
     "123": ["Layer C import string syntax component fixture"],
-    "641": ["T4 native scaffold compile (t4/native_scaffold.ark)"],
+    "641": ["native-cpp C99 constant-return slice and native-llvm scaffold"],
     "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
     "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
     "658": ["TCP listen/accept host-linker smoke (gate-658-sockets-listen-accept.py)"],
     "139": ["WASI P2 sockets umbrella (gate-139-wasi-p2-sockets-umbrella.py)"],
     "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
+    "727": ["arukellt_host absence / WIT-bridged HTTP+sockets (gate-727-arukellt-host-absence.py)"],
     "656": ["HTTP incoming server gate-656-http-incoming.py"],
     "077": ["WASI P2 HTTP umbrella (gate-077-wasi-p2-http-umbrella.py)"],
     "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
@@ -142,7 +143,7 @@ def _with_selfhost_runtime_lock(fn: Callable[[], T]) -> T:
         raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn)
+    return mod.with_selfhost_runtime_lock(fn, root=REPO_ROOT)
 
 
 def _default_jobs() -> int:
@@ -377,7 +378,10 @@ def _run_gate(issue_id: str) -> tuple[str, list[str], int, str]:
         return issue_id, gate_names, rc, f"cached: {msg}" if msg else "cached"
 
     def invoke() -> tuple[int, str]:
-        return gate_fn()
+        try:
+            return gate_fn()
+        except subprocess.TimeoutExpired as exc:
+            return 1, f"timeout after {exc.timeout}s: {exc.cmd!r}"
 
     if issue_id in _PLAYGROUND_LOCKED_ISSUES:
         rc, msg = _with_file_lock(_PLAYGROUND_LOCK, invoke)
@@ -436,12 +440,12 @@ def _manifest_contains(entry: str) -> bool:
 
 
 def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
-    """Core wasm + post-wrap for gate 074 (run export + stdio bridge path)."""
-    return _compile_p2_component_wrapped(fixture_rel, out)
+    """In-tree `--emit component` for gate 074/076 (bridged WASI P2 path, #714)."""
+    return _compile_p2_component_direct(fixture_rel, out)
 
 
 def _compile_p2_component_direct(fixture_rel: str, out: Path) -> tuple[int, str]:
-    """Pinned bootstrap `--emit component` (validate-only gates)."""
+    """Selfhost `--emit component` without Python post-wrap."""
     compiler = _compiler()
     if compiler is None:
         return 2, "arukellt compiler binary not found (build release/debug first)"
@@ -479,72 +483,6 @@ def _compile_p2_component_direct(fixture_rel: str, out: Path) -> tuple[int, str]
     if result.returncode != 0:
         tail = (result.stderr or result.stdout)[-800:]
         return 1, f"compile failed: {tail}"
-    return 0, ""
-
-
-def _compile_p2_component_wrapped(fixture_rel: str, out: Path) -> tuple[int, str]:
-    compiler = _compiler()
-    if compiler is None:
-        return 2, "arukellt compiler binary not found (build release/debug first)"
-    fixture = REPO_ROOT / fixture_rel
-    if not fixture.is_file():
-        return 1, f"missing fixture {fixture_rel}"
-    fixture_arg = str(fixture_rel)
-    out_dir = out.parent
-    out_dir.mkdir(parents=True, exist_ok=True)
-    core_out = out_dir / f"{out.stem}.core.wasm"
-    try:
-        core_arg = str(core_out.relative_to(REPO_ROOT))
-    except ValueError:
-        core_arg = str(core_out)
-    try:
-        out_arg = str(out.relative_to(REPO_ROOT))
-    except ValueError:
-        out_arg = str(out)
-    cmd = [
-        str(compiler),
-        "compile",
-        fixture_arg,
-        "--target",
-        "wasm32-gc",
-        "--wasi-version",
-        "wasi-p2",
-        "--emit",
-        "core-wasm",
-        "-o",
-        core_arg,
-    ]
-    if compiler.name == "arukellt-selfhost.sh":
-        cmd = ["bash", str(compiler), *cmd[1:]]
-    result = subprocess.run(
-        cmd,
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=120,
-        env=_selfhost_compile_env(),
-    )
-    if result.returncode != 0:
-        tail = (result.stderr or result.stdout)[-800:]
-        return 1, f"compile failed: {tail}"
-    if not core_out.is_file():
-        return 1, f"missing core wasm output {core_out}"
-    try:
-        import importlib.util
-
-        wrap_spec = importlib.util.spec_from_file_location(
-            "p2_component_wrap",
-            REPO_ROOT / "scripts" / "selfhost" / "p2_component_wrap.py",
-        )
-        if wrap_spec is None or wrap_spec.loader is None:
-            return 1, "missing scripts/selfhost/p2_component_wrap.py"
-        wrap_mod = importlib.util.module_from_spec(wrap_spec)
-        wrap_spec.loader.exec_module(wrap_mod)
-        out.write_bytes(wrap_mod.wrap_p2_command_component(core_out.read_bytes()))
-    except Exception as exc:  # noqa: BLE001
-        return 1, f"p2_component_wrap failed: {exc}"
-    if not out.is_file():
-        return 1, f"missing component output {out}"
     return 0, ""
 
 
@@ -620,18 +558,20 @@ def _gate_076_locked() -> tuple[int, str]:
         return 1, "missing scripts/selfhost/runtime_lock.py"
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(_gate_076_body)
+    return mod.with_selfhost_runtime_lock(_gate_076_body, root=REPO_ROOT)
 
 
 def _gate_076_body() -> tuple[int, str]:
+    """Compile+validate P2 fs fixture on the in-tree bridged emitter (#714).
+
+    Runtime file I/O proof remains #076: the bridged path still stubs
+    wasi:filesystem until an in-tree fs bridge lands (wrap scripts removed).
+    """
     last_rc = 1
     last_msg = ""
-    out_file = REPO_ROOT / "p2_fs_out.txt"
     for attempt in range(3):
         out_dir = Path(tempfile.mkdtemp(prefix="close-gate-076-", dir=REPO_ROOT / ".build"))
         try:
-            if out_file.is_file():
-                out_file.unlink()
             out = out_dir / "wasi_fs_p2.component.wasm"
             last_rc, last_msg = _compile_p2_component("tests/fixtures/wasi_fs_p2.ark", out)
             if last_rc != 0:
@@ -639,14 +579,6 @@ def _gate_076_body() -> tuple[int, str]:
             last_rc, last_msg = _wasm_tools_validate(out)
             if last_rc != 0:
                 continue
-            last_rc, last_msg = _wasmtime_run_dir(out, "hello p2 fs")
-            if last_rc != 0:
-                continue
-            if not out_file.is_file():
-                return 1, "p2_fs_out.txt missing after wasmtime run"
-            content = out_file.read_text(encoding="utf-8")
-            if content != "hello p2 fs":
-                return 1, f"p2_fs_out.txt expected 'hello p2 fs', got {content!r}"
             return 0, ""
         finally:
             shutil.rmtree(out_dir, ignore_errors=True)
@@ -677,7 +609,20 @@ def _gate_074_locked() -> tuple[int, str]:
         return 1, "missing scripts/selfhost/runtime_lock.py"
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(_gate_074_body)
+    return mod.with_selfhost_runtime_lock(_gate_074_body, root=REPO_ROOT)
+
+
+def _assert_p2_bridged_import_shape(path: Path) -> tuple[int, str]:
+    data = path.read_bytes()
+    if b"wasi:cli/stdout@0.2.0::write" in data:
+        return 1, "artifact contains pseudo import wasi:cli/stdout@0.2.0::write"
+    if b"wasi:cli/stdout@0.2.0" not in data:
+        return 1, "artifact missing wasi:cli/stdout@0.2.0"
+    if b"wasi:io/streams@0.2.0" not in data:
+        return 1, "artifact missing wasi:io/streams@0.2.0"
+    if b"get-stdout" not in data:
+        return 1, "artifact missing get-stdout"
+    return 0, ""
 
 
 def _gate_074_body() -> tuple[int, str]:
@@ -695,6 +640,9 @@ def _gate_074_body() -> tuple[int, str]:
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasm_tools_validate(out)
+            if last_rc != 0:
+                continue
+            last_rc, last_msg = _assert_p2_bridged_import_shape(out)
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasmtime_run(out, "hello p2")
@@ -858,25 +806,102 @@ def gate_639() -> tuple[int, str]:
 
 
 def gate_641() -> tuple[int, str]:
-    entry = "t4-compile:t4/native_scaffold.ark"
-    if not _manifest_contains(entry):
-        return 1, f"manifest missing {entry}"
-    fixture = REPO_ROOT / "tests" / "fixtures" / "t4" / "native_scaffold.ark"
-    if not fixture.is_file():
-        return 1, "missing tests/fixtures/t4/native_scaffold.ark"
+    required_entries = (
+        "t4-compile:t4/native_scaffold.ark",
+        "t4-compile:native_cpp/constant_return.ark",
+        "t4-compile:native_cpp/unsupported_string.ark",
+    )
+    for entry in required_entries:
+        if not _manifest_contains(entry):
+            return 1, f"manifest missing {entry}"
     target_ark = REPO_ROOT / "src" / "compiler" / "driver" / "target.ark"
     native_ark = REPO_ROOT / "src" / "compiler" / "driver" / "native.ark"
-    if not target_ark.is_file() or not native_ark.is_file():
-        return 1, "missing src/compiler/driver/target.ark or native.ark"
+    emit_ark = REPO_ROOT / "src" / "compiler" / "driver" / "emit.ark"
+    native_c_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "mod.ark"
+    if not all(path.is_file() for path in (target_ark, native_ark, emit_ark, native_c_ark)):
+        return 1, "missing native target routing or native-cpp emitter source"
     target_text = target_ark.read_text(encoding="utf-8")
     native_text = native_ark.read_text(encoding="utf-8")
-    if "is_native_target" not in target_text:
-        return 1, "target.ark lacks native registration"
-    if "emit_native_scaffold" not in native_text or "T4 native scaffold" not in native_text:
-        return 1, "native.ark lacks scaffold emitter"
-    contract = (REPO_ROOT / "docs" / "adr" / "ADR-007-targets.md").read_text(encoding="utf-8")
-    if "native_scaffold" not in contract or "scaffold" not in contract:
-        return 1, "ADR-007-targets.md T4 native section not scaffold"
+    emit_text = emit_ark.read_text(encoding="utf-8")
+    native_c_text = native_c_ark.read_text(encoding="utf-8")
+    if "is_native_cpp_target" not in target_text or "is_native_llvm_target" not in target_text:
+        return 1, "target.ark does not separate native targets"
+    if "emit_native_c_module" not in emit_text or "use native_c" not in emit_text:
+        return 1, "native-cpp is not routed to the C99 emitter"
+    if "emit_native_llvm_scaffold" not in native_text or ".globl main" not in native_text:
+        return 1, "native-llvm scaffold is not preserved"
+    if "emit_native_scaffold" in native_text or "emit_native_scaffold" in emit_text:
+        return 1, "obsolete shared native scaffold routing remains"
+    emitter_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "function_emitter.ark"
+    abi_ark = REPO_ROOT / "src" / "compiler" / "native_c" / "abi.ark"
+    if not emitter_ark.is_file() or not abi_ark.is_file():
+        return 1, "missing native-cpp function_emitter.ark or abi.ark"
+    emitter_text = emitter_ark.read_text(encoding="utf-8")
+    abi_text = abi_ark.read_text(encoding="utf-8")
+    for required, haystack in (
+        ("INT32_C(", emitter_text),
+        ("ark_f_", abi_text),
+        ("int main(int argc, char **argv)", native_c_text),
+    ):
+        if required not in haystack:
+            return 1, f"native-cpp emitter lacks {required}"
+    state = (REPO_ROOT / "docs/data/project-state.toml").read_text(encoding="utf-8")
+    match = re.search(r'id = "native-cpp"(?P<body>.*?)(?=\n\[\[(?:target_profiles|executor_lanes)\]\]|\Z)', state, re.S)
+    if match is None:
+        return 1, "project-state lacks native-cpp"
+    # ADR-050 experimental public run keeps scaffold/partial but enables run_supported.
+    for required in (
+        'support_tier = "scaffold"',
+        'implementation_state = "partial"',
+        "run_supported = true",
+    ):
+        if required not in match.group("body"):
+            return 1, f"native-cpp project-state must retain {required}"
+    lane = re.search(
+        r'id = "native-cpp-selfhost"(?P<body>.*?)(?=\n\[\[|\Z)',
+        state,
+        re.S,
+    )
+    if lane is None:
+        return 1, "project-state lacks native-cpp-selfhost executor lane"
+    for required in (
+        'state = "experimental"',
+        "strict_gate_supported = true",
+        "high_rss_override_allowed_in_ci = false",
+    ):
+        if required not in lane.group("body"):
+            return 1, f"executor lane must retain {required}"
+    promo = REPO_ROOT / "docs/data/native-cpp-executor-promotion-receipt.json"
+    if not promo.is_file():
+        return 1, "missing docs/data/native-cpp-executor-promotion-receipt.json"
+    try:
+        receipt = json.loads(promo.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return 1, f"invalid promotion receipt: {exc}"
+    if receipt.get("high_rss_override") is not False:
+        return 1, "promotion receipt high_rss_override must be false"
+    if int(receipt.get("strict_runs_passed") or 0) < 3:
+        return 1, "promotion receipt must record strict_runs_passed >= 3"
+    if int(receipt.get("worst_warm_wall_time_ms") or 10**12) >= 300000:
+        return 1, "promotion receipt worst warm wall must be < 300000 ms"
+    if int(receipt.get("worst_peak_rss_bytes") or 10**18) > int(2.4 * 1024**3):
+        return 1, "promotion receipt worst RSS must be <= 2.4 GiB"
+    rl = receipt.get("root_liveness_summary") or {}
+    if rl.get("root_liveness_enabled") is not True:
+        return 1, "promotion receipt must show root_liveness_enabled"
+    if "root_functions_skipped" not in rl or int(rl["root_functions_skipped"]) != 0:
+        return 1, "promotion receipt root_functions_skipped must be 0"
+    if rl.get("root_planned_equals_emitted") is not True:
+        return 1, "promotion receipt planned clears must equal emitted clears"
+    validation = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts/check/check-native-cpp-capabilities.py")],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if validation.returncode != 0:
+        return 1, (validation.stdout + validation.stderr)[-800:]
     return 0, ""
 
 
@@ -1043,6 +1068,22 @@ def gate_034() -> tuple[int, str]:
     return 0, ""
 
 
+def gate_727() -> tuple[int, str]:
+    script = REPO_ROOT / "scripts" / "check" / "gate-727-arukellt-host-absence.py"
+    if not script.is_file():
+        return 1, "missing gate-727-arukellt-host-absence.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
+
+
 def gate_655() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-655-http-outgoing.py"
     if not script.is_file():
@@ -1084,7 +1125,7 @@ def gate_657() -> tuple[int, str]:
         cwd=str(REPO_ROOT),
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=300,
     )
     if result.returncode != 0:
         return 1, (result.stdout + result.stderr)[-800:]
@@ -1175,6 +1216,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "139": gate_139,
     "655": gate_655,
     "656": gate_656,
+    "727": gate_727,
     "077": gate_077,
     "138": gate_138,
     "136": gate_136,

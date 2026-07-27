@@ -1,0 +1,169 @@
+// Name-based intrinsic fallback when a Call-kind core_op has no linked
+// impl symbol (clone/len/Vec_new DCE'd in large GC modules).
+
+use mir::inst_accessors_operands
+use wasm::inst_ctx
+use wasm::inst_store
+use wasm::intrinsic_clock
+use wasm::intrinsic_string_basic
+use wasm::intrinsic_string_affix
+use wasm::intrinsic_string_contains_bytes
+use wasm::intrinsic_vec_new_layout
+
+fn try_emit_clone_intrinsic(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if !is_clone_callee(clone(callee)) {
+        return false
+    }
+    let on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
+    finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+}
+
+fn try_emit_name_intrinsic_fallback(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if try_emit_clone_intrinsic(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if is_len_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
+    // core_op binding and become unresolved → unreachable in tokenize.
+    if is_vec_new_callee(clone(callee)) {
+        intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
+        inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+    }
+    // Same class of miss: string predicates used by loader / name helpers.
+    if is_contains_callee(clone(callee)) {
+        let on_stack = intrinsic_string_contains_bytes::emit_contains(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_starts_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_starts_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_ends_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_ends_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // KEEP_CLOCK / --time: when registry binding is missing, unresolved call
+    // emit produced `unreachable` + `return` of an i32 local into an i64
+    // result (mir_lower_phase_now validate fail). Emit the real clock body.
+    if is_clock_now_callee(clone(callee)) {
+        let on_stack = intrinsic_clock::emit_clock_now(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_clock_now_ms_callee(clone(callee)) {
+        let on_stack = intrinsic_clock::emit_clock_now_ms(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    false
+}
+
+fn is_vec_new_callee(callee: String) -> bool {
+    if starts_with(clone(callee), String_from("Vec_new_")) {
+        return true
+    }
+    if eq(clone(callee), String_from("Vec_new")) {
+        return true
+    }
+    if contains(clone(callee), String_from("::Vec_new_")) {
+        return true
+    }
+    ends_with(clone(callee), String_from("Vec_new_fallback"))
+}
+
+fn is_contains_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("contains")) ||
+    eq(clone(callee), String_from("__intrinsic_contains")) ||
+    ends_with(clone(callee), String_from("::contains"))
+}
+
+fn is_starts_with_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("starts_with")) ||
+    ends_with(clone(callee), String_from("::starts_with"))
+}
+
+fn is_ends_with_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("ends_with")) ||
+    ends_with(clone(callee), String_from("::ends_with"))
+}
+
+fn is_clock_now_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("clock_now")) ||
+    eq(clone(callee), String_from("monotonic_now")) ||
+    eq(clone(callee), String_from("__intrinsic_clock_now")) ||
+    ends_with(clone(callee), String_from("::monotonic_now")) ||
+    ends_with(clone(callee), String_from("::clock_now"))
+}
+
+fn is_clock_now_ms_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("clock_now_ms")) ||
+    eq(clone(callee), String_from("now_ms")) ||
+    eq(clone(callee), String_from("__intrinsic_clock_now_ms")) ||
+    ends_with(clone(callee), String_from("::now_ms")) ||
+    ends_with(clone(callee), String_from("::clock_now_ms"))
+}
+
+fn is_clone_callee(callee: String) -> bool {
+    // core_op_handler_* functions are generated constant accessors (e.g.
+    // core_op_handler_raw_string_clone), not actual clone operations.
+    // Treating them as identity clone intrinsics omits their return value
+    // and leaves the stack unbalanced.
+    if contains(clone(callee), String_from("core_op_handler_")) {
+        return false
+    }
+    // Kind-1 core_op rewrites `clone` → `__core_string_clone_impl` (and
+    // similar string-clone symbols). Those must stay identity intrinsics too;
+    // a direct call is typed String→String and rejects GC struct args.
+    eq(clone(callee), String_from("clone")) ||
+    eq(clone(callee), String_from("__intrinsic_clone")) ||
+    eq(clone(callee), String_from("__intrinsic_string_clone")) ||
+    eq(clone(callee), String_from("__core_string_clone_impl")) ||
+    eq(clone(callee), String_from("raw_string_clone")) ||
+    ends_with(clone(callee), String_from("::clone")) ||
+    ends_with(clone(callee), String_from("__clone")) ||
+    ends_with(clone(callee), String_from("::raw_string_clone")) ||
+    ends_with(clone(callee), String_from("string_clone"))
+}
+
+fn is_len_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("len")) ||
+    eq(clone(callee), String_from("len_bytes")) ||
+    eq(clone(callee), String_from("__intrinsic_len")) ||
+    ends_with(clone(callee), String_from("::len")) ||
+    ends_with(clone(callee), String_from("__len")) ||
+    ends_with(clone(callee), String_from("::len_bytes")) ||
+    ends_with(clone(callee), String_from("__len_bytes"))
+}
+
+fn finish_intrinsic_fallback(
+    w: WasmWriter,
+    inst: MirInst,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32,
+    result_on_stack: bool
+) -> bool {
+    inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, result_on_stack)
+    true
+}

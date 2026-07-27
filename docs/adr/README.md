@@ -20,7 +20,7 @@
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | （2026-07-05 追補: wasmtime / Node.js / ブラウザの 3 ランタイムクロス計測で再確認。結論は不変） |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ADR-002 により Wasm GC を採用した。generics の実装戦略を決定する。 |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | 公開 ABI を無秩序に増やすと保守コストが増大する。一方で raw Wasm の GC 型表現 （String / Vec の (ref $…) layout）を stable に固定すると、内部表現の進化 （inline string、rope、capacity layout、nullable 最適化、recursive type group 等）を |
-| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native の意味論・ABI は ADR-045 まで未決定。 |
+| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native-cpp の内部セルフホストexecutor契約は ADR-049が、公開 experimental run 契約は |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Component Model 対応にあたり、core Wasm モジュールを .component.wasm に変換する 方法を決める必要がある。 |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Arukellt には 2 種類の「モジュール参照」が混在している。 |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | WebAssembly Extended Const 提案により、定数式の中で i32.add, i32.sub, i32.mul (および i64 版) が使用可能になった。これにより、グローバル変数の 初期値・データセグメントのオフセット・要素セグメントのオフセットで算術演算を 記述できる。 |
@@ -40,34 +40,36 @@
 | [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | 関連 issue: #632 |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | トラック: wasm-feature Issue: #069 廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化） |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する linking モデルを求める。 前提として #442（WIT interop）と #476（wac plug / wasm-tools compose smoke）がある。 |
+| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | 提案日: 2026-06-17 |
+| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
 | [ADR-040-typed-mir-signature-registry.md](ADR-040-typed-mir-signature-registry.md) | ADR-040: Semantic Type Spine | wasm32-gc の残存 validate-fail は局所修正の限界に出ている。根本原因は個別の型推論バグではなく、 コンパイルパイプライン各段で意味情報（型・シグネチャ・ABI）が失われ、emitter が 名前やスタックから型を掘り返していることである。 |
 | [ADR-041-in-file-test-syntax.md](ADR-041-in-file-test-syntax.md) | ADR-041: In-file Test Syntax — test Declarations | Arukellt にはこれまで言語レベルのテスト構文がなく、arukellt test コマンドは check_only=true の型チェックラッパに過ぎなかった（src/compiler/main/project_run.ark cmd_test 参照）。テスト関数の検出は test_ / _test 命名規約のみ（Issue #458）で、 |
 | [ADR-042-intrinsic-layer-separation.md](ADR-042-intrinsic-layer-separation.md) | ADR-042: Intrinsic Layer Separation — 意味と実装の分離 | 提案日: 2026-07-10 |
 | [ADR-043-wasm-gc-post-mvp.md](ADR-043-wasm-gc-post-mvp.md) | ADR-043: 未標準化の Wasm GC 拡張を言語仕様の前提にしない | 旧番号メモ: 調査草稿は誤って ADR-008 として公開されたのち ADR-043 へ移した。 調査本文の正本は docs/research/wasm-gc-post-mvp.md。 |
 | [ADR-044-trait-method-syntax-adopted.md](ADR-044-trait-method-syntax-adopted.md) | ADR-044: trait とメソッド構文を言語機能として採択する | 廃止: ADR-004-method-syntax-evaluation.md |
-| [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md |
 | [ADR-046-free-function-eradication.md](ADR-046-free-function-eradication.md) | ADR-046: 公開 free function の根絶 | stdlib と prelude は長年 func(recv, …) 形の free function とモノモルフィック helper（_i32 等）を正面 API としてきた。ADR-044 / issue #709 は trait-first / メソッド構文を正規としたが、ADR-036 D5 は |
 | [ADR-047-code-quality-tooling-and-gates.md](ADR-047-code-quality-tooling-and-gates.md) | ADR-047: コード品質ツールの分業と品質ゲート | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
+| [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
+| [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 
 ## 提案
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
-| [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | 提案日: 2026-06-17 |
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
-| [ADR-039-question-mark-operator.md](ADR-039-question-mark-operator.md) | ADR-039: ? の Option 対応とエラー型変換 | 提案日: 2026-06-26 |
 
 ## 後継済み
 
 | ファイル | タイトル | 要約 |
 |----------|----------|------|
 | [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md) | ADR-004: メソッド構文の評価（旧 P4） | 後継: ADR-044-trait-method-syntax-adopted.md |
-| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | 後継: ADR-045-llvm-scope-withdrawn.md |
+| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | 後継: ADR-049-native-c99-selfhost-executor.md |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | トラック: language-design（issue #123） 後継: ADR-031-import-syntax-wit-unification.md |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | 後継: ADR-031-import-syntax-wit-unification.md |
+| [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md 後継: ADR-049-native-c99-selfhost-executor.md |
 
 ## その他
 

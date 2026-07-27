@@ -2,7 +2,8 @@
 
 ステータス: **SUPERSEDED** — 旧 LLVM 従属方針を撤回
 
-後継: [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md)  
+後継: [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md)
+中間履歴: [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md)
 決定日: 2026-03-24  
 統合日: 2026-07-11
 
@@ -13,6 +14,8 @@
 2026-03-24 に「LLVM IR バックエンドは Wasm 意味論に従属」を採択したが、
 コア意味論と FFI 境界の混在により矛盾していたため、
 [ADR-045](ADR-045-llvm-scope-withdrawn.md) で撤回し再開まで未決定とした。
+その保留判断は[ADR-049](ADR-049-native-c99-selfhost-executor.md)が限定された
+native-cpp executor判断で後継した。
 
 以下は**効力のない旧本文**（履歴復元用）である。
 

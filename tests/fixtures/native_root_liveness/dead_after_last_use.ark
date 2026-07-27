@@ -1,0 +1,9 @@
+fn main() -> i32 {
+    let keep = String_from("keep")
+    let dead = String_from("dead-after-use")
+    let n = len(dead)
+    let junk = concat(String_from("temp-"), String_from("x"))
+    let m = len(junk)
+    let keep_len = len(keep)
+    n + m + keep_len - n - m - keep_len
+}

@@ -1,0 +1,17 @@
+use std::host::stdio
+
+// Regression: Option<Vec<i32>> Some(xs) must type xs as vec:i32 so
+// get_unchecked resolves (local ann Option_Vec previously left bare Vec →
+// drop/unreachable). Use get_unchecked because free get returns Option<T>.
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    let o: Option<Vec<i32>> = Some(v)
+    let sum = match o {
+        Some(xs) => get_unchecked(xs, 0) + get_unchecked(xs, 1),
+        None => 0,
+    }
+    stdio::println(to_string(sum))
+}

@@ -171,15 +171,24 @@ fn val_type_to_sig(vt: i32) -> String {
         5 => String_from("gcref"),
         6 => String_from("f32"),
         7 => String_from("v128"),
-        8 => String_from("i32"),
+        8 => String_from("fnref"),
         30 => String_from("i32"),
         _ => String_from("ref"),
     }
 }
 
-fn val_type_to_target_sig(vt: i32, is_gc_target: bool) -> String {
+fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String {
     if vt == 5 && !is_gc_target {
         return String_from("i32")
+    }
+    // Typed funcref stays a reference type under Memory64 (not an i64 index).
+    if vt == 8 {
+        return String_from("fnref")
+    }
+    // Memory64 (wasm32-gc default): widen former i32 Wasm values to i64.
+    // WASI P2 command/component keeps i32 linear memory (#714), so skip widen.
+    if memory64 && (vt == 1 || vt == 30) {
+        return String_from("i64")
     }
     val_type_to_sig(vt)
 }

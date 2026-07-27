@@ -1,94 +1,103 @@
 // GC type from type names.
+// Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
+// See docs/research/infer-local-gc-type-option.md.
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 
-fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
+fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
     let hm = infer_hashmap_gc_type_from_type_name(clone(type_name), ctx)
-    if hm >= 0 {
-        return hm
+    match hm {
+        Option::Some(_opt_v) => {
+            return hm
+        }
+        Option::None => {}
     }
     let vec = infer_vec_gc_type_from_type_name(clone(type_name), ctx)
-    if vec >= 0 {
-        return vec
+    match vec {
+        Option::Some(_opt_v) => {
+            return vec
+        }
+        Option::None => {}
     }
     if starts_with(clone(type_name), String_from("Option_")) ||
     starts_with(clone(type_name), String_from("option:")) ||
     starts_with(clone(type_name), String_from("Option:")) ||
     starts_with(clone(type_name), String_from("Option<")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if starts_with(clone(type_name), String_from("Result_")) ||
     starts_with(clone(type_name), String_from("result:")) ||
     starts_with(clone(type_name), String_from("Result:")) ||
     starts_with(clone(type_name), String_from("Result<")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if starts_with(clone(type_name), String_from("enum:")) {
-        return ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     if starts_with(clone(type_name), String_from("struct:")) {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
         }
         let byte_size = parse_struct_byte_size(clone(type_name))
         if byte_size > 0 {
-            return ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size)
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
         }
     }
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name))
     }
-    0 - 1
+    Option::None
 }
 
-fn infer_hashmap_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
+fn infer_hashmap_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
     if !starts_with(clone(type_name), String_from("hashmap:")) {
-        return 0 - 1
+        return Option::None
     }
     if starts_with(clone(type_name), String_from("hashmap:i32str")) {
-        return ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
+    }
+    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
     }
     if starts_with(clone(type_name), String_from("hashmap:si32")) {
-        return ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
     }
     if starts_with(clone(type_name), String_from("hashmap:strstr")) {
-        return ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
     }
     if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
-        return ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
-    ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx)
+    Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
 }
 
-fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> i32 {
+fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
     if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
-        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
     if !starts_with(clone(type_name), String_from("vec:")) {
-        return 0 - 1
+        return Option::None
     }
     if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
-        return ctx_gc_type::SelfEmitCtx_vec_string_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
     if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
-        return ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
     if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
-        return ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
     }
     if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
-        return ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
-    // Check if element is a struct ref (non-primitive type name).
     let elem_name = substring(clone(type_name), 4, len(type_name))
     if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
-        return ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
+        return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
     }
-    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
 }
 
-// Extract struct name from "struct:TypeName:byte_size" format.
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
@@ -109,7 +118,6 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
     substring(type_name, first_colon + 1, last_colon)
 }
 
-// Extract byte_size from "struct:TypeName:byte_size" format.
 fn parse_struct_byte_size(type_name: String) -> i32 {
     let n = len(type_name)
     let mut last_colon = 0 - 1

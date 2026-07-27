@@ -1,11 +1,73 @@
 use wasm::opcodes
 use wasm::writer_core
 
-fn emit_i32_eq(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQ()) }
-fn emit_i32_ne(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_NE()) }
-fn emit_i32_eqz(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_EQZ()) }
-fn emit_i32_le_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LE_S()) }
-fn emit_i32_lt_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_LT_S()) }
-fn emit_i32_gt_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GT_S()) }
-fn emit_i32_ge_s(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_S()) }
-fn emit_i32_ge_u(w: WasmWriter) { writer_core::emit_byte(w, opcodes::OP_I32_GE_U()) }
+fn emit_i32_eq(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EQ())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_EQ())
+}
+fn emit_i32_ne(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_NE())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_NE())
+}
+fn emit_i32_eqz(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_EQZ())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
+}
+fn emit_i32_le_s(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_LE_S())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_LE_S())
+}
+fn emit_i32_lt_s(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_LT_S())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+}
+fn emit_i32_gt_s(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_GT_S())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+}
+fn emit_i32_ge_s(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_GE_S())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+}
+fn emit_i32_ge_u(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_GE_U())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_U())
+}
+fn emit_i32_gt_u(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_GT_U())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
+}
+fn emit_i32_lt_u(w: WasmWriter) {
+    if writer_core::writer_memory64(w) {
+        writer_core::emit_byte(w, opcodes::OP_I64_LT_U())
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_I32_LT_U())
+}

@@ -1,0 +1,8 @@
+pub struct Span {
+    start: i32,
+    end: i32,
+}
+
+pub fn make_span(start: i32, end: i32) -> Span {
+    Span { start: start, end: end }
+}

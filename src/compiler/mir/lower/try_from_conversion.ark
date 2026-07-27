@@ -1,8 +1,10 @@
 // Extracted from try.ark to reduce import fan-out.
 
+use corehir::signature_registry_from
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_module
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_exists
 use mir::inst_call
@@ -11,14 +13,21 @@ use mir::inst_local_set
 use mir::inst_return
 use mir::inst_struct_get
 use mir::inst_struct_set
+use mir::module_spine
 use mir::value_types
 use mir::function_return_view
 
 // Resolve the From::from conversion function for the Err path of `?`.
-// Returns the mangled function name (e.g. "AppError::from") if conversion
-// is needed, or an empty string if not.
+// Returns the registered callee mangled name if conversion is needed, or
+// empty if identity (same E) / unavailable.
+//
+// ADR-039 D2 / RFC-004 §6: language-syntax desugaring resolves by canonical
+// SemanticTraitId::From on SignatureEntry (import-independent). The callee
+// mangled name is the lookup result, not a string invented at the use site.
 fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> String {
     if is_gc {
+        // wasm32-gc Err payload rewrite for From is not wired yet.
+        // TODO(#840 owner=compiler removal="enable From conversion on wasm32-gc Err path" recheck=2026-10-25)
         return String_new()
     }
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
@@ -28,8 +37,19 @@ fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> St
     if len(source_err_type) == 0 || len(target_err_type) == 0 || eq(clone(source_err_type), clone(target_err_type)) {
         return String_new()
     }
-    let from_fn_name = concat(clone(target_err_type), String_from("::from"))
-    if ctx_fn_exists::ctx_has_fn_name(ctx, clone(from_fn_name)) {
+    let module = ctx_api_module::ctx_current_module(ctx)
+    if !module_spine::MirModule_signature_spine_populated(module) {
+        return String_new()
+    }
+    let registry = module_spine::MirModule_signature_registry(module)
+    let table = module_spine::MirModule_type_table(module)
+    let from_fn_name = signature_registry_from::signature_registry_lookup_from_conversion(
+        registry,
+        table,
+        source_err_type,
+        target_err_type
+    )
+    if len(from_fn_name) > 0 && ctx_fn_exists::ctx_has_fn_name(ctx, clone(from_fn_name)) {
         return from_fn_name
     }
     String_new()

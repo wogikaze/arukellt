@@ -8,27 +8,27 @@ fn main() {
     match toml::toml_parse(input1) {
         Result::Ok(table) => {
             match toml::toml_get(table, String_from("point")) {
-                Result::Ok(pt) => {
+                Option::Some(pt) => {
                     match toml::toml_get(pt, String_from("x")) {
-                        Result::Ok(x) => {
+                        Option::Some(x) => {
                             match toml::toml_as_int(x) {
-                                Result::Ok(n) => assert(n == 1),
-                                Result::Err(_) => assert(false),
+                                Option::Some(n) => assert(n == 1),
+                                None => assert(false),
                             }
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                     match toml::toml_get(pt, String_from("y")) {
-                        Result::Ok(y) => {
+                        Option::Some(y) => {
                             match toml::toml_as_int(y) {
-                                Result::Ok(n) => assert(n == 2),
-                                Result::Err(_) => assert(false),
+                                Option::Some(n) => assert(n == 2),
+                                None => assert(false),
                             }
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                 },
-                Result::Err(_) => assert(false),
+                None => assert(false),
             }
         },
         Result::Err(_) => assert(false),
@@ -39,23 +39,23 @@ fn main() {
     match toml::toml_parse(input2) {
         Result::Ok(table) => {
             match toml::toml_get(table, String_from("a")) {
-                Result::Ok(a) => {
+                Option::Some(a) => {
                     match toml::toml_get(a, String_from("b")) {
-                        Result::Ok(b) => {
+                        Option::Some(b) => {
                             match toml::toml_get(b, String_from("c")) {
-                                Result::Ok(c) => {
+                                Option::Some(c) => {
                                     match toml::toml_as_int(c) {
-                                        Result::Ok(n) => assert(n == 42),
-                                        Result::Err(_) => assert(false),
+                                        Option::Some(n) => assert(n == 42),
+                                        None => assert(false),
                                     }
                                 },
-                                Result::Err(_) => assert(false),
+                                None => assert(false),
                             }
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                 },
-                Result::Err(_) => assert(false),
+                None => assert(false),
             }
         },
         Result::Err(_) => assert(false),
@@ -66,15 +66,15 @@ fn main() {
     match toml::toml_parse(input3) {
         Result::Ok(table) => {
             match toml::toml_get(table, String_from("items")) {
-                Result::Ok(arr) => {
+                Option::Some(arr) => {
                     match toml::toml_as_array(arr) {
-                        Result::Ok(items) => {
+                        Option::Some(items) => {
                             assert(len(items) == 2)
                         },
-                        Result::Err(_) => assert(false),
+                        None => assert(false),
                     }
                 },
-                Result::Err(_) => assert(false),
+                None => assert(false),
             }
         },
         Result::Err(_) => assert(false),

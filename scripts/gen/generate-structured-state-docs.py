@@ -222,13 +222,16 @@ def render_bootstrap_contract(data: dict) -> str:
         [
             "## Stages",
             "",
-            "| ID | Name | Description | Artifact | Comparison |",
-            "|----|------|-------------|----------|------------|",
+            "| ID | Name | Description | Artifact | Command | Comparison |",
+            "|----|------|-------------|----------|---------|------------|",
         ]
     )
     for s in data.get("stages", []):
+        cmd = s.get("command") or "—"
+        cmd_cell = f"`{cmd}`" if cmd != "—" else "—"
         lines.append(
-            f"| `{s['id']}` | `{s['name']}` | {s['description']} | `{s.get('artifact', '')}` | `{s.get('comparison', '')}` |"
+            f"| `{s['id']}` | `{s['name']}` | {s['description']} | "
+            f"`{s.get('artifact', '')}` | {cmd_cell} | `{s.get('comparison', '')}` |"
         )
     lines.extend(
         [

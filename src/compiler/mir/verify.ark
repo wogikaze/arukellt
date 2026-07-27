@@ -69,6 +69,10 @@ fn verify_mir(m: MirModule) -> i32 {
         stdio::eprintln(String_from("mir-verify: fail on W007"))
         return 1
     }
+    if verify_report::mir_verify_report_w008(report) > 0 {
+        stdio::eprintln(String_from("mir-verify: fail on W008 invalid lowering operand"))
+        return 1
+    }
     0
 }
 

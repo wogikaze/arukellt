@@ -28,6 +28,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 # Ensure scripts/ is on sys.path so we can import lib and verify packages.
@@ -47,12 +48,14 @@ from selfhost.checks import (  # noqa: E402
     _ensure_bootstrap_compiler_wasm,
     _ensure_runtime_compiler_wasm,
     _find_pinned_wasm,
+    rebuild_current_s2,
     run_diag_parity,
     run_fixpoint,
     run_fixture_parity,
     run_fmt_parity,
     run_parity,
 )
+from selfhost.native_executor import run_native_executor  # noqa: E402
 from docs_domain.checks import (  # noqa: E402
     run_consistency,
     run_deprecated_api_scan,
@@ -88,6 +91,7 @@ _VERIFY_QUICK_MEMO_VERSION = "verify-quick-memo-v2"
 _VERIFY_QUICK_CHECK_CACHE_DIR = _SCRIPTS_DIR.parent / ".build" / "verify-quick-check-cache"
 _VERIFY_QUICK_CHECK_CACHE_VERSION = "verify-quick-check-cache-v2"
 _VERIFY_QUICK_FILE_DIGESTS: dict[str, str] | None = None
+_VERIFY_QUICK_FILE_DIGESTS_LOCK = threading.Lock()
 
 
 def _hash_bytes(digest, data: bytes) -> None:
@@ -197,56 +201,59 @@ def _prime_quick_file_digest_cache(root: Path) -> None:
     """
     global _VERIFY_QUICK_FILE_DIGESTS
 
-    if _VERIFY_QUICK_FILE_DIGESTS is not None:
-        return
-    _VERIFY_QUICK_FILE_DIGESTS = {}
-    tracked = subprocess.run(
-        ["git", "ls-files", "-s", "-z"],
-        cwd=str(root),
-        capture_output=True,
-        check=False,
-    )
-    if tracked.returncode != 0:
-        return
-    for raw in tracked.stdout.split(b"\0"):
-        if not raw:
-            continue
-        try:
-            meta, rel_bytes = raw.split(b"\t", 1)
-        except ValueError:
-            continue
-        parts = meta.split(b" ")
-        if len(parts) < 2:
-            continue
-        oid = parts[1].decode("ascii", errors="replace")
-        rel = rel_bytes.decode("utf-8", errors="surrogateescape")
-        if rel.startswith(".build/"):
-            continue
-        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"git:{oid}"
-
-    changed: set[str] = set()
-    for args in (
-        ["diff", "--name-only", "--no-renames", "-z"],
-        ["diff", "--cached", "--name-only", "--no-renames", "-z"],
-        ["ls-files", "--others", "--exclude-standard", "-z"],
-    ):
-        result = subprocess.run(
-            ["git", *args],
+    with _VERIFY_QUICK_FILE_DIGESTS_LOCK:
+        if _VERIFY_QUICK_FILE_DIGESTS is not None:
+            return
+        digests: dict[str, str] = {}
+        tracked = subprocess.run(
+            ["git", "ls-files", "-s", "-z"],
             cwd=str(root),
             capture_output=True,
             check=False,
         )
-        if result.returncode != 0:
-            continue
-        changed.update(
-            raw.decode("utf-8", errors="surrogateescape")
-            for raw in result.stdout.split(b"\0")
-            if raw
-        )
-    for rel in changed:
-        if rel.startswith(".build/"):
-            continue
-        _VERIFY_QUICK_FILE_DIGESTS[rel] = f"worktree:{_file_sha256(root / rel)}"
+        if tracked.returncode != 0:
+            _VERIFY_QUICK_FILE_DIGESTS = digests
+            return
+        for raw in tracked.stdout.split(b"\0"):
+            if not raw:
+                continue
+            try:
+                meta, rel_bytes = raw.split(b"\t", 1)
+            except ValueError:
+                continue
+            parts = meta.split(b" ")
+            if len(parts) < 2:
+                continue
+            oid = parts[1].decode("ascii", errors="replace")
+            rel = rel_bytes.decode("utf-8", errors="surrogateescape")
+            if rel.startswith(".build/"):
+                continue
+            digests[rel] = f"git:{oid}"
+
+        changed: set[str] = set()
+        for args in (
+            ["diff", "--name-only", "--no-renames", "-z"],
+            ["diff", "--cached", "--name-only", "--no-renames", "-z"],
+            ["ls-files", "--others", "--exclude-standard", "-z"],
+        ):
+            result = subprocess.run(
+                ["git", *args],
+                cwd=str(root),
+                capture_output=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                continue
+            changed.update(
+                raw.decode("utf-8", errors="surrogateescape")
+                for raw in result.stdout.split(b"\0")
+                if raw
+            )
+        for rel in changed:
+            if rel.startswith(".build/"):
+                continue
+            digests[rel] = f"worktree:{_file_sha256(root / rel)}"
+        _VERIFY_QUICK_FILE_DIGESTS = digests
 
 
 def _path_matches_prefix(rel: str, prefix: str) -> bool:
@@ -259,7 +266,7 @@ def _fingerprint_prefixes(root: Path, prefixes: tuple[str, ...], salt: str) -> s
     digest = hashlib.sha256()
     _hash_bytes(digest, _VERIFY_QUICK_CHECK_CACHE_VERSION.encode("utf-8"))
     _hash_bytes(digest, salt.encode("utf-8"))
-    file_digests = _VERIFY_QUICK_FILE_DIGESTS or {}
+    file_digests = dict(_VERIFY_QUICK_FILE_DIGESTS or {})
     selected = {"scripts/manager.py"}
     for rel in file_digests:
         if any(_path_matches_prefix(rel, prefix) for prefix in prefixes):
@@ -400,6 +407,153 @@ def _cached_quick_check(
         except OSError:
             pass
     return rc, out
+
+
+def _configure_verify_quick_stdio() -> None:
+    """Make verify-quick progress visible under pipes/redirects (P0)."""
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+
+def _is_verify_quick_extended_check(label: str, cmd_str: str) -> bool:
+    """True for optional extended-tier checks (``verify quick --extended``)."""
+    text = f"{label}\n{cmd_str}".lower()
+    markers = (
+        "asset naming",
+        "doc example",
+        "deprecated api",
+        "analysis api",
+        "formatter parity",
+        "fmt-parity",
+        "lsp",
+        "dap",
+        "wasm debug",
+        "gc array",
+        "init template",
+        "manifest doc",
+        "internal link",
+        "component wit",
+        "wit bindings",
+        "component standard-world",
+        "host_stub",
+        "wasi p1",
+        "wasm micro",
+        "opt-equivalence",
+        "code actions",
+        "lsp standard completeness",
+    )
+    return any(marker in text for marker in markers)
+
+
+def _verify_quick_pool_kind(label: str, cmd_str: str) -> str:
+    """Classify a bg check into static | heavy_parallel | heavy_serial.
+
+    ``heavy_serial`` is reserved for checks that take the shared selfhost
+    runtime flock (fmt/cli/diag/fixture parity and similar). Other wasm-using
+    checks may run with a small parallel pool.
+    """
+    text = f"{label}\n{cmd_str}".lower()
+    serial_markers = (
+        "formatter parity",
+        "fmt-parity",
+        "selfhost parity",
+        "fixture-parity",
+        "diag-parity",
+        "cli-parity",
+        "selfhost fmt-parity",
+    )
+    if any(marker in text for marker in serial_markers):
+        return "heavy_serial"
+    parallel_markers = (
+        "selfhost",
+        "wasm",
+        "opt-equivalence",
+        "t3 fixture",
+        "lsp",
+        "dap",
+        "gc array",
+        "component",
+        "wit",
+        "host_stub",
+        "wasi",
+        "analysis api",
+        "mir reachability",
+        "quality changed",
+    )
+    if any(marker in text for marker in parallel_markers):
+        return "heavy_parallel"
+    return "static"
+
+
+def _is_verify_quick_heavy_check(label: str, cmd_str: str) -> bool:
+    """Compatibility helper: true for either heavy pool."""
+    return _verify_quick_pool_kind(label, cmd_str) != "static"
+
+
+def _verify_quick_worker_counts() -> tuple[int, int, int]:
+    """Return (static_workers, heavy_parallel_workers, heavy_serial_workers)."""
+    cpu = os.cpu_count() or 4
+    static_default = max(2, min(8, cpu))
+    heavy_parallel_default = max(2, min(3, cpu))
+    heavy_serial_default = 1
+    try:
+        static_workers = int(os.environ.get("ARUKELLT_VERIFY_QUICK_WORKERS", str(static_default)))
+    except ValueError:
+        static_workers = static_default
+    try:
+        heavy_parallel = int(
+            os.environ.get("ARUKELLT_VERIFY_QUICK_HEAVY_WORKERS", str(heavy_parallel_default))
+        )
+    except ValueError:
+        heavy_parallel = heavy_parallel_default
+    try:
+        heavy_serial = int(
+            os.environ.get("ARUKELLT_VERIFY_QUICK_SERIAL_WORKERS", str(heavy_serial_default))
+        )
+    except ValueError:
+        heavy_serial = heavy_serial_default
+    return max(1, static_workers), max(1, heavy_parallel), max(1, heavy_serial)
+
+
+def _verify_quick_fail_fast_enabled() -> bool:
+    raw = os.environ.get("ARUKELLT_VERIFY_QUICK_FAIL_FAST", "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+_LANE_GATES: dict[str, tuple[str, str]] = {
+    "cli-parity": (
+        "selfhost CLI parity",
+        "python3 scripts/manager.py selfhost parity --mode --cli",
+    ),
+    "diag-parity": (
+        "selfhost diagnostic parity",
+        "python3 scripts/manager.py selfhost diag-parity",
+    ),
+    "fixture-parity": (
+        "selfhost fixture parity",
+        "python3 scripts/manager.py selfhost fixture-parity",
+    ),
+    "fmt-parity": (
+        "selfhost formatter parity",
+        "python3 scripts/manager.py selfhost fmt-parity",
+    ),
+    "t3": (
+        "T3 fixture WASM validation",
+        "python3 scripts/check/check-t3-wasm-validate.py",
+    ),
+    "component-interop": (
+        "component interop",
+        "python3 scripts/manager.py verify component-interop",
+    ),
+    "quality-quick": (
+        "quality quick",
+        "python3 scripts/manager.py quality quick",
+    ),
+}
 
 
 def _run(cmd: list[str], *, cwd: Path, dry_run: bool) -> tuple[int, str, str]:
@@ -672,7 +826,7 @@ def _driver_module_graph_relative_import_violations(root: Path) -> list[str]:
         "module_base_dir_for_import(",
         'contains(use_path, String_from("::"))',
         "module_paths::parent_dir(module_local_decls::DriverLocalModuleDecls_path(loaded))",
-        "load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state)",
+        "load_imported_modules_at(module_local_decls::DriverLocalModuleDecls_decls(loaded), next_dir, root_dir, state, false)",
     )
     violations = [f"missing `{needle}`" for needle in required if needle not in text]
     stale_patterns = (
@@ -4252,10 +4406,83 @@ def _mir_lower_input_contract_violations(root: Path) -> list[tuple[str, int, str
 # ── verify subcommands ────────────────────────────────────────────────────────
 
 
+def cmd_verify_lane(args: argparse.Namespace) -> int:
+    """Fast agent/lane gate: quality changed + optional named domain gate.
+
+    Prefer this over ``verify quick`` during iterative and parallel lane work.
+    ``verify quick`` remains the merge/CI gate.
+    """
+    root = _repo_root()
+    dry_run: bool = bool(getattr(args, "dry_run", False))
+    gate = (getattr(args, "gate", None) or "").strip()
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(f"\n{YELLOW}[lane] quality changed...{NC}")
+    quality_rc = run_quality(root, "changed", dry_run, getattr(args, "json", False))
+    if quality_rc == 0:
+        h.check_pass("quality changed")
+    else:
+        h.check_fail(
+            "quality changed",
+            category="quality",
+            command="python3 scripts/manager.py quality changed",
+            primary_path="scripts/quality/checks.py",
+        )
+
+    overall = quality_rc
+    if gate:
+        if gate not in _LANE_GATES:
+            known = ", ".join(sorted(_LANE_GATES))
+            print(f"{RED}error: unknown lane gate {gate!r}; known: {known}{NC}", file=sys.stderr)
+            return 2
+        label, cmd_str = _LANE_GATES[gate]
+        print(f"\n{YELLOW}[lane] gate={gate} ({label})...{NC}")
+        if dry_run:
+            print(f"DRY-RUN: {cmd_str}")
+            h.check_pass(label)
+        else:
+            env = {**os.environ}
+            cargo_bin = str(Path.home() / ".cargo" / "bin")
+            if cargo_bin not in env.get("PATH", ""):
+                env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
+            result = subprocess.run(
+                ["bash", "-lc", cmd_str],
+                cwd=str(root),
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            out = result.stdout + result.stderr
+            if result.returncode == 0:
+                h.check_pass(label)
+            else:
+                h.check_fail(
+                    label,
+                    category="lane-gate",
+                    command=cmd_str,
+                    primary_path="scripts/manager.py",
+                )
+                for line in out.splitlines()[-40:]:
+                    print(line)
+                overall = result.returncode if overall == 0 else overall
+
+    _total, _passed, _skipped, failed = h.summary()
+    if overall != 0:
+        return overall
+    return 1 if failed else 0
+
+
 def cmd_verify_quick(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
+    extended = bool(getattr(args, "extended", False))
     h = Harness(repo_root=root, dry_run=dry_run)
+    _configure_verify_quick_stdio()
+    print(
+        f"{YELLOW}[verify quick] mode={'extended' if extended else 'core'} "
+        f"fail_fast={_verify_quick_fail_fast_enabled()}{NC}",
+        flush=True,
+    )
 
     # ── Reduce lint parallelism to avoid CI runner OOM ────────────────────────
     # verify quick runs quality quick (which runs lint with 16 parallel workers)
@@ -4274,7 +4501,11 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
     # wasm (4 GiB) and pointing ARUKELLT_SELFHOST_WASM to it gives all checks
     # sufficient memory.
     if not dry_run:
-        s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+        try:
+            from lib.build_paths import selfhost_dir
+            s2 = selfhost_dir(root) / "arukellt-s2.wasm"
+        except Exception:
+            s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
         if s2.is_file():
             runtime = _ensure_runtime_compiler_wasm(root, s2)
             if runtime is not None and runtime.is_file():
@@ -4355,11 +4586,16 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         """Run a bash command string; return (rc, combined output)."""
         if dry_run:
             return (0, f"DRY-RUN: {cmd_str}")
+        env = {**os.environ}
+        cargo_bin = str(Path.home() / ".cargo" / "bin")
+        if cargo_bin not in env.get("PATH", ""):
+            env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
         result = subprocess.run(
             ["bash", "-lc", cmd_str],
             cwd=str(root),
             capture_output=True,
             text=True,
+            env=env,
         )
         return (result.returncode, result.stdout + result.stderr)
 
@@ -4452,8 +4688,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/manager.py selfhost fmt-parity",
         ),
         (
-            "quality quick (changed fmt / lint contract / registry / whitespace)",
-            "python3 scripts/manager.py quality quick",
+            "quality changed (touched fmt / lint / contracts)",
+            "python3 scripts/manager.py quality changed",
         ),
         (
             "selfhost LSP lifecycle gate (#569)",
@@ -4486,6 +4722,26 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "false-done hygiene gate",
             "python3 scripts/check/check-false-done-hygiene.py",
+        ),
+        (
+            "native-cpp capabilities registry",
+            "python3 scripts/check/check-native-cpp-capabilities.py",
+        ),
+        (
+            "native-cpp safepoint audit",
+            "python3 scripts/check/check-native-cpp-safepoint-audit.py",
+        ),
+        (
+            "native-executor CI contract (#834)",
+            "python3 scripts/check/check-native-executor-ci-contract.py",
+        ),
+        (
+            "native runtime C99 -Werror",
+            "python3 scripts/check/check-native-runtime-c99-werror.py",
+        ),
+        (
+            "native-executor manager unit tests",
+            "python3 scripts/tests/test_native_cpp_executor.py",
         ),
         (
             "operational target drift",
@@ -4536,18 +4792,8 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "call router semantic dispatch (#798)",
             "python3 scripts/check/check-call-router-semantic-dispatch.py",
         ),
-        (
-            "orphan/stale file inventory (advisory, #418)",
-            "bash scripts/check/check-orphan-inventory.sh",
-        ),
-        (
-            "in-file test adoption report (advisory, #715)",
-            "python3 scripts/check/check-infile-test-adoption.py",
-        ),
-        (
-            "artifact size budget report (advisory, #422)",
-            "bash scripts/check/check-artifact-size-budget.sh",
-        ),
+        # Advisory inventories (orphan / infile-test / artifact-size) stay out of
+        # verify quick — run via quality report / dedicated scripts when needed.
         (
             "host_stub compile gate (#292)",
             "python3 scripts/check/check-host-stub-gate.py",
@@ -4576,20 +4822,93 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "T3 fixture WASM validation gate (#686)",
             "python3 scripts/check/check-t3-wasm-validate.py",
         ),
+        (
+            "MIR reachability queue-BFS gate (#823)",
+            "python3 scripts/check/check-mir-reachability-bfs.py",
+        ),
     ]
+
+    if not extended:
+        before = len(bg_checks)
+        bg_checks = [
+            (label, cmd_str)
+            for label, cmd_str in bg_checks
+            if not _is_verify_quick_extended_check(label, cmd_str)
+        ]
+        skipped_ext = before - len(bg_checks)
+        if skipped_ext:
+            print(
+                f"{YELLOW}[bg] core mode: skipping {skipped_ext} extended checks "
+                f"(pass --extended to include){NC}",
+                flush=True,
+            )
 
     bg_results: list[tuple[str, str, int, str]] = []
     if not dry_run and os.environ.get("ARUKELLT_VERIFY_QUICK_CHECK_CACHE") != "0":
         _prime_quick_file_digest_cache(root)
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(_cached_quick_check, root, label, cmd_str, _shell): (label, cmd_str)
-            for label, cmd_str in bg_checks
-        }
+    static_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if _verify_quick_pool_kind(label, cmd_str) == "static"
+    ]
+    heavy_parallel_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if _verify_quick_pool_kind(label, cmd_str) == "heavy_parallel"
+    ]
+    heavy_serial_checks = [
+        (label, cmd_str)
+        for label, cmd_str in bg_checks
+        if _verify_quick_pool_kind(label, cmd_str) == "heavy_serial"
+    ]
+    static_workers, heavy_parallel_workers, heavy_serial_workers = _verify_quick_worker_counts()
+    fail_fast = _verify_quick_fail_fast_enabled()
+    print(
+        f"{YELLOW}[bg] pools: static={len(static_checks)}×{static_workers} "
+        f"heavy_parallel={len(heavy_parallel_checks)}×{heavy_parallel_workers} "
+        f"heavy_serial={len(heavy_serial_checks)}×{heavy_serial_workers} "
+        f"fail_fast={fail_fast}{NC}",
+        flush=True,
+    )
+    with concurrent.futures.ThreadPoolExecutor(max_workers=static_workers) as static_ex, \
+            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_parallel_workers) as heavy_par_ex, \
+            concurrent.futures.ThreadPoolExecutor(max_workers=heavy_serial_workers) as heavy_ser_ex:
+        futures: dict[concurrent.futures.Future, tuple[str, str]] = {}
+        for label, cmd_str in static_checks:
+            futures[static_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
+        for label, cmd_str in heavy_parallel_checks:
+            futures[heavy_par_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
+        for label, cmd_str in heavy_serial_checks:
+            futures[heavy_ser_ex.submit(_cached_quick_check, root, label, cmd_str, _shell)] = (
+                label,
+                cmd_str,
+            )
+        cancelled = False
         for future in concurrent.futures.as_completed(futures):
             label, cmd_str = futures[future]
-            rc, out = future.result()
+            if cancelled:
+                future.cancel()
+                continue
+            try:
+                rc, out = future.result()
+            except concurrent.futures.CancelledError:
+                continue
             bg_results.append((label, cmd_str, rc, out))
+            print(f"{YELLOW}[bg] done ({rc}): {label}{NC}", flush=True)
+            if fail_fast and rc != 0:
+                cancelled = True
+                print(
+                    f"{RED}[bg] fail-fast: cancelling remaining checks after {label!r}{NC}",
+                    flush=True,
+                )
+                for pending in futures:
+                    pending.cancel()
 
     print(f"\n{YELLOW}[bg] Collecting background check results...{NC}")
     for label, cmd_str, rc, out in bg_results:
@@ -6368,6 +6687,24 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
 
     print(f"\n{YELLOW}[component] Component interop smoke test...{NC}")
 
+    # Shared selfhost compiler environment for component fixtures.
+    try:
+        from lib.selfhost_s2 import gate_env
+
+        component_env = gate_env(root, build=True)
+    except (FileNotFoundError, RuntimeError) as exc:
+        h.check_fail(
+            "component interop (s2 selfhost wasm)",
+            category="component-interop",
+            command="python3 scripts/manager.py selfhost fixpoint --build",
+            primary_path="scripts/lib/selfhost_s2.py",
+        )
+        print(f"{RED}{exc}{NC}")
+        return h.exit_code()
+
+    interop_dir = root / "tests" / "component-interop" / "jco"
+    jco_script = interop_dir / "calculator" / "run.sh"
+
     # Check for wasmtime
     wasmtime_check = subprocess.run(
         ["which", "wasmtime"], capture_output=True
@@ -6375,25 +6712,13 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
     if wasmtime_check.returncode != 0:
         h.check_skip("component interop (wasmtime not found)")
     else:
-        interop_dir = root / "tests" / "component-interop" / "jco"
         run_scripts = sorted(interop_dir.glob("*/run.sh"))
-        if not run_scripts:
+        # The calculator fixture is exercised through the jco gate (#036).
+        wasmtime_scripts = [s for s in run_scripts if s != jco_script]
+        if not wasmtime_scripts:
             h.check_skip("component interop scripts not found")
         else:
-            try:
-                from lib.selfhost_s2 import gate_env
-
-                component_env = gate_env(root, build=True)
-            except (FileNotFoundError, RuntimeError) as exc:
-                h.check_fail(
-                    "component interop (s2 selfhost wasm)",
-                    category="component-interop",
-                    command="python3 scripts/manager.py selfhost fixpoint --build",
-                    primary_path="scripts/lib/selfhost_s2.py",
-                )
-                print(f"{RED}{exc}{NC}")
-                return h.exit_code()
-            for run_sh in run_scripts:
+            for run_sh in wasmtime_scripts:
                 fixture_name = run_sh.parent.name
                 rc, _, _ = _run_env(
                     ["bash", str(run_sh)],
@@ -6410,6 +6735,34 @@ def cmd_verify_component(args: argparse.Namespace) -> int:
                         command=f"bash {run_sh}",
                         primary_path=str(run_sh.relative_to(root)),
                     )
+
+    # Optional jco JavaScript interop gate (#036 / #037).
+    if os.environ.get("ARUKELLT_TEST_JCO") == "1":
+        if jco_script.is_file():
+            rc, _, _ = _run_env(
+                ["bash", str(jco_script)],
+                cwd=root,
+                dry_run=dry_run,
+                env=component_env,
+            )
+            if rc == 0:
+                h.check_pass("jco-interop (calculator)")
+            else:
+                h.check_fail(
+                    "jco-interop (calculator)",
+                    category="component-interop",
+                    command=f"bash {jco_script}",
+                    primary_path=str(jco_script.relative_to(root)),
+                )
+        else:
+            h.check_fail(
+                "jco-interop script missing",
+                category="component-interop",
+                command=f"bash {jco_script}",
+                primary_path=str(jco_script.relative_to(root)),
+            )
+    else:
+        h.check_skip("jco-interop (set ARUKELLT_TEST_JCO=1 to run)")
 
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
@@ -6524,7 +6877,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
     verify_parser.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
-    verify_parser.add_argument("--quick",     action="store_true", help="Run the fast local gate checks (default)")
+    verify_parser.add_argument("--quick",     action="store_true", help="Run the merge/CI local gate checks (default)")
+    verify_parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="With verify quick: include extended LSP/component/opt checks",
+    )
     verify_parser.add_argument("--fixtures",  action="store_true", help="Run the manifest-driven fixture harness")
     verify_parser.add_argument("--size",      action="store_true", help="Run the hello.wasm binary size gate")
     verify_parser.add_argument("--wat",       action="store_true", help="Run the WAT roundtrip gate")
@@ -6548,7 +6906,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub_verify.required = False
 
     for name, help_text in [
-        ("quick",     "Run the fast local gate checks"),
+        ("quick",     "Run the merge/CI local gate checks"),
+        ("lane",      "Fast agent/lane gate (quality changed + optional --gate)"),
         ("fixtures",  "Run the manifest-driven fixture harness"),
         ("size",      "Run the hello.wasm binary size gate"),
         ("wat",       "Run the WAT roundtrip gate"),
@@ -6559,6 +6918,19 @@ def build_parser() -> argparse.ArgumentParser:
     ]:
         p = sub_verify.add_parser(name, help=help_text)
         p.add_argument("--dry-run", action="store_true", help="Print intent but do not execute.")
+    lane_parser = sub_verify.choices["lane"]
+    lane_parser.add_argument(
+        "--gate",
+        choices=sorted(_LANE_GATES),
+        help="Optional domain gate after quality changed",
+    )
+    lane_parser.add_argument("--json", action="store_true", help="JSON diagnostics for quality changed")
+    quick_parser = sub_verify.choices["quick"]
+    quick_parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="Also run extended LSP/component/opt-equivalence checks",
+    )
 
     _build_selfhost_subparser(sub_domain)
     _build_docs_subparser(sub_domain)
@@ -6574,11 +6946,78 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
     sh.add_argument("--dry-run", action="store_true")
     sub = sh.add_subparsers(dest="subcommand", metavar="<subcommand>")
     sub.required = True
-    p = sub.add_parser("fixpoint", help="Run selfhost fixpoint check")
+    p = sub.add_parser(
+        "fixpoint",
+        help="ADR-029 gate: check sha256(s2)==sha256(s3) (NOT for refreshing the compiler after edits)",
+        description=(
+            "Selfhost fixpoint gate (ADR-029). Compares stage-2 and stage-3 wasm hashes.\n"
+            "For refreshing .build/selfhost/arukellt-s2.wasm after emitter/stdlib edits, use:\n"
+            "  python3 scripts/manager.py selfhost build-compiler\n"
+            "Do not use fixpoint --build --no-cache for routine iteration."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--build", action="store_true", default=False, help="Build before check")
-    p.add_argument("--no-cache", action="store_true", default=False,
-                   help="Bypass fixpoint content-hash cache (force rebuild)")
+    p.add_argument(
+        "--build",
+        action="store_true",
+        default=False,
+        help="Also rebuild s2+s3 before comparing (slow; emitter work should use build-compiler)",
+    )
+    p.add_argument(
+        "--no-cache",
+        action="store_true",
+        default=False,
+        help="Bypass fixpoint content-hash cache (forces full s2+s3 rebuild; slow)",
+    )
+    p_bc = sub.add_parser(
+        "build-compiler",
+        aliases=["build-s2", "rebuild-s2"],
+        help="Refresh arukellt-s2.wasm after compiler edits (stage-2 only, ~50s; USE THIS by default)",
+        description=(
+            "Rebuild .build/selfhost/arukellt-s2.wasm from current src/compiler (stage-2 only).\n"
+            "Skips stage-3 and the s2==s3 fixpoint compare. Typical warm-cache time: ~50s.\n"
+            "\n"
+            "Use this after editing src/compiler/** or when T3/validate needs a fresh emitter.\n"
+            "Do NOT use `selfhost fixpoint --build` for that — fixpoint also builds s3 and is much slower.\n"
+            "\n"
+            "Aliases: build-s2, rebuild-s2"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_bc.add_argument("--dry-run", action="store_true")
+    p_bc.add_argument(
+        "--if-stale",
+        action="store_true",
+        default=False,
+        help="Skip rebuild when s2 already matches the current source fingerprint",
+    )
+    p_ne = sub.add_parser(
+        "native-executor",
+        help="ADR-049 native C99 executor lane (S2 profile → native → S3 byte equality)",
+        description=(
+            "Build/cache arukellt-native from S2, then generate S3 with the same output "
+            "profile as the comparison S2 (build-profile manifest). Requires --build."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_ne.add_argument("--dry-run", action="store_true")
+    p_ne.add_argument(
+        "--build",
+        action="store_true",
+        default=False,
+        help="Build or refresh the native executor and run the S3 equality lane",
+    )
+    p_ne.add_argument(
+        "--allow-high-rss",
+        action="store_true",
+        default=False,
+        help=(
+            "Opt-in: if correctness/determinism/wall gates pass, exit 0 even when "
+            "executor RSS exceeds 2.4 GiB (warning + receipt flags; not for CI; "
+            "does not promote current-state)"
+        ),
+    )
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -6737,6 +7176,7 @@ def main() -> int:
 
     dispatch_positional = {
         "quick":     cmd_verify_quick,
+        "lane":      cmd_verify_lane,
         "fixtures":  cmd_verify_fixtures,
         "size":      cmd_verify_size,
         "wat":       cmd_verify_wat,
@@ -6814,6 +7254,10 @@ def main() -> int:
     if args.domain == "selfhost":
         _sh_dispatch = {
             "fixpoint":       cmd_selfhost_fixpoint,
+            "build-compiler": cmd_selfhost_build_compiler,
+            "build-s2":       cmd_selfhost_build_compiler,
+            "rebuild-s2":     cmd_selfhost_build_compiler,
+            "native-executor": cmd_selfhost_native_executor,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
             "fmt-parity":     cmd_selfhost_fmt_parity,
@@ -6885,6 +7329,35 @@ def main() -> int:
 # ── selfhost subcommands ──────────────────────────────────────────────────────
 
 
+def _ci_forbids_native_high_rss() -> bool:
+    """CI/GitHub Actions must never use --allow-high-rss as a success path."""
+    if os.environ.get("GITHUB_ACTIONS", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("CI", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
+def cmd_selfhost_native_executor(args: argparse.Namespace) -> int:
+    """Run the ADR-049 native executor lane and preserve its receipt."""
+    allow_high_rss = bool(getattr(args, "allow_high_rss", False))
+    if allow_high_rss and _ci_forbids_native_high_rss():
+        print(
+            f"{RED}error: --allow-high-rss is a local escape hatch only; "
+            f"forbidden under CI/GITHUB_ACTIONS{NC}",
+            file=sys.stderr,
+        )
+        return 2
+    return_code, output = run_native_executor(
+        _repo_root(),
+        build=getattr(args, "build", False),
+        dry_run=args.dry_run,
+        allow_high_rss=allow_high_rss,
+    )
+    print(output)
+    return return_code
+
+
 def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
     root = _repo_root()
     dry_run: bool = args.dry_run
@@ -6893,6 +7366,14 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         os.environ["ARUKELLT_FIXPOINT_NO_CACHE"] = "1"
     h = Harness(repo_root=root, dry_run=dry_run)
 
+    if getattr(args, "build", False) or getattr(args, "no_cache", False):
+        print(
+            f"{YELLOW}[selfhost] note: fixpoint --build/--no-cache rebuilds s2 AND s3 "
+            f"(often several minutes).{NC}\n"
+            f"  For refreshing the emitter after src/compiler edits, prefer:\n"
+            f"    python3 scripts/manager.py selfhost build-compiler\n"
+        )
+
     print(f"\n{YELLOW}[selfhost] Running selfhost fixpoint check...{NC}")
     res: SelfhostFixpointResult = run_fixpoint(root, dry_run, no_build=no_build)
 
@@ -6900,6 +7381,10 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
         h.check_pass("selfhost fixpoint reached")
     elif res.skipped:
         h.check_skip(f"selfhost fixpoint not yet reached (exit {res.exit_code})")
+        # Always surface the last lines — exit 2 is often a silent stage-3
+        # build/validation failure when output is omitted.
+        for line in res.output.splitlines()[-40:]:
+            print(line)
     else:
         h.check_fail(
             "selfhost fixpoint check failed",
@@ -6907,9 +7392,58 @@ def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:
             command="python3 scripts/manager.py selfhost fixpoint --build",
             primary_path="src/compiler/main.ark",
         )
-        for line in res.output.splitlines()[-30:]:
+        for line in res.output.splitlines()[-40:]:
             print(line)
 
+    total, passed, skipped, failed = h.summary()
+    print(f"\n{YELLOW}Summary{NC}")
+    print(f"Total checks: {total}")
+    print(f"Passed: {GREEN}{passed}{NC}")
+    print(f"Skipped: {YELLOW}{skipped}{NC}")
+    print(f"Failed: {RED}{failed}{NC}")
+    return h.exit_code()
+
+
+def cmd_selfhost_build_compiler(args: argparse.Namespace) -> int:
+    """Stage-2 only rebuild for emitter iteration (canonical: selfhost build-compiler)."""
+    root = _repo_root()
+    dry_run: bool = args.dry_run
+    force = not getattr(args, "if_stale", False)
+    h = Harness(repo_root=root, dry_run=dry_run)
+
+    print(
+        f"\n{YELLOW}[selfhost] build-compiler: refreshing s2 (stage-2 only; "
+        f"not a fixpoint check)...{NC}"
+    )
+    if dry_run:
+        h.check_pass("selfhost build-compiler (dry-run)")
+        return h.exit_code()
+
+    runtime, err, elapsed = rebuild_current_s2(root, force=force)
+    if runtime is None:
+        h.check_fail(
+            "selfhost build-compiler failed",
+            category="bootstrap",
+            command="python3 scripts/manager.py selfhost build-compiler",
+            primary_path="src/compiler/main.ark",
+        )
+        if err:
+            print(err)
+        return h.exit_code()
+
+    print(f"{GREEN}✓ compiler wasm ready:{NC} {runtime}")
+    print(f"  elapsed: {elapsed:.1f}s")
+    print(
+        f"  tip: ~45–50s is the pinned→s2 full-compile floor. "
+        f"Batch src/compiler edits, rebuild once, then validate many fixtures "
+        f"— do not rebuild per single-line try."
+    )
+    if elapsed > 60.0:
+        print(
+            f"{YELLOW}warning: build-compiler exceeded 60s "
+            f"(overlay cache miss or machine load){NC}"
+        )
+    h.check_pass(f"selfhost build-compiler ({elapsed:.1f}s)")
     total, passed, skipped, failed = h.summary()
     print(f"\n{YELLOW}Summary{NC}")
     print(f"Total checks: {total}")

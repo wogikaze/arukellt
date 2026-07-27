@@ -1,0 +1,81 @@
+# Fixtures excluded from the native-cpp expected-negative denominator.
+# These require larger frontend/resolver/lint work tracked outside readiness,
+# or are already listed in DIAG_PARITY_SKIP for selfhost diagnostic parity.
+# Prefer real fixes; shrink this list over time.
+
+schema = "native-cpp-expected-negative-limitations/v1"
+
+[[limitation]]
+fixture = "diagnostics/immutable_mutation.ark"
+reason = "immutable assignment not rejected yet (DIAG_PARITY_SKIP)"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "diagnostics/mismatched_arms.ark"
+reason = "match arm type mismatch not rejected yet; native probe host-traps (DIAG_PARITY_SKIP)"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "diagnostics/question_type_mismatch.ark"
+reason = "? operator Result requirement not enforced yet (DIAG_PARITY_SKIP)"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "lang_uplift/neg_guard_not_bool.ark"
+reason = "guard bool check not enforced on current frontend"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "lang_uplift/neg_incompatible_return.ark"
+reason = "clause return incompatibility not enforced on current frontend"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "lang_uplift/neg_unreachable_clause.ark"
+reason = "unreachable clause diagnostic not emitted on current frontend"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "module_import/use_module_not_found.ark"
+reason = "unknown module path reports prelude duplicate defs instead of E0104"
+owner = "resolver"
+
+[[limitation]]
+fixture = "module_import/use_symbol_not_found.ark"
+reason = "missing symbol path reports prelude duplicate defs (DIAG_PARITY_SKIP)"
+owner = "resolver"
+
+[[limitation]]
+fixture = "modules/circular/main.ark"
+reason = "circular import not detected by current module loader"
+owner = "resolver"
+
+[[limitation]]
+fixture = "modules/pub_use_nonpub_hidden/main.ark"
+reason = "fails with module loading error text instead of visibility diagnostic"
+owner = "resolver"
+
+[[limitation]]
+fixture = "modules/use_not_found/main.ark"
+reason = "missing std module import not rejected by current loader"
+owner = "resolver"
+
+[[limitation]]
+fixture = "selfhost/comprehen_deny_elem_type_mismatch.ark"
+reason = "comprehension element type mismatch not rejected"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "selfhost/fn_multiclause_guard_not_bool.ark"
+reason = "multi-clause guard bool check not enforced"
+owner = "typechecker"
+
+[[limitation]]
+fixture = "selfhost/resolver_circular_import/main.ark"
+reason = "circular import not detected by current module loader"
+owner = "resolver"
+
+[[limitation]]
+fixture = "selfhost/trait_overlapping_impl.ark"
+reason = "overlapping trait impl diagnostic not emitted (DIAG_PARITY_SKIP)"
+owner = "typechecker"

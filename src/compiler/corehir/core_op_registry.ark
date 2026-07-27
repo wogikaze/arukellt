@@ -1,5 +1,6 @@
 use corehir::core_op_id
 use corehir::core_op_registry_generated
+use corehir::kinds
 
 struct CoreOpEntry {
     id: CoreOpId,
@@ -7,7 +8,12 @@ struct CoreOpEntry {
     lowering_kind: i32,
     layer: i32,
     target_id: String,
+    runtime_kind: i32,
     runtime_symbol: String,
+    wit_package: String,
+    wit_interface: String,
+    wit_function: String,
+    wit_version: String,
     mir_operation: String,
     legacy_handler_id: String,
 }
@@ -27,7 +33,12 @@ fn CoreOpRegistry_entry_at(index: i32) -> CoreOpEntry {
         lowering_kind: core_op_registry_generated::core_op_registry_lowering_kind_at(index),
         layer: core_op_registry_generated::core_op_registry_layer_at(index),
         target_id: core_op_registry_generated::core_op_registry_target_id_at(index),
+        runtime_kind: core_op_registry_generated::core_op_registry_runtime_kind_at(index),
         runtime_symbol: core_op_registry_generated::core_op_registry_runtime_symbol_at(index),
+        wit_package: core_op_registry_generated::core_op_registry_wit_package_at(index),
+        wit_interface: core_op_registry_generated::core_op_registry_wit_interface_at(index),
+        wit_function: core_op_registry_generated::core_op_registry_wit_function_at(index),
+        wit_version: core_op_registry_generated::core_op_registry_wit_version_at(index),
         mir_operation: core_op_registry_generated::core_op_registry_mir_operation_at(index),
         legacy_handler_id: core_op_registry_generated::core_op_registry_legacy_handler_id_at(index),
     }
@@ -43,7 +54,12 @@ fn CoreOpRegistry_lookup_entry(canonical_id: String) -> CoreOpEntry {
             lowering_kind: 0,
             layer: 0,
             target_id: String_new(),
+            runtime_kind: kinds::CORE_OP_RUNTIME_KIND_NONE(),
             runtime_symbol: String_new(),
+            wit_package: String_new(),
+            wit_interface: String_new(),
+            wit_function: String_new(),
+            wit_version: String_new(),
             mir_operation: String_new(),
             legacy_handler_id: String_new(),
         }

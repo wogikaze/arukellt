@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_fn_index
@@ -22,22 +23,37 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
             return idx
         }
-        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
-        if ident_tag >= 0 {
-            return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), ident_tag)
+        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let variant_name = if len(canon) > 0 {
+            canon
+        } else {
+            clone(raw_name)
         }
-        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+        let ident_tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
+        if ident_tag >= 0 {
+            return variants::lower_variant_value(ctx, variant_name, ident_tag)
+        }
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(raw_name))
         if fn_idx >= 0 {
-            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
-            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(core_expr_shape_accessors::mir_core_expr_text(expr), dest))
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
+            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(raw_name, dest))
             return dest
         }
         return 0 - 1
     }
     if core_expr_shape_atoms::mir_core_expr_is_path(expr) {
-        let tag = ctx_api_variants::ctx_variant_tag(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+        let variant_name = if len(canon) > 0 {
+            canon
+        } else {
+            raw_name
+        }
+        let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
         if tag >= 0 {
-            return variants::lower_variant_value(ctx, core_expr_shape_accessors::mir_core_expr_text(expr), tag)
+            return variants::lower_variant_value(ctx, variant_name, tag)
         }
         return 0 - 1
     }

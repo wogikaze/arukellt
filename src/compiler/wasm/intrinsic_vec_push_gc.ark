@@ -13,6 +13,8 @@ use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 use mir::opcodes as mir_opcodes
 
@@ -30,17 +32,60 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
     let is_vec_i64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx)
     let is_vec_f64 = vec_type == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx)
     let is_vec_sref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx)
-    let element_is_gc_ref = push_gc_element_is_gc_ref(ctx, inst, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
+    let is_vec_fnref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx)
+    let is_vec_enumref = vec_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
+    let mut element_is_gc_ref = push_gc_element_is_gc_ref(ctx, inst, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64)
+    // String byte-buffer helpers always push i32 code units; MIR type_name on
+    // the Vec param may still look like a structref-element vec.
+    if intrinsic_vec_type::is_string_byte_vec_push_context(ctx) {
+        element_is_gc_ref = false
+    }
+    if is_vec_fnref || is_vec_enumref {
+        // Funcref / enum-ref arrays store refs directly — not i31-packed i32.
+        element_is_gc_ref = false
+    }
 
-    let s_val = push_gc_val_scratch(ctx, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, element_is_gc_ref, is_vec_sref)
-    let arr_tmp = push_gc_array_scratch(ctx, 0, arr_tmp_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref)
-    let arr_old = push_gc_array_scratch(ctx, 1, arr_old_i32, is_vec_string, is_vec_v128, is_vec_i64, is_vec_f64, is_vec_sref)
+    let s_val = push_gc_val_scratch(
+        ctx,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        element_is_gc_ref,
+        is_vec_sref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
+    let arr_tmp = push_gc_array_scratch(
+        ctx,
+        0,
+        arr_tmp_i32,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref && element_is_gc_ref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
+    let arr_old = push_gc_array_scratch(
+        ctx,
+        1,
+        arr_old_i32,
+        is_vec_string,
+        is_vec_v128,
+        is_vec_i64,
+        is_vec_f64,
+        is_vec_sref && element_is_gc_ref,
+        is_vec_fnref,
+        is_vec_enumref
+    )
 
     emit_gc_push_setup(w, s_val, s_vec, vec_type, arr_tmp)
 
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
 
     emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
@@ -51,8 +96,26 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 
 // Value scratch: Vec<String>/struct refs→GC ref scratch; Vec<v128>→v128;
 // Vec<i64>→i64 (offset 15); Vec<f64>→f64 (offset 12); Vec<i32>→i32 base scratch.
-fn push_gc_val_scratch(ctx: SelfEmitCtx, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, element_is_gc_ref: bool, is_vec_sref: bool) -> i32 {
-    if is_vec_sref {
+// Vec<i32> may share a GC struct type index with Vec<structref>; only use the
+// abstract structref val scratch when the element is actually a GC ref.
+fn push_gc_val_scratch(
+    ctx: SelfEmitCtx,
+    is_vec_string: bool,
+    is_vec_v128: bool,
+    is_vec_i64: bool,
+    is_vec_f64: bool,
+    element_is_gc_ref: bool,
+    is_vec_sref: bool,
+    is_vec_fnref: bool,
+    is_vec_enumref: bool
+) -> i32 {
+    if is_vec_fnref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_fnref_val_local(ctx, 0)
+    }
+    if is_vec_enumref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    }
+    if is_vec_sref && element_is_gc_ref {
         return ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
     }
     if is_vec_string || element_is_gc_ref {
@@ -88,11 +151,31 @@ fn push_gc_primitive_vec_elem(elem: String) -> bool {
     eq(clone(elem), String_from("f64")) ||
     eq(clone(elem), String_from("f32")) ||
     eq(clone(elem), String_from("bool")) ||
-    eq(clone(elem), String_from("char"))
+    eq(clone(elem), String_from("char")) ||
+    eq(clone(elem), String_from("fnref")) ||
+    eq(clone(elem), String_from("fn")) ||
+    starts_with(clone(elem), String_from("fn("))
 }
 
 // Array scratch locals must match the vec's element array type.
-fn push_gc_array_scratch(ctx: SelfEmitCtx, slot: i32, i32_fallback: i32, is_vec_string: bool, is_vec_v128: bool, is_vec_i64: bool, is_vec_f64: bool, is_vec_sref: bool) -> i32 {
+fn push_gc_array_scratch(
+    ctx: SelfEmitCtx,
+    slot: i32,
+    i32_fallback: i32,
+    is_vec_string: bool,
+    is_vec_v128: bool,
+    is_vec_i64: bool,
+    is_vec_f64: bool,
+    is_vec_sref: bool,
+    is_vec_fnref: bool,
+    is_vec_enumref: bool
+) -> i32 {
+    if is_vec_fnref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_fnref_array_local(ctx, slot)
+    }
+    if is_vec_enumref {
+        return ctx_scratch::SelfEmitCtx_scratch_gc_enum_ref_array_local(ctx, slot)
+    }
     if is_vec_string {
         return ctx_scratch::SelfEmitCtx_scratch_gc_string_ref_array_local(ctx, slot)
     }
@@ -135,24 +218,29 @@ fn emit_gc_push_store_finish(
 ) {
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_val)
     if i32_array_type == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) {
         writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+        writer_gc::emit_gc_array_set(w, i32_array_type)
     } else if element_is_gc_ref && i32_array_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
         // Vec<T> for GC-managed struct/enum elements stores boxed refs in the
         // i32-backed data array (see intrinsic_vec_new_layout.ark).
         writer_gc::emit_gc_ref_i31(w)
         writer_gc::emit_gc_i31_get_s(w)
+        writer_gc::emit_gc_array_set_i32(w, i32_array_type)
+    } else if i32_array_type == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) {
+        writer_gc::emit_gc_array_set_i32(w, i32_array_type)
+    } else {
+        writer_gc::emit_gc_array_set(w, i32_array_type)
     }
-    writer_gc::emit_gc_array_set(w, i32_array_type)
 
     helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_len)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 
     if !is_void_push {
         helpers_core::emit_local_get(w, vec_local)
@@ -172,7 +260,7 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s
     helpers_core::emit_local_set(w, s_cap)
     helpers_core::emit_local_get(w, s_len)
     helpers_core::emit_local_get(w, s_cap)
-    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    helpers_numeric_i32::emit_i32_ge_s(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
 
@@ -180,10 +268,9 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s
     helpers_core::emit_local_set(w, arr_old)
 
     helpers_core::emit_local_get(w, s_cap)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 2)
-    writer_core::emit_byte(w, opcodes::OP_I32_MUL())
-    writer_gc::emit_gc_array_new(w, i32_array_type)
+    helpers_numeric_i32::emit_i32_const(w, 2)
+    helpers_numeric_i32::emit_i32_mul(w)
+    writer_gc::emit_gc_array_new_from_widened(w, i32_array_type)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     helpers_core::emit_local_set(w, arr_tmp)
 

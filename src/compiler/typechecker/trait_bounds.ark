@@ -12,6 +12,9 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
     if contract_type_access::TypeInfo_tag(resolved_ty) == commands::TY_TYPE_VAR() {
         return true
     }
+    if is_builtin_trait_impl(resolved_ty, bound) {
+        return true
+    }
     let count = len(env.trait_impls)
     let mut i = 0
     while i < count {
@@ -23,6 +26,19 @@ fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bo
         i = i + 1
     }
     false
+}
+
+fn is_builtin_trait_impl(ty: TypeInfo, bound: TypeInfo) -> bool {
+    if !eq(contract_type_access::TypeInfo_name(bound), String_from("Ord")) {
+        return false
+    }
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    tag == commands::TY_I32() ||
+    tag == commands::TY_I64() ||
+    tag == commands::TY_F64() ||
+    tag == commands::TY_STRING() ||
+    tag == commands::TY_CHAR() ||
+    tag == commands::TY_BOOL()
 }
 
 fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {

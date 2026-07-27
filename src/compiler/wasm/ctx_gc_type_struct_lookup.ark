@@ -1,51 +1,21 @@
+use collections::name_index
 use wasm::ctx_record
 
+// Kept in sync with ctx_gc_type.ark (flat overlay may load either module).
 fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32 {
-    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
-    let count = len(names)
-    let mut i = 0
-    while i < count {
-        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
-            let map = ctx_record::SelfEmitCtx_gc_struct_type_map(ctx)
-            if i < len(map) {
-                return get_unchecked(map, i)
-            }
-        }
-        i = i + 1
+    let struct_idx = name_index::name_index_get(
+        ctx_record::SelfEmitCtx_gc_struct_name_index(ctx),
+        clone(struct_name)
+    )
+    if struct_idx >= 0 {
+        return struct_idx
     }
-    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
-    let ev_count = len(ev_names)
-    let mut ei = 0
-    while ei < ev_count {
-        if eq(clone(get_unchecked(ev_names, ei)), clone(struct_name)) {
-            let ev_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
-            if ei < len(ev_map) {
-                return get_unchecked(ev_map, ei)
-            }
-        }
-        ei = ei + 1
-    }
-    0 - 1
+    name_index::name_index_get(
+        ctx_record::SelfEmitCtx_gc_enum_variant_name_index(ctx),
+        struct_name
+    )
 }
 
 fn SelfEmitCtx_has_struct_type(ctx: SelfEmitCtx, struct_name: String) -> bool {
-    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
-    let count = len(names)
-    let mut i = 0
-    while i < count {
-        if eq(clone(get_unchecked(names, i)), clone(struct_name)) {
-            return true
-        }
-        i = i + 1
-    }
-    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
-    let ev_count = len(ev_names)
-    let mut ei = 0
-    while ei < ev_count {
-        if eq(clone(get_unchecked(ev_names, ei)), clone(struct_name)) {
-            return true
-        }
-        ei = ei + 1
-    }
-    false
+    SelfEmitCtx_struct_type_by_name(ctx, struct_name) >= 0
 }

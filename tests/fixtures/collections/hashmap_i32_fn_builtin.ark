@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn main() {
+    let m = HashMap_i32_fn_new()
+    let _ = HashMap_i32_fn_insert(m, 1, double)
+    match HashMap_i32_fn_get(m, 1) {
+        Some(f) => stdio::println((f(5)).to_string()),
+        None => stdio::println("missing"),
+    }
+}

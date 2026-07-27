@@ -120,6 +120,7 @@
 - issue 番号だけを根拠にしたコメントを残さない。コード単体で理解できる理由を書き、必要なら末尾に issue 番号を添える。
 - 修正履歴、過去の不具合の症状、デバッグ時の経緯を長期間コードコメントとして蓄積しない。現在も必要な制約だけを残す。
 - 一時処理には追跡 issue だけでなく、何が解決したら削除できるかを記載する。
+- 壊れた record 戻り値や ABI を、整数への pack（例: `first * 1_000_000 + last`）、黙殺 truncate、偽の成功 API で回避しない。回避が不可避なら open issue・削除条件・`docs/data/semantic-debt-allowlist.toml` 登録が必須。機械検査は `python3 scripts/check/check-semantic-debt.py`（`quality quick` / `verify quick`）。エージェント向け正本は `.cursor/rules/no-semantic-debt-workarounds.mdc`。
 
 ### データと constructor
 
@@ -162,6 +163,21 @@
 比較的よい基準: `analysis/doc_scan.ark`、`fmt/range.ark` のように短い名前付き処理を順に追えるコード。
 明確に避けるパターン: `main/args_parse.ark` のような深い分岐、薄い転送 facade、多数の bool 引数 constructor、壊れた巨大インデントや minify 埋め込み。
 
+## Active mission: native-cpp experimental promotion
+
+When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #833, or issue #834,
+`docs/plans/native-cpp-experimental-promotion.md` is the canonical executable plan. Phase 0 and Phase 1 are complete.
+Continue from the first unchecked Phase 2 item through the Final Experimental Promotion Checklist.
+
+- Do not stop at phase completion, commit completion, #833 closure, one successful strict run, or partial performance improvement.
+- After each validated work unit, commit, update the plan/receipt, and immediately continue to the next unchecked item.
+- Use only the hard-stop conditions written in the canonical plan. A failing test or performance gate normally
+  requires diagnosis and another implementation step.
+- If one item is blocked, continue independent items and preserve concrete blocker evidence.
+- Completion requires #834 closure, strict 3/3 PASS, `high_rss_override=false`, CI enforcement, docs/state sync,
+  and every final checkbox checked.
+- Mission prompt: `.agents/prompts/native-cpp-experimental-promotion.md`.
+
 ## 基本コマンド
 
 - 書式: `python3 scripts/manager.py fmt` / `python3 scripts/manager.py fmt --check`
@@ -169,10 +185,56 @@
 - 品質 quick: `python3 scripts/manager.py quality quick`
 - 構造契約: `python3 scripts/manager.py quality structure`
 - advisory metrics: `python3 scripts/manager.py quality report`
-- 高速ゲート: `python3 scripts/manager.py verify quick`
+- レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
+- マージ／CI ゲート: `python3 scripts/manager.py verify quick`（拡張面は `--extended`）
 - fixture: `python3 scripts/manager.py verify fixtures`
+- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
+- **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
 - docs 再生成: `python3 scripts/manager.py docs regenerate`
 - docs 検査: `python3 scripts/manager.py docs check`
 - 全体: `python3 scripts/manager.py verify full`
 
+`build-compiler` を 1 行修正ごとに回さない（`45s × N` で律速になる）。編集をバッチして
+1 回だけ rebuild → 多数 fixture を検証する。並列レーンは親が 1 回だけ rebuild する。
+`selfhost fixpoint --build --no-cache` を emitter 作業の再ビルドに使わない。
+コピーは `/bin/cp -f`（対話的 `cp -iv` 禁止）。詳細は `docs/compiler/bootstrap.md`。
+
 変更範囲に応じた追加コマンドは `docs/data/verification-commands.toml` と対象 issue を確認して選ぶ。
+
+## エージェント運用の効率化
+
+AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツール呼び出しのラウンドトリップ・認証・再試行ループ・無駄な再構築に消えているケースがある。次の運用を徹底する。
+
+### 検証ゲートの選択（必須）
+
+- **編集中・並列レーン完了時の既定**は `python3 scripts/manager.py verify lane`（必要なら `--gate …`）。
+- `verify quick` は **orchestrator の merge 後 / CI / フェーズ完了** に限定する。毎ターン・毎レーンで回さない。
+- 同一 checkout で並列 selfhost する場合は worktree を分けるか、レーンごとに `ARUKELLT_BUILD_DIR` を別ディレクトリへ向ける（lock と成果物を隔離）。
+
+### ツール呼び出しのバッチ化
+
+- 独立な `read` / `grep` / `exec` は可能な限り 1 回のターンでまとめて実行する。
+- 関連ファイルは個別に `read` せず、`wc -l file1 file2 ...` や `sed`/`grep` でまとめて取得してから解析する。
+- 長い `exec` 結果は `get_output` で待つ間、同じファイルへの書き込みを伴わない他の調査を並列化する。
+
+### selfhost 再構築の抑制
+
+- `src/compiler/**` の emitter 編集後は `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ）を **1 回**実行する。
+- 多数の fixture をその s2 で検証する。
+- `python3 scripts/manager.py selfhost fixpoint --build --no-cache` は日常の再構築に使わない。fixpoint は s2==s3 を確認する ADR-029 ゲートのみ。
+- 詳細は `.cursor/rules/selfhost-rebuild.mdc` と `docs/research/selfhost-compile-latency-root-cause.md` を参照。
+
+### 認証・ネットワーク・インデックス問題の監視
+
+- Devin 起動時に `Team settings refresh timed out`、`failed to fetch plan info`、`PKCE callback invoked more than once` が出る場合、バックエンド認証・テレメトリー問い合わせに時間を取られている。無限リトライせず、発生を報告する。
+- Cursor worker ログで `unauthenticated`、`Indexing failed`、`TypeScript installation` エラーが繰り返される場合、インデックス再試行ループが発生している。エディタ設定・認証状態・プロキシを確認するか、ユーザに報告する。
+
+### 作業時間の自己監視
+
+- 10 分を超える作業では、最終報告に「何に時間がかかったか・何を短縮できたか」を含める。
+- 長時間沈黙している場合は、モデル推論待ち・コマンド実行待ち・認証待ちのいずれかを想定して、現状と次の短縮策を明示する。
+
+### 参考
+
+- 調査詳細: `docs/research/agent-tooling-latency.md`
+- Devin 生成 wiki: 同梱 `Agent Tooling Efficiency` ページ（`~/.local/share/devin/cli/wiki/.../wiki.md`）

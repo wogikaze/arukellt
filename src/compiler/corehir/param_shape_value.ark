@@ -20,7 +20,7 @@ fn method_param_value_type(node: AstNode) -> i32 {
 
 fn param_ann_value_type(ann: AstNode) -> i32 {
     if frontend_type_kind::corehir_kind_is_type_fn(frontend_ast_identity::corehir_node_kind(ann)) {
-        return value_types::VT_I32()
+        return value_types::VT_FUNCREF()
     }
     if decl_ann_name::decl_ann_is_name(ann, String_from("f64")) {
         return value_types::VT_F64()
@@ -43,6 +43,7 @@ fn param_ann_value_type(ann: AstNode) -> i32 {
     decl_ann_name::decl_ann_is_name(ann, String_from("u8")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("u16")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("u32")) ||
+    decl_ann_name::decl_ann_is_name(ann, String_from("i8")) ||
     decl_ann_name::decl_ann_is_name(ann, String_from("i16")) {
         return value_types::VT_I32()
     }

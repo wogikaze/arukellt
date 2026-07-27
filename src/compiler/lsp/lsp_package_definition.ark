@@ -78,9 +78,13 @@ pub fn find_package_root(start_dir: String) -> String {
     if len(start_dir) == 0 {
         return String_new()
     }
+    // Avoid fs::exists on wasm32-gc (GC String → i64 scratch validate fail).
     let manifest = symbol_index_paths::join_path(clone(start_dir), String_from("ark.toml"))
-    if fs::exists(clone(manifest)) {
-        return start_dir
+    match fs::read_to_string(clone(manifest)) {
+        Result::Ok(_) => {
+            return start_dir
+        },
+        Result::Err(_) => {},
     }
     let parent = loader::module_paths::parent_dir(clone(start_dir))
     if eq(clone(parent), clone(start_dir)) {

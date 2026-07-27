@@ -44,7 +44,7 @@ Canonical public targets (see `docs/current-state.md` / `project-state.toml`):
 | `wasm32-gc` | primary | partial | CLI default; Wasm GC + WASI P2 host profile (ADR-013) |
 | `wasm32` | supported | complete | Linear-memory / AtCoder compatibility path |
 | `native-cpp` | scaffold | scaffold | C99 emit scaffold; not runnable |
-| `native-llvm` | scaffold | scaffold | LLVM IR scaffold; ABI undecided (ADR-045) |
+| `native-llvm` | scaffold | scaffold | LLVM IR scaffold。ADR-049はnative-cppだけを決定し、本targetのABIは未決定 |
 
 Retired / not public:
 

@@ -7,3 +7,7 @@ fn lower_to_mir(input: MirLowerInput) -> MirModule {
 fn lower_to_mir_no_prune(input: MirLowerInput) -> MirModule {
     entry::lower_program_to_mir_no_prune(input)
 }
+
+fn lower_to_mir_with_roots(input: MirLowerInput, export_roots: Vec<String>) -> MirModule {
+    entry::lower_program_to_mir_with_roots(input, export_roots)
+}

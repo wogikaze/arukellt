@@ -1,5 +1,7 @@
+use collections::name_index
 use wasm::ctx_record
 use wasm::gc_layout_table
+use wasm::code_ref_locals_scan
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_table
@@ -13,22 +15,33 @@ fn SelfEmitCtx_gc_layout_id_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueTy
     gc_layout_table::gc_layout_table_find_by_type_id(ctx_record::SelfEmitCtx_gc_layout_table(ctx), mir_value_type::mir_value_type_type_id(mvt))
 }
 
-fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i32 {
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-    let tid = mir_value_type::mir_value_type_type_id(mvt)
     let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
     if !gc_layout_table::gc_layout_id_is_valid(lid) {
         return 0 - 1
     }
+    gc_layout_table::gc_layout_table_observe_typed_lookup(layout)
     // Avoid lower_mir_value_type which returns a nested WasmValueType struct;
     // the bootstrap compiler miscompiles nested-struct return values.
     // Instead, directly extract the ref type index from the layout entry.
-    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() {
-        return 0 - 1
-    }
     let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
     let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
     gc_layout_table::wasm_ref_type_idx(ref_type)
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() {
+        return 0 - 1
+    }
+    SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
+}
+
+// Local storage on wasm32-gc is selected by the materialized layout entry.
+// String retains LINEAR_PTR in the target-independent semantic spine during
+// migration, but its TypeId still owns a GC array entry for this target.
+fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+    SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -41,19 +54,42 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    // ADR-040 Phase 5e: variant_slot direct lookup (structured type ID)
+    // Payload locals (string, vec, hashmap, struct) may carry a stray
+    // variant_slot from enum/Option/Result payload propagation. Prefer the
+    // declared type_name so the local is typed as its payload/container
+    // rather than the enclosing enum variant.
+    let local_type_name = local_access::MirLocal_type_name(loc)
+    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
+        return 0 - 1
+    }
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    if variant_slot >= 0 {
+    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
+    let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
+    // For GC_STRUCT_NEW destinations with variant_slot, prefer the concrete
+    // variant type over the open enum type from type_name lookup. Without this
+    // priority, type_name → open-enum wins and ref.cast targets a different
+    // type than the local declaration (#808).
+    if variant_slot >= 0 && is_struct_new_dest {
         let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             return variant_gc
         }
     }
-    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
+    if len(local_type_name) > 0 {
+        let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
+        if type_name_gc >= 0 {
+            // Non-constructor locals must not adopt concrete enum-variant
+            // storage from a misleading type_name (payload field values).
+            if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
+                return type_name_gc
+            }
+        }
+    }
+    if is_payload_with_stray_variant {
         return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_access::MirLocal_type_name(loc))
+    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_type_name)
     SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
 }
 
@@ -70,6 +106,21 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot
     0 - 1
 }
 
+fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -> bool {
+    if wasm_type_idx < 0 {
+        return false
+    }
+    let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let mut i = 0
+    while i < len(map) {
+        if get_unchecked(map, i) == wasm_type_idx {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
 // ADR-040 Phase 5: typed-spine GC type index lookup from a MIR type name.
 // Falls back to gc_layout_table_ref_offset_for_type_name (centralized
 // name→offset mapping) when the type_id lookup fails, so callers no longer
@@ -78,9 +129,21 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: Stri
     if len(type_name) == 0 {
         return 0 - 1
     }
+    let index = ctx_record::SelfEmitCtx_type_name_ref_index(ctx)
+    // Encoded values are type_idx+2 (1 = known miss) so get!=-1 means cached.
+    let encoded = name_index::name_index_get(index, clone(type_name))
+    if encoded >= 1 {
+        return encoded - 2
+    }
+    let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(type_name))
+    name_index::name_index_set(index, type_name, resolved + 2)
+    resolved
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_name: String) -> i32 {
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let mvt = type_info_to_mir_value::vt_to_mir_value(tt, value_types::VT_GC_REF(), clone(type_name))
-    let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    let tid = gc_layout_type_id_for_name(tt, clone(type_name))
+    let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, tid)
     if tid_result >= 0 {
         return tid_result
     }
@@ -89,5 +152,46 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: Stri
     if gc_type_base < 0 {
         return 0 - 1
     }
-    gc_layout_table::gc_layout_table_ref_offset_for_type_name(type_name, gc_type_base)
+    let fallback = gc_layout_table::gc_layout_table_ref_offset_for_type_name(type_name, gc_type_base)
+    if fallback >= 0 {
+        gc_layout_table::gc_layout_table_observe_fallback_lookup(ctx_record::SelfEmitCtx_gc_layout_table(ctx))
+    }
+    fallback
+}
+
+// Emit must not intern new TypeIds. Look up migration aliases already
+// materialized by typed-MIR synchronization and leave misses to the observed
+// legacy offset fallback.
+fn gc_layout_type_id_for_name(tt: TypeTable, type_name: String) -> TypeId {
+    let name = if eq(clone(type_name), String_from("string")) {
+        String_from("String")
+    } else {
+        clone(type_name)
+    }
+    let empty = Vec_new_TypeId()
+    let string_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRING(), clone(name), empty)
+    if type_id::type_id_is_valid(string_id) {
+        return string_id
+    }
+    let vec_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_VEC(), clone(name), empty)
+    if type_id::type_id_is_valid(vec_id) {
+        return vec_id
+    }
+    let hashmap_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_HASHMAP(), clone(name), empty)
+    if type_id::type_id_is_valid(hashmap_id) {
+        return hashmap_id
+    }
+    let option_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_OPTION(), clone(name), empty)
+    if type_id::type_id_is_valid(option_id) {
+        return option_id
+    }
+    let result_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_RESULT(), clone(name), empty)
+    if type_id::type_id_is_valid(result_id) {
+        return result_id
+    }
+    let struct_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), clone(name), empty)
+    if type_id::type_id_is_valid(struct_id) {
+        return struct_id
+    }
+    type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), name, empty)
 }

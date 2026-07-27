@@ -14,6 +14,8 @@ use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref
 use wasm::intrinsic_vec_type
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
 
 fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -37,13 +39,12 @@ fn emit_vec_pop_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     // Step 2: Get len, save to s_newlen
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_tee(w, s_newlen)
 
     // Step 3: Check if len > 0
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_I32_GT_U())
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_gt_u(w)
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)  // void block
     emit_vec_pop_some_branch(w, ctx, s_vec, vec_type, array_type, arr_tmp, s_newlen, s_optptr, is_vec_string, enum_type)
@@ -100,16 +101,15 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     // len was saved in s_newlen by local.tee in the caller.
     // new_len = len - 1
     helpers_core::emit_local_get(w, s_newlen)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_newlen)
 
     // vec.len = new_len
     helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 
     // Read last element: data[new_len]
     helpers_core::emit_local_get(w, vec_local)
@@ -117,9 +117,10 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_tee(w, arr_tmp)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_array_get(w, i32_array_type)
+    // Widen i32 element into Memory64 scalar scratch before Option::Some.
+    writer_gc::emit_gc_array_get_i32(w, i32_array_type)
 
-    // Save value from array.get to i32 scratch (s_newlen is done with)
+    // Save value from array.get to scalar scratch (s_newlen is done with)
     helpers_core::emit_local_set(w, s_newlen)
 
     // Allocate Option::Some as GC struct using the Some variant type.
@@ -129,6 +130,8 @@ fn emit_gc_pop_some(w: WasmWriter, ctx: SelfEmitCtx, vec_local: i32, vec_type: i
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
     helpers_core::emit_local_get(w, s_newlen)
+    // Option::Some(i32) payload field is true i32 under Memory64 widen.
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
     writer_gc::emit_gc_struct_new(w, some_type_idx)
     helpers_core::emit_local_set(w, s_optptr)
 }
@@ -137,16 +140,15 @@ fn emit_gc_pop_some_string(w: WasmWriter, vec_local: i32, vec_type: i32, array_t
     // len was saved in s_newlen by local.tee in the caller.
     // new_len = len - 1
     helpers_core::emit_local_get(w, s_newlen)
-    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-    writer_core::emit_leb128_s(w, 1)
-    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_newlen)
 
     // vec.len = new_len
     helpers_core::emit_local_get(w, vec_local)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     helpers_core::emit_local_get(w, s_newlen)
-    writer_gc::emit_gc_struct_set(w, vec_type, 1)
+    writer_gc::emit_gc_struct_set_i32(w, vec_type, 1)
 
     // Read last element: data[new_len] → String ref on stack
     helpers_core::emit_local_get(w, vec_local)

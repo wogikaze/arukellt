@@ -2,8 +2,9 @@
 name = "Arukellt"
 version = "0.1.0"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-07-15"
+updated = "2026-07-22"
 verification_command = "python3 scripts/manager.py verify quick"
+agent_verification_command = "python3 scripts/manager.py verify lane"
 current_state_doc = "docs/current-state.md"
 
 [pipeline]
@@ -20,7 +21,7 @@ refactor_target = [
   "MIRValidate",
   "MIROptimize",
   "BackendPlan",
-  "WasmEmit / LLVMEmit",
+  "WasmEmit / NativeCEmit / LLVMEmit",
   "BackendValidate",
 ]
 session_entry = "ark-driver::Session"
@@ -33,7 +34,7 @@ component_target = "wasm32-gc"
 default_emit = "core-wasm"
 component_emit = true
 wit_emit = true
-component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components work on pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component."
+component_note = "ADR-008 ideal is in-tree; living path may still use wasm-tools / Python wrap helpers. Command components now compile and validate on s2-runtime (gate_510 green) as well as pinned bootstrap; library-style pub fn exports need ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm (empty WIT on pinned — see current-state). Binary = arukellt; `component build` aliases compile --emit component."
 
 [[target_profiles]]
 id = "wasm32"
@@ -41,6 +42,8 @@ support_tier = "supported"
 implementation_state = "complete"
 contract_stability = "stable"
 run_supported = true
+default_emit_kind = "wasm"
+allowed_emit_kinds = ["wasm", "wat"]
 default_host_profile = "wasi-p1"
 role = "Supported: AtCoder / linear-memory competition path"
 display = "WebAssembly linear-memory target (WASI P1)"
@@ -51,6 +54,8 @@ support_tier = "primary"
 implementation_state = "partial"
 contract_stability = "stable"
 run_supported = true
+default_emit_kind = "wasm"
+allowed_emit_kinds = ["wasm", "wat", "component", "wit", "all"]
 default_host_profile = "wasi-p2"
 role = "Primary (ADR-013): Wasm GC + WASI P2 default host profile; GC lowering still partial"
 display = "WebAssembly GC target (WASI P2, default)"
@@ -58,11 +63,21 @@ display = "WebAssembly GC target (WASI P2, default)"
 [[target_profiles]]
 id = "native-cpp"
 support_tier = "scaffold"
-implementation_state = "scaffold"
+implementation_state = "partial"
 contract_stability = "experimental"
-run_supported = false
-role = "Scaffold C99 emit path"
-display = "Native C++ backend scaffold"
+run_supported = true
+default_emit_kind = "c"
+allowed_emit_kinds = ["c"]
+role = "Experimental public run --target native-cpp (ADR-050); compile --emit c; internal selfhost executor lane remains experimental (see docs/data/native-cpp-executor-promotion-receipt.json and docs/data/native-cpp-run-promotion-receipt.json)"
+display = "Native C99 backend (scaffold; experimental public run + --emit c)"
+
+[[executor_lanes]]
+id = "native-cpp-selfhost"
+target_id = "native-cpp"
+state = "experimental"
+strict_gate_supported = true
+high_rss_override_allowed_in_ci = false
+promotion_receipt = "docs/data/native-cpp-executor-promotion-receipt.json"
 
 [[target_profiles]]
 id = "native-llvm"
@@ -70,7 +85,9 @@ support_tier = "scaffold"
 implementation_state = "scaffold"
 contract_stability = "experimental"
 run_supported = false
-role = "Scaffold LLVM IR emit; semantics/ABI per ADR-045 undecided"
+default_emit_kind = "llvm"
+allowed_emit_kinds = ["llvm"]
+role = "Scaffold LLVM IR emit; ADR-049 decides native-cpp only, native-llvm remains undecided"
 display = "Native LLVM backend scaffold"
 
 # User input spellings are canonicalized once at the CLI/config boundary. These
@@ -193,13 +210,13 @@ source_commit = "982f3102"
 fixture_passed = 57
 fixture_skipped = 442
 fixture_failures = 1089
-fixture_manifest_count = 2693
+fixture_manifest_count = 2842
 # Accounting: harness pass/fail/skip is a recorded *observed* run snapshot.
 # Manifest count is the registry size. Units differ — never present as N/M of the same unit.
 fixture_harness_observed = 1588
-fixture_not_in_last_harness_snapshot = 1105
-fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2693 is tests/fixtures/manifest.txt registry size. The 1105 remainder were not part of that run (not proof they fail)."
-checks_passed = 165
+fixture_not_in_last_harness_snapshot = 1254
+fixture_accounting_note = "57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2842 is tests/fixtures/manifest.txt registry size. The 1254 remainder were not part of that run (not proof they fail)."
+checks_passed = 166
 checks_total = 166
 unit_tests_note = "selfhost verification is tracked by `python3 scripts/manager.py verify`"
 
@@ -231,7 +248,7 @@ baseline_cases = [
 heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
 
 [component]
-status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools)"
+status = "Implemented on `wasm32-gc` for supported WIT-compatible exports (ADR-008 in-tree ideal; wrap helpers may still call wasm-tools). jco transpile + Node.js E2E works for scalar `pub fn` with ARUKELLT_TEST_JCO=1; String/record/variant adapters still pending."
 summary = "Only user `pub fn` with WIT-compatible types are exported"
 
 # Lifecycle status labels used across docs, issues, and target-contract.md.

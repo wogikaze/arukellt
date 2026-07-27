@@ -103,7 +103,7 @@ fn mir_match_has_payload_pattern(node: AstNode, child_count: i32) -> bool {
 fn mir_emit_payload_tag_local(ctx: LowerCtx, scrut_idx: i32) -> i32 {
     let tag_local = ctx_fresh_local(ctx, value_types::VT_I32())
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, scrut_idx, 0 - 1, 0, value_types::VT_VOID()))
+        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, scrut_idx, 0 - 1, 0, value_types::VT_I32()))
         return tag_local
     }
     ctx_emit(ctx, inst_local_get::MirInst_local_get(scrut_idx))

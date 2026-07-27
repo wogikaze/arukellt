@@ -1,0 +1,5 @@
+# Known semantic-debt sites that must shrink over time.
+# New occurrences of check-semantic-debt.py rules fail CI unless listed here
+# with issue + removal + recheck. Prefer deleting entries by fixing root cause.
+
+# (empty — import-block i64 pack removed in #828)

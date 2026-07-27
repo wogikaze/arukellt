@@ -1,9 +1,10 @@
+use fmt::import_block
 use fmt::prune_imports
 
 pub fn pruned_import_block(input: String) -> Option<String> {
     prune_imports::pruned_import_block(input)
 }
 
-pub fn import_block_span(input: String) -> i32 {
+pub fn import_block_span(input: String) -> Option<import_block::ImportBlockSpan> {
     prune_imports::import_block_span_value(input)
 }

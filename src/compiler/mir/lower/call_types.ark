@@ -10,8 +10,46 @@ use mir::value_types
 fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     call_type_vec::mark_vec_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
     call_type_hash::mark_hash_call_result_type(ctx, clone(callee_name), dest)
+    // clone(T) -> T (identity). Never force "string" or prelude String return;
+    // that makes GC struct temps validate as String while holding a user struct.
+    if is_clone_result_callee(clone(callee_name)) {
+        mark_clone_call_result_type(ctx, clone(callee_name), dest, first_arg_idx)
+        return
+    }
     mark_string_call_result_type(ctx, clone(callee_name), dest)
     call_type_fallback::mark_fallback_call_result_type(ctx, callee_name, dest)
+}
+
+fn is_clone_result_callee(callee_name: String) -> bool {
+    eq(clone(callee_name), "clone") ||
+    eq(clone(callee_name), "__intrinsic_clone") ||
+    eq(clone(callee_name), "__intrinsic_string_clone") ||
+    eq(clone(callee_name), "__core_string_clone_impl") ||
+    eq(clone(callee_name), "raw_string_clone") ||
+    ends_with(clone(callee_name), String_from("::clone")) ||
+    ends_with(clone(callee_name), String_from("__clone")) ||
+    ends_with(clone(callee_name), String_from("::raw_string_clone")) ||
+    ends_with(clone(callee_name), String_from("string_clone"))
+}
+
+fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
+    if dest < 0 || first_arg_idx < 0 || !is_clone_result_callee(clone(callee_name)) {
+        return false
+    }
+    let arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    if len(arg_type) == 0 {
+        return false
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(arg_type))
+    let arg_vt = ctx_api_local_types::ctx_local_vt(ctx, first_arg_idx)
+    if arg_vt != value_types::VT_I32() {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, arg_vt)
+    } else if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+    } else {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+    }
+    true
 }
 
 fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -31,7 +69,6 @@ fn mir_callee_returns_string(callee_name: String) -> bool {
     eq(clone(callee_name), "__intrinsic_concat") ||
     eq(clone(callee_name), "text::concat") ||
     eq(clone(callee_name), "text::builder_append") ||
-    eq(clone(callee_name), "clone") ||
     eq(clone(callee_name), "to_string") ||
     eq(clone(callee_name), "i32_to_string") ||
     eq(clone(callee_name), "i64_to_string") ||
@@ -62,6 +99,7 @@ fn mir_callee_returns_string(callee_name: String) -> bool {
     eq(clone(callee_name), "text::join") ||
     eq(clone(callee_name), "__intrinsic_join") ||
     eq(clone(callee_name), "string_from_bytes") ||
+    eq(clone(callee_name), "__intrinsic_string_from_bytes") ||
     eq(clone(callee_name), "bytes::string_from_bytes") {
         return true
     }

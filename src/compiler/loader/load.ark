@@ -24,5 +24,15 @@ fn load_modules_for_source(source: String, decls: Vec<AstNode>, config: DriverCo
     contains(clone(source), String_from("HashSet_String")) {
         module_graph::load_stdlib_module(String_from("std::collections::hash_string"), load_state)
     }
+    // Separate module so HashMap_i32_String rebuilds do not require __hm_if_* (#833).
+    if contains(clone(source), String_from("HashMap_i32_fn")) ||
+    contains(clone(source), String_from("HashMap_new_i32_fn")) {
+        module_graph::load_stdlib_module(String_from("std::collections::hash_fn"), load_state)
+    }
+    // Separate module so String/String rebuilds do not require __hm_sf_* (#838).
+    if contains(clone(source), String_from("HashMap_String_fn")) ||
+    contains(clone(source), String_from("HashMap_new_String_fn")) {
+        module_graph::load_stdlib_module(String_from("std::collections::hash_str_fn"), load_state)
+    }
     load_state
 }

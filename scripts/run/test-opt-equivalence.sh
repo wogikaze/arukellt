@@ -134,7 +134,8 @@ mkdir -p "$OUT_DIR"
 
 wasm_needs_host_linker() {
     local wasm="$1"
-    grep -aq "arukellt_host" "$wasm" 2>/dev/null
+    # Bridged HTTP/TCP guest ABI needs host-linker (legacy arukellt_host or WIT modules).
+    grep -aqE 'arukellt_host|wasi:http/(outgoing|incoming)-handler@|wasi:sockets/tcp@|http_get|http_request|http_serve|sockets_connect|sockets_listen' "$wasm" 2>/dev/null
 }
 
 is_trap_or_invalid() {

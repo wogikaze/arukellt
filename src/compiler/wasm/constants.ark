@@ -6,6 +6,8 @@ fn WASM_V128() -> i32 { 123 }
 fn WASM_F64() -> i32 { 124 }
 fn WASM_I8() -> i32 { 120 }
 fn WASM_REF_NULL() -> i32 { 99 }
+// Non-null typed reference `(ref $t)` — used for typed funcref params (#831).
+fn WASM_REF() -> i32 { 100 }
 
 // Abbreviated (ref null struct) value type — top type for all GC struct refs.
 fn WASM_STRUCTREF() -> i32 { 107 }
@@ -61,11 +63,22 @@ fn SCRATCH_SOCK_RET() -> i32 { 100 }
 fn SCRATCH_SOCK_ABSLEN() -> i32 { 104 }
 fn SCRATCH_SOCK_ENUMPTR() -> i32 { 108 }
 fn NUM_T2_IMPORTS() -> i32 { 5 }
-fn NUM_P2_IMPORTS_BASE() -> i32 { 10 }
+// Guest-native P2 stdio: get-stdout, bwaf, …, get-stderr, environ, clocks/random.
+fn NUM_P2_IMPORTS_BASE() -> i32 { 14 }
 fn NUM_P2_HTTP_OUTGOING_IMPORTS() -> i32 { 2 }
-fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 7 }
-fn P2_IMPORT_WALL_NOW() -> i32 { 8 }
-fn P2_IMPORT_RANDOM_U64() -> i32 { 9 }
+fn P2_IMPORT_GET_STDOUT() -> i32 { 0 }
+fn P2_IMPORT_BWAF() -> i32 { 1 }
+fn P2_IMPORT_ARGS_SIZES() -> i32 { 2 }
+fn P2_IMPORT_ARGUMENTS() -> i32 { 3 }
+fn P2_IMPORT_GET_STDERR() -> i32 { 8 }
+fn P2_IMPORT_ENVIRON_SIZES() -> i32 { 9 }
+fn P2_IMPORT_ENVIRON_GET() -> i32 { 10 }
+fn P2_IMPORT_MONOTONIC_NOW() -> i32 { 11 }
+fn P2_IMPORT_WALL_NOW() -> i32 { 12 }
+fn P2_IMPORT_RANDOM_U64() -> i32 { 13 }
+// Host type map indices for guest-native stdio (after base WASI + P2 clock types).
+fn P2_HOST_TYPE_GET_STREAM() -> i32 { 7 }
+fn P2_HOST_TYPE_BWAF() -> i32 { 8 }
 fn NUM_ARUKELLT_HOST_IMPORTS() -> i32 { 8 }
 fn WASI_HOST_TYPE_HTTP_OUTGOING() -> i32 { 6 }
 fn NUM_T2_TYPES() -> i32 { 3 }
@@ -125,8 +138,25 @@ fn LIB_WIT_S32() -> i32 { 0x7a }
 fn LIB_WIT_S64() -> i32 { 0x78 }
 fn LIB_WIT_F64() -> i32 { 0x75 }
 fn LIB_WIT_F32() -> i32 { 0x76 }
+fn LIB_WIT_STRING() -> i32 { 0x73 }
+fn LIB_WIT_BOOL() -> i32 { 0x7f }
+fn LIB_WIT_CHAR() -> i32 { 0x74 }
+fn LIB_WIT_U8() -> i32 { 0x7d }
+fn LIB_WIT_U16() -> i32 { 0x7b }
+fn LIB_WIT_U32() -> i32 { 0x79 }
+fn LIB_WIT_U64() -> i32 { 0x77 }
+fn LIB_WIT_S8() -> i32 { 0x7e }
+fn LIB_WIT_S16() -> i32 { 0x7c }
 
 // Local result store actions.
 fn STORE_ACTION_SKIP() -> i32 { 0 }
 fn STORE_ACTION_TEE() -> i32 { 1 }
 fn STORE_ACTION_SET() -> i32 { 2 }
+
+// GC layout member kinds and storage lowering contexts.
+fn GC_MEMBER_AGGREGATE() -> i32 { 0 }
+fn GC_MEMBER_ENUM_BASE() -> i32 { 1 }
+fn GC_MEMBER_ENUM_VARIANT() -> i32 { 2 }
+fn STORAGE_CONTEXT_AGGREGATE_FIELD() -> i32 { 1 }
+fn STORAGE_CONTEXT_VEC_BACKING() -> i32 { 2 }
+fn STORAGE_CONTEXT_DEFAULT_LOCAL() -> i32 { 3 }

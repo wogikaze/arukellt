@@ -1,6 +1,8 @@
 use parser::ast
+use parser::kinds
 
 fn node_kind(node: AstNode) -> i32 { ast::ast_node_kind(node) }
+fn fn_decl_kind() -> i32 { kinds::NK_FN_DECL() }
 fn node_kind_is(node: AstNode, kind: i32) -> bool { node_kind(node) == kind }
 
 fn node_child_count(node: AstNode) -> i32 { ast::ast_node_child_count(node) }

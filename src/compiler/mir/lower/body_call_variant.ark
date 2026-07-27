@@ -2,6 +2,7 @@ use mir::lower::ast_node
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_variants
 use mir::lower::ctx_types
 use mir::inst_local_set
 use mir::value_types
@@ -21,9 +22,19 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         if len(src_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
         }
+        // Copy enum-valued payloads' slots only when the payload itself is an
+        // enum/Option/Result. String/struct field payloads must stay unslotted
+        // so emit does not cast them to the enclosing variant type.
         let src_slot = ctx_api_local_types::ctx_get_local_variant_slot(ctx, p_idx)
-        if src_slot >= 0 {
+        if src_slot >= 0 &&
+        (starts_with(clone(src_type), String_from("enum:")) ||
+            starts_with(clone(src_type), String_from("Option")) ||
+            starts_with(clone(src_type), String_from("option")) ||
+            starts_with(clone(src_type), String_from("Result")) ||
+            starts_with(clone(src_type), String_from("result"))) {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, src_slot)
+        } else {
+            ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)
         }
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, p_idx))
         push(payload_locals, save_local)
@@ -36,5 +47,12 @@ fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, va
         pa = pa + 1
     }
     let callee = ast_node::node_child_at(node, 0)
-    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, ast_node::node_text(callee))
+    let raw_name = ast_node::node_text(callee)
+    let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
+    let variant_name = if len(canon) > 0 {
+        canon
+    } else {
+        raw_name
+    }
+    variants::lower_payload_variant_from_locals(ctx, var_tag, payload_locals, payload_vts, total_bytes, variant_name)
 }

@@ -7,15 +7,15 @@ use wasm::writer_core
 
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     let nsec_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    let million: i64 = 1000000
+    emit_i64_const(w, million)
+    helpers_numeric_i64_arith::emit_i64_div_u(w)
     helpers_core::emit_local_set(w, nsec_local)
     let thousand: i64 = 1000
     emit_i64_const(w, thousand)
     helpers_numeric_i64_arith::emit_i64_mul(w)
     helpers_core::emit_local_get(w, nsec_local)
-    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
-    let million: i64 = 1000000
-    emit_i64_const(w, million)
-    helpers_numeric_i64_arith::emit_i64_div_u(w)
     helpers_numeric_i64_arith::emit_i64_add(w)
 }
 

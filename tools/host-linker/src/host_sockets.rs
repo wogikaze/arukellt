@@ -1,4 +1,7 @@
-//! TCP socket host implementations for `arukellt_host::{sockets_connect,sockets_read,sockets_write,sockets_listen,sockets_accept}`.
+//! TCP socket host implementations for WIT-shaped guest imports (#727 bridged).
+//! Modules: `wasi:sockets/tcp@0.2.0` / `wasi:io/streams@0.2.0`.
+//! Function names remain the simplified guest ABI (`sockets_*`).
+//! TODO(#841 owner=host-linker removal="real WASI method ABI + bare wasmtime; delete this file" recheck=2026-08-25)
 
 use crate::{read_string_from_mem, write_error};
 use std::collections::HashMap;
@@ -7,7 +10,6 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 use wasmtime::*;
-use wasmtime_wasi::p1::WasiP1Ctx;
 
 const SOCKET_FD: i32 = 3;
 const LISTENER_FD: i32 = 4;
@@ -52,14 +54,14 @@ fn echo_server_loop(listener: TcpListener) {
     }
 }
 
-pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), String> {
+pub fn register_sockets_host_fns<T: 'static>(linker: &mut Linker<T>) -> Result<(), String> {
     ensure_socket_echo_server();
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_connect",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              host_ptr: i32,
              host_len: i32,
              port: i32,
@@ -87,9 +89,9 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:io/streams@0.2.0",
             "sockets_read",
-            |mut caller: Caller<'_, WasiP1Ctx>, fd: i32, max_len: i32, result_ptr: i32| -> i32 {
+            |mut caller: Caller<'_, T>, fd: i32, max_len: i32, result_ptr: i32| -> i32 {
                 if max_len < 0 {
                     return write_error(&mut caller, result_ptr, "read: invalid max_len");
                 }
@@ -123,9 +125,9 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:io/streams@0.2.0",
             "sockets_write",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              fd: i32,
              buf_ptr: i32,
              buf_len: i32,
@@ -166,9 +168,9 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_listen",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              host_ptr: i32,
              host_len: i32,
              port: i32,
@@ -196,9 +198,9 @@ pub fn register_sockets_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), S
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:sockets/tcp@0.2.0",
             "sockets_accept",
-            |mut caller: Caller<'_, WasiP1Ctx>, listener_fd: i32, result_ptr: i32| -> i32 {
+            |mut caller: Caller<'_, T>, listener_fd: i32, result_ptr: i32| -> i32 {
                 match tcp_accept_impl(listener_fd) {
                     Ok(client_fd) => client_fd,
                     Err(msg) => write_error(&mut caller, result_ptr, &msg),
@@ -236,8 +238,8 @@ fn insert_socket(fd: i32, stream: TcpStream) {
     }
 }
 
-fn write_ok_bytes(
-    caller: &mut Caller<'_, WasiP1Ctx>,
+fn write_ok_bytes<T>(
+    caller: &mut Caller<'_, T>,
     mem: &Memory,
     resp_ptr: i32,
     body: &[u8],
@@ -251,8 +253,8 @@ fn write_ok_bytes(
     body.len() as i32
 }
 
-fn read_bytes_from_mem(
-    caller: &Caller<'_, WasiP1Ctx>,
+fn read_bytes_from_mem<T>(
+    caller: &Caller<'_, T>,
     mem: &Memory,
     ptr: i32,
     len: i32,

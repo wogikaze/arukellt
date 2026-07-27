@@ -41,7 +41,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if backend_resolve::resolve_result_should_return(resolved) {
         return backend_resolve::resolve_result_result(resolved)
     }
-    let all_decls = module_decls::combine_loaded_and_main_decls_skip_prelude(backend_resolve::resolve_result_loaded_modules(resolved), decls)
+    let all_decls = module_decls::combine_loaded_and_main_decls(backend_resolve::resolve_result_loaded_modules(resolved), decls)
     let checked = backend_typecheck::backend_typecheck(clone(source), config, all_decls, backend_resolve::resolve_result_ctx(resolved))
     if backend_typecheck::typecheck_result_should_return(checked) {
         return backend_typecheck::typecheck_result_result(checked)
@@ -49,15 +49,31 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     let program = checked_program::build_checked_program(
         all_decls,
         backend_typecheck::typecheck_result_check_result(checked),
-        backend_resolve::resolve_result_loaded_modules(resolved)
+        backend_resolve::resolve_result_loaded_modules(resolved),
+        decls
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
-    let mir_lowered = lower::lower_checked_program(program, config)
+    let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
+    let mir_lowered = lower::lower_checked_program(program, config, clone(source))
+    let t_lower = clock::monotonic_now()
     let mir_module = mir_opt::optimize_module(mir_lowered, config_record::config_opt_level(config), config_record::config_target(config))
+    let t_mir_opt = clock::monotonic_now()
     if mir_api::verify_mir_pipeline(mir_module) != 0 {
         return errors_phase::mir_verify_failed_result()
     }
+    let t_mir_verify = clock::monotonic_now()
     debug::dump_mir_if_enabled(config, mir_module)
-    let t_lower = clock::monotonic_now()
-    emit::emit_output(mir_module, program, config, t0, t_lex, t_parse, backend_resolve::resolve_result_t_resolve(resolved), backend_typecheck::typecheck_result_t_typecheck(checked), t_lower)
+    emit::emit_output(
+        mir_module,
+        program,
+        config,
+        t0,
+        t_lex,
+        t_parse,
+        backend_resolve::resolve_result_t_resolve(resolved),
+        t_typecheck,
+        t_lower,
+        t_mir_opt,
+        t_mir_verify
+    )
 }

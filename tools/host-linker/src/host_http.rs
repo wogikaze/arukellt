@@ -1,4 +1,7 @@
-//! TCP HTTP/1.1 host implementations for `arukellt_host::http_get` / `http_request` / `http_serve`.
+//! TCP HTTP/1.1 host implementations for WIT-shaped guest imports (#727 bridged).
+//! Modules: `wasi:http/outgoing-handler@0.2.0` / `wasi:http/incoming-handler@0.2.0`.
+//! Function names remain the simplified guest ABI (`http_get` / `http_request` / `http_serve`).
+//! TODO(#841 owner=host-linker removal="real WASI method ABI + bare wasmtime; delete this file" recheck=2026-08-25)
 
 use crate::{read_string_from_mem, write_error, write_ok};
 use std::io::{Read, Write};
@@ -6,7 +9,6 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::OnceLock;
 use std::time::Duration;
 use wasmtime::*;
-use wasmtime_wasi::p1::WasiP1Ctx;
 
 static INCOMING_PORT: OnceLock<u16> = OnceLock::new();
 
@@ -59,13 +61,13 @@ fn incoming_client_loop(port: u16) {
     }
 }
 
-pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), String> {
+pub fn register_http_host_fns<T: 'static>(linker: &mut Linker<T>) -> Result<(), String> {
     ensure_http_incoming_client_helper();
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/outgoing-handler@0.2.0",
             "http_get",
-            |mut caller: Caller<'_, WasiP1Ctx>, url_ptr: i32, url_len: i32, resp_ptr: i32| -> i32 {
+            |mut caller: Caller<'_, T>, url_ptr: i32, url_len: i32, resp_ptr: i32| -> i32 {
                 let mem = match caller.get_export("memory") {
                     Some(Extern::Memory(m)) => m,
                     _ => return write_error(&mut caller, resp_ptr, "no memory export"),
@@ -84,9 +86,9 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/outgoing-handler@0.2.0",
             "http_request",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              method_ptr: i32,
              method_len: i32,
              url_ptr: i32,
@@ -121,9 +123,9 @@ pub fn register_http_host_fns(linker: &mut Linker<WasiP1Ctx>) -> Result<(), Stri
 
     linker
         .func_wrap(
-            "arukellt_host",
+            "wasi:http/incoming-handler@0.2.0",
             "http_serve",
-            |mut caller: Caller<'_, WasiP1Ctx>,
+            |mut caller: Caller<'_, T>,
              port: i32,
              body_ptr: i32,
              body_len: i32,

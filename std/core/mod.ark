@@ -27,16 +27,34 @@ pub fn range_new(start: i32, end: i32) -> Range {
 }
 
 /// Returns true when `value` lies inside the half-open range.
-pub fn range_contains(r: Range, value: i32) -> bool {
+fn __core_range_contains_impl(r: Range, value: i32) -> bool {
     value >= r.start && value < r.end
 }
 
+pub fn range_contains(r: Range, value: i32) -> bool {
+    __core_range_contains_impl(r, value)
+}
+
 /// Returns the non-negative length of the half-open range.
-pub fn range_len(r: Range) -> i32 {
+fn __core_range_len_impl(r: Range) -> i32 {
     if r.end > r.start {
         r.end - r.start
     } else {
         0
+    }
+}
+
+pub fn range_len(r: Range) -> i32 {
+    __core_range_len_impl(r)
+}
+
+impl Range {
+    fn contains(self: Range, value: i32) -> bool {
+        __core_range_contains_impl(self, value)
+    }
+
+    fn len(self: Range) -> i32 {
+        __core_range_len_impl(self)
     }
 }
 

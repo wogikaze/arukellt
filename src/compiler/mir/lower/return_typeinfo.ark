@@ -11,6 +11,10 @@ fn mir_return_tag_from_typed_fn(tf: TypedFn) -> i32 {
 }
 
 fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
+    // Typechecker resolves TYPE_FN ann text "fnref" as TY_STRUCT; keep FUNCREF ABI (#832).
+    if mir_return_type_name_is_fnref(typeinfo_shape::mir_type_info_name(ty)) {
+        return value_types::VT_FUNCREF()
+    }
     let tag = mir_return_tag_from_type_info(ty)
     match tag {
         0 => value_types::VT_VOID(),
@@ -36,9 +40,54 @@ fn mir_return_vt_from_typed_fn(tf: TypedFn) -> i32 {
 }
 
 fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
+    if mir_return_type_name_is_fnref(typeinfo_shape::mir_type_info_name(ty)) {
+        return String_from("fnref")
+    }
     let tag = mir_return_tag_from_type_info(ty)
     match tag {
-        5 => typeinfo_shape::mir_type_info_name(ty),
+        1 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) > 0 {
+                return name
+            }
+            String_from("i32")
+        },
+        2 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) > 0 {
+                return name
+            }
+            String_from("i64")
+        },
+        3 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) > 0 {
+                return name
+            }
+            String_from("f64")
+        },
+        4 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) > 0 {
+                return name
+            }
+            String_from("bool")
+        },
+        6 => String_from("char"),
+        9 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) > 0 {
+                return name
+            }
+            String_from("f32")
+        },
+        5 => {
+            let name = typeinfo_shape::mir_type_info_name(ty)
+            if len(name) == 0 {
+                return String_from("String")
+            }
+            name
+        },
         10 => return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty),
         11 => return_typeinfo_names::mir_option_return_type_name_from_type_info(ty),
         12 => return_typeinfo_names::mir_result_return_type_name_from_type_info(ty),
@@ -57,6 +106,12 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         23 => return_typeinfo_names::mir_tuple_return_type_name_from_type_info(ty),
         _ => String_from(""),
     }
+}
+
+fn mir_return_type_name_is_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fn")) ||
+    starts_with(clone(type_name), String_from("fn("))
 }
 
 // Build a return type name for enum types.  For Result, include type

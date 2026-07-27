@@ -3,6 +3,7 @@ use typechecker::kinds
 use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_method_args
+use typechecker::call_generic_resolve
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer_env_scope
@@ -18,7 +19,10 @@ fn infer_generic_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<
     call_generic_common::append_generic_type_vars(infer_env, sig, var_names, var_types)
     let inst_p0 = call_generic_method_args::constrain_generic_method_args(env, scope, fn_sigs, enum_defs, node, sig, recv_ty, explicit_args, infer_env, var_names, var_types)
     let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
-    let ret_ty = unify::resolve_type(infer_env, inst_ret)
+    let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, inst_ret)
+    if call_generic_resolve::has_unresolved_fresh_type_arg(infer_env, var_types) {
+        return ret_ty
+    }
     let resolved_type_args = call_generic_common::resolve_type_args(infer_env, var_types)
     traits::enforce_fn_sig_bounds(env, infer_env, sig, var_types)
     let resolved_recv_ty = unify::resolve_type_deep(infer_env, inst_p0)

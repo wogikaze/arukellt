@@ -10,8 +10,11 @@ use mir::dump_format_local
 use mir::dump_format_phi
 use mir::dump_op_names
 use mir::function_block_queries
+use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_record
+use mir::opcodes
 
 fn dump_mir_function_blocks(f: MirFunction) {
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -43,15 +46,20 @@ fn dump_mir_function_blocks(f: MirFunction) {
         let mut j = 0
         while j < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, j)
-            stdio::eprintln(
+            let mut line = concat(
+                String_from("      "),
                 concat(
-                    String_from("      "),
-                    concat(
-                        dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)),
-                        concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst)))
-                    )
+                    dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)),
+                    concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst)))
                 )
             )
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
+                line = text::builder_append(line, String_from(" callee="))
+                line = text::builder_append(line, inst_accessors_literals::MirInst_str_val(inst))
+                line = text::builder_append(line, String_from(" fid="))
+                line = text::builder_append(line, to_string(inst_record::mir_inst_func_id_raw(inst)))
+            }
+            stdio::eprintln(line)
             j = j + 1
         }
         b = b + 1

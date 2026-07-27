@@ -1,1 +1,1 @@
-error[E0102|resolve]: access to private symbol
+error[E0100|resolve]: undefined name: internal_double

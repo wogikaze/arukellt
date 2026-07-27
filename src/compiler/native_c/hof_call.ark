@@ -1,0 +1,290 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::function_identity
+use mir::function_param_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::module_functions
+use mir::module_spine
+use mir::opcodes
+use native_c::abi
+use native_c::enum_abi
+
+struct NativeCHofEmit {
+    handled: bool,
+    expression: String,
+    diagnostic: String,
+}
+
+fn native_c_hof_not_handled() -> NativeCHofEmit {
+    NativeCHofEmit { handled: false, expression: String_new(), diagnostic: String_new() }
+}
+
+fn native_c_hof_expression(expression: String) -> NativeCHofEmit {
+    NativeCHofEmit { handled: true, expression: expression, diagnostic: String_new() }
+}
+
+fn native_c_hof_error(diagnostic: String) -> NativeCHofEmit {
+    NativeCHofEmit { handled: true, expression: String_new(), diagnostic: diagnostic }
+}
+
+fn native_c_hof_is_handled(result: NativeCHofEmit) -> bool { result.handled }
+fn native_c_hof_source(result: NativeCHofEmit) -> String { clone(result.expression) }
+fn native_c_hof_diagnostic(result: NativeCHofEmit) -> String { clone(result.diagnostic) }
+
+fn native_c_hof_resolve_function_id(mir_module: MirModule, instruction: MirInst) -> i32 {
+    let mut function_id_raw = inst_record::mir_inst_func_id_raw(instruction)
+    if function_id_raw >= 0 {
+        return function_id_raw
+    }
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let callee = inst_record::mir_inst_str_val(instruction)
+    let mut resolved = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee))
+    if !function_id::function_id_is_valid(resolved) {
+        let length = len(callee)
+        let mut index = length - 2
+        let mut short = clone(callee)
+        while index >= 0 {
+            if char_at(callee, index) == 58 && char_at(callee, index + 1) == 58 {
+                short = substring(callee, index + 2, length)
+                index = -1
+            } else {
+                index = index - 1
+            }
+        }
+        resolved = signature_registry::signature_registry_lookup_by_mangled(registry, short)
+    }
+    if function_id::function_id_is_valid(resolved) {
+        return function_id::FunctionId_raw(resolved)
+    }
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        if eq(function_identity::MirFunction_name(function), clone(callee)) {
+            let by_name = signature_registry::signature_registry_lookup_by_mangled(registry, callee)
+            if function_id::function_id_is_valid(by_name) {
+                return function_id::FunctionId_raw(by_name)
+            }
+        }
+        function_index = function_index + 1
+    }
+    0 - 1
+}
+
+fn native_c_parse_first_arg_vt_hint(hint: String) -> i32 {
+    if len(hint) == 0 {
+        return 0 - 1
+    }
+    let n = len(hint)
+    let mut value = 0
+    let mut i = 0
+    while i < n {
+        let d = char_at(hint, i)
+        if d >= 48 && d <= 57 {
+            value = value * 10 + (d - 48)
+        } else {
+            return 0 - 1
+        }
+        i = i + 1
+    }
+    value
+}
+
+fn native_c_hof_find_matching_function_id(
+    mir_module: MirModule,
+    arg_count: i32,
+    dest_result_encoding: String,
+    first_arg_vt: i32
+) -> i32 {
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let table = module_spine::MirModule_type_table(mir_module)
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        if function_param_view::MirFunction_param_count(function) != arg_count {
+            function_index = function_index + 1
+            continue
+        }
+        if arg_count > 0 && first_arg_vt >= 0 {
+            if function_param_view::MirFunction_param_val_type(function, 0) != first_arg_vt {
+                function_index = function_index + 1
+                continue
+            }
+        }
+        let name = function_identity::MirFunction_name(function)
+        let resolved = signature_registry::signature_registry_lookup_by_mangled(registry, name)
+        if !function_id::function_id_is_valid(resolved) {
+            function_index = function_index + 1
+            continue
+        }
+        let signature = signature_registry::signature_registry_lookup_by_id(registry, resolved)
+        // Prefer SignatureEntry result encoding over legacy MirFunction_return_type:
+        // CALL_REF dest locals often keep VT_REF while MirValueType is already i32.
+        let result_encoding = abi::native_c_signature_result_encoding(table, signature)
+        if len(result_encoding) == 0 {
+            function_index = function_index + 1
+            continue
+        }
+        // bool lowers as uint8_t / encoding `b`, but many callbacks are typed i32.
+        let encodings_match = eq(result_encoding, clone(dest_result_encoding)) ||
+        (eq(clone(result_encoding), String_from("b")) &&
+            eq(clone(dest_result_encoding), String_from("i32"))) ||
+        (eq(clone(result_encoding), String_from("i32")) &&
+            eq(clone(dest_result_encoding), String_from("b")))
+        if !encodings_match {
+            function_index = function_index + 1
+            continue
+        }
+        return function_id::FunctionId_raw(resolved)
+    }
+    0 - 1
+}
+
+fn native_c_emit_ref_func(mir_module: MirModule, instruction: MirInst) -> NativeCHofEmit {
+    if inst_accessors_shape::MirInst_op(instruction) != opcodes::MIR_REF_FUNC() {
+        return native_c_hof_not_handled()
+    }
+    let function_id_raw = native_c_hof_resolve_function_id(mir_module, instruction)
+    if function_id_raw < 0 {
+        return native_c_hof_error(
+            concat(
+                String_from("target `native-cpp` cannot resolve zero-capture function reference `"),
+                concat(inst_record::mir_inst_str_val(instruction), String_from("`"))
+            )
+        )
+    }
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let signature = signature_registry::signature_registry_lookup_by_id(
+        registry,
+        function_id::FunctionId_new(function_id_raw)
+    )
+    let table = module_spine::MirModule_type_table(mir_module)
+    let symbol = abi::native_c_function_symbol(table, function_id_raw, signature)
+    if len(symbol) == 0 {
+        return native_c_hof_error(
+            String_from("target `native-cpp` cannot mangle zero-capture function reference")
+        )
+    }
+    let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
+    if len(typedef_name) == 0 {
+        return native_c_hof_error(
+            String_from("target `native-cpp` cannot type zero-capture function reference")
+        )
+    }
+    // C parses `(intptr_t)(typedef)symbol` as a cast of the typedef name, then
+    // a discarded symbol expression. Double-parens force a function cast.
+    native_c_hof_expression(
+        concat(
+            String_from("(intptr_t)(("),
+            concat(typedef_name, concat(String_from(")"), concat(symbol, String_from(")"))))
+        )
+    )
+}
+
+fn native_c_emit_call_indirect(
+    mir_module: MirModule,
+    instruction: MirInst,
+    callee_local: i32,
+    argument_locals: Vec<i32>,
+    dest_result_encoding: String
+) -> NativeCHofEmit {
+    let op = inst_accessors_shape::MirInst_op(instruction)
+    if op != opcodes::MIR_CALL_INDIRECT() && op != opcodes::MIR_CALL_REF() {
+        return native_c_hof_not_handled()
+    }
+    let arg_count = inst_accessors_literals::MirInst_int_val(instruction)
+    if len(argument_locals) != arg_count {
+        return native_c_hof_error(
+            String_from("compiler ICE: native-cpp indirect call argument count mismatch")
+        )
+    }
+    let first_arg_vt = native_c_parse_first_arg_vt_hint(inst_accessors_literals::MirInst_str_val(instruction))
+    let matched_id = native_c_hof_find_matching_function_id(
+        mir_module,
+        arg_count,
+        dest_result_encoding,
+        first_arg_vt
+    )
+    if matched_id < 0 {
+        return native_c_hof_error(
+            String_from(
+                "target `native-cpp` cannot resolve typed signature for zero-capture indirect call"
+            )
+        )
+    }
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let signature = signature_registry::signature_registry_lookup_by_id(
+        registry,
+        function_id::FunctionId_new(matched_id)
+    )
+    let table = module_spine::MirModule_type_table(mir_module)
+    let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
+    if len(typedef_name) == 0 {
+        return native_c_hof_error(
+            String_from("target `native-cpp` cannot type zero-capture indirect call")
+        )
+    }
+    let mut call = concat(
+        String_from("(("),
+        concat(
+            typedef_name,
+            concat(
+                String_from(")"),
+                concat(String_from("ark_v_"), concat(i32_to_string(callee_local), String_from(")(")))
+            )
+        )
+    )
+    let mut argument_index = 0
+    while argument_index < arg_count {
+        if argument_index > 0 { call = concat(call, String_from(", ")) }
+        call = concat(
+            call,
+            concat(String_from("ark_v_"), i32_to_string(get_unchecked(argument_locals, argument_index)))
+        )
+        argument_index = argument_index + 1
+    }
+    call = concat(call, String_from(")"))
+    native_c_hof_expression(call)
+}
+
+fn native_c_collect_funcref_typedefs(mir_module: MirModule) -> String {
+    let table = module_spine::MirModule_type_table(mir_module)
+    let registry = module_spine::MirModule_signature_registry(mir_module)
+    let heap_enum_flags = enum_abi::native_c_heap_enum_type_flags(mir_module)
+    let function_count = module_functions::MirModule_function_count(mir_module)
+    let emitted_names = Vec_new_String()
+    let mut out = String_new()
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = module_functions::MirModule_function_at(mir_module, function_index)
+        let name = function_identity::MirFunction_name(function)
+        let resolved = signature_registry::signature_registry_lookup_by_mangled(registry, name)
+        if function_id::function_id_is_valid(resolved) {
+            let signature = signature_registry::signature_registry_lookup_by_id(registry, resolved)
+            let typedef_name = abi::native_c_funcref_typedef_name(table, signature)
+            if len(typedef_name) > 0 {
+                let mut already = false
+                let mut scan = 0
+                while scan < len(emitted_names) {
+                    if eq(get_unchecked(emitted_names, scan), clone(typedef_name)) {
+                        already = true
+                    }
+                    scan = scan + 1
+                }
+                if !already {
+                    push(emitted_names, clone(typedef_name))
+                    let decl = abi::native_c_funcref_typedef_decl(table, signature, heap_enum_flags)
+                    if len(decl) > 0 {
+                        out = concat(out, decl)
+                    }
+                }
+            }
+        }
+        function_index = function_index + 1
+    }
+    out
+}

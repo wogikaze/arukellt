@@ -58,8 +58,8 @@ Lazy generic `Seq<T>` pipelines are deferred to a future release.
 |------|-----------|-----------|----------------|---------|
 | `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | ✅ functional | Apply f to every element of v and collect the results. |
 | `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | ✅ functional | Keep only elements of v for which f returns true. |
-| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return the first n elements of v. |
-| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | Return all elements of v after skipping the first n. |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | - |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | ✅ functional | - |
 | `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `stable` | ✅ functional | Reduce v to a single value using f, starting from init. |
 | `binary_search` | `(Vec<i32>, i32) -> i32` | `stable` | ✅ functional | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `stable` | ✅ functional | - |

@@ -6,12 +6,13 @@ use mir::lower::core_closure_emit_capture
 use mir::lower::core_closure_emit_params
 use mir::lower::core_closure_emit_return
 use mir::lower::closure_return_type
+use mir::source_location_record
 
 fn core_emit_closure_fn(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, synth: String, clos: CoreHirExpr, caps: Vec<String>) -> MirFunction {
     let saved_frame = ctx_api_local_frame::LowerCtxLocalFrame_capture(ctx)
     let cap_vts = core_closure_emit_capture::core_closure_capture_vts(ctx, caps)
     let cap_types = core_closure_emit_capture::core_closure_capture_types(ctx, caps)
-    let mf = function_factory::MirFunction_new(clone(synth))
+    let mf = function_factory::MirFunction_new(clone(synth), source_location_record::SourceLocation_unmapped())
     let _entry = ctx_api_local_frame::ctx_begin_function_frame(ctx, mf)
     core_closure_emit_params::core_emit_closure_params(ctx, exprs, clos)
     core_closure_emit_capture::core_emit_closure_captures(ctx, caps, cap_vts, cap_types)

@@ -22,6 +22,8 @@ fn try_emit_i31_box_call(w: WasmWriter, callee: String, inst: MirInst, ctx: Self
         writer_core::emit_leb128_u(w, s_val)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, s_val)
+        // Memory64 widens i32 locals to i64; ref.i31 requires i32.
+        writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
         writer_gc::emit_gc_ref_i31(w)
         writer_gc::emit_gc_i31_get_s(w)
     }

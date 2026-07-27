@@ -1,0 +1,18 @@
+// Reachability queue-BFS (#823): export root CALL callees survive; dead fn pruned.
+// REF_FUNC edges are covered by scripts/tests/test_mir_reachability_bfs.py
+// (funcref emit still fails wasm-tools validate on this target — see tail_call_ref).
+
+pub fn exported_entry(x: i32) -> i32 {
+    via_call(x)
+}
+
+fn via_call(x: i32) -> i32 {
+    x + 1
+}
+
+fn truly_dead() -> i32 {
+    99
+}
+
+fn main() {
+}

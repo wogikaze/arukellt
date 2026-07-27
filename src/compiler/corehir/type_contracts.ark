@@ -13,6 +13,7 @@ struct TypeCheckResult {
 
 struct TypedFn {
     name: String,
+    param_types: Vec<TypeInfo>,
     return_type: TypeInfo,
 }
 

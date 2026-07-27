@@ -1,0 +1,208 @@
+# Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20)
+
+ステータス: 調査メモ（決定記録ではない）  
+関連:
+
+- [#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md) — Memory64 / fixpoint green（done; wasm32-gc pin は #834）
+- [#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md) — quadratic MIR P0 + reachability BFS（コード landed）
+- [#829](../../issues/done/829-selfhost-latency-phase-reprofile-hotspot.md) — phase re-profile + dominant hotspot 除去（**done**, emit.locals 半減）
+- 候補: [#824](../../issues/open/824-early-body-lowering-worklist.md)、[#825](../../issues/open/825-ast-cache-format-repair.md)、[#826](../../issues/open/826-symbol-path-intern-clone-audit.md)、[#827](../../issues/open/827-phase-arena-after-heap-model.md)
+- Phase arena 所有決定: [`selfhost-phase-arena-ownership.md`](selfhost-phase-arena-ownership.md)（旧 P2.3 参照の正本）
+
+## 方針（2026-07-20）
+
+次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。  
+ただし順序は次で固定する。
+
+```text
+mem64 / fixpoint green
+  → KEEP_CLOCK 付き s2 が validate でき --time が実時間を出す
+  → 同一 artifact・同一 target で phase receipt
+  → 最大フェーズを1つ潰す
+```
+
+次マイルストーンの名称は **「#824 early body lowering」ではない**。  
+正しくは **Selfhost latency phase re-profile and dominant-hotspot removal**（#829）。  
+#824 は計測結果から選ばれる候補の一つに留める。
+
+### Acceptance を分ける
+
+| 段階 | 目標 | 備考 |
+|---|---|---|
+| Cold full selfhost（stage-3） | まず **5 分未満**、次に **2 分未満** | 11.8 万行の全コンパイル |
+| Incremental self-build（通常の編集反復） | 最終的に **5〜10 秒** | module cache 等が別段階 |
+| ユーザープログラム | すでに sub-second（hello ≈ 0.03 s） | 速度問題の主戦場ではない |
+
+**5〜10 秒を cold full selfhost の直近 acceptance にしてはいけない。**
+
+## #823 以降の事実（文書のずれ修正）
+
+次は **すでに実装済み**（#823 Progress）。二乗コピー仮説だけで現在の 23.5 分を説明してはならない。
+
+| 項目 | 状態 |
+|---|---|
+| `mir_function_set_local_at` / `set_param_at` in-place | landed |
+| `MirModule_set_function_at` in-place | landed |
+| 2 回目の full typed sync 削除（propagate 時に type_name sync） | landed |
+| reachability queue BFS + `FunctionId.raw → Mir index` | landed |
+| lower / pipeline の `--time` ラベル配線 | landed（stub s2 は 0ms、KEEP_CLOCK s2 は実時間） |
+| `ARUKELLT_OVERLAY_KEEP_CLOCK=1` 生成物の validate | **解決**（2026-07-21: wasm32/Memory64 とも validate OK、`--time` smoke PASS） |
+
+したがって研究メモの旧「P0 をやれ」節は履歴である。  
+現在の作業は **「P0 後も残るボトルネックを再測定し、最大フェーズを潰す」**。
+
+### #824 の期待値（上限の目安）
+
+Post-MIR prune（#823 A/B、同一 stubbed s2-runtime）:
+
+| 量 | before → after | 削減 |
+|---|---:|---:|
+| functions | 8748 → 7991 | ≈ **8.7%** |
+| blocks | 17496 → 15982 | ≈ **8.7%** |
+| instructions | 373771 → 358123 | ≈ **4.2%** |
+
+現行パイプラインは **prune 後** に sync・propagate・wasm emit を行う。  
+#824（early body lowering）が直接省けるのは、主に削除される ≈4% 命令を生成するまでの `decl_emit` と、その一時 allocation である。
+
+**`decl_emit` が壁時間の圧倒的多数と判明しない限り、23 分を数分へ落とす主役にはならない。**
+
+## 規模（2026-07-20）
+
+| 対象 | `.ark` | 行数 | バイト | 関数 | `use` | `clone(` |
+|---|---:|---:|---:|---:|---:|---:|
+| `src/compiler` | 1,923 | 118,043 | 4,593,559 | 10,814 | 8,505 | 7,264 |
+| `std` | 83 | 19,007 | 587,886 | 1,545 | 36 | 62 |
+
+（2026-07-17 時点の表は履歴。上表を現行とする。）
+
+## Live profile (2026-07-20, WSL2, 12 cores / 23 GiB)
+
+Host wall via `/usr/bin/time -v`。Host:
+`.build/selfhost/arukellt-s2-runtime.cwasm`（AOT）。Overlay warm。
+
+`--time` は stubbed `arukellt-s2-runtime` では全 phase `0ms`。  
+KEEP_CLOCK の `arukellt-s2-clock.wasm` では実時間（2026-07-21 smoke: hello total ≈ 115–202ms）。
+
+| Probe | Wall | Peak RSS | Notes |
+|---|---:|---:|---|
+| `compile docs/examples/hello.ark` | **0.03 s** | 28 MiB | ユーザー規模は sub-second |
+| `check src/compiler/main.ark` | **9.14 s** | 341 MiB | frontend; stderr に ~194k `warning[` |
+| Stage-3（fixpoint、s2 fingerprint hit） | **~23.5 min** | **~2.4 GiB**（終盤も増加） | etime 23:27; その後 s3 validate 失敗 |
+
+Stage-3 終盤 6 分で RSS ≈ 1.37 → 2.40 GiB（線形増加）。時間の大半は frontend ではなく lower/backend + bump 蓄積側。
+
+| Command | Pipeline | Observed |
+|---|---|---|
+| `selfhost build-compiler` | pinned → s2（`wasm32`） | 歴史的 **43–78 s** |
+| `fixpoint --build`（s2 hit） | s2-runtime → s3（`wasm32-gc`） | **~23.5 min**（本計測） |
+
+### Phase receipt（2026-07-22, KEEP_CLOCK + flat-src）
+
+同一 workload: `compile src/compiler/main.ark --target wasm32-gc --wasi-version wasi-p2`。
+
+| | propagate | emit | total | wall |
+|---|---:|---:|---:|---:|
+| Before `CalleePropCache` | **1418.9 s** | 709.2 s | 2150.1 s | ≈35.8 min |
+| After propagate cache | **1.8 s** | 660.9 s | 684.9 s | ≈11.5 min |
+| After emit local-GC cache | **2.0 s** | **103.9 s** | **140.1 s** | ≈2.4 min |
+| After struct NameIndex | **1.6 s** | **95.8 s** | **123.4 s** | ≈2.1 min |
+| After type_name→ref cache | **1.7 s** | **17.0 s** | **41.7 s** | ≈0.7 min |
+
+内訳（`post-fix-typename-cache`）: `emit.code.locals` **11.8 s** / `emit.code.insts` **1.0 s** /
+`lower.reachability` **13.0 s**。
+
+支配フェーズは **emit → lower.reachability / decl_emit** に分散した。
+
+- `CalleePropCache`: CALL ごとの O(関数数) 線形探索と callee 全身スキャンを、
+  モジュール先頭の NameIndex + 事前計算 return metadata に置換。
+- Emit local-GC cache (`code_ref_locals_fn_cache.ark`): 関数先頭で
+  `GC_STRUCT_NEW` dest を一度走査し、`infer_local_storage_gc_type` を
+  local ごとにメモ化する（verify-prop で locals ≈ 412 s → ≈ 89 s）。
+- Struct/enum-variant `NameIndex`: `struct_type_by_name` / `has_struct_type` の
+  O(N) 線形探索を O(1) に（insts ≈ 1.3 s）。
+- type_name→wasm-ref `NameIndex` cache: `wasm_ref_type_idx_for_type_name` が
+  TypeTable を kind×線形探索していたのをメモ化（locals ≈ 86 s → ≈ 12 s）。
+
+~~残課題: `block_scans≈1.4M`（producer 一括化）~~ → **landed**（CSR write index, 2026-07-24）。
+残課題: `lower.reachability≈13 s`（次の支配相候補）。
+
+### Phase receipt（2026-07-24, #829 reprofile）
+
+KEEP_CLOCK + flat-src、同一 host `arukellt-s2-clock.wasm`。
+
+| | emit.code.locals | lower.reachability | total | wall |
+|---|---:|---:|---:|---:|
+| Baseline（計測 1） | **13.6 s** | 11.2 s | 44.3 s | 46.4 s |
+| After def-site / has_ref caches | **10.5 s** | 11.5 s | 39.1 s | 40.4 s |
+| After CSR producer write index | **2.8 s** | 13.2 s | 31.3 s | 33.0 s |
+
+支配フェーズは当初 **`emit.code.locals`**。CSR producer index
+（`local_producer_index_{offsets,entries}`）で各 local の write sites を
+O(instructions) 一括構築し、`infer_gc_type_from_block_scan` を O(writes) 化。
+`emit.code.locals` **13.6 s → 2.8 s（−79.5%, 半減達成 / 目標 ≤6.8 s）**。
+呼び出しカウンタ `block_scans` は ≈1.4M のまま（回数計測）だが、1 回あたりの
+走査コストが命令列全走査から write list 走査へ変わった。
+
+Receipt: `.build/selfhost/selfhost-latency-receipt.json`
+
+次の支配相: `lower.reachability`（≈13 s）。`<2 min` cold は既に達成（≈33 s）。
+
+### 次に取るべき receipt（同一 artifact・同一 target）
+
+壁時間:
+
+`frontend / lower.decl_emit / reachability / sync / propagate / mir_opt / mir_verify / wasm emit`
+
+可能なら **各境界で RSS** も取る（最終 RSS だけでは「遅いフェーズ」と「メモリを積んだフェーズ」が一致しない）。
+
+結果ごとの次手:
+
+| 最大フェーズ | 次手 |
+|---|---|
+| `decl_emit` | #824 |
+| `propagate` | ~~callee 線形探索~~（`CalleePropCache` landed）; 残れば stack-producer / 反復 |
+| `emit.code.locals` | ~~struct_new / type_name / CSR producer index~~（landed, ≈2.8 s） |
+| `emit.code.insts` | ~~struct NameIndex~~（landed, ≈1 s） |
+| `lower.reachability` | BFS 自体の再プロファイル（**現行の支配相の一角** ≈13 s） |
+| 複数フェーズで RSS だけ増 | #826 clone/intern |
+| `mir_opt` / `mir_verify` | それぞれ別 issue |
+
+## 歴史的原因メモ（#823 以前の仮説）
+
+以下は 2026-07-17 調査時点の構造説明。P0/P1 適用後も壁が残ることは 2026-07-20 で確認済み。  
+**未修正のまま残っている記述を「現在の主因」と読んではいけない。**
+
+1. **（旧）MIR sync の二乗コピー** — in-place 化で緩和済み。残コストは再計測が必要。
+2. **（旧）reachability 全体固定点** — queue BFS 化済み（≈ −10 s / 134 s）。
+3. **type propagation の callee 線形探索** — `CalleePropCache` で緩和済み（2026-07-22）。反復走査自体は残るが stage-3 では秒級。
+4. **bump allocator** — 未回収。Memory64 は OOM 回避のみ。
+5. **全体 MIR 化が prune より先** — #824 候補。ただし削減幅は上表のとおり限定的。
+6. **incremental/cache 無効** — cold と編集反復は別マイルストーン。
+7. **workflow 倍率** — `fixpoint --build` = s2+s3。並列 agent は flat-src 競合と壁時間悪化。
+
+### 旧 frontend / Wasmtime 固定費（2026-07-17、pinned）
+
+| 条件 | wall | 最大 RSS |
+|---|---:|---:|
+| Wasmtime cold `--help` | ≈ 1.59 s | ≈ 414 MiB |
+| AOT `.cwasm` | ≈ 0.06 s | — |
+| flat overlay cold / hit | ≈ 11.85 s / ≈ 1.26 s | ≈ 300 MiB |
+| pinned `check` | ≈ 3.92 s | ≈ 320 MiB |
+
+AOT/overlay は秒〜十数秒級。十〜二十分級 stage-3 の主因ではない。
+
+## マイルストーン（#829）
+
+1. mem64 / `selfhost fixpoint --build` を green にする（#730 / #813）— **完了（2026-07-24）**
+2. `ARUKELLT_OVERLAY_KEEP_CLOCK=1` で生成した s2 が `wasm-tools validate` に通り、`--time` が実時間を出す — **完了（2026-07-21）**
+3. 23.5 分級 workload の **phase receipt** を確定する — **完了（2026-07-24）**
+4. 最大フェーズ半減（`emit.code.locals` 13.6 s → 2.8 s）— **完了（2026-07-24）**
+5. stage-3 cold **5 分未満** / **2 分未満** — **完了**（≈33 s）
+6. （別段階）module cache 等で通常の編集反復を数秒へ — 未着手
+7. （follow-up）`lower.reachability` ≈13 s の再プロファイル
+
+## 計測ギャップ
+
+1. Overlay stub 経路の `--time` は意図的に 0ms（KEEP_CLOCK 経路で実時間を取る）
+2. `MIR_LOWER_TRACE=1` は関数ごと出力で selfhost には不適
+3. 並列 `fixpoint --build` は receipt を汚染する（同時コンパイル数を記録すること）

@@ -8,6 +8,8 @@ use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
@@ -35,7 +37,7 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     // bcount = vec.len
     helpers_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
-    writer_gc::emit_gc_struct_get(w, vec_type, 1)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_bcount)
 
     // Allocate linear buffer of bcount bytes
@@ -61,11 +63,10 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     helpers_core::emit_local_set(w, s_res)
     string_gc_helpers::emit_gc_else(w)
     emit_fs_write_bytes_iov(w, s_bbuf, s_bcount)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
-    helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_IOV())
-    helpers_numeric_i32::emit_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_NWRITTEN())
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_IOV())
+    helpers_io_const::emit_i32_const(w, 1)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_NWRITTEN())
     intrinsic_fs_write_result::emit_fs_write_success_writev_and_close(w)
     intrinsic_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
     helpers_core::emit_local_set(w, s_res)
@@ -89,7 +90,8 @@ fn emit_fs_write_bytes_copy_loop(w: WasmWriter, s_bi: i32, s_bcount: i32, s_bbuf
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
     helpers_core::emit_local_get(w, s_bi)
-    writer_gc::emit_gc_array_get(w, arr_type)
+    // array.get yields i32; Memory64 store8 narrows a widened i64 value (#730).
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
     helpers_memory::emit_i32_store8_default(w)
     helpers_core::emit_local_get(w, s_bi)
     helpers_numeric_i32::emit_i32_const(w, 1)
@@ -102,18 +104,17 @@ fn emit_fs_write_bytes_copy_loop(w: WasmWriter, s_bi: i32, s_bcount: i32, s_bbuf
 
 fn helpers_io_store_path_and_open(w: WasmWriter, s_path: i32) {
     helpers_io::emit_store_string_local_to_scratch(w, s_path, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
-    helpers_numeric_i32::emit_i32_const(w, 3)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHPTR())
-    helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_PATHLEN())
-    helpers_memory::emit_i32_load_default(w)
-    helpers_numeric_i32::emit_i32_const(w, 9)
-    helpers_numeric_i64_const::emit_i64_const(w, 64)
-    helpers_numeric_i64_const::emit_i64_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_io_const::emit_i32_const(w, 3)
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHPTR())
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHLEN())
+    helpers_io_const::emit_i32_const(w, 9)
+    helpers_numeric_i64_const::emit_i64_const(w, 64i64)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_io_const::emit_i32_const(w, 0)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_FD())
     helpers_core::emit_call(w, 3)
+    helpers_numeric_i32::emit_widen_i32_result(w)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_ne(w)
 }
