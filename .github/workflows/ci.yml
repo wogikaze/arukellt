@@ -91,7 +91,9 @@ jobs:
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build host-linker
-        run: cargo build --release --quiet
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
       - name: Build current selfhost compiler
@@ -132,7 +134,9 @@ jobs:
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
       - name: Build host-linker
-        run: cargo build --release --quiet
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
       - name: Build current selfhost compiler
