@@ -2462,7 +2462,9 @@ def _widen_compiler_wasm_to_memory64(
     # Memory64 initial heap; reserve more pages so the bump allocator does not
     # depend on the i32-shaped grow helper past the wasm32 ceiling.
     initial_pages = os.environ.get("ARUKELLT_WASM_INITIAL_PAGES", "131072").strip()
-    patch_cmd = [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"]
+    # Use --convert-only to avoid walrus load/emit overhead; the selfhost s2
+    # wasm is already emitted with memory.grow sites by the stage-2 compiler.
+    patch_cmd = [str(patcher_bin), str(compiler_wasm), str(out), "--convert-only"]
     if initial_pages and initial_pages != "0":
         patch_cmd.append(f"--initial-pages={initial_pages}")
     patch = subprocess.run(
