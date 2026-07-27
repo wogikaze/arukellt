@@ -99,10 +99,8 @@ fn compute_return_variant_slot(f: MirFunction) -> i32 {
                     if slot >= 0 {
                         if first_slot < 0 {
                             first_slot = slot
-                        } else {
-                            if slot != first_slot {
-                                return 0 - 1
-                            }
+                        } else if slot != first_slot {
+                            return 0 - 1
                         }
                     }
                 }
