@@ -7154,13 +7154,28 @@ def main() -> int:
     # for nested parsers, but guard in case of future restructuring).
     dry_run: bool = getattr(args, "dry_run", False)
 
-    if args.domain == "fmt":
-        return run_fmt(
-            _repo_root(), args.paths, args.check, dry_run, getattr(args, "json", False),
-        )
-    if args.domain == "lint":
+    if args.domain in ("fmt", "lint"):
+        root = _repo_root()
+        # Large generated sources (e.g. core_op_registry_generated.ark) need the
+        # heap-patched s2 runtime (4 GiB). The wrapper script falls back to the
+        # unpatched s3/s2 wasm (512 MiB) otherwise, which can OOM under parallel
+        # fmt/lint batches. Build the patched runtime when a local s2 exists.
+        if not dry_run and args.domain == "fmt":
+            try:
+                from lib.build_paths import selfhost_dir
+                s2 = selfhost_dir(root) / "arukellt-s2.wasm"
+            except Exception:
+                s2 = root / ".build" / "selfhost" / "arukellt-s2.wasm"
+            if s2.is_file():
+                runtime = _ensure_runtime_compiler_wasm(root, s2)
+                if runtime is not None and runtime.is_file():
+                    os.environ["ARUKELLT_SELFHOST_WASM"] = str(runtime)
+        if args.domain == "fmt":
+            return run_fmt(
+                root, args.paths, args.check, dry_run, getattr(args, "json", False),
+            )
         return run_lint_command(
-            _repo_root(), args.paths, args.fix, dry_run, getattr(args, "json", False),
+            root, args.paths, args.fix, dry_run, getattr(args, "json", False),
         )
     if args.domain == "quality":
         return run_quality(
