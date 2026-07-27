@@ -36,6 +36,8 @@ jobs:
         run: python3 scripts/manager.py selfhost fixpoint --build
 
       - name: Check canonical formatting
+        env:
+          ARUKELLT_WASM_INITIAL_PAGES: "65536"
         run: python3 scripts/manager.py fmt --check
 
   quality-lint:
@@ -57,6 +59,8 @@ jobs:
         run: python3 scripts/manager.py selfhost fixpoint --build
 
       - name: Check canonical lint contract
+        env:
+          ARUKELLT_WASM_INITIAL_PAGES: "65536"
         run: python3 scripts/manager.py lint
 
   verify-quick:
@@ -96,6 +100,7 @@ jobs:
       - name: Run quick verification
         env:
           ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          ARUKELLT_WASM_INITIAL_PAGES: "65536"
         run: python3 scripts/manager.py verify quick
 
   verification:
@@ -141,6 +146,7 @@ jobs:
       - name: Run repository verification
         env:
           ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          ARUKELLT_WASM_INITIAL_PAGES: "65536"
         run: python3 scripts/manager.py verify
 
   selfhost:
