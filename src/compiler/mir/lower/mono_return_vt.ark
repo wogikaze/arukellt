@@ -2,6 +2,8 @@
 // When a generic function returning T is monomorphized, the fn_index
 // registers the variant with the base return type (i32 for T). This
 // module looks up the concrete return type from the MonoInstance.
+// Call-time mangled-name reverse lookup is forbidden (#843); spine /
+// MonoInstanceTable is the source of truth.
 
 use mir::lower::mono_return_vt_table
 use mir::lower::ctx_current_storage
@@ -17,19 +19,10 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let table_vt = mono_return_vt_table::mono_return_vt_from_instance_table(ctx, mono_id)
     if table_vt >= 0 {
-        // Prefer concrete fn_index / mangled returns over spine placeholders
+        // Prefer concrete spine / fn_index names over spine VT placeholders
         // left from generic T (add_any__f64 must not keep an i64 spine VT).
         let base_rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(name))
-        let mut rtn = mono_return_type_name(ctx, clone(name), base_rtn)
-        if len(rtn) == 0 {
-            let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
-                clone(name),
-                "T"
-            )
-            if is_concrete_mono_return_type_name(clone(from_mangled)) {
-                rtn = from_mangled
-            }
-        }
+        let rtn = mono_return_type_name(ctx, clone(name), base_rtn)
         if len(rtn) > 0 &&
         !fn_index_method_return_type::method_return_type_name_is_type_var(clone(rtn)) {
             let resolved_vt = fn_index_method_return_type::method_return_vt_from_type_name(rtn)
@@ -64,35 +57,20 @@ fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
 }
 
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
-    // Nominal / type-var returns: prefer fn_index or mangled suffix over the
-    // mono spine. Generic T was often interned as a scalar placeholder (i32)
-    // when TypedFn TypeInfo could not be read safely, which then stole
-    // check_eq__Point → Point resolution and rewrote eq(p, ...) to i32::eq.
-    if !is_container_mono_return_type_name(clone(fallback_name)) {
-        if len(fallback_name) > 0 &&
-        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) &&
-        !starts_with(clone(fallback_name), "?") {
-            return fallback_name
-        }
-        // Only mangled-substitute when fn_index says the return is a type var.
-        // Empty names are also used for concrete i32/bool and must not become
-        // Vec_* / String from the mono suffix.
-        if fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) {
-            let from_mangled = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
-                clone(name),
-                clone(fallback_name)
-            )
-            if len(from_mangled) > 0 {
-                return from_mangled
-            }
-        }
-    }
+    // Spine first (#843). Build-time registration already concretes mono
+    // returns via MonoInstanceTable; call-time must not parse mangled suffixes.
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
     let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
     if is_concrete_mono_return_type_name(clone(spine_name)) {
         return spine_name
     }
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
+        return fallback_name
+    }
+    if len(fallback_name) > 0 &&
+    !fn_index_method_return_type::method_return_type_name_is_type_var(clone(fallback_name)) &&
+    !starts_with(clone(fallback_name), "?") &&
+    !is_container_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
     }
     fallback_name
@@ -141,6 +119,13 @@ fn is_concrete_mono_return_type_name(type_name: String) -> bool {
     eq(clone(type_name), "String") ||
     eq(clone(type_name), "string") {
         return true
+    }
+    // Bare user struct names from MonoInstance TypeTable entries (Point).
+    if !fn_index_method_return_type::method_return_type_name_is_type_var(clone(type_name)) {
+        let first = char_at(type_name, 0)
+        if first >= 65 && first <= 90 {
+            return true
+        }
     }
     false
 }

@@ -65,10 +65,10 @@ fn sig_reg_register_mono_fn(
     let returns = Vec_new_MirValueType()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
     let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-    // Substitute mangled keys for type-var returns. Avoid TypedFn.TypeInfo tag
-    // reads (flat-overlay traps). Empty typed names are also used for bool/i32,
-    // so only float mangled keys are applied on the empty-name path
-    // (add_any__f64); Point/String recovery stays on fn_index_mono.
+    // Substitute mangled keys for type-var / empty returns into MonoInstance
+    // so call-time need not reverse-parse mangled names (#843). Empty typed
+    // names are also used for bool/i32; apply only when the mangled key is a
+    // concrete non-type-var return (float, String, or nominal struct).
     let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
         clone(mangled),
         clone(return_type_name)
@@ -76,12 +76,8 @@ fn sig_reg_register_mono_fn(
     let apply_concrete = fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) ||
     (
         len(return_type_name) == 0 &&
-        (
-            eq(clone(concrete), "f64") ||
-            eq(clone(concrete), "f32") ||
-            eq(clone(concrete), "F64") ||
-            eq(clone(concrete), "F32")
-        )
+        len(concrete) > 0 &&
+        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(concrete))
     )
     if apply_concrete && len(concrete) > 0 {
         return_type_name = concrete
