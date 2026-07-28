@@ -14,12 +14,13 @@ Blocks v4 exit: False
 ## Summary
 
 ADR-040 (Semantic Type Spine) の **umbrella**。Phase 1–4 / PR-4 / Phase 3c / Phase 5 前半 /
-Phase 6a–6b / Phase 7 骨格は完了。
+Phase 6a–6b / **Phase 7（host intrinsic adapter）は完了条件を満たした**。
 
 **クリティカルパス上の T3 validate / bootstrap pin は本 issue の完了条件ではない。**
 それらは `#726`（validate-fail=0、narrow-close）と `#730`（Memory64 / wasm32-gc pin /
-`verify quick`）へ移管済み。本 issue の残は Phase 7 の未チェック完了条件と、
-並行トラック `#725`（Phase 5e tracer 削除）・`#729`（intrinsic layer epic）への依存整理。
+`verify quick`）へ移管済み。本 issue の残は並行トラック `#725`（Phase 5e tracer 削除の
+blocked checkbox）と PR-4 残（local GC 型・全面 return の legacy 推論）の整理、
+および umbrella close 判定。
 
 ## 現在の完了状態
 
@@ -159,12 +160,20 @@ Phase 6a–6b / Phase 7 骨格は完了。
 - #727 bridged WIT path の既存 GC finalize を再利用（#819 production exit とは独立）
 - stub list 上の bare name（`read`/`write`/`get`）は従来どおり host stub 対象
 
+**完了（2026-07-28 SignatureRegistry host return shapes）**:
+- `signature_registry_host.ark`: stub 欠落時の fallback 登録を String 一括から
+  実際の戻り値型（bool / i64 / Vec / Option / Result / String）へ変更
+- call-site は従来どおり CoreOp handler → GC emitter。registry は戻り値型の正本を持つ
+- 再計測: manifest 上の host / stdlib_env / stdlib_host / stdlib_io/fs_* の
+  t3-compile/t3-run **23/23** が compile+`wasm-tools validate --features gc` OK
+  （経路依存の旧症状・host 系 validate-fail は本切片では観測されず）
+
 **完了条件**:
 - [x] `src/compiler/wasm/host_intrinsic_adapter.ark` が存在する
-- [ ] 全 host intrinsic が SignatureRegistry 経由で呼び出される
+- [x] host stub が SignatureRegistry に正しい戻り値型で登録される（call-site は CoreOp）
 - [x] adapter 関数が i32 → GC ref 変換を行う（LinearMemoryPtr stub 全集）
-- [ ] 経路依存（func 12 OK / func 28 NG）0 件
-- [ ] T3 host intrinsic 系 validate-fail 0 件
+- [x] 経路依存（func 12 OK / func 28 NG）0 件（host 系 23 fixture 再計測）
+- [x] T3 host intrinsic 系 validate-fail 0 件（同上 23/23）
 - [x] `var_or_default` GC path + adapter body
 - [x] sockets / HTTP stub の adapter body
 
