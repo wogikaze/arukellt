@@ -28,6 +28,14 @@ fn infer_vec_ctor_turbofish_call(env: TypeEnv, node: AstNode, callee: AstNode) -
     if contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_UNKNOWN() {
         return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
     }
+    // fn / tuple elems need let-annotation + store-target layout; mangled
+    // mono suffixes are not enough for funcref Ident lowering (#845).
+    if contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_FN() ||
+    contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_TUPLE() {
+        let mut vec_ty = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
+        return vec_ty
+    }
     let resolved = Vec::new<TypeInfo>()
     push(resolved, elem_ty)
     let fn_name = ast_access::node_text(callee)

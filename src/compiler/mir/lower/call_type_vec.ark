@@ -47,16 +47,13 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         }
     }
     // Associated Vec::new / Vec::with_capacity without turbofish mono yet.
-    // Empty type_name + VT_GC_REF was inferred as string bytes and failed
-    // validate; prefer vec:i32 until annotation / store fills a better type.
+    // Leave type_name empty so let-annotations / store-target emit can fill
+    // fnref / String / struct layouts. Bare String/i32 without annotation is
+    // covered by call_vec_ctor mono recording (#845).
     if eq(clone(effective), String_from("Vec::new")) ||
     eq(clone(effective), String_from("Vec__new")) ||
     eq(clone(effective), String_from("Vec::with_capacity")) ||
     eq(clone(effective), String_from("Vec__with_capacity")) {
-        let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
-        if len(existing) == 0 {
-            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
-        }
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
