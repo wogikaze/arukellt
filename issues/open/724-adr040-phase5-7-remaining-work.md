@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-15
-Updated: 2026-07-25
+Updated: 2026-07-28
 ID: 724
 Track: compiler-internal
 Depends on: —
@@ -138,12 +138,22 @@ Phase 6a–6b / Phase 7 骨格は完了。
 - LinearMemoryPtr host intrinsic は adapter 未実装のため unreachable stub 維持
 - T3: 386 pass / 33 validate-fail / 1 compile-fail（回帰なし、fs_read_error/fs_read_write の func 番号変化 = Scalar intrinsic の body 出力成功）
 
+**完了（2026-07-28 Phase 7 env/stdio adapter bodies）**:
+- `host_intrinsic_gc_body.ark`: LinearMemoryPtr stub 向け GC body 合成
+  - `args` → `emit_env_args_gc`
+  - `arg_at` → GC `None` path（既存 call-site と同じ）
+  - `var` / `get_var` → `emit_env_var` GC path
+  - `read_stdin` → `emit_gc_wasi_read_stdin_to_string`
+- `code_body.ark`: adapter body を unreachable より先に試行
+- 残 unreachable: `var_or_default`（GC call-site も未配線）、sockets/HTTP 系（#819 / #727）
+
 **完了条件**:
 - [x] `src/compiler/wasm/host_intrinsic_adapter.ark` が存在する
 - [ ] 全 host intrinsic が SignatureRegistry 経由で呼び出される
-- [ ] adapter 関数が i32 → GC ref 変換を行う
+- [x] adapter 関数が i32 → GC ref 変換を行う（env/stdio の LinearMemoryPtr 子集）
 - [ ] 経路依存（func 12 OK / func 28 NG）0 件
 - [ ] T3 host intrinsic 系 validate-fail 0 件
+- [ ] `var_or_default` / sockets / HTTP stub の adapter body（#819 と連携）
 
 ## 実装順序
 

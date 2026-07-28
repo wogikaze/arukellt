@@ -1,0 +1,53 @@
+// ADR-040 Phase 7: synthesize GC bodies for LinearMemoryPtr host stubs.
+//
+// Deferred CoreOp-bound host helpers have empty MIR bodies. On wasm32-gc the
+// semantic return type is a GC ref, so emitting the linear-memory body (or an
+// empty body) fails validation. Call sites already lower through CoreOp GC
+// emitters; this module reuses those emitters as the stub function body so the
+// function index itself is also a valid GC entry point (HostIntrinsicSpec
+// adapter role).
+
+use mir::function_identity
+use mir::host_intrinsic_stub_names
+use mir::inst_call
+use wasm::host_intrinsic_adapter
+use wasm::intrinsic_env_args
+use wasm::intrinsic_env_args_gc
+use wasm::intrinsic_env_var
+use wasm::intrinsic_stdio_read_gc
+use wasm::intrinsics::helpers_core
+
+fn try_emit_host_intrinsic_gc_adapter_body(w: WasmWriter, f: MirFunction, ctx: SelfEmitCtx) -> bool {
+    let name = function_identity::MirFunction_name(f)
+    if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(name)) {
+        return false
+    }
+    if !host_intrinsic_adapter::host_intrinsic_needs_gc_adapter(clone(name)) {
+        return false
+    }
+    if try_emit_env_stdio_gc_adapter_body(w, clone(name), ctx) {
+        return true
+    }
+    false
+}
+
+fn try_emit_env_stdio_gc_adapter_body(w: WasmWriter, name: String, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(name), String_from("args")) {
+        return intrinsic_env_args_gc::emit_env_args_gc(w, ctx)
+    }
+    if eq(clone(name), String_from("arg_at")) {
+        // Param 0 is the index; GC path currently returns None (#807).
+        helpers_core::emit_local_get(w, 0)
+        return intrinsic_env_args::emit_env_arg_at_gc_none(w, ctx)
+    }
+    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+        helpers_core::emit_local_get(w, 0)
+        let inst = inst_call::MirInst_call(clone(name), 1, 0 - 1)
+        return intrinsic_env_var::emit_env_var(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("read_stdin")) {
+        intrinsic_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
+        return true
+    }
+    false
+}

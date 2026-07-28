@@ -6,6 +6,7 @@ use wasm::ctx_scratch
 use wasm::ctx_vec_locals
 use wasm::ctx_record
 use wasm::host_intrinsic_adapter
+use wasm::host_intrinsic_gc_body
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
@@ -32,6 +33,17 @@ fn emit_function_body(
     if is_generic_function(f) {
         // Unspecialized generic functions have concrete-type bodies that
         // cannot validate against the generic signature. Emit unreachable.
+        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(body, opcodes::OP_END())
+        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+        return body
+    }
+    if host_intrinsic_adapter::host_intrinsic_should_emit_gc_adapter_body(f, ctx) {
+        if host_intrinsic_gc_body::try_emit_host_intrinsic_gc_adapter_body(body, f, ctx) {
+            writer_core::emit_byte(body, opcodes::OP_END())
+            code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+            return body
+        }
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
         code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
