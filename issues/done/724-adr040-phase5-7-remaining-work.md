@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
 Updated: 2026-07-28
 ID: 724
 Track: compiler-internal
 Depends on: —
-Related: ADR-040, #707, #725, #729, #726, #730
+Related: ADR-040, #707, #725, #729, #726, #730, #842, #843
 Orchestration class: design-then-implement
 Blocks v4 exit: False
 ---
@@ -13,14 +13,12 @@ Blocks v4 exit: False
 
 ## Summary
 
-ADR-040 (Semantic Type Spine) の **umbrella**。Phase 1–4 / PR-4 / Phase 3c / Phase 5 前半 /
-Phase 6a–6b / **Phase 7（host intrinsic adapter）は完了条件を満たした**。
+ADR-040 (Semantic Type Spine) の **umbrella**。Phase 1–4 / Phase 3c / Phase 5
+（トレーサ削除まで）/ Phase 6a–6b / Phase 7 は完了。
 
 **クリティカルパス上の T3 validate / bootstrap pin は本 issue の完了条件ではない。**
-それらは `#726`（validate-fail=0、narrow-close）と `#730`（Memory64 / wasm32-gc pin /
-`verify quick`）へ移管済み。`#725` は done。本 issue の残は PR-4 残（local GC 型・全面 return の
-legacy 推論）の整理と umbrella close 判定。
-builtin callee 構造化の続きは `#842`。
+それらは `#726` / `#730` へ移管済み。`#725` は done。
+PR-4 / Phase 5 の legacy 推論残は `#843`、builtin callee 名 matching は `#842`。
 
 ## 現在の完了状態
 
@@ -30,12 +28,12 @@ builtin callee 構造化の続きは `#842`。
 - Phase 2: MonoInstanceTable (subst マップ保存)
 - Phase 4: GcLayoutTable (MirValueType → WasmValueType lowering) — `gc_layout_table.ark`
 
-### PR-4: 部分完了
+### PR-4: 部分完了 → 残りは #843
 
 - PR-4-wide-audit: Lane A-C,E 完了 (T3 reg-vt-audit mismatched=0)
 - PR-4-switch: Lane D 完了 (void-return 判定に registry 使用)
 - PR-4b-trait-generic: trait/generic/mono CALL の registry 切替完了
-- **未完了**: local GC 型・全面 return 決定は legacy 推論経路が残存
+- **残**: local GC 型・全面 return の legacy 推論除去 → **#843**
 
 ### Phase 3: 完了（Phase 3c 2026-07-07）
 
@@ -106,8 +104,8 @@ builtin callee 構造化の続きは `#842`。
 **完了条件**:
 - [x] `find_stack_value_source` の呼び出し回数 = 0 → **#725 done**（stack_scan へ移行）
 - [x] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0 → **#725 done**（関数削除）
-- [ ] `mono_return_type_name` の名前逆引き回数 = 0
-- [ ] 旧推論経路が呼ばれないことを確認
+- [x] `mono_return_type_name` の名前逆引き回数 = 0 → **#843 へ移管**
+- [x] 旧推論経路が呼ばれないことを確認 → **#843 へ移管**（`infer_ref_local_gc_type` 残存）
 - [x] MIR verifier が W005/W006/W007 を fail にする（pipeline hard-fail）
 - [x] CALL/local/result の型整合が MIR verifier で検査される（INV-8, INV-9）
 
@@ -185,12 +183,23 @@ Phase 3b → 3c → 5 → 6b ∥ 7
 - Phase 6a は完了済み（作業不要）
 - Phase 6b と Phase 7 は Phase 5 完了後に並列可能
 
+## Close receipt (2026-07-28)
+
+- **判定**: APPROVE（narrow-close / issue-close-review）
+- **理由**: Phase 3b–7 の本 umbrella 完了条件は満たした。未達だった
+  Phase 5 / PR-4 の legacy 推論 2 チェックは隠し完了にせず `#843` へ移管。
+- **対象 branch commits**: `wave/adr040-phase7`（Phase 7 adapters、
+  SignatureRegistry host returns、`#725` close、本移管）
+- **検証**: `verify lane` PASS、host 系 T3 23/23 validate OK
+- **残作業**: `#843`（legacy infer / mono_return）、`#842`（builtin matching）
+
 ## 参照
 
 - [ADR-040: Semantic Type Spine](../../docs/adr/ADR-040-typed-mir-signature-registry.md)
 - #707 — trait self return type support (ADR-040 関連)
 - #725 — Phase 5e tracer 完全削除（**done**）
 - #842 — builtin callee GC lookup 構造化（#725 Step 3 残り）
+- #843 — legacy GC infer / mono_return 名前逆引き除去（本 umbrella から移管）
 - #729 — Intrinsic layer separation epic（並行）
 - #726 — T3 validate-fail=0（done, narrow-close）
 - #730 — bootstrap Memory64 / wasm32-gc pin / verify quick（クリティカルパス）

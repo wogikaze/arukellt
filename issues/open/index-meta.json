@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T10:51:41Z",
+  "generated_at": "2026-07-28T11:14:18Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -571,25 +571,6 @@
       }
     },
     {
-      "id": "724",
-      "path": "724-adr040-phase5-7-remaining-work.md",
-      "title": "ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "729"
-      ],
-      "acceptance": {
-        "checked": 18,
-        "unchecked": 2
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "728",
       "path": "728-wir-target-backend-ir.md",
       "title": "728 — WIR / backend target IR for ADR-007 multi-target separation",
@@ -604,6 +585,25 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "724"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "unblocked",
+        "upstream_notes": "none"
       }
     },
     {
@@ -755,6 +755,25 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-then-implement",
+        "upstream_notes": null
+      }
+    },
+    {
+      "id": "843",
+      "path": "843-adr040-legacy-infer-and-mono-return.md",
+      "title": "ADR-040: legacy GC infer と mono_return 名前逆引きの除去",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "None"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 4
       },
       "orchestration": {
         "class": "design-then-implement",
@@ -930,25 +949,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": 715
-      }
-    },
-    {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (unblocked epic)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "unblocked",
-        "upstream_notes": "none"
       }
     },
     {
