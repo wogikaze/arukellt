@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T20:33:22Z",
+  "generated_at": "2026-07-28T21:57:35Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -739,23 +739,6 @@
       },
       "orchestration": {
         "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "844",
-      "path": "844-wasm32-const-load-lowering.md",
-      "title": "wasm32: `const` loads mis-lower (`expected i32, found ref`)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "ready",
         "upstream_notes": "None"
       }
     },

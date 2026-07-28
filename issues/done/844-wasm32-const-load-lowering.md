@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-28
 Updated: 2026-07-28
 ID: 844
@@ -73,13 +73,13 @@ i32-typed), which is separate from this emit bug.
 
 ## Acceptance
 
-- [ ] The minimal `const MOD: i32` fixture above compiles and runs under
+- [x] The minimal `const MOD: i32` fixture above compiles and runs under
       `wasmtime run` on `--target wasm32 --wasi-version wasi-p1`
-- [ ] `let x: i32 = MOD` and `i32_to_i64` after loading `MOD` produce valid
+- [x] `let x: i32 = MOD` and `i32_to_i64` after loading `MOD` produce valid
       wasm32 (no ref/`$type` mismatch on const load)
-- [ ] A regression fixture lives under `tests/fixtures/` and is covered by the
+- [x] A regression fixture lives under `tests/fixtures/` and is covered by the
       wasm32 / T3 (or equivalent) gate used for scalar lowering
-- [ ] Stdlib files that already use `const` (e.g. `std/collections/trie.ark`)
+- [x] Stdlib files that already use `const` (e.g. `std/collections/trie.ark`)
       remain valid; no new skip is added for this bug
 
 ## Validation command
@@ -100,3 +100,15 @@ compiler team (wasm32 scalar / const emit)
 
 Close when the acceptance checks pass and the workaround comment in user
 programs (e.g. `fn MOD()`) is no longer required for wasm32.
+
+## Close note
+
+- **Status**: done (moved 2026-07-28)
+- **Fix commit**: `cbb22d45`
+- **Fix summary**: `src/compiler/mir/lower/core_names.ark` now emits a zero-argument
+  `MIR_CALL` for `const` functions whose value type is not `VT_FUNCREF`,
+  allocating the return value with the correct scalar local type instead of
+  emitting a bare function reference.
+- **Regression fixture**: `tests/fixtures/scalar/const_i32.ark`
+- **Regression test**: `scripts/tests/test_wasm32_const_load.py`
+- **Verification**: `verify lane --gate t3` PASS, `verify quick` PASS (master 147/147)
