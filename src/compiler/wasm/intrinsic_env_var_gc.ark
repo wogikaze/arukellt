@@ -250,3 +250,36 @@ fn emit_env_var_gc_advance(w: WasmWriter, loop_i: i32) {
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_set(w, loop_i)
 }
+
+// Stack: [name, default] with default on top. Leaves String (GC ref) on stack.
+// Reuses emit_env_var_gc then unwraps Option<String> (Some=0 / None=1).
+fn emit_env_var_or_default_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Keep default in string slot 1; emit_env_var_gc only uses slot 0 for temps.
+    let s_def = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_out = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 2)
+    let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    helpers_core::emit_local_set(w, s_def)
+
+    let _looked_up = emit_env_var_gc(w, inst, ctx)
+    helpers_core::emit_local_set(w, s_opt)
+
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let some_type = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, "_f1_ref0", open_type)
+
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, open_type)
+    writer_gc::emit_gc_struct_get_i32(w, open_type, 0)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, some_type)
+    writer_gc::emit_gc_struct_get(w, some_type, 1)
+    helpers_core::emit_local_set(w, s_out)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, s_def)
+    helpers_core::emit_local_set(w, s_out)
+    helpers_control::emit_end(w)
+
+    helpers_core::emit_local_get(w, s_out)
+    true
+}

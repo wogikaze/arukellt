@@ -6,6 +6,7 @@ use wasm::intrinsic_env_arg_list_populate
 use wasm::intrinsic_env_args_gc
 use wasm::intrinsic_env_has_flag_body
 use wasm::intrinsic_env_var
+use wasm::intrinsic_env_var_gc
 use wasm::emit_target
 use wasm::ctx_record
 use wasm::import_indices
@@ -77,10 +78,7 @@ fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        helpers_core::emit_drop(w)
-        helpers_core::emit_drop(w)
-        helpers_core::emit_unreachable(w)
-        return true
+        return intrinsic_env_var_gc::emit_env_var_or_default_gc(w, inst, ctx)
     }
     emit_env_var_default_fallback(w, ctx_scratch::SelfEmitCtx_scratch_base(ctx))
     return true

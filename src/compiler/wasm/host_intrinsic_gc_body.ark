@@ -14,6 +14,7 @@ use wasm::host_intrinsic_adapter
 use wasm::intrinsic_env_args
 use wasm::intrinsic_env_args_gc
 use wasm::intrinsic_env_var
+use wasm::intrinsic_env_var_gc
 use wasm::intrinsic_stdio_read_gc
 use wasm::intrinsics::helpers_core
 
@@ -44,6 +45,13 @@ fn try_emit_env_stdio_gc_adapter_body(w: WasmWriter, name: String, ctx: SelfEmit
         helpers_core::emit_local_get(w, 0)
         let inst = inst_call::MirInst_call(clone(name), 1, 0 - 1)
         return intrinsic_env_var::emit_env_var(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("var_or_default")) {
+        // Params: 0=name, 1=default. Stack order for emitter: name then default.
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        let inst = inst_call::MirInst_call(clone(name), 2, 0 - 1)
+        return intrinsic_env_var_gc::emit_env_var_or_default_gc(w, inst, ctx)
     }
     if eq(clone(name), String_from("read_stdin")) {
         intrinsic_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)

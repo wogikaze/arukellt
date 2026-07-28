@@ -775,6 +775,7 @@ run:stdlib_csv/csv_parse_row.ark
 run:stdlib_env/env_basic.ark
 run:stdlib_env/env_var_default.ark
 run:stdlib_env/env_var_lookup.ark
+run:stdlib_env/env_var_or_default.ark
 run:stdlib_filter/filter_string.ark
 run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_fs/host_capability_contract.ark
@@ -2528,6 +2529,8 @@ t3-run:scalar/gc_hint_short_lived.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark
+t3-compile:stdlib_env/env_var_or_default.ark
+t3-run:stdlib_env/env_var_or_default.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_fs/host_capability_contract.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark

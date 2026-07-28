@@ -64,6 +64,9 @@ fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
     if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
         return true
     }
+    if eq(clone(name), String_from("var_or_default")) {
+        return true
+    }
     if eq(clone(name), String_from("read_stdin")) {
         return true
     }

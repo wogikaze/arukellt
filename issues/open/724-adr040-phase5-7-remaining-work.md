@@ -145,15 +145,21 @@ Phase 6a–6b / Phase 7 骨格は完了。
   - `var` / `get_var` → `emit_env_var` GC path
   - `read_stdin` → `emit_gc_wasi_read_stdin_to_string`
 - `code_body.ark`: adapter body を unreachable より先に試行
-- 残 unreachable: `var_or_default`（GC call-site も未配線）、sockets/HTTP 系（#819 / #727）
+- 残 unreachable: sockets/HTTP 系（#819 / #727）
+
+**完了（2026-07-28 `var_or_default` GC path）**:
+- `intrinsic_env_var_gc::emit_env_var_or_default_gc`: lookup → Option unwrap（Some 文字列 / None → default）
+- call-site (`emit_env_var_or_default`) と stub adapter body の両方に配線
+- fixture: `tests/fixtures/stdlib_env/env_var_or_default.ark`
 
 **完了条件**:
 - [x] `src/compiler/wasm/host_intrinsic_adapter.ark` が存在する
 - [ ] 全 host intrinsic が SignatureRegistry 経由で呼び出される
-- [x] adapter 関数が i32 → GC ref 変換を行う（env/stdio の LinearMemoryPtr 子集）
+- [x] adapter 関数が i32 → GC ref 変換を行う（env/stdio の LinearMemoryPtr 全集）
 - [ ] 経路依存（func 12 OK / func 28 NG）0 件
 - [ ] T3 host intrinsic 系 validate-fail 0 件
-- [ ] `var_or_default` / sockets / HTTP stub の adapter body（#819 と連携）
+- [x] `var_or_default` GC path + adapter body
+- [ ] sockets / HTTP stub の adapter body（#819 / #727 と連携）
 
 ## 実装順序
 
