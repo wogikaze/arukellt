@@ -13,7 +13,7 @@ fn LspDoc_new(uri: String, text: String, version: i32) -> LspDoc {
 }
 
 fn LspDocStore_new() -> LspDocStore {
-    LspDocStore { docs: Vec_new_LspDoc() }
+    LspDocStore { docs: Vec::new<LspDoc>() }
 }
 
 fn lsp_doc_index_of(store: LspDocStore, uri: String) -> i32 {

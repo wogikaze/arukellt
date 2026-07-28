@@ -22,7 +22,7 @@ fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirM
     }
     let t3 = target_gate::mir_opt_is_t3_target(clone(target))
     let fn_count = module_functions::MirModule_function_count(m)
-    let updated = Vec_new_MirFunction()
+    let updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)

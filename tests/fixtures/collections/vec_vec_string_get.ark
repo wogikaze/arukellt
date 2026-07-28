@@ -2,8 +2,8 @@ use std::host::stdio
 
 // #836: outer get on Vec<Vec<String>> → Option<Vec<String>>.
 fn main() {
-    let mut outer: Vec<Vec<String>> = Vec_new_i32()
-    let mut inner: Vec<String> = Vec_new_i32()
+    let mut outer: Vec<Vec<String>> = Vec::new<i32>()
+    let mut inner: Vec<String> = Vec::new<i32>()
     push(inner, String_from("ok"))
     push(outer, inner)
     match get(outer, 0) {

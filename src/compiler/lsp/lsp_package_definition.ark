@@ -24,7 +24,7 @@ fn roots_push_unique(roots: Vec<String>, path: String) -> Vec<String> {
 pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
     let uris = workspace_folder_uris_from_initialize(clone(body))
     let n = len(uris)
-    let mut out = Vec_new_String()
+    let mut out = Vec::new<String>()
     let mut i = 0
     while i < n {
         let path = symbol_index_paths::uri_to_file_path(get_unchecked(uris, i))
@@ -44,19 +44,19 @@ pub fn workspace_roots_from_initialize(body: String) -> Vec<String> {
 fn workspace_folder_uris_from_initialize(body: String) -> Vec<String> {
     let pos = index_of(clone(body), "workspaceFolders")
     if pos < 0 {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     let tail = substring(body, pos, len(body))
     let arr_start = index_of(clone(tail), "[")
     if arr_start < 0 {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     let arr_end = index_of(clone(tail), "]")
     if arr_end < arr_start {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     let section = substring(tail, arr_start, arr_end)
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     let mut scan = 0
     let section_len = len(section)
     while scan < section_len {

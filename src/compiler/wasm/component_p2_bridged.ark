@@ -79,7 +79,7 @@ fn p2_wrapper_module_bytes() -> Vec<i32> {
 }
 
 fn p2_bridged_hex_to_bytes(hex: String) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let n = len(hex)
     let mut i = 0
     while i + 1 < n {

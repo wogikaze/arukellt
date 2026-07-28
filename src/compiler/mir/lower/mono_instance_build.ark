@@ -20,8 +20,8 @@ fn mono_instance_table_register_from_instances(
     if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
         return 0 - 1
     }
-    let subst_names = Vec_new_String()
-    let subst_ids = Vec_new_TypeId()
+    let subst_names = Vec::new<String>()
+    let subst_ids = Vec::new<TypeId>()
     // Prefer mangled mono keys over MonoInstance TypeInfo args — those can
     // carry invalid handles across the flat-overlay TypeInfo duplicate.
     let suffix = mono_suffix_parse::extract_mono_suffix(clone(mangled))
@@ -36,7 +36,7 @@ fn mono_instance_table_register_from_instances(
         }
         push(subst_names, clone(var_name))
         let kind = mono_subst_kind_for_type_name(clone(type_name))
-        push(subst_ids, type_table::TypeTable_intern(type_table, kind, type_name, Vec_new_TypeId()))
+        push(subst_ids, type_table::TypeTable_intern(type_table, kind, type_name, Vec::new<TypeId>()))
         ai = ai + 1
     }
     let entry = mono_instance_table::MonoInstanceEntry_new(
@@ -90,5 +90,5 @@ fn mono_find_instance(mono_instances: Vec<MonoInstance>, mangled: String) -> Mon
         }
         i = i + 1
     }
-    type_contracts::MonoInstance_new(String_new(), String_new(), Vec_new_TypeInfo())
+    type_contracts::MonoInstance_new(String_new(), String_new(), Vec::new<TypeInfo>())
 }

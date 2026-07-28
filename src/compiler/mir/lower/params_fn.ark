@@ -122,7 +122,7 @@ fn mir_param_type_is_option_fnref(type_name: String) -> bool {
 }
 
 fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     // Surface Option:/Result: forms must become option:/result: — never
     // "?Option:..." which makes is_generic_function emit unreachable bodies.
     let normalized = mir_param_normalize_option_result_type_name(clone(p_type_name))

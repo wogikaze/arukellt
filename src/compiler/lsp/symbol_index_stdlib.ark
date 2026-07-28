@@ -110,7 +110,7 @@ fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestPar
 
 fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibIndexedSymbol> {
     let _content = content
-    Vec_new_StdlibIndexedSymbol()
+    Vec::new<StdlibIndexedSymbol>()
 }
 
 fn manifest_load_path() -> String {
@@ -126,7 +126,7 @@ pub fn symbol_index_load_stdlib(state: LspState) {
             state_record::lsp_state_set_symbol_stdlib_symbols(state, parse_manifest_symbols(content))
         },
         Result::Err(_) => {
-            state_record::lsp_state_set_symbol_stdlib_symbols(state, Vec_new_StdlibIndexedSymbol())
+            state_record::lsp_state_set_symbol_stdlib_symbols(state, Vec::new<StdlibIndexedSymbol>())
         },
     }
 }

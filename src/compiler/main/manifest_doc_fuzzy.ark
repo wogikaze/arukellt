@@ -18,7 +18,7 @@ fn doc_score_name(query: String, candidate: String) -> i32 {
 }
 
 pub fn doc_find_closest(table: DocManifestTable, query: String, limit: i32) -> Vec<String> {
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     let n = manifest_doc_record::DocManifestTable_function_count(table)
     let mut emitted = 0
     while emitted < limit {

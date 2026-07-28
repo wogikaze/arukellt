@@ -18,7 +18,7 @@ fn hir_trait_bound_trait_type(bound: HirTraitBound) -> HirType {
 }
 
 fn HirTypeParam_new(name: String) -> HirTypeParam {
-    HirTypeParam { name: name, bounds: Vec_new_HirTraitBound() }
+    HirTypeParam { name: name, bounds: Vec::new<HirTraitBound>() }
 }
 
 fn hir_type_param_name(param: HirTypeParam) -> String {

@@ -21,11 +21,11 @@ pub struct LspState {
 fn LspState_new() -> LspState {
     LspState {
         doc_store: state_docs::LspDocStore_new(),
-        symbol_symbols: Vec_new_IndexedSymbol(),
-        symbol_stdlib_symbols: Vec_new_StdlibIndexedSymbol(),
-        symbol_indexed_uris: Vec_new_String(),
+        symbol_symbols: Vec::new<IndexedSymbol>(),
+        symbol_stdlib_symbols: Vec::new<StdlibIndexedSymbol>(),
+        symbol_indexed_uris: Vec::new<String>(),
         project_root: String_new(),
-        workspace_roots: Vec_new_String(),
+        workspace_roots: Vec::new<String>(),
         hover_detail_level: String_new(),
         enable_code_lens: true,
         diagnostics_errors_only: false,

@@ -114,7 +114,7 @@ fn emit_payload_field_bind_gc(ctx: LowerCtx, variant_name: String, bi: i32, effe
                 eff_vt = value_types::VT_GC_REF()
                 ctx_api_local_types::ctx_set_local_vt(ctx, bind_local, value_types::VT_GC_REF())
             }
-            let payload_vts = Vec_new_i32()
+            let payload_vts = Vec::new<i32>()
             push(payload_vts, eff_vt)
             let payload_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, clone(variant_name), payload_vts, clone(typed_payload_name))
             if payload_slot >= 0 {

@@ -10,7 +10,7 @@ struct LocalScope {
 }
 
 fn LocalScope_new_contract() -> LocalScope {
-    LocalScope { bindings: Vec_new_VarBinding() }
+    LocalScope { bindings: Vec::new<VarBinding>() }
 }
 
 fn VarBinding_new(name: String, ty: TypeInfo) -> VarBinding {

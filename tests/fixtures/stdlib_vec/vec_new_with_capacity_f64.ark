@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let v: Vec<f64> = Vec_new_f64_with_cap(16)
+    let v: Vec<f64> = Vec::with_capacity<f64>(16)
     test::assert_eq_i32(len(v), 0)
     test::assert_true(is_empty(v))
 }

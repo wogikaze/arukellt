@@ -8,8 +8,8 @@ use mir::value_types
 use mir::lower::variants
 
 fn lower_payload_variant_call(ctx: LowerCtx, node: AstNode, child_count: i32, var_tag: i32) -> i32 {
-    let mut payload_locals = Vec_new_i32()
-    let mut payload_vts = Vec_new_i32()
+    let mut payload_locals = Vec::new<i32>()
+    let mut payload_vts = Vec::new<i32>()
     let mut total_bytes = 4
     let mut pa = 1
     while pa < child_count {

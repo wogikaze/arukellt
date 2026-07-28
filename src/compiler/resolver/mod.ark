@@ -17,7 +17,7 @@ pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
 }
 
 pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
-    program::resolve_program(decls, Vec_new_ModuleDecls(), Vec_new_String())
+    program::resolve_program(decls, Vec::new<ModuleDecls>(), Vec::new<String>())
 }
 
 pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>, wit_paths: Vec<String>) -> ResolveCtx {

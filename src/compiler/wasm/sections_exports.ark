@@ -62,7 +62,7 @@ fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
 fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
     let mut export_count = 1
     let mut main_idx = 0 - 1
-    let mut seen_names = Vec_new_String()
+    let mut seen_names = Vec::new<String>()
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)
@@ -125,7 +125,7 @@ fn emit_function_export_entries(
     wit_import_count: i32
 ) {
     let functions = module_functions::MirModule_functions(mir)
-    let mut seen_short_names = Vec_new_String()
+    let mut seen_short_names = Vec::new<String>()
     let mut exi = 0
     while exi < fn_count {
         let ef = module_functions::MirModule_function_at(mir, exi)

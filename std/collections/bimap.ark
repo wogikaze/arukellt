@@ -17,7 +17,7 @@ use std::collections::hash
 pub fn bimap_i32_i32_new() -> Vec<i32> {
     // Layout: [forward_map, reverse_map]
     // Each is a hash::hashmap (Vec<i32>)
-    let buf = Vec_new_i32()
+    let buf = Vec::new<i32>()
     push(buf, 0)  // placeholder for forward map
     push(buf, 0)  // placeholder for reverse map
     // Initialize the two hash maps

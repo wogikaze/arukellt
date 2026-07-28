@@ -138,8 +138,8 @@ fn doc_flush_mod(out: Vec<manifest_doc_record::DocModuleEntry>, state: DocParseM
 }
 
 pub fn doc_parse_manifest(content: String) -> DocManifestTable {
-    let fns = Vec_new_DocFnEntry()
-    let mods = Vec_new_DocModuleEntry()
+    let fns = Vec::new<DocFnEntry>()
+    let mods = Vec::new<DocModuleEntry>()
     let mut fn_state = DocParseFnState_new()
     let mut mod_state = DocParseModState_new()
     let mut section = 0

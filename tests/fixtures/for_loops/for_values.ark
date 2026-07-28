@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
     push(v, 20)
     push(v, 30)

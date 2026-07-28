@@ -5,7 +5,7 @@ use typechecker::contract_fn_sig
 use typechecker::sigs
 
 fn collect_fn_sigs(decls: Vec<AstNode>) -> Vec<FnSig> {
-    let fn_sigs = Vec_new_FnSig()
+    let fn_sigs = Vec::new<FnSig>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -57,18 +57,18 @@ fn impl_method_sig(impl_decl: AstNode, method_decl: AstNode) -> FnSig {
 fn extract_impl_type_params(decl: AstNode) -> Vec<String> {
     let ann_count = ast_access::node_type_ann_count(decl)
     if ann_count < 1 {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     // For `impl Trait for Type`, the impl target is type_ann[1].
     // For `impl Type`, the impl target is type_ann[0].
     let head_idx = if ann_count >= 2 { 1 } else { 0 }
     let head_type = ast_access::node_type_ann_at(decl, head_idx)
     if !ast_type_predicates::node_is_type_generic(head_type) {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     // NK_TYPE_GENERIC children: [0] = base type, [1..] = type args
     let child_count = ast_access::node_child_count(head_type)
-    let params = Vec_new_String()
+    let params = Vec::new<String>()
     let mut k = 1
     while k < child_count {
         let type_arg = ast_access::node_child_at(head_type, k)

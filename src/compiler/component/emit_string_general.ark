@@ -24,7 +24,7 @@ fn emit_string_general_component(core_wasm: Vec<i32>, plan: export_shapes_string
 fn try_emit_string_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     let plan = export_shapes_string_general::comp_string_general_plan(mir)
     if !export_shapes_string_general::comp_string_general_plan_is_valid(plan) {
-        return Vec_new_i32()
+        return Vec::new<i32>()
     }
     emit_string_general_component(core_wasm, plan)
 }
@@ -51,9 +51,9 @@ fn emit_string_general_type_section(out: writer_core::ComponentWriter, plan: exp
     writer_core::comp_emit_leb128_u(type_sec, count)
     let mut i = 0
     while i < count {
-        let params = Vec_new_i32()
+        let params = Vec::new<i32>()
         push(params, constants_wit_values::WIT_VAL_STRING())
-        let results = Vec_new_i32()
+        let results = Vec::new<i32>()
         push(results, constants_wit_values::WIT_VAL_STRING())
         writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
         i = i + 1

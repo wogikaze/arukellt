@@ -47,7 +47,7 @@ fn try_emit_record_or_color_component(core_wasm: Vec<i32>, mir: MirModule, expor
     if len(color_to_color_name) > 0 {
         return color::emit_color_roundtrip_component(core_wasm, color_to_color_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn comp_color_to_color_export_name(mir: MirModule) -> String {

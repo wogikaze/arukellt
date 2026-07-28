@@ -17,7 +17,7 @@ struct LintConfig {
 }
 
 fn LintConfig_new() -> LintConfig {
-    LintConfig { allow: Vec_new_String(), deny: Vec_new_String() }
+    LintConfig { allow: Vec::new<String>(), deny: Vec::new<String>() }
 }
 
 fn LintConfig_empty() -> LintConfig {

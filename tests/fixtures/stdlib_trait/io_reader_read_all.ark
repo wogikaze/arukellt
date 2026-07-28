@@ -2,7 +2,7 @@ use std::io
 use std::test
 
 fn main() {
-    let data: Vec<i32> = Vec_new_i32()
+    let data: Vec<i32> = Vec::new<i32>()
     push(data, 1)
     push(data, 2)
     push(data, 3)

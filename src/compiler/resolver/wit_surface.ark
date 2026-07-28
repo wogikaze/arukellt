@@ -5,7 +5,7 @@ use component::wit_parse_text
 use resolver::wit_type_map
 
 fn wit_load_interfaces(paths: Vec<String>) -> Vec<wit_parse_text::WitParsedInterface> {
-    let docs = Vec_new_WitParsedInterface()
+    let docs = Vec::new<WitParsedInterface>()
     for i in 0..len(paths) {
         let doc = wit_parse_import::parse_wit_import_file(get_unchecked(paths, i))
         if len(doc.package) > 0 && len(doc.interface) > 0 {
@@ -54,7 +54,7 @@ fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 }
 
 fn wit_func_param_ark_types(func: wit_parse_text::WitParsedFunc, alias: String, doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     for pi in 0..len(func.param_wit_types) {
         push(out, wit_type_map::wit_type_to_ark(get_unchecked(func.param_wit_types, pi), clone(alias), doc))
     }

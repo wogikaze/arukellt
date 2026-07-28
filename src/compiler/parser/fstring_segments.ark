@@ -4,7 +4,7 @@ use parser::fstring_nodes
 
 fn fstring_collect_segments(content: String, span: Span) -> Vec<AstNode> {
     let clen = len(content)
-    let mut nodes: Vec<AstNode> = Vec_new_AstNode()
+    let mut nodes: Vec<AstNode> = Vec::new<AstNode>()
     let mut lit_start = 0
     let mut i = 0
     while i < clen {

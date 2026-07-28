@@ -4,7 +4,7 @@ use driver::result_record
 
 pub fn parse_errors_result(source: String, source_file: String, errors: Vec<Diagnostic>) -> CompileResult {
     let parse_error_count = len(errors)
-    let mut result = result_record::CompileResult_new(false, phases::PHASE_PARSE(), parse_error_count, Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+    let mut result = result_record::CompileResult_new(false, phases::PHASE_PARSE(), parse_error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     let mut k = 0
     while k < parse_error_count {
         let diag = get_unchecked(errors, k)

@@ -47,14 +47,14 @@ fn shape_adapter_core_module(export_name: String, kind: i32) -> Vec<i32> {
 fn comp_shape_area_adapter_core_module(export_name: String) -> Vec<i32> {
     let out = sections::comp_new_core_module_writer()
 
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     push(user_params, 0x7f)
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7c)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     push(abi_params, 0x7f)
     push(abi_params, 0x7c)
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, 0x7c)
     adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 
@@ -101,10 +101,10 @@ fn emit_shape_alias_section(out: writer_core::ComponentWriter, export_name: Stri
 }
 
 fn emit_shape_type_sections(out: writer_core::ComponentWriter) {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, "circle")
     push(names, "square")
-    let payloads = Vec_new_i32()
+    let payloads = Vec::new<i32>()
     push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
     push(payloads, constants_wit_values::WIT_VAL_FLOAT64())
     type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_variant_type(names, payloads))
@@ -114,9 +114,9 @@ fn emit_shape_type_sections(out: writer_core::ComponentWriter) {
 fn emit_shape_func_type_section(out: writer_core::ComponentWriter, result_type: i32) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, 1)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_type)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, 7, func_type_sec)

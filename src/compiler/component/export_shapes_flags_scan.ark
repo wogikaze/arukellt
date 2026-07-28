@@ -31,7 +31,7 @@ fn comp_single_flags_roundtrip_export_name(mir: MirModule) -> String {
 }
 
 fn comp_flags_member_names() -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, "read")
     push(names, "write")
     names

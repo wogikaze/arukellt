@@ -64,15 +64,15 @@ fn host_intrinsic_spec_canonical_memory_index_type(spec: HostIntrinsicSpec) -> i
 
 fn host_intrinsic_spec_placeholder(name: String) -> HostIntrinsicSpec {
     let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
     push(returns, string_mvt)
     HostIntrinsicSpec_new(
         name,
         kinds::ABI_KIND_HOST_INTRINSIC(),
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
         returns,
-        Vec_new_MirValueType(),
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
+        Vec::new<MirValueType>(),
         32,
         0 - 1,
         0 - 1

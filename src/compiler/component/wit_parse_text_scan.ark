@@ -61,7 +61,7 @@ fn wit_split_param_txt(param: String) -> String {
 }
 
 fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
-    let items = Vec_new_String()
+    let items = Vec::new<String>()
     let n = len(inner)
     let mut start = 0
     let mut depth = 0

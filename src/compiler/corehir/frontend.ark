@@ -10,10 +10,10 @@ fn build_program_from_facts(decls: Vec<AstNode>, facts: CoreHirTypeFacts) -> Cor
     build_program_from_facts_with_dto(
         decls,
         facts,
-        Vec_new_CoreHirModuleInfo(),
-        Vec_new_CoreHirResolvedCall(),
-        Vec_new_CoreHirTypedLocal(),
-        export_surface::CoreHirExportSurface_new(Vec_new_String())
+        Vec::new<CoreHirModuleInfo>(),
+        Vec::new<CoreHirResolvedCall>(),
+        Vec::new<CoreHirTypedLocal>(),
+        export_surface::CoreHirExportSurface_new(Vec::new<String>())
     )
 }
 

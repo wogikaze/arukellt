@@ -6,5 +6,5 @@ fn CoreHirExpr_new(kind: i32, text: String, int_val: i32, float_val: f64, val_ty
 }
 
 fn CoreHirExpr_unsupported(span_start: i32) -> CoreHirExpr {
-    CoreHirExpr_new(commands::COREHIR_EXPR_UNSUPPORTED(), String_new(), 0, 0.0, 0, String_new(), span_start, Vec_new_i32())
+    CoreHirExpr_new(commands::COREHIR_EXPR_UNSUPPORTED(), String_new(), 0, 0.0, 0, String_new(), span_start, Vec::new<i32>())
 }

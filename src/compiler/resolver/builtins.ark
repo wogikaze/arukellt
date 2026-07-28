@@ -6,7 +6,7 @@ use resolver::builtins_intrinsics
 use resolver::builtins_modules
 
 fn resolver_builtin_symbol_names() -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     builtins_core::push_core_builtin_symbol_names(names)
     builtins_convert::push_convert_builtin_symbol_names(names)
     builtins_hof::push_hof_builtin_symbol_names(names)

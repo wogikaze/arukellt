@@ -884,7 +884,7 @@ fn emit_adapter_func_body(sec: writer_core::WasmWriter, f: MirFunction, func_idx
 
     // Locals after flattened params: one GC temp per compound param, plus return temps.
     let mut next_local = flat_param_count
-    let mut compound_param_locals = Vec_new_i32()
+    let mut compound_param_locals = Vec::new<i32>()
     pi = 0
     while pi < param_count {
         let kind = adapter_value_kind(

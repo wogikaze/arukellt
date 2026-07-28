@@ -17,7 +17,7 @@ struct HirImplBlock {
 }
 
 fn HirTraitDecl_new(name: String, is_pub: bool) -> HirTraitDecl {
-    HirTraitDecl { name: name, methods: Vec_new_HirFunction(), type_params: Vec_new_HirTypeParam(), is_pub: is_pub }
+    HirTraitDecl { name: name, methods: Vec::new<HirFunction>(), type_params: Vec::new<HirTypeParam>(), is_pub: is_pub }
 }
 
 fn hir_trait_name(decl: HirTraitDecl) -> String {
@@ -37,7 +37,7 @@ fn hir_trait_method_at(decl: HirTraitDecl, index: i32) -> HirFunction {
 }
 
 fn HirImplBlock_new(trait_ty: HirType, self_ty: HirType) -> HirImplBlock {
-    HirImplBlock { trait_ty: trait_ty, self_ty: self_ty, methods: Vec_new_HirFunction(), is_pub: false }
+    HirImplBlock { trait_ty: trait_ty, self_ty: self_ty, methods: Vec::new<HirFunction>(), is_pub: false }
 }
 
 fn hir_impl_block_trait_type(block: HirImplBlock) -> HirType {

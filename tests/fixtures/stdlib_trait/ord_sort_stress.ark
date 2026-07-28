@@ -2,7 +2,7 @@ use std::seq
 use std::test
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     // Insert in reverse order
     for i in 0..50 {
         push(v, 49 - i)

@@ -41,9 +41,9 @@ fn issue653_parse_host_math() -> String {
 fn issue653_resolve_call_add() -> String {
     let src = "import \"test:host/math\" as host\nfn main() { let _ = host::add(1, 2) }\n"
     let decls = issue653_parse_source(src)
-    let wit_paths = Vec_new_String()
+    let wit_paths = Vec::new<String>()
     push(wit_paths, "tests/fixtures/wit_import/host_math.wit")
-    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), wit_paths)
+    let ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), wit_paths)
     if context::ResolveCtx_reported_error_count(ctx) != 0 {
         return "issue653 fail: resolve errors"
     }
@@ -53,9 +53,9 @@ fn issue653_resolve_call_add() -> String {
 fn issue653_typecheck_call_add() -> String {
     let src = "import \"test:host/math\" as host\nfn main() { let _ = host::add(1, 2) }\n"
     let decls = issue653_parse_source(src)
-    let wit_paths = Vec_new_String()
+    let wit_paths = Vec::new<String>()
     push(wit_paths, "tests/fixtures/wit_import/host_math.wit")
-    let ctx = program::resolve_program(decls, Vec_new_ModuleDecls(), wit_paths)
+    let ctx = program::resolve_program(decls, Vec::new<ModuleDecls>(), wit_paths)
     let result = entry::typecheck_module(decls, ctx, wit_paths)
     if contract_result_state::typecheck_result_error_count(result) != 0 {
         return "issue653 fail: typecheck errors"

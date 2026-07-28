@@ -9,7 +9,7 @@ use parser::multiclause
 fn parse_multiclause_fn_decl(p: Parser, is_pub: bool, is_async: bool) -> AstNode {
     let first_clause = decl_multiclause_clause::parse_fn_clause(p)
     let param_count = fn_clause::clause_param_count(first_clause)
-    let mut clauses = Vec_new_AstNode()
+    let mut clauses = Vec::new<AstNode>()
     push(clauses, first_clause)
     while fn_lookahead::has_next_clause(p, core_ast_text_fields::AstNode_text(first_clause)) {
         let next_clause = decl_multiclause_clause::parse_fn_clause(p)
@@ -20,7 +20,7 @@ fn parse_multiclause_fn_decl(p: Parser, is_pub: bool, is_async: bool) -> AstNode
                 concat("clause has ", concat(to_string(nc_param_count), concat(" parameters but previous clauses have ", concat(to_string(param_count), ""))))
             )
             let stub = fn_clause::make_clause_error_stub(next_clause, is_pub, is_async)
-            clauses = Vec_new_AstNode()
+            clauses = Vec::new<AstNode>()
             push(clauses, stub)
             break
         }

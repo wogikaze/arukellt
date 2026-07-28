@@ -4,7 +4,7 @@ use mir::types
 
 fn mir_prune_unmarked_functions(m: MirModule, reachable: Vec<i32>) -> i32 {
     let fn_count = module_functions::MirModule_function_count(m)
-    let kept = Vec_new_MirFunction()
+    let kept = Vec::new<MirFunction>()
     let mut pruned = 0
     let mut i = 0
     while i < fn_count {

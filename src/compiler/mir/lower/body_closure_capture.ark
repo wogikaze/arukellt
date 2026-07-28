@@ -34,7 +34,7 @@ fn mir_closure_lookup_capture_type(ctx: LowerCtx, cli: i32) -> String {
 
 fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
     let cap_n = len(caps)
-    let cap_vts = Vec_new_i32()
+    let cap_vts = Vec::new<i32>()
     let mut cvi = 0
     while cvi < cap_n {
         let cname = clone(get_unchecked(caps, cvi))
@@ -61,7 +61,7 @@ fn mir_closure_capture_vts(ctx: LowerCtx, caps: Vec<String>) -> Vec<i32> {
 
 fn mir_closure_capture_types(ctx: LowerCtx, caps: Vec<String>) -> Vec<String> {
     let cap_n = len(caps)
-    let cap_types = Vec_new_String()
+    let cap_types = Vec::new<String>()
     let mut cvi = 0
     while cvi < cap_n {
         let cname = clone(get_unchecked(caps, cvi))

@@ -53,7 +53,7 @@ fn module_text_for_uri(state: LspState, uri: String) -> String {
 }
 
 pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<ModuleDecls> {
-    let out = Vec_new_ModuleDecls()
+    let out = Vec::new<ModuleDecls>()
     let indexed = state_record::lsp_state_symbol_indexed_uris(state)
     let n = len(indexed)
     let mut i = 0
@@ -77,7 +77,7 @@ pub fn build_resolve_modules(state: LspState, current_uri: String) -> Vec<Module
 pub fn build_resolve_modules_with_prelude(state: LspState, current_uri: String) -> Vec<ModuleDecls> {
     let prelude_modules = load::load_prelude_modules()
     let project_modules = build_resolve_modules(state, current_uri)
-    let combined = Vec_new_ModuleDecls()
+    let combined = Vec::new<ModuleDecls>()
     let pn = len(prelude_modules)
     let mut pi = 0
     while pi < pn {

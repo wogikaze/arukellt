@@ -6,7 +6,7 @@ struct Point {
 }
 
 fn main() {
-    let mut points: Vec<Point> = Vec_new_Point()
+    let mut points: Vec<Point> = Vec::new<Point>()
     push(points, Point { x: 1, y: 2 })
     push(points, Point { x: 3, y: 4 })
     let mut i: i32 = 0

@@ -6,14 +6,14 @@ use component::writer_core
 fn comp_result_i32_i32_to_i32_adapter_core_module(export_name: String) -> Vec<i32> {
     let out = sections::comp_new_core_module_writer()
 
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     push(user_params, 0x7f)
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7f)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     push(abi_params, 0x7f)
     push(abi_params, 0x7f)
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, 0x7f)
     adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 
@@ -37,13 +37,13 @@ fn comp_emit_result_i32_i32_to_i32_wrapper_body(code_sec: writer_core::Component
 fn comp_bool_to_result_bool_bool_adapter_core_module(export_name: String) -> Vec<i32> {
     let out = sections::comp_new_core_module_writer()
 
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     push(user_params, 0x7f)
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7f)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     push(abi_params, 0x7f)
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, 0x7f)
     adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 
@@ -97,14 +97,14 @@ fn comp_emit_result_bool_bool_output_layout(body: writer_core::ComponentWriter) 
 fn comp_result_i32_i32_to_result_i32_i32_adapter_core_module(export_name: String) -> Vec<i32> {
     let out = sections::comp_new_core_module_writer()
 
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     push(user_params, 0x7f)
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7f)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     push(abi_params, 0x7f)
     push(abi_params, 0x7f)
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, 0x7f)
     adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 

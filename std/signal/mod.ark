@@ -104,7 +104,7 @@ fn ilog2_pow2(n: i32) -> i32 {
 
 pub fn clone_f64(src: Vec<f64>) -> Vec<f64> {
     let n = len(src)
-    let out = Vec_new_f64_with_cap(n)
+    let out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, get_unchecked(src, i))
@@ -114,7 +114,7 @@ pub fn clone_f64(src: Vec<f64>) -> Vec<f64> {
 }
 
 pub fn zeros(n: i32) -> Vec<f64> {
-    let out = Vec_new_f64_with_cap(n)
+    let out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, 0.0)
@@ -136,7 +136,7 @@ fn write_back_f64(dst: Vec<f64>, src: Vec<f64>) {
 fn reorder_bit_reversed(src: Vec<f64>) -> Vec<f64> {
     let n = len(src)
     let bits = ilog2_pow2(n)
-    let out = Vec_new_f64_with_cap(n)
+    let out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         push(out, 0.0)
@@ -219,7 +219,7 @@ pub fn ifft(real: Vec<f64>, imag: Vec<f64>) {
 pub fn magnitude(real: Vec<f64>, imag: Vec<f64>) -> Vec<f64> {
     require_same_length(real, imag)
     let n = len(real)
-    let out = Vec_new_f64_with_cap(n)
+    let out = Vec::with_capacity<f64>(n)
     let mut i = 0
     while i < n {
         let r = get_unchecked(real, i)

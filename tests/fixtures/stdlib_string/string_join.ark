@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let mut parts: Vec<String> = Vec_new_String()
+    let mut parts: Vec<String> = Vec::new<String>()
     push(parts, String_from("one"))
     push(parts, String_from("two"))
     push(parts, String_from("three"))

@@ -16,7 +16,7 @@ fn p2_run_inner_component_bytes() -> Vec<i32> {
 }
 
 fn p2_run_bytes_from_hex(hex: String) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let n = len(hex)
     let mut i = 0
     while i + 1 < n {

@@ -5,7 +5,7 @@ fn is_long(s: String) -> bool {
 }
 
 fn main() {
-    let mut v: Vec<String> = Vec_new_String()
+    let mut v: Vec<String> = Vec::new<String>()
     push(v, String_from("hi"))
     push(v, String_from("hello"))
     push(v, String_from("ok"))

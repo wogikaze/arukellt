@@ -4,11 +4,11 @@ pub struct WasmWriter {
 }
 
 fn WasmWriter_new() -> WasmWriter {
-    WasmWriter { bytes: Vec_new_i32(), memory64: false }
+    WasmWriter { bytes: Vec::new<i32>(), memory64: false }
 }
 
 fn WasmWriter_with_memory64(memory64: bool) -> WasmWriter {
-    WasmWriter { bytes: Vec_new_i32(), memory64: memory64 }
+    WasmWriter { bytes: Vec::new<i32>(), memory64: memory64 }
 }
 
 fn writer_memory64(w: WasmWriter) -> bool {

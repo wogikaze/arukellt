@@ -222,7 +222,7 @@ fn gc_layout_type_id_for_name(tt: TypeTable, type_name: String) -> TypeId {
     } else {
         clone(type_name)
     }
-    let empty = Vec_new_TypeId()
+    let empty = Vec::new<TypeId>()
     let string_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRING(), clone(name), empty)
     if type_id::type_id_is_valid(string_id) {
         return string_id

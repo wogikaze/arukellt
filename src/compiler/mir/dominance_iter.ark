@@ -25,7 +25,7 @@ fn mir_iterate_dominance_sets(f: MirFunction, block_count: i32) {
 
 fn mir_compute_block_dom_set(f: MirFunction, block: MirBlock) -> Vec<i32> {
     let pred_count = block_pred_access::MirBlock_pred_count(block)
-    let mut new_set = Vec_new_i32()
+    let mut new_set = Vec::new<i32>()
     if pred_count == 0 {
         push(new_set, block_identity::MirBlock_id(block))
     } else {

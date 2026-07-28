@@ -6,10 +6,10 @@ use loader::module_parse
 use loader::module_state
 pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<AstNode> {
     if module_state_loading::LoadState_has_loaded(state, clone(stdlib_path)) {
-        return Vec_new_AstNode()
+        return Vec::new<AstNode>()
     }
     if module_state_loading::LoadState_has_loading(state, clone(stdlib_path)) {
-        return Vec_new_AstNode()
+        return Vec::new<AstNode>()
     }
     let short_name = module_names::module_short_name(clone(stdlib_path))
     let source_res = module_file_load_stdlib::read_stdlib_module_source(clone(stdlib_path))
@@ -18,7 +18,7 @@ pub fn load_stdlib_module_decls(stdlib_path: String, state: LoadState) -> Vec<As
             register_stdlib_source(clone(stdlib_path), clone(short_name), src, state)
         },
         Result::Err(_) => {
-            Vec_new_AstNode()
+            Vec::new<AstNode>()
         },
     }
 }

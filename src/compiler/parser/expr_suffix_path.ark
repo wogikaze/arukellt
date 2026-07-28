@@ -64,7 +64,7 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
 // Parse turbofish type arguments: < already consumed, parse type, type, ... >
 // Returns a Vec of type AST nodes, or empty Vec if > not found (backtrack needed).
 fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
-    let args = Vec_new_AstNode()
+    let args = Vec::new<AstNode>()
     let mut first = true
     while true {
         core_api_cursor::skip_newlines(p)
@@ -81,14 +81,14 @@ fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
         }
         if !first {
             if core_api_cursor::peek_kind(p) != tokens::TK_COMMA() {
-                return Vec_new_AstNode()
+                return Vec::new<AstNode>()
             }
             p.pos = p.pos + 1
             core_api_cursor::skip_newlines(p)
         }
         first = false
         if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
-            return Vec_new_AstNode()
+            return Vec::new<AstNode>()
         }
         let arg = types::parse_type(p)
         push(args, arg)

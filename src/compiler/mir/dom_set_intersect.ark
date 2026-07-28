@@ -1,7 +1,7 @@
 use mir::dom_set_query
 
 fn mir_intersect_block_id_sets(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let count = len(a)
     let mut i = 0
     while i < count {

@@ -127,7 +127,7 @@ fn free_node(buf: Vec<i32>, node: i32) {
 
 /// Create a new empty `LinkedList<T>`.
 pub fn linked_list_new() -> Vec<i32> {
-    let buf = Vec_new_i32()
+    let buf = Vec::new<i32>()
     push(buf, NIL)  // head
     push(buf, NIL)  // tail
     push(buf, NIL)  // free_head
@@ -243,7 +243,7 @@ pub fn linked_list_clear(buf: Vec<i32>) {
 
 /// Convert the list to a `Vec<T>` in front-to-back order. O(n).
 pub fn linked_list_to_vec(buf: Vec<i32>) -> Vec<i32> {
-    let result = Vec_new_i32()
+    let result = Vec::new<i32>()
     let mut node = header_head(buf)
     while node != NIL {
         push(result, slot_value(buf, node))

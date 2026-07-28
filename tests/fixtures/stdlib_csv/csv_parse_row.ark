@@ -16,12 +16,12 @@ fn main() {
         j = j + 1
     }
     stdio::println("---")
-    let fields = Vec_new_String()
+    let fields = Vec::new<String>()
     push(fields, "Alice")
     push(fields, "25")
     push(fields, "London")
     stdio::println(csv::csv_stringify_row(fields))
-    let fields2 = Vec_new_String()
+    let fields2 = Vec::new<String>()
     push(fields2, "Bob, Jr.")
     push(fields2, "40")
     stdio::println(csv::csv_stringify_row(fields2))

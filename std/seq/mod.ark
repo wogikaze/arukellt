@@ -12,7 +12,7 @@
 /// Apply `f` to every element of `v` and collect the results.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
     let n: i32 = len(v)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < n {
         push(result, f(get_unchecked(v, i)))
@@ -24,7 +24,7 @@ pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
 /// Keep only elements of `v` for which `f` returns `true`.
 pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
     let n: i32 = len(v)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < n {
         let val: i32 = get_unchecked(v, i)
@@ -39,7 +39,7 @@ pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
 /// Return the first `n` elements of `v`.
 fn __core_seq_take_i32_impl(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     let limit: i32 = if n < sz {
         n
@@ -60,7 +60,7 @@ pub fn take_i32(v: Vec<i32>, n: i32) -> Vec<i32> {
 /// Return all elements of `v` after skipping the first `n`.
 fn __core_seq_skip_i32_impl(v: Vec<i32>, n: i32) -> Vec<i32> {
     let sz: i32 = len(v)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let start: i32 = if n < sz {
         n
     } else {
@@ -165,7 +165,7 @@ pub fn sum_i32(v: Vec<i32>) -> i32 {
 
 pub fn seq_reverse(v: Vec<i32>) -> Vec<i32> {
     let n: i32 = len(v)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = n - 1
     while i >= 0 {
         push(result, get_unchecked(v, i))
@@ -188,7 +188,7 @@ pub fn seq_contains(v: Vec<i32>, target: i32) -> bool {
 }
 
 fn __core_seq_unique_i32_impl(v: Vec<i32>) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let n: i32 = len(v)
     let mut i: i32 = 0
     while i < n {

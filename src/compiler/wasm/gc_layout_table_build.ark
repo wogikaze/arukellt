@@ -41,7 +41,7 @@ fn populate_gc_layout_table_for_emit(
 }
 
 fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String, type_idx: i32) {
-    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec_new_TypeId())
+    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec::new<TypeId>())
     if !type_id::type_id_is_valid(tid) {
         return
     }

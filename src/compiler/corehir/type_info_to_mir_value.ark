@@ -51,35 +51,35 @@ fn vt_tag_from_mir_vt(vt: i32) -> i32 {
 
 fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: i32) -> MirValueType {
     if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_LINEAR_PTR(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("struct:")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("enum:")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_ENUM(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_ENUM(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("vec:")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("hashmap:")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("hashset:")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHSET(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHSET(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if starts_with(clone(type_name), String_from("result:")) || starts_with(clone(type_name), String_from("Result_")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), type_name, Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), type_name, Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     // Bare user type names (Range, RangeIter, ...) must not be interned as
@@ -89,12 +89,12 @@ fn mir_value_type_from_type_name(table: TypeTable, type_name: String, val_type: 
     // alone so scalar/fnref locals are not rewritten into struct refs.
     if val_type == value_types::VT_GC_REF() || val_type == value_types::VT_REF() {
         if !type_name_is_scalar_primitive(clone(type_name)) {
-            let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), clone(type_name), Vec_new_TypeId())
+            let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), clone(type_name), Vec::new<TypeId>())
             return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
         }
     }
     let tag = vt_tag_from_mir_vt(val_type)
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), type_name, Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, type_info_repr_approx(tag), type_info_nullability_approx(tag))
 }
 
@@ -122,7 +122,7 @@ fn type_name_is_scalar_primitive(type_name: String) -> bool {
 }
 
 fn mir_value_type_vec_single(table: TypeTable, ty: TypeInfo) -> Vec<MirValueType> {
-    let result = Vec_new_MirValueType()
+    let result = Vec::new<MirValueType>()
     push(result, type_info_to_mir_value(table, ty))
     result
 }

@@ -14,14 +14,14 @@ fn bind_fn_params_from_sig(scope: LocalScope, fn_node: AstNode, sig: FnSig) {
 }
 
 fn set_fn_type_params_from_sig(env: TypeEnv, sig: FnSig) {
-    let type_params = Vec_new_String()
+    let type_params = Vec::new<String>()
     let type_param_count = contract_fn_sig::FnSig_type_param_count(sig)
     let mut type_param_index = 0
     while type_param_index < type_param_count {
         push(type_params, contract_fn_sig::FnSig_type_param_at(sig, type_param_index))
         type_param_index = type_param_index + 1
     }
-    let bounds = Vec_new_TypeParamBounds()
+    let bounds = Vec::new<TypeParamBounds>()
     let bound_count = contract_fn_sig::FnSig_type_param_bound_count(sig)
     let mut bound_index = 0
     while bound_index < bound_count {

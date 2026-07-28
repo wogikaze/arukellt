@@ -240,7 +240,7 @@ fn emit_wat_output(
     let wat_text = wasm::emit_wat(mir_module, config_record::config_target(config), config_record::config_opt_level(config))
     let mut result = result_record::CompileResult_ok(phases::PHASE_EMIT())
     let wat_len = len(wat_text)
-    let mut wat_bytes: Vec<i32> = Vec_new_i32()
+    let mut wat_bytes: Vec<i32> = Vec::new<i32>()
     let mut wi = 0
     while wi < wat_len {
         push(wat_bytes, char_at(wat_text, wi))

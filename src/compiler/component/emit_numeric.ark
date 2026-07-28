@@ -49,7 +49,7 @@ fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 fn try_emit_f32_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     let plan = export_shapes_f32_general::comp_f32_general_plan(mir)
     if !export_shapes_f32_general::comp_f32_general_plan_is_valid(plan) {
-        return Vec_new_i32()
+        return Vec::new<i32>()
     }
     emit_f32_general::emit_f32_general_component(core_wasm, plan)
 }
@@ -82,12 +82,12 @@ fn emit_numeric_alias_section(out: writer_core::ComponentWriter, export_name: St
 fn emit_numeric_type_section(out: writer_core::ComponentWriter, param0_type: i32, param1_type: i32, param_count: i32, result_type: i32) {
     let type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, param0_type)
     if param_count > 1 {
         push(params, param1_type)
     }
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_type)
     writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), type_sec)

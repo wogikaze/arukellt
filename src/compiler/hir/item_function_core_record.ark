@@ -13,7 +13,7 @@ struct HirFunction {
 }
 
 fn HirFunction_new(name: String, return_type: HirType, body: HirNode, is_pub: bool) -> HirFunction {
-    HirFunction { name: name, params: Vec_new_HirParam(), type_params: Vec_new_HirTypeParam(), return_type: return_type, body: body, is_pub: is_pub }
+    HirFunction { name: name, params: Vec::new<HirParam>(), type_params: Vec::new<HirTypeParam>(), return_type: return_type, body: body, is_pub: is_pub }
 }
 
 fn hir_function_name(func: HirFunction) -> String {

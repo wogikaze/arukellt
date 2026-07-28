@@ -6,7 +6,7 @@ struct Holder {
 }
 
 fn main() {
-    let mut h = Holder { name: String_from("test"), items: Vec_new_String() }
+    let mut h = Holder { name: String_from("test"), items: Vec::new<String>() }
     h = Holder { name: h.name, items: push(h.items, String_from("alpha")) }
     h = Holder { name: h.name, items: push(h.items, String_from("beta")) }
     h = Holder { name: h.name, items: push(h.items, String_from("gamma")) }

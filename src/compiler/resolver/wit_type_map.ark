@@ -65,7 +65,7 @@ fn wit_trim_type(t: String) -> String {
 
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     for ri in 0..len(records) {
         push(names, clone(get_unchecked(records, ri).wit_name))
     }
@@ -74,7 +74,7 @@ fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
 
 fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     for ri in 0..len(records) {
         push(names, clone(get_unchecked(records, ri).ark_name))
     }
@@ -83,7 +83,7 @@ fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> 
 
 fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     for ei in 0..len(enums) {
         push(names, clone(get_unchecked(enums, ei).wit_name))
     }
@@ -92,7 +92,7 @@ fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
 
 fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     for ei in 0..len(enums) {
         push(names, clone(get_unchecked(enums, ei).ark_name))
     }

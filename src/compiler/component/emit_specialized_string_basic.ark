@@ -47,7 +47,7 @@ fn try_emit_basic_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i
     if len(string_to_char_name) > 0 {
         return emit_string_to_char_component(core_wasm, string_to_char_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn emit_string_to_i32_component(core_wasm: Vec<i32>, export_name: String, result_wit_type: i32) -> Vec<i32> {

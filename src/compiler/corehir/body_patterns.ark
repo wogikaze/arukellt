@@ -14,7 +14,7 @@ fn corehir_build_pattern_expr(table: CoreHirBodyTable, pat: AstNode) -> i32 {
         return corehir_push_expr(table, expr_builder_patterns::corehir_expr_pat_literal(pattern_node::pattern_text(pat), pattern_node::pattern_int_val(pat), pattern_node::pattern_span_start(pat)))
     }
     if pattern_node::pattern_is_composite(pat) {
-        let children = Vec_new_i32()
+        let children = Vec::new<i32>()
         let child_count = pattern_node::pattern_child_count(pat)
         let mut i = 0
         let mut unsupported = false

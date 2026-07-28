@@ -29,7 +29,7 @@ fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
         return vt
     }
     // Vec_new often writes a temp that is immediately stored into an annotated
-    // let binding (e.g. `let outer: Vec<Vec<i32>> = Vec_new_i32()`). Prefer the
+    // let binding (e.g. `let outer: Vec<Vec<i32>> = Vec::new<i32>()`). Prefer the
     // store target's type when the temp itself is untyped / vec:i32.
     let store_vt = resolve_vec_type_from_immediate_store(ctx, dest_local)
     if store_vt >= 0 {

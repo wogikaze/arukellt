@@ -4,7 +4,7 @@ use std::test
 fn is_even(x: i32) -> bool { x / 2 * 2 == x }
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)

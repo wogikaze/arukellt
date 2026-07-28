@@ -31,10 +31,10 @@ fn point_s32_value() -> i32 {
 }
 
 fn point_record_type_bytes() -> Vec<i32> {
-    let field_names = Vec_new_String()
+    let field_names = Vec::new<String>()
     push(field_names, "x")
     push(field_names, "y")
-    let field_types = Vec_new_i32()
+    let field_types = Vec::new<i32>()
     push(field_types, point_s32_value())
     push(field_types, point_s32_value())
     types_wit_compound::comp_wit_record_type(field_names, field_types)

@@ -76,14 +76,14 @@ fn legacy_vt_to_mvt(m: MirModule, val_type: i32, type_name: String) -> MirValueT
 
 fn call_return_mvts(m: MirModule, inst: MirInst) -> Vec<MirValueType> {
     if !module_spine::MirModule_signature_spine_populated(m) {
-        return Vec_new_MirValueType()
+        return Vec::new<MirValueType>()
     }
     if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_CALL() {
-        return Vec_new_MirValueType()
+        return Vec::new<MirValueType>()
     }
     let fid_raw = inst_record::mir_inst_func_id_raw(inst)
     if fid_raw < 0 {
-        return Vec_new_MirValueType()
+        return Vec::new<MirValueType>()
     }
     let registry = module_spine::MirModule_signature_registry(m)
     let entry = signature_registry::signature_registry_lookup_by_id(registry, function_id::FunctionId_new(fid_raw))
@@ -100,7 +100,7 @@ fn call_return_mvts(m: MirModule, inst: MirInst) -> Vec<MirValueType> {
     if signature_entry::signature_entry_return_count(entry) > 0 {
         return copy_return_types_from_entry(entry)
     }
-    Vec_new_MirValueType()
+    Vec::new<MirValueType>()
 }
 
 fn call_return_legacy_vt(m: MirModule, inst: MirInst) -> i32 {
@@ -177,7 +177,7 @@ fn enrich_inst_result_types(m: MirModule, inst: MirInst) -> MirInst {
 
 fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
     let count = mono_instance_table::mono_instance_entry_return_count(entry)
-    let result = Vec_new_MirValueType()
+    let result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
         push(result, typed_mir_compat::mvt_copy(mono_instance_table::mono_instance_entry_return_at(entry, i)))
@@ -188,7 +188,7 @@ fn copy_return_types_from_mono(entry: MonoInstanceEntry) -> Vec<MirValueType> {
 
 fn copy_return_types_from_entry(entry: SignatureEntry) -> Vec<MirValueType> {
     let count = signature_entry::signature_entry_return_count(entry)
-    let result = Vec_new_MirValueType()
+    let result = Vec::new<MirValueType>()
     let mut i = 0
     while i < count {
         push(result, typed_mir_compat::mvt_copy(signature_entry::signature_entry_return_at(entry, i)))

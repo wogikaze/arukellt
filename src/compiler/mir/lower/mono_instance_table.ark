@@ -31,7 +31,7 @@ fn MonoInstanceId_raw(id: MonoInstanceId) -> i32 {
 }
 
 fn MonoInstanceTable_new() -> MonoInstanceTable {
-    MonoInstanceTable { entries: Vec_new_MonoInstanceEntry(), next_id: 0 }
+    MonoInstanceTable { entries: Vec::new<MonoInstanceEntry>(), next_id: 0 }
 }
 
 fn mono_instance_table_entry_count(table: MonoInstanceTable) -> i32 {

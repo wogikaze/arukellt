@@ -500,7 +500,7 @@ impl Iterator<i32> for ZipIter {
 
 /// Drain a `VecIter` into a new `Vec<i32>`.
 pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -512,7 +512,7 @@ pub fn collect_vec_iter(it: VecIter) -> Vec<i32> {
 
 /// Drain a `MapIter` into a new `Vec<i32>`.
 pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -524,7 +524,7 @@ pub fn collect_map_iter(it: MapIter) -> Vec<i32> {
 
 /// Drain a `FilterIter` into a new `Vec<i32>`.
 pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -536,7 +536,7 @@ pub fn collect_filter_iter(it: FilterIter) -> Vec<i32> {
 
 /// Drain a `TakeIter` into a new `Vec<i32>`.
 pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -548,7 +548,7 @@ pub fn collect_take_iter(it: TakeIter) -> Vec<i32> {
 
 /// Drain a `SkipIter` into a new `Vec<i32>`.
 pub fn collect_skip_iter(it: SkipIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -560,7 +560,7 @@ pub fn collect_skip_iter(it: SkipIter) -> Vec<i32> {
 
 /// Drain a `ChainIter` into a new `Vec<i32>`.
 pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -572,7 +572,7 @@ pub fn collect_chain_iter(it: ChainIter) -> Vec<i32> {
 
 /// Drain a `RangeIter` into a new `Vec<i32>`.
 pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     while true {
         match it.next() {
             Some(v) => push(result, v),
@@ -589,7 +589,7 @@ pub fn collect_range_iter(it: RangeIter) -> Vec<i32> {
 /// `FromIterator<i32>` impl for `Vec<i32>` — drains a `VecIter`.
 impl FromIterator<i32> for Vec<i32> {
     fn from_iter(it: VecIter) -> Vec<i32> {
-        let result: Vec<i32> = Vec_new_i32()
+        let result: Vec<i32> = Vec::new<i32>()
         while true {
             match it.next() {
                 Some(v) => push(result, v),
@@ -647,7 +647,7 @@ pub fn collect_range_i32(r: Range) -> Vec<i32> {
 /// This replaces the eager `std::seq::map_i32_i32` + `std::seq::filter_i32`
 /// chain with a single lazy traversal.
 pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let n: i32 = len(v)
     let mut i: i32 = 0
     while i < n {
@@ -665,7 +665,7 @@ pub fn collect_map_filter_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i
 /// This is the canonical lazy pipeline fixture:
 /// `v.iter().map(f).filter(g).take(n).collect()`.
 pub fn collect_map_filter_take_i32(v: Vec<i32>, map_f: fn(i32) -> i32, filter_f: fn(i32) -> bool, n: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let total: i32 = len(v)
     let mut i: i32 = 0
     let mut taken: i32 = 0

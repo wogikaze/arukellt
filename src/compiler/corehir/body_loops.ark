@@ -24,7 +24,7 @@ fn corehir_build_while_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if child_count < 2 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     if corehir_build_loop_children(table, node, children) {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
@@ -35,7 +35,7 @@ fn corehir_build_loop_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if expr_node_access::expr_child_count(node) < 1 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let body_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
     push(children, body_index)
     let body_expr = corehir_body_expr_at(table, body_index)

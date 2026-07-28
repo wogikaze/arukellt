@@ -40,13 +40,13 @@ fn emit_record_point_type_sections(out: writer_core::ComponentWriter) {
 fn emit_record_point_func_type_section(out: writer_core::ComponentWriter, param_count: i32, result_type: i32) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     let mut i = 0
     while i < param_count {
         push(params, 1)
         i = i + 1
     }
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_type)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
@@ -125,15 +125,15 @@ fn emit_record_point_multi_type_sections(out: writer_core::ComponentWriter) {
 fn emit_record_point_multi_func_type_section(out: writer_core::ComponentWriter) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 2)
-    let point_param = Vec_new_i32()
+    let point_param = Vec::new<i32>()
     push(point_param, 1)
-    let s32_result = Vec_new_i32()
+    let s32_result = Vec::new<i32>()
     push(s32_result, type_section_entries::point_s32_value())
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(point_param, s32_result))
-    let two_point_params = Vec_new_i32()
+    let two_point_params = Vec::new<i32>()
     push(two_point_params, 1)
     push(two_point_params, 1)
-    let point_result = Vec_new_i32()
+    let point_result = Vec::new<i32>()
     push(point_result, 1)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(two_point_params, point_result))
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)

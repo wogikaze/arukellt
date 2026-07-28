@@ -29,7 +29,7 @@ fn sig_reg_register_fn(
     // CoreHir params/VT only — TypedFn.TypeInfo values are unsafe across the
     // duplicate TypeInfo/TypedFn structs in the flat selfhost overlay.
     let params = sig_reg_params_from_fn_info(sig_source, fn_info_index, table)
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
     push(
         returns,
         type_info_to_mir_value::vt_to_mir_value(
@@ -65,7 +65,7 @@ fn sig_reg_register_method(
     impl_decl_index: i32
 ) {
     let params = sig_reg_params_from_method_info(sig_source, method_info_index, table)
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
     let mrvt_name = fn_index_source::mir_fn_index_source_method_return_type_name_at(source, method_info_index, "")
     push(returns, type_info_to_mir_value::vt_to_mir_value(table, fn_index_source::mir_fn_index_source_method_return_vt_at(source, method_info_index, 1), clone(mrvt_name)))
     let receiver = type_info_to_mir_value::vt_to_mir_value(table, 5, "String")
@@ -96,7 +96,7 @@ fn sig_reg_params_from_fn_info_mono(
     table: TypeTable,
     mangled: String
 ) -> Vec<MirValueType> {
-    let result = Vec_new_MirValueType()
+    let result = Vec::new<MirValueType>()
     if fn_info_index < 0 {
         return result
     }
@@ -183,7 +183,7 @@ fn sig_reg_params_from_fn_info_mono(
     }
 
     fn sig_reg_params_from_method_info(sig_source: CoreHirMirSignatureSource, method_info_index: i32, table: TypeTable) -> Vec<MirValueType> {
-        let result = Vec_new_MirValueType()
+        let result = Vec::new<MirValueType>()
         if method_info_index < 0 {
             return result
         }

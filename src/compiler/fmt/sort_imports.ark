@@ -39,7 +39,7 @@ fn fmt_import_line_end(text: String, line_start: i32) -> i32 {
 }
 
 fn fmt_collect_import_entries(text: String, decls: Vec<AstNode>) -> Vec<FmtImportEntry> {
-    let out = Vec_new_FmtImportEntry()
+    let out = Vec::new<FmtImportEntry>()
     let n = len(decls)
     let mut i = 0
     while i < n {

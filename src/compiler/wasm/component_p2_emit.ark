@@ -21,7 +21,7 @@ use wasm::writer_core
 fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     // 1. Strip clocks/random and bridged arukellt:fs (host-linker only; #834).
     // Stock wasi:cli component worlds have no arukellt:fs instance.
-    let prefixes = Vec_new_String()
+    let prefixes = Vec::new<String>()
     push(prefixes, String_from("wasi:clocks/"))
     push(prefixes, String_from("wasi:random/"))
     push(prefixes, String_from("arukellt:fs@"))

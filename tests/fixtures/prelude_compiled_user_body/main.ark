@@ -5,7 +5,7 @@ pub fn user_add_seven(x: i32) -> i32 {
 }
 
 pub fn user_search() -> i32 {
-    let values = Vec_new_i32()
+    let values = Vec::new<i32>()
     push(values, 2)
     push(values, 5)
     push(values, 9)
@@ -13,7 +13,7 @@ pub fn user_search() -> i32 {
 }
 
 pub fn user_sequence_checks() -> bool {
-    let values = Vec_new_i32()
+    let values = Vec::new<i32>()
     push(values, 4)
     push(values, 2)
     push(values, 4)

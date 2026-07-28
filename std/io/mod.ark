@@ -57,7 +57,7 @@ impl From<IoError> for String {
 ///
 /// Reader layout: `[cursor=0, b0, b1, …, bn]`
 pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
-    let r: Vec<i32> = Vec_new_i32()
+    let r: Vec<i32> = Vec::new<i32>()
     push(r, 0)
     let n: i32 = len(data)
     let mut i: i32 = 0
@@ -87,7 +87,7 @@ pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
     } else {
         available
     }
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         push(out, get_unchecked(r, 1 + cursor + i))
@@ -107,7 +107,7 @@ pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, IoError> {
         let msg2: String = __intrinsic_concat(msg, " have ")
         Err(IoError::UnexpectedEof(__intrinsic_concat(msg2, __intrinsic_i32_to_string(available))))
     } else {
-        let out: Vec<i32> = Vec_new_i32()
+        let out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = 0
         while i < n {
             push(out, get_unchecked(r, 1 + cursor + i))
@@ -156,21 +156,21 @@ pub fn reader_read_line(r: Vec<i32>) -> Result<String, IoError> {
 /// The returned Reader is always empty. Use `read_stdin_line()` for a
 /// future-compatible placeholder.
 pub fn stdin() -> Vec<i32> {
-    let r: Vec<i32> = Vec_new_i32()
+    let r: Vec<i32> = Vec::new<i32>()
     push(r, 0)
     r
 }
 
 /// Returns a Writer that emits to stdout.
 pub fn stdout() -> Vec<i32> {
-    let w: Vec<i32> = Vec_new_i32()
+    let w: Vec<i32> = Vec::new<i32>()
     push(w, 1)
     w
 }
 
 /// Returns a Writer that emits to stderr.
 pub fn stderr() -> Vec<i32> {
-    let w: Vec<i32> = Vec_new_i32()
+    let w: Vec<i32> = Vec::new<i32>()
     push(w, 2)
     w
 }
@@ -198,7 +198,7 @@ pub fn print_bytes(data: Vec<i32>) {
 // ─── Writer ──────────────────────────────────────────────────────────────────
 /// Creates an in-memory Writer.
 pub fn writer_new() -> Vec<i32> {
-    let w: Vec<i32> = Vec_new_i32()
+    let w: Vec<i32> = Vec::new<i32>()
     push(w, 0)
     w
 }
@@ -288,7 +288,7 @@ pub fn flush(w: Vec<i32>) -> Result<(), IoError> {
 ///
 /// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
 pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     let tag: i32 = get_unchecked(w, 0)
     if tag == 0 {
         let total: i32 = len(w)
@@ -307,7 +307,7 @@ pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
 /// BufReader layout: `[cursor=0, buf_cap, b0, b1, …, bn]`
 /// (The cap hint is stored but does not change in-memory behavior.)
 pub fn buf_reader_new(r: Vec<i32>, cap: i32) -> Vec<i32> {
-    let br: Vec<i32> = Vec_new_i32()
+    let br: Vec<i32> = Vec::new<i32>()
     push(br, 0)
     push(br, cap)
     let r_total: i32 = len(r) - 1
@@ -352,7 +352,7 @@ pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, IoError> {
 /// BufWriter layout: `[fd_tag, buf_cap, b0, b1, …, bn]`
 /// Auto-flushes when the buffer reaches `cap`.
 pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
-    let bw: Vec<i32> = Vec_new_i32()
+    let bw: Vec<i32> = Vec::new<i32>()
     let tag: i32 = get_unchecked(w, 0)
     push(bw, tag)
     push(bw, cap)
@@ -570,7 +570,7 @@ impl BufRead for Vec<i32> {
     fn fill_buf(self: Vec<i32>) -> Vec<i32> {
         let cursor: i32 = get_unchecked(self, 0)
         let total: i32 = len(self) - 1
-        let out: Vec<i32> = Vec_new_i32()
+        let out: Vec<i32> = Vec::new<i32>()
         let mut i: i32 = cursor
         while i < total {
             push(out, get_unchecked(self, 1 + i))
@@ -606,7 +606,7 @@ impl Seek for Vec<i32> {
 /// The buffer uses Reader layout `[cursor=0]` so it can be used as both
 /// a Read source (after writing bytes) and a Write destination.
 pub fn new_memory_buffer() -> Vec<i32> {
-    let buf: Vec<i32> = Vec_new_i32()
+    let buf: Vec<i32> = Vec::new<i32>()
     push(buf, 0)
     buf
 }
@@ -624,7 +624,7 @@ pub fn write_bytes(buf: Vec<i32>, data: Vec<i32>) -> i32 {
 ///
 /// Returns a Vec<i32> of the bytes actually read.
 pub fn read_bytes(buf: Vec<i32>, n: i32) -> Vec<i32> {
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < n {
         push(out, 0)
@@ -632,7 +632,7 @@ pub fn read_bytes(buf: Vec<i32>, n: i32) -> Vec<i32> {
     }
     let read_count: i32 = read(buf, out)
     // Trim to bytes actually read — len(out) stays at n after the prefill.
-    let trimmed: Vec<i32> = Vec_new_i32()
+    let trimmed: Vec<i32> = Vec::new<i32>()
     let mut j: i32 = 0
     while j < read_count {
         push(trimmed, get_unchecked(out, j))
@@ -673,7 +673,7 @@ pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
     // Monomorphic memory-buffer path: generic `<R: Read, W: Write>` mono still
     // emits an empty unreachable body on wasm32-gc (#807). Trait dispatch for
     // Vec buffers goes through the same Read/Write impls as before.
-    let chunk: Vec<i32> = Vec_new_i32()
+    let chunk: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < 256 {
         push(chunk, 0)
@@ -691,7 +691,7 @@ pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
         if n == 0 {
             done = true
         } else {
-            let to_write: Vec<i32> = Vec_new_i32()
+            let to_write: Vec<i32> = Vec::new<i32>()
             let mut j: i32 = 0
             while j < n {
                 push(to_write, get_unchecked(chunk, j))
@@ -714,7 +714,7 @@ pub fn copy_trait(from: Vec<i32>, to: Vec<i32>) -> i32 {
 /// Creates a FileHandle from a raw file descriptor.
 /// The fd must be obtained from std::host::fs fd helpers.
 pub fn file_from_fd(fd: i32) -> Vec<i32> {
-    let h: Vec<i32> = Vec_new_i32()
+    let h: Vec<i32> = Vec::new<i32>()
     push(h, fd)
     push(h, 0)
     h

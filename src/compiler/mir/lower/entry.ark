@@ -82,11 +82,11 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
 fn lower_program_to_mir(input: MirLowerInput) -> MirModule {
     // Callers without an export surface keep the full graph through sync.
     // Driver/session T3 paths use lower_program_to_mir_with_roots instead.
-    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec_new_String(), false)
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec::new<String>(), false)
 }
 
 fn lower_program_to_mir_no_prune(input: MirLowerInput) -> MirModule {
-    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec_new_String(), false)
+    lower_entry_input_to_mir(entry_input::mir_entry_input_from_lower_input(input), Vec::new<String>(), false)
 }
 
 fn lower_program_to_mir_with_roots(input: MirLowerInput, export_roots: Vec<String>) -> MirModule {

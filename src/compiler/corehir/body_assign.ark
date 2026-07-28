@@ -10,7 +10,7 @@ fn corehir_build_assign_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
     let target = expr_node_access::expr_child_at(node, 0)
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let mut target_name = String_new()
     if expr_node_predicates::expr_is_ident(target) {
         target_name = expr_node_access::expr_text(target)

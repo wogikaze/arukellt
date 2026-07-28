@@ -19,13 +19,13 @@ pub struct MirModule {
 
 fn MirModule_new() -> MirModule {
     MirModule {
-        functions: Vec_new_MirFunction(),
-        string_constants: Vec_new_String(),
+        functions: Vec::new<MirFunction>(),
+        string_constants: Vec::new<String>(),
         mono_pruned_count: 0,
-        gc_enum_variant_sigs: Vec_new_String(),
-        gc_enum_variant_names: Vec_new_String(),
-        gc_struct_sigs: Vec_new_String(),
-        gc_struct_names: Vec_new_String(),
+        gc_enum_variant_sigs: Vec::new<String>(),
+        gc_enum_variant_names: Vec::new<String>(),
+        gc_struct_sigs: Vec::new<String>(),
+        gc_struct_names: Vec::new<String>(),
         spine_populated: false,
         type_table: type_table::TypeTable_new(),
         signature_registry: signature_registry::SignatureRegistry_new(),

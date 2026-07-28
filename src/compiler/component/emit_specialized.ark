@@ -73,7 +73,7 @@ fn try_emit_numeric_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec
     if len(string_result_name) > 0 {
         return string_numeric::emit_i32_to_string_component(core_wasm, string_result_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn try_emit_list_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
@@ -89,7 +89,7 @@ fn try_emit_list_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     if len(list_i32_roundtrip_name) > 0 {
         return list::emit_list_i32_to_list_i32_component(core_wasm, list_i32_roundtrip_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn try_emit_option_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
@@ -117,7 +117,7 @@ fn try_emit_option_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     if len(option_i32_roundtrip_name) > 0 {
         return option::emit_option_i32_to_option_i32_component(core_wasm, option_i32_roundtrip_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn try_emit_result_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
@@ -141,7 +141,7 @@ fn try_emit_result_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     if len(result_i32_i32_roundtrip_name) > 0 {
         return result::emit_result_i32_i32_to_result_i32_i32_component(core_wasm, result_i32_i32_roundtrip_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
@@ -156,7 +156,7 @@ fn try_emit_shape_component(core_wasm: Vec<i32>, mir: MirModule, export_names: V
     if len(shape_to_shape_name) > 0 {
         return shape::emit_shape_roundtrip_component(core_wasm, shape_to_shape_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn try_emit_tuple_or_numeric_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
@@ -208,7 +208,7 @@ fn try_emit_tuple_or_numeric_component(core_wasm: Vec<i32>, mir: MirModule) -> V
     if len(f32_unary_name) > 0 {
         return numeric::emit_f32_unary_component(core_wasm, f32_unary_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn comp_single_shape_to_f64_export_name(mir: MirModule) -> String {

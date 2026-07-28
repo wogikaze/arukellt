@@ -21,9 +21,9 @@ fn mvt_copy(vt: MirValueType) -> MirValueType {
 
 fn result_types_from_legacy_vt(val_type: i32) -> Vec<MirValueType> {
     if val_type == value_types::VT_VOID() {
-        return Vec_new_MirValueType()
+        return Vec::new<MirValueType>()
     }
-    let result = Vec_new_MirValueType()
+    let result = Vec::new<MirValueType>()
     push(result, mvt_from_legacy_vt(val_type, String_new()))
     result
 }

@@ -6,8 +6,8 @@ use corehir::layout_field
 use corehir::layout_variant
 
 fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
-    let fields = Vec_new_CoreHirLayoutField()
-    let variants = Vec_new_CoreHirLayoutVariant()
+    let fields = Vec::new<CoreHirLayoutField>()
+    let variants = Vec::new<CoreHirLayoutVariant>()
     let field_count = decl_layout_shape::decl_layout_field_count(decl)
     let mut i = 0
     while i < field_count {
@@ -19,8 +19,8 @@ fn build_struct_layout(decl: AstNode) -> CoreHirLayoutDecl {
 }
 
 fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
-    let payload_types = Vec_new_String()
-    let payload_field_names = Vec_new_String()
+    let payload_types = Vec::new<String>()
+    let payload_field_names = Vec::new<String>()
     let payload_count = decl_layout_shape::decl_layout_member_type_ann_count(variant)
     let mut i = 0
     while i < payload_count {
@@ -46,8 +46,8 @@ fn build_variant_layout(variant: AstNode) -> CoreHirLayoutVariant {
 }
 
 fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
-    let fields = Vec_new_CoreHirLayoutField()
-    let variants = Vec_new_CoreHirLayoutVariant()
+    let fields = Vec::new<CoreHirLayoutField>()
+    let variants = Vec::new<CoreHirLayoutVariant>()
     let variant_count = decl_layout_shape::decl_layout_variant_count(decl)
     let mut i = 0
     while i < variant_count {
@@ -58,7 +58,7 @@ fn build_enum_layout(decl: AstNode) -> CoreHirLayoutDecl {
 }
 
 fn build_layout_decls(decls: Vec<AstNode>) -> Vec<CoreHirLayoutDecl> {
-    let layouts = Vec_new_CoreHirLayoutDecl()
+    let layouts = Vec::new<CoreHirLayoutDecl>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {

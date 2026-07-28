@@ -32,8 +32,8 @@ fn component_export_plan_push(export_names: Vec<String>, export_indices: Vec<i32
 fn collect_component_exports(mir: MirModule) -> ComponentExportPlan {
     let fn_count = module_functions::MirModule_function_count(mir)
     let mut export_count = 0
-    let mut export_names: Vec<String> = Vec_new_String()
-    let mut export_indices: Vec<i32> = Vec_new_i32()
+    let mut export_names: Vec<String> = Vec::new<String>()
+    let mut export_indices: Vec<i32> = Vec::new<i32>()
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)

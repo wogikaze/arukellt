@@ -237,7 +237,7 @@ fn gc_payload_promote_vt(ctx: LowerCtx, local_idx: i32, vt: i32, type_name: Stri
 }
 
 fn gc_payload_vts_with_first(payload_vts: Vec<i32>, first_vt: i32) -> Vec<i32> {
-    let result = Vec_new_i32()
+    let result = Vec::new<i32>()
     push(result, first_vt)
     let mut i = 1
     while i < len(payload_vts) {

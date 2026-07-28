@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let mut v: Vec<i64> = Vec_new_i64()
+    let mut v: Vec<i64> = Vec::new<i64>()
     let a: i64 = 100
     let b: i64 = 200
     push(v, a)

@@ -20,7 +20,7 @@ fn ComposeWitWorld_new(imports: Vec<ComposeWitFuncSig>, exports: Vec<ComposeWitF
 }
 
 fn ComposeWitWorld_empty() -> ComposeWitWorld {
-    ComposeWitWorld_new(Vec_new_ComposeWitFuncSig(), Vec_new_ComposeWitFuncSig())
+    ComposeWitWorld_new(Vec::new<ComposeWitFuncSig>(), Vec::new<ComposeWitFuncSig>())
 }
 
 fn compose_wit_sidecar_for_wasm(wasm_path: String) -> String {
@@ -36,7 +36,7 @@ fn compose_wit_normalize_sig(sig: String) -> String {
 }
 
 fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFuncSig> {
-    let funcs = Vec_new_ComposeWitFuncSig()
+    let funcs = Vec::new<ComposeWitFuncSig>()
     let key_len = len(keyword)
     let mut pos = 0
     while pos < len(text) {

@@ -92,7 +92,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
 }
 
 pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String, project_root: String) -> Vec<String> {
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     let paths = module_import_paths::collect_import_paths(decls)
     let n = len(paths)
     let mut i = 0
@@ -155,7 +155,7 @@ fn index_file_at_path(state: LspState, file_path: String) {
 }
 
 fn index_import_graph_from(state: LspState, start_path: String, project_root: String) {
-    let pending = pending_push_unique(Vec_new_String(), clone(start_path))
+    let pending = pending_push_unique(Vec::new<String>(), clone(start_path))
     let root_dir = module_package_root::find_package_root(clone(project_root))
     let mut pos = 0
     while pos < len(pending) {

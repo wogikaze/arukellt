@@ -314,7 +314,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_ok(JsonValue::Str(inner), end)
     }
     if c == 91 {
-        let arr = Vec_new_JsonValue()
+        let arr = Vec::new<JsonValue>()
         let mut i = skip_ws(s, pos + 1)
         while i < n {
             i = skip_ws(s, i)
@@ -334,7 +334,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
-        let fields = Vec_new_JsonField()
+        let fields = Vec::new<JsonField>()
         let mut i = skip_ws(s, pos + 1)
         while i < n {
             i = skip_ws(s, i)
@@ -720,7 +720,7 @@ pub fn json_as_array(v: JsonValue) -> Option<Vec<JsonValue>> {
     if !is_array(v) {
         return None
     }
-    let array_items = Vec_new_JsonValue()
+    let array_items = Vec::new<JsonValue>()
     let mut index = 0
     let mut finished = false
     while !finished {
@@ -800,12 +800,12 @@ pub fn json_raw(s: String) -> JsonValue {
 
 /// Create an empty JsonField vector.
 pub fn json_obj_new() -> Vec<JsonField> {
-    Vec_new_JsonField()
+    Vec::new<JsonField>()
 }
 
 /// Create an empty JsonValue array vector.
 pub fn json_arr_new() -> Vec<JsonValue> {
-    Vec_new_JsonValue()
+    Vec::new<JsonValue>()
 }
 
 /// Build a JSON object string from a Vec<JsonField>.

@@ -12,7 +12,7 @@ pub fn handle_workspace_symbol(state: LspState, body: String) {
     let id = json::json_get_int(clone(body), String_from("id"))
     let query = json::json_get_str(clone(body), String_from("query"))
     let matches = symbol_index::symbol_index_search_query(state, clone(query))
-    let source_texts = Vec_new_String()
+    let source_texts = Vec::new<String>()
     let mn = len(matches)
     let mut mi = 0
     while mi < mn {

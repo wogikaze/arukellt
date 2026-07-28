@@ -212,7 +212,7 @@ fn lib_comp_any_export_needs_adapter(mir: MirModule) -> bool {
 }
 
 fn lib_comp_build_adapter_funcs(mir: MirModule) -> Vec<i32> {
-    let funcs = Vec_new_i32()
+    let funcs = Vec::new<i32>()
     let fn_count = module_functions::MirModule_function_count(mir)
     let mut mi = 0
     while mi < fn_count {
@@ -587,7 +587,7 @@ fn lib_comp_emit_type_export_alias(exp: writer_core::WasmWriter, name: String, d
 
 fn lib_comp_wit_pool_aliases(needed: Vec<i32>, defined_count: i32) -> Vec<i32> {
     let slot_count = component_string_adapter::WIT_SLOT_COUNT()
-    let pool = Vec_new_i32()
+    let pool = Vec::new<i32>()
     let mut slot = 0
     while slot < slot_count {
         let mut alias = 0 - 1
@@ -608,7 +608,7 @@ fn lib_comp_wit_pool_aliases(needed: Vec<i32>, defined_count: i32) -> Vec<i32> {
 fn lib_comp_emit_adapter_type_section(out: writer_core::WasmWriter, mir: MirModule, adapter_indices: Vec<i32>) {
     let n = len(adapter_indices)
     let slot_count = component_string_adapter::WIT_SLOT_COUNT()
-    let needed = Vec_new_i32()
+    let needed = Vec::new<i32>()
     let mut slot = 0
     while slot < slot_count {
         if lib_comp_adapter_needs_slot(mir, adapter_indices, slot) {

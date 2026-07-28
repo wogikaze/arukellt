@@ -40,7 +40,7 @@ fn next_token(lex: Lexer) -> Token {
 
 fn tokenize(source: String) -> Vec<Token> {
     let mut lex = Lexer_new(source)
-    let mut tokens: Vec<Token> = Vec_new_Token()
+    let mut tokens: Vec<Token> = Vec::new<Token>()
     let mut done = false
     while !done {
         let tok = next_token(lex)

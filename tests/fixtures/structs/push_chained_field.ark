@@ -17,7 +17,7 @@ struct Context {
 }
 
 fn main() {
-    let ctx = Context { container: Container { items: Vec_new_Item() }, current: Item { name: String_from("first"), value: 10 } }
+    let ctx = Context { container: Container { items: Vec::new<Item>() }, current: Item { name: String_from("first"), value: 10 } }
     stdio::println((len(ctx.container.items)).to_string())
     push(ctx.container.items, ctx.current)
     stdio::println((len(ctx.container.items)).to_string())

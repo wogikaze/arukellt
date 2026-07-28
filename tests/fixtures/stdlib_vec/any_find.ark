@@ -9,7 +9,7 @@ fn is_negative(x: i32) -> bool {
 }
 
 fn main() {
-    let v = Vec_new_i32()
+    let v = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
@@ -23,7 +23,7 @@ fn main() {
         None => panic("expected Some, got None"),
     }
 
-    let empty = Vec_new_i32()
+    let empty = Vec::new<i32>()
     let any_empty: bool = any_i32(empty, is_even)
     test::assert_false(any_empty)
 

@@ -16,9 +16,9 @@ fn name_index_capacity(expected_entries: i32) -> i32 {
 
 pub fn NameIndex_new(expected_entries: i32) -> NameIndex {
     let capacity = name_index_capacity(expected_entries)
-    let buckets = Vec_new_i32()
-    let keys = Vec_new_String()
-    let values = Vec_new_i32()
+    let buckets = Vec::new<i32>()
+    let keys = Vec::new<String>()
+    let values = Vec::new<i32>()
     let mut i = 0
     while i < capacity {
         push(buckets, 0)

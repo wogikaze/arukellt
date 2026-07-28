@@ -258,8 +258,8 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
         return NativeCEmitResult_err(capability_error)
     }
     let mut source = "#include <stdint.h>\n\n"
-    let seen_symbols = Vec_new_String()
-    let seen_owners = Vec_new_String()
+    let seen_symbols = Vec::new<String>()
+    let seen_owners = Vec::new<String>()
     let mut main_symbol = String_new()
     let function_count = module_functions::MirModule_function_count(mir_module)
     let mut function_index = 0

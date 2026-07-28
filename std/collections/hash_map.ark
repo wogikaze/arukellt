@@ -150,7 +150,7 @@ pub fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
 
 /// Create a new HashSet<String>.
 pub fn hashset_str_new() -> Vec<String> {
-    Vec_new_String()
+    Vec::new<String>()
 }
 
 /// Insert a value into a HashSet<String>. Returns true if the value was newly inserted.

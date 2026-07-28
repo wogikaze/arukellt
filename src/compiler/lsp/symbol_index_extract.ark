@@ -109,7 +109,7 @@ fn push_impl_methods(out: Vec<symbol_index_record::IndexedSymbol>, uri: String, 
 }
 
 pub fn extract_symbols_from_decls(uri: String, decls: Vec<AstNode>) -> Vec<symbol_index_record::IndexedSymbol> {
-    let out = Vec_new_IndexedSymbol()
+    let out = Vec::new<IndexedSymbol>()
     let n = len(decls)
     let mut i = 0
     while i < n {

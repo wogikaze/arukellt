@@ -98,7 +98,7 @@ fn build_type_section_plan(
 }
 
 fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
-    let mut host_type_map = Vec_new_i32()
+    let mut host_type_map = Vec::new<i32>()
     let mut wti = 0
     while wti < num_host_types {
         push(host_type_map, get_unchecked(type_map, wti))
@@ -108,7 +108,7 @@ fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
 }
 
 fn build_function_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_type_count: i32, fn_count: i32) -> Vec<i32> {
-    let mut fn_type_map = Vec_new_i32()
+    let mut fn_type_map = Vec::new<i32>()
     let mut fti = 0
     while fti < fn_count {
         push(fn_type_map, get_unchecked(type_map, fti + num_host_types + wit_import_count + gc_type_count))
@@ -118,7 +118,7 @@ fn build_function_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_c
 }
 
 fn build_wit_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32) -> Vec<i32> {
-    let mut wit_type_map = Vec_new_i32()
+    let mut wit_type_map = Vec::new<i32>()
     let mut wti = 0
     while wti < wit_import_count {
         push(wit_type_map, get_unchecked(type_map, num_host_types + wti))
@@ -136,7 +136,7 @@ fn wrapper_type_index(type_map: Vec<i32>, num_host_types: i32, wit_import_count:
 
 fn type_sig_param_segments(csig: String) -> Vec<String> {
     let sig_len = len(csig)
-    let mut param_segments = Vec_new_String()
+    let mut param_segments = Vec::new<String>()
     let mut seg_start = 0
     let mut si = 0
     while si < sig_len {

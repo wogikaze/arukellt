@@ -6,7 +6,7 @@ struct RefIndex {
 }
 
 fn RefIndex_new() -> RefIndex {
-    RefIndex { decl_sites: Vec_new_DeclSite(), use_sites: Vec_new_UseSite() }
+    RefIndex { decl_sites: Vec::new<DeclSite>(), use_sites: Vec::new<UseSite>() }
 }
 
 fn ref_index_push_decl(index: RefIndex, decl_index: i32, start: i32, end: i32, name: String) {

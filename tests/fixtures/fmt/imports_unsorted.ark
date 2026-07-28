@@ -2,6 +2,6 @@ use std::collections::vec as v
 use std::host::stdio
 
 fn main() {
-    v::Vec_new_i32()
+    v::Vec::new<i32>()
     stdio::println("imports")
 }

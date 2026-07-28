@@ -574,7 +574,7 @@ fn toml_parse_value_at(s: String, pos: i32) -> TomlValStep {
 /// Parse an array. `pos` is just after the opening `[`.
 fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
     let n = len(s)
-    let arr = Vec_new_TomlValue()
+    let arr = Vec::new<TomlValue>()
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
         if char_at(s, i) == 93 {
@@ -608,7 +608,7 @@ fn toml_parse_array_at(s: String, pos: i32) -> TomlValStep {
 /// Parse an inline table. `pos` is just after the opening `{`.
 fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
     let n = len(s)
-    let fields = Vec_new_TomlField()
+    let fields = Vec::new<TomlField>()
     let mut i = toml_skip_ws_nl_comments(s, pos)
     while i < n {
         if char_at(s, i) == 125 {
@@ -658,7 +658,7 @@ fn toml_parse_inline_table_at(s: String, pos: i32) -> TomlValStep {
 /// position after the key.
 fn toml_parse_key_at(s: String, pos: i32) -> TomlKeyStep {
     let n = len(s)
-    let parts = Vec_new_String()
+    let parts = Vec::new<String>()
     let mut i = toml_skip_inline_ws(s, pos)
     while i < n {
         let c = char_at(s, i)
@@ -782,7 +782,7 @@ fn toml_navigate_table_count(root: Vec<TomlField>, path: Vec<String>, count: i32
                 _ => return Err(concat("key exists as non-table: ", seg)),
             }
         } else {
-            let new_fields = Vec_new_TomlField()
+            let new_fields = Vec::new<TomlField>()
             push(current, TomlField { key: seg, value: TomlValue::Table(new_fields) })
             current = new_fields
         }
@@ -813,15 +813,15 @@ fn toml_append_array_table(root: Vec<TomlField>, path: Vec<String>) -> Result<Ve
         let f = get_unchecked(parent, idx)
         match f.value {
             TomlValue::Array(arr) => {
-                let new_fields = Vec_new_TomlField()
+                let new_fields = Vec::new<TomlField>()
                 push(arr, TomlValue::Table(new_fields))
                 Ok(new_fields)
             },
             _ => Err(concat("key exists as non-array: ", last_seg)),
         }
     } else {
-        let arr = Vec_new_TomlValue()
-        let new_fields = Vec_new_TomlField()
+        let arr = Vec::new<TomlValue>()
+        let new_fields = Vec::new<TomlField>()
         push(arr, TomlValue::Table(new_fields))
         push(parent, TomlField { key: last_seg, value: TomlValue::Array(arr) })
         Ok(new_fields)
@@ -855,7 +855,7 @@ fn toml_insert_key(fields: Vec<TomlField>, key_path: Vec<String>, value: TomlVal
 /// Malformed input is rejected with `Err(String)`.
 pub fn toml_parse(s: String) -> Result<TomlValue, String> {
     let n = len(s)
-    let root = Vec_new_TomlField()
+    let root = Vec::new<TomlField>()
     let mut current = root
     let mut i = 0
     while i < n {
@@ -1034,7 +1034,7 @@ pub fn toml_get(v: TomlValue, key: String) -> Option<TomlValue> {
 }
 
 pub fn toml_table_keys(v: TomlValue) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     match v {
         TomlValue::Table(fields) => {
             let n = len(fields)

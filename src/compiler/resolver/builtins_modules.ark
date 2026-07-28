@@ -1,5 +1,5 @@
 fn resolver_builtin_module_names() -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, "stdio")
     push(names, "fs")
     push(names, "process")

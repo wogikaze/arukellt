@@ -15,7 +15,7 @@ struct Outer {
 }
 
 fn make_inner(n: String) -> Inner {
-    Inner { name: n, items: Vec_new_i32(), count: 0 }
+    Inner { name: n, items: Vec::new<i32>(), count: 0 }
 }
 
 fn main() {

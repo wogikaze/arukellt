@@ -17,7 +17,7 @@ fn mir_emit_struct_iterator_payload(ctx: LowerCtx, opt_local: i32, iter_var: i32
             type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Some")
         }
         if type_slot < 0 {
-            let payload_vts = Vec_new_i32()
+            let payload_vts = Vec::new<i32>()
             push(payload_vts, value_types::VT_I32())
             type_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant(ctx, "Option::Some", payload_vts)
         }

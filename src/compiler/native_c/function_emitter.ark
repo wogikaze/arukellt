@@ -37,15 +37,15 @@ struct NativeCFunctionEmitState {
 
 fn native_c_function_state_new() -> NativeCFunctionEmitState {
     NativeCFunctionEmitState {
-        temporary_declarations: Vec_new_i32(),
-        source: Vec_new_i32(),
+        temporary_declarations: Vec::new<i32>(),
+        source: Vec::new<i32>(),
         diagnostic: String_new(),
-        reference_locals: Vec_new_i32(),
-        value_stack: Vec_new_i32(),
-        control_kinds: Vec_new_i32(),
-        control_ids: Vec_new_i32(),
-        control_stack_depths: Vec_new_i32(),
-        control_has_else: Vec_new_i32(),
+        reference_locals: Vec::new<i32>(),
+        value_stack: Vec::new<i32>(),
+        control_kinds: Vec::new<i32>(),
+        control_ids: Vec::new<i32>(),
+        control_stack_depths: Vec::new<i32>(),
+        control_has_else: Vec::new<i32>(),
         next_control_id: 0,
         next_temporary_id: 0,
         is_unreachable: false,
@@ -58,7 +58,7 @@ fn native_c_function_emit_success(state: NativeCFunctionEmitState) -> bool {
 }
 
 fn native_c_function_emit_source(state: NativeCFunctionEmitState) -> String {
-    let bytes = Vec_new_i32()
+    let bytes = Vec::new<i32>()
     let mut index = 0
     while index < len(state.temporary_declarations) {
         push(bytes, get_unchecked(state.temporary_declarations, index))
@@ -727,7 +727,7 @@ fn native_c_emit_call(
         return true
     }
     let first_argument = len(state.value_stack) - argument_count
-    let arguments = Vec_new_i32()
+    let arguments = Vec::new<i32>()
     let mut argument_index = 0
     while argument_index < argument_count {
         let argument_local = get_unchecked(state.value_stack, first_argument + argument_index)
@@ -989,7 +989,7 @@ fn native_c_emit_local_declarations(
         )
         parameter_index = parameter_index + 1
     }
-    let reference_producers = Vec_new_i32()
+    let reference_producers = Vec::new<i32>()
     let mut producer_index = 0
     while producer_index < local_count {
         let producer_local = function_locals_view::MirFunction_local_at(function, producer_index)

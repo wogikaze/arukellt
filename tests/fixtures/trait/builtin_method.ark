@@ -12,7 +12,7 @@ fn main() {
     stdio::println(n.to_string())
 
     // Vec methods (approach (b) — compiler-internal fallback mapping)
-    let v = Vec_new_i32()
+    let v = Vec::new<i32>()
     v.push(10)
     v.push(20)
     v.push(30)

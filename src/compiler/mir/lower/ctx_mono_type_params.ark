@@ -52,8 +52,8 @@ fn ctx_set_mono_type_params(ctx: LowerCtx, names: Vec<String>, types: Vec<String
 }
 
 fn ctx_clear_mono_type_params(ctx: LowerCtx) {
-    ctx.mono_type_param_names = Vec_new_String()
-    ctx.mono_type_param_types = Vec_new_String()
+    ctx.mono_type_param_names = Vec::new<String>()
+    ctx.mono_type_param_types = Vec::new<String>()
 }
 
 fn ctx_resolve_mono_type_param(ctx: LowerCtx, type_var_name: String) -> String {
@@ -76,7 +76,7 @@ fn ctx_has_mono_type_params(ctx: LowerCtx) -> bool {
 // current function's local type names, in order of local index.
 // Returns a deduplicated ordered list.
 fn ctx_collect_type_var_names(ctx: LowerCtx) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let local_count = function_locals_view::MirFunction_local_count(func)
     let mut i = 0
@@ -160,8 +160,8 @@ fn ctx_setup_mono_type_params_by_ordinal(ctx: LowerCtx, mangled_name: String) {
         let safe_mangled = mono_names::mono_safe_name(inst_mangled)
         if eq(clone(safe_mangled), clone(mangled_name)) {
             let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
-            let names = Vec_new_String()
-            let types = Vec_new_String()
+            let names = Vec::new<String>()
+            let types = Vec::new<String>()
             let mut j = 0
             while j < arg_count && j < len(type_var_names) {
                 let ty = type_contracts::MonoInstance_type_arg_at(inst, j)

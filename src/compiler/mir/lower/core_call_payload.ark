@@ -15,8 +15,8 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
     if var_tag < 0 || child_count <= 1 {
         return 0 - 2
     }
-    let mut payload_locals = Vec_new_i32()
-    let mut payload_vts = Vec_new_i32()
+    let mut payload_locals = Vec::new<i32>()
+    let mut payload_vts = Vec::new<i32>()
     let struct_bytes = ctx_struct_byte_size(ctx, clone(variant_name))
     let mut total_bytes = 4
     let mut pa = 1

@@ -3,7 +3,7 @@ use parser::core_ast_factory
 use parser::core_ast_children
 
 fn build_synthetic_param_names(param_count: i32) -> Vec<String> {
-    let param_names = Vec_new_String()
+    let param_names = Vec::new<String>()
     let mut pi = 0
     while pi < param_count {
         push(param_names, concat("__arg", to_string(pi)))

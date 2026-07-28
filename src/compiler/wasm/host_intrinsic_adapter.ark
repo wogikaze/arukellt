@@ -110,8 +110,8 @@ fn host_intrinsic_is_network_adapter_name(name: String) -> bool {
 // implemented.
 fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
     let abi = host_intrinsic_abi_kind(clone(name))
-    let returns = Vec_new_MirValueType()
-    let boundary_returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
+    let boundary_returns = Vec::new<MirValueType>()
     let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     if abi == kinds::HOST_ABI_GC_REF() || abi == kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
@@ -128,9 +128,9 @@ fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
     host_intrinsic_spec::HostIntrinsicSpec_new(
         name,
         abi,
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
         returns,
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
         boundary_returns,
         32,
         0 - 1,

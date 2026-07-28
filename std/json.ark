@@ -233,7 +233,7 @@ fn json_read_hex4(s: String, pos: i32) -> i32 {
 
 /// Encode a Unicode code point as UTF-8 bytes in a `String`.
 fn json_codepoint_to_utf8(cp: i32) -> String {
-    let bytes = Vec_new_i32()
+    let bytes = Vec::new<i32>()
     if cp < 128 {
         push(bytes, cp)
     } else if cp < 2048 {

@@ -1,5 +1,5 @@
 fn split_mono_suffix(suffix: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let slen = len(suffix)
     let mut start = 0
     let mut i = 0
@@ -46,7 +46,7 @@ fn extract_first_type_var(rest: String) -> String {
 
 fn extract_mono_suffix(fn_name: String) -> String {
     let name_len = len(fn_name)
-    let sep_positions = Vec_new_i32()
+    let sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
         if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {

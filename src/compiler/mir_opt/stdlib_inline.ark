@@ -32,7 +32,7 @@ fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
 }
 
 fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec_new_MirInst()
+    let output = Vec::new<MirInst>()
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut inlined = 0
     let mut index = 0
@@ -151,7 +151,7 @@ fn stdlib_specialize_vec_fallback(
 }
 
 fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec_new_MirInst()
+    let output = Vec::new<MirInst>()
     let registry = module_spine::MirModule_signature_registry(m)
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut resolved = 0

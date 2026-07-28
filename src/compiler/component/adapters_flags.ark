@@ -19,13 +19,13 @@ fn comp_emit_flags_lower_adapter_sections(out: writer_core::ComponentWriter, imp
 fn comp_emit_flags_lower_type_section(out: writer_core::ComponentWriter) {
     let type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(type_sec, 2)
-    let guest_params = Vec_new_i32()
+    let guest_params = Vec::new<i32>()
     push(guest_params, 0x7f)
-    let guest_results = Vec_new_i32()
+    let guest_results = Vec::new<i32>()
     sections::comp_emit_core_func_type(type_sec, guest_params, guest_results)
-    let host_params = Vec_new_i32()
+    let host_params = Vec::new<i32>()
     push(host_params, 0x7f)
-    let host_results = Vec_new_i32()
+    let host_results = Vec::new<i32>()
     sections::comp_emit_core_func_type(type_sec, host_params, host_results)
     sections::comp_emit_wasm_section(out, 1, type_sec)
 }

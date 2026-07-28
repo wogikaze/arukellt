@@ -6,7 +6,7 @@
 //!
 //! All APIs are Experimental and may change in v4+.
 pub fn wasm_magic() -> Vec<i32> {
-    let b: Vec<i32> = Vec_new_i32()
+    let b: Vec<i32> = Vec::new<i32>()
     push(b, 0)
     push(b, 97)
     push(b, 115)
@@ -15,7 +15,7 @@ pub fn wasm_magic() -> Vec<i32> {
 }
 
 pub fn wasm_version() -> Vec<i32> {
-    let b: Vec<i32> = Vec_new_i32()
+    let b: Vec<i32> = Vec::new<i32>()
     push(b, 1)
     push(b, 0)
     push(b, 0)
@@ -131,7 +131,7 @@ pub fn reftype_externref() -> i32 {
 //
 // functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32>
 pub fn functype_new(params: Vec<i32>, results: Vec<i32>) -> Vec<i32> {
-    let ft: Vec<i32> = Vec_new_i32()
+    let ft: Vec<i32> = Vec::new<i32>()
     let plen: i32 = len(params)
     push(ft, plen)
     let mut pi: i32 = 0
@@ -172,7 +172,7 @@ pub fn functype_get_result(ft: Vec<i32>, idx: i32) -> i32 {
 // Backed by Vec<i32>.
 // Layout: [min, has_max, max]
 pub fn limits_unbounded(min: i32) -> Vec<i32> {
-    let l: Vec<i32> = Vec_new_i32()
+    let l: Vec<i32> = Vec::new<i32>()
     push(l, min)
     push(l, 0)
     push(l, 0)
@@ -180,7 +180,7 @@ pub fn limits_unbounded(min: i32) -> Vec<i32> {
 }
 
 pub fn limits_bounded(min: i32, max: i32) -> Vec<i32> {
-    let l: Vec<i32> = Vec_new_i32()
+    let l: Vec<i32> = Vec::new<i32>()
     push(l, min)
     push(l, 1)
     push(l, max)
@@ -206,7 +206,7 @@ pub fn limits_max(l: Vec<i32>) -> i32 {
 //
 // State Vec<i32> layout: [func_type_count, func_count, mem_count, export_count]
 pub fn module_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     push(m, 0)
     push(m, 0)
@@ -256,7 +256,7 @@ pub fn module_export_count(m: Vec<i32>) -> i32 {
 /// Encode the module to a Wasm binary header (magic + version).
 /// Full section encoding is a v4 task; this stub returns a valid 8-byte header.
 pub fn module_encode_header() -> Vec<i32> {
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     push(out, 0)
     push(out, 97)
     push(out, 115)
@@ -271,7 +271,7 @@ pub fn module_encode_header() -> Vec<i32> {
 // --- LEB128 encoding ---
 /// Encode a u32 as unsigned LEB128. Returns Vec<i32> of bytes.
 pub fn leb128_encode_u32(x: i32) -> Vec<i32> {
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     let mut val: i32 = x
     let mut done: bool = false
     while done == false {

@@ -85,7 +85,7 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
     if arg_count <= 0 {
         return ty
     }
-    let result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec_new_TypeInfo())
+    let result = type_contracts::TypeInfo_new(tag, type_contracts::TypeInfo_name(ty), Vec::new<TypeInfo>())
     let mut ai = 0
     while ai < arg_count {
         let arg = type_contracts::TypeInfo_type_arg_at(ty, ai)

@@ -82,10 +82,10 @@ fn count_same_path(paths: Vec<String>, path: String) -> i32 {
 }
 
 pub fn check_prefer_use_import(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec_new_Diagnostic()
-    let paths = Vec_new_String()
-    let starts = Vec_new_i32()
-    let ends = Vec_new_i32()
+    let warnings = Vec::new<Diagnostic>()
+    let paths = Vec::new<String>()
+    let starts = Vec::new<i32>()
+    let ends = Vec::new<i32>()
     let dn = len(decls)
     let mut di = 0
     while di < dn {

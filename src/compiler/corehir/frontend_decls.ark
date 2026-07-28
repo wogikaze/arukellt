@@ -4,7 +4,7 @@ use corehir::decl_node
 use corehir::decl_info
 
 fn build_decl_infos(decls: Vec<AstNode>) -> Vec<CoreHirDeclInfo> {
-    let infos = Vec_new_CoreHirDeclInfo()
+    let infos = Vec::new<CoreHirDeclInfo>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {

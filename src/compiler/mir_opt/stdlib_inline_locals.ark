@@ -5,7 +5,7 @@ use mir::local_access
 use mir::local_factory
 
 fn stdlib_inline_build_local_map(caller: MirFunction, callee: MirFunction) -> Vec<i32> {
-    let local_map = Vec_new_i32()
+    let local_map = Vec::new<i32>()
     let count = function_locals_view::MirFunction_local_count(callee)
     let mut index = 0
     while index < count {

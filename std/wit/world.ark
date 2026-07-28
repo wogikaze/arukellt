@@ -22,8 +22,8 @@ pub struct World {
 pub fn world_new(name: String) -> World {
     World {
         name: name,
-        imports: Vec_new_Interface(),
-        exports: Vec_new_Interface(),
+        imports: Vec::new<Interface>(),
+        exports: Vec::new<Interface>(),
     }
 }
 
@@ -36,7 +36,7 @@ pub fn world_export(w: World, iface: Interface) {
 }
 
 pub fn interface_new(name: String) -> Interface {
-    Interface { name: name, functions: Vec_new_WitFunc() }
+    Interface { name: name, functions: Vec::new<WitFunc>() }
 }
 
 pub fn interface_add_func(iface: Interface, func: WitFunc) {

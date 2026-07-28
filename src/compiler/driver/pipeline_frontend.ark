@@ -66,7 +66,7 @@ fn DriverFrontendResult_new(should_return: bool, result: CompileResult, decls: V
 }
 
 fn frontend_stop(result: CompileResult, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {
-    DriverFrontendResult_new(true, result, Vec_new_AstNode(), t0, t_lex, t_parse)
+    DriverFrontendResult_new(true, result, Vec::new<AstNode>(), t0, t_lex, t_parse)
 }
 
 fn frontend_continue(decls: Vec<AstNode>, t0: i64, t_lex: i64, t_parse: i64) -> DriverFrontendResult {

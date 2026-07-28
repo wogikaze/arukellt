@@ -7,7 +7,7 @@ struct LoadState {
 }
 
 pub fn LoadState_new() -> LoadState {
-    LoadState { loaded_names: Vec_new_String(), loading_stack: Vec_new_String(), modules: Vec_new_ModuleDecls(), errors: Vec_new_String(), cache_dir: String_new() }
+    LoadState { loaded_names: Vec::new<String>(), loading_stack: Vec::new<String>(), modules: Vec::new<ModuleDecls>(), errors: Vec::new<String>(), cache_dir: String_new() }
 }
 
 pub fn LoadState_cache_dir(state: LoadState) -> String {

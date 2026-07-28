@@ -5,7 +5,7 @@ struct CoreHirBodyTable {
 }
 
 fn CoreHirBodyTable_new() -> CoreHirBodyTable {
-    CoreHirBodyTable { exprs: Vec_new_CoreHirExpr(), fn_body_roots: Vec_new_i32(), method_body_roots: Vec_new_i32() }
+    CoreHirBodyTable { exprs: Vec::new<CoreHirExpr>(), fn_body_roots: Vec::new<i32>(), method_body_roots: Vec::new<i32>() }
 }
 
 fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {

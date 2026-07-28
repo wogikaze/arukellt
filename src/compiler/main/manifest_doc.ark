@@ -19,7 +19,7 @@ fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
         Result::Err(e) => {
             stdio::eprintln(concat("error: could not load stdlib manifest: ", e))
             process::exit(1)
-            manifest_doc_record::DocManifestTable_new(Vec_new_DocFnEntry(), Vec_new_DocModuleEntry())
+            manifest_doc_record::DocManifestTable_new(Vec::new<DocFnEntry>(), Vec::new<DocModuleEntry>())
         },
     }
 }

@@ -58,9 +58,9 @@ fn collect_nested_else_if(node: AstNode, starts: Vec<i32>, ends: Vec<i32>) {
 }
 
 pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec_new_Diagnostic()
-    let starts = Vec_new_i32()
-    let ends = Vec_new_i32()
+    let warnings = Vec::new<Diagnostic>()
+    let starts = Vec::new<i32>()
+    let ends = Vec::new<i32>()
     let dn = len(decls)
     let mut di = 0
     while di < dn {

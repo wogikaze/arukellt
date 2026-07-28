@@ -9,7 +9,7 @@ use lint::checks as lint_checks
 use lint::registry as lint_registry
 
 fn local_filter_allowed(warnings: Vec<Diagnostic>, allow_codes: Vec<String>) -> Vec<Diagnostic> {
-    let filtered = Vec_new_Diagnostic()
+    let filtered = Vec::new<Diagnostic>()
     let count = len(warnings)
     let mut i = 0
     while i < count {
@@ -50,14 +50,14 @@ pub fn run_local_lint_stage(source: String, config: DriverConfig, decls: Vec<Ast
     let allow_codes = config_record::config_lint_allow(config)
     let deny_codes = config_record::config_lint_deny(config)
     let filtered = local_filter_allowed(lint_warnings, allow_codes)
-    let denied = Vec_new_Diagnostic()
-    let kept = Vec_new_Diagnostic()
+    let denied = Vec::new<Diagnostic>()
+    let kept = Vec::new<Diagnostic>()
     local_partition_deny(filtered, deny_codes, denied, kept)
     if len(denied) > 0 {
-        let all = Vec_new_Diagnostic()
+        let all = Vec::new<Diagnostic>()
         vec_extend::Vec_extend_Diagnostic(all, denied)
         vec_extend::Vec_extend_Diagnostic(all, kept)
-        return errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec_new_String())
+        return errors::type_errors_result(clone(source), config_record::config_source_file(config), len(denied), all, Vec::new<String>())
     }
     if len(kept) > 0 {
         return errors::type_warnings_result(clone(source), config_record::config_source_file(config), kept)

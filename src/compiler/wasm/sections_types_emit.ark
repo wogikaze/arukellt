@@ -140,7 +140,7 @@ fn emit_struct_field_type(
 }
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
-    let mut fields = Vec_new_String()
+    let mut fields = Vec::new<String>()
     let sig_len = len(sig)
     let mut si = 0
     while si < sig_len {

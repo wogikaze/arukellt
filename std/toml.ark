@@ -141,7 +141,7 @@ pub fn toml_find_raw_value(content: String, key: String) -> String {
 
 /// Parse a TOML array string like `["W0006", "unused-import"]` into a Vec<String>.
 pub fn toml_parse_string_array(raw: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let raw_len = len(raw)
     if raw_len == 0 {
         return result

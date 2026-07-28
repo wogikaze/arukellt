@@ -81,7 +81,7 @@ fn SelfEmitCtx_new(
     source_file: String
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
-    let mut name_lengths = Vec_new_i32()
+    let mut name_lengths = Vec::new<i32>()
     let function_name_index = name_index::NameIndex_new(fn_count)
     let function_name_counts = name_index::NameIndex_new(fn_count)
     let mut fi = 0
@@ -92,16 +92,16 @@ fn SelfEmitCtx_new(
         name_index::name_index_increment(function_name_counts, fname)
         fi = fi + 1
     }
-    let empty_i32 = Vec_new_i32()
-    let empty_string = Vec_new_String()
-    let empty_i32_b = Vec_new_i32()
-    let empty_i32_c = Vec_new_i32()
-    let empty_string_b = Vec_new_String()
-    let empty_string_c = Vec_new_String()
-    let empty_i32_d = Vec_new_i32()
-    let empty_string_d = Vec_new_String()
-    let empty_string_e = Vec_new_String()
-    let empty_i32_e = Vec_new_i32()
+    let empty_i32 = Vec::new<i32>()
+    let empty_string = Vec::new<String>()
+    let empty_i32_b = Vec::new<i32>()
+    let empty_i32_c = Vec::new<i32>()
+    let empty_string_b = Vec::new<String>()
+    let empty_string_c = Vec::new<String>()
+    let empty_i32_d = Vec::new<i32>()
+    let empty_string_d = Vec::new<String>()
+    let empty_string_e = Vec::new<String>()
+    let empty_i32_e = Vec::new<i32>()
     let sig = signature_registry::SignatureRegistry_new()
     let types = type_table::TypeTable_new()
     let mono = mono_instance_table::MonoInstanceTable_new()
@@ -124,7 +124,7 @@ fn SelfEmitCtx_new(
         gc_hint_offsets: empty_i32_b,
         needs_wasi_http_outgoing: needs_wasi_http_outgoing,
         source_file: source_file,
-        code_section_offsets: Vec_new_i32(),
+        code_section_offsets: Vec::new<i32>(),
         gc_type_base: 0,
         gc_enum_variant_base: 0 - 1,
         gc_enum_variant_type_map: empty_i32_c,
@@ -152,13 +152,13 @@ fn SelfEmitCtx_new(
         core_op_shadow_unresolved: 0,
         core_op_shadow_mismatch_budget: 128,
         gc_layout_table: layout,
-        local_gc_infer_cache: Vec_new_i32(),
-        local_struct_new_cache: Vec_new_i32(),
-        local_has_ref_cache: Vec_new_i32(),
-        local_def_block_cache: Vec_new_i32(),
-        local_def_inst_cache: Vec_new_i32(),
-        local_producer_index_offsets: Vec_new_i32(),
-        local_producer_index_entries: Vec_new_i32(),
+        local_gc_infer_cache: Vec::new<i32>(),
+        local_struct_new_cache: Vec::new<i32>(),
+        local_has_ref_cache: Vec::new<i32>(),
+        local_def_block_cache: Vec::new<i32>(),
+        local_def_inst_cache: Vec::new<i32>(),
+        local_producer_index_offsets: Vec::new<i32>(),
+        local_producer_index_entries: Vec::new<i32>(),
         type_name_ref_index: name_index::NameIndex_new(4096),
     }
 }

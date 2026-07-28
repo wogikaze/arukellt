@@ -6,7 +6,7 @@ struct Scope {
 }
 
 fn Scope_new(parent: i32) -> Scope {
-    Scope { symbols: Vec_new_Symbol(), parent_depth: parent }
+    Scope { symbols: Vec::new<Symbol>(), parent_depth: parent }
 }
 
 fn scope_symbol_count(scope: Scope) -> i32 {
@@ -22,5 +22,5 @@ fn scope_push_symbol(scope: Scope, sym: Symbol) {
 }
 
 fn scope_clear_symbols(scope: Scope) {
-    scope.symbols = Vec_new_Symbol()
+    scope.symbols = Vec::new<Symbol>()
 }

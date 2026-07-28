@@ -47,7 +47,7 @@ fn fmt_indent_starts_close(trimmed: String) -> bool {
 
 fn fmt_indent_apply(lines: Vec<String>) -> Vec<String> {
     let line_count = len(lines)
-    let mut out = Vec_new_String()
+    let mut out = Vec::new<String>()
     let mut indent = 0
     let mut in_block_comment = false
     let mut i = 0

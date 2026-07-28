@@ -35,11 +35,11 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 }
 
 fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, name: String) {
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
     push(returns, sig_reg_host_return_mvt(table, clone(name)))
-    let params = Vec_new_MirValueType()
+    let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
-        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec_new_TypeId()),
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),
         kinds::VALUE_REPR_SCALAR(),
         kinds::NULLABILITY_NOT_REF()
     )
@@ -63,39 +63,39 @@ fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, na
 // regular fn index. Keep names aligned with std::host surfaces.
 fn sig_reg_host_return_mvt(table: TypeTable, name: String) -> MirValueType {
     if sig_reg_host_returns_bool(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "bool", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "bool", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
     if eq(clone(name), String_from("clock_now")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "i64", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "i64", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     }
     if eq(clone(name), String_from("args")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), "Vec<String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), "Vec<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if sig_reg_host_returns_option_string(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), "Option<String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), "Option<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if sig_reg_host_returns_result_i32(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<i32, String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<i32, String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if eq(clone(name), String_from("read")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<Vec<i32>, String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<Vec<i32>, String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if sig_reg_host_returns_result_string(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<String, String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<String, String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     if eq(clone(name), String_from("serve")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<(), String>", Vec_new_TypeId())
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<(), String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
     // var_or_default / read_stdin and remaining string returns
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 

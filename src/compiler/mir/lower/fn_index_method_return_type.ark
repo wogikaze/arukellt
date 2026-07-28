@@ -5,7 +5,7 @@ use mir::value_types
 
 fn method_generic_return_type_from_name(type_name: String, has_mono_variants: bool) -> TypeInfo {
     if len(type_name) == 0 && has_mono_variants {
-        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), "T", Vec_new_TypeInfo())
+        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), "T", Vec::new<TypeInfo>())
     }
     method_return_type_info_from_name(type_name)
 }
@@ -38,15 +38,15 @@ fn method_return_type_info_from_name(type_name: String) -> TypeInfo {
         return type_contracts::TypeInfo_simple(lower_kinds::TY_CHAR())
     }
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
-        return type_contracts::TypeInfo_new(lower_kinds::TY_STRING(), "String", Vec_new_TypeInfo())
+        return type_contracts::TypeInfo_new(lower_kinds::TY_STRING(), "String", Vec::new<TypeInfo>())
     }
     if starts_with(clone(type_name), "vec:") {
-        return type_contracts::TypeInfo_new(lower_kinds::TY_VEC(), clone(type_name), Vec_new_TypeInfo())
+        return type_contracts::TypeInfo_new(lower_kinds::TY_VEC(), clone(type_name), Vec::new<TypeInfo>())
     }
     if method_return_type_name_is_type_var(clone(type_name)) {
-        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), clone(type_name), Vec_new_TypeInfo())
+        return type_contracts::TypeInfo_new(lower_kinds::TY_TYPE_VAR(), clone(type_name), Vec::new<TypeInfo>())
     }
-    type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), clone(type_name), Vec_new_TypeInfo())
+    type_contracts::TypeInfo_new(lower_kinds::TY_STRUCT(), clone(type_name), Vec::new<TypeInfo>())
 }
 
 fn method_return_type_name_is_type_var(type_name: String) -> bool {

@@ -30,7 +30,7 @@ struct TypeTable {
 }
 
 fn TypeTable_new() -> TypeTable {
-    TypeTable { entries: Vec_new_TypeEntry(), next_id: 0 }
+    TypeTable { entries: Vec::new<TypeEntry>(), next_id: 0 }
 }
 
 fn TypeTable_entry_count(table: TypeTable) -> i32 {
@@ -108,5 +108,5 @@ fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
     if raw >= 0 && raw < len(table.entries) {
         return get_unchecked(table.entries, raw)
     }
-    TypeEntry { id: TYPE_ID_INVALID(), kind: kinds::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec_new_TypeId() }
+    TypeEntry { id: TYPE_ID_INVALID(), kind: kinds::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec::new<TypeId>() }
 }

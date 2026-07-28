@@ -13,11 +13,11 @@ use wasm::ctx_record
 
 fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
     let local_count = function_locals_view::MirFunction_local_count(f)
-    let infer = Vec_new_i32()
-    let struct_new = Vec_new_i32()
-    let has_ref = Vec_new_i32()
-    let def_block = Vec_new_i32()
-    let def_inst = Vec_new_i32()
+    let infer = Vec::new<i32>()
+    let struct_new = Vec::new<i32>()
+    let has_ref = Vec::new<i32>()
+    let def_block = Vec::new<i32>()
+    let def_inst = Vec::new<i32>()
     let mut i = 0
     while i < local_count {
         // Private encoding: -2 = not yet inferred (see cached_infer_*).
@@ -65,14 +65,14 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
 // One O(instructions) pass builds a CSR write list per local: offsets[n+1]
 // and entries as alternating (bi, ii). STRUCT_SET dests are skipped (#829).
 fn build_local_producer_index(f: MirFunction, ctx: SelfEmitCtx, local_count: i32) {
-    let counts = Vec_new_i32()
+    let counts = Vec::new<i32>()
     let mut ci = 0
     while ci < local_count {
         push(counts, 0)
         ci = ci + 1
     }
     producer_index_count_writes(f, counts, local_count)
-    let offsets = Vec_new_i32()
+    let offsets = Vec::new<i32>()
     let mut running = 0
     let mut oi = 0
     while oi < local_count {
@@ -81,14 +81,14 @@ fn build_local_producer_index(f: MirFunction, ctx: SelfEmitCtx, local_count: i32
         oi = oi + 1
     }
     push(offsets, running)
-    let entries = Vec_new_i32()
+    let entries = Vec::new<i32>()
     let mut ei = 0
     // Each write stores two i32s: bi, ii.
     while ei < running * 2 {
         push(entries, 0)
         ei = ei + 1
     }
-    let cursors = Vec_new_i32()
+    let cursors = Vec::new<i32>()
     let mut ki = 0
     while ki < local_count {
         push(cursors, get_unchecked(offsets, ki))
@@ -304,13 +304,13 @@ fn local_inst_marks_ref(f: MirFunction, inst: MirInst, has_ref: Vec<i32>) -> boo
 }
 
 fn end_function_local_gc_cache(ctx: SelfEmitCtx) {
-    ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_producer_index_offsets(ctx, Vec_new_i32())
-    ctx_record::SelfEmitCtx_set_local_producer_index_entries(ctx, Vec_new_i32())
+    ctx_record::SelfEmitCtx_set_local_gc_infer_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_struct_new_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_has_ref_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_def_block_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_def_inst_cache(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_producer_index_offsets(ctx, Vec::new<i32>())
+    ctx_record::SelfEmitCtx_set_local_producer_index_entries(ctx, Vec::new<i32>())
 }
 
 fn is_local_producer_index_active(ctx: SelfEmitCtx) -> bool {

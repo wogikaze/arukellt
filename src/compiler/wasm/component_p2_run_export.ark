@@ -50,14 +50,14 @@ fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
             i32_type_idx
         } else {
             // Add () -> i32 type to type section
-            let new_type_payload = Vec_new_i32()
+            let new_type_payload = Vec::new<i32>()
             append_bytes(new_type_payload, type_payload)
             // Increment count at beginning
             let r = component_p2_strip::WasmReader_new(type_payload)
             let count = component_p2_strip::reader_uleb(r)
             let rest_start = r.pos
             // Rebuild: new_count + rest + i32_func_type
-            let new_payload = Vec_new_i32()
+            let new_payload = Vec::new<i32>()
             component_p2_strip::write_uleb(new_payload, count + 1)
             copy_range(new_payload, type_payload, rest_start, len(type_payload))
             append_bytes(new_payload, i32_func_type_bytes())
@@ -73,7 +73,7 @@ fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
         let fr = component_p2_strip::WasmReader_new(func_payload)
         let fcount = component_p2_strip::reader_uleb(fr)
         let frest_start = fr.pos
-        let new_func_payload = Vec_new_i32()
+        let new_func_payload = Vec::new<i32>()
         component_p2_strip::write_uleb(new_func_payload, fcount + 1)
         copy_range(new_func_payload, func_payload, frest_start, len(func_payload))
         component_p2_strip::write_uleb(new_func_payload, actual_i32_type_idx)
@@ -82,7 +82,7 @@ fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
         run_idx = import_func_count + fcount
 
         // Add code body: call _start; i32.const 0; end
-        let body = Vec_new_i32()
+        let body = Vec::new<i32>()
         component_p2_strip::write_uleb(body, 0)  // local decls
         push(body, 0x10)  // call
         component_p2_strip::write_uleb(body, start_idx)
@@ -97,7 +97,7 @@ fn ensure_run_export(core_wasm: Vec<i32>) -> Vec<i32> {
         let cr = component_p2_strip::WasmReader_new(code_payload)
         let ccount = component_p2_strip::reader_uleb(cr)
         let crest_start = cr.pos
-        let new_code_payload = Vec_new_i32()
+        let new_code_payload = Vec::new<i32>()
         component_p2_strip::write_uleb(new_code_payload, ccount + 1)
         copy_range(new_code_payload, code_payload, crest_start, len(code_payload))
         component_p2_strip::write_uleb(new_code_payload, len(body))
@@ -124,7 +124,7 @@ fn add_export(wasm: Vec<i32>, name: String, func_idx: i32) -> Vec<i32> {
     let count = component_p2_strip::reader_uleb(er)
     let rest_start = er.pos
 
-    let new_payload = Vec_new_i32()
+    let new_payload = Vec::new<i32>()
     component_p2_strip::write_uleb(new_payload, count + 1)
     copy_range(new_payload, export_payload, rest_start, len(export_payload))
 
@@ -139,7 +139,7 @@ fn add_export(wasm: Vec<i32>, name: String, func_idx: i32) -> Vec<i32> {
 }
 
 fn string_to_bytes(s: String) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let n = len(s)
     let mut i = 0
     while i < n {
@@ -159,17 +159,17 @@ fn section_payload(wasm: Vec<i32>, section_id: i32) -> Vec<i32> {
         let size = component_p2_strip::reader_uleb(r)
         let payload_start = r.pos
         if sid == section_id {
-            let out = Vec_new_i32()
+            let out = Vec::new<i32>()
             copy_range(out, wasm, payload_start, payload_start + size)
             return out
         }
         r.pos = payload_start + size
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }
 
 fn replace_section(wasm: Vec<i32>, section_id: i32, payload: Vec<i32>) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     copy_range(out, wasm, 0, 8)  // header
 
     let r = component_p2_strip::WasmReader_new(wasm)
@@ -280,7 +280,7 @@ fn defined_func_type_index(wasm: Vec<i32>, defined_idx: i32) -> i32 {
 // ---- Type helpers ----
 
 fn void_func_type_bytes() -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     push(out, 0x60)
     push(out, 0x00)
     push(out, 0x00)
@@ -288,7 +288,7 @@ fn void_func_type_bytes() -> Vec<i32> {
 }
 
 fn i32_func_type_bytes() -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     push(out, 0x60)
     push(out, 0x00)
     push(out, 0x01)
@@ -318,7 +318,7 @@ fn type_at(type_payload: Vec<i32>, index: i32) -> Vec<i32> {
     let r = component_p2_strip::WasmReader_new(type_payload)
     let count = component_p2_strip::reader_uleb(r)
     if index >= count {
-        return Vec_new_i32()
+        return Vec::new<i32>()
     }
     let mut i = 0
     while i < index {
@@ -362,7 +362,7 @@ fn type_at(type_payload: Vec<i32>, index: i32) -> Vec<i32> {
     let start = r.pos
     let form = component_p2_strip::reader_byte(r)
     if form != 0x60 {
-        return Vec_new_i32()
+        return Vec::new<i32>()
     }
     let pc = component_p2_strip::reader_uleb(r)
     let mut j = 0
@@ -377,7 +377,7 @@ fn type_at(type_payload: Vec<i32>, index: i32) -> Vec<i32> {
         k = k + 1
     }
     let end = r.pos
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     copy_range(out, type_payload, start, end)
     out
 }

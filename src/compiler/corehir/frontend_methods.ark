@@ -7,7 +7,7 @@ use corehir::param_shape
 use corehir::return_type
 
 fn build_method_params(method: AstNode, param_count: i32) -> Vec<CoreHirParam> {
-    let params = Vec_new_CoreHirParam()
+    let params = Vec::new<CoreHirParam>()
     let mut i = 0
     while i < param_count {
         push(params, param_shape::method_param_from_node(decl_member_collections::decl_method_at(method, i)))
@@ -17,7 +17,7 @@ fn build_method_params(method: AstNode, param_count: i32) -> Vec<CoreHirParam> {
 }
 
 fn build_method_infos(decls: Vec<AstNode>) -> Vec<CoreHirMethodInfo> {
-    let infos = Vec_new_CoreHirMethodInfo()
+    let infos = Vec::new<CoreHirMethodInfo>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {

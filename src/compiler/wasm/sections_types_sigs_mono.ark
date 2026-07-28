@@ -7,7 +7,7 @@ use wasm::sections_types_sigs_mono_helpers
 fn extract_mono_suffix(fn_name: String) -> String {
     let name_len = len(fn_name)
     // Collect all "__" positions
-    let sep_positions = Vec_new_i32()
+    let sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
         if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
@@ -131,7 +131,7 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_or
 
 // Split a string by "__" separator into a Vec<String>.
 fn split_by_double_underscore(s: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let slen = len(s)
     let mut start = 0
     let mut i = 0

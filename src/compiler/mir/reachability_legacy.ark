@@ -142,7 +142,7 @@ fn mir_prune_unreachable_legacy_fixpoint(m: MirModule, extra_roots: Vec<String>)
         return 0
     }
     let functions = module_functions::MirModule_functions(m)
-    let reachable = Vec_new_i32()
+    let reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)

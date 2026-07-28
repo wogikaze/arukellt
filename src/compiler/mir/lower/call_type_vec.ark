@@ -167,7 +167,7 @@ fn ensure_option_some_for_vec_elem(ctx: LowerCtx, elem_ty: String) {
     if !ctx_gc_enum::ctx_is_gc_target(ctx) {
         return
     }
-    let payload_vts = Vec_new_i32()
+    let payload_vts = Vec::new<i32>()
     if eq(clone(elem_ty), String_from("i64")) || eq(clone(elem_ty), String_from("I64")) {
         push(payload_vts, value_types::VT_I64())
         let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(ctx, String_from("Option::Some"), payload_vts, clone(elem_ty))

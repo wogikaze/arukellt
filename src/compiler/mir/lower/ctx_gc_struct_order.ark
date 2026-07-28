@@ -10,7 +10,7 @@ fn ctx_reorder_gc_structs_deps_first(ctx: LowerCtx) {
         return
     }
     let order = gc_struct_deps_first_order(ctx.gc_struct_sigs)
-    let mut remap = Vec_new_i32()
+    let mut remap = Vec::new<i32>()
     let mut ri = 0
     while ri < count {
         push(remap, 0)
@@ -22,8 +22,8 @@ fn ctx_reorder_gc_structs_deps_first(ctx: LowerCtx) {
         set(remap, old_i, new_i)
         new_i = new_i + 1
     }
-    let mut new_names = Vec_new_String()
-    let mut new_sigs = Vec_new_String()
+    let mut new_names = Vec::new<String>()
+    let mut new_sigs = Vec::new<String>()
     new_i = 0
     while new_i < count {
         let old_i = get_unchecked(order, new_i)
@@ -44,13 +44,13 @@ fn ctx_reorder_gc_structs_deps_first(ctx: LowerCtx) {
 
 fn gc_struct_deps_first_order(sigs: Vec<String>) -> Vec<i32> {
     let count = len(sigs)
-    let mut placed = Vec_new_i32()
+    let mut placed = Vec::new<i32>()
     let mut pi = 0
     while pi < count {
         push(placed, 0)
         pi = pi + 1
     }
-    let mut order = Vec_new_i32()
+    let mut order = Vec::new<i32>()
     while len(order) < count {
         let mut progress = false
         let mut i = 0
@@ -145,7 +145,7 @@ fn gc_struct_parse_gcsref_slot(sig: String, start: i32) -> Vec<i32> {
             break
         }
     }
-    let mut out = Vec_new_i32()
+    let mut out = Vec::new<i32>()
     if has_digit {
         push(out, slot)
         push(out, j)

@@ -43,17 +43,17 @@ fn p2_stub_single_export_named(export_name: String, module_name: String, void_re
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
     if void_ret == 1 {
-        let p1 = Vec_new_i32()
+        let p1 = Vec::new<i32>()
         push(p1, 0x7f)
-        let r_void = Vec_new_i32()
+        let r_void = Vec::new<i32>()
         p2_stub_emit_core_func_type(type_sec, p1, r_void)
     } else {
-        let p4 = Vec_new_i32()
+        let p4 = Vec::new<i32>()
         push(p4, 0x7f)
         push(p4, 0x7f)
         push(p4, 0x7f)
         push(p4, 0x7f)
-        let r_i32 = Vec_new_i32()
+        let r_i32 = Vec::new<i32>()
         push(r_i32, 0x7f)
         p2_stub_emit_core_func_type(type_sec, p4, r_i32)
     }
@@ -71,10 +71,10 @@ fn p2_stub_env_module() -> Vec<i32> {
     let out = p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
-    let p2 = Vec_new_i32()
+    let p2 = Vec::new<i32>()
     push(p2, 0x7f)
     push(p2, 0x7f)
-    let r_i32 = Vec_new_i32()
+    let r_i32 = Vec::new<i32>()
     push(r_i32, 0x7f)
     p2_stub_emit_core_func_type(type_sec, p2, r_i32)
     p2_stub_emit_wasm_section(out, 1, type_sec)
@@ -92,7 +92,7 @@ fn p2_stub_fs_module() -> Vec<i32> {
     let out = p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 2)
-    let p_path = Vec_new_i32()
+    let p_path = Vec::new<i32>()
     push(p_path, 0x7f)
     push(p_path, 0x7f)
     push(p_path, 0x7f)
@@ -102,10 +102,10 @@ fn p2_stub_fs_module() -> Vec<i32> {
     push(p_path, 0x7e)
     push(p_path, 0x7f)
     push(p_path, 0x7f)
-    let r_i32 = Vec_new_i32()
+    let r_i32 = Vec::new<i32>()
     push(r_i32, 0x7f)
     p2_stub_emit_core_func_type(type_sec, p_path, r_i32)
-    let p1 = Vec_new_i32()
+    let p1 = Vec::new<i32>()
     push(p1, 0x7f)
     p2_stub_emit_core_func_type(type_sec, p1, r_i32)
     p2_stub_emit_wasm_section(out, 1, type_sec)
@@ -128,7 +128,7 @@ fn p2_stub_guest_start_wrapper_module() -> Vec<i32> {
 }
 
 fn p2_stub_hex_to_bytes(hex: String) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let n = len(hex)
     let mut i = 0
     while i + 1 < n {
@@ -151,9 +151,9 @@ fn p2_stub_hex_val(c: i32) -> i32 {
 }
 
 fn p2_stub_emit_exports(out: WasmWriter, export_name: String, func_idx: i32, void_ret: i32) {
-    let export_names = Vec_new_String()
+    let export_names = Vec::new<String>()
     push(export_names, clone(export_name))
-    let func_idxs = Vec_new_i32()
+    let func_idxs = Vec::new<i32>()
     push(func_idxs, func_idx)
     p2_stub_emit_core_exports_list(out, export_names, func_idxs)
     if void_ret == 1 {
@@ -164,10 +164,10 @@ fn p2_stub_emit_exports(out: WasmWriter, export_name: String, func_idx: i32, voi
 }
 
 fn p2_stub_emit_core_exports(out: WasmWriter, export_a: String, export_b: String, body_count: i32) {
-    let export_names = Vec_new_String()
+    let export_names = Vec::new<String>()
     push(export_names, clone(export_a))
     push(export_names, clone(export_b))
-    let func_idxs = Vec_new_i32()
+    let func_idxs = Vec::new<i32>()
     push(func_idxs, 0)
     push(func_idxs, 1)
     p2_stub_emit_core_exports_list(out, export_names, func_idxs)

@@ -10,7 +10,7 @@ use std::io
 fn main() {
     // Create a memory buffer and write "Hello" (72, 101, 108, 108, 111)
     let buf = io::new_memory_buffer()
-    let data: Vec<i32> = Vec_new_i32()
+    let data: Vec<i32> = Vec::new<i32>()
     push(data, 72)   // 'H'
     push(data, 101)  // 'e'
     push(data, 108)  // 'l'

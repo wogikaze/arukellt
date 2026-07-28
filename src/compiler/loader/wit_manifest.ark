@@ -38,7 +38,7 @@ fn wit_push_unique(paths: Vec<String>, path: String) {
 }
 
 fn collect_wit_paths_from_manifest(package_root: String) -> Vec<String> {
-    let paths = Vec_new_String()
+    let paths = Vec::new<String>()
     let content = registry_config::read_package_manifest(clone(package_root))
     if len(content) == 0 {
         return paths

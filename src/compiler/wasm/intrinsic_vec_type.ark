@@ -136,7 +136,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     let mut found = 0 - 1
     let mut gets_seen = 0
     let mut look = 1
-    let arg_srcs = Vec_new_i32()
+    let arg_srcs = Vec::new<i32>()
     while gets_seen < cur_arg_count && ii - look >= 0 {
         let prev = block_inst_access::MirBlock_inst_at(block, ii - look)
         let pop = inst_accessors_shape::MirInst_op(prev)

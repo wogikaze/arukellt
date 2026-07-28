@@ -6,7 +6,7 @@ struct MirDomInfo {
 }
 
 fn MirDomInfo_new() -> MirDomInfo {
-    MirDomInfo { idom: Vec_new_i32(), frontier_offsets: Vec_new_i32(), frontier_lengths: Vec_new_i32(), frontier_blocks: Vec_new_i32() }
+    MirDomInfo { idom: Vec::new<i32>(), frontier_offsets: Vec::new<i32>(), frontier_lengths: Vec::new<i32>(), frontier_blocks: Vec::new<i32>() }
 }
 
 fn MirDomInfo_idom_count(info: MirDomInfo) -> i32 {

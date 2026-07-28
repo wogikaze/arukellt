@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let parts: Vec<String> = Vec_new_String()
+    let parts: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < 10 {
         push(parts, String_from("item"))

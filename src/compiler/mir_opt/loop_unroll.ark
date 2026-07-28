@@ -72,7 +72,7 @@ fn loop_unroll_find_body_end(insts: Vec<MirInst>, body_start: i32, end: i32) -> 
 }
 
 fn loop_unroll_replace_counter_gets(body: Vec<MirInst>, counter: i32, trip: i32) -> Vec<MirInst> {
-    let out = Vec_new_MirInst()
+    let out = Vec::new<MirInst>()
     let mut bi = 0
     while bi < len(body) {
         let inst = get_unchecked(body, bi)
@@ -90,13 +90,13 @@ fn loop_unroll_replace_counter_gets(body: Vec<MirInst>, counter: i32, trip: i32)
 }
 
 fn loop_unroll_expand_body(insts: Vec<MirInst>, body_start: i32, body_end: i32, counter: i32, trips: i32) -> Vec<MirInst> {
-    let body = Vec_new_MirInst()
+    let body = Vec::new<MirInst>()
     let mut i = body_start
     while i < body_end {
         push(body, get_unchecked(insts, i))
         i = i + 1
     }
-    let out = Vec_new_MirInst()
+    let out = Vec::new<MirInst>()
     let mut t = 0
     while t < trips {
         let expanded = loop_unroll_replace_counter_gets(body, counter, t)
@@ -120,7 +120,7 @@ fn loop_unroll_try_region(insts: Vec<MirInst>, region: loop_regions::LoopRegion)
     let gteq_inst = get_unchecked(insts, header_end - 2)
     let counter = inst_accessors_operands::MirInst_arg0(gteq_inst)
     let expanded = loop_unroll_expand_body(insts, header_end, body_end, counter, trips)
-    let out = Vec_new_MirInst()
+    let out = Vec::new<MirInst>()
     let mut i = 0
     while i < start { push(out, get_unchecked(insts, i)); i = i + 1 }
     vec_extend::Vec_extend_MirInst(out, expanded)
@@ -143,7 +143,7 @@ fn loop_unroll_optimize_block_insts(insts: Vec<MirInst>) -> LoopUnrollResult {
 
 fn loop_unroll_optimize_function(f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
-    let updated_blocks = Vec_new_MirBlock()
+    let updated_blocks = Vec::new<MirBlock>()
     let mut total = 0
     let mut bi = 0
     while bi < block_count {

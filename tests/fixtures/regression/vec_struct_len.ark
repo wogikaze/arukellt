@@ -9,7 +9,7 @@ struct Token {
 }
 
 fn main() {
-    let mut tokens: Vec<Token> = Vec_new_Token()
+    let mut tokens: Vec<Token> = Vec::new<Token>()
     stdio::println((len(tokens)).to_string())
     push(tokens, Token { kind: 0, value: String_from("eof") })
     stdio::println((len(tokens)).to_string())

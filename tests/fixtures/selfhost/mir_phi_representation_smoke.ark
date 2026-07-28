@@ -22,7 +22,7 @@ struct MirPhi {
 }
 
 fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
-    MirPhi { op: MIR_PHI(), dest: dest, val_type: val_type, args: Vec_new_MirPhiArg() }
+    MirPhi { op: MIR_PHI(), dest: dest, val_type: val_type, args: Vec::new<MirPhiArg>() }
 }
 
 fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {

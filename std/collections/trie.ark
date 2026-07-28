@@ -118,7 +118,7 @@ fn alloc_node(buf: Vec<i32>) -> i32 {
 
 /// Create a new empty `Trie`.
 pub fn trie_new() -> Vec<i32> {
-    let buf = Vec_new_i32()
+    let buf = Vec::new<i32>()
     push(buf, NIL)  // root (allocated on first insert)
     push(buf, 0)    // node_count
     push(buf, NIL)  // free_head

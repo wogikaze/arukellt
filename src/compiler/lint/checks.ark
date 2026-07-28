@@ -19,7 +19,7 @@ use diagnostics::mod as diag_mod
 // ── W0006: unused import ──────────────────────────────────────────────
 
 fn collect_use_decls(decls: Vec<AstNode>) -> Vec<UseDeclInfo> {
-    let uses = Vec_new_UseDeclInfo()
+    let uses = Vec::new<UseDeclInfo>()
     let count = len(decls)
     let mut i = 0
     while i < count {
@@ -103,9 +103,9 @@ fn name_in_vec(name: String, vec: Vec<String>) -> bool {
 }
 
 pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec_new_Diagnostic()
+    let warnings = Vec::new<Diagnostic>()
     let uses = collect_use_decls(decls)
-    let referenced = Vec_new_String()
+    let referenced = Vec::new<String>()
     collect_referenced_modules(decls, referenced)
     let use_count = len(uses)
     let mut i = 0
@@ -130,7 +130,7 @@ pub fn check_unused_imports(decls: Vec<AstNode>) -> Vec<Diagnostic> {
 // ── Combined lint pass ─────────────────────────────────────────────────
 
 pub fn run_post_resolve_lint(decls: Vec<AstNode>, target: String) -> Vec<Diagnostic> {
-    let warnings = Vec_new_Diagnostic()
+    let warnings = Vec::new<Diagnostic>()
     let unused_import_warns = check_unused_imports(decls)
     vec_extend::Vec_extend_Diagnostic(warnings, unused_import_warns)
     let prefer_use_warns = prefer_use_import::check_prefer_use_import(decls)

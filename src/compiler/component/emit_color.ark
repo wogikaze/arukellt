@@ -58,7 +58,7 @@ fn emit_color_single_alias_section(out: writer_core::ComponentWriter, export_nam
 }
 
 fn emit_color_type_export_sections(out: writer_core::ComponentWriter) {
-    let color_names = Vec_new_String()
+    let color_names = Vec::new<String>()
     push(color_names, "red")
     push(color_names, "green")
     push(color_names, "blue")
@@ -69,14 +69,14 @@ fn emit_color_type_export_sections(out: writer_core::ComponentWriter) {
 fn emit_color_pair_func_type_section(out: writer_core::ComponentWriter) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 2)
-    let next_params = Vec_new_i32()
+    let next_params = Vec::new<i32>()
     push(next_params, 1)
-    let next_results = Vec_new_i32()
+    let next_results = Vec::new<i32>()
     push(next_results, 1)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(next_params, next_results))
-    let value_params = Vec_new_i32()
+    let value_params = Vec::new<i32>()
     push(value_params, 1)
-    let value_results = Vec_new_i32()
+    let value_results = Vec::new<i32>()
     push(value_results, constants_wit_values::WIT_VAL_S32())
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(value_params, value_results))
     writer_core::comp_emit_section(out, 7, func_type_sec)
@@ -85,9 +85,9 @@ fn emit_color_pair_func_type_section(out: writer_core::ComponentWriter) {
 fn emit_color_single_func_type_section(out: writer_core::ComponentWriter, result_type: i32) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, 1)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_type)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, 7, func_type_sec)

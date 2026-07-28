@@ -7,7 +7,7 @@ struct Point {
 }
 
 fn main() {
-    let pts: Vec<Point> = Vec_new_Point()
+    let pts: Vec<Point> = Vec::new<Point>()
     push(pts, Point { x: 1, y: 10 })
     push(pts, Point { x: 2, y: 20 })
     push(pts, Point { x: 3, y: 30 })

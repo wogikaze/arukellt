@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < 2000 {
         push(v, i + 1)
@@ -13,7 +13,7 @@ fn main() {
     let offset: i32 = 7
     let map_fn = |x: i32| -> i32 { x * scale + offset }
 
-    let mut mapped: Vec<i32> = Vec_new_i32()
+    let mut mapped: Vec<i32> = Vec::new<i32>()
     let mut j: i32 = 0
     while j < len(v) {
         push(mapped, map_fn(get_unchecked(v, j)))

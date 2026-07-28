@@ -88,7 +88,7 @@ fn import_is_used(path: String, body: String) -> bool {
 }
 
 fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneImportEntry> {
-    let out = Vec_new_PruneImportEntry()
+    let out = Vec::new<PruneImportEntry>()
     let n = len(decls)
     let mut i = 0
     while i < n {

@@ -27,7 +27,7 @@ use mir::module_spine
 use mir::opcodes
 
 fn native_c_coverage_zero_counts(count: i32) -> Vec<i32> {
-    let counts = Vec_new_i32()
+    let counts = Vec::new<i32>()
     let mut index = 0
     while index < count {
         push(counts, 0)

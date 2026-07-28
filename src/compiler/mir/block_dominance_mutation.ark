@@ -13,7 +13,7 @@ fn MirBlock_set_dom_set(block: MirBlock, dom_set: Vec<i32>) {
 }
 
 fn MirBlock_reset_dom_set(block: MirBlock) {
-    block.dom_set = Vec_new_i32()
+    block.dom_set = Vec::new<i32>()
 }
 
 fn MirBlock_push_dom_set(block: MirBlock, block_id: i32) {
@@ -21,7 +21,7 @@ fn MirBlock_push_dom_set(block: MirBlock, block_id: i32) {
 }
 
 fn MirBlock_reset_dom_frontier(block: MirBlock) {
-    block.dom_frontier = Vec_new_i32()
+    block.dom_frontier = Vec::new<i32>()
 }
 
 fn MirBlock_push_dom_frontier_unique(block: MirBlock, block_id: i32) {

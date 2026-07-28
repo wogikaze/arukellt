@@ -80,7 +80,7 @@ fn gc_hint_should_annotate(insts: Vec<MirInst>, idx: i32, end: i32) -> bool {
 fn gc_hint_annotate_loop(insts: Vec<MirInst>, region: LoopRegion) -> GcHintAnnotateResult {
     let start = loop_regions::LoopRegion_loop_start(region)
     let end = loop_regions::LoopRegion_loop_end(region)
-    let out = Vec_new_MirInst()
+    let out = Vec::new<MirInst>()
     let mut annotated = 0
     let mut i = 0
     while i < len(insts) {
@@ -111,7 +111,7 @@ fn gc_hint_optimize_block_insts(insts: Vec<MirInst>) -> GcHintAnnotateResult {
 
 fn gc_hint_optimize_function(f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
-    let updated_blocks = Vec_new_MirBlock()
+    let updated_blocks = Vec::new<MirBlock>()
     let mut total = 0
     let mut bi = 0
     while bi < block_count {

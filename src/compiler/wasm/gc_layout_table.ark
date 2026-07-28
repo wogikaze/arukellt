@@ -120,7 +120,7 @@ fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
 
 fn GcLayoutTable_new() -> GcLayoutTable {
     GcLayoutTable {
-        entries: Vec_new_GcLayoutEntry(),
+        entries: Vec::new<GcLayoutEntry>(),
         next_id: 0,
         typed_lookup_count: 0,
         fallback_lookup_count: 0,
@@ -172,7 +172,7 @@ fn gc_layout_table_register_key(
         key: key,
         wasm_ref_type: wasm_ref_type,
         struct_type_idx: struct_type_idx,
-        field_layouts: Vec_new_FieldLayout()
+        field_layouts: Vec::new<FieldLayout>()
     }
     push(table.entries, entry)
     id
@@ -214,7 +214,7 @@ fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLay
         key: GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate()),
         wasm_ref_type: WasmRefType_new(0, 1),
         struct_type_idx: 0 - 1,
-        field_layouts: Vec_new_FieldLayout()
+        field_layouts: Vec::new<FieldLayout>()
     }
 }
 
@@ -362,12 +362,12 @@ fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, st
         }
         let sname = clone(get_unchecked(struct_names, i))
         let type_idx = get_unchecked(struct_type_map, i)
-        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec::new<TypeId>())
         let mut found_tid = tid
         if !type_id::type_id_is_valid(found_tid) {
             let bare = gc_layout_table_bare_suffix(sname)
             if len(bare) > 0 && !eq(clone(bare), clone(sname)) {
-                found_tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), bare, Vec_new_TypeId())
+                found_tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), bare, Vec::new<TypeId>())
             }
         }
         if type_id::type_id_is_valid(found_tid) {
@@ -392,7 +392,7 @@ fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTab
         }
         let vname = clone(get_unchecked(variant_names, i))
         let type_idx = get_unchecked(variant_type_map, i)
-        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec::new<TypeId>())
         if type_id::type_id_is_valid(tid) {
             // Prefer aggregate so type_name → TypeId emit lookup hits the
             // concrete variant type index (Phase 5 typed spine).

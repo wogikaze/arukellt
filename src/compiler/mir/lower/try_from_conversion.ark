@@ -85,7 +85,7 @@ fn try_emit_err_from_conversion_gc(ctx: LowerCtx, res_ptr: i32, from_fn_name: St
     if len(source_err_type) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, err_local, clone(source_err_type))
     }
-    let source_payload_vts = Vec_new_i32()
+    let source_payload_vts = Vec::new<i32>()
     push(source_payload_vts, source_vt)
     let mut err_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
         ctx,
@@ -112,9 +112,9 @@ fn try_emit_err_from_conversion_gc(ctx: LowerCtx, res_ptr: i32, from_fn_name: St
     // reload GC refs before the callee on this path (#840 from_error).
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(err_local))
     ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(from_fn_name), 1, converted_local))
-    let out_locals = Vec_new_i32()
+    let out_locals = Vec::new<i32>()
     push(out_locals, converted_local)
-    let out_vts = Vec_new_i32()
+    let out_vts = Vec::new<i32>()
     push(out_vts, target_vt)
     let dest = variant_payload::lower_payload_variant_from_locals(
         ctx,

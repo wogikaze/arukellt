@@ -11,7 +11,7 @@ pub struct GcShapeRegistry {
 }
 
 fn GcShapeRegistry_new() -> GcShapeRegistry {
-    GcShapeRegistry { struct_names: Vec_new_String(), struct_field_types: Vec_new_String(), array_elem_types: Vec_new_i32() }
+    GcShapeRegistry { struct_names: Vec::new<String>(), struct_field_types: Vec::new<String>(), array_elem_types: Vec::new<i32>() }
 }
 
 fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_types_code: String) -> i32 {

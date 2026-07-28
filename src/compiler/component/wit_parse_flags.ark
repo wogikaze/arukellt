@@ -28,7 +28,7 @@ fn wit_is_flags_type(text: String) -> bool {
 }
 
 fn wit_flags_member_names(text: String) -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     let open = index_of(text, "{")
     let close = index_of(text, "}")
     if open < 0 || close <= open {

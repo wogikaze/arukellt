@@ -1,5 +1,5 @@
 fn mir_i32_vec_filled(count: i32, value: i32) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let mut i = 0
     while i < count {
         push(out, value)
@@ -9,7 +9,7 @@ fn mir_i32_vec_filled(count: i32, value: i32) -> Vec<i32> {
 }
 
 fn mir_i32_vec_replace_at(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let count = len(values)
     let mut i = 0
     while i < count {

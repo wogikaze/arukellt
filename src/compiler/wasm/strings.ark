@@ -43,8 +43,8 @@ fn EmitStringTablePlan_false_idx(plan: EmitStringTablePlan) -> i32 {
 
 fn prepare_string_table(mir: MirModule) -> EmitStringTablePlan {
     let str_count = module_strings::MirModule_string_constant_count(mir)
-    let string_offsets = Vec_new_i32()
-    let string_lengths = Vec_new_i32()
+    let string_offsets = Vec::new<i32>()
+    let string_lengths = Vec::new<i32>()
     let mut data_offset = emit_string_layout_existing_constants(mir, str_count, string_offsets, string_lengths)
     let bool_plan = emit_string_layout_ensure_bool_literals(mir, str_count, string_offsets, string_lengths, data_offset)
     data_offset = EmitStringBoolLiteralPlan_data_offset(bool_plan)

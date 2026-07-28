@@ -14,7 +14,7 @@ fn FnSig_new(name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo, ty
 }
 
 fn FnSig_empty(return_type: TypeInfo) -> FnSig {
-    FnSig_new(String_new(), Vec_new_TypeInfo(), return_type, Vec_new_String(), Vec_new_TypeParamBounds())
+    FnSig_new(String_new(), Vec::new<TypeInfo>(), return_type, Vec::new<String>(), Vec::new<TypeParamBounds>())
 }
 
 /// Return a copy of `sig` with the name replaced (used for impl method mangling).

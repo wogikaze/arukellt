@@ -5,8 +5,8 @@ fn p2_stub_monotonic_clock_module() -> Vec<i32> {
     let out = component_p2_stubs::p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
-    let no_params = Vec_new_i32()
-    let r_i64 = Vec_new_i32()
+    let no_params = Vec::new<i32>()
+    let r_i64 = Vec::new<i32>()
     push(r_i64, 0x7e)
     component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
     component_p2_stubs::p2_stub_emit_wasm_section(out, 1, type_sec)
@@ -22,8 +22,8 @@ fn p2_stub_wall_clock_module() -> Vec<i32> {
     let out = component_p2_stubs::p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
-    let no_params = Vec_new_i32()
-    let r_i64_i32 = Vec_new_i32()
+    let no_params = Vec::new<i32>()
+    let r_i64_i32 = Vec::new<i32>()
     push(r_i64_i32, 0x7e)
     push(r_i64_i32, 0x7f)
     component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64_i32)
@@ -40,8 +40,8 @@ fn p2_stub_random_module() -> Vec<i32> {
     let out = component_p2_stubs::p2_stub_new_core_module_writer()
     let type_sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(type_sec, 1)
-    let no_params = Vec_new_i32()
-    let r_i64 = Vec_new_i32()
+    let no_params = Vec::new<i32>()
+    let r_i64 = Vec::new<i32>()
     push(r_i64, 0x7e)
     component_p2_stubs::p2_stub_emit_core_func_type(type_sec, no_params, r_i64)
     component_p2_stubs::p2_stub_emit_wasm_section(out, 1, type_sec)
@@ -54,9 +54,9 @@ fn p2_stub_random_module() -> Vec<i32> {
 }
 
 fn p2_stub_emit_i64_zero_export(out: WasmWriter, export_name: String) {
-    let export_names = Vec_new_String()
+    let export_names = Vec::new<String>()
     push(export_names, clone(export_name))
-    let func_idxs = Vec_new_i32()
+    let func_idxs = Vec::new<i32>()
     push(func_idxs, 0)
     component_p2_stubs::p2_stub_emit_core_exports_list(out, export_names, func_idxs)
     let code_sec = writer_core::WasmWriter_new()
@@ -70,9 +70,9 @@ fn p2_stub_emit_i64_zero_export(out: WasmWriter, export_name: String) {
 }
 
 fn p2_stub_emit_i64_i32_zero_export(out: WasmWriter, export_name: String) {
-    let export_names = Vec_new_String()
+    let export_names = Vec::new<String>()
     push(export_names, clone(export_name))
-    let func_idxs = Vec_new_i32()
+    let func_idxs = Vec::new<i32>()
     push(func_idxs, 0)
     component_p2_stubs::p2_stub_emit_core_exports_list(out, export_names, func_idxs)
     let code_sec = writer_core::WasmWriter_new()

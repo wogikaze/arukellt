@@ -5,7 +5,7 @@ pub struct MonoIndex {
 }
 
 fn mono_index_new() -> MonoIndex {
-    MonoIndex { names: Vec_new_String(), counts: Vec_new_i32(), mangled_names: Vec_new_String() }
+    MonoIndex { names: Vec::new<String>(), counts: Vec::new<i32>(), mangled_names: Vec::new<String>() }
 }
 
 fn mono_index_name_count(idx: MonoIndex) -> i32 {

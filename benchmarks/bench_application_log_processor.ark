@@ -47,7 +47,7 @@ fn level_weight(level: LogLevel) -> i32 {
 
 fn main() {
     // Build a Vec of log records
-    let mut records: Vec<LogRecord> = Vec_new_LogRecord()
+    let mut records: Vec<LogRecord> = Vec::new<LogRecord>()
     let mut i: i32 = 0
     while i < 5000 {
         let lvl: LogLevel = classify(i)

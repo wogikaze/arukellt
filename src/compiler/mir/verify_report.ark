@@ -20,7 +20,7 @@ fn MirVerifyReport_new() -> MirVerifyReport {
         w006: 0,
         w007: 0,
         w008: 0,
-        detail_messages: Vec_new_String(),
+        detail_messages: Vec::new<String>(),
     }
 }
 

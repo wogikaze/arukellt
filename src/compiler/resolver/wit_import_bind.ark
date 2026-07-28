@@ -34,7 +34,7 @@ fn wit_import_binding_qualified_name(binding: WitImportBinding) -> String {
 }
 
 fn wit_collect_bindings(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<WitImportBinding> {
-    let bindings = Vec_new_WitImportBinding()
+    let bindings = Vec::new<WitImportBinding>()
     let count = len(decls)
     let mut i = 0
     while i < count {

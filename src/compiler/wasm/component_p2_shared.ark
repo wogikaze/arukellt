@@ -24,11 +24,11 @@ fn replace_memory_with_shared_import(wasm: Vec<i32>) -> Vec<i32> {
 
 fn build_shared_import(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>) -> Vec<i32> {
     let imp_idx = component_p2_strip::find_section(ids, 2)
-    let new_imp = Vec_new_i32()
+    let new_imp = Vec::new<i32>()
     if imp_idx >= 0 {
         let imp_off = get_unchecked(offsets, imp_idx)
         let imp_sz = get_unchecked(sizes, imp_idx)
-        let imp_data = Vec_new_i32()
+        let imp_data = Vec::new<i32>()
         component_p2_strip::copy_range(imp_data, wasm, imp_off, imp_off + imp_sz)
 
         let r = component_p2_strip::WasmReader_new(imp_data)
@@ -65,17 +65,17 @@ fn build_shared_import(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: 
 fn build_export_without_memory(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>) -> Vec<i32> {
     let exp_idx = component_p2_strip::find_section(ids, 7)
     if exp_idx < 0 {
-        return Vec_new_i32()
+        return Vec::new<i32>()
     }
     let exp_off = get_unchecked(offsets, exp_idx)
     let exp_sz = get_unchecked(sizes, exp_idx)
-    let exp_data = Vec_new_i32()
+    let exp_data = Vec::new<i32>()
     component_p2_strip::copy_range(exp_data, wasm, exp_off, exp_off + exp_sz)
 
     let r2 = component_p2_strip::WasmReader_new(exp_data)
     let exp_count = component_p2_strip::reader_uleb(r2)
     let mut kept = 0
-    let kept_entries = Vec_new_i32()
+    let kept_entries = Vec::new<i32>()
     let mut i = 0
     while i < exp_count {
         let entry_start = r2.pos
@@ -92,7 +92,7 @@ fn build_export_without_memory(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>,
         }
         i = i + 1
     }
-    let new_exp = Vec_new_i32()
+    let new_exp = Vec::new<i32>()
     component_p2_strip::write_uleb(new_exp, kept)
     component_p2_strip::append_bytes(new_exp, kept_entries)
     new_exp
@@ -102,7 +102,7 @@ fn is_memory_export(kind: i32, name_len: i32, exp_data: Vec<i32>, name_start: i3
     if kind != 2 || name_len != 6 {
         return 0
     }
-    let expected = Vec_new_i32()
+    let expected = Vec::new<i32>()
     push(expected, 0x6d) // m
     push(expected, 0x65) // e
     push(expected, 0x6d) // m
@@ -120,7 +120,7 @@ fn is_memory_export(kind: i32, name_len: i32, exp_data: Vec<i32>, name_start: i3
 }
 
 fn reassemble_shared(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>, new_imp: Vec<i32>, new_exp: Vec<i32>) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     component_p2_strip::copy_range(out, wasm, 0, 8)
     let has_exp = component_p2_strip::find_section(ids, 7) >= 0
     let n = len(ids)

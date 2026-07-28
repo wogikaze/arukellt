@@ -10,7 +10,7 @@ use mir::value_types
 
 fn async_lower_optimize_module(m: MirModule) -> MirModule {
     let fn_count = module_functions::MirModule_function_count(m)
-    let mut updated = Vec_new_MirFunction()
+    let mut updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
@@ -52,7 +52,7 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut filtered = Vec_new_MirInst()
+        let mut filtered = Vec::new<MirInst>()
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)

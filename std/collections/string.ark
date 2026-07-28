@@ -231,7 +231,7 @@ fn __core_string_push_part(parts: Vec<String>, part: String) {
 }
 
 fn __core_string_split_impl(s: String, delimiter: String) -> Vec<String> {
-    let parts = Vec_new_String()
+    let parts = Vec::new<String>()
     let string_len = raw::raw_string_len_bytes(s)
     let delimiter_len = raw::raw_string_len_bytes(delimiter)
     if delimiter_len == 0 {

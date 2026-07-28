@@ -34,10 +34,10 @@ fn match_opt_inner(ctx: Ctx, o: Option<Inner>) -> i32 {
 
 fn main() {
     let ctx = Ctx {
-        v0: Vec_new_i32(),
-        v1: Vec_new_i32(),
-        v2: Vec_new_i32(),
-        v3: Vec_new_i32(),
+        v0: Vec::new<i32>(),
+        v1: Vec::new<i32>(),
+        v2: Vec::new<i32>(),
+        v3: Vec::new<i32>(),
     }
     // Register Option::Some(i32) before String/Inner matches.
     let _force_i32: Option<i32> = Some(1)

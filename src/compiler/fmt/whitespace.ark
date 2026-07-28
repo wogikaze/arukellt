@@ -26,7 +26,7 @@ fn fmt_normalize_line(line: String) -> String {
 
 fn fmt_collapse_blank_lines(lines: Vec<String>) -> Vec<String> {
     let line_count = len(lines)
-    let mut out_lines = Vec_new_String()
+    let mut out_lines = Vec::new<String>()
     let mut prev_blank = false
     let mut j = 0
     while j < line_count {
@@ -66,7 +66,7 @@ fn fmt_join_lines(lines: Vec<String>) -> String {
 }
 
 fn fmt_split_lines(input: String) -> Vec<String> {
-    let mut lines = Vec_new_String()
+    let mut lines = Vec::new<String>()
     let n = len(clone(input))
     let mut start = 0
     let mut i = 0

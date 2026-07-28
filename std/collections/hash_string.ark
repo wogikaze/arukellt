@@ -440,7 +440,7 @@ fn vec_string_remove_at(items: Vec<String>, index: i32) {
 }
 
 pub fn hashset_str_new() -> Vec<String> {
-    Vec_new_String()
+    Vec::new<String>()
 }
 
 pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
