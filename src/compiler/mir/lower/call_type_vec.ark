@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_mono
 use mir::lower::ctx_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
@@ -7,18 +8,34 @@ use mir::lower::call_type_fallback
 use mir::value_types
 
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
+    let mut effective = clone(callee_name)
+    // Bare Vec::new may still lack a mono suffix on the MIR callee text;
+    // prefer the registered turbofish rewrite so locals stay vec:Elem (#845).
+    if eq(clone(effective), String_from("Vec::new")) ||
+    eq(clone(effective), String_from("Vec__new")) ||
+    eq(clone(effective), String_from("Vec::with_capacity")) ||
+    eq(clone(effective), String_from("Vec__with_capacity")) {
+        let mono_target = ctx_fn_mono::ctx_mono_lookup_name_rewrite(ctx, clone(effective))
+        if len(mono_target) > 0 {
+            effective = mono_target
+        }
+    }
     // Associated Vec::new__T / Vec::with_capacity__T (#845).
     // Also accept mono_safe_name form Vec__new__T.
-    if starts_with(clone(callee_name), String_from("Vec::new__")) ||
-    starts_with(clone(callee_name), String_from("Vec::with_capacity__")) ||
-    starts_with(clone(callee_name), String_from("Vec__new__")) ||
-    starts_with(clone(callee_name), String_from("Vec__with_capacity__")) {
-        let last_sep = last_index_of_double_underscore(clone(callee_name))
+    if starts_with(clone(effective), String_from("Vec::new__")) ||
+    starts_with(clone(effective), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(effective), String_from("Vec__new__")) ||
+    starts_with(clone(effective), String_from("Vec__with_capacity__")) {
+        let last_sep = last_index_of_double_underscore(clone(effective))
         if last_sep >= 0 {
-            let elem = substring(callee_name, last_sep + 2, len(callee_name))
+            let elem = substring(effective, last_sep + 2, len(effective))
             let mut set_ty = concat(String_from("vec:"), elem)
             if eq(clone(elem), String_from("Vec_String")) || eq(clone(elem), String_from("Vec_string")) {
                 set_ty = String_from("vec:Vec_String")
+            }
+            // mono_type_key may emit "string"; canonicalize for GC layout.
+            if eq(clone(elem), String_from("string")) {
+                set_ty = String_from("vec:String")
             }
             ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
             if ctx_gc_enum::ctx_is_gc_target(ctx) {
@@ -26,16 +43,20 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
             } else {
                 ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
             }
+            return
         }
     }
-    // Associated Vec::new / Vec::with_capacity (#845), including bare names
-    // when mono suffix is not yet on the callee text.
-    if eq(clone(callee_name), String_from("Vec::new")) ||
-    eq(clone(callee_name), String_from("Vec__new")) ||
-    eq(clone(callee_name), String_from("Vec::with_capacity")) ||
-    eq(clone(callee_name), String_from("Vec__with_capacity")) {
-        // Do not invent vec:i32 — leave type empty so mono return / annotation
-        // can fill the real element type (String / struct / fn, …).
+    // Associated Vec::new / Vec::with_capacity without turbofish mono yet.
+    // Empty type_name + VT_GC_REF was inferred as string bytes and failed
+    // validate; prefer vec:i32 until annotation / store fills a better type.
+    if eq(clone(effective), String_from("Vec::new")) ||
+    eq(clone(effective), String_from("Vec__new")) ||
+    eq(clone(effective), String_from("Vec::with_capacity")) ||
+    eq(clone(effective), String_from("Vec__with_capacity")) {
+        let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
+        if len(existing) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+        }
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
