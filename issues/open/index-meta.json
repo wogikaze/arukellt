@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T11:14:36Z",
+  "generated_at": "2026-07-28T13:52:47Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -588,6 +588,25 @@
       }
     },
     {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "843"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "unblocked",
+        "upstream_notes": "none"
+      }
+    },
+    {
       "id": "760",
       "path": "760-adr-registry-rule-compliance.md",
       "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
@@ -736,27 +755,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "843",
-      "path": "843-adr040-legacy-infer-and-mono-return.md",
-      "title": "ADR-040: legacy GC infer と mono_return 名前逆引きの除去",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "None"
-      ],
-      "blocks_issue_ids": [
-        "729"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
       },
       "orchestration": {
         "class": "design-then-implement",
@@ -995,25 +993,6 @@
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (unblocked epic)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "843"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "unblocked",
-        "upstream_notes": "none"
       }
     },
     {

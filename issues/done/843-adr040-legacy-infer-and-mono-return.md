@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-28
 Updated: 2026-07-28
 ID: 843
@@ -74,6 +74,19 @@ Source: Split from #724 — PR-4 / Phase 5 leftover legacy inference
       GcLayoutTable から解決される
 - [x] `selfhost build-compiler` + `verify lane` PASS（必要なら host/T3 部分集合）
 
+## Close note (2026-07-28)
+
+**issue-close-review: APPROVE**（wave/adr040-phase7、merge しない — `#842` 残）
+
+| Acceptance | Evidence |
+|---|---|
+| call-time mangled = 0 | `mono_return_vt.ark` / `call_type_fallback.ark` に `method_concrete_return_from_mono_fn_name` / `extract_mono_suffix` / `mark_mono_call_result_type` 無し。build-time 補完は `signature_registry_build_mono.ark` 等に残置（計画どおり） |
+| infer call site = 0 | `rg 'infer_ref_local_gc_type\(|infer_local_storage_gc_type\(' src/compiler` → NONE。API 本体削除済み（`code_ref_locals_block_scan.ark` は payload field ABI のみ） |
+| spine / registry | `SelfEmitCtx_wasm_ref_type_idx_for_local` / MonoInstance return MVT sync / field ABI extract |
+| verify | `selfhost build-compiler` PASS；host 12/12 + trait/generics 代表 validate OK；`verify lane` PASS |
+
+Commits: `3f560dba`, `43efc6f4`, `9c905b45`, `ca8e6003`（+ close commit）
+
 ## Evidence baseline (2026-07-28, pre-work)
 
 - `mono_return_type_name` callers: `mono_return_vt.ark`, `call_type_fallback.ark`
@@ -84,5 +97,5 @@ Source: Split from #724 — PR-4 / Phase 5 leftover legacy inference
 
 - #724 — umbrella（Phase 3b–7、本 issue へ残作業移管後 close）
 - #725 — tracer 削除（done）
-- #842 — builtin callee GC lookup
+- #842 — builtin callee GC lookup（open、本 wave では merge しない）
 - ADR-040 / `docs/plans/typed-mir-signature-registry.md` Phase 5

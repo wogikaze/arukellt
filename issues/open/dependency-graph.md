@@ -35,6 +35,7 @@ graph LR
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
+  I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
   I815["815 815 — Diagnostic/T3 compile skips"]
@@ -43,7 +44,6 @@ graph LR
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I841["841 841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims"]
   I842["842 ADR-040: builtin / string callee GC lookup → SignatureRegistry"]
-  I843["843 ADR-040: legacy GC infer と mono_return 名前逆引きの除去"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -55,7 +55,6 @@ graph LR
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I675["675 675 — Host capability user-reachability and runtime permission flags"]
-  I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I683["683 683 — User-facing executable example audit (Quickstart / skip-doc-check)"]
   I699["699 699 — T4 LLVM native SIMD lowering for std::simd"]
   I709["709 709 — Stdlib trait-first API policy and free-function eradication"]
@@ -77,7 +76,6 @@ graph LR
   I791 --> I814
   I819 --> I818
   I841 --> I675
-  I843 --> I729
   I682 --> I683
   I649 --> I699
   I698 --> I699
@@ -129,6 +127,7 @@ graph LR
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **728** depends on: none; blocks: none
+- **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
 - **815** depends on: none; blocks: none
@@ -137,7 +136,6 @@ graph LR
 - **830** depends on: 730; blocks: none
 - **841** depends on: 727; blocks: 675
 - **842** depends on: None; blocks: none
-- **843** depends on: None; blocks: 729
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
@@ -149,7 +147,6 @@ graph LR
 - **814** depends on: 791; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **675** depends on: 841; blocks: none
-- **729** depends on: 843; blocks: none
 - **683** depends on: 679, 682; blocks: none
 - **699** depends on: 649, 698; blocks: none
 - **709** depends on: 691, 695, 697, 703; blocks: 710, 711, 712, 713
