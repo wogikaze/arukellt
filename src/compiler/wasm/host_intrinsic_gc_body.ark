@@ -15,6 +15,8 @@ use wasm::intrinsic_env_args
 use wasm::intrinsic_env_args_gc
 use wasm::intrinsic_env_var
 use wasm::intrinsic_env_var_gc
+use wasm::intrinsic_http
+use wasm::intrinsic_sockets
 use wasm::intrinsic_stdio_read_gc
 use wasm::intrinsics::helpers_core
 
@@ -27,6 +29,9 @@ fn try_emit_host_intrinsic_gc_adapter_body(w: WasmWriter, f: MirFunction, ctx: S
         return false
     }
     if try_emit_env_stdio_gc_adapter_body(w, clone(name), ctx) {
+        return true
+    }
+    if try_emit_network_gc_adapter_body(w, clone(name), ctx) {
         return true
     }
     false
@@ -56,6 +61,55 @@ fn try_emit_env_stdio_gc_adapter_body(w: WasmWriter, name: String, ctx: SelfEmit
     if eq(clone(name), String_from("read_stdin")) {
         intrinsic_stdio_read_gc::emit_gc_wasi_read_stdin_to_string(w, ctx)
         return true
+    }
+    false
+}
+
+// Push params in call order (last arg on stack top) and reuse call-site GC emitters.
+fn try_emit_network_gc_adapter_body(w: WasmWriter, name: String, ctx: SelfEmitCtx) -> bool {
+    if eq(clone(name), String_from("connect")) || eq(clone(name), String_from("listen")) {
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        let inst = inst_call::MirInst_call(clone(name), 2, 0 - 1)
+        if eq(clone(name), String_from("listen")) {
+            return intrinsic_sockets::emit_sockets_listen(w, inst, ctx)
+        }
+        return intrinsic_sockets::emit_sockets_connect(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("read")) {
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        let inst = inst_call::MirInst_call(clone(name), 2, 0 - 1)
+        return intrinsic_sockets::emit_sockets_read(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("write")) {
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        let inst = inst_call::MirInst_call(clone(name), 2, 0 - 1)
+        return intrinsic_sockets::emit_sockets_write(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("accept")) {
+        helpers_core::emit_local_get(w, 0)
+        let inst = inst_call::MirInst_call(clone(name), 1, 0 - 1)
+        return intrinsic_sockets::emit_sockets_accept(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("get")) {
+        helpers_core::emit_local_get(w, 0)
+        let inst = inst_call::MirInst_call(clone(name), 1, 0 - 1)
+        return intrinsic_http::emit_http_get(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("request")) {
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        helpers_core::emit_local_get(w, 2)
+        let inst = inst_call::MirInst_call(clone(name), 3, 0 - 1)
+        return intrinsic_http::emit_http_request(w, inst, ctx)
+    }
+    if eq(clone(name), String_from("serve")) {
+        helpers_core::emit_local_get(w, 0)
+        helpers_core::emit_local_get(w, 1)
+        let inst = inst_call::MirInst_call(clone(name), 2, 0 - 1)
+        return intrinsic_http::emit_http_serve(w, inst, ctx)
     }
     false
 }

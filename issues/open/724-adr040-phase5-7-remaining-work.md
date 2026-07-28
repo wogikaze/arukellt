@@ -152,14 +152,21 @@ Phase 6a–6b / Phase 7 骨格は完了。
 - call-site (`emit_env_var_or_default`) と stub adapter body の両方に配線
 - fixture: `tests/fixtures/stdlib_env/env_var_or_default.ark`
 
+**完了（2026-07-28 sockets/HTTP adapter bodies）**:
+- LinearMemoryPtr 残 stub を call-site GC emitter へ配線:
+  - sockets: `connect` / `read` / `write` / `listen` / `accept`
+  - http: `get` / `request` / `serve`
+- #727 bridged WIT path の既存 GC finalize を再利用（#819 production exit とは独立）
+- stub list 上の bare name（`read`/`write`/`get`）は従来どおり host stub 対象
+
 **完了条件**:
 - [x] `src/compiler/wasm/host_intrinsic_adapter.ark` が存在する
 - [ ] 全 host intrinsic が SignatureRegistry 経由で呼び出される
-- [x] adapter 関数が i32 → GC ref 変換を行う（env/stdio の LinearMemoryPtr 全集）
+- [x] adapter 関数が i32 → GC ref 変換を行う（LinearMemoryPtr stub 全集）
 - [ ] 経路依存（func 12 OK / func 28 NG）0 件
 - [ ] T3 host intrinsic 系 validate-fail 0 件
 - [x] `var_or_default` GC path + adapter body
-- [ ] sockets / HTTP stub の adapter body（#819 / #727 と連携）
+- [x] sockets / HTTP stub の adapter body
 
 ## 実装順序
 
