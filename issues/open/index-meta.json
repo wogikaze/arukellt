@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T10:44:35Z",
+  "generated_at": "2026-07-28T10:51:41Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -581,27 +581,8 @@
         "729"
       ],
       "acceptance": {
-        "checked": 16,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "725",
-      "path": "725-adr040-phase5e-tracer-removal.md",
-      "title": "ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "None"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 0
+        "checked": 18,
+        "unchecked": 2
       },
       "orchestration": {
         "class": "design-then-implement",

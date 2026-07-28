@@ -35,7 +35,6 @@ graph LR
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
   I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
-  I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
@@ -130,7 +129,6 @@ graph LR
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
 - **724** depends on: none; blocks: 729
-- **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814

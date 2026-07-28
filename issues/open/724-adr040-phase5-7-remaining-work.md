@@ -18,8 +18,8 @@ Phase 6a–6b / **Phase 7（host intrinsic adapter）は完了条件を満たし
 
 **クリティカルパス上の T3 validate / bootstrap pin は本 issue の完了条件ではない。**
 それらは `#726`（validate-fail=0、narrow-close）と `#730`（Memory64 / wasm32-gc pin /
-`verify quick`）へ移管済み。本 issue の残は `#725` close 判定、PR-4 残（local GC 型・全面 return の
-legacy 推論）の整理、および umbrella close 判定。
+`verify quick`）へ移管済み。`#725` は done。本 issue の残は PR-4 残（local GC 型・全面 return の
+legacy 推論）の整理と umbrella close 判定。
 builtin callee 構造化の続きは `#842`。
 
 ## 現在の完了状態
@@ -104,8 +104,8 @@ builtin callee 構造化の続きは `#842`。
 - `src/compiler/mir/verify.ark` — warning を fail に切り替え（INV-5 完全執行）
 
 **完了条件**:
-- [ ] `find_stack_value_source` の呼び出し回数 = 0 → **#725 に移管**
-- [ ] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0 → **#725 に移管**
+- [x] `find_stack_value_source` の呼び出し回数 = 0 → **#725 done**（stack_scan へ移行）
+- [x] `infer_ref_local_gc_type_depth` の呼び出し回数 = 0 → **#725 done**（関数削除）
 - [ ] `mono_return_type_name` の名前逆引き回数 = 0
 - [ ] 旧推論経路が呼ばれないことを確認
 - [x] MIR verifier が W005/W006/W007 を fail にする（pipeline hard-fail）
@@ -189,7 +189,8 @@ Phase 3b → 3c → 5 → 6b ∥ 7
 
 - [ADR-040: Semantic Type Spine](../../docs/adr/ADR-040-typed-mir-signature-registry.md)
 - #707 — trait self return type support (ADR-040 関連)
-- #725 — Phase 5e tracer 完全削除（本 umbrella の残 Phase 5）
+- #725 — Phase 5e tracer 完全削除（**done**）
+- #842 — builtin callee GC lookup 構造化（#725 Step 3 残り）
 - #729 — Intrinsic layer separation epic（並行）
 - #726 — T3 validate-fail=0（done, narrow-close）
 - #730 — bootstrap Memory64 / wasm32-gc pin / verify quick（クリティカルパス）

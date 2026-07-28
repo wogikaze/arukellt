@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-16
 Updated: 2026-07-28
 ID: 725
 Track: compiler-internal
 Depends on: #724
-Related: ADR-040, #707
+Related: ADR-040, #707, #842
 Orchestration class: design-then-implement
 Blocks v4 exit: False
 Priority: 3
@@ -18,10 +18,8 @@ Source: ADR-040 Phase 5e — variant_slot structured type ID for GC type inferen
 
 ADR-040 Phase 5e では、GC 型推論を文字列ベース (`type_name` prefix matching) から
 構造化型 ID (`variant_slot` + GcLayoutTable) ベースに移行した。
-Phase 5e の前半（variant_slot 導入 + トレーサ呼び出し削減）は完了済みだが、
-**命令トレーサ `infer_ref_local_gc_type_depth` の完全削除は未完了**。
-
-本 issue は残作業の追跡と完了基準の明確化を目的とする。
+命令トレーサ `infer_ref_local_gc_type_depth` の完全削除と host 側 SignatureRegistry
+フォールバックまで完了。builtin callee 名 matching の残りは `#842`。
 
 ## 完了済み作業 (Phase 5e 前半)
 
@@ -404,10 +402,19 @@ emit 段階での推論（トレーサ）を削除する代わりに、lowering 
 
 **軽減策**: MIR verifier で型伝播の正確性を検証する。
 
+## Close receipt (2026-07-28)
+
+- **判定**: APPROVE（issue-close-review）
+- **対象 commit**: `02d68565`（host SignatureRegistry fallback）+ 先行 Phase 5e commits
+- **受け入れ**: Step 1–3 完了条件すべて `[x]`。builtin 名 matching 削除は `#842` へ移管（隠し完了ではない）
+- **検証**: `selfhost build-compiler` PASS、host 系 T3 23/23 validate OK、`verify lane` PASS
+- **残作業**: `#842`（builtin / string / hashmap / Vec_new_* 構造化）
+
 ## 参照
 
 - [ADR-040: Semantic Type Spine](../../docs/adr/ADR-040-typed-mir-signature-registry.md)
 - #724 — ADR-040 Phase 3b-7 残作業（本 issue の親）
+- #842 — 残る builtin callee 名 matching の構造化
 - #707 — trait self return type support (ADR-040 関連)
 
 ## コミット履歴
