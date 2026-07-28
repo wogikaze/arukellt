@@ -1,11 +1,11 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-28
 Updated: 2026-07-28
 ID: 842
 Track: compiler-internal
 Depends on: #725
-Related: ADR-040, #724, #729
+Related: ADR-040, #724, #729, #843
 Orchestration class: design-then-implement
 Blocks v4 exit: False
 Priority: 4
@@ -43,15 +43,34 @@ hashmap / Vec_new_* callee** のハードコード名 matching を SignatureRegi
 - 命令トレーサ再導入
 - 全 TypeTable intern の一括完了（別途 #729 / typed spine と協調）
 
+## Progress (2026-07-28)
+
+- `signature_registry_builtin.ark`: String / HashMap_*_new / Vec_new_* /
+  vec ops / parse|find|vec_get|vec_pop を `ABI_KIND_BUILTIN` で登録
+- `infer_call_result_gc_type`: registry → Mir return → intrinsic type_name →
+  `Vec_new_*` 合成。emit 側の名前→wasm 型テーブル削除
+- `mir_fn_returns_option_by_name` 削除。option 判定は return type_name のみ
+
 ## Acceptance
 
-- [ ] 上記ハードコード matching を削除しても T3 pass が baseline を下回らない
-- [ ] builtin / string / hashmap / Vec_new_* の戻り値 GC 型が SignatureRegistry
+- [x] 上記ハードコード matching を削除しても T3 pass が baseline を下回らない
+- [x] builtin / string / hashmap / Vec_new_* の戻り値 GC 型が SignatureRegistry
       （または GcLayoutTable + TypeId）から解決される
-- [ ] `verify lane` PASS（emitter 変更時は `selfhost build-compiler` 後）
+- [x] `verify lane` PASS（emitter 変更時は `selfhost build-compiler` 後）
+
+## Close note (2026-07-28)
+
+**issue-close-review: APPROVE**（wave/adr040-phase7）
+
+| Acceptance | Evidence |
+|---|---|
+| hardcode removed | `infer_string/hashmap/builtin_callee_gc_type` / `mir_fn_returns_option_by_name` = 0 |
+| registry / layout | `sig_reg_register_builtin_intrinsics` + `infer_call_result_gc_type_from_registry` + type_name resolve |
+| verify | `selfhost build-compiler` PASS；`verify lane --gate t3` PASS（`✓ T3 fixture WASM validation`）；hashmap/parse/host 代表 validate OK |
 
 ## 参照
 
 - #725 — Phase 5e tracer 削除（親・トレーサ側完了）
 - #724 — ADR-040 umbrella（Phase 7 host adapter 完了）
+- #843 — legacy infer / mono_return 除去（done）
 - ADR-040 / RFC-002 Semantic Type Spine

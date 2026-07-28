@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T13:52:47Z",
+  "generated_at": "2026-07-28T15:15:43Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -740,25 +740,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "842",
-      "path": "842-adr040-structured-callee-gc-lookup.md",
-      "title": "ADR-040: builtin / string callee GC lookup → SignatureRegistry",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "None"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 3
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
       }
     },
     {
