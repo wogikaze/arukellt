@@ -209,7 +209,7 @@ fn is_vec_string_returning_intrinsic(name: String) -> bool {
     if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || starts_with(clone(name), "map_String_String__") {
         return true
     }
-    if eq(clone(name), "Vec_new_String") || eq(clone(name), "__intrinsic_Vec_new_String") || eq(clone(name), "std::vec::Vec<String>::new") {
+    if eq(clone(name), "std::vec::Vec<String>::new") {
         return true
     }
     false

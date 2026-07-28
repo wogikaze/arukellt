@@ -2615,22 +2615,6 @@ phase = 2
 implementation = "ark_fallback"
 
 [[core_ops]]
-id = "vec.Vec_new_f64"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "planned"
-phase = 2
-implementation = "ark_fallback"
-
-[[core_ops]]
-id = "vec.Vec_new_fallback"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "planned"
-phase = 2
-implementation = "ark_fallback"
-
-[[core_ops]]
 id = "vec.contains_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"

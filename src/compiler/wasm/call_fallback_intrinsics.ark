@@ -125,8 +125,7 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
-    // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
-    // core_op binding and become unresolved → unreachable in tokenize.
+    // Associated Vec::new / Vec::with_capacity fallback when MIR body is DCE'd (#845).
     if is_vec_new_callee(clone(callee)) {
         intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
         inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
@@ -229,18 +228,6 @@ fn is_memory_copy_callee(callee: String) -> bool {
 }
 
 fn is_vec_new_callee(callee: String) -> bool {
-    if starts_with(clone(callee), String_from("Vec_new_")) {
-        return true
-    }
-    if eq(clone(callee), String_from("Vec_new")) {
-        return true
-    }
-    if contains(clone(callee), String_from("::Vec_new_")) {
-        return true
-    }
-    if ends_with(clone(callee), String_from("Vec_new_fallback")) {
-        return true
-    }
     // Associated Vec::new / Vec::new__T / with_capacity (#845).
     // mono_safe_name rewrites "::" to "_", so also match Vec__new__T.
     if eq(clone(callee), String_from("Vec::new")) ||

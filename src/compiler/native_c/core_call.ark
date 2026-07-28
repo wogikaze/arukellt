@@ -48,8 +48,7 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
     handler == core_op_registry_generated::core_op_handler_text_char_to_string() ||
     handler == core_op_registry_generated::core_op_handler_text_clone() ||
     handler == core_op_registry_generated::core_op_handler_text_format_f64() ||
-    handler == core_op_registry_generated::core_op_handler_text_to_string() ||
-    handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback()
+    handler == core_op_registry_generated::core_op_handler_text_to_string()
 }
 
 fn native_c_core_arg(arguments: Vec<i32>, index: i32) -> String {
@@ -359,34 +358,6 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_text_to_string() {
         return native_c_core_call_expression(
             concat("(ark_object_header *)ark_rt_i32_to_string(", concat(native_c_core_arg(arguments, 0), ")"))
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() {
-        if len(arguments) > 1 {
-            return native_c_core_call_error(
-                "compiler ICE: native-cpp Vec constructor accepts at most one capacity"
-            )
-        }
-        let constructor = if len(arguments) == 0 {
-            "ark_rt_vec_new"
-        } else {
-            "ark_rt_vec_new_with_capacity"
-        }
-        let mut expression = concat(
-            "(ark_object_header *)",
-            concat(
-                constructor,
-                concat(
-                    "(UINT32_C(",
-                    concat(i32_to_string(native_c_core_destination_type_id(function, instruction)), ")")
-                )
-            )
-        )
-        if len(arguments) == 1 {
-            expression = concat(expression, concat(", ", native_c_core_arg(arguments, 0)))
-        }
-        return native_c_core_call_expression(
-            concat(expression, ")")
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_get_unchecked() {

@@ -15,11 +15,5 @@ fn resolve_ident(ctx: ResolveCtx, node: AstNode) {
 }
 
 fn resolver_ident_is_builtin(name: String) -> bool {
-    let name_len = len(name)
-    if name_len >= 8 {
-        if eq(substring(name, 0, 8), "Vec_new_") {
-            return true
-        }
-    }
     false
 }

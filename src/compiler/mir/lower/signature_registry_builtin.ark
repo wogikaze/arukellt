@@ -1,5 +1,5 @@
 // Register builtin / intrinsic callees that are often absent from the Mir
-// function name index (String_new, HashMap_*_new, Vec_new_*, parse_*, …).
+// function name index (String_new, HashMap_*_new, parse_*, …).
 // Emit resolves their return GC types via SignatureRegistry → TypeId /
 // type_name → GcLayoutTable (#842), not emit-time name→wasm-type tables.
 
@@ -21,7 +21,6 @@ fn sig_reg_register_builtin_intrinsics(table: TypeTable, registry: SignatureRegi
         sig_reg_mvt_string(table)
     )
     added = added + sig_reg_register_hashmap_news(table, registry)
-    added = added + sig_reg_register_vec_news(table, registry)
     added = added + sig_reg_register_vec_ops(table, registry)
     added = added + sig_reg_register_option_returns(table, registry)
     added
@@ -127,41 +126,6 @@ fn sig_reg_register_hashmap_news(table: TypeTable, registry: SignatureRegistry) 
         registry,
         sig_reg_hm_ss_names(),
         sig_reg_mvt_hashmap(table, "hashmap:strstr")
-    )
-    added
-}
-
-fn sig_reg_register_vec_news(table: TypeTable, registry: SignatureRegistry) -> i32 {
-    let mut added = 0
-    added = added + sig_reg_register_builtin_named(
-        table,
-        registry,
-        sig_reg_names1("Vec_new_String"),
-        sig_reg_mvt_vec(table, "vec:String")
-    )
-    added = added + sig_reg_register_builtin_named(
-        table,
-        registry,
-        sig_reg_names1("Vec_new_i64"),
-        sig_reg_mvt_vec(table, "vec:i64")
-    )
-    added = added + sig_reg_register_builtin_named(
-        table,
-        registry,
-        sig_reg_names1("Vec_new_f64"),
-        sig_reg_mvt_vec(table, "vec:f64")
-    )
-    added = added + sig_reg_register_builtin_named(
-        table,
-        registry,
-        sig_reg_names1("Vec_new_v128"),
-        sig_reg_mvt_vec(table, "vec:v128")
-    )
-    added = added + sig_reg_register_builtin_named(
-        table,
-        registry,
-        sig_reg_names1("Vec_new_i32"),
-        sig_reg_mvt_vec(table, "vec:i32")
     )
     added
 }

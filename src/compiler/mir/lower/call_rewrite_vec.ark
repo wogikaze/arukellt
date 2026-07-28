@@ -44,6 +44,38 @@ fn mir_vec_call_target_is_intrinsic(callee_name: String) -> bool {
     eq(clone(callee_name), String_from("vec_pop"))
 }
 
+// Free `push(v, x)` is rewritten to `Vec::push` when `impl Vec<T>` is registered
+// (#700 / #845). Match that form too so GC String/struct vecs keep the
+// `vec_push` CoreOp path instead of mono → `__core_vec_push_i32_impl`.
+fn is_vec_push_callee(name: String) -> bool {
+    eq(clone(name), String_from("push")) ||
+    eq(clone(name), String_from("Vec::push")) ||
+    starts_with(clone(name), String_from("Vec::push__")) ||
+    starts_with(clone(name), String_from("push__"))
+}
+
+fn is_vec_len_callee(name: String) -> bool {
+    eq(clone(name), String_from("len")) ||
+    eq(clone(name), String_from("Vec::len")) ||
+    starts_with(clone(name), String_from("Vec::len__")) ||
+    starts_with(clone(name), String_from("len__"))
+}
+
+fn is_vec_pop_callee(name: String) -> bool {
+    eq(clone(name), String_from("pop")) ||
+    eq(clone(name), String_from("Vec::pop")) ||
+    starts_with(clone(name), String_from("Vec::pop__")) ||
+    starts_with(clone(name), String_from("pop__"))
+}
+
+fn is_vec_set_callee(name: String) -> bool {
+    eq(clone(name), String_from("set")) ||
+    eq(clone(name), String_from("vec_set")) ||
+    eq(clone(name), String_from("Vec::set")) ||
+    starts_with(clone(name), String_from("Vec::set__")) ||
+    starts_with(clone(name), String_from("set__"))
+}
+
 fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if is_vec_get_unchecked_callee(clone(callee_name)) {
         return call_rewrite_vec_access::mir_rewrite_vec_get_unchecked(ctx, callee_name, first_arg_idx)
@@ -57,10 +89,13 @@ fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_a
 fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
     let mut rewritten = callee_name
     let mut push_i64_needs_extend = false
-    if eq(clone(rewritten), "len") {
+    if is_vec_len_callee(clone(rewritten)) {
         rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)
     }
-    if eq(clone(rewritten), "push") {
+    if is_vec_push_callee(clone(rewritten)) {
+        // Normalize to bare `push` so element-type rewrite (vec_push / push_i64)
+        // stays centralized in call_rewrite_vec_push.
+        rewritten = String_from("push")
         let push_rewrite = call_rewrite_vec_push::mir_rewrite_vec_push(ctx, rewritten, first_arg_idx, second_arg_idx, stage_call_args)
         rewritten = call_rewrite_vec_push::mir_vec_push_rewrite_callee_name(push_rewrite)
         push_i64_needs_extend = call_rewrite_vec_push::mir_vec_push_rewrite_push_i64_needs_extend(push_rewrite)
@@ -125,10 +160,10 @@ fn mir_rewrite_vec_len(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 
 fn mir_rewrite_vec_basic(callee_name: String) -> String {
     let mut rewritten = callee_name
-    if eq(clone(rewritten), "pop") {
+    if is_vec_pop_callee(clone(rewritten)) {
         rewritten = String_from("vec_pop")
     }
-    if eq(clone(rewritten), "set") || eq(clone(rewritten), "vec_set") {
+    if is_vec_set_callee(clone(rewritten)) {
         rewritten = String_from("raw_array_set_unchecked")
     }
     rewritten

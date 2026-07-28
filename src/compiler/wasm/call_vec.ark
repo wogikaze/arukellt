@@ -118,17 +118,6 @@ fn try_emit_vec_base_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
         )
         return true
     }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_Vec_new_f64(){
-        let _result_on_stack = intrinsic_vec::emit_Vec_new_i64(w, inst, ctx)
-        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
-        return true
-    }
-    if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() {
-        intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
-        inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
-        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
-        return true
-    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_vec_len(){
         let _result_on_stack = intrinsic_vec::emit_vec_len(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)

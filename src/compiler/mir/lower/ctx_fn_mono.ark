@@ -41,10 +41,20 @@ fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> Strin
 }
 
 fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
-    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+    // Associated Vec::new__T / with_capacity__T lower via wasm name fallback
+    // (no MIR body). Still register the span rewrite so call sites get the
+    // mangled callee for mark_vec / layout (#845).
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
         return
     }
     ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, source, target)
+}
+
+fn is_vec_ctor_mono_target(target: String) -> bool {
+    starts_with(clone(target), String_from("Vec::new__")) ||
+    starts_with(clone(target), String_from("Vec__new__")) ||
+    starts_with(clone(target), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(target), String_from("Vec__with_capacity__"))
 }
 
 fn mono_sources_match(candidate: String, requested: String) -> bool {
@@ -86,7 +96,7 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
 }
 
 fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
-    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
         return
     }
     ctx_mono_rewrites::ctx_mono_push_name_rewrite(ctx, source, target)

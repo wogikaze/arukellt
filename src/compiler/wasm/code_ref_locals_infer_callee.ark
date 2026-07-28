@@ -121,16 +121,9 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     Option::None
 }
 
-// Mono Vec_new_<Elem> / Vec::new__Elem / Vec__new__Elem names are not all
+// Mono Vec::new__Elem / Vec__new__Elem names are not all
 // pre-registered; derive vec:Elem and resolve through layout helpers (#842 / #845).
 fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if starts_with(clone(callee), "Vec_new_") {
-        let elem = substring(clone(callee), 8, len(callee))
-        if len(elem) == 0 {
-            return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
-        }
-        return resolve_gc_type_from_return_type_name(ctx, concat("vec:", elem))
-    }
     if starts_with(clone(callee), "Vec::new__") ||
     starts_with(clone(callee), "Vec::with_capacity__") ||
     starts_with(clone(callee), "Vec__new__") ||

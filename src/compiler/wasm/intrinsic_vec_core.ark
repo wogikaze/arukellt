@@ -6,7 +6,6 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::inst_ctx
-use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_vec_type
 use wasm::opcodes
 use wasm::writer_core
@@ -14,13 +13,6 @@ use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
-
-// Handler for: Vec_new_i64, Vec_new_f64
-fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76, inst, ctx)
-    inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
-    return true
-}
 
 // Handler for: vec_len
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {

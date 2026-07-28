@@ -55,58 +55,6 @@ alias = "__intrinsic_string_new"
 core_op_id = "raw.string_new"
 
 [[legacy_bindings]]
-alias = "Vec_new_f64"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_i64"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_i32"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_String"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_i32_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_i64_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_f64_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i32"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_String"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i32_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i64_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_f64_with_cap"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
-alias = "Vec_new_v128"
-core_op_id = "raw.array_new"
-
-[[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
 core_op_id = "text.format_bool"
 
@@ -12964,74 +12912,6 @@ policy = "hint"
 kind = "normal_call"
 [operations.fallback]
 implementation_symbol = "__core_format_i32_impl"
-required = true
-
-[[operations]]
-id = "vec.Vec_new_f64"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Wide-element Vec constructor via sealed raw.array_new (issue 822)."
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "__core_vec_new_f64_impl"
-required = true
-
-[[operations]]
-id = "vec.Vec_new_fallback"
-visibility = "internal"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "forbidden" }
-description = "Default/i32 Vec constructor via sealed raw.array_new (issue 822)."
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "write"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "normal_call"
-[operations.fallback]
-implementation_symbol = "__core_vec_new_fallback_impl"
 required = true
 
 [[operations]]

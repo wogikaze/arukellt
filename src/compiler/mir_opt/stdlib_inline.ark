@@ -119,6 +119,30 @@ fn stdlib_resolve_call_receiver_local(block: MirBlock, call_index: i32, call: Mi
     inst_accessors_operands::MirInst_arg0(staged)
 }
 
+fn stdlib_vec_concrete_fallback_matches_elem(fallback: String, suffix: String) -> bool {
+    // Concrete scalar fallbacks must not absorb String/struct/fn vec calls —
+    // those stay on the CoreOp path for GC intrinsic emit (#822 / #845).
+    if eq(clone(fallback), String_from("__core_vec_push_i32_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_set_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_pop_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_impl")) {
+        return eq(clone(suffix), String_from("i32")) ||
+        eq(clone(suffix), String_from("I32")) ||
+        eq(clone(suffix), String_from("bool")) ||
+        eq(clone(suffix), String_from("char"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_i64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_i64_impl")) {
+        return eq(clone(suffix), String_from("i64")) || eq(clone(suffix), String_from("I64"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_f64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_f64_impl")) {
+        return eq(clone(suffix), String_from("f64")) || eq(clone(suffix), String_from("F64"))
+    }
+    true
+}
+
 fn stdlib_specialize_vec_fallback(
     registry: SignatureRegistry,
     fallback: String,
@@ -147,6 +171,11 @@ fn stdlib_specialize_vec_fallback(
     if function_id::FunctionId_raw(specialized_id) >= 0 {
         return specialized
     }
+    // Known non-matching element (e.g. vec:String vs __core_vec_push_i32_impl):
+    // empty → caller keeps the CoreOp callee for intrinsic lowering.
+    if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), clone(suffix)) {
+        return String_new()
+    }
     fallback
 }
 
@@ -168,21 +197,24 @@ fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBloc
                 index,
                 inst
             )
-            let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
-            let fallback_raw = function_id::FunctionId_raw(fallback_id)
-            if fallback_raw >= 0 {
-                // Do not shadow mut resolved (i32 count) with MirInst — shared
-                // wasm locals then mix i64 and ref under Memory64 (#730).
-                let resolved_inst = inst_record::mir_inst_with_call_target(inst, specialized, fallback_raw)
-                let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
-                inst_record::mir_inst_set_result_types(
-                    resolved_inst,
-                    signature_entry::signature_entry_return_types(fallback_entry)
-                )
-                push(output, resolved_inst)
-                resolved = resolved + 1
-                index = index + 1
-                continue
+            // Empty specialized means "leave CoreOp" (String/struct/fn vec).
+            if len(specialized) > 0 {
+                let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
+                let fallback_raw = function_id::FunctionId_raw(fallback_id)
+                if fallback_raw >= 0 {
+                    // Do not shadow mut resolved (i32 count) with MirInst — shared
+                    // wasm locals then mix i64 and ref under Memory64 (#730).
+                    let resolved_inst = inst_record::mir_inst_with_call_target(inst, specialized, fallback_raw)
+                    let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
+                    inst_record::mir_inst_set_result_types(
+                        resolved_inst,
+                        signature_entry::signature_entry_return_types(fallback_entry)
+                    )
+                    push(output, resolved_inst)
+                    resolved = resolved + 1
+                    index = index + 1
+                    continue
+                }
             }
         }
         push(output, inst)

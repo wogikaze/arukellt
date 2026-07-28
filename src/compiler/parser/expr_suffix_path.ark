@@ -10,6 +10,7 @@ use parser::expr_prefix_struct_fields
 use parser::expr_prefix_struct_probe
 use parser::state_record
 use parser::token_state
+use parser::type_token_predicates
 use parser::types
 
 pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
@@ -24,14 +25,17 @@ pub fn parse_path_suffix(p: Parser, lhs: AstNode) -> AstNode {
         return lit
     }
     // Turbofish: Type::function<T>() — parse explicit type arguments after path.
-    // Only attempt when the token after < is an identifier (valid type start).
+    // Accept any type start (named, fn, tuple), not only identifiers (#845 fn vec).
     // Use backtracking: if the type arg list is not properly closed with >,
     // restore position so < is treated as a binary less-than operator.
     if core_api_cursor::peek_kind(p) == tokens::TK_LT() {
         let saved_pos = state_record::parser_position(p)
         p.pos = p.pos + 1
         core_api_cursor::skip_newlines(p)
-        if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() {
+        let peek = core_api_cursor::peek_kind(p)
+        if type_token_predicates::is_named_start(peek) ||
+        type_token_predicates::is_fn_start(peek) ||
+        type_token_predicates::is_tuple_start(peek) {
             let type_args = parse_turbofish_type_args(p)
             if len(type_args) > 0 {
                 let mut k = 0
@@ -87,7 +91,10 @@ fn parse_turbofish_type_args(p: Parser) -> Vec<AstNode> {
             core_api_cursor::skip_newlines(p)
         }
         first = false
-        if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
+        let arg_peek = core_api_cursor::peek_kind(p)
+        if !type_token_predicates::is_named_start(arg_peek) &&
+        !type_token_predicates::is_fn_start(arg_peek) &&
+        !type_token_predicates::is_tuple_start(arg_peek) {
             return Vec::new<AstNode>()
         }
         let arg = types::parse_type(p)

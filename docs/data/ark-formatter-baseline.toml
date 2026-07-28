@@ -15,7 +15,7 @@ path = "src/compiler/component/contract_allows_tuple.ark"
 sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 [[exceptions]]
 path = "src/compiler/component/emit_resource.ark"
-sha256 = "17f492dce69b2fe1196de8c4c960464e0c80da9f40656251e5d8cfd3a07fa5cb"
+sha256 = "5b1bd95f7c4f71999bd9f673d2d881be550fa38e9b57fc9cd025ac2f16afb2c8"
 [[exceptions]]
 path = "src/compiler/component/emit_tier3_roundtrip.ark"
 sha256 = "6698556fa0557a14870ff9a71c2ef561361d55853c568c5cc125d6d5e5443893"
@@ -66,13 +66,13 @@ path = "src/compiler/wasm/wat_functions.ark"
 sha256 = "9733ef7d5406efe96c0d025e78e1746a27f549708e2cec9b259e3b2d0f12d764"
 [[exceptions]]
 path = "std/core/iter.ark"
-sha256 = "cfd891d9cb5bfc66c2ebbf391bc130320a1f8391845daff6bfe121239383fe89"
+sha256 = "facbbc6c5477df9fd07c15bed4a31ac571011fcf55bab4f239b94fb75a66c6fe"
 [[exceptions]]
 path = "std/seq/mod.ark"
-sha256 = "72d005bb30ccbfabc283cc7844fa5c9903719afa73f4609724fd9b4ae79c2ed6"
+sha256 = "1ec7a8236b740119b214726014d82a124b1ee3a35947cce21ba7a6389ecf3798"
 [[exceptions]]
 path = "std/toml.ark"
-sha256 = "4b09290b112ea801ee65cdb8557903cb7aab76a6d7622fa02fa44b613b2abdba"
+sha256 = "3da0b6189f981b71a0b1826be9bbae537ae54665c2e92454b950f85c6cd67f59"
 [[exceptions]]
 path = "std/wit/printer.ark"
 sha256 = "8e2f11021b4fe0195d7fdc8d5dd26bd0ab46a991e9b04cf2ef1a31f23beec10c"
