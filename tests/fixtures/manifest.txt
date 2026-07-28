@@ -480,6 +480,7 @@ run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
 run:regression/vec_struct_len.ark
 run:scalar/comparison.ark
+run:scalar/const_i32.ark
 run:scalar/conversion.ark
 run:scalar/f32_basic.ark
 run:scalar/f32_local.ark
@@ -2526,6 +2527,7 @@ t3-run:question_mark/nested_result.ark
 t3-run:question_mark/option_propagate.ark
 t3-run:question_mark/from_trait_not_inherent.ark
 t3-run:scalar/gc_hint_short_lived.ark
+t3-run:scalar/const_i32.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark

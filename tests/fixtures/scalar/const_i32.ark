@@ -1,0 +1,9 @@
+use std::host::stdio
+
+const MOD: i32 = 998244353
+
+fn main() {
+    stdio::println((MOD).to_string())
+    let mod_i32: i32 = MOD
+    stdio::println((i32_to_i64(mod_i32)).to_string())
+}

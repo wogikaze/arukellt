@@ -7,10 +7,9 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_variants
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_index
-use mir::lower::ctx_types
 use mir::function_identity
 use mir::function_param_view
-use mir::inst_const_i32
+use mir::inst_call
 use mir::inst_local_get
 use mir::inst_ref_func
 use mir::lower::core_expr_shape_accessors
@@ -67,6 +66,16 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
         let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
+            let expr_vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
+            if expr_vt != value_types::VT_FUNCREF() {
+                let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, expr_vt)
+                let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
+                if len(expr_type_name) > 0 {
+                    ctx_api_local_types::ctx_set_local_type(ctx, dest, expr_type_name)
+                }
+                ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(fn_name, 0, dest))
+                return dest
+            }
             let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
             ctx_api_local_types::ctx_set_local_type(ctx, dest, mir_fnref_type_name_for_function(ctx, clone(fn_name)))
             ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
