@@ -16,49 +16,5 @@ fn is_option_type_name(type_name: String) -> bool {
     false
 }
 
-fn mir_fn_returns_option_by_name(fn_name: String) -> bool {
-    if eq(clone(fn_name), "hashmap_get_option") ||
-    eq(clone(fn_name), "hash::hashmap_get_option") ||
-    eq(clone(fn_name), "HashMap_i32_i32_get") ||
-    eq(clone(fn_name), "hashmap_i32_i32_get") ||
-    eq(clone(fn_name), "hash_map::hashmap_i32_i32_get") {
-        return true
-    }
-    if eq(clone(fn_name), "hashmap_remove") ||
-    eq(clone(fn_name), "hash::hashmap_remove") ||
-    eq(clone(fn_name), "HashMap_i32_i32_remove") ||
-    eq(clone(fn_name), "hashmap_i32_i32_remove") ||
-    eq(clone(fn_name), "hash_map::hashmap_i32_i32_remove") {
-        return true
-    }
-    if eq(clone(fn_name), "hash_string::hashmap_str_get") ||
-    eq(clone(fn_name), "hashmap_str_get") ||
-    eq(clone(fn_name), "hash::hashmap_str_get") ||
-    eq(clone(fn_name), "HashMap_String_i32_get") {
-        return true
-    }
-    if eq(clone(fn_name), "hash_string::hashmap_str_remove") ||
-    eq(clone(fn_name), "hashmap_str_remove") ||
-    eq(clone(fn_name), "hash::hashmap_str_remove") ||
-    eq(clone(fn_name), "HashMap_String_i32_remove") {
-        return true
-    }
-    if eq(clone(fn_name), "hashmap_str_val_get") || eq(clone(fn_name), "HashMap_i32_String_get") {
-        return true
-    }
-    if eq(clone(fn_name), "hashmap_str_str_get") || eq(clone(fn_name), "HashMap_String_String_get") {
-        return true
-    }
-    if eq(clone(fn_name), "hashmap_str_str_remove") || eq(clone(fn_name), "HashMap_String_String_remove") {
-        return true
-    }
-    if eq(clone(fn_name), "parse_i32") ||
-    eq(clone(fn_name), "convert::parse_i32") ||
-    eq(clone(fn_name), "parse_i64") ||
-    eq(clone(fn_name), "convert::parse_i64") ||
-    eq(clone(fn_name), "parse_f64") ||
-    eq(clone(fn_name), "convert::parse_f64") {
-        return true
-    }
-    false
-}
+// Retired (#842): option-return detection uses MirFunction return type_name /
+// SignatureRegistry, not callee-name lists.

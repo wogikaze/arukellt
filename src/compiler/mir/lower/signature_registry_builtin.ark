@@ -1,0 +1,320 @@
+// Register builtin / intrinsic callees that are often absent from the Mir
+// function name index (String_new, HashMap_*_new, Vec_new_*, parse_*, …).
+// Emit resolves their return GC types via SignatureRegistry → TypeId /
+// type_name → GcLayoutTable (#842), not emit-time name→wasm-type tables.
+
+use corehir::kinds
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_table
+use corehir::core_op_binding
+use mir::lower::signature_registry_host
+
+fn sig_reg_register_builtin_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let mut added = 0
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_builtin_string_return_names(),
+        sig_reg_mvt_string(table)
+    )
+    added = added + sig_reg_register_hashmap_news(table, registry)
+    added = added + sig_reg_register_vec_news(table, registry)
+    added = added + sig_reg_register_vec_ops(table, registry)
+    added = added + sig_reg_register_option_returns(table, registry)
+    added
+}
+
+fn sig_reg_register_builtin_named(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    names: Vec<String>,
+    ret: MirValueType
+) -> i32 {
+    let mut added = 0
+    let mut i = 0
+    while i < len(names) {
+        let name = get_unchecked(names, i)
+        if !signature_registry_host::sig_reg_registry_has_mangled(registry, clone(name)) {
+            sig_reg_register_builtin_entry(table, registry, clone(name), mir_value_type::mir_value_type_copy(ret))
+            added = added + 1
+        }
+        i = i + 1
+    }
+    added
+}
+
+fn sig_reg_register_builtin_entry(
+    table: TypeTable,
+    registry: SignatureRegistry,
+    name: String,
+    ret: MirValueType
+) {
+    let returns = Vec_new_MirValueType()
+    push(returns, ret)
+    let params = Vec_new_MirValueType()
+    let receiver = mir_value_type::MirValueType_new(
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec_new_TypeId()),
+        kinds::VALUE_REPR_SCALAR(),
+        kinds::NULLABILITY_NOT_REF()
+    )
+    let entry = signature_entry::SignatureEntry_new(
+        function_id::FunctionId_new(0),
+        clone(name),
+        params,
+        returns,
+        false,
+        receiver,
+        0 - 1,
+        0 - 1,
+        0 - 1,
+        kinds::ABI_KIND_BUILTIN(),
+        core_op_binding::core_op_binding_lookup_for_mangled(clone(name))
+    )
+    signature_registry::signature_registry_register(registry, entry, name)
+}
+
+fn sig_reg_mvt_string(table: TypeTable) -> MirValueType {
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec_new_TypeId())
+    mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+}
+
+fn sig_reg_mvt_vec(table: TypeTable, type_name: String) -> MirValueType {
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec_new_TypeId())
+    mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+}
+
+fn sig_reg_mvt_hashmap(table: TypeTable, type_name: String) -> MirValueType {
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec_new_TypeId())
+    mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+}
+
+fn sig_reg_mvt_option(table: TypeTable, type_name: String) -> MirValueType {
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
+    mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+}
+
+fn sig_reg_register_hashmap_news(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let mut added = 0
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_hm_si_names(),
+        sig_reg_mvt_hashmap(table, "hashmap:si32")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_hm_is_names(),
+        sig_reg_mvt_hashmap(table, "hashmap:i32str")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_hm_if_names(),
+        sig_reg_mvt_hashmap(table, "hashmap:i32fn")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_hm_sf_names(),
+        sig_reg_mvt_hashmap(table, "hashmap:strfn")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_hm_ss_names(),
+        sig_reg_mvt_hashmap(table, "hashmap:strstr")
+    )
+    added
+}
+
+fn sig_reg_register_vec_news(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let mut added = 0
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names1("Vec_new_String"),
+        sig_reg_mvt_vec(table, "vec:String")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names1("Vec_new_i64"),
+        sig_reg_mvt_vec(table, "vec:i64")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names1("Vec_new_f64"),
+        sig_reg_mvt_vec(table, "vec:f64")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names1("Vec_new_v128"),
+        sig_reg_mvt_vec(table, "vec:v128")
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names1("Vec_new_i32"),
+        sig_reg_mvt_vec(table, "vec:i32")
+    )
+    added
+}
+
+fn sig_reg_register_vec_ops(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let mut added = 0
+    let vec_i32 = sig_reg_mvt_vec(table, "vec:i32")
+    let vec_string = sig_reg_mvt_vec(table, "vec:String")
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names3("vec_set", "vec_reverse", "vec_remove"),
+        mir_value_type::mir_value_type_copy(vec_i32)
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names4(
+            "filter_String",
+            "__intrinsic_filter_String",
+            "map_String_String",
+            "__intrinsic_map_String_String"
+        ),
+        mir_value_type::mir_value_type_copy(vec_string)
+    )
+    added = added + sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_names4(
+            "filter_i32",
+            "__intrinsic_filter_i32",
+            "map_i32_i32",
+            "__intrinsic_map_i32_i32"
+        ),
+        vec_i32
+    )
+    added
+}
+
+fn sig_reg_register_option_returns(table: TypeTable, registry: SignatureRegistry) -> i32 {
+    let opt = sig_reg_mvt_option(table, "Option<i32>")
+    sig_reg_register_builtin_named(
+        table,
+        registry,
+        sig_reg_option_return_names(),
+        opt
+    )
+}
+
+fn sig_reg_names1(a: String) -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, a)
+    names
+}
+
+fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, a)
+    push(names, b)
+    push(names, c)
+    names
+}
+
+fn sig_reg_names4(a: String, b: String, c: String, d: String) -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, a)
+    push(names, b)
+    push(names, c)
+    push(names, d)
+    names
+}
+
+fn sig_reg_hm_si_names() -> Vec<String> {
+    sig_reg_names4(
+        "__hm_si_new",
+        "hash_string::hashmap_str_i32_new",
+        "HashMap_new_String_i32",
+        "HashMap_String_i32_new"
+    )
+}
+
+fn sig_reg_hm_is_names() -> Vec<String> {
+    sig_reg_names4(
+        "__hm_is_new",
+        "hash_string::hashmap_i32_str_new",
+        "HashMap_new_i32_String",
+        "HashMap_i32_String_new"
+    )
+}
+
+fn sig_reg_hm_if_names() -> Vec<String> {
+    sig_reg_names4(
+        "__hm_if_new",
+        "hash_fn::hashmap_i32_fn_new",
+        "HashMap_new_i32_fn",
+        "HashMap_i32_fn_new"
+    )
+}
+
+fn sig_reg_hm_sf_names() -> Vec<String> {
+    sig_reg_names4(
+        "__hm_sf_new",
+        "hash_str_fn::hashmap_str_fn_new",
+        "HashMap_new_String_fn",
+        "HashMap_String_fn_new"
+    )
+}
+
+fn sig_reg_hm_ss_names() -> Vec<String> {
+    sig_reg_names4(
+        "__hm_ss_new",
+        "hash_string::hashmap_str_str_new",
+        "HashMap_new_String_String",
+        "HashMap_String_String_new"
+    )
+}
+
+fn sig_reg_option_return_names() -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, "vec_pop")
+    push(names, "vec_get")
+    push(names, "find_i32")
+    push(names, "find_i64")
+    push(names, "find_f64")
+    push(names, "find_String")
+    push(names, "parse_i32")
+    push(names, "convert::parse_i32")
+    push(names, "parse_i64")
+    push(names, "convert::parse_i64")
+    push(names, "parse_f64")
+    push(names, "convert::parse_f64")
+    push(names, "parse_u64")
+    push(names, "convert::parse_u64")
+    names
+}
+
+// High-traffic string constructors / conversions that are frequently missing
+// from the Mir name index. Broader string methods still resolve via
+// lookup_intrinsic_return_type_name → type_name → layout at emit time.
+fn sig_reg_builtin_string_return_names() -> Vec<String> {
+    let names = Vec_new_String()
+    push(names, "String_new")
+    push(names, "String_from")
+    push(names, "__intrinsic_String_new")
+    push(names, "__intrinsic_String_from")
+    push(names, "string::String_new")
+    push(names, "string::String_from")
+    push(names, "to_string")
+    push(names, "__intrinsic_to_string")
+    push(names, "i32_to_string")
+    push(names, "i64_to_string")
+    push(names, "f64_to_string")
+    push(names, "bool_to_string")
+    push(names, "char_to_string")
+    names
+}

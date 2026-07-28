@@ -89,9 +89,7 @@ fn local_feeds_return(f: MirFunction, local_idx: i32) -> bool {
 }
 
 fn mir_function_returns_option(f: MirFunction) -> bool {
-    if code_ref_locals_types::mir_fn_returns_option_by_name(clone(f.name)) {
-        return true
-    }
+    // Prefer declared return type_name over callee-name lists (#842).
     if function_return_view::MirFunction_return_type(f) != value_types::mir_value_types__VT_GC_REF() {
         return false
     }

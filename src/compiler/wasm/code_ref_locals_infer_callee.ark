@@ -1,5 +1,6 @@
-// Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
-// See docs/research/infer-local-gc-type-option.md.
+// Call-result GC typing via SignatureRegistry / Mir return / type_name →
+// GcLayoutTable (#842). Emit-time callee-name → wasm type tables removed.
+
 use corehir::function_id
 use corehir::mir_value_type
 use corehir::signature_entry
@@ -16,44 +17,11 @@ use wasm::ctx_gc_layout_lookup
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
-// Infer GC type for string-returning callees. Returns -1 if not a string callee.
-fn infer_string_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if post_pass_callee_lookup::is_string_returning_intrinsic(callee) {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
-    }
-    Option::None
-}
-
-// Infer GC type for hashmap-returning callees. Returns -1 if not a hashmap callee.
-fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if eq(clone(callee), "__hm_si_new") || eq(clone(callee), "hash_string::hashmap_str_i32_new") || eq(clone(callee), "HashMap_new_String_i32") || eq(clone(callee), "HashMap_String_i32_new") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
-    }
-    if eq(clone(callee), "__hm_is_new") || eq(clone(callee), "hash_string::hashmap_i32_str_new") || eq(clone(callee), "HashMap_new_i32_String") || eq(clone(callee), "HashMap_i32_String_new") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
-    }
-    if eq(clone(callee), "__hm_if_new") || eq(clone(callee), "hash_fn::hashmap_i32_fn_new") || eq(clone(callee), "HashMap_new_i32_fn") || eq(clone(callee), "HashMap_i32_fn_new") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
-    }
-    if eq(clone(callee), "__hm_sf_new") ||
-    eq(clone(callee), "hash_str_fn::hashmap_str_fn_new") ||
-    eq(clone(callee), "HashMap_new_String_fn") ||
-    eq(clone(callee), "HashMap_String_fn_new") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_fn_type(ctx))
-    }
-    if eq(clone(callee), "__hm_ss_new") || eq(clone(callee), "hash_string::hashmap_str_str_new") || eq(clone(callee), "HashMap_new_String_String") || eq(clone(callee), "HashMap_String_String_new") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
-    }
-    Option::None
-}
-
 // Fallback: infer GC type from the called function's return type signature.
 fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
     if fn_idx < 0 {
-        // Host stubs / aliases may be absent from the Mir function table but
-        // still registered on SignatureRegistry (#725 / Phase 7).
-        return infer_call_result_gc_type_from_registry(ctx, callee)
+        return Option::None
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
@@ -79,8 +47,7 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
 }
 
-// Resolve call-result GC type from SignatureRegistry when resolve_fn_index
-// cannot find a MirFunction (host intrinsic stubs, some aliases).
+// Resolve call-result GC type from SignatureRegistry (host + builtin entries).
 fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
     let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee))
@@ -108,6 +75,10 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
     }
     let table = ctx_record::SelfEmitCtx_type_table(ctx)
     let ret_name = type_table::type_entry_name(type_table::TypeTable_lookup(table, tid))
+    resolve_gc_type_from_return_type_name(ctx, ret_name)
+}
+
+fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None
     }
@@ -125,11 +96,44 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
     if eq(clone(ret_name), "String") || eq(clone(ret_name), "string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
-    if starts_with(clone(ret_name), "Vec<") || starts_with(clone(ret_name), "vec:") {
+    if eq(clone(ret_name), "vec:String") || eq(clone(ret_name), "vec:string") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
+    }
+    if eq(clone(ret_name), "vec:i64") || eq(clone(ret_name), "vec:I64") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
+    }
+    if eq(clone(ret_name), "vec:f64") || eq(clone(ret_name), "vec:F64") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
+    }
+    if eq(clone(ret_name), "vec:v128") || eq(clone(ret_name), "vec:V128") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
+    }
+    if starts_with(clone(ret_name), "vec:") {
+        let elem = substring(clone(ret_name), 4, len(ret_name))
+        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
+            return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
+        }
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+    }
+    if starts_with(clone(ret_name), "Vec<") || starts_with(clone(ret_name), "Vec_") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
     }
     Option::None
 }
+
+// Mono Vec_new_<Elem> names are not all pre-registered; derive vec:Elem and
+// resolve through layout / vec helpers (#842).
+fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    if !starts_with(clone(callee), "Vec_new_") {
+        return Option::None
+    }
+    let elem = substring(clone(callee), 8, len(callee))
+    if len(elem) == 0 {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+    }
+    resolve_gc_type_from_return_type_name(ctx, concat("vec:", elem))
+}
+
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None
@@ -164,9 +168,6 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
 }
 
 // Struct/enum-oriented tail of infer_call_result_gc_type_from_fn.
-// Struct name extraction from "struct:TypeName:byte_size" remains here
-// because the format requires parsing.  Option/enum is a safety net for
-// cases where the GcLayoutTable lookup doesn't find the type name.
 fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: String) -> Option<i32> {
     if starts_with(clone(ret_name), "struct:") {
         let struct_name = parse_struct_name_from_ret_name(clone(ret_name))
@@ -201,7 +202,6 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
     resolve_named_struct_gc_type(ctx, ret_name)
 }
 
-// Extract struct name from "struct:TypeName:byte_size" format.
 fn parse_struct_name_from_ret_name(type_name: String) -> String {
     let n = len(type_name)
     let mut first_colon = 0 - 1
@@ -222,7 +222,6 @@ fn parse_struct_name_from_ret_name(type_name: String) -> String {
     substring(type_name, first_colon + 1, last_colon)
 }
 
-// Extract byte_size from "struct:TypeName:byte_size" format.
 fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     let n = len(type_name)
     let mut last_colon = 0 - 1
@@ -251,86 +250,32 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    let string_type = infer_string_callee_gc_type(ctx, callee)
-    match string_type {
+    // Prefer SignatureRegistry (host + builtin registration) so missing Mir
+    // name-index entries still type correctly (#725 / #842).
+    let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
+    match from_reg {
         Option::Some(_opt_v) => {
-            return string_type
+            return from_reg
         }
         Option::None => {}
     }
-    let hm_type = infer_hashmap_callee_gc_type(ctx, callee)
-    match hm_type {
+    let from_fn = infer_call_result_gc_type_from_fn(ctx, clone(callee))
+    match from_fn {
         Option::Some(_opt_v) => {
-            return hm_type
+            return from_fn
         }
         Option::None => {}
     }
-    let builtin = infer_builtin_callee_gc_type(ctx, callee)
-    match builtin {
-        Option::Some(_opt_v) => {
-            return builtin
-        }
-        Option::None => {}
-    }
-    infer_call_result_gc_type_from_fn(ctx, callee)
-}
-
-fn infer_builtin_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if starts_with(clone(callee), "Vec_new_") {
-        return infer_vec_new_callee_gc_type(ctx, callee)
-    }
-    if eq(clone(callee), "vec_pop") || eq(clone(callee), "vec_get") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
-    }
-    if eq(clone(callee), "find_i32") || eq(clone(callee), "find_i64") || eq(clone(callee), "find_f64") || eq(clone(callee), "find_String") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
-    }
-    if eq(clone(callee), "vec_push") {
-        return Option::None
-    }
-    if eq(clone(callee), "vec_set") || eq(clone(callee), "vec_reverse") || eq(clone(callee), "vec_remove") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
-    }
-    if eq(clone(callee), "filter_String") || eq(clone(callee), "__intrinsic_filter_String") || eq(clone(callee), "map_String_String") || eq(clone(callee), "__intrinsic_map_String_String") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
-    }
-    if eq(clone(callee), "filter_i32") || eq(clone(callee), "__intrinsic_filter_i32") || eq(clone(callee), "map_i32_i32") || eq(clone(callee), "__intrinsic_map_i32_i32") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
-    }
-    if eq(clone(callee), "parse_i32") ||
-    eq(clone(callee), "convert::parse_i32") ||
-    eq(clone(callee), "parse_i64") ||
-    eq(clone(callee), "convert::parse_i64") ||
-    eq(clone(callee), "parse_f64") ||
-    eq(clone(callee), "convert::parse_f64") ||
-    eq(clone(callee), "parse_u64") ||
-    eq(clone(callee), "convert::parse_u64") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
-    }
-    if post_pass_callee_lookup::is_vec_string_returning_intrinsic(callee) {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
-    }
-    Option::None
-}
-
-fn infer_vec_new_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if eq(clone(callee), "Vec_new_String") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
-    }
-    if eq(clone(callee), "Vec_new_i64") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
-    }
-    if eq(clone(callee), "Vec_new_f64") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
-    }
-    if eq(clone(callee), "Vec_new_v128") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
-    }
-    if starts_with(clone(callee), "Vec_new_") {
-        let elem = substring(clone(callee), 8, len(callee))
-        if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem)) {
-            return Option::Some(ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
+    // String / split / chars / … → type_name then layout (post_pass table).
+    let intrinsic_tn = post_pass_callee_lookup::lookup_intrinsic_return_type_name(clone(callee))
+    if len(intrinsic_tn) > 0 {
+        let from_tn = resolve_gc_type_from_return_type_name(ctx, intrinsic_tn)
+        match from_tn {
+            Option::Some(_opt_v) => {
+                return from_tn
+            }
+            Option::None => {}
         }
     }
-    Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+    infer_vec_new_return_gc_type(ctx, callee)
 }
