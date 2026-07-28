@@ -281,13 +281,6 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
             if spine_gc >= 0 {
                 return spine_gc
             }
-            let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-            let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-            let inferred = code_ref_locals::infer_ref_local_gc_type(f, base_local, ctx)
-            match inferred {
-                Option::Some(v) => return v,
-                Option::None => {}
-            }
         }
         let size_hint_val = size_hint
         let struct_size_est = if size_hint_val >= 100000 {
