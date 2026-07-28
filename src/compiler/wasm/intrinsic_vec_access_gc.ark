@@ -4,8 +4,8 @@ use wasm::ctx_record
 use wasm::writer_gc
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
+use wasm::ctx_gc_layout_lookup
 use wasm::intrinsic_vec_type
-use wasm::code_ref_locals
 use wasm::intrinsics::helpers_core
 use wasm::inst_ctx
 use mir::function_return_view
@@ -187,22 +187,19 @@ fn receiver_is_raw_gc_array(ctx: SelfEmitCtx, callee: String, inst: MirInst, arr
     starts_with(clone(tname), String_from("Vec<")) {
         return false
     }
-    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-    match code_ref_locals::infer_ref_local_gc_type(f, src_local, ctx) {
-        Option::Some(idx) => {
-            idx == array_type ||
-            idx == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) ||
-            idx == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) ||
-            idx == ctx_gc_type::SelfEmitCtx_i64_array_type(ctx) ||
-            idx == ctx_gc_type::SelfEmitCtx_f64_array_type(ctx) ||
-            idx == ctx_gc_type::SelfEmitCtx_v128_array_type(ctx) ||
-            idx == ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx) ||
-            idx == ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx) ||
-            idx == ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx)
-        }
-        Option::None => false
+    let idx = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, src_local)
+    if idx < 0 {
+        return false
     }
+    idx == array_type ||
+    idx == ctx_gc_type::SelfEmitCtx_i32_array_type(ctx) ||
+    idx == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) ||
+    idx == ctx_gc_type::SelfEmitCtx_i64_array_type(ctx) ||
+    idx == ctx_gc_type::SelfEmitCtx_f64_array_type(ctx) ||
+    idx == ctx_gc_type::SelfEmitCtx_v128_array_type(ctx) ||
+    idx == ctx_gc_type_vec_ref::SelfEmitCtx_fnref_array_type(ctx) ||
+    idx == ctx_gc_type_vec_ref::SelfEmitCtx_struct_ref_array_type(ctx) ||
+    idx == ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx)
 }
 
 fn emit_get_unchecked_gc(w: WasmWriter, ctx: SelfEmitCtx, inst: MirInst) -> bool {

@@ -1,8 +1,8 @@
 use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
+use wasm::ctx_gc_layout_lookup
 use wasm::code_locals_struct_parse
-use wasm::code_ref_locals
 use wasm::intrinsic_vec_type
 use mir::function_locals_view
 use mir::local_access
@@ -18,10 +18,9 @@ fn vec_ref_dest_storage_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     if dest >= function_locals_view::MirFunction_local_count(f) {
         return 0 - 1
     }
-    let inferred = code_ref_locals::infer_local_storage_gc_type(f, dest, ctx)
-    match inferred {
-        Option::Some(v) => return v,
-        Option::None => {}
+    let spine = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
+    if spine >= 0 {
+        return spine
     }
     let loc = function_locals_view::MirFunction_local_at(f, dest)
     let vt = local_access::MirLocal_val_type(loc)

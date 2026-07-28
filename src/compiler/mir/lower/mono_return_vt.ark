@@ -43,6 +43,11 @@ fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     fallback_vt
 }
 
+fn mono_return_mvt(ctx: LowerCtx, callee_name: String) -> MirValueType {
+    let mono_id = mono_return_vt_registry_mono_id(ctx, clone(callee_name))
+    mono_return_vt_table::mono_return_mvt_from_instance_table(ctx, mono_id)
+}
+
 fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {

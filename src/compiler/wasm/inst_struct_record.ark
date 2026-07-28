@@ -268,10 +268,9 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
     }
 
     fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, byte_offset: i32, size_hint: i32) -> i32 {
-        let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-        }
+        // Prefer MirLocal.value_type / spine over MIR str_val. Tuple destructure
+        // may stamp size-only names like `tuple:i32,i32` while the base local
+        // already carries the concrete mono layout (e.g. pair i32+String).
         let mut base_local = inst_accessors_operands::MirInst_arg0(inst)
         if base_local < 0 && prev_arg0 >= 0 && (prev_op == mir::opcodes::MIR_LOCAL_GET() || prev_op == mir::opcodes::MIR_STRUCT_SET()) {
             base_local = prev_arg0
@@ -281,6 +280,10 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
             if spine_gc >= 0 {
                 return spine_gc
             }
+        }
+        let struct_name = inst_accessors_literals::MirInst_str_val(inst)
+        if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
         }
         let size_hint_val = size_hint
         let struct_size_est = if size_hint_val >= 100000 {

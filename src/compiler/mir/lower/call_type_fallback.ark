@@ -6,7 +6,10 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::mono_return_vt
 use mir::lower::call_type_fallback_stdlib
+use mir::typed_mir_compat
 use mir::value_types
+use corehir::mir_value_type
+use corehir::kinds
 
 // Layout / local-type tables use bare struct names. Strip only `::` qualifiers
 // so `import_block::ImportBlockSpan` → `ImportBlockSpan`, without touching
@@ -163,6 +166,21 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     } else if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }
+    // Sync MirLocal.value_type from MonoInstanceTable so emit spine lookup
+    // matches SignatureRegistry (tuple mono returns; replaces body-scan infer).
+    apply_mono_return_mvt_to_dest(ctx, clone(callee_name), dest)
+}
+
+fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let mvt = mono_return_vt::mono_return_mvt(ctx, callee_name)
+    if typed_mir_compat::mvt_is_invalid(mvt) {
+        return
+    }
+    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() &&
+    mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_LINEAR_PTR() {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_mvt(ctx, dest, mvt)
 }
 
 fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {

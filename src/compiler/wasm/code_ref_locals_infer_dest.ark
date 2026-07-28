@@ -378,6 +378,34 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         }
         return Option::None
     }
+    if op == opcodes::MIR_STRUCT_GET() {
+        // Result/Option payload extract via MIR_STRUCT_GET: GC_REF fields from
+        // enum/Result bases are open-enum at the ABI boundary even when the
+        // dest keeps a sticky String type_name (#835 incoming_smoke).
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt != value_types::mir_value_types__VT_GC_REF() && vt != value_types::mir_value_types__VT_REF() {
+            return Option::None
+        }
+        let base = inst_accessors_operands::MirInst_arg0(inst)
+        if base < 0 {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+        let base_loc = function_locals_view::MirFunction_local_at(f, base)
+        let base_tn = local_access::MirLocal_type_name(base_loc)
+        if starts_with(clone(base_tn), "Result") ||
+        starts_with(clone(base_tn), "result:") ||
+        starts_with(clone(base_tn), "Option") ||
+        starts_with(clone(base_tn), "option:") ||
+        starts_with(clone(base_tn), "enum:") {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+        let base_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base)
+        let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        if base_gc == open || ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, base_gc) {
+            return Option::Some(open)
+        }
+        return Option::None
+    }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
         // clone(T)->T: use arg0's GC type before string-intrinsic fallback (#730).

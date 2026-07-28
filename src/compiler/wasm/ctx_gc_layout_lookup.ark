@@ -1,6 +1,7 @@
 use std::host::stdio
 use collections::name_index
 use wasm::ctx_record
+use wasm::ctx_gc_type
 use wasm::gc_layout_table
 use wasm::code_ref_locals_scan
 use corehir::mir_value_type
@@ -85,13 +86,59 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
                 return type_name_gc
             }
         }
+        // Tuple / user structs may live in gc_struct_names without a TypeTable
+        // layout entry. Match local declaration (emit_gc_local_named_type).
+        let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
+        if named_struct_gc >= 0 {
+            return named_struct_gc
+        }
+    }
+    // Prefer MirLocal.value_type after type_name (#843). Call dests sync
+    // MonoInstance return MVT so spine hits without body-scan infer.
+    let mvt = local_access::MirLocal_value_type(loc)
+    let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
+    if mvt_gc >= 0 {
+        if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
+            return mvt_gc
+        }
     }
     if is_payload_with_stray_variant {
         return 0 - 1
     }
     let tt = ctx_record::SelfEmitCtx_type_table(ctx)
     let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_type_name)
-    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
+    SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
+}
+
+fn SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx: SelfEmitCtx, type_name: String) -> i32 {
+    if len(type_name) == 0 {
+        return 0 - 1
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
+    }
+    if starts_with(clone(type_name), "struct:") {
+        let mut first_colon = 0 - 1
+        let mut last_colon = 0 - 1
+        let n = len(type_name)
+        let mut i = 0
+        while i < n {
+            if char_at(type_name, i) == 58 {
+                if first_colon < 0 {
+                    first_colon = i
+                }
+                last_colon = i
+            }
+            i = i + 1
+        }
+        if first_colon >= 0 && last_colon > first_colon {
+            let struct_name = substring(type_name, first_colon + 1, last_colon)
+            if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+                return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)
+            }
+        }
+    }
+    0 - 1
 }
 
 // ADR-040 Phase 5e: variant_slot → Wasm ref type index via

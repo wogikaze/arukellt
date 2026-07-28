@@ -50,14 +50,29 @@ Source: Split from #724 — PR-4 / Phase 5 leftover legacy inference
   MonoInstance に登録（call-time 逆引きの代替）
 - 検証: `eq_trait` / `eq_trait_string` / `self_return_add` / `vec_generic` OK、`verify lane` PASS
 
+### Slice 2–3 (2026-07-28): spine 先行 / code_locals
+
+- cast / struct resolve の infer fallback 削除、`emit_gc_local_inferred_type` を spine のみに
+- `code_locals` string/vec 宣言を spine / type_name 規則へ
+
+### Slice 4 (2026-07-28): 残サイト除去と infer API 削除
+
+- `#808` emit-time type_name overwrite 削除
+- `#835` / sticky String: `local_payload_extract_storage_type`（STRUCT_GET /
+  GC_STRUCT_GET の field ABI）で宣言型を決定。body-scan infer は削除
+- vec intrinsic: `receiver_is_raw_gc_array` を spine lookup へ
+- `infer_local_storage_gc_type` / full block-scan API 削除（本番 call site = 0）
+- 検証: host fixtures 12/12 validate OK、`incoming_smoke` / `eq_trait` /
+  `two_params` / `vec_generic` OK、`verify lane` PASS
+
 ## Acceptance
 
 - [x] `mono_return_type_name` の mangled / 名前逆引き経路が削除されている
       （または呼び出し回数 = 0）
-- [ ] `infer_ref_local_gc_type` の本番 call site = 0（テスト専用を除く）
-- [ ] local GC 型と CALL return 決定が SignatureRegistry / value_type /
+- [x] `infer_ref_local_gc_type` の本番 call site = 0（テスト専用を除く）
+- [x] local GC 型と CALL return 決定が SignatureRegistry / value_type /
       GcLayoutTable から解決される
-- [ ] `selfhost build-compiler` + `verify lane` PASS（必要なら host/T3 部分集合）
+- [x] `selfhost build-compiler` + `verify lane` PASS（必要なら host/T3 部分集合）
 
 ## Evidence baseline (2026-07-28, pre-work)
 

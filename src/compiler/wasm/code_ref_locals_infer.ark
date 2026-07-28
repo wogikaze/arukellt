@@ -1,15 +1,9 @@
 //
-// The instruction tracer (infer_ref_local_gc_type_depth) has been
-// replaced by the structured block scan in code_ref_locals_block_scan.ark.
-//
-// The tracer's functionality is now distributed across:
-// - code_ref_locals_block_scan.ark — depth-aware recursive inference
-//   with block scanning, LOCAL_SET source tracing, and stack producer
-//   inspection
-// - code_ref_locals_stack_scan.ark — find_stack_value_source helper
-// - code_ref_locals_infer_dest.ark — producer inspection (ARRAY_NEW,
-//   GC_STRUCT_NEW, STRUCT_NEW, CALL, CONST_STRING)
-// - code_ref_locals_infer_callee.ark — CALL result GC type inference
-//   (hardcoded callee name → GC type mappings + return type lookup)
-// - code_ref_locals_typename.ark — type_name string-prefix fallback
+// Emit-time body-scan GC inference retired (#843).
+// Local GC types come from MirLocal.value_type / type_name / variant_slot
+// via SelfEmitCtx_wasm_ref_type_idx_for_local. Remaining helpers:
+// - code_ref_locals_stack_scan.ark — find_stack_value_source (post_pass)
+// - code_ref_locals_infer_dest.ark — multi-variant / producer helpers
+// - code_ref_locals_infer_callee.ark — CALL result GC type (registry + names)
+// - code_ref_locals_typename.ark — type_name prefix helpers
 // - post_pass_type_propagate.ark — MIR lowering time type propagation
