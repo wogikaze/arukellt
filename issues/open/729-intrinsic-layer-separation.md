@@ -1,10 +1,10 @@
 ---
 Status: open
 Created: 2026-07-10
-Updated: 2026-07-15
+Updated: 2026-07-28
 ID: 729
 Track: compiler-internal
-Depends on: "724"
+Depends on: "843"
 Related: "718, 709, 727, 798, 808, 816, 817, 818, 819, 820, 821, 822, ADR-040, ADR-036, ADR-042"
 Orchestration class: unblocked
 Orchestration upstream: none
@@ -114,9 +114,9 @@ checklists belong in child issues and the plan document.
 
 ## Dependency Notes
 
-- Depends on **#724** (ADR-040 Phase 5-7 remaining work) — the semantic
-  spine must be complete before extending it with effect/inline/lowering
-  policy.
+- **#724** (ADR-040 Phase 3b–7 umbrella) is **done**. Remaining spine cleanup
+  is **#843** (legacy GC infer / mono_return) and **#842** (builtin callee
+  matching); epic dispatch work can proceed in parallel with those.
 - Related: **#727** (host bridge retirement) — runtime ABI / host bridge
   migration is downstream of the registry work; host intrinsic removal is
   shared scope with the child migration issues.
