@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-16
-Updated: 2026-07-16
+Updated: 2026-07-28
 ID: 725
 Track: compiler-internal
 Depends on: #724
@@ -366,12 +366,17 @@ host intrinsic や builtin 関数 (String_new, __hm_si_new, Vec_new_*, parse_*, 
 - TypeTable に全 type_name を intern し GcLayoutTable にエントリを追加する
 - SignatureRegistry に host intrinsic / builtin の戻り値型を登録する
 
-本 issue のスコープ外とし、別 issue で追跡する。
+**完了（2026-07-28）: host 側の可能な範囲を構造化**:
+- Phase 7 で host stub 戻り値型を SignatureRegistry に登録済み
+- `infer_call_result_gc_type_from_fn`: `resolve_fn_index` 失敗時に
+  `infer_call_result_gc_type_from_registry` へフォールバック
+- builtin / string / hashmap / Vec_new_* のハードコード matching 削除は
+  依然として回帰するため **#842** へ移管
 
 **完了条件**:
 - [x] 文字列ベース型推論の残存箇所を文書化
-- [ ] 可能な範囲で構造化ルックアップに移行 (blocked: `resolve_fn_index` が
-      host intrinsic / builtin を解決できないため、ハードコード matching 削除不可)
+- [x] 可能な範囲で構造化ルックアップに移行（host → SignatureRegistry）
+- [x] 残り（builtin ハードコード削除）は #842 へ移管
 
 ## リスク
 

@@ -1,5 +1,11 @@
 // Contract: infer_* returns Option<i32> — Some(idx) = Wasm GC type, None = unknown.
 // See docs/research/infer-local-gc-type-option.md.
+use corehir::function_id
+use corehir::mir_value_type
+use corehir::signature_entry
+use corehir::signature_registry
+use corehir::type_id
+use corehir::type_table
 use mir::function_return_view
 use mir::post_pass_callee_lookup
 use mir::value_types
@@ -43,9 +49,11 @@ fn infer_hashmap_callee_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32>
 
 // Fallback: infer GC type from the called function's return type signature.
 fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    let fn_idx = inst_ctx::resolve_fn_index(ctx, callee)
+    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
     if fn_idx < 0 {
-        return Option::None
+        // Host stubs / aliases may be absent from the Mir function table but
+        // still registered on SignatureRegistry (#725 / Phase 7).
+        return infer_call_result_gc_type_from_registry(ctx, callee)
     }
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
@@ -71,6 +79,57 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
 }
 
+// Resolve call-result GC type from SignatureRegistry when resolve_fn_index
+// cannot find a MirFunction (host intrinsic stubs, some aliases).
+fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    let registry = ctx_record::SelfEmitCtx_signature_registry(ctx)
+    let mut fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(callee))
+    if !function_id::function_id_is_valid(fid) {
+        let short_name = inst_ctx::strip_module_prefix(clone(callee))
+        if !eq(clone(short_name), clone(callee)) {
+            fid = signature_registry::signature_registry_lookup_by_mangled(registry, short_name)
+        }
+    }
+    if !function_id::function_id_is_valid(fid) {
+        return Option::None
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return Option::None
+    }
+    let mvt = signature_entry::signature_entry_return_at(entry, 0)
+    let by_mvt = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    if by_mvt >= 0 {
+        return Option::Some(by_mvt)
+    }
+    let tid = mir_value_type::mir_value_type_type_id(mvt)
+    if !type_id::type_id_is_valid(tid) {
+        return Option::None
+    }
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let ret_name = type_table::type_entry_name(type_table::TypeTable_lookup(table, tid))
+    if len(ret_name) == 0 {
+        return Option::None
+    }
+    let structured_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(ret_name))
+    if structured_gc >= 0 {
+        return Option::Some(structured_gc)
+    }
+    if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
+    starts_with(clone(ret_name), "Result_") ||
+    starts_with(clone(ret_name), "Result:") ||
+    starts_with(clone(ret_name), "Result<") ||
+    starts_with(clone(ret_name), "result:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    if eq(clone(ret_name), "String") || eq(clone(ret_name), "string") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    }
+    if starts_with(clone(ret_name), "Vec<") || starts_with(clone(ret_name), "vec:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type_for_ctx(ctx))
+    }
+    Option::None
+}
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None

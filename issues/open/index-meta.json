@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-26T11:40:58Z",
+  "generated_at": "2026-07-28T10:44:35Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -581,8 +581,8 @@
         "729"
       ],
       "acceptance": {
-        "checked": 10,
-        "unchecked": 8
+        "checked": 16,
+        "unchecked": 4
       },
       "orchestration": {
         "class": "design-then-implement",
@@ -600,8 +600,8 @@
       ],
       "blocks_issue_ids": [],
       "acceptance": {
-        "checked": 8,
-        "unchecked": 1
+        "checked": 10,
+        "unchecked": 0
       },
       "orchestration": {
         "class": "design-then-implement",
@@ -759,6 +759,25 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "842",
+      "path": "842-adr040-structured-callee-gc-lookup.md",
+      "title": "ADR-040: builtin / string callee GC lookup → SignatureRegistry",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "None"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 3
+      },
+      "orchestration": {
+        "class": "design-then-implement",
+        "upstream_notes": null
       }
     },
     {

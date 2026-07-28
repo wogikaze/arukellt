@@ -18,9 +18,9 @@ Phase 6a–6b / **Phase 7（host intrinsic adapter）は完了条件を満たし
 
 **クリティカルパス上の T3 validate / bootstrap pin は本 issue の完了条件ではない。**
 それらは `#726`（validate-fail=0、narrow-close）と `#730`（Memory64 / wasm32-gc pin /
-`verify quick`）へ移管済み。本 issue の残は並行トラック `#725`（Phase 5e tracer 削除の
-blocked checkbox）と PR-4 残（local GC 型・全面 return の legacy 推論）の整理、
-および umbrella close 判定。
+`verify quick`）へ移管済み。本 issue の残は `#725` close 判定、PR-4 残（local GC 型・全面 return の
+legacy 推論）の整理、および umbrella close 判定。
+builtin callee 構造化の続きは `#842`。
 
 ## 現在の完了状態
 
