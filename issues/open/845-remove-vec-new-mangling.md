@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-07-28
-Updated: 2026-07-28
+Updated: 2026-07-29
 ID: 845
 Track: stdlib-api
 Depends on: #700, #701, #703
@@ -36,11 +36,22 @@ prelude / `#842` Vec registry entries.
 
 ## Acceptance
 
-- [ ] Parser does not rewrite `Vec::new` → `Vec_new_`
-- [ ] `tests/fixtures/associated_fn/vec_new.ark` passes without rewrite
-- [ ] No in-tree `Vec_new_(i32|i64|f64|String|v128|…)\(` constructors
-- [ ] Prelude / manifest user-reachable `Vec_new_*` removed
+- [x] Parser does not rewrite `Vec::new` → `Vec_new_`
+- [x] `tests/fixtures/associated_fn/vec_new.ark` passes without rewrite
+- [x] No in-tree `Vec_new_(i32|i64|f64|String|v128|…)\(` constructors
+- [x] Prelude / manifest user-reachable `Vec_new_*` removed
 - [ ] `selfhost build-compiler` + `verify lane` (+ `--gate t3` at end) PASS
+  - build-compiler + `verify lane`: PASS (2026-07-29)
+  - `--gate t3`: in progress
+
+## Implementation notes
+
+- Real `impl Vec<T> { new / with_capacity }` → `raw::raw_array_new`
+- Turbofish accepts named / `fn` / tuple type starts
+- Bare `Vec::new<T>()` (no let annotation): typechecker records mono from
+  path children (`call_vec_ctor.ark`); MIR marks `vec:Elem` from rewrite
+- Do not auto-load `std::collections::vec` into every program — inherent
+  method shells steal `push` and break `format_i32` (use CoreOp path)
 
 ## References
 
