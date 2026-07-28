@@ -1,5 +1,5 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-28
 Updated: 2026-07-29
 ID: 845
@@ -40,9 +40,9 @@ prelude / `#842` Vec registry entries.
 - [x] `tests/fixtures/associated_fn/vec_new.ark` passes without rewrite
 - [x] No in-tree `Vec_new_(i32|i64|f64|String|v128|…)\(` constructors
 - [x] Prelude / manifest user-reachable `Vec_new_*` removed
-- [ ] `selfhost build-compiler` + `verify lane` (+ `--gate t3` at end) PASS
+- [x] `selfhost build-compiler` + `verify lane` (+ `--gate t3` at end) PASS
   - build-compiler + `verify lane`: PASS (2026-07-29)
-  - `--gate t3`: in progress
+  - `verify lane --gate t3`: PASS (2026-07-29)
 
 ## Implementation notes
 
@@ -50,8 +50,22 @@ prelude / `#842` Vec registry entries.
 - Turbofish accepts named / `fn` / tuple type starts
 - Bare `Vec::new<T>()` (no let annotation): typechecker records mono from
   path children (`call_vec_ctor.ark`); MIR marks `vec:Elem` from rewrite
+- fn / tuple turbofish elems skip mono mangling; annotated `Vec<fn>` relies
+  on store-target layout (do not default bare `Vec::new` to `vec:i32`)
 - Do not auto-load `std::collections::vec` into every program — inherent
   method shells steal `push` and break `format_i32` (use CoreOp path)
+
+
+## Close note
+
+Completed 2026-07-29 on `wave/adr040-phase7` (tip `c7531611` + this close).
+
+Evidence:
+- Real `Vec::new<T>` / turbofish; no parser `Vec_new_` rewrite
+- In-tree `Vec_new_(i32|…)` constructors gone; prelude/manifest surface removed
+- Bare + annotated fixtures: `associated_fn/vec_new.ark`, `functions/vec_fn_push_call.ark`,
+  `collections/option_vec_fn.ark`, `collections/result_vec_fn.ark`
+- Verification: `selfhost build-compiler`, `verify lane`, `verify lane --gate t3` PASS
 
 ## References
 

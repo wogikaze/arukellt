@@ -44,7 +44,6 @@ graph LR
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
   I841["841 841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims"]
   I844["844 wasm32: `const` loads mis-lower (`expected i32, found ref`)"]
-  I845["845 Remove `Vec_new_*` mangling and monomorphic constructors"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -137,7 +136,6 @@ graph LR
 - **830** depends on: 730; blocks: none
 - **841** depends on: 727; blocks: 675
 - **844** depends on: none; blocks: none
-- **845** depends on: None; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699

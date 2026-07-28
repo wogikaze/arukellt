@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T15:59:16Z",
+  "generated_at": "2026-07-28T20:33:22Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -757,25 +757,6 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "845",
-      "path": "845-remove-vec-new-mangling.md",
-      "title": "Remove `Vec_new_*` mangling and monomorphic constructors",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "None"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
       }
     },
     {
