@@ -2,6 +2,7 @@ use typechecker::ast_access
 use typechecker::call_generic_common
 use typechecker::call_generic_fn_args
 use typechecker::call_generic_resolve
+use typechecker::call_generic_turbofish
 use typechecker::contract_fn_sig
 use typechecker::infer_env_scope
 use typechecker::instantiate
@@ -13,6 +14,13 @@ fn infer_generic_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>,
     let var_names = Vec_new_String()
     let var_types = Vec_new_TypeInfo()
     call_generic_common::append_generic_type_vars(infer_env, sig, var_names, var_types)
+    // Explicit turbofish on the callee PATH (e.g. Vec::new<i32>) binds before
+    // value-arg inference so zero-arg generics can monomorphize (#845).
+    call_generic_turbofish::constrain_turbofish_type_args(
+        ast_access::node_child_at(node, 0),
+        infer_env,
+        var_types
+    )
     call_generic_fn_args::constrain_generic_fn_args(env, scope, fn_sigs, enum_defs, node, sig, infer_env, var_names, var_types)
     let inst_ret = instantiate::instantiate_type(contract_fn_sig::FnSig_return_type(sig), var_names, var_types)
     let ret_ty = call_generic_resolve::resolve_call_return_type(infer_env, inst_ret)

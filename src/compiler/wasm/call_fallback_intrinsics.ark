@@ -238,7 +238,24 @@ fn is_vec_new_callee(callee: String) -> bool {
     if contains(clone(callee), String_from("::Vec_new_")) {
         return true
     }
-    ends_with(clone(callee), String_from("Vec_new_fallback"))
+    if ends_with(clone(callee), String_from("Vec_new_fallback")) {
+        return true
+    }
+    // Associated Vec::new / Vec::new__T / with_capacity (#845).
+    // mono_safe_name rewrites "::" to "_", so also match Vec__new__T.
+    if eq(clone(callee), String_from("Vec::new")) ||
+    starts_with(clone(callee), String_from("Vec::new__")) ||
+    eq(clone(callee), String_from("Vec__new")) ||
+    starts_with(clone(callee), String_from("Vec__new__")) {
+        return true
+    }
+    if eq(clone(callee), String_from("Vec::with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
+    eq(clone(callee), String_from("Vec__with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec__with_capacity__")) {
+        return true
+    }
+    false
 }
 
 fn is_contains_callee(callee: String) -> bool {

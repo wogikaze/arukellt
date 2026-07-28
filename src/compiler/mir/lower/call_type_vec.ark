@@ -19,6 +19,43 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         }
         ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
     }
+    // Associated Vec::new__T / Vec::with_capacity__T (#845).
+    // Also accept mono_safe_name form Vec__new__T.
+    if starts_with(clone(callee_name), String_from("Vec::new__")) ||
+    starts_with(clone(callee_name), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(callee_name), String_from("Vec__new__")) ||
+    starts_with(clone(callee_name), String_from("Vec__with_capacity__")) {
+        let last_sep = last_index_of_double_underscore(clone(callee_name))
+        if last_sep >= 0 {
+            let elem = substring(callee_name, last_sep + 2, len(callee_name))
+            let mut set_ty = concat(String_from("vec:"), elem)
+            if eq(clone(elem), String_from("Vec_String")) || eq(clone(elem), String_from("Vec_string")) {
+                set_ty = String_from("vec:Vec_String")
+            }
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, set_ty)
+            if ctx_gc_enum::ctx_is_gc_target(ctx) {
+                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+            } else {
+                ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+            }
+        }
+    }
+    // Associated Vec::new / Vec::with_capacity (#845), including bare names
+    // when mono suffix is not yet on the callee text.
+    if eq(clone(callee_name), String_from("Vec::new")) ||
+    eq(clone(callee_name), String_from("Vec__new")) ||
+    eq(clone(callee_name), String_from("Vec::with_capacity")) ||
+    eq(clone(callee_name), String_from("Vec__with_capacity")) {
+        // Prefer existing mono-derived type; otherwise leave unset for fallback.
+        if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+        }
+        if ctx_gc_enum::ctx_is_gc_target(ctx) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
+        } else {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
+        }
+    }
     if is_vec_string_producer_callee(clone(callee_name)) {
         // Canonicalize to vec:String so emitter array/vec type resolution
         // matches SelfEmitCtx_vec_string_type / string_array_type (#726 csv).
@@ -271,4 +308,16 @@ fn strip_with_cap_suffix(s: String) -> String {
         return substring(s, 0, sl - sufl)
     }
     s
+}
+
+fn last_index_of_double_underscore(s: String) -> i32 {
+    let n = len(s)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(s, i) == 95 && char_at(s, i + 1) == 95 {
+            return i
+        }
+        i = i - 1
+    }
+    0 - 1
 }

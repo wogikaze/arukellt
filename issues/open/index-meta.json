@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T15:23:14Z",
+  "generated_at": "2026-07-28T15:59:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -760,6 +760,25 @@
       }
     },
     {
+      "id": "845",
+      "path": "845-remove-vec-new-mangling.md",
+      "title": "Remove `Vec_new_*` mangling and monomorphic constructors",
+      "track": "stdlib-api",
+      "status": "open",
+      "depends_on": [
+        "None"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "orchestration": {
+        "class": "design-then-implement",
+        "upstream_notes": null
+      }
+    },
+    {
       "id": "673",
       "path": "673-component-export-aggregate-expansion.md",
       "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
@@ -882,8 +901,8 @@
         "709"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 19
+        "checked": 2,
+        "unchecked": 17
       },
       "orchestration": {
         "class": "blocked-by-upstream",

@@ -159,10 +159,13 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     let resolved_type = ctx_api_local_types::ctx_get_local_type(ctx, dest)
     set_vt_for_resolved_type_name(ctx, dest, clone(resolved_type))
     let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
-    // Prefer mono-resolved scalar return vts even when receiver-based inference
-    // left a ref-typed dest (i32-vs-ref on method calls like vec.len()).
+    // Prefer mono-resolved scalar return vts when dest is not already a known
+    // ref container (vec:/String/…). Unconditional scalar overwrite broke
+    // Vec::new__T results that mark_vec typed as vec:Elem (#845).
     if mono_vt == value_types::VT_I32() || mono_vt == value_types::VT_I64() || mono_vt == value_types::VT_F64() || mono_vt == value_types::VT_F32() {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+        if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+        }
     } else if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }

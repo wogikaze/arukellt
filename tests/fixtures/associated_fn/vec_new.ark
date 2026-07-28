@@ -1,10 +1,7 @@
-// Issue #701: Associated function syntax for builtin types — Vec::new<T>().
-// WIP: Parser supports turbofish, resolver/typechecker/lowering pending.
+// Issue #701 / #845: Associated function syntax for Vec — Vec::new<T>().
 use std::host::stdio
 
 fn main() {
-    // Target syntax: Vec::new<i32>()
-    // Currently falls back to vec_new_i32() intrinsic
     let v = Vec::new<i32>()
     assert(len(v) == 0)
     push(v, 1)

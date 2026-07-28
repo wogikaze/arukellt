@@ -121,17 +121,49 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
     Option::None
 }
 
-// Mono Vec_new_<Elem> names are not all pre-registered; derive vec:Elem and
-// resolve through layout / vec helpers (#842).
+// Mono Vec_new_<Elem> / Vec::new__Elem / Vec__new__Elem names are not all
+// pre-registered; derive vec:Elem and resolve through layout helpers (#842 / #845).
 fn infer_vec_new_return_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    if !starts_with(clone(callee), "Vec_new_") {
-        return Option::None
+    if starts_with(clone(callee), "Vec_new_") {
+        let elem = substring(clone(callee), 8, len(callee))
+        if len(elem) == 0 {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+        }
+        return resolve_gc_type_from_return_type_name(ctx, concat("vec:", elem))
     }
-    let elem = substring(clone(callee), 8, len(callee))
-    if len(elem) == 0 {
+    if starts_with(clone(callee), "Vec::new__") ||
+    starts_with(clone(callee), "Vec::with_capacity__") ||
+    starts_with(clone(callee), "Vec__new__") ||
+    starts_with(clone(callee), "Vec__with_capacity__") {
+        let last_sep = last_index_of_double_underscore(clone(callee))
+        if last_sep < 0 {
+            return Option::None
+        }
+        let elem = substring(clone(callee), last_sep + 2, len(callee))
+        if len(elem) == 0 {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+        }
+        return resolve_gc_type_from_return_type_name(ctx, concat("vec:", elem))
+    }
+    if eq(clone(callee), "Vec::new") ||
+    eq(clone(callee), "Vec::with_capacity") ||
+    eq(clone(callee), "Vec__new") ||
+    eq(clone(callee), "Vec__with_capacity") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
-    resolve_gc_type_from_return_type_name(ctx, concat("vec:", elem))
+    Option::None
+}
+
+fn last_index_of_double_underscore(s: String) -> i32 {
+    let n = len(s)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(s, i) == 95 && char_at(s, i + 1) == 95 {
+            return i
+        }
+        i = i - 1
+    }
+    0 - 1
 }
 
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
