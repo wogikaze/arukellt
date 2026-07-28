@@ -79,7 +79,7 @@ fn main() {
 ```ark
 use std::test
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
     push(v, 20)
     let last: Option<i32> = pop(v)
@@ -118,7 +118,7 @@ fn is_even(x: i32) -> bool { x % 2 == 0 }
 fn add(acc: i32, x: i32) -> i32 { acc + x }
 
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
@@ -145,7 +145,7 @@ use std::test
 fn is_even(x: i32) -> bool { x % 2 == 0 }
 
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 30)
     push(v, 10)
     push(v, 20)
@@ -175,7 +175,7 @@ fn main() {
 ```ark
 use std::host::stdio
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 10)
     push(v, 20)
     push(v, 30)
@@ -775,14 +775,14 @@ fn main() {
 ```ark
 use std::host::stdio
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     push(v, 5)
     push(v, 3)
     push(v, 8)
     push(v, 1)
     sort_i32(v)
 
-    let mut parts: Vec<String> = Vec_new_String()
+    let mut parts: Vec<String> = Vec::new<String>()
     let mut i: i32 = 0
     while i < len(v) {
         push(parts, get_unchecked(v, i).to_string())

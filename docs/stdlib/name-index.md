@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 768
+- **Canonical names:** 760
 - **Historical/deprecated names:** 3
-- **Total entries:** 771
+- **Total entries:** 763
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -735,14 +735,6 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
-| `Vec_new_f64` | `prelude` | `stable` | Collections |
-| `Vec_new_f64_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_i32` | `prelude` | `provisional` | Collections |
-| `Vec_new_i32_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_i64` | `prelude` | `provisional` | Collections |
-| `Vec_new_i64_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_String` | `prelude` | `stable` | Collections |
-| `Vec_new_v128` | `prelude` | `provisional` | Collections |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -1527,14 +1519,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
-| `Vec_new_f64` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_f64_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_i32` | ✅ `provisional` | `prelude` | Collections |
-| `Vec_new_i32_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_i64` | ✅ `provisional` | `prelude` | Collections |
-| `Vec_new_i64_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_String` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_v128` | ✅ `provisional` | `prelude` | Collections |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |

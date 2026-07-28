@@ -8,8 +8,8 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 395 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
+| `stable` | 390 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `provisional` | 49 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
@@ -145,14 +145,6 @@
 | `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
-| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
-| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
-| `Vec_new_i32` | `() -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
-| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
-| `Vec_new_i64` | `() -> Vec<i64>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
-| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
-| `Vec_new_v128` | `() -> Vec<v128>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
@@ -311,7 +303,7 @@
 _Example — Get the length of a vector:_
 
 ```ark
-let v = Vec_new_i32()
+let v = Vec::new<i32>()
 push(v, 10)
 println(i32_to_string(len(v)))
 ```
@@ -323,7 +315,7 @@ Expected output: `1`
 _Example — Build a vector by pushing elements:_
 
 ```ark
-let v = Vec_new_i32()
+let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
