@@ -53,7 +53,7 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
         return
     }
     // Preserve explicit vec:/hashmap: annotations (e.g. Vec<Vec<i32>> → vec:Vec)
-    // so Vec_new_i32 initializers do not collapse nested container locals to vec:i32.
+    // so Vec::new<i32>() initializers do not collapse nested container locals to vec:i32.
     if starts_with(clone(existing), "vec:") || starts_with(clone(existing), "hashmap:") || starts_with(clone(existing), "hashset:") {
         // Propagate the annotation back onto the initializer temp so Vec_new
         // emission (resolve_vec_type_for_new_dest) sees vec:Vec / structref layout.

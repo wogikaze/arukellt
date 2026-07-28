@@ -52,11 +52,11 @@ fn sig_reg_register_builtin_entry(
     name: String,
     ret: MirValueType
 ) {
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
     push(returns, ret)
-    let params = Vec_new_MirValueType()
+    let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
-        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec_new_TypeId()),
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),
         kinds::VALUE_REPR_SCALAR(),
         kinds::NULLABILITY_NOT_REF()
     )
@@ -77,22 +77,22 @@ fn sig_reg_register_builtin_entry(
 }
 
 fn sig_reg_mvt_string(table: TypeTable) -> MirValueType {
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
 fn sig_reg_mvt_vec(table: TypeTable, type_name: String) -> MirValueType {
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
 fn sig_reg_mvt_hashmap(table: TypeTable, type_name: String) -> MirValueType {
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_HASHMAP(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
 fn sig_reg_mvt_option(table: TypeTable, type_name: String) -> MirValueType {
-    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec_new_TypeId())
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), type_name, Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
 }
 
@@ -212,13 +212,13 @@ fn sig_reg_register_option_returns(table: TypeTable, registry: SignatureRegistry
 }
 
 fn sig_reg_names1(a: String) -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, a)
     names
 }
 
 fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, a)
     push(names, b)
     push(names, c)
@@ -226,7 +226,7 @@ fn sig_reg_names3(a: String, b: String, c: String) -> Vec<String> {
 }
 
 fn sig_reg_names4(a: String, b: String, c: String, d: String) -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, a)
     push(names, b)
     push(names, c)
@@ -280,7 +280,7 @@ fn sig_reg_hm_ss_names() -> Vec<String> {
 }
 
 fn sig_reg_option_return_names() -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, "vec_pop")
     push(names, "vec_get")
     push(names, "find_i32")
@@ -302,7 +302,7 @@ fn sig_reg_option_return_names() -> Vec<String> {
 // from the Mir name index. Broader string methods still resolve via
 // lookup_intrinsic_return_type_name → type_name → layout at emit time.
 fn sig_reg_builtin_string_return_names() -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, "String_new")
     push(names, "String_from")
     push(names, "__intrinsic_String_new")

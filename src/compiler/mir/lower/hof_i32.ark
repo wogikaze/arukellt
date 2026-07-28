@@ -63,7 +63,7 @@ fn emit_i32_fold_acc_init(ctx: LowerCtx, hof32_acc_local: i32, is_fold_i32_i32: 
 fn emit_i32_result_vec(ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i32: bool) -> i32 {
     let hof32_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i32_i32 {
-        hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, "Vec_new_i32", "vec:i32")
+        hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, "Vec::new__i32", "vec:i32")
         if eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String") {
             ctx_api_local_types::ctx_set_local_type(ctx, hof32_result_local, "vec:String")
         }

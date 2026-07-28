@@ -23,10 +23,10 @@
 //
 // ## Legacy / Compat Section (deprecated — bold cutover per ADR-036)
 //
-// **Monomorphic Vec constructors** (`Vec_new_i32`, `Vec_new_i64`, …) and all
-// monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
+// Monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
 // **deprecated** and will be removed via **bold cutover** (ADR-036 D2) once
 // issues #688–#697 (trait-based stdlib redesign) are complete.
+// Vec constructors (`Vec_new_*`) were removed in #845; use `Vec::new<T>()`.
 //
 use std::collections::string
 use std::core::scalar_format
@@ -36,7 +36,6 @@ use std::core::scalar_format
 //
 //   | Deprecated (this file)        | Trait-based replacement (post-#688) |
 //   |-------------------------------|--------------------------------------|
-//   | `Vec_new_i32()`               | `Vec::new()` (generic, #697)         |
 //   | `map_i32_i32(v, f)`           | `v.map(f)` (Iterator trait, #691)    |
 //   | `filter_i32(v, f)`            | `v.filter(f)` (Iterator trait, #691) |
 //   | `sort_i32(v)`                 | `v.sort()` (Vec method, #697)        |
@@ -266,45 +265,6 @@ pub fn panic(s: String) {
 // LEGACY COMPAT — @deprecated, will be removed via bold cutover (ADR-036 D2)
 // once issues #688–#697 are complete. Use trait-based method syntax instead.
 // =============================================================================
-// Vec constructors (deprecated) — sealed raw.array_new (#822).
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_i32() -> Vec<i32> {
-    raw_array_new(8)
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_i64() -> Vec<i64> {
-    raw_array_new(8)
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_f64() -> Vec<f64> {
-    raw_array_new(8)
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_v128() -> Vec<v128> {
-    raw_array_new(8)
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_String() -> Vec<String> {
-    raw_array_new(8)
-}
-
-// Vec pre-allocation with exact capacity (no realloc on push up to cap elements)
-pub fn Vec_new_i32_with_cap(cap: i32) -> Vec<i32> {
-    raw_array_new(cap)
-}
-
-pub fn Vec_new_i64_with_cap(cap: i32) -> Vec<i64> {
-    raw_array_new(cap)
-}
-
-pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
-    raw_array_new(cap)
-}
-
 // Vec sorting (deprecated)
 // @deprecated: use `v.sort()` (Vec method, #697) instead. See ADR-036.
 fn __core_seq_sort_i32_impl(v: Vec<i32>) {
@@ -334,7 +294,7 @@ pub fn sort_String(v: Vec<String>) {
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
     // Real Ark body: `__intrinsic_map_i32_i32` has no wasm emitter (#807).
     let n = len(v)
-    let out: Vec<i32> = Vec_new_i32()
+    let out: Vec<i32> = Vec::new<i32>()
     let mut i = 0
     while i < n {
         push(out, f(get_unchecked(v, i)))
@@ -387,7 +347,7 @@ pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
 // String: split/join/push_char
 // @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
 pub fn split(s: String, delim: String) -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
+    panic(String_new()); return Vec::new<String>()
 }
 
 // @deprecated: use `v.join(sep)` (Vec/Iterator method, #691) instead. See ADR-036.
@@ -788,7 +748,7 @@ pub fn index_of(s: String, sub: String) -> i32 {
 
 // Process / env
 pub fn args() -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
+    panic(String_new()); return Vec::new<String>()
 }
 
 pub fn exit(code: i32) {

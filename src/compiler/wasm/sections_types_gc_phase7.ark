@@ -76,7 +76,7 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
         return false
     }
     // Option/Result/enum payloads are GC enum refs (or scalar-backed), not
-    // structref array elements. Treating them as structref breaks Vec_new_i32
+    // structref array elements. Treating them as structref breaks Vec::new<i32>()
     // locals annotated as Vec<Option<T>> (nested_option / no_nested_generics).
     if gc_vec_elem_name_is_enum_like(clone(elem)) {
         return false

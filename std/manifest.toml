@@ -567,86 +567,6 @@ doc_category = "control"
 
 # ── Vec constructors ─────────────────────────
 
-[[functions]]
-name = "Vec_new_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i32"
-params = []
-returns = "Vec<i32>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i64"
-params = []
-returns = "Vec<i64>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_f64"
-params = []
-returns = "Vec<f64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_v128"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_v128"
-params = []
-returns = "Vec<v128>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_String"
-params = []
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i32_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i32_with_cap"
-params = ["i32"]
-returns = "Vec<i32>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i64_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i64_with_cap"
-params = ["i32"]
-returns = "Vec<i64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_f64_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_f64_with_cap"
-params = ["i32"]
-returns = "Vec<f64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
 # NOTE: Vec_with_capacity_* are in PRELUDE_FUNCTIONS but lack FnSig in checker.rs.
 [[functions]]
 name = "Vec_with_capacity_i32"
@@ -678,7 +598,7 @@ stability = "stable"
 doc_category = "collections"
 doc = "Append an element to the end of a Vec, mutating it in place."
 availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec_new_i32()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
+examples = [{code = "let v = Vec::new<i32>()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
 
 [[functions]]
 name = "pop"
@@ -701,7 +621,7 @@ stability = "stable"
 doc_category = "collections"
 doc = "Return the number of elements in a Vec."
 availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec_new_i32()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
+examples = [{code = "let v = Vec::new<i32>()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
 
 [[functions]]
 name = "get"

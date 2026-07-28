@@ -42,7 +42,7 @@ fn emit_f64_fold_acc_init(ctx: LowerCtx, hof_f64_init_idx: i32, hof_f64_acc_loca
 fn emit_f64_result_vec(ctx: LowerCtx, is_fold_f64_f64: bool) -> i32 {
     let hof_f64_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_f64_f64 {
-        hof_results::emit_hof_result_vec_init(ctx, hof_f64_result_local, "Vec_new_f64", "vec:f64")
+        hof_results::emit_hof_result_vec_init(ctx, hof_f64_result_local, "Vec::new__f64", "vec:f64")
     }
     hof_f64_result_local
 }

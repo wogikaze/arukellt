@@ -22,7 +22,7 @@ fn main() {
     let s: String = concat(String_from("hello"), String_from(" world"))
     stdio::println(s)
 }
-// Deprecated: Vec_new_i32 — migrate to `use std::collections::vec; vec::new_i32()`
+// Deprecated: Vec::new<i32>() is now the canonical constructor.
 // Deprecated: sort_i32 — migrate to `use std::seq; seq::sort_i32(v)`
 // Deprecated: map_i32_i32 — migrate to `seq::map(seq::from_vec(v), f)`
 // Deprecated: concat — migrate to `use std::text; text::concat(a, b)`
