@@ -1,4 +1,5 @@
 use corehir::body
+use corehir::body_table
 use corehir::decl_type_annotations
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
@@ -24,7 +25,7 @@ fn append_proof_contract(table: CoreHirBodyTable, ann: AstNode, function_index: 
     let condition = frontend_ast_node::corehir_node_child_at(ann, 0)
     let expr_root = body::corehir_build_expr(table, condition)
     let result_name = if eq(clone(kind), String_from("ensures")) { String_from("result") } else { String_new() }
-    body::corehir_push_proof_contract(
+    body_table::corehir_body_table_push_proof_contract(
         table,
         proof_contract::CoreHirProofContract_new(
             function_index,
