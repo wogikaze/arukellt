@@ -1,12 +1,12 @@
 use corehir::decl_ann_children
-use corehir::decl_ann_member
 use corehir::decl_ann_name
+use corehir::frontend_ast_type_ann
 
 fn return_ann_child(node: AstNode) -> AstNode {
-    let count = decl_ann_member::decl_ann_count(node)
+    let count = frontend_ast_type_ann::corehir_node_type_ann_count(node)
     let mut i = 0
     while i < count {
-        let ann = decl_ann_member::decl_ann_at(node, i)
+        let ann = frontend_ast_type_ann::corehir_node_type_ann_at(node, i)
         if decl_ann_name::decl_ann_is_name(ann, String_from("__return")) {
             if decl_ann_children::decl_ann_child_count(ann) > 0 {
                 return decl_ann_children::decl_ann_child_at(ann, 0)
@@ -18,10 +18,10 @@ fn return_ann_child(node: AstNode) -> AstNode {
 }
 
 fn return_ann_child_count(node: AstNode) -> i32 {
-    let count = decl_ann_member::decl_ann_count(node)
+    let count = frontend_ast_type_ann::corehir_node_type_ann_count(node)
     let mut i = 0
     while i < count {
-        let ann = decl_ann_member::decl_ann_at(node, i)
+        let ann = frontend_ast_type_ann::corehir_node_type_ann_at(node, i)
         if decl_ann_name::decl_ann_is_name(ann, String_from("__return")) {
             return decl_ann_children::decl_ann_child_count(ann)
         }
