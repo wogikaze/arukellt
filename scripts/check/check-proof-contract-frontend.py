@@ -18,12 +18,12 @@ WRAPPER = ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
 CASES = (
     ("valid.ark", True, None),
     (
-        "requires-not-bool.ark",
+        "requires-not-bool.ark.txt",
         False,
         "proof requires contract must have type bool, got i32",
     ),
     (
-        "ensures-not-bool.ark",
+        "ensures-not-bool.ark.txt",
         False,
         "proof ensures contract must have type bool, got i32",
     ),
