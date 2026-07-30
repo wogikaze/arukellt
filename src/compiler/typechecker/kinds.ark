@@ -53,9 +53,10 @@ fn NK_WHILE() -> i32 { 34 }
 fn NK_FOR() -> i32 { 36 }
 fn NK_EXPR_STMT() -> i32 { 37 }
 
-// Type annotation node kinds.
+// Type and proof annotation node kinds.
 fn NK_TYPE_GENERIC() -> i32 { 91 }
 fn NK_TYPE_TUPLE() -> i32 { 93 }
+fn NK_PROOF_CONTRACT() -> i32 { 98 }
 
 // Comparison operator kinds.
 fn OP_EQ() -> i32 { 6 }
