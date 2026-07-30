@@ -1,0 +1,43 @@
+struct CheckedProofContract {
+    function_index: i32,
+    kind: String,
+    condition: AstNode,
+    result_name: String,
+    span_start: i32,
+}
+
+fn CheckedProofContract_new(
+    function_index: i32,
+    kind: String,
+    condition: AstNode,
+    result_name: String,
+    span_start: i32
+) -> CheckedProofContract {
+    CheckedProofContract {
+        function_index: function_index,
+        kind: kind,
+        condition: condition,
+        result_name: result_name,
+        span_start: span_start,
+    }
+}
+
+fn CheckedProofContract_function_index(contract: CheckedProofContract) -> i32 {
+    contract.function_index
+}
+
+fn CheckedProofContract_kind(contract: CheckedProofContract) -> String {
+    clone(contract.kind)
+}
+
+fn CheckedProofContract_condition(contract: CheckedProofContract) -> AstNode {
+    contract.condition
+}
+
+fn CheckedProofContract_result_name(contract: CheckedProofContract) -> String {
+    clone(contract.result_name)
+}
+
+fn CheckedProofContract_span_start(contract: CheckedProofContract) -> i32 {
+    contract.span_start
+}
