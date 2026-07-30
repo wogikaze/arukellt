@@ -50,11 +50,21 @@ fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult
     }
 }
 
-fn dump_proof_ir_if_enabled(config: DriverConfig, program: CoreHirRawProgram) {
+fn dump_proof_ir_if_enabled(
+    config: DriverConfig,
+    program: CoreHirRawProgram,
+    checked_contracts: Vec<CheckedProofContract>
+) {
     if config_record::config_dump_proof_ir(config) {
         let header = String_from("=== PROOF IR ===")
         stdio::eprintln(header)
-        stdio::eprintln(corehir_api::render_proof_ir(program, config_record::config_source_file(config)))
+        stdio::eprintln(
+            corehir_api::render_proof_ir(
+                program,
+                checked_contracts,
+                config_record::config_source_file(config)
+            )
+        )
     }
 }
 
