@@ -28,11 +28,9 @@ fn check_contract(env: TypeEnv, base_scope: LocalScope, fn_sigs: Vec<FnSig>, enu
     let contract_scope = scope::scope_child(base_scope)
     if eq(clone(clause), String_from("ensures")) {
         scope::scope_define(contract_scope, String_from("result"), contract_fn_sig::FnSig_return_type(sig))
-    } else {
-        if !eq(clone(clause), String_from("requires")) {
-            unify::type_error(env, concat(String_from("unsupported proof contract kind: "), clause))
-            return
-        }
+    } else if !eq(clone(clause), String_from("requires")) {
+        unify::type_error(env, concat(String_from("unsupported proof contract kind: "), clause))
+        return
     }
     let condition = ast_access::node_child_at(contract, 0)
     let condition_ty = infer::infer_expr(env, contract_scope, fn_sigs, enum_defs, condition)
