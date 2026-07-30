@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [master]
 
+concurrency:
+  group: proof-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   proof-gate-diagnostic:
     runs-on: ubuntu-latest
