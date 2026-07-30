@@ -1,4 +1,5 @@
 use corehir::body_table
+use corehir::proof_contracts
 use corehir::raw_decls
 use corehir::raw_record
 use corehir::raw_types
@@ -10,13 +11,18 @@ struct CoreHirProofView {
     contracts: Vec<CoreHirProofContract>,
 }
 
-fn proof_view_from_program(program: CoreHirRawProgram) -> CoreHirProofView {
+fn proof_view_from_program(
+    program: CoreHirRawProgram,
+    checked_contracts: Vec<CheckedProofContract>
+) -> CoreHirProofView {
     let table = raw_record::raw_program_body_table(program)
     CoreHirProofView {
         fn_infos: raw_decls::program_fn_infos(program),
         typed_fns: raw_types::program_typed_fns(program),
         fn_body_roots: body_table::corehir_body_table_fn_body_roots(table),
-        contracts: raw_record::raw_program_proof_contracts(program),
+        contracts: proof_contracts::build_checked_proof_contracts(
+            checked_contracts
+        ),
     }
 }
 
