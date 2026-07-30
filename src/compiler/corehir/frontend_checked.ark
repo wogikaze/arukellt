@@ -1,3 +1,4 @@
+use std::host::stdio
 use corehir::frontend
 use corehir::frontend_bundle
 use corehir::frontend_export_surface
@@ -12,6 +13,12 @@ fn build_checked_program_from_bundle(bundle: FrontendBundle) -> CoreHirRawProgra
     let check_result = frontend_bundle::bundle_check_result(bundle)
     let checked_contracts = contract_result_state::typecheck_result_proof_contracts(
         check_result
+    )
+    stdio::eprintln(
+        concat(
+            String_from("[proof-ir] checked-contracts="),
+            to_string(len(checked_contracts))
+        )
     )
     let facts = type_facts::CoreHirTypeFacts_new(
         contract_result_state::typecheck_result_typed_fns(check_result),
