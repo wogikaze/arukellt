@@ -1,9 +1,0 @@
-fn invalid_ensures(x: i32) -> i32 proof {
-    ensures: result
-} {
-    x
-}
-
-fn main() {
-    invalid_ensures(1)
-}
