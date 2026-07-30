@@ -21,12 +21,9 @@ pub fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
     mir_view::mir_view_from_program(program)
 }
 
-pub fn proof_view_from_program(program: CoreHirRawProgram) -> CoreHirProofView {
-    proof_view::proof_view_from_program(program)
-}
-
 pub fn render_proof_ir(program: CoreHirRawProgram, source_file: String) -> String {
-    proof_ir_render::render_proof_ir(proof_view_from_program(program), source_file)
+    let view = proof_view::proof_view_from_program(program)
+    proof_ir_render::render_proof_ir(view, source_file)
 }
 
 pub fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {
