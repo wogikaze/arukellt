@@ -24,7 +24,7 @@
 |-----------|-------|
 | stable | 58 |
 | provisional | 12 |
-| experimental | 0 |
+| experimental | 1 |
 | unimplemented | 0 |
 
 ## Feature Classification
@@ -90,6 +90,7 @@
 | 6.1.1 | Multi-Clause Function Definitions | **provisional** | language uplift feature — interface may change before stable exit |
 | 6.1.2 | Clause Guards | **provisional** | language uplift feature — interface may change before stable exit |
 | 6.1.3 | Where Clauses | **provisional** | language uplift feature — interface may change before stable exit |
+| 6.1.4 | Proof Contracts | **experimental** | frontend and Proof IR artifact only; solver-backed verification is not implemented |
 | 6.2 | Struct Definition | stable | — |
 | 6.3 | Enum Definition | stable | — |
 | 6.4 | Trait Definition | **provisional** | version-gated feature — interface may change before stable exit |
