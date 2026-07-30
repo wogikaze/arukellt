@@ -106,6 +106,14 @@ def _validate_parameter(value: Any, path: str) -> None:
     _string(param["type"], f"{path}.type")
 
 
+def _validate_body(value: Any, path: str) -> None:
+    body = _object(value, path)
+    _keys(body, path, required={"kind", "corehir_body_id"}, optional=set())
+    if _string(body["kind"], f"{path}.kind") != "opaque":
+        _fail(f"{path}.kind", "expected 'opaque'")
+    _integer(body["corehir_body_id"], f"{path}.corehir_body_id", minimum=0)
+
+
 def _validate_function(value: Any, path: str) -> None:
     function = _object(value, path)
     _keys(
@@ -121,7 +129,7 @@ def _validate_function(value: Any, path: str) -> None:
     _string(function["return_type"], f"{path}.return_type")
     for index, contract in enumerate(_array(function["contracts"], f"{path}.contracts")):
         _validate_contract(contract, f"{path}.contracts[{index}]")
-    _object(function["body"], f"{path}.body")
+    _validate_body(function["body"], f"{path}.body")
     if "type_parameters" in function:
         for index, type_parameter in enumerate(
             _array(function["type_parameters"], f"{path}.type_parameters")
