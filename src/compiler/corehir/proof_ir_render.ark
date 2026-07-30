@@ -1,8 +1,6 @@
-use corehir::body_table
 use corehir::fn_info
 use corehir::param
 use corehir::proof_contract
-use corehir::proof_expr_render
 use corehir::proof_json_escape
 use corehir::proof_view
 use typechecker::contract_typed_fn
@@ -11,7 +9,8 @@ use typechecker::names
 fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
     let fn_infos = proof_view::proof_view_fn_infos(view)
     let typed_fns = proof_view::proof_view_typed_fns(view)
-    let table = proof_view::proof_view_body_table(view)
+    let fn_body_roots = proof_view::proof_view_fn_body_roots(view)
+    let contracts = proof_view::proof_view_contracts(view)
     let file_name = if len(clone(source_file)) > 0 {
         source_file
     } else {
@@ -26,7 +25,7 @@ fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
     let fn_count = len(fn_infos)
     let mut function_index = 0
     while function_index < fn_count {
-        if function_contract_count(table, function_index) > 0 {
+        if function_contract_count(contracts, function_index) > 0 {
             if !first {
                 out = concat(out, String_from(","))
             }
@@ -35,7 +34,8 @@ fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
                 render_function(
                     fn_infos,
                     typed_fns,
-                    table,
+                    fn_body_roots,
+                    contracts,
                     function_index,
                     clone(file_name)
                 )
@@ -47,8 +47,10 @@ fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
     concat(out, String_from("]}"))
 }
 
-fn function_contract_count(table: CoreHirBodyTable, function_index: i32) -> i32 {
-    let contracts = body_table::corehir_body_table_proof_contracts(table)
+fn function_contract_count(
+    contracts: Vec<CoreHirProofContract>,
+    function_index: i32
+) -> i32 {
     let count = len(contracts)
     let mut matched = 0
     let mut i = 0
@@ -65,7 +67,8 @@ fn function_contract_count(table: CoreHirBodyTable, function_index: i32) -> i32 
 fn render_function(
     fn_infos: Vec<CoreHirFnInfo>,
     typed_fns: Vec<TypedFn>,
-    table: CoreHirBodyTable,
+    fn_body_roots: Vec<i32>,
+    contracts: Vec<CoreHirProofContract>,
     function_index: i32,
     source_file: String
 ) -> String {
@@ -104,11 +107,12 @@ fn render_function(
         )
     )
     out = concat(out, String_from(",\"contracts\":["))
-    out = concat(out, render_contracts(table, function_index, source_file))
-    let body_root = body_table::corehir_body_table_fn_body_root_at(
-        table,
-        function_index
-    )
+    out = concat(out, render_contracts(contracts, function_index, source_file))
+    let body_root = if function_index >= 0 && function_index < len(fn_body_roots) {
+        get_unchecked(fn_body_roots, function_index)
+    } else {
+        0 - 1
+    }
     out = concat(
         out,
         concat(
@@ -186,11 +190,10 @@ fn return_type_name(typed_fns: Vec<TypedFn>, typed_index: i32) -> String {
 }
 
 fn render_contracts(
-    table: CoreHirBodyTable,
+    contracts: Vec<CoreHirProofContract>,
     function_index: i32,
     source_file: String
 ) -> String {
-    let contracts = body_table::corehir_body_table_proof_contracts(table)
     let count = len(contracts)
     let mut out = String_new()
     let mut first = true
@@ -201,7 +204,7 @@ fn render_contracts(
             if !first {
                 out = concat(out, String_from(","))
             }
-            out = concat(out, render_contract(table, contract, clone(source_file)))
+            out = concat(out, render_contract(contract, clone(source_file)))
             first = false
         }
         i = i + 1
@@ -210,15 +213,11 @@ fn render_contracts(
 }
 
 fn render_contract(
-    table: CoreHirBodyTable,
     contract: CoreHirProofContract,
     source_file: String
 ) -> String {
     let kind = proof_contract::CoreHirProofContract_kind(contract)
-    let expression = proof_expr_render::proof_expr_render(
-        table,
-        proof_contract::CoreHirProofContract_expr_root(contract)
-    )
+    let expression = proof_contract::CoreHirProofContract_expression(contract)
     let start = proof_contract::CoreHirProofContract_span_start(contract)
     let mut out = concat(
         String_from("{\"kind\":"),
