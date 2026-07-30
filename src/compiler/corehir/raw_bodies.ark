@@ -1,5 +1,18 @@
+use corehir::body
 use corehir::raw_record
 
 fn program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable {
     raw_record::raw_program_body_table(program)
+}
+
+fn program_proof_contract_count(program: CoreHirRawProgram) -> i32 {
+    body::corehir_proof_contract_count(program_body_table(program))
+}
+
+fn program_proof_contract_at(program: CoreHirRawProgram, index: i32) -> CoreHirProofContract {
+    body::corehir_proof_contract_at(program_body_table(program), index)
+}
+
+fn program_proof_contracts(program: CoreHirRawProgram) -> Vec<CoreHirProofContract> {
+    body::body_proof_contracts(program_body_table(program))
 }
