@@ -4,7 +4,7 @@
 
 提案日: 2026-07-30
 
-関連: [ADR-040: Semantic Type Spine](ADR-040-typed-mir-signature-registry.md)、[RFC-002](../rfcs/002-semantic-type-spine.md)、[RFC-009](../rfcs/009-verifiable-compiler-architecture.md)
+関連: [ADR-040: Semantic Type Spine](ADR-040-typed-mir-signature-registry.md)、[ADR-052: Proof-Driven Development](ADR-052-proof-driven-development.md)、[RFC-002](../rfcs/002-semantic-type-spine.md)、[RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
 
 ---
 
@@ -161,6 +161,14 @@ selfhost compiler は source を型付き snapshot と versioned artifact へ変
 - validator failure
 - solver unknown を proof-required gate で受け取った場合
 
+### 9. Proof-Driven Development の基盤とする
+
+本アーキテクチャは単にproof artifactを出すだけではなく、ADR-052とRFC-010が定める `specification → implementation → check/test/prove → counterexample → repair → receipt` を通常の開発経路として成立させる。
+
+`intent` と examples はdeveloper UXと仕様監査に使うが、形式証明の根拠にはしない。proof-required packageは、現在のsource、semantics、dependency contracts、prover configurationに一致するreceiptなしでreleaseできない。
+
+AIは候補生成器に限定し、deterministic validator/proverだけがproof statusを決める。仕様を弱めてproofを通す変更を防ぐため、specification lock、weakening analysis、non-vacuity、mutation auditをarchitecture上の正式なconsumerとして扱う。
+
 ## 非目標
 
 - 初期段階でコンパイラ全体をLeanで書き直すこと
@@ -172,8 +180,8 @@ selfhost compiler は source を型付き snapshot と versioned artifact へ変
 
 実装は master から独立した小PRに分割する。各PRは一つの新しい境界とvalidatorだけを導入し、旧経路との二重実行・差分比較を経て切り替える。
 
-詳細仕様は RFC-009、移行順とgateは `docs/plans/verifiable-compiler-migration.md` を正本とする。
+詳細仕様は RFC-009、proof-driven workflowはRFC-010、移行順とgateは `docs/plans/verifiable-compiler-migration.md` と `docs/plans/proof-driven-development.md` を正本とする。
 
 ## 結果
 
-この判断によりコード量は短期的に増えるが、後段の推論、文字列解析、巨大table共有、暗黙fallbackを削減できる。形式検証は追加機能ではなく、明示された意味論と小さな信頼境界の上に構築される。
+この判断によりコード量は短期的に増えるが、後段の推論、文字列解析、巨大table共有、暗黙fallbackを削減できる。形式検証は追加機能ではなく、明示された意味論と小さな信頼境界の上に構築され、通常の開発完了条件へ組み込まれる。
