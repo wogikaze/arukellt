@@ -1,3 +1,4 @@
+use corehir::body_table
 use corehir::raw_decls
 use corehir::raw_record
 use corehir::raw_types
@@ -5,17 +6,32 @@ use corehir::raw_types
 struct CoreHirProofView {
     fn_infos: Vec<CoreHirFnInfo>,
     typed_fns: Vec<TypedFn>,
-    body_table: CoreHirBodyTable,
+    fn_body_roots: Vec<i32>,
+    contracts: Vec<CoreHirProofContract>,
 }
 
 fn proof_view_from_program(program: CoreHirRawProgram) -> CoreHirProofView {
+    let table = raw_record::raw_program_body_table(program)
     CoreHirProofView {
         fn_infos: raw_decls::program_fn_infos(program),
         typed_fns: raw_types::program_typed_fns(program),
-        body_table: raw_record::raw_program_body_table(program),
+        fn_body_roots: body_table::corehir_body_table_fn_body_roots(table),
+        contracts: body_table::corehir_body_table_proof_contracts(table),
     }
 }
 
-fn proof_view_fn_infos(view: CoreHirProofView) -> Vec<CoreHirFnInfo> { view.fn_infos }
-fn proof_view_typed_fns(view: CoreHirProofView) -> Vec<TypedFn> { view.typed_fns }
-fn proof_view_body_table(view: CoreHirProofView) -> CoreHirBodyTable { view.body_table }
+fn proof_view_fn_infos(view: CoreHirProofView) -> Vec<CoreHirFnInfo> {
+    view.fn_infos
+}
+
+fn proof_view_typed_fns(view: CoreHirProofView) -> Vec<TypedFn> {
+    view.typed_fns
+}
+
+fn proof_view_fn_body_roots(view: CoreHirProofView) -> Vec<i32> {
+    view.fn_body_roots
+}
+
+fn proof_view_contracts(view: CoreHirProofView) -> Vec<CoreHirProofContract> {
+    view.contracts
+}
