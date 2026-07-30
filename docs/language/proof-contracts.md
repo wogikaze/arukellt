@@ -15,6 +15,8 @@ fn nonnegative_identity(x: i32) -> i32 proof {
 
 `requires` describes a precondition and is type-checked in the function parameter scope. `ensures` describes a postcondition and additionally binds `result` to the declared return type. Every contract expression must have type `bool`; a non-boolean expression is a compile error.
 
+The initial surface supports top-level functions only. A `proof` block on an impl method is rejected until Proof IR has a stable method identity, receiver model, and method-body mapping.
+
 The `proof` block is separate from the existing `where` value-binding surface. Contracts are stored as dedicated AST annotations, lowered into a proof-only CoreHIR table, and excluded from function body roots and MIR lowering. They therefore do not become runtime statements or affect Wasm emission.
 
 A versioned debug artifact can be inspected with:
