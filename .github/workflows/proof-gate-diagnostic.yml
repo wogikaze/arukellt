@@ -34,6 +34,9 @@ jobs:
           fi
           wasm-objdump -x .build/selfhost/arukellt-s3.wasm |
             grep -E 'func\[(5701|5728|5729|5730|5763|9131)\]' || true
+          echo "=== dump_proof_ir_if_enabled disassembly ==="
+          wasm-objdump -d .build/selfhost/arukellt-s3.wasm |
+            awk '/func\[5763\]/{show=1} show{print} /func\[5764\]/{exit}'
           wasm-validate .build/selfhost/arukellt-s3.wasm
 
       - name: Check Proof IR unit boundary
