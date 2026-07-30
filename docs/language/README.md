@@ -98,7 +98,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
 | [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |
-| [proof-contracts.md](proof-contracts.md) | Proof contracts | transitional | Arukellt function contracts use a dedicated `proof` block after the return type and before the function body: |
+| [proof-contracts.md](proof-contracts.md) | Proof contracts | transitional | Arukellt function contracts use a dedicated proof block after the return type and before the function body: |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [type-system.md](type-system.md) | 型システム | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
