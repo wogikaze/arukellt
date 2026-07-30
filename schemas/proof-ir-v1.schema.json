@@ -47,6 +47,15 @@
         "span": {"$ref": "#/$defs/span"}
       }
     },
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "corehir_body_id"],
+      "properties": {
+        "kind": {"const": "opaque"},
+        "corehir_body_id": {"type": "integer", "minimum": 0}
+      }
+    },
     "function": {
       "type": "object",
       "additionalProperties": false,
@@ -58,7 +67,7 @@
         "return_type": {"type": "string", "minLength": 1},
         "type_parameters": {"type": "array", "items": {"type": "string", "minLength": 1}},
         "contracts": {"type": "array", "items": {"$ref": "#/$defs/contract"}},
-        "body": {"type": "object"},
+        "body": {"$ref": "#/$defs/body"},
         "span": {"$ref": "#/$defs/span"}
       }
     }
