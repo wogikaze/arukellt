@@ -1,7 +1,10 @@
 # ADR-051: Proof verification boundary
 
-- Status: ACCEPTED
-- Date: 2026-07-31
+ステータス: **ACCEPTED** — 言語組み込み契約を型付き CoreHIR に保持し、Proof IR 経由で外部 verifier へ渡す
+
+決定日: 2026-07-30
+
+---
 
 ## Context
 
