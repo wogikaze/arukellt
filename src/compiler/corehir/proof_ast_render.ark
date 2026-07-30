@@ -1,0 +1,226 @@
+use corehir::frontend_ast_node
+use corehir::frontend_kind_map
+use corehir::proof_json_escape
+
+fn proof_ast_render(node: AstNode) -> String {
+    let kind = frontend_ast_node::corehir_node_kind(node)
+    if kind == frontend_kind_map::nk_ident() {
+        return concat(
+            String_from("(ident "),
+            concat(
+                proof_json_escape::quote_json(
+                    frontend_ast_node::corehir_node_text(node)
+                ),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_path() {
+        return concat(
+            String_from("(path "),
+            concat(
+                proof_json_escape::quote_json(
+                    frontend_ast_node::corehir_node_text(node)
+                ),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_int_lit() {
+        return concat(
+            String_from("(int "),
+            concat(
+                to_string(frontend_ast_node::corehir_node_int_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_float_lit() {
+        return concat(
+            String_from("(float "),
+            concat(
+                to_string(frontend_ast_node::corehir_node_float_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_string_lit() {
+        return concat(
+            String_from("(string "),
+            concat(
+                proof_json_escape::quote_json(
+                    frontend_ast_node::corehir_node_text(node)
+                ),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_bool_lit() {
+        let value = if frontend_ast_node::corehir_node_int_val(node) == 0 {
+            String_from("false")
+        } else {
+            String_from("true")
+        }
+        return concat(
+            String_from("(bool "),
+            concat(value, String_from(")"))
+        )
+    }
+    if kind == frontend_kind_map::nk_char_lit() {
+        return concat(
+            String_from("(char "),
+            concat(
+                to_string(frontend_ast_node::corehir_node_int_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == frontend_kind_map::nk_binary() {
+        return render_binary(node)
+    }
+    if kind == frontend_kind_map::nk_unary() {
+        return render_unary(node)
+    }
+    if kind == frontend_kind_map::nk_call() {
+        return render_named_children(
+            String_from("call"),
+            frontend_ast_node::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == frontend_kind_map::nk_method_call() {
+        return render_named_children(
+            String_from("method-call"),
+            frontend_ast_node::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == frontend_kind_map::nk_field_access() {
+        return render_named_children(
+            String_from("field"),
+            frontend_ast_node::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == frontend_kind_map::nk_index() {
+        return render_children(String_from("index"), node)
+    }
+    concat(String_from("(unsupported "), concat(to_string(kind), String_from(")")))
+}
+
+fn render_binary(node: AstNode) -> String {
+    if frontend_ast_node::corehir_node_child_count(node) < 2 {
+        return String_from("(invalid-binary)")
+    }
+    let left = proof_ast_render(
+        frontend_ast_node::corehir_node_child_at(node, 0)
+    )
+    let right = proof_ast_render(
+        frontend_ast_node::corehir_node_child_at(node, 1)
+    )
+    concat(
+        String_from("("),
+        concat(
+            binary_op_name(frontend_ast_node::corehir_node_op(node)),
+            concat(
+                String_from(" "),
+                concat(
+                    left,
+                    concat(
+                        String_from(" "),
+                        concat(right, String_from(")"))
+                    )
+                )
+            )
+        )
+    )
+}
+
+fn render_unary(node: AstNode) -> String {
+    if frontend_ast_node::corehir_node_child_count(node) < 1 {
+        return String_from("(invalid-unary)")
+    }
+    let operand = proof_ast_render(
+        frontend_ast_node::corehir_node_child_at(node, 0)
+    )
+    concat(
+        String_from("("),
+        concat(
+            unary_op_name(frontend_ast_node::corehir_node_op(node)),
+            concat(String_from(" "), concat(operand, String_from(")")))
+        )
+    )
+}
+
+fn render_named_children(head: String, name: String, node: AstNode) -> String {
+    let mut out = concat(
+        String_from("("),
+        concat(
+            head,
+            concat(String_from(" "), proof_json_escape::quote_json(name))
+        )
+    )
+    let count = frontend_ast_node::corehir_node_child_count(node)
+    let mut i = 0
+    while i < count {
+        out = concat(
+            out,
+            concat(
+                String_from(" "),
+                proof_ast_render(
+                    frontend_ast_node::corehir_node_child_at(node, i)
+                )
+            )
+        )
+        i = i + 1
+    }
+    concat(out, String_from(")"))
+}
+
+fn render_children(head: String, node: AstNode) -> String {
+    let mut out = concat(String_from("("), head)
+    let count = frontend_ast_node::corehir_node_child_count(node)
+    let mut i = 0
+    while i < count {
+        out = concat(
+            out,
+            concat(
+                String_from(" "),
+                proof_ast_render(
+                    frontend_ast_node::corehir_node_child_at(node, i)
+                )
+            )
+        )
+        i = i + 1
+    }
+    concat(out, String_from(")"))
+}
+
+fn binary_op_name(op: i32) -> String {
+    if op == 1 { return String_from("add") }
+    if op == 2 { return String_from("sub") }
+    if op == 3 { return String_from("mul") }
+    if op == 4 { return String_from("div") }
+    if op == 5 { return String_from("mod") }
+    if op == 6 { return String_from("eq") }
+    if op == 7 { return String_from("ne") }
+    if op == 8 { return String_from("lt") }
+    if op == 9 { return String_from("le") }
+    if op == 10 { return String_from("gt") }
+    if op == 11 { return String_from("ge") }
+    if op == 12 { return String_from("and") }
+    if op == 13 { return String_from("or") }
+    if op == 14 { return String_from("bit-and") }
+    if op == 15 { return String_from("bit-or") }
+    if op == 16 { return String_from("bit-xor") }
+    if op == 17 { return String_from("shl") }
+    if op == 18 { return String_from("shr") }
+    concat(String_from("binary-op-"), to_string(op))
+}
+
+fn unary_op_name(op: i32) -> String {
+    if op == 1 { return String_from("neg") }
+    if op == 2 { return String_from("not") }
+    if op == 3 { return String_from("bit-not") }
+    concat(String_from("unary-op-"), to_string(op))
+}
