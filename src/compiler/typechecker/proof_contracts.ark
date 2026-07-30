@@ -1,5 +1,6 @@
 use typechecker::ast_access
 use typechecker::contract_fn_sig
+use typechecker::contract_result_state
 use typechecker::contract_type_access
 use typechecker::infer
 use typechecker::kinds
@@ -14,7 +15,9 @@ fn check_fn_contracts(
     enum_defs: Vec<EnumInfo>,
     fn_node: AstNode,
     sig: FnSig,
-    contracts_supported: bool
+    contracts_supported: bool,
+    result: TypeCheckResult,
+    function_index: i32
 ) {
     let ann_count = ast_access::node_type_ann_count(fn_node)
     let mut rejected = false
@@ -23,7 +26,16 @@ fn check_fn_contracts(
         let ann = ast_access::node_type_ann_at(fn_node, i)
         if ast_access::node_kind_is(ann, kinds::NK_PROOF_CONTRACT()) {
             if contracts_supported {
-                check_contract(env, base_scope, fn_sigs, enum_defs, ann, sig)
+                check_contract(
+                    env,
+                    base_scope,
+                    fn_sigs,
+                    enum_defs,
+                    ann,
+                    sig,
+                    result,
+                    function_index
+                )
             } else if !rejected {
                 unify::type_error(
                     env,
@@ -42,7 +54,9 @@ fn check_contract(
     fn_sigs: Vec<FnSig>,
     enum_defs: Vec<EnumInfo>,
     contract: AstNode,
-    sig: FnSig
+    sig: FnSig,
+    result: TypeCheckResult,
+    function_index: i32
 ) {
     let clause = ast_access::node_text(contract)
     if ast_access::node_child_count(contract) == 0 {
@@ -56,10 +70,12 @@ fn check_contract(
         return
     }
     let contract_scope = scope::scope_child(base_scope)
+    let mut result_name = String_new()
     if eq(clone(clause), String_from("ensures")) {
+        result_name = String_from("result")
         scope::scope_define(
             contract_scope,
-            String_from("result"),
+            clone(result_name),
             contract_fn_sig::FnSig_return_type(sig)
         )
     } else if !eq(clone(clause), String_from("requires")) {
@@ -94,5 +110,14 @@ fn check_contract(
                 )
             )
         )
+        return
     }
+    contract_result_state::typecheck_result_push_proof_contract(
+        result,
+        function_index,
+        clause,
+        condition,
+        result_name,
+        ast_access::node_span_start(contract)
+    )
 }
