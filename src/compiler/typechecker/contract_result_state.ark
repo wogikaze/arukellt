@@ -1,4 +1,5 @@
 use typechecker::contract_mono
+use typechecker::contract_proof
 use typechecker::contract_typed_fn
 use typechecker::contract_types_record
 
@@ -9,6 +10,7 @@ struct TypeCheckResult {
     warnings: Vec<Diagnostic>,
     typed_fns: Vec<TypedFn>,
     mono_instances: Vec<MonoInstance>,
+    proof_contracts: Vec<CheckedProofContract>,
 }
 
 fn TypeCheckResult_new() -> TypeCheckResult {
@@ -18,7 +20,8 @@ fn TypeCheckResult_new() -> TypeCheckResult {
         diagnostics: Vec_new_Diagnostic(),
         warnings: Vec_new_Diagnostic(),
         typed_fns: Vec_new_TypedFn(),
-        mono_instances: Vec_new_MonoInstance()
+        mono_instances: Vec_new_MonoInstance(),
+        proof_contracts: Vec_new_CheckedProofContract()
     }
 }
 
@@ -45,6 +48,26 @@ fn typecheck_result_set_mono_instances(result: TypeCheckResult, instances: Vec<M
 
 fn typecheck_result_push_typed_fn(result: TypeCheckResult, name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) {
     push(result.typed_fns, contract_typed_fn::TypedFn_new(name, param_types, return_type))
+}
+
+fn typecheck_result_push_proof_contract(
+    result: TypeCheckResult,
+    function_index: i32,
+    kind: String,
+    condition: AstNode,
+    result_name: String,
+    span_start: i32
+) {
+    push(
+        result.proof_contracts,
+        contract_proof::CheckedProofContract_new(
+            function_index,
+            kind,
+            condition,
+            result_name,
+            span_start
+        )
+    )
 }
 
 fn typecheck_result_error_count(result: TypeCheckResult) -> i32 {
@@ -89,4 +112,10 @@ fn typecheck_result_mono_instance_at(result: TypeCheckResult, index: i32) -> Mon
 
 fn typecheck_result_mono_instances(result: TypeCheckResult) -> Vec<MonoInstance> {
     result.mono_instances
+}
+
+fn typecheck_result_proof_contracts(
+    result: TypeCheckResult
+) -> Vec<CheckedProofContract> {
+    result.proof_contracts
 }
