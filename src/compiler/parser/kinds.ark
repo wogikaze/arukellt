@@ -79,6 +79,9 @@ fn NK_TYPE_TUPLE() -> i32 { 93 }
 fn NK_TYPE_OPTION() -> i32 { 94 }
 fn NK_TYPE_RESULT() -> i32 { 95 }
 
+// Proof annotation node kinds.
+fn NK_PROOF_CONTRACT() -> i32 { 98 }
+
 // Error recovery AST node kinds (#566).
 fn NK_ERROR() -> i32 { 96 }
 fn NK_MISSING() -> i32 { 97 }
