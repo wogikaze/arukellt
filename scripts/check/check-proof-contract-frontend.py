@@ -41,8 +41,8 @@ def run_command(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def run_case(name: str, should_pass: bool, expected: str | None) -> list[str]:
-    source = ROOT / "tests" / "proof-contracts" / name
-    completed = run_command("check", str(source))
+    source = Path("tests") / "proof-contracts" / name
+    completed = run_command("check", source.as_posix())
     output = completed.stdout + completed.stderr
     errors: list[str] = []
     if should_pass and completed.returncode != 0:
@@ -63,10 +63,10 @@ def extract_proof_ir(output: str) -> dict[str, object]:
 
 
 def run_artifact_case() -> list[str]:
-    source = ROOT / "tests" / "proof-contracts" / "valid.ark"
+    source = Path("tests") / "proof-contracts" / "valid.ark"
     completed = run_command(
         "compile",
-        str(source),
+        source.as_posix(),
         "--dump-phases",
         "proof-ir",
     )
