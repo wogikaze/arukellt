@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install wasmtime
         run: |
@@ -24,34 +22,26 @@ jobs:
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
-      - name: Check formatting and lint
-        env:
-          ARUKELLT_LINT_WORKERS: "4"
-        run: |
-          python3 scripts/manager.py fmt --check
-          python3 scripts/manager.py lint
-
-      - name: Check repository quality contracts
-        env:
-          ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha }}
-        run: |
-          python3 scripts/check/check-ark-code-quality.py
-          python3 scripts/check/check-adrs.py
-          python3 scripts/check/gate-765-docs-ci-hard-gates.py
-          python3 scripts/manager.py quality changed
-
-      - name: Diagnose generated docs
-        run: |
-          set +e
-          python3 scripts/check/check-docs-consistency.py
-          docs_rc=$?
-          echo "docs check rc=$docs_rc"
-          python3 scripts/gen/generate-docs.py
-          git diff -- docs README.md
-          exit 0
-
-      - name: Check Proof IR boundary
+      - name: Check Proof IR unit boundary
         run: |
           python3 -m unittest scripts.tests.test_proof_ir
           python3 scripts/check/check-proof-ir.py tests/proof-ir/basic.json
-          python3 scripts/check/check-proof-contract-frontend.py
+
+      - name: Diagnose contract retention
+        run: |
+          set +e
+          echo "=== SOURCE ==="
+          cat tests/proof-contracts/valid.ark
+          echo "=== AST DUMP ==="
+          scripts/run/arukellt-selfhost.sh compile tests/proof-contracts/valid.ark --dump-phases ast
+          echo "ast rc=$?"
+          echo "=== HIR DUMP ==="
+          scripts/run/arukellt-selfhost.sh compile tests/proof-contracts/valid.ark --dump-phases hir
+          echo "hir rc=$?"
+          echo "=== PROOF IR DUMP ==="
+          scripts/run/arukellt-selfhost.sh compile tests/proof-contracts/valid.ark --dump-phases proof-ir
+          echo "proof rc=$?"
+          exit 0
+
+      - name: Check Proof IR frontend E2E
+        run: python3 scripts/check/check-proof-contract-frontend.py
