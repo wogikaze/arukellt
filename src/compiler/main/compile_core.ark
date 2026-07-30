@@ -34,6 +34,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config_record::config_set_dump_tokens(config, should_dump(opts, String_from("tokens")))
         config_record::config_set_dump_ast(config, should_dump(opts, String_from("ast")))
         config_record::config_set_dump_hir(config, should_dump(opts, String_from("hir")))
+        config_record::config_set_dump_proof_ir(config, should_dump(opts, String_from("proof-ir")))
         config_record::config_set_dump_mir(config, should_dump(opts, String_from("mir")))
         config_record::config_set_dump_wasm(config, should_dump(opts, String_from("wasm")))
     }
