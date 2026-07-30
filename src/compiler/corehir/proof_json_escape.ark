@@ -6,24 +6,16 @@ fn json_escape(s: String) -> String {
         let c = char_at(s, i)
         if c == 34 {
             out = concat(out, String_from("\\\""))
+        } else if c == 92 {
+            out = concat(out, String_from("\\\\"))
+        } else if c == 10 {
+            out = concat(out, String_from("\\n"))
+        } else if c == 13 {
+            out = concat(out, String_from("\\r"))
+        } else if c == 9 {
+            out = concat(out, String_from("\\t"))
         } else {
-            if c == 92 {
-                out = concat(out, String_from("\\\\"))
-            } else {
-                if c == 10 {
-                    out = concat(out, String_from("\\n"))
-                } else {
-                    if c == 13 {
-                        out = concat(out, String_from("\\r"))
-                    } else {
-                        if c == 9 {
-                            out = concat(out, String_from("\\t"))
-                        } else {
-                            out = concat(out, substring(clone(s), i, i + 1))
-                        }
-                    }
-                }
-            }
+            out = concat(out, substring(clone(s), i, i + 1))
         }
         i = i + 1
     }
