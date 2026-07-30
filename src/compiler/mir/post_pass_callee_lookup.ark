@@ -7,6 +7,7 @@ use mir::opcodes
 use mir::post_pass_callee_cache
 use mir::post_pass_enum_normalize
 use mir::typed_mir_sync_module
+use corehir::type_info_to_mir_value
 //
 // Extracted from post_pass_type_propagate.ark to reduce import fan-out.
 // Callee name / return metadata comes from CalleePropCache (#829).
@@ -60,7 +61,19 @@ fn propagate_from_producer_inst(
         // get_unchecked dest type is set from the vec element's type during
         // lowering. A wrong mono name (get_unchecked__String) would otherwise
         // overwrite WitParsedInterface/etc. with string here.
-        let skip_ret_sync = is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0
+        let skip_ret_sync =
+        (is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0) ||
+        (is_vec_constructor_callee(clone(callee)) &&
+            starts_with(clone(dst_type_name), "vec:"))
+        if is_vec_constructor_callee(clone(callee)) &&
+        starts_with(clone(dst_type_name), "vec:") {
+            new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
+                new_loc,
+                clone(dst_type_name),
+                table
+            )
+            updated = true
+        }
         let mut ret_name = String_new()
         // clone(T)->T must win over CalleePropCache / string-intrinsic tables.
         // Cache often maps bare "clone" to String and poisons GC struct temps
@@ -69,7 +82,10 @@ fn propagate_from_producer_inst(
             ret_name = type_name_of_call_arg(f, inst)
         } else {
             if !skip_ret_sync {
-                ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                ret_name = producer_result_type_name(inst, table)
+                if len(ret_name) == 0 {
+                    ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                }
                 if len(ret_name) == 0 {
                     ret_name = lookup_intrinsic_return_type_name(callee)
                 }
@@ -87,6 +103,16 @@ fn propagate_from_producer_inst(
         function_local_mutation::MirFunction_set_local(f, dest, new_loc)
     }
     updated
+}
+
+fn producer_result_type_name(inst: MirInst, table: TypeTable) -> String {
+    if inst_record::mir_inst_result_type_count(inst) <= 0 {
+        return String_new()
+    }
+    type_info_to_mir_value::mvt_to_type_name(
+        table,
+        inst_record::mir_inst_result_type_at(inst, 0)
+    )
 }
 
 fn propagate_call_variant_slot(
@@ -131,6 +157,17 @@ fn is_get_unchecked_callee(name: String) -> bool {
     starts_with(clone(name), "get_unchecked__") ||
     starts_with(clone(name), "vec_get_unchecked__") ||
     starts_with(clone(name), "__intrinsic_get_unchecked__")
+}
+
+fn is_vec_constructor_callee(name: String) -> bool {
+    eq(clone(name), "Vec::new") ||
+    eq(clone(name), "Vec__new") ||
+    eq(clone(name), "Vec::with_capacity") ||
+    eq(clone(name), "Vec__with_capacity") ||
+    starts_with(clone(name), "Vec::new__") ||
+    starts_with(clone(name), "Vec__new__") ||
+    starts_with(clone(name), "Vec::with_capacity__") ||
+    starts_with(clone(name), "Vec__with_capacity__")
 }
 
 fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {

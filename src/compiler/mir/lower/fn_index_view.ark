@@ -26,7 +26,7 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
             let owner_name = signature_method::mir_signature_method_owner_name_for_impl(mod::view_signature_source(view), d, decl_name)
-            fn_index = fn_index_methods::mir_index_impl_methods(fn_names, fn_return_vts, fn_return_type_names, d, owner_name, fn_index, source, midx)
+            fn_index_methods::mir_index_impl_methods(fn_names, fn_return_vts, fn_return_type_names, d, owner_name, fn_index, source, midx)
         }
         d = d + 1
     }

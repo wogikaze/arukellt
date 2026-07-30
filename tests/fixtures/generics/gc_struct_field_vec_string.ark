@@ -1,0 +1,19 @@
+use std::host::stdio
+
+struct Opts {
+    target: String,
+    wit_paths: Vec<String>,
+}
+
+fn default_opts() -> Opts {
+    Opts {
+        target: String_from("wasm32-gc"),
+        wit_paths: Vec::new<String>(),
+    }
+}
+
+fn main() {
+    let mut options = default_opts()
+    push(options.wit_paths, String_from("x"))
+    stdio::println((len(options.wit_paths)).to_string())
+}

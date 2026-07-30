@@ -376,7 +376,7 @@ pub fn component_world_spec__world_target_error(world: String, target: String, e
 
 BOOTSTRAP_EMIT_LIBRARY_PATCH = """
 pub fn bootstrap_emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    emit_library_component(core_wasm, mir, target, wasi_version, world)
+    component_emit__emit_library_component(core_wasm, mir, target, wasi_version, world)
 }
 """
 
@@ -854,7 +854,7 @@ def _wasm_compile(
         cache_args = ["--cache-dir", AST_CACHE_REL]
     guest_argv = [
         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
-        "-o", guest_out, *cache_args,
+        "-o", guest_out, *cache_args, *(extra_args or []),
     ]
     if _wasm_needs_host_linker(compiler_wasm):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"

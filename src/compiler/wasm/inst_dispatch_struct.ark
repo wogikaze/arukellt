@@ -45,6 +45,11 @@ fn emit_gc_ref_struct_get_store(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, 
             writer_core::emit_leb128_u(w, dest)
             return
         }
+        if next_op == opcodes::MIR_STRUCT_GET() && next_arg0 < 0 {
+            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
+            writer_core::emit_leb128_u(w, dest)
+            return
+        }
         return
     }
     inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)

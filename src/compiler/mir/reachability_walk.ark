@@ -36,7 +36,8 @@ fn mir_enqueue_call_edges(
             if op == opcodes::MIR_CALL() || op == opcodes::MIR_REF_FUNC() {
                 mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, clone(target))
             }
-            if op == opcodes::MIR_CALL() {
+            if op == opcodes::MIR_CALL() &&
+            !eq(clone(target), String_from("wasm32-gc")) {
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
                 if len(fallback) > 0 {
                     mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, clone(target))

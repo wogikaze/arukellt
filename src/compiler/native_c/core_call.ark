@@ -70,9 +70,6 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
     if handler == core_op_registry_generated::core_op_handler_text_format_f64() { return true }
     if handler == core_op_registry_generated::core_op_handler_text_format_i64() { return true }
     if handler == core_op_registry_generated::core_op_handler_text_to_string() { return true }
-    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() ||
-    handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() { return true }
-    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_replace() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_repeat() { return true }
     if handler == core_op_registry_generated::core_op_handler_string_lines() { return true }
@@ -89,9 +86,6 @@ fn native_c_core_call_result_is_reference(mir_module: MirModule, instruction: Mi
     if handler == core_op_registry_generated::core_op_handler_vec_push_f64() { return true }
     if handler == core_op_registry_generated::core_op_handler_vec_push_i64() { return true }
     if handler == core_op_registry_generated::core_op_handler_core_range_new() { return true }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_new() { return true }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_get() { return true }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_remove() { return true }
     false
 }
 
@@ -332,8 +326,6 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_runtime_read_stdin() { return 0 }
     if handler == core_op_registry_generated::core_op_handler_raw_string_new() { return 0 }
     if handler == core_op_registry_generated::core_op_handler_text_String_new() { return 0 }
-    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() { return 0 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_new() { return 0 }
 
     if handler == core_op_registry_generated::core_op_handler_parse_parse_f64() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_parse_parse_i32() { return 1 }
@@ -433,11 +425,6 @@ fn native_c_core_expected_argument_count(handler: i32) -> i32 {
     if handler == core_op_registry_generated::core_op_handler_math_sqrt() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_vec_is_empty() { return 1 }
     if handler == core_op_registry_generated::core_op_handler_text_string_from_bytes() { return 1 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_len() { return 1 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_get() { return 2 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_contains() { return 2 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_remove() { return 2 }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_insert() { return 3 }
     0 - 1
 }
 
@@ -820,66 +807,6 @@ fn native_c_emit_core_call(
     if handler == core_op_registry_generated::core_op_handler_text_to_string() {
         return native_c_core_call_expression(
             concat(String_from("(ark_object_header *)ark_rt_i32_to_string("), concat(native_c_core_arg(arguments, 0), String_from(")")))
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_vec_Vec_new_f64() ||
-    handler == core_op_registry_generated::core_op_handler_vec_Vec_new_fallback() {
-        // Variable arity contract: 0 args (default capacity) or 1 i32 capacity.
-        if len(arguments) > 1 {
-            return native_c_core_call_error(
-                String_from("compiler ICE: native-cpp Vec constructor accepts at most one capacity")
-            )
-        }
-        let dest = inst_accessors_operands::MirInst_dest(instruction)
-        if dest < 0 || dest >= function_locals_view::MirFunction_local_count(function) {
-            return native_c_core_call_error(
-                String_from("compiler ICE: native-cpp Vec constructor missing destination local")
-            )
-        }
-        let dest_local = function_locals_view::MirFunction_local_at(function, dest)
-        let dest_type = local_record::mir_local_type_name(dest_local)
-        if !starts_with(clone(dest_type), String_from("vec:")) &&
-        !starts_with(clone(dest_type), String_from("Vec<")) {
-            return native_c_core_call_error(
-                String_from("compiler ICE: native-cpp Vec constructor destination is not a vec type")
-            )
-        }
-        if len(arguments) == 1 {
-            let cap_local = get_unchecked(arguments, 0)
-            if cap_local < 0 || cap_local >= function_locals_view::MirFunction_local_count(function) {
-                return native_c_core_call_error(
-                    String_from("compiler ICE: native-cpp Vec constructor capacity local invalid")
-                )
-            }
-            let cap_vt = local_record::mir_local_val_type(
-                function_locals_view::MirFunction_local_at(function, cap_local)
-            )
-            if cap_vt != value_types::VT_I32() {
-                return native_c_core_call_error(
-                    String_from("compiler ICE: native-cpp Vec constructor capacity must be i32")
-                )
-            }
-        }
-        let constructor = if len(arguments) == 0 {
-            String_from("ark_rt_vec_new")
-        } else {
-            String_from("ark_rt_vec_new_with_capacity")
-        }
-        let mut expression = concat(
-            String_from("(ark_object_header *)"),
-            concat(
-                constructor,
-                concat(
-                    String_from("(UINT32_C("),
-                    concat(i32_to_string(native_c_core_destination_type_id(function, instruction)), String_from(")"))
-                )
-            )
-        )
-        if len(arguments) == 1 {
-            expression = concat(expression, concat(String_from(", "), native_c_core_arg(arguments, 0)))
-        }
-        return native_c_core_call_expression(
-            concat(expression, String_from(")"))
         )
     }
     if handler == core_op_registry_generated::core_op_handler_vec_len() {
@@ -1327,139 +1254,6 @@ fn native_c_emit_core_call(
                     native_c_core_ref_arg(arguments, 0, String_from("ark_vec")),
                     concat(String_from(", "), concat(native_c_core_arg(arguments, 1), String_from(")")))
                 )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_new() {
-        let mut dest_type = native_c_core_destination_type_name(function, instruction)
-        if !native_c_core_hashmap_family_supported(clone(dest_type)) {
-            dest_type = native_c_core_hashmap_type_from_callee(
-                inst_accessors_literals::MirInst_str_val(instruction)
-            )
-        }
-        if !native_c_core_hashmap_family_supported(clone(dest_type)) {
-            return native_c_core_call_error(
-                String_from("compiler ICE: native-cpp HashMap.new unsupported key/value family")
-            )
-        }
-        let key_kind = native_c_core_hashmap_key_kind(clone(dest_type))
-        let value_kind = native_c_core_hashmap_value_kind(dest_type)
-        return native_c_core_call_expression(
-            concat(
-                String_from("(ark_object_header *)ark_rt_hashmap_new(UINT32_C("),
-                concat(
-                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
-                    concat(
-                        String_from("), UINT32_C("),
-                        concat(
-                            i32_to_string(key_kind),
-                            concat(
-                                String_from("), UINT32_C("),
-                                concat(i32_to_string(value_kind), String_from("))"))
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_insert() {
-        let map_type = native_c_core_local_type_name(function, get_unchecked(arguments, 0))
-        if !native_c_core_hashmap_family_supported(map_type) {
-            return native_c_core_call_error(
-                String_from("compiler ICE: native-cpp HashMap.insert receiver is not a supported hashmap type")
-            )
-        }
-        return native_c_core_call_expression(
-            concat(
-                String_from("ark_rt_hashmap_insert("),
-                concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_hashmap")),
-                    concat(
-                        String_from(", "),
-                        concat(
-                            native_c_core_hashmap_value_expr(function, get_unchecked(arguments, 1)),
-                            concat(
-                                String_from(", "),
-                                concat(
-                                    native_c_core_hashmap_value_expr(function, get_unchecked(arguments, 2)),
-                                    String_from(")")
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_get() {
-        return native_c_core_call_expression(
-            concat(
-                String_from("(ark_object_header *)ark_rt_hashmap_get("),
-                concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_hashmap")),
-                    concat(
-                        String_from(", "),
-                        concat(
-                            native_c_core_hashmap_value_expr(function, get_unchecked(arguments, 1)),
-                            concat(
-                                String_from(", UINT32_C("),
-                                concat(
-                                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
-                                    String_from("))")
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_contains() {
-        return native_c_core_call_expression(
-            concat(
-                String_from("ark_rt_hashmap_contains("),
-                concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_hashmap")),
-                    concat(
-                        String_from(", "),
-                        concat(
-                            native_c_core_hashmap_value_expr(function, get_unchecked(arguments, 1)),
-                            String_from(")")
-                        )
-                    )
-                )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_remove() {
-        return native_c_core_call_expression(
-            concat(
-                String_from("(ark_object_header *)ark_rt_hashmap_remove("),
-                concat(
-                    native_c_core_ref_arg(arguments, 0, String_from("ark_hashmap")),
-                    concat(
-                        String_from(", "),
-                        concat(
-                            native_c_core_hashmap_value_expr(function, get_unchecked(arguments, 1)),
-                            concat(
-                                String_from(", UINT32_C("),
-                                concat(
-                                    i32_to_string(native_c_core_destination_type_id(function, instruction)),
-                                    String_from("))")
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    }
-    if handler == core_op_registry_generated::core_op_handler_hashmap_len() {
-        return native_c_core_call_expression(
-            concat(
-                String_from("ark_rt_hashmap_len("),
-                concat(native_c_core_ref_arg(arguments, 0, String_from("ark_hashmap")), String_from(")"))
             )
         )
     }

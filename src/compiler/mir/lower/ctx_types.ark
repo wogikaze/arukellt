@@ -45,6 +45,7 @@ pub struct LowerCtx {
     mono_call_starts: Vec<i32>,
     mono_call_span_sources: Vec<String>,
     mono_call_span_targets: Vec<String>,
+    mono_call_span_used: Vec<i32>,
     mono_call_sources: Vec<String>,
     mono_call_name_targets: Vec<String>,
     mono_call_used: Vec<i32>,

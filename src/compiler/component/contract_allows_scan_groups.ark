@@ -1,5 +1,4 @@
 use component::contract_allows_collection_record
-use component::contract_allows_numeric
 use component::contract_allows_string_record
 use component::contract_allows_tuple
 use component::contract_collection_list_scan
@@ -39,7 +38,13 @@ fn component_collection_allows_from_decls(decls: Vec<AstNode>) -> ComponentColle
 
 fn component_numeric_allows_from_decls(decls: Vec<AstNode>) -> ComponentNumericAllows {
     let numeric_scan = contract_numeric_scan::component_numeric_scan(decls)
-    contract_allows_numeric::component_numeric_allows(numeric_scan)
+    ComponentNumericAllows {
+        allow_f32_square: contract_numeric_scan::ComponentNumericScan_allows_f32_unary(numeric_scan),
+        allow_f32_binary: contract_numeric_scan::ComponentNumericScan_allows_f32_binary(numeric_scan),
+        allow_f32_to_i32: contract_numeric_scan::ComponentNumericScan_allows_f32_to_i32(numeric_scan),
+        allow_i32_to_f32: contract_numeric_scan::ComponentNumericScan_allows_i32_to_f32(numeric_scan),
+        allow_f32_general_multi: contract_numeric_scan::ComponentNumericScan_allows_f32_general_multi(numeric_scan),
+    }
 }
 
 fn component_string_allows_from_decls(decls: Vec<AstNode>) -> ComponentStringAllows {

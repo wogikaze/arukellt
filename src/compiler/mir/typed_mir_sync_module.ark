@@ -75,6 +75,19 @@ fn mir_local_with_type_name_synced(loc: MirLocal, type_name: String, table: Type
     mir_local_sync_value_type(named, table)
 }
 
+fn mir_local_with_value_type_synced(
+    loc: MirLocal,
+    value_type: MirValueType,
+    table: TypeTable
+) -> MirLocal {
+    let synced = local_mutation::MirLocal_copy_with_value_type(loc, value_type)
+    local_mutation::MirLocal_set_val_type_only(
+        synced,
+        legacy_vt_compat::legacy_vt_from_mir_value_type(table, value_type)
+    )
+    synced
+}
+
 fn mir_function_set_param_at(f: MirFunction, idx: i32, local: MirLocal) -> MirFunction {
     // In-place: per-element Vec rebuild is Θ(L²) across a full sync (#823).
     set(f.params, idx, local)

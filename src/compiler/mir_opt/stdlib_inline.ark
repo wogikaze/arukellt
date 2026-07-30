@@ -157,6 +157,9 @@ fn stdlib_specialize_vec_fallback(
     if !ends_with(clone(fallback), String_from("_impl")) {
         return fallback
     }
+    if eq(clone(fallback), String_from("__core_vec_pop_impl")) {
+        return String_new()
+    }
     let recv = stdlib_resolve_call_receiver_local(block, call_index, call)
     if recv < 0 || recv >= function_locals_view::MirFunction_local_count(f) {
         return fallback
@@ -164,6 +167,9 @@ fn stdlib_specialize_vec_fallback(
     let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, recv))
     let suffix = stdlib_vec_elem_suffix_from_type_name(type_name)
     if len(suffix) == 0 {
+        if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), suffix) {
+            return String_new()
+        }
         return fallback
     }
     let specialized = concat(clone(fallback), concat(String_from("__"), suffix))

@@ -110,12 +110,30 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
     SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
 }
 
+fn strip_module_double_colon(type_name: String) -> String {
+    let type_name_len = len(type_name)
+    let mut index = type_name_len - 2
+    while index >= 0 {
+        if char_at(type_name, index) == 58 && char_at(type_name, index + 1) == 58 {
+            return substring(type_name, index + 2, type_name_len)
+        }
+        index = index - 1
+    }
+    type_name
+}
+
 fn SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx: SelfEmitCtx, type_name: String) -> i32 {
     if len(type_name) == 0 {
         return 0 - 1
     }
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
         return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
+    }
+    let bare_name = strip_module_double_colon(type_name)
+    if len(bare_name) > 0 && !eq(clone(bare_name), clone(type_name)) {
+        if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare_name)) {
+            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare_name)
+        }
     }
     if starts_with(clone(type_name), "struct:") {
         let mut first_colon = 0 - 1
@@ -136,6 +154,17 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx: SelfEmitCtx, type_name
             if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
                 return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)
             }
+        }
+    }
+    if len(bare_name) > 0 {
+        let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+        let mut name_index = 0
+        while name_index < len(names) {
+            let candidate = get_unchecked(names, name_index)
+            if eq(clone(bare_name), strip_module_double_colon(clone(candidate))) {
+                return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(candidate))
+            }
+            name_index = name_index + 1
         }
     }
     0 - 1
@@ -177,14 +206,20 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: Stri
     if len(type_name) == 0 {
         return 0 - 1
     }
+    let bare_name = strip_module_double_colon(type_name)
+    let cached_name = if eq(clone(bare_name), clone(type_name)) {
+        type_name
+    } else {
+        bare_name
+    }
     let index = ctx_record::SelfEmitCtx_type_name_ref_index(ctx)
     // Encoded values are type_idx+2 (1 = known miss) so get!=-1 means cached.
-    let encoded = name_index::name_index_get(index, clone(type_name))
+    let encoded = name_index::name_index_get(index, clone(cached_name))
     if encoded >= 1 {
         return encoded - 2
     }
-    let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(type_name))
-    name_index::name_index_set(index, type_name, resolved + 2)
+    let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(cached_name))
+    name_index::name_index_set(index, cached_name, resolved + 2)
     resolved
 }
 

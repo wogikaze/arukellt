@@ -24,10 +24,12 @@ fn mir_build_signature_spine_from_view(view: CoreHirMirView, midx: MonoIndex, ex
     let source = fn_index_source::mir_fn_index_source_from_view(view)
     let sig_source = corehir::mod::view_signature_source(view)
     let mut d = 0
+    let mut fn_counter = 0
     while d < decl_count {
         let decl_name = decl_source::mir_decl_source_name_at(decl_source, d)
         if decl_source::mir_decl_source_is_fn_at(decl_source, d) {
-            sig_reg_index_top_level_fn(table, registry, mono_table, source, sig_source, midx, d, decl_name)
+            sig_reg_index_top_level_fn(table, registry, mono_table, source, sig_source, midx, d, decl_name, fn_counter)
+            fn_counter = fn_counter + 1
         }
         if decl_source::mir_decl_source_is_impl_at(decl_source, d) {
             let owner = mir_signature_method::mir_signature_method_owner_name_for_impl(sig_source, d, decl_name)
@@ -73,9 +75,10 @@ fn sig_reg_index_top_level_fn(
     sig_source: CoreHirMirSignatureSource,
     midx: MonoIndex,
     decl_index: i32,
-    decl_name: String
+    decl_name: String,
+    fn_counter: i32
 ) {
-    let mut typed_index = 0
+    let mut typed_index = fn_counter
     let fn_info_index = fn_index_source::mir_fn_index_source_fn_info_index_for_decl(source, decl_index)
     if fn_info_index >= 0 {
         typed_index = fn_index_source::mir_fn_index_source_fn_typed_index_at(source, fn_info_index, typed_index)

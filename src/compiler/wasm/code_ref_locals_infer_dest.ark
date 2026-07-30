@@ -11,6 +11,7 @@ use mir::value_types
 use mir::function_locals_view
 use mir::function_return_view
 use mir::function_param_view
+use mir::function_identity
 use mir::local_access
 use mir::post_pass_callee_lookup
 use wasm::ctx_gc_type
@@ -21,10 +22,35 @@ use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
 use wasm::sections_types_gc
 
+fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
+    let indexed = inst_ctx::resolve_fn_index(ctx, clone(callee))
+    if indexed >= 0 {
+        return indexed
+    }
+    let bare_name = inst_ctx::strip_module_prefix(callee)
+    let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let mut matched_index = 0 - 1
+    let mut match_count = 0
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = ctx_record::SelfEmitCtx_function_at(ctx, function_index)
+        if eq(function_identity::MirFunction_name(function), clone(bare_name)) {
+            matched_index = function_index
+            match_count = match_count + 1
+        }
+        function_index = function_index + 1
+    }
+    if match_count == 1 {
+        return matched_index
+    }
+    0 - 1
+}
+
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
     eq(clone(name), "get_unchecked") ||
-    eq(clone(name), "__intrinsic_get_unchecked") {
+    eq(clone(name), "__intrinsic_get_unchecked") ||
+    eq(clone(name), "raw_array_get_unchecked") {
         return true
     }
     starts_with(clone(name), "get_unchecked__") ||
@@ -120,7 +146,8 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
             if inst_accessors_shape::MirInst_op(cur) == opcodes::MIR_CALL() {
                 if infer_call_args_include_local(block, ii, dest) {
                     let call_callee = inst_accessors_literals::MirInst_str_val(cur)
-                    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(call_callee))
+                    let fn_idx =
+                    resolve_fn_index_for_inference(ctx, clone(call_callee))
                     if fn_idx >= 0 {
                         let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
                         if function_param_view::MirFunction_param_count(called) > 0 {
@@ -212,7 +239,8 @@ fn infer_get_unchecked_elem_from_next_call(f: MirFunction, inst: MirInst, ctx: S
                         let nop = inst_accessors_shape::MirInst_op(next)
                         if nop == opcodes::MIR_CALL() {
                             let next_callee = inst_accessors_literals::MirInst_str_val(next)
-                            let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(next_callee))
+                            let fn_idx =
+                            resolve_fn_index_for_inference(ctx, clone(next_callee))
                             if fn_idx >= 0 {
                                 let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
                                 let pc = function_param_view::MirFunction_param_count(called)

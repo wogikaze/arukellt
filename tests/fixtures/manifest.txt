@@ -2045,6 +2045,7 @@ t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
 t3-compile:functions/recursive.ark
 t3-compile:functions/return_value.ark
+t3-compile:generics/gc_struct_field_vec_string.ark
 t3-compile:generics/identity_bool.ark
 t3-compile:generics/identity_i32.ark
 t3-compile:generics/identity_string.ark

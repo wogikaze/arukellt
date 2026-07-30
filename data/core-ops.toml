@@ -189,6 +189,10 @@ alias = "raw::raw_parse_f64"
 core_op_id = "raw.parse_f64"
 
 [[legacy_bindings]]
+alias = "parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
 alias = "raw_parse_i32"
 core_op_id = "raw.parse_i32"
 

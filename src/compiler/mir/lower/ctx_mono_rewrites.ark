@@ -14,10 +14,15 @@ fn ctx_mono_span_rewrite_source_at(ctx: LowerCtx, index: i32) -> String {
     clone(get_unchecked(ctx.mono_call_span_sources, index))
 }
 
+fn ctx_mono_mark_span_rewrite_used(ctx: LowerCtx, index: i32) {
+    set(ctx.mono_call_span_used, index, 1)
+}
+
 fn ctx_mono_push_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
     push(ctx.mono_call_starts, span_start)
     push(ctx.mono_call_span_sources, source)
     push(ctx.mono_call_span_targets, target)
+    push(ctx.mono_call_span_used, 0)
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {

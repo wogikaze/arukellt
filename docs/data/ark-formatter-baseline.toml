@@ -8,9 +8,6 @@ removal_condition = "canonical formatter parses, formats, and reparses the file"
 recheck_after = "2026-08-31"
 
 [[exceptions]]
-path = "src/compiler/component/contract_allows_numeric.ark"
-sha256 = "f15aeacdcff6e798aaf78d73231f9ea3002bd4f04abde049d7227ffe39d532a5"
-[[exceptions]]
 path = "src/compiler/component/contract_allows_tuple.ark"
 sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 [[exceptions]]

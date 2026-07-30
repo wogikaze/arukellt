@@ -13,6 +13,7 @@ use mir::value_types
 use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
+use wasm::code_ref_locals_infer_dest
 use wasm::sections_types_gc
 
 fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
@@ -103,4 +104,218 @@ fn local_payload_extract_storage_type(f: MirFunction, local_idx: i32, ctx: SelfE
         bi = bi + 1
     }
     Option::None
+}
+
+fn local_vec_access_storage_type(
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    let block_count = len(f.blocks)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = get_unchecked(f.blocks, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
+            inst_accessors_operands::MirInst_dest(inst) == local_idx &&
+            is_vec_access_callee(inst_accessors_literals::MirInst_str_val(inst)) {
+                let inferred =
+                code_ref_locals_infer_dest::infer_ref_local_from_producer(
+                    f,
+                    inst,
+                    opcodes::MIR_CALL(),
+                    ctx
+                )
+                match inferred {
+                    Option::Some(_storage_type) => {
+                        return inferred
+                    }
+                    Option::None => {}
+                }
+                let receiver =
+                vec_access_receiver_local(block, inst_index, inst)
+                if receiver >= 0 &&
+                receiver < function_locals_view::MirFunction_local_count(f) {
+                    let receiver_local =
+                    function_locals_view::MirFunction_local_at(f, receiver)
+                    let receiver_type = local_access::MirLocal_type_name(receiver_local)
+                    if starts_with(clone(receiver_type), "vec:") {
+                        let element_type =
+                        substring(receiver_type, 4, len(receiver_type))
+                        let storage_type =
+                        ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(
+                            ctx,
+                            element_type
+                        )
+                        if storage_type >= 0 {
+                            return Option::Some(storage_type)
+                        }
+                    }
+                }
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    Option::None
+}
+
+fn vec_access_receiver_local(
+    block: MirBlock,
+    inst_index: i32,
+    inst: MirInst
+) -> i32 {
+    let recorded_receiver = inst_accessors_operands::MirInst_arg0(inst)
+    if recorded_receiver >= 0 {
+        return recorded_receiver
+    }
+    let argument_count = inst_accessors_literals::MirInst_int_val(inst)
+    let receiver_index = inst_index - argument_count
+    if receiver_index < 0 {
+        return 0 - 1
+    }
+    let receiver_get =
+    block_inst_access::MirBlock_inst_at(block, receiver_index)
+    if inst_accessors_shape::MirInst_op(receiver_get) != opcodes::MIR_LOCAL_GET() {
+        return 0 - 1
+    }
+    inst_accessors_operands::MirInst_arg0(receiver_get)
+}
+
+fn is_vec_access_callee(callee: String) -> bool {
+    eq(clone(callee), "raw_array_get_unchecked") ||
+    eq(clone(callee), "vec_get_unchecked") ||
+    eq(clone(callee), "get_unchecked") ||
+    starts_with(clone(callee), "get_unchecked__") ||
+    starts_with(clone(callee), "vec_get_unchecked__")
+}
+
+fn local_set_non_string_storage_type(
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let storage_type =
+    ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
+    if storage_type >= 0 &&
+    storage_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+        return Option::None
+    }
+    copied_non_string_storage_type(f, local_idx, ctx, 0)
+}
+
+fn copied_non_string_storage_type(
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx,
+    depth: i32
+) -> Option<i32> {
+    if depth > 3 {
+        return Option::None
+    }
+    let block_count = len(f.blocks)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = get_unchecked(f.blocks, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source = local_set_source_local(block, inst_index, inst)
+                if source >= 0 && source != local_idx {
+                    let source_type =
+                    ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, source)
+                    if source_type >= 0 &&
+                    source_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                        return Option::Some(source_type)
+                    }
+                    let source_vec_access_type =
+                    local_vec_access_storage_type(f, source, ctx)
+                    match source_vec_access_type {
+                        Option::Some(_type) => {
+                            return source_vec_access_type
+                        }
+                        Option::None => {}
+                    }
+                    let source_producer_type =
+                    local_direct_producer_storage_type(f, source, ctx)
+                    match source_producer_type {
+                        Option::Some(_type) => {
+                            return source_producer_type
+                        }
+                        Option::None => {}
+                    }
+                    let copied_source_type =
+                    copied_non_string_storage_type(f, source, ctx, depth + 1)
+                    match copied_source_type {
+                        Option::Some(_type) => {
+                            return copied_source_type
+                        }
+                        Option::None => {}
+                    }
+                }
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    Option::None
+}
+
+fn local_direct_producer_storage_type(
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    let block_count = len(f.blocks)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = get_unchecked(f.blocks, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
+            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                let inferred =
+                code_ref_locals_infer_dest::infer_ref_local_from_producer(
+                    f,
+                    inst,
+                    inst_accessors_shape::MirInst_op(inst),
+                    ctx
+                )
+                match inferred {
+                    Option::Some(_storage_type) => {
+                        return inferred
+                    }
+                    Option::None => {}
+                }
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    Option::None
+}
+
+fn local_set_source_local(block: MirBlock, inst_index: i32, inst: MirInst) -> i32 {
+    let direct_source = inst_accessors_operands::MirInst_arg1(inst)
+    if direct_source >= 0 {
+        return direct_source
+    }
+    if inst_index <= 0 {
+        return 0 - 1
+    }
+    let producer = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
+    if inst_accessors_shape::MirInst_op(producer) == opcodes::MIR_LOCAL_GET() {
+        return inst_accessors_operands::MirInst_arg0(producer)
+    }
+    inst_accessors_operands::MirInst_dest(producer)
 }

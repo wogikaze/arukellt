@@ -79,6 +79,26 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             Option::None => {}
         }
     }
+    let vec_access_storage =
+    code_ref_locals_block_scan::local_vec_access_storage_type(f, local_idx, ctx)
+    match vec_access_storage {
+        Option::Some(element_type) => {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, element_type)
+            return true
+        }
+        Option::None => {}
+    }
+    let copied_storage =
+    code_ref_locals_block_scan::local_set_non_string_storage_type(f, local_idx, ctx)
+    match copied_storage {
+        Option::Some(copied_type) => {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, copied_type)
+            return true
+        }
+        Option::None => {}
+    }
     // Typed funcref locals: non-null `(ref $callback)` — unary map/filter or
     // binary fold from the local's fn(...) type name (#807).
     if vt == value_types::VT_FUNCREF() ||

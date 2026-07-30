@@ -24,30 +24,36 @@ fn local_type_name(ctx: SelfEmitCtx, local_idx: i32) -> String {
 }
 
 fn resolve_vec_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
-    let vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, dest_local)
-    if vt >= 0 {
-        return vt
-    }
+    let local_vt = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, dest_local)
     // Vec_new often writes a temp that is immediately stored into an annotated
     // let binding (e.g. `let outer: Vec<Vec<i32>> = Vec::new<i32>()`). Prefer the
     // store target's type when the temp itself is untyped / vec:i32.
     let store_vt = resolve_vec_type_from_immediate_store(ctx, dest_local)
+    let default_vt = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    if store_vt >= 0 && store_vt != default_vt &&
+    (local_vt < 0 || local_vt == default_vt) {
+        return store_vt
+    }
+    if local_vt >= 0 {
+        return local_vt
+    }
     if store_vt >= 0 {
         return store_vt
     }
-    ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    default_vt
 }
 
 fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
-    let tname = local_type_name(ctx, dest_local)
-    let resolved = resolve_array_type_from_type_name(ctx, clone(tname))
+    let local_type = local_type_name(ctx, dest_local)
+    let store_type = find_immediate_store_target_type_name(ctx, dest_local)
+    let mut type_name = clone(local_type)
+    if len(store_type) > 0 && !eq(clone(store_type), String_from("vec:i32")) &&
+    (len(local_type) == 0 || eq(clone(local_type), String_from("vec:i32"))) {
+        type_name = store_type
+    }
+    let resolved = resolve_array_type_from_type_name(ctx, clone(type_name))
     if resolved >= 0 {
         return resolved
-    }
-    let store_tname = find_immediate_store_target_type_name(ctx, dest_local)
-    let store_resolved = resolve_array_type_from_type_name(ctx, clone(store_tname))
-    if store_resolved >= 0 {
-        return store_resolved
     }
     ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
 }

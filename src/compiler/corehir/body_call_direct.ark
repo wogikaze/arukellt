@@ -3,6 +3,7 @@ use corehir::expr_builder_calls
 use corehir::expr_predicates
 use corehir::expr_node_access
 use corehir::expr_node_predicates
+use corehir::type_ann_node
 
 fn corehir_call_callee_supported(callee: AstNode) -> bool {
     // Call-expression callees (id(f)(x), get_unchecked(fs,0)(x)) lower via call_ref (#832).
@@ -36,5 +37,37 @@ fn corehir_build_call_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if unsupported {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
-    corehir_push_expr(table, expr_builder_calls::corehir_expr_call(expr_node_access::expr_text(callee), expr_node_access::expr_span_start(node), children))
+    corehir_push_expr(
+        table,
+        expr_builder_calls::corehir_expr_call(
+            corehir_direct_call_callee_name(callee),
+            expr_node_access::expr_span_start(node),
+            children
+        )
+    )
+}
+
+fn corehir_direct_call_callee_name(callee: AstNode) -> String {
+    let callee_name = expr_node_access::expr_text(callee)
+    if !eq(clone(callee_name), "Vec::new") &&
+    !eq(clone(callee_name), "Vec::with_capacity") {
+        return callee_name
+    }
+    if expr_node_access::expr_child_count(callee) < 2 {
+        return callee_name
+    }
+    let element_type = expr_node_access::expr_child_at(callee, 1)
+    if !type_ann_node::type_ann_is_named(element_type) {
+        return callee_name
+    }
+    let element_name = type_ann_node::type_ann_name(element_type)
+    if len(element_name) == 0 || contains(clone(element_name), "::") {
+        return callee_name
+    }
+    let constructor = if eq(clone(callee_name), "Vec::new") {
+        "Vec__new__"
+    } else {
+        "Vec__with_capacity__"
+    }
+    concat(constructor, element_name)
 }

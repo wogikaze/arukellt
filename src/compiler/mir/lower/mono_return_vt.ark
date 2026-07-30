@@ -14,6 +14,7 @@ use mir::value_types
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
+use corehir::type_info_to_mir_value
 
 fn mono_return_vt(ctx: LowerCtx, name: String, fallback_vt: i32) -> i32 {
     let mono_id = mono_return_vt_registry_mono_id(ctx, clone(name))
@@ -49,16 +50,44 @@ fn mono_return_mvt(ctx: LowerCtx, callee_name: String) -> MirValueType {
 }
 
 fn mono_return_vt_registry_mono_id(ctx: LowerCtx, callee_name: String) -> i32 {
+    let fid = mono_return_vt_registry_function_id(ctx, callee_name)
+    if !function_id::function_id_is_valid(fid) {
+        return 0 - 1
+    }
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let registry = module_spine::MirModule_signature_registry(m)
+    signature_entry::signature_entry_mono_instance_id(signature_registry::signature_registry_lookup_by_id(registry, fid))
+}
+
+fn mono_return_vt_registry_function_id(ctx: LowerCtx, callee_name: String) -> FunctionId {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
-        return 0 - 1
+        return function_id::FUNCTION_ID_INVALID()
     }
     let registry = module_spine::MirModule_signature_registry(m)
     let fid = signature_registry::signature_registry_lookup_by_mangled(registry, callee_name)
     if !function_id::function_id_is_valid(fid) {
-        return 0 - 1
+        let short_name = short_name_after_last_double_colon(callee_name)
+        if len(short_name) > 0 {
+            fid = signature_registry::signature_registry_lookup_by_mangled(registry, short_name)
+        }
     }
-    signature_entry::signature_entry_mono_instance_id(signature_registry::signature_registry_lookup_by_id(registry, fid))
+    if !function_id::function_id_is_valid(fid) {
+        return function_id::FUNCTION_ID_INVALID()
+    }
+    fid
+}
+
+fn short_name_after_last_double_colon(name: String) -> String {
+    let name_len = len(name)
+    let mut index = name_len - 2
+    while index >= 0 {
+        if char_at(name, index) == 58 && char_at(name, index + 1) == 58 {
+            return substring(name, index + 2, name_len)
+        }
+        index = index - 1
+    }
+    String_new()
 }
 
 fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> String {
@@ -68,6 +97,10 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
     let spine_name = mono_return_vt_table::mono_return_type_name_from_instance_table(ctx, mono_id, String_new())
     if is_concrete_mono_return_type_name(clone(spine_name)) {
         return spine_name
+    }
+    let registry_name = mono_return_type_name_from_registry(ctx, clone(name))
+    if len(registry_name) > 0 {
+        return registry_name
     }
     if is_concrete_mono_return_type_name(clone(fallback_name)) {
         return fallback_name
@@ -79,6 +112,23 @@ fn mono_return_type_name(ctx: LowerCtx, name: String, fallback_name: String) -> 
         return fallback_name
     }
     fallback_name
+}
+
+fn mono_return_type_name_from_registry(ctx: LowerCtx, name: String) -> String {
+    let fid = mono_return_vt_registry_function_id(ctx, name)
+    if !function_id::function_id_is_valid(fid) {
+        return String_new()
+    }
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let registry = module_spine::MirModule_signature_registry(m)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
+    if signature_entry::signature_entry_return_count(entry) <= 0 {
+        return String_new()
+    }
+    type_info_to_mir_value::mvt_to_type_name(
+        module_spine::MirModule_type_table(m),
+        signature_entry::signature_entry_return_at(entry, 0)
+    )
 }
 
 fn is_container_mono_return_type_name(type_name: String) -> bool {

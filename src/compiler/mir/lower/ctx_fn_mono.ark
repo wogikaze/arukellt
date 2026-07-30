@@ -26,6 +26,7 @@ fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return
 
 fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {
     let count = ctx_mono_rewrites::ctx_mono_span_rewrite_count(ctx)
+    let mut first_match = 0 - 1
     let mut i = 0
     while i < count {
         let candidate_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
@@ -33,9 +34,18 @@ fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> Strin
         if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start &&
         mono_sources_match(clone(candidate_source), clone(source)) &&
         mono_target_matches_source(clone(candidate_target), clone(source)) {
-            return candidate_target
+            if first_match < 0 {
+                first_match = i
+            }
+            if get_unchecked(ctx.mono_call_span_used, i) == 0 {
+                ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
+                return candidate_target
+            }
         }
         i = i + 1
+    }
+    if first_match >= 0 {
+        return ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, first_match)
     }
     ""
 }

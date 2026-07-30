@@ -39,6 +39,7 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         local_type_start: 0,
         mono_call_starts: Vec::new<i32>(), mono_call_span_sources: Vec::new<String>(),
         mono_call_span_targets: Vec::new<String>(),
+        mono_call_span_used: Vec::new<i32>(),
         mono_call_sources: Vec::new<String>(), mono_call_name_targets: Vec::new<String>(),
         mono_call_used: Vec::new<i32>(),
         wit_call_names: Vec::new<String>(), wit_call_iface_ids: Vec::new<String>(), wit_call_func_names: Vec::new<String>(),

@@ -433,5 +433,6 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     )
     native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
     native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))
-    NativeCEmitResult_ok(__intrinsic_string_from_bytes(source_bytes))
+    let source = __intrinsic_string_from_bytes(source_bytes)
+    NativeCEmitResult_ok(source)
 }

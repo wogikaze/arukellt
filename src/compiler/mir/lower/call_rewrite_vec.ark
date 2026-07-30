@@ -87,7 +87,7 @@ fn mir_rewrite_vec_access_after_mono(ctx: LowerCtx, callee_name: String, first_a
 }
 
 fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, second_arg_idx: i32, stage_call_args: bool) -> MirVecCallRewrite {
-    let mut rewritten = callee_name
+    let mut rewritten = normalize_vec_constructor_callee(callee_name)
     let mut push_i64_needs_extend = false
     if is_vec_len_callee(clone(rewritten)) {
         rewritten = mir_rewrite_vec_len(ctx, rewritten, first_arg_idx)
@@ -108,6 +108,22 @@ fn mir_rewrite_vec_call(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
     }
     rewritten = mir_rewrite_vec_basic(rewritten)
     mir_vec_call_rewrite_new(rewritten, push_i64_needs_extend)
+}
+
+fn normalize_vec_constructor_callee(callee_name: String) -> String {
+    if starts_with(clone(callee_name), String_from("Vec_new_")) {
+        return concat(
+            String_from("Vec__new__"),
+            substring(callee_name, 8, len(callee_name))
+        )
+    }
+    if starts_with(clone(callee_name), String_from("Vec_with_capacity_")) {
+        return concat(
+            String_from("Vec__with_capacity__"),
+            substring(callee_name, 18, len(callee_name))
+        )
+    }
+    callee_name
 }
 
 fn is_vec_get_unchecked_callee(name: String) -> bool {
