@@ -16,5 +16,8 @@ pub fn keyword_kind_module(word: String) -> i32 {
     if eq(word, "where") {
         return tokens::TK_WHERE()
     }
+    if eq(word, "proof") {
+        return tokens::TK_PROOF()
+    }
     0 - 1
 }
