@@ -24,22 +24,12 @@ jobs:
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
-      - name: Diagnose formatter check
-        run: |
-          set +e
-          scripts/run/arukellt-selfhost.sh fmt --check src/compiler/corehir/decl_ann_member.ark
-          check_rc=$?
-          echo "check rc=$check_rc"
-          scripts/run/arukellt-selfhost.sh fmt src/compiler/corehir/decl_ann_member.ark
-          apply_rc=$?
-          echo "apply rc=$apply_rc"
-          git diff -- src/compiler/corehir/decl_ann_member.ark
-          exit 0
-
-      - name: Check lint
+      - name: Check formatting and lint
         env:
           ARUKELLT_LINT_WORKERS: "4"
-        run: python3 scripts/manager.py lint
+        run: |
+          python3 scripts/manager.py fmt --check
+          python3 scripts/manager.py lint
 
       - name: Check repository quality contracts
         env:
@@ -48,8 +38,17 @@ jobs:
           python3 scripts/check/check-ark-code-quality.py
           python3 scripts/check/check-adrs.py
           python3 scripts/check/gate-765-docs-ci-hard-gates.py
-          python3 scripts/check/check-docs-consistency.py
           python3 scripts/manager.py quality changed
+
+      - name: Diagnose generated docs
+        run: |
+          set +e
+          python3 scripts/check/check-docs-consistency.py
+          docs_rc=$?
+          echo "docs check rc=$docs_rc"
+          python3 scripts/gen/generate-docs.py
+          git diff -- docs README.md
+          exit 0
 
       - name: Check Proof IR boundary
         run: |
