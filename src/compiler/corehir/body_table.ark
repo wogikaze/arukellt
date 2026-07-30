@@ -33,8 +33,7 @@ fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) 
 }
 
 fn corehir_body_table_push_proof_contract(table: CoreHirBodyTable, contract: CoreHirProofContract) {
-    let contracts = table.proof_contracts
-    push(contracts, contract)
+    push(table.proof_contracts, contract)
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
