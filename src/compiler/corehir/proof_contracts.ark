@@ -1,11 +1,15 @@
-use corehir::body
 use corehir::body_table
 use corehir::decl_type_annotations
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
+use corehir::proof_ast_render
 use corehir::proof_contract
 
-fn append_fn_proof_contracts(table: CoreHirBodyTable, decl: AstNode, function_index: i32) {
+fn append_fn_proof_contracts(
+    table: CoreHirBodyTable,
+    decl: AstNode,
+    function_index: i32
+) {
     let ann_count = decl_type_annotations::member_type_ann_count(decl)
     let mut i = 0
     while i < ann_count {
@@ -17,20 +21,28 @@ fn append_fn_proof_contracts(table: CoreHirBodyTable, decl: AstNode, function_in
     }
 }
 
-fn append_proof_contract(table: CoreHirBodyTable, ann: AstNode, function_index: i32) {
+fn append_proof_contract(
+    table: CoreHirBodyTable,
+    ann: AstNode,
+    function_index: i32
+) {
     if frontend_ast_node::corehir_node_child_count(ann) == 0 {
         return
     }
     let kind = frontend_ast_node::corehir_node_text(ann)
     let condition = frontend_ast_node::corehir_node_child_at(ann, 0)
-    let expr_root = body::corehir_build_expr(table, condition)
-    let result_name = if eq(clone(kind), String_from("ensures")) { String_from("result") } else { String_new() }
+    let expression = proof_ast_render::proof_ast_render(condition)
+    let result_name = if eq(clone(kind), String_from("ensures")) {
+        String_from("result")
+    } else {
+        String_new()
+    }
     body_table::corehir_body_table_push_proof_contract(
         table,
         proof_contract::CoreHirProofContract_new(
             function_index,
             kind,
-            expr_root,
+            expression,
             result_name,
             frontend_ast_node::corehir_node_span_start(ann)
         )
