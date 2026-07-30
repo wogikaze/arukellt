@@ -5,6 +5,7 @@ use corehir::type_id
 use corehir::type_table
 use mir::local_record
 use mir::value_types
+use native_c::enum_abi
 
 fn native_c_scalar_type_name(name: String) -> String {
     if eq(clone(name), "i8") { return "int8_t" }
@@ -25,21 +26,100 @@ fn native_c_scalar_type_name(name: String) -> String {
     String_new()
 }
 
-fn native_c_type_for_value(table: TypeTable, value_type: MirValueType) -> String {
+fn native_c_type_name_is_funcref(name: String) -> bool {
+    if eq(clone(name), String_from("fnref")) || eq(clone(name), String_from("fn")) {
+        return true
+    }
+    starts_with(clone(name), String_from("fn("))
+}
+
+fn native_c_type_for_value(
+    table: TypeTable,
+    value_type: MirValueType,
+    heap_enum_flags: Vec<i32>
+) -> String {
     let raw_type_id = type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type))
     if raw_type_id < 0 || raw_type_id >= type_table::TypeTable_entry_count(table) {
         return String_new()
     }
     let entry = type_table::TypeTable_entry_at(table, raw_type_id)
-    let scalar = native_c_scalar_type_name(type_table::type_entry_name(entry))
+    let name = type_table::type_entry_name(entry)
+    // Zero-capture HOF stores a typed function pointer as intptr_t (LP64-safe).
+    if native_c_type_name_is_funcref(name) {
+        return String_from("intptr_t")
+    }
+    let scalar = native_c_scalar_type_name(name)
     if len(scalar) > 0 {
         return scalar
     }
-    "ark_object_header *"
+    // Unit-tag enums (CONST_I32 lowering) must stay i32. Everything else that is
+    // not a scalar keeps the legacy object* ABI so IoError/JSON/Option work even
+    // when MIR STRUCT_SET omits `Enum::Variant` names.
+    if enum_abi::native_c_type_name_is_unit_tag_enum(clone(name)) ||
+    enum_abi::native_c_type_name_is_unit_tag_enum(
+        enum_abi::native_c_type_name_enum_basename(clone(name))
+    ) {
+        return String_from("int32_t")
+    }
+    // heap_enum_flags reserved for future payload-vs-unit classification.
+    if len(heap_enum_flags) < 0 {
+        return String_new()
+    }
+    String_from("ark_object_header *")
 }
 
-fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
-    let typed = native_c_type_for_value(table, local_record::mir_local_value_type(local))
+fn native_c_type_names_enum_equal(left: String, right: String) -> bool {
+    eq(
+        enum_abi::native_c_type_name_enum_basename(left),
+        enum_abi::native_c_type_name_enum_basename(right)
+    )
+}
+
+fn native_c_table_has_unit_enum_named(
+    table: TypeTable,
+    heap_enum_flags: Vec<i32>,
+    name: String
+) -> bool {
+    enum_abi::native_c_table_has_unit_enum_named(table, heap_enum_flags, name)
+}
+
+fn native_c_type_name_is_heap_object(name: String) -> bool {
+    if eq(clone(name), String_from("string")) || eq(clone(name), String_from("String")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("vec:")) || starts_with(clone(name), String_from("Vec<")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("option:")) || starts_with(clone(name), String_from("Option_")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("result:")) || starts_with(clone(name), String_from("Result_")) {
+        return true
+    }
+    if starts_with(clone(name), String_from("hashmap:")) || starts_with(clone(name), String_from("hashset:")) {
+        return true
+    }
+    false
+}
+
+fn native_c_type_for_local(
+    table: TypeTable,
+    local: MirLocal,
+    heap_enum_flags: Vec<i32>
+) -> String {
+    let type_name = local_record::mir_local_type_name(local)
+    if native_c_type_name_is_funcref(clone(type_name)) {
+        return String_from("intptr_t")
+    }
+    // Match payload binds may keep VT_I32 while type_name is vec:/Option_/…
+    if native_c_type_name_is_heap_object(clone(type_name)) {
+        return String_from("ark_object_header *")
+    }
+    let typed = native_c_type_for_value(
+        table,
+        local_record::mir_local_value_type(local),
+        heap_enum_flags
+    )
     if len(typed) > 0 {
         return typed
     }
@@ -52,6 +132,57 @@ fn native_c_type_for_local(table: TypeTable, local: MirLocal) -> String {
         return "ark_object_header *"
     }
     String_new()
+}
+
+fn native_c_funcref_typedef_name(table: TypeTable, signature: SignatureEntry) -> String {
+    let parameters = native_c_signature_parameter_encoding(table, signature)
+    let results = native_c_signature_result_encoding(table, signature)
+    if len(parameters) == 0 || len(results) == 0 {
+        return String_new()
+    }
+    concat(String_from("ark_fnptr__P_"), concat(parameters, concat(String_from("__R_"), results)))
+}
+
+fn native_c_funcref_typedef_decl(
+    table: TypeTable,
+    signature: SignatureEntry,
+    heap_enum_flags: Vec<i32>
+) -> String {
+    let typedef_name = native_c_funcref_typedef_name(table, signature)
+    if len(typedef_name) == 0 {
+        return String_new()
+    }
+    let return_type = native_c_signature_return_type(table, signature, heap_enum_flags)
+    if len(return_type) == 0 {
+        return String_new()
+    }
+    let param_count = signature_entry::signature_entry_param_count(signature)
+    let mut params = String_from("void")
+    if param_count > 0 {
+        params = String_new()
+        let mut index = 0
+        while index < param_count {
+            if index > 0 { params = concat(params, String_from(", ")) }
+            let param_type = native_c_type_for_value(
+                table,
+                signature_entry::signature_entry_param_at(signature, index),
+                heap_enum_flags
+            )
+            if len(param_type) == 0 { return String_new() }
+            params = concat(params, param_type)
+            index = index + 1
+        }
+    }
+    concat(
+        String_from("typedef "),
+        concat(
+            return_type,
+            concat(
+                String_from(" (*"),
+                concat(typedef_name, concat(String_from(")("), concat(params, String_from(");\n"))))
+            )
+        )
+    )
 }
 
 fn native_c_type_encoding(table: TypeTable, value_type: MirValueType) -> String {
@@ -133,13 +264,18 @@ fn native_c_function_symbol(table: TypeTable, function_id_raw: i32, signature: S
     )
 }
 
-fn native_c_signature_return_type(table: TypeTable, signature: SignatureEntry) -> String {
+fn native_c_signature_return_type(
+    table: TypeTable,
+    signature: SignatureEntry,
+    heap_enum_flags: Vec<i32>
+) -> String {
     let count = signature_entry::signature_entry_return_count(signature)
     if count == 0 { return "void" }
     if count == 1 {
         let c_type = native_c_type_for_value(
             table,
-            signature_entry::signature_entry_return_at(signature, 0)
+            signature_entry::signature_entry_return_at(signature, 0),
+            heap_enum_flags
         )
         if eq(clone(c_type), "ark_unit") { return "void" }
         return c_type
@@ -147,13 +283,21 @@ fn native_c_signature_return_type(table: TypeTable, signature: SignatureEntry) -
     String_new()
 }
 
-fn native_c_signature_parameters(table: TypeTable, signature: SignatureEntry) -> String {
+fn native_c_signature_parameters(
+    table: TypeTable,
+    signature: SignatureEntry,
+    heap_enum_flags: Vec<i32>
+) -> String {
     let count = signature_entry::signature_entry_param_count(signature)
     if count == 0 { return "void" }
     let mut parameters = String_new()
     let mut index = 0
     while index < count {
-        let c_type = native_c_type_for_value(table, signature_entry::signature_entry_param_at(signature, index))
+        let c_type = native_c_type_for_value(
+            table,
+            signature_entry::signature_entry_param_at(signature, index),
+            heap_enum_flags
+        )
         if len(c_type) == 0 { return String_new() }
         if index > 0 { parameters = concat(parameters, ", ") }
         parameters = concat(

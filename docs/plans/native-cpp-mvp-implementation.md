@@ -1,6 +1,8 @@
 # native-cpp MVP implementation plan
 
-ステータス: 実装計画（決定記録ではない）
+ステータス: historical（MVP到達済み。以降の experimental 昇格は
+[`native-cpp-experimental-promotion.md`](native-cpp-experimental-promotion.md) と
+`docs/data/native-cpp-executor-promotion-receipt.json` を正とする）
 関連 ADR: [ADR-049](../adr/ADR-049-native-c99-selfhost-executor.md)
 詳細仕様: [RFC-008](../rfcs/008-native-cpp-c99-backend-runtime-abi.md)
 Capability SSOT: [`data/native-cpp-capabilities.toml`](../../data/native-cpp-capabilities.toml)
@@ -14,8 +16,8 @@ Capability SSOT: [`data/native-cpp-capabilities.toml`](../../data/native-cpp-cap
 native runを実装していない。
 本計画はscaffoldからexperimental selfhost executorへ移行する順序を定める。
 
-MVPの完了条件は、Linux x86-64でnative compilerが`s3.wasm`を生成し、`s2.wasm`と
-byte equalityを満たすことである。
+MVPの完了条件は、Linux x86-64でnative executorが比較対象S2のbuild profileを継承して
+S3を生成し、同一profileのS2とS3でbyte equalityを満たすことである。
 正規のWasm fixpointはADR-029のまま維持する。
 
 ## Phase 0: 文書とscaffold境界
@@ -159,7 +161,7 @@ Phase 5はmanager、clang、cache、receiptを結び、native executor laneを�
 | 3 | compiler fixture subsetのdifferential |
 | 4 | compiler source全体をnative executableへcompile |
 | 5 | native executorが`s3.wasm`を生成 |
-| 6 | `sha256(s2.wasm) == sha256(s3.wasm)` |
+| 6 | 同一build profileで`sha256(s2) == sha256(s3)` |
 | 7 | 同じnative executorで二回生成してdeterminism確認 |
 | 8 | performance receipt取得 |
 | 9 | warm S3が5分未満 |
@@ -176,9 +178,14 @@ thresholdやbaselineを変更するときはbenchmark governanceを適用する�
 python3 scripts/manager.py selfhost native-executor --build
 ```
 
-このcommandは現時点では存在しない。
-実装PRでmanagerへ追加し、同じPRで`docs/data/verification-commands.toml`へ登録してから
-検証手順として使用する。
+実装command:
+
+```bash
+python3 scripts/manager.py selfhost native-executor --build
+```
+
+S2のbuild-profile manifestを継承し、同一profileのS2/S3 byte equality・determinism・
+performance receiptを検証する。`docs/data/verification-commands.toml`へ登録する。
 
 ### 完了条件
 

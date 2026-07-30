@@ -157,7 +157,10 @@ def _status_detail(entry: dict[str, object]) -> str:
     return f"unsupported: {entry['reason']}"
 
 
-def render_generated_ark(entries: list[dict[str, object]]) -> str:
+def render_generated_ark(
+    entries: list[dict[str, object]],
+    core_entries: list[dict[str, object]],
+) -> str:
     lines = [
         "// Generated from data/native-cpp-capabilities.toml.",
         "// Run scripts/check/check-native-cpp-capabilities.py --write-generated.",
@@ -179,6 +182,26 @@ def render_generated_ark(entries: list[dict[str, object]]) -> str:
         lines.append(f"    op == opcodes::{identifier}()" + (" ||" if index < len(supported) - 1 else ""))
     if not supported:
         lines.append("    false")
+    lines.extend(["}", "", "fn native_c_core_capability_status_detail(index: i32) -> String {"])
+    core_by_id = {str(entry["id"]): entry for entry in core_entries}
+    for index, identifier in enumerate(sorted(core_by_id)):
+        lines.extend(
+            [
+                f"    if index == {index} {{",
+                f"        return String_from({json.dumps(_status_detail(core_by_id[identifier]))})",
+                "    }",
+            ]
+        )
+    lines.extend(['    String_from("unknown capability")', "}", "", "fn native_c_core_capability_is_supported(index: i32) -> bool {"])
+    supported_core = [
+        index
+        for index, identifier in enumerate(sorted(core_by_id))
+        if core_by_id[identifier]["status"] == "supported"
+    ]
+    for offset, index in enumerate(supported_core):
+        lines.append(f"    index == {index}" + (" ||" if offset < len(supported_core) - 1 else ""))
+    if not supported_core:
+        lines.append("    false")
     lines.extend(["}", ""])
     return "\n".join(lines)
 
@@ -198,7 +221,7 @@ def validate_repository(root: Path = REPO_ROOT) -> ValidationSummary:
     if errors:
         raise ValueError("\n".join(errors))
     generated_path = root / GENERATED_RELATIVE_PATH
-    if generated_path.is_file() and generated_path.read_text(encoding="utf-8") != render_generated_ark(mir_entries):
+    if generated_path.is_file() and generated_path.read_text(encoding="utf-8") != render_generated_ark(mir_entries, core_entries):
         raise ValueError(f"generated capability view is stale: {GENERATED_RELATIVE_PATH}; run with --write-generated")
     counts = Counter(str(entry["status"]) for entry in mir_entries + core_entries)
     return ValidationSummary(len(source_mir), len(source_core), {status: counts[status] for status in sorted(ALLOWED_STATUSES)})
@@ -211,10 +234,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     root = args.root.resolve()
     if args.write_generated:
-        entries = _parse_array_tables(root / "data/native-cpp-capabilities.toml", {"mir_opcodes"})["mir_opcodes"]
+        tables = _parse_array_tables(
+            root / "data/native-cpp-capabilities.toml", {"mir_opcodes", "core_ops"}
+        )
         generated_path = root / GENERATED_RELATIVE_PATH
         generated_path.parent.mkdir(parents=True, exist_ok=True)
-        generated_path.write_text(render_generated_ark(entries), encoding="utf-8")
+        generated_path.write_text(
+            render_generated_ark(tables["mir_opcodes"], tables["core_ops"]), encoding="utf-8"
+        )
     try:
         summary = validate_repository(root)
     except (OSError, ValueError) as error:

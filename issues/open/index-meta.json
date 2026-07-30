@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-28T21:57:35Z",
+  "generated_at": "2026-07-29T23:33:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -41,28 +41,6 @@
       },
       "orchestration": {
         "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "649",
-      "path": "649-t4-native-full-lowering.md",
-      "title": "649 — T4 native full lowering (beyond scaffold #641)",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "641"
-      ],
-      "blocks_issue_ids": [
-        "698",
-        "699"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "design-ready",
         "upstream_notes": "None"
       }
     },
@@ -740,6 +718,23 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "849",
+      "path": "849-native-executor-wasm32-gc-func118-validation.md",
+      "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
+      "track": "main",
+      "status": "open",
+      "depends_on": [],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
       }
     },
     {

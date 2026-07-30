@@ -2,12 +2,25 @@ use corehir::core_op_binding_generated
 use corehir::core_op_id
 use corehir::core_op_registry
 
-fn core_op_binding_lookup_for_callee(callee: String) -> CoreOpId {
-    let canonical = core_op_binding_generated::core_op_binding_core_op_id_for_callee(clone(callee))
+fn core_op_binding_lookup_canonical(canonical: String) -> CoreOpId {
     if len(canonical) == 0 {
         return core_op_id::CORE_OP_ID_NONE()
     }
     return core_op_registry::CoreOpRegistry_lookup_by_canonical(canonical)
+}
+
+// Exact alias only — Wasm effective lowering and historical callers.
+fn core_op_binding_lookup_for_callee(callee: String) -> CoreOpId {
+    core_op_binding_lookup_canonical(
+        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact(clone(callee))
+    )
+}
+
+// Exact alias, then prefix family patterns (MIR call_func_id).
+fn core_op_binding_lookup_for_callee_exact_then_family(callee: String) -> CoreOpId {
+    core_op_binding_lookup_canonical(
+        core_op_binding_generated::core_op_binding_core_op_id_for_callee_exact_then_family(clone(callee))
+    )
 }
 
 fn core_op_binding_lookup_for_mangled(mangled: String) -> CoreOpId {

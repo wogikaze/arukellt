@@ -1,0 +1,17 @@
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    match fs::write_string(
+        String_from("native_cpp_public_missing_dir/nope.txt"),
+        String_from("x")
+    ) {
+        Result::Ok(_) => {
+            stdio::println(String_from("unexpected-ok"))
+        },
+        Result::Err(err) => {
+            stdio::eprintln(err)
+            stdio::println(String_from("write-err"))
+        },
+    }
+}

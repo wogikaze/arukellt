@@ -15,7 +15,7 @@ Capability SSOT: [`data/native-cpp-capabilities.toml`](../../data/native-cpp-cap
 採用理由と非目標は ADR-049、実装順は implementation plan、個々の MIR opcode と
 CoreOp の状態は capability registry が所有する。
 
-現行 target は scaffold である。
+現行 target は scaffold / partial / experimental / `run_supported=true`（公開 experimental run は ADR-050）。内部 selfhost executor lane は experimental（production root clear 有効、strict wall/RSS dual gate、`--allow-high-rss` は CI 禁止）。証拠: `docs/data/native-cpp-executor-promotion-receipt.json`、公開 run: `docs/data/native-cpp-run-promotion-receipt.json`。
 本 RFC の `ACCEPTED` は実装済みまたは実行可能を意味しない。
 
 ## 2. Target と artifact
@@ -27,7 +27,8 @@ canonical target 名は当面 `native-cpp` とする。
 MVP の driver は MIR から単一の C source を `output_bytes` として返す。
 object、executable、runtime 結合、cache、receipt は manager が管理し、driver API を
 複数 artifact 用へ拡張しない。
-将来 `--emit c` を追加するときも、この単一 C source 契約を使用する。
+公開 compile 契約は `compile --target native-cpp --emit c`（ADR-050）。
+この単一 C source 契約を使用する。
 
 runtime header と runtime C は独立した正本ファイルとする。
 巨大な runtime source を Ark の文字列 literal として手書きしない。
@@ -368,7 +369,9 @@ C entry point は次の adapter を持つ。
 int main(int argc, char **argv);
 ```
 
-adapter は arena と runtime を初期化し、argv[0] を除いた args view を登録し、module initializerを
+adapter は arena と runtime を初期化し、argv[0] を除いた args view を登録し（Wasm / WASI
+user-program の `args()` と一致。selfhost native executor のみ移行中に
+`ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0=1` で C 風 argv を維持）、module initializerを
 実行して Ark entry pointを呼ぶ。
 Ark main が通常 return した場合は 0、`process.exit` は指定 code、panic は非 0 を返す。
 runtime abort は Linux の SIGABRT 慣例に従う 134 を process result とする。
@@ -540,6 +543,15 @@ source fingerprintは`src/compiler/`の対象file pathとcontent SHA-256をcanon
 連結して作る。
 pointer address、一時path、wall clock、process ID、unordered iteration順をcache keyに含めない。
 cacheは正本ではなく、削除しても生成結果を変えてはならない。
+
+## 14.1 S2 build-profile inheritance
+
+native executor laneが生成するWasmのoutput targetは、比較対象S2のbuild-profile
+manifestから取得する。managerはS2生成時に`arukellt-s2.build-profile.json`を書き、
+native-executorはそれを読む。`wasm32-gc`をcommandへハードコードしない。
+
+正規lane例: `s2[wasm32] -> native executor -> s3[wasm32] -> byte equality`。
+将来のGC検証laneは`wasm32-gc`同士で分離する。
 
 ## 15. Performance receipt
 

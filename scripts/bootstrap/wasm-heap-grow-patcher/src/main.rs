@@ -621,11 +621,13 @@ fn main() {
         let bytes = std::fs::read(&tmp).expect("read pre-memory64 wasm");
         match wasm32to64::convert_to_memory64(&bytes) {
             Ok(mut converted) => {
-                // Re-apply --initial-pages after convert (convert keeps the
-                // pre64 minimum, but make the flag authoritative).
+                // Default 4GiB-1 initial still traps once the bump allocator
+                // crosses the wasm32 ceiling; honor --initial-pages so full
+                // selfhost compiles can reserve a larger Memory64 heap without
+                // relying on the i32-shaped grow helper past 4GiB.
                 if let Some(pages) = initial_pages {
                     converted = set_memory64_initial_pages(&converted, pages)
-                        .expect("set memory64 initial pages after --to-memory64");
+                        .expect("set memory64 initial pages after widen");
                 }
                 std::fs::write(&out, &converted).expect("write memory64 wasm");
                 let _ = std::fs::remove_file(&tmp);

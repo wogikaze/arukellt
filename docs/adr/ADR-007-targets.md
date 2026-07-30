@@ -11,9 +11,10 @@
 
 複数ランタイム向けにコードを生成するため、ターゲットを
 **表現モデル × 製品 profile** で固定する。旧 T1–T5 表記は廃止する。
-`native-cpp` の限定されたセルフホストexecutor契約は
-[ADR-049](ADR-049-native-c99-selfhost-executor.md)が所有する。
-`native-llvm`と一般native製品の意味論・ABIは未決定のままである。
+`native-cpp` の内部セルフホストexecutor契約は
+[ADR-049](ADR-049-native-c99-selfhost-executor.md)が、公開 experimental `run` 契約は
+[ADR-050](ADR-050-experimental-public-native-c99-run.md)が所有する。
+`native-llvm`と公開安定C ABI / 外部FFIは未決定のままである。
 
 現行のランタイム版・fixture・CI・host 到達可能性は
 [`docs/platform/target-runtime-and-surfaces.md`](../platform/target-runtime-and-surfaces.md)
@@ -29,7 +30,7 @@
 |------|------|------|----------------------|
 | `wasm32` | AtCoder / 非 GC 互換 | linear memory（同一言語意味の lowering） | **supported** |
 | `wasm32-gc` | 主製品 profile | Wasm GC | **primary**（ADR-013） |
-| `native-cpp` | セルフホストexecutor試験 | C99 private ABI（ADR-049） | **scaffold** |
+| `native-cpp` | セルフホストexecutor + 公開 experimental run | C99 private ABI（ADR-049 / ADR-050） | **scaffold** |
 | `native-llvm` | 試験 | 未決定 | **scaffold** |
 
 ### 2. `wasm32-gc` は製品 profile として束ねる

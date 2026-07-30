@@ -1,0 +1,29 @@
+use std::host::stdio
+
+fn maybe_value(flag: bool) -> Option<i32> {
+    if flag {
+        Some(7)
+    } else {
+        None
+    }
+}
+
+fn main() {
+    match maybe_value(true) {
+        Some(n) => {
+            stdio::println(concat(String_from("some="), to_string(n)))
+        },
+        None => {
+            stdio::println(String_from("none"))
+        },
+    }
+    let ok: Result<i32, String> = Ok(9)
+    match ok {
+        Ok(n) => {
+            stdio::println(concat(String_from("ok="), to_string(n)))
+        },
+        Err(err) => {
+            stdio::eprintln(err)
+        },
+    }
+}

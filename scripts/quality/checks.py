@@ -172,6 +172,7 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, ti
             cwd=root,
             capture_output=True,
             text=True,
+            errors="replace",
             check=False,
             env=env,
             timeout=timeout,
@@ -373,6 +374,12 @@ def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_outpu
     workers = min(16, max(1, os.cpu_count() or 1))
     batch_count = max(1, workers * 2)
     batch_size = max(1, (len(other_paths) + batch_count - 1) // batch_count) if other_paths else 1
+    # Keep batches small: each wasmtime instance keeps state in linear memory,
+    # and 512 MiB s2/s3 wasm can OOM or return truncated output on batches that
+    # include many large generated sources (e.g. core_op_registry_generated.ark).
+    # A 5-file cap keeps per-process heap growth bounded on CI runners while
+    # still amortizing wasmtime cold start.
+    batch_size = min(batch_size, 5)
     jobs: list[tuple[str, tuple[str, ...]]] = []
     batch_groups: list[list[str]] = []
     for path in baseline_paths:

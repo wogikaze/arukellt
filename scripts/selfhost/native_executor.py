@@ -1,4 +1,8 @@
-"""Native C99 selfhost executor pipeline (ADR-049, RFC-008)."""
+"""Native C99 selfhost executor pipeline (ADR-049, RFC-008).
+
+The native executor host is native, but S3 output must inherit the comparison
+S2 build profile. Never hardcode wasm32-gc as the S3 target.
+"""
 
 from __future__ import annotations
 
@@ -10,18 +14,55 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from typing import Any
 
 from selfhost.checks import (
+    BOOTSTRAP_EMIT_TARGET,
+    BOOTSTRAP_EMIT_WASI_VERSION,
     _postprocess_selfhost_compiler_wasm,
     _prepare_bootstrap_workspace,
     _reject_invalid_compiler_wasm,
+    _selfhost_dir,
     _selfhost_source_fingerprint,
 )
+from native.toolchain import MINIMUM_CLANG_VERSION, resolve_clang
 
 RUNTIME_ABI_VERSION = 1
 BACKEND_SCHEMA_VERSION = 1
 CAPABILITY_TABLE_VERSION = 1
-MINIMUM_CLANG_VERSION = 14
+RECEIPT_SCHEMA_VERSION = 2
+S2_BUILD_PROFILE_NAME = "arukellt-s2.build-profile.json"
+MEMORY_GATE_BYTES = int(2.4 * 1024**3)
+WALL_GATE_MS = 300_000
+
+_GC_STAT_KEYS = (
+    "gc_object_bytes",
+    "gc_string_buffer_bytes",
+    "gc_vec_buffer_bytes",
+    "gc_object_table_bytes",
+    "gc_root_frame_bytes",
+    "gc_live_object_count",
+    "gc_object_table_capacity",
+    "gc_collection_count",
+    "gc_reclaimed_object_bytes",
+    "gc_reclaimed_side_buffer_bytes",
+    "gc_total_mark_time_ms",
+    "gc_total_sweep_time_ms",
+    "gc_total_table_rebuild_time_ms",
+    "gc_total_malloc_trim_time_ms",
+    "gc_total_root_scan_time_ms",
+    "gc_total_marked_objects",
+    "gc_max_marked_objects_per_collection",
+    "gc_max_root_slots_scanned",
+    "gc_max_heap_objects_before_collection",
+    "gc_max_heap_objects_after_collection",
+    "gc_threshold_bytes",
+    "runtime_requested_bytes",
+    "runtime_committed_bytes",
+    "runtime_live_bytes",
+    "runtime_collection_count",
+    "runtime_reclaimed_bytes",
+)
 
 
 def _sha256(path: Path) -> str:
@@ -33,30 +74,23 @@ def _sha256(path: Path) -> str:
 
 
 def _toolchain() -> tuple[str | None, str]:
-    override = os.environ.get("ARUKELLT_CC", "").strip()
-    candidates = [override] if override else [
-        "clang",
-        "clang-18",
-        "clang-17",
-        "clang-16",
-        "clang-15",
-        "clang-14",
-    ]
-    path = next((shutil.which(candidate) for candidate in candidates if shutil.which(candidate)), None)
-    if path is None:
-        requested = override or "clang 14+"
-        return None, f"toolchain diagnostic: C compiler `{requested}` was not found"
-    result = subprocess.run(
-        [path, "--version"], capture_output=True, text=True, check=False
-    )
-    version = (result.stdout or result.stderr).splitlines()[0] if result.returncode == 0 else ""
-    match = re.search(r"clang version (\d+)", version)
-    if match is None or int(match.group(1)) < MINIMUM_CLANG_VERSION:
-        return None, (
-            f"toolchain diagnostic: clang {MINIMUM_CLANG_VERSION}+ is required; "
-            f"detected `{version or path}`"
-        )
-    return str(Path(path).resolve()), version
+    toolchain, diagnostic = resolve_clang()
+    if toolchain is None:
+        return None, diagnostic
+    return toolchain.path, toolchain.version_line
+
+
+def _read_smaps_rss_bytes(pid: int) -> int:
+    """Return current Rss from smaps_rollup for a single process (not a tree sum)."""
+    path = Path(f"/proc/{pid}/smaps_rollup")
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("Rss:"):
+                parts = line.split()
+                return int(parts[1]) * 1024
+    except (OSError, ValueError, IndexError):
+        return 0
+    return 0
 
 
 def _timed_run(
@@ -65,33 +99,79 @@ def _timed_run(
     root: Path,
     measurement: Path,
     environment: dict[str, str] | None = None,
-) -> tuple[subprocess.CompletedProcess[str], int, int]:
+) -> tuple[subprocess.CompletedProcess[str], int, int, int]:
+    """Run command under /usr/bin/time and sample the child's smaps_rollup peak.
+
+    Returns (result, wall_ms, time_v_max_rss_bytes, smaps_peak_rss_bytes).
+    Parent manager RSS is never included; only the timed child is sampled.
+
+    stdout/stderr go to side files (not pipes) so verbose compiler logs cannot
+    stall the child on a full pipe buffer and inflate the wall gate.
+    """
     measurement.unlink(missing_ok=True)
-    started = time.monotonic_ns()
+    stdout_path = measurement.with_suffix(measurement.suffix + ".stdout")
+    stderr_path = measurement.with_suffix(measurement.suffix + ".stderr")
+    stdout_path.unlink(missing_ok=True)
+    stderr_path.unlink(missing_ok=True)
     wrapped = [
         "/usr/bin/time",
         "-f",
-        "%M",
+        "%e %M",
         "-o",
         str(measurement),
         *command,
     ]
-    result = subprocess.run(
-        wrapped,
-        cwd=root,
-        env=environment,
-        capture_output=True,
-        text=True,
-        check=False,
+    with stdout_path.open("w", encoding="utf-8") as stdout_file, stderr_path.open(
+        "w", encoding="utf-8"
+    ) as stderr_file:
+        proc = subprocess.Popen(
+            wrapped,
+            cwd=root,
+            env=environment,
+            stdout=stdout_file,
+            stderr=stderr_file,
+            text=True,
+        )
+        smaps_peak = 0
+        # /usr/bin/time is the direct child; the measured workload is its child.
+        while proc.poll() is None:
+            try:
+                children = Path(f"/proc/{proc.pid}/task/{proc.pid}/children")
+                candidates = [proc.pid]
+                try:
+                    for token in children.read_text(encoding="utf-8").split():
+                        candidates.append(int(token))
+                except OSError:
+                    pass
+                for pid in candidates:
+                    smaps_peak = max(smaps_peak, _read_smaps_rss_bytes(pid))
+            except OSError:
+                pass
+            # smaps_rollup on a multi-GiB native compile is expensive and can
+            # perturb the child on some hosts; keep a coarse probe only.
+            # `/usr/bin/time %M` remains the RSS gate.
+            time.sleep(5.0)
+        returncode = proc.wait()
+    stdout = stdout_path.read_text(encoding="utf-8", errors="replace")
+    stderr = stderr_path.read_text(encoding="utf-8", errors="replace")
+    result = subprocess.CompletedProcess(
+        wrapped, returncode or 0, stdout=stdout, stderr=stderr
     )
-    elapsed_ms = (time.monotonic_ns() - started) // 1_000_000
+    elapsed_ms = 0
     peak_kib = 0
     if measurement.is_file():
+        raw = measurement.read_text(encoding="utf-8").strip().split()
         try:
-            peak_kib = int(measurement.read_text(encoding="utf-8").strip())
+            if len(raw) >= 2:
+                elapsed_ms = int(float(raw[0]) * 1000.0)
+                peak_kib = int(raw[1])
+            elif len(raw) == 1:
+                # Backward compatible with older "%M"-only measurements.
+                peak_kib = int(raw[0])
         except ValueError:
+            elapsed_ms = 0
             peak_kib = 0
-    return result, elapsed_ms, peak_kib * 1024
+    return result, elapsed_ms, peak_kib * 1024, smaps_peak
 
 
 def _runtime_hash(root: Path) -> str:
@@ -104,6 +184,75 @@ def _runtime_hash(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _default_s2_build_profile(s2: Path, fingerprint: str) -> dict[str, Any]:
+    """Explicit profile for existing S2 artifacts built via the bootstrap chain.
+
+    Regular stage-2 emission uses BOOTSTRAP_EMIT_TARGET / WASI (wasm32 + wasi-p1),
+    not SELFHOST_TARGET. Do not invent wasm32-gc here.
+    """
+    return {
+        "artifact": s2.name,
+        "sha256": _sha256(s2) if s2.is_file() else "",
+        "output_target": BOOTSTRAP_EMIT_TARGET,
+        "wasi": BOOTSTRAP_EMIT_WASI_VERSION,
+        "memory64": False,
+        "wasm_gc": False,
+        "optimization": "release",
+        "source_fingerprint": fingerprint,
+        "compiler_flags": [],
+    }
+
+
+def write_s2_build_profile(root: Path, s2: Path, *, fingerprint: str | None = None) -> Path:
+    """Persist a machine-readable S2 output profile next to the artifact."""
+    build_dir = _selfhost_dir(root)
+    build_dir.mkdir(parents=True, exist_ok=True)
+    path = build_dir / S2_BUILD_PROFILE_NAME
+    fp = fingerprint if fingerprint is not None else _selfhost_source_fingerprint(root)
+    profile = _default_s2_build_profile(s2, fp)
+    path.write_text(json.dumps(profile, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def load_s2_build_profile(root: Path, s2: Path) -> tuple[dict[str, Any] | None, str]:
+    """Load the S2 profile manifest; refuse ambiguous target guessing."""
+    path = _selfhost_dir(root) / S2_BUILD_PROFILE_NAME
+    if not path.is_file():
+        return None, (
+            "native executor diagnostic: missing S2 build-profile manifest at "
+            f"{path.relative_to(root)}; rebuild with "
+            "`python3 scripts/manager.py selfhost build-compiler` "
+            "(or write an explicit profile — do not infer wasm32-gc)"
+        )
+    try:
+        profile = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return None, f"native executor diagnostic: invalid S2 build-profile manifest: {exc}"
+
+    required = ("output_target", "wasi", "memory64", "wasm_gc", "sha256")
+    missing = [key for key in required if key not in profile]
+    if missing:
+        return None, (
+            "native executor diagnostic: S2 build-profile missing keys: "
+            + ", ".join(missing)
+        )
+
+    target = str(profile["output_target"])
+    if not target or target == "native-cpp" or target == "native-llvm":
+        return None, (
+            f"native executor diagnostic: S2 build-profile output_target `{target}` "
+            "is not a Wasm comparison target"
+        )
+
+    expected_sha = str(profile.get("sha256", ""))
+    if expected_sha and s2.is_file() and _sha256(s2) != expected_sha:
+        return None, (
+            "native executor diagnostic: S2 build-profile sha256 does not match "
+            f"{s2.name}; rebuild S2 or refresh the manifest"
+        )
+    return profile, ""
+
+
 def _cache_key(
     root: Path,
     s2_runtime: Path,
@@ -111,6 +260,7 @@ def _cache_key(
     clang_version: str,
     compile_flags: list[str],
     link_flags: list[str],
+    profile: dict[str, Any],
 ) -> str:
     identity = {
         "s2_compiler_artifact_hash": _sha256(s2_runtime),
@@ -124,17 +274,196 @@ def _cache_key(
         "target_triple": "x86_64-unknown-linux-gnu",
         "backend_schema_version": BACKEND_SCHEMA_VERSION,
         "capability_table_version": CAPABILITY_TABLE_VERSION,
+        "s2_output_target": profile["output_target"],
+        "s2_wasi": profile["wasi"],
     }
     encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _empty_gc_stats() -> dict[str, object]:
+    return {key: 0 for key in _GC_STAT_KEYS}
+
+
+def _empty_root_liveness_stats() -> dict[str, object]:
+    return {
+        "root_liveness_enabled": False,
+        "root_functions_with_frames": 0,
+        "root_functions_analyzed": 0,
+        "root_functions_skipped": 0,
+        "root_functions_emit_enabled": 0,
+        "root_reference_local_count": 0,
+        "root_safepoint_count": 0,
+        "root_clear_sites_planned": 0,
+        "root_clear_assignments_planned": 0,
+        "root_clear_sites_emitted": 0,
+        "root_clear_assignments_emitted": 0,
+        "root_peak_slots": 0,
+        "root_planner_peak_bytes": 0,
+        "root_entry_null_inits": 0,
+        "root_liveness_fallback_count": 0,
+        "root_planned_equals_emitted": False,
+    }
+
+
+def _parse_root_liveness_from_c(generated_c: Path) -> dict[str, object]:
+    """Aggregate `ARK_ROOT_LIVENESS fn ...` markers from generated C."""
+    stats = _empty_root_liveness_stats()
+    if not generated_c.is_file():
+        return stats
+    analyzed = 0
+    skipped = 0
+    frames = 0
+    safepoints = 0
+    sites_planned = 0
+    assigns_planned = 0
+    sites_emitted = 0
+    assigns_emitted = 0
+    peak_slots = 0
+    planner_bytes = 0
+    entry_nulls = 0
+    emit_enabled_fns = 0
+    functions_with_frames = 0
+    # New schema (Phase 2+)
+    pattern = re.compile(
+        r"/\* ARK_ROOT_LIVENESS fn analyzed=(\d+) skipped=(\d+) "
+        r"frames=(\d+) safepoints=(\d+) sites_planned=(\d+) "
+        r"assigns_planned=(\d+) sites_emitted=(\d+) assigns_emitted=(\d+) "
+        r"peak_slots=(\d+) planner_bytes=(\d+) entry_nulls=(\d+) emit=(\d+) \*/"
+    )
+    # Legacy Phase 1 schema
+    legacy = re.compile(
+        r"/\* ARK_ROOT_LIVENESS fn analyzed=(\d+) skipped=(\d+) "
+        r"frames=(\d+) safepoints=(\d+) planned_clears=(\d+) \*/"
+    )
+    text = generated_c.read_text(encoding="utf-8", errors="replace")
+    matched = False
+    for match in pattern.finditer(text):
+        matched = True
+        fn_analyzed = int(match.group(1))
+        fn_skipped = int(match.group(2))
+        fn_frames = int(match.group(3))
+        fn_safepoints = int(match.group(4))
+        fn_sites_p = int(match.group(5))
+        fn_assigns_p = int(match.group(6))
+        fn_sites_e = int(match.group(7))
+        fn_assigns_e = int(match.group(8))
+        fn_peak = int(match.group(9))
+        fn_planner = int(match.group(10))
+        fn_entry = int(match.group(11))
+        fn_emit = int(match.group(12))
+        analyzed += fn_analyzed
+        skipped += fn_skipped
+        frames += fn_frames
+        safepoints += fn_safepoints
+        sites_planned += fn_sites_p
+        assigns_planned += fn_assigns_p
+        sites_emitted += fn_sites_e
+        assigns_emitted += fn_assigns_e
+        peak_slots = max(peak_slots, fn_peak)
+        planner_bytes += fn_planner
+        entry_nulls += fn_entry
+        emit_enabled_fns += fn_emit
+        if fn_frames > 0:
+            functions_with_frames += 1
+    if not matched:
+        for match in legacy.finditer(text):
+            fn_analyzed = int(match.group(1))
+            fn_skipped = int(match.group(2))
+            fn_frames = int(match.group(3))
+            fn_safepoints = int(match.group(4))
+            fn_planned = int(match.group(5))
+            analyzed += fn_analyzed
+            skipped += fn_skipped
+            frames += fn_frames
+            safepoints += fn_safepoints
+            assigns_planned += fn_planned
+            if fn_frames > 0:
+                functions_with_frames += 1
+    stats["root_functions_analyzed"] = analyzed
+    stats["root_functions_skipped"] = skipped
+    stats["root_functions_with_frames"] = functions_with_frames
+    stats["root_functions_emit_enabled"] = emit_enabled_fns
+    stats["root_reference_local_count"] = frames
+    stats["root_safepoint_count"] = safepoints
+    stats["root_clear_sites_planned"] = sites_planned
+    stats["root_clear_assignments_planned"] = assigns_planned
+    stats["root_clear_sites_emitted"] = sites_emitted
+    stats["root_clear_assignments_emitted"] = assigns_emitted
+    stats["root_peak_slots"] = peak_slots
+    stats["root_planner_peak_bytes"] = planner_bytes
+    stats["root_entry_null_inits"] = entry_nulls
+    stats["root_liveness_enabled"] = emit_enabled_fns > 0
+    stats["root_liveness_fallback_count"] = skipped
+    # For size-gated rollout, equality is checked only over emit-enabled functions
+    # via marker fields; full planned==emitted applies when emit limits are 0.
+    stats["root_planned_equals_emitted"] = (
+        skipped == 0 and sites_emitted <= sites_planned and assigns_emitted <= assigns_planned
+    )
+    return stats
+
+
+def _git_head(root: Path) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+
+
+def _equality_applicability(
+    profile: dict[str, Any],
+    *,
+    current_commit: str,
+    current_runtime_hash: str,
+    current_profile_fingerprint: str = "",
+) -> tuple[bool, str]:
+    """Return (applicable, status) for S2/S3 byte equality.
+
+    Equality is only a PASS/FAIL signal when the S2 peer was promoted from the
+    same source commit / runtime / fingerprint. Otherwise report
+    NOT_APPLICABLE_STALE_REFERENCE so baseline / operational lanes do not stop.
+    """
+    reference_commit = str(profile.get("source_commit", "") or "")
+    reference_runtime = str(profile.get("native_runtime_hash", "") or "")
+    reference_fp = str(profile.get("source_fingerprint", "") or "")
+    promoted = str(profile.get("promoted_from_s3_sha256", "") or "")
+    if not reference_commit or reference_commit != current_commit:
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if reference_runtime and reference_runtime != current_runtime_hash:
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if (
+        reference_fp
+        and current_profile_fingerprint
+        and reference_fp != current_profile_fingerprint
+    ):
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    if not promoted:
+        # Bootstrap fat S2 without promote provenance cannot be an equality peer.
+        return False, "NOT_APPLICABLE_STALE_REFERENCE"
+    return True, "APPLICABLE"
+
+
+def _empty_executor_run() -> dict[str, object]:
+    return {
+        "wall_time_ms": 0,
+        "peak_rss_bytes": 0,
+        "smaps_rollup_peak_rss_bytes": 0,
+        "s3_sha256": "",
+        "gc": _empty_gc_stats(),
+    }
+
+
 def _empty_receipt() -> dict[str, object]:
     return {
+        "receipt_schema_version": RECEIPT_SCHEMA_VERSION,
         "clang_peak_rss_bytes": 0,
         "executor_peak_rss_bytes": 0,
         "pipeline_peak_rss_bytes": 0,
         "executor_wall_time_ms": 0,
+        "executor_cold_wall_time_ms": 0,
+        "warm_run_index": 2,
         "pipeline_wall_time_ms": 0,
         "s2_sha256": "",
         "s3_sha256": "",
@@ -142,38 +471,139 @@ def _empty_receipt() -> dict[str, object]:
         "determinism_run_2_sha256": "",
         "clang_version": "",
         "runtime_abi_version": RUNTIME_ABI_VERSION,
+        "native_runtime_hash": "",
         "cache_hit": False,
         "exit_code": 1,
+        "output_target": "",
+        "wasi": "",
+        "memory64": False,
+        "wasm_gc": False,
+        "gc_mode": "arena",
+        "gc_threshold_bytes": 0,
+        "time_v_max_rss_bytes": 0,
+        "smaps_rollup_peak_rss_bytes": 0,
+        "executor_run_1": _empty_executor_run(),
+        "executor_run_2": _empty_executor_run(),
+        "root_liveness": _empty_root_liveness_stats(),
+        "correctness_gate_passed": False,
+        "performance_gate_passed": False,
+        "memory_gate_passed": False,
+        "strict_gate_passed": False,
+        "high_rss_override": False,
+        "equality_gate_applicable": False,
+        "equality_status": "NOT_APPLICABLE_STALE_REFERENCE",
+        "reference_source_commit": "",
+        "current_source_commit": "",
+        "reference_profile_fingerprint": "",
+        "current_profile_fingerprint": "",
+        # Top-level GC mirrors warm run for backward-compatible summary lines.
+        **_empty_gc_stats(),
     }
 
 
-def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int, str]:
+def _load_gc_stats(stats_path: Path) -> dict[str, object]:
+    """Load runtime GC stats JSON written by ark_rt_shutdown."""
+    stats = _empty_gc_stats()
+    if not stats_path.is_file():
+        return stats
+    try:
+        payload = json.loads(stats_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return stats
+    for key in _GC_STAT_KEYS:
+        if key in payload:
+            stats[key] = payload[key]
+    return stats
+
+
+def _host_fingerprint() -> dict[str, object]:
+    uname = os.uname()
+    return {
+        "os_sysname": uname.sysname,
+        "os_release": uname.release,
+        "os_machine": uname.machine,
+        "cpu_count": os.cpu_count() or 0,
+    }
+
+
+def _ci_forbids_high_rss() -> bool:
+    if os.environ.get("GITHUB_ACTIONS", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("CI", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
+def run_native_executor(
+    root: Path,
+    *,
+    build: bool,
+    dry_run: bool,
+    allow_high_rss: bool = False,
+) -> tuple[int, str]:
     """Build/cache the native compiler, produce s3 twice, and verify it."""
+    if allow_high_rss and _ci_forbids_high_rss():
+        return (
+            2,
+            "native-executor: --allow-high-rss is forbidden under CI/GITHUB_ACTIONS "
+            "(local escape hatch only; not an Experimental success path)",
+        )
     if dry_run:
         return 0, "DRY-RUN: native C generation -> clang -> two native s3 runs -> equality"
     if not build:
         return 1, "native-executor requires --build until a verified cache exists"
 
     pipeline_started = time.monotonic_ns()
-    output_dir = root / ".build/selfhost/native"
+    build_dir = _selfhost_dir(root)
+    output_dir = build_dir / "native"
     output_dir.mkdir(parents=True, exist_ok=True)
     receipt_path = output_dir / "native-executor-receipt.json"
     receipt = _empty_receipt()
 
-    s2 = root / ".build/selfhost/arukellt-s2.wasm"
-    s2_runtime = root / ".build/selfhost/arukellt-s2-runtime.wasm"
+    s2 = build_dir / "arukellt-s2.wasm"
+    s2_runtime = build_dir / "arukellt-s2-runtime.wasm"
     if not s2.is_file() or not s2_runtime.is_file():
         return 1, "native executor diagnostic: missing s2 artifacts; run selfhost build-compiler"
     receipt["s2_sha256"] = _sha256(s2)
+    current_commit = _git_head(root)
+    current_runtime_hash = _runtime_hash(root)
+    receipt["current_source_commit"] = current_commit
+    receipt["native_runtime_hash"] = current_runtime_hash
+
+    profile, profile_error = load_s2_build_profile(root, s2)
+    if profile is None:
+        return 1, profile_error
+    output_target = str(profile["output_target"])
+    wasi = str(profile["wasi"])
+    receipt["output_target"] = output_target
+    receipt["wasi"] = wasi
+    receipt["memory64"] = bool(profile["memory64"])
+    receipt["wasm_gc"] = bool(profile["wasm_gc"])
+    current_fp = _selfhost_source_fingerprint(root)
+    receipt["reference_source_commit"] = str(profile.get("source_commit", "") or "")
+    receipt["reference_profile_fingerprint"] = str(profile.get("source_fingerprint", "") or "")
+    receipt["current_profile_fingerprint"] = current_fp
+    equality_applicable, equality_status = _equality_applicability(
+        profile,
+        current_commit=current_commit,
+        current_runtime_hash=current_runtime_hash,
+        current_profile_fingerprint=current_fp,
+    )
+    receipt["equality_gate_applicable"] = equality_applicable
+    receipt["equality_status"] = equality_status
 
     clang_path, toolchain = _toolchain()
     if clang_path is None:
         return 1, toolchain
     receipt["clang_version"] = toolchain
 
-    compile_flags = ["-std=c99", "-O2"]
+    # Avoid -flto on the ~50MiB generated compiler.c: link time heats the host
+    # and has not improved warm S3 wall on this lane.
+    compile_flags = ["-std=c99", "-O3", "-DNDEBUG", "-march=native"]
     link_flags: list[str] = []
-    key = _cache_key(root, s2_runtime, clang_path, toolchain, compile_flags, link_flags)
+    key = _cache_key(
+        root, s2_runtime, clang_path, toolchain, compile_flags, link_flags, profile
+    )
     key_path = output_dir / "cache-key.txt"
     executable = output_dir / "arukellt-native"
     generated_c = output_dir / "compiler.c"
@@ -194,7 +624,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         generation_cache_arg = str((output_dir / "ast-cache").relative_to(root))
         generation_environment = os.environ.copy()
         generation_environment["ARUKELLT_SELFHOST_WASM"] = str(s2_runtime)
-        generation, _, generation_peak = _timed_run(
+        generation, _, generation_peak, _generation_smaps = _timed_run(
             [
                 str(root / "scripts/run/arukellt-selfhost.sh"),
                 "compile",
@@ -215,7 +645,7 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
             detail = (generation.stderr + generation.stdout)[-2000:]
             return 1, f"native C generation failed:\n{detail}"
 
-        clang, _, clang_peak = _timed_run(
+        clang, _, clang_peak, _clang_smaps = _timed_run(
             [
                 clang_path,
                 *compile_flags,
@@ -240,58 +670,156 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
             )
         key_path.write_text(key + "\n", encoding="utf-8")
 
+    root_liveness_sidecar = output_dir / "root-liveness-stats.json"
+    if generated_c.is_file():
+        receipt["root_liveness"] = _parse_root_liveness_from_c(generated_c)
+        root_liveness_sidecar.write_text(
+            json.dumps(receipt["root_liveness"], indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    elif root_liveness_sidecar.is_file():
+        # Cache-hit path may omit compiler.c; keep Phase 6/8 receipt evidence.
+        try:
+            loaded = json.loads(root_liveness_sidecar.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                receipt["root_liveness"] = {**_empty_root_liveness_stats(), **loaded}
+        except (OSError, json.JSONDecodeError):
+            receipt["root_liveness"] = _empty_root_liveness_stats()
+
+    # Smoke: --help before full S3.
+    help_env = os.environ.copy()
+    help_env["ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0"] = "1"
+    help_run, _, help_peak, _help_smaps = _timed_run(
+        [str(executable), "--help"],
+        root=root,
+        measurement=output_dir / "native-help.maxrss",
+        environment=help_env,
+    )
+    pipeline_peak = max(pipeline_peak, help_peak)
+    if help_run.returncode != 0:
+        receipt["exit_code"] = help_run.returncode or 1
+        receipt_path.write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        detail = (help_run.stderr + help_run.stdout)[-1000:]
+        return 1, f"arukellt-native --help failed:\n{detail}"
+
     s3_first = output_dir / "arukellt-s3-native.wasm"
     s3_second = output_dir / "arukellt-s3-native-second.wasm"
     workspace = _prepare_bootstrap_workspace(root)
     compiler_source = workspace / "src/compiler/main.ark"
 
-    executor_times: list[int] = []
-    executor_peaks: list[int] = []
-    executor_hashes: list[str] = []
+    run_env_base = os.environ.copy()
+    # Strict lane enables GC for the RSS gate. --allow-high-rss prefers the
+    # arena path so warm wall stays under 5 minutes while RSS work continues.
+    # Strict lane always enables GC. Do not inherit a stale ARUKELLT_NATIVE_GC=0
+    # from the parent environment (that silently selects arena and blows RSS).
+    # --allow-high-rss is the only opt-in to arena for local escape-hatch runs.
+    run_env_base["ARUKELLT_NATIVE_GC"] = "0" if allow_high_rss else "1"
+    # Keep C-style argv for the selfhost compiler CLI until parse_args reads
+    # command at args()[0] (public run excludes argv[0] for Wasm parity / RFC-008).
+    run_env_base["ARUKELLT_NATIVE_ARGS_INCLUDE_ARGV0"] = "1"
+    gc_mode = "gc" if run_env_base.get("ARUKELLT_NATIVE_GC", "0") == "1" else "arena"
+    receipt["gc_mode"] = gc_mode
+    receipt["host"] = _host_fingerprint()
+
+    executor_runs: list[dict[str, object]] = []
+    # Prefer tmpfs for AST caches when available: WSL swap thrashing otherwise
+    # dominates warm-wall variance near the 300s gate.
+    ast_cache_root = output_dir
+    shm_candidate = Path("/dev/shm")
+    if shm_candidate.is_dir():
+        try:
+            shm_probe = shm_candidate / f"ark-native-ast-{os.getpid()}"
+            shm_probe.mkdir(parents=True, exist_ok=True)
+            shm_probe.rmdir()
+            ast_cache_root = shm_candidate
+        except OSError:
+            ast_cache_root = output_dir
     for run_index, output in enumerate((s3_first, s3_second), start=1):
         output.unlink(missing_ok=True)
-        execution, elapsed, peak = _timed_run(
+        stats_path = output_dir / f"executor-{run_index}.gc-stats.json"
+        stats_path.unlink(missing_ok=True)
+        run_env = run_env_base.copy()
+        run_env["ARUKELLT_NATIVE_GC_STATS_PATH"] = str(stats_path)
+        cache_dir = ast_cache_root / f"ark-native-ast-cache-{run_index}"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        execution, elapsed, peak, smaps_peak = _timed_run(
             [
                 str(executable),
                 "compile",
                 str(compiler_source),
                 "--target",
-                "wasm32-gc",
+                output_target,
+                "--wasi-version",
+                wasi,
                 "--output",
                 str(output),
                 "--cache-dir",
-                str(output_dir / f"native-ast-cache-{run_index}"),
+                str(cache_dir),
             ],
             root=root,
             measurement=output_dir / f"executor-{run_index}.maxrss",
+            environment=run_env,
         )
-        executor_times.append(elapsed)
-        executor_peaks.append(peak)
         pipeline_peak = max(pipeline_peak, peak)
+        run_record = _empty_executor_run()
+        run_record["wall_time_ms"] = elapsed
+        run_record["peak_rss_bytes"] = peak
+        run_record["smaps_rollup_peak_rss_bytes"] = smaps_peak
+        run_record["gc"] = _load_gc_stats(stats_path)
         if execution.returncode != 0 or not output.is_file():
             receipt["exit_code"] = execution.returncode or 1
+            detail = (execution.stderr + execution.stdout)[-2000:]
+            receipt["executor_error"] = detail
+            receipt[f"executor_run_{run_index}"] = run_record
+            executor_runs.append(run_record)
             break
         _postprocess_selfhost_compiler_wasm(output, root)
-        executor_hashes.append(_sha256(output))
+        run_record["s3_sha256"] = _sha256(output)
+        receipt[f"executor_run_{run_index}"] = run_record
+        executor_runs.append(run_record)
         invalid = _reject_invalid_compiler_wasm(output)
         if invalid:
             receipt["exit_code"] = 1
             receipt["validation_error"] = invalid
             break
 
-    if executor_hashes:
-        receipt["s3_sha256"] = executor_hashes[0]
-        receipt["determinism_run_1_sha256"] = executor_hashes[0]
-    if len(executor_hashes) > 1:
-        receipt["determinism_run_2_sha256"] = executor_hashes[1]
+    if executor_runs:
+        receipt["s3_sha256"] = str(executor_runs[0].get("s3_sha256", ""))
+        receipt["determinism_run_1_sha256"] = receipt["s3_sha256"]
+    if len(executor_runs) > 1:
+        receipt["determinism_run_2_sha256"] = str(executor_runs[1].get("s3_sha256", ""))
 
     receipt["clang_peak_rss_bytes"] = clang_peak
-    receipt["executor_peak_rss_bytes"] = max(executor_peaks, default=0)
+    peaks = [int(run["peak_rss_bytes"]) for run in executor_runs]
+    smaps_peaks = [int(run["smaps_rollup_peak_rss_bytes"]) for run in executor_runs]
+    receipt["executor_peak_rss_bytes"] = max(peaks, default=0)
+    receipt["time_v_max_rss_bytes"] = max(peaks, default=0)
+    receipt["smaps_rollup_peak_rss_bytes"] = max(smaps_peaks, default=0)
     receipt["pipeline_peak_rss_bytes"] = pipeline_peak
-    receipt["executor_wall_time_ms"] = executor_times[0] if executor_times else 0
+    # First run is cold; the wall gate uses the second determinism run as warm.
+    cold_ms = int(executor_runs[0]["wall_time_ms"]) if executor_runs else 0
+    warm_index = 2 if len(executor_runs) > 1 else (1 if executor_runs else 0)
+    warm_ms = (
+        int(executor_runs[warm_index - 1]["wall_time_ms"]) if warm_index else 0
+    )
+    receipt["executor_cold_wall_time_ms"] = cold_ms
+    receipt["executor_wall_time_ms"] = warm_ms
+    receipt["warm_run_index"] = warm_index
     receipt["pipeline_wall_time_ms"] = (
         time.monotonic_ns() - pipeline_started
     ) // 1_000_000
+
+    warm_gc = (
+        executor_runs[warm_index - 1]["gc"]
+        if warm_index and isinstance(executor_runs[warm_index - 1].get("gc"), dict)
+        else _empty_gc_stats()
+    )
+    assert isinstance(warm_gc, dict)
+    for key in _GC_STAT_KEYS:
+        receipt[key] = warm_gc.get(key, 0)
+    receipt["gc_threshold_bytes"] = int(warm_gc.get("gc_threshold_bytes", 0) or 0)
 
     is_valid = "validation_error" not in receipt and s3_second.is_file()
     deterministic = (
@@ -299,24 +827,82 @@ def run_native_executor(root: Path, *, build: bool, dry_run: bool) -> tuple[int,
         == receipt["determinism_run_2_sha256"]
         != ""
     )
-    byte_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
-    performance_ok = int(receipt["executor_wall_time_ms"]) < 300_000
-    memory_ok = int(receipt["executor_peak_rss_bytes"]) <= int(2.4 * 1024**3)
-    succeeded = is_valid and deterministic and byte_equal and performance_ok and memory_ok
+    hashes_equal = receipt["s2_sha256"] == receipt["s3_sha256"]
+    if equality_applicable:
+        receipt["equality_status"] = "PASS" if hashes_equal else "FAIL"
+        # Provenance matches: equality is a real PASS/FAIL signal.
+        equality_for_correctness = hashes_equal
+    else:
+        receipt["equality_status"] = equality_status
+        # Stale reference: do not fail operational/baseline on hash mismatch.
+        equality_for_correctness = True
+    correctness_ok = is_valid and deterministic and equality_for_correctness
+    performance_ok = warm_ms < WALL_GATE_MS
+    memory_ok = int(receipt["executor_peak_rss_bytes"]) <= MEMORY_GATE_BYTES
+    # Strict promotion always requires current S2/S3 byte equality.
+    strict_ok = (
+        is_valid
+        and deterministic
+        and hashes_equal
+        and performance_ok
+        and memory_ok
+    )
+    receipt["correctness_gate_passed"] = correctness_ok
+    receipt["performance_gate_passed"] = performance_ok
+    receipt["memory_gate_passed"] = memory_ok
+    receipt["strict_gate_passed"] = strict_ok
+    receipt["high_rss_override"] = bool(allow_high_rss) and not memory_ok
+    if allow_high_rss:
+        succeeded = correctness_ok and performance_ok
+    else:
+        succeeded = strict_ok
     receipt["exit_code"] = 0 if succeeded else 1
     receipt_path.write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
 
+    root_stats = receipt.get("root_liveness", _empty_root_liveness_stats())
+    assert isinstance(root_stats, dict)
     summary = [
-        f"native executor receipt: {receipt_path.relative_to(root)}",
+        f"native executor receipt: {receipt_path}",
+        f"receipt schema: {RECEIPT_SCHEMA_VERSION} gc_mode={gc_mode}",
+        f"output profile: target={output_target} wasi={wasi} "
+        f"memory64={profile['memory64']} wasm_gc={profile['wasm_gc']}",
         f"s2 sha256: {receipt['s2_sha256']}",
         f"s3 sha256: {receipt['s3_sha256']}",
         f"deterministic: {deterministic}",
-        f"byte equality: {byte_equal}",
-        f"warm executor ms: {receipt['executor_wall_time_ms']}",
+        f"byte equality: {receipt['equality_status']} "
+        f"(applicable={equality_applicable} hashes_equal={hashes_equal})",
+        f"cold executor ms: {cold_ms}",
+        f"warm executor ms (run {warm_index}): {warm_ms}",
         f"executor peak RSS bytes: {receipt['executor_peak_rss_bytes']}",
+        (
+            f"gates: correctness={correctness_ok} performance={performance_ok} "
+            f"memory={memory_ok} strict={strict_ok}"
+        ),
+        f"high_rss_override: {receipt['high_rss_override']}",
+        (
+            f"root liveness: analyzed={root_stats.get('root_functions_analyzed')} "
+            f"skipped={root_stats.get('root_functions_skipped')} "
+            f"safepoints={root_stats.get('root_safepoint_count')} "
+            f"planned_clears={root_stats.get('root_clear_sites_planned')}"
+        ),
+        (
+            f"warm gc: objects={receipt['gc_live_object_count']} "
+            f"object_bytes={receipt['gc_object_bytes']} "
+            f"mark_ms={receipt['gc_total_mark_time_ms']} "
+            f"sweep_ms={receipt['gc_total_sweep_time_ms']} "
+            f"collections={receipt['gc_collection_count']}"
+        ),
     ]
+    if allow_high_rss and not memory_ok and correctness_ok and performance_ok:
+        summary.insert(
+            0,
+            "WARNING: executor RSS exceeds 2.4 GiB gate; --allow-high-rss opted in "
+            "(CI must not use this; current-state stays scaffold; memory_gate_passed=false)",
+        )
     if "validation_error" in receipt:
         summary.append(f"s3 validation: {receipt['validation_error']}")
+    if "executor_error" in receipt:
+        summary.append(f"executor error: {receipt['executor_error']}")
     return (0 if succeeded else 1), "\n".join(summary)

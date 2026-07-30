@@ -261,7 +261,13 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 """
 
 BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
-use wasm
+use component_component_base
+use component_contract
+use component_contract_preflight
+use component_emit
+use component_export_plan
+use component_wit_text
+use component_world_spec
 
 fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
     let fn_count = mir_module_functions::MirModule_function_count(mir)
@@ -301,17 +307,17 @@ fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
 }
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    if eq(clone(wasi_version), String_from("wasi-p2")) {
+    // Inline the #730-safe generic export path. A cross-module call to
+    // `component_emit__emit_component` does not receive a FunctionId under the
+    // flat bootstrap overlay (native-cpp ICE). Keep the same control flow as
+    // component/emit.ark: P2 command wrapper or generic library exports.
+    let _target = target
+    if component_world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
         return wasm::emit_p2_command_component(core_wasm)
     }
-    if eq(clone(wasi_version), String_from("p1-component")) {
-        return wasm::emit_library_component(core_wasm, mir)
-    }
-    // TODO(#714 owner=bootstrap-emit removal=component_emit-overlay-resolves recheck=2026-08-01)
-    // Bootstrap overlay falls back to the wasm P2 emitter for unhandled wasi
-    // versions; the flattened component/emit.ark delegate is not yet resolvable
-    // in the selfhost flat overlay, so keep this shortcut until #714 lands.
-    wasm::emit_p2_command_component(core_wasm)
+    let out = component_component_base::comp_new_component_writer()
+    let plan = component_export_plan::collect_component_exports(mir)
+    emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
 pub fn mir_has_library_exports(mir: MirModule) -> bool {
@@ -349,43 +355,14 @@ pub fn validate_wit_import_surface(paths: Vec<String>) -> String {
 }
 
 pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
-    String_from("")
-}
-
-fn bootstrap_decl_is_command_entry(decl: AstNode) -> bool {
-    if !component_ast_node__node_is_fn_decl(decl) {
-        return false
-    }
-    let name = component_ast_node__node_text(decl)
-    eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start"))
-}
-
-fn bootstrap_world_command_has_run(decls: Vec<AstNode>, export_roots: Vec<String>) -> bool {
-    let mut ri = 0
-    while ri < len(export_roots) {
-        if eq(clone(get_unchecked(export_roots, ri)), String_from("run")) {
-            return true
-        }
-        ri = ri + 1
-    }
-    let mut di = 0
-    while di < len(decls) {
-        if bootstrap_decl_is_command_entry(get_unchecked(decls, di)) {
-            return true
-        }
-        di = di + 1
-    }
-    false
+    // Keep canonical ABI export validation alive through the bootstrap facade.
+    // Flat-overlay dedupe renames the real helpers; bootstrap_* bridges are
+    // patched in after rename (see _patch_bootstrap_component_contract_delegate).
+    component_contract::bootstrap_validate_export_surface(decls)
 }
 
 pub fn preflight_frontend(config_emit_mode: String, wit_paths: Vec<String>, decls: Vec<AstNode>, world: String) -> String {
-    if eq(clone(world), String_from("wasi:cli/command")) {
-        let export_roots = bootstrap_collect_wit_export_roots(decls)
-        if !bootstrap_world_command_has_run(decls, export_roots) {
-            return concat(String_from("world `"), concat(clone(world), String_from("` requires export `wasi:cli/run/run`, but no matching function found")))
-        }
-    }
-    String_from("")
+    component_contract_preflight::bootstrap_preflight_frontend(config_emit_mode, wit_paths, decls, world)
 }
 """
 
@@ -833,9 +810,11 @@ def _is_selfhost_compiler(compiler_wasm: Path, root: Path) -> bool:
         rel = compiler_wasm.relative_to(root)
     except ValueError:
         return False
-    s = str(rel)
-    # Selfhost-built compilers are in .build/selfhost/arukellt-s2*.wasm or s3*.wasm
-    return s.startswith(".build/selfhost/arukellt-s")
+    try:
+        compiler_wasm.relative_to(_selfhost_dir(root))
+    except ValueError:
+        return False
+    return compiler_wasm.name.startswith("arukellt-s")
 
 
 def _wasm_compile(
@@ -848,6 +827,7 @@ def _wasm_compile(
     workspace_root: Path | None = None,
     target: str | None = None,
     wasi_version: str | None = None,
+    extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ``compiler_wasm compile <src> --target <T> -o <out_rel>`` under wasmtime.
 
@@ -1484,6 +1464,84 @@ def _patch_bootstrap_component_wit_stub_calls(compiler_out: Path) -> None:
             wit_text = wit_text + "\n"
         wit_text = wit_text + BOOTSTRAP_WIT_EMIT_PATCH
         wit_path.write_text(wit_text, encoding="utf-8")
+
+
+def _patch_bootstrap_component_contract_delegate(compiler_out: Path) -> None:
+    """Wire stub export-surface validation to real contract helpers after rename."""
+    contract_path = compiler_out / "component_contract.ark"
+    preflight_path = compiler_out / "component_contract_preflight.ark"
+    stub_path = compiler_out / _COMPONENT_STUB_REL
+    if not contract_path.is_file() or not preflight_path.is_file() or not stub_path.is_file():
+        raise BootstrapOverlayError(
+            "bootstrap component contract delegate requires "
+            "component_contract.ark, component_contract_preflight.ark, and component.ark"
+        )
+
+    contract_text = contract_path.read_text(encoding="utf-8")
+    validate_match = re.search(
+        r"^(?:pub )?fn (\w*validate_export_surface)\(decls: Vec<AstNode>\)",
+        contract_text,
+        flags=re.M,
+    )
+    if validate_match is None:
+        raise BootstrapOverlayError(
+            "component_contract.ark missing validate_export_surface after overlay rename"
+        )
+    validate_fn = validate_match.group(1)
+    if "bootstrap_validate_export_surface" not in contract_text:
+        if contract_text and not contract_text.endswith("\n"):
+            contract_text = contract_text + "\n"
+        contract_text = (
+            contract_text
+            + "\n"
+            + "pub fn bootstrap_validate_export_surface(decls: Vec<AstNode>) -> String {\n"
+            + f"    {validate_fn}(decls)\n"
+            + "}\n"
+        )
+        contract_path.write_text(contract_text, encoding="utf-8")
+
+    preflight_text = preflight_path.read_text(encoding="utf-8")
+    preflight_match = re.search(
+        r"^(?:pub )?fn (\w*preflight_frontend)\(",
+        preflight_text,
+        flags=re.M,
+    )
+    if preflight_match is None:
+        raise BootstrapOverlayError(
+            "component_contract_preflight.ark missing preflight_frontend after overlay rename"
+        )
+    preflight_fn = preflight_match.group(1)
+    if "bootstrap_preflight_frontend" not in preflight_text:
+        if preflight_text and not preflight_text.endswith("\n"):
+            preflight_text = preflight_text + "\n"
+        preflight_text = (
+            preflight_text
+            + "\n"
+            + "pub fn bootstrap_preflight_frontend("
+            + "config_emit_mode: String, wit_paths: Vec<String>, "
+            + "decls: Vec<AstNode>, world: String) -> String {\n"
+            + f"    {preflight_fn}(config_emit_mode, wit_paths, decls, world)\n"
+            + "}\n"
+        )
+        preflight_path.write_text(preflight_text, encoding="utf-8")
+
+    stub_text = stub_path.read_text(encoding="utf-8")
+    if "use component_contract\n" not in stub_text:
+        stub_text = _replace_required(
+            stub_text,
+            "use component_component_base\n",
+            "use component_component_base\nuse component_contract\nuse component_contract_preflight\n",
+            "add contract imports to component stub",
+        )
+    if "bootstrap_validate_export_surface" not in stub_text:
+        raise BootstrapOverlayError(
+            "component.ark stub must call bootstrap_validate_export_surface"
+        )
+    if "bootstrap_preflight_frontend" not in stub_text:
+        raise BootstrapOverlayError(
+            "component.ark stub must call bootstrap_preflight_frontend"
+        )
+    stub_path.write_text(stub_text, encoding="utf-8")
 
 
 def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
@@ -2442,8 +2500,15 @@ def _widen_compiler_wasm_to_memory64(
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
         return None
+    # Full selfhost / native-cpp C generation exceeds the historical 4GiB-1
+    # Memory64 initial heap; reserve more pages so the bump allocator does not
+    # depend on the i32-shaped grow helper past the wasm32 ceiling.
+    initial_pages = os.environ.get("ARUKELLT_WASM_INITIAL_PAGES", "131072").strip()
+    patch_cmd = [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"]
+    if initial_pages and initial_pages != "0":
+        patch_cmd.append(f"--initial-pages={initial_pages}")
     patch = subprocess.run(
-        [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"],
+        patch_cmd,
         cwd=str(root),
         capture_output=True,
         text=True,
@@ -3206,6 +3271,7 @@ def _prepare_flattened_selfhost_source_locked(
     _patch_bootstrap_component_wit_bridge(compiler_out)
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_component_wit_stub_calls(compiler_out)
+    _patch_bootstrap_component_contract_delegate(compiler_out)
     _patch_bootstrap_driver_wit_delegate(compiler_out)
     _patch_bootstrap_driver_component_delegate(compiler_out)
     _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
@@ -3602,6 +3668,7 @@ def _wasm_compile_selfhost_source(
     use_s3_cache: bool = False,
     target: str | None = None,
     wasi_version: str | None = None,
+    extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
     """Compile current selfhost source, falling back to a flat bootstrap overlay.
 
@@ -3637,6 +3704,7 @@ def _wasm_compile_selfhost_source(
                     workspace_root=workspace,
                     target=emit_target,
                     wasi_version=emit_wasi,
+                    extra_args=extra_args,
                 )
             result = _wasm_compile(
                 wasmtime,
@@ -3647,6 +3715,7 @@ def _wasm_compile_selfhost_source(
                 timeout=compile_timeout,
                 target=emit_target,
                 wasi_version=emit_wasi,
+                extra_args=extra_args,
             )
             if result.returncode == 0:
                 return result
@@ -3663,6 +3732,7 @@ def _wasm_compile_selfhost_source(
                 workspace_root=ws,
                 target=emit_target,
                 wasi_version=emit_wasi,
+                extra_args=extra_args,
             )
         finally:
             if prev_emit is None:
@@ -3906,6 +3976,10 @@ def _run_fixpoint_locked(
             (build_dir / "s2-hash.txt").write_text(_sha256(s2), encoding="utf-8")
             if fingerprint is not None:
                 (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
+            from selfhost.native_executor import write_s2_build_profile
+            write_s2_build_profile(
+                root, s2, fingerprint=fingerprint if fingerprint is not None else ""
+            )
         except OSError:
             pass
 
@@ -4057,6 +4131,14 @@ def _rebuild_current_s2_locked(
                             f"{RED}error: pinned-reference selfhost wasm not found at "
                             f"{PINNED_WASM_REL}{NC}"
                         ), time.time() - started
+                    try:
+                        from selfhost.native_executor import write_s2_build_profile
+                        write_s2_build_profile(root, out, fingerprint=fingerprint)
+                    except Exception as profile_exc:
+                        return None, (
+                            f"{RED}error: failed to write S2 build-profile manifest: "
+                            f"{profile_exc}{NC}"
+                        ), time.time() - started
                     runtime = _parity_runtime_compiler(root, pinned, out)
                     if runtime is None:
                         return None, (
@@ -4117,6 +4199,15 @@ def _rebuild_current_s2_locked(
         (build_dir / "s2-source-hash.txt").write_text(fingerprint, encoding="utf-8")
     except OSError:
         pass
+
+    # Machine-readable output profile for native-executor / ADR-049 lane.
+    try:
+        from selfhost.native_executor import write_s2_build_profile
+        write_s2_build_profile(root, out, fingerprint=fingerprint)
+    except Exception as profile_exc:
+        return None, (
+            f"{RED}error: failed to write S2 build-profile manifest: {profile_exc}{NC}"
+        ), time.time() - started
 
     runtime = _parity_runtime_compiler(root, pinned, out)
     if runtime is None:

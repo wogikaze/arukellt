@@ -1,0 +1,441 @@
+// Reference-local liveness for native-cpp GC root clears (#847 / #848).
+// Phase 3: last-use clears at alloc safepoints; loop-touched locals stay rooted
+// because ADR-024 leaves MirBlock succ0/succ1 unset (block-CFG is unsound).
+
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_locals_view
+use mir::function_param_view
+use mir::inst_accessors_shape
+use mir::opcodes
+
+pub struct NativeCRootClearPlan {
+    // Parallel to emit order (all instructions); non-safepoint entries have count 0.
+    clear_start: Vec<i32>,
+    clear_count: Vec<i32>,
+    clear_locals: Vec<i32>,
+    instruction_count: i32,
+    functions_analyzed: i32,
+    functions_skipped: i32,
+    reference_local_count: i32,
+    // Assignments = individual local clears; sites = safepoints with ≥1 clear.
+    cleared_root_count: i32,
+    clear_site_count: i32,
+    safepoint_count: i32,
+    peak_live_slots: i32,
+    planner_bytes_est: i32,
+    converged: bool,
+    reject_diagnostic: String,
+}
+
+pub struct NativeCInstructionEffects {
+    // Flat parallel arrays, one entry per emitted instruction in order.
+    block_ids: Vec<i32>,
+    reachable: Vec<i32>,
+    is_safepoint: Vec<i32>,
+    opcodes: Vec<i32>,
+    use_start: Vec<i32>,
+    use_count: Vec<i32>,
+    use_locals: Vec<i32>,
+    def_start: Vec<i32>,
+    def_count: Vec<i32>,
+    def_locals: Vec<i32>,
+}
+
+fn native_c_root_clear_plan_empty() -> NativeCRootClearPlan {
+    NativeCRootClearPlan {
+        clear_start: Vec_new_i32(),
+        clear_count: Vec_new_i32(),
+        clear_locals: Vec_new_i32(),
+        instruction_count: 0,
+        functions_analyzed: 0,
+        functions_skipped: 0,
+        reference_local_count: 0,
+        cleared_root_count: 0,
+        clear_site_count: 0,
+        safepoint_count: 0,
+        peak_live_slots: 0,
+        planner_bytes_est: 0,
+        converged: true,
+        reject_diagnostic: String_new(),
+    }
+}
+
+fn native_c_instruction_effects_new() -> NativeCInstructionEffects {
+    NativeCInstructionEffects {
+        block_ids: Vec_new_i32(),
+        reachable: Vec_new_i32(),
+        is_safepoint: Vec_new_i32(),
+        opcodes: Vec_new_i32(),
+        use_start: Vec_new_i32(),
+        use_count: Vec_new_i32(),
+        use_locals: Vec_new_i32(),
+        def_start: Vec_new_i32(),
+        def_count: Vec_new_i32(),
+        def_locals: Vec_new_i32(),
+    }
+}
+
+/// SSOT: MIR opcodes that may allocate or collect during native-cpp lowering.
+fn native_c_is_safepoint_op(op: i32) -> bool {
+    if op == opcodes::MIR_CONST_STRING() { return true }
+    if op == opcodes::MIR_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_GC_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_ARRAY_NEW() { return true }
+    if op == opcodes::MIR_CALL() { return true }
+    if op == opcodes::MIR_CALL_INDIRECT() { return true }
+    if op == opcodes::MIR_CALL_REF() { return true }
+    if op == opcodes::MIR_WIT_CALL() { return true }
+    false
+}
+
+/// Allocating safepoints where last-use clears are emitted.
+/// CALL clears remain off: enabling them on full-S3 inflates clear vectors until
+/// native-cpp C generation hits host ICE / memory faults.
+/// CONST_STRING clears are also off: they dominate safepoint volume (~tens of
+/// seconds of mutator stores) without shrinking the retained full-S3 live set
+/// after Phase 5 owner release; struct/array alloc sites still clear.
+fn native_c_is_clear_emit_safepoint_op(op: i32) -> bool {
+    if op == opcodes::MIR_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_GC_STRUCT_NEW() { return true }
+    if op == opcodes::MIR_ARRAY_NEW() { return true }
+    false
+}
+
+fn native_c_bitset_new(width: i32) -> Vec<i32> {
+    let bits = Vec_new_i32()
+    let mut index = 0
+    while index < width {
+        push(bits, 0)
+        index = index + 1
+    }
+    bits
+}
+
+fn native_c_bitset_clear(bits: Vec<i32>) {
+    let mut index = 0
+    while index < len(bits) {
+        set(bits, index, 0)
+        index = index + 1
+    }
+}
+
+fn native_c_bitset_set_ref(bits: Vec<i32>, local: i32, reference_locals: Vec<i32>) {
+    if local < 0 || local >= len(bits) { return }
+    if local >= len(reference_locals) { return }
+    if get_unchecked(reference_locals, local) == 0 { return }
+    set(bits, local, 1)
+}
+
+fn native_c_effects_push(
+    effects: NativeCInstructionEffects,
+    block_id: i32,
+    reachable: bool,
+    is_safepoint: bool,
+    opcode: i32,
+    uses: Vec<i32>,
+    defs: Vec<i32>
+) {
+    push(effects.block_ids, block_id)
+    if reachable { push(effects.reachable, 1) } else { push(effects.reachable, 0) }
+    if is_safepoint { push(effects.is_safepoint, 1) } else { push(effects.is_safepoint, 0) }
+    push(effects.opcodes, opcode)
+    push(effects.use_start, len(effects.use_locals))
+    push(effects.use_count, len(uses))
+    let mut index = 0
+    while index < len(uses) {
+        push(effects.use_locals, get_unchecked(uses, index))
+        index = index + 1
+    }
+    push(effects.def_start, len(effects.def_locals))
+    push(effects.def_count, len(defs))
+    index = 0
+    while index < len(defs) {
+        push(effects.def_locals, get_unchecked(defs, index))
+        index = index + 1
+    }
+}
+
+/// True when MIR may have backedges. Global last-use is unsound with loops.
+/// IF/ELSE DAGs are OK: last-use is conservative across branches (ADR-024).
+fn native_c_function_has_loop_backedge(function: MirFunction) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = function_block_queries::MirFunction_block_at(function, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let op = inst_accessors_shape::MirInst_op(
+                block_inst_access::MirBlock_inst_at(block, inst_index)
+            )
+            if op == opcodes::MIR_LOOP() || op == opcodes::MIR_BR() {
+                return true
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    false
+}
+
+fn native_c_function_has_structured_control(function: MirFunction) -> bool {
+    // Compatibility alias: loops block naive emit; IF/ELSE use last-use policy.
+    native_c_function_has_loop_backedge(function)
+}
+
+fn native_c_plan_root_clears_from_effects(
+    function: MirFunction,
+    reference_locals: Vec<i32>,
+    effects: NativeCInstructionEffects
+) -> NativeCRootClearPlan {
+    let plan = native_c_root_clear_plan_empty()
+    plan.functions_analyzed = 1
+    let block_count = function_block_queries::MirFunction_block_count(function)
+    // MIR_PHI / block.phis are lowered by edge parallel copies (RFC-008).
+    // Root liveness analyzes the post-copy local shape and must not ICE.
+    let local_count = function_locals_view::MirFunction_local_count(function)
+    let mut reference_count = 0
+    let mut local_index = 0
+    while local_index < local_count && local_index < len(reference_locals) {
+        if get_unchecked(reference_locals, local_index) != 0 {
+            reference_count = reference_count + 1
+        }
+        local_index = local_index + 1
+    }
+    plan.reference_local_count = reference_count
+    let instruction_total = len(effects.block_ids)
+    plan.instruction_count = instruction_total
+    let mut pad = 0
+    while pad < instruction_total {
+        push(plan.clear_start, 0)
+        push(plan.clear_count, 0)
+        pad = pad + 1
+    }
+    if reference_count == 0 || instruction_total == 0 {
+        return plan
+    }
+
+    // Global last-use is sound for loop-free MIR (IF/ELSE DAGs inclusive).
+    // Loop-carried values would look dead after their last linear use.
+    let store_clear_locals = native_c_root_clear_emit_allowed(block_count, reference_count)
+    plan.planner_bytes_est = local_count * 8
+    plan.converged = true
+    let parameter_count = function_param_view::MirFunction_param_count(function)
+
+    // Locals used inside LOOP…END are treated as loop-carried / loop-live and
+    // are never cleared (sound under ADR-024 missing backedges).
+    let used_in_loop = native_c_bitset_new(local_count)
+    let control_stack = Vec_new_i32()
+    let mut scan = 0
+    while scan < instruction_total {
+        let op = get_unchecked(effects.opcodes, scan)
+        if op == opcodes::MIR_LOOP() || op == opcodes::MIR_IF() || op == opcodes::MIR_BLOCK() {
+            push(control_stack, op)
+        }
+        if op == opcodes::MIR_END() && len(control_stack) > 0 {
+            pop(control_stack)
+        }
+        let mut loop_depth = 0
+        let mut ci = 0
+        while ci < len(control_stack) {
+            if get_unchecked(control_stack, ci) == opcodes::MIR_LOOP() {
+                loop_depth = loop_depth + 1
+            }
+            ci = ci + 1
+        }
+        if loop_depth > 0 && get_unchecked(effects.reachable, scan) != 0 {
+            let use_start = get_unchecked(effects.use_start, scan)
+            let use_n = get_unchecked(effects.use_count, scan)
+            let mut u = 0
+            while u < use_n {
+                let local = get_unchecked(effects.use_locals, use_start + u)
+                if local >= 0 && local < local_count {
+                    set(used_in_loop, local, 1)
+                }
+                u = u + 1
+            }
+        }
+        scan = scan + 1
+    }
+
+    let last_use = Vec_new_i32()
+    local_index = 0
+    while local_index < local_count {
+        push(last_use, 0 - 1)
+        local_index = local_index + 1
+    }
+    let mut absolute = 0
+    while absolute < instruction_total {
+        if get_unchecked(effects.reachable, absolute) != 0 {
+            let use_start = get_unchecked(effects.use_start, absolute)
+            let use_n = get_unchecked(effects.use_count, absolute)
+            let mut u = 0
+            while u < use_n {
+                let local = get_unchecked(effects.use_locals, use_start + u)
+                if local >= 0 && local < local_count {
+                    set(last_use, local, absolute)
+                }
+                u = u + 1
+            }
+        }
+        absolute = absolute + 1
+    }
+
+    absolute = 0
+    while absolute < instruction_total {
+        if get_unchecked(effects.reachable, absolute) != 0 &&
+        get_unchecked(effects.is_safepoint, absolute) != 0 {
+            plan.safepoint_count = plan.safepoint_count + 1
+            let op = get_unchecked(effects.opcodes, absolute)
+            let may_emit_clear = native_c_is_clear_emit_safepoint_op(op)
+            let use_start = get_unchecked(effects.use_start, absolute)
+            let use_n = get_unchecked(effects.use_count, absolute)
+            let clear_at = len(plan.clear_locals)
+            set(plan.clear_start, absolute, clear_at)
+            let mut clear_n = 0
+            if may_emit_clear {
+                local_index = 0
+                while local_index < local_count {
+                    // Parameters and loop-touched locals stay rooted.
+                    if local_index >= parameter_count &&
+                    get_unchecked(reference_locals, local_index) != 0 &&
+                    get_unchecked(used_in_loop, local_index) == 0 {
+                        let mut used_here = false
+                        let mut u = 0
+                        while u < use_n {
+                            if get_unchecked(effects.use_locals, use_start + u) == local_index {
+                                used_here = true
+                            }
+                            u = u + 1
+                        }
+                        let last = get_unchecked(last_use, local_index)
+                        // Dead at this alloc safepoint: no later use and not an operand.
+                        if !used_here && last < absolute {
+                            if store_clear_locals {
+                                push(plan.clear_locals, local_index)
+                            }
+                            clear_n = clear_n + 1
+                            plan.cleared_root_count = plan.cleared_root_count + 1
+                        }
+                    }
+                    local_index = local_index + 1
+                }
+            }
+            set(plan.clear_count, absolute, clear_n)
+            if clear_n > 0 {
+                plan.clear_site_count = plan.clear_site_count + 1
+            }
+        }
+        absolute = absolute + 1
+    }
+    plan
+}
+
+// Compatibility wrapper: empty effects → no clears planned (legacy call sites).
+fn native_c_plan_root_clears(
+    function: MirFunction,
+    reference_locals: Vec<i32>
+) -> NativeCRootClearPlan {
+    native_c_plan_root_clears_from_effects(
+        function,
+        reference_locals,
+        native_c_instruction_effects_new()
+    )
+}
+
+fn native_c_root_clear_plan_start(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_start
+}
+
+fn native_c_root_clear_plan_counts(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_count
+}
+
+fn native_c_root_clear_plan_locals(plan: NativeCRootClearPlan) -> Vec<i32> {
+    plan.clear_locals
+}
+
+fn native_c_root_clear_plan_cleared_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.cleared_root_count
+}
+
+fn native_c_root_clear_plan_site_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.clear_site_count
+}
+
+fn native_c_root_clear_plan_safepoint_count(plan: NativeCRootClearPlan) -> i32 {
+    plan.safepoint_count
+}
+
+fn native_c_root_clear_plan_functions_analyzed(plan: NativeCRootClearPlan) -> i32 {
+    plan.functions_analyzed
+}
+
+fn native_c_root_clear_plan_functions_skipped(plan: NativeCRootClearPlan) -> i32 {
+    plan.functions_skipped
+}
+
+fn native_c_root_clear_plan_converged(plan: NativeCRootClearPlan) -> bool {
+    plan.converged
+}
+
+fn native_c_root_clear_plan_peak_slots(plan: NativeCRootClearPlan) -> i32 {
+    plan.peak_live_slots
+}
+
+fn native_c_root_clear_plan_planner_bytes(plan: NativeCRootClearPlan) -> i32 {
+    plan.planner_bytes_est
+}
+
+/// Emit rollout mode: 0=shadow only, 1=size-gated / full emit (Phase 3+).
+fn native_c_root_clear_emit_mode() -> i32 {
+    1
+}
+
+/// 0 means unlimited (Stage D).
+fn native_c_root_clear_emit_max_blocks() -> i32 {
+    0
+}
+
+fn native_c_root_clear_emit_max_refs() -> i32 {
+    0
+}
+
+fn native_c_root_clear_emit_enabled() -> bool {
+    native_c_root_clear_emit_mode() != 0
+}
+
+fn native_c_root_clear_emit_allowed(block_count: i32, reference_count: i32) -> bool {
+    if !native_c_root_clear_emit_enabled() {
+        return false
+    }
+    let max_blocks = native_c_root_clear_emit_max_blocks()
+    let max_refs = native_c_root_clear_emit_max_refs()
+    if max_blocks > 0 && block_count > max_blocks {
+        return false
+    }
+    if max_refs > 0 && reference_count > max_refs {
+        return false
+    }
+    true
+}
+
+test mod "native_c_root_liveness_safepoint_ssot" {
+    test "const_string_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_CONST_STRING()))
+    }
+    test "struct_new_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_STRUCT_NEW()))
+    }
+    test "call_is_safepoint" {
+        assert(native_c_is_safepoint_op(opcodes::MIR_CALL()))
+    }
+    test "local_get_is_not_safepoint" {
+        assert(!native_c_is_safepoint_op(opcodes::MIR_LOCAL_GET()))
+    }
+    test "emit_mode_stage_d_unlimited" {
+        assert(native_c_root_clear_emit_enabled())
+        assert(native_c_root_clear_emit_allowed(1000, 1000))
+    }
+}

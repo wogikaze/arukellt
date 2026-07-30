@@ -133,6 +133,10 @@ core_op_id = "raw.string_push_char"
 
 
 [[legacy_bindings]]
+alias = "__intrinsic_concat"
+core_op_id = "string.concat"
+
+[[legacy_bindings]]
 alias = "__intrinsic_clock_now"
 core_op_id = "runtime.clock_now"
 
@@ -239,6 +243,22 @@ core_op_id = "panic"
 [[legacy_bindings]]
 alias = "__intrinsic_println"
 core_op_id = "runtime.println"
+
+[[legacy_bindings]]
+alias = "__intrinsic_print"
+core_op_id = "runtime.print"
+
+[[legacy_bindings]]
+alias = "__intrinsic_eprintln"
+core_op_id = "runtime.eprintln"
+
+[[legacy_bindings]]
+alias = "__intrinsic_join"
+core_op_id = "string.join"
+
+[[legacy_bindings]]
+alias = "__intrinsic_split"
+core_op_id = "string.split"
 
 [[legacy_bindings]]
 alias = "__intrinsic_process_abort"
@@ -1129,6 +1149,10 @@ alias = "concat"
 core_op_id = "string.concat"
 
 [[legacy_bindings]]
+alias = "contains"
+core_op_id = "string.contains"
+
+[[legacy_bindings]]
 alias = "convert::bool_to_string"
 core_op_id = "text.format_bool"
 
@@ -1380,6 +1404,8 @@ core_op_id = "runtime.is_ok"
 alias = "is_some"
 core_op_id = "runtime.is_ok"
 
+# Bare `join` binds string.join for prelude/text call sites. `path::join` must
+# resolve via qualified mangled registration (not short-name fallback).
 [[legacy_bindings]]
 alias = "join"
 core_op_id = "string.join"
@@ -1510,6 +1536,10 @@ core_op_id = "runtime.process.abort"
 
 [[legacy_bindings]]
 alias = "process_exit"
+core_op_id = "runtime.process.exit"
+
+[[legacy_bindings]]
+alias = "exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
@@ -1972,13 +2002,9 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
-[[legacy_bindings]]
-alias = "write_bytes"
-core_op_id = "runtime.write_bytes"
-
-[[legacy_bindings]]
-alias = "write_string"
-core_op_id = "runtime.write_string"
+# Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps:
+# `io::write_bytes` / `io::write_string` share those short names and must keep
+# their Ark Writer bodies. Use `fs::write_*` / `fs_write_*` / intrinsic aliases.
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Types
@@ -5229,7 +5255,7 @@ id = "runtime.write_bytes"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_bytes (aliases: 4; fs::write_bytes, write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
+description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5266,7 +5292,7 @@ id = "runtime.write_string"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_string (aliases: 4; fs::write_string, write_string, fs_write_file, __intrinsic_fs_write_file)"
+description = "Legacy handler branch → fs::write_string (aliases: fs::write_string, fs_write_file, __intrinsic_fs_write_file)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

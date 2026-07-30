@@ -1,0 +1,10 @@
+use std::host::stdio
+
+fn main() {
+    let mut outer = Vec_new_Vec_String()
+    let mut inner = Vec_new_String()
+    inner = push(inner, String_from("a"))
+    outer = push(outer, inner)
+    let got = get_unchecked(outer, 0)
+    stdio::println(get_unchecked(got, 0))
+}

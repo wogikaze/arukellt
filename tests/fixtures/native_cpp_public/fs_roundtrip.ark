@@ -1,0 +1,24 @@
+use std::host::fs
+use std::host::process
+use std::host::stdio
+
+fn main() {
+    let path = String_from("native_cpp_public_fs_roundtrip.txt")
+    match fs::write_string(clone(path), String_from("fs-ok")) {
+        Result::Ok(_) => {
+        },
+        Result::Err(err) => {
+            stdio::eprintln(err)
+            process::exit(2)
+        },
+    }
+    match fs::read_to_string(path) {
+        Result::Ok(text) => {
+            stdio::println(text)
+        },
+        Result::Err(err) => {
+            stdio::eprintln(err)
+            process::exit(3)
+        },
+    }
+}

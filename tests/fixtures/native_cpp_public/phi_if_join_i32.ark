@@ -1,0 +1,11 @@
+use std::host::stdio
+
+fn main() {
+    let flag = 1
+    let value = if flag == 1 {
+        10
+    } else {
+        20
+    }
+    stdio::println(concat(String_from("value="), to_string(value)))
+}

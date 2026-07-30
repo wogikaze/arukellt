@@ -55,6 +55,7 @@ from selfhost.checks import (  # noqa: E402
     run_fmt_parity,
     run_parity,
 )
+from selfhost.native_executor import run_native_executor  # noqa: E402
 from docs_domain.checks import (  # noqa: E402
     run_consistency,
     run_deprecated_api_scan,
@@ -4723,6 +4724,26 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             "python3 scripts/check/check-false-done-hygiene.py",
         ),
         (
+            "native-cpp capabilities registry",
+            "python3 scripts/check/check-native-cpp-capabilities.py",
+        ),
+        (
+            "native-cpp safepoint audit",
+            "python3 scripts/check/check-native-cpp-safepoint-audit.py",
+        ),
+        (
+            "native-executor CI contract (#848)",
+            "python3 scripts/check/check-native-executor-ci-contract.py",
+        ),
+        (
+            "native runtime C99 -Werror",
+            "python3 scripts/check/check-native-runtime-c99-werror.py",
+        ),
+        (
+            "native-executor manager unit tests",
+            "python3 scripts/tests/test_native_cpp_executor.py",
+        ),
+        (
             "operational target drift",
             "python3 scripts/check/check-operational-target-drift.py",
         ),
@@ -6971,6 +6992,32 @@ def _build_selfhost_subparser(sub_domain: argparse._SubParsersAction) -> None:  
         default=False,
         help="Skip rebuild when s2 already matches the current source fingerprint",
     )
+    p_ne = sub.add_parser(
+        "native-executor",
+        help="ADR-049 native C99 executor lane (S2 profile → native → S3 byte equality)",
+        description=(
+            "Build/cache arukellt-native from S2, then generate S3 with the same output "
+            "profile as the comparison S2 (build-profile manifest). Requires --build."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p_ne.add_argument("--dry-run", action="store_true")
+    p_ne.add_argument(
+        "--build",
+        action="store_true",
+        default=False,
+        help="Build or refresh the native executor and run the S3 equality lane",
+    )
+    p_ne.add_argument(
+        "--allow-high-rss",
+        action="store_true",
+        default=False,
+        help=(
+            "Opt-in: if correctness/determinism/wall gates pass, exit 0 even when "
+            "executor RSS exceeds 2.4 GiB (warning + receipt flags; not for CI; "
+            "does not promote current-state)"
+        ),
+    )
     for name, help_text in [
         ("fixture-parity", "Run selfhost fixture parity"),
         ("diag-parity", "Run selfhost diagnostic parity"),
@@ -7220,6 +7267,7 @@ def main() -> int:
             "build-compiler": cmd_selfhost_build_compiler,
             "build-s2":       cmd_selfhost_build_compiler,
             "rebuild-s2":     cmd_selfhost_build_compiler,
+            "native-executor": cmd_selfhost_native_executor,
             "fixture-parity": cmd_selfhost_fixture_parity,
             "diag-parity":    cmd_selfhost_diag_parity,
             "fmt-parity":     cmd_selfhost_fmt_parity,
@@ -7289,6 +7337,35 @@ def main() -> int:
     print(f"{RED}error: unknown domain: {args.domain}{NC}", file=sys.stderr)
     return 1
 # ── selfhost subcommands ──────────────────────────────────────────────────────
+
+
+def _ci_forbids_native_high_rss() -> bool:
+    """CI/GitHub Actions must never use --allow-high-rss as a success path."""
+    if os.environ.get("GITHUB_ACTIONS", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("CI", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
+def cmd_selfhost_native_executor(args: argparse.Namespace) -> int:
+    """Run the ADR-049 native executor lane and preserve its receipt."""
+    allow_high_rss = bool(getattr(args, "allow_high_rss", False))
+    if allow_high_rss and _ci_forbids_native_high_rss():
+        print(
+            f"{RED}error: --allow-high-rss is a local escape hatch only; "
+            f"forbidden under CI/GITHUB_ACTIONS{NC}",
+            file=sys.stderr,
+        )
+        return 2
+    return_code, output = run_native_executor(
+        _repo_root(),
+        build=getattr(args, "build", False),
+        dry_run=args.dry_run,
+        allow_high_rss=allow_high_rss,
+    )
+    print(output)
+    return return_code
 
 
 def cmd_selfhost_fixpoint(args: argparse.Namespace) -> int:

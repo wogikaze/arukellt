@@ -30,24 +30,24 @@ fn component_string_allows(string_scan: ComponentStringScan) -> ComponentStringA
     )
 }
 
-fn component_collection_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsCollection {
+fn component_collection_allows_from_decls(decls: Vec<AstNode>) -> ComponentCollectionAllows {
     let list_scan = contract_collection_list_scan::component_collection_list_scan(decls)
     let option_scan = contract_collection_option_scan::component_collection_option_scan(decls)
     let result_scan = contract_collection_result_scan::component_collection_result_scan(decls)
     component_collection_allows(list_scan, option_scan, result_scan)
 }
 
-fn component_numeric_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsNumeric {
+fn component_numeric_allows_from_decls(decls: Vec<AstNode>) -> ComponentNumericAllows {
     let numeric_scan = contract_numeric_scan::component_numeric_scan(decls)
     contract_allows_numeric::component_numeric_allows(numeric_scan)
 }
 
-fn component_string_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsString {
+fn component_string_allows_from_decls(decls: Vec<AstNode>) -> ComponentStringAllows {
     let string_scan = contract_string_scan::component_string_scan(decls)
     component_string_allows(string_scan)
 }
 
-fn component_tuple_allows_from_decls(decls: Vec<AstNode>) -> ComponentContractAllowsTuple {
+fn component_tuple_allows_from_decls(decls: Vec<AstNode>) -> ComponentTupleAllows {
     let tuple_scan = contract_tuple_scan::component_tuple_scan(decls)
     contract_allows_tuple::component_tuple_allows(tuple_scan)
 }

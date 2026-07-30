@@ -1,0 +1,8 @@
+// Exact alias Vec_new_String must keep working beside family patterns.
+use std::host::stdio
+
+fn main() {
+    let mut items = Vec_new_String()
+    items = push(items, String_from("exact"))
+    stdio::println(get_unchecked(items, 0))
+}

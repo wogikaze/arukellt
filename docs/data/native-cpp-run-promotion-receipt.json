@@ -1,0 +1,24 @@
+{
+  "created_utc": "2026-07-25T10:17:55Z",
+  "final_banner": {
+    "ISSUE_649": "CLOSED",
+    "NATIVE_CPP_PUBLIC_RUN_EXPERIMENTAL_PROMOTION": "COMPLETE",
+    "RUN_SUPPORTED": true
+  },
+  "gates": {
+    "installed_layout": "PASS",
+    "parity": "PASS",
+    "public_corpus": "PASS",
+    "ubsan_werror": "PASS"
+  },
+  "native_cpp_target": {
+    "contract_stability": "experimental",
+    "implementation_state": "partial",
+    "run_supported": true,
+    "support_tier": "scaffold"
+  },
+  "public_coverage_receipt": "docs/data/native-cpp-public-coverage-receipt.json",
+  "receipt_kind": "native-cpp-public-run-experimental-promotion",
+  "receipt_schema_version": 1,
+  "run_supported": true
+}

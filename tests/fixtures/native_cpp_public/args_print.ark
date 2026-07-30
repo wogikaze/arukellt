@@ -1,0 +1,13 @@
+use std::host::stdio
+use std::host::env
+
+fn main() {
+    let values = env::args()
+    let n = len(values)
+    stdio::println(concat(String_from("count="), to_string(n)))
+    let mut i = 0
+    while i < n {
+        stdio::println(concat(String_from("arg="), get_unchecked(values, i)))
+        i = i + 1
+    }
+}

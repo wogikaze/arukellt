@@ -88,7 +88,8 @@ EOF
   exit 2
 fi
 
-if ! command -v wasmtime >/dev/null 2>&1; then
+WASMTIME_BIN="${ARUKELLT_WASMTIME_BIN:-wasmtime}"
+if ! command -v "$WASMTIME_BIN" >/dev/null 2>&1; then
   echo "arukellt-selfhost: error — wasmtime not found in PATH; install wasmtime ≥ 30" >&2
   exit 127
 fi
@@ -128,6 +129,43 @@ if [[ "${1:-}" == "doc" ]]; then
   if [[ "$doc_html" -eq 1 ]]; then
     exec "$REPO_ROOT/scripts/gen/generate-stdlib-docs.sh" "$doc_output"
   fi
+fi
+
+# ADR-050: public `run --target native-cpp` is owned by the host launcher.
+# Detect target only from compiler options before `--` so program args cannot
+# force or suppress routing (e.g. `run prog.ark -- --target native-cpp`).
+is_native_cpp_public_run() {
+  local i=2
+  local arg next
+  while [[ $i -le $# ]]; do
+    arg="${!i}"
+    if [[ "$arg" == "--" ]]; then
+      break
+    fi
+    if [[ "$arg" == "--target=native-cpp" ]]; then
+      return 0
+    fi
+    if [[ "$arg" == "--target=native-llvm" ]]; then
+      return 1
+    fi
+    if [[ "$arg" == "--target" ]]; then
+      next=$((i + 1))
+      if [[ $next -le $# ]]; then
+        if [[ "${!next}" == "native-cpp" ]]; then
+          return 0
+        fi
+        if [[ "${!next}" == "native-llvm" ]]; then
+          return 1
+        fi
+      fi
+    fi
+    i=$((i + 1))
+  done
+  return 1
+}
+
+if [[ "${1:-}" == "run" ]] && [[ -z "${ARUKELLT_NATIVE_CPP_INTERNAL_COMPILE:-}" ]] && is_native_cpp_public_run "$@"; then
+  exec python3 "$REPO_ROOT/scripts/run/native-cpp-runner.py" "$@"
 fi
 
 if [[ "${1:-}" == "run" ]]; then
@@ -205,7 +243,7 @@ if [[ "${1:-}" == "run" ]]; then
   if grep -aqE 'http_get|http_request|http_serve|sockets_connect|sockets_read|sockets_write|sockets_listen|sockets_accept' "$out_path" 2>/dev/null; then
     exec "$REPO_ROOT/scripts/run/arukellt-run-hosted.sh" --dir="$REPO_ROOT" "$out_path"
   fi
-  exec wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
+  exec "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$out_path"
 fi
 
 # #443 Phase 3: after selfhost validation, delegate binary composition to wac plug.
@@ -220,7 +258,7 @@ if [[ "${1:-}" == "compose" ]]; then
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
     set +e
-    wasmtime run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+    "$WASMTIME_BIN" run "${WASMTIME_SELFHOST_FLAGS[@]}" --dir="$REPO_ROOT" "$wasm" -- "$@" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
     rc=$?
     set -e
     cat "$tmpdir/stdout"

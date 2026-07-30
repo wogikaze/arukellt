@@ -103,6 +103,28 @@ class TargetContractTest(unittest.TestCase):
             needle = f'target_contract_generated::target_display_line(String_from("{target}"))'
             self.assertIn(needle, targets_ark, f"cmd_targets() missing generated display for {target}")
 
+    def test_emit_matrix_is_present_for_every_target(self) -> None:
+        for profile in self.state["target_profiles"]:
+            self.assertIsInstance(profile.get("default_emit_kind"), str)
+            self.assertIsInstance(profile.get("allowed_emit_kinds"), list)
+            self.assertIn(profile["default_emit_kind"], profile["allowed_emit_kinds"])
+        native = next(p for p in self.state["target_profiles"] if p["id"] == "native-cpp")
+        self.assertEqual(native["default_emit_kind"], "c")
+        self.assertEqual(native["allowed_emit_kinds"], ["c"])
+        self.assertFalse(native["run_supported"])
+        wasm_gc = next(p for p in self.state["target_profiles"] if p["id"] == "wasm32-gc")
+        self.assertNotIn("c", wasm_gc["allowed_emit_kinds"])
+
+    def test_generated_emit_helpers_cover_native_cpp(self) -> None:
+        compiler = (ROOT / "src/compiler/main/target_contract_generated.ark").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("fn target_run_supported(", compiler)
+        self.assertIn("fn target_default_emit_kind(", compiler)
+        self.assertIn("fn target_allows_emit_kind(", compiler)
+        self.assertIn('String_from("native-cpp")', compiler)
+        self.assertIn('return String_from("c")', compiler)
+
 
 if __name__ == "__main__":
     unittest.main()

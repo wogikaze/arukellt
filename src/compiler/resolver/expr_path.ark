@@ -41,15 +41,77 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
     if is_builtin_type_name(clone(module_part)) {
         return
     }
-    let mod_idx = scope_lookup::lookup(ctx, clone(module_part))
-    if mod_idx < 0 {
-        scope_error::resolve_error(ctx, concat("undefined module: ", clone(module_part)))
+
+    // Resolution order for `Head::Rest` / `module::Type::Variant`:
+    // 1. lexical/module value lookup
+    // 2. canonical type lookup (enum type head)
+    // 3. enum variant lookup
+    // 4. module-qualified function lookup
+    // 5. unresolved diagnostic
+    let head_idx = scope_lookup::lookup(ctx, clone(module_part))
+    let head_kind = if head_idx >= 0 {
+        scope_lookup::lookup_kind(ctx, clone(module_part))
+    } else {
+        0 - 1
+    }
+    let full_idx = scope_lookup::lookup(ctx, clone(path))
+    let full_kind = if full_idx >= 0 {
+        scope_lookup::lookup_kind(ctx, clone(path))
+    } else {
+        0 - 1
+    }
+
+    // Enum type as head: `Error::InvalidArgument` (not a module call).
+    if head_idx >= 0 && head_kind == commands::SYM_ENUM() {
+        if full_idx >= 0 {
+            ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+            return
+        }
+        scope_error::resolve_error(ctx, concat(String_from("undefined variant: "), clone(path)))
         return
     }
-    let sym_idx = scope_lookup::lookup(ctx, clone(path))
-    if sym_idx >= 0 {
-        let mod_kind = scope_lookup::lookup_kind(ctx, clone(module_part))
-        if mod_kind != commands::SYM_ENUM() {
+
+    // Module head: `io::IoError::Other` or `io::io_error_message`.
+    if head_idx >= 0 && head_kind == commands::SYM_MODULE() {
+        if path_has_nested_qualifier(clone(symbol_part)) {
+            if resolve_module_qualified_enum_variant(ctx, node, clone(symbol_part), full_idx, full_kind) {
+                return
+            }
+            scope_error::resolve_error(ctx, concat(String_from("undefined variant: "), clone(path)))
+            return
+        }
+        if full_idx >= 0 {
+            if full_kind != commands::SYM_VARIANT() {
+                if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
+                    scope_error::resolve_error(
+                        ctx,
+                        concat(
+                            String_from("visibility error: `"),
+                            concat(clone(symbol_part), concat(String_from("` is private and cannot be accessed from module `"), concat(clone(module_part), String_from("`"))))
+                        )
+                    )
+                }
+            }
+            ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+        }
+        return
+    }
+
+    // Canonical type lookup when the head is not a lexical module/enum: accept a
+    // bound variant path (e.g. imported `Error::Timeout` without a bare type).
+    if head_idx < 0 {
+        if full_idx >= 0 && full_kind == commands::SYM_VARIANT() {
+            ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+            return
+        }
+        scope_error::resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
+        return
+    }
+
+    // Other bound heads (struct/resource/fn): keep legacy module-qualified
+    // function visibility checks when the full path exists.
+    if full_idx >= 0 {
+        if head_kind != commands::SYM_ENUM() {
             if !scope_lookup::lookup_is_pub(ctx, clone(path)) {
                 scope_error::resolve_error(
                     ctx,
@@ -60,19 +122,54 @@ fn resolve_qualified_path(ctx: ResolveCtx, node: AstNode, path: String) {
                 )
             }
         }
+        ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+        return
     }
+    scope_error::resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
 }
 
-// Builtin type names that support associated function syntax (Type::method).
-// These are not modules, so a path like `Vec::new` must bypass module lookup.
+fn resolve_module_qualified_enum_variant(
+    ctx: ResolveCtx,
+    node: AstNode,
+    symbol_part: String,
+    full_idx: i32,
+    full_kind: i32
+) -> bool {
+    // Prefer the fully qualified binding when present (`io::IoError::Other`).
+    if full_idx >= 0 && full_kind == commands::SYM_VARIANT() {
+        // Rewrite to the enum-local constructor name so MIR variant layouts
+        // (`IoError::Other`) match without dedicated runtime Error helpers.
+        ast_access::set_node_text(node, clone(symbol_part))
+        ref_sites::record_use(ctx, full_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+        return true
+    }
+    // Canonical type + variant: `IoError::Other` after stripping the module.
+    let bare_idx = scope_lookup::lookup(ctx, clone(symbol_part))
+    if bare_idx >= 0 && scope_lookup::lookup_kind(ctx, clone(symbol_part)) == commands::SYM_VARIANT() {
+        ast_access::set_node_text(node, clone(symbol_part))
+        ref_sites::record_use(ctx, bare_idx, ast_access::node_span_start(node), ast_access::node_span_end(node))
+        return true
+    }
+    false
+}
+
+fn path_has_nested_qualifier(symbol_part: String) -> bool {
+    index_of(clone(symbol_part), String_from("::")) >= 0
+}
+
+// Builtin type names that support Type::method / Type::Variant syntax.
+// These are not modules, so paths like `Vec::new` or `Result::Ok` must
+// bypass module lookup (variants are handled by MIR builtin tags).
 fn is_builtin_type_name(name: String) -> bool {
-    if eq(clone(name), "Vec") { return true }
-    if eq(clone(name), "String") { return true }
-    if eq(clone(name), "i32") { return true }
-    if eq(clone(name), "i64") { return true }
-    if eq(clone(name), "f64") { return true }
-    if eq(clone(name), "f32") { return true }
-    if eq(clone(name), "bool") { return true }
-    if eq(clone(name), "char") { return true }
+    if eq(clone(name), String_from("Vec")) { return true }
+    if eq(clone(name), String_from("String")) { return true }
+    if eq(clone(name), String_from("Option")) { return true }
+    if eq(clone(name), String_from("Result")) { return true }
+    if eq(clone(name), String_from("i32")) { return true }
+    if eq(clone(name), String_from("i64")) { return true }
+    if eq(clone(name), String_from("f64")) { return true }
+    if eq(clone(name), String_from("f32")) { return true }
+    if eq(clone(name), String_from("bool")) { return true }
+    if eq(clone(name), String_from("char")) { return true }
     false
 }

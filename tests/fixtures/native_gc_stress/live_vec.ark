@@ -1,0 +1,11 @@
+fn main() -> i32 {
+    let values = Vec_new_i32()
+    push(values, 7)
+    let mut i = 0
+    while i < 64 {
+        let junk = Vec_new_i32()
+        push(junk, i)
+        i = i + 1
+    }
+    if get_unchecked(values, 0) == 7 { 0 } else { 1 }
+}

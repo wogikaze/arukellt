@@ -1,0 +1,5 @@
+fn main() -> i32 {
+    let mut slot = String_from("old")
+    slot = concat(String_from("new-"), String_from("value"))
+    len(slot) - len(slot)
+}

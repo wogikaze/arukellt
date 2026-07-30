@@ -1,0 +1,13 @@
+fn wrap(label: String) -> String {
+    concat(String_from("ok:"), label)
+}
+
+fn main() -> i32 {
+    let value = wrap(String_from("payload"))
+    let mut i = 0
+    while i < 64 {
+        let _junk = wrap(String_from("tmp"))
+        i = i + 1
+    }
+    if eq(value, String_from("ok:payload")) { 0 } else { 1 }
+}

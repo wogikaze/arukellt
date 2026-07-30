@@ -2,7 +2,7 @@
 
 ステータス: 設計決定メモ（製品コードなし）  
 日付: 2026-07-25  
-関連: [#827](../../issues/done/827-phase-arena-after-heap-model.md)、[#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)、[#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md)、[#834](../../issues/done/834-wasm32-gc-bootstrap-pin.md)、[ADR-002](../adr/ADR-002-memory-model.md)
+関連: [#827](../../issues/done/827-phase-arena-after-heap-model.md)、[#730](../../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)、[#823](../../issues/done/823-selfhost-compile-latency-quadratic-mir.md)、[#843](../../issues/open/843-wasm32-gc-bootstrap-pin.md)、[ADR-002](../adr/ADR-002-memory-model.md)
 
 ## スコープ
 

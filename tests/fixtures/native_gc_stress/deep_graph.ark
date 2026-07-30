@@ -1,0 +1,32 @@
+// Nested live structs under GC pressure for iterative mark (Phase 4 Branch C).
+// Avoid loop-carried record reassignment: native-cpp C emit currently mis-types
+// that LOCAL_SET as i32→ref under root clears (tracked with #847/#848 rollout).
+struct Inner {
+    label: String,
+}
+
+struct Outer {
+    inner: Inner,
+    depth: i32,
+}
+
+fn main() -> i32 {
+    let keep = Outer {
+        inner: Inner { label: String_from("keep") },
+        depth: 255,
+    }
+    let mut i = 0
+    while i < 256 {
+        let node = Outer {
+            inner: Inner { label: String_from("n") },
+            depth: i,
+        }
+        let _n = len(node.inner.label)
+        i = i + 1
+    }
+    if keep.depth == 255 {
+        0
+    } else {
+        1
+    }
+}

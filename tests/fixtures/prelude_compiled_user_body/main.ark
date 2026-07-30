@@ -18,8 +18,8 @@ pub fn user_sequence_checks() -> bool {
     push(values, 2)
     push(values, 4)
     seq::count_eq(values, 4) == 2 &&
-        seq::min_i32(values) == 2 &&
-        seq::max_i32(values) == 4
+    seq::min_i32(values) == 2 &&
+    seq::max_i32(values) == 4
 }
 
 fn main() -> i32 {

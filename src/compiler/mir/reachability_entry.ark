@@ -14,6 +14,14 @@ use mir::module_functions
 use mir::types
 
 fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i32 {
+    mir_prune_unreachable_with_roots_for_target(m, extra_roots, String_new())
+}
+
+fn mir_prune_unreachable_with_roots_for_target(
+    m: MirModule,
+    extra_roots: Vec<String>,
+    target: String
+) -> i32 {
     if reachability_legacy::mir_reachability_legacy_enabled() {
         return reachability_legacy::mir_prune_unreachable_legacy_fixpoint(m, extra_roots)
     }
@@ -39,7 +47,7 @@ fn mir_prune_unreachable_with_roots(m: MirModule, extra_roots: Vec<String>) -> i
         let fi = get_unchecked(queue, qhead)
         qhead = qhead + 1
         let f = get_unchecked(functions, fi)
-        reachability_walk::mir_enqueue_call_edges(m, index, functions, reachable, queue, f)
+        reachability_walk::mir_enqueue_call_edges(m, index, functions, reachable, queue, f, clone(target))
     }
     reachability_prune::mir_prune_unmarked_functions(m, reachable)
 }
