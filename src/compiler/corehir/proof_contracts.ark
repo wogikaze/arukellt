@@ -1,0 +1,37 @@
+use corehir::body
+use corehir::decl_type_annotations
+use corehir::frontend_ast_node
+use corehir::frontend_kind_map
+use corehir::proof_contract
+
+fn append_fn_proof_contracts(table: CoreHirBodyTable, decl: AstNode, function_index: i32) {
+    let ann_count = decl_type_annotations::member_type_ann_count(decl)
+    let mut i = 0
+    while i < ann_count {
+        let ann = decl_type_annotations::member_type_ann_at(decl, i)
+        if frontend_ast_node::corehir_node_kind(ann) == frontend_kind_map::nk_proof_contract() {
+            append_proof_contract(table, ann, function_index)
+        }
+        i = i + 1
+    }
+}
+
+fn append_proof_contract(table: CoreHirBodyTable, ann: AstNode, function_index: i32) {
+    if frontend_ast_node::corehir_node_child_count(ann) == 0 {
+        return
+    }
+    let kind = frontend_ast_node::corehir_node_text(ann)
+    let condition = frontend_ast_node::corehir_node_child_at(ann, 0)
+    let expr_root = body::corehir_build_expr(table, condition)
+    let result_name = if eq(clone(kind), String_from("ensures")) { String_from("result") } else { String_new() }
+    body::corehir_push_proof_contract(
+        table,
+        proof_contract::CoreHirProofContract_new(
+            function_index,
+            kind,
+            expr_root,
+            result_name,
+            frontend_ast_node::corehir_node_span_start(ann)
+        )
+    )
+}
