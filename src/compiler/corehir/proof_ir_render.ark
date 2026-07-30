@@ -1,0 +1,138 @@
+use corehir::body
+use corehir::fn_info
+use corehir::param
+use corehir::proof_contract
+use corehir::proof_expr_render
+use corehir::proof_json_escape
+use corehir::proof_view
+use typechecker::contract_typed_fn
+use typechecker::names
+
+fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
+    let fn_infos = proof_view::proof_view_fn_infos(view)
+    let typed_fns = proof_view::proof_view_typed_fns(view)
+    let table = proof_view::proof_view_body_table(view)
+    let file_name = if len(clone(source_file)) > 0 { source_file } else { String_from("<memory>") }
+    let mut out = String_from("{\"schema\":\"arukellt-proof-ir\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":")
+    out = concat(out, proof_json_escape::quote_json(clone(file_name)))
+    out = concat(out, String_from(",\"functions\":["))
+    let mut first = true
+    let fn_count = len(fn_infos)
+    let mut function_index = 0
+    while function_index < fn_count {
+        if function_contract_count(table, function_index) > 0 {
+            if !first {
+                out = concat(out, String_from(","))
+            }
+            out = concat(out, render_function(fn_infos, typed_fns, table, function_index, clone(file_name)))
+            first = false
+        }
+        function_index = function_index + 1
+    }
+    concat(out, String_from("]}"))
+}
+
+fn function_contract_count(table: CoreHirBodyTable, function_index: i32) -> i32 {
+    let count = body::corehir_proof_contract_count(table)
+    let mut matched = 0
+    let mut i = 0
+    while i < count {
+        let contract = body::corehir_proof_contract_at(table, i)
+        if proof_contract::CoreHirProofContract_function_index(contract) == function_index {
+            matched = matched + 1
+        }
+        i = i + 1
+    }
+    matched
+}
+
+fn render_function(fn_infos: Vec<CoreHirFnInfo>, typed_fns: Vec<TypedFn>, table: CoreHirBodyTable, function_index: i32, source_file: String) -> String {
+    let mut name = fn_info::fn_info_qualified_name_at(fn_infos, function_index, String_new())
+    if len(clone(name)) == 0 {
+        name = fn_info::fn_info_name_at(fn_infos, function_index, String_from("<unknown>"))
+    }
+    let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
+    let mut out = concat(String_from("{\"id\":"), to_string(function_index))
+    out = concat(out, concat(String_from(",\"name\":"), proof_json_escape::quote_json(name)))
+    out = concat(out, String_from(",\"parameters\":["))
+    out = concat(out, render_parameters(fn_infos, typed_fns, function_index, typed_index))
+    out = concat(out, concat(String_from("],\"return_type\":"), proof_json_escape::quote_json(return_type_name(typed_fns, typed_index))))
+    out = concat(out, String_from(",\"contracts\":["))
+    out = concat(out, render_contracts(table, function_index, source_file))
+    let body_root = body::corehir_fn_body_root_at(table, function_index)
+    out = concat(out, concat(String_from("],\"body\":{\"kind\":\"opaque\",\"corehir_body_id\":"), concat(to_string(body_root), String_from("}}"))))
+    out
+}
+
+fn render_parameters(fn_infos: Vec<CoreHirFnInfo>, typed_fns: Vec<TypedFn>, function_index: i32, typed_index: i32) -> String {
+    let count = fn_info::fn_info_param_count_at(fn_infos, function_index, 0)
+    let mut out = String_new()
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        let parameter = fn_info::fn_info_param_at(fn_infos, function_index, i)
+        out = concat(out, concat(String_from("{\"name\":"), proof_json_escape::quote_json(param::param_name(parameter))))
+        out = concat(out, concat(String_from(",\"type\":"), proof_json_escape::quote_json(parameter_type_name(parameter, typed_fns, typed_index, i))))
+        out = concat(out, String_from("}"))
+        i = i + 1
+    }
+    out
+}
+
+fn parameter_type_name(parameter: CoreHirParam, typed_fns: Vec<TypedFn>, typed_index: i32, param_index: i32) -> String {
+    let stored = param::param_type_name(parameter)
+    if len(clone(stored)) > 0 {
+        return stored
+    }
+    if typed_index >= 0 && typed_index < len(typed_fns) {
+        let typed_fn = get_unchecked(typed_fns, typed_index)
+        if param_index >= 0 && param_index < contract_typed_fn::TypedFn_param_count(typed_fn) {
+            return names::type_display_name(contract_typed_fn::TypedFn_param_at(typed_fn, param_index))
+        }
+    }
+    String_from("unknown")
+}
+
+fn return_type_name(typed_fns: Vec<TypedFn>, typed_index: i32) -> String {
+    if typed_index >= 0 && typed_index < len(typed_fns) {
+        let typed_fn = get_unchecked(typed_fns, typed_index)
+        return names::type_display_name(contract_typed_fn::TypedFn_return_type(typed_fn))
+    }
+    String_from("unknown")
+}
+
+fn render_contracts(table: CoreHirBodyTable, function_index: i32, source_file: String) -> String {
+    let count = body::corehir_proof_contract_count(table)
+    let mut out = String_new()
+    let mut first = true
+    let mut i = 0
+    while i < count {
+        let contract = body::corehir_proof_contract_at(table, i)
+        if proof_contract::CoreHirProofContract_function_index(contract) == function_index {
+            if !first {
+                out = concat(out, String_from(","))
+            }
+            out = concat(out, render_contract(table, contract, clone(source_file)))
+            first = false
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn render_contract(table: CoreHirBodyTable, contract: CoreHirProofContract, source_file: String) -> String {
+    let kind = proof_contract::CoreHirProofContract_kind(contract)
+    let expression = proof_expr_render::proof_expr_render(table, proof_contract::CoreHirProofContract_expr_root(contract))
+    let start = proof_contract::CoreHirProofContract_span_start(contract)
+    let mut out = concat(String_from("{\"kind\":"), proof_json_escape::quote_json(clone(kind)))
+    out = concat(out, concat(String_from(",\"expression\":"), proof_json_escape::quote_json(expression)))
+    if eq(clone(kind), String_from("ensures")) {
+        out = concat(out, concat(String_from(",\"result_name\":"), proof_json_escape::quote_json(proof_contract::CoreHirProofContract_result_name(contract))))
+    }
+    out = concat(out, concat(String_from(",\"span\":{\"file\":"), proof_json_escape::quote_json(source_file)))
+    out = concat(out, concat(String_from(",\"start\":"), to_string(start)))
+    out = concat(out, concat(String_from(",\"end\":"), concat(to_string(start), String_from("}}"))))
+    out
+}
