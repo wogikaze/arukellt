@@ -1,0 +1,24 @@
+{
+  "schema": "arukellt-proof-ir",
+  "schema_version": 1,
+  "generator": "fixture",
+  "module": "basic",
+  "functions": [
+    {
+      "id": 0,
+      "name": "abs",
+      "parameters": [{"name": "x", "type": "i32"}],
+      "return_type": "i32",
+      "contracts": [
+        {
+          "kind": "ensures",
+          "expression": "result >= 0",
+          "result_name": "result",
+          "span": {"file": "basic.ark", "start": 18, "end": 29}
+        }
+      ],
+      "body": {"kind": "opaque", "corehir_body_id": 0},
+      "span": {"file": "basic.ark", "start": 0, "end": 64}
+    }
+  ]
+}
