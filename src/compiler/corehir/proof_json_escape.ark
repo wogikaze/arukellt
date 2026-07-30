@@ -1,0 +1,35 @@
+fn json_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, String_from("\\\""))
+        } else {
+            if c == 92 {
+                out = concat(out, String_from("\\\\"))
+            } else {
+                if c == 10 {
+                    out = concat(out, String_from("\\n"))
+                } else {
+                    if c == 13 {
+                        out = concat(out, String_from("\\r"))
+                    } else {
+                        if c == 9 {
+                            out = concat(out, String_from("\\t"))
+                        } else {
+                            out = concat(out, substring(clone(s), i, i + 1))
+                        }
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn quote_json(s: String) -> String {
+    concat(String_from("\""), concat(json_escape(s), String_from("\"")))
+}
