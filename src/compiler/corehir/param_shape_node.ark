@@ -1,5 +1,5 @@
-use corehir::decl_ann_member
 use corehir::frontend_ast_identity
+use corehir::frontend_ast_type_ann
 use corehir::frontend_expr_kind
 
 fn param_is_ident(node: AstNode) -> bool {
@@ -7,11 +7,11 @@ fn param_is_ident(node: AstNode) -> bool {
 }
 
 fn param_has_type_ann(node: AstNode) -> bool {
-    decl_ann_member::decl_ann_count(node) >= 1
+    frontend_ast_type_ann::corehir_node_type_ann_count(node) >= 1
 }
 
 fn param_type_ann(node: AstNode) -> AstNode {
-    decl_ann_member::decl_ann_at(node, 0)
+    frontend_ast_type_ann::corehir_node_type_ann_at(node, 0)
 }
 
 fn param_name(node: AstNode) -> String {
