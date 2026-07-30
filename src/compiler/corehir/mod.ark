@@ -31,7 +31,7 @@ pub fn render_proof_ir(
     source_file: String
 ) -> String {
     let table = raw_record::raw_program_body_table(program)
-    proof_ir_render::render_proof_ir(
+    proof_ir_render::render_proof_ir_document(
         raw_decls::program_fn_infos(program),
         raw_types::program_typed_fns(program),
         body_table::corehir_body_table_fn_body_roots(table),
