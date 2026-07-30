@@ -1,18 +1,17 @@
-use corehir::body_table
 use corehir::proof_ast_render
 use corehir::proof_contract
 use typechecker::contract_proof
 
-fn append_checked_proof_contracts(
-    table: CoreHirBodyTable,
-    contracts: Vec<CheckedProofContract>
-) {
-    let count = len(contracts)
+fn build_checked_proof_contracts(
+    checked_contracts: Vec<CheckedProofContract>
+) -> Vec<CoreHirProofContract> {
+    let contracts = Vec_new_CoreHirProofContract()
+    let count = len(checked_contracts)
     let mut i = 0
     while i < count {
-        let checked = get_unchecked(contracts, i)
-        body_table::corehir_body_table_push_proof_contract(
-            table,
+        let checked = get_unchecked(checked_contracts, i)
+        push(
+            contracts,
             proof_contract::CoreHirProofContract_new(
                 contract_proof::CheckedProofContract_function_index(checked),
                 contract_proof::CheckedProofContract_kind(checked),
@@ -25,4 +24,5 @@ fn append_checked_proof_contracts(
         )
         i = i + 1
     }
+    contracts
 }
