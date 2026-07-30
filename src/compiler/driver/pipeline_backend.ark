@@ -52,7 +52,10 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
-    debug::dump_proof_ir_if_enabled(config, program)
+    debug::dump_proof_ir_if_enabled(
+        config,
+        checked_program::checked_program_core_program(program)
+    )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
     let mir_lowered = lower::lower_checked_program(program, config, clone(source))
