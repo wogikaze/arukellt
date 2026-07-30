@@ -63,8 +63,10 @@ fn dump_proof_ir_if_enabled(
             checked_contracts,
             config_record::config_source_file(config)
         )
-        let _ = stdio::eprintln(artifact)
+        stdio::eprintln(artifact)
+        ()
     }
+    return
 }
 
 fn dump_mir_if_enabled(config: DriverConfig, mir_module: MirModule) {
