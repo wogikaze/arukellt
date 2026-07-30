@@ -1,8 +1,10 @@
 # Verifiable Compiler Migration Plan
 
-関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)
+関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)、[ADR-052](../adr/ADR-052-proof-driven-development.md)
 
-関連 RFC: [RFC-009](../rfcs/009-verifiable-compiler-architecture.md)
+関連 RFC: [RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
+
+関連 plan: [proof-driven-development.md](proof-driven-development.md)
 
 ステータス: DRAFT
 
@@ -20,13 +22,14 @@
 - fallbackを増やさない。
 - baseline数値の単なる更新で品質gateを回避しない。
 - hard gateを通るまで次sliceへ進まない。
+- proof-driven user workflowは別planのTrack A–Fと同期する。
 
 ## Phase 0: 設計凍結と現状計測
 
 成果物:
 
-- ADR-051採択
-- RFC-009レビュー
+- ADR-051/ADR-052採択
+- RFC-009/RFC-010レビュー
 - 全pass inventory
 - 現在のfallback、名前解析、型再推論、巨大table copyの一覧
 - compiler invariant violationの分類と件数baseline
@@ -37,6 +40,7 @@ Gate:
 - 各compiler stageのownerと入出力が一覧化されている。
 - backendの推論箇所がファイル・関数単位で機械可読に列挙されている。
 - 同じ入力を3回buildしてstage hashが一致する。
+- proof policyとproof receiptのtrust boundaryが文書化されている。
 
 ## Phase 1: Foundation IDs and Snapshots
 
@@ -149,6 +153,8 @@ Gate:
 - unknown field/version reject
 - property/fuzz tests
 
+RFC-010のTrack Aはこのphaseから開始する。logic side、package proof policy、formal specification surfaceはVerifiedCoreと別の正本を作らない。
+
 ## Phase 5: TypedCFG and SSA
 
 導入:
@@ -236,6 +242,8 @@ Gate:
 - proved
 - disproved
 - unknown
+- unsupported
+- assumed
 - skipped
 
 Gate:
@@ -244,6 +252,9 @@ Gate:
 - artifact hashとreceipt hashの結合
 - solver/options/version記録
 - reproducible proof run
+- proof-required packageのstale receipt bypass 0件
+
+このphaseでRFC-010のTrack Bを実用化し、`arukellt prove`と`arukellt verify`を正式surfaceへ昇格する。
 
 ## Phase 10: Lean Proof Project
 
@@ -263,7 +274,26 @@ Gate:
 - generated theorem inputを信頼せず独立decodeする
 - CIでLean build
 
-## Phase 11: Removal
+## Phase 11: Proof-driven quality gates
+
+導入:
+
+- specification lock
+- weakening analysis
+- non-vacuity check
+- implementation/spec mutation audit
+- proof coverage report
+- dependency proof receipt validation
+- machine-readable counterexample
+
+Gate:
+
+- AI workflowがformal specとimplementationを同時自動承認できない
+- `requires false`などのvacuous proofをcertifiedとして受理しない
+- normative spec weakeningはhuman approval必須
+- certified packageでunknown/axiom/unsupported 0件
+
+## Phase 12: Removal
 
 削除対象:
 
@@ -274,6 +304,7 @@ Gate:
 - name-based ABI dispatch
 - giant mutable cross-stage tables
 - legacy validator bypass
+- receiptなしのproof-required release path
 
 Gate:
 
@@ -293,15 +324,21 @@ Gate:
 7. Structured VerifiedCore schema
 8. Contract parser to VerifiedCore extraction
 9. Independent Proof IR decoder/validator
-10. TypedCFG
-11. SSA validator
-12. Repr/Layout registries
-13. WasmIR boundary
-14. C99IR boundary
-15. Translation validator MVP
-16. Why3 adapter and TrustManifest
-17. Lean formal project
-18. Legacy removal
+10. Proof policy manifest schema
+11. Logic-side module foundation
+12. TypedCFG
+13. SSA validator
+14. Repr/Layout registries
+15. WasmIR boundary
+16. C99IR boundary
+17. Translation validator MVP
+18. Why3 adapter and TrustManifest
+19. `arukellt prove` MVP
+20. Structured counterexample
+21. Specification lock and weakening audit
+22. Mutation/non-vacuity audit
+23. Lean formal project
+24. Legacy removal
 
 各PRは原則500行程度までとし、機械生成物を除いて1000行を超える場合は分割する。
 
