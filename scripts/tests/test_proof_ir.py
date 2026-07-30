@@ -62,6 +62,24 @@ class TestProofIr(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "end must be >= start"):
             validate_document(document)
 
+    def test_rejects_unknown_body_kind(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["body"]["kind"] = "expression"
+        with self.assertRaisesRegex(ValidationError, "expected 'opaque'"):
+            validate_document(document)
+
+    def test_rejects_negative_corehir_body_id(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["body"]["corehir_body_id"] = -1
+        with self.assertRaisesRegex(ValidationError, "must be >= 0"):
+            validate_document(document)
+
+    def test_rejects_unknown_body_fields(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["body"]["expression"] = "(int 0)"
+        with self.assertRaisesRegex(ValidationError, "unknown field"):
+            validate_document(document)
+
 
 if __name__ == "__main__":
     unittest.main()
