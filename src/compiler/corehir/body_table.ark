@@ -33,7 +33,8 @@ fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) 
 }
 
 fn corehir_body_table_push_proof_contract(table: CoreHirBodyTable, contract: CoreHirProofContract) {
-    push(table.proof_contracts, contract)
+    let contracts = table.proof_contracts
+    push(contracts, contract)
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
@@ -50,14 +51,6 @@ fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
     get_unchecked(table.method_body_roots, index)
-}
-
-fn corehir_body_table_proof_contract_count(table: CoreHirBodyTable) -> i32 {
-    len(table.proof_contracts)
-}
-
-fn corehir_body_table_proof_contract_at(table: CoreHirBodyTable, index: i32) -> CoreHirProofContract {
-    get_unchecked(table.proof_contracts, index)
 }
 
 fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
