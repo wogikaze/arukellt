@@ -1,13 +1,13 @@
 use corehir::decl_ann_children
-use corehir::decl_ann_member
 use corehir::decl_ann_name
+use corehir::frontend_ast_type_ann
 
 fn decl_ann_count(node: AstNode) -> i32 {
-    decl_ann_member::decl_ann_count(node)
+    frontend_ast_type_ann::corehir_node_type_ann_count(node)
 }
 
 fn decl_ann_at(node: AstNode, index: i32) -> AstNode {
-    decl_ann_member::decl_ann_at(node, index)
+    frontend_ast_type_ann::corehir_node_type_ann_at(node, index)
 }
 
 fn decl_ann_name(ann: AstNode) -> String {
