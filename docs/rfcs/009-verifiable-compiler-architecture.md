@@ -4,6 +4,8 @@
 
 関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)
 
+関連 RFC: [RFC-010: Proof-Driven Development](010-proof-driven-development.md)
+
 関連 plan: [verifiable-compiler-migration.md](../plans/verifiable-compiler-migration.md)
 
 日付: 2026-07-30
@@ -22,6 +24,7 @@
 - 各境界をserializeして独立checkerへ渡せる。
 - バグ発生時に、どのpassが意味を壊したか特定できる。
 - 形式証明を段階的に導入できる。
+- RFC-010が定めるproof-driven development loopの信頼できる基盤になる。
 
 ## 2. 全体パイプライン
 
@@ -519,7 +522,15 @@ RuntimeFailure
 
 `InvalidSnapshot`と`CompilerInvariantViolation`をユーザーコードエラーへ偽装しない。
 
-## 20. 完了条件
+## 20. Proof-driven developmentとの接続
+
+本RFCが定めるsnapshot、VerifiedCore、VerificationBundle、TrustManifestは、RFC-010の `check → test → prove → specification audit → receipt` で共通利用する。
+
+`intent` と examples はdeveloper UXおよび仕様監査へ使うが、証明意味論へ混入させない。proof-required packageでは、source artifact、VerifiedCore hash、dependency contract hash、semantics version、prover configurationに一致するreceiptがなければreleaseできない。
+
+AI-assisted repairでは、compiler/proverの機械可読diagnosticだけを判定根拠とし、assistantの自己申告をproof statusとして扱わない。
+
+## 21. 完了条件
 
 本設計への移行完了は、次をすべて満たす状態とする。
 
@@ -530,3 +541,4 @@ RuntimeFailure
 - solver結果にTrustManifestが付く。
 -旧巨大mutable table APIがcompiler-privateにも残らない。
 -各passの入力・出力・責務が文書化されている。
+- RFC-010のproof-required packageがstaleまたは不完全なreceiptでreleaseできない。
