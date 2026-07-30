@@ -1,0 +1,32 @@
+name: Proof formatter diagnostic
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  proof-fmt-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
+      - name: Build current selfhost compiler
+        run: python3 scripts/manager.py selfhost fixpoint --build
+
+      - name: Show formatter output
+        run: |
+          set +e
+          scripts/run/arukellt-selfhost.sh fmt src/compiler/corehir/decl_ann_member.ark src/compiler/driver/debug.ark
+          rc=$?
+          echo "formatter rc=$rc"
+          git diff -- src/compiler/corehir/decl_ann_member.ark src/compiler/driver/debug.ark
+          exit 0
