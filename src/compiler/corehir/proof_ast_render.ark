@@ -1,79 +1,13 @@
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
+use corehir::proof_ast_atoms
 use corehir::proof_json_escape
 
 fn proof_ast_render(node: AstNode) -> String {
     let kind = frontend_ast_node::corehir_node_kind(node)
-    if kind == frontend_kind_map::nk_ident() {
-        return concat(
-            String_from("(ident "),
-            concat(
-                proof_json_escape::quote_json(
-                    frontend_ast_node::corehir_node_text(node)
-                ),
-                String_from(")")
-            )
-        )
-    }
-    if kind == frontend_kind_map::nk_path() {
-        return concat(
-            String_from("(path "),
-            concat(
-                proof_json_escape::quote_json(
-                    frontend_ast_node::corehir_node_text(node)
-                ),
-                String_from(")")
-            )
-        )
-    }
-    if kind == frontend_kind_map::nk_int_lit() {
-        return concat(
-            String_from("(int "),
-            concat(
-                to_string(frontend_ast_node::corehir_node_int_val(node)),
-                String_from(")")
-            )
-        )
-    }
-    if kind == frontend_kind_map::nk_float_lit() {
-        return concat(
-            String_from("(float "),
-            concat(
-                to_string(frontend_ast_node::corehir_node_float_val(node)),
-                String_from(")")
-            )
-        )
-    }
-    if kind == frontend_kind_map::nk_string_lit() {
-        return concat(
-            String_from("(string "),
-            concat(
-                proof_json_escape::quote_json(
-                    frontend_ast_node::corehir_node_text(node)
-                ),
-                String_from(")")
-            )
-        )
-    }
-    if kind == frontend_kind_map::nk_bool_lit() {
-        let value = if frontend_ast_node::corehir_node_int_val(node) == 0 {
-            String_from("false")
-        } else {
-            String_from("true")
-        }
-        return concat(
-            String_from("(bool "),
-            concat(value, String_from(")"))
-        )
-    }
-    if kind == frontend_kind_map::nk_char_lit() {
-        return concat(
-            String_from("(char "),
-            concat(
-                to_string(frontend_ast_node::corehir_node_int_val(node)),
-                String_from(")")
-            )
-        )
+    let atom = proof_ast_atoms::render_proof_atom(node, kind)
+    if len(atom) > 0 {
+        return atom
     }
     if kind == frontend_kind_map::nk_binary() {
         return render_binary(node)
