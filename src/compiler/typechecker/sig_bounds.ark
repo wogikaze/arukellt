@@ -1,5 +1,6 @@
 use typechecker::ast_access
 use typechecker::contract_type_param_bounds
+use typechecker::kinds
 use typechecker::types
 
 fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
@@ -9,7 +10,8 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
     while i < ann_count {
         let ann = get_unchecked(type_ann, i)
         let ann_name = ast_access::node_text(ann)
-        if !eq(clone(ann_name), String_from("__return")) {
+        let is_proof_contract = ast_access::node_kind_is(ann, kinds::NK_PROOF_CONTRACT())
+        if !is_proof_contract && !eq(clone(ann_name), String_from("__return")) {
             let info = contract_type_param_bounds::TypeParamBounds_new(ann_name)
             let ann_count = ast_access::node_type_ann_count(ann)
             let mut j = 0
