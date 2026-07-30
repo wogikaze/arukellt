@@ -1,0 +1,19 @@
+use corehir::raw
+
+struct CoreHirProofView {
+    fn_infos: Vec<CoreHirFnInfo>,
+    typed_fns: Vec<TypedFn>,
+    body_table: CoreHirBodyTable,
+}
+
+fn proof_view_from_program(program: CoreHirRawProgram) -> CoreHirProofView {
+    CoreHirProofView {
+        fn_infos: raw::program_fn_infos(program),
+        typed_fns: raw::program_typed_fns(program),
+        body_table: raw::program_body_table(program),
+    }
+}
+
+fn proof_view_fn_infos(view: CoreHirProofView) -> Vec<CoreHirFnInfo> { view.fn_infos }
+fn proof_view_typed_fns(view: CoreHirProofView) -> Vec<TypedFn> { view.typed_fns }
+fn proof_view_body_table(view: CoreHirProofView) -> CoreHirBodyTable { view.body_table }
