@@ -1,38 +1,17 @@
-use std::host::stdio
 use corehir::fn_info
 use corehir::param
 use corehir::proof_contract
 use corehir::proof_json_escape
-use corehir::proof_view
 use typechecker::contract_typed_fn
 use typechecker::names
 
-fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
-    let fn_infos = proof_view::proof_view_fn_infos(view)
-    let typed_fns = proof_view::proof_view_typed_fns(view)
-    let fn_body_roots = proof_view::proof_view_fn_body_roots(view)
-    let contracts = proof_view::proof_view_contracts(view)
-    stdio::eprintln(
-        concat(
-            String_from("[proof-ir] functions="),
-            concat(
-                to_string(len(fn_infos)),
-                concat(String_from(" contracts="), to_string(len(contracts)))
-            )
-        )
-    )
-    if len(contracts) > 0 {
-        stdio::eprintln(
-            concat(
-                String_from("[proof-ir] first-contract-function="),
-                to_string(
-                    proof_contract::CoreHirProofContract_function_index(
-                        get_unchecked(contracts, 0)
-                    )
-                )
-            )
-        )
-    }
+fn render_proof_ir(
+    fn_infos: Vec<CoreHirFnInfo>,
+    typed_fns: Vec<TypedFn>,
+    fn_body_roots: Vec<i32>,
+    contracts: Vec<CoreHirProofContract>,
+    source_file: String
+) -> String {
     let file_name = if len(clone(source_file)) > 0 {
         source_file
     } else {
