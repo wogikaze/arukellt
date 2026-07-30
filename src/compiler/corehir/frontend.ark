@@ -4,6 +4,7 @@ use corehir::frontend_decls
 use corehir::frontend_fns
 use corehir::frontend_layouts
 use corehir::frontend_methods
+use corehir::proof_contracts
 use corehir::raw
 
 fn build_program_from_facts(decls: Vec<AstNode>, facts: CoreHirTypeFacts) -> CoreHirRawProgram {
@@ -27,7 +28,10 @@ fn build_program_from_facts_with_dto(
     typed_locals: Vec<CoreHirTypedLocal>,
     export_surface: CoreHirExportSurface
 ) -> CoreHirRawProgram {
-    let body_table = body_roots::build_body_table(decls, checked_contracts)
+    let body_table = body_roots::build_body_table(decls)
+    let proof_payload = proof_contracts::build_checked_proof_contracts(
+        checked_contracts
+    )
     raw::build_program_from_facts(
         frontend_decls::build_decl_infos(decls),
         frontend_fns::build_fn_infos(decls, modules),
@@ -35,6 +39,7 @@ fn build_program_from_facts_with_dto(
         frontend_layouts::build_layout_decls(decls),
         facts,
         body_table,
+        proof_payload,
         modules,
         resolved_calls,
         typed_locals,
