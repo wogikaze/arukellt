@@ -1,0 +1,48 @@
+use lexer::tokens
+use parser::core_ast_children
+use parser::core_ast_factory
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::expr
+use parser::kinds
+use parser::token_state
+
+fn parse_optional_proof_block_into_node(p: Parser, fn_node: AstNode) {
+    core_api_cursor::skip_newlines(p)
+    if core_api_cursor::peek_kind(p) != tokens::TK_PROOF() {
+        return
+    }
+    p.pos = p.pos + 1
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    core_api_cursor::skip_newlines(p)
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        parse_proof_clause_into_node(p, fn_node)
+        if core_api_cursor::at(p, tokens::TK_SEMI()) {
+            core_api_cursor::bump(p)
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+    core_api_cursor::skip_newlines(p)
+}
+
+fn parse_proof_clause_into_node(p: Parser, fn_node: AstNode) {
+    let clause_token = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let clause_name = token_state::Token_text(clause_token)
+    let supported = eq(clone(clause_name), String_from("requires")) || eq(clone(clause_name), String_from("ensures"))
+    if !supported {
+        core_api_expect::error(p, concat(String_from("expected proof clause 'requires' or 'ensures', got "), clone(clause_name)))
+    }
+    core_api_expect::expect_token(p, tokens::TK_COLON())
+    let condition = expr::parse_expr(p)
+    if !supported {
+        return
+    }
+    let contract = core_ast_factory::AstNode_new(kinds::NK_PROOF_CONTRACT(), core_api_expect::tok_span(clause_token))
+    core_ast_text_fields::AstNode_set_text(contract, clause_name)
+    core_ast_children::AstNode_push_child(contract, condition)
+    core_ast_type_ann::AstNode_push_type_ann(fn_node, contract)
+}
