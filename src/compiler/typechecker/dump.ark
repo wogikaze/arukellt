@@ -41,4 +41,8 @@ fn dump_typed_hir(result: TypeCheckResult) {
             k = k + 1
         }
     }
+    let proof_count = len(
+        contract_result_state::typecheck_result_proof_contracts(result)
+    )
+    stdio::eprintln(concat(String_from("proof contracts: "), to_string(proof_count)))
 }
