@@ -58,7 +58,7 @@ fn dump_proof_ir_if_enabled(
     if config_record::config_dump_proof_ir(config) {
         let header = String_from("=== PROOF IR ===")
         stdio::eprintln(header)
-        let artifact = corehir_api::render_proof_ir(
+        let artifact: String = corehir_api::render_proof_ir(
             program,
             checked_contracts,
             config_record::config_source_file(config)
