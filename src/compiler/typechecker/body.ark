@@ -6,6 +6,7 @@ use typechecker::contract_env_record
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer
+use typechecker::proof_contracts
 use typechecker::scope
 use typechecker::sigs
 
@@ -18,6 +19,7 @@ fn check_fn_body_with_sig(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<Enum
     let scope = scope::LocalScope_new()
     body_params::bind_fn_params_from_sig(scope, fn_node, sig)
     body_params::set_fn_type_params_from_sig(env, sig)
+    proof_contracts::check_fn_contracts(env, scope, fn_sigs, enum_defs, fn_node, sig)
     let child_count = ast_access::node_child_count(fn_node)
     if child_count > 0 {
         let body = ast_access::node_child_at(fn_node, child_count - 1)
