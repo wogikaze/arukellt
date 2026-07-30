@@ -10,9 +10,25 @@ use typechecker::proof_contracts
 use typechecker::scope
 use typechecker::sigs
 
-fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
+fn check_fn_body(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    fn_node: AstNode,
+    result: TypeCheckResult,
+    function_index: i32
+) {
     let sig = sigs::lookup_fn_sig(env, fn_sigs, ast_access::node_text(fn_node))
-    check_fn_body_with_sig(env, fn_sigs, enum_defs, fn_node, sig, true)
+    check_fn_body_with_sig(
+        env,
+        fn_sigs,
+        enum_defs,
+        fn_node,
+        sig,
+        true,
+        result,
+        function_index
+    )
 }
 
 fn check_fn_body_with_sig(
@@ -21,7 +37,9 @@ fn check_fn_body_with_sig(
     enum_defs: Vec<EnumInfo>,
     fn_node: AstNode,
     sig: FnSig,
-    contracts_supported: bool
+    contracts_supported: bool,
+    result: TypeCheckResult,
+    function_index: i32
 ) {
     let scope = scope::LocalScope_new()
     body_params::bind_fn_params_from_sig(scope, fn_node, sig)
@@ -33,7 +51,9 @@ fn check_fn_body_with_sig(
         enum_defs,
         fn_node,
         sig,
-        contracts_supported
+        contracts_supported,
+        result,
+        function_index
     )
     let child_count = ast_access::node_child_count(fn_node)
     if child_count > 0 {
