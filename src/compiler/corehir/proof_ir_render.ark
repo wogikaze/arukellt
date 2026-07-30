@@ -48,11 +48,12 @@ fn render_proof_ir(view: CoreHirProofView, source_file: String) -> String {
 }
 
 fn function_contract_count(table: CoreHirBodyTable, function_index: i32) -> i32 {
-    let count = body_table::corehir_body_table_proof_contract_count(table)
+    let contracts = body_table::corehir_body_table_proof_contracts(table)
+    let count = len(contracts)
     let mut matched = 0
     let mut i = 0
     while i < count {
-        let contract = body_table::corehir_body_table_proof_contract_at(table, i)
+        let contract = get_unchecked(contracts, i)
         if proof_contract::CoreHirProofContract_function_index(contract) == function_index {
             matched = matched + 1
         }
@@ -189,12 +190,13 @@ fn render_contracts(
     function_index: i32,
     source_file: String
 ) -> String {
-    let count = body_table::corehir_body_table_proof_contract_count(table)
+    let contracts = body_table::corehir_body_table_proof_contracts(table)
+    let count = len(contracts)
     let mut out = String_new()
     let mut first = true
     let mut i = 0
     while i < count {
-        let contract = body_table::corehir_body_table_proof_contract_at(table, i)
+        let contract = get_unchecked(contracts, i)
         if proof_contract::CoreHirProofContract_function_index(contract) == function_index {
             if !first {
                 out = concat(out, String_from(","))
