@@ -2,7 +2,6 @@ struct CoreHirBodyTable {
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,
     method_body_roots: Vec<i32>,
-    proof_contracts: Vec<CoreHirProofContract>,
 }
 
 fn CoreHirBodyTable_new() -> CoreHirBodyTable {
@@ -10,7 +9,6 @@ fn CoreHirBodyTable_new() -> CoreHirBodyTable {
         exprs: Vec_new_CoreHirExpr(),
         fn_body_roots: Vec_new_i32(),
         method_body_roots: Vec_new_i32(),
-        proof_contracts: Vec_new_CoreHirProofContract(),
     }
 }
 
@@ -30,15 +28,6 @@ fn corehir_body_table_push_fn_body_root(table: CoreHirBodyTable, root: i32) {
 
 fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) {
     push(table.method_body_roots, root)
-}
-
-fn corehir_body_table_push_proof_contract(
-    table: CoreHirBodyTable,
-    contract: CoreHirProofContract
-) -> i32 {
-    let index = len(table.proof_contracts)
-    push(table.proof_contracts, contract)
-    index
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
@@ -67,8 +56,4 @@ fn corehir_body_table_fn_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
 
 fn corehir_body_table_method_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
     table.method_body_roots
-}
-
-fn corehir_body_table_proof_contracts(table: CoreHirBodyTable) -> Vec<CoreHirProofContract> {
-    table.proof_contracts
 }
