@@ -83,6 +83,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model; language semantics = GC (ADR-002); wasm32-gc primary with linear wasm32 compatibility |
 | [ownership-map.md](ownership-map.md) | explanatory | Language docs ownership and release-gate map; governance companion to stdlib ownership-map |
+| [proof-contracts.md](proof-contracts.md) | transitional | Experimental proof-contract syntax and Proof IR boundary; not yet a proof guarantee |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
 | [syntax.md](syntax.md) | normative | Current-first syntax reference; reflects implemented, tested behavior |
 | [type-system.md](type-system.md) | normative | Current-first type system reference; reflects implemented type checker behavior |
@@ -97,6 +98,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative memory-model contract for Arukellt. |
 | [ownership-map.md](ownership-map.md) | Language Docs Ownership Map | explanatory | See also docs/governance/document-ownership.md |
+| [proof-contracts.md](proof-contracts.md) | Proof contracts | transitional | Arukellt function contracts use a dedicated `proof` block after the return type and before the function body: |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [type-system.md](type-system.md) | 型システム | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
