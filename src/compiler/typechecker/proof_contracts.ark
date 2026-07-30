@@ -94,6 +94,14 @@ fn check_contract(
         condition
     )
     let resolved = unify::resolve_type(env, condition_ty)
+    contract_result_state::typecheck_result_push_proof_contract(
+        result,
+        function_index,
+        clone(clause),
+        condition,
+        clone(result_name),
+        ast_access::node_span_start(contract)
+    )
     let tag = contract_type_access::TypeInfo_tag(resolved)
     if tag == commands::TY_UNKNOWN() {
         return
@@ -110,14 +118,5 @@ fn check_contract(
                 )
             )
         )
-        return
     }
-    contract_result_state::typecheck_result_push_proof_contract(
-        result,
-        function_index,
-        clause,
-        condition,
-        result_name,
-        ast_access::node_span_start(contract)
-    )
 }
