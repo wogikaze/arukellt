@@ -13,6 +13,7 @@ use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
 use mir::mod as mir_api
+use typechecker::contract_result_state
 
 fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     let frontend = pipeline_frontend::run_frontend(source, config)
@@ -46,15 +47,20 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
     if backend_typecheck::typecheck_result_should_return(checked) {
         return backend_typecheck::typecheck_result_result(checked)
     }
+    let check_result = backend_typecheck::typecheck_result_check_result(checked)
+    let checked_contracts = contract_result_state::typecheck_result_proof_contracts(
+        check_result
+    )
     let program = checked_program::build_checked_program(
         all_decls,
-        backend_typecheck::typecheck_result_check_result(checked),
+        check_result,
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
     debug::dump_proof_ir_if_enabled(
         config,
-        checked_program::checked_program_core_program(program)
+        checked_program::checked_program_core_program(program),
+        checked_contracts
     )
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
