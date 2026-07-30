@@ -63,7 +63,7 @@ fn dump_proof_ir_if_enabled(
             checked_contracts,
             config_record::config_source_file(config)
         )
-        stdio::eprintln(artifact)
+        __intrinsic_eprintln(artifact)
         ()
     }
     return
