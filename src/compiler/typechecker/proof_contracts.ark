@@ -1,0 +1,48 @@
+use typechecker::ast_access
+use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::infer
+use typechecker::kinds
+use typechecker::names
+use typechecker::scope
+use typechecker::unify
+
+fn check_fn_contracts(env: TypeEnv, base_scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode, sig: FnSig) {
+    let ann_count = ast_access::node_type_ann_count(fn_node)
+    let mut i = 0
+    while i < ann_count {
+        let ann = ast_access::node_type_ann_at(fn_node, i)
+        if ast_access::node_kind_is(ann, kinds::NK_PROOF_CONTRACT()) {
+            check_contract(env, base_scope, fn_sigs, enum_defs, ann, sig)
+        }
+        i = i + 1
+    }
+}
+
+fn check_contract(env: TypeEnv, base_scope: LocalScope, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, contract: AstNode, sig: FnSig) {
+    let clause = ast_access::node_text(contract)
+    if ast_access::node_child_count(contract) == 0 {
+        unify::type_error(env, concat(String_from("proof "), concat(clause, String_from(" contract has no condition"))))
+        return
+    }
+    let contract_scope = scope::scope_child(base_scope)
+    if eq(clone(clause), String_from("ensures")) {
+        scope::scope_define(contract_scope, String_from("result"), contract_fn_sig::FnSig_return_type(sig))
+    } else {
+        if !eq(clone(clause), String_from("requires")) {
+            unify::type_error(env, concat(String_from("unsupported proof contract kind: "), clause))
+            return
+        }
+    }
+    let condition = ast_access::node_child_at(contract, 0)
+    let condition_ty = infer::infer_expr(env, contract_scope, fn_sigs, enum_defs, condition)
+    let resolved = unify::resolve_type(env, condition_ty)
+    let tag = contract_type_access::TypeInfo_tag(resolved)
+    if tag == commands::TY_UNKNOWN() {
+        return
+    }
+    if tag != commands::TY_BOOL() {
+        let actual = names::type_display_name(resolved)
+        unify::type_error(env, concat(String_from("proof "), concat(clause, concat(String_from(" contract must have type bool, got "), actual))))
+    }
+}
