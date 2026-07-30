@@ -5,7 +5,6 @@ struct CoreHirRawProgram {
     layout_decls: Vec<CoreHirLayoutDecl>,
     type_facts: CoreHirTypeFacts,
     body_table: CoreHirBodyTable,
-    proof_contracts: Vec<CoreHirProofContract>,
     modules: Vec<CoreHirModuleInfo>,
     resolved_calls: Vec<CoreHirResolvedCall>,
     typed_locals: Vec<CoreHirTypedLocal>,
@@ -19,7 +18,6 @@ fn CoreHirRawProgram_new(
     layout_decls: Vec<CoreHirLayoutDecl>,
     type_facts: CoreHirTypeFacts,
     body_table: CoreHirBodyTable,
-    proof_contracts: Vec<CoreHirProofContract>,
     modules: Vec<CoreHirModuleInfo>,
     resolved_calls: Vec<CoreHirResolvedCall>,
     typed_locals: Vec<CoreHirTypedLocal>,
@@ -32,7 +30,6 @@ fn CoreHirRawProgram_new(
         layout_decls: layout_decls,
         type_facts: type_facts,
         body_table: body_table,
-        proof_contracts: proof_contracts,
         modules: modules,
         resolved_calls: resolved_calls,
         typed_locals: typed_locals,
@@ -46,7 +43,6 @@ fn raw_program_method_infos(program: CoreHirRawProgram) -> Vec<CoreHirMethodInfo
 fn raw_program_layout_decls(program: CoreHirRawProgram) -> Vec<CoreHirLayoutDecl> { program.layout_decls }
 fn raw_program_type_facts(program: CoreHirRawProgram) -> CoreHirTypeFacts { program.type_facts }
 fn raw_program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable { program.body_table }
-fn raw_program_proof_contracts(program: CoreHirRawProgram) -> Vec<CoreHirProofContract> { program.proof_contracts }
 fn raw_program_modules(program: CoreHirRawProgram) -> Vec<CoreHirModuleInfo> { program.modules }
 fn raw_program_resolved_calls(program: CoreHirRawProgram) -> Vec<CoreHirResolvedCall> { program.resolved_calls }
 fn raw_program_typed_locals(program: CoreHirRawProgram) -> Vec<CoreHirTypedLocal> { program.typed_locals }
