@@ -1,23 +1,43 @@
 struct CoreHirProofContract {
     function_index: i32,
     kind: String,
-    expr_root: i32,
+    expression: String,
     result_name: String,
     span_start: i32,
 }
 
-fn CoreHirProofContract_new(function_index: i32, kind: String, expr_root: i32, result_name: String, span_start: i32) -> CoreHirProofContract {
+fn CoreHirProofContract_new(
+    function_index: i32,
+    kind: String,
+    expression: String,
+    result_name: String,
+    span_start: i32
+) -> CoreHirProofContract {
     CoreHirProofContract {
         function_index: function_index,
         kind: kind,
-        expr_root: expr_root,
+        expression: expression,
         result_name: result_name,
         span_start: span_start,
     }
 }
 
-fn CoreHirProofContract_function_index(contract: CoreHirProofContract) -> i32 { contract.function_index }
-fn CoreHirProofContract_kind(contract: CoreHirProofContract) -> String { clone(contract.kind) }
-fn CoreHirProofContract_expr_root(contract: CoreHirProofContract) -> i32 { contract.expr_root }
-fn CoreHirProofContract_result_name(contract: CoreHirProofContract) -> String { clone(contract.result_name) }
-fn CoreHirProofContract_span_start(contract: CoreHirProofContract) -> i32 { contract.span_start }
+fn CoreHirProofContract_function_index(contract: CoreHirProofContract) -> i32 {
+    contract.function_index
+}
+
+fn CoreHirProofContract_kind(contract: CoreHirProofContract) -> String {
+    clone(contract.kind)
+}
+
+fn CoreHirProofContract_expression(contract: CoreHirProofContract) -> String {
+    clone(contract.expression)
+}
+
+fn CoreHirProofContract_result_name(contract: CoreHirProofContract) -> String {
+    clone(contract.result_name)
+}
+
+fn CoreHirProofContract_span_start(contract: CoreHirProofContract) -> i32 {
+    contract.span_start
+}
