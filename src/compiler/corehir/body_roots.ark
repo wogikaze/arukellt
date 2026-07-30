@@ -1,4 +1,6 @@
+use std::host::stdio
 use corehir::body
+use corehir::body_table
 use corehir::decl_children
 use corehir::decl_member_collections
 use corehir::decl_node
@@ -8,8 +10,20 @@ fn build_body_table(
     decls: Vec<AstNode>,
     checked_contracts: Vec<CheckedProofContract>
 ) -> CoreHirBodyTable {
+    stdio::eprintln(
+        concat(
+            String_from("[proof-ir] body-table-input-contracts="),
+            to_string(len(checked_contracts))
+        )
+    )
     let table = body::CoreHirBodyTable_new()
     proof_contracts::append_checked_proof_contracts(table, checked_contracts)
+    stdio::eprintln(
+        concat(
+            String_from("[proof-ir] body-table-retained-contracts="),
+            to_string(len(body_table::corehir_body_table_proof_contracts(table)))
+        )
+    )
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
