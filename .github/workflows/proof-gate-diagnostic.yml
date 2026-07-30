@@ -26,6 +26,16 @@ jobs:
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
+      - name: Identify invalid generated function
+        run: |
+          if ! command -v wasm-objdump >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq wabt
+          fi
+          wasm-objdump -x .build/selfhost/arukellt-s3.wasm |
+            grep -E 'func\[5749\]|func\[5748\]|func\[5750\]' || true
+          wasm-validate .build/selfhost/arukellt-s3.wasm || true
+
       - name: Check Proof IR unit boundary
         run: |
           python3 -m unittest scripts.tests.test_proof_ir
