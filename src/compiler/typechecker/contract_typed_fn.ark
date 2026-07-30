@@ -14,6 +14,14 @@ fn TypedFn_name(fn_info: TypedFn) -> String {
     clone(fn_info.name)
 }
 
+fn TypedFn_param_count(fn_info: TypedFn) -> i32 {
+    len(fn_info.param_types)
+}
+
+fn TypedFn_param_at(fn_info: TypedFn, index: i32) -> TypeInfo {
+    get_unchecked(fn_info.param_types, index)
+}
+
 fn TypedFn_return_type(fn_info: TypedFn) -> TypeInfo {
     fn_info.return_type
 }
