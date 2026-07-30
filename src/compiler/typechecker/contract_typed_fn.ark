@@ -10,10 +10,6 @@ fn TypedFn_new(name: String, param_types: Vec<TypeInfo>, return_type: TypeInfo) 
     TypedFn { name: name, param_types: param_types, return_type: return_type }
 }
 
-fn TypedFn_name(fn_info: TypedFn) -> String {
-    clone(fn_info.name)
-}
-
 fn TypedFn_param_types(fn_info: TypedFn) -> Vec<TypeInfo> {
     fn_info.param_types
 }
