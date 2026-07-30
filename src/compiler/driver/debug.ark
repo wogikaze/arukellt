@@ -1,4 +1,5 @@
 use std::host::stdio
+use corehir::mod as corehir_api
 use driver::config_record
 use driver::parser_dump_view
 use driver::resolver_dump_view
@@ -46,6 +47,14 @@ fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult
         let header = String_from("=== TYPED HIR ===")
         stdio::eprintln(header)
         dump_checked_hir(check_result)
+    }
+}
+
+fn dump_proof_ir_if_enabled(config: DriverConfig, program: CoreHirRawProgram) {
+    if config_record::config_dump_proof_ir(config) {
+        let header = String_from("=== PROOF IR ===")
+        stdio::eprintln(header)
+        stdio::eprintln(corehir_api::render_proof_ir(program, config_record::config_source_file(config)))
     }
 }
 
