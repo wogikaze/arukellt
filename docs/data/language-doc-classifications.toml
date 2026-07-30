@@ -49,6 +49,11 @@ file = "ownership-map.md"
 class = "explanatory"
 note = "Language docs ownership and release-gate map; governance companion to stdlib ownership-map"
 
+[[docs]]
+file = "proof-contracts.md"
+class = "transitional"
+note = "Experimental proof-contract syntax and Proof IR boundary; not yet a proof guarantee"
+
 # ── Feature maturity classifications ─────────────────────────────────────────
 # Source of truth for docs/language/maturity-matrix.md (generated).
 # Stability labels: stable | provisional | experimental | unimplemented
@@ -355,6 +360,12 @@ id = "6.1.3"
 name = "Where Clauses"
 stability = "provisional"
 notes = "language uplift feature — interface may change before stable exit"
+
+[[features]]
+id = "6.1.4"
+name = "Proof Contracts"
+stability = "experimental"
+notes = "frontend and Proof IR artifact only; solver-backed verification is not implemented"
 
 [[features]]
 id = "6.2"
