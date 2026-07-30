@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schema/proof-ir-v1.schema.json",
+  "title": "Arukellt Proof IR v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "module", "functions"],
+  "properties": {
+    "schema": {"const": "arukellt-proof-ir"},
+    "schema_version": {"const": 1},
+    "generator": {"type": "string", "minLength": 1},
+    "module": {"type": "string", "minLength": 1},
+    "functions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/function"}
+    }
+  },
+  "$defs": {
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "start", "end"],
+      "properties": {
+        "file": {"type": "string", "minLength": 1},
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 0}
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1}
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expression", "span"],
+      "properties": {
+        "kind": {"enum": ["requires", "ensures", "invariant", "assert", "decreases"]},
+        "expression": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "result_name": {"type": "string", "minLength": 1},
+        "span": {"$ref": "#/$defs/span"}
+      }
+    },
+    "function": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "parameters", "return_type", "contracts", "body"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "minLength": 1},
+        "parameters": {"type": "array", "items": {"$ref": "#/$defs/parameter"}},
+        "return_type": {"type": "string", "minLength": 1},
+        "type_parameters": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "contracts": {"type": "array", "items": {"$ref": "#/$defs/contract"}},
+        "body": {"type": "object"},
+        "span": {"$ref": "#/$defs/span"}
+      }
+    }
+  }
+}
