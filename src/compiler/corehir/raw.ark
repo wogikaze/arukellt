@@ -10,12 +10,25 @@ fn build_program_from_facts(
     layout_decls: Vec<CoreHirLayoutDecl>,
     type_facts: CoreHirTypeFacts,
     body_table: CoreHirBodyTable,
+    proof_contracts: Vec<CoreHirProofContract>,
     modules: Vec<CoreHirModuleInfo>,
     resolved_calls: Vec<CoreHirResolvedCall>,
     typed_locals: Vec<CoreHirTypedLocal>,
     export_surface: CoreHirExportSurface
 ) -> CoreHirRawProgram {
-    raw_record::CoreHirRawProgram_new(decl_infos, fn_infos, method_infos, layout_decls, type_facts, body_table, modules, resolved_calls, typed_locals, export_surface)
+    raw_record::CoreHirRawProgram_new(
+        decl_infos,
+        fn_infos,
+        method_infos,
+        layout_decls,
+        type_facts,
+        body_table,
+        proof_contracts,
+        modules,
+        resolved_calls,
+        typed_locals,
+        export_surface
+    )
 }
 
 fn program_decl_infos(program: CoreHirRawProgram) -> Vec<CoreHirDeclInfo> { raw_decls::program_decl_infos(program) }
