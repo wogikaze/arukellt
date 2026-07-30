@@ -24,5 +24,3 @@ fn program_method_infos(program: CoreHirRawProgram) -> Vec<CoreHirMethodInfo> { 
 fn program_typed_fns(program: CoreHirRawProgram) -> Vec<TypedFn> { raw_types::program_typed_fns(program) }
 fn program_mono_instances(program: CoreHirRawProgram) -> Vec<MonoInstance> { raw_types::program_mono_instances(program) }
 fn program_body_table(program: CoreHirRawProgram) -> CoreHirBodyTable { raw_bodies::program_body_table(program) }
-fn program_proof_contract_count(program: CoreHirRawProgram) -> i32 { raw_bodies::program_proof_contract_count(program) }
-fn program_proof_contract_at(program: CoreHirRawProgram, index: i32) -> CoreHirProofContract { raw_bodies::program_proof_contract_at(program, index) }
