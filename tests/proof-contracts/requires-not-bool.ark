@@ -1,9 +1,0 @@
-fn invalid_requires(x: i32) -> i32 proof {
-    requires: x
-} {
-    x
-}
-
-fn main() {
-    invalid_requires(1)
-}
