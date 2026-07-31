@@ -242,24 +242,38 @@ class TestQualityCommands(unittest.TestCase):
             )
         current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
 
-    def test_fixture_parity_lint_skips_require_existing_issue_baseline(self):
-        from scripts.quality.checks import _fixture_parity_lint_skips
+    def test_known_fixture_lint_exclusions_require_existing_issue_baseline(self):
+        from scripts.quality.checks import _known_fixture_lint_exclusions
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             receipt = root / "docs/data/verify-full-receipt.json"
             receipt.parent.mkdir(parents=True)
             receipt.write_text(
-                '{"checks": [{"check_id": "fixture_parity", '
-                '"item_id": "lang_uplift/where_clause_generic.ark", '
+                '{"checks": ['
+                '{"check_id": "fixture_parity", '
+                '"item_id": "module_import/use_prelude_coexist.ark", '
+                '"result": "fail", "baseline_status": "existing", '
+                '"owner_issue": "807"},'
+                '{"check_id": "diag_parity", '
+                '"item_id": "selfhost/comprehen_deny_filter_not_bool.ark", '
                 '"result": "skip", "baseline_status": "existing", '
+                '"owner_issue": "815"},'
+                '{"check_id": "fixture_parity", '
+                '"item_id": "new.ark", "result": "fail", '
+                '"baseline_status": "new", "owner_issue": "807"},'
+                '{"check_id": "fixture_parity", "item_id": "other.ark", '
+                '"result": "pass", "baseline_status": "existing", '
                 '"owner_issue": "807"}]}',
                 encoding="utf-8",
             )
 
             self.assertEqual(
-                _fixture_parity_lint_skips(root),
-                {"tests/fixtures/lang_uplift/where_clause_generic.ark"},
+                _known_fixture_lint_exclusions(root),
+                {
+                    "tests/fixtures/module_import/use_prelude_coexist.ark",
+                    "tests/fixtures/selfhost/comprehen_deny_filter_not_bool.ark",
+                },
             )
 
     def test_baseline_update_requires_tracking_issue(self):

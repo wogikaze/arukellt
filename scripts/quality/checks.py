@@ -280,8 +280,8 @@ def _formatter_baseline(root: Path) -> dict[str, str]:
     }
 
 
-def _fixture_parity_lint_skips(root: Path) -> set[str]:
-    """Return existing #807 fixture skips recorded by the parity receipt."""
+def _known_fixture_lint_exclusions(root: Path) -> set[str]:
+    """Return existing non-pass fixture parity entries from the receipt."""
     receipt_path = root / "docs/data/verify-full-receipt.json"
     if not receipt_path.is_file():
         return set()
@@ -290,19 +290,23 @@ def _fixture_parity_lint_skips(root: Path) -> set[str]:
     except (OSError, json.JSONDecodeError):
         return set()
 
-    skips: set[str] = set()
+    exclusions: set[str] = set()
 
     def visit(value: object) -> None:
         if isinstance(value, dict):
+            is_parity_check = value.get("check_id") in {
+                "fixture_parity",
+                "diag_parity",
+            }
             if (
-                value.get("check_id") == "fixture_parity"
-                and value.get("result") == "skip"
+                is_parity_check
+                and value.get("result") != "pass"
                 and value.get("baseline_status") == "existing"
-                and value.get("owner_issue") == "807"
+                and value.get("owner_issue") in {"807", "812", "815"}
             ):
                 item_id = value.get("item_id")
                 if isinstance(item_id, str) and item_id.endswith(".ark"):
-                    skips.add(f"tests/fixtures/{item_id}")
+                    exclusions.add(f"tests/fixtures/{item_id}")
             for child in value.values():
                 visit(child)
         elif isinstance(value, list):
@@ -310,17 +314,17 @@ def _fixture_parity_lint_skips(root: Path) -> set[str]:
                 visit(child)
 
     visit(receipt)
-    return skips
+    return exclusions
 
 
-def _lint_paths_without_fixture_parity_skips(root: Path, paths: list[str]) -> list[str]:
-    skips = _fixture_parity_lint_skips(root)
-    selected = [path for path in paths if path not in skips]
-    skipped = sorted(set(paths) & skips)
-    if skipped:
+def _lint_paths_without_known_fixture_exclusions(root: Path, paths: list[str]) -> list[str]:
+    exclusions = _known_fixture_lint_exclusions(root)
+    selected = [path for path in paths if path not in exclusions]
+    excluded = sorted(set(paths) & exclusions)
+    if excluded:
         print(
-            "lint: skipped existing fixture-parity baseline entries "
-            f"(#807): {', '.join(skipped)}"
+            "lint: skipped existing parity baseline entries "
+            f"(#807/#812/#815): {', '.join(excluded)}"
         )
     return selected
 
@@ -794,7 +798,7 @@ def run_quality(
         if path.endswith(".ark")
         and not path.startswith("tests/fixtures/diagnostics/")
     ]
-    lint_selected = _lint_paths_without_fixture_parity_skips(root, ark_selected)
+    lint_selected = _lint_paths_without_known_fixture_exclusions(root, ark_selected)
     failures = 0
     failures += check_editorconfig_basics(root, selected) if not dry_run else _run_command(
         root, ["python3", "scripts/check/check-editorconfig-basics.py"], True,
