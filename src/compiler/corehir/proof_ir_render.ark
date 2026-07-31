@@ -5,7 +5,7 @@ use corehir::proof_json_escape
 use typechecker::contract_typed_fn
 use typechecker::names
 
-fn render_proof_ir_document(
+pub fn render_proof_ir_document(
     fn_infos: Vec<CoreHirFnInfo>,
     typed_fns: Vec<TypedFn>,
     fn_body_roots: Vec<i32>,
