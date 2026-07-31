@@ -280,7 +280,7 @@ def _formatter_baseline(root: Path) -> dict[str, str]:
     }
 
 
-def _known_fixture_lint_exclusions(root: Path) -> set[str]:
+def _known_fixture_parity_exclusions(root: Path) -> set[str]:
     """Return existing non-pass fixture parity entries from the receipt."""
     receipt_path = root / "docs/data/verify-full-receipt.json"
     if not receipt_path.is_file():
@@ -317,14 +317,14 @@ def _known_fixture_lint_exclusions(root: Path) -> set[str]:
     return exclusions
 
 
-def _lint_paths_without_known_fixture_exclusions(root: Path, paths: list[str]) -> list[str]:
-    exclusions = _known_fixture_lint_exclusions(root)
+def _paths_without_known_fixture_parity_exclusions(root: Path, paths: list[str]) -> list[str]:
+    exclusions = _known_fixture_parity_exclusions(root)
     selected = [path for path in paths if path not in exclusions]
     excluded = sorted(set(paths) & exclusions)
     if excluded:
         print(
-            "lint: skipped existing parity baseline entries "
-            f"(#807/#812/#815): {', '.join(excluded)}"
+            "quality: skipped "
+            f"{len(excluded)} existing parity baseline entries (#807/#812/#815)"
         )
     return selected
 
@@ -798,7 +798,8 @@ def run_quality(
         if path.endswith(".ark")
         and not path.startswith("tests/fixtures/diagnostics/")
     ]
-    lint_selected = _lint_paths_without_known_fixture_exclusions(root, ark_selected)
+    selected_ark = _paths_without_known_fixture_parity_exclusions(root, ark_selected)
+    lint_selected = selected_ark
     failures = 0
     failures += check_editorconfig_basics(root, selected) if not dry_run else _run_command(
         root, ["python3", "scripts/check/check-editorconfig-basics.py"], True,
@@ -811,8 +812,8 @@ def run_quality(
     # ark_paths([]) means "all inventory roots". For changed/quick, an empty
     # .ark diff must skip fmt/lint instead of expanding to the whole tree.
     scoped_ark = mode in {"changed", "quick"}
-    if scoped_ark and ark_selected:
-        failures += run_fmt(root, ark_selected, True, dry_run, json_output)
+    if scoped_ark and selected_ark:
+        failures += run_fmt(root, selected_ark, True, dry_run, json_output)
     elif not scoped_ark:
         failures += run_fmt(root, [], True, dry_run, json_output)
     elif dry_run:

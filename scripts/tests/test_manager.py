@@ -242,8 +242,8 @@ class TestQualityCommands(unittest.TestCase):
             )
         current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
 
-    def test_known_fixture_lint_exclusions_require_existing_issue_baseline(self):
-        from scripts.quality.checks import _known_fixture_lint_exclusions
+    def test_known_fixture_parity_exclusions_require_existing_issue_baseline(self):
+        from scripts.quality.checks import _known_fixture_parity_exclusions
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -269,12 +269,59 @@ class TestQualityCommands(unittest.TestCase):
             )
 
             self.assertEqual(
-                _known_fixture_lint_exclusions(root),
+                _known_fixture_parity_exclusions(root),
                 {
                     "tests/fixtures/module_import/use_prelude_coexist.ark",
                     "tests/fixtures/selfhost/comprehen_deny_filter_not_bool.ark",
                 },
             )
+
+    def test_quality_changed_excludes_known_fixture_parity_entries_from_fmt_and_lint(self):
+        from scripts.quality.checks import run_quality
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "docs/data/verify-full-receipt.json"
+            receipt.parent.mkdir(parents=True)
+            receipt.write_text(
+                '{"checks": [{"check_id": "fixture_parity", '
+                '"item_id": "lang_uplift/where_clause_generic.ark", '
+                '"result": "skip", "baseline_status": "existing", '
+                '"owner_issue": "807"}]}',
+                encoding="utf-8",
+            )
+            changed = [
+                "tests/fixtures/lang_uplift/where_clause_generic.ark",
+                "tests/fixtures/stdlib_core/iter_fold_sum.ark",
+                "src/compiler/fmt/range.ark",
+            ]
+            with mock.patch(
+                "scripts.quality.checks.quality_base", return_value="HEAD"
+            ), mock.patch(
+                "scripts.quality.checks.changed_paths", return_value=changed
+            ), mock.patch(
+                "scripts.quality.checks.check_editorconfig_basics", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.check_quality_contract", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks._run_command", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.run_fmt", return_value=0
+            ) as fmt, mock.patch(
+                "scripts.quality.checks._run_lint_results", return_value=(0, [])
+            ) as lint, mock.patch(
+                "scripts.quality.checks._print_results", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.run_lint_ratchet", return_value=0
+            ):
+                self.assertEqual(run_quality(root, "changed", False, False), 0)
+
+            expected = [
+                "tests/fixtures/stdlib_core/iter_fold_sum.ark",
+                "src/compiler/fmt/range.ark",
+            ]
+            self.assertEqual(fmt.call_args.args[1], expected)
+            self.assertEqual(lint.call_args.args[1], expected)
 
     def test_baseline_update_requires_tracking_issue(self):
         result = subprocess.run(
