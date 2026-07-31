@@ -25,7 +25,7 @@ pub fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
     mir_view::mir_view_from_program(program)
 }
 
-pub fn emit_proof_ir(
+pub fn render_proof_ir(
     program: CoreHirRawProgram,
     checked_contracts: Vec<CheckedProofContract>,
     source_file: String
