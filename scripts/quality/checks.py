@@ -585,7 +585,9 @@ def run_lint_ratchet(
         missing_current: list[str] = []
         for path in paths_to_check:
             result = current_by_path.get(path)
-            if result is None:
+            # The ratchet is file-local. Full lint can report W0011 findings
+            # from imported modules at a synthetic location in this file.
+            if result is None or "--local" not in result.command:
                 missing_current.append(path)
                 continue
             current_counts[path] = (

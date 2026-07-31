@@ -213,6 +213,35 @@ class TestQualityCommands(unittest.TestCase):
             )
         base_lint.assert_not_called()
 
+    def test_w0011_ratchet_does_not_reuse_full_lint_diagnostics(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        full_lint = ToolResult(
+            "fixture.ark",
+            ("arukellt", "lint", "fixture.ark"),
+            0,
+            "warning[W0011|prefer-else-if] imported diagnostic\n",
+        )
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+            return_value=(0, 0, ""),
+        ) as current_lint, mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(0, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["fixture.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[full_lint],
+                ),
+                0,
+            )
+        current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
+
     def test_baseline_update_requires_tracking_issue(self):
         result = subprocess.run(
             [
