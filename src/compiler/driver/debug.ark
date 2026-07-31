@@ -6,7 +6,7 @@ use driver::typechecker_dump_view
 use mir
 use lexer::names
 use lexer::token_state
-use corehir::proof_ir_render as corehir_api
+use corehir::proof_ir_render
 
 pub fn dump_ast(decls: Vec<AstNode>) {
     stdio::eprintln(String_from("=== AST ==="))
@@ -58,7 +58,7 @@ fn dump_proof_ir_if_enabled(
     if config_record::config_dump_proof_ir(config) {
         let header = String_from("=== PROOF IR ===")
         stdio::eprintln(header)
-        let proof_ir_output: String = corehir_api::render_proof_ir(
+        let proof_ir_output: String = proof_ir_render::render_proof_ir(
             program,
             checked_contracts,
             config_record::config_source_file(config)
