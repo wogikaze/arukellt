@@ -50,7 +50,3 @@ fn record_vec_core_mono_for_callee(env: TypeEnv, callee_name: String, recv_ty: T
         record_vec_core_fallback_mono(env, String_from("__core_vec_get_unchecked_impl"), recv_ty)
     }
 }
-
-fn record_vec_method_core_mono(env: TypeEnv, method_name: String, recv_ty: TypeInfo) {
-    record_vec_core_mono_for_callee(env, method_name, recv_ty)
-}

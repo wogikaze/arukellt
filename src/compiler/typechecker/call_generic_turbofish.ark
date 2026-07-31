@@ -3,6 +3,17 @@ use typechecker::ast_expr_predicates
 use typechecker::types
 use typechecker::unify
 
+fn constrain_turbofish_type_arg(
+    callee: AstNode,
+    infer_env: TypeEnv,
+    var_types: Vec<TypeInfo>,
+    index: i32
+) {
+    let type_node = ast_access::node_child_at(callee, index + 1)
+    let concrete = types::resolve_type_ann_node(type_node)
+    unify::unify(infer_env, get_unchecked(var_types, index), concrete)
+}
+
 // Bind turbofish type arguments from a PATH callee's children onto fresh
 // generic type vars. PATH layout after parse_path_suffix:
 //   children[0] = lhs segment, children[1..] = explicit type args (#845).
@@ -22,9 +33,7 @@ fn constrain_turbofish_type_args(
     let var_count = len(var_types)
     let mut i = 0
     while i < type_arg_count && i < var_count {
-        let type_node = ast_access::node_child_at(callee, i + 1)
-        let concrete = types::resolve_type_ann_node(type_node)
-        unify::unify(infer_env, get_unchecked(var_types, i), concrete)
+        constrain_turbofish_type_arg(callee, infer_env, var_types, i)
         i = i + 1
     }
 }

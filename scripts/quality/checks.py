@@ -280,6 +280,51 @@ def _formatter_baseline(root: Path) -> dict[str, str]:
     }
 
 
+def _fixture_parity_lint_skips(root: Path) -> set[str]:
+    """Return existing #807 fixture skips recorded by the parity receipt."""
+    receipt_path = root / "docs/data/verify-full-receipt.json"
+    if not receipt_path.is_file():
+        return set()
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+
+    skips: set[str] = set()
+
+    def visit(value: object) -> None:
+        if isinstance(value, dict):
+            if (
+                value.get("check_id") == "fixture_parity"
+                and value.get("result") == "skip"
+                and value.get("baseline_status") == "existing"
+                and value.get("owner_issue") == "807"
+            ):
+                item_id = value.get("item_id")
+                if isinstance(item_id, str) and item_id.endswith(".ark"):
+                    skips.add(f"tests/fixtures/{item_id}")
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(receipt)
+    return skips
+
+
+def _lint_paths_without_fixture_parity_skips(root: Path, paths: list[str]) -> list[str]:
+    skips = _fixture_parity_lint_skips(root)
+    selected = [path for path in paths if path not in skips]
+    skipped = sorted(set(paths) & skips)
+    if skipped:
+        print(
+            "lint: skipped existing fixture-parity baseline entries "
+            f"(#807): {', '.join(skipped)}"
+        )
+    return selected
+
+
 def _content_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -749,6 +794,7 @@ def run_quality(
         if path.endswith(".ark")
         and not path.startswith("tests/fixtures/diagnostics/")
     ]
+    lint_selected = _lint_paths_without_fixture_parity_skips(root, ark_selected)
     failures = 0
     failures += check_editorconfig_basics(root, selected) if not dry_run else _run_command(
         root, ["python3", "scripts/check/check-editorconfig-basics.py"], True,
@@ -769,9 +815,9 @@ def run_quality(
         print("DRY-RUN: fmt/lint skipped (no .ark files in changed set)")
 
     if mode == "changed":
-        if ark_selected:
+        if lint_selected:
             lint_rc, current_results = _run_lint_results(
-                root, ark_selected, False, dry_run, json_output,
+                root, lint_selected, False, dry_run, json_output,
             )
             failures += lint_rc
             if lint_rc == 0:
@@ -781,7 +827,7 @@ def run_quality(
             )
             failures += run_lint_ratchet(
                 root,
-                ark_selected,
+                lint_selected,
                 base,
                 dry_run,
                 json_output,
@@ -796,9 +842,9 @@ def run_quality(
             dry_run,
         )
     elif mode == "quick":
-        if ark_selected:
+        if lint_selected:
             lint_rc, current_results = _run_lint_results(
-                root, ark_selected, False, dry_run, json_output,
+                root, lint_selected, False, dry_run, json_output,
             )
             failures += lint_rc
             if lint_rc == 0:
@@ -808,7 +854,7 @@ def run_quality(
             )
             failures += run_lint_ratchet(
                 root,
-                ark_selected,
+                lint_selected,
                 base,
                 dry_run,
                 json_output,

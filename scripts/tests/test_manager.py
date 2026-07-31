@@ -242,6 +242,26 @@ class TestQualityCommands(unittest.TestCase):
             )
         current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
 
+    def test_fixture_parity_lint_skips_require_existing_issue_baseline(self):
+        from scripts.quality.checks import _fixture_parity_lint_skips
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "docs/data/verify-full-receipt.json"
+            receipt.parent.mkdir(parents=True)
+            receipt.write_text(
+                '{"checks": [{"check_id": "fixture_parity", '
+                '"item_id": "lang_uplift/where_clause_generic.ark", '
+                '"result": "skip", "baseline_status": "existing", '
+                '"owner_issue": "807"}]}',
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                _fixture_parity_lint_skips(root),
+                {"tests/fixtures/lang_uplift/where_clause_generic.ark"},
+            )
+
     def test_baseline_update_requires_tracking_issue(self):
         result = subprocess.run(
             [

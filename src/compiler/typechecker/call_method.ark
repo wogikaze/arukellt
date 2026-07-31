@@ -109,7 +109,7 @@ fn infer_builtin_vec_method(
         return simple_type(commands::TY_UNKNOWN())
     }
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
-    vec_core_mono::record_vec_method_core_mono(env, clone(method_name), recv_ty)
+    vec_core_mono::record_vec_core_mono_for_callee(env, clone(method_name), recv_ty)
     if eq(clone(method_name), String_from("len")) {
         return simple_type(commands::TY_I32())
     }
