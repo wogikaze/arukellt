@@ -32,12 +32,20 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y -qq wabt
           fi
-          wasm-objdump -x .build/selfhost/arukellt-s3.wasm |
-            grep -E 'func\[(5701|5728|5729|5730|5763|9131)\]' || true
-          echo "=== dump_proof_ir_if_enabled disassembly ==="
-          wasm-objdump -d .build/selfhost/arukellt-s3.wasm |
-            awk '/func\[5763\]/{show=1} show{print} /func\[5764\]/{exit}'
-          wasm-validate .build/selfhost/arukellt-s3.wasm
+          wasm=".build/selfhost/arukellt-s3.wasm"
+          wasm-objdump -x "$wasm" |
+            grep -E '<(dump_proof_ir_if_enabled|emit_proof_ir|render_proof_ir_document)>' || true
+          disasm="$(mktemp)"
+          wasm-objdump -d "$wasm" > "$disasm"
+          for symbol in dump_proof_ir_if_enabled emit_proof_ir render_proof_ir_document; do
+            echo "=== ${symbol} disassembly ==="
+            awk -v symbol="$symbol" '
+              $0 ~ "<" symbol ">:" { show=1 }
+              show && $0 !~ "<" symbol ">:" && $0 ~ /^[0-9a-f]+ func\[/ { exit }
+              show { print }
+            ' "$disasm"
+          done
+          wasm-validate "$wasm"
 
       - name: Check Proof IR unit boundary
         run: |
