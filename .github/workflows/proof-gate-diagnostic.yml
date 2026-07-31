@@ -26,6 +26,14 @@ jobs:
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
+      - name: Inspect flattened Proof IR modules
+        run: |
+          workspace=".build/selfhost/bootstrap-workspace"
+          echo "=== matching flattened files ==="
+          find "$workspace" -type f | grep -E '(driver_debug|proof_ir|corehir)' | sort || true
+          echo "=== flattened Proof IR references ==="
+          grep -R -n -E 'proof_ir_render|render_proof_ir' "$workspace" || true
+
       - name: Identify Proof IR generated functions
         run: |
           if ! command -v wasm-objdump >/dev/null 2>&1; then
