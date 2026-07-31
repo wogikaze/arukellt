@@ -196,6 +196,18 @@ def _run_tool(root: Path, path: str, command: tuple[str, ...], dry_run: bool, ti
     return ToolResult(path, command, result.returncode, output)
 
 
+def _lint_worker_count(item_count: int) -> int:
+    """Return a bounded worker count for selfhost lint subprocesses."""
+    if item_count <= 0:
+        return 1
+    try:
+        configured = int(os.environ.get("ARUKELLT_LINT_WORKERS", "16"))
+    except ValueError:
+        configured = 16
+    available = max(1, os.cpu_count() or 1)
+    return max(1, min(configured, available, item_count))
+
+
 def _run_parallel(
     root: Path,
     jobs: list[tuple[str, tuple[str, ...]]],
@@ -205,8 +217,7 @@ def _run_parallel(
     # Allow callers (e.g. verify quick) to reduce parallelism to avoid
     # exhausting CI runner memory when many wasm instances run concurrently.
     # Each wasm instance can use up to 512 MiB (unpatched) or 4 GiB (patched).
-    max_workers = int(os.environ.get("ARUKELLT_LINT_WORKERS", "16"))
-    workers = min(max_workers, max(1, os.cpu_count() or 1))
+    workers = _lint_worker_count(len(jobs))
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [
             executor.submit(_run_tool, root, path, command, dry_run, timeout)
@@ -410,21 +421,21 @@ def run_fmt(root: Path, paths: list[str], check: bool, dry_run: bool, json_outpu
     return _print_results("fmt", per_file, json_output)
 
 
-def run_lint(
+def _run_lint_results(
     root: Path,
     paths: list[str],
     fix: bool,
     dry_run: bool,
     json_output: bool,
     deny_prefer_else_if: bool = False,
-) -> int:
+) -> tuple[int, list[ToolResult]]:
     selected = ark_paths(root, paths)
     if _empty_selection_failure(root, selected, "lint"):
-        return 1
+        return 1, []
     if fix:
         fmt_rc = run_fmt(root, selected, check=False, dry_run=dry_run, json_output=json_output)
         if fmt_rc != 0:
-            return fmt_rc
+            return fmt_rc, []
     wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
     jobs = []
     for path in selected:
@@ -438,6 +449,22 @@ def run_lint(
     results = _run_parallel(root, jobs, dry_run)
     if not dry_run:
         results = _apply_parser_failure_baseline(root, results)
+    return 0, results
+
+
+def run_lint(
+    root: Path,
+    paths: list[str],
+    fix: bool,
+    dry_run: bool,
+    json_output: bool,
+    deny_prefer_else_if: bool = False,
+) -> int:
+    selection_rc, results = _run_lint_results(
+        root, paths, fix, dry_run, json_output, deny_prefer_else_if,
+    )
+    if selection_rc != 0:
+        return selection_rc
     return _print_results("lint", results, json_output)
 
 
@@ -448,14 +475,23 @@ def run_lint_command(
     dry_run: bool,
     json_output: bool,
 ) -> int:
-    failures = run_lint(root, paths, fix, dry_run, json_output)
+    selection_rc, results = _run_lint_results(root, paths, fix, dry_run, json_output)
+    failures = selection_rc
+    if selection_rc == 0:
+        failures |= _print_results("lint", results, json_output)
     smoke = _run_command(root, ["python3", "scripts/check/check-ark-lint-smoke.py"], dry_run)
     return 1 if failures or smoke else 0
 
 
 def _lint_w0011_count(root: Path, path: str) -> tuple[int, int, str]:
     wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
-    result = _run_tool(root, path, (wrapper, "lint", "--local", path), dry_run=False)
+    result = _run_tool(
+        root,
+        path,
+        (wrapper, "lint", "--local", path),
+        dry_run=False,
+        timeout=60,
+    )
     return result.returncode, result.output.count("[W0011|"), result.output
 
 
@@ -480,12 +516,48 @@ def _base_lint_w0011_count(root: Path, path: str, base: str) -> tuple[int, str]:
     return count, ""
 
 
+def _parallel_lint_w0011_counts(
+    root: Path,
+    paths: list[str],
+) -> dict[str, tuple[int, int, str]]:
+    """Run fallback current-file W0011 counts with the configured lint pool."""
+    if not paths:
+        return {}
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=_lint_worker_count(len(paths)),
+    ) as executor:
+        futures = {
+            executor.submit(_lint_w0011_count, root, path): path
+            for path in paths
+        }
+        return {path: future.result() for future, path in futures.items()}
+
+
+def _parallel_base_lint_w0011_counts(
+    root: Path,
+    paths: list[str],
+    base: str,
+) -> dict[str, tuple[int, str]]:
+    """Run base-version W0011 counts without serializing every changed file."""
+    if not paths:
+        return {}
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=_lint_worker_count(len(paths)),
+    ) as executor:
+        futures = {
+            executor.submit(_base_lint_w0011_count, root, path, base): path
+            for path in paths
+        }
+        return {path: future.result() for future, path in futures.items()}
+
+
 def run_lint_ratchet(
     root: Path,
     paths: list[str],
     base: str,
     dry_run: bool,
     json_output: bool,
+    current_results: list[ToolResult] | None = None,
 ) -> int:
     if dry_run:
         print(f"DRY-RUN: W0011 ratchet ({len(paths)} files vs {base})")
@@ -496,13 +568,36 @@ def run_lint_ratchet(
     # Without this skip, the ratchet reports false failures for baseline files.
     baseline = _formatter_baseline(root)
     failures: list[dict[str, object]] = []
+    current_by_path = {result.path: result for result in current_results or []}
+    paths_to_check: list[str] = []
     for path in paths:
         if path in baseline:
             expected = baseline[path]
             actual = _content_sha256(root / path)
             if actual == expected:
                 continue
-        current_rc, current_count, current_output = _lint_w0011_count(root, path)
+        paths_to_check.append(path)
+
+    if current_results is None:
+        current_counts = _parallel_lint_w0011_counts(root, paths_to_check)
+    else:
+        current_counts: dict[str, tuple[int, int, str]] = {}
+        missing_current: list[str] = []
+        for path in paths_to_check:
+            result = current_by_path.get(path)
+            if result is None:
+                missing_current.append(path)
+                continue
+            current_counts[path] = (
+                result.returncode,
+                result.output.count("[W0011|"),
+                result.output,
+            )
+        current_counts.update(_parallel_lint_w0011_counts(root, missing_current))
+
+    base_paths: list[str] = []
+    for path in paths_to_check:
+        current_rc, current_count, current_output = current_counts[path]
         if current_rc != 0:
             failures.append({
                 "path": path,
@@ -511,7 +606,16 @@ def run_lint_ratchet(
                 "message": current_output.strip() or "local lint failed",
             })
             continue
-        base_count, base_error = _base_lint_w0011_count(root, path, base)
+        # W0011 counts are non-negative, so a clean current file cannot
+        # violate the ratchet and needs no base-version lint process.
+        if current_count == 0:
+            continue
+        base_paths.append(path)
+
+    base_counts = _parallel_base_lint_w0011_counts(root, base_paths, base)
+    for path in base_paths:
+        _current_rc, current_count, _current_output = current_counts[path]
+        base_count, base_error = base_counts[path]
         if base_error:
             # If the base version has parse errors, we can't compare W0011
             # counts. Skip the ratchet for this file rather than reporting
@@ -664,8 +768,23 @@ def run_quality(
 
     if mode == "changed":
         if ark_selected:
-            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+            lint_rc, current_results = _run_lint_results(
+                root, ark_selected, False, dry_run, json_output,
+            )
+            failures += lint_rc
+            if lint_rc == 0:
+                failures += _print_results("lint", current_results, json_output)
+            failures += _run_command(
+                root, ["python3", "scripts/check/check-ark-lint-smoke.py"], dry_run,
+            )
+            failures += run_lint_ratchet(
+                root,
+                ark_selected,
+                base,
+                dry_run,
+                json_output,
+                current_results=current_results,
+            )
         failures += _run_command(
             root,
             [
@@ -676,8 +795,23 @@ def run_quality(
         )
     elif mode == "quick":
         if ark_selected:
-            failures += run_lint_command(root, ark_selected, False, dry_run, json_output)
-            failures += run_lint_ratchet(root, ark_selected, base, dry_run, json_output)
+            lint_rc, current_results = _run_lint_results(
+                root, ark_selected, False, dry_run, json_output,
+            )
+            failures += lint_rc
+            if lint_rc == 0:
+                failures += _print_results("lint", current_results, json_output)
+            failures += _run_command(
+                root, ["python3", "scripts/check/check-ark-lint-smoke.py"], dry_run,
+            )
+            failures += run_lint_ratchet(
+                root,
+                ark_selected,
+                base,
+                dry_run,
+                json_output,
+                current_results=current_results,
+            )
         failures += _run_command(
             root,
             [

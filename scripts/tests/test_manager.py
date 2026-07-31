@@ -159,6 +159,60 @@ class TestQualityCommands(unittest.TestCase):
                 1,
             )
 
+    def test_w0011_ratchet_reuses_current_lint_results(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        current = ToolResult(
+            "same.ark",
+            ("arukellt", "lint", "--local", "same.ark"),
+            0,
+            "warning[W0011|prefer-else-if] one\n"
+            "warning[W0011|prefer-else-if] two\n",
+        )
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+        ) as current_lint, mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(2, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["same.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[current],
+                ),
+                0,
+            )
+        current_lint.assert_not_called()
+
+    def test_w0011_ratchet_skips_base_for_clean_current_file(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        current = ToolResult(
+            "clean.ark",
+            ("arukellt", "lint", "--local", "clean.ark"),
+            0,
+            "",
+        )
+        with mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+        ) as base_lint:
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["clean.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[current],
+                ),
+                0,
+            )
+        base_lint.assert_not_called()
+
     def test_baseline_update_requires_tracking_issue(self):
         result = subprocess.run(
             [
