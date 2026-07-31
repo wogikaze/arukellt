@@ -1,13 +1,7 @@
-use corehir::body_table
 use corehir::frontend_bundle
 use corehir::frontend_checked
 use corehir::frontend_export_surface
 use corehir::mir_view
-use corehir::proof_contracts
-use corehir::proof_ir_render
-use corehir::raw_decls
-use corehir::raw_record
-use corehir::raw_types
 
 pub fn build_checked_program(decls: Vec<AstNode>, check_result: TypeCheckResult) -> CoreHirRawProgram {
     frontend_checked::build_checked_program(decls, check_result)
@@ -23,21 +17,6 @@ pub fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
 
 pub fn mir_view_from_program(program: CoreHirRawProgram) -> CoreHirMirView {
     mir_view::mir_view_from_program(program)
-}
-
-pub fn render_proof_ir(
-    program: CoreHirRawProgram,
-    checked_contracts: Vec<CheckedProofContract>,
-    source_file: String
-) -> String {
-    let table = raw_record::raw_program_body_table(program)
-    proof_ir_render::render_proof_ir_document(
-        raw_decls::program_fn_infos(program),
-        raw_types::program_typed_fns(program),
-        body_table::corehir_body_table_fn_body_roots(table),
-        proof_contracts::build_checked_proof_contracts(checked_contracts),
-        source_file
-    )
 }
 
 pub fn view_body_source(view: CoreHirMirView) -> CoreHirMirBodySource {
