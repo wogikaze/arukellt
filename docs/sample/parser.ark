@@ -9,8 +9,6 @@
 //
 // NOTE: This is a v0 arukellt transliteration of parser.rs.
 // It demonstrates the language's expressiveness and limitations.
-import io
-
 fn str_find(s: String, needle: String) -> Option<i32> {
     let n = len(needle)
     let m = len(s)
@@ -28,7 +26,7 @@ fn str_char_count(s: String) -> i32 {
     len(s)
 }
 
-fn trim_start(s: String) -> String {
+fn parser_trim_start(s: String) -> String {
     let mut i = 0
     while i < len(s) && char_at(s, i) == 32 || char_at(s, i) == 9 || char_at(s, i) == 13 {
         i = i + 1
@@ -384,7 +382,7 @@ fn split_source_blocks(input: String) -> Vec<String> {
     while i < len(lines) {
         let line = get(lines, i)
         let line_end = pos + len(line)
-        let trimmed = trim_start(line)
+        let trimmed = parser_trim_start(line)
         if starts_with(trimmed, "```") {
             in_fence = !in_fence
         }
@@ -526,7 +524,7 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
     let mut defs: Vec<FnDef> = Vec::new<FnDef>()
     let mut i = 0
     while i < len(lines) {
-        let t = trim_start(get(lines, i))
+        let t = parser_trim_start(get(lines, i))
         if starts_with(t, "[^") {
             let rest = substring(t, 2, len(t))
             let colon_idx = str_find(rest, "]: ")
@@ -628,7 +626,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
     let mut section_stack: Vec<i32> = Vec::new<i32>()
     while i < len(lines) {
         let line = get(lines, i)
-        let tline = trim_start(line)
+        let tline = parser_trim_start(line)
         if len(tline) == 0 {
             i = i + 1
         } else {
@@ -674,7 +672,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                         push(events, Event::BlockId(fnv1a(tline)))
                         push(events, Event::Start(Tag::CodeBlock(lang, filename)))
                         i = i + 1
-                        while i < len(lines) && !starts_with(trim_start(get(lines, i)), "```") {
+                        while i < len(lines) && !starts_with(parser_trim_start(get(lines, i)), "```") {
                             push(events, Event::Text(get(lines, i)))
                             push(events, Event::Text("\n"))
                             i = i + 1
@@ -810,7 +808,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                                 push(events, Event::Start(Tag::List(is_ol)))
                                                 let mut j = i
                                                 while j < len(lines) {
-                                                    let l2 = trim_start(get(lines, j))
+                                                    let l2 = parser_trim_start(get(lines, j))
                                                     let matches_type = if is_ol {
                                                         is_ol_line(l2)
                                                     } else {
@@ -874,7 +872,7 @@ fn close_sections_until(events: Vec<Event>, stack: Vec<i32>, level: i32) {
 }
 
 fn is_table_line(line: String) -> bool {
-    starts_with(trim_start(line), "|")
+    starts_with(parser_trim_start(line), "|")
 }
 
 fn is_ul_line(tline: String) -> bool {
@@ -991,7 +989,7 @@ fn parse_paragraph(lines: Vec<String>, start: i32, events: Vec<Event>, warnings:
     let mut j = start
     while j < len(lines) {
         let ln = get(lines, j)
-        let t = trim_start(ln)
+        let t = parser_trim_start(ln)
         if is_block_start(ln, t) {
             break
         } else {

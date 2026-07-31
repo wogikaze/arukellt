@@ -1,7 +1,7 @@
-use std::collections::vec as v
+use std::collections::vec
 
 fn make_values() -> Vec<i32> {
-    v::Vec::new<i32>()
+    Vec::new<i32>()
 }
 
 use std::host::stdio
