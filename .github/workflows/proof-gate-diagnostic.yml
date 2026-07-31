@@ -34,10 +34,10 @@ jobs:
           fi
           wasm=".build/selfhost/arukellt-s3.wasm"
           wasm-objdump -x "$wasm" |
-            grep -E '<(dump_proof_ir_if_enabled|emit_proof_ir|render_proof_ir_document)>' || true
+            grep -E '<(dump_proof_ir_if_enabled|render_proof_ir|emit_proof_ir_document)>' || true
           disasm="$(mktemp)"
           wasm-objdump -d "$wasm" > "$disasm"
-          for symbol in dump_proof_ir_if_enabled emit_proof_ir render_proof_ir_document; do
+          for symbol in dump_proof_ir_if_enabled render_proof_ir emit_proof_ir_document; do
             echo "=== ${symbol} disassembly ==="
             awk -v symbol="$symbol" '
               $0 ~ "<" symbol ">:" { show=1 }
