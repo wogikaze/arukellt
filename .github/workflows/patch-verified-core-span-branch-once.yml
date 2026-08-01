@@ -1,0 +1,46 @@
+name: Patch VerifiedCore span branch once
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'agent/typed-verified-core-emitter'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/typed-verified-core-emitter
+          fetch-depth: 0
+
+      - name: Replace i32-valued if expression
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/compiler/driver/verified_core_render.ark')
+          text = path.read_text()
+          old = '''    let span_start = expr_raw::corehir_expr_span_start(expr)
+              out = concat(out, concat(",\\\"span_start\\\":", to_string(if span_start < 0 { 0 } else { span_start })))'''
+          new = '''    let span_start = expr_raw::corehir_expr_span_start(expr)
+              let mut normalized_span_start = span_start
+              if normalized_span_start < 0 {
+                  normalized_span_start = 0
+              }
+              out = concat(out, concat(",\\\"span_start\\\":", to_string(normalized_span_start)))'''
+          if old not in text:
+              raise SystemExit('span-valued if expression missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/compiler/driver/verified_core_render.ark
+          git commit -m 'fix(proof): avoid i32-valued if in renderer'
+          git push origin HEAD:agent/typed-verified-core-emitter
