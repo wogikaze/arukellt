@@ -83,6 +83,13 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
     result
 }
 
+pub fn corehir_body_table_admission_failed_result() -> CompileResult {
+    result_record::CompileResult_err(
+        phases::PHASE_LOWER(),
+        "CoreHIR body table admission failed: expected sealed table without mutation violations"
+    )
+}
+
 pub fn mir_verify_failed_result() -> CompileResult {
     result_record::CompileResult_err(phases::PHASE_LOWER(), "MIR verify failed")
 }
