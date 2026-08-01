@@ -1,3 +1,4 @@
+use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_info_to_mir_value
@@ -64,12 +65,29 @@ fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
     synced
 }
 
+fn mir_existing_value_type_matches_local_name(
+    loc: MirLocal,
+    table: TypeTable,
+    existing: MirValueType
+) -> bool {
+    let type_name = local_access::MirLocal_type_name(loc)
+    if !eq(clone(type_name), "String") && !eq(clone(type_name), "string") {
+        return true
+    }
+    let tid = mir_value_type::mir_value_type_type_id(existing)
+    if !type_id::type_id_is_valid(tid) {
+        return false
+    }
+    let entry = type_table::TypeTable_lookup(table, tid)
+    type_table::type_entry_kind(entry) == kinds::TYPE_KIND_STRING()
+}
+
 // Preserve an already-typed value_type when it is concrete (no open type
-// variables). This is used by the full-module sync pass after lowering has
-// written known value_type values from the signature spine.
+// variables) and agrees with the canonical nominal kind implied by type_name.
 fn mir_local_sync_value_type_preserving(loc: MirLocal, table: TypeTable) -> MirLocal {
     let existing = local_access::MirLocal_value_type(loc)
-    if type_info_to_mir_value::mvt_is_concrete(table, existing) {
+    if type_info_to_mir_value::mvt_is_concrete(table, existing) &&
+       mir_existing_value_type_matches_local_name(loc, table, existing) {
         let synced = local_mutation::MirLocal_copy_with_value_type(loc, existing)
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, existing))
         return synced
