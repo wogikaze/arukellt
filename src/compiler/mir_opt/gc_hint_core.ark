@@ -2,9 +2,11 @@ use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_mutation
 use mir::function_block_queries
+use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_gc_hint
+use mir::inst_record
 use mir::opcodes
 use mir::types
 use mir_opt::loop_regions
@@ -24,12 +26,8 @@ fn gc_hint_count_local_uses(insts: Vec<MirInst>, from: i32, to: i32, local: i32)
     let mut i = from
     while i <= to {
         let inst = get_unchecked(insts, i)
-        if inst_accessors_operands::MirInst_arg0(inst) == local {
-            uses = uses + 1
-        }
-        if inst_accessors_operands::MirInst_arg1(inst) == local {
-            uses = uses + 1
-        }
+        if inst_accessors_operands::MirInst_arg0(inst) == local { uses = uses + 1 }
+        if inst_accessors_operands::MirInst_arg1(inst) == local { uses = uses + 1 }
         i = i + 1
     }
     uses
@@ -41,18 +39,10 @@ fn gc_hint_local_escapes(insts: Vec<MirInst>, from: i32, to: i32, local: i32) ->
         let inst = get_unchecked(insts, i)
         let op = inst_accessors_shape::MirInst_op(inst)
         if op == opcodes::MIR_CALL() || op == opcodes::MIR_WIT_CALL() {
-            if inst_accessors_operands::MirInst_arg0(inst) == local {
-                return true
-            }
-            if inst_accessors_operands::MirInst_arg1(inst) == local {
-                return true
-            }
+            if inst_accessors_operands::MirInst_arg0(inst) == local { return true }
+            if inst_accessors_operands::MirInst_arg1(inst) == local { return true }
         }
-        if op == opcodes::MIR_STRUCT_SET() {
-            if inst_accessors_operands::MirInst_arg1(inst) == local {
-                return true
-            }
-        }
+        if op == opcodes::MIR_STRUCT_SET() && inst_accessors_operands::MirInst_arg1(inst) == local { return true }
         i = i + 1
     }
     false
@@ -60,20 +50,11 @@ fn gc_hint_local_escapes(insts: Vec<MirInst>, from: i32, to: i32, local: i32) ->
 
 fn gc_hint_should_annotate(insts: Vec<MirInst>, idx: i32, end: i32) -> bool {
     let inst = get_unchecked(insts, idx)
-    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_STRUCT_NEW() {
-        return false
-    }
+    if inst_accessors_shape::MirInst_op(inst) != opcodes::MIR_STRUCT_NEW() { return false }
     let dest = inst_accessors_operands::MirInst_dest(inst)
-    if dest < 0 {
-        return false
-    }
-    let uses = gc_hint_count_local_uses(insts, idx + 1, end, dest)
-    if uses != 1 {
-        return false
-    }
-    if gc_hint_local_escapes(insts, idx + 1, end, dest) {
-        return false
-    }
+    if dest < 0 { return false }
+    if gc_hint_count_local_uses(insts, idx + 1, end, dest) != 1 { return false }
+    if gc_hint_local_escapes(insts, idx + 1, end, dest) { return false }
     true
 }
 
@@ -97,14 +78,50 @@ fn gc_hint_annotate_loop(insts: Vec<MirInst>, region: LoopRegion) -> GcHintAnnot
     GcHintAnnotateResult_new(out, annotated)
 }
 
+fn gc_hint_inst_equal(a: MirInst, b: MirInst) -> bool {
+    if inst_accessors_shape::MirInst_op(a) != inst_accessors_shape::MirInst_op(b) { return false }
+    if inst_accessors_shape::MirInst_val_type(a) != inst_accessors_shape::MirInst_val_type(b) { return false }
+    if inst_accessors_operands::MirInst_dest(a) != inst_accessors_operands::MirInst_dest(b) { return false }
+    if inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) { return false }
+    if inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) { return false }
+    if inst_accessors_literals::MirInst_int_val(a) != inst_accessors_literals::MirInst_int_val(b) { return false }
+    if inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) { return false }
+    if !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) { return false }
+    if inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) { return false }
+    true
+}
+
+fn gc_hint_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, expected_hints: i32) -> bool {
+    let mut before_i = 0
+    let mut after_i = 0
+    let mut hints = 0
+    while after_i < len(after) {
+        let candidate = get_unchecked(after, after_i)
+        if inst_accessors_shape::MirInst_op(candidate) == opcodes::MIR_GC_HINT() {
+            if inst_accessors_operands::MirInst_arg0(candidate) != opcodes::MIR_GC_HINT_SHORT_LIVED() { return false }
+            hints = hints + 1
+        } else {
+            if before_i >= len(before) { return false }
+            if !gc_hint_inst_equal(get_unchecked(before, before_i), candidate) { return false }
+            before_i = before_i + 1
+        }
+        after_i = after_i + 1
+    }
+    before_i == len(before) && hints == expected_hints && len(after) == len(before) + hints
+}
+
 fn gc_hint_optimize_block_insts(insts: Vec<MirInst>) -> GcHintAnnotateResult {
-    let regions = loop_regions::mir_opt_collect_loop_regions(insts)
-    let mut current = insts
+    let original = insts
+    let regions = loop_regions::mir_opt_collect_loop_regions(original)
+    let mut current = original
     let mut total = 0
     for ri in 0..len(regions) {
         let result = gc_hint_annotate_loop(current, get_unchecked(regions, ri))
         current = result.instructions
         total = total + result.annotated
+    }
+    if !gc_hint_translation_valid(original, current, total) {
+        return GcHintAnnotateResult_new(original, 0)
     }
     GcHintAnnotateResult_new(current, total)
 }
