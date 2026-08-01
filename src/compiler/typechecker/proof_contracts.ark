@@ -28,6 +28,22 @@ fn proof_contract_scope(node: AstNode, sig: FnSig) -> LocalScope {
     contract_scope
 }
 
+fn proof_expression_uses_result(node: AstNode) -> bool {
+    if ast_access::node_kind(node) == parser_kinds::NK_IDENT() &&
+       eq(ast_access::node_text(node), "result") {
+        return true
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        if proof_expression_uses_result(ast_access::node_child_at(node, child_index)) {
+            return true
+        }
+        child_index = child_index + 1
+    }
+    false
+}
+
 fn check_proof_contracts(
     env: TypeEnv,
     fn_sigs: Vec<FnSig>,
@@ -58,6 +74,11 @@ fn check_proof_contracts(
             continue
         }
         let expression = ast_access::node_child_at(contract, 0)
+        if eq(clone(kind_name), "requires") && proof_expression_uses_result(expression) {
+            unify::type_error(env, "result is only available in ensures contracts")
+            i = i + 1
+            continue
+        }
         let actual = unify::resolve_type(
             env,
             infer::infer_expr(env, contract_scope, fn_sigs, enum_defs, expression)
