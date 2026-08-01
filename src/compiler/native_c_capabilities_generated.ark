@@ -513,22 +513,22 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 16 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 17 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 18 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 19 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 20 {
         return String_from("planned phase 2")
     }
     if index == 21 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 22 {
         return String_from("supported")
@@ -558,10 +558,10 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 31 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 32 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 33 {
         return String_from("supported")
@@ -1391,10 +1391,17 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 11 ||
     index == 12 ||
     index == 13 ||
+    index == 16 ||
+    index == 17 ||
+    index == 18 ||
+    index == 19 ||
+    index == 21 ||
     index == 22 ||
     index == 23 ||
     index == 29 ||
     index == 30 ||
+    index == 31 ||
+    index == 32 ||
     index == 33 ||
     index == 38 ||
     index == 39 ||

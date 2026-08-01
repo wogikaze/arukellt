@@ -15,6 +15,9 @@ fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String, first_arg_id
             return 0 - 1
         }
     }
+    if mir_is_vec_get_unchecked_callee(clone(callee_name)) {
+        dest_vt = mir_vec_call_dest_vt(ctx, clone(callee_name), first_arg_idx)
+    }
     if ends_with(clone(callee_name), "::to_string") && ctx_gc_enum::ctx_is_gc_target(ctx) {
         dest_vt = value_types::VT_GC_REF()
     }
@@ -34,7 +37,7 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
     if eq(clone(callee_name), "vec_get") {
         return value_types::VT_GC_REF()
     }
-    if !eq(clone(callee_name), "vec_get_unchecked") {
+    if !mir_is_vec_get_unchecked_callee(clone(callee_name)) {
         return value_types::VT_VOID()
     }
     let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
@@ -58,4 +61,15 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
         return value_types::VT_GC_REF()
     }
     value_types::VT_REF()
+}
+
+fn mir_is_vec_get_unchecked_callee(callee_name: String) -> bool {
+    if eq(clone(callee_name), "vec_get_unchecked") ||
+    eq(clone(callee_name), "raw_array_get_unchecked") ||
+    eq(clone(callee_name), "get_unchecked") {
+        return true
+    }
+    starts_with(clone(callee_name), "vec_get_unchecked__") ||
+    starts_with(clone(callee_name), "get_unchecked__") ||
+    starts_with(clone(callee_name), "raw_array_get_unchecked__")
 }

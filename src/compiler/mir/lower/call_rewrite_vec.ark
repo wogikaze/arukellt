@@ -117,10 +117,22 @@ fn normalize_vec_constructor_callee(callee_name: String) -> String {
             substring(callee_name, 8, len(callee_name))
         )
     }
+    if starts_with(clone(callee_name), String_from("Vec::new__")) {
+        return concat(
+            String_from("Vec__new__"),
+            substring(callee_name, 10, len(callee_name))
+        )
+    }
     if starts_with(clone(callee_name), String_from("Vec_with_capacity_")) {
         return concat(
             String_from("Vec__with_capacity__"),
             substring(callee_name, 18, len(callee_name))
+        )
+    }
+    if starts_with(clone(callee_name), String_from("Vec::with_capacity__")) {
+        return concat(
+            String_from("Vec__with_capacity__"),
+            substring(callee_name, 20, len(callee_name))
         )
     }
     callee_name

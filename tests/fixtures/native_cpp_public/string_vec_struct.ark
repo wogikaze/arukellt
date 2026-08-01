@@ -7,7 +7,7 @@ struct Point {
 
 fn main() {
     let text = concat(String_from("ab"), String_from("c"))
-    let mut numbers = Vec_new_i32()
+    let mut numbers = Vec::new<i32>()
     push(numbers, 1)
     push(numbers, 2)
     let point = Point { x: 3, y: 4 }

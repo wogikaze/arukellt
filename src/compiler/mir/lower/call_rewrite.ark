@@ -106,6 +106,10 @@ fn mir_rewrite_call_target(ctx: LowerCtx, callee_name: String, first_arg_idx: i3
     if !call_rewrite_vec::mir_vec_call_target_is_intrinsic(clone(rewritten)) && !skip_first_arg_mono {
         rewritten = call_mono::mir_resolve_mono_call_target(ctx, rewritten, first_arg_idx, span_start)
     }
+    // Mono lookup may return the legacy `Vec_new_T` spelling even when the
+    // source used `Vec::new<T>()`. Normalize after lookup too, so constructor
+    // result typing and target-specific emission see one canonical name.
+    rewritten = call_rewrite_vec::normalize_vec_constructor_callee(rewritten)
     rewritten = call_rewrite_vec::mir_rewrite_vec_access_after_mono(ctx, rewritten, first_arg_idx)
     // Only re-dispatch format_debug / format_debug__?t0 shells — applying
     // mono_by_type to every callee regresses modules/multi_import (to_string).

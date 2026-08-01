@@ -1,6 +1,7 @@
 use corehir::function_id
 use corehir::kinds
 use corehir::mir_value_type
+use corehir::core_op_registry_generated
 use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_id
@@ -1830,6 +1831,31 @@ fn native_c_emit_call(
     if inst_accessors_shape::MirInst_op(instruction) != opcodes::MIR_CALL() {
         return false
     }
+    let callee_name = inst_record::mir_inst_str_val(instruction)
+    if native_c_is_vec_new_callee(clone(callee_name)) {
+        let constructor_argument_count = inst_accessors_literals::MirInst_int_val(instruction)
+        if constructor_argument_count != 0 {
+            native_c_fail(
+                state,
+                String_from("target `native-cpp` does not support Vec::new with arguments")
+            )
+            return true
+        }
+        let constructor = core_call::native_c_vec_new_call(function, instruction)
+        if core_call::native_c_core_call_is_handled(constructor) {
+            let destination = inst_accessors_operands::MirInst_dest(instruction)
+            native_c_stack_discard_to(state, len(state.value_stack))
+            if destination >= 0 {
+                native_c_emit_assignment(
+                    state,
+                    destination,
+                    core_call::native_c_core_call_source(constructor)
+                )
+                native_c_stack_push(state, destination)
+            }
+            return true
+        }
+    }
     let mut function_id_raw = inst_record::mir_inst_func_id_raw(instruction)
     let registry = module_spine::MirModule_signature_registry(mir_module)
     let current_name = function_identity::MirFunction_name(function)
@@ -2460,6 +2486,52 @@ fn native_c_local_allows_unit_enum_tag(table: TypeTable, function: MirFunction, 
     kind == kinds::TYPE_KIND_ENUM() || kind == kinds::TYPE_KIND_PRIMITIVE()
 }
 
+fn native_c_vec_element_is_heap_type(vec_type: String) -> bool {
+    if starts_with(clone(vec_type), String_from("Vec<")) && ends_with(clone(vec_type), String_from(">")) {
+        vec_type = substring(vec_type, 4, len(vec_type) - 1)
+    } else if starts_with(clone(vec_type), String_from("vec:")) {
+        vec_type = substring(vec_type, 4, len(vec_type))
+    } else {
+        return false
+    }
+    if eq(clone(vec_type), String_from("i32")) ||
+    eq(clone(vec_type), String_from("i64")) ||
+    eq(clone(vec_type), String_from("f32")) ||
+    eq(clone(vec_type), String_from("f64")) ||
+    eq(clone(vec_type), String_from("bool")) ||
+    eq(clone(vec_type), String_from("char")) ||
+    abi::native_c_type_name_is_funcref(clone(vec_type)) {
+        return false
+    }
+    true
+}
+
+fn native_c_call_returns_heap_vec_element(
+    mir_module: MirModule,
+    function: MirFunction,
+    instruction: MirInst
+) -> bool {
+    let handler = core_call::mir_call_core_op_index(mir_module, instruction)
+    if handler != core_op_registry_generated::core_op_handler_raw_array_get_unchecked() &&
+    handler != core_op_registry_generated::core_op_handler_vec_get_unchecked() &&
+    handler != core_op_registry_generated::core_op_handler_vec_get_unchecked_f64() &&
+    handler != core_op_registry_generated::core_op_handler_vec_get_unchecked_i64() {
+        return false
+    }
+    let vec_local = inst_accessors_operands::MirInst_arg0(instruction)
+    if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(function) {
+        return false
+    }
+    let vec = function_locals_view::MirFunction_local_at(function, vec_local)
+    native_c_vec_element_is_heap_type(local_record::mir_local_type_name(vec))
+}
+
+fn native_c_is_vec_new_callee(callee_name: String) -> bool {
+    starts_with(clone(callee_name), String_from("Vec::new")) ||
+    starts_with(clone(callee_name), String_from("Vec__new")) ||
+    starts_with(clone(callee_name), String_from("Vec_new"))
+}
+
 fn native_c_emit_local_declarations(
     state: NativeCFunctionEmitState,
     mir_module: MirModule,
@@ -2519,7 +2591,9 @@ fn native_c_emit_local_declarations(
                 op == opcodes::MIR_ARRAY_NEW() ||
                 op == opcodes::MIR_CONST_STRING() ||
                 (op == opcodes::MIR_CALL() &&
-                    core_call::native_c_core_call_result_is_reference(mir_module, instruction)) ||
+                    (core_call::native_c_core_call_result_is_reference(mir_module, instruction) ||
+                        native_c_is_vec_new_callee(inst_record::mir_inst_str_val(instruction)) ||
+                        native_c_call_returns_heap_vec_element(mir_module, function, instruction))) ||
                 (op == opcodes::MIR_STRUCT_GET() &&
                     (inst_accessors_shape::MirInst_val_type(instruction) == value_types::VT_REF() ||
                         inst_accessors_shape::MirInst_val_type(instruction) == value_types::VT_GC_REF())) ||

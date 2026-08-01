@@ -497,32 +497,28 @@ implementation = "native_runtime"
 id = "raw.array_get_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.array_grow"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.array_len"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.array_new"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
@@ -537,8 +533,7 @@ implementation = "native_runtime"
 id = "raw.array_set_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
@@ -613,16 +608,14 @@ implementation = "native_runtime"
 id = "raw.string_clone"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.string_from_bytes"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]

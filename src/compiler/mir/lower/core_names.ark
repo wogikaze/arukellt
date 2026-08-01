@@ -24,17 +24,22 @@ fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
 }
 
 fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+    let parameter_count = mir_function_parameter_count(ctx, clone(fn_name))
     // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
+    if parameter_count >= 2 {
+        return String_from("fnref2")
+    }
+    String_from("fnref")
+}
+
+fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if module_spine::MirModule_signature_spine_populated(m) {
         let registry = module_spine::MirModule_signature_registry(m)
         let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fn_name))
         if function_id::function_id_is_valid(fid) {
             let entry = signature_registry::signature_registry_lookup_by_id(registry, fid)
-            if signature_entry::signature_entry_param_count(entry) >= 2 {
-                return String_from("fnref2")
-            }
-            return String_from("fnref")
+            return signature_entry::signature_entry_param_count(entry)
         }
     }
     let n = module_functions::MirModule_function_count(m)
@@ -42,14 +47,11 @@ fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
     while i < n {
         let f = module_functions::MirModule_function_at(m, i)
         if eq(function_identity::MirFunction_name(f), clone(fn_name)) {
-            if function_param_view::MirFunction_param_count(f) >= 2 {
-                return String_from("fnref2")
-            }
-            return String_from("fnref")
+            return function_param_view::MirFunction_param_count(f)
         }
         i = i + 1
     }
-    String_from("fnref")
+    0 - 1
 }
 
 fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
@@ -74,7 +76,8 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
         if fn_idx >= 0 {
             let expr_vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
-            if expr_vt != value_types::VT_FUNCREF() {
+            if expr_vt != value_types::VT_FUNCREF() &&
+            mir_function_parameter_count(ctx, clone(fn_name)) <= 0 {
                 let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, expr_vt)
                 let expr_type_name = core_expr_shape_accessors::mir_core_expr_type_name(expr)
                 if len(expr_type_name) > 0 {
