@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schema/proof-receipt-v1.schema.json",
+  "title": "Arukellt ProofReceipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "subject", "trust_manifest_sha256", "solver_output_sha256", "status", "obligations"],
+  "properties": {
+    "schema": {"const": "arukellt-proof-receipt"},
+    "schema_version": {"const": 1},
+    "subject": {"$ref": "#/$defs/artifact_ref"},
+    "trust_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "solver_output_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["proved", "refuted", "unknown", "error"]},
+    "obligations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "proved", "refuted", "unknown", "errors"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 1},
+        "proved": {"type": "integer", "minimum": 0},
+        "refuted": {"type": "integer", "minimum": 0},
+        "unknown": {"type": "integer", "minimum": 0},
+        "errors": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "schema_version", "sha256"],
+      "properties": {
+        "schema": {"type": "string", "minLength": 1},
+        "schema_version": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
