@@ -1,0 +1,180 @@
+use corehir::body_table
+use corehir::expr_raw
+use corehir::fn_info
+use corehir::raw_bodies
+use corehir::raw_decls
+use corehir::value_types
+use driver::verified_core_render_primitives
+use driver::verified_core_render_safe
+
+fn tccr_collect_reachable(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    root: i32
+) -> Vec<i32> {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let reachable = Vec::new<i32>()
+    let stack = Vec::new<i32>()
+    push(stack, root)
+
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
+    let contract_count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let mut contract_index = 0
+    while contract_index < contract_count {
+        push(
+            stack,
+            body_table::corehir_body_table_fn_contract_root_at(
+                table,
+                body_index,
+                contract_index
+            )
+        )
+        contract_index = contract_index + 1
+    }
+
+    while len(stack) > 0 {
+        let id = pop(stack).unwrap()
+        let mut already_seen = false
+        let mut seen_index = 0
+        while seen_index < len(reachable) {
+            if get_unchecked(reachable, seen_index) == id {
+                already_seen = true
+                seen_index = len(reachable)
+            } else {
+                seen_index = seen_index + 1
+            }
+        }
+        if !already_seen {
+            push(reachable, id)
+            if id >= 0 && id < len(exprs) {
+                let expression = get_unchecked(exprs, id)
+                let child_count = expr_raw::corehir_expr_child_count(expression)
+                let mut child_index = 0
+                while child_index < child_count {
+                    push(stack, expr_raw::corehir_expr_child(expression, child_index))
+                    child_index = child_index + 1
+                }
+            }
+        }
+    }
+    reachable
+}
+
+fn tccr_render_contracts(program: CoreHirRawProgram, function_index: i32) -> String {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
+    let table = raw_bodies::program_body_table(program)
+    let contract_count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let mut out = ""
+    let mut contract_index = 0
+    while contract_index < contract_count {
+        if contract_index > 0 {
+            out = concat(out, ",")
+        }
+        let kind_name = body_table::corehir_body_table_fn_contract_kind_at(
+            table,
+            body_index,
+            contract_index
+        )
+        let expression_id = body_table::corehir_body_table_fn_contract_root_at(
+            table,
+            body_index,
+            contract_index
+        )
+        let result_name = body_table::corehir_body_table_fn_contract_result_name_at(
+            table,
+            body_index,
+            contract_index
+        )
+        out = concat(
+            out,
+            concat(
+                "{\"kind\":",
+                verified_core_render_primitives::vc_quote(kind_name)
+            )
+        )
+        out = concat(out, concat(",\"expression_id\":", to_string(expression_id)))
+        if len(clone(result_name)) > 0 {
+            out = concat(
+                out,
+                concat(
+                    ",\"result_name\":",
+                    verified_core_render_primitives::vc_quote(result_name)
+                )
+            )
+        }
+        out = concat(out, "}")
+        contract_index = contract_index + 1
+    }
+    out
+}
+
+fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
+    if !verified_core_render_safe::vcs_typed_function_exists(program, function_index) {
+        return ""
+    }
+    let root = verified_core_render_safe::vcs_body_root(program, function_index)
+    if !verified_core_render_safe::vcs_body_root_is_valid(program, root) {
+        return ""
+    }
+    let reachable = tccr_collect_reachable(program, function_index, root)
+    if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
+        return ""
+    }
+    let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
+    let return_type_id = verified_core_render_safe::vcs_return_type_id(program, function_index)
+    if return_vt < 0 || return_type_id < 0 {
+        return ""
+    }
+    let name = verified_core_render_safe::vcs_function_name(program, function_index)
+    if len(clone(name)) == 0 ||
+       !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
+        return ""
+    }
+
+    let mut out = concat("{\"id\":", to_string(function_index))
+    out = concat(
+        out,
+        concat(",\"name\":", verified_core_render_primitives::vc_quote(name))
+    )
+    out = concat(out, ",\"signature\":{\"parameters\":[")
+    out = concat(
+        out,
+        verified_core_render_safe::vcs_render_signature_parameters(program, function_index)
+    )
+    out = concat(
+        out,
+        concat("],\"return_type_id\":", concat(to_string(return_type_id), "}"))
+    )
+    out = concat(
+        out,
+        ",\"abi\":{\"calling_convention\":\"arukellt\",\"parameters\":["
+    )
+    out = concat(
+        out,
+        verified_core_render_safe::vcs_render_abi_parameters(program, function_index)
+    )
+    out = concat(out, "],\"results\":[")
+    if return_vt != value_types::VT_VOID() {
+        out = concat(
+            out,
+            verified_core_render_primitives::vc_render_abi_item(return_type_id, return_vt)
+        )
+    }
+    out = concat(out, "]}")
+    out = concat(out, ",\"locals\":[")
+    out = concat(
+        out,
+        verified_core_render_safe::vcs_render_parameter_locals(program, function_index)
+    )
+    out = concat(out, "],\"contracts\":[")
+    out = concat(out, tccr_render_contracts(program, function_index))
+    out = concat(out, "]")
+    out = concat(out, concat(",\"body\":{\"root_expr_id\":", to_string(root)))
+    out = concat(out, ",\"expressions\":[")
+    out = concat(out, verified_core_render_safe::vcs_render_expressions(program, reachable))
+    out = concat(out, "]}}")
+    out
+}
