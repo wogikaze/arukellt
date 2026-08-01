@@ -1,0 +1,53 @@
+name: Solver-bound proof receipts
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: solver-bound-proof-receipts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  solver-bound-proof-receipts:
+    name: "Solver-bound proof receipts"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run receipt generator tests
+        run: python3 -m unittest scripts.tests.test_solver_receipts
+
+      - name: Generate bound artifacts from raw solver output
+        run: |
+          mkdir -p .build/proof-generated
+          python3 scripts/gen/write-solver-receipts.py \
+            --subject tests/proof/verified-core.json \
+            --solver-output tests/proof/solver-results.txt \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --trust-manifest-output .build/proof-generated/trust-manifest.json \
+            --proof-receipt-output .build/proof-generated/proof-receipt.json
+
+      - name: Revalidate generated bindings independently
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from proof.trust import validate_bound_proof
+          validate_bound_proof(
+              Path("tests/proof/verified-core.json"),
+              Path(".build/proof-generated/trust-manifest.json"),
+              Path(".build/proof-generated/proof-receipt.json"),
+              Path("tests/proof/solver-results.txt"),
+          )
+          print("solver-bound-proof-receipts: PASS")
+          PY
+
+      - name: Upload generated receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: solver-bound-proof-receipts
+          path: .build/proof-generated
+          if-no-files-found: error
