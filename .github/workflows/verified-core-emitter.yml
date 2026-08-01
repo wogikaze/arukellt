@@ -16,6 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate host-side artifact contracts
+        run: |
+          python3 -m unittest scripts.tests.test_proof_artifacts
+          python3 scripts/check/check-formal-verification-gates.py tests/proof/proof-required-policy.json
+
       - name: Install wasmtime
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
