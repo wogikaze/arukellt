@@ -44,10 +44,19 @@ fn mir_function_sync_all_value_types(f: MirFunction, table: TypeTable) -> MirFun
     f
 }
 
+fn mir_sync_type_name_alias(type_name: String) -> String {
+    let n = len(type_name)
+    if n > 8 && starts_with(clone(type_name), "Option<") && char_at(type_name, n - 1) == 62 {
+        return concat("option:", substring(type_name, 7, n - 1))
+    }
+    type_name
+}
+
 fn mir_local_sync_value_type(loc: MirLocal, table: TypeTable) -> MirLocal {
     let vt = local_access::MirLocal_val_type(loc)
     let tn = local_access::MirLocal_type_name(loc)
-    let mvt = type_info_to_mir_value::vt_to_mir_value(table, vt, clone(tn))
+    let lookup_name = mir_sync_type_name_alias(clone(tn))
+    let mvt = type_info_to_mir_value::vt_to_mir_value(table, vt, lookup_name)
     let synced = local_mutation::MirLocal_copy_with_value_type(loc, mvt)
     if type_id::type_id_is_valid(mir_value_type::mir_value_type_type_id(mvt)) {
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, mvt))
