@@ -6,7 +6,7 @@ import copy
 from typing import Any
 
 from proof.common import object_value, validate_header
-from proof import verified_core_expression_arena as _expression_arena
+from proof import typed_corehir_impl as _typed_corehir_impl
 
 SCHEMA = "arukellt-typed-corehir"
 VERSION = 1
@@ -16,9 +16,9 @@ def validate_document(value: Any) -> dict[str, Any]:
     document = object_value(value, "$")
     validate_header(document, "$", SCHEMA, VERSION)
     compatibility = copy.deepcopy(document)
-    compatibility["schema"] = _expression_arena.SCHEMA
-    compatibility["schema_version"] = _expression_arena.VERSION
-    _expression_arena.validate_document(compatibility)
+    compatibility["schema"] = _typed_corehir_impl.SCHEMA
+    compatibility["schema_version"] = _typed_corehir_impl.VERSION
+    _typed_corehir_impl.validate_document(compatibility)
     return document
 
 
