@@ -105,6 +105,10 @@ def main() -> int:
         "tests/verified-core/contract_result_in_requires.ark",
         "result is only available in ensures contracts",
     )
+    require_compile_failure(
+        "tests/verified-core/contract_unknown_identifier.ark",
+        "unknown proof identifier: missing",
+    )
 
     print(
         "typed-contract-emission: PASS: "
