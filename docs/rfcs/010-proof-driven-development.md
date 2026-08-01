@@ -53,7 +53,7 @@ intent / examples / formal specification
 
 通常の `.ark` ファイルに実行コードを書く。
 
-```ark
+```text
 @intent("returns the absolute value without overflow")
 @examples {
     abs_checked(0) => Some(0)
@@ -84,7 +84,7 @@ fn abs_checked(x: i32) -> Option<i32> proof {
 - ghost type/value
 - axiomatized declaration
 
-```ark
+```text
 predicate abs_result(x: int, r: Option<int>) {
     match r {
         Some(y) => y >= 0 && (y == x || y == -x)

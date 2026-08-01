@@ -1,6 +1,6 @@
 # ADR-052: Proof-Driven Development を標準開発モデルにする
 
-ステータス: **PROPOSED**
+ステータス: **PROPOSED** — Proof-Driven Developmentを標準開発モデルとして提案する
 
 提案日: 2026-07-30
 
@@ -16,7 +16,7 @@ VibeLang型のintent、examples、contracts、effectsは、仕様をコードの
 
 MoonBit型のprogram side / logic side分離、契約、loop invariant、lemma、Why3/SMTによるVC dischargeは形式検証の基盤になる。ただし証明がoptionalなままでは、release artifactの保証にはならない。
 
-## 決定
+## 提案する決定
 
 ArukelltはProof-Driven Developmentを標準開発モデルとして採用する。
 
