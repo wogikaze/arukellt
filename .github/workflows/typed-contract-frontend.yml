@@ -42,7 +42,7 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build current selfhost stage 2
+      - name: Build current selfhost stage 2 runtime
         run: |
           python3 - <<'PY'
           import sys
@@ -54,13 +54,16 @@ jobs:
           path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
           if path is None:
               raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
           print(f"typed-contract-s2: PASS: path={path} elapsed={elapsed:.3f}s")
           PY
-          test -s .build/selfhost/arukellt-s2.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
 
       - name: Emit and validate typed source contracts
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-typed-contract-emission.py
 
       - name: Convert compiler artifact into proof VCs
@@ -76,7 +79,7 @@ jobs:
             --output .build/typed-contract-proof/verified-core-vcs.smt2
           python3 scripts/gen/write-source-proof-binding.py \
             --source tests/verified-core/contract_identity.ark \
-            --producer-executable .build/selfhost/arukellt-s2.wasm \
+            --producer-executable .build/selfhost/arukellt-s2-runtime.wasm \
             --typed-corehir .build/typed-contract-proof/typed-corehir.json \
             --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
             --verified-core-normalized .build/typed-contract-proof/verified-core.json \
@@ -92,7 +95,7 @@ jobs:
       - name: Build hash-bound proof toolchain
         run: |
           mkdir -p .build/typed-contract-toolchain
-          cp .build/selfhost/arukellt-s2.wasm .build/typed-contract-toolchain/arukellt-s2.wasm
+          cp .build/selfhost/arukellt-s2-runtime.wasm .build/typed-contract-toolchain/arukellt-s2-runtime.wasm
           cp "$(command -v z3)" .build/typed-contract-toolchain/z3
           cp .build/typed-contract-proof/source-proof-binding.json .build/typed-contract-toolchain/source-proof-binding.json
           cp scripts/proof/common.py .build/typed-contract-toolchain/common.py
@@ -115,8 +118,14 @@ jobs:
               "schema_version": 1,
               "producer": {
                   "name": "arukellt-selfhost-typed-contract-emitter",
-                  "version": "current-s2",
-                  "executable": "arukellt-s2.wasm",
+                  "version": "current-s2-runtime",
+                  "executable": "arukellt-s2-runtime.wasm",
+                  "arguments": [
+                      "compile",
+                      "tests/verified-core/contract_identity.ark",
+                      "--emit",
+                      "typed-corehir",
+                  ],
               },
               "translator": {
                   "name": "arukellt-verified-core-smtlib",
@@ -239,7 +248,7 @@ jobs:
               json.loads(binding_path.read_text()),
               {
                   "source": Path("tests/verified-core/contract_identity.ark"),
-                  "producer_executable": Path(".build/selfhost/arukellt-s2.wasm"),
+                  "producer_executable": Path(".build/selfhost/arukellt-s2-runtime.wasm"),
                   "typed_corehir": proof_root / "typed-corehir.json",
                   "verified_core_machine": proof_root / "verified-core-machine.json",
                   "verified_core_normalized": proof_root / "verified-core.json",
