@@ -30,8 +30,18 @@ jobs:
         run: cargo build --release --quiet
         working-directory: scripts/bootstrap/wasm-heap-grow-patcher
 
+      - name: Build host-linker
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
       - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
+        run: |
+          python3 scripts/manager.py selfhost fixpoint --build
+          test -s .build/selfhost/arukellt-s2.wasm
+          test -s .build/selfhost/arukellt-s3.wasm
+          cmp .build/selfhost/arukellt-s2.wasm .build/selfhost/arukellt-s3.wasm
 
       - name: Validate emitted VerifiedCore
         run: python3 scripts/check/check-verified-core-emission.py
