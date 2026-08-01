@@ -33,6 +33,10 @@ fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i
     idx
 }
 
+fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
+    len(table.exprs)
+}
+
 fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
     get_unchecked(table.exprs, index)
 }
@@ -77,16 +81,4 @@ fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
     get_unchecked(table.method_body_roots, index)
-}
-
-fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
-    table.exprs
-}
-
-fn corehir_body_table_fn_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.fn_body_roots
-}
-
-fn corehir_body_table_method_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.method_body_roots
 }
