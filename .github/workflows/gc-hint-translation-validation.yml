@@ -24,10 +24,6 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
       - name: Build host-linker
         run: |
           cargo build --release --quiet
@@ -50,25 +46,21 @@ jobs:
             echo 's2/s3 byte fixpoint deferred: pinned bootstrap stubs mir_opt'
           fi
 
-      # s3 contains the current mir_opt implementation, but its Wasm GC type
-      # section is newer than the walrus-based heap injector. Convert the
-      # module to Memory64 without parsing/re-emitting GC types and reserve the
-      # same 4 GiB heap used by the established s2-runtime path.
-      - name: Convert current s3 to Memory64 runtime
+      # s3 contains the current mir_opt implementation. The fixture needs more
+      # than the module's default 512 MiB heap, but does not need Memory64.
+      # Rewrite only the memory section so GC types and instructions remain
+      # byte-for-byte unchanged.
+      - name: Raise current s3 memory32 initial size
         run: |
-          PATCHER="$(find . -type f -path '*/release/wasm-heap-grow-patcher' -perm -111 -print -quit)"
-          test -n "$PATCHER"
-          "$PATCHER" \
+          python3 scripts/bootstrap/set-wasm-memory32-initial.py \
             .build/selfhost/arukellt-s3.wasm \
             .build/selfhost/arukellt-s3-runtime.wasm \
-            --convert-only \
-            --initial-pages=65536
+            --pages 65535
           test -s .build/selfhost/arukellt-s3-runtime.wasm
           wasmtime compile \
             --wasm gc \
             --wasm function-references \
-            -W memory64=y \
-            -W max-memory-size=17179869184 \
+            -W max-memory-size=4294967296 \
             .build/selfhost/arukellt-s3-runtime.wasm \
             -o .build/selfhost/arukellt-s3-runtime.cwasm
 
