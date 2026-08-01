@@ -1,0 +1,314 @@
+use corehir::body_table
+use corehir::expr_raw
+use corehir::raw_bodies
+use corehir::value_types
+use typechecker::contract_type_access
+use typechecker::kinds
+
+fn vc_string_has_question(s: String) -> bool {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        if char_at(s, i) == 63 { return true }
+        i = i + 1
+    }
+    false
+}
+
+fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
+    if len(clone(supplied)) > 0 {
+        if vc_string_has_question(clone(supplied)) || eq(clone(supplied), "unknown") { return "" }
+        return supplied
+    }
+    if value_type == value_types::VT_VOID() { return "()" }
+    if value_type == value_types::VT_I32() { return "i32" }
+    if value_type == value_types::VT_I64() { return "i64" }
+    if value_type == value_types::VT_F32() { return "f32" }
+    if value_type == value_types::VT_F64() { return "f64" }
+    if value_type == value_types::VT_V128() { return "v128" }
+    if value_type == value_types::VT_FUNCREF() { return "fnref" }
+    ""
+}
+
+fn vc_type_id(value_type: i32, supplied_name: String) -> i32 {
+    let name = vc_normalize_type_name(value_type, supplied_name)
+    if value_type == value_types::VT_VOID() && eq(clone(name), "()") { return 0 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "i32") { return 1 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "bool") { return 2 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "char") { return 3 }
+    if value_type == value_types::VT_I64() && eq(clone(name), "i64") { return 4 }
+    if value_type == value_types::VT_F32() && eq(clone(name), "f32") { return 5 }
+    if value_type == value_types::VT_F64() && eq(clone(name), "f64") { return 6 }
+    if value_type == value_types::VT_V128() && eq(clone(name), "v128") { return 7 }
+    if value_type == value_types::VT_REF() && (eq(clone(name), "String") || eq(clone(name), "string")) { return 8 }
+    if value_type == value_types::VT_FUNCREF() && (eq(clone(name), "fnref") || eq(clone(name), "fn")) { return 9 }
+    0 - 1
+}
+
+fn vc_type_count() -> i32 { 10 }
+
+fn vc_type_name_for_id(type_id: i32) -> String {
+    if type_id == 0 { return "()" }
+    if type_id == 1 { return "i32" }
+    if type_id == 2 { return "bool" }
+    if type_id == 3 { return "char" }
+    if type_id == 4 { return "i64" }
+    if type_id == 5 { return "f32" }
+    if type_id == 6 { return "f64" }
+    if type_id == 7 { return "v128" }
+    if type_id == 8 { return "String" }
+    if type_id == 9 { return "fnref" }
+    ""
+}
+
+fn vc_value_type_for_id(type_id: i32) -> i32 {
+    if type_id == 0 { return value_types::VT_VOID() }
+    if type_id == 1 || type_id == 2 || type_id == 3 { return value_types::VT_I32() }
+    if type_id == 4 { return value_types::VT_I64() }
+    if type_id == 5 { return value_types::VT_F32() }
+    if type_id == 6 { return value_types::VT_F64() }
+    if type_id == 7 { return value_types::VT_V128() }
+    if type_id == 8 { return value_types::VT_REF() }
+    if type_id == 9 { return value_types::VT_FUNCREF() }
+    0 - 1
+}
+
+fn vc_type_info_value_type(ty: TypeInfo) -> i32 {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == kinds::TY_I32() || tag == kinds::TY_BOOL() || tag == kinds::TY_CHAR() {
+        return value_types::VT_I32()
+    }
+    if tag == kinds::TY_I64() { return value_types::VT_I64() }
+    if tag == kinds::TY_F32() { return value_types::VT_F32() }
+    if tag == kinds::TY_F64() { return value_types::VT_F64() }
+    if tag == kinds::TY_V128() { return value_types::VT_V128() }
+    if tag == kinds::TY_UNIT() || tag == kinds::TY_NEVER() { return value_types::VT_VOID() }
+    if tag == kinds::TY_STRING() { return value_types::VT_REF() }
+    if tag == kinds::TY_FN() { return value_types::VT_FUNCREF() }
+    if tag == kinds::TY_VEC() || tag == kinds::TY_OPTION() || tag == kinds::TY_RESULT() ||
+       tag == kinds::TY_HASHMAP() || tag == kinds::TY_FUTURE() || tag == kinds::TY_STREAM() ||
+       tag == kinds::TY_TUPLE() || tag == kinds::TY_STRUCT() || tag == kinds::TY_ENUM() ||
+       tag == kinds::TY_RESOURCE() {
+        return value_types::VT_GC_REF()
+    }
+    0 - 1
+}
+
+fn vc_value_type_name(value_type: i32) -> String {
+    if value_type == value_types::VT_VOID() { return "void" }
+    if value_type == value_types::VT_I32() { return "i32" }
+    if value_type == value_types::VT_I64() { return "i64" }
+    if value_type == value_types::VT_F32() { return "f32" }
+    if value_type == value_types::VT_F64() { return "f64" }
+    if value_type == value_types::VT_V128() { return "v128" }
+    if value_type == value_types::VT_REF() { return "ref" }
+    if value_type == value_types::VT_GC_REF() { return "gc-ref" }
+    if value_type == value_types::VT_FUNCREF() { return "funcref" }
+    ""
+}
+
+fn vc_type_kind(value_type: i32, name: String) -> String {
+    if value_type == value_types::VT_VOID() { return "unit" }
+    if eq(clone(name), "bool") { return "bool" }
+    if value_type == value_types::VT_F32() || value_type == value_types::VT_F64() { return "float" }
+    if value_type == value_types::VT_V128() { return "vector" }
+    if eq(clone(name), "String") || eq(clone(name), "string") { return "string" }
+    if value_type == value_types::VT_FUNCREF() { return "function" }
+    if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() { return "reference" }
+    "integer"
+}
+
+fn vc_representation_kind(value_type: i32) -> String {
+    if value_type == value_types::VT_VOID() { return "unit" }
+    if value_type == value_types::VT_REF() { return "linear-ptr" }
+    if value_type == value_types::VT_GC_REF() { return "gc-ref" }
+    if value_type == value_types::VT_FUNCREF() { return "funcref" }
+    "scalar"
+}
+
+fn vc_wasm_json(value_type: i32) -> String {
+    if value_type == value_types::VT_VOID() { return "[]" }
+    if value_type == value_types::VT_I32() || value_type == value_types::VT_REF() { return "[\"i32\"]" }
+    if value_type == value_types::VT_I64() { return "[\"i64\"]" }
+    if value_type == value_types::VT_F32() { return "[\"f32\"]" }
+    if value_type == value_types::VT_F64() { return "[\"f64\"]" }
+    if value_type == value_types::VT_V128() { return "[\"v128\"]" }
+    if value_type == value_types::VT_GC_REF() { return "[\"gc-ref\"]" }
+    if value_type == value_types::VT_FUNCREF() { return "[\"funcref\"]" }
+    "[]"
+}
+
+fn vc_nullable(value_type: i32) -> bool {
+    value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() || value_type == value_types::VT_FUNCREF()
+}
+
+fn vc_size_bytes(value_type: i32, pointer_width: i32) -> i32 {
+    if value_type == value_types::VT_VOID() { return 0 }
+    if value_type == value_types::VT_I64() || value_type == value_types::VT_F64() { return 8 }
+    if value_type == value_types::VT_V128() { return 16 }
+    if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() || value_type == value_types::VT_FUNCREF() {
+        return pointer_width / 8
+    }
+    4
+}
+
+fn vc_align_bytes(value_type: i32, pointer_width: i32) -> i32 {
+    let size = vc_size_bytes(value_type, pointer_width)
+    if size == 0 { return 1 }
+    size
+}
+
+fn vc_passing(value_type: i32) -> String {
+    if value_type == value_types::VT_REF() || value_type == value_types::VT_GC_REF() || value_type == value_types::VT_FUNCREF() {
+        return "reference"
+    }
+    "value"
+}
+
+fn vc_bool_json(value: bool) -> String {
+    if value { "true" } else { "false" }
+}
+
+fn vc_json_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = ""
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, "\\\"")
+        } else if c == 92 {
+            out = concat(out, "\\\\")
+        } else if c == 10 {
+            out = concat(out, "\\n")
+        } else if c == 13 {
+            out = concat(out, "\\r")
+        } else if c == 9 {
+            out = concat(out, "\\t")
+        } else {
+            out = concat(out, substring(clone(s), i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn vc_quote(s: String) -> String {
+    concat("\"", concat(vc_json_escape(s), "\""))
+}
+
+fn vc_render_type(type_id: i32, pointer_width: i32) -> String {
+    let name = vc_type_name_for_id(type_id)
+    let value_type = vc_value_type_for_id(type_id)
+    let mut out = concat("{\"id\":", to_string(type_id))
+    out = concat(out, concat(",\"kind\":", vc_quote(vc_type_kind(value_type, clone(name)))))
+    out = concat(out, concat(",\"name\":", vc_quote(name)))
+    out = concat(out, concat(",\"value_type\":", vc_quote(vc_value_type_name(value_type))))
+    out = concat(out, concat(",\"representation\":{\"kind\":", vc_quote(vc_representation_kind(value_type))))
+    out = concat(out, concat(",\"wasm\":", vc_wasm_json(value_type)))
+    out = concat(out, concat(",\"nullable\":", vc_bool_json(vc_nullable(value_type))))
+    out = concat(out, concat(",\"size_bytes\":", to_string(vc_size_bytes(value_type, pointer_width))))
+    out = concat(out, concat(",\"align_bytes\":", concat(to_string(vc_align_bytes(value_type, pointer_width)), "}}")))
+    out
+}
+
+fn vc_expr_kind_name(kind: i32) -> String {
+    if kind == 1 { return "block" }
+    if kind == 2 { return "let" }
+    if kind == 3 { return "return" }
+    if kind == 4 { return "call" }
+    if kind == 5 { return "ident" }
+    if kind == 6 { return "int" }
+    if kind == 7 { return "float" }
+    if kind == 8 { return "string" }
+    if kind == 9 { return "bool" }
+    if kind == 10 { return "char" }
+    if kind == 11 { return "binary" }
+    if kind == 12 { return "unary" }
+    if kind == 13 { return "if" }
+    if kind == 14 { return "assign" }
+    if kind == 15 { return "field-access" }
+    if kind == 16 { return "index" }
+    if kind == 17 { return "array" }
+    if kind == 18 { return "tuple" }
+    if kind == 19 { return "method-call" }
+    if kind == 20 { return "while" }
+    if kind == 21 { return "loop" }
+    if kind == 22 { return "break" }
+    if kind == 23 { return "continue" }
+    if kind == 24 { return "try" }
+    if kind == 25 { return "for-range" }
+    if kind == 26 { return "struct" }
+    if kind == 27 { return "struct-field" }
+    if kind == 28 { return "path" }
+    if kind == 29 { return "comprehension" }
+    if kind == 30 { return "struct-base" }
+    if kind == 31 { return "for-values" }
+    if kind == 32 { return "for-iter" }
+    if kind == 33 { return "match" }
+    if kind == 34 { return "match-arm" }
+    if kind == 35 { return "pattern-ident" }
+    if kind == 36 { return "pattern-wildcard" }
+    if kind == 37 { return "pattern-literal" }
+    if kind == 38 { return "pattern-variant" }
+    if kind == 39 { return "pattern-or" }
+    if kind == 40 { return "closure" }
+    if kind == 41 { return "array-repeat" }
+    "unsupported"
+}
+
+fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let expr = get_unchecked(exprs, expr_id)
+    let kind = expr_raw::corehir_expr_kind(expr)
+    let value_type = expr_raw::corehir_expr_val_type(expr)
+    let type_name = expr_raw::corehir_expr_type_name(expr)
+    let type_id = vc_type_id(value_type, type_name)
+
+    let mut out = "{\"id\":"
+    out = concat(out, to_string(expr_id))
+    out = concat(out, ",\"kind\":")
+    out = concat(out, vc_quote(vc_expr_kind_name(kind)))
+    out = concat(out, ",\"kind_id\":")
+    out = concat(out, to_string(kind))
+    out = concat(out, ",\"type_id\":")
+    out = concat(out, to_string(type_id))
+    out = concat(out, ",\"value_type\":")
+    out = concat(out, vc_quote(vc_value_type_name(value_type)))
+    out = concat(out, ",\"text\":")
+    out = concat(out, vc_quote(expr_raw::corehir_expr_text(expr)))
+    out = concat(out, ",\"int_value\":")
+    out = concat(out, to_string(expr_raw::corehir_expr_int_val(expr)))
+
+    let mut float_json = "0.0"
+    if kind == 7 {
+        float_json = expr_raw::corehir_expr_text(expr)
+    }
+    out = concat(out, ",\"float_value\":")
+    out = concat(out, float_json)
+
+    let span_start = expr_raw::corehir_expr_span_start(expr)
+    let normalized_span_start = if span_start < 0 { 0 } else { span_start }
+    out = concat(out, ",\"span_start\":")
+    out = concat(out, to_string(normalized_span_start))
+    out = concat(out, ",\"children\":[")
+    let child_count = expr_raw::corehir_expr_child_count(expr)
+    let mut child_index = 0
+    while child_index < child_count {
+        if child_index > 0 {
+            out = concat(out, ",")
+        }
+        out = concat(out, to_string(expr_raw::corehir_expr_child(expr, child_index)))
+        child_index = child_index + 1
+    }
+    out = concat(out, "]}")
+    out
+}
+
+fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
+    let mut out = concat("{\"type_id\":", to_string(type_id))
+    out = concat(out, concat(",\"passing\":", vc_quote(vc_passing(value_type))))
+    out = concat(out, concat(",\"wasm\":", concat(vc_wasm_json(value_type), "}")))
+    out
+}

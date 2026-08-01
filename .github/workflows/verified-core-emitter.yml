@@ -1,0 +1,73 @@
+name: TypedCoreHIR emitter
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: typed-corehir-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typed-corehir-emitter:
+    name: "TypedCoreHIR emitter"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate artifact contracts
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_proof_artifacts \
+            scripts.tests.test_typed_corehir_artifacts
+          python3 scripts/check/check-formal-verification-gates.py tests/proof/proof-required-policy.json
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Build wasm-heap-grow-patcher
+        run: cargo build --release --quiet
+        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
+
+      - name: Build host-linker
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
+      - name: Build current selfhost compiler
+        run: |
+          set +e
+          python3 scripts/manager.py selfhost fixpoint --build
+          rc=$?
+          set -e
+          if [ "$rc" -eq 2 ]; then
+            echo 'selfhost stage build or validation failed'
+            exit 1
+          fi
+          test -s .build/selfhost/arukellt-s2.wasm
+          test -s .build/selfhost/arukellt-s3.wasm
+          if [ "$rc" -eq 1 ]; then
+            echo 's2/s3 byte fixpoint deferred until bootstrap refresh'
+          fi
+
+      # The bootstrap compiler emits the current source into s2. Unlike the
+      # optimizer namespace, TypedCoreHIR emission is not stubbed in that
+      # bootstrap overlay, so s2 is the current compiler for this gate. The
+      # existing patcher cannot parse s3's Wasm GC type section yet.
+      - name: Patch current s2 for artifact emission
+        run: |
+          PATCHER="$(find . -type f -path '*/release/wasm-heap-grow-patcher' -perm -111 -print -quit)"
+          test -n "$PATCHER"
+          "$PATCHER" \
+            .build/selfhost/arukellt-s2.wasm \
+            .build/selfhost/arukellt-s2-runtime.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
+
+      - name: Validate emitted TypedCoreHIR
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: python3 scripts/check/check-typed-corehir-emission.py

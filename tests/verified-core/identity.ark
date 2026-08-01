@@ -1,0 +1,7 @@
+fn identity(x: i32) -> i32 {
+    x
+}
+
+fn main() {
+    println(to_string(identity(7)))
+}
