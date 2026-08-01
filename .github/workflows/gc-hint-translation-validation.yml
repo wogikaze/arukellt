@@ -45,6 +45,7 @@ jobs:
             exit 1
           fi
           test -s .build/selfhost/arukellt-s2.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
           test -s .build/selfhost/arukellt-s3.wasm
           if [ "$rc" -eq 1 ]; then
             echo 's2/s3 byte fixpoint deferred: pinned bootstrap stubs mir_opt'
@@ -52,7 +53,7 @@ jobs:
 
       - name: Exercise gc hint at opt-level 2
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-gc-hint-runtime.py
 
       - name: Upload translation receipt
