@@ -24,62 +24,32 @@ jobs:
 
           path = Path('src/compiler/wasm/ctx_gc_layout_lookup.ark')
           text = path.read_text()
-          old = '''    if len(local_type_name) > 0 {
-              let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
-              if type_name_gc >= 0 {
-                  // Non-constructor locals must not adopt concrete enum-variant
-                  // storage from a misleading type_name (payload field values).
-                  if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
-                      return type_name_gc
-                  }
-              }
-              // Tuple / user structs may live in gc_struct_names without a TypeTable
-              // layout entry. Match local declaration (emit_gc_local_named_type).
-              let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
-              if named_struct_gc >= 0 {
-                  return named_struct_gc
-              }
-          }
-          // Prefer MirLocal.value_type after type_name (#843). Call dests sync
-          // MonoInstance return MVT so spine hits without body-scan infer.
-          let mvt = local_access::MirLocal_value_type(loc)
-          let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
-          if mvt_gc >= 0 {
-              if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
-                  return mvt_gc
-              }
-          }
-          '''
-          new = '''    // The semantic TypeId carried by MirLocal is authoritative. Resolve it
-          // before consulting migration names so production emission does not
-          // reconstruct layout identity from strings.
-          let mvt = local_access::MirLocal_value_type(loc)
-          let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
-          if mvt_gc >= 0 {
-              if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
-                  return mvt_gc
-              }
-          }
-          if len(local_type_name) > 0 {
-              let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
-              if type_name_gc >= 0 {
-                  // Non-constructor locals must not adopt concrete enum-variant
-                  // storage from a misleading type_name (payload field values).
-                  if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
-                      return type_name_gc
-                  }
-              }
-              // Tuple / user structs may live in gc_struct_names without a TypeTable
-              // layout entry. Match local declaration (emit_gc_local_named_type).
-              let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
-              if named_struct_gc >= 0 {
-                  return named_struct_gc
-              }
-          }
-          '''
-          if old not in text:
-              raise SystemExit('local lookup ordering block missing')
-          path.write_text(text.replace(old, new, 1))
+          function_start = text.index('fn SelfEmitCtx_wasm_ref_type_idx_for_local(')
+          function_end = text.index('fn strip_module_double_colon(', function_start)
+          function = text[function_start:function_end]
+
+          name_start = function.index('    if len(local_type_name) > 0 {')
+          mvt_start = function.index('    // Prefer MirLocal.value_type after type_name', name_start)
+          suffix_start = function.index('    if is_payload_with_stray_variant {', mvt_start)
+
+          name_block = function[name_start:mvt_start]
+          mvt_block = function[mvt_start:suffix_start]
+          mvt_block = mvt_block.replace(
+              '    // Prefer MirLocal.value_type after type_name (#843). Call dests sync\n'
+              '    // MonoInstance return MVT so spine hits without body-scan infer.\n',
+              '    // The semantic TypeId carried by MirLocal is authoritative. Resolve it\n'
+              '    // before consulting migration names so emission does not reconstruct\n'
+              '    // layout identity from strings.\n',
+              1,
+          )
+
+          reordered = function[:name_start] + mvt_block + name_block + function[suffix_start:]
+          if reordered.index('let mvt = local_access::MirLocal_value_type(loc)') > reordered.index(
+              'let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name'
+          ):
+              raise SystemExit('TypeId lookup was not moved before name lookup')
+
+          path.write_text(text[:function_start] + reordered + text[function_end:])
           PY
 
       - name: Commit patch
