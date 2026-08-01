@@ -1,0 +1,2 @@
+sat-status: proved
+obligations: 1/1
