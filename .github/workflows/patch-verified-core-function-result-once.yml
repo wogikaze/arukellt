@@ -1,0 +1,83 @@
+name: Patch VerifiedCore function result once
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'agent/typed-verified-core-emitter'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/typed-verified-core-emitter
+          fetch-depth: 0
+
+      - name: Remove custom result from function renderer boundary
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('src/compiler/driver/verified_core_render.ark')
+          text = path.read_text()
+          start = text.index('fn vc_render_function(')
+          end = text.index('fn render_verified_core(', start)
+          function = text[start:end]
+
+          function = function.replace(
+              'fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> VerifiedCoreRenderResult {',
+              'fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> String {',
+              1,
+          )
+          function, replaced_errors = re.subn(
+              r'return VerifiedCoreRenderResult_err\([^\n]*\)',
+              'return ""',
+              function,
+          )
+          if replaced_errors < 1:
+              raise SystemExit('no renderer error returns replaced')
+          if '    VerifiedCoreRenderResult_ok(out)\n}' not in function:
+              raise SystemExit('renderer success return missing')
+          function = function.replace(
+              '    VerifiedCoreRenderResult_ok(out)\n}',
+              '    return out\n}',
+              1,
+          )
+          text = text[:start] + function + text[end:]
+
+          old = '''            let rendered = vc_render_function(program, fi)
+                      if !rendered.ok {
+                          return rendered
+                      }
+                      out = concat(out, rendered.output)
+          '''
+          new = '''            let rendered = vc_render_function(program, fi)
+                      if len(clone(rendered)) == 0 {
+                          return VerifiedCoreRenderResult_err(
+                              concat("VerifiedCore failed to render function index ", to_string(fi))
+                          )
+                      }
+                      out = concat(out, rendered)
+          '''
+          if old not in text:
+              raise SystemExit('render loop result block missing')
+          text = text.replace(old, new, 1)
+
+          renderer = text[text.index('fn vc_render_function('):text.index('fn render_verified_core(')]
+          if 'VerifiedCoreRenderResult' in renderer:
+              raise SystemExit('custom result reference remains in function renderer')
+          path.write_text(text)
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/compiler/driver/verified_core_render.ark
+          git commit -m 'fix(proof): return function artifact as String'
+          git push origin HEAD:agent/typed-verified-core-emitter
