@@ -1,0 +1,13 @@
+{
+  "schema": "arukellt-proof-release-policy",
+  "schema_version": 1,
+  "mode": "proof-required",
+  "artifacts": [
+    {
+      "label": "basic-contract",
+      "proof_ir": "proof-ir/basic.json",
+      "trust_manifest": "proof/trust-manifest.json",
+      "receipt": "proof/proof-receipt.json"
+    }
+  ]
+}
