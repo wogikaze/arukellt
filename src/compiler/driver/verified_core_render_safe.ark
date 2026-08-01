@@ -9,7 +9,7 @@ use corehir::raw_record
 use corehir::raw_types
 use corehir::value_types
 use driver::config_record
-use driver::verified_core_render
+use driver::verified_core_render_primitives
 use typechecker::contract_typed_fn
 use typechecker::name_display
 
@@ -39,7 +39,7 @@ fn vcs_return_value_type(program: CoreHirRawProgram, function_index: i32) -> i32
     }
     let typed_fn = get_unchecked(typed_fns, typed_index)
     let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
-    verified_core_render::vc_type_info_value_type(return_type)
+    verified_core_render_primitives::vc_type_info_value_type(return_type)
 }
 
 fn vcs_return_type_id(program: CoreHirRawProgram, function_index: i32) -> i32 {
@@ -50,8 +50,8 @@ fn vcs_return_type_id(program: CoreHirRawProgram, function_index: i32) -> i32 {
     }
     let typed_fn = get_unchecked(typed_fns, typed_index)
     let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
-    let return_vt = verified_core_render::vc_type_info_value_type(return_type)
-    verified_core_render::vc_type_id(
+    let return_vt = verified_core_render_primitives::vc_type_info_value_type(return_type)
+    verified_core_render_primitives::vc_type_id(
         return_vt,
         name_display::type_display_name(return_type)
     )
@@ -130,7 +130,7 @@ fn vcs_reachable_is_typed(program: CoreHirRawProgram, reachable: Vec<i32>) -> bo
             return false
         }
         let expr = get_unchecked(exprs, id)
-        let type_id = verified_core_render::vc_type_id(
+        let type_id = verified_core_render_primitives::vc_type_id(
             expr_raw::corehir_expr_val_type(expr),
             expr_raw::corehir_expr_type_name(expr)
         )
@@ -160,7 +160,7 @@ fn vcs_parameters_are_valid(program: CoreHirRawProgram, function_index: i32) -> 
     let mut i = 0
     while i < param_count {
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        if verified_core_render::vc_type_id(
+        if verified_core_render_primitives::vc_type_id(
             param::param_value_type(p),
             param::param_type_name(p)
         ) < 0 {
@@ -181,11 +181,11 @@ fn vcs_render_signature_parameters(program: CoreHirRawProgram, function_index: i
             out = concat(out, ",")
         }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        let type_id = verified_core_render::vc_type_id(
+        let type_id = verified_core_render_primitives::vc_type_id(
             param::param_value_type(p),
             param::param_type_name(p)
         )
-        out = concat(out, concat("{\"name\":", verified_core_render::vc_quote(param::param_name(p))))
+        out = concat(out, concat("{\"name\":", verified_core_render_primitives::vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", concat(to_string(type_id), "}")))
         i = i + 1
     }
@@ -203,8 +203,8 @@ fn vcs_render_abi_parameters(program: CoreHirRawProgram, function_index: i32) ->
         }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
         let value_type = param::param_value_type(p)
-        let type_id = verified_core_render::vc_type_id(value_type, param::param_type_name(p))
-        out = concat(out, verified_core_render::vc_render_abi_item(type_id, value_type))
+        let type_id = verified_core_render_primitives::vc_type_id(value_type, param::param_type_name(p))
+        out = concat(out, verified_core_render_primitives::vc_render_abi_item(type_id, value_type))
         i = i + 1
     }
     out
@@ -220,12 +220,12 @@ fn vcs_render_parameter_locals(program: CoreHirRawProgram, function_index: i32) 
             out = concat(out, ",")
         }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        let type_id = verified_core_render::vc_type_id(
+        let type_id = verified_core_render_primitives::vc_type_id(
             param::param_value_type(p),
             param::param_type_name(p)
         )
         out = concat(out, concat("{\"id\":", to_string(i)))
-        out = concat(out, concat(",\"name\":", verified_core_render::vc_quote(param::param_name(p))))
+        out = concat(out, concat(",\"name\":", verified_core_render_primitives::vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", to_string(type_id)))
         out = concat(out, ",\"storage\":\"parameter\"}")
         i = i + 1
@@ -255,7 +255,7 @@ fn vcs_render_expressions(program: CoreHirRawProgram, reachable: Vec<i32>) -> St
             if !first {
                 out = concat(out, ",")
             }
-            out = concat(out, verified_core_render::vc_render_expression(program, expr_id))
+            out = concat(out, verified_core_render_primitives::vc_render_expression(program, expr_id))
             first = false
         }
         expr_id = expr_id + 1
@@ -286,7 +286,7 @@ fn vcs_render_function(program: CoreHirRawProgram, function_index: i32) -> Strin
     }
 
     let mut out = concat("{\"id\":", to_string(function_index))
-    out = concat(out, concat(",\"name\":", verified_core_render::vc_quote(name)))
+    out = concat(out, concat(",\"name\":", verified_core_render_primitives::vc_quote(name)))
     out = concat(out, ",\"signature\":{\"parameters\":[")
     out = concat(out, vcs_render_signature_parameters(program, function_index))
     out = concat(out, concat("],\"return_type_id\":", concat(to_string(return_type_id), "}")))
@@ -294,7 +294,7 @@ fn vcs_render_function(program: CoreHirRawProgram, function_index: i32) -> Strin
     out = concat(out, vcs_render_abi_parameters(program, function_index))
     out = concat(out, "],\"results\":[")
     if return_vt != value_types::VT_VOID() {
-        out = concat(out, verified_core_render::vc_render_abi_item(return_type_id, return_vt))
+        out = concat(out, verified_core_render_primitives::vc_render_abi_item(return_type_id, return_vt))
     }
     out = concat(out, "]}")
     out = concat(out, ",\"locals\":[")
@@ -316,16 +316,16 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Str
     }
 
     let mut out = "{\"schema\":\"arukellt-verified-core\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":"
-    out = concat(out, verified_core_render::vc_quote(module_name))
+    out = concat(out, verified_core_render_primitives::vc_quote(module_name))
     out = concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
     out = concat(out, concat(to_string(pointer_width), "}"))
     out = concat(out, ",\"types\":[")
     let mut type_id = 0
-    while type_id < verified_core_render::vc_type_count() {
+    while type_id < verified_core_render_primitives::vc_type_count() {
         if type_id > 0 {
             out = concat(out, ",")
         }
-        out = concat(out, verified_core_render::vc_render_type(type_id, pointer_width))
+        out = concat(out, verified_core_render_primitives::vc_render_type(type_id, pointer_width))
         type_id = type_id + 1
     }
     out = concat(out, "],\"functions\":[")
