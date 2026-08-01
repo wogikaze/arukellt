@@ -89,13 +89,12 @@ fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
     if value_type == value_types::VT_F64() { return "f64" }
     if value_type == value_types::VT_V128() { return "v128" }
     if value_type == value_types::VT_FUNCREF() { return "fnref" }
-    // A reference without a semantic name cannot be verified safely.
     ""
 }
 
-fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
+fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) {
     if !registry.ok {
-        return 0 - 1
+        return
     }
     let name = vc_normalize_type_name(value_type, supplied_name)
     if len(clone(name)) == 0 {
@@ -103,19 +102,18 @@ fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplie
             registry,
             concat("VerifiedCore requires an explicit type name for value type ", to_string(value_type))
         )
-        return 0 - 1
+        return
     }
     let count = len(registry.names)
     let mut i = 0
     while i < count {
         if registry.value_types[i] == value_type && eq(clone(registry.names[i]), clone(name)) {
-            return i
+            return
         }
         i = i + 1
     }
     push(registry.names, name)
     push(registry.value_types, value_type)
-    count
 }
 
 fn vc_find_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
