@@ -95,6 +95,7 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         helper["id"] = 1
         helper["name"] = "runtime_helper"
         helper["contracts"] = []
+        helper["body"]["expressions"] = helper["body"]["expressions"][:2]
         document["functions"].append(helper)
 
         converted = convert_document(document)
