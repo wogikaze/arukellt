@@ -54,3 +54,10 @@ jobs:
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3.wasm
         run: python3 scripts/check/check-gc-hint-runtime.py
+
+      - name: Upload translation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: gc-hint-translation-receipt
+          path: .build/proof/gc-hint-translation-receipt.json
+          if-no-files-found: error
