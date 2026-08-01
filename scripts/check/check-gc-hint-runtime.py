@@ -20,7 +20,8 @@ def main() -> int:
         str(SOURCE.relative_to(ROOT)),
         "--opt-level",
         "2",
-        "--dump-mir",
+        "--dump-phases",
+        "mir",
         "-o",
         str(OUTPUT.relative_to(ROOT)),
     ]
