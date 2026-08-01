@@ -1,5 +1,5 @@
 {
-  "schema": "arukellt-verified-core",
+  "schema": "arukellt-typed-corehir",
   "schema_version": 1,
   "generator": "fixture",
   "module": "identity",
