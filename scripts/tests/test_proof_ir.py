@@ -80,6 +80,24 @@ class TestProofIr(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "unknown field"):
             validate_document(document)
 
+    def test_rejects_unknown_parameter_type(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["parameters"][0]["type"] = "unknown"
+        with self.assertRaisesRegex(ValidationError, "backend inference is forbidden"):
+            validate_document(document)
+
+    def test_rejects_unknown_return_type(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["return_type"] = "?T"
+        with self.assertRaisesRegex(ValidationError, "backend inference is forbidden"):
+            validate_document(document)
+
+    def test_rejects_unknown_function_identity(self) -> None:
+        document = deepcopy(self.valid)
+        document["functions"][0]["name"] = "<unknown>"
+        with self.assertRaisesRegex(ValidationError, "function identity must be explicit"):
+            validate_document(document)
+
 
 if __name__ == "__main__":
     unittest.main()
