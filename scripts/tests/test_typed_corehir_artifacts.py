@@ -32,7 +32,7 @@ class TypedCoreHirArtifactTests(unittest.TestCase):
     def test_rejects_verified_core_identity(self) -> None:
         document = copy.deepcopy(self.document)
         document["schema"] = "arukellt-verified-core"
-        with self.assertRaisesRegex(ValidationError, "expected schema"):
+        with self.assertRaisesRegex(ValidationError, "expected 'arukellt-typed-corehir'"):
             validate_document(document)
 
     def test_rejects_abi_representation_mismatch(self) -> None:
