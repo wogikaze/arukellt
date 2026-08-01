@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile focused fixtures, enforce the ratchet, and isolate name lookups."""
+"""Compile focused fixtures, enforce the ratchet, and identify name lookups."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ OUTPUT = ROOT / ".build" / "audit" / "backend-name-lookup.json"
 SUMMARY = re.compile(
     r"gc-layout-audit: summary typed=(\d+) name=(\d+) fallback=(\d+) conflict=(\d+)"
 )
+NAME_IDENTITY = re.compile(r"gc-layout-audit: name lookup type_name=([^\r\n]+)")
 PROBE_FIXTURES = (
     "tests/fixtures/hello_world.ark",
     "tests/fixtures/structs/basic_struct.ark",
@@ -42,8 +43,9 @@ def compile_fixture(relative: str) -> dict[str, object]:
             f"{relative}: compile exited {result.returncode}\n{result.stdout}\n{result.stderr}"
         )
 
+    combined = result.stdout + "\n" + result.stderr
     totals = {"typed": 0, "name": 0, "fallback": 0, "conflict": 0}
-    matches = list(SUMMARY.finditer(result.stdout + "\n" + result.stderr))
+    matches = list(SUMMARY.finditer(combined))
     if not matches:
         raise ValueError(
             f"{relative}: gc-layout-audit summary missing\n{result.stdout}\n{result.stderr}"
@@ -57,10 +59,23 @@ def compile_fixture(relative: str) -> dict[str, object]:
         raise ValueError(
             f"{relative}: fallback={totals['fallback']} conflict={totals['conflict']}"
         )
+
+    identities = [match.group(1).strip() for match in NAME_IDENTITY.finditer(combined)]
+    if len(identities) != totals["name"]:
+        raise ValueError(
+            f"{relative}: name identity count {len(identities)} != summary {totals['name']}"
+        )
+    identity_counts: dict[str, int] = {}
+    for identity in identities:
+        identity_counts[identity] = identity_counts.get(identity, 0) + 1
     return {
         "fixture": relative,
         "summary_lines": len(matches),
         "counts": totals,
+        "name_lookup_identities": [
+            {"type_name": name, "count": count}
+            for name, count in sorted(identity_counts.items())
+        ],
     }
 
 
@@ -80,24 +95,32 @@ def main() -> int:
     if not isinstance(primary_counts, dict):
         raise TypeError("baseline counts must be an object")
     if int(primary_counts["name"]) > max_name:
-        raise ValueError(
-            f"name lookup regression {primary_counts['name']} > {max_name}"
-        )
+        raise ValueError(f"name lookup regression {primary_counts['name']} > {max_name}")
 
     nonzero = [
         {
             "fixture": result["fixture"],
             "name_lookup_count": result["counts"]["name"],
+            "identities": result["name_lookup_identities"],
         }
         for result in results
         if isinstance(result["counts"], dict) and int(result["counts"]["name"]) > 0
     ]
+    aggregate: dict[str, int] = {}
+    for result in results:
+        for identity in result["name_lookup_identities"]:
+            name = str(identity["type_name"])
+            aggregate[name] = aggregate.get(name, 0) + int(identity["count"])
     document = {
         "schema": "arukellt-backend-name-lookup-audit",
-        "schema_version": 2,
+        "schema_version": 3,
         "baseline_fixture": baseline_fixture,
         "fixtures": results,
         "nonzero_name_lookup_fixtures": nonzero,
+        "aggregate_name_lookup_identities": [
+            {"type_name": name, "count": count}
+            for name, count in sorted(aggregate.items())
+        ],
         "ratchet": {"max_name_lookup_count": max_name},
         "policy": {
             "fallback_must_be_zero": True,
@@ -110,13 +133,10 @@ def main() -> int:
     print(
         "backend-name-lookup-runtime: PASS: "
         f"baseline_name={primary_counts['name']}/{max_name} "
-        f"nonzero_fixtures={len(nonzero)}"
+        f"identities={len(aggregate)}"
     )
-    for item in nonzero:
-        print(
-            "backend-name-lookup-runtime: identity-probe: "
-            f"fixture={item['fixture']} name={item['name_lookup_count']}"
-        )
+    for name, count in sorted(aggregate.items()):
+        print(f"backend-name-lookup-runtime: identity: type_name={name} count={count}")
     return 0
 
 
