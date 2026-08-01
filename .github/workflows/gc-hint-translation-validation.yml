@@ -33,7 +33,7 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build focused gc_hint-enabled stage 2
+      - name: Build focused gc_hint-enabled stage 2 runtime
         run: |
           python3 - <<'PY'
           import sys
@@ -45,24 +45,17 @@ jobs:
           path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
           if path is None:
               raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
           print(f"focused-gc-hint-s2: PASS: path={path} elapsed={elapsed:.3f}s")
           PY
-          test -s .build/selfhost/arukellt-s2.wasm
-
-      # The focused bootstrap overlay puts the current validated gc_hint pass
-      # into runtime-compatible s2. Raise only the memory32 initial size; GC
-      # types and code remain byte-identical.
-      - name: Raise focused s2 memory32 initial size
-        run: |
-          python3 scripts/bootstrap/set-wasm-memory32-initial.py \
-            .build/selfhost/arukellt-s2.wasm \
-            .build/selfhost/arukellt-s2-runtime.wasm \
-            --pages 24576
           test -s .build/selfhost/arukellt-s2-runtime.wasm
           wasmtime compile \
             --wasm gc \
             --wasm function-references \
-            -W max-memory-size=2147483648 \
+            -W memory64=y \
+            -W max-memory-size=17179869184 \
             .build/selfhost/arukellt-s2-runtime.wasm \
             -o .build/selfhost/arukellt-s2-runtime.cwasm
 
