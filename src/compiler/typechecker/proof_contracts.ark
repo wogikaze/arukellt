@@ -40,11 +40,11 @@ fn check_proof_contracts(
     if count == 0 {
         return
     }
-    let contract_scope = proof_contract_scope(node, sig)
     let mut i = 0
     while i < count {
         let contract = get_unchecked(contracts, i)
         let kind_name = ast_access::node_text(contract)
+        let contract_scope = proof_contract_scope(node, sig)
         if eq(clone(kind_name), "ensures") {
             scope::scope_define(
                 contract_scope,
