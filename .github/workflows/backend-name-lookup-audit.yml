@@ -2,7 +2,7 @@ name: Backend name lookup audit
 
 on:
   pull_request:
-    branches: [agent/backend-name-lookup-audit, agent/formal-verification-hard-gates, master]
+    branches: [agent/backend-typeid-first, agent/backend-name-lookup-audit, agent/formal-verification-hard-gates, master]
   workflow_dispatch:
 
 concurrency:
@@ -53,10 +53,10 @@ jobs:
             echo 's2/s3 byte fixpoint deferred while backend audit instrumentation changes emitted compiler code'
           fi
 
-      - name: Capture backend name lookup baseline
+      - name: Capture backend name lookup categories
         run: python3 scripts/check/check-backend-name-lookup-runtime.py
 
-      - name: Upload backend lookup baseline
+      - name: Upload backend lookup audit
         uses: actions/upload-artifact@v4
         with:
           name: backend-name-lookup-audit
