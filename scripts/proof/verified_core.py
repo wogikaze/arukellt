@@ -18,11 +18,11 @@ from proof.common import (
 
 SCHEMA = "arukellt-verified-core"
 VERSION = 1
-WASM_TYPES = {"i32", "i64", "f32", "f64", "v128", "funcref", "externref"}
-TYPE_KINDS = {
-    "unit", "bool", "integer", "float", "string", "reference", "tuple",
-    "struct", "enum", "function",
-}
+WASM_TYPES = {"i32", "i64", "f32", "f64", "v128", "funcref", "externref", "gc-ref"}
+VALUE_TYPES = {"void", "i32", "i64", "f32", "f64", "v128", "ref", "gc-ref", "funcref"}
+TYPE_KINDS = {"unit", "bool", "integer", "float", "string", "reference", "function", "vector"}
+REPRESENTATION_KINDS = {"unit", "scalar", "linear-ptr", "gc-ref", "funcref"}
+CONTRACT_KINDS = {"requires", "ensures", "invariant", "assert", "decreases"}
 
 
 def _type_ref(value: Any, path: str, type_ids: set[int]) -> int:
@@ -32,35 +32,58 @@ def _type_ref(value: Any, path: str, type_ids: set[int]) -> int:
     return type_id
 
 
-def _representation(value: Any, path: str) -> None:
+def _wasm_values(value: Any, path: str) -> list[str]:
+    result: list[str] = []
+    for index, raw in enumerate(array_value(value, path)):
+        wasm_type = string_value(raw, f"{path}[{index}]")
+        if wasm_type not in WASM_TYPES:
+            fail(f"{path}[{index}]", f"unsupported Wasm value type: {wasm_type}")
+        result.append(wasm_type)
+    return result
+
+
+def _representation(value: Any, path: str, value_type: str) -> None:
     rep = object_value(value, path)
     exact_keys(
         rep,
         path,
-        required={"wasm", "nullable", "size_bytes", "align_bytes"},
+        required={"kind", "wasm", "nullable", "size_bytes", "align_bytes"},
         optional={"layout_id"},
     )
-    for index, raw in enumerate(array_value(rep["wasm"], f"{path}.wasm")):
-        wasm_type = string_value(raw, f"{path}.wasm[{index}]")
-        if wasm_type not in WASM_TYPES:
-            fail(f"{path}.wasm[{index}]", f"unsupported Wasm value type: {wasm_type}")
-    bool_value(rep["nullable"], f"{path}.nullable")
-    int_value(rep["size_bytes"], f"{path}.size_bytes", minimum=0)
+    kind = string_value(rep["kind"], f"{path}.kind")
+    if kind not in REPRESENTATION_KINDS:
+        fail(f"{path}.kind", f"unsupported representation kind: {kind}")
+    wasm = _wasm_values(rep["wasm"], f"{path}.wasm")
+    nullable = bool_value(rep["nullable"], f"{path}.nullable")
+    size = int_value(rep["size_bytes"], f"{path}.size_bytes", minimum=0)
     align = int_value(rep["align_bytes"], f"{path}.align_bytes", minimum=1)
     if align & (align - 1):
         fail(f"{path}.align_bytes", "must be a power of two")
     if "layout_id" in rep:
         int_value(rep["layout_id"], f"{path}.layout_id", minimum=0)
 
+    expected_wasm = {
+        "void": [],
+        "i32": ["i32"],
+        "i64": ["i64"],
+        "f32": ["f32"],
+        "f64": ["f64"],
+        "v128": ["v128"],
+        "ref": ["i32"],
+        "gc-ref": ["gc-ref"],
+        "funcref": ["funcref"],
+    }[value_type]
+    if wasm != expected_wasm:
+        fail(f"{path}.wasm", f"must match value_type={value_type}")
+    if value_type == "void" and (kind != "unit" or nullable or size != 0):
+        fail(path, "void representation must be non-null unit with zero size")
+    if value_type in {"ref", "gc-ref", "funcref"} and not nullable:
+        fail(f"{path}.nullable", "reference representation must state nullability explicitly")
 
-def _type(value: Any, path: str, type_ids: set[int]) -> None:
+
+def _type(value: Any, path: str) -> None:
     ty = object_value(value, path)
-    exact_keys(
-        ty,
-        path,
-        required={"id", "kind", "name", "representation"},
-        optional={"bits", "signed", "fields", "variants", "elements", "pointee_type_id"},
-    )
+    exact_keys(ty, path, required={"id", "kind", "name", "value_type", "representation"})
     int_value(ty["id"], f"{path}.id", minimum=0)
     kind = string_value(ty["kind"], f"{path}.kind")
     if kind not in TYPE_KINDS:
@@ -68,90 +91,10 @@ def _type(value: Any, path: str, type_ids: set[int]) -> None:
     name = string_value(ty["name"], f"{path}.name")
     if name == "unknown" or name.startswith("?"):
         fail(f"{path}.name", "type identity must be explicit")
-    _representation(ty["representation"], f"{path}.representation")
-
-    if kind in {"integer", "float"}:
-        int_value(ty.get("bits"), f"{path}.bits", minimum=1)
-    if kind == "integer":
-        bool_value(ty.get("signed"), f"{path}.signed")
-    if kind == "reference":
-        _type_ref(ty.get("pointee_type_id"), f"{path}.pointee_type_id", type_ids)
-    if kind == "tuple":
-        for index, type_id in enumerate(array_value(ty.get("elements"), f"{path}.elements")):
-            _type_ref(type_id, f"{path}.elements[{index}]", type_ids)
-    if kind == "struct":
-        seen_names: set[str] = set()
-        for index, raw in enumerate(array_value(ty.get("fields"), f"{path}.fields")):
-            field_path = f"{path}.fields[{index}]"
-            field = object_value(raw, field_path)
-            exact_keys(field, field_path, required={"name", "type_id", "offset_bytes"})
-            field_name = string_value(field["name"], f"{field_path}.name")
-            if field_name in seen_names:
-                fail(f"{field_path}.name", f"duplicate field: {field_name}")
-            seen_names.add(field_name)
-            _type_ref(field["type_id"], f"{field_path}.type_id", type_ids)
-            int_value(field["offset_bytes"], f"{field_path}.offset_bytes", minimum=0)
-    if kind == "enum":
-        seen_tags: set[int] = set()
-        for index, raw in enumerate(array_value(ty.get("variants"), f"{path}.variants")):
-            variant_path = f"{path}.variants[{index}]"
-            variant = object_value(raw, variant_path)
-            exact_keys(variant, variant_path, required={"name", "tag", "payload_type_ids"})
-            string_value(variant["name"], f"{variant_path}.name")
-            tag = int_value(variant["tag"], f"{variant_path}.tag", minimum=0)
-            if tag in seen_tags:
-                fail(f"{variant_path}.tag", f"duplicate tag: {tag}")
-            seen_tags.add(tag)
-            for payload_index, type_id in enumerate(
-                array_value(variant["payload_type_ids"], f"{variant_path}.payload_type_ids")
-            ):
-                _type_ref(type_id, f"{variant_path}.payload_type_ids[{payload_index}]", type_ids)
-
-
-def _typed_value(value: Any, path: str, type_ids: set[int], local_types: dict[int, int]) -> int:
-    node = object_value(value, path)
-    exact_keys(node, path, required={"kind", "type_id"}, optional={"local_id", "value"})
-    kind = string_value(node["kind"], f"{path}.kind")
-    type_id = _type_ref(node["type_id"], f"{path}.type_id", type_ids)
-    if kind == "local":
-        local_id = int_value(node.get("local_id"), f"{path}.local_id", minimum=0)
-        if local_id not in local_types:
-            fail(f"{path}.local_id", f"unknown local id: {local_id}")
-        if local_types[local_id] != type_id:
-            fail(f"{path}.type_id", "local value type must match local declaration")
-    elif kind == "constant":
-        if "value" not in node:
-            fail(path, "constant requires value")
-    else:
-        fail(f"{path}.kind", f"unsupported typed value kind: {kind}")
-    return type_id
-
-
-def _expression(value: Any, path: str, type_ids: set[int], local_types: dict[int, int]) -> None:
-    expr = object_value(value, path)
-    exact_keys(
-        expr,
-        path,
-        required={"id", "kind", "type_id"},
-        optional={"operands", "local_id", "value", "callee_id", "field_id"},
-    )
-    int_value(expr["id"], f"{path}.id", minimum=0)
-    string_value(expr["kind"], f"{path}.kind")
-    type_id = _type_ref(expr["type_id"], f"{path}.type_id", type_ids)
-    if "local_id" in expr:
-        local_id = int_value(expr["local_id"], f"{path}.local_id", minimum=0)
-        if local_id not in local_types:
-            fail(f"{path}.local_id", f"unknown local id: {local_id}")
-        if local_types[local_id] != type_id:
-            fail(f"{path}.type_id", "expression type must match local declaration")
-    if "callee_id" in expr:
-        int_value(expr["callee_id"], f"{path}.callee_id", minimum=0)
-    if "field_id" in expr:
-        int_value(expr["field_id"], f"{path}.field_id", minimum=0)
-    operands = array_value(expr.get("operands", []), f"{path}.operands")
-    unique_id_map(operands, f"{path}.operands")
-    for index, operand in enumerate(operands):
-        _expression(operand, f"{path}.operands[{index}]", type_ids, local_types)
+    value_type = string_value(ty["value_type"], f"{path}.value_type")
+    if value_type not in VALUE_TYPES:
+        fail(f"{path}.value_type", f"unsupported value type: {value_type}")
+    _representation(ty["representation"], f"{path}.representation", value_type)
 
 
 def _abi_item(value: Any, path: str, expected_type: int, type_ids: set[int]) -> None:
@@ -160,20 +103,62 @@ def _abi_item(value: Any, path: str, expected_type: int, type_ids: set[int]) -> 
     type_id = _type_ref(item["type_id"], f"{path}.type_id", type_ids)
     if type_id != expected_type:
         fail(f"{path}.type_id", "ABI type must match signature")
-    string_value(item["passing"], f"{path}.passing")
-    for index, raw in enumerate(array_value(item["wasm"], f"{path}.wasm")):
-        wasm_type = string_value(raw, f"{path}.wasm[{index}]")
-        if wasm_type not in WASM_TYPES:
-            fail(f"{path}.wasm[{index}]", f"unsupported Wasm value type: {wasm_type}")
+    passing = string_value(item["passing"], f"{path}.passing")
+    if passing not in {"value", "reference"}:
+        fail(f"{path}.passing", f"unsupported passing mode: {passing}")
+    _wasm_values(item["wasm"], f"{path}.wasm")
 
 
-def _function(value: Any, path: str, type_ids: set[int]) -> None:
-    function = object_value(value, path)
+def _local(value: Any, path: str, type_ids: set[int]) -> tuple[int, int]:
+    local = object_value(value, path)
+    exact_keys(local, path, required={"id", "name", "type_id", "storage"})
+    local_id = int_value(local["id"], f"{path}.id", minimum=0)
+    string_value(local["name"], f"{path}.name")
+    type_id = _type_ref(local["type_id"], f"{path}.type_id", type_ids)
+    storage = string_value(local["storage"], f"{path}.storage")
+    if storage not in {"parameter", "local", "temporary"}:
+        fail(f"{path}.storage", f"unsupported storage kind: {storage}")
+    return local_id, type_id
+
+
+def _expression(value: Any, path: str, type_ids: set[int]) -> dict[str, Any]:
+    expr = object_value(value, path)
     exact_keys(
-        function,
+        expr,
         path,
-        required={"id", "name", "signature", "abi", "locals", "contracts", "body"},
+        required={
+            "id",
+            "kind",
+            "kind_id",
+            "type_id",
+            "value_type",
+            "text",
+            "int_value",
+            "float_value",
+            "span_start",
+            "children",
+        },
     )
+    int_value(expr["id"], f"{path}.id", minimum=0)
+    string_value(expr["kind"], f"{path}.kind")
+    int_value(expr["kind_id"], f"{path}.kind_id", minimum=0)
+    _type_ref(expr["type_id"], f"{path}.type_id", type_ids)
+    value_type = string_value(expr["value_type"], f"{path}.value_type")
+    if value_type not in VALUE_TYPES:
+        fail(f"{path}.value_type", f"unsupported value type: {value_type}")
+    string_value(expr["text"], f"{path}.text", nonempty=False)
+    int_value(expr["int_value"], f"{path}.int_value")
+    if isinstance(expr["float_value"], bool) or not isinstance(expr["float_value"], (int, float)):
+        fail(f"{path}.float_value", "expected number")
+    int_value(expr["span_start"], f"{path}.span_start", minimum=0)
+    for child_index, child in enumerate(array_value(expr["children"], f"{path}.children")):
+        int_value(child, f"{path}.children[{child_index}]", minimum=0)
+    return expr
+
+
+def _function(value: Any, path: str, type_ids: set[int], type_wasm: dict[int, list[str]]) -> None:
+    function = object_value(value, path)
+    exact_keys(function, path, required={"id", "name", "signature", "abi", "locals", "contracts", "body"})
     int_value(function["id"], f"{path}.id", minimum=0)
     name = string_value(function["name"], f"{path}.name")
     if name == "<unknown>":
@@ -202,71 +187,71 @@ def _function(value: Any, path: str, type_ids: set[int]) -> None:
         fail(f"{path}.abi.parameters", "ABI parameter count must match signature")
     for index, item in enumerate(abi_parameters):
         _abi_item(item, f"{path}.abi.parameters[{index}]", parameter_types[index], type_ids)
+        if item["wasm"] != type_wasm[parameter_types[index]]:
+            fail(f"{path}.abi.parameters[{index}].wasm", "ABI representation must match type table")
     abi_results = array_value(abi["results"], f"{path}.abi.results")
-    expected_result_count = 0 if return_type == 0 else 1
+    expected_result_count = 0 if type_wasm[return_type] == [] else 1
     if len(abi_results) != expected_result_count:
-        fail(f"{path}.abi.results", "ABI result count must match signature")
+        fail(f"{path}.abi.results", "ABI result count must match return representation")
     if abi_results:
         _abi_item(abi_results[0], f"{path}.abi.results[0]", return_type, type_ids)
+        if abi_results[0]["wasm"] != type_wasm[return_type]:
+            fail(f"{path}.abi.results[0].wasm", "ABI representation must match type table")
 
     locals_raw = array_value(function["locals"], f"{path}.locals")
     local_map = unique_id_map(locals_raw, f"{path}.locals")
     local_types: dict[int, int] = {}
     for index, raw in enumerate(locals_raw):
-        local_path = f"{path}.locals[{index}]"
-        local = object_value(raw, local_path)
-        exact_keys(local, local_path, required={"id", "name", "type_id", "storage"})
-        string_value(local["name"], f"{local_path}.name")
-        local_types[local["id"]] = _type_ref(local["type_id"], f"{local_path}.type_id", type_ids)
-        string_value(local["storage"], f"{local_path}.storage")
+        local_id, type_id = _local(raw, f"{path}.locals[{index}]", type_ids)
+        local_types[local_id] = type_id
+    for index, parameter_type in enumerate(parameter_types):
+        if index not in local_map:
+            fail(f"{path}.locals", f"missing parameter local id: {index}")
+        if local_types[index] != parameter_type or local_map[index]["storage"] != "parameter":
+            fail(f"{path}.locals[{index}]", "parameter local must match signature")
+
+    body = object_value(function["body"], f"{path}.body")
+    exact_keys(body, f"{path}.body", required={"root_expr_id", "expressions"})
+    expressions = array_value(body["expressions"], f"{path}.body.expressions")
+    expression_map = unique_id_map(expressions, f"{path}.body.expressions")
+    root = int_value(body["root_expr_id"], f"{path}.body.root_expr_id", minimum=0)
+    if root not in expression_map:
+        fail(f"{path}.body.root_expr_id", f"unknown expression id: {root}")
+    for index, raw in enumerate(expressions):
+        expr = _expression(raw, f"{path}.body.expressions[{index}]", type_ids)
+        for child_index, child in enumerate(expr["children"]):
+            if child not in expression_map:
+                fail(
+                    f"{path}.body.expressions[{index}].children[{child_index}]",
+                    f"unknown expression id: {child}",
+                )
+
+    reachable: set[int] = set()
+    stack = [root]
+    while stack:
+        expr_id = stack.pop()
+        if expr_id in reachable:
+            continue
+        reachable.add(expr_id)
+        stack.extend(expression_map[expr_id]["children"])
+    unreachable = sorted(set(expression_map) - reachable)
+    if unreachable:
+        fail(f"{path}.body.expressions", f"contains unreachable expression id(s): {unreachable}")
 
     for index, raw in enumerate(array_value(function["contracts"], f"{path}.contracts")):
         contract_path = f"{path}.contracts[{index}]"
         contract = object_value(raw, contract_path)
-        exact_keys(contract, contract_path, required={"kind", "expression"}, optional={"result_name"})
+        exact_keys(contract, contract_path, required={"kind", "expression_id"}, optional={"result_name"})
         kind = string_value(contract["kind"], f"{contract_path}.kind")
-        if kind not in {"requires", "ensures", "invariant", "assert", "decreases"}:
+        if kind not in CONTRACT_KINDS:
             fail(f"{contract_path}.kind", f"unsupported contract kind: {kind}")
+        expression_id = int_value(contract["expression_id"], f"{contract_path}.expression_id", minimum=0)
+        if expression_id not in expression_map:
+            fail(f"{contract_path}.expression_id", f"unknown expression id: {expression_id}")
         if kind == "ensures":
             string_value(contract.get("result_name"), f"{contract_path}.result_name")
         elif "result_name" in contract:
             fail(f"{contract_path}.result_name", "only valid for ensures")
-        _expression(contract["expression"], f"{contract_path}.expression", type_ids, local_types)
-
-    body = object_value(function["body"], f"{path}.body")
-    exact_keys(body, f"{path}.body", required={"entry_block", "blocks"})
-    blocks = array_value(body["blocks"], f"{path}.body.blocks")
-    block_map = unique_id_map(blocks, f"{path}.body.blocks")
-    entry = int_value(body["entry_block"], f"{path}.body.entry_block", minimum=0)
-    if entry not in block_map:
-        fail(f"{path}.body.entry_block", f"unknown block id: {entry}")
-    for index, raw in enumerate(blocks):
-        block_path = f"{path}.body.blocks[{index}]"
-        block = object_value(raw, block_path)
-        exact_keys(block, block_path, required={"id", "parameters", "instructions", "terminator"})
-        array_value(block["parameters"], f"{block_path}.parameters")
-        array_value(block["instructions"], f"{block_path}.instructions")
-        terminator = object_value(block["terminator"], f"{block_path}.terminator")
-        exact_keys(terminator, f"{block_path}.terminator", required={"kind"}, optional={"value", "target"})
-        kind = string_value(terminator["kind"], f"{block_path}.terminator.kind")
-        if kind == "return":
-            if return_type == 0:
-                if "value" in terminator:
-                    fail(f"{block_path}.terminator.value", "unit return must not carry a value")
-            else:
-                if "value" not in terminator:
-                    fail(f"{block_path}.terminator", "non-unit return requires value")
-                actual = _typed_value(
-                    terminator["value"], f"{block_path}.terminator.value", type_ids, local_types
-                )
-                if actual != return_type:
-                    fail(f"{block_path}.terminator.value.type_id", "return type must match signature")
-        elif kind == "goto":
-            target = int_value(terminator.get("target"), f"{block_path}.terminator.target", minimum=0)
-            if target not in block_map:
-                fail(f"{block_path}.terminator.target", f"unknown block id: {target}")
-        else:
-            fail(f"{block_path}.terminator.kind", f"unsupported terminator: {kind}")
 
 
 def validate_document(value: Any) -> dict[str, Any]:
@@ -281,12 +266,9 @@ def validate_document(value: Any) -> dict[str, Any]:
     string_value(document["module"], "$.module")
     if "generator" in document:
         string_value(document["generator"], "$.generator")
+
     profile = object_value(document["target_profile"], "$.target_profile")
-    exact_keys(
-        profile,
-        "$.target_profile",
-        required={"integer_model", "overflow", "floating_point", "pointer_width"},
-    )
+    exact_keys(profile, "$.target_profile", required={"integer_model", "overflow", "floating_point", "pointer_width"})
     for field in ("integer_model", "overflow", "floating_point"):
         string_value(profile[field], f"$.target_profile.{field}")
     if int_value(profile["pointer_width"], "$.target_profile.pointer_width") not in {32, 64}:
@@ -294,17 +276,24 @@ def validate_document(value: Any) -> dict[str, Any]:
 
     types = array_value(document["types"], "$.types")
     type_map = unique_id_map(types, "$.types")
-    if 0 not in type_map or type_map[0].get("kind") != "unit":
-        fail("$.types", "type id 0 must be unit")
+    if 0 not in type_map or type_map[0].get("kind") != "unit" or type_map[0].get("value_type") != "void":
+        fail("$.types", "type id 0 must be unit/void")
+    type_wasm: dict[int, list[str]] = {}
+    seen_type_keys: set[tuple[str, str]] = set()
     for index, ty in enumerate(types):
-        _type(ty, f"$.types[{index}]", set(type_map))
+        _type(ty, f"$.types[{index}]")
+        key = (ty["name"], ty["value_type"])
+        if key in seen_type_keys:
+            fail(f"$.types[{index}]", f"duplicate type identity: {key[0]} / {key[1]}")
+        seen_type_keys.add(key)
+        type_wasm[ty["id"]] = ty["representation"]["wasm"]
 
     functions = array_value(document["functions"], "$.functions")
     unique_id_map(functions, "$.functions")
     seen_names: set[str] = set()
     for index, function in enumerate(functions):
         path = f"$.functions[{index}]"
-        _function(function, path, set(type_map))
+        _function(function, path, set(type_map), type_wasm)
         name = function["name"]
         if name in seen_names:
             fail(f"{path}.name", f"duplicate function name: {name}")
