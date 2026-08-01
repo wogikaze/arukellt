@@ -317,7 +317,7 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
         out = concat(out, to_string(expr_raw::corehir_expr_child(expr, ci)))
         ci = ci + 1
     }
-    concat(out, "]}")
+    return concat(out, "]}")
 }
 
 fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
