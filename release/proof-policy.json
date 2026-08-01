@@ -1,0 +1,6 @@
+{
+  "schema": "arukellt-proof-release-policy",
+  "schema_version": 1,
+  "mode": "proof-optional",
+  "artifacts": []
+}
