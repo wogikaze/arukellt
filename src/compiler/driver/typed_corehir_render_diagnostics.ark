@@ -1,8 +1,48 @@
+use corehir::body_table
+use corehir::expr_raw
 use corehir::fn_info
+use corehir::raw_bodies
 use corehir::raw_decls
 use corehir::raw_dto
 use corehir::raw_record
+use driver::verified_core_render_primitives
 use driver::verified_core_render_safe
+
+fn diagnose_first_untyped_expression(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    reachable: Vec<i32>
+) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let function_name = verified_core_render_safe::vcs_function_name(program, function_index)
+    let mut i = 0
+    while i < len(reachable) {
+        let expression_id = get_unchecked(reachable, i)
+        if expression_id < 0 || expression_id >= len(exprs) {
+            return concat(
+                concat("TypedCoreHIR reject: invalid reachable expression function=", function_name),
+                concat(" expression_id=", to_string(expression_id))
+            )
+        }
+        let expression = get_unchecked(exprs, expression_id)
+        let value_type = expr_raw::corehir_expr_val_type(expression)
+        let type_name = expr_raw::corehir_expr_type_name(expression)
+        let type_id = verified_core_render_primitives::vc_type_id(value_type, clone(type_name))
+        if type_id < 0 {
+            let mut message = concat("TypedCoreHIR reject: untyped expression function=", function_name)
+            message = concat(message, concat(" function_index=", to_string(function_index)))
+            message = concat(message, concat(" expression_id=", to_string(expression_id)))
+            message = concat(message, concat(" kind=", to_string(expr_raw::corehir_expr_kind(expression))))
+            message = concat(message, concat(" value_type=", to_string(value_type)))
+            message = concat(message, concat(" type_name=", type_name))
+            message = concat(message, concat(" text=", expr_raw::corehir_expr_text(expression)))
+            return message
+        }
+        i = i + 1
+    }
+    concat("TypedCoreHIR reject: untyped reachable expression function=", function_name)
+}
 
 fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     let modules = raw_record::raw_program_modules(program)
@@ -31,7 +71,7 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
             }
             let reachable = verified_core_render_safe::vcs_collect_reachable(program, root)
             if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
-                return concat("TypedCoreHIR reject: untyped reachable expression function=", to_string(function_index))
+                return diagnose_first_untyped_expression(program, function_index, reachable)
             }
             let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
             let return_type_id = verified_core_render_safe::vcs_return_type_id(program, function_index)
