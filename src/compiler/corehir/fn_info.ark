@@ -31,6 +31,13 @@ fn CoreHirFnInfo_new(
     }
 }
 
+fn fn_info_name_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: String) -> String {
+    if info_index >= 0 && info_index < len(fn_infos) {
+        return clone(get_unchecked(fn_infos, info_index).name)
+    }
+    fallback
+}
+
 fn fn_info_qualified_name_at(fn_infos: Vec<CoreHirFnInfo>, info_index: i32, fallback: String) -> String {
     if info_index >= 0 && info_index < len(fn_infos) {
         return clone(get_unchecked(fn_infos, info_index).qualified_name)
