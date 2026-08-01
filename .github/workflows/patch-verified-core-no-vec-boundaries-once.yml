@@ -1,0 +1,158 @@
+name: Patch VerifiedCore Vec boundaries once
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'agent/typed-verified-core-emitter'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/typed-verified-core-emitter
+          fetch-depth: 0
+
+      - name: Remove new generic Vec function boundaries
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/compiler/driver/verified_core_render.ark')
+          text = path.read_text()
+
+          start = text.index('fn vc_contains_id(')
+          end = text.index('fn vc_render_expression(', start)
+          text = text[:start] + text[end:]
+
+          old = '''fn vc_render_expression(exprs: Vec<CoreHirExpr>, expr_id: i32) -> String {
+              let expr = get_unchecked(exprs, expr_id)
+          '''
+          new = '''fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
+              let table = raw_bodies::program_body_table(program)
+              let exprs = body_table::corehir_body_table_exprs(table)
+              let expr = get_unchecked(exprs, expr_id)
+          '''
+          if old not in text:
+              raise SystemExit('vc_render_expression source missing')
+          text = text.replace(old, new, 1)
+
+          old = '''fn vc_render_function(
+              fn_infos: Vec<CoreHirFnInfo>,
+              typed_fns: Vec<TypedFn>,
+              table: CoreHirBodyTable,
+              exprs: Vec<CoreHirExpr>,
+              function_index: i32
+          ) -> VerifiedCoreRenderResult {
+              let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
+          '''
+          new = '''fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> VerifiedCoreRenderResult {
+              let fn_infos = raw_decls::program_fn_infos(program)
+              let typed_fns = raw_types::program_typed_fns(program)
+              let table = raw_bodies::program_body_table(program)
+              let exprs = body_table::corehir_body_table_exprs(table)
+              let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
+          '''
+          if old not in text:
+              raise SystemExit('vc_render_function source missing')
+          text = text.replace(old, new, 1)
+
+          old = '''    let reachable = vc_collect_reachable(exprs, root)
+              let expr_count = len(exprs)
+          '''
+          new = '''    let reachable = Vec::new<i32>()
+              let stack = Vec::new<i32>()
+              push(stack, root)
+              while len(stack) > 0 {
+                  let id = pop(stack).unwrap()
+                  let mut already_seen = false
+                  let mut seen_i = 0
+                  while seen_i < len(reachable) {
+                      if reachable[seen_i] == id {
+                          already_seen = true
+                          seen_i = len(reachable)
+                      } else {
+                          seen_i = seen_i + 1
+                      }
+                  }
+                  if !already_seen {
+                      push(reachable, id)
+                      if id >= 0 && id < len(exprs) {
+                          let reachable_expr = get_unchecked(exprs, id)
+                          let child_count = expr_raw::corehir_expr_child_count(reachable_expr)
+                          let mut child_i = 0
+                          while child_i < child_count {
+                              push(stack, expr_raw::corehir_expr_child(reachable_expr, child_i))
+                              child_i = child_i + 1
+                          }
+                      }
+                  }
+              }
+              let expr_count = len(exprs)
+          '''
+          if old not in text:
+              raise SystemExit('reachable collector call missing')
+          text = text.replace(old, new, 1)
+
+          old = '''    while ei < expr_count {
+                  if vc_contains_id(reachable, ei) {
+                      if !first_expr { out = concat(out, ",") }
+                      out = concat(out, vc_render_expression(exprs, ei))
+                      first_expr = false
+                  }
+                  ei = ei + 1
+              }
+          '''
+          new = '''    while ei < expr_count {
+                  let mut is_reachable = false
+                  let mut reachable_i = 0
+                  while reachable_i < len(reachable) {
+                      if reachable[reachable_i] == ei {
+                          is_reachable = true
+                          reachable_i = len(reachable)
+                      } else {
+                          reachable_i = reachable_i + 1
+                      }
+                  }
+                  if is_reachable {
+                      if !first_expr { out = concat(out, ",") }
+                      out = concat(out, vc_render_expression(program, ei))
+                      first_expr = false
+                  }
+                  ei = ei + 1
+              }
+          '''
+          if old not in text:
+              raise SystemExit('reachable render loop missing')
+          text = text.replace(old, new, 1)
+
+          old = 'let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi)'
+          new = 'let rendered = vc_render_function(program, fi)'
+          if old not in text:
+              raise SystemExit('vc_render_function call missing')
+          text = text.replace(old, new, 1)
+
+          forbidden = [
+              'fn vc_contains_id(',
+              'fn vc_collect_reachable(',
+              'fn vc_render_expression(exprs:',
+              'fn vc_render_function(\n    fn_infos:',
+          ]
+          remaining = [item for item in forbidden if item in text]
+          if remaining:
+              raise SystemExit('generic Vec boundaries remain: ' + ', '.join(remaining))
+
+          path.write_text(text)
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/compiler/driver/verified_core_render.ark
+          git commit -m 'fix(proof): remove generic Vec boundaries from renderer'
+          git push origin HEAD:agent/typed-verified-core-emitter
