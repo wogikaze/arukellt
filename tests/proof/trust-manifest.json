@@ -4,7 +4,7 @@
   "subject": {
     "schema": "arukellt-verified-core",
     "schema_version": 1,
-    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
+    "sha256": "4b2679660b6140aa4f902a60ba98296ef99ecda7e7761381d84068a79c6663bd"
   },
   "producer": {
     "name": "arukellt",
