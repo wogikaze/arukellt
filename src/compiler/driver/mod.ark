@@ -3,6 +3,7 @@ use driver::file
 use driver::pipeline_backend
 use driver::result_record
 use driver::types
+use driver::verified_core_render
 
 pub fn DriverConfig_default() -> DriverConfig {
     config_record::DriverConfig_default()
