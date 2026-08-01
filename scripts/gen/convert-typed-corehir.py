@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert TypedCoreHIR v1 into structured VerifiedCore v1."""
+"""Convert contracted TypedCoreHIR v1 into structured VerifiedCore v1."""
 
 from __future__ import annotations
 
@@ -14,7 +14,10 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from proof.common import load_json  # noqa: E402
-from proof.typed_corehir_convert import UnsupportedTypedCoreHir, convert_document  # noqa: E402
+from proof.typed_corehir_contract_convert import (  # noqa: E402
+    UnsupportedTypedCoreHir,
+    convert_document,
+)
 
 
 def parser() -> argparse.ArgumentParser:
