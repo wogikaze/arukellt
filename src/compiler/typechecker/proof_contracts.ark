@@ -1,0 +1,76 @@
+use parser::kinds as parser_kinds
+use typechecker::ast_access
+use typechecker::body_params
+use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::infer
+use typechecker::name_display
+use typechecker::scope
+use typechecker::unify
+
+fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
+    let contracts = Vec::new<AstNode>()
+    let count = ast_access::node_type_ann_count(node)
+    let mut i = 0
+    while i < count {
+        let ann = ast_access::node_type_ann_at(node, i)
+        if ast_access::node_kind(ann) == parser_kinds::NK_PROOF_CONTRACT() {
+            push(contracts, ann)
+        }
+        i = i + 1
+    }
+    contracts
+}
+
+fn proof_contract_scope(node: AstNode, sig: FnSig) -> LocalScope {
+    let contract_scope = scope::LocalScope_new()
+    body_params::bind_fn_params_from_sig(contract_scope, node, sig)
+    contract_scope
+}
+
+fn check_proof_contracts(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    sig: FnSig
+) {
+    let contracts = proof_contract_nodes(node)
+    let count = len(contracts)
+    if count == 0 {
+        return
+    }
+    let contract_scope = proof_contract_scope(node, sig)
+    let mut i = 0
+    while i < count {
+        let contract = get_unchecked(contracts, i)
+        let kind_name = ast_access::node_text(contract)
+        if eq(clone(kind_name), "ensures") {
+            scope::scope_define(
+                contract_scope,
+                "result",
+                contract_fn_sig::FnSig_return_type(sig)
+            )
+        }
+        if ast_access::node_child_count(contract) == 0 {
+            unify::type_error(env, concat("empty proof contract: ", kind_name))
+            i = i + 1
+            continue
+        }
+        let expression = ast_access::node_child_at(contract, 0)
+        let actual = unify::resolve_type(
+            env,
+            infer::infer_expr(env, contract_scope, fn_sigs, enum_defs, expression)
+        )
+        if contract_type_access::TypeInfo_tag(actual) != commands::TY_BOOL() {
+            unify::type_error(
+                env,
+                concat(
+                    concat("proof contract must have type bool, found ", name_display::type_display_name(actual)),
+                    concat(" in ", kind_name)
+                )
+            )
+        }
+        i = i + 1
+    }
+}
