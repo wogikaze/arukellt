@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from proof.common import ValidationError, array_value, exact_keys, int_value, object_value, string_value, validate_header
+from proof.common import array_value, exact_keys, int_value, object_value, string_value, validate_header
 from proof.verified_core import validate_document as validate_verified_core
 
 SOURCE_SCHEMA = "arukellt-typed-corehir"
@@ -22,11 +22,7 @@ def _type_table(document: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[in
     for index, raw in enumerate(array_value(document["types"], "$.types")):
         path = f"$.types[{index}]"
         entry = object_value(raw, path)
-        exact_keys(
-            entry,
-            path,
-            required={"id", "kind", "name", "value_type", "representation"},
-        )
+        exact_keys(entry, path, required={"id", "kind", "name", "value_type", "representation"})
         type_id = int_value(entry["id"], f"{path}.id", minimum=0)
         if type_id in by_id:
             raise UnsupportedTypedCoreHir(f"{path}.id: duplicate type id {type_id}")
@@ -157,6 +153,7 @@ def _proof_expression(
     local_ids: dict[str, int],
     result_name: str,
     stack: set[int],
+    next_id: list[int],
     path: str,
 ) -> dict[str, Any]:
     if expr_id in stack:
@@ -168,7 +165,9 @@ def _proof_expression(
     type_id = int_value(expr["type_id"], f"{path}.type_id", minimum=0)
     text = expr["text"]
     children = [int_value(value, f"{path}.children", minimum=0) for value in expr["children"]]
-    common: dict[str, Any] = {"id": expr_id, "type_id": type_id}
+    verified_id = next_id[0]
+    next_id[0] += 1
+    common: dict[str, Any] = {"id": verified_id, "type_id": type_id}
 
     if kind in {"ident", "path"}:
         name = string_value(text, f"{path}.text")
@@ -195,8 +194,8 @@ def _proof_expression(
             **common,
             "kind": verified_kind,
             "operands": [
-                _proof_expression(children[0], expressions, local_ids, result_name, stack, f"{path}.children[0]"),
-                _proof_expression(children[1], expressions, local_ids, result_name, stack, f"{path}.children[1]"),
+                _proof_expression(children[0], expressions, local_ids, result_name, stack, next_id, f"{path}.children[0]"),
+                _proof_expression(children[1], expressions, local_ids, result_name, stack, next_id, f"{path}.children[1]"),
             ],
         }
     if kind == "unary":
@@ -210,7 +209,7 @@ def _proof_expression(
             **common,
             "kind": verified_kind,
             "operands": [
-                _proof_expression(children[0], expressions, local_ids, result_name, stack, f"{path}.children[0]")
+                _proof_expression(children[0], expressions, local_ids, result_name, stack, next_id, f"{path}.children[0]")
             ],
         }
     raise UnsupportedTypedCoreHir(f"{path}.kind: unsupported proof expression kind {kind!r}")
@@ -276,6 +275,7 @@ def convert_document(value: Any) -> dict[str, Any]:
         root_id, expressions = _expression_index(function, path)
         contracts: list[dict[str, Any]] = []
         contract_ids: set[int] = set()
+        next_proof_id = [0]
         for contract_index, raw_contract in enumerate(array_value(function["contracts"], f"{path}.contracts")):
             contract_path = f"{path}.contracts[{contract_index}]"
             contract = object_value(raw_contract, contract_path)
@@ -296,6 +296,7 @@ def convert_document(value: Any) -> dict[str, Any]:
                     local_ids,
                     result_name,
                     set(),
+                    next_proof_id,
                     f"{contract_path}.expression",
                 ),
             }
