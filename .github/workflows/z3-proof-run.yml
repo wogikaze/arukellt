@@ -1,0 +1,137 @@
+name: Z3 proof run
+
+on:
+  pull_request:
+    branches: [agent/proof-solver-driver, agent/solver-bound-proof-receipts, agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: z3-proof-run-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  z3-proof-run:
+    name: "Z3 proof run"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Z3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build hash-bound toolchain bundle
+        run: |
+          mkdir -p .build/z3-toolchain
+          cp "$(command -v z3)" .build/z3-toolchain/z3
+          cp tests/proof/toolchain/producer.bin .build/z3-toolchain/producer.bin
+          cp tests/proof/toolchain/translator.txt .build/z3-toolchain/translator.txt
+          cp tests/proof/toolchain/trusted-component.txt .build/z3-toolchain/trusted-component.txt
+          python3 - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          version = subprocess.check_output(["z3", "--version"], text=True).strip()
+          document = {
+              "schema": "arukellt-proof-toolchain",
+              "schema_version": 1,
+              "producer": {
+                  "name": "arukellt",
+                  "version": "fixture-subject-producer",
+                  "executable": "producer.bin",
+              },
+              "translator": {
+                  "name": "arukellt-smtlib",
+                  "version": "identity-vc-v1",
+                  "executable": "translator.txt",
+              },
+              "solver": {
+                  "name": "z3",
+                  "version": version,
+                  "executable": "z3",
+                  "arguments": ["-in", "-smt2"],
+              },
+              "semantic_profile": {
+                  "integer_model": "mathematical",
+                  "overflow": "checked",
+                  "floating_point": "unsupported",
+                  "memory": "pure-values",
+              },
+              "assumptions": [],
+              "trusted_components": [
+                  {
+                      "name": "arukellt-verified-core-v1",
+                      "role": "artifact-validator",
+                      "version": "1",
+                      "artifact": "trusted-component.txt",
+                  }
+              ],
+              "limits": {
+                  "timeout_ms": 10000,
+                  "memory_bytes": 1073741824,
+              },
+          }
+          Path(".build/z3-toolchain/toolchain.json").write_text(
+              json.dumps(document, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Prove identity contract with Z3
+        run: |
+          mkdir -p .build/z3-proof
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/z3-identity-vc.smt2 \
+            --toolchain .build/z3-toolchain/toolchain.json \
+            --solver-output .build/z3-proof/solver-output.txt \
+            --trust-manifest-output .build/z3-proof/trust-manifest.json \
+            --proof-receipt-output .build/z3-proof/proof-receipt.json
+
+      - name: Verify real solver identity and bindings
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from proof.trust import validate_bound_proof
+
+          subject = Path("tests/proof/verified-core.json")
+          output = Path(".build/z3-proof/solver-output.txt")
+          manifest_path = Path(".build/z3-proof/trust-manifest.json")
+          receipt_path = Path(".build/z3-proof/proof-receipt.json")
+          validate_bound_proof(subject, manifest_path, receipt_path, output)
+
+          manifest = json.loads(manifest_path.read_text())
+          receipt = json.loads(receipt_path.read_text())
+          z3_path = Path(".build/z3-toolchain/z3")
+          z3_hash = hashlib.sha256(z3_path.read_bytes()).hexdigest()
+          assert manifest["solver"]["name"] == "z3", manifest["solver"]
+          assert manifest["solver"]["executable_sha256"] == z3_hash
+          assert manifest["solver"]["version"].startswith("Z3 version")
+          assert output.read_text().strip() == "unsat"
+          assert receipt["status"] == "proved", receipt
+          assert receipt["obligations"] == {
+              "total": 1,
+              "proved": 1,
+              "refuted": 0,
+              "unknown": 0,
+              "errors": 0,
+          }
+          print("z3-proof-run: PASS")
+          PY
+
+      - name: Upload real Z3 proof artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: z3-proof-run
+          path: |
+            .build/z3-toolchain/toolchain.json
+            .build/z3-proof
+          if-no-files-found: error
