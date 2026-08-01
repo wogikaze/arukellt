@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile a GC-using fixture and record backend layout lookup counts."""
+"""Compile a GC-using fixture, enforce the ratchet, and record lookup counts."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-FIXTURE = ROOT / "tests" / "fixtures" / "stdlib_vec" / "vec_get.ark"
+BASELINE_PATH = ROOT / "tests" / "proof" / "backend-name-lookup-baseline.json"
 OUTPUT = ROOT / ".build" / "audit" / "backend-name-lookup.json"
 SUMMARY = re.compile(
     r"gc-layout-audit: summary typed=(\d+) name=(\d+) fallback=(\d+) conflict=(\d+)"
@@ -18,10 +18,14 @@ SUMMARY = re.compile(
 
 
 def main() -> int:
+    baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
+    fixture = ROOT / baseline["fixture"]
+    max_name = int(baseline["max_name_lookup_count"])
+
     command = [
         str(ROOT / "scripts" / "run" / "arukellt-selfhost.sh"),
         "compile",
-        str(FIXTURE.relative_to(ROOT)),
+        str(fixture.relative_to(ROOT)),
         "--opt-level",
         "2",
     ]
@@ -34,6 +38,11 @@ def main() -> int:
 
     totals = {"typed": 0, "name": 0, "fallback": 0, "conflict": 0}
     matches = list(SUMMARY.finditer(result.stdout + "\n" + result.stderr))
+    if not matches:
+        print("backend-name-lookup-runtime: FAIL: gc-layout-audit summary missing", file=sys.stderr)
+        print(result.stdout, file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+        return 1
     for match in matches:
         totals["typed"] += int(match.group(1))
         totals["name"] += int(match.group(2))
@@ -47,13 +56,21 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+    if totals["name"] > max_name:
+        print(
+            "backend-name-lookup-runtime: FAIL: "
+            f"name lookup regression {totals['name']} > {max_name}",
+            file=sys.stderr,
+        )
+        return 1
 
     document = {
         "schema": "arukellt-backend-name-lookup-audit",
         "schema_version": 1,
-        "fixture": str(FIXTURE.relative_to(ROOT)),
+        "fixture": str(fixture.relative_to(ROOT)),
         "summary_lines": len(matches),
         "counts": totals,
+        "ratchet": {"max_name_lookup_count": max_name},
         "policy": {
             "fallback_must_be_zero": True,
             "conflict_must_be_zero": True,
@@ -64,11 +81,15 @@ def main() -> int:
     OUTPUT.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
         "backend-name-lookup-runtime: PASS: "
-        f"typed={totals['typed']} name={totals['name']} "
+        f"typed={totals['typed']} name={totals['name']}/{max_name} "
         f"fallback={totals['fallback']} conflict={totals['conflict']}"
     )
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        print(f"backend-name-lookup-runtime: FAIL: {exc}", file=sys.stderr)
+        raise SystemExit(1)
