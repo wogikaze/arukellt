@@ -68,7 +68,7 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unknown proof identifier"):
             convert_document(document)
 
-    def test_reference_type_fails_closed(self) -> None:
+    def test_uncontracted_function_and_unused_reference_type_are_ignored(self) -> None:
         document = copy.deepcopy(self.source)
         document["types"].append({
             "id": 3,
@@ -83,7 +83,43 @@ class TypedCoreHirConvertTests(unittest.TestCase):
                 "align_bytes": 4,
             },
         })
-        with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unsupported proof type"):
+        helper = copy.deepcopy(document["functions"][0])
+        helper["id"] = 1
+        helper["name"] = "runtime_helper"
+        helper["contracts"] = []
+        helper["signature"]["parameters"][0]["type_id"] = 3
+        helper["signature"]["return_type_id"] = 3
+        helper["locals"][0]["type_id"] = 3
+        for expression in helper["body"]["expressions"]:
+            expression["type_id"] = 3
+            expression["value_type"] = "gc-ref"
+        document["functions"].append(helper)
+
+        converted = convert_document(document)
+        self.assertEqual([function["name"] for function in converted["functions"]], ["identity"])
+        self.assertNotIn(3, [entry["id"] for entry in converted["types"]])
+
+    def test_reachable_reference_type_fails_closed(self) -> None:
+        document = copy.deepcopy(self.source)
+        document["types"].append({
+            "id": 3,
+            "kind": "reference",
+            "name": "String",
+            "value_type": "gc-ref",
+            "representation": {
+                "kind": "gc-ref",
+                "wasm": ["gc-ref"],
+                "nullable": True,
+                "size_bytes": 4,
+                "align_bytes": 4,
+            },
+        })
+        function = document["functions"][0]
+        function["signature"]["parameters"][0]["type_id"] = 3
+        function["locals"][0]["type_id"] = 3
+        function["body"]["expressions"][1]["type_id"] = 3
+        function["body"]["expressions"][1]["value_type"] = "gc-ref"
+        with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unsupported reachable proof type"):
             convert_document(document)
 
 
