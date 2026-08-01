@@ -60,13 +60,10 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
             checked_program::checked_program_core_program(program),
             config
         )
-        if !verified_core_render::verified_core_render_result_ok(rendered) {
-            return result_record::CompileResult_err(
-                4,
-                verified_core_render::verified_core_render_result_error(rendered)
-            )
+        if len(clone(rendered)) == 0 {
+            return result_record::CompileResult_err(4, "VerifiedCore rendering failed")
         }
-        stdio::println(verified_core_render::verified_core_render_result_output(rendered))
+        stdio::println(rendered)
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
         return result_record::CompileResult_ok(4)
     }
