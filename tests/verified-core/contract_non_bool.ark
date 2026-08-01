@@ -4,6 +4,4 @@ fn invalid(x: i32) -> i32 proof {
     x
 }
 
-fn main() {
-    print(invalid(1))
-}
+fn main() {}
