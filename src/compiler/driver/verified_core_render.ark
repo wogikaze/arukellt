@@ -298,34 +298,56 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     let expr = get_unchecked(exprs, expr_id)
     let kind = expr_raw::corehir_expr_kind(expr)
     let value_type = expr_raw::corehir_expr_val_type(expr)
-    let type_id = vc_type_id(value_type, expr_raw::corehir_expr_type_name(expr))
-    let mut out = concat("{\"id\":", to_string(expr_id))
-    out = concat(out, concat(",\"kind\":", vc_quote(vc_expr_kind_name(kind))))
-    out = concat(out, concat(",\"kind_id\":", to_string(kind)))
-    out = concat(out, concat(",\"type_id\":", to_string(type_id)))
-    out = concat(out, concat(",\"value_type\":", vc_quote(vc_value_type_name(value_type))))
-    out = concat(out, concat(",\"text\":", vc_quote(expr_raw::corehir_expr_text(expr))))
-    out = concat(out, concat(",\"int_value\":", to_string(expr_raw::corehir_expr_int_val(expr))))
+    let type_name = expr_raw::corehir_expr_type_name(expr)
+    let type_id = vc_type_id(value_type, type_name)
+
+    let mut out = "{\"id\":"
+    out = concat(out, to_string(expr_id))
+    out = concat(out, ",\"kind\":")
+    let kind_name = vc_expr_kind_name(kind)
+    out = concat(out, vc_quote(kind_name))
+    out = concat(out, ",\"kind_id\":")
+    out = concat(out, to_string(kind))
+    out = concat(out, ",\"type_id\":")
+    out = concat(out, to_string(type_id))
+    out = concat(out, ",\"value_type\":")
+    let value_type_name = vc_value_type_name(value_type)
+    out = concat(out, vc_quote(value_type_name))
+    out = concat(out, ",\"text\":")
+    let expression_text = expr_raw::corehir_expr_text(expr)
+    out = concat(out, vc_quote(expression_text))
+    out = concat(out, ",\"int_value\":")
+    let int_value = expr_raw::corehir_expr_int_val(expr)
+    out = concat(out, to_string(int_value))
+
     let mut float_json = "0.0"
     if kind == 7 {
         float_json = expr_raw::corehir_expr_text(expr)
     }
-    out = concat(out, concat(",\"float_value\":", float_json))
+    out = concat(out, ",\"float_value\":")
+    out = concat(out, float_json)
+
     let span_start = expr_raw::corehir_expr_span_start(expr)
     let mut normalized_span_start = span_start
     if normalized_span_start < 0 {
         normalized_span_start = 0
     }
-    out = concat(out, concat(",\"span_start\":", to_string(normalized_span_start)))
+    out = concat(out, ",\"span_start\":")
+    out = concat(out, to_string(normalized_span_start))
     out = concat(out, ",\"children\":[")
+
     let child_count = expr_raw::corehir_expr_child_count(expr)
     let mut ci = 0
     while ci < child_count {
-        if ci > 0 { out = concat(out, ",") }
-        out = concat(out, to_string(expr_raw::corehir_expr_child(expr, ci)))
+        if ci > 0 {
+            out = concat(out, ",")
+        }
+        let child_id = expr_raw::corehir_expr_child(expr, ci)
+        out = concat(out, to_string(child_id))
         ci = ci + 1
     }
-    return concat(out, "]}")
+    out = concat(out, "]}")
+    return out
 }
 
 fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
