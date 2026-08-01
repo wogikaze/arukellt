@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schema/proof-release-policy-v1.schema.json",
+  "title": "Arukellt Proof Release Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "mode", "artifacts"],
+  "properties": {
+    "schema": {"const": "arukellt-proof-release-policy"},
+    "schema_version": {"const": 1},
+    "mode": {"enum": ["proof-required", "proof-optional"]},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["proof_ir", "trust_manifest", "receipt"],
+        "properties": {
+          "label": {"type": "string", "minLength": 1},
+          "proof_ir": {"type": "string", "minLength": 1},
+          "trust_manifest": {"type": "string", "minLength": 1},
+          "receipt": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
