@@ -48,19 +48,19 @@ jobs:
 
       # s3 contains the current mir_opt implementation. The fixture needs more
       # than the module's default 512 MiB heap, but does not need Memory64.
-      # Rewrite only the memory section so GC types and instructions remain
-      # byte-for-byte unchanged.
+      # Keep the initial heap below the signed i32 address boundary used by the
+      # current runtime allocator while leaving GC types/code byte-identical.
       - name: Raise current s3 memory32 initial size
         run: |
           python3 scripts/bootstrap/set-wasm-memory32-initial.py \
             .build/selfhost/arukellt-s3.wasm \
             .build/selfhost/arukellt-s3-runtime.wasm \
-            --pages 65535
+            --pages 24576
           test -s .build/selfhost/arukellt-s3-runtime.wasm
           wasmtime compile \
             --wasm gc \
             --wasm function-references \
-            -W max-memory-size=4294967296 \
+            -W max-memory-size=2147483648 \
             .build/selfhost/arukellt-s3-runtime.wasm \
             -o .build/selfhost/arukellt-s3-runtime.cwasm
 
