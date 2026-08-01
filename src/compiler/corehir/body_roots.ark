@@ -33,6 +33,7 @@ fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
         }
         i = i + 1
     }
+    body::corehir_seal_body_table(table)
     table
 }
 
