@@ -49,6 +49,17 @@ def emitted_artifact(result: subprocess.CompletedProcess[str]) -> dict[str, obje
     return validate_document(candidates[0])
 
 
+def require_compile_failure(relative: str, diagnostic_fragment: str) -> None:
+    result = compile_source(relative)
+    if result.returncode == 0:
+        raise ValueError(f"{relative}: unexpectedly compiled")
+    diagnostic = result.stdout + "\n" + result.stderr
+    if diagnostic_fragment not in diagnostic:
+        raise ValueError(
+            f"{relative}: diagnostic {diagnostic_fragment!r} missing\n{diagnostic}"
+        )
+
+
 def main() -> int:
     valid = compile_source("tests/verified-core/contract_identity.ark")
     if valid.returncode != 0:
@@ -86,12 +97,14 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    invalid = compile_source("tests/verified-core/contract_non_bool.ark")
-    if invalid.returncode == 0:
-        raise ValueError("non-bool contract unexpectedly compiled")
-    diagnostic = invalid.stdout + "\n" + invalid.stderr
-    if "proof contract must have type bool" not in diagnostic:
-        raise ValueError(f"non-bool contract diagnostic missing\n{diagnostic}")
+    require_compile_failure(
+        "tests/verified-core/contract_non_bool.ark",
+        "proof contract must have type bool",
+    )
+    require_compile_failure(
+        "tests/verified-core/contract_result_in_requires.ark",
+        "result is only available in ensures contracts",
+    )
 
     print(
         "typed-contract-emission: PASS: "
