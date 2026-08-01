@@ -14,6 +14,7 @@ from typing import Any, NoReturn
 SCHEMA = "arukellt-proof-ir"
 SCHEMA_VERSION = 1
 CONTRACT_KINDS = {"requires", "ensures", "invariant", "assert", "decreases"}
+INVALID_TYPE_NAMES = {"unknown", "<unknown>", "?", "?T", "!missing-type"}
 
 
 @dataclass(frozen=True)
@@ -47,6 +48,13 @@ def _string(value: Any, path: str, *, nonempty: bool = True) -> str:
     if nonempty and not value:
         _fail(path, "must not be empty")
     return value
+
+
+def _type_name(value: Any, path: str) -> str:
+    name = _string(value, path)
+    if name in INVALID_TYPE_NAMES or name.startswith("?"):
+        _fail(path, "type must be explicit; backend inference is forbidden")
+    return name
 
 
 def _integer(value: Any, path: str, *, minimum: int | None = None) -> int:
@@ -103,7 +111,7 @@ def _validate_parameter(value: Any, path: str) -> None:
     param = _object(value, path)
     _keys(param, path, required={"name", "type"}, optional=set())
     _string(param["name"], f"{path}.name")
-    _string(param["type"], f"{path}.type")
+    _type_name(param["type"], f"{path}.type")
 
 
 def _validate_body(value: Any, path: str) -> None:
@@ -123,10 +131,12 @@ def _validate_function(value: Any, path: str) -> None:
         optional={"type_parameters", "span"},
     )
     _integer(function["id"], f"{path}.id", minimum=0)
-    _string(function["name"], f"{path}.name")
+    name = _string(function["name"], f"{path}.name")
+    if name == "<unknown>":
+        _fail(f"{path}.name", "function identity must be explicit")
     for index, parameter in enumerate(_array(function["parameters"], f"{path}.parameters")):
         _validate_parameter(parameter, f"{path}.parameters[{index}]")
-    _string(function["return_type"], f"{path}.return_type")
+    _type_name(function["return_type"], f"{path}.return_type")
     for index, contract in enumerate(_array(function["contracts"], f"{path}.contracts")):
         _validate_contract(contract, f"{path}.contracts[{index}]")
     _validate_body(function["body"], f"{path}.body")
