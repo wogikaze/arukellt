@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / "scripts"
+OUTPUT = ROOT / ".build" / "typed-contract-proof" / "typed-corehir.json"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
@@ -79,6 +80,12 @@ def main() -> int:
         if contract["expression_id"] not in expression_ids:
             raise ValueError(f"contract expression is not retained: {contract}")
 
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT.write_text(
+        json.dumps(document, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
     invalid = compile_source("tests/verified-core/contract_non_bool.ark")
     if invalid.returncode == 0:
         raise ValueError("non-bool contract unexpectedly compiled")
@@ -88,7 +95,7 @@ def main() -> int:
 
     print(
         "typed-contract-emission: PASS: "
-        f"contracts={len(contracts)} expressions={len(expression_ids)}"
+        f"contracts={len(contracts)} expressions={len(expression_ids)} output={OUTPUT}"
     )
     return 0
 
