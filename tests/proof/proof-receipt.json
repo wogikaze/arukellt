@@ -4,9 +4,9 @@
   "subject": {
     "schema": "arukellt-verified-core",
     "schema_version": 1,
-    "sha256": "4b2679660b6140aa4f902a60ba98296ef99ecda7e7761381d84068a79c6663bd"
+    "sha256": "2a729cc72f6aaf5ceb1cb4583cd105b440d07f75bcaaae2c8b4e7e95647a555c"
   },
-  "trust_manifest_sha256": "ca595c7b47b979d7dc844dfb1339ea439f7a57ea58e1c74b38f10e39ac04d6dd",
+  "trust_manifest_sha256": "223ff63f7acf2967ebb152b93be90e40647b29886d0522be4933c009e8493ffd",
   "solver_output_sha256": "c6f3eb84be08c0188689dad99bd95db95fa828cc8622af63ec2be8ae0c5ea46d",
   "status": "proved",
   "obligations": {
