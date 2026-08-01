@@ -1,0 +1,44 @@
+{
+  "schema": "arukellt-trust-manifest",
+  "schema_version": 1,
+  "subject": {
+    "schema": "arukellt-verified-core",
+    "schema_version": 1,
+    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
+  },
+  "producer": {
+    "name": "arukellt",
+    "version": "fixture",
+    "executable_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "translator": {
+    "name": "arukellt-why3",
+    "version": "fixture",
+    "executable_sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "solver": {
+    "name": "z3",
+    "version": "fixture",
+    "executable_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "arguments": ["-in", "-smt2"]
+  },
+  "semantic_profile": {
+    "integer_model": "mathematical",
+    "overflow": "checked",
+    "floating_point": "unsupported",
+    "memory": "pure-values"
+  },
+  "assumptions": [],
+  "trusted_components": [
+    {
+      "name": "arukellt-verified-core-v1",
+      "role": "artifact-schema",
+      "version": "1",
+      "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+    }
+  ],
+  "limits": {
+    "timeout_ms": 10000,
+    "memory_bytes": 1073741824
+  }
+}
