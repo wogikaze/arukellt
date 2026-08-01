@@ -52,15 +52,8 @@ fn VerifiedCoreTypeRegistry_new() -> VerifiedCoreTypeRegistry {
         names: Vec::new<String>(),
         value_types: Vec::new<i32>(),
     }
-    let registered_unit_type = vc_register_type(registry, value_types::VT_VOID(), "()")
+    let registered_unit_type = vc_register_type(registry.names, registry.value_types, value_types::VT_VOID(), "()")
     registry
-}
-
-fn vc_registry_fail(registry: VerifiedCoreTypeRegistry, message: String) {
-    if registry.ok {
-        registry.ok = false
-        registry.error = message
-    }
 }
 
 fn vc_string_has_question(s: String) -> bool {
@@ -92,28 +85,26 @@ fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
     ""
 }
 
-fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
-    if !registry.ok {
-        return 0 - 1
-    }
+fn vc_register_type(
+    names: Vec<String>,
+    registered_value_types: Vec<i32>,
+    value_type: i32,
+    supplied_name: String
+) -> i32 {
     let name = vc_normalize_type_name(value_type, supplied_name)
     if len(clone(name)) == 0 {
-        vc_registry_fail(
-            registry,
-            concat("VerifiedCore requires an explicit type name for value type ", to_string(value_type))
-        )
         return 0 - 1
     }
-    let count = len(registry.names)
+    let count = len(names)
     let mut i = 0
     while i < count {
-        if registry.value_types[i] == value_type && eq(clone(registry.names[i]), clone(name)) {
+        if registered_value_types[i] == value_type && eq(clone(names[i]), clone(name)) {
             return i
         }
         i = i + 1
     }
-    push(registry.names, name)
-    push(registry.value_types, value_type)
+    push(names, name)
+    push(registered_value_types, value_type)
     count
 }
 
@@ -165,27 +156,39 @@ fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegist
         while pi < param_count && registry.ok {
             let p = fn_info::fn_info_param_at(fn_infos, fi, pi)
             let registered_parameter_type = vc_register_type(
-                registry,
+                registry.names,
+                registry.value_types,
                 param::param_value_type(p),
                 param::param_type_name(p)
             )
+            if registered_parameter_type < 0 {
+                registry.ok = false
+                registry.error = concat("VerifiedCore requires an explicit parameter type for function index ", to_string(fi))
+            }
             pi = pi + 1
         }
         let typed_index = fn_info::fn_info_typed_index_at(fn_infos, fi, 0 - 1)
         if typed_index < 0 || typed_index >= len(typed_fns) {
-            vc_registry_fail(registry, concat("VerifiedCore missing TypedFn for function index ", to_string(fi)))
+            registry.ok = false
+        registry.error = concat("VerifiedCore missing TypedFn for function index ", to_string(fi))
         } else {
             let typed_fn = get_unchecked(typed_fns, typed_index)
             let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
             let return_vt = vc_type_info_value_type(return_type)
             if return_vt < 0 {
-                vc_registry_fail(registry, concat("VerifiedCore unsupported return type for function index ", to_string(fi)))
+                registry.ok = false
+            registry.error = concat("VerifiedCore unsupported return type for function index ", to_string(fi))
             } else {
                 let registered_return_type = vc_register_type(
-                    registry,
+                    registry.names,
+                    registry.value_types,
                     return_vt,
                     name_display::type_display_name(return_type)
                 )
+                if registered_return_type < 0 {
+                    registry.ok = false
+                    registry.error = concat("VerifiedCore requires an explicit return type for function index ", to_string(fi))
+                }
             }
         }
         fi = fi + 1
@@ -198,13 +201,19 @@ fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegist
     while ei < expr_count && registry.ok {
         let expr = get_unchecked(exprs, ei)
         if expr_raw::corehir_expr_kind(expr) == 0 {
-            vc_registry_fail(registry, concat("VerifiedCore contains unsupported CoreHIR expression ", to_string(ei)))
+            registry.ok = false
+        registry.error = concat("VerifiedCore contains unsupported CoreHIR expression ", to_string(ei))
         } else {
             let registered_expression_type = vc_register_type(
-                registry,
+                registry.names,
+                registry.value_types,
                 expr_raw::corehir_expr_val_type(expr),
                 expr_raw::corehir_expr_type_name(expr)
             )
+            if registered_expression_type < 0 {
+                registry.ok = false
+                registry.error = concat("VerifiedCore requires an explicit expression type for expression ", to_string(ei))
+            }
         }
         ei = ei + 1
     }
