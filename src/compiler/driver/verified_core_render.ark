@@ -52,7 +52,7 @@ fn VerifiedCoreTypeRegistry_new() -> VerifiedCoreTypeRegistry {
         names: Vec::new<String>(),
         value_types: Vec::new<i32>(),
     }
-    vc_register_type(registry, value_types::VT_VOID(), "()")
+    let registered_unit_type = vc_register_type(registry, value_types::VT_VOID(), "()")
     registry
 }
 
@@ -92,9 +92,9 @@ fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
     ""
 }
 
-fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) {
+fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
     if !registry.ok {
-        return
+        return 0 - 1
     }
     let name = vc_normalize_type_name(value_type, supplied_name)
     if len(clone(name)) == 0 {
@@ -102,18 +102,19 @@ fn vc_register_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplie
             registry,
             concat("VerifiedCore requires an explicit type name for value type ", to_string(value_type))
         )
-        return
+        return 0 - 1
     }
     let count = len(registry.names)
     let mut i = 0
     while i < count {
         if registry.value_types[i] == value_type && eq(clone(registry.names[i]), clone(name)) {
-            return
+            return i
         }
         i = i + 1
     }
     push(registry.names, name)
     push(registry.value_types, value_type)
+    count
 }
 
 fn vc_find_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
@@ -163,7 +164,11 @@ fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegist
         let mut pi = 0
         while pi < param_count && registry.ok {
             let p = fn_info::fn_info_param_at(fn_infos, fi, pi)
-            vc_register_type(registry, param::param_value_type(p), param::param_type_name(p))
+            let registered_parameter_type = vc_register_type(
+                registry,
+                param::param_value_type(p),
+                param::param_type_name(p)
+            )
             pi = pi + 1
         }
         let typed_index = fn_info::fn_info_typed_index_at(fn_infos, fi, 0 - 1)
@@ -176,7 +181,11 @@ fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegist
             if return_vt < 0 {
                 vc_registry_fail(registry, concat("VerifiedCore unsupported return type for function index ", to_string(fi)))
             } else {
-                vc_register_type(registry, return_vt, name_display::type_display_name(return_type))
+                let registered_return_type = vc_register_type(
+                    registry,
+                    return_vt,
+                    name_display::type_display_name(return_type)
+                )
             }
         }
         fi = fi + 1
@@ -191,7 +200,7 @@ fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegist
         if expr_raw::corehir_expr_kind(expr) == 0 {
             vc_registry_fail(registry, concat("VerifiedCore contains unsupported CoreHIR expression ", to_string(ei)))
         } else {
-            vc_register_type(
+            let registered_expression_type = vc_register_type(
                 registry,
                 expr_raw::corehir_expr_val_type(expr),
                 expr_raw::corehir_expr_type_name(expr)
