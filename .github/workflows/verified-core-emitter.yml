@@ -54,16 +54,20 @@ jobs:
             echo 's2/s3 byte fixpoint deferred until bootstrap refresh'
           fi
 
-      - name: Patch current s3 for artifact emission
+      # The bootstrap compiler emits the current source into s2. Unlike the
+      # optimizer namespace, TypedCoreHIR emission is not stubbed in that
+      # bootstrap overlay, so s2 is the current compiler for this gate. The
+      # existing patcher cannot parse s3's Wasm GC type section yet.
+      - name: Patch current s2 for artifact emission
         run: |
           PATCHER="$(find . -type f -path '*/release/wasm-heap-grow-patcher' -perm -111 -print -quit)"
           test -n "$PATCHER"
           "$PATCHER" \
-            .build/selfhost/arukellt-s3.wasm \
-            .build/selfhost/arukellt-s3-runtime.wasm
-          test -s .build/selfhost/arukellt-s3-runtime.wasm
+            .build/selfhost/arukellt-s2.wasm \
+            .build/selfhost/arukellt-s2-runtime.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
 
       - name: Validate emitted TypedCoreHIR
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3-runtime.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-typed-corehir-emission.py
