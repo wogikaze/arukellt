@@ -16,8 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check source contract
+      - name: Check audit source contract
         run: python3 scripts/check/check-backend-name-lookup-audit.py
+
+      - name: Check TypeId-first ordering
+        run: python3 scripts/check/check-backend-typeid-first.py
 
       - name: Install wasmtime
         run: |
