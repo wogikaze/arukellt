@@ -11,7 +11,7 @@ use driver::debug
 use driver::emit
 use driver::lower
 use driver::result_record
-use driver::verified_core_render
+use driver::verified_core_render_safe
 use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
@@ -56,7 +56,7 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         decls
     )
     if eq(config_record::config_emit_mode(config), "verified-core") {
-        let rendered = verified_core_render::render_verified_core(
+        let rendered = verified_core_render_safe::render_verified_core(
             checked_program::checked_program_core_program(program),
             config
         )
