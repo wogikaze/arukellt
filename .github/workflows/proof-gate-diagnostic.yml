@@ -26,14 +26,6 @@ jobs:
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
 
-      - name: Inspect flattened Proof IR modules
-        run: |
-          workspace=".build/selfhost/bootstrap-workspace"
-          echo "=== matching flattened files ==="
-          find "$workspace" -type f | grep -E '(driver_debug|proof_ir|corehir)' | sort || true
-          echo "=== flattened Proof IR references ==="
-          grep -R -n -E 'proof_ir_render|render_proof_ir' "$workspace" || true
-
       - name: Identify Proof IR generated functions
         run: |
           if ! command -v wasm-objdump >/dev/null 2>&1; then
@@ -42,10 +34,10 @@ jobs:
           fi
           wasm=".build/selfhost/arukellt-s3.wasm"
           wasm-objdump -x "$wasm" |
-            grep -E '<(dump_proof_ir_if_enabled|render_proof_ir|render_proof_ir_document)>' || true
+            grep -E '<(dump_proof_ir_if_enabled|proof_render_ir|proof_render_document)>' || true
           disasm="$(mktemp)"
           wasm-objdump -d "$wasm" > "$disasm"
-          for symbol in dump_proof_ir_if_enabled render_proof_ir render_proof_ir_document; do
+          for symbol in dump_proof_ir_if_enabled proof_render_ir proof_render_document; do
             echo "=== ${symbol} disassembly ==="
             awk -v symbol="$symbol" '
               $0 ~ "<" symbol ">:" { show=1 }
@@ -55,10 +47,15 @@ jobs:
           done
           wasm-validate "$wasm"
 
-      - name: Check Proof IR unit boundary
+      - name: Check Proof IR and trust boundaries
         run: |
-          python3 -m unittest scripts.tests.test_proof_ir
+          python3 -m unittest scripts.tests.test_proof_ir scripts.tests.test_proof_trust
           python3 scripts/check/check-proof-ir.py tests/proof-ir/basic.json
+          python3 scripts/check/check-proof-receipt.py \
+            tests/proof-ir/basic.json \
+            tests/proof/trust-manifest.json \
+            tests/proof/proof-receipt.json
+          python3 scripts/check/check-proof-release.py tests/proof-release-policy.json
 
       - name: Diagnose contract retention
         run: |
