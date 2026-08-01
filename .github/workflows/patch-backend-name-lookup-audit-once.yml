@@ -1,0 +1,145 @@
+name: Patch backend name lookup audit once
+
+on:
+  push:
+    branches: [agent/backend-name-lookup-audit]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/backend-name-lookup-audit
+          fetch-depth: 0
+
+      - name: Add successful name lookup accounting
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          table = Path('src/compiler/wasm/gc_layout_table.ark')
+          text = table.read_text()
+          text = text.replace(
+              '''    typed_lookup_count: i32,
+              fallback_lookup_count: i32,
+              conflict_count: i32,
+          }''',
+              '''    typed_lookup_count: i32,
+              name_lookup_count: i32,
+              fallback_lookup_count: i32,
+              conflict_count: i32,
+          }''',
+              1,
+          )
+          text = text.replace(
+              '''        typed_lookup_count: 0,
+                  fallback_lookup_count: 0,
+                  conflict_count: 0''',
+              '''        typed_lookup_count: 0,
+                  name_lookup_count: 0,
+                  fallback_lookup_count: 0,
+                  conflict_count: 0''',
+              1,
+          )
+          text = text.replace(
+              '''fn gc_layout_table_observe_fallback_lookup(table: GcLayoutTable) {
+              table.fallback_lookup_count = table.fallback_lookup_count + 1
+          }
+
+          fn gc_layout_table_typed_lookup_count''',
+              '''fn gc_layout_table_observe_name_lookup(table: GcLayoutTable) {
+              table.name_lookup_count = table.name_lookup_count + 1
+          }
+
+          fn gc_layout_table_observe_fallback_lookup(table: GcLayoutTable) {
+              table.fallback_lookup_count = table.fallback_lookup_count + 1
+          }
+
+          fn gc_layout_table_typed_lookup_count''',
+              1,
+          )
+          text = text.replace(
+              '''fn gc_layout_table_fallback_lookup_count(table: GcLayoutTable) -> i32 {
+              table.fallback_lookup_count
+          }''',
+              '''fn gc_layout_table_name_lookup_count(table: GcLayoutTable) -> i32 {
+              table.name_lookup_count
+          }
+
+          fn gc_layout_table_fallback_lookup_count(table: GcLayoutTable) -> i32 {
+              table.fallback_lookup_count
+          }''',
+              1,
+          )
+          table.write_text(text)
+
+          lookup = Path('src/compiler/wasm/ctx_gc_layout_lookup.ark')
+          text = lookup.read_text()
+          old = '''    if tid_result >= 0 {
+                  return tid_result
+              }'''
+          new = '''    if tid_result >= 0 {
+                  gc_layout_table::gc_layout_table_observe_name_lookup(
+                      ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+                  )
+                  return tid_result
+              }'''
+          if old not in text:
+              raise SystemExit('typed name lookup success block missing')
+          text = text.replace(old, new, 1)
+          lookup.write_text(text)
+
+          audit = Path('src/compiler/wasm/gc_layout_audit.ark')
+          text = audit.read_text()
+          text = text.replace(
+              '''    let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
+              let fallback_count''',
+              '''    let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
+              let name_count = gc_layout_table::gc_layout_table_name_lookup_count(table)
+              let fallback_count''',
+              1,
+          )
+          text = text.replace(
+              '''    if typed_count <= 0 && fallback_count <= 0 && conflict_count <= 0 {''',
+              '''    if typed_count <= 0 && name_count <= 0 && fallback_count <= 0 && conflict_count <= 0 {''',
+              1,
+          )
+          old = '''            i32_to_string(typed_count),
+                  concat(
+                      " fallback=",
+                      concat(
+                          i32_to_string(fallback_count),
+                          concat(" conflict=", i32_to_string(conflict_count))
+                      )
+                  )'''
+          new = '''            i32_to_string(typed_count),
+                  concat(
+                      " name=",
+                      concat(
+                          i32_to_string(name_count),
+                          concat(
+                              " fallback=",
+                              concat(
+                                  i32_to_string(fallback_count),
+                                  concat(" conflict=", i32_to_string(conflict_count))
+                              )
+                          )
+                      )
+                  )'''
+          if old not in text:
+              raise SystemExit('audit summary format missing')
+          text = text.replace(old, new, 1)
+          audit.write_text(text)
+          PY
+
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/compiler/wasm/gc_layout_table.ark src/compiler/wasm/ctx_gc_layout_lookup.ark src/compiler/wasm/gc_layout_audit.ark
+          git commit -m 'feat(proof): count backend name-based layout lookups'
+          git push origin HEAD:agent/backend-name-lookup-audit
