@@ -19,8 +19,22 @@ pub struct GcHintAnnotateResult {
     annotated: i32,
 }
 
+struct GcHintUseTarget {
+    local: i32,
+    from: i32,
+    ignore_initialization_receiver: bool,
+}
+
 fn GcHintAnnotateResult_new(instructions: Vec<MirInst>, annotated: i32) -> GcHintAnnotateResult {
     GcHintAnnotateResult { instructions: instructions, annotated: annotated }
+}
+
+fn GcHintUseTarget_new(local: i32, from: i32, ignore_initialization_receiver: bool) -> GcHintUseTarget {
+    GcHintUseTarget {
+        local: local,
+        from: from,
+        ignore_initialization_receiver: ignore_initialization_receiver,
+    }
 }
 
 fn gc_hint_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
@@ -88,15 +102,71 @@ fn gc_hint_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>) -> bool 
     before_i == len(before)
 }
 
-fn gc_hint_count_local_uses(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> i32 {
+fn gc_hint_is_constructor_initialization(inst: MirInst, local: i32) -> bool {
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_SET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local
+}
+
+fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> GcHintUseTarget {
+    let mut alias = 0 - 1
+    let mut alias_at = 0 - 1
+    let mut direct_uses = 0
+    let mut i = from
+    while i <= to {
+        let inst = get_unchecked(insts, i)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+        if gc_hint_is_constructor_initialization(inst, local) {
+            if arg1 == local {
+                direct_uses = direct_uses + 1
+            }
+            i = i + 1
+            continue
+        }
+        if op == opcodes::MIR_LOCAL_SET() && arg1 == local {
+            if alias >= 0 || arg0 < 0 || arg0 == local {
+                return GcHintUseTarget_new(0 - 1, from, false)
+            }
+            alias = arg0
+            alias_at = i
+            i = i + 1
+            continue
+        }
+        if arg0 == local {
+            direct_uses = direct_uses + 1
+        }
+        if arg1 == local {
+            direct_uses = direct_uses + 1
+        }
+        i = i + 1
+    }
+    if alias >= 0 {
+        if direct_uses != 0 {
+            return GcHintUseTarget_new(0 - 1, from, false)
+        }
+        return GcHintUseTarget_new(alias, alias_at + 1, false)
+    }
+    GcHintUseTarget_new(local, from, true)
+}
+
+fn gc_hint_count_local_uses(
+    insts: Vec<MirInst>,
+    from: i32,
+    to: i32,
+    local: i32,
+    ignore_initialization_receiver: bool
+) -> i32 {
     let mut uses = 0
     let mut i = from
     while i <= to {
         let inst = get_unchecked(insts, i)
-        if inst_accessors_operands::MirInst_arg0(inst) == local {
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+        if arg0 == local && !(ignore_initialization_receiver && gc_hint_is_constructor_initialization(inst, local)) {
             uses = uses + 1
         }
-        if inst_accessors_operands::MirInst_arg1(inst) == local {
+        if arg1 == local {
             uses = uses + 1
         }
         i = i + 1
@@ -136,11 +206,21 @@ fn gc_hint_should_annotate(insts: Vec<MirInst>, idx: i32, end: i32) -> bool {
     if dest < 0 {
         return false
     }
-    let uses = gc_hint_count_local_uses(insts, idx + 1, end, dest)
+    let target = gc_hint_resolve_use_target(insts, idx + 1, end, dest)
+    if target.local < 0 || target.from > end {
+        return false
+    }
+    let uses = gc_hint_count_local_uses(
+        insts,
+        target.from,
+        end,
+        target.local,
+        target.ignore_initialization_receiver
+    )
     if uses != 1 {
         return false
     }
-    if gc_hint_local_escapes(insts, idx + 1, end, dest) {
+    if gc_hint_local_escapes(insts, target.from, end, target.local) {
         return false
     }
     true
