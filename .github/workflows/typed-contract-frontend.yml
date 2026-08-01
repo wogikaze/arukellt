@@ -86,6 +86,7 @@ jobs:
           cp .build/selfhost/arukellt-s2.wasm .build/typed-contract-toolchain/arukellt-s2.wasm
           cp "$(command -v z3)" .build/typed-contract-toolchain/z3
           cp scripts/proof/smtlib_v1.py .build/typed-contract-toolchain/smtlib_v1.py
+          cp scripts/proof/typed_corehir_contract_convert.py .build/typed-contract-toolchain/typed_corehir_contract_convert.py
           cp scripts/proof/typed_corehir_convert.py .build/typed-contract-toolchain/typed_corehir_convert.py
           cp scripts/proof/normalize_source_contract_profile.py .build/typed-contract-toolchain/normalize_source_contract_profile.py
           cp scripts/proof/verified_core.py .build/typed-contract-toolchain/verified_core.py
@@ -123,8 +124,14 @@ jobs:
               "assumptions": [],
               "trusted_components": [
                   {
-                      "name": "arukellt-typed-corehir-to-verified-core",
+                      "name": "arukellt-typed-corehir-contract-converter-v2",
                       "role": "typed-proof-boundary",
+                      "version": "2",
+                      "artifact": "typed_corehir_contract_convert.py",
+                  },
+                  {
+                      "name": "arukellt-typed-corehir-expression-converter-v1",
+                      "role": "typed-proof-expression-library",
                       "version": "1",
                       "artifact": "typed_corehir_convert.py",
                   },
@@ -186,7 +193,8 @@ jobs:
           manifest = json.loads(manifest_path.read_text())
           receipt = json.loads(receipt_path.read_text())
           expected = {
-              "typed-proof-boundary": "typed_corehir_convert.py",
+              "typed-proof-boundary": "typed_corehir_contract_convert.py",
+              "typed-proof-expression-library": "typed_corehir_convert.py",
               "semantic-profile-normalizer": "normalize_source_contract_profile.py",
               "artifact-validator": "verified_core.py",
           }
