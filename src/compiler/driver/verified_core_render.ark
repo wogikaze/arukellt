@@ -18,13 +18,6 @@ struct VerifiedCoreRenderResult {
     error: String,
 }
 
-struct VerifiedCoreTypeRegistry {
-    ok: bool,
-    error: String,
-    names: Vec<String>,
-    value_types: Vec<i32>,
-}
-
 fn VerifiedCoreRenderResult_ok(output: String) -> VerifiedCoreRenderResult {
     VerifiedCoreRenderResult { ok: true, output: output, error: "" }
 }
@@ -45,26 +38,11 @@ fn verified_core_render_result_error(result: VerifiedCoreRenderResult) -> String
     clone(result.error)
 }
 
-fn VerifiedCoreTypeRegistry_new() -> VerifiedCoreTypeRegistry {
-    let names = Vec::new<String>()
-    let registered_value_types = Vec::new<i32>()
-    push(names, "()")
-    push(registered_value_types, value_types::VT_VOID())
-    VerifiedCoreTypeRegistry {
-        ok: true,
-        error: "",
-        names: names,
-        value_types: registered_value_types,
-    }
-}
-
 fn vc_string_has_question(s: String) -> bool {
     let n = len(s)
     let mut i = 0
     while i < n {
-        if char_at(s, i) == 63 {
-            return true
-        }
+        if char_at(s, i) == 63 { return true }
         i = i + 1
     }
     false
@@ -72,9 +50,7 @@ fn vc_string_has_question(s: String) -> bool {
 
 fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
     if len(clone(supplied)) > 0 {
-        if vc_string_has_question(clone(supplied)) || eq(clone(supplied), "unknown") {
-            return ""
-        }
+        if vc_string_has_question(clone(supplied)) || eq(clone(supplied), "unknown") { return "" }
         return supplied
     }
     if value_type == value_types::VT_VOID() { return "()" }
@@ -87,19 +63,46 @@ fn vc_normalize_type_name(value_type: i32, supplied: String) -> String {
     ""
 }
 
-fn vc_find_type(registry: VerifiedCoreTypeRegistry, value_type: i32, supplied_name: String) -> i32 {
+fn vc_type_id(value_type: i32, supplied_name: String) -> i32 {
     let name = vc_normalize_type_name(value_type, supplied_name)
-    if len(clone(name)) == 0 {
-        return 0 - 1
-    }
-    let count = len(registry.names)
-    let mut i = 0
-    while i < count {
-        if registry.value_types[i] == value_type && eq(clone(registry.names[i]), clone(name)) {
-            return i
-        }
-        i = i + 1
-    }
+    if value_type == value_types::VT_VOID() && eq(clone(name), "()") { return 0 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "i32") { return 1 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "bool") { return 2 }
+    if value_type == value_types::VT_I32() && eq(clone(name), "char") { return 3 }
+    if value_type == value_types::VT_I64() && eq(clone(name), "i64") { return 4 }
+    if value_type == value_types::VT_F32() && eq(clone(name), "f32") { return 5 }
+    if value_type == value_types::VT_F64() && eq(clone(name), "f64") { return 6 }
+    if value_type == value_types::VT_V128() && eq(clone(name), "v128") { return 7 }
+    if value_type == value_types::VT_REF() && (eq(clone(name), "String") || eq(clone(name), "string")) { return 8 }
+    if value_type == value_types::VT_FUNCREF() && (eq(clone(name), "fnref") || eq(clone(name), "fn")) { return 9 }
+    0 - 1
+}
+
+fn vc_type_count() -> i32 { 10 }
+
+fn vc_type_name_for_id(type_id: i32) -> String {
+    if type_id == 0 { return "()" }
+    if type_id == 1 { return "i32" }
+    if type_id == 2 { return "bool" }
+    if type_id == 3 { return "char" }
+    if type_id == 4 { return "i64" }
+    if type_id == 5 { return "f32" }
+    if type_id == 6 { return "f64" }
+    if type_id == 7 { return "v128" }
+    if type_id == 8 { return "String" }
+    if type_id == 9 { return "fnref" }
+    ""
+}
+
+fn vc_value_type_for_id(type_id: i32) -> i32 {
+    if type_id == 0 { return value_types::VT_VOID() }
+    if type_id == 1 || type_id == 2 || type_id == 3 { return value_types::VT_I32() }
+    if type_id == 4 { return value_types::VT_I64() }
+    if type_id == 5 { return value_types::VT_F32() }
+    if type_id == 6 { return value_types::VT_F64() }
+    if type_id == 7 { return value_types::VT_V128() }
+    if type_id == 8 { return value_types::VT_REF() }
+    if type_id == 9 { return value_types::VT_FUNCREF() }
     0 - 1
 }
 
@@ -122,79 +125,6 @@ fn vc_type_info_value_type(ty: TypeInfo) -> i32 {
         return value_types::VT_GC_REF()
     }
     0 - 1
-}
-
-fn vc_collect_types(program: CoreHirRawProgram, registry: VerifiedCoreTypeRegistry) {
-    let fn_infos = raw_decls::program_fn_infos(program)
-    let typed_fns = raw_types::program_typed_fns(program)
-    let fn_count = len(fn_infos)
-    let mut fi = 0
-    while fi < fn_count && registry.ok {
-        let param_count = fn_info::fn_info_param_count_at(fn_infos, fi, 0)
-        let mut pi = 0
-        while pi < param_count && registry.ok {
-            let p = fn_info::fn_info_param_at(fn_infos, fi, pi)
-            let parameter_value_type = param::param_value_type(p)
-            let parameter_type_name = param::param_type_name(p)
-            let normalized_parameter_type = vc_normalize_type_name(parameter_value_type, clone(parameter_type_name))
-            if len(clone(normalized_parameter_type)) == 0 {
-                registry.ok = false
-                registry.error = concat("VerifiedCore requires an explicit parameter type for function index ", to_string(fi))
-            } else if vc_find_type(registry, parameter_value_type, parameter_type_name) < 0 {
-                push(registry.names, normalized_parameter_type)
-                push(registry.value_types, parameter_value_type)
-            }
-            pi = pi + 1
-        }
-        let typed_index = fn_info::fn_info_typed_index_at(fn_infos, fi, 0 - 1)
-        if typed_index < 0 || typed_index >= len(typed_fns) {
-            registry.ok = false
-        registry.error = concat("VerifiedCore missing TypedFn for function index ", to_string(fi))
-        } else {
-            let typed_fn = get_unchecked(typed_fns, typed_index)
-            let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
-            let return_vt = vc_type_info_value_type(return_type)
-            if return_vt < 0 {
-                registry.ok = false
-            registry.error = concat("VerifiedCore unsupported return type for function index ", to_string(fi))
-            } else {
-                let return_type_name = name_display::type_display_name(return_type)
-                let normalized_return_type = vc_normalize_type_name(return_vt, clone(return_type_name))
-                if len(clone(normalized_return_type)) == 0 {
-                    registry.ok = false
-                    registry.error = concat("VerifiedCore requires an explicit return type for function index ", to_string(fi))
-                } else if vc_find_type(registry, return_vt, return_type_name) < 0 {
-                    push(registry.names, normalized_return_type)
-                    push(registry.value_types, return_vt)
-                }
-            }
-        }
-        fi = fi + 1
-    }
-
-    let table = raw_bodies::program_body_table(program)
-    let exprs = body_table::corehir_body_table_exprs(table)
-    let expr_count = len(exprs)
-    let mut ei = 0
-    while ei < expr_count && registry.ok {
-        let expr = get_unchecked(exprs, ei)
-        if expr_raw::corehir_expr_kind(expr) == 0 {
-            registry.ok = false
-        registry.error = concat("VerifiedCore contains unsupported CoreHIR expression ", to_string(ei))
-        } else {
-            let expression_value_type = expr_raw::corehir_expr_val_type(expr)
-            let expression_type_name = expr_raw::corehir_expr_type_name(expr)
-            let normalized_expression_type = vc_normalize_type_name(expression_value_type, clone(expression_type_name))
-            if len(clone(normalized_expression_type)) == 0 {
-                registry.ok = false
-                registry.error = concat("VerifiedCore requires an explicit expression type for expression ", to_string(ei))
-            } else if vc_find_type(registry, expression_value_type, expression_type_name) < 0 {
-                push(registry.names, normalized_expression_type)
-                push(registry.value_types, expression_value_type)
-            }
-        }
-        ei = ei + 1
-    }
 }
 
 fn vc_value_type_name(value_type: i32) -> String {
@@ -300,9 +230,9 @@ fn vc_quote(s: String) -> String {
     concat("\"", concat(vc_json_escape(s), "\""))
 }
 
-fn vc_render_type(registry: VerifiedCoreTypeRegistry, type_id: i32, pointer_width: i32) -> String {
-    let name = clone(registry.names[type_id])
-    let value_type = registry.value_types[type_id]
+fn vc_render_type(type_id: i32, pointer_width: i32) -> String {
+    let name = vc_type_name_for_id(type_id)
+    let value_type = vc_value_type_for_id(type_id)
     let mut out = concat("{\"id\":", to_string(type_id))
     out = concat(out, concat(",\"kind\":", vc_quote(vc_type_kind(value_type, clone(name)))))
     out = concat(out, concat(",\"name\":", vc_quote(name)))
@@ -391,11 +321,11 @@ fn vc_collect_reachable(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<i32> {
     reachable
 }
 
-fn vc_render_expression(exprs: Vec<CoreHirExpr>, expr_id: i32, registry: VerifiedCoreTypeRegistry) -> String {
+fn vc_render_expression(exprs: Vec<CoreHirExpr>, expr_id: i32) -> String {
     let expr = get_unchecked(exprs, expr_id)
     let kind = expr_raw::corehir_expr_kind(expr)
     let value_type = expr_raw::corehir_expr_val_type(expr)
-    let type_id = vc_find_type(registry, value_type, expr_raw::corehir_expr_type_name(expr))
+    let type_id = vc_type_id(value_type, expr_raw::corehir_expr_type_name(expr))
     let mut out = concat("{\"id\":", to_string(expr_id))
     out = concat(out, concat(",\"kind\":", vc_quote(vc_expr_kind_name(kind))))
     out = concat(out, concat(",\"kind_id\":", to_string(kind)))
@@ -429,8 +359,7 @@ fn vc_render_function(
     typed_fns: Vec<TypedFn>,
     table: CoreHirBodyTable,
     exprs: Vec<CoreHirExpr>,
-    function_index: i32,
-    registry: VerifiedCoreTypeRegistry
+    function_index: i32
 ) -> VerifiedCoreRenderResult {
     let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
     if typed_index < 0 || typed_index >= len(typed_fns) {
@@ -452,13 +381,21 @@ fn vc_render_function(
         if id < 0 || id >= expr_count {
             return VerifiedCoreRenderResult_err(concat("VerifiedCore body references unknown expression ", to_string(id)))
         }
+        let reachable_expr = get_unchecked(exprs, id)
+        let reachable_type_id = vc_type_id(
+            expr_raw::corehir_expr_val_type(reachable_expr),
+            expr_raw::corehir_expr_type_name(reachable_expr)
+        )
+        if reachable_type_id < 0 {
+            return VerifiedCoreRenderResult_err(concat("VerifiedCore unsupported expression type at expression ", to_string(id)))
+        }
         ri = ri + 1
     }
 
     let typed_fn = get_unchecked(typed_fns, typed_index)
     let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
     let return_vt = vc_type_info_value_type(return_type)
-    let return_type_id = vc_find_type(registry, return_vt, name_display::type_display_name(return_type))
+    let return_type_id = vc_type_id(return_vt, name_display::type_display_name(return_type))
     if return_type_id < 0 {
         return VerifiedCoreRenderResult_err(concat("VerifiedCore missing return type for function index ", to_string(function_index)))
     }
@@ -487,7 +424,7 @@ fn vc_render_function(
         if pi > 0 { out = concat(out, ",") }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, pi)
         let p_vt = param::param_value_type(p)
-        let p_type_id = vc_find_type(registry, p_vt, param::param_type_name(p))
+        let p_type_id = vc_type_id(p_vt, param::param_type_name(p))
         if p_type_id < 0 {
             return VerifiedCoreRenderResult_err(concat("VerifiedCore missing parameter type for ", clone(name)))
         }
@@ -503,7 +440,7 @@ fn vc_render_function(
         if pi > 0 { out = concat(out, ",") }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, pi)
         let p_vt = param::param_value_type(p)
-        let p_type_id = vc_find_type(registry, p_vt, param::param_type_name(p))
+        let p_type_id = vc_type_id(p_vt, param::param_type_name(p))
         out = concat(out, vc_render_abi_item(p_type_id, p_vt))
         pi = pi + 1
     }
@@ -518,7 +455,7 @@ fn vc_render_function(
     while pi < param_count {
         if pi > 0 { out = concat(out, ",") }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, pi)
-        let p_type_id = vc_find_type(registry, param::param_value_type(p), param::param_type_name(p))
+        let p_type_id = vc_type_id(param::param_value_type(p), param::param_type_name(p))
         out = concat(out, concat("{\"id\":", to_string(pi)))
         out = concat(out, concat(",\"name\":", vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", to_string(p_type_id)))
@@ -533,7 +470,7 @@ fn vc_render_function(
     while ei < expr_count {
         if vc_contains_id(reachable, ei) {
             if !first_expr { out = concat(out, ",") }
-            out = concat(out, vc_render_expression(exprs, ei, registry))
+            out = concat(out, vc_render_expression(exprs, ei))
             first_expr = false
         }
         ei = ei + 1
@@ -543,11 +480,6 @@ fn vc_render_function(
 }
 
 fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> VerifiedCoreRenderResult {
-    let registry = VerifiedCoreTypeRegistry_new()
-    vc_collect_types(program, registry)
-    if !registry.ok {
-        return VerifiedCoreRenderResult_err(registry.error)
-    }
     let pointer_width = if contains(config_record::config_target(config), "64") { 64 } else { 32 }
     let module_name = if len(config_record::config_source_file(config)) > 0 {
         config_record::config_source_file(config)
@@ -560,11 +492,11 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Ver
     out = concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
     out = concat(out, concat(to_string(pointer_width), "}"))
     out = concat(out, ",\"types\":[")
-    let type_count = len(registry.names)
+    let type_count = vc_type_count()
     let mut ti = 0
     while ti < type_count {
         if ti > 0 { out = concat(out, ",") }
-        out = concat(out, vc_render_type(registry, ti, pointer_width))
+        out = concat(out, vc_render_type(ti, pointer_width))
         ti = ti + 1
     }
     out = concat(out, "],\"functions\":[")
@@ -577,7 +509,7 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Ver
     let mut fi = 0
     while fi < fn_count {
         if fi > 0 { out = concat(out, ",") }
-        let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi, registry)
+        let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi)
         if !rendered.ok {
             return rendered
         }
