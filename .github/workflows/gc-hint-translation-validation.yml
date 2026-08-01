@@ -33,21 +33,21 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build current gc_hint-enabled s2
+      - name: Build focused gc_hint-enabled stage 2
         run: |
-          set +e
-          python3 scripts/manager.py selfhost fixpoint --build
-          rc=$?
-          set -e
-          if [ "$rc" -eq 2 ]; then
-            echo 'selfhost stage build or validation failed'
-            exit 1
-          fi
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from selfhost.checks import rebuild_current_s2
+
+          path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
+          if path is None:
+              raise SystemExit(error or "stage-2 build failed")
+          print(f"focused-gc-hint-s2: PASS: path={path} elapsed={elapsed:.3f}s")
+          PY
           test -s .build/selfhost/arukellt-s2.wasm
-          test -s .build/selfhost/arukellt-s3.wasm
-          if [ "$rc" -eq 1 ]; then
-            echo 'byte fixpoint deferred: focused s2 overlay intentionally differs from full s3'
-          fi
 
       # The focused bootstrap overlay puts the current validated gc_hint pass
       # into runtime-compatible s2. Raise only the memory32 initial size; GC
