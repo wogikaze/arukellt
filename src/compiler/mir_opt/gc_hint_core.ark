@@ -65,6 +65,10 @@ fn gc_hint_instruction_equal(a: MirInst, b: MirInst) -> bool {
     true
 }
 
+fn gc_hint_is_canonical_inserted_hint(inst: MirInst) -> bool {
+    gc_hint_instruction_equal(inst, inst_gc_hint::MirInst_gc_hint_short_lived())
+}
+
 fn gc_hint_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>) -> bool {
     let mut before_i = 0
     let mut after_i = 0
@@ -75,7 +79,7 @@ fn gc_hint_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>) -> bool 
             after_i = after_i + 1
             continue
         }
-        if inst_accessors_shape::MirInst_op(candidate) == opcodes::MIR_GC_HINT() {
+        if gc_hint_is_canonical_inserted_hint(candidate) {
             after_i = after_i + 1
             continue
         }
