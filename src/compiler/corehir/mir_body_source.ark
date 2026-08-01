@@ -7,10 +7,31 @@ struct CoreHirMirBodySource {
 }
 
 fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
+    let exprs = Vec::new<CoreHirExpr>()
+    let mut expr_index = 0
+    while expr_index < body::corehir_body_expr_count(table) {
+        push(exprs, body::corehir_body_expr_at(table, expr_index))
+        expr_index = expr_index + 1
+    }
+
+    let fn_body_roots = Vec::new<i32>()
+    let mut fn_index = 0
+    while fn_index < body::corehir_fn_body_root_count(table) {
+        push(fn_body_roots, body::corehir_fn_body_root_at(table, fn_index))
+        fn_index = fn_index + 1
+    }
+
+    let method_body_roots = Vec::new<i32>()
+    let mut method_index = 0
+    while method_index < body::corehir_method_body_root_count(table) {
+        push(method_body_roots, body::corehir_method_body_root_at(table, method_index))
+        method_index = method_index + 1
+    }
+
     CoreHirMirBodySource {
-        exprs: body::body_exprs(table),
-        fn_body_roots: body::body_fn_roots(table),
-        method_body_roots: body::body_method_roots(table),
+        exprs: exprs,
+        fn_body_roots: fn_body_roots,
+        method_body_roots: method_body_roots,
     }
 }
 
