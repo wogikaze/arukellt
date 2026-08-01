@@ -40,8 +40,18 @@ def main() -> int:
     require(gc_hint, "fn gc_hint_translation_valid", "translation validator")
     require(
         gc_hint,
-        "inst_accessors_shape::MirInst_op(candidate) == opcodes::MIR_GC_HINT()",
-        "only-hint insertion allowance",
+        "fn gc_hint_is_canonical_inserted_hint",
+        "canonical hint predicate",
+    )
+    require(
+        gc_hint,
+        "gc_hint_instruction_equal(inst, inst_gc_hint::MirInst_gc_hint_short_lived())",
+        "canonical short-lived hint comparison",
+    )
+    require(
+        gc_hint,
+        "if gc_hint_is_canonical_inserted_hint(candidate)",
+        "canonical insertion allowance",
     )
     require(
         gc_hint,
