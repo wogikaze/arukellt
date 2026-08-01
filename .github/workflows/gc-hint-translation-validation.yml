@@ -19,6 +19,9 @@ jobs:
       - name: Check fail-closed source contract
         run: python3 scripts/check/check-gc-hint-translation-validation.py
 
+      - name: Enable focused gc_hint bootstrap overlay
+        run: python3 scripts/bootstrap/enable-gc-hint-overlay.py
+
       - name: Install wasmtime
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
@@ -30,7 +33,7 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build and validate selfhost stages
+      - name: Build current gc_hint-enabled s2
         run: |
           set +e
           python3 scripts/manager.py selfhost fixpoint --build
@@ -43,30 +46,29 @@ jobs:
           test -s .build/selfhost/arukellt-s2.wasm
           test -s .build/selfhost/arukellt-s3.wasm
           if [ "$rc" -eq 1 ]; then
-            echo 's2/s3 byte fixpoint deferred: pinned bootstrap stubs mir_opt'
+            echo 'byte fixpoint deferred: focused s2 overlay intentionally differs from full s3'
           fi
 
-      # s3 contains the current mir_opt implementation. The fixture needs more
-      # than the module's default 512 MiB heap, but does not need Memory64.
-      # Keep the initial heap below the signed i32 address boundary used by the
-      # current runtime allocator while leaving GC types/code byte-identical.
-      - name: Raise current s3 memory32 initial size
+      # The focused bootstrap overlay puts the current validated gc_hint pass
+      # into runtime-compatible s2. Raise only the memory32 initial size; GC
+      # types and code remain byte-identical.
+      - name: Raise focused s2 memory32 initial size
         run: |
           python3 scripts/bootstrap/set-wasm-memory32-initial.py \
-            .build/selfhost/arukellt-s3.wasm \
-            .build/selfhost/arukellt-s3-runtime.wasm \
+            .build/selfhost/arukellt-s2.wasm \
+            .build/selfhost/arukellt-s2-runtime.wasm \
             --pages 24576
-          test -s .build/selfhost/arukellt-s3-runtime.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
           wasmtime compile \
             --wasm gc \
             --wasm function-references \
             -W max-memory-size=2147483648 \
-            .build/selfhost/arukellt-s3-runtime.wasm \
-            -o .build/selfhost/arukellt-s3-runtime.cwasm
+            .build/selfhost/arukellt-s2-runtime.wasm \
+            -o .build/selfhost/arukellt-s2-runtime.cwasm
 
       - name: Exercise gc hint at opt-level 2
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3-runtime.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-gc-hint-runtime.py
 
       - name: Upload translation receipt
