@@ -1,0 +1,10 @@
+fn identity(x: i32) -> i32 proof {
+    requires: x >= 0;
+    ensures: result >= x;
+} {
+    x
+}
+
+fn main() {
+    print(identity(1))
+}
