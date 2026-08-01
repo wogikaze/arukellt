@@ -52,7 +52,9 @@ jobs:
 
       - name: Patch current s3 for runtime heap growth
         run: |
-          scripts/bootstrap/wasm-heap-grow-patcher/target/release/wasm-heap-grow-patcher \
+          PATCHER="$(find . -type f -path '*/release/wasm-heap-grow-patcher' -perm -111 -print -quit)"
+          test -n "$PATCHER"
+          "$PATCHER" \
             .build/selfhost/arukellt-s3.wasm \
             .build/selfhost/arukellt-s3-runtime.wasm
           test -s .build/selfhost/arukellt-s3-runtime.wasm
