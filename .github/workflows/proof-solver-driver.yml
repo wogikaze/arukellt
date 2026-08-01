@@ -1,0 +1,65 @@
+name: Proof solver driver
+
+on:
+  pull_request:
+    branches: [agent/solver-bound-proof-receipts, agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: proof-solver-driver-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof-solver-driver:
+    name: "Proof solver driver"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable deterministic solver fixture
+        run: chmod +x tests/proof/toolchain/fake_solver.py
+
+      - name: Run solver and receipt tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_solver_receipts \
+            scripts.tests.test_solver_driver
+
+      - name: Run a proved obligation end to end
+        run: |
+          mkdir -p .build/proof-run
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/solver-input.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/solver-output.txt \
+            --trust-manifest-output .build/proof-run/trust-manifest.json \
+            --proof-receipt-output .build/proof-run/proof-receipt.json
+
+      - name: Require unknown to remain non-success
+        run: |
+          printf 'not-modelled\n' > .build/proof-run/unknown.smt2
+          set +e
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/proof-run/unknown.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/unknown-output.txt \
+            --trust-manifest-output .build/proof-run/unknown-trust-manifest.json \
+            --proof-receipt-output .build/proof-run/unknown-proof-receipt.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('.build/proof-run/unknown-proof-receipt.json').read_text())
+          assert receipt['status'] == 'unknown', receipt
+          PY
+
+      - name: Upload proof run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-solver-run
+          path: .build/proof-run
+          if-no-files-found: error
