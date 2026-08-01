@@ -14,8 +14,8 @@
   "solver": {
     "name": "z3",
     "version": "fixture",
-    "executable": "solver.txt",
-    "arguments": ["-in", "-smt2"]
+    "executable": "fake_solver.py",
+    "arguments": []
   },
   "semantic_profile": {
     "integer_model": "mathematical",
