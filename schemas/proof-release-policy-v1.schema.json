@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schema/proof-release-policy-v1.schema.json",
+  "title": "Arukellt Proof Release Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "mode", "hard_gates", "artifacts"],
+  "properties": {
+    "schema": {"const": "arukellt-proof-release-policy"},
+    "schema_version": {"const": 1},
+    "mode": {"enum": ["proof-optional", "proof-required"]},
+    "hard_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "versioned_boundary_artifacts",
+        "explicit_backend_type_abi_layout",
+        "typed_verified_core_emission",
+        "optimizer_translation_validation",
+        "solver_trust_manifest",
+        "legacy_mutable_table_removed",
+        "proof_receipt_release_enforced"
+      ],
+      "properties": {
+        "versioned_boundary_artifacts": {"type": "boolean"},
+        "explicit_backend_type_abi_layout": {"type": "boolean"},
+        "typed_verified_core_emission": {"type": "boolean"},
+        "optimizer_translation_validation": {"type": "boolean"},
+        "solver_trust_manifest": {"type": "boolean"},
+        "legacy_mutable_table_removed": {"type": "boolean"},
+        "proof_receipt_release_enforced": {"type": "boolean"}
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "subject", "trust_manifest", "receipt", "solver_output", "translation_receipts"],
+        "properties": {
+          "label": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "trust_manifest": {"type": "string", "minLength": 1},
+          "receipt": {"type": "string", "minLength": 1},
+          "solver_output": {"type": "string", "minLength": 1},
+          "translation_receipts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["receipt", "source", "target"],
+              "properties": {
+                "receipt": {"type": "string", "minLength": 1},
+                "source": {"type": "string", "minLength": 1},
+                "target": {"type": "string", "minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
