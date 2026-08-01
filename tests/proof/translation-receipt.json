@@ -9,19 +9,19 @@
   "source": {
     "schema": "arukellt-verified-core",
     "schema_version": 1,
-    "sha256": "2a729cc72f6aaf5ceb1cb4583cd105b440d07f75bcaaae2c8b4e7e95647a555c"
+    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
   },
   "target": {
     "schema": "arukellt-verified-core",
     "schema_version": 1,
-    "sha256": "2a729cc72f6aaf5ceb1cb4583cd105b440d07f75bcaaae2c8b4e7e95647a555c"
+    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
   },
   "validator": {
     "name": "arukellt-translation-validator",
     "version": "fixture",
     "executable_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
   },
-  "trust_manifest_sha256": "223ff63f7acf2967ebb152b93be90e40647b29886d0522be4933c009e8493ffd",
+  "trust_manifest_sha256": "61ad0593a85aaaad12df58dc0e3c0796178344c18812294a52442e5d96e48110",
   "status": "validated",
   "obligations": {
     "total": 1,

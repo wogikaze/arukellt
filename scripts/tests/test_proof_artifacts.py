@@ -35,7 +35,7 @@ class FormalArtifactTests(unittest.TestCase):
 
     def test_valid_verified_core(self) -> None:
         document = validate_verified_core(copy.deepcopy(self.verified_core))
-        self.assertEqual(document["functions"][0]["body"]["root_expr_id"], 0)
+        self.assertEqual(document["functions"][0]["signature"]["return_type_id"], 1)
 
     def test_verified_core_rejects_missing_representation(self) -> None:
         document = copy.deepcopy(self.verified_core)
@@ -49,22 +49,14 @@ class FormalArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "ABI type must match signature"):
             validate_verified_core(document)
 
-    def test_verified_core_rejects_abi_representation_mismatch(self) -> None:
+    def test_verified_core_rejects_return_type_mismatch(self) -> None:
         document = copy.deepcopy(self.verified_core)
-        document["functions"][0]["abi"]["parameters"][0]["wasm"] = ["i64"]
-        with self.assertRaisesRegex(ValidationError, "ABI representation must match type table"):
-            validate_verified_core(document)
-
-    def test_verified_core_rejects_unknown_child(self) -> None:
-        document = copy.deepcopy(self.verified_core)
-        document["functions"][0]["body"]["expressions"][0]["children"].append(99)
-        with self.assertRaisesRegex(ValidationError, "unknown expression id"):
-            validate_verified_core(document)
-
-    def test_verified_core_rejects_unreachable_expression(self) -> None:
-        document = copy.deepcopy(self.verified_core)
-        document["functions"][0]["body"]["expressions"][0]["children"] = [1]
-        with self.assertRaisesRegex(ValidationError, "unreachable expression"):
+        document["functions"][0]["body"]["blocks"][0]["terminator"]["value"] = {
+            "kind": "constant",
+            "type_id": 2,
+            "value": True,
+        }
+        with self.assertRaisesRegex(ValidationError, "return type must match signature"):
             validate_verified_core(document)
 
     def test_valid_trust_manifest(self) -> None:
