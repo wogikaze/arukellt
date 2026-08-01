@@ -1,6 +1,8 @@
 use compiler::session
+use corehir::body
 use corehir::frontend_bundle
 use corehir::mod
+use corehir::raw_bodies
 use loader::module_state_modules
 
 struct CheckedProgram {
@@ -63,6 +65,11 @@ fn checked_program_session(program: CheckedProgram) -> CompileSession {
 
 fn checked_program_core_program(program: CheckedProgram) -> CoreHirRawProgram {
     program.core_program
+}
+
+fn checked_program_corehir_body_table_is_admissible(program: CheckedProgram) -> bool {
+    let table = raw_bodies::program_body_table(program.core_program)
+    body::corehir_body_table_is_sealed(table) && !body::corehir_body_table_has_mutation_violation(table)
 }
 
 fn checked_program_export_surface(program: CheckedProgram) -> CoreHirExportSurface {
