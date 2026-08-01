@@ -25,18 +25,37 @@ Arukellt adopts a hybrid architecture.
 7. The compiler, Proof IR producer, backend translator, solver, and any explicitly axiomatized declarations are recorded as trusted components. Successful proof does not by itself prove CoreHIR-to-MIR or MIR-to-Wasm correctness.
 8. Compiler correctness remains a separate track: typed MIR validation, translation validation, and proof of selected lowering or optimization passes.
 
+## Promotion hard gates
+
+Proof support remains experimental, and a release may not claim `proof-required`, until all of the following are true:
+
+- every major compiler boundary emits a versioned artifact with an independent fail-closed validator;
+- backends consume explicit type, ABI, nullability, representation, and layout data and do not reconstruct them from names or stack history;
+- VerifiedCore is a typed representation, not an opaque body index or mutable side table;
+- optimizer passes covered by the verified profile have translation validation, with source and target artifacts bound into a receipt;
+- every solver result carries a versioned TrustManifest identifying the producer, translator, solver binary, semantic profile, limits, assumptions, and trusted components;
+- the legacy large mutable table API is removed from the verified path rather than wrapped or mirrored indefinitely;
+- a `proof-required` release cannot pass without a valid `status=proved` ProofReceipt bound by SHA-256 to both Proof IR and its TrustManifest.
+
+These are hard gates, not documentation goals. A partially implemented item must remain visibly unfulfilled in release policy and maturity metadata.
+
 ## Initial contract surface
 
 The first reserved contract kinds are `requires`, `ensures`, `invariant`, `assert`, and `decreases`. The first parser slice accepts function-level `requires` and `ensures`. Loop invariants, assertions, decreases clauses, purity rules, and old-value syntax require follow-up design. Proof IR keeps an explicit result name rather than relying on backend-specific syntax.
 
-## Proof IR contract
+## Versioned proof artifacts
 
-`schemas/proof-ir-v1.schema.json` is the machine-readable interchange schema. `scripts/proof/ir.py` is the dependency-free executable boundary validator used before any backend is invoked. Schema changes require a version increment; consumers must reject unknown versions and unknown fields.
+- `schemas/proof-ir-v1.schema.json` defines the compiler-to-verifier interchange artifact.
+- `schemas/trust-manifest-v1.schema.json` defines the complete trust boundary for one solver invocation.
+- `schemas/proof-receipt-v1.schema.json` binds the solver outcome to Proof IR and TrustManifest digests.
+- `schemas/proof-release-policy-v1.schema.json` declares whether a release is `proof-optional` or `proof-required`.
 
-Contract expressions are rendered from CoreHIR as deterministic S-expressions. The initial `body` field is intentionally opaque and carries a stable CoreHIR body root. A later version will replace or refine it after the verification statement semantics are specified.
+`scripts/proof/ir.py` and `scripts/proof/trust.py` are dependency-free executable validators. Consumers reject unknown versions and unknown fields. `scripts/check/check-proof-release.py` is fail-closed: a proof-required policy must list at least one receipt, every file must exist and validate, digest bindings must match, and every receipt must have `status=proved`.
+
+Contract expressions are rendered from CoreHIR as deterministic S-expressions. The initial `body` field is intentionally opaque and carries a CoreHIR body root. This is a transitional v1 representation and does not satisfy the typed VerifiedCore promotion gate.
 
 ## Consequences
 
 The compiler can add proof support without linking a solver into bootstrap artifacts. CI can validate artifact structure on all lanes and run solver-backed checks only where dependencies are installed. Proof success remains honest about the trusted frontend and backend boundary.
 
-The current implementation parses, type-checks, retains, and serializes function contracts. It does not yet prove them, generate verification conditions, invoke Why3, check proof-expression purity, model machine-integer overflow, or claim end-to-end compiler correctness.
+The current implementation parses, type-checks, retains, and serializes function contracts and defines TrustManifest/ProofReceipt/release-policy boundaries. It does not yet prove contracts, generate verification conditions, invoke Why3, check proof-expression purity, model machine-integer overflow, provide typed VerifiedCore bodies, translation-validate optimizer passes, remove the legacy mutable CoreHIR table path, or claim end-to-end compiler correctness.
