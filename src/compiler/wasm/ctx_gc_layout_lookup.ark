@@ -24,9 +24,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i
         return 0 - 1
     }
     gc_layout_table::gc_layout_table_observe_typed_lookup(layout)
-    // Avoid lower_mir_value_type which returns a nested WasmValueType struct;
-    // the bootstrap compiler miscompiles nested-struct return values.
-    // Instead, directly extract the ref type index from the layout entry.
     let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
     let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
     gc_layout_table::wasm_ref_type_idx(ref_type)
@@ -39,9 +36,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirVa
     SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
 }
 
-// Local storage on wasm32-gc is selected by the materialized layout entry.
-// String retains LINEAR_PTR in the target-independent semantic spine during
-// migration, but its TypeId still owns a GC array entry for this target.
 fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
     SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
 }
@@ -56,10 +50,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    // Payload locals (string, vec, hashmap, struct) may carry a stray
-    // variant_slot from enum/Option/Result payload propagation. Prefer the
-    // declared type_name so the local is typed as its payload/container
-    // rather than the enclosing enum variant.
     let local_type_name = local_access::MirLocal_type_name(loc)
     if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
         return 0 - 1
@@ -67,19 +57,12 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
     let variant_slot = local_access::MirLocal_variant_slot(loc)
     let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
-    // For GC_STRUCT_NEW destinations with variant_slot, prefer the concrete
-    // variant type over the open enum type from type_name lookup. Without this
-    // priority, type_name → open-enum wins and ref.cast targets a different
-    // type than the local declaration (#808).
     if variant_slot >= 0 && is_struct_new_dest {
         let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             return variant_gc
         }
     }
-    // The semantic TypeId carried by MirLocal is authoritative. Resolve it
-    // before consulting migration names so emission does not reconstruct
-    // layout identity from strings.
     let mvt = local_access::MirLocal_value_type(loc)
     let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
     if mvt_gc >= 0 {
@@ -90,14 +73,10 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
     if len(local_type_name) > 0 {
         let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
         if type_name_gc >= 0 {
-            // Non-constructor locals must not adopt concrete enum-variant
-            // storage from a misleading type_name (payload field values).
             if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
                 return type_name_gc
             }
         }
-        // Tuple / user structs may live in gc_struct_names without a TypeTable
-        // layout entry. Match local declaration (emit_gc_local_named_type).
         let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
         if named_struct_gc >= 0 {
             return named_struct_gc
@@ -171,8 +150,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx: SelfEmitCtx, type_name
     0 - 1
 }
 
-// ADR-040 Phase 5e: variant_slot → Wasm ref type index via
-// gc_enum_variant_type_map (structured lookup, no string matching).
 fn SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx: SelfEmitCtx, variant_slot: i32) -> i32 {
     if variant_slot < 0 {
         return 0 - 1
@@ -199,10 +176,6 @@ fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -
     false
 }
 
-// ADR-040 / #686 Phase 5: typed-spine GC type index lookup from a MIR type name.
-// Production emit must resolve via TypeId→GcLayoutTable only. Name→offset
-// guessing was removed; misses return -1 and are counted as fallback for the
-// hard audit gate when any residual path still observes them.
 fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: String) -> i32 {
     if len(type_name) == 0 {
         return 0 - 1
@@ -214,7 +187,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: Stri
         bare_name
     }
     let index = ctx_record::SelfEmitCtx_type_name_ref_index(ctx)
-    // Encoded values are type_idx+2 (1 = known miss) so get!=-1 means cached.
     let encoded = name_index::name_index_get(index, clone(cached_name))
     if encoded >= 1 {
         return encoded - 2
@@ -232,11 +204,9 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_n
         gc_layout_table::gc_layout_table_observe_name_lookup(
             ctx_record::SelfEmitCtx_gc_layout_table(ctx)
         )
+        stdio::eprintln(concat(String_from("gc-layout-audit: name lookup type_name="), clone(type_name)))
         return tid_result
     }
-    // Phase 5: production must not apply gc_type_base+offset guesses. When the
-    // legacy name map would have answered, count a fallback miss for the hard
-    // gate; probe misses for non-GC names stay silent.
     let gc_type_base = ctx_record::SelfEmitCtx_gc_type_base(ctx)
     if gc_type_base >= 0 {
         let would_fallback = gc_layout_table::gc_layout_table_ref_offset_for_type_name(
@@ -253,8 +223,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_n
     0 - 1
 }
 
-// Emit must not intern new TypeIds. Look up migration aliases already
-// materialized by typed-MIR synchronization.
 fn gc_layout_type_id_for_name(tt: TypeTable, type_name: String) -> TypeId {
     let name = if eq(clone(type_name), "string") {
         "String"
