@@ -30,10 +30,6 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
       - name: Build host-linker
         run: |
           cargo build --release --quiet
@@ -56,16 +52,7 @@ jobs:
             echo 'byte fixpoint deferred until bootstrap refresh'
           fi
 
-      - name: Patch current s2 for contract fixtures
-        run: |
-          PATCHER="$(find . -type f -path '*/release/wasm-heap-grow-patcher' -perm -111 -print -quit)"
-          test -n "$PATCHER"
-          "$PATCHER" \
-            .build/selfhost/arukellt-s2.wasm \
-            .build/selfhost/arukellt-s2-runtime.wasm
-          test -s .build/selfhost/arukellt-s2-runtime.wasm
-
       - name: Exercise typed source contracts
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2.wasm
         run: python3 scripts/check/check-typed-contract-emission.py
