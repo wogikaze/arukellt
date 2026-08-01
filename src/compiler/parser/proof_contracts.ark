@@ -1,0 +1,57 @@
+use lexer::tokens
+use parser::core_api_cursor
+use parser::core_api_expect
+use parser::core_ast_children
+use parser::core_ast_factory
+use parser::core_ast_text_fields
+use parser::core_ast_type_ann
+use parser::expr
+use parser::kinds
+use parser::token_state
+
+fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
+    core_api_cursor::skip_newlines(p)
+    if !core_api_cursor::at(p, tokens::TK_PROOF()) {
+        return true
+    }
+    core_api_cursor::bump(p)
+    core_api_cursor::skip_newlines(p)
+    core_api_expect::expect_token(p, tokens::TK_LBRACE())
+    core_api_cursor::skip_newlines(p)
+
+    while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
+        if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
+            core_api_expect::error(p, "expected requires or ensures in proof block")
+            return false
+        }
+        let kind_token = core_api_cursor::bump(p)
+        let kind_name = token_state::Token_text(kind_token)
+        if !eq(clone(kind_name), "requires") && !eq(clone(kind_name), "ensures") {
+            core_api_expect::error(p, concat("unsupported proof contract kind: ", kind_name))
+            return false
+        }
+        core_api_cursor::skip_newlines(p)
+        core_api_expect::expect_token(p, tokens::TK_COLON())
+        core_api_cursor::skip_newlines(p)
+        let expression = expr::parse_expr(p)
+        let contract = core_ast_factory::AstNode_new(
+            kinds::NK_PROOF_CONTRACT(),
+            core_api_expect::tok_span(kind_token)
+        )
+        core_ast_text_fields::AstNode_set_text(contract, token_state::Token_text(kind_token))
+        core_ast_children::AstNode_push_child(contract, expression)
+        core_ast_type_ann::AstNode_push_type_ann(node, contract)
+        core_api_cursor::skip_newlines(p)
+        if core_api_cursor::at(p, tokens::TK_SEMI()) {
+            core_api_cursor::bump(p)
+        }
+        core_api_cursor::skip_newlines(p)
+    }
+
+    if core_api_cursor::at_eof(p) {
+        core_api_expect::error(p, "unterminated proof block")
+        return false
+    }
+    core_api_expect::expect_token(p, tokens::TK_RBRACE())
+    true
+}
