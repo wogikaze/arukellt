@@ -37,12 +37,12 @@ def main() -> int:
 
     require(tokens, "fn TK_PROOF()", "proof token")
     require(keywords, 'eq(word, "proof")', "proof keyword")
-    require(parser, "AstNode_push_type_ann(fn_node, contract)", "contract AST retention")
+    require(parser, "AstNode_push_type_ann(node, contract)", "contract AST retention")
     require(parser, "expr::parse_expr(p)", "structured expression parser")
-    require(fn_sig, "parse_optional_proof_block_into_node(p, node)", "function-header integration")
+    require(fn_sig, "parse_proof_contract_block(p, node)", "function-header integration")
 
     require(checker, "infer::infer_expr", "contract type inference")
-    require(checker, 'scope::scope_define(contract_scope, "result"', "ensures result binding")
+    require(checker, 'scope::scope_define(\n                contract_scope,\n                "result"', "ensures result binding")
     require(checker, "proof contract must have type bool", "bool contract gate")
     require(body_checker, "proof_contracts::check_proof_contracts", "body typecheck integration")
 
