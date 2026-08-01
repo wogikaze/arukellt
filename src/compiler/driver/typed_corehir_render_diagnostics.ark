@@ -1,24 +1,88 @@
+use corehir::body_table
+use corehir::expr_raw
 use corehir::fn_info
+use corehir::raw_bodies
 use corehir::raw_decls
 use corehir::raw_dto
 use corehir::raw_record
+use driver::verified_core_render_primitives
 use driver::verified_core_render_safe
+
+fn typed_corehir_diagnostic_module_index(program: CoreHirRawProgram) -> i32 {
+    let modules = raw_record::raw_program_modules(program)
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let entry_decl = fn_info::fn_info_entry_main_decl_index(fn_infos)
+    if entry_decl < 0 {
+        return 0 - 1
+    }
+    let mut module_index = 0
+    while module_index < len(modules) {
+        let module = get_unchecked(modules, module_index)
+        let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
+        let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
+        if entry_decl >= decl_start && entry_decl < decl_end {
+            return module_index
+        }
+        module_index = module_index + 1
+    }
+    0 - 1
+}
+
+fn diagnose_first_untyped_expression(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    reachable: Vec<i32>
+) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let function_name = verified_core_render_safe::vcs_function_name(program, function_index)
+    let mut i = 0
+    while i < len(reachable) {
+        let expression_id = get_unchecked(reachable, i)
+        if expression_id < 0 || expression_id >= len(exprs) {
+            return concat(
+                concat("TypedCoreHIR reject: invalid reachable expression function=", function_name),
+                concat(" expression_id=", to_string(expression_id))
+            )
+        }
+        let expression = get_unchecked(exprs, expression_id)
+        let value_type = expr_raw::corehir_expr_val_type(expression)
+        let type_name = expr_raw::corehir_expr_type_name(expression)
+        let type_id = verified_core_render_primitives::vc_type_id(value_type, clone(type_name))
+        if type_id < 0 {
+            let mut message = concat("TypedCoreHIR reject: untyped expression function=", function_name)
+            message = concat(message, concat(" function_index=", to_string(function_index)))
+            message = concat(message, concat(" expression_id=", to_string(expression_id)))
+            message = concat(message, concat(" kind=", to_string(expr_raw::corehir_expr_kind(expression))))
+            message = concat(message, concat(" value_type=", to_string(value_type)))
+            message = concat(message, concat(" type_name=", type_name))
+            message = concat(message, concat(" text=", expr_raw::corehir_expr_text(expression)))
+            return message
+        }
+        i = i + 1
+    }
+    concat("TypedCoreHIR reject: untyped reachable expression function=", function_name)
+}
 
 fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     let modules = raw_record::raw_program_modules(program)
     if len(modules) == 0 {
         return "TypedCoreHIR reject: no modules"
     }
-    let main_module = get_unchecked(modules, len(modules) - 1)
-    let main_decl_start = raw_dto::CoreHirModuleInfo_decl_start(main_module)
-    let main_decl_end = main_decl_start + raw_dto::CoreHirModuleInfo_decl_count(main_module)
+    let source_module_index = typed_corehir_diagnostic_module_index(program)
+    if source_module_index < 0 || source_module_index >= len(modules) {
+        return "TypedCoreHIR reject: entry main module not found"
+    }
+    let source_module = get_unchecked(modules, source_module_index)
+    let source_decl_start = raw_dto::CoreHirModuleInfo_decl_start(source_module)
+    let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
     let fn_infos = raw_decls::program_fn_infos(program)
-    let mut main_function_count = 0
+    let mut source_function_count = 0
     let mut function_index = 0
     while function_index < len(fn_infos) {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
-        if decl_index >= main_decl_start && decl_index < main_decl_end {
-            main_function_count = main_function_count + 1
+        if decl_index >= source_decl_start && decl_index < source_decl_end {
+            source_function_count = source_function_count + 1
             if !verified_core_render_safe::vcs_typed_function_exists(program, function_index) {
                 return concat("TypedCoreHIR reject: missing typed function index=", to_string(function_index))
             }
@@ -31,7 +95,7 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
             }
             let reachable = verified_core_render_safe::vcs_collect_reachable(program, root)
             if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
-                return concat("TypedCoreHIR reject: untyped reachable expression function=", to_string(function_index))
+                return diagnose_first_untyped_expression(program, function_index, reachable)
             }
             let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
             let return_type_id = verified_core_render_safe::vcs_return_type_id(program, function_index)
@@ -54,8 +118,8 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
         }
         function_index = function_index + 1
     }
-    if main_function_count == 0 {
-        return "TypedCoreHIR reject: no functions in main module"
+    if source_function_count == 0 {
+        return "TypedCoreHIR reject: no functions in entry source module"
     }
     "TypedCoreHIR reject: contract renderer returned empty after preconditions"
 }
