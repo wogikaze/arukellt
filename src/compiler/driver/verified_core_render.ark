@@ -5,6 +5,8 @@ use corehir::param
 use corehir::raw_bodies
 use corehir::raw_decls
 use corehir::raw_types
+use corehir::raw_record
+use corehir::raw_dto
 use corehir::value_types
 use driver::config_record
 use typechecker::contract_type_access
@@ -506,14 +508,26 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Ver
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
     let fn_count = len(fn_infos)
+    let modules = raw_record::raw_program_modules(program)
+    if len(modules) == 0 {
+        return VerifiedCoreRenderResult_err("VerifiedCore missing module boundary")
+    }
+    let main_module = get_unchecked(modules, len(modules) - 1)
+    let main_decl_start = raw_dto::CoreHirModuleInfo_decl_start(main_module)
+    let main_decl_end = main_decl_start + raw_dto::CoreHirModuleInfo_decl_count(main_module)
+    let mut first_function = true
     let mut fi = 0
     while fi < fn_count {
-        if fi > 0 { out = concat(out, ",") }
-        let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi)
-        if !rendered.ok {
-            return rendered
+        let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)
+        if decl_index >= main_decl_start && decl_index < main_decl_end {
+            if !first_function { out = concat(out, ",") }
+            let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi)
+            if !rendered.ok {
+                return rendered
+            }
+            out = concat(out, rendered.output)
+            first_function = false
         }
-        out = concat(out, rendered.output)
         fi = fi + 1
     }
     out = concat(out, "]}")
