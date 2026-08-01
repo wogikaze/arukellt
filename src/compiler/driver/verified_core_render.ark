@@ -312,7 +312,11 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     }
     out = concat(out, concat(",\"float_value\":", float_json))
     let span_start = expr_raw::corehir_expr_span_start(expr)
-    out = concat(out, concat(",\"span_start\":", to_string(if span_start < 0 { 0 } else { span_start })))
+    let mut normalized_span_start = span_start
+    if normalized_span_start < 0 {
+        normalized_span_start = 0
+    }
+    out = concat(out, concat(",\"span_start\":", to_string(normalized_span_start)))
     out = concat(out, ",\"children\":[")
     let child_count = expr_raw::corehir_expr_child_count(expr)
     let mut ci = 0
