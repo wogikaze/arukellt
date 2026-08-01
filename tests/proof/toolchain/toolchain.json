@@ -1,0 +1,39 @@
+{
+  "schema": "arukellt-proof-toolchain",
+  "schema_version": 1,
+  "producer": {
+    "name": "arukellt",
+    "version": "fixture",
+    "executable": "producer.bin"
+  },
+  "translator": {
+    "name": "arukellt-why3",
+    "version": "fixture",
+    "executable": "translator.txt"
+  },
+  "solver": {
+    "name": "z3",
+    "version": "fixture",
+    "executable": "solver.txt",
+    "arguments": ["-in", "-smt2"]
+  },
+  "semantic_profile": {
+    "integer_model": "mathematical",
+    "overflow": "checked",
+    "floating_point": "unsupported",
+    "memory": "pure-values"
+  },
+  "assumptions": [],
+  "trusted_components": [
+    {
+      "name": "arukellt-verified-core-v1",
+      "role": "artifact-validator",
+      "version": "1",
+      "artifact": "trusted-component.txt"
+    }
+  ],
+  "limits": {
+    "timeout_ms": 10000,
+    "memory_bytes": 1073741824
+  }
+}
