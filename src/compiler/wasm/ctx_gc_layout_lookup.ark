@@ -77,6 +77,16 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
             return variant_gc
         }
     }
+    // The semantic TypeId carried by MirLocal is authoritative. Resolve it
+    // before consulting migration names so emission does not reconstruct
+    // layout identity from strings.
+    let mvt = local_access::MirLocal_value_type(loc)
+    let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
+    if mvt_gc >= 0 {
+        if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
+            return mvt_gc
+        }
+    }
     if len(local_type_name) > 0 {
         let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
         if type_name_gc >= 0 {
@@ -91,15 +101,6 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
         if named_struct_gc >= 0 {
             return named_struct_gc
-        }
-    }
-    // Prefer MirLocal.value_type after type_name (#843). Call dests sync
-    // MonoInstance return MVT so spine hits without body-scan infer.
-    let mvt = local_access::MirLocal_value_type(loc)
-    let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
-    if mvt_gc >= 0 {
-        if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
-            return mvt_gc
         }
     }
     if is_payload_with_stray_variant {
