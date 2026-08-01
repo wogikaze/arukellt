@@ -2,7 +2,7 @@ name: Backend name lookup audit
 
 on:
   pull_request:
-    branches: [agent/formal-verification-hard-gates, master]
+    branches: [agent/backend-name-lookup-audit, agent/formal-verification-hard-gates, master]
   workflow_dispatch:
 
 concurrency:
