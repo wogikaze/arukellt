@@ -69,6 +69,27 @@ def main() -> int:
         "summary failure propagation",
     )
 
+    require(
+        gc_hint,
+        "fn gc_hint_resolve_use_target",
+        "constructor-temp alias resolution",
+    )
+    require(
+        gc_hint,
+        "op == opcodes::MIR_LOCAL_SET() && arg1 == local",
+        "single local alias recognition",
+    )
+    require(
+        gc_hint,
+        "fn gc_hint_is_constructor_initialization",
+        "field initialization classification",
+    )
+    require(
+        gc_hint,
+        "ignore_initialization_receiver",
+        "initialization receiver exclusion",
+    )
+
     require(summary, "translation_validation_failures: i32", "summary field")
     require(
         summary,
