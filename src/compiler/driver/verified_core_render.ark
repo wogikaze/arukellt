@@ -357,22 +357,22 @@ fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
     out
 }
 
-fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> VerifiedCoreRenderResult {
+fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> String {
     let fn_infos = raw_decls::program_fn_infos(program)
     let typed_fns = raw_types::program_typed_fns(program)
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
     let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
     if typed_index < 0 || typed_index >= len(typed_fns) {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore missing TypedFn for function index ", to_string(function_index)))
+        return ""
     }
     let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
     if body_index < 0 || body_index >= body_table::corehir_body_table_fn_body_root_count(table) {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore missing body for function index ", to_string(function_index)))
+        return ""
     }
     let root = body_table::corehir_body_table_fn_body_root_at(table, body_index)
     if root < 0 || root >= len(exprs) {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore invalid body root for function index ", to_string(function_index)))
+        return ""
     }
     let reachable = Vec::new<i32>()
     let stack = Vec::new<i32>()
@@ -407,7 +407,7 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
     while ri < len(reachable) {
         let id = reachable[ri]
         if id < 0 || id >= expr_count {
-            return VerifiedCoreRenderResult_err(concat("VerifiedCore body references unknown expression ", to_string(id)))
+            return ""
         }
         let reachable_expr = get_unchecked(exprs, id)
         let reachable_type_id = vc_type_id(
@@ -415,7 +415,7 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
             expr_raw::corehir_expr_type_name(reachable_expr)
         )
         if reachable_type_id < 0 {
-            return VerifiedCoreRenderResult_err(concat("VerifiedCore unsupported expression type at expression ", to_string(id)))
+            return ""
         }
         ri = ri + 1
     }
@@ -425,7 +425,7 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
     let return_vt = vc_type_info_value_type(return_type)
     let return_type_id = vc_type_id(return_vt, name_display::type_display_name(return_type))
     if return_type_id < 0 {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore missing return type for function index ", to_string(function_index)))
+        return ""
     }
 
     let qualified = fn_info::fn_info_qualified_name_at(fn_infos, function_index, "")
@@ -435,13 +435,13 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
         fn_info::fn_info_name_at(fn_infos, function_index, "")
     }
     if len(clone(name)) == 0 {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore missing function name for index ", to_string(function_index)))
+        return ""
     }
 
     let param_count = fn_info::fn_info_param_count_at(fn_infos, function_index, 0)
     let typed_params = contract_typed_fn::TypedFn_param_types(typed_fn)
     if len(typed_params) != param_count {
-        return VerifiedCoreRenderResult_err(concat("VerifiedCore parameter count mismatch for ", clone(name)))
+        return ""
     }
 
     let mut out = concat("{\"id\":", to_string(function_index))
@@ -454,7 +454,7 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
         let p_vt = param::param_value_type(p)
         let p_type_id = vc_type_id(p_vt, param::param_type_name(p))
         if p_type_id < 0 {
-            return VerifiedCoreRenderResult_err(concat("VerifiedCore missing parameter type for ", clone(name)))
+            return ""
         }
         out = concat(out, concat("{\"name\":", vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", concat(to_string(p_type_id), "}")))
@@ -514,7 +514,7 @@ fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> Verifi
         ei = ei + 1
     }
     out = concat(out, "]}}")
-    VerifiedCoreRenderResult_ok(out)
+    return out
 }
 
 fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> VerifiedCoreRenderResult {
@@ -558,10 +558,12 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Ver
         if decl_index >= main_decl_start && decl_index < main_decl_end {
             if !first_function { out = concat(out, ",") }
             let rendered = vc_render_function(program, fi)
-            if !rendered.ok {
-                return rendered
+            if len(clone(rendered)) == 0 {
+                return VerifiedCoreRenderResult_err(
+                    concat("VerifiedCore failed to render function index ", to_string(fi))
+                )
             }
-            out = concat(out, rendered.output)
+            out = concat(out, rendered)
             first_function = false
         }
         fi = fi + 1
