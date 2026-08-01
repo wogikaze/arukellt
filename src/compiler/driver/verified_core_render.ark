@@ -306,7 +306,10 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     out = concat(out, concat(",\"value_type\":", vc_quote(vc_value_type_name(value_type))))
     out = concat(out, concat(",\"text\":", vc_quote(expr_raw::corehir_expr_text(expr))))
     out = concat(out, concat(",\"int_value\":", to_string(expr_raw::corehir_expr_int_val(expr))))
-    let float_json = if kind == 7 { expr_raw::corehir_expr_text(expr) } else { "0.0" }
+    let mut float_json = "0.0"
+    if kind == 7 {
+        float_json = expr_raw::corehir_expr_text(expr)
+    }
     out = concat(out, concat(",\"float_value\":", float_json))
     let span_start = expr_raw::corehir_expr_span_start(expr)
     out = concat(out, concat(",\"span_start\":", to_string(if span_start < 0 { 0 } else { span_start })))
