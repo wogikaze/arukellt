@@ -11,7 +11,10 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from proof.typed_corehir_convert import UnsupportedTypedCoreHir, convert_document  # noqa: E402
+from proof.typed_corehir_contract_convert import (  # noqa: E402
+    UnsupportedTypedCoreHir,
+    convert_document,
+)
 
 
 class TypedCoreHirConvertTests(unittest.TestCase):
@@ -39,6 +42,7 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         converted = convert_document(copy.deepcopy(self.source))
         function = converted["functions"][0]
         self.assertEqual(converted["schema"], "arukellt-verified-core")
+        self.assertEqual(converted["types"][0]["kind"], "unit")
         self.assertEqual(function["body"]["blocks"][0]["terminator"]["value"], {
             "kind": "local",
             "type_id": 1,
