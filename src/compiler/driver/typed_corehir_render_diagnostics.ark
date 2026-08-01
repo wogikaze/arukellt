@@ -8,6 +8,26 @@ use corehir::raw_record
 use driver::verified_core_render_primitives
 use driver::verified_core_render_safe
 
+fn typed_corehir_diagnostic_module_index(program: CoreHirRawProgram) -> i32 {
+    let modules = raw_record::raw_program_modules(program)
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let entry_decl = fn_info::fn_info_entry_main_decl_index(fn_infos)
+    if entry_decl < 0 {
+        return 0 - 1
+    }
+    let mut module_index = 0
+    while module_index < len(modules) {
+        let module = get_unchecked(modules, module_index)
+        let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
+        let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
+        if entry_decl >= decl_start && entry_decl < decl_end {
+            return module_index
+        }
+        module_index = module_index + 1
+    }
+    0 - 1
+}
+
 fn diagnose_first_untyped_expression(
     program: CoreHirRawProgram,
     function_index: i32,
@@ -49,16 +69,20 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     if len(modules) == 0 {
         return "TypedCoreHIR reject: no modules"
     }
-    let main_module = get_unchecked(modules, len(modules) - 1)
-    let main_decl_start = raw_dto::CoreHirModuleInfo_decl_start(main_module)
-    let main_decl_end = main_decl_start + raw_dto::CoreHirModuleInfo_decl_count(main_module)
+    let source_module_index = typed_corehir_diagnostic_module_index(program)
+    if source_module_index < 0 || source_module_index >= len(modules) {
+        return "TypedCoreHIR reject: entry main module not found"
+    }
+    let source_module = get_unchecked(modules, source_module_index)
+    let source_decl_start = raw_dto::CoreHirModuleInfo_decl_start(source_module)
+    let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
     let fn_infos = raw_decls::program_fn_infos(program)
-    let mut main_function_count = 0
+    let mut source_function_count = 0
     let mut function_index = 0
     while function_index < len(fn_infos) {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
-        if decl_index >= main_decl_start && decl_index < main_decl_end {
-            main_function_count = main_function_count + 1
+        if decl_index >= source_decl_start && decl_index < source_decl_end {
+            source_function_count = source_function_count + 1
             if !verified_core_render_safe::vcs_typed_function_exists(program, function_index) {
                 return concat("TypedCoreHIR reject: missing typed function index=", to_string(function_index))
             }
@@ -94,8 +118,8 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
         }
         function_index = function_index + 1
     }
-    if main_function_count == 0 {
-        return "TypedCoreHIR reject: no functions in main module"
+    if source_function_count == 0 {
+        return "TypedCoreHIR reject: no functions in entry source module"
     }
     "TypedCoreHIR reject: renderer returned empty after preconditions"
 }
