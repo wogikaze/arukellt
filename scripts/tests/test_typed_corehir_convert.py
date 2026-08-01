@@ -19,6 +19,22 @@ class TypedCoreHirConvertTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.source = json.loads((ROOT / "tests" / "proof" / "typed-corehir.json").read_text())
 
+    @staticmethod
+    def reference_type() -> dict[str, object]:
+        return {
+            "id": 3,
+            "kind": "reference",
+            "name": "String",
+            "value_type": "gc-ref",
+            "representation": {
+                "kind": "gc-ref",
+                "wasm": ["gc-ref"],
+                "nullable": True,
+                "size_bytes": 4,
+                "align_bytes": 4,
+            },
+        }
+
     def test_identity_converts_to_structured_verified_core(self) -> None:
         converted = convert_document(copy.deepcopy(self.source))
         function = converted["functions"][0]
@@ -70,29 +86,11 @@ class TypedCoreHirConvertTests(unittest.TestCase):
 
     def test_uncontracted_function_and_unused_reference_type_are_ignored(self) -> None:
         document = copy.deepcopy(self.source)
-        document["types"].append({
-            "id": 3,
-            "kind": "reference",
-            "name": "String",
-            "value_type": "gc-ref",
-            "representation": {
-                "kind": "gc-ref",
-                "wasm": ["gc-ref"],
-                "nullable": True,
-                "size_bytes": 4,
-                "align_bytes": 4,
-            },
-        })
+        document["types"].append(self.reference_type())
         helper = copy.deepcopy(document["functions"][0])
         helper["id"] = 1
         helper["name"] = "runtime_helper"
         helper["contracts"] = []
-        helper["signature"]["parameters"][0]["type_id"] = 3
-        helper["signature"]["return_type_id"] = 3
-        helper["locals"][0]["type_id"] = 3
-        for expression in helper["body"]["expressions"]:
-            expression["type_id"] = 3
-            expression["value_type"] = "gc-ref"
         document["functions"].append(helper)
 
         converted = convert_document(document)
@@ -101,24 +99,27 @@ class TypedCoreHirConvertTests(unittest.TestCase):
 
     def test_reachable_reference_type_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
-        document["types"].append({
-            "id": 3,
-            "kind": "reference",
-            "name": "String",
-            "value_type": "gc-ref",
-            "representation": {
-                "kind": "gc-ref",
-                "wasm": ["gc-ref"],
-                "nullable": True,
-                "size_bytes": 4,
-                "align_bytes": 4,
-            },
-        })
+        document["types"].append(self.reference_type())
         function = document["functions"][0]
         function["signature"]["parameters"][0]["type_id"] = 3
+        function["signature"]["return_type_id"] = 3
+        function["abi"]["parameters"][0] = {
+            "type_id": 3,
+            "passing": "value",
+            "wasm": ["gc-ref"],
+        }
+        function["abi"]["results"][0] = {
+            "type_id": 3,
+            "passing": "value",
+            "wasm": ["gc-ref"],
+        }
         function["locals"][0]["type_id"] = 3
-        function["body"]["expressions"][1]["type_id"] = 3
-        function["body"]["expressions"][1]["value_type"] = "gc-ref"
+        block, local, contract = function["body"]["expressions"]
+        block["type_id"] = 3
+        block["value_type"] = "gc-ref"
+        local["type_id"] = 3
+        local["value_type"] = "gc-ref"
+        contract["text"] = "=="
         with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unsupported reachable proof type"):
             convert_document(document)
 
