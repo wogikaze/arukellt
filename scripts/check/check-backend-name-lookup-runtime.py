@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile a GC-using fixture, enforce the ratchet, and record lookup counts."""
+"""Compile focused fixtures, enforce the ratchet, and isolate name lookups."""
 
 from __future__ import annotations
 
@@ -15,61 +15,89 @@ OUTPUT = ROOT / ".build" / "audit" / "backend-name-lookup.json"
 SUMMARY = re.compile(
     r"gc-layout-audit: summary typed=(\d+) name=(\d+) fallback=(\d+) conflict=(\d+)"
 )
+PROBE_FIXTURES = (
+    "tests/fixtures/hello_world.ark",
+    "tests/fixtures/structs/basic_struct.ark",
+    "tests/fixtures/enums/option_some.ark",
+    "tests/fixtures/stdlib_string/string_concat.ark",
+    "tests/fixtures/stdlib_vec/vec_get.ark",
+    "tests/fixtures/stdlib_hashmap/hashmap_basic.ark",
+)
 
 
-def main() -> int:
-    baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
-    fixture = ROOT / baseline["fixture"]
-    max_name = int(baseline["max_name_lookup_count"])
-
+def compile_fixture(relative: str) -> dict[str, object]:
+    fixture = ROOT / relative
+    if not fixture.is_file():
+        raise ValueError(f"probe fixture missing: {relative}")
     command = [
         str(ROOT / "scripts" / "run" / "arukellt-selfhost.sh"),
         "compile",
-        str(fixture.relative_to(ROOT)),
+        relative,
         "--opt-level",
         "2",
     ]
     result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"backend-name-lookup-runtime: FAIL: compile exited {result.returncode}", file=sys.stderr)
-        print(result.stdout, file=sys.stderr)
-        print(result.stderr, file=sys.stderr)
-        return 1
+        raise ValueError(
+            f"{relative}: compile exited {result.returncode}\n{result.stdout}\n{result.stderr}"
+        )
 
     totals = {"typed": 0, "name": 0, "fallback": 0, "conflict": 0}
     matches = list(SUMMARY.finditer(result.stdout + "\n" + result.stderr))
     if not matches:
-        print("backend-name-lookup-runtime: FAIL: gc-layout-audit summary missing", file=sys.stderr)
-        print(result.stdout, file=sys.stderr)
-        print(result.stderr, file=sys.stderr)
-        return 1
+        raise ValueError(
+            f"{relative}: gc-layout-audit summary missing\n{result.stdout}\n{result.stderr}"
+        )
     for match in matches:
         totals["typed"] += int(match.group(1))
         totals["name"] += int(match.group(2))
         totals["fallback"] += int(match.group(3))
         totals["conflict"] += int(match.group(4))
-
     if totals["fallback"] != 0 or totals["conflict"] != 0:
-        print(
-            "backend-name-lookup-runtime: FAIL: "
-            f"fallback={totals['fallback']} conflict={totals['conflict']}",
-            file=sys.stderr,
+        raise ValueError(
+            f"{relative}: fallback={totals['fallback']} conflict={totals['conflict']}"
         )
-        return 1
-    if totals["name"] > max_name:
-        print(
-            "backend-name-lookup-runtime: FAIL: "
-            f"name lookup regression {totals['name']} > {max_name}",
-            file=sys.stderr,
-        )
-        return 1
-
-    document = {
-        "schema": "arukellt-backend-name-lookup-audit",
-        "schema_version": 1,
-        "fixture": str(fixture.relative_to(ROOT)),
+    return {
+        "fixture": relative,
         "summary_lines": len(matches),
         "counts": totals,
+    }
+
+
+def main() -> int:
+    baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
+    baseline_fixture = str(baseline["fixture"])
+    max_name = int(baseline["max_name_lookup_count"])
+
+    ordered: list[str] = []
+    for fixture in (baseline_fixture, *PROBE_FIXTURES):
+        if fixture not in ordered:
+            ordered.append(fixture)
+    results = [compile_fixture(fixture) for fixture in ordered]
+    by_fixture = {result["fixture"]: result for result in results}
+    primary = by_fixture[baseline_fixture]
+    primary_counts = primary["counts"]
+    if not isinstance(primary_counts, dict):
+        raise TypeError("baseline counts must be an object")
+    if int(primary_counts["name"]) > max_name:
+        raise ValueError(
+            f"name lookup regression {primary_counts['name']} > {max_name}"
+        )
+
+    nonzero = [
+        {
+            "fixture": result["fixture"],
+            "name_lookup_count": result["counts"]["name"],
+        }
+        for result in results
+        if isinstance(result["counts"], dict) and int(result["counts"]["name"]) > 0
+    ]
+    document = {
+        "schema": "arukellt-backend-name-lookup-audit",
+        "schema_version": 2,
+        "baseline_fixture": baseline_fixture,
+        "fixtures": results,
+        "nonzero_name_lookup_fixtures": nonzero,
         "ratchet": {"max_name_lookup_count": max_name},
         "policy": {
             "fallback_must_be_zero": True,
@@ -81,9 +109,14 @@ def main() -> int:
     OUTPUT.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
         "backend-name-lookup-runtime: PASS: "
-        f"typed={totals['typed']} name={totals['name']}/{max_name} "
-        f"fallback={totals['fallback']} conflict={totals['conflict']}"
+        f"baseline_name={primary_counts['name']}/{max_name} "
+        f"nonzero_fixtures={len(nonzero)}"
     )
+    for item in nonzero:
+        print(
+            "backend-name-lookup-runtime: identity-probe: "
+            f"fixture={item['fixture']} name={item['name_lookup_count']}"
+        )
     return 0
 
 
