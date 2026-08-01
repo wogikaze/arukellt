@@ -1,9 +1,10 @@
-use parser::kinds as parser_kinds
 use typechecker::ast_access
+use typechecker::ast_expr_predicates
 use typechecker::body_params
 use typechecker::contract_fn_sig
 use typechecker::contract_type_access
 use typechecker::infer
+use typechecker::kinds
 use typechecker::name_display
 use typechecker::scope
 use typechecker::unify
@@ -14,7 +15,7 @@ fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
     let mut i = 0
     while i < count {
         let ann = ast_access::node_type_ann_at(node, i)
-        if ast_access::node_kind(ann) == parser_kinds::NK_PROOF_CONTRACT() {
+        if ast_access::node_kind(ann) == kinds::NK_PROOF_CONTRACT() {
             push(contracts, ann)
         }
         i = i + 1
@@ -29,8 +30,7 @@ fn proof_contract_scope(node: AstNode, sig: FnSig) -> LocalScope {
 }
 
 fn proof_expression_uses_result(node: AstNode) -> bool {
-    if ast_access::node_kind(node) == parser_kinds::NK_IDENT() &&
-       eq(ast_access::node_text(node), "result") {
+    if ast_expr_predicates::node_is_ident(node) && eq(ast_access::node_text(node), "result") {
         return true
     }
     let child_count = ast_access::node_child_count(node)
