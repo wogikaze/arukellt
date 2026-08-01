@@ -1,0 +1,16 @@
+name: Proof release gate
+
+on:
+  push:
+    tags: ["v*", "[0-9]*"]
+  workflow_dispatch:
+
+jobs:
+  proof-release-gate:
+    name: "Proof release gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate release proof policy
+        run: python3 scripts/check/check-proof-release.py release/proof-policy.json
