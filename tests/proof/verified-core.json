@@ -1,0 +1,102 @@
+{
+  "schema": "arukellt-verified-core",
+  "schema_version": 1,
+  "generator": "fixture",
+  "module": "identity",
+  "target_profile": {
+    "integer_model": "mathematical",
+    "overflow": "checked",
+    "floating_point": "unsupported",
+    "pointer_width": 32
+  },
+  "types": [
+    {
+      "id": 0,
+      "kind": "unit",
+      "name": "unit",
+      "representation": {
+        "wasm": [],
+        "nullable": false,
+        "size_bytes": 0,
+        "align_bytes": 1
+      }
+    },
+    {
+      "id": 1,
+      "kind": "integer",
+      "name": "i32",
+      "bits": 32,
+      "signed": true,
+      "representation": {
+        "wasm": ["i32"],
+        "nullable": false,
+        "size_bytes": 4,
+        "align_bytes": 4
+      }
+    },
+    {
+      "id": 2,
+      "kind": "bool",
+      "name": "bool",
+      "representation": {
+        "wasm": ["i32"],
+        "nullable": false,
+        "size_bytes": 4,
+        "align_bytes": 4
+      }
+    }
+  ],
+  "functions": [
+    {
+      "id": 0,
+      "name": "identity",
+      "signature": {
+        "parameters": [
+          {"name": "x", "type_id": 1}
+        ],
+        "return_type_id": 1
+      },
+      "abi": {
+        "calling_convention": "arukellt",
+        "parameters": [
+          {"type_id": 1, "passing": "value", "wasm": ["i32"]}
+        ],
+        "results": [
+          {"type_id": 1, "passing": "value", "wasm": ["i32"]}
+        ]
+      },
+      "locals": [
+        {"id": 0, "name": "x", "type_id": 1, "storage": "parameter"}
+      ],
+      "contracts": [
+        {
+          "kind": "ensures",
+          "result_name": "result",
+          "expression": {
+            "id": 0,
+            "kind": "ge",
+            "type_id": 2,
+            "operands": [
+              {"id": 1, "kind": "result", "type_id": 1},
+              {"id": 2, "kind": "local", "type_id": 1, "local_id": 0}
+            ]
+          }
+        }
+      ],
+      "body": {
+        "entry_block": 0,
+        "blocks": [
+          {
+            "id": 0,
+            "parameters": [],
+            "instructions": [],
+            "terminator": {
+              "kind": "return",
+              "value": {"kind": "local", "type_id": 1, "local_id": 0}
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
