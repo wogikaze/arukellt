@@ -50,7 +50,7 @@ def main() -> int:
     require(body_table, "contract_kinds: Vec<String>", "contract kind storage")
     require(body_roots, "corehir_build_expr(table, expression)", "typed CoreHIR contract lowering")
     require(renderer, '"{\\\"kind\\\":"', "contract JSON rendering")
-    require(renderer, '"expression_id"', "contract expression identity")
+    require(renderer, '\\"expression_id\\"', "contract expression identity")
     require(renderer, "tccr_collect_reachable", "contract reachability integration")
     require(entry, "typed_corehir_contract_render::render_function", "contract renderer entrypoint")
 
