@@ -292,38 +292,9 @@ fn vc_expr_kind_name(kind: i32) -> String {
     "unsupported"
 }
 
-fn vc_contains_id(ids: Vec<i32>, id: i32) -> bool {
-    let count = len(ids)
-    let mut i = 0
-    while i < count {
-        if ids[i] == id { return true }
-        i = i + 1
-    }
-    false
-}
-
-fn vc_collect_reachable(exprs: Vec<CoreHirExpr>, root: i32) -> Vec<i32> {
-    let reachable = Vec::new<i32>()
-    let stack = Vec::new<i32>()
-    push(stack, root)
-    while len(stack) > 0 {
-        let id = pop(stack).unwrap()
-        if vc_contains_id(reachable, id) {
-            continue
-        }
-        push(reachable, id)
-        let expr = get_unchecked(exprs, id)
-        let child_count = expr_raw::corehir_expr_child_count(expr)
-        let mut ci = 0
-        while ci < child_count {
-            push(stack, expr_raw::corehir_expr_child(expr, ci))
-            ci = ci + 1
-        }
-    }
-    reachable
-}
-
-fn vc_render_expression(exprs: Vec<CoreHirExpr>, expr_id: i32) -> String {
+fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
     let expr = get_unchecked(exprs, expr_id)
     let kind = expr_raw::corehir_expr_kind(expr)
     let value_type = expr_raw::corehir_expr_val_type(expr)
@@ -356,13 +327,11 @@ fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
     out
 }
 
-fn vc_render_function(
-    fn_infos: Vec<CoreHirFnInfo>,
-    typed_fns: Vec<TypedFn>,
-    table: CoreHirBodyTable,
-    exprs: Vec<CoreHirExpr>,
-    function_index: i32
-) -> VerifiedCoreRenderResult {
+fn vc_render_function(program: CoreHirRawProgram, function_index: i32) -> VerifiedCoreRenderResult {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let typed_fns = raw_types::program_typed_fns(program)
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
     let typed_index = fn_info::fn_info_typed_index_at(fn_infos, function_index, 0 - 1)
     if typed_index < 0 || typed_index >= len(typed_fns) {
         return VerifiedCoreRenderResult_err(concat("VerifiedCore missing TypedFn for function index ", to_string(function_index)))
@@ -375,7 +344,34 @@ fn vc_render_function(
     if root < 0 || root >= len(exprs) {
         return VerifiedCoreRenderResult_err(concat("VerifiedCore invalid body root for function index ", to_string(function_index)))
     }
-    let reachable = vc_collect_reachable(exprs, root)
+    let reachable = Vec::new<i32>()
+    let stack = Vec::new<i32>()
+    push(stack, root)
+    while len(stack) > 0 {
+        let id = pop(stack).unwrap()
+        let mut already_seen = false
+        let mut seen_i = 0
+        while seen_i < len(reachable) {
+            if reachable[seen_i] == id {
+                already_seen = true
+                seen_i = len(reachable)
+            } else {
+                seen_i = seen_i + 1
+            }
+        }
+        if !already_seen {
+            push(reachable, id)
+            if id >= 0 && id < len(exprs) {
+                let reachable_expr = get_unchecked(exprs, id)
+                let child_count = expr_raw::corehir_expr_child_count(reachable_expr)
+                let mut child_i = 0
+                while child_i < child_count {
+                    push(stack, expr_raw::corehir_expr_child(reachable_expr, child_i))
+                    child_i = child_i + 1
+                }
+            }
+        }
+    }
     let expr_count = len(exprs)
     let mut ri = 0
     while ri < len(reachable) {
@@ -470,9 +466,19 @@ fn vc_render_function(
     let mut first_expr = true
     let mut ei = 0
     while ei < expr_count {
-        if vc_contains_id(reachable, ei) {
+        let mut is_reachable = false
+        let mut reachable_i = 0
+        while reachable_i < len(reachable) {
+            if reachable[reachable_i] == ei {
+                is_reachable = true
+                reachable_i = len(reachable)
+            } else {
+                reachable_i = reachable_i + 1
+            }
+        }
+        if is_reachable {
             if !first_expr { out = concat(out, ",") }
-            out = concat(out, vc_render_expression(exprs, ei))
+            out = concat(out, vc_render_expression(program, ei))
             first_expr = false
         }
         ei = ei + 1
@@ -521,7 +527,7 @@ fn render_verified_core(program: CoreHirRawProgram, config: DriverConfig) -> Ver
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)
         if decl_index >= main_decl_start && decl_index < main_decl_end {
             if !first_function { out = concat(out, ",") }
-            let rendered = vc_render_function(fn_infos, typed_fns, table, exprs, fi)
+            let rendered = vc_render_function(program, fi)
             if !rendered.ok {
                 return rendered
             }
