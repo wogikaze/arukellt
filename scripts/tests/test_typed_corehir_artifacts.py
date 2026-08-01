@@ -18,9 +18,7 @@ from proof.typed_corehir import validate_document  # noqa: E402
 class TypedCoreHirArtifactTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        fixture = json.loads(
-            (ROOT / "tests" / "proof" / "verified-core-expression-arena.json").read_text()
-        )
+        fixture = json.loads((ROOT / "tests" / "proof" / "typed-corehir.json").read_text())
         fixture["schema"] = "arukellt-typed-corehir"
         cls.document = fixture
 
