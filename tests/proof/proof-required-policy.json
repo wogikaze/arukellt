@@ -1,0 +1,30 @@
+{
+  "schema": "arukellt-proof-release-policy",
+  "schema_version": 1,
+  "mode": "proof-required",
+  "hard_gates": {
+    "versioned_boundary_artifacts": true,
+    "explicit_backend_type_abi_layout": true,
+    "typed_verified_core_emission": true,
+    "optimizer_translation_validation": true,
+    "solver_trust_manifest": true,
+    "legacy_mutable_table_removed": true,
+    "proof_receipt_release_enforced": true
+  },
+  "artifacts": [
+    {
+      "label": "identity",
+      "subject": "verified-core.json",
+      "trust_manifest": "trust-manifest.json",
+      "receipt": "proof-receipt.json",
+      "solver_output": "solver-output.txt",
+      "translation_receipts": [
+        {
+          "receipt": "translation-receipt.json",
+          "source": "verified-core.json",
+          "target": "verified-core.json"
+        }
+      ]
+    }
+  ]
+}
