@@ -46,6 +46,7 @@ struct GcLayoutTable {
     entries: Vec<GcLayoutEntry>,
     next_id: i32,
     typed_lookup_count: i32,
+    name_lookup_count: i32,
     fallback_lookup_count: i32,
     conflict_count: i32,
 }
@@ -123,6 +124,7 @@ fn GcLayoutTable_new() -> GcLayoutTable {
         entries: Vec::new<GcLayoutEntry>(),
         next_id: 0,
         typed_lookup_count: 0,
+        name_lookup_count: 0,
         fallback_lookup_count: 0,
         conflict_count: 0
     }
@@ -132,12 +134,20 @@ fn gc_layout_table_observe_typed_lookup(table: GcLayoutTable) {
     table.typed_lookup_count = table.typed_lookup_count + 1
 }
 
+fn gc_layout_table_observe_name_lookup(table: GcLayoutTable) {
+    table.name_lookup_count = table.name_lookup_count + 1
+}
+
 fn gc_layout_table_observe_fallback_lookup(table: GcLayoutTable) {
     table.fallback_lookup_count = table.fallback_lookup_count + 1
 }
 
 fn gc_layout_table_typed_lookup_count(table: GcLayoutTable) -> i32 {
     table.typed_lookup_count
+}
+
+fn gc_layout_table_name_lookup_count(table: GcLayoutTable) -> i32 {
+    table.name_lookup_count
 }
 
 fn gc_layout_table_fallback_lookup_count(table: GcLayoutTable) -> i32 {

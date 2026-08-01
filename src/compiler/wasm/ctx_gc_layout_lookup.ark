@@ -228,6 +228,9 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_n
     let tid = gc_layout_type_id_for_name(tt, clone(type_name))
     let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, tid)
     if tid_result >= 0 {
+        gc_layout_table::gc_layout_table_observe_name_lookup(
+            ctx_record::SelfEmitCtx_gc_layout_table(ctx)
+        )
         return tid_result
     }
     // Phase 5: production must not apply gc_type_base+offset guesses. When the
