@@ -52,6 +52,10 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
+    if !checked_program::checked_program_corehir_body_table_is_admissible(program) {
+        mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
+        return errors_phase::corehir_body_table_admission_failed_result()
+    }
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
     let mir_lowered = lower::lower_checked_program(program, config, clone(source))
