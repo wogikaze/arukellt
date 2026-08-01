@@ -6,7 +6,19 @@ use driver::typechecker_dump_view
 use mir
 use lexer::names
 use lexer::token_state
-use corehir::proof_ir_render
+use corehir::body_table
+use corehir::fn_info
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_ast_literals
+use corehir::param
+use corehir::raw_decls
+use corehir::raw_record
+use corehir::raw_types
+use parser::kinds
+use typechecker::contract_proof
+use typechecker::contract_typed_fn
+use typechecker::name_display
 
 pub fn dump_ast(decls: Vec<AstNode>) {
     stdio::eprintln(String_from("=== AST ==="))
@@ -58,14 +70,523 @@ fn dump_proof_ir_if_enabled(
     if config_record::config_dump_proof_ir(config) {
         let header = String_from("=== PROOF IR ===")
         stdio::eprintln(header)
-        let proof_ir_output: String = proof_ir_render::render_proof_ir(
+        let proof_ir_output = proof_render_ir(
             program,
             checked_contracts,
             config_record::config_source_file(config)
         )
-        ()
+        stdio::eprintln(proof_ir_output)
     }
     return
+}
+
+fn proof_render_ir(
+    program: CoreHirRawProgram,
+    checked_contracts: Vec<CheckedProofContract>,
+    source_file: String
+) -> String {
+    let table = raw_record::raw_program_body_table(program)
+    proof_render_document(
+        raw_decls::program_fn_infos(program),
+        raw_types::program_typed_fns(program),
+        body_table::corehir_body_table_fn_body_roots(table),
+        checked_contracts,
+        source_file
+    )
+}
+
+fn proof_render_document(
+    fn_infos: Vec<CoreHirFnInfo>,
+    typed_fns: Vec<TypedFn>,
+    fn_body_roots: Vec<i32>,
+    contracts: Vec<CheckedProofContract>,
+    source_file: String
+) -> String {
+    let file_name = if len(clone(source_file)) > 0 {
+        source_file
+    } else {
+        String_from("<memory>")
+    }
+    let mut out = String_from(
+        "{\"schema\":\"arukellt-proof-ir\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":"
+    )
+    out = concat(out, proof_quote_json(clone(file_name)))
+    out = concat(out, String_from(",\"functions\":["))
+    let mut first = true
+    let fn_count = len(fn_infos)
+    let mut function_index = 0
+    while function_index < fn_count {
+        if proof_function_contract_count(contracts, function_index) > 0 {
+            if !first {
+                out = concat(out, String_from(","))
+            }
+            out = concat(
+                out,
+                proof_render_function(
+                    fn_infos,
+                    typed_fns,
+                    fn_body_roots,
+                    contracts,
+                    function_index,
+                    clone(file_name)
+                )
+            )
+            first = false
+        }
+        function_index = function_index + 1
+    }
+    concat(out, String_from("]}"))
+}
+
+fn proof_function_contract_count(
+    contracts: Vec<CheckedProofContract>,
+    function_index: i32
+) -> i32 {
+    let count = len(contracts)
+    let mut matched = 0
+    let mut i = 0
+    while i < count {
+        let contract = get_unchecked(contracts, i)
+        if contract_proof::CheckedProofContract_function_index(contract) == function_index {
+            matched = matched + 1
+        }
+        i = i + 1
+    }
+    matched
+}
+
+fn proof_render_function(
+    fn_infos: Vec<CoreHirFnInfo>,
+    typed_fns: Vec<TypedFn>,
+    fn_body_roots: Vec<i32>,
+    contracts: Vec<CheckedProofContract>,
+    function_index: i32,
+    source_file: String
+) -> String {
+    let mut name = fn_info::fn_info_qualified_name_at(
+        fn_infos,
+        function_index,
+        String_new()
+    )
+    if len(clone(name)) == 0 {
+        name = fn_info::fn_info_name_at(
+            fn_infos,
+            function_index,
+            String_from("<unknown>")
+        )
+    }
+    let typed_index = fn_info::fn_info_typed_index_at(
+        fn_infos,
+        function_index,
+        0 - 1
+    )
+    let mut out = concat(String_from("{\"id\":"), to_string(function_index))
+    out = concat(
+        out,
+        concat(String_from(",\"name\":"), proof_quote_json(name))
+    )
+    out = concat(out, String_from(",\"parameters\":["))
+    out = concat(
+        out,
+        proof_render_parameters(fn_infos, typed_fns, function_index, typed_index)
+    )
+    out = concat(
+        out,
+        concat(
+            String_from("],\"return_type\":"),
+            proof_quote_json(proof_return_type_name(typed_fns, typed_index))
+        )
+    )
+    out = concat(out, String_from(",\"contracts\":["))
+    out = concat(out, proof_render_contracts(contracts, function_index, source_file))
+    let body_root = if function_index >= 0 && function_index < len(fn_body_roots) {
+        get_unchecked(fn_body_roots, function_index)
+    } else {
+        0 - 1
+    }
+    out = concat(
+        out,
+        concat(
+            String_from("],\"body\":{\"kind\":\"opaque\",\"corehir_body_id\":"),
+            concat(to_string(body_root), String_from("}}"))
+        )
+    )
+    out
+}
+
+fn proof_render_parameters(
+    fn_infos: Vec<CoreHirFnInfo>,
+    typed_fns: Vec<TypedFn>,
+    function_index: i32,
+    typed_index: i32
+) -> String {
+    let count = fn_info::fn_info_param_count_at(fn_infos, function_index, 0)
+    let mut out = String_new()
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        let parameter = fn_info::fn_info_param_at(fn_infos, function_index, i)
+        out = concat(
+            out,
+            concat(
+                String_from("{\"name\":"),
+                proof_quote_json(param::param_name(parameter))
+            )
+        )
+        out = concat(
+            out,
+            concat(
+                String_from(",\"type\":"),
+                proof_quote_json(
+                    proof_parameter_type_name(parameter, typed_fns, typed_index, i)
+                )
+            )
+        )
+        out = concat(out, String_from("}"))
+        i = i + 1
+    }
+    out
+}
+
+fn proof_parameter_type_name(
+    parameter: CoreHirParam,
+    typed_fns: Vec<TypedFn>,
+    typed_index: i32,
+    param_index: i32
+) -> String {
+    let stored = param::param_type_name(parameter)
+    if len(clone(stored)) > 0 {
+        return stored
+    }
+    if typed_index >= 0 && typed_index < len(typed_fns) {
+        let typed_fn = get_unchecked(typed_fns, typed_index)
+        let param_types = contract_typed_fn::TypedFn_param_types(typed_fn)
+        if param_index >= 0 && param_index < len(param_types) {
+            return name_display::type_display_name(get_unchecked(param_types, param_index))
+        }
+    }
+    String_from("unknown")
+}
+
+fn proof_return_type_name(typed_fns: Vec<TypedFn>, typed_index: i32) -> String {
+    if typed_index >= 0 && typed_index < len(typed_fns) {
+        let typed_fn = get_unchecked(typed_fns, typed_index)
+        return name_display::type_display_name(
+            contract_typed_fn::TypedFn_return_type(typed_fn)
+        )
+    }
+    String_from("unknown")
+}
+
+fn proof_render_contracts(
+    contracts: Vec<CheckedProofContract>,
+    function_index: i32,
+    source_file: String
+) -> String {
+    let count = len(contracts)
+    let mut out = String_new()
+    let mut first = true
+    let mut i = 0
+    while i < count {
+        let contract = get_unchecked(contracts, i)
+        if contract_proof::CheckedProofContract_function_index(contract) == function_index {
+            if !first {
+                out = concat(out, String_from(","))
+            }
+            out = concat(out, proof_render_contract(contract, clone(source_file)))
+            first = false
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn proof_render_contract(
+    contract: CheckedProofContract,
+    source_file: String
+) -> String {
+    let kind = contract_proof::CheckedProofContract_kind(contract)
+    let expression = proof_render_ast(
+        contract_proof::CheckedProofContract_condition(contract)
+    )
+    let start = contract_proof::CheckedProofContract_span_start(contract)
+    let mut out = concat(
+        String_from("{\"kind\":"),
+        proof_quote_json(clone(kind))
+    )
+    out = concat(
+        out,
+        concat(
+            String_from(",\"expression\":"),
+            proof_quote_json(expression)
+        )
+    )
+    if eq(clone(kind), String_from("ensures")) {
+        out = concat(
+            out,
+            concat(
+                String_from(",\"result_name\":"),
+                proof_quote_json(
+                    contract_proof::CheckedProofContract_result_name(contract)
+                )
+            )
+        )
+    }
+    out = concat(
+        out,
+        concat(
+            String_from(",\"span\":{\"file\":"),
+            proof_quote_json(source_file)
+        )
+    )
+    out = concat(out, concat(String_from(",\"start\":"), to_string(start)))
+    out = concat(
+        out,
+        concat(
+            String_from(",\"end\":"),
+            concat(to_string(start), String_from("}}"))
+        )
+    )
+    out
+}
+
+fn proof_render_ast(node: AstNode) -> String {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    let atom = proof_render_atom(node, kind)
+    if len(atom) > 0 {
+        return atom
+    }
+    if kind == kinds::NK_BINARY() {
+        return proof_render_binary(node)
+    }
+    if kind == kinds::NK_UNARY() {
+        return proof_render_unary(node)
+    }
+    if kind == kinds::NK_CALL() {
+        return proof_render_named_children(
+            String_from("call"),
+            frontend_ast_identity::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == kinds::NK_METHOD_CALL() {
+        return proof_render_named_children(
+            String_from("method-call"),
+            frontend_ast_identity::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == kinds::NK_FIELD_ACCESS() {
+        return proof_render_named_children(
+            String_from("field"),
+            frontend_ast_identity::corehir_node_text(node),
+            node
+        )
+    }
+    if kind == kinds::NK_INDEX() {
+        return proof_render_children(String_from("index"), node)
+    }
+    concat(String_from("(unsupported "), concat(to_string(kind), String_from(")")))
+}
+
+fn proof_render_atom(node: AstNode, kind: i32) -> String {
+    if kind == kinds::NK_IDENT() {
+        return concat(
+            String_from("(ident "),
+            concat(
+                proof_quote_json(frontend_ast_identity::corehir_node_text(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == kinds::NK_PATH() {
+        return concat(
+            String_from("(path "),
+            concat(
+                proof_quote_json(frontend_ast_identity::corehir_node_text(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == kinds::NK_INT_LIT() {
+        return concat(
+            String_from("(int "),
+            concat(
+                to_string(frontend_ast_literals::corehir_node_int_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == kinds::NK_FLOAT_LIT() {
+        return concat(
+            String_from("(float "),
+            concat(
+                to_string(frontend_ast_literals::corehir_node_float_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == kinds::NK_STRING_LIT() {
+        return concat(
+            String_from("(string "),
+            concat(
+                proof_quote_json(frontend_ast_identity::corehir_node_text(node)),
+                String_from(")")
+            )
+        )
+    }
+    if kind == kinds::NK_BOOL_LIT() {
+        let value = if frontend_ast_literals::corehir_node_int_val(node) == 0 {
+            String_from("false")
+        } else {
+            String_from("true")
+        }
+        return concat(String_from("(bool "), concat(value, String_from(")")))
+    }
+    if kind == kinds::NK_CHAR_LIT() {
+        return concat(
+            String_from("(char "),
+            concat(
+                to_string(frontend_ast_literals::corehir_node_int_val(node)),
+                String_from(")")
+            )
+        )
+    }
+    String_new()
+}
+
+fn proof_render_binary(node: AstNode) -> String {
+    if frontend_ast_children::corehir_node_child_count(node) < 2 {
+        return String_from("(invalid-binary)")
+    }
+    let left = proof_render_ast(
+        frontend_ast_children::corehir_node_child_at(node, 0)
+    )
+    let right = proof_render_ast(
+        frontend_ast_children::corehir_node_child_at(node, 1)
+    )
+    concat(
+        String_from("("),
+        concat(
+            proof_binary_op_name(frontend_ast_literals::corehir_node_op(node)),
+            concat(
+                String_from(" "),
+                concat(left, concat(String_from(" "), concat(right, String_from(")"))))
+            )
+        )
+    )
+}
+
+fn proof_render_unary(node: AstNode) -> String {
+    if frontend_ast_children::corehir_node_child_count(node) < 1 {
+        return String_from("(invalid-unary)")
+    }
+    let operand = proof_render_ast(
+        frontend_ast_children::corehir_node_child_at(node, 0)
+    )
+    concat(
+        String_from("("),
+        concat(
+            proof_unary_op_name(frontend_ast_literals::corehir_node_op(node)),
+            concat(String_from(" "), concat(operand, String_from(")")))
+        )
+    )
+}
+
+fn proof_render_named_children(head: String, name: String, node: AstNode) -> String {
+    let mut out = concat(
+        String_from("("),
+        concat(head, concat(String_from(" "), proof_quote_json(name)))
+    )
+    let count = frontend_ast_children::corehir_node_child_count(node)
+    let mut i = 0
+    while i < count {
+        out = concat(
+            out,
+            concat(
+                String_from(" "),
+                proof_render_ast(frontend_ast_children::corehir_node_child_at(node, i))
+            )
+        )
+        i = i + 1
+    }
+    concat(out, String_from(")"))
+}
+
+fn proof_render_children(head: String, node: AstNode) -> String {
+    let mut out = concat(String_from("("), head)
+    let count = frontend_ast_children::corehir_node_child_count(node)
+    let mut i = 0
+    while i < count {
+        out = concat(
+            out,
+            concat(
+                String_from(" "),
+                proof_render_ast(frontend_ast_children::corehir_node_child_at(node, i))
+            )
+        )
+        i = i + 1
+    }
+    concat(out, String_from(")"))
+}
+
+fn proof_binary_op_name(op: i32) -> String {
+    if op == 1 { return String_from("add") }
+    if op == 2 { return String_from("sub") }
+    if op == 3 { return String_from("mul") }
+    if op == 4 { return String_from("div") }
+    if op == 5 { return String_from("mod") }
+    if op == 6 { return String_from("eq") }
+    if op == 7 { return String_from("ne") }
+    if op == 8 { return String_from("lt") }
+    if op == 9 { return String_from("le") }
+    if op == 10 { return String_from("gt") }
+    if op == 11 { return String_from("ge") }
+    if op == 12 { return String_from("and") }
+    if op == 13 { return String_from("or") }
+    if op == 14 { return String_from("bit-and") }
+    if op == 15 { return String_from("bit-or") }
+    if op == 16 { return String_from("bit-xor") }
+    if op == 17 { return String_from("shl") }
+    if op == 18 { return String_from("shr") }
+    concat(String_from("binary-op-"), to_string(op))
+}
+
+fn proof_unary_op_name(op: i32) -> String {
+    if op == 1 { return String_from("neg") }
+    if op == 2 { return String_from("not") }
+    if op == 3 { return String_from("bit-not") }
+    concat(String_from("unary-op-"), to_string(op))
+}
+
+fn proof_json_escape(s: String) -> String {
+    let n = len(s)
+    let mut out = String_new()
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 {
+            out = concat(out, String_from("\\\""))
+        } else if c == 92 {
+            out = concat(out, String_from("\\\\"))
+        } else if c == 10 {
+            out = concat(out, String_from("\\n"))
+        } else if c == 13 {
+            out = concat(out, String_from("\\r"))
+        } else if c == 9 {
+            out = concat(out, String_from("\\t"))
+        } else {
+            out = concat(out, substring(clone(s), i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn proof_quote_json(s: String) -> String {
+    concat(String_from("\""), concat(proof_json_escape(s), String_from("\"")))
 }
 
 fn dump_mir_if_enabled(config: DriverConfig, mir_module: MirModule) {
