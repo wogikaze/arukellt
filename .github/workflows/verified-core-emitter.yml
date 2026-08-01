@@ -34,7 +34,7 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build current selfhost stage 2
+      - name: Build current selfhost stage 2 runtime
         run: |
           python3 - <<'PY'
           import sys
@@ -46,11 +46,14 @@ jobs:
           path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
           if path is None:
               raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
           print(f"typed-corehir-s2: PASS: path={path} elapsed={elapsed:.3f}s")
           PY
-          test -s .build/selfhost/arukellt-s2.wasm
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
 
       - name: Validate emitted TypedCoreHIR
         env:
-          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2.wasm
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-typed-corehir-emission.py
