@@ -3,19 +3,19 @@ use component::naming
 use mir::value_types
 
 fn comp_function_is_tuple_i32_i32_to_i32_export(f: MirFunction) -> bool {
-    comp_function_is_tuple_param_to_named_export(f, String_from("Tuple:i32:i32"), String_from("i32"), true)
+    comp_function_is_tuple_param_to_named_export(f, "Tuple:i32:i32", "i32", true)
 }
 
 fn comp_function_is_tuple_i32_bool_to_i32_export(f: MirFunction) -> bool {
-    comp_function_is_tuple_param_to_named_export(f, String_from("Tuple:i32:bool"), String_from("i32"), false)
+    comp_function_is_tuple_param_to_named_export(f, "Tuple:i32:bool", "i32", false)
 }
 
 fn comp_function_is_tuple_bool_bool_to_i32_export(f: MirFunction) -> bool {
-    comp_function_is_tuple_param_to_named_export(f, String_from("Tuple:bool:bool"), String_from("i32"), false)
+    comp_function_is_tuple_param_to_named_export(f, "Tuple:bool:bool", "i32", false)
 }
 
 fn comp_function_is_tuple_i32_i32_to_tuple_i32_i32_export(f: MirFunction) -> bool {
-    comp_function_is_tuple_param_to_abi_tuple_export(f, String_from("Tuple:i32:i32"), true)
+    comp_function_is_tuple_param_to_abi_tuple_export(f, "Tuple:i32:i32", true)
 }
 
 fn comp_function_is_tuple_param_to_named_export(f: MirFunction, param_type_name: String, return_type_name: String, allow_abi_tuple_param: bool) -> bool {
@@ -29,7 +29,7 @@ fn comp_function_is_tuple_param_to_named_export(f: MirFunction, param_type_name:
         return false
     }
     let actual_param_type_name = export_function_view::export_function_param_type_name(f, 0)
-    if allow_abi_tuple_param && eq(clone(actual_param_type_name), String_from("")) {
+    if allow_abi_tuple_param && eq(clone(actual_param_type_name), "") {
         return true
     }
     eq(actual_param_type_name, param_type_name)
@@ -42,14 +42,14 @@ fn comp_function_is_tuple_param_to_abi_tuple_export(f: MirFunction, param_type_n
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "") {
         return false
     }
     if export_function_view::export_function_return_type(f) != value_types::VT_I32() {
         return false
     }
     let actual_param_type_name = export_function_view::export_function_param_type_name(f, 0)
-    if allow_abi_tuple_param && eq(clone(actual_param_type_name), String_from("")) {
+    if allow_abi_tuple_param && eq(clone(actual_param_type_name), "") {
         return true
     }
     eq(actual_param_type_name, param_type_name)
@@ -62,7 +62,7 @@ fn comp_function_is_i32_i32_to_tuple_i32_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 2 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "") {
         return false
     }
     export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() &&
@@ -77,7 +77,7 @@ fn comp_function_is_i64_i64_to_tuple_i64_i64_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 2 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "") {
         return false
     }
     export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I64() &&

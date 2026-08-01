@@ -9,7 +9,7 @@ fn ModInfo_new(name: String, decl_start: i32, decl_count: i32) -> ModInfo {
 }
 
 fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, total_decl_count: i32) -> Vec<ModInfo> {
-    let infos = Vec_new_ModInfo()
+    let infos = Vec::new<ModInfo>()
     let mut decl_offset = 0
     let module_count = len(module_names)
     let mut i = 0
@@ -27,9 +27,9 @@ fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, t
 }
 
 fn main() -> i32 {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     push(names, String_from("a"))
-    let counts = Vec_new_i32()
+    let counts = Vec::new<i32>()
     push(counts, 1)
     let infos = build_module_infos(names, counts, 1)
     len(infos)

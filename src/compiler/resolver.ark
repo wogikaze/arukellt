@@ -72,5 +72,5 @@ pub fn count_user_symbols(ctx: ResolveCtx) -> i32 {
 }
 
 fn main() {
-    stdio::println(String_from("Resolver module loaded."))
+    stdio::println("Resolver module loaded.")
 }

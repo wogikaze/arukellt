@@ -12,12 +12,12 @@ struct HirModule {
 
 fn HirModule_new() -> HirModule {
     HirModule {
-        functions: Vec_new_HirFunction(),
-        structs: Vec_new_HirStructDef(),
-        enums: Vec_new_HirEnumDef(),
-        traits: Vec_new_HirTraitDecl(),
-        impls: Vec_new_HirImplBlock(),
-        imports: Vec_new_String()
+        functions: Vec::new<HirFunction>(),
+        structs: Vec::new<HirStructDef>(),
+        enums: Vec::new<HirEnumDef>(),
+        traits: Vec::new<HirTraitDecl>(),
+        impls: Vec::new<HirImplBlock>(),
+        imports: Vec::new<String>()
     }
 }
 

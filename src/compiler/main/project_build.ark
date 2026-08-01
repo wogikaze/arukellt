@@ -1,4 +1,5 @@
 use std::host::fs
+use std::toml
 use std::host::process
 use std::host::stdio
 use driver::config_record
@@ -146,10 +147,10 @@ fn build_manifest_path(opts: CliOptions) -> String {
 
 fn parse_project_manifest(content: String) -> ProjectBuildManifest {
     ProjectBuildManifest_new(
-        project_run::find_toml_value(clone(content), String_from("name")),
-        project_run::find_toml_value(clone(content), String_from("version")),
-        project_run::find_toml_value(clone(content), String_from("path")),
-        project_run::find_toml_value(clone(content), String_from("entry"))
+        toml::find_toml_value(clone(content), String_from("name")),
+        toml::find_toml_value(clone(content), String_from("version")),
+        toml::find_toml_value(clone(content), String_from("path")),
+        toml::find_toml_value(clone(content), String_from("entry"))
     )
 }
 

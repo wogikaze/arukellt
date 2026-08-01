@@ -43,7 +43,7 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
     if line_begin > 0 {
         line_begin = line_begin - 1
     }
-    let mut docs = Vec_new_String()
+    let mut docs = Vec::new<String>()
     let mut pos = line_begin
     while pos >= 0 {
         let line_end = if pos == line_begin { decl_start } else { pos + 1 }
@@ -70,7 +70,7 @@ fn doc_scan_above_offset(text: String, decl_start: i32) -> String {
     let mut out = get_unchecked(docs, n - 1)
     let mut i = n - 2
     while i >= 0 {
-        out = concat(concat(get_unchecked(docs, i), String_from("\n")), out)
+        out = concat(concat(get_unchecked(docs, i), "\n"), out)
         i = i - 1
     }
     out

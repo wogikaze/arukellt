@@ -120,7 +120,7 @@ fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
 
 fn GcLayoutTable_new() -> GcLayoutTable {
     GcLayoutTable {
-        entries: Vec_new_GcLayoutEntry(),
+        entries: Vec::new<GcLayoutEntry>(),
         next_id: 0,
         typed_lookup_count: 0,
         fallback_lookup_count: 0,
@@ -172,7 +172,7 @@ fn gc_layout_table_register_key(
         key: key,
         wasm_ref_type: wasm_ref_type,
         struct_type_idx: struct_type_idx,
-        field_layouts: Vec_new_FieldLayout()
+        field_layouts: Vec::new<FieldLayout>()
     }
     push(table.entries, entry)
     id
@@ -214,7 +214,7 @@ fn gc_layout_table_entry_by_key(table: GcLayoutTable, key: GcLayoutKey) -> GcLay
         key: GcLayoutKey_new(type_id::TYPE_ID_INVALID(), GcMemberKey_aggregate()),
         wasm_ref_type: WasmRefType_new(0, 1),
         struct_type_idx: 0 - 1,
-        field_layouts: Vec_new_FieldLayout()
+        field_layouts: Vec::new<FieldLayout>()
     }
 }
 
@@ -239,55 +239,55 @@ fn gc_layout_entry_wasm_ref_type(entry: GcLayoutEntry) -> WasmRefType {
 }
 
 fn gc_layout_table_ref_offset_for_type_name(name: String, gc_type_base: i32) -> i32 {
-    if eq(clone(name), String_from("String")) || eq(clone(name), String_from("string")) {
+    if eq(clone(name), "String") || eq(clone(name), "string") {
         return gc_type_base + 0
     }
-    if starts_with(clone(name), String_from("vec:String")) {
+    if starts_with(clone(name), "vec:String") {
         return gc_type_base + 19
     }
-    if starts_with(clone(name), String_from("vec:v128")) || starts_with(clone(name), String_from("vec:V128")) {
+    if starts_with(clone(name), "vec:v128") || starts_with(clone(name), "vec:V128") {
         return gc_type_base + 21
     }
-    if starts_with(clone(name), String_from("vec:i64")) || starts_with(clone(name), String_from("vec:I64")) {
+    if starts_with(clone(name), "vec:i64") || starts_with(clone(name), "vec:I64") {
         return gc_type_base + 22
     }
-    if starts_with(clone(name), String_from("vec:f64")) || starts_with(clone(name), String_from("vec:F64")) {
+    if starts_with(clone(name), "vec:f64") || starts_with(clone(name), "vec:F64") {
         return gc_type_base + 23
     }
-    if starts_with(clone(name), String_from("vec:")) {
+    if starts_with(clone(name), "vec:") {
         return gc_type_base + 10
     }
     // Hashmap type names use abbreviated format: hashmap:si32, hashmap:i32str, etc.
-    if starts_with(clone(name), String_from("hashmap:i32str")) {
+    if starts_with(clone(name), "hashmap:i32str") {
         return gc_type_base + 17
     }
-    if starts_with(clone(name), String_from("hashmap:i32fn")) {
+    if starts_with(clone(name), "hashmap:i32fn") {
         return gc_type_base + 30
     }
-    if starts_with(clone(name), String_from("hashmap:strfn")) {
+    if starts_with(clone(name), "hashmap:strfn") {
         return gc_type_base + 31
     }
-    if starts_with(clone(name), String_from("hashmap:si32")) {
+    if starts_with(clone(name), "hashmap:si32") {
         return gc_type_base + 16
     }
-    if starts_with(clone(name), String_from("hashmap:strstr")) {
+    if starts_with(clone(name), "hashmap:strstr") {
         return gc_type_base + 18
     }
-    if starts_with(clone(name), String_from("hashmap:i32i32")) {
+    if starts_with(clone(name), "hashmap:i32i32") {
         return gc_type_base + 10
     }
-    if starts_with(clone(name), String_from("hashmap:")) {
+    if starts_with(clone(name), "hashmap:") {
         return gc_type_base + 16
     }
-    if starts_with(clone(name), String_from("enum:")) ||
-    starts_with(clone(name), String_from("option:")) ||
-    starts_with(clone(name), String_from("result:")) ||
-    starts_with(clone(name), String_from("Option_")) ||
-    starts_with(clone(name), String_from("Option:")) ||
-    starts_with(clone(name), String_from("Option<")) ||
-    starts_with(clone(name), String_from("Result_")) ||
-    starts_with(clone(name), String_from("Result:")) ||
-    starts_with(clone(name), String_from("Result<")) {
+    if starts_with(clone(name), "enum:") ||
+    starts_with(clone(name), "option:") ||
+    starts_with(clone(name), "result:") ||
+    starts_with(clone(name), "Option_") ||
+    starts_with(clone(name), "Option:") ||
+    starts_with(clone(name), "Option<") ||
+    starts_with(clone(name), "Result_") ||
+    starts_with(clone(name), "Result:") ||
+    starts_with(clone(name), "Result<") {
         return gc_type_base + 14
     }
     // Unknown type — return -1 so caller knows there's no mapping.
@@ -305,7 +305,8 @@ fn gc_layout_table_register_type_entry(table: GcLayoutTable, entry: TypeEntry, g
     kind != kinds::TYPE_KIND_OPTION() &&
     kind != kinds::TYPE_KIND_RESULT() &&
     kind != kinds::TYPE_KIND_HASHMAP() &&
-    kind != kinds::TYPE_KIND_HASHSET() {
+    kind != kinds::TYPE_KIND_HASHSET() &&
+    kind != kinds::TYPE_KIND_ENUM() {
         return GC_LAYOUT_ID_INVALID()
     }
     let name = type_table::type_entry_name(entry)
@@ -361,12 +362,12 @@ fn gc_layout_table_register_struct_names(table: GcLayoutTable, tt: TypeTable, st
         }
         let sname = clone(get_unchecked(struct_names, i))
         let type_idx = get_unchecked(struct_type_map, i)
-        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec_new_TypeId())
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), sname, Vec::new<TypeId>())
         let mut found_tid = tid
         if !type_id::type_id_is_valid(found_tid) {
             let bare = gc_layout_table_bare_suffix(sname)
             if len(bare) > 0 && !eq(clone(bare), clone(sname)) {
-                found_tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), bare, Vec_new_TypeId())
+                found_tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), bare, Vec::new<TypeId>())
             }
         }
         if type_id::type_id_is_valid(found_tid) {
@@ -391,11 +392,13 @@ fn gc_layout_table_register_enum_variant_names(table: GcLayoutTable, tt: TypeTab
         }
         let vname = clone(get_unchecked(variant_names, i))
         let type_idx = get_unchecked(variant_type_map, i)
-        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec_new_TypeId())
+        let tid = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), vname, Vec::new<TypeId>())
         if type_id::type_id_is_valid(tid) {
+            // Prefer aggregate so type_name → TypeId emit lookup hits the
+            // concrete variant type index (Phase 5 typed spine).
             gc_layout_table_register_key(
                 table,
-                GcLayoutKey_new(tid, GcMemberKey_enum_variant(i)),
+                GcLayoutKey_new(tid, GcMemberKey_aggregate()),
                 WasmRefType_new(type_idx, 1),
                 type_idx
             )

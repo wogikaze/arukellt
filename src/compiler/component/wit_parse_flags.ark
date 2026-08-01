@@ -24,13 +24,13 @@ fn wit_trim_ws(text: String) -> String {
 }
 
 fn wit_is_flags_type(text: String) -> bool {
-    starts_with(wit_trim_ws(text), String_from("flags"))
+    starts_with(wit_trim_ws(text), "flags")
 }
 
 fn wit_flags_member_names(text: String) -> Vec<String> {
-    let names = Vec_new_String()
-    let open = index_of(text, String_from("{"))
-    let close = index_of(text, String_from("}"))
+    let names = Vec::new<String>()
+    let open = index_of(text, "{")
+    let close = index_of(text, "}")
     if open < 0 || close <= open {
         return names
     }
@@ -59,12 +59,12 @@ fn wit_flags_member_names(text: String) -> Vec<String> {
 }
 
 fn wit_flags_type_text(member_names: Vec<String>) -> String {
-    let mut out = String_from("flags {")
+    let mut out = "flags {"
     for i in 0..len(member_names) {
         if i > 0 {
-            out = text::builder_append(out, String_from(", "))
+            out = text::builder_append(out, ", ")
         }
         out = text::builder_append(out, get_unchecked(member_names, i))
     }
-    concat(out, String_from("}"))
+    concat(out, "}")
 }

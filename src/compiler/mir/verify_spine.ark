@@ -31,7 +31,7 @@ fn verify_one_mono_inv9(registry: SignatureRegistry, mono_table: MonoInstanceTab
     if mono_returns != sig_returns {
         mir_verify_report_add_w007(report)
         if verbose {
-            mir_verify_report_push_detail(report, String_from("W007 mono-sig-return-count-mismatch"))
+            mir_verify_report_push_detail(report, "W007 mono-sig-return-count-mismatch")
         }
     }
 }

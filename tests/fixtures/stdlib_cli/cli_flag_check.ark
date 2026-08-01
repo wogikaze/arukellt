@@ -8,7 +8,7 @@ fn main() {
         Option::Some(s) => stdio::println(s),
         None => stdio::println("no arg"),
     }
-    let args = Vec_new_String()
+    let args = Vec::new<String>()
     push(args, "--debug")
     push(args, "--output")
     push(args, "out.txt")
@@ -18,7 +18,7 @@ fn main() {
         Option::Some(v) => stdio::println(v),
         None => stdio::println("not found"),
     }
-    let args2 = Vec_new_String()
+    let args2 = Vec::new<String>()
     push(args2, "--name=world")
     match cli::option(args2, "--name") {
         Option::Some(v) => stdio::println(v),

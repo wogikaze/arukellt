@@ -10,7 +10,7 @@ fn parse_literal_pattern(p: Parser, t: Token) -> AstNode {
     let kind = token_state::Token_kind(t)
     if kind == tokens::TK_UNDERSCORE() {
         p.pos = p.pos + 1
-        return core_ast_factory::AstNode_leaf(kinds::NK_PAT_WILDCARD(), String_from("_"), core_api_expect::tok_span(t))
+        return core_ast_factory::AstNode_leaf(kinds::NK_PAT_WILDCARD(), "_", core_api_expect::tok_span(t))
     }
     if kind == tokens::TK_INT() {
         p.pos = p.pos + 1

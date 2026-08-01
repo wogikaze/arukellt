@@ -10,7 +10,7 @@ fn emit_string_abi_alias_section(out: writer_core::ComponentWriter, export_name:
     writer_core::comp_emit_leb128_u(alias_sec, 3)
     export_sections_entries::emit_core_memory_alias_entry(alias_sec, 2)
     export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, export_name)
-    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, String_from("realloc"))
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, "realloc")
     writer_core::comp_emit_section(out, 6, alias_sec)
 }
 
@@ -21,9 +21,9 @@ fn emit_string_abi_func_type_section(out: writer_core::ComponentWriter, result_w
 fn emit_string_abi_func_type_section_with_param(out: writer_core::ComponentWriter, param_wit_type: i32, result_wit_type: i32) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, param_wit_type)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_wit_type)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, 7, func_type_sec)

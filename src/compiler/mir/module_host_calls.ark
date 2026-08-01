@@ -1,49 +1,49 @@
 fn mir_call_is_wasi_http_outgoing(callee: String) -> bool {
-    if eq(clone(callee), String_from("http_get")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }
-    if eq(clone(callee), String_from("http::get")) { return true }
-    if eq(clone(callee), String_from("std::host::http::get")) { return true }
-    if eq(clone(callee), String_from("runtime.get")) { return true }
-    if eq(clone(callee), String_from("http_request")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
-    if eq(clone(callee), String_from("http::request")) { return true }
-    if eq(clone(callee), String_from("std::host::http::request")) { return true }
-    if eq(clone(callee), String_from("runtime.request")) { return true }
-    if eq(clone(callee), String_from("http_serve")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
-    if eq(clone(callee), String_from("http::serve")) { return true }
-    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
-    if eq(clone(callee), String_from("runtime.serve")) { return true }
-    if eq(clone(callee), String_from("std::host::http::request_with_headers")) { return true }
+    if eq(clone(callee), "http_get") { return true }
+    if eq(clone(callee), "__intrinsic_http_get") { return true }
+    if eq(clone(callee), "http::get") { return true }
+    if eq(clone(callee), "std::host::http::get") { return true }
+    if eq(clone(callee), "runtime.get") { return true }
+    if eq(clone(callee), "http_request") { return true }
+    if eq(clone(callee), "__intrinsic_http_request") { return true }
+    if eq(clone(callee), "http::request") { return true }
+    if eq(clone(callee), "std::host::http::request") { return true }
+    if eq(clone(callee), "runtime.request") { return true }
+    if eq(clone(callee), "http_serve") { return true }
+    if eq(clone(callee), "__intrinsic_http_serve") { return true }
+    if eq(clone(callee), "http::serve") { return true }
+    if eq(clone(callee), "std::host::http::serve") { return true }
+    if eq(clone(callee), "runtime.serve") { return true }
+    if eq(clone(callee), "std::host::http::request_with_headers") { return true }
     false
 }
 
 fn mir_call_is_arukellt_host_sockets(callee: String) -> bool {
-    if eq(clone(callee), String_from("sockets_connect")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) { return true }
-    if eq(clone(callee), String_from("sockets::connect")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
-    if eq(clone(callee), String_from("runtime.connect")) { return true }
-    if eq(clone(callee), String_from("sockets_read")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_read")) { return true }
-    if eq(clone(callee), String_from("sockets::read")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
-    if eq(clone(callee), String_from("runtime.read")) { return true }
-    if eq(clone(callee), String_from("sockets_write")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
-    if eq(clone(callee), String_from("sockets::write")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
-    if eq(clone(callee), String_from("runtime.write")) { return true }
-    if eq(clone(callee), String_from("sockets_listen")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_listen")) { return true }
-    if eq(clone(callee), String_from("sockets::listen")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
-    if eq(clone(callee), String_from("runtime.listen")) { return true }
-    if eq(clone(callee), String_from("sockets_accept")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_accept")) { return true }
-    if eq(clone(callee), String_from("sockets::accept")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
-    if eq(clone(callee), String_from("runtime.accept")) { return true }
+    if eq(clone(callee), "sockets_connect") { return true }
+    if eq(clone(callee), "__intrinsic_sockets_connect") { return true }
+    if eq(clone(callee), "sockets::connect") { return true }
+    if eq(clone(callee), "std::host::sockets::connect") { return true }
+    if eq(clone(callee), "runtime.connect") { return true }
+    if eq(clone(callee), "sockets_read") { return true }
+    if eq(clone(callee), "__intrinsic_sockets_read") { return true }
+    if eq(clone(callee), "sockets::read") { return true }
+    if eq(clone(callee), "std::host::sockets::read") { return true }
+    if eq(clone(callee), "runtime.read") { return true }
+    if eq(clone(callee), "sockets_write") { return true }
+    if eq(clone(callee), "__intrinsic_sockets_write") { return true }
+    if eq(clone(callee), "sockets::write") { return true }
+    if eq(clone(callee), "std::host::sockets::write") { return true }
+    if eq(clone(callee), "runtime.write") { return true }
+    if eq(clone(callee), "sockets_listen") { return true }
+    if eq(clone(callee), "__intrinsic_sockets_listen") { return true }
+    if eq(clone(callee), "sockets::listen") { return true }
+    if eq(clone(callee), "std::host::sockets::listen") { return true }
+    if eq(clone(callee), "runtime.listen") { return true }
+    if eq(clone(callee), "sockets_accept") { return true }
+    if eq(clone(callee), "__intrinsic_sockets_accept") { return true }
+    if eq(clone(callee), "sockets::accept") { return true }
+    if eq(clone(callee), "std::host::sockets::accept") { return true }
+    if eq(clone(callee), "runtime.accept") { return true }
     false
 }
 

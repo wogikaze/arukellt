@@ -27,7 +27,7 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
             let a_name = contract_type_access::TypeInfo_name(a)
             let b_name = contract_type_access::TypeInfo_name(b)
             if !eq(clone(a_name), clone(b_name)) {
-                unify_env::type_error(env, concat(String_from("type mismatch: "), concat(a_name, concat(String_from(" vs "), b_name))))
+                unify_env::type_error(env, concat("type mismatch: ", concat(a_name, concat(" vs ", b_name))))
             }
         }
         let ad = unify_resolve::resolve_type_deep(env, a)
@@ -36,7 +36,7 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         let bc = contract_type_access::TypeInfo_type_arg_count(bd)
         if ac > 0 && bc > 0 {
             if ac != bc {
-                unify_env::type_error(env, concat(String_from("generic arity mismatch: "), names::type_tag_name(contract_type_access::TypeInfo_tag(ad))))
+                unify_env::type_error(env, concat("generic arity mismatch: ", names::type_tag_name(contract_type_access::TypeInfo_tag(ad))))
             } else {
                 let mut k = 0
                 while k < ac {
@@ -55,6 +55,6 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
     if a_tag == commands::TY_I64() && b_tag == commands::TY_I32() {
         return a
     }
-    unify_env::type_error(env, concat(String_from("type mismatch: "), concat(names::type_tag_name(a_tag), concat(String_from(" vs "), names::type_tag_name(b_tag)))))
+    unify_env::type_error(env, concat("type mismatch: ", concat(names::type_tag_name(a_tag), concat(" vs ", names::type_tag_name(b_tag)))))
     a
 }

@@ -285,9 +285,10 @@ raw 境界固定 + tests。
 
 | Issue | 扱い |
 |-------|------|
-| #698 | **実装済み**の現行 experimental 面。本 ADR はその面を移行対象として認識する |
+| #698 | **実装済み**の現行 experimental 面。本 ADR はその面を移行対象として認識する。#822 close 時に carve-out された portable SIMD `legacy_emitter` 3 ops（`simd.i32x4.add` / `simd.i32x4.sub` / `simd.f32x4.add`）の本番 lowering 置換も #698 が owner |
 | #699 | native LLVM SIMD。本 ADR 採択後も open。portable 契約の前提にしない |
 | #107 | reject のまま（hint は採用しない） |
+| #822 | representation-dependent stdlib 移行（done）。SIMD portable leftovers は Non-goals とし本 ADR / #698 へ移管 |
 
 ---
 

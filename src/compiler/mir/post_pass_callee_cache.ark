@@ -25,8 +25,8 @@ fn callee_prop_cache_build(m: MirModule) -> CalleePropCache {
     let count = module_functions::MirModule_function_count(m)
     let by_name = name_index::NameIndex_new(count)
     let by_bare = name_index::NameIndex_new(count)
-    let ret_type_names = Vec_new_String()
-    let ret_variant_slots = Vec_new_i32()
+    let ret_type_names = Vec::new<String>()
+    let ret_variant_slots = Vec::new<i32>()
     let mut fi = 0
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)

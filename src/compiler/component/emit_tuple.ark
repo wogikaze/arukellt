@@ -74,24 +74,24 @@ fn emit_tuple_alias_section(out: writer_core::ComponentWriter, export_name: Stri
 }
 
 fn emit_tuple_return_type_section(out: writer_core::ComponentWriter, elem_type: i32) {
-    let elems = Vec_new_i32()
+    let elems = Vec::new<i32>()
     push(elems, elem_type)
     push(elems, elem_type)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, elem_type)
     push(params, elem_type)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, 0)
     type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
 }
 
 fn emit_tuple_input_type_section(out: writer_core::ComponentWriter, elem0_type: i32, elem1_type: i32, result_type: i32) {
-    let elems = Vec_new_i32()
+    let elems = Vec::new<i32>()
     push(elems, elem0_type)
     push(elems, elem1_type)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, 0)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, result_type)
     type_section_entries::emit_two_type_section(out, types_wit_compound::comp_wit_tuple_type(elems), types_wit_func::comp_component_func_type(params, results))
 }

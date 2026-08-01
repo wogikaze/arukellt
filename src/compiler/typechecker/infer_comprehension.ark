@@ -14,7 +14,7 @@ fn infer_comprehension_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>
         if contract_type_access::TypeInfo_tag(iter_ty) == commands::TY_VEC() && contract_type_access::TypeInfo_type_arg_count(iter_ty) > 0 {
             elem_ty_of_iter = contract_type_access::TypeInfo_type_arg_at(iter_ty, 0)
         } else {
-            unify::type_error(env, String_from("non-iterable source: expected Vec<T> in comprehension"))
+            unify::type_error(env, "non-iterable source: expected Vec<T> in comprehension")
         }
     }
     scope::scope_define(comp_scope, ast_access::node_text(node), elem_ty_of_iter)
@@ -23,7 +23,7 @@ fn infer_comprehension_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>
         if child_count > 2 {
             let filter_ty = infer_expr(env, comp_scope, fn_sigs, enum_defs, ast_access::node_child_at(node, 2))
             if contract_type_access::TypeInfo_tag(filter_ty) != commands::TY_BOOL() {
-                unify::type_error(env, String_from("filter expression must be bool"))
+                unify::type_error(env, "filter expression must be bool")
             }
         }
         let mut vec_ty = TypeInfo_simple(commands::TY_VEC())

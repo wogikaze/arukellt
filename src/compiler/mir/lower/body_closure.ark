@@ -31,7 +31,7 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
 }
 
 fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
-    let caps = Vec_new_String()
+    let caps = Vec::new<String>()
     let cap_child_count = ast_node::node_child_count(node)
     if cap_child_count > 0 {
         let cap_body = ast_node::node_child_at(node, cap_child_count - 1)

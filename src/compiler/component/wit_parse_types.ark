@@ -33,9 +33,9 @@ fn WitParsedInterface_empty() -> WitParsedInterface {
     WitParsedInterface {
         package: String_new(),
         interface: String_new(),
-        funcs: Vec_new_WitParsedFunc(),
-        records: Vec_new_WitParsedRecord(),
-        enums: Vec_new_WitParsedEnum(),
+        funcs: Vec::new<WitParsedFunc>(),
+        records: Vec::new<WitParsedRecord>(),
+        enums: Vec::new<WitParsedEnum>(),
     }
 }
 

@@ -32,15 +32,15 @@ fn mir_lower_hof_i32(
     let hof32_result_local = emit_i32_result_vec(ctx, hof_callee_text, is_fold_i32_i32)
     hof_loop::emit_hof_loop_open(ctx)
     hof_loop::emit_hof_loop_bounds(ctx, hof32_idx_local, hof32_n_local)
-    let hof32_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof32_vec_local, hof32_idx_local, hof32_elem_vt, String_from("get_unchecked"))
+    let hof32_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof32_vec_local, hof32_idx_local, hof32_elem_vt, "get_unchecked")
     if hof32_is_string {
-        ctx_api_local_types::ctx_set_local_type(ctx, hof32_elem_local, String_from("String"))
+        ctx_api_local_types::ctx_set_local_type(ctx, hof32_elem_local, "String")
     }
     if is_map_i32_i32 {
-        hof_loop_steps::emit_hof_map_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, hof32_elem_vt, String_from("push"))
+        hof_loop_steps::emit_hof_map_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, hof32_elem_vt, "push")
     }
     if is_filter_i32 {
-        hof_loop_steps::emit_hof_filter_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, String_from("push"))
+        hof_loop_steps::emit_hof_filter_step(ctx, hof32_fn_name, hof32_result_local, hof32_elem_local, "push")
     }
     if is_fold_i32_i32 {
         hof_loop_steps::emit_hof_fold_step(ctx, hof32_fn_name, hof32_acc_local, hof32_elem_local, value_types::VT_I32())
@@ -63,9 +63,9 @@ fn emit_i32_fold_acc_init(ctx: LowerCtx, hof32_acc_local: i32, is_fold_i32_i32: 
 fn emit_i32_result_vec(ctx: LowerCtx, hof_callee_text: String, is_fold_i32_i32: bool) -> i32 {
     let hof32_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i32_i32 {
-        hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, String_from("Vec_new_i32"), String_from("vec:i32"))
+        hof_results::emit_hof_result_vec_init(ctx, hof32_result_local, "Vec::new__i32", "vec:i32")
         if eq(clone(hof_callee_text), "map_String_String") || eq(clone(hof_callee_text), "filter_String") {
-            ctx_api_local_types::ctx_set_local_type(ctx, hof32_result_local, String_from("vec:String"))
+            ctx_api_local_types::ctx_set_local_type(ctx, hof32_result_local, "vec:String")
         }
     }
     hof32_result_local

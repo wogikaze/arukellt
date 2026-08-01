@@ -73,6 +73,6 @@ fn register_use_func_alias(ctx: ResolveCtx, child_path: String, child_short: Str
     if len(clone(parent_short)) == 0 {
         return
     }
-    let alias_target = concat(clone(parent_short), concat(String_from("::"), clone(child_short)))
+    let alias_target = concat(clone(parent_short), concat("::", clone(child_short)))
     ctx_record::resolve_ctx_add_use_alias(ctx, child_short, alias_target)
 }

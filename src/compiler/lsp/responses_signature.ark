@@ -1,5 +1,5 @@
 use std::text
-use lsp::responses_json
+use std::json
 
 fn append_param_labels(items: String, params: Vec<String>) -> String {
     let n = len(params)
@@ -10,7 +10,7 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
             out = text::builder_append(out, String_from(","))
         }
         out = text::builder_append(out, String_from("{\"label\":"))
-        out = text::builder_append(out, responses_json::quote_string(get_unchecked(params, i)))
+        out = text::builder_append(out, json::quote_string(get_unchecked(params, i)))
         out = text::builder_append(out, String_from("}"))
         i = i + 1
     }
@@ -19,10 +19,10 @@ fn append_param_labels(items: String, params: Vec<String>) -> String {
 
 fn signature_info_json(label: String, doc: String, params: Vec<String>) -> String {
     let mut out = String_from("{\"label\":")
-    out = text::builder_append(out, responses_json::quote_string(label))
+    out = text::builder_append(out, json::quote_string(label))
     if len(doc) > 0 {
         out = text::builder_append(out, String_from(",\"documentation\":{\"kind\":\"markdown\",\"value\":"))
-        out = text::builder_append(out, responses_json::quote_string(doc))
+        out = text::builder_append(out, json::quote_string(doc))
         out = text::builder_append(out, String_from("}"))
     }
     out = text::builder_append(out, String_from(",\"parameters\":["))

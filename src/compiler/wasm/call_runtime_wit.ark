@@ -11,9 +11,9 @@ use wasm::effective_lowering_decision
 fn wit_module_name(package: String, interface: String, version: String) -> String {
     // WASI core import module form used by guest cores today, e.g.
     // "wasi:http/outgoing-handler@0.2.0".
-    let slash = concat(clone(package), String_from("/"))
+    let slash = concat(clone(package), "/")
     let with_iface = concat(slash, clone(interface))
-    let at = concat(with_iface, String_from("@"))
+    let at = concat(with_iface, "@")
     concat(at, clone(version))
 }
 
@@ -55,7 +55,7 @@ fn handler_is_http_wit(handler_id: i32) -> bool {
     let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
         core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
     )
-    eq(clone(decision.wit_package), String_from("wasi:http"))
+    eq(clone(decision.wit_package), "wasi:http")
 }
 
 fn handler_is_sockets_wit(handler_id: i32) -> bool {
@@ -65,8 +65,8 @@ fn handler_is_sockets_wit(handler_id: i32) -> bool {
     let decision = effective_lowering_decision::effective_lowering_from_core_op_canonical(
         core_op_registry_generated::core_op_registry_canonical_id_at(handler_id)
     )
-    eq(clone(decision.wit_package), String_from("wasi:sockets")) ||
-    eq(clone(decision.wit_package), String_from("wasi:io"))
+    eq(clone(decision.wit_package), "wasi:sockets") ||
+    eq(clone(decision.wit_package), "wasi:io")
 }
 
 // True when this handler should use the legacy arukellt_host import slot.

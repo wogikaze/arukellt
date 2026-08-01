@@ -6,7 +6,7 @@ fn main() {
         Result::Ok(rows) => stdio::println((len(rows)).to_string()),
         Result::Err(e) => stdio::println(e),
     }
-    let rows = Vec_new_Vec_String()
+    let rows = Vec::new<Vec<String>>()
     push(rows, csv::csv_parse_row("x,y"))
     push(rows, csv::csv_parse_row("1,2"))
     stdio::println(csv::csv_stringify(rows))

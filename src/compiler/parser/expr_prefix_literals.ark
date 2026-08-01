@@ -26,7 +26,10 @@ fn parse_literal_prefix(p: Parser, t: Token) -> AstNode {
         return node
     }
     if kind == tokens::TK_FLOAT() {
-        return core_ast_literal_factory::make_float_lit(token_state::Token_float_val(t), core_api_expect::tok_span(t))
+        let node = core_ast_literal_factory::make_float_lit(token_state::Token_float_val(t), core_api_expect::tok_span(t))
+        // Preserve lexeme (including f32/f64 suffix) for typecheck + MIR lowering.
+        core_ast_text_fields::AstNode_set_text(node, token_state::Token_text(t))
+        return node
     }
     if kind == tokens::TK_STRING() {
         return core_ast_factory::AstNode_leaf(kinds::NK_STRING_LIT(), token_state::Token_text(t), core_api_expect::tok_span(t))

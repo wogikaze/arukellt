@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let buf = io::new_memory_buffer()
-    let data: Vec<i32> = Vec_new_i32()
+    let data: Vec<i32> = Vec::new<i32>()
     for i in 0..100 {
         push(data, i % 256)
     }

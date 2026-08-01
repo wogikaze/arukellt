@@ -8,9 +8,11 @@ use mir::inst_const_i32
 use mir::inst_const_i64
 use mir::inst_const_string
 use mir::inst_const_f64
+use mir::inst_op
 use mir::lower::core_expr_shape_accessors
 use mir::lower::core_expr_shape_atoms
 use mir::value_types
+use mir::opcodes as mir_opcodes
 
 fn lower_core_literal_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_int(expr) {
@@ -73,4 +75,12 @@ fn lower_core_int_literal_forced_i64(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_types::ctx_set_local_type(ctx, wide_dest, String_from("i64"))
     ctx_api_emit::ctx_emit(ctx, inst_const_i64::MirInst_const_i64_text(core_expr_shape_accessors::mir_core_expr_text(expr), wide_dest))
     wide_dest
+}
+
+fn lower_core_unary_neg_forced_i64(ctx: LowerCtx, operand_expr: CoreHirExpr) -> i32 {
+    let operand_idx = lower_core_int_literal_forced_i64(ctx, operand_expr)
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I64())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i64"))
+    ctx_api_emit::ctx_emit(ctx, inst_op::MirInst_unary(mir_opcodes::MIR_NEG(), dest, operand_idx, value_types::VT_I64()))
+    dest
 }

@@ -1,0 +1,47 @@
+//! Associated `Vec::new` / `Vec::with_capacity` turbofish when the inherent
+//! impl sig is not yet in `fn_sigs` (prelude may not have loaded
+//! `std::collections::vec`). Still record mono so MIR rewrite can mark
+//! `vec:Elem` without a let annotation (#845).
+use typechecker::ast_access
+use typechecker::ast_expr_predicates
+use typechecker::contract_type_access
+use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
+use typechecker::mono
+use typechecker::types
+
+fn is_vec_associated_ctor_name(name: String) -> bool {
+    eq(clone(name), String_from("Vec::new")) ||
+    eq(clone(name), String_from("Vec::with_capacity"))
+}
+
+fn infer_vec_ctor_turbofish_call(env: TypeEnv, node: AstNode, callee: AstNode) -> TypeInfo {
+    if !ast_expr_predicates::node_is_path(callee) {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let child_count = ast_access::node_child_count(callee)
+    if child_count < 2 {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    let type_node = ast_access::node_child_at(callee, 1)
+    let elem_ty = types::resolve_type_ann_node(type_node)
+    if contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_UNKNOWN() {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
+    }
+    // fn / tuple elems need let-annotation + store-target layout; mangled
+    // mono suffixes are not enough for funcref Ident lowering (#845).
+    if contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_FN() ||
+    contract_type_access::TypeInfo_tag(elem_ty) == commands::TY_TUPLE() {
+        let mut vec_ty = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+        contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
+        return vec_ty
+    }
+    let resolved = Vec::new<TypeInfo>()
+    push(resolved, elem_ty)
+    let fn_name = ast_access::node_text(callee)
+    let mangled = mono::record_mono_instance(env, clone(fn_name), resolved)
+    mono::record_mono_call_site(env, ast_access::node_span_start(node), fn_name, mangled)
+    let mut vec_ty = contract_type_constructors::TypeInfo_simple(commands::TY_VEC())
+    contract_type_mutation::TypeInfo_push_type_arg(vec_ty, elem_ty)
+    vec_ty
+}

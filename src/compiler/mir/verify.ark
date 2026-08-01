@@ -33,7 +33,7 @@ fn verify_mir_warn_only_verbose(m: MirModule, verbose: bool) -> MirVerifyReport 
 fn verify_report_print_largest_function(m: MirModule) {
     let count = module_functions::MirModule_function_count(m)
     let mut fi = 0
-    let mut max_name = String_from("")
+    let mut max_name = ""
     let mut max_count = 0
     while fi < count {
         let f = module_functions::MirModule_function_at(m, fi)
@@ -52,25 +52,25 @@ fn verify_report_print_largest_function(m: MirModule) {
         }
         fi = fi + 1
     }
-    stdio::eprintln(concat(String_from("mir-verify: largest function "), concat(max_name, concat(String_from(" = "), to_string(max_count)))))
+    stdio::eprintln(concat("mir-verify: largest function ", concat(max_name, concat(" = ", to_string(max_count)))))
 }
 
 fn verify_mir(m: MirModule) -> i32 {
     let report = verify_mir_warn_only_verbose(m, false)
     if verify_report::mir_verify_report_w005(report) > 0 {
-        stdio::eprintln(String_from("mir-verify: fail on W005"))
+        stdio::eprintln("mir-verify: fail on W005")
         return 1
     }
     if verify_report::mir_verify_report_w006(report) > 0 {
-        stdio::eprintln(String_from("mir-verify: fail on W006"))
+        stdio::eprintln("mir-verify: fail on W006")
         return 1
     }
     if verify_report::mir_verify_report_w007(report) > 0 {
-        stdio::eprintln(String_from("mir-verify: fail on W007"))
+        stdio::eprintln("mir-verify: fail on W007")
         return 1
     }
     if verify_report::mir_verify_report_w008(report) > 0 {
-        stdio::eprintln(String_from("mir-verify: fail on W008 invalid lowering operand"))
+        stdio::eprintln("mir-verify: fail on W008 invalid lowering operand")
         return 1
     }
     0
@@ -82,8 +82,8 @@ fn verify_mir_pipeline(m: MirModule) -> i32 {
 }
 
 fn verify_mir_is_representative_fixture(fn_name: String) -> bool {
-    if eq(clone(fn_name), String_from("display_trait_vec")) { return true }
-    if eq(clone(fn_name), String_from("two_params")) { return true }
-    if eq(clone(fn_name), String_from("fs_read_error")) { return true }
+    if eq(clone(fn_name), "display_trait_vec") { return true }
+    if eq(clone(fn_name), "two_params") { return true }
+    if eq(clone(fn_name), "fs_read_error") { return true }
     false
 }

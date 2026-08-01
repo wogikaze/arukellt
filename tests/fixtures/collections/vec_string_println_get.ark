@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let mut xs: Vec<String> = Vec_new_String()
+    let mut xs: Vec<String> = Vec::new<String>()
     push(xs, String_from("hi"))
     stdio::println(get_unchecked(xs, 0))
 }

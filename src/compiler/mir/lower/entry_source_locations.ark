@@ -9,7 +9,7 @@ fn compute_fn_source_locations(view: CoreHirMirView, decl_nodes: Vec<AstNode>, s
     let sig_source = corehir::mod::view_signature_source(view)
     let fn_infos = mir_signature_source_record::mir_signature_source_fn_infos(sig_source)
     let fn_count = len(fn_infos)
-    let locations = Vec_new_SourceLocation()
+    let locations = Vec::new<SourceLocation>()
     let mut fi = 0
     while fi < fn_count {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, fi, 0 - 1)

@@ -8,8 +8,8 @@ use mir::inst_call
 
 fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, first_arg_idx: i32) -> i32 {
     let bare_method = mir_method_bare_name(clone(callee_name))
-    if eq(clone(bare_method), String_from("to_string")) {
-        let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, String_from("to_string"), first_arg_idx)
+    if eq(clone(bare_method), "to_string") {
+        let string_rewrite = call_rewrite_string::mir_rewrite_to_string(ctx, "to_string", first_arg_idx)
         let return_local = call_rewrite_string::mir_string_call_rewrite_return_local(string_rewrite)
         if return_local >= 0 {
             return return_local
@@ -37,7 +37,7 @@ fn mir_emit_method_call(ctx: LowerCtx, callee_name: String, arg_count: i32, firs
 }
 
 fn mir_method_bare_name(mangled: String) -> String {
-    let pos = index_of(clone(mangled), String_from("::"))
+    let pos = index_of(clone(mangled), "::")
     if pos < 0 {
         return clone(mangled)
     }

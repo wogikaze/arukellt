@@ -13,7 +13,7 @@ fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_fn(decl) {
-            if eq(decl_node_identity::decl_name(decl), String_from("main")) {
+            if eq(decl_node_identity::decl_name(decl), "main") {
                 entry_main_decl_index = i
             }
         }
@@ -23,7 +23,7 @@ fn find_entry_main_decl_index(decls: Vec<AstNode>) -> i32 {
 }
 
 fn build_fn_params(decl: AstNode, param_count: i32) -> Vec<CoreHirParam> {
-    let params = Vec_new_CoreHirParam()
+    let params = Vec::new<CoreHirParam>()
     let mut i = 0
     while i < param_count {
         push(params, param_shape::fn_param_from_node(decl_children::decl_child_at(decl, i)))
@@ -41,8 +41,8 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
         let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module_info)
         if decl_index >= decl_start && decl_index < decl_end {
             let module_name = clone(module_info.name)
-            if !eq(clone(module_name), String_from("<main>")) {
-                return concat(module_name, concat(String_from("::"), fn_name))
+            if !eq(clone(module_name), "<main>") {
+                return concat(module_name, concat("::", fn_name))
             }
             return String_new()
         }
@@ -52,7 +52,7 @@ fn module_qualified_fn_name(modules: Vec<CoreHirModuleInfo>, decl_index: i32, fn
 }
 
 fn build_fn_infos(decls: Vec<AstNode>, modules: Vec<CoreHirModuleInfo>) -> Vec<CoreHirFnInfo> {
-    let infos = Vec_new_CoreHirFnInfo()
+    let infos = Vec::new<CoreHirFnInfo>()
     let entry_main_decl_index = find_entry_main_decl_index(decls)
     let decl_count = len(decls)
     let mut typed_fn_index = 0

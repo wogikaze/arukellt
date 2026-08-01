@@ -159,6 +159,170 @@ class TestQualityCommands(unittest.TestCase):
                 1,
             )
 
+    def test_w0011_ratchet_reuses_current_lint_results(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        current = ToolResult(
+            "same.ark",
+            ("arukellt", "lint", "--local", "same.ark"),
+            0,
+            "warning[W0011|prefer-else-if] one\n"
+            "warning[W0011|prefer-else-if] two\n",
+        )
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+        ) as current_lint, mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(2, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["same.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[current],
+                ),
+                0,
+            )
+        current_lint.assert_not_called()
+
+    def test_w0011_ratchet_skips_base_for_clean_current_file(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        current = ToolResult(
+            "clean.ark",
+            ("arukellt", "lint", "--local", "clean.ark"),
+            0,
+            "",
+        )
+        with mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+        ) as base_lint:
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["clean.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[current],
+                ),
+                0,
+            )
+        base_lint.assert_not_called()
+
+    def test_w0011_ratchet_does_not_reuse_full_lint_diagnostics(self):
+        from scripts.quality.checks import ToolResult, run_lint_ratchet
+
+        full_lint = ToolResult(
+            "fixture.ark",
+            ("arukellt", "lint", "fixture.ark"),
+            0,
+            "warning[W0011|prefer-else-if] imported diagnostic\n",
+        )
+        with mock.patch(
+            "scripts.quality.checks._lint_w0011_count",
+            return_value=(0, 0, ""),
+        ) as current_lint, mock.patch(
+            "scripts.quality.checks._base_lint_w0011_count",
+            return_value=(0, ""),
+        ):
+            self.assertEqual(
+                run_lint_ratchet(
+                    REPO_ROOT,
+                    ["fixture.ark"],
+                    "HEAD",
+                    False,
+                    False,
+                    current_results=[full_lint],
+                ),
+                0,
+            )
+        current_lint.assert_called_once_with(REPO_ROOT, "fixture.ark")
+
+    def test_known_fixture_parity_exclusions_require_existing_issue_baseline(self):
+        from scripts.quality.checks import _known_fixture_parity_exclusions
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "docs/data/verify-full-receipt.json"
+            receipt.parent.mkdir(parents=True)
+            receipt.write_text(
+                '{"checks": ['
+                '{"check_id": "fixture_parity", '
+                '"item_id": "module_import/use_prelude_coexist.ark", '
+                '"result": "fail", "baseline_status": "existing", '
+                '"owner_issue": "807"},'
+                '{"check_id": "diag_parity", '
+                '"item_id": "selfhost/comprehen_deny_filter_not_bool.ark", '
+                '"result": "skip", "baseline_status": "existing", '
+                '"owner_issue": "815"},'
+                '{"check_id": "fixture_parity", '
+                '"item_id": "new.ark", "result": "fail", '
+                '"baseline_status": "new", "owner_issue": "807"},'
+                '{"check_id": "fixture_parity", "item_id": "other.ark", '
+                '"result": "pass", "baseline_status": "existing", '
+                '"owner_issue": "807"}]}',
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                _known_fixture_parity_exclusions(root),
+                {
+                    "tests/fixtures/module_import/use_prelude_coexist.ark",
+                    "tests/fixtures/selfhost/comprehen_deny_filter_not_bool.ark",
+                },
+            )
+
+    def test_quality_changed_excludes_known_fixture_parity_entries_from_fmt_and_lint(self):
+        from scripts.quality.checks import run_quality
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "docs/data/verify-full-receipt.json"
+            receipt.parent.mkdir(parents=True)
+            receipt.write_text(
+                '{"checks": [{"check_id": "fixture_parity", '
+                '"item_id": "lang_uplift/where_clause_generic.ark", '
+                '"result": "skip", "baseline_status": "existing", '
+                '"owner_issue": "807"}]}',
+                encoding="utf-8",
+            )
+            changed = [
+                "tests/fixtures/lang_uplift/where_clause_generic.ark",
+                "tests/fixtures/stdlib_core/iter_fold_sum.ark",
+                "src/compiler/fmt/range.ark",
+            ]
+            with mock.patch(
+                "scripts.quality.checks.quality_base", return_value="HEAD"
+            ), mock.patch(
+                "scripts.quality.checks.changed_paths", return_value=changed
+            ), mock.patch(
+                "scripts.quality.checks.check_editorconfig_basics", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.check_quality_contract", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks._run_command", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.run_fmt", return_value=0
+            ) as fmt, mock.patch(
+                "scripts.quality.checks._run_lint_results", return_value=(0, [])
+            ) as lint, mock.patch(
+                "scripts.quality.checks._print_results", return_value=0
+            ), mock.patch(
+                "scripts.quality.checks.run_lint_ratchet", return_value=0
+            ):
+                self.assertEqual(run_quality(root, "changed", False, False), 0)
+
+            expected = [
+                "tests/fixtures/stdlib_core/iter_fold_sum.ark",
+                "src/compiler/fmt/range.ark",
+            ]
+            self.assertEqual(fmt.call_args.args[1], expected)
+            self.assertEqual(lint.call_args.args[1], expected)
+
     def test_baseline_update_requires_tracking_issue(self):
         result = subprocess.run(
             [

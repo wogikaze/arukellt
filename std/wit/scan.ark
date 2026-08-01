@@ -72,7 +72,7 @@ pub fn wit_split_param(param: String) -> String {
 /// Split `inner` on top-level commas (depth 0, tracking `<`/`>` nesting)
 /// into a `Vec<String>` of trimmed items.
 pub fn wit_split_csv_items(inner: String) -> Vec<String> {
-    let items = Vec_new_String()
+    let items = Vec::new<String>()
     let n = len(inner)
     let mut start = 0
     let mut depth = 0

@@ -5,12 +5,12 @@ alwaysApply: true
 
 # Active native-cpp experimental promotion mission
 
-When work touches native-cpp, native executor, root liveness, native GC, issue #833, or issue #834:
+When work touches native-cpp, native executor, root liveness, native GC, issue #847, or issue #848:
 
 - Treat `docs/plans/native-cpp-experimental-promotion.md` as the canonical executable plan.
 - Phase 0 and Phase 1 are complete; continue from the first unchecked Phase 2 item.
-- Do not stop at phase boundaries, commits, partial test success, #833 closure, or one strict PASS.
-- Continue through the Final Experimental Promotion Checklist and #834 closure.
+- Do not stop at phase boundaries, commits, partial test success, #847 closure, or one strict PASS.
+- Continue through the Final Experimental Promotion Checklist and #848 closure.
 - Commit validated work units, update plan checkboxes and receipts, then immediately continue.
 - Use only the hard-stop conditions defined in the plan.
 - If one subtask blocks, continue independent work and record the blocker.

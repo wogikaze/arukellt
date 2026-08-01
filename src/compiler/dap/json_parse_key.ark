@@ -1,8 +1,0 @@
-//
-// Delegates to std::json (issue #704).
-
-use std::json
-
-fn dap_find_key(json_str: String, key: String, from: i32) -> i32 {
-    json::find_key_pos(json_str, key, from)
-}

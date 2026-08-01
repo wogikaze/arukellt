@@ -209,7 +209,7 @@ fn mir_resolve_self_delegate_collision(
     // `eq` forwarders must not steal Person::eq / Point::eq call sites.
     if candidate_idx >= 0 && candidate_idx < len(functions) {
         let candidate_name = function_identity::MirFunction_name(get_unchecked(functions, candidate_idx))
-        if eq(clone(candidate_name), clone(name)) && contains(clone(name), String_from("::")) {
+        if eq(clone(candidate_name), clone(name)) && contains(clone(name), "::") {
             return candidate_idx
         }
     }
@@ -233,8 +233,8 @@ fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_nam
         let sole = mir_function_sole_call_target(f)
         let stem = mir_module_stem_from_qualified(clone(sole))
         if len(stem) > 0 {
-            return concat(stem, concat(String_from("__"), clone(short_name)))
+            return concat(stem, concat("__", clone(short_name)))
         }
     }
-    concat(concat(clone(short_name), String_from("__")), to_string(seen_count))
+    concat(concat(clone(short_name), "__"), to_string(seen_count))
 }

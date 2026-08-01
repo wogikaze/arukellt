@@ -10,7 +10,7 @@ use wasm::writer_sections
 fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
-    let offsets = Vec_new_i32()
+    let offsets = Vec::new<i32>()
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
     while ci < fn_count {

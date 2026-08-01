@@ -53,7 +53,7 @@ fn parse_wit_param(name: String, ty: types::WitType) -> types::WitParam {
 }
 
 fn parse_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
-    let params = Vec_new_WitParam()
+    let params = Vec::new<WitParam>()
     let mut i = parse_skip_ws(s, pos)
     let n = len(s)
     while i < n {
@@ -102,7 +102,7 @@ fn parse_func_line(s: String, pos: i32) -> (world::WitFunc, i32) {
             }
         }
     }
-    (world::wit_func_new(String_from(""), Vec_new_WitParam(), Option::None), pos)
+    (world::wit_func_new(String_from(""), Vec::new<WitParam>(), Option::None), pos)
 }
 
 pub fn parse_wit(source: String) -> Result<world::World, error::Error> {

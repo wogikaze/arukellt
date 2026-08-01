@@ -21,7 +21,7 @@ fn mir_index_top_level_fn(
     let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
     let mono_instances = fn_index_source::mir_fn_index_source_mono_instances(source)
     let entry_main_decl_index = fn_index_source::mir_fn_index_source_entry_main_decl_index(source)
-    let skip_shadow_main = eq(clone(decl_name), String_from("main")) && decl_index != entry_main_decl_index
+    let skip_shadow_main = eq(clone(decl_name), "main") && decl_index != entry_main_decl_index
     if !skip_shadow_main {
         push(fn_names, clone(decl_name))
         push(fn_return_vts, rvt)

@@ -13,5 +13,5 @@ fn SelfEmitCtx_push_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
 }
 
 fn SelfEmitCtx_reset_vec_locals(ctx: SelfEmitCtx) {
-    ctx.vec_locals = Vec_new_i32()
+    ctx.vec_locals = Vec::new<i32>()
 }

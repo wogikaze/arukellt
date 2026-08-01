@@ -1,19 +1,19 @@
 use std::text
 
 fn wit_kebab_name(name: String) -> String {
-    let mut out = String_from("")
+    let mut out = ""
     let n = len(name)
     let mut i = 0
     while i < n {
         let ch = char_at(name, i)
         if ch == 95 {
-            out = text::builder_append(out, String_from("-"))
+            out = text::builder_append(out, "-")
         } else {
             if ch >= 65 && ch <= 90 {
                 if len(out) > 0 {
                     let prev = char_at(out, len(out) - 1)
                     if prev != 45 {
-                        out = text::builder_append(out, String_from("-"))
+                        out = text::builder_append(out, "-")
                     }
                 }
                 out = text::builder_append(out, char_to_string(ch + 32))

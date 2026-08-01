@@ -50,17 +50,17 @@ fn ctx_gc_enum_lookup_slot(ctx: LowerCtx, variant_name: String) -> i32 {
 }
 
 fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
-    if eq(clone(variant_name), String_from("Some")) {
-        return String_from("Option::Some")
+    if eq(clone(variant_name), "Some") {
+        return "Option::Some"
     }
-    if eq(clone(variant_name), String_from("None")) {
-        return String_from("Option::None")
+    if eq(clone(variant_name), "None") {
+        return "Option::None"
     }
-    if eq(clone(variant_name), String_from("Ok")) {
-        return String_from("Result::Ok")
+    if eq(clone(variant_name), "Ok") {
+        return "Result::Ok"
     }
-    if eq(clone(variant_name), String_from("Err")) {
-        return String_from("Result::Err")
+    if eq(clone(variant_name), "Err") {
+        return "Result::Err"
     }
     variant_name
 }
@@ -69,10 +69,10 @@ fn ctx_gc_enum_normalize_variant_name(variant_name: String) -> String {
 // Option/Result keep their qualified normalize form for disambiguation.
 fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
     let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
-    if starts_with(clone(normalized), String_from("Option::")) || starts_with(clone(normalized), String_from("Result::")) {
+    if starts_with(clone(normalized), "Option::") || starts_with(clone(normalized), "Result::") {
         return normalized
     }
-    if !contains(clone(normalized), String_from("::")) {
+    if !contains(clone(normalized), "::") {
         return normalized
     }
     let n = len(normalized)
@@ -110,7 +110,7 @@ fn ctx_gc_enum_variant_slot(ctx: LowerCtx, variant_name: String) -> i32 {
     }
     // Bare `Table` must resolve to `TomlValue::Table` when unique (#726).
     let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
-    let suffix = concat(String_from("::"), clone(bare))
+    let suffix = concat("::", clone(bare))
     let count = len(ctx.gc_enum_variant_names)
     let mut i = 0
     let mut hit = 0 - 1
@@ -149,7 +149,7 @@ fn ctx_gc_enum_variant_slot_for_payload(ctx: LowerCtx, variant_name: String, pay
 
 fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
     let bare = ctx_gc_enum_bare_variant_name(clone(normalized))
-    eq(clone(bare), String_from("Array")) || eq(clone(bare), String_from("Table")) || eq(clone(bare), String_from("Object"))
+    eq(clone(bare), "Array") || eq(clone(bare), "Table") || eq(clone(bare), "Object")
 }
 
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {

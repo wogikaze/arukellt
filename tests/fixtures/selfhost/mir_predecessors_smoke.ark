@@ -10,7 +10,7 @@ struct Block {
 }
 
 fn Block_new() -> Block {
-    Block { succ0: 0 - 1, succ1: 0 - 1, preds: Vec_new_i32() }
+    Block { succ0: 0 - 1, succ1: 0 - 1, preds: Vec::new<i32>() }
 }
 
 fn add_pred(block: Block, pred_id: i32) {
@@ -41,7 +41,7 @@ fn compute_predecessors(blocks: Vec<Block>) {
     let mut i = 0
     while i < count {
         let block = get_unchecked(blocks, i)
-        block.preds = Vec_new_i32()
+        block.preds = Vec::new<i32>()
         i = i + 1
     }
     i = 0
@@ -70,7 +70,7 @@ fn format_preds(preds: Vec<i32>) -> String {
 }
 
 fn main() {
-    let blocks = Vec_new_Block()
+    let blocks = Vec::new<Block>()
     push(blocks, Block_new())
     push(blocks, Block_new())
     push(blocks, Block_new())

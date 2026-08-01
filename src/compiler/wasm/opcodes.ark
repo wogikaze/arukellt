@@ -213,14 +213,15 @@ fn OP_F32_NEAREST() -> i32 { 0x90 }
 fn OP_F32_SQRT() -> i32 { 0x91 }
 fn OP_F32_CONVERT_I32_S() -> i32 { 0xb2 }
 fn OP_F32_CONVERT_I32_U() -> i32 { 0xb3 }
-fn OP_F32_CONVERT_I64_S() -> i32 { 0xb6 }
-fn OP_F32_CONVERT_I64_U() -> i32 { 0xb7 }
+fn OP_F32_CONVERT_I64_S() -> i32 { 0xb4 }
+fn OP_F32_CONVERT_I64_U() -> i32 { 0xb5 }
 fn OP_F32_REINTERPRET_I32() -> i32 { 0xbe }
 fn OP_I32_TRUNC_F32_S() -> i32 { 0xa8 }
 fn OP_I32_TRUNC_F32_U() -> i32 { 0xa9 }
 fn OP_I64_TRUNC_F32_S() -> i32 { 0xae }
 fn OP_I64_TRUNC_F32_U() -> i32 { 0xaf }
-fn OP_F32_DEMOTE_F64() -> i32 { 0xc6 }
+// Spec: f32.demote_f64 = 0xb6 (was wrongly 0xc6).
+fn OP_F32_DEMOTE_F64() -> i32 { 0xb6 }
 fn OP_F64_PROMOTE_F32() -> i32 { 0xbb }
 
 // SIMD prefix byte (0xFD) and sub-opcodes (LEB128-encoded after prefix)

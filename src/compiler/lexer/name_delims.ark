@@ -2,34 +2,34 @@ use lexer::tokens
 
 pub fn token_delim_name(kind: i32) -> String {
     if kind == tokens::TK_ARROW() {
-        return String_from("ARROW")
+        return "ARROW"
     }
     if kind == tokens::TK_FATARROW() {
-        return String_from("FATARROW")
+        return "FATARROW"
     }
     if kind == tokens::TK_COLON() {
-        return String_from("COLON")
+        return "COLON"
     }
     if kind == tokens::TK_COLONCOLON() {
-        return String_from("COLONCOLON")
+        return "COLONCOLON"
     }
     if kind == tokens::TK_LPAREN() {
-        return String_from("LPAREN")
+        return "LPAREN"
     }
     if kind == tokens::TK_RPAREN() {
-        return String_from("RPAREN")
+        return "RPAREN"
     }
     if kind == tokens::TK_LBRACE() {
-        return String_from("LBRACE")
+        return "LBRACE"
     }
     if kind == tokens::TK_RBRACE() {
-        return String_from("RBRACE")
+        return "RBRACE"
     }
     if kind == tokens::TK_COMMA() {
-        return String_from("COMMA")
+        return "COMMA"
     }
     if kind == tokens::TK_DOT() {
-        return String_from("DOT")
+        return "DOT"
     }
     String_new()
 }

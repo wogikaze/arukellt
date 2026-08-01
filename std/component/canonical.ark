@@ -14,7 +14,7 @@ pub struct CanonicalSlice {
 }
 
 fn scratch_new() -> Vec<i32> {
-    let s = Vec_new_i32()
+    let s = Vec::new<i32>()
     push(s, CANONICAL_SCRATCH_BASE)
     s
 }
@@ -117,7 +117,7 @@ pub fn canonical_lift_list_i32_at(scratch: Vec<i32>, ptr: i32, count: i32) -> Re
     if count * 4 > CANONICAL_SCRATCH_LIMIT {
         return Err(error::Error::ComponentError(String_from("MemoryOverflow")))
     }
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let mut i = 0
     while i < count {
         push(out, scratch_read_byte(scratch, ptr + i * 4))

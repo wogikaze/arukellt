@@ -4,7 +4,9 @@ use typechecker::ast_access
 use typechecker::call_args
 use typechecker::call_generic
 use typechecker::call_unknown
+use typechecker::call_vec_ctor
 use typechecker::contract_fn_sig
+use typechecker::contract_type_access
 use typechecker::sigs
 use typechecker::unify
 
@@ -36,6 +38,27 @@ fn infer_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, enum_de
         }
     }
     if !contract_fn_sig::FnSig_has_name(sig) {
+        // Vec::new<T>() / with_capacity without inherent-impl sig still need
+        // mono sites so bare (unannotated) lets get vec:T (#845).
+        if call_vec_ctor::is_vec_associated_ctor_name(clone(callee_name)) {
+            let ctor_ty = call_vec_ctor::infer_vec_ctor_turbofish_call(env, node, callee)
+            if contract_type_access::TypeInfo_tag(ctor_ty) != commands::TY_UNKNOWN() {
+                call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
+                return ctor_ty
+            }
+        }
+        if child_count > 1 {
+            let recv_ty = infer_expr(
+                env,
+                scope,
+                fn_sigs,
+                enum_defs,
+                ast_access::node_child_at(node, 1)
+            )
+            if contract_type_access::TypeInfo_tag(recv_ty) == commands::TY_VEC() {
+                vec_core_mono::record_vec_core_mono_for_callee(env, clone(callee_name), recv_ty)
+            }
+        }
         call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, child_count - 1)
         return call_unknown::infer_unknown_ident_call(env, scope, callee)
     }

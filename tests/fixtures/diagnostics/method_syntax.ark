@@ -1,4 +1,4 @@
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32()
+    let mut v: Vec<i32> = Vec::new<i32>()
     v.push(42)
 }

@@ -11,10 +11,17 @@ use parser::token_state
 fn parse_ident_pattern(p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     if peek_kind(p) == tokens::TK_COLONCOLON() {
-        p.pos = p.pos + 1
-        let variant_tok = expect_token(p, tokens::TK_IDENT())
+        // Support module-qualified variant paths: `types::WitType::Bool`.
+        // A single `Ident::Ident` pass left the trailing `::Variant` unparsed and
+        // match lowering recovered into ill-formed if/else chains (#809).
+        let mut path_text = token_state::Token_text(t)
+        while peek_kind(p) == tokens::TK_COLONCOLON() {
+            p.pos = p.pos + 1
+            let seg_tok = expect_token(p, tokens::TK_IDENT())
+            path_text = concat(path_text, concat(String_from("::"), token_state::Token_text(seg_tok)))
+        }
         let node = AstNode_new(kinds::NK_PAT_VARIANT(), tok_span(t))
-        core_ast_text_fields::AstNode_set_text(node, concat(token_state::Token_text(t), concat(String_from("::"), token_state::Token_text(variant_tok))))
+        core_ast_text_fields::AstNode_set_text(node, path_text)
         if peek_kind(p) == tokens::TK_LPAREN() {
             pattern_payload::parse_pattern_payload(p, node)
         } else {

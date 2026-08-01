@@ -9,7 +9,7 @@ fn emit_gc_hint_custom_section(out: WasmWriter, ctx: SelfEmitCtx) {
         return
     }
     let payload = writer_core::WasmWriter_new()
-    emit_gc_hint_section_name(payload, String_from("metadata.code.gc_hint"))
+    emit_gc_hint_section_name(payload, "metadata.code.gc_hint")
     writer_core::emit_leb128_u(payload, count)
     let offsets = ctx_gc_hint::SelfEmitCtx_gc_hint_offsets(ctx)
     let mut i = 0

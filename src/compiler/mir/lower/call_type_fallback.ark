@@ -5,9 +5,11 @@ use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
 use mir::lower::mono_return_vt
-use mir::lower::mono_suffix_parse
 use mir::lower::call_type_fallback_stdlib
+use mir::typed_mir_compat
 use mir::value_types
+use corehir::mir_value_type
+use corehir::kinds
 
 // Layout / local-type tables use bare struct names. Strip only `::` qualifiers
 // so `import_block::ImportBlockSpan` → `ImportBlockSpan`, without touching
@@ -73,10 +75,10 @@ fn strip_embedded_module_path_prefixes(type_name: String) -> String {
 }
 
 fn is_option_or_result_type_name(type_name: String) -> bool {
-    starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("option:"))
+    starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "option:")
 }
 
 fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
@@ -84,10 +86,10 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
     if len(cleaned) == 0 {
         return
     }
-    if eq(clone(cleaned), String_from("fnref")) ||
-    eq(clone(cleaned), String_from("fn")) ||
-    starts_with(clone(cleaned), String_from("fn(")) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
+    if eq(clone(cleaned), "fnref") ||
+    eq(clone(cleaned), "fn") ||
+    starts_with(clone(cleaned), "fn(") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "fnref")
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
@@ -107,11 +109,11 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
         ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(marked))
         // Struct results must not keep a stray enum variant_slot from an
         // earlier payload; Ok(TomlValStep) would otherwise become enum:open.
-        if !starts_with(clone(marked), String_from("enum:")) &&
-        !starts_with(clone(marked), String_from("option:")) &&
-        !starts_with(clone(marked), String_from("Option")) &&
-        !starts_with(clone(marked), String_from("result:")) &&
-        !starts_with(clone(marked), String_from("Result")) {
+        if !starts_with(clone(marked), "enum:") &&
+        !starts_with(clone(marked), "option:") &&
+        !starts_with(clone(marked), "Option") &&
+        !starts_with(clone(marked), "result:") &&
+        !starts_with(clone(marked), "Result") {
             ctx_api_local_types::ctx_set_local_variant_slot(ctx, dest, 0 - 1)
         }
     }
@@ -127,8 +129,15 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
         return
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest)
+    // Re-apply known stdlib Result types when unset or demoted away from
+    // Result/Option encodings (#834 cmd_init: write_main was i32).
+    let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
+    let needs_stdlib_result = len(existing) == 0 ||
+    !is_option_or_result_type_name(clone(existing))
+    if needs_stdlib_result &&
+    call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest) {
+        set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
+        return
     }
     if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)
@@ -145,112 +154,78 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
             mark_call_result_from_return_type_name(ctx, dest, rtn)
         }
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
-        mark_mono_call_result_type(ctx, callee_name, dest)
-    }
+    // Call-time mangled-suffix reverse lookup removed (#843). Dest types must
+    // come from spine / MonoInstanceTable / known stdlib markers above.
     let resolved_type = ctx_api_local_types::ctx_get_local_type(ctx, dest)
     set_vt_for_resolved_type_name(ctx, dest, clone(resolved_type))
     let mono_vt = mono_return_vt::mono_return_vt(ctx, clone(callee_name), ctx_api_local_types::ctx_local_vt(ctx, dest))
-    // Prefer mono-resolved scalar return vts even when receiver-based inference
-    // left a ref-typed dest (i32-vs-ref on method calls like vec.len()).
+    // Prefer mono-resolved scalar return vts when dest is not already a known
+    // ref container (vec:/String/…). Unconditional scalar overwrite broke
+    // Vec::new__T results that mark_vec typed as vec:Elem (#845).
     if mono_vt == value_types::VT_I32() || mono_vt == value_types::VT_I64() || mono_vt == value_types::VT_F64() || mono_vt == value_types::VT_F32() {
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+        if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
+            ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
+        }
     } else if len(resolved_type) == 0 || !is_ref_type_name(ctx, clone(resolved_type)) {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, mono_vt)
     }
+    // Sync MirLocal.value_type from MonoInstanceTable so emit spine lookup
+    // matches SignatureRegistry (tuple mono returns; replaces body-scan infer).
+    apply_mono_return_mvt_to_dest(ctx, clone(callee_name), dest)
+}
+
+fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) {
+    let mvt = mono_return_vt::mono_return_mvt(ctx, callee_name)
+    if typed_mir_compat::mvt_is_invalid(mvt) {
+        return
+    }
+    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() &&
+    mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_LINEAR_PTR() {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_mvt(ctx, dest, mvt)
 }
 
 fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     if len(type_name) == 0 {
         return
     }
-    if eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn(")) {
+    if eq(clone(type_name), "fnref") ||
+    eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fn(") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
-    if eq(clone(type_name), String_from("i32")) || eq(clone(type_name), String_from("I32")) || eq(clone(type_name), String_from("bool")) || eq(clone(type_name), String_from("char")) {
+    if eq(clone(type_name), "i32") || eq(clone(type_name), "I32") || eq(clone(type_name), "bool") || eq(clone(type_name), "char") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
         return
     }
-    if eq(clone(type_name), String_from("i64")) || eq(clone(type_name), String_from("I64")) || eq(clone(type_name), String_from("u64")) {
+    if eq(clone(type_name), "i64") || eq(clone(type_name), "I64") || eq(clone(type_name), "u64") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
         return
     }
-    if eq(clone(type_name), String_from("f64")) || eq(clone(type_name), String_from("F64")) {
+    if eq(clone(type_name), "f64") || eq(clone(type_name), "F64") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
         return
     }
-    if eq(clone(type_name), String_from("f32")) || eq(clone(type_name), String_from("F32")) {
+    if eq(clone(type_name), "f32") || eq(clone(type_name), "F32") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
         return
     }
     set_ref_vt_for_type_name(ctx, dest, type_name)
 }
 
-fn mark_mono_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
-    let cn_stripped = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
-    // Prefer mono-suffix extraction that understands method names like
-    // Picker__echo__String (base contains "__" from "::" → "__").
-    let suffix = mono_suffix_parse::extract_mono_suffix(clone(cn_stripped))
-    if len(suffix) == 0 {
-        return
-    }
-    if !mono_suffix_is_single_type_key(clone(suffix)) {
-        return
-    }
-    if eq(clone(suffix), "String") || eq(clone(suffix), "string") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
-        if ctx_gc_enum::ctx_is_gc_target(ctx) {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
-        } else {
-            ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_REF())
-        }
-        return
-    }
-    if eq(clone(suffix), "i32") || eq(clone(suffix), "I32") || eq(clone(suffix), "bool") || eq(clone(suffix), "char") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(suffix))
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I32())
-        return
-    }
-    if eq(clone(suffix), "i64") || eq(clone(suffix), "I64") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i64"))
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_I64())
-        return
-    }
-    if eq(clone(suffix), "f64") || eq(clone(suffix), "F64") {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("f64"))
-        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F64())
-        return
-    }
-    // User struct mono returns (check_eq__Point → Point).
-    mark_call_result_from_return_type_name(ctx, dest, suffix)
-}
-
-fn mono_suffix_is_single_type_key(suffix: String) -> bool {
-    let slen = len(suffix)
-    let mut i = 0
-    while i < slen - 1 {
-        if char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95 {
-            return false
-        }
-        i = i + 1
-    }
-    true
-}
-
 fn is_mono_type_var_name(type_name: String) -> bool {
-    eq(clone(type_name), String_from("T")) ||
-    eq(clone(type_name), String_from("A")) ||
-    eq(clone(type_name), String_from("B")) ||
-    eq(clone(type_name), String_from("C")) ||
-    eq(clone(type_name), String_from("D")) ||
-    eq(clone(type_name), String_from("E")) ||
-    eq(clone(type_name), String_from("K")) ||
-    eq(clone(type_name), String_from("U")) ||
-    eq(clone(type_name), String_from("V")) ||
-    eq(clone(type_name), String_from("W"))
+    eq(clone(type_name), "T") ||
+    eq(clone(type_name), "A") ||
+    eq(clone(type_name), "B") ||
+    eq(clone(type_name), "C") ||
+    eq(clone(type_name), "D") ||
+    eq(clone(type_name), "E") ||
+    eq(clone(type_name), "K") ||
+    eq(clone(type_name), "U") ||
+    eq(clone(type_name), "V") ||
+    eq(clone(type_name), "W")
 }
 
 fn mark_struct_constructor_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -317,22 +292,22 @@ fn is_ref_type_name(ctx: LowerCtx, type_name: String) -> bool {
     if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) || starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+    if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("tuple:")) {
+    if starts_with(clone(type_name), "tuple:") {
         return true
     }
     if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(type_name)) {

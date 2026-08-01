@@ -182,12 +182,10 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 # Stage-2+ artifacts: primary target (ADR-007 Memory64 default).
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
-# Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds (#813).
-# Emit stays wasm32/wasi-p1 until s2 can self-emit + pin validating wasm32-gc (#834).
-# #730 closed: clone(T)→T fixed former func 8204 validate; pin/host RSS remains #834.
-# Fixpoint compares both stages at BOOTSTRAP_EMIT_* (stage-3 host = pinned bootstrap).
-BOOTSTRAP_EMIT_TARGET = "wasm32"
-BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
+# Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds.
+# Pinned bootstrap is memory32 wasm32-gc / wasi-p2 (#834); host-linker runs it.
+BOOTSTRAP_EMIT_TARGET = "wasm32-gc"
+BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p2"
 # KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
 CLOCK_CAPABLE_EMIT_TARGET = "wasm32"
 CLOCK_CAPABLE_EMIT_WASI_VERSION = "wasi-p1"
@@ -378,7 +376,7 @@ pub fn component_world_spec__world_target_error(world: String, target: String, e
 
 BOOTSTRAP_EMIT_LIBRARY_PATCH = """
 pub fn bootstrap_emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    emit_library_component(core_wasm, mir, target, wasi_version, world)
+    component_emit__emit_library_component(core_wasm, mir, target, wasi_version, world)
 }
 """
 
@@ -712,17 +710,21 @@ def _fixpoint_cache_try_write(
 
 
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP ABI)."""
+    """True when guest imports need tools/host-linker (bridged HTTP/TCP/P2 ABI)."""
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
-    # Legacy module name (pre-#727) or WIT-shaped bridged guest ABI (#727).
+    # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
+    # or core wasi-p2 imports that plain wasmtime cannot link (#834).
     return (
         b"arukellt_host" in data
         or b"wasi:http/outgoing-handler@" in data
         or b"wasi:http/incoming-handler@" in data
         or b"wasi:sockets/tcp@" in data
+        or b"wasi:cli/" in data
+        or b"wasi:filesystem/" in data
+        or b"arukellt:fs@" in data
         or b"sockets_connect" in data
         or b"sockets_listen" in data
         or b"http_get" in data
@@ -757,7 +759,14 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
 def _wasm_run_cmd(
     wasmtime: str, compiler_wasm: Path, root: Path, args: list[str]
 ) -> list[str]:
-    """Build a wasmtime run command, using AOT .cwasm when available."""
+    """Build a run command for ``compiler_wasm``, using AOT .cwasm when available.
+
+    wasi-p2 / host-linker guests skip AOT and route through
+    ``arukellt-run-hosted.sh`` (plain wasmtime cannot link ``wasi:cli/*``; #834).
+    """
+    if _wasm_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        return ["bash", str(hosted), f"--dir={root}", str(compiler_wasm), "--", *args]
     cwasm = _ensure_aot_cwasm(compiler_wasm)
     if cwasm.suffix == ".cwasm":
         return [wasmtime, "run", "--allow-precompiled",
@@ -825,15 +834,17 @@ def _wasm_compile(
     Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
     Passes --cache-dir to enable per-module parse caching (only for selfhost
     compilers that support the flag; skipped for pinned bootstrap).
+    wasi-p2 compilers route through host-linker (plain wasmtime cannot link
+    ``wasi:cli/*`` core imports; #834).
     """
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
-    dirs: list[str] = []
+    preopen_paths: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
-        dirs.extend(["--dir", str(workspace_root)])
+        preopen_paths.append(str(workspace_root))
         guest_out = "bootstrap-out.wasm"
-    dirs.extend(["--dir", str(root)])
+    preopen_paths.append(str(root))
     # Ensure AST cache directory exists
     ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
@@ -841,20 +852,34 @@ def _wasm_compile(
     cache_args: list[str] = []
     if _is_selfhost_compiler(compiler_wasm, root):
         cache_args = ["--cache-dir", AST_CACHE_REL]
-    # Use AOT precompiled .cwasm when available for faster startup
-    run_wasm = _ensure_aot_cwasm(compiler_wasm)
-    run_flags: list[str]
-    if run_wasm.suffix == ".cwasm":
-        run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+    guest_argv = [
+        "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
+        "-o", guest_out, *cache_args, *(extra_args or []),
+    ]
+    if _wasm_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        host_dirs = [f"--dir={p}" for p in preopen_paths]
+        result = _run(
+            ["bash", str(hosted), *host_dirs, str(compiler_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     else:
-        run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
-    result = _run(
-        [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--",
-         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi, "-o", guest_out,
-         *cache_args, *(extra_args or [])],
-        root,
-        timeout=timeout,
-    )
+        dirs: list[str] = []
+        for p in preopen_paths:
+            dirs.extend(["--dir", p])
+        # Use AOT precompiled .cwasm when available for faster startup
+        run_wasm = _ensure_aot_cwasm(compiler_wasm)
+        run_flags: list[str]
+        if run_wasm.suffix == ".cwasm":
+            run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+        else:
+            run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
+        result = _run(
+            [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
+            root,
+            timeout=timeout,
+        )
     if workspace_root is not None:
         staged = workspace_root / guest_out
         stderr = result.stderr or ""
@@ -2314,7 +2339,12 @@ def _patch_bootstrap_disable_selfhost_mir_prune(wasm_path: Path) -> bool:
 
 
 def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
-    """Return a bootstrap-capable copy of the pinned wasm (heap grow + memory64)."""
+    """Return a runnable copy of the pinned bootstrap compiler.
+
+    memory32 ``wasm32-gc`` / ``wasi-p2`` pins (host-linker imports) must not be
+    widened with ``--to-memory64`` — that corrupts GC type sections (#834).
+    Legacy wasm32 pins still get heap-grow + Memory64 widening.
+    """
     out = _resolve_build_rel(root, BOOTSTRAP_WASM_REL)
     patcher_bin = _ensure_wasm_patcher_binary(root)
     if patcher_bin is None:
@@ -2327,6 +2357,14 @@ def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
     if out.is_file() and out.stat().st_mtime >= source_mtime:
         return out
     out.parent.mkdir(parents=True, exist_ok=True)
+    # GC wasi-p2 memory32: copy as-is for host-linker (#834).
+    if _wasm_needs_host_linker(pinned) and not _wasm_memory_section_is_memory64(pinned):
+        shutil.copyfile(pinned, out)
+        if not _patch_bootstrap_disable_selfhost_mir_prune(out):
+            return None
+        if _reject_invalid_compiler_wasm(out):
+            return None
+        return out
     patch = subprocess.run(
         [str(patcher_bin), str(pinned), str(out), "--to-memory64"],
         cwd=str(root),
@@ -2350,15 +2388,11 @@ def _fixpoint_stage3_compiler(
     pinned: Path,
     built_s2: Path,
 ) -> Path | None:
-    """Compiler wasm for fixpoint stage-3.
+    """Compiler wasm for fixpoint stage-3 — s2-runtime (ADR-029 / #834).
 
-    Until pinned bootstrap can emit ``wasm32-gc`` and s2 can self-compile under
-    Memory64, stage-3 uses the same bootstrap compiler as stage-2 so both
-    stages compile the same overlay + emit target deterministically (#813).
+    The former #813 bootstrap-only stage-3 path is dropped now that pinned
+    bootstrap emits ``wasm32-gc`` / ``wasi-p2`` and s2 can self-compile.
     """
-    bootstrap = _ensure_bootstrap_compiler_wasm(root, pinned)
-    if bootstrap is not None:
-        return bootstrap
     return _stage3_compiler_wasm(root, pinned, built_s2)
 
 
@@ -2445,11 +2479,19 @@ def _widen_compiler_wasm_to_memory64(
 ) -> Path | None:
     """Widen a wasm32 compiler module to Memory64 at ``out`` (validate on success).
 
-    Native Memory64 inputs are copied. ``wasm32to64`` is not used on GC modules
-    (it does not preserve GC type sections).
+    Native Memory64 inputs are copied. memory32 ``wasm32-gc`` / ``wasi-p2``
+    modules (host-linker imports) are copied without ``--to-memory64`` — the
+    patcher does not preserve GC type sections (#834).
     """
     out.parent.mkdir(parents=True, exist_ok=True)
     if _wasm_memory_section_is_memory64(compiler_wasm):
+        if compiler_wasm.resolve() != out.resolve():
+            shutil.copyfile(compiler_wasm, out)
+        if _reject_invalid_compiler_wasm(out):
+            return None
+        return out
+    # GC wasi-p2 memory32: host-linker runs the module as-is (#834).
+    if _wasm_needs_host_linker(compiler_wasm):
         if compiler_wasm.resolve() != out.resolve():
             shutil.copyfile(compiler_wasm, out)
         if _reject_invalid_compiler_wasm(out):

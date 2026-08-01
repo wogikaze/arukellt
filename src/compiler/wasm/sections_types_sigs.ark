@@ -11,36 +11,36 @@ fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_impo
 }
 
 fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
-    push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
-    push(type_sigs, String_from("i32_i32_1i32"))
-    push(type_sigs, String_from("i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32"))
-    push(type_sigs, String_from("i32_1i32"))
-    push(type_sigs, String_from("i32_0"))
+    push(type_sigs, "i32_i32_i32_i32_1i32")
+    push(type_sigs, "i32_i32_1i32")
+    push(type_sigs, "i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
+    push(type_sigs, "i32_1i32")
+    push(type_sigs, "i32_0")
     if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
-        push(type_sigs, String_from("i32_i64_i32_1i32"))
+        push(type_sigs, "i32_i64_i32_1i32")
         return
     }
     if emit_target::is_p2_wasi(clone(wasi_version)) {
-        push(type_sigs, String_from("1i64"))
-        push(type_sigs, String_from("MR_i64_i32"))
+        push(type_sigs, "1i64")
+        push(type_sigs, "MR_i64_i32")
         // Guest-native get-stdout/get-stderr + blocking-write-and-flush (#668).
-        push(type_sigs, String_from("1i32"))
-        push(type_sigs, String_from("i32_i32_i32_i32_0"))
+        push(type_sigs, "1i32")
+        push(type_sigs, "i32_i32_i32_i32_0")
     } else {
-        push(type_sigs, String_from("i32_i64_i32_1i32"))
+        push(type_sigs, "i32_i64_i32_1i32")
     }
-    if needs_wasi_http_outgoing == 1 { push(type_sigs, String_from("i32_i32_1i32")) }
+    if needs_wasi_http_outgoing == 1 { push(type_sigs, "i32_i32_1i32") }
     if needs_arukellt_host == 1 {
-        push(type_sigs, String_from("i32_i32_i32_1i32"))
-        push(type_sigs, String_from("i32_i32_i32_i32_i32_i32_i32_1i32"))
-        push(type_sigs, String_from("i32_i32_i32_i32_1i32"))
+        push(type_sigs, "i32_i32_i32_1i32")
+        push(type_sigs, "i32_i32_i32_i32_i32_i32_i32_1i32")
+        push(type_sigs, "i32_i32_i32_i32_1i32")
     }
 }
 
 fn append_t2_type_sigs(type_sigs: Vec<String>) {
-    push(type_sigs, String_from("i32_i32_0"))
-    push(type_sigs, String_from("0"))
-    push(type_sigs, String_from("i32_i32_1i32"))
+    push(type_sigs, "i32_i32_0")
+    push(type_sigs, "0")
+    push(type_sigs, "i32_i32_1i32")
 }
 
 fn append_function_type_sigs(
@@ -64,6 +64,6 @@ fn append_function_type_sigs(
 
 fn append_wrapper_type_sig(type_sigs: Vec<String>, needs_wrapper: i32) {
     if needs_wrapper == 1 {
-        push(type_sigs, String_from("0"))
+        push(type_sigs, "0")
     }
 }

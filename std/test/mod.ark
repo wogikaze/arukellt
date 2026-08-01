@@ -2,6 +2,9 @@
 //!
 //! The current module provides typed assertions and expectation helpers for
 //! `Result` and `Option`.
+use std::core::cmp
+use std::core::convert
+
 // === Typed assertions ===
 pub fn assert_true(cond: bool) {
     if !cond {
@@ -15,37 +18,52 @@ pub fn assert_false(cond: bool) {
     }
 }
 
+/// Generic equality assertion. On failure, both values are rendered with
+/// `Debug` (`fmt_debug`), matching Rust `assert_eq!` diagnostic style.
+///
+/// Named `assert_eq_debug` (not `assert_eq`) because bare `assert_eq` is a
+/// CoreOp-bound prelude symbol; a same-named stdlib generic currently
+/// mis-lowers scalar monomorphizations (`structref` vs `i32`).
+pub fn assert_eq_debug<T: Eq + Debug>(actual: T, expected: T) {
+    if !actual.eq(expected) {
+        let msg = concat("assert_eq failed: expected ", concat(expected.fmt_debug(), concat(", got ", actual.fmt_debug())))
+        panic(msg)
+    }
+}
+
 pub fn assert_eq_i32(actual: i32, expected: i32) {
     if actual != expected {
-        let msg = concat("assert_eq_i32 failed: expected ", concat((expected).to_string(), concat(", got ", (actual).to_string())))
+        let msg = concat("assert_eq_i32 failed: expected ", concat((expected).fmt_debug(), concat(", got ", (actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_i64(actual: i64, expected: i64) {
     if actual != expected {
-        let msg = concat("assert_eq_i64 failed: expected ", concat((expected).to_string(), concat(", got ", (actual).to_string())))
+        let msg = concat("assert_eq_i64 failed: expected ", concat((expected).fmt_debug(), concat(", got ", (actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_f64(actual: f64, expected: f64) {
     if actual != expected {
-        let msg = concat("assert_eq_f64 failed: expected ", concat((expected).to_string(), concat(", got ", (actual).to_string())))
+        let msg = concat("assert_eq_f64 failed: expected ", concat((expected).fmt_debug(), concat(", got ", (actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_string(actual: String, expected: String) {
-    if !eq(actual, expected) {
-        let msg = concat("assert_eq_string failed: expected \"", concat(expected, concat("\", got \"", concat(actual, "\""))))
+    // Prefer `!=` over free `eq`: with `use std::core::cmp`, the name `eq`
+    // can resolve to `Eq::eq` and recurse through the String impl.
+    if actual != expected {
+        let msg = concat("assert_eq_string failed: expected ", concat((expected).fmt_debug(), concat(", got ", (actual).fmt_debug())))
         panic(msg)
     }
 }
 
 pub fn assert_eq_bool(actual: bool, expected: bool) {
     if actual != expected {
-        let msg = concat("assert_eq_bool failed: expected ", concat((expected).to_string(), concat(", got ", (actual).to_string())))
+        let msg = concat("assert_eq_bool failed: expected ", concat((expected).fmt_debug(), concat(", got ", (actual).fmt_debug())))
         panic(msg)
     }
 }
@@ -58,7 +76,7 @@ pub fn assert_ne_i32(actual: i32, unexpected: i32) {
 }
 
 pub fn assert_ne_string(actual: String, unexpected: String) {
-    if eq(actual, unexpected) {
+    if actual == unexpected {
         let msg = concat("assert_ne_string failed: values should differ, both are \"", concat(actual, "\""))
         panic(msg)
     }
@@ -119,7 +137,7 @@ pub fn assert_contains(haystack: String, needle: String) {
 
 /// Assert that two strings are equal, showing expected and actual blocks on failure.
 pub fn assert_eq_snapshot(actual: String, expected: String) {
-    if !eq(actual, expected) {
+    if actual != expected {
         let msg = concat("snapshot mismatch:\n--- expected ---\n", concat(expected, concat("\n--- actual ---\n", actual)))
         panic(msg)
     }

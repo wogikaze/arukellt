@@ -18,7 +18,7 @@ fn check_enum_match_exhaustive(env: TypeEnv, resolved_scrutinee: TypeInfo, enum_
         enum_idx = enum_idx + 1
     }
     if !found_enum {
-        unify::type_error(env, concat(String_from("non-exhaustive match: unknown enum '"), clone(enum_name)))
+        unify::type_error(env, concat("non-exhaustive match: unknown enum '", clone(enum_name)))
     }
 }
 
@@ -26,7 +26,7 @@ fn enum_name_matches(resolved_name: String, declared_name: String) -> bool {
     if eq(clone(resolved_name), clone(declared_name)) {
         return true
     }
-    ends_with(resolved_name, concat(String_from("::"), declared_name))
+    ends_with(resolved_name, concat("::", declared_name))
 }
 
 fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, coverage: MatchCoverage) {
@@ -35,8 +35,8 @@ fn check_enum_variants_covered(env: TypeEnv, enum_name: String, edef: EnumInfo, 
     while v < variant_count {
         let vname = contract_enum_info::EnumInfo_variant_at(edef, v)
         if !match_exhaustive_covered::is_variant_covered(coverage, vname) {
-            unify::type_error(env, concat(String_from("non-exhaustive match: missing "),
-                    concat(clone(enum_name), concat(String_from("::"), clone(vname)))))
+            unify::type_error(env, concat("non-exhaustive match: missing ",
+                    concat(clone(enum_name), concat("::", clone(vname)))))
         }
         v = v + 1
     }

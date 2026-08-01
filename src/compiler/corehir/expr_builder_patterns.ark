@@ -3,15 +3,15 @@ use corehir::kinds
 use corehir::value_types
 
 fn corehir_expr_pat_ident(text: String, span_start: i32) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_IDENT(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, Vec_new_i32())
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_IDENT(), text, 0, 0.0, value_types::VT_I32(), String_new(), span_start, Vec::new<i32>())
 }
 
 fn corehir_expr_pat_wildcard(text: String, span_start: i32) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_WILDCARD(), text, 0, 0.0, value_types::VT_VOID(), String_new(), span_start, Vec_new_i32())
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_WILDCARD(), text, 0, 0.0, value_types::VT_VOID(), String_new(), span_start, Vec::new<i32>())
 }
 
 fn corehir_expr_pat_literal(text: String, int_val: i32, span_start: i32) -> CoreHirExpr {
-    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_LITERAL(), text, int_val, 0.0, value_types::VT_I32(), String_new(), span_start, Vec_new_i32())
+    expr_factory::CoreHirExpr_new(commands::COREHIR_EXPR_PAT_LITERAL(), text, int_val, 0.0, value_types::VT_I32(), String_new(), span_start, Vec::new<i32>())
 }
 
 fn corehir_expr_pat_variant(text: String, span_start: i32, children: Vec<i32>) -> CoreHirExpr {

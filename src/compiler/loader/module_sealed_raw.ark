@@ -1,26 +1,26 @@
 pub fn is_sealed_raw_api_path(path: String) -> bool {
-    if eq(clone(path), String_from("std::core::raw")) {
+    if eq(clone(path), "std::core::raw") {
         return true
     }
-    if eq(clone(path), String_from("core::raw")) {
+    if eq(clone(path), "core::raw") {
         return true
     }
     false
 }
 
 pub fn sealed_raw_api_stdlib_path(path: String) -> String {
-    if eq(clone(path), String_from("core::raw")) {
-        return String_from("std::core::raw")
+    if eq(clone(path), "core::raw") {
+        return "std::core::raw"
     }
     path
 }
 
 pub fn sealed_raw_api_reject_message(path: String) -> String {
     concat(
-        String_from("error: module `"),
+        "error: module `",
         concat(
             clone(path),
-            String_from("` is a sealed stdlib raw API (RFC-006); user code cannot import it")
+            "` is a sealed stdlib raw API (RFC-006); user code cannot import it"
         )
     )
 }

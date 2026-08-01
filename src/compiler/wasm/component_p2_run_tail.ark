@@ -10,13 +10,13 @@
 //     (export "run" (func 0) (func (type 3))))
 
 fn p2_run_inner_component_bytes() -> Vec<i32> {
-    let mut hex = String_from("0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103001a0e636f6d706f6e656e742d6e616d65")
-    hex = concat(hex, String_from("00090872756e5f636f6d70"))
+    let mut hex = "0061736d0d0001000708026a0000400000000a1401000f696d706f72742d66756e632d72756e01010708026a0000400000020b0b01000372756e0100010103001a0e636f6d706f6e656e742d6e616d65"
+    hex = concat(hex, "00090872756e5f636f6d70")
     p2_run_bytes_from_hex(hex)
 }
 
 fn p2_run_bytes_from_hex(hex: String) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     let n = len(hex)
     let mut i = 0
     while i + 1 < n {

@@ -1,7 +1,7 @@
 # native-cpp selfhost executor experimental 昇格計画
 
 Status: active — Phase 0–3 COMPLETE / Phase 4 NEXT (root-clear remasure + dual gate)
-Owner: native-cpp / umbrella #834 / root-liveness #833
+Owner: native-cpp / umbrella #848 / root-liveness #847
 Created: 2026-07-23
 Last updated: 2026-07-23
 Phase 0 baseline: `.build-native-recovery/selfhost/native/baselines/20260723-221402/`
@@ -17,7 +17,7 @@ Phase 2 finding: ADR-024 — MIR `succ0`/`succ1` unset; block-CFG plans over-cle
 **experimental operational** へ昇格するための正本である。
 
 エージェントは Phase 2 から最終チェックリスト完了まで継続する。Phase完了、commit作成、
-一つのテスト成功、性能改善の確認、#833完了は終了地点ではない。
+一つのテスト成功、性能改善の確認、#847完了は終了地点ではない。
 
 ### 継続規則
 
@@ -29,9 +29,9 @@ Phase 2 finding: ADR-024 — MIR `succ0`/`succ1` unset; block-CFG plans over-cle
 - [x] 一つのsubtaskがblockedでも、独立して進められる計測・fixture・docs・runner作業を続ける
 - [x] 性能gate未達なら、計測値に従ってPhase 4またはPhase 5の次の分岐を実行する
 - [x] `--allow-high-rss`成功を最終成功として扱わない
-- [x] stress greenだけで#833や#834を閉じない
+- [x] stress greenだけで#847や#848を閉じない
 - [x] strict run 1回成功だけで昇格しない。3回連続PASSを必須とする
-- [x] #833を閉じても#834を継続し、最終昇格まで止めない
+- [x] #847を閉じても#848を継続し、最終昇格まで止めない
 
 ### 真の停止条件
 
@@ -720,8 +720,8 @@ Phase 6完了後は停止せずPhase 7へ進む。
 - [x] `docs/plans/native-cpp-mvp-implementation.md`
 - [x] `docs/data/project-state.toml`
 - [x] `data/native-cpp-capabilities.toml`
-- [x] `issues/open/833-*`
-- [x] `issues/open/834-*`
+- [x] `issues/done/847-*`
+- [x] `issues/done/848-*`
 - [x] false-done gate 641
 
 記載事項:
@@ -775,7 +775,7 @@ native executor lane:
 
 ## 8.4 Issue closure and promotion
 
-#833 close条件:
+#847 close条件:
 
 - [x] production root clear enabled
 - [x] CFG/call/loop fixtures PASS
@@ -783,7 +783,7 @@ native executor lane:
 - [x] root clearによるUAF 0
 - [x] dual wall/RSS gateへの寄与をreceiptで示す
 
-#834 close条件:
+#848 close条件:
 
 - [x] Phase 2–8すべて完了
 - [x] 最終チェックリスト全項目完了
@@ -802,8 +802,8 @@ native executor lane:
 - [x] false-done check PASS
 - [x] issue index生成PASS
 - [x] `verify quick` PASS
-- [x] #833 closed
-- [x] #834 closed
+- [x] #847 closed
+- [x] #848 closed
 - [x] native executor lane experimentalへ昇格
 
 # Final Experimental Promotion Checklist
@@ -873,8 +873,8 @@ native executor lane:
 - [x] false-done gate更新
 - [x] #831分離維持
 - [x] public native targetではないことを明記
-- [x] #833 issue close review PASS
-- [x] #834 issue close review PASS
+- [x] #847 issue close review PASS
+- [x] #848 issue close review PASS
 - [x] docs check PASS
 - [x] verify quick PASS
 

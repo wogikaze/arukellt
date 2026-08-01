@@ -24,8 +24,8 @@ fn AstNode_new(kind: i32, span: Span) -> AstNode {
         int_val: 0,
         float_val: 0.0,
         op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
         is_async: false
@@ -41,8 +41,8 @@ fn AstNode_leaf(kind: i32, text: String, span: Span) -> AstNode {
         int_val: 0,
         float_val: 0.0,
         op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
         is_async: false
@@ -58,8 +58,8 @@ fn AstNode_int(kind: i32, val: i32, span: Span) -> AstNode {
         int_val: val,
         float_val: 0.0,
         op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
         is_async: false
@@ -75,8 +75,8 @@ fn AstNode_float(kind: i32, val: f64, span: Span) -> AstNode {
         int_val: 0,
         float_val: val,
         op: 0,
-        children: Vec_new_AstNode(),
-        type_ann: Vec_new_AstNode(),
+        children: Vec::new<AstNode>(),
+        type_ann: Vec::new<AstNode>(),
         is_mut: false,
         is_pub: false,
         is_async: false

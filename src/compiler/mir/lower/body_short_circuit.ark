@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::opcodes
 use mir::lower::ctx_types
@@ -10,7 +11,10 @@ use mir::value_types
 
 fn lower_short_circuit_binary(ctx: LowerCtx, lhs: AstNode, rhs: AstNode, mir_op: i32) -> i32 {
     let l_idx = lower_expr(ctx, lhs)
+    // Result is bool (same as comparison ops). Without the type name,
+    // `.to_string()` rewrites to i32 formatting and prints 1/0 (#807).
     let sc_result = ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_api_local_types::ctx_set_local_type(ctx, sc_result, String_from("bool"))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(sc_result))
     ctx_emit(ctx, inst_local_get::MirInst_local_get(sc_result))
     if mir_op == opcodes::MIR_OR() {

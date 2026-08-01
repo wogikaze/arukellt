@@ -6,7 +6,7 @@ fn resolve_struct_lit(ctx: ResolveCtx, node: AstNode) {
     let struct_name = ast_access::node_text(node)
     let idx = scope_lookup::lookup(ctx, clone(struct_name))
     if idx < 0 {
-        scope_error::resolve_error(ctx, concat(String_from("undefined struct: "), struct_name))
+        scope_error::resolve_error(ctx, concat("undefined struct: ", struct_name))
     }
     let field_count = ast_access::node_child_count(node)
     let mut i = 0

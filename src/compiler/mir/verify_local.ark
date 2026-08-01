@@ -17,13 +17,13 @@ fn verify_locals_in_function(f: MirFunction, report: MirVerifyReport, verbose: b
     let pc = function_param_view::MirFunction_param_count(f)
     let mut pi = 0
     while pi < pc {
-        verify_one_local(function_param_view::MirFunction_param_at(f, pi), report, verbose, fn_name, String_from("param"))
+        verify_one_local(function_param_view::MirFunction_param_at(f, pi), report, verbose, fn_name, "param")
         pi = pi + 1
     }
     let lc = function_locals_view::MirFunction_local_count(f)
     let mut li = 0
     while li < lc {
-        verify_one_local(function_locals_view::MirFunction_local_at(f, li), report, verbose, fn_name, String_from("local"))
+        verify_one_local(function_locals_view::MirFunction_local_at(f, li), report, verbose, fn_name, "local")
         li = li + 1
     }
     verify_local_instruction_operands(f, lc, report, verbose, fn_name)
@@ -53,7 +53,7 @@ fn verify_local_instruction_operands(
                 if verbose {
                     mir_verify_report_push_detail(
                         report,
-                        concat(String_from("W008 invalid-local-operand "), fn_name)
+                        concat("W008 invalid-local-operand ", fn_name)
                     )
                 }
             }
@@ -69,21 +69,21 @@ fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_
     if vt == value_types::VT_VOID() && len(tn) == 0 {
         mir_verify_report_add_w001(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W001 "), concat(fn_name, concat(String_from(" "), kind))))
+            mir_verify_report_push_detail(report, concat("W001 ", concat(fn_name, concat(" ", kind))))
         }
     }
     if len(tn) == 0 && vt == value_types::VT_I32() {
         if !verify_local_spine_typed(local) {
             mir_verify_report_add_w005(report)
             if verbose {
-                mir_verify_report_push_detail(report, concat(String_from("W005 i32-default "), concat(fn_name, concat(String_from(" "), kind))))
+                mir_verify_report_push_detail(report, concat("W005 i32-default ", concat(fn_name, concat(" ", kind))))
             }
         }
     }
     if verify_local_gc_name_i32_mismatch(vt, tn, local) {
         mir_verify_report_add_w005(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W005 gc-name-i32 "), concat(fn_name, concat(String_from(" "), kind))))
+            mir_verify_report_push_detail(report, concat("W005 gc-name-i32 ", concat(fn_name, concat(" ", kind))))
         }
     }
     if verify_local_missing_value_type(vt, tn, local) {
@@ -91,7 +91,7 @@ fn verify_one_local(local: MirLocal, report: MirVerifyReport, verbose: bool, fn_
         if verbose {
             mir_verify_report_push_detail(
                 report,
-                concat(String_from("W006 missing-value-type "), concat(fn_name, concat(String_from(" "), concat(kind, concat(String_from(" tn=["), concat(tn, String_from("]")))))))
+                concat("W006 missing-value-type ", concat(fn_name, concat(" ", concat(kind, concat(" tn=[", concat(tn, "]"))))))
             )
         }
     }
@@ -126,13 +126,13 @@ fn verify_local_gc_name_i32_mismatch(vt: i32, type_name: String, local: MirLocal
     if vt != value_types::VT_I32() {
         return false
     }
-    if eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "String") {
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return true
     }
     false
@@ -144,13 +144,13 @@ fn verify_function_return(f: MirFunction, report: MirVerifyReport, verbose: bool
     if rt == value_types::VT_VOID() && len(rtn) > 0 {
         mir_verify_report_add_w004(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W004 void-with-name "), function_identity::MirFunction_name(f)))
+            mir_verify_report_push_detail(report, concat("W004 void-with-name ", function_identity::MirFunction_name(f)))
         }
     }
     if rt != value_types::VT_VOID() && len(rtn) == 0 {
         mir_verify_report_add_w004(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W004 typed-without-name "), function_identity::MirFunction_name(f)))
+            mir_verify_report_push_detail(report, concat("W004 typed-without-name ", function_identity::MirFunction_name(f)))
         }
     }
 }

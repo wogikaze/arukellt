@@ -170,6 +170,8 @@ fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
     n
 }
 
+/// Returns the index after the closing quote, or `-1` when the string is
+/// unterminated (no unescaped `"` before EOF).
 fn find_string_end(s: String, pos: i32) -> i32 {
     let n = len(s)
     let mut i = pos
@@ -189,7 +191,7 @@ fn find_string_end(s: String, pos: i32) -> i32 {
         }
         i = i + 1
     }
-    n
+    0 - 1
 }
 
 fn find_number_end(s: String, pos: i32) -> i32 {
@@ -213,7 +215,12 @@ fn find_value_end(s: String, pos: i32) -> i32 {
     }
     let c = char_at(s, pos)
     if c == 34 {
-        find_string_end(s, pos + 1)
+        let end = find_string_end(s, pos + 1)
+        if end < 0 {
+            n
+        } else {
+            end
+        }
     } else {
         if c == 91 {
             find_closing(s, pos + 1, 91, 93)
@@ -300,11 +307,14 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     }
     if c == 34 {
         let end = find_string_end(s, pos + 1)
+        if end < 0 {
+            return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("unterminated string")), pos)
+        }
         let inner = json_decode_string(slice(s, pos + 1, end - 1))
         return JsonParseStep_ok(JsonValue::Str(inner), end)
     }
     if c == 91 {
-        let arr = Vec_new_JsonValue()
+        let arr = Vec::new<JsonValue>()
         let mut i = skip_ws(s, pos + 1)
         while i < n {
             i = skip_ws(s, i)
@@ -324,7 +334,7 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
     }
     if c == 123 {
-        let fields = Vec_new_JsonField()
+        let fields = Vec::new<JsonField>()
         let mut i = skip_ws(s, pos + 1)
         while i < n {
             i = skip_ws(s, i)
@@ -335,6 +345,9 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
                 return JsonParseStep_err(JsonParseError::UnexpectedCharacter(char_at(s, i)), i)
             }
             let key_end = find_string_end(s, i + 1)
+            if key_end < 0 {
+                return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("unterminated string")), i)
+            }
             let key = json_decode_string(slice(s, i + 1, key_end - 1))
             i = skip_ws(s, key_end)
             if i >= n || char_at(s, i) != 58 {
@@ -387,8 +400,15 @@ pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
 pub fn stringify(v: JsonValue) -> String {
     match v {
         JsonValue::Null => "null",
-        JsonValue::Bool(true) => "true",
-        JsonValue::Bool(false) => "false",
+        // Bind payload then branch — Bool(true)/Bool(false) arms do not
+        // discriminate the bool field on wasm32-gc (#807).
+        JsonValue::Bool(b) => {
+            if b {
+                "true"
+            } else {
+                "false"
+            }
+        },
         JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
@@ -443,8 +463,13 @@ fn repeat_spaces(count: i32) -> String {
 fn stringify_pretty_at(v: JsonValue, indent: i32, depth: i32) -> String {
     match v {
         JsonValue::Null => "null",
-        JsonValue::Bool(true) => "true",
-        JsonValue::Bool(false) => "false",
+        JsonValue::Bool(b) => {
+            if b {
+                "true"
+            } else {
+                "false"
+            }
+        },
         JsonValue::Number(n) => n,
         JsonValue::Str(s) => json_encode_string(s),
         JsonValue::Raw(s) => s,
@@ -457,7 +482,7 @@ fn stringify_array_pretty(items: Vec<JsonValue>, indent: i32, depth: i32) -> Str
     if len(items) == 0 {
         return "[]"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
     let n = len(items)
@@ -477,7 +502,7 @@ fn stringify_object_pretty(fields: Vec<JsonField>, indent: i32, depth: i32) -> S
     if len(fields) == 0 {
         return "{}"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
     let n = len(fields)
@@ -502,7 +527,7 @@ fn format_array_pretty(raw: String, indent: i32, depth: i32) -> String {
     if i0 < n && char_at(raw, i0) == 93 {
         return "[]"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "[\n"
     let mut i = skip_ws(raw, 1)
@@ -543,7 +568,7 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
     if i0 < n && char_at(raw, i0) == 125 {
         return "{}"
     }
-    let child_pad = repeat_spaces(indent * depth + 1)
+    let child_pad = repeat_spaces(indent * (depth + 1))
     let close_pad = repeat_spaces(indent * depth)
     let mut result = "{\n"
     let mut i = skip_ws(raw, 1)
@@ -560,6 +585,9 @@ fn format_object_pretty(raw: String, indent: i32, depth: i32) -> String {
             return raw
         }
         let key_end = find_string_end(raw, i + 1)
+        if key_end < 0 {
+            return raw
+        }
         let key_raw = slice(raw, i, key_end)
         i = skip_ws(raw, key_end)
         if i >= n || char_at(raw, i) != 58 {
@@ -685,10 +713,28 @@ pub fn json_as_f64(v: JsonValue) -> Option<f64> {
 }
 
 pub fn json_as_array(v: JsonValue) -> Option<Vec<JsonValue>> {
-    match v {
-        JsonValue::Array(items) => Some(items),
-        _ => None,
+    // Returning the Array payload Vec directly traps on wasm32-gc (#807).
+    // Rebuild via json_get_index, which extracts elements safely.
+    // Avoid short local names like `out`/`i`/`done` — GC lowering has
+    // collided those into i32 slots and broken the Option wrap (#807).
+    if !is_array(v) {
+        return None
     }
+    let array_items = Vec::new<JsonValue>()
+    let mut index = 0
+    let mut finished = false
+    while !finished {
+        match json_get_index(v, index) {
+            Option::Some(elem) => {
+                push(array_items, elem)
+                index = index + 1
+            },
+            None => {
+                finished = true
+            },
+        }
+    }
+    Some(array_items)
 }
 
 pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
@@ -754,12 +800,12 @@ pub fn json_raw(s: String) -> JsonValue {
 
 /// Create an empty JsonField vector.
 pub fn json_obj_new() -> Vec<JsonField> {
-    Vec_new_JsonField()
+    Vec::new<JsonField>()
 }
 
 /// Create an empty JsonValue array vector.
 pub fn json_arr_new() -> Vec<JsonValue> {
-    Vec_new_JsonValue()
+    Vec::new<JsonValue>()
 }
 
 /// Build a JSON object string from a Vec<JsonField>.

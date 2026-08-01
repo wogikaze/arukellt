@@ -23,18 +23,18 @@ fn mir_payload_field_vt_for_payload(
     // Scrutinee-derived Option/Result payload types must win over a stale
     // first-name Option::Some(i32) layout when selecting the bind VT.
     if len(payload_type_name) > 0 && field_idx == 0 {
-        if eq(clone(payload_type_name), String_from("fnref")) ||
-        eq(clone(payload_type_name), String_from("fn")) ||
-        starts_with(clone(payload_type_name), String_from("fn(")) {
+        if eq(clone(payload_type_name), "fnref") ||
+        eq(clone(payload_type_name), "fn") ||
+        starts_with(clone(payload_type_name), "fn(") {
             return value_types::VT_FUNCREF()
         }
         if mir_payload_type_name_is_gc_ref_payload(clone(payload_type_name)) {
             return value_types::VT_GC_REF()
         }
-        if eq(clone(payload_type_name), String_from("f64")) || eq(clone(payload_type_name), String_from("F64")) {
+        if eq(clone(payload_type_name), "f64") || eq(clone(payload_type_name), "F64") {
             return value_types::VT_F64()
         }
-        if eq(clone(payload_type_name), String_from("i64")) || eq(clone(payload_type_name), String_from("I64")) {
+        if eq(clone(payload_type_name), "i64") || eq(clone(payload_type_name), "I64") {
             return value_types::VT_I64()
         }
         if mir_payload_scalar_type_name(clone(payload_type_name)) {
@@ -75,12 +75,12 @@ fn mir_payload_field_vt_for_payload(
 }
 
 fn mir_payload_type_name_is_gc_ref_payload(type_name: String) -> bool {
-    if eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fn")) ||
-    starts_with(clone(type_name), String_from("fn(")) {
+    if eq(clone(type_name), "fnref") ||
+    eq(clone(type_name), "fn") ||
+    starts_with(clone(type_name), "fn(") {
         return false
     }
-    if eq(clone(type_name), String_from("String")) || eq(clone(type_name), String_from("string")) {
+    if eq(clone(type_name), "String") || eq(clone(type_name), "string") {
         return true
     }
     if mir_payload_scalar_type_name(clone(type_name)) {
@@ -98,7 +98,7 @@ fn mir_variant_has_fnref_payload_field(ctx: LowerCtx, variant_name: String) -> b
     while i < count {
         if ctx_gc_enum::ctx_gc_enum_variant_names_match(clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(variant_name)) {
             let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
-            if contains(clone(sig), String_from("_f1_fnref")) {
+            if contains(clone(sig), "_f1_fnref") {
                 return true
             }
         }
@@ -123,7 +123,7 @@ fn mir_payload_gc_field_is_ref(ctx: LowerCtx, variant_name: String, field_idx: i
             saw_name = true
             let sig = clone(get_unchecked(ctx.gc_enum_variant_sigs, i))
             if field_idx == 0 {
-                if contains(clone(sig), String_from("_f1_ref")) || contains(clone(sig), String_from("gcsref")) {
+                if contains(clone(sig), "_f1_ref") || contains(clone(sig), "gcsref") {
                     return true
                 }
             }

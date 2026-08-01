@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let parts: Vec<String> = Vec_new_String()
+    let parts: Vec<String> = Vec::new<String>()
     push(parts, String_from("only"))
     test::assert_eq_string(join(parts, String_from(",")), "only")
 }

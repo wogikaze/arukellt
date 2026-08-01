@@ -10,34 +10,34 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
     }
     let mono_arg_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
     let mut mono_type_key = clone(mono_arg_type)
-    if starts_with(clone(mono_arg_type), String_from("vec:")) {
+    if starts_with(clone(mono_arg_type), "vec:") {
         mono_type_key = mono_type_key_from_local_type_name(substring(mono_arg_type, 4, len(mono_arg_type)))
     }
-    if starts_with(clone(mono_type_key), String_from("Option:")) {
+    if starts_with(clone(mono_type_key), "Option:") {
         mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
     }
-    if starts_with(clone(mono_type_key), String_from("option:")) {
+    if starts_with(clone(mono_type_key), "option:") {
         mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
     }
-    if starts_with(clone(mono_type_key), String_from("Option_")) {
+    if starts_with(clone(mono_type_key), "Option_") {
         mono_type_key = substring(clone(mono_type_key), 7, len(mono_type_key))
     }
-    if starts_with(clone(mono_type_key), String_from("enum:")) {
+    if starts_with(clone(mono_type_key), "enum:") {
         mono_type_key = substring(clone(mono_type_key), 5, len(mono_type_key))
     }
     if len(mono_type_key) == 0 {
         return out
     }
-    let mono_candidate = mono::mono_safe_name(concat(clone(out), concat(String_from("__"), mono_type_key)))
+    let mono_candidate = mono::mono_safe_name(concat(clone(out), concat("__", mono_type_key)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
         return mono_candidate
     }
-    let type_method = concat(clone(mono_type_key), concat(String_from("::"), clone(out)))
+    let type_method = concat(clone(mono_type_key), concat("::", clone(out)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(type_method)) {
         return type_method
     }
-    if eq(clone(mono_type_key), String_from("string")) {
-        let mono_candidate_string = mono::mono_safe_name(concat(clone(out), String_from("__String")))
+    if eq(clone(mono_type_key), "string") {
+        let mono_candidate_string = mono::mono_safe_name(concat(clone(out), "__String"))
         if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate_string)) {
             return mono_candidate_string
         }
@@ -52,32 +52,32 @@ fn mir_resolve_mono_call_by_type(ctx: LowerCtx, resolved: String, first_arg_idx:
 fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String, first_arg_idx: i32) -> String {
     // ADR-040 Phase 5: format_debug<T> / format_debug__?t0 defers to
     // T::fmt_debug. Type-var mono shells must not stay as unreachable stubs.
-    if eq(clone(out), String_from("format_debug")) || starts_with(clone(out), String_from("format_debug__")) {
+    if eq(clone(out), "format_debug") || starts_with(clone(out), "format_debug__") {
         let mut key = clone(mono_type_key)
-        if len(key) == 0 || starts_with(clone(key), String_from("?")) {
+        if len(key) == 0 || starts_with(clone(key), "?") {
             key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
-        if eq(clone(key), String_from("string")) {
-            key = String_from("String")
+        if eq(clone(key), "string") {
+            key = "String"
         }
-        if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
-            let trait_method = concat(clone(key), String_from("::fmt_debug"))
+        if len(key) > 0 && !starts_with(clone(key), "?") {
+            let trait_method = concat(clone(key), "::fmt_debug")
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(trait_method)) {
                 return trait_method
             }
         }
     }
     // write_debug_to__?t0 → write_debug_to__i32 / __String (value type key).
-    if eq(clone(out), String_from("write_debug_to")) || starts_with(clone(out), String_from("write_debug_to__")) {
+    if eq(clone(out), "write_debug_to") || starts_with(clone(out), "write_debug_to__") {
         let mut key = clone(mono_type_key)
-        if len(key) == 0 || starts_with(clone(key), String_from("?")) {
+        if len(key) == 0 || starts_with(clone(key), "?") {
             key = call_mono_by_type_scalar_key_from_local(ctx, first_arg_idx)
         }
-        if eq(clone(key), String_from("string")) {
-            key = String_from("String")
+        if eq(clone(key), "string") {
+            key = "String"
         }
-        if len(key) > 0 && !starts_with(clone(key), String_from("?")) {
-            let mono_candidate = mono::mono_safe_name(concat(String_from("write_debug_to__"), key))
+        if len(key) > 0 && !starts_with(clone(key), "?") {
+            let mono_candidate = mono::mono_safe_name(concat("write_debug_to__", key))
             if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mono_candidate)) {
                 return mono_candidate
             }
@@ -89,36 +89,36 @@ fn resolve_special_mono_target(ctx: LowerCtx, out: String, mono_type_key: String
 fn call_mono_by_type_scalar_key_from_local(ctx: LowerCtx, arg_idx: i32) -> String {
     let vt = ctx_api_local_types::ctx_local_vt(ctx, arg_idx)
     if vt == value_types::VT_I32() {
-        return String_from("i32")
+        return "i32"
     }
     if vt == value_types::VT_I64() {
-        return String_from("i64")
+        return "i64"
     }
     if vt == value_types::VT_F64() {
-        return String_from("f64")
+        return "f64"
     }
     if vt == value_types::VT_GC_REF() || vt == value_types::VT_REF() {
         let tn = ctx_api_local_types::ctx_get_local_type(ctx, arg_idx)
-        if eq(clone(tn), String_from("string")) || eq(clone(tn), String_from("String")) {
-            return String_from("String")
+        if eq(clone(tn), "string") || eq(clone(tn), "String") {
+            return "String"
         }
-        if eq(clone(tn), String_from("bool")) || eq(clone(tn), String_from("Bool")) {
-            return String_from("bool")
+        if eq(clone(tn), "bool") || eq(clone(tn), "Bool") {
+            return "bool"
         }
-        if eq(clone(tn), String_from("char")) {
-            return String_from("char")
+        if eq(clone(tn), "char") {
+            return "char"
         }
     }
     String_new()
 }
 
 fn mono_type_key_from_local_type_name(type_name: String) -> String {
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         let inner = mono_type_key_from_local_type_name(substring(clone(type_name), 4, len(type_name)))
-        return concat(String_from("Vec<"), concat(inner, String_from(">")))
+        return concat("Vec<", concat(inner, ">"))
     }
-    if eq(clone(type_name), String_from("Vec")) {
-        return String_from("Vec<i32>")
+    if eq(clone(type_name), "Vec") {
+        return "Vec<i32>"
     }
     type_name
 }

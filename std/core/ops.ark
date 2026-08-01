@@ -263,10 +263,12 @@ impl Shr for i32 {
     }
 }
 
-/// `Not` impl for `i32` — delegates to the built-in `!` operator.
+/// `Not` impl for `i32` — bitwise complement (two's complement).
+///
+/// Do not use prefix `!` here: on i32 it currently lowers as logical eqz (#807).
 impl Not for i32 {
     fn not(self: i32) -> i32 {
-        ! self
+        self ^ -1
     }
 }
 

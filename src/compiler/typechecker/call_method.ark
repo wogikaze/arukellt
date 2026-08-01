@@ -11,6 +11,7 @@ use typechecker::contract_type_mutation
 use typechecker::contract_types_record
 use typechecker::sigs
 use typechecker::trait_method_registry
+use typechecker::vec_core_mono
 
 fn simple_type(tag: i32) -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(tag)
@@ -85,7 +86,7 @@ fn infer_method_call_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, 
 }
 
 fn string_vec_type() -> TypeInfo {
-    let type_args = Vec_new_TypeInfo()
+    let type_args = Vec::new<TypeInfo>()
     push(type_args, simple_type(commands::TY_STRING()))
     contract_types_record::TypeInfo_new(commands::TY_VEC(), String_from("Vec"), type_args)
 }
@@ -108,6 +109,7 @@ fn infer_builtin_vec_method(
         return simple_type(commands::TY_UNKNOWN())
     }
     call_args::infer_call_args(env, scope, fn_sigs, enum_defs, node, 1, explicit_args)
+    vec_core_mono::record_vec_core_mono_for_callee(env, clone(method_name), recv_ty)
     if eq(clone(method_name), String_from("len")) {
         return simple_type(commands::TY_I32())
     }

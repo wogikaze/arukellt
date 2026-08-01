@@ -10,7 +10,7 @@ fn try_lower_overloaded_binary(ctx: LowerCtx, rhs: AstNode, mir_op: i32, l_idx: 
     if !ov_is_primitive {
         let ov_method = binary_method::mir_operator_method_name(mir_op)
         if len(ov_method) > 0 {
-            let ov_callee = concat(clone(ov_ltype), concat(String_from("::"), clone(ov_method)))
+            let ov_callee = concat(clone(ov_ltype), concat("::", clone(ov_method)))
             if ctx_fn_exists(ctx, clone(ov_callee)) != 0 {
                 let ov_r_idx = lower_expr(ctx, rhs)
                 return binary_emit::mir_emit_overloaded_binary_call(ctx, ov_callee)

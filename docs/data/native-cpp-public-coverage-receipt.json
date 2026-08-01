@@ -1,7 +1,7 @@
 {
   "failed": 0,
   "fixture_count": 16,
-  "generated_at": "2026-07-25T10:17:55Z",
+  "generated_at": "2026-08-01T01:44:24Z",
   "hof": {
     "capture_closures": "rejected_known_limitation",
     "zero_capture": "supported"
@@ -16,6 +16,14 @@
       "expected_diagnostic": "",
       "expected_exit": 0,
       "fixture": "tests/fixtures/native_cpp_public/args_print.ark",
+      "kind": "positive",
+      "ok": true,
+      "returncode": 0
+    },
+    {
+      "expected_diagnostic": "",
+      "expected_exit": 0,
+      "fixture": "tests/fixtures/native_cpp_public/array_literal_i32.ark",
       "kind": "positive",
       "ok": true,
       "returncode": 0
@@ -131,14 +139,6 @@
       "kind": "negative",
       "ok": true,
       "returncode": -6
-    },
-    {
-      "expected_diagnostic": "MIR_ARRAY_NEW",
-      "expected_exit": 0,
-      "fixture": "tests/fixtures/native_cpp_public/unsupported_array_new.ark",
-      "kind": "negative",
-      "ok": true,
-      "returncode": 1
     }
   ],
   "schema": "native-cpp-public-coverage-receipt/v1"

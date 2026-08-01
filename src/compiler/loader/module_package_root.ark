@@ -4,7 +4,7 @@ use loader::module_path_local
 pub fn find_package_root(base_dir: String) -> String {
     // Prefer read_to_string over exists: wasm32-gc exists lowering stores a
     // GC String ref into an i64 linear-memory scratch (validate fail).
-    let manifest = concat(clone(base_dir), String_from("/ark.toml"))
+    let manifest = concat(clone(base_dir), "/ark.toml")
     let read = fs::read_to_string(clone(manifest))
     match read {
         Result::Ok(_) => {

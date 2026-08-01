@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-26T11:56:03Z",
+  "generated_at": "2026-07-29T23:33:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -412,23 +412,6 @@
       }
     },
     {
-      "id": "696",
-      "path": "696-debug-trait-format-macros.md",
-      "title": "696 — `Debug` trait and `format!` / `write!` equivalent formatting",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 6,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": "none"
-      }
-    },
-    {
       "id": "702",
       "path": "702-to-string-clone-hash-trait-integration.md",
       "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
@@ -447,44 +430,6 @@
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
-      }
-    },
-    {
-      "id": "704",
-      "path": "704-std-json-full-compliance.md",
-      "title": "std::json Full JSON RFC 8259 Compliance",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "606"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "705",
-      "path": "705-std-toml-full-compliance.md",
-      "title": "std::toml Full TOML 1.0 Compliance",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "606"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
       }
     },
     {
@@ -604,44 +549,6 @@
       }
     },
     {
-      "id": "724",
-      "path": "724-adr040-phase5-7-remaining-work.md",
-      "title": "ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "729"
-      ],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 8
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "725",
-      "path": "725-adr040-phase5e-tracer-removal.md",
-      "title": "ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "None"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 8,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "design-then-implement",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "728",
       "path": "728-wir-target-backend-ir.md",
       "title": "728 — WIR / backend target IR for ADR-007 multi-target separation",
@@ -656,6 +563,25 @@
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "729",
+      "path": "729-intrinsic-layer-separation.md",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
+      "track": "compiler-internal",
+      "status": "open",
+      "depends_on": [
+        "843"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "unblocked",
+        "upstream_notes": "none"
       }
     },
     {
@@ -690,60 +616,6 @@
       "acceptance": {
         "checked": 0,
         "unchecked": 5
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "807",
-      "path": "807-fixture-parity-367-remaining-failures.md",
-      "title": "807 — Fixture parity: 367 remaining failures",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [
-        "287",
-        "framework)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "809",
-      "path": "809-wat-roundtrip-failure.md",
-      "title": "809 — WAT roundtrip failure",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "810",
-      "path": "810-component-interop-failures.md",
-      "title": "810 — Component interop failures",
-      "track": "compiler",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
       },
       "orchestration": {
         "class": "ready",
@@ -790,49 +662,6 @@
       }
     },
     {
-      "id": "822",
-      "path": "822-representation-dependent-stdlib-migration.md",
-      "title": "822 — Representation-dependent and allocating stdlib migration",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "820"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 820"
-      }
-    },
-    {
-      "id": "824",
-      "path": "824-early-body-lowering-worklist.md",
-      "title": "Early body lowering (worklist; design first)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "829"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "design",
-        "upstream_notes": null
-      }
-    },
-    {
       "id": "825",
       "path": "825-ast-cache-format-repair.md",
       "title": "AST cache format repair (not “re-enable as-is”)",
@@ -848,25 +677,6 @@
       },
       "orchestration": {
         "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "826",
-      "path": "826-symbol-path-intern-clone-audit.md",
-      "title": "P2a: symbol / path interning + hot-path clone audit",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "investigation",
         "upstream_notes": null
       }
     },
@@ -887,25 +697,6 @@
       "orchestration": {
         "class": "architecture-implementation",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "840",
-      "path": "840-question-mark-from-wasm32-gc.md",
-      "title": "840 — Enable `?` From conversion on wasm32-gc",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "839"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": 839
       }
     },
     {
@@ -930,9 +721,9 @@
       }
     },
     {
-      "id": "842",
-      "path": "842-native-executor-wasm32-gc-func118-validation.md",
-      "title": "native-executor wasm32-gc S3 validation drift (func 118)",
+      "id": "849",
+      "path": "849-native-executor-wasm32-gc-func118-validation.md",
+      "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
       "track": "main",
       "status": "open",
       "depends_on": [],
@@ -943,25 +734,6 @@
       },
       "orchestration": {
         "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "843",
-      "path": "843-wasm32-gc-bootstrap-pin.md",
-      "title": "Pin bootstrap to validating Memory64 wasm32-gc",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": null
       }
     },
@@ -1088,8 +860,8 @@
         "709"
       ],
       "acceptance": {
-        "checked": 0,
-        "unchecked": 19
+        "checked": 2,
+        "unchecked": 17
       },
       "orchestration": {
         "class": "blocked-by-upstream",
@@ -1134,25 +906,6 @@
       "orchestration": {
         "class": "blocked",
         "upstream_notes": 715
-      }
-    },
-    {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (unblocked epic)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "724"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "unblocked",
-        "upstream_notes": "none"
       }
     },
     {

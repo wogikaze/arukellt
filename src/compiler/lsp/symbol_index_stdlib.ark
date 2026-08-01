@@ -1,4 +1,5 @@
 use std::host::fs
+use std::toml
 use std::text
 use lsp::kinds
 use lsp::state_record
@@ -86,7 +87,7 @@ pub fn trim_brackets(raw: String) -> String {
 }
 
 fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestParseState {
-    let key_doc = symbol_index_paths::find_toml_value(clone(line), String_from("doc"))
+    let key_doc = toml::find_toml_value(clone(line), String_from("doc"))
     if len(key_doc) > 0 {
         state.doc = key_doc
     }
@@ -96,11 +97,11 @@ fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestPar
             state.params = trim_brackets(substring(line, eq_pos + 1, len(line)))
         }
     }
-    let key_ret = symbol_index_paths::find_toml_value(clone(line), String_from("returns"))
+    let key_ret = toml::find_toml_value(clone(line), String_from("returns"))
     if len(key_ret) > 0 {
         state.returns = key_ret
     }
-    let key_module = symbol_index_paths::find_toml_value(clone(line), String_from("module"))
+    let key_module = toml::find_toml_value(clone(line), String_from("module"))
     if len(key_module) > 0 {
         state.module = key_module
     }
@@ -109,7 +110,7 @@ fn apply_manifest_fields(state: ManifestParseState, line: String) -> ManifestPar
 
 fn parse_manifest_symbols(content: String) -> Vec<symbol_index_record::StdlibIndexedSymbol> {
     let _content = content
-    Vec_new_StdlibIndexedSymbol()
+    Vec::new<StdlibIndexedSymbol>()
 }
 
 fn manifest_load_path() -> String {
@@ -125,7 +126,7 @@ pub fn symbol_index_load_stdlib(state: LspState) {
             state_record::lsp_state_set_symbol_stdlib_symbols(state, parse_manifest_symbols(content))
         },
         Result::Err(_) => {
-            state_record::lsp_state_set_symbol_stdlib_symbols(state, Vec_new_StdlibIndexedSymbol())
+            state_record::lsp_state_set_symbol_stdlib_symbols(state, Vec::new<StdlibIndexedSymbol>())
         },
     }
 }

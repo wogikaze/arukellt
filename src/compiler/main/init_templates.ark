@@ -2,23 +2,23 @@ use std::host::stdio
 use std::text
 
 pub fn init_list_templates() {
-    stdio::println(String_from("minimal    - Minimal Hello World project (default)"))
-    stdio::println(String_from("cli        - CLI tool with argument parsing"))
-    stdio::println(String_from("with-tests - Project with test functions"))
-    stdio::println(String_from("wasi-host  - WASI host API usage example (wasm32-gc)"))
+    stdio::println("minimal    - Minimal Hello World project (default)")
+    stdio::println("cli        - CLI tool with argument parsing")
+    stdio::println("with-tests - Project with test functions")
+    stdio::println("wasi-host  - WASI host API usage example (wasm32-gc)")
 }
 
 pub fn init_template_is_valid(name: String) -> bool {
-    if eq(clone(name), String_from("minimal")) {
+    if eq(clone(name), "minimal") {
         return true
     }
-    if eq(clone(name), String_from("cli")) {
+    if eq(clone(name), "cli") {
         return true
     }
-    if eq(clone(name), String_from("with-tests")) {
+    if eq(clone(name), "with-tests") {
         return true
     }
-    if eq(clone(name), String_from("wasi-host")) {
+    if eq(clone(name), "wasi-host") {
         return true
     }
     false
@@ -26,66 +26,66 @@ pub fn init_template_is_valid(name: String) -> bool {
 
 pub fn init_template_normalize(name: String) -> String {
     if len(name) == 0 {
-        return String_from("minimal")
+        return "minimal"
     }
     clone(name)
 }
 
 pub fn init_template_main_ark(template: String) -> String {
-    if eq(clone(template), String_from("cli")) {
-        let mut source = String_from("use std::host::stdio\nuse std::host::process\n\n")
-        source = text::builder_append(source, String_from("pub fn greet(name: String) -> String {\n"))
-        source = text::builder_append(source, String_from("    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\n"))
-        source = text::builder_append(source, String_from("fn main() {\n    stdio::println(greet(String_from(\"World\")))\n"))
-        source = text::builder_append(source, String_from("    process::exit(0)\n}\n"))
+    if eq(clone(template), "cli") {
+        let mut source = "use std::host::stdio\nuse std::host::process\n\n"
+        source = text::builder_append(source, "pub fn greet(name: String) -> String {\n")
+        source = text::builder_append(source, "    concat(concat(String_from(\"Hello, \"), name), String_from(\"!\"))\n}\n\n")
+        source = text::builder_append(source, "fn main() {\n    stdio::println(greet(String_from(\"World\")))\n")
+        source = text::builder_append(source, "    process::exit(0)\n}\n")
         return source
     }
-    if eq(clone(template), String_from("with-tests")) {
-        let mut source = String_from("use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\n")
-        source = text::builder_append(source, String_from("pub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\n"))
-        source = text::builder_append(source, String_from("pub fn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\n"))
-        source = text::builder_append(source, String_from("pub fn test_subtract() {\n    let result = subtract(10, 4)\n    assert(result == 6)\n}\n\n"))
-        source = text::builder_append(source, String_from("fn main() {\n    let result = add(1, 2)\n"))
-        source = text::builder_append(source, String_from("    stdio::println(concat(String_from(\"1 + 2 = \"), result.to_string()))\n}\n"))
+    if eq(clone(template), "with-tests") {
+        let mut source = "use std::host::stdio\n\npub fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\n"
+        source = text::builder_append(source, "pub fn subtract(a: i32, b: i32) -> i32 {\n    a - b\n}\n\n")
+        source = text::builder_append(source, "pub fn test_add() {\n    let result = add(2, 3)\n    assert(result == 5)\n}\n\n")
+        source = text::builder_append(source, "pub fn test_subtract() {\n    let result = subtract(10, 4)\n    assert(result == 6)\n}\n\n")
+        source = text::builder_append(source, "fn main() {\n    let result = add(1, 2)\n")
+        source = text::builder_append(source, "    stdio::println(concat(String_from(\"1 + 2 = \"), result.to_string()))\n}\n")
         return source
     }
-    if eq(clone(template), String_from("wasi-host")) {
-        let mut source = String_from("// Build with: arukellt run --target wasm32-gc main.ark\n")
-        source = text::builder_append(source, String_from("use std::host::stdio\n\nfn main() {\n"))
-        source = text::builder_append(source, String_from("    stdio::println(String_from(\"Fetching example.com...\"))\n"))
-        source = text::builder_append(source, String_from("    // Uncomment after enabling std::host::http:\n    // use std::host::http\n"))
-        source = text::builder_append(source, String_from("    // match http::get(String_from(\"http://example.com\")) {\n"))
-        source = text::builder_append(source, String_from("    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n"))
-        source = text::builder_append(source, String_from("    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n"))
-        source = text::builder_append(source, String_from("    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n"))
+    if eq(clone(template), "wasi-host") {
+        let mut source = "// Build with: arukellt run --target wasm32-gc main.ark\n"
+        source = text::builder_append(source, "use std::host::stdio\n\nfn main() {\n")
+        source = text::builder_append(source, "    stdio::println(String_from(\"Fetching example.com...\"))\n")
+        source = text::builder_append(source, "    // Uncomment after enabling std::host::http:\n    // use std::host::http\n")
+        source = text::builder_append(source, "    // match http::get(String_from(\"http://example.com\")) {\n")
+        source = text::builder_append(source, "    //     Ok(body) => stdio::println(concat(String_from(\"Got \"), body))\n")
+        source = text::builder_append(source, "    //     Err(e) => stdio::eprintln(concat(String_from(\"Error: \"), e))\n    // }\n")
+        source = text::builder_append(source, "    stdio::println(String_from(\"Done. Uncomment the HTTP call in main.ark to try it.\"))\n}\n")
         return source
     }
-    String_from("use std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Hello, Arukellt!\"))\n}\n")
+    "use std::host::stdio\n\nfn main() {\n    stdio::println(String_from(\"Hello, Arukellt!\"))\n}\n"
 }
 
 pub fn init_template_ark_toml(project_name: String, template: String) -> String {
-    let mut out = String_from("[package]\nname = \"")
+    let mut out = "[package]\nname = \""
     out = text::builder_append(out, clone(project_name))
-    out = text::builder_append(out, String_from("\"\nversion = \"0.1.0\"\n\n[bin]\nname = \""))
+    out = text::builder_append(out, "\"\nversion = \"0.1.0\"\n\n[bin]\nname = \"")
     out = text::builder_append(out, clone(project_name))
-    out = text::builder_append(out, String_from("\"\npath = \"main.ark\"\n"))
-    if eq(clone(template), String_from("wasi-host")) {
-        out = text::builder_append(out, String_from("target = \"wasm32-gc\"\n"))
+    out = text::builder_append(out, "\"\npath = \"main.ark\"\n")
+    if eq(clone(template), "wasi-host") {
+        out = text::builder_append(out, "target = \"wasm32-gc\"\n")
     }
     out
 }
 
 pub fn init_template_print_next_steps(project_name: String, template: String) {
-    stdio::eprintln(concat(String_from("Initialized Arukellt project in "), concat(clone(project_name), concat(String_from(" (template: "), concat(clone(template), String_from(")"))))))
-    stdio::eprintln(String_from(""))
-    stdio::eprintln(String_from("Next steps:"))
-    stdio::eprintln(concat(String_from("  cd "), clone(project_name)))
-    stdio::eprintln(String_from("  arukellt check main.ark        # type-check"))
-    stdio::eprintln(String_from("  arukellt run main.ark          # run the program"))
-    if eq(clone(template), String_from("with-tests")) {
-        stdio::eprintln(String_from("  arukellt test main.ark         # run tests"))
+    stdio::eprintln(concat("Initialized Arukellt project in ", concat(clone(project_name), concat(" (template: ", concat(clone(template), ")")))))
+    stdio::eprintln("")
+    stdio::eprintln("Next steps:")
+    stdio::eprintln(concat("  cd ", clone(project_name)))
+    stdio::eprintln("  arukellt check main.ark        # type-check")
+    stdio::eprintln("  arukellt run main.ark          # run the program")
+    if eq(clone(template), "with-tests") {
+        stdio::eprintln("  arukellt test main.ark         # run tests")
     }
-    if eq(clone(template), String_from("wasi-host")) {
-        stdio::eprintln(String_from("  arukellt check --target wasm32-gc main.ark"))
+    if eq(clone(template), "wasi-host") {
+        stdio::eprintln("  arukellt check --target wasm32-gc main.ark")
     }
 }

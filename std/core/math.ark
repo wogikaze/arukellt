@@ -41,28 +41,87 @@ pub fn lcm(a: i32, b: i32) -> i32 {
 
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.is_power_of_two()`
 /// (`Integer` trait).
+///
+/// Bodies are inlined (not `n.method()`) so method resolve cannot fall back to
+/// this free function and recurse (#807).
 pub fn is_power_of_two(n: i32) -> bool {
-    n.is_power_of_two()
+    n > 0 && (n & (n - 1)) == 0
 }
 
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.next_power_of_two()`.
 pub fn next_power_of_two(n: i32) -> i32 {
-    n.next_power_of_two()
+    if n <= 1 {
+        return 1
+    }
+    let mut x = n - 1
+    x = x | (x >> 1)
+    x = x | (x >> 2)
+    x = x | (x >> 4)
+    x = x | (x >> 8)
+    x = x | (x >> 16)
+    let result = x + 1
+    if result <= 0 {
+        1073741824
+    } else {
+        result
+    }
 }
 
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.leading_zeros()`.
 pub fn leading_zeros(n: i32) -> i32 {
-    n.leading_zeros()
+    if n == 0 {
+        return 32
+    }
+    if n < 0 {
+        return 0
+    }
+    let mut count = 0
+    let mut x = n
+    if (x & 0xFFFF0000) == 0 {
+        count = count + 16
+        x = x << 16
+    }
+    if (x & 0xFF000000) == 0 {
+        count = count + 8
+        x = x << 8
+    }
+    if (x & 0xF0000000) == 0 {
+        count = count + 4
+        x = x << 4
+    }
+    if (x & 0xC0000000) == 0 {
+        count = count + 2
+        x = x << 2
+    }
+    if (x & 0x80000000) == 0 {
+        count = count + 1
+    }
+    count
 }
 
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.trailing_zeros()`.
 pub fn trailing_zeros(n: i32) -> i32 {
-    n.trailing_zeros()
+    if n == 0 {
+        return 32
+    }
+    let mut count = 0
+    let mut x = n
+    while (x & 1) == 0 {
+        count = count + 1
+        x = x >> 1
+    }
+    count
 }
 
 /// Deprecated migration wrapper (ADR-046 / #718): use `n.popcount()`.
 pub fn popcount(n: i32) -> i32 {
-    n.popcount()
+    let mut count = 0
+    let mut x = n
+    while x != 0 {
+        x = x & (x - 1)
+        count = count + 1
+    }
+    count
 }
 
 // ── checked arithmetic traits ───────────────────────────────────────────────

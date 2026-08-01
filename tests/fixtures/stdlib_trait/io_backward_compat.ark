@@ -9,7 +9,7 @@ use std::io
 fn main() {
     // --- Legacy API path ---
     // Create a reader from bytes using the existing API
-    let legacy_data: Vec<i32> = Vec_new_i32()
+    let legacy_data: Vec<i32> = Vec::new<i32>()
     push(legacy_data, 88)  // 'X'
     push(legacy_data, 89)  // 'Y'
     push(legacy_data, 90)  // 'Z'
@@ -35,7 +35,7 @@ fn main() {
     // --- New trait API path ---
     // Create a memory buffer using the new API
     let buf = io::new_memory_buffer()
-    let data: Vec<i32> = Vec_new_i32()
+    let data: Vec<i32> = Vec::new<i32>()
     push(data, 72)  // 'H'
     push(data, 73)  // 'I'
     let written: i32 = io::write_bytes(buf, data)

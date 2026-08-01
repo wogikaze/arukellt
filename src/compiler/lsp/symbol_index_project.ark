@@ -1,4 +1,5 @@
 use std::host::fs
+use std::toml
 use loader::module_file_load_local
 use loader::module_import_paths
 use loader::module_package_root
@@ -63,9 +64,9 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
             let dep_read = fs::read_to_string(dep_manifest)
             match dep_read {
                 Result::Ok(dep_content) => {
-                    let pkg_name = symbol_index_paths::find_toml_value(clone(dep_content), String_from("name"))
+                    let pkg_name = toml::find_toml_value(clone(dep_content), String_from("name"))
                     if len(pkg_name) > 0 && eq(clone(import_name), clone(pkg_name)) {
-                        let lib_path = symbol_index_paths::find_toml_value(clone(dep_content), String_from("path"))
+                        let lib_path = toml::find_toml_value(clone(dep_content), String_from("path"))
                         if len(lib_path) > 0 {
                             return symbol_index_paths::join_path(clone(dep_root), lib_path)
                         }
@@ -91,7 +92,7 @@ fn dependency_module_file(project_root: String, import_name: String) -> String {
 }
 
 pub fn collect_import_file_paths(decls: Vec<AstNode>, base_dir: String, root_dir: String, project_root: String) -> Vec<String> {
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     let paths = module_import_paths::collect_import_paths(decls)
     let n = len(paths)
     let mut i = 0
@@ -113,7 +114,7 @@ fn project_entry_path(project_root: String) -> String {
     let read_result = fs::read_to_string(clone(manifest_path))
     match read_result {
         Result::Ok(content) => {
-            let entry = symbol_index_paths::find_toml_value(clone(content), String_from("path"))
+            let entry = toml::find_toml_value(clone(content), String_from("path"))
             if len(entry) > 0 {
                 let candidate = symbol_index_paths::join_path(clone(project_root), entry)
                 match fs::read_to_string(clone(candidate)) {
@@ -154,7 +155,7 @@ fn index_file_at_path(state: LspState, file_path: String) {
 }
 
 fn index_import_graph_from(state: LspState, start_path: String, project_root: String) {
-    let pending = pending_push_unique(Vec_new_String(), clone(start_path))
+    let pending = pending_push_unique(Vec::new<String>(), clone(start_path))
     let root_dir = module_package_root::find_package_root(clone(project_root))
     let mut pos = 0
     while pos < len(pending) {

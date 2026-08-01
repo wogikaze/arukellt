@@ -24,8 +24,8 @@ fn ctx_local_index_values(ctx: LowerCtx) -> Vec<i32> {
 }
 
 fn ctx_local_index_reset_for_function(ctx: LowerCtx) {
-    ctx.local_names = Vec_new_String()
-    ctx.local_indices = Vec_new_i32()
+    ctx.local_names = Vec::new<String>()
+    ctx.local_indices = Vec::new<i32>()
 }
 
 fn ctx_local_index_restore(ctx: LowerCtx, local_names: Vec<String>, local_indices: Vec<i32>) {

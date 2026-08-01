@@ -5,7 +5,7 @@ use corehir::expr_node_access
 use corehir::expr_node_predicates
 
 fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let child_count = expr_node_access::expr_child_count(node)
     let mut i = 0
     let mut unsupported = false
@@ -16,7 +16,7 @@ fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 
                 unsupported = true
             } else {
                 let base_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
-                let base_children = Vec_new_i32()
+                let base_children = Vec::new<i32>()
                 push(base_children, base_index)
                 let base_expr = corehir_body_expr_at(table, base_index)
                 if expr_predicates::expr_is_unsupported(base_expr) {
@@ -33,7 +33,7 @@ fn corehir_build_struct_lit_expr(table: CoreHirBodyTable, node: AstNode) -> i32 
                 unsupported = true
             } else {
                 let value_index = corehir_build_expr(table, expr_node_access::expr_child_at(field, 0))
-                let field_children = Vec_new_i32()
+                let field_children = Vec::new<i32>()
                 push(field_children, value_index)
                 let value_expr = corehir_body_expr_at(table, value_index)
                 if expr_predicates::expr_is_unsupported(value_expr) {

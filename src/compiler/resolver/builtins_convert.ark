@@ -3,5 +3,5 @@
 // Only __intrinsic_stdin_read_to_string remains (no prelude wrapper yet).
 
 fn push_convert_builtin_symbol_names(names: Vec<String>) {
-    push(names, String_from("__intrinsic_stdin_read_to_string"))
+    push(names, "__intrinsic_stdin_read_to_string")
 }

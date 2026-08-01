@@ -130,12 +130,10 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
         let method_arg_vt = ctx_local_vt(ctx, first_method_arg_idx)
         if method_arg_vt == value_types::VT_I64() {
             method_mono_type_key = String_from("i64")
+        } else if method_arg_vt == value_types::VT_F64() {
+            method_mono_type_key = String_from("f64")
         } else {
-            if method_arg_vt == value_types::VT_F64() {
-                method_mono_type_key = String_from("f64")
-            } else {
-                method_mono_type_key = String_from("i32")
-            }
+            method_mono_type_key = String_from("i32")
         }
     }
     if eq(clone(method_mono_type_key), String_from("string")) {
@@ -145,6 +143,13 @@ fn mir_method_mono_type_key(ctx: LowerCtx, first_method_arg_idx: i32) -> String 
 }
 
 fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_arg_idx: i32, span_start: i32) -> String {
+    // Prefer CoreOp rewrite names for Vec mutating/access methods. Generic
+    // `impl Vec<T> { push/... }` shells must not win mono as
+    // `__core_vec_push_i32_impl` before element-type rewrite (#845).
+    let early_vec = mir_vec_method_prefer_coreop_name(clone(callee_name))
+    if len(early_vec) > 0 {
+        return early_vec
+    }
     let method_mono_type_key = mir_method_mono_type_key(ctx, first_method_arg_idx)
     if len(method_mono_type_key) > 0 {
         let method_mono_candidate = mono::mono_safe_name(concat(clone(callee_name), concat(String_from("__"), method_mono_type_key)))
@@ -181,6 +186,11 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
         if len(intrinsic_name) > 0 {
             return intrinsic_name
         }
+        // Prefer Type::method when present. Falling back to a free function of
+        // the same bare name recurses through ADR-046 wrappers (#807 popcount).
+        if ctx_has_fn_name(ctx, clone(callee_name)) {
+            return callee_name
+        }
         return bare_name
     }
     let short_name = mir_resolve_short_method_name(ctx, clone(callee_name))
@@ -190,15 +200,51 @@ fn mir_resolve_method_callee(ctx: LowerCtx, callee_name: String, first_method_ar
     callee_name
 }
 
+fn mir_vec_method_prefer_coreop_name(mangled: String) -> String {
+    if !eq(mir_type_prefix(clone(mangled)), String_from("Vec")) {
+        return String_from("")
+    }
+    let bare_name = mir_bare_method_name(clone(mangled))
+    if eq(clone(bare_name), String_from("push")) || starts_with(clone(bare_name), String_from("push__")) {
+        return String_from("push")
+    }
+    if eq(clone(bare_name), String_from("len")) || starts_with(clone(bare_name), String_from("len__")) {
+        return String_from("raw_array_len")
+    }
+    if eq(clone(bare_name), String_from("set")) || starts_with(clone(bare_name), String_from("set__")) {
+        return String_from("raw_array_set_unchecked")
+    }
+    if eq(clone(bare_name), String_from("pop")) || starts_with(clone(bare_name), String_from("pop__")) {
+        return String_from("vec_pop")
+    }
+    if eq(clone(bare_name), String_from("get")) || starts_with(clone(bare_name), String_from("get__")) {
+        return String_from("vec_get")
+    }
+    if eq(clone(bare_name), String_from("get_unchecked")) || starts_with(clone(bare_name), String_from("get_unchecked__")) {
+        return String_from("get_unchecked")
+    }
+    if eq(clone(bare_name), String_from("is_empty")) || starts_with(clone(bare_name), String_from("is_empty__")) {
+        return String_from("is_empty")
+    }
+    String_from("")
+}
+
 fn mir_builtin_method_to_intrinsic(mangled: String, bare_name: String) -> String {
     let prefix = mir_type_prefix(mangled)
     // Vec methods: some intrinsics use bare name, others use vec_ prefix.
     if eq(clone(prefix), String_from("Vec")) {
-        if eq(clone(bare_name), String_from("len")) { return String_from("vec_len") }
-        if eq(clone(bare_name), String_from("get")) { return String_from("vec_get") }
-        if eq(clone(bare_name), String_from("set")) { return String_from("vec_set") }
-        if eq(clone(bare_name), String_from("pop")) { return String_from("vec_pop") }
-        // push, get_unchecked, is_empty use bare name — no mapping needed.
+        let preferred = mir_vec_method_prefer_coreop_name(clone(mangled))
+        if len(preferred) > 0 {
+            return preferred
+        }
+        // Associated constructors: keep mangled Vec::new__T for wasm
+        // is_vec_new_callee fallback (no MIR body; #845).
+        if eq(clone(bare_name), String_from("new")) ||
+        starts_with(clone(bare_name), String_from("new__")) ||
+        eq(clone(bare_name), String_from("with_capacity")) ||
+        starts_with(clone(bare_name), String_from("with_capacity__")) {
+            return mangled
+        }
         return String_from("")
     }
     // String methods: len, char_at, etc. use bare name — no mapping needed.

@@ -9,7 +9,7 @@
 //!
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). No host capability required.
 pub fn sorted_map_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     m
 }
@@ -129,7 +129,7 @@ pub fn btree_len(m: Vec<i32>) -> i32 {
 
 pub fn btree_keys(m: Vec<i32>) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let keys: Vec<i32> = Vec_new_i32()
+    let keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         push(keys, get_unchecked(m, 1 + i * 2))
@@ -140,7 +140,7 @@ pub fn btree_keys(m: Vec<i32>) -> Vec<i32> {
 
 pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         let k: i32 = get_unchecked(m, 1 + i * 2)
@@ -156,7 +156,7 @@ pub fn btree_range(m: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
 
 // --- BTreeSet API (sorted unique values, i32) ---
 pub fn btree_set_new() -> Vec<i32> {
-    let s: Vec<i32> = Vec_new_i32()
+    let s: Vec<i32> = Vec::new<i32>()
     push(s, 0)
     s
 }
@@ -219,7 +219,7 @@ pub fn btree_set_len(s: Vec<i32>) -> i32 {
 // --- IndexMap API (insertion-order map, i32 key, i32 value) ---
 // Layout: [count, k0, v0, k1, v1, ...]
 pub fn index_map_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     m
 }
@@ -267,7 +267,7 @@ pub fn index_map_len(m: Vec<i32>) -> i32 {
 
 pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
     let count: i32 = get_unchecked(m, 0)
-    let keys: Vec<i32> = Vec_new_i32()
+    let keys: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         push(keys, get_unchecked(m, 1 + i * 2))
@@ -279,7 +279,7 @@ pub fn index_map_keys(m: Vec<i32>) -> Vec<i32> {
 // --- IndexSet API (insertion-order unique values, i32) ---
 // Layout: [count, v0, v1, ...]
 pub fn index_set_new() -> Vec<i32> {
-    let s: Vec<i32> = Vec_new_i32()
+    let s: Vec<i32> = Vec::new<i32>()
     push(s, 0)
     s
 }
@@ -318,7 +318,7 @@ pub fn index_set_len(s: Vec<i32>) -> i32 {
 
 // --- BitSet ---
 pub fn bitset_new() -> Vec<i32> {
-    let bs: Vec<i32> = Vec_new_i32()
+    let bs: Vec<i32> = Vec::new<i32>()
     push(bs, 256)
     let mut i: i32 = 0
     while i < 8 {
@@ -366,7 +366,7 @@ pub fn bitset_clear(bs: Vec<i32>, bit: i32) {
 }
 
 pub fn bitset_with_capacity(cap: i32) -> Vec<i32> {
-    let bs: Vec<i32> = Vec_new_i32()
+    let bs: Vec<i32> = Vec::new<i32>()
     push(bs, cap)
     let words: i32 = (cap + 31) / 32
     let mut i: i32 = 0

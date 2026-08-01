@@ -10,20 +10,20 @@ fn component_func_from_decl(node: AstNode) -> ComponentExportFunc {
 }
 
 fn should_export_func(name: String) -> bool {
-    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+    if eq(clone(name), "main") || eq(clone(name), "_start") {
         return false
     }
-    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
         return false
     }
-    if contains(clone(name), String_from("::")) {
+    if contains(clone(name), "::") {
         return false
     }
     true
 }
 
 fn component_error(fn_name: String) -> String {
-    concat(String_from("E0401: component export uses a special adapter signature not supported by canonical ABI: "), fn_name)
+    concat("E0401: component export uses a special adapter signature not supported by canonical ABI: ", fn_name)
 }
 
 fn component_func_name(f: AstNode) -> String {
@@ -83,11 +83,11 @@ fn component_return_type_name(f: AstNode) -> String {
                 let ret = ast_node::node_child_at(ann, 0)
                 return ast_node::node_text(ret)
             }
-            return String_from("()")
+            return "()"
         }
         i = i + 1
     }
-    String_from("()")
+    "()"
 }
 
 fn component_export_return_type_name(f: ComponentExportFunc) -> String {

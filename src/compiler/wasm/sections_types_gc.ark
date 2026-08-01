@@ -23,7 +23,7 @@ fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) 
 }
 
 fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
-    if starts_with(clone(ft), String_from("gcsref")) {
+    if starts_with(clone(ft), "gcsref") {
         // gcsref<slot> is handled by the caller (sections_types_emit)
         // which has access to gc_struct_type_map.  Fall through to ref handling.
         let _slot = parse_type_sig_int(substring(ft, 6, len(ft)))
@@ -34,7 +34,7 @@ fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
-    if starts_with(clone(ft), String_from("ref")) {
+    if starts_with(clone(ft), "ref") {
         let offset_str = substring(ft, 3, len(ft))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
@@ -67,12 +67,12 @@ fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, g
 }
 
 fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
-    if eq(clone(elem_type), String_from("structref")) {
+    if eq(clone(elem_type), "structref") {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
         return
     }
-    if starts_with(clone(elem_type), String_from("gcsref")) {
+    if starts_with(clone(elem_type), "gcsref") {
         let slot = parse_type_sig_int(substring(elem_type, 6, len(elem_type)))
         if slot < len(gc_struct_type_map) {
             let type_idx = get_unchecked(gc_struct_type_map, slot)
@@ -81,7 +81,7 @@ fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i
             return
         }
     }
-    if starts_with(clone(elem_type), String_from("ref")) {
+    if starts_with(clone(elem_type), "ref") {
         let offset_str = substring(elem_type, 3, len(elem_type))
         let offset = parse_type_sig_int(offset_str)
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
@@ -92,7 +92,7 @@ fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i
 }
 
 fn struct_field_sigs(sig: String) -> Vec<String> {
-    let mut fields = Vec_new_String()
+    let mut fields = Vec::new<String>()
     let sig_len = len(sig)
     let mut si = 0
     while si < sig_len {
@@ -134,42 +134,42 @@ fn find_type_sig_char(s: String, c: i32) -> i32 {
 }
 
 fn append_gc_type_sigs(type_sigs: Vec<String>) {
-    push(type_sigs, String_from("A_i8"))
-    push(type_sigs, String_from("A_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_ref1_f1_i32"))
-    push(type_sigs, String_from("A_i64"))
-    push(type_sigs, String_from("A_f64"))
-    push(type_sigs, String_from("SubF_GS_f0_i64"))
-    push(type_sigs, String_from("Sub0_GS_f0_i32"))
-    push(type_sigs, String_from("A_ref0"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1"))
-    push(type_sigs, String_from("SubF_GS_f0_ref15_f1_i32"))
-    push(type_sigs, String_from("A_v128"))
-    push(type_sigs, String_from("SubF_GS_f0_ref20_f1_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_ref11_f1_i32"))
-    push(type_sigs, String_from("SubF_GS_f0_ref12_f1_i32"))
-    push(type_sigs, String_from("A_structref"))
-    push(type_sigs, String_from("SubF_GS_f0_ref24_f1_i32"))
+    push(type_sigs, "A_i8")
+    push(type_sigs, "A_i32")
+    push(type_sigs, "SubF_GS_f0_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_i32_f3_i32_f4_i32_f5_i32_f6_i32_f7_i32")
+    push(type_sigs, "SubF_GS_f0_ref1_f1_i32")
+    push(type_sigs, "A_i64")
+    push(type_sigs, "A_f64")
+    push(type_sigs, "SubF_GS_f0_i64")
+    push(type_sigs, "Sub0_GS_f0_i32")
+    push(type_sigs, "A_ref0")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref1_f4_ref1")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref15_f4_ref1")
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref15_f4_ref1")
+    push(type_sigs, "SubF_GS_f0_ref15_f1_i32")
+    push(type_sigs, "A_v128")
+    push(type_sigs, "SubF_GS_f0_ref20_f1_i32")
+    push(type_sigs, "SubF_GS_f0_ref11_f1_i32")
+    push(type_sigs, "SubF_GS_f0_ref12_f1_i32")
+    push(type_sigs, "A_structref")
+    push(type_sigs, "SubF_GS_f0_ref24_f1_i32")
     // Vec<fn>: nullable funcref array + vec header (#832).
-    push(type_sigs, String_from("A_fnref"))
-    push(type_sigs, String_from("SubF_GS_f0_ref26_f1_i32"))
+    push(type_sigs, "A_fnref")
+    push(type_sigs, "SubF_GS_f0_ref26_f1_i32")
     // Vec<Option/Result>: nullable open-enum array + vec header (#832).
-    push(type_sigs, String_from("A_ref14"))
-    push(type_sigs, String_from("SubF_GS_f0_ref28_f1_i32"))
+    push(type_sigs, "A_ref14")
+    push(type_sigs, "SubF_GS_f0_ref28_f1_i32")
     // HashMap<i32, fn>: keys A_i32, vals A_fnref (offset 26), flags A_i32 (#833).
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref26_f4_ref1"))
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref26_f4_ref1")
     // HashMap<String, fn>: keys A_ref0 (offset 15), vals A_fnref (offset 26) (#838).
-    push(type_sigs, String_from("SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref26_f4_ref1"))
+    push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref26_f4_ref1")
 }
 
 fn gc_type_sig_count() -> i32 {
@@ -181,7 +181,7 @@ fn gc_enum_open_type_offset() -> i32 {
 }
 
 fn gc_enum_open_type_sig() -> String {
-    String_from("gcref14")
+    "gcref14"
 }
 
 fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
@@ -197,59 +197,59 @@ fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
             field_count + 1
         }
     }
-    concat(String_from("gcref"), i32_to_string(offset))
+    concat("gcref", i32_to_string(offset))
 }
 
 fn gc_vec_type_sig() -> String {
-    String_from("gcref10")
+    "gcref10"
 }
 
 fn gc_vec_string_type_sig() -> String {
-    String_from("gcref19")
+    "gcref19"
 }
 
 fn gc_vec_v128_type_sig() -> String {
-    String_from("gcref21")
+    "gcref21"
 }
 
 fn gc_vec_i64_type_sig() -> String {
-    String_from("gcref22")
+    "gcref22"
 }
 
 fn gc_vec_f64_type_sig() -> String {
-    String_from("gcref23")
+    "gcref23"
 }
 
 fn gc_vec_fnref_type_sig() -> String {
-    String_from("gcref27")
+    "gcref27"
 }
 
 fn gc_vec_enum_ref_type_sig() -> String {
-    String_from("gcref29")
+    "gcref29"
 }
 
 fn gc_string_type_sig() -> String {
-    String_from("gcref0")
+    "gcref0"
 }
 
 fn gc_hashmap_str_i32_type_sig() -> String {
-    String_from("gcref16")
+    "gcref16"
 }
 
 fn gc_hashmap_i32_str_type_sig() -> String {
-    String_from("gcref17")
+    "gcref17"
 }
 
 fn gc_hashmap_str_str_type_sig() -> String {
-    String_from("gcref18")
+    "gcref18"
 }
 
 fn gc_hashmap_i32_fn_type_sig() -> String {
-    String_from("gcref30")
+    "gcref30"
 }
 
 fn gc_hashmap_str_fn_type_sig() -> String {
-    String_from("gcref31")
+    "gcref31"
 }
 
 fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
@@ -262,8 +262,8 @@ fn append_enum_variant_sigs(type_sigs: Vec<String>, mir: MirModule) {
 }
 
 fn gc_struct_sig_as_final(sig: String) -> String {
-    if starts_with(clone(sig), String_from("GS_f")) {
-        return concat(String_from("SubF_"), sig)
+    if starts_with(clone(sig), "GS_f") {
+        return concat("SubF_", sig)
     }
     sig
 }

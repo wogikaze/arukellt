@@ -567,86 +567,6 @@ doc_category = "control"
 
 # ── Vec constructors ─────────────────────────
 
-[[functions]]
-name = "Vec_new_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i32"
-params = []
-returns = "Vec<i32>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i64"
-params = []
-returns = "Vec<i64>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_f64"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_f64"
-params = []
-returns = "Vec<f64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_v128"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_v128"
-params = []
-returns = "Vec<v128>"
-prelude = true
-stability = "provisional"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_String"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_String"
-params = []
-returns = "Vec<String>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i32_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i32_with_cap"
-params = ["i32"]
-returns = "Vec<i32>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_i64_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_i64_with_cap"
-params = ["i32"]
-returns = "Vec<i64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
-[[functions]]
-name = "Vec_new_f64_with_cap"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_Vec_new_f64_with_cap"
-params = ["i32"]
-returns = "Vec<f64>"
-prelude = true
-stability = "stable"
-doc_category = "collections"
-
 # NOTE: Vec_with_capacity_* are in PRELUDE_FUNCTIONS but lack FnSig in checker.rs.
 [[functions]]
 name = "Vec_with_capacity_i32"
@@ -678,7 +598,7 @@ stability = "stable"
 doc_category = "collections"
 doc = "Append an element to the end of a Vec, mutating it in place."
 availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec_new_i32()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
+examples = [{code = "let v = Vec::new<i32>()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
 
 [[functions]]
 name = "pop"
@@ -701,7 +621,7 @@ stability = "stable"
 doc_category = "collections"
 doc = "Return the number of elements in a Vec."
 availability = { t1 = true, t3 = true }
-examples = [{code = "let v = Vec_new_i32()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
+examples = [{code = "let v = Vec::new<i32>()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
 
 [[functions]]
 name = "get"
@@ -1601,12 +1521,22 @@ params = ["bool"]
 returns = "()"
 
 [[functions]]
+name = "assert_eq_debug"
+module = "std::test"
+doc_category = "test"
+stability = "stable"
+params = ["T", "T"]
+returns = "()"
+doc = "Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is CoreOp-bound; failure messages render both values via Debug."
+
+[[functions]]
 name = "assert_eq_i32"
 module = "std::test"
 doc_category = "test"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "()"
+doc = "Typed i32 equality assertion; failure messages use Debug renderings."
 
 [[functions]]
 name = "assert_eq_i64"
@@ -4550,7 +4480,7 @@ returns = "bool"
 name = "std::toml"
 stability = "experimental"
 family = "data"
-doc = "Bounded TOML parser/serializer. Supports simple top-level key=value pairs (with comments and blank lines); arrays of tables, inline tables, dotted keys, datetimes, and most other TOML grammar return Err. Partial subset by design; not a conforming TOML 1.0 implementation."
+doc = "TOML 1.0 parser/serializer plus streaming section/value scanners. Supports table headers, arrays of tables, inline tables, dotted keys, multiline strings, and datetime literals; exposes toml_get / toml_table_keys for nested tables and find_toml_* helpers for compiler manifests."
 
 [[functions]]
 name = "toml_parse_line"
@@ -5407,6 +5337,96 @@ params = ["String"]
 returns = "String"
 doc = "Encode a plain string as a JSON string literal with escape sequences."
 
+[[functions]]
+name = "quote_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Quote and escape a plain string as a JSON string literal."
+
+[[functions]]
+name = "json_escape"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Escape a plain string for use inside a JSON string (no surrounding quotes)."
+
+[[functions]]
+name = "skip_ws"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "i32"
+doc = "Skip JSON whitespace starting at pos; return index of next non-whitespace."
+
+[[functions]]
+name = "parse_int_at"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "i32"
+doc = "Parse a signed decimal integer starting at pos (after optional whitespace)."
+
+[[functions]]
+name = "parse_content_length"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Extract Content-Length from an LSP/DAP header block, or -1 if absent."
+
+[[functions]]
+name = "find_key_pos"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String", "i32"]
+returns = "i32"
+doc = "Find the position after the first \"key\" occurrence at or after from."
+
+[[functions]]
+name = "json_parse_string_at"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "JsonStrResult"
+doc = "Parse a JSON string literal at pos; supports escapes and surrogate pairs."
+
+[[functions]]
+name = "json_decode_escape"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "String"
+doc = "Decode one JSON string escape at pos (char after backslash)."
+
+[[functions]]
+name = "json_get_str"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract a string field by key from a JSON object text."
+
+[[functions]]
+name = "json_get_int"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String", "String"]
+returns = "i32"
+doc = "Extract an integer field by key from a JSON object text."
+
 # ── std::toml module functions ────────────────────────────────────────────────
 
 [[functions]]
@@ -5416,7 +5436,7 @@ doc_category = "toml"
 stability = "experimental"
 params = ["String"]
 returns = "Result<TomlValue, String>"
-doc = "Parse a TOML document (key=value pairs)."
+doc = "Parse a TOML 1.0 document into a TomlValue tree."
 
 [[functions]]
 name = "toml_stringify"
@@ -5434,7 +5454,7 @@ doc_category = "toml"
 stability = "experimental"
 params = ["TomlValue", "String"]
 returns = "Option<TomlValue>"
-doc = "Look up a key in a TOML table value."
+doc = "Look up a key in a TOML table value (nested tables via successive calls)."
 
 [[functions]]
 name = "toml_table_keys"
@@ -5468,6 +5488,60 @@ doc_category = "toml"
 stability = "experimental"
 params = ["TomlValue"]
 returns = "Option<bool>"
+
+[[functions]]
+name = "toml_find_section"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract the body of a [section] from raw TOML text."
+
+[[functions]]
+name = "toml_find_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract a double-quoted string value for key = \"...\" from raw TOML text."
+
+[[functions]]
+name = "find_toml_section"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Public alias of toml_find_section."
+
+[[functions]]
+name = "find_toml_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Public alias of toml_find_value."
+
+[[functions]]
+name = "toml_find_raw_value"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String", "String"]
+returns = "String"
+doc = "Extract the raw text after key = (for arrays and unquoted values)."
+
+[[functions]]
+name = "toml_parse_string_array"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Parse a TOML string-array literal like [\"a\", \"b\"] into Vec<String>."
 
 # ── std::csv module functions ─────────────────────────────────────────────────
 

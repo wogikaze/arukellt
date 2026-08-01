@@ -39,7 +39,7 @@ fn mir_reachability_index_bind_fid(m: MirModule, fid_to_mir: Vec<i32>, fname: St
 fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
     let fn_count = len(functions)
     let name_to_mir = name_index::NameIndex_new(fn_count)
-    let fid_to_mir = Vec_new_i32()
+    let fid_to_mir = Vec::new<i32>()
     let mut registry_count = 0
     if module_spine::MirModule_signature_spine_populated(m) {
         registry_count = signature_registry::signature_registry_entry_count(

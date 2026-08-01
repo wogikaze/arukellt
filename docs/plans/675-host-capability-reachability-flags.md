@@ -43,7 +43,7 @@
   - `Depends on: "727"`
   - `Plan: docs/plans/675-host-capability-reachability-flags.md`
   - Decision note 追加（`arukellt_host` reject、#727 first）。
-- `issues/open/727-arukellt-host-bridge-retirement.md` frontmatter:
+- `issues/done/727-arukellt-host-bridge-retirement.md` frontmatter:
   - `Depends on` から `675` を削除、`Related` に追加。
   - `#675` 後続注記追加。
 

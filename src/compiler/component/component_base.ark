@@ -68,7 +68,7 @@ fn comp_emit_wasi_and_core_instance_section(out: writer_core::ComponentWriter) {
     let core_instance_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(core_instance_sec, 2)
     comp_emit_core_instance_ref(core_instance_sec, 0, 0)
-    comp_emit_core_instance_import(core_instance_sec, 1, 1, String_from("wasi_snapshot_preview1"), 0)
+    comp_emit_core_instance_import(core_instance_sec, 1, 1, "wasi_snapshot_preview1", 0)
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_INSTANCE(), core_instance_sec)
 }
 
@@ -76,8 +76,8 @@ fn comp_emit_wasi_core_adapter_instance_section(out: writer_core::ComponentWrite
     let core_instance_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(core_instance_sec, 3)
     comp_emit_core_instance_ref(core_instance_sec, 0, 0)
-    comp_emit_core_instance_import(core_instance_sec, 1, 1, String_from("wasi_snapshot_preview1"), 0)
-    comp_emit_core_instance_import(core_instance_sec, 2, 1, String_from("user"), 1)
+    comp_emit_core_instance_import(core_instance_sec, 1, 1, "wasi_snapshot_preview1", 0)
+    comp_emit_core_instance_import(core_instance_sec, 2, 1, "user", 1)
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CORE_INSTANCE(), core_instance_sec)
 }
 
@@ -127,11 +127,11 @@ fn comp_emit_p2_user_core_instance(sec: writer_core::ComponentWriter) {
     writer_core::comp_emit_byte(sec, 0x00)
     writer_core::comp_emit_leb128_u(sec, 5)
     writer_core::comp_emit_leb128_u(sec, 5)
-    comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdout@0.2.0"), 0)
-    comp_emit_p2_instance_arg(sec, String_from("wasi:cli/environment@0.2.0"), 1)
-    comp_emit_p2_instance_arg(sec, String_from("wasi:filesystem/types@0.2.0"), 2)
-    comp_emit_p2_instance_arg(sec, String_from("wasi:cli/stdin@0.2.0"), 3)
-    comp_emit_p2_instance_arg(sec, String_from("wasi:cli/exit@0.2.0"), 4)
+    comp_emit_p2_instance_arg(sec, "wasi:cli/stdout@0.2.0", 0)
+    comp_emit_p2_instance_arg(sec, "wasi:cli/environment@0.2.0", 1)
+    comp_emit_p2_instance_arg(sec, "wasi:filesystem/types@0.2.0", 2)
+    comp_emit_p2_instance_arg(sec, "wasi:cli/stdin@0.2.0", 3)
+    comp_emit_p2_instance_arg(sec, "wasi:cli/exit@0.2.0", 4)
 }
 
 fn comp_emit_p2_instance_arg(sec: writer_core::ComponentWriter, import_name: String, instance_index: i32) {

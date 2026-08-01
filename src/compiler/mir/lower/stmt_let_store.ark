@@ -32,13 +32,13 @@ fn sync_let_local_value_type(ctx: LowerCtx, vt: i32, local_idx: i32, val_idx: i3
 
 fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_init_kind: i32, ta_count: i32) {
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, local_idx)
-    if starts_with(clone(existing), String_from("enum:")) {
-        if eq(clone(existing), String_from("enum:Option")) || eq(clone(existing), String_from("enum:Result")) {
+    if starts_with(clone(existing), "enum:") {
+        if eq(clone(existing), "enum:Option") || eq(clone(existing), "enum:Result") {
             let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-            if starts_with(clone(init_type), String_from("option:")) ||
-            starts_with(clone(init_type), String_from("result:")) ||
-            starts_with(clone(init_type), String_from("Option_")) ||
-            starts_with(clone(init_type), String_from("Result_")) {
+            if starts_with(clone(init_type), "option:") ||
+            starts_with(clone(init_type), "result:") ||
+            starts_with(clone(init_type), "Option_") ||
+            starts_with(clone(init_type), "Result_") {
                 ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
             }
         }
@@ -46,19 +46,19 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
     }
     // Preserve specific Option_/Result_ annotation types from being overridden
     // by generic enum:open/enum:Option from the initializer.
-    if starts_with(clone(existing), String_from("Option_")) ||
-    starts_with(clone(existing), String_from("Result_")) ||
-    starts_with(clone(existing), String_from("option:")) ||
-    starts_with(clone(existing), String_from("result:")) {
+    if starts_with(clone(existing), "Option_") ||
+    starts_with(clone(existing), "Result_") ||
+    starts_with(clone(existing), "option:") ||
+    starts_with(clone(existing), "result:") {
         return
     }
     // Preserve explicit vec:/hashmap: annotations (e.g. Vec<Vec<i32>> → vec:Vec)
-    // so Vec_new_i32 initializers do not collapse nested container locals to vec:i32.
-    if starts_with(clone(existing), String_from("vec:")) || starts_with(clone(existing), String_from("hashmap:")) || starts_with(clone(existing), String_from("hashset:")) {
+    // so Vec::new<i32>() initializers do not collapse nested container locals to vec:i32.
+    if starts_with(clone(existing), "vec:") || starts_with(clone(existing), "hashmap:") || starts_with(clone(existing), "hashset:") {
         // Propagate the annotation back onto the initializer temp so Vec_new
         // emission (resolve_vec_type_for_new_dest) sees vec:Vec / structref layout.
         let init_type = ctx_api_local_types::ctx_get_local_type(ctx, val_idx)
-        if starts_with(clone(init_type), String_from("vec:")) || len(init_type) == 0 {
+        if starts_with(clone(init_type), "vec:") || len(init_type) == 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, val_idx, clone(existing))
             ctx_api_local_types::ctx_set_local_vt(ctx, val_idx, value_types::VT_GC_REF())
         }

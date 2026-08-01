@@ -37,7 +37,7 @@ fn emit_f32_general_alias_section(out: writer_core::ComponentWriter, plan: expor
 }
 
 fn emit_f32_general_kind_wit_param_types(kind: i32) -> Vec<i32> {
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     if kind == export_shapes_kinds::I32_TO_F32() {
         push(params, constants_wit_values::WIT_VAL_S32())
         return params
@@ -65,7 +65,7 @@ fn emit_f32_general_type_section(out: writer_core::ComponentWriter, plan: export
         let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
         let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
         let params = emit_f32_general_kind_wit_param_types(kind)
-        let results = Vec_new_i32()
+        let results = Vec::new<i32>()
         push(results, emit_f32_general_kind_wit_result_type(kind))
         writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
         i = i + 1

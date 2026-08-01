@@ -1,0 +1,10 @@
+use std::json
+use std::test
+
+fn main() {
+    // JSON text: quote, backslash, EOF (incomplete escape).
+    match json::parse("\"\\") {
+        Result::Ok(_) => panic("expected error for lone trailing backslash in string"),
+        Result::Err(_) => {},
+    }
+}

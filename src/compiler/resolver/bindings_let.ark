@@ -5,7 +5,7 @@ use resolver::kinds
 
 fn resolve_let(ctx: ResolveCtx, node: AstNode) {
     let binding_name = ast_access::node_text(node)
-    let is_tuple_destructure = eq(clone(binding_name), String_from("__tuple_destructure"))
+    let is_tuple_destructure = eq(clone(binding_name), "__tuple_destructure")
     let child_count = ast_access::node_child_count(node)
     if is_tuple_destructure {
         if child_count > 0 {

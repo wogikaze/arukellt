@@ -2,10 +2,10 @@ use std::core::iter
 use std::test
 
 fn main() {
-    let a: Vec<i32> = Vec_new_i32()
+    let a: Vec<i32> = Vec::new<i32>()
     push(a, 1)
     push(a, 2)
-    let b: Vec<i32> = Vec_new_i32()
+    let b: Vec<i32> = Vec::new<i32>()
     push(b, 3)
     push(b, 4)
 

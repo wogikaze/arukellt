@@ -10,7 +10,7 @@ fn append_clause_guard(arm: AstNode, clause: AstNode, fn_span: Span) {
     let mut gai = 0
     while gai < core_ast_type_ann::AstNode_type_ann_count(clause) {
         let ann = core_ast_type_ann::AstNode_type_ann_at(clause, gai)
-        if eq(core_ast_text_fields::AstNode_text(ann), String_from("__guard")) {
+        if eq(core_ast_text_fields::AstNode_text(ann), "__guard") {
             guard_node = core_ast_children::AstNode_child_at(ann, 0)
             has_guard = true
         }

@@ -1,11 +1,11 @@
+use std::json
 use lsp::dispatch_documents
 use lsp::dispatch_features
 use lsp::dispatch_lifecycle
-use lsp::json_fields
 use lsp::state_record
 
 pub fn handle_message(state: LspState, body: String) {
-    let method = json_fields::extract_string_field(clone(body), String_from("method"))
+    let method = json::json_get_str(clone(body), String_from("method"))
     if len(method) == 0 {
         return
     }

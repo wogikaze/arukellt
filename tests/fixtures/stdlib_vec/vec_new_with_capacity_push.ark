@@ -1,7 +1,7 @@
 use std::test
 
 fn main() {
-    let mut v: Vec<i32> = Vec_new_i32_with_cap(5)
+    let mut v: Vec<i32> = Vec::with_capacity<i32>(5)
     push(v, 1)
     push(v, 2)
     push(v, 3)

@@ -17,17 +17,17 @@ struct ResolveCtx {
 
 fn ResolveCtx_new_empty() -> ResolveCtx {
     ResolveCtx {
-        scopes: Vec_new_Scope(),
+        scopes: Vec::new<Scope>(),
         current_depth: 0,
         error_count: 0,
-        errors: Vec_new_String(),
-        diagnostics: Vec_new_Diagnostic(),
+        errors: Vec::new<String>(),
+        diagnostics: Vec::new<Diagnostic>(),
         next_decl_index: 0,
-        target: String_from("wasm32-gc"),
-        host_profile: String_from("wasi-p2"),
+        target: "wasm32-gc",
+        host_profile: "wasi-p2",
         ref_index: ref_index::RefIndex_new(),
-        use_alias_shorts: Vec_new_String(),
-        use_alias_targets: Vec_new_String()
+        use_alias_shorts: Vec::new<String>(),
+        use_alias_targets: Vec::new<String>()
     }
 }
 

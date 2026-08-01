@@ -1,7 +1,7 @@
 use std::host::stdio
 
 fn main() {
-    let xs: Vec<Option<i32>> = Vec_new_i32()
+    let xs: Vec<Option<i32>> = Vec::new<i32>()
     push(xs, Some(7))
     match get_unchecked(xs, 0) {
         Some(n) => stdio::println(n.to_string()),

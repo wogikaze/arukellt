@@ -5,7 +5,7 @@ fn double(x: i32) -> i32 { x * 2 }
 fn add(a: i32, b: i32) -> i32 { a + b }
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     for i in 0..100 {
         push(v, i)
     }

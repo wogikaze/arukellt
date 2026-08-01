@@ -10,7 +10,7 @@ use mir::lower::match
 
 fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
     let mut depth = if_depth
-    let is_catchall = match::mir_match_is_catchall(pat)
+    let is_catchall = match::mir_match_is_catchall(ctx, pat)
     let has_guard = match::mir_match_arm_has_guard(arm_child_count)
     if is_catchall {
         depth = lower_catchall_match_arm_prefix(ctx, arm_node, pat, scrut_idx, has_guard, depth)

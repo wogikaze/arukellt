@@ -4,7 +4,6 @@ use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_table
 use corehir::core_op_binding
-use corehir::core_op_id
 use mir::host_intrinsic_stub_names
 
 fn sig_reg_register_host_intrinsics(table: TypeTable, registry: SignatureRegistry) -> i32 {
@@ -36,13 +35,11 @@ fn sig_reg_registry_has_mangled(registry: SignatureRegistry, name: String) -> bo
 }
 
 fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, name: String) {
-    let ret_id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), String_from("String"), Vec_new_TypeId())
-    let ret_mv = mir_value_type::MirValueType_new(ret_id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    let returns = Vec_new_MirValueType()
-    push(returns, ret_mv)
-    let params = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
+    push(returns, sig_reg_host_return_mvt(table, clone(name)))
+    let params = Vec::new<MirValueType>()
     let receiver = mir_value_type::MirValueType_new(
-        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId()),
+        type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>()),
         kinds::VALUE_REPR_SCALAR(),
         kinds::NULLABILITY_NOT_REF()
     )
@@ -62,6 +59,71 @@ fn sig_reg_register_host_entry(table: TypeTable, registry: SignatureRegistry, na
     signature_registry::signature_registry_register(registry, entry, name)
 }
 
+// Host stub return shapes used when the mangled name is absent from the
+// regular fn index. Keep names aligned with std::host surfaces.
+fn sig_reg_host_return_mvt(table: TypeTable, name: String) -> MirValueType {
+    if sig_reg_host_returns_bool(clone(name)) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "bool", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+    }
+    if eq(clone(name), String_from("clock_now")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "i64", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
+    }
+    if eq(clone(name), String_from("args")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_VEC(), "Vec<String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    if sig_reg_host_returns_option_string(clone(name)) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), "Option<String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    if sig_reg_host_returns_result_i32(clone(name)) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<i32, String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    if eq(clone(name), String_from("read")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<Vec<i32>, String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    if sig_reg_host_returns_result_string(clone(name)) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<String, String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    if eq(clone(name), String_from("serve")) {
+        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<(), String>", Vec::new<TypeId>())
+        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+    }
+    // var_or_default / read_stdin and remaining string returns
+    let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec::new<TypeId>())
+    mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
+}
+
+fn sig_reg_host_returns_bool(name: String) -> bool {
+    eq(clone(name), String_from("exists")) ||
+    eq(clone(name), String_from("is_file")) ||
+    eq(clone(name), String_from("is_dir")) ||
+    eq(clone(name), String_from("is_readable_file"))
+}
+
+fn sig_reg_host_returns_option_string(name: String) -> bool {
+    eq(clone(name), String_from("arg_at")) ||
+    eq(clone(name), String_from("var")) ||
+    eq(clone(name), String_from("get_var"))
+}
+
+fn sig_reg_host_returns_result_i32(name: String) -> bool {
+    eq(clone(name), String_from("connect")) ||
+    eq(clone(name), String_from("listen")) ||
+    eq(clone(name), String_from("accept")) ||
+    eq(clone(name), String_from("write"))
+}
+
+fn sig_reg_host_returns_result_string(name: String) -> bool {
+    eq(clone(name), String_from("get")) ||
+    eq(clone(name), String_from("request"))
+}
+
 fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
     let mut diff = 0
     let mut i = 0
@@ -73,6 +135,6 @@ fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {
         i = i + 1
     }
     if diff > 0 {
-        stdio::eprintln(concat(String_from("sig-reg: host intrinsic stub diff count="), i32_to_string(diff)))
+        stdio::eprintln(concat("sig-reg: host intrinsic stub diff count=", i32_to_string(diff)))
     }
 }

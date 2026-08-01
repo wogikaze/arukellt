@@ -63,22 +63,22 @@ fn legacy_vt_from_repr_only(repr: i32) -> i32 {
 }
 
 fn legacy_vt_from_primitive_name(name: String) -> i32 {
-    if eq(clone(name), String_from("void")) {
+    if eq(clone(name), "void") {
         return value_types::VT_VOID()
     }
-    if eq(clone(name), String_from("()")) {
+    if eq(clone(name), "()") {
         return value_types::VT_VOID()
     }
-    if eq(clone(name), String_from("i64")) {
+    if eq(clone(name), "i64") {
         return value_types::VT_I64()
     }
-    if eq(clone(name), String_from("u64")) {
+    if eq(clone(name), "u64") {
         return value_types::VT_I64()
     }
-    if eq(clone(name), String_from("f64")) {
+    if eq(clone(name), "f64") {
         return value_types::VT_F64()
     }
-    if eq(clone(name), String_from("f32")) {
+    if eq(clone(name), "f32") {
         return value_types::VT_F32()
     }
     value_types::VT_I32()

@@ -24,7 +24,7 @@ fn count_items<T>(v: Vec<T>) -> i32 {
 fn main() {
     // Instantiation 1: count_items<i32>(Vec<i32>) — emits
     // `count_items__Vec_i32_` MirFunction; call site rewritten.
-    let mut nums: Vec<i32> = Vec_new_i32()
+    let mut nums: Vec<i32> = Vec::new<i32>()
     push(nums, 10)
     push(nums, 20)
     stdio::println((count_items(nums)).to_string())
@@ -34,7 +34,7 @@ fn main() {
     // rewritten call site.  Without slice-c specialization the
     // `mono_instances` list is ignored and a single generic body
     // would handle both call sites.
-    let mut words: Vec<String> = Vec_new_String()
+    let mut words: Vec<String> = Vec::new<String>()
     push(words, String_from("alpha"))
     push(words, String_from("beta"))
     push(words, String_from("gamma"))

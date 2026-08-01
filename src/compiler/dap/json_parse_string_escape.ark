@@ -1,8 +1,0 @@
-//
-// Delegates to std::json (issue #704).
-
-use std::json
-
-fn dap_decode_string_escape(s: String, pos: i32) -> String {
-    json::json_decode_escape(s, pos)
-}

@@ -8,9 +8,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 394 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
-| `provisional` | 52 | API is usable but may change in minor versions based on feedback. |
-| `experimental` | 305 | API may change without notice. Functionality is available but not finalized. |
+| `stable` | 390 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `provisional` | 49 | API is usable but may change in minor versions based on feedback. |
+| `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -145,14 +145,6 @@
 | `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
 | `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `provisional` | `functional` | `builtin` | yes | - | - |
-| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
-| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
-| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
-| `Vec_new_i32` | `() -> Vec<i32>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
-| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
-| `Vec_new_i64` | `() -> Vec<i64>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
-| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
-| `Vec_new_v128` | `() -> Vec<v128>` | `prelude` | `provisional` | `functional` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_v128` | - |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `functional` | `builtin` | yes | - | - |
 | `any_String` | `(Vec<String>, fn(String) -> bool) -> bool` | `prelude` | `stable` | `functional` | `prelude_wrapper` | yes | `__intrinsic_any_String` | - |
@@ -311,7 +303,7 @@
 _Example — Get the length of a vector:_
 
 ```ark
-let v = Vec_new_i32()
+let v = Vec::new<i32>()
 push(v, 10)
 println(i32_to_string(len(v)))
 ```
@@ -323,7 +315,7 @@ Expected output: `1`
 _Example — Build a vector by pushing elements:_
 
 ```ark
-let v = Vec_new_i32()
+let v = Vec::new<i32>()
 push(v, 1)
 push(v, 2)
 ```
@@ -737,6 +729,7 @@ let input = read_to_string()
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `find_key_pos` | `(String, String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Find the position after the first "key" occurrence at or after from. |
 | `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
@@ -747,16 +740,25 @@ let input = read_to_string()
 | `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_decode_escape` | `(String, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Decode one JSON string escape at pos (char after backslash). |
 | `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
+| `json_escape` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Escape a plain string for use inside a JSON string (no surrounding quotes). |
 | `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Look up a named field in a JSON object value. |
 | `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Return the element at index in a JSON array value. |
+| `json_get_int` | `(String, String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract an integer field by key from a JSON object text. |
+| `json_get_str` | `(String, String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract a string field by key from a JSON object text. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
+| `json_parse_string_at` | `(String, i32) -> JsonStrResult` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a JSON string literal at pos; supports escapes and surrogate pairs. |
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | - |
 | `parse` | `(String) -> Result<JsonValue, JsonParseError>` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a full JSON document and reject trailing non-whitespace after the first top-level value. |
+| `parse_content_length` | `(String) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Extract Content-Length from an LSP/DAP header block, or -1 if absent. |
+| `parse_int_at` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Parse a signed decimal integer starting at pos (after optional whitespace). |
+| `quote_string` | `(String) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Quote and escape a plain string as a JSON string literal. |
+| `skip_ws` | `(String, i32) -> i32` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Skip JSON whitespace starting at pos; return index of next non-whitespace. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `functional` | `builtin` | no | - | Serialize with newlines and per-level space indentation for arrays and objects; scalars unchanged. |
 
@@ -1033,8 +1035,9 @@ Expected output: `hello world`
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_debug` | `(T, T) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | Generic Eq+Debug equality assertion. Named assert_eq_debug (not assert_eq) because bare assert_eq is… |
 | `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | Typed i32 equality assertion; failure messages use Debug renderings. |
 | `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
 | `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `functional` | `builtin` | no | - | - |
@@ -1108,12 +1111,18 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
+| `find_toml_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_section. |
+| `find_toml_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Public alias of toml_find_value. |
 | `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
 | `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
-| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value. |
-| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
+| `toml_find_raw_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the raw text after key = (for arrays and unquoted values). |
+| `toml_find_section` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract the body of a [section] from raw TOML text. |
+| `toml_find_value` | `(String, String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Extract a double-quoted string value for key = "..." from raw TOML text. |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Look up a key in a TOML table value (nested tables via successive calls). |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML 1.0 document into a TomlValue tree. |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | - |
+| `toml_parse_string_array` | `(String) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Parse a TOML string-array literal like ["a", "b"] into Vec<String>. |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Serialize a TomlValue back to text. |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `functional` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 

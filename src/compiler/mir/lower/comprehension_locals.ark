@@ -15,7 +15,7 @@ fn emit_comprehension_source_vec_local(ctx: LowerCtx) -> i32 {
 }
 
 fn emit_comprehension_result_local(ctx: LowerCtx, elem_type_name: String, vec_type_str: String) -> i32 {
-    let comp_vec_new_name = concat(String_from("Vec_new_"), clone(elem_type_name))
+    let comp_vec_new_name = concat(String_from("Vec::new__"), clone(elem_type_name))
     let comp_result_local = ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_emit(ctx, inst_call::MirInst_call(clone(comp_vec_new_name), 0, comp_result_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set_from(comp_result_local, comp_result_local))
@@ -26,7 +26,7 @@ fn emit_comprehension_result_local(ctx: LowerCtx, elem_type_name: String, vec_ty
 fn emit_comprehension_end_local(ctx: LowerCtx, comp_vec_local: i32) -> i32 {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_vec_local))
     let comp_end_local = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_len"), 1, comp_end_local))
+    ctx_emit(ctx, inst_call::MirInst_call(String_from("raw_array_len"), 1, comp_end_local))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(comp_end_local))
     comp_end_local
 }

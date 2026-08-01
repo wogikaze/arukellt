@@ -1,5 +1,6 @@
 use corehir::core_op_binding
 use corehir::core_op_id
+use corehir::param
 
 // RFC-005 D3: CoreOp-bound and intrinsic-shim stdlib symbols keep call-site
 // CoreOp / legacy lowering for now. Their Ark bodies become live fallbacks in
@@ -13,6 +14,30 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
 }
 
+/// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
+/// using the first parameter type when needed.
+fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirParam) -> bool {
+    // std::io::write_bytes(Vec,Vec)->i32 must lower (Write dispatch).
+    // std::host::fs::write_bytes(String,Vec)->Result stays deferred and
+    // reaches the fs intrinsic via fs:: / __intrinsic_ aliases (#807).
+    if eq(clone(decl_name), String_from("write_bytes")) {
+        let p0 = param::param_type_name(param0)
+        let is_fs_path = eq(clone(p0), String_from("String")) ||
+        eq(clone(p0), String_from("string"))
+        return is_fs_path
+    }
+    // Bare `join` core_op is string.join(Vec,String). path::join(String,String)
+    // must lower; otherwise call sites become drop+unreachable (#807).
+    if eq(clone(decl_name), String_from("join")) {
+        let p0 = param::param_type_name(param0)
+        let is_string_join = eq(clone(p0), String_from("Vec")) ||
+        starts_with(clone(p0), String_from("Vec<")) ||
+        starts_with(clone(p0), String_from("vec"))
+        return is_string_join
+    }
+    mir_should_defer_stdlib_body(decl_name)
+}
+
 fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
     if eq(clone(decl_name), String_from("contains")) { return true }
     if eq(clone(decl_name), String_from("contains_string")) { return true }
@@ -24,8 +49,10 @@ fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
     if eq(clone(decl_name), String_from("filter_i32")) { return true }
     if eq(clone(decl_name), String_from("fold_i32_i32")) { return true }
     if eq(clone(decl_name), String_from("map_option_i32_i32")) { return true }
-    if eq(clone(decl_name), String_from("any_i32")) { return true }
-    if eq(clone(decl_name), String_from("find_i32")) { return true }
+    // any_i32 / find_i32: real Ark bodies in prelude (no intrinsic emitter).
+    // i64 format Ark body scrambles Vec/i64 locals on wasm32-gc; keep deferred
+    // so call sites use the text.format_i64 intrinsic emitter (#807).
+    if eq(clone(decl_name), String_from("__core_format_i64_impl")) { return true }
     if eq(clone(decl_name), String_from("map_String_String")) { return true }
     if eq(clone(decl_name), String_from("filter_String")) { return true }
     if eq(clone(decl_name), String_from("map_i64_i64")) { return true }
@@ -42,7 +69,7 @@ fn mir_is_unbound_prelude_intrinsic_shim(decl_name: String) -> bool {
     if eq(clone(decl_name), String_from("byte_len")) { return true }
     if eq(clone(decl_name), String_from("byte_at")) { return true }
     if eq(clone(decl_name), String_from("format_i32")) { return true }
-    if eq(clone(decl_name), String_from("format_bool")) { return true }
+    // format_bool is CoreOp-bound via legacy alias → text.format_bool (#822).
     if eq(clone(decl_name), String_from("any_i64")) { return true }
     if eq(clone(decl_name), String_from("any_f64")) { return true }
     if eq(clone(decl_name), String_from("any_String")) { return true }

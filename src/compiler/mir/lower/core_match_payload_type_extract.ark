@@ -8,7 +8,7 @@ fn core_extract_first_result_type_param(scrut_type: String) -> String {
     // option:T stay intact. result:… uses ':'; Result_… uses '_' (#832).
     // Do not split vec:T on its own ':' — that turned Result_vec:fn_E into
     // bare "vec" and collapsed fn payloads to vec:i32.
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last > 0 {
         return normalize_payload_elem_type_name(substring(rest, 0, last))
@@ -20,7 +20,7 @@ fn core_extract_second_result_type_param(scrut_type: String) -> String {
     let prefix_len = 7
     let rest = substring(scrut_type, prefix_len, len(scrut_type))
     // Mirror first-param: last ':' for result:…, last '_' for Result_… (#832).
-    let sep_char = if starts_with(clone(scrut_type), String_from("result:")) { 58 } else { 95 }
+    let sep_char = if starts_with(clone(scrut_type), "result:") { 58 } else { 95 }
     let last = find_last_sep_char(clone(rest), sep_char)
     if last >= 0 && last + 1 < len(rest) {
         return substring(rest, last + 1, len(rest))
@@ -41,15 +41,15 @@ fn find_last_sep_char(s: String, sep_char: i32) -> i32 {
 }
 
 fn normalize_payload_elem_type_name(elem_ty: String) -> String {
-    if eq(clone(elem_ty), String_from("Vec")) {
-        return String_from("vec:i32")
+    if eq(clone(elem_ty), "Vec") {
+        return "vec:i32"
     }
-    if starts_with(clone(elem_ty), String_from("Vec<")) && ends_with(clone(elem_ty), String_from(">")) {
+    if starts_with(clone(elem_ty), "Vec<") && ends_with(clone(elem_ty), ">") {
         let inner = substring(clone(elem_ty), 4, len(elem_ty) - 1)
-        return concat(String_from("vec:"), inner)
+        return concat("vec:", inner)
     }
-    if starts_with(clone(elem_ty), String_from("Vec_")) {
-        return concat(String_from("vec:"), substring(clone(elem_ty), 4, len(elem_ty)))
+    if starts_with(clone(elem_ty), "Vec_") {
+        return concat("vec:", substring(clone(elem_ty), 4, len(elem_ty)))
     }
     elem_ty
 }
@@ -59,25 +59,25 @@ fn core_payload_type_name_is_gc_ref(ctx: LowerCtx, bind_local: i32) -> bool {
     if len(type_name) == 0 {
         return false
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("option:")) || starts_with(clone(type_name), String_from("Option_")) {
+    if starts_with(clone(type_name), "option:") || starts_with(clone(type_name), "Option_") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) || starts_with(clone(type_name), String_from("result:")) {
+    if starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return true
     }
     false

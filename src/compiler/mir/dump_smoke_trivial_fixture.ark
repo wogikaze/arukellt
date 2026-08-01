@@ -21,9 +21,9 @@ pub struct MirDumpTrivialFixture {
 fn mir_dump_trivial_fixture_new(name: String) -> MirDumpTrivialFixture {
     let m = module_factory::MirModule_new()
     let f = function_factory::MirFunction_new(name, source_location_record::SourceLocation_unmapped())
-    let p = function_local_alloc::alloc_local(f, String_from("p"), value_types::VT_I32())
-    let t = function_local_alloc::alloc_local(f, String_from("t"), value_types::VT_I32())
-    function_param_mutation::MirFunction_push_param(f, local_factory::MirLocal_new(String_from("p"), value_types::VT_I32(), String_from("i32")))
+    let p = function_local_alloc::alloc_local(f, "p", value_types::VT_I32())
+    let t = function_local_alloc::alloc_local(f, "t", value_types::VT_I32())
+    function_param_mutation::MirFunction_push_param(f, local_factory::MirLocal_new("p", value_types::VT_I32(), "i32"))
     function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
     let bb0 = block_alloc::alloc_block(f)
     function_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(42, t))

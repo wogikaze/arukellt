@@ -20,8 +20,8 @@ fn ctx_local_type_name_at(ctx: LowerCtx, index: i32) -> String {
 }
 
 fn ctx_local_type_reset_for_function(ctx: LowerCtx) {
-    ctx.local_types = Vec_new_String()
-    ctx.local_type_indices = Vec_new_i32()
+    ctx.local_types = Vec::new<String>()
+    ctx.local_type_indices = Vec::new<i32>()
     ctx.local_type_start = len(ctx.local_types)
 }
 

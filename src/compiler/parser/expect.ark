@@ -13,11 +13,11 @@ fn consume_closing_gt(p: Parser) {
         return
     }
     if token_state::Token_kind(t) == tokens::TK_SHR() {
-        let gt_tok = token_state::Token_new(tokens::TK_GT(), String_from(">"), token_state::Token_start(t), token_state::Token_end(t))
+        let gt_tok = token_state::Token_new(tokens::TK_GT(), ">", token_state::Token_start(t), token_state::Token_end(t))
         state_record::parser_set_current_token(p, gt_tok)
         return
     }
-    diagnostics::parser_push_unexpected_error(p, String_from("expected >"))
+    diagnostics::parser_push_unexpected_error(p, "expected >")
 }
 
 fn expect_token(p: Parser, kind: i32) -> Token {

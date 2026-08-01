@@ -5,6 +5,7 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_types
 use mir::lower_kinds
 use mir::inst_local_get
+use mir::inst_local_set
 use mir::inst_struct_get
 use mir::value_types
 
@@ -40,6 +41,10 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
             } else {
                 ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get_field_sized(tuple_local, String_new(), byte_off, total_bytes, field_vt, dest))
             }
+            // Store policy may leave STRUCT_GET on the stack when the next
+            // op is LOCAL_GET (next field base). Consume into dest explicitly
+            // so bindings are not left at 0 (#807 variables/tuple).
+            ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set(dest))
         }
         byte_off = byte_off + 4
         ei = ei + 1
@@ -47,7 +52,7 @@ fn lower_tuple_destructure_let(ctx: LowerCtx, node: AstNode) {
 }
 
 fn tuple_struct_name_from_type(type_name: String) -> String {
-    if !starts_with(clone(type_name), String_from("struct:")) {
+    if !starts_with(clone(type_name), "struct:") {
         return String_new()
     }
     let n = len(type_name)
@@ -67,10 +72,10 @@ fn tuple_struct_name_from_type(type_name: String) -> String {
         return String_new()
     }
     let inner = substring(type_name, first + 1, last)
-    if starts_with(clone(inner), String_from("tuple:")) {
+    if starts_with(clone(inner), "tuple:") {
         return inner
     }
-    if eq(clone(inner), String_from("tuple")) {
+    if eq(clone(inner), "tuple") {
         let byte_size = substring(type_name, last + 1, n)
         return tuple_struct_name_from_byte_size(byte_size)
     }
@@ -86,13 +91,13 @@ fn tuple_struct_name_from_byte_size(byte_size_str: String) -> String {
     if field_count <= 0 {
         return String_new()
     }
-    let mut name = String_from("tuple:")
+    let mut name = "tuple:"
     let mut i = 0
     while i < field_count {
         if i > 0 {
-            name = concat(name, String_from(","))
+            name = concat(name, ",")
         }
-        name = concat(name, String_from("i32"))
+        name = concat(name, "i32")
         i = i + 1
     }
     name
@@ -123,7 +128,7 @@ fn tuple_field_vt_from_struct_name(struct_name: String, elem_index: i32) -> i32 
     }
     let keys = substring(struct_name, 6, len(struct_name))
     let key = tuple_key_at(keys, elem_index)
-    if eq(clone(key), String_from("String")) {
+    if eq(clone(key), "String") {
         return value_types::VT_GC_REF()
     }
     value_types::VT_I32()

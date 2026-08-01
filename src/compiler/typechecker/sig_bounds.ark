@@ -3,13 +3,13 @@ use typechecker::contract_type_param_bounds
 use typechecker::types
 
 fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
-    let infos = Vec_new_TypeParamBounds()
+    let infos = Vec::new<TypeParamBounds>()
     let ann_count = len(type_ann)
     let mut i = 0
     while i < ann_count {
         let ann = get_unchecked(type_ann, i)
         let ann_name = ast_access::node_text(ann)
-        if !eq(clone(ann_name), String_from("__return")) {
+        if !eq(clone(ann_name), "__return") {
             let info = contract_type_param_bounds::TypeParamBounds_new(ann_name)
             let ann_count = ast_access::node_type_ann_count(ann)
             let mut j = 0
@@ -26,7 +26,7 @@ fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
 }
 
 fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
-    let names = Vec_new_String()
+    let names = Vec::new<String>()
     let count = len(bound_infos)
     let mut i = 0
     while i < count {

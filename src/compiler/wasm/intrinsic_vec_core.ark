@@ -6,7 +6,6 @@
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
 use wasm::inst_ctx
-use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_vec_type
 use wasm::opcodes
 use wasm::writer_core
@@ -15,27 +14,28 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 
-// Handler for: Vec_new_i64, Vec_new_f64
-fn emit_Vec_new_i64(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_vec_new_layout::emit_vec_new_layout(w, 64, 76, inst, ctx)
-    inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
+fn emit_gc_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // GC Vec: struct.get vec_type 1 (len field)
+    // Determine the correct vec type from the source local when possible.
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
+    writer_gc::emit_gc_ref_cast(w, vec_gc_type)
+    writer_gc::emit_gc_struct_get_i32(w, vec_gc_type, 1)
+    return true
+}
+
+fn emit_linear_vec_len(w: WasmWriter) -> bool {
+    // Linear-memory Vec: i32.load at offset 0 (len field)
+    writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+    writer_core::emit_byte(w, 2)
+    writer_core::emit_byte(w, 0)
     return true
 }
 
 // Handler for: vec_len
 fn emit_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // GC Vec: struct.get vec_type 1 (len field)
-        // Determine the correct vec type from the source local when possible.
-        let callee = inst_accessors_literals::MirInst_str_val(inst)
-        let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
-        writer_gc::emit_gc_ref_cast(w, vec_gc_type)
-        writer_gc::emit_gc_struct_get_i32(w, vec_gc_type, 1)
-    } else {
-        // Linear-memory Vec: i32.load at offset 0 (len field)
-        writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-        writer_core::emit_byte(w, 2)
-        writer_core::emit_byte(w, 0)
+        return emit_gc_vec_len(w, inst, ctx)
     }
-    return true
+    emit_linear_vec_len(w)
 }

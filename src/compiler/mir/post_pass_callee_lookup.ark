@@ -7,6 +7,7 @@ use mir::opcodes
 use mir::post_pass_callee_cache
 use mir::post_pass_enum_normalize
 use mir::typed_mir_sync_module
+use corehir::type_info_to_mir_value
 //
 // Extracted from post_pass_type_propagate.ark to reduce import fan-out.
 // Callee name / return metadata comes from CalleePropCache (#829).
@@ -40,7 +41,7 @@ fn propagate_from_producer_inst(
         }
     }
     if op == opcodes::MIR_CONST_STRING() {
-        new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, String_from("string"), table)
+        new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, "string", table)
         local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
         updated = true
     }
@@ -60,7 +61,19 @@ fn propagate_from_producer_inst(
         // get_unchecked dest type is set from the vec element's type during
         // lowering. A wrong mono name (get_unchecked__String) would otherwise
         // overwrite WitParsedInterface/etc. with string here.
-        let skip_ret_sync = is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0
+        let skip_ret_sync =
+        (is_get_unchecked_callee(clone(callee)) && len(dst_type_name) > 0) ||
+        (is_vec_constructor_callee(clone(callee)) &&
+            starts_with(clone(dst_type_name), "vec:"))
+        if is_vec_constructor_callee(clone(callee)) &&
+        starts_with(clone(dst_type_name), "vec:") {
+            new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
+                new_loc,
+                clone(dst_type_name),
+                table
+            )
+            updated = true
+        }
         let mut ret_name = String_new()
         // clone(T)->T must win over CalleePropCache / string-intrinsic tables.
         // Cache often maps bare "clone" to String and poisons GC struct temps
@@ -69,7 +82,10 @@ fn propagate_from_producer_inst(
             ret_name = type_name_of_call_arg(f, inst)
         } else {
             if !skip_ret_sync {
-                ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                ret_name = producer_result_type_name(inst, table)
+                if len(ret_name) == 0 {
+                    ret_name = post_pass_callee_cache::callee_prop_cache_return_type_name(cache, clone(callee))
+                }
                 if len(ret_name) == 0 {
                     ret_name = lookup_intrinsic_return_type_name(callee)
                 }
@@ -87,6 +103,16 @@ fn propagate_from_producer_inst(
         function_local_mutation::MirFunction_set_local(f, dest, new_loc)
     }
     updated
+}
+
+fn producer_result_type_name(inst: MirInst, table: TypeTable) -> String {
+    if inst_record::mir_inst_result_type_count(inst) <= 0 {
+        return String_new()
+    }
+    type_info_to_mir_value::mvt_to_type_name(
+        table,
+        inst_record::mir_inst_result_type_at(inst, 0)
+    )
 }
 
 fn propagate_call_variant_slot(
@@ -116,10 +142,10 @@ fn is_generic_clone_intrinsic(name: String) -> bool {
     eq(clone(name), "__intrinsic_string_clone") ||
     eq(clone(name), "__core_string_clone_impl") ||
     eq(clone(name), "raw_string_clone") ||
-    ends_with(clone(name), String_from("::clone")) ||
-    ends_with(clone(name), String_from("__clone")) ||
-    ends_with(clone(name), String_from("::raw_string_clone")) ||
-    ends_with(clone(name), String_from("string_clone"))
+    ends_with(clone(name), "::clone") ||
+    ends_with(clone(name), "__clone") ||
+    ends_with(clone(name), "::raw_string_clone") ||
+    ends_with(clone(name), "string_clone")
 }
 
 fn is_get_unchecked_callee(name: String) -> bool {
@@ -128,9 +154,20 @@ fn is_get_unchecked_callee(name: String) -> bool {
     eq(clone(name), "__intrinsic_get_unchecked") {
         return true
     }
-    starts_with(clone(name), String_from("get_unchecked__")) ||
-    starts_with(clone(name), String_from("vec_get_unchecked__")) ||
-    starts_with(clone(name), String_from("__intrinsic_get_unchecked__"))
+    starts_with(clone(name), "get_unchecked__") ||
+    starts_with(clone(name), "vec_get_unchecked__") ||
+    starts_with(clone(name), "__intrinsic_get_unchecked__")
+}
+
+fn is_vec_constructor_callee(name: String) -> bool {
+    eq(clone(name), "Vec::new") ||
+    eq(clone(name), "Vec__new") ||
+    eq(clone(name), "Vec::with_capacity") ||
+    eq(clone(name), "Vec__with_capacity") ||
+    starts_with(clone(name), "Vec::new__") ||
+    starts_with(clone(name), "Vec__new__") ||
+    starts_with(clone(name), "Vec::with_capacity__") ||
+    starts_with(clone(name), "Vec__with_capacity__")
 }
 
 fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {
@@ -144,18 +181,18 @@ fn type_name_of_call_arg(f: MirFunction, inst: MirInst) -> String {
 
 fn lookup_intrinsic_return_type_name(callee: String) -> String {
     if is_string_returning_intrinsic(clone(callee)) {
-        return String_from("string")
+        return "string"
     }
     if is_vec_string_returning_intrinsic(clone(callee)) {
-        return String_from("vec:String")
+        return "vec:String"
     }
     let base = intrinsic_strip_mono_suffix(clone(callee))
     if len(base) > 0 && !eq(clone(base), clone(callee)) {
         if is_string_returning_intrinsic(base) {
-            return String_from("string")
+            return "string"
         }
         if is_vec_string_returning_intrinsic(base) {
-            return String_from("vec:string")
+            return "vec:string"
         }
     }
     String_new()
@@ -197,19 +234,19 @@ fn is_vec_string_returning_intrinsic(name: String) -> bool {
     || eq(clone(name), "lines") {
         return true
     }
-    if ends_with(clone(name), String_from("::split")) || ends_with(clone(name), String_from("::chars")) || ends_with(clone(name), String_from("::lines")) {
+    if ends_with(clone(name), "::split") || ends_with(clone(name), "::chars") || ends_with(clone(name), "::lines") {
         return true
     }
-    if starts_with(clone(name), String_from("split__")) || starts_with(clone(name), String_from("chars__")) {
+    if starts_with(clone(name), "split__") || starts_with(clone(name), "chars__") {
         return true
     }
-    if eq(clone(name), "filter_String") || eq(clone(name), "__intrinsic_filter_String") || starts_with(clone(name), String_from("filter_String__")) {
+    if eq(clone(name), "filter_String") || eq(clone(name), "__intrinsic_filter_String") || starts_with(clone(name), "filter_String__") {
         return true
     }
-    if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || starts_with(clone(name), String_from("map_String_String__")) {
+    if eq(clone(name), "map_String_String") || eq(clone(name), "__intrinsic_map_String_String") || starts_with(clone(name), "map_String_String__") {
         return true
     }
-    if eq(clone(name), "Vec_new_String") || eq(clone(name), "__intrinsic_Vec_new_String") || eq(clone(name), "std::vec::Vec<String>::new") {
+    if eq(clone(name), "std::vec::Vec<String>::new") {
         return true
     }
     false
@@ -248,10 +285,10 @@ fn is_to_string_name(name: String) -> bool {
     || eq(clone(name), "i64_to_string") {
         return true
     }
-    if starts_with(clone(name), String_from("__intrinsic_")) && ends_with(clone(name), String_from("_to_string")) {
+    if starts_with(clone(name), "__intrinsic_") && ends_with(clone(name), "_to_string") {
         return true
     }
-    if ends_with(clone(name), String_from("::to_string")) || ends_with(clone(name), String_from("::to_string__1")) {
+    if ends_with(clone(name), "::to_string") || ends_with(clone(name), "::to_string__1") {
         return true
     }
     false
@@ -289,7 +326,7 @@ fn is_common_string_method(name: String) -> bool {
 }
 
 fn is_text_free_function_returning_string(name: String) -> bool {
-    if starts_with(clone(name), String_from("text::")) || starts_with(clone(name), String_from("string::")) {
+    if starts_with(clone(name), "text::") || starts_with(clone(name), "string::") {
         let base = strip_module_prefix(name)
         if is_common_string_method(base) {
             return true
@@ -299,17 +336,17 @@ fn is_text_free_function_returning_string(name: String) -> bool {
 }
 
 fn is_string_type_method(name: String) -> bool {
-    if starts_with(clone(name), String_from("String::")) {
+    if starts_with(clone(name), "String::") {
         let n = len(name)
-        let prefix_len = len(String_from("String::"))
+        let prefix_len = len("String::")
         let base = substring(name, prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
         }
     }
-    if starts_with(clone(name), String_from("std::text::String::")) {
+    if starts_with(clone(name), "std::text::String::") {
         let n = len(name)
-        let prefix_len = len(String_from("std::text::String::"))
+        let prefix_len = len("std::text::String::")
         let base = substring(name, prefix_len, n)
         if is_common_string_method(base) || is_string_new_like(base) || is_string_from_like(base) || is_to_string_name(base) {
             return true
@@ -338,38 +375,38 @@ fn strip_module_prefix(name: String) -> String {
 }
 
 fn is_core_string_impl_returning_string(name: String) -> bool {
-    if !starts_with(clone(name), String_from("__core_string_")) {
+    if !starts_with(clone(name), "__core_string_") {
         return false
     }
-    if !ends_with(clone(name), String_from("_impl")) {
+    if !ends_with(clone(name), "_impl") {
         return false
     }
     let n = len(name)
-    let prefix_len = len(String_from("__core_string_"))
-    let suffix_len = len(String_from("_impl"))
+    let prefix_len = len("__core_string_")
+    let suffix_len = len("_impl")
     let middle_len = n - prefix_len - suffix_len
     if middle_len <= 0 {
         return false
     }
     let middle = substring(name, prefix_len, n - suffix_len)
-    if eq(clone(middle), String_from("concat"))
-    || eq(clone(middle), String_from("clone"))
-    || eq(clone(middle), String_from("from_bytes"))
-    || eq(clone(middle), String_from("new"))
-    || eq(clone(middle), String_from("slice"))
-    || eq(clone(middle), String_from("push_range"))
-    || eq(clone(middle), String_from("join"))
-    || eq(clone(middle), String_from("pad_left"))
-    || eq(clone(middle), String_from("pad_left_fill"))
-    || eq(clone(middle), String_from("pad_right"))
-    || eq(clone(middle), String_from("pad_right_fill"))
-    || eq(clone(middle), String_from("repeat"))
-    || eq(clone(middle), String_from("replace"))
-    || eq(clone(middle), String_from("to_lowercase"))
-    || eq(clone(middle), String_from("to_uppercase"))
-    || eq(clone(middle), String_from("trim"))
-    || eq(clone(middle), String_from("trim_end"))
-    || eq(clone(middle), String_from("trim_start")) {
+    if eq(clone(middle), "concat")
+    || eq(clone(middle), "clone")
+    || eq(clone(middle), "from_bytes")
+    || eq(clone(middle), "new")
+    || eq(clone(middle), "slice")
+    || eq(clone(middle), "push_range")
+    || eq(clone(middle), "join")
+    || eq(clone(middle), "pad_left")
+    || eq(clone(middle), "pad_left_fill")
+    || eq(clone(middle), "pad_right")
+    || eq(clone(middle), "pad_right_fill")
+    || eq(clone(middle), "repeat")
+    || eq(clone(middle), "replace")
+    || eq(clone(middle), "to_lowercase")
+    || eq(clone(middle), "to_uppercase")
+    || eq(clone(middle), "trim")
+    || eq(clone(middle), "trim_end")
+    || eq(clone(middle), "trim_start") {
         return true
     }
     false

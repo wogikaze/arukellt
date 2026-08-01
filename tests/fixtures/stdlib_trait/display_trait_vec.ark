@@ -17,7 +17,7 @@ impl Display for Token {
 }
 
 fn main() {
-    let mut tokens: Vec<Token> = Vec_new_Token()
+    let mut tokens: Vec<Token> = Vec::new<Token>()
     push(tokens, Token { kind: 0, value: String_from("eof") })
     push(tokens, Token { kind: 1, value: String_from("ident") })
 

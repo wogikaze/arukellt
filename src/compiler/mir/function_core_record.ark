@@ -17,9 +17,9 @@ pub struct MirFunction {
 fn MirFunction_new(name: String, source_location: SourceLocation) -> MirFunction {
     MirFunction {
         name: name,
-        params: Vec_new_MirLocal(),
-        locals: Vec_new_MirLocal(),
-        blocks: Vec_new_MirBlock(),
+        params: Vec::new<MirLocal>(),
+        locals: Vec::new<MirLocal>(),
+        blocks: Vec::new<MirBlock>(),
         return_type: value_types::VT_VOID(),
         return_type_name: String_new(),
         next_local: 0,

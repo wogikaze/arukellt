@@ -16,10 +16,10 @@ fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) ->
                 }
                 fi = fi + 1
             }
-            return String_from("")
+            return ""
         }
         offset = offset + fc
         si = si + 1
     }
-    String_from("")
+    ""
 }

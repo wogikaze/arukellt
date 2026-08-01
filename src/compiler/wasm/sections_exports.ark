@@ -62,7 +62,7 @@ fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
 fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
     let mut export_count = 1
     let mut main_idx = 0 - 1
-    let mut seen_names = Vec_new_String()
+    let mut seen_names = Vec::new<String>()
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)
@@ -87,7 +87,7 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan
 }
 
 fn emit_memory_export_entry(export_sec: WasmWriter) {
-    writer_string::emit_string(export_sec, String_from("memory"))
+    writer_string::emit_string(export_sec, "memory")
     writer_core::emit_byte(export_sec, 2)
     writer_core::emit_leb128_u(export_sec, 0)
 }
@@ -104,7 +104,7 @@ fn emit_start_export_entry(
     wit_import_count: i32
 ) {
     if main_idx >= 0 {
-        writer_string::emit_string(export_sec, String_from("_start"))
+        writer_string::emit_string(export_sec, "_start")
         writer_core::emit_byte(export_sec, 0)
         if needs_wrapper == 1 {
             writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
@@ -125,7 +125,7 @@ fn emit_function_export_entries(
     wit_import_count: i32
 ) {
     let functions = module_functions::MirModule_functions(mir)
-    let mut seen_short_names = Vec_new_String()
+    let mut seen_short_names = Vec::new<String>()
     let mut exi = 0
     while exi < fn_count {
         let ef = module_functions::MirModule_function_at(mir, exi)
@@ -173,7 +173,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     while j < pc {
         let p = function_param_view::MirFunction_param_at(f, j)
         let tn = local_access::MirLocal_type_name(p)
-        if starts_with(clone(tn), String_from("?")) {
+        if starts_with(clone(tn), "?") {
             return true
         }
         j = j + 1

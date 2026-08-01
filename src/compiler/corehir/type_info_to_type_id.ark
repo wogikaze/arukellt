@@ -11,9 +11,9 @@ fn type_info_to_type_id(table: TypeTable, ty: TypeInfo) -> TypeId {
     // aliases continue to flow through vt_to_mir_value(type_name) paths.
     let tag = type_contracts::TypeInfo_tag(ty)
     if tag == 0 {
-        return type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), String_from("void"), Vec_new_TypeId())
+        return type_table::TypeTable_intern(table, kinds::TYPE_KIND_PRIMITIVE(), "void", Vec::new<TypeId>())
     }
     let kind = type_info_kind::type_info_tag_to_kind(tag)
     let name = type_info_kind::type_info_display_name_from_tag(tag)
-    type_table::TypeTable_intern(table, kind, name, Vec_new_TypeId())
+    type_table::TypeTable_intern(table, kind, name, Vec::new<TypeId>())
 }

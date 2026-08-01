@@ -115,7 +115,7 @@ pub fn stem(p: String) -> String {
 /// normalize("/foo//bar")         -> "/foo/bar"
 pub fn normalize(p: String) -> String {
     let parts: Vec<String> = __intrinsic_split(p, "/")
-    let out: Vec<String> = __intrinsic_Vec_new_String()
+    let out: Vec<String> = Vec::new<String>()
     let n = len(parts)
     let mut i = 0
     while i < n {
@@ -148,7 +148,7 @@ pub fn normalize(p: String) -> String {
 /// components("")               -> []
 pub fn components(p: String) -> Vec<String> {
     let raw: Vec<String> = __intrinsic_split(p, "/")
-    let out: Vec<String> = __intrinsic_Vec_new_String()
+    let out: Vec<String> = Vec::new<String>()
     let n = len(raw)
     let mut i = 0
     while i < n {

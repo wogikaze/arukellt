@@ -43,10 +43,10 @@ fn comp_function_is_list_i32_to_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "i32") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Vec"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Vec")
 }
 
 fn comp_function_is_i32_to_list_i32_export(f: MirFunction) -> bool {
@@ -56,10 +56,10 @@ fn comp_function_is_i32_to_list_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Vec")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Vec") {
         return false
     }
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && !eq(export_function_view::export_function_param_type_name(f, 0), String_from("Vec"))
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && !eq(export_function_view::export_function_param_type_name(f, 0), "Vec")
 }
 
 fn comp_function_is_list_i32_to_list_i32_export(f: MirFunction) -> bool {
@@ -69,26 +69,26 @@ fn comp_function_is_list_i32_to_list_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Vec")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Vec") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Vec"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Vec")
 }
 
 fn comp_function_is_f32_unary_export(f: MirFunction) -> bool {
-    comp_function_is_unary_numeric_export(f, String_from("f32"), String_from("f32"))
+    comp_function_is_unary_numeric_export(f, "f32", "f32")
 }
 
 fn comp_function_is_f32_binary_export(f: MirFunction) -> bool {
-    comp_function_is_binary_numeric_export(f, String_from("f32"), String_from("f32"), String_from("f32"))
+    comp_function_is_binary_numeric_export(f, "f32", "f32", "f32")
 }
 
 fn comp_function_is_f32_to_i32_export(f: MirFunction) -> bool {
-    comp_function_is_unary_numeric_export(f, String_from("f32"), String_from("i32"))
+    comp_function_is_unary_numeric_export(f, "f32", "i32")
 }
 
 fn comp_function_is_i32_to_f32_export(f: MirFunction) -> bool {
-    comp_function_is_unary_numeric_export(f, String_from("i32"), String_from("f32"))
+    comp_function_is_unary_numeric_export(f, "i32", "f32")
 }
 
 fn comp_function_is_unary_numeric_export(f: MirFunction, param_type: String, return_type: String) -> bool {

@@ -17,11 +17,21 @@ fn populate_gc_layout_table_for_emit(
     // during emit — interning new entries shifts type IDs and corrupts
     // downstream emit phases.
     register_builtin(table, tt, kinds::TYPE_KIND_STRING(), String_from("String"), gc_type_base + 0)
+    // Open enum / Option / Result share the GC open-base type (offset 14).
+    register_builtin(table, tt, kinds::TYPE_KIND_ENUM(), String_from("enum:open"), gc_type_base + 14)
     register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i32"), gc_type_base + 10)
     register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:String"), gc_type_base + 19)
     register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:v128"), gc_type_base + 21)
     register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i64"), gc_type_base + 22)
     register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:f64"), gc_type_base + 23)
+    // MIR / CoreHIR use abbreviated hashmap aliases (hashmap:si32, ...).
+    // Keep the longer colon forms for any residual TypeTable entries.
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:si32"), gc_type_base + 16)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32str"), gc_type_base + 17)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:strstr"), gc_type_base + 18)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32i32"), gc_type_base + 10)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32fn"), gc_type_base + 30)
+    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:strfn"), gc_type_base + 31)
     register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:i32"), gc_type_base + 16)
     register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32:String"), gc_type_base + 17)
     register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:String"), gc_type_base + 18)
@@ -31,7 +41,7 @@ fn populate_gc_layout_table_for_emit(
 }
 
 fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String, type_idx: i32) {
-    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec_new_TypeId())
+    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec::new<TypeId>())
     if !type_id::type_id_is_valid(tid) {
         return
     }

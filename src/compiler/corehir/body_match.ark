@@ -9,7 +9,7 @@ fn corehir_build_match_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if child_count < 2 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let scrut_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 0))
     push(children, scrut_index)
     let scrut_expr = corehir_body_expr_at(table, scrut_index)

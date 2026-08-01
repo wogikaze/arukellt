@@ -318,4 +318,3 @@ aliases = []
 alias_status = "none"
 purpose = "Forbid regression vs native-cpp fixture coverage baseline (ICE/crash/rates)"
 coverage = ["native-cpp", "adr-050"]
-

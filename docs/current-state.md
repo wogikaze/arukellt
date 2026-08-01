@@ -11,8 +11,8 @@
 > Fixture-Snapshot-Commit: `982f3102`
 > Verification-Command: `python3 scripts/manager.py verify quick`
 > Release-Readiness: **NOT READY**
-> Blocking: 1089 fixture failure(s), 4 additional full-verification blocker group(s)
-> Distinct incidents: 5 (derived from incident_id in release-guarantees.toml; 5 failing checks)
+> Blocking: 1089 fixture failure(s), 2 additional full-verification blocker group(s)
+> Distinct incidents: 3 (derived from incident_id in release-guarantees.toml; 3 failing checks)
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -38,7 +38,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 | Component emit | ADR-008: in-tree | P2 command は guest-native in-tree（#714 / #668）。library / 一部 packaging は移行中 |
 | Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
-| jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。scalar `pub fn` の Node.js E2E は `tests/component-interop/jco/calculator/` で `ARUKELLT_TEST_JCO=1` gate として稼働。String/record/variant canonical ABI adapters は未実装 |
+| jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。`verify component-interop` wasmtime スイートは通過（#810）。Node.js jco E2E は `ARUKELLT_TEST_JCO=1`（`tests/component-interop/jco/`）。library GC Option/Result/List/Record/Tuple adapters は実装済み；browser Chrome HTTP E2E は別 |
 | Intrinsic layer | ADR-042: ACCEPTED | `FunctionId → SignatureEntry → CoreOpId → CoreOpRegistry` dispatch spine を実装（#798）。prelude は RFC-005 / #816 で backend 結合対象に復帰し、#820 の bounded stdlib-only inliner と #821/#822 の Ark body 移行を開始した。sealed raw API は RFC-006 で `core::raw` を採択（#817）。現在は 294 CoreOp（`normal_call` 52、`legacy_emitter` 31、`runtime_call` 45、`target_intrinsic` 164、`mir_op` 2）で、`data/core-ops.toml` は `status = "migration"` のまま。production exit は #818。 |
 
 ### Proposed migration gaps（normative ではない）
@@ -97,9 +97,11 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
 **Memory64（living）:** `wasm32-gc` の default emit は Memory64（memory limits flag + i64 heap /
-アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。selfhost bootstrap の実行中
-コンパイラは `wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB
-上限を外す（[#730](../issues/open/730-bootstrap-wasm-4gb-memory-limit.md)）。
+アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。ピン済み bootstrap 本体は
+`wasm32-gc` / `wasi-p2` の guest memory32（`(memory 8192)`）であり、`--to-memory64` を当てない
+（[#834](../issues/done/834-wasm32-gc-bootstrap-pin.md)）。legacy / 非 GC runtime 経路のみ
+`wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB 上限を外す
+（[#730](../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)）。
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
@@ -115,9 +117,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2842 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1254 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2842 is tests/fixtures/manifest.txt registry size. The 1254 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2874 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1286 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2874 is tests/fixtures/manifest.txt registry size. The 1286 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -130,8 +132,6 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
 | `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
-| `check_wat_roundtrip` | `full` | `target-contract` | 6 | `incident_wat_roundtrip` | The wasm2wat/wat2wasm roundtrip gate fails | `bash scripts/run/wat-roundtrip.sh` | Wasm backend | #809 | `a80b4181` | `2cd10f16` | `fresh` |
-| `check_component_interop_wasmtime` | `full` | `component-interop` | 103 | `incident_component_interop_103` | All wasmtime component-interop cases fail. Dedicated command (not aggregate verify full). | `python3 scripts/manager.py verify component-interop` | component model | #810 | `a80b4181` | `2cd10f16` | `fresh` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates

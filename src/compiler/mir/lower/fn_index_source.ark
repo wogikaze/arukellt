@@ -58,7 +58,7 @@ fn mir_fn_index_source_typed_return_type_name(source: MirLowerFnIndexSource, typ
         let tf = type_source::mir_type_source_typed_fn_at(type_source, typed_index)
         return return_types::mir_return_type_name_from_typed_fn(tf)
     }
-    String_from("")
+    ""
 }
 
 fn mir_fn_index_source_typed_return_type(source: MirLowerFnIndexSource, typed_index: i32) -> TypeInfo {

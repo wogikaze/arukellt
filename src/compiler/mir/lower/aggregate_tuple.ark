@@ -19,7 +19,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
     if child_count == 0 {
         let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
         ctx_api_emit::ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, dest))
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "i32")
         return dest
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
@@ -61,7 +61,7 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
     }
     // Value lives in `dest`; callers load via local_set_from / return_value.
     if len(struct_name) > 0 {
-        let type_name = concat(String_from("struct:"), concat(clone(struct_name), concat(String_from(":"), i32_to_string(total_bytes))))
+        let type_name = concat("struct:", concat(clone(struct_name), concat(":", i32_to_string(total_bytes))))
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     }
     dest
@@ -71,11 +71,11 @@ fn tuple_struct_name_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>, field_co
     if !tuple_field_vts_need_named_gc_struct(ctx, field_vts, field_count) {
         return String_new()
     }
-    let mut name = String_from("tuple:")
+    let mut name = "tuple:"
     let mut ti = 0
     while ti < field_count {
         if ti > 0 {
-            name = concat(name, String_from(","))
+            name = concat(name, ",")
         }
         name = concat(name, tuple_field_mono_key(get_unchecked(field_vts, ti)))
         ti = ti + 1
@@ -101,19 +101,19 @@ fn tuple_field_vts_need_named_gc_struct(ctx: LowerCtx, field_vts: Vec<i32>, fiel
 
 fn tuple_field_mono_key(field_vt: i32) -> String {
     if field_vt == value_types::VT_F64() {
-        return String_from("f64")
+        return "f64"
     }
     if field_vt == value_types::VT_I64() {
-        return String_from("i64")
+        return "i64"
     }
     if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
-        return String_from("String")
+        return "String"
     }
-    String_from("i32")
+    "i32"
 }
 
 fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String {
-    let mut sig = String_from("GS")
+    let mut sig = "GS"
     let mut ti = 0
     while ti < field_count {
         let field_vt = get_unchecked(field_vts, ti)
@@ -124,21 +124,57 @@ fn tuple_gc_sig_from_field_vts(field_vts: Vec<i32>, field_count: i32) -> String 
 }
 
 fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
-    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
+    let prefix = concat("_f", i32_to_string(field_idx))
     if field_vt == value_types::VT_F64() {
-        return concat(prefix, String_from("_f64"))
+        return concat(prefix, "_f64")
     }
     if field_vt == value_types::VT_I64() {
-        return concat(prefix, String_from("_i64"))
+        return concat(prefix, "_i64")
     }
     if field_vt == value_types::VT_GC_REF() || field_vt == value_types::VT_REF() {
-        return concat(prefix, String_from("_ref0"))
+        return concat(prefix, "_ref0")
     }
-    concat(prefix, String_from("_i32"))
+    concat(prefix, "_i32")
+}
+
+fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
+    // CoreHIR param aliases use Tuple:A:B; GC structs are tuple:A,B (#810).
+    if !starts_with(clone(param_type_name), String_from("Tuple:")) {
+        return String_new()
+    }
+    let rest = substring(param_type_name, 6, len(param_type_name))
+    let mut sep = 0 - 1
+    let mut i = 0
+    while i < len(rest) {
+        if char_at(rest, i) == 58 {
+            sep = i
+            i = len(rest)
+        }
+        i = i + 1
+    }
+    if sep <= 0 {
+        return String_new()
+    }
+    let keys = concat(substring(rest, 0, sep), concat(String_from(","), substring(rest, sep + 1, len(rest))))
+    concat(String_from("tuple:"), keys)
+}
+
+fn ctx_register_tuple_gc_struct_from_param_name(ctx: LowerCtx, param_type_name: String) -> i32 {
+    let wasm_name = tuple_wasm_name_from_param_alias(param_type_name)
+    if len(wasm_name) == 0 {
+        return 0
+    }
+    let keys = substring(wasm_name, 6, len(wasm_name))
+    let sig = tuple_gc_sig_from_type_keys(keys)
+    if len(sig) <= 2 {
+        return 0
+    }
+    ctx_gc_struct::ctx_register_gc_struct(ctx, wasm_name, sig)
+    1
 }
 
 fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name: String) -> i32 {
-    if !starts_with(clone(return_type_name), String_from("struct:")) {
+    if !starts_with(clone(return_type_name), "struct:") {
         return 0
     }
     let n = len(return_type_name)
@@ -158,7 +194,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name
         return 0
     }
     let inner = substring(return_type_name, first_colon + 1, last_colon)
-    if !starts_with(clone(inner), String_from("tuple:")) {
+    if !starts_with(clone(inner), "tuple:") {
         return 0
     }
     let keys = substring(inner, 6, len(inner))
@@ -171,7 +207,7 @@ fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name
 }
 
 fn tuple_gc_sig_from_type_keys(keys: String) -> String {
-    let mut sig = String_from("GS")
+    let mut sig = "GS"
     let key_count = tuple_key_count(keys)
     let mut i = 0
     while i < key_count {
@@ -217,19 +253,19 @@ fn tuple_field_key_at(keys: String, index: i32) -> String {
 }
 
 fn tuple_gc_field_sig_for_key(key: String, field_idx: i32) -> String {
-    let prefix = concat(String_from("_f"), i32_to_string(field_idx))
-    if eq(clone(key), String_from("f64")) || eq(clone(key), String_from("F64")) {
-        return concat(prefix, String_from("_f64"))
+    let prefix = concat("_f", i32_to_string(field_idx))
+    if eq(clone(key), "f64") || eq(clone(key), "F64") {
+        return concat(prefix, "_f64")
     }
-    if eq(clone(key), String_from("i64")) || eq(clone(key), String_from("I64")) {
-        return concat(prefix, String_from("_i64"))
+    if eq(clone(key), "i64") || eq(clone(key), "I64") {
+        return concat(prefix, "_i64")
     }
-    if eq(clone(key), String_from("String")) ||
-    eq(clone(key), String_from("string")) ||
-    starts_with(clone(key), String_from("vec:")) ||
-    starts_with(clone(key), String_from("option:")) ||
-    starts_with(clone(key), String_from("Option:")) {
-        return concat(prefix, String_from("_ref0"))
+    if eq(clone(key), "String") ||
+    eq(clone(key), "string") ||
+    starts_with(clone(key), "vec:") ||
+    starts_with(clone(key), "option:") ||
+    starts_with(clone(key), "Option:") {
+        return concat(prefix, "_ref0")
     }
-    concat(prefix, String_from("_i32"))
+    concat(prefix, "_i32")
 }

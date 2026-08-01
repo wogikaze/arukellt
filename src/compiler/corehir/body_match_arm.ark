@@ -10,7 +10,7 @@ fn corehir_build_match_arm_expr(table: CoreHirBodyTable, arm: AstNode) -> i32 {
     if child_count < 2 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(match_arm_node::match_arm_span_start(arm)))
     }
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let pat_index = body_patterns::corehir_build_pattern_expr(table, match_arm_node::match_arm_child_at(arm, 0))
     push(children, pat_index)
     let pat_expr = corehir_body_expr_at(table, pat_index)

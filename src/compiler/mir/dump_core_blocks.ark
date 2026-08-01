@@ -23,40 +23,40 @@ fn dump_mir_function_blocks(f: MirFunction) {
         let block = function_block_queries::MirFunction_block_at(f, b)
         let phi_count = block_phi_access::MirBlock_phi_count(block)
         let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut block_msg = concat(String_from("    bb"), to_string(b))
-        block_msg = text::builder_append(block_msg, String_from(": phis="))
+        let mut block_msg = concat("    bb", to_string(b))
+        block_msg = text::builder_append(block_msg, ": phis=")
         block_msg = text::builder_append(block_msg, to_string(phi_count))
-        block_msg = text::builder_append(block_msg, String_from(" instructions="))
+        block_msg = text::builder_append(block_msg, " instructions=")
         block_msg = text::builder_append(block_msg, to_string(inst_count))
-        block_msg = text::builder_append(block_msg, String_from(" succs="))
+        block_msg = text::builder_append(block_msg, " succs=")
         block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_edges(block_successor_access::MirBlock_succ0(block), block_successor_access::MirBlock_succ1(block)))
-        block_msg = text::builder_append(block_msg, String_from(" preds="))
+        block_msg = text::builder_append(block_msg, " preds=")
         block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_block_ids(block_pred_access::MirBlock_preds(block)))
-        block_msg = text::builder_append(block_msg, String_from(" idom="))
+        block_msg = text::builder_append(block_msg, " idom=")
         block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_edge(block_dominance_access::MirBlock_idom(block)))
-        block_msg = text::builder_append(block_msg, String_from(" df="))
+        block_msg = text::builder_append(block_msg, " df=")
         block_msg = text::builder_append(block_msg, dump_format_edges::mir_format_block_ids(block_dominance_access::MirBlock_dom_frontier(block)))
         stdio::eprintln(block_msg)
         let mut p = 0
         while p < phi_count {
             let phi = block_phi_access::MirBlock_phi_at(block, p)
-            stdio::eprintln(concat(String_from("      "), dump_format_phi::mir_format_phi(f, phi)))
+            stdio::eprintln(concat("      ", dump_format_phi::mir_format_phi(f, phi)))
             p = p + 1
         }
         let mut j = 0
         while j < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, j)
             let mut line = concat(
-                String_from("      "),
+                "      ",
                 concat(
                     dump_op_names::mir_op_name(inst_accessors_shape::MirInst_op(inst)),
-                    concat(String_from(" -> "), dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst)))
+                    concat(" -> ", dump_format_local::mir_format_local_ref(f, inst_accessors_operands::MirInst_dest(inst)))
                 )
             )
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-                line = text::builder_append(line, String_from(" callee="))
+                line = text::builder_append(line, " callee=")
                 line = text::builder_append(line, inst_accessors_literals::MirInst_str_val(inst))
-                line = text::builder_append(line, String_from(" fid="))
+                line = text::builder_append(line, " fid=")
                 line = text::builder_append(line, to_string(inst_record::mir_inst_func_id_raw(inst)))
             }
             stdio::eprintln(line)

@@ -27,7 +27,7 @@ fn mir_rewrite_vec_push(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
     if first_arg_idx >= 0 {
         let arg_type_push = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
         if eq(clone(arg_type_push), "vec:i64") {
-            rewritten = String_from("push_i64")
+            rewritten = "push_i64"
             if second_arg_idx >= 0 && ctx_api_local_types::ctx_local_vt(ctx, second_arg_idx) == value_types::VT_I32() {
                 if stage_call_args {
                     push_i64_needs_extend = true
@@ -37,10 +37,10 @@ fn mir_rewrite_vec_push(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
             }
         } else {
             if eq(clone(arg_type_push), "vec:f64") {
-                rewritten = String_from("push_f64")
+                rewritten = "push_f64"
             } else {
                 if starts_with(clone(arg_type_push), "vec:") {
-                    rewritten = String_from("vec_push")
+                    rewritten = "vec_push"
                 }
             }
         }

@@ -12,7 +12,7 @@ fn count<T>(v: Vec<T>) -> i32 {
 
 fn main() {
     // count<i32>: top-level concrete type arg.
-    let mut flat: Vec<i32> = Vec_new_i32()
+    let mut flat: Vec<i32> = Vec::new<i32>()
     push(flat, 10)
     push(flat, 20)
     push(flat, 30)
@@ -21,8 +21,8 @@ fn main() {
     // count<Vec<i32>>: nested type arg — exercises recursive
     // instantiate_type and recursive mono_type_key so the resulting
     // mangled name is distinct from `count__i32`.
-    let mut outer: Vec<Vec<i32>> = Vec_new_i32()
-    let inner: Vec<i32> = Vec_new_i32()
+    let mut outer: Vec<Vec<i32>> = Vec::new<i32>()
+    let inner: Vec<i32> = Vec::new<i32>()
     push(outer, inner)
     stdio::println((count(outer)).to_string())
 }

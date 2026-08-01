@@ -44,7 +44,7 @@ fn verify_one_call(inst: MirInst, m: MirModule, report: MirVerifyReport, verbose
     if len(callee) == 0 {
         mir_verify_report_add_w002(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W002 empty-callee in "), caller))
+            mir_verify_report_push_detail(report, concat("W002 empty-callee in ", caller))
         }
         return
     }
@@ -62,14 +62,14 @@ fn verify_call_inv8_result_types(inst: MirInst, m: MirModule, report: MirVerifyR
     if status == 1 {
         mir_verify_report_add_w007(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W007 call-missing-result-types "), caller))
+            mir_verify_report_push_detail(report, concat("W007 call-missing-result-types ", caller))
         }
         return
     }
     if status == 2 {
         mir_verify_report_add_w007(report)
         if verbose {
-            mir_verify_report_push_detail(report, concat(String_from("W007 call-result-vt-mismatch "), caller))
+            mir_verify_report_push_detail(report, concat("W007 call-result-vt-mismatch ", caller))
         }
     }
 }
@@ -78,13 +78,13 @@ fn verify_call_w003_excluded(callee: String) -> bool {
     if host_intrinsic_stub_names::host_intrinsic_stub_is_known(clone(callee)) {
         return true
     }
-    if starts_with(clone(callee), String_from("__intrinsic_")) {
+    if starts_with(clone(callee), "__intrinsic_") {
         return true
     }
-    if starts_with(clone(callee), String_from("__simd_")) {
+    if starts_with(clone(callee), "__simd_") {
         return true
     }
-    if eq(clone(callee), String_from("print")) || eq(clone(callee), String_from("println")) {
+    if eq(clone(callee), "print") || eq(clone(callee), "println") {
         return true
     }
     false

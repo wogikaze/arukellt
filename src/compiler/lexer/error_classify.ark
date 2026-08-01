@@ -5,16 +5,16 @@ fn classify_lex_error_text(text: String) -> i32 {
     if len(text) == 1 && first != 0 {
         return error_codes::LEX_E_UNKNOWN_CHAR()
     }
-    if eq(clone(text), String_from("unterminated string")) {
+    if eq(clone(text), "unterminated string") {
         return error_codes::LEX_E_UNTERMINATED_STRING()
     }
-    if eq(clone(text), String_from("unterminated char literal")) {
+    if eq(clone(text), "unterminated char literal") {
         return error_codes::LEX_E_UNTERMINATED_CHAR()
     }
-    if eq(clone(text), String_from("unterminated f-string")) {
+    if eq(clone(text), "unterminated f-string") {
         return error_codes::LEX_E_UNTERMINATED_FSTRING()
     }
-    if eq(clone(text), String_from("unterminated escape")) {
+    if eq(clone(text), "unterminated escape") {
         return error_codes::LEX_E_UNTERMINATED_ESCAPE()
     }
     error_codes::LEX_E_INVALID_NUMBER()

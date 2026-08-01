@@ -4,13 +4,13 @@
 use std::host::stdio
 
 fn main() {
-    let mut vi: Vec<i32> = Vec_new_i32()
+    let mut vi: Vec<i32> = Vec::new<i32>()
     push(vi, 1)
     push(vi, 2)
     push(vi, 3)
     stdio::println(to_string(len(vi)))
     stdio::println(to_string(get_unchecked(vi, 0)))
-    let mut vs: Vec<String> = Vec_new_String()
+    let mut vs: Vec<String> = Vec::new<String>()
     push(vs, String_from("hello"))
     push(vs, String_from("world"))
     stdio::println(to_string(len(vs)))

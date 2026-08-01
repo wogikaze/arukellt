@@ -12,13 +12,15 @@
 
 | File | Title | Label | Summary |
 |------|-------|-------|---------|
+| [826-symbol-path-intern-clone-audit.md](826-symbol-path-intern-clone-audit.md) | #826 — Symbol / path interning + hot-path clone audit | Archive | 計画対象ファイルの clone( 出現数（2026-07-26 worktree）: |
+| [834-wasm32-gc-bootstrap-probe.md](834-wasm32-gc-bootstrap-probe.md) | #834 Probe: wasm32-gc self-emit on 23GiB host (2026-07-26) | Archive | Default Memory64 s2-runtime (initial_pages=65535): |
 | [agent-tooling-latency.md](agent-tooling-latency.md) | Agent tooling latency — Devin / Cursor (2026-07-17) | Archive | Devin CLI のログと Cursor worker ログを読み取り、AI agent タスクで何に時間がかかっているかを調査した。結論として、コンパイルそのものよりも「ツール呼び出しのラウンドトリップ」「selfhost の無駄な再構築」「認証・インデックスの再試行ループ」が時間を圧迫しているケースが多い。 |
 | [code-quality-practices.md](code-quality-practices.md) | 良いコード実務の調査 — Arukellt への取り込み判定 | Archive | 関連提案: ADR-047、ADR-048 |
 | [infer-local-gc-type-option.md](infer-local-gc-type-option.md) | GC local infer: Option&lt;i32&gt; contract | Archive | Canonical contract for wasm GC local-type inference (infer_ in src/compiler/wasm/code_ref_locals.ark). |
 | [linear-vs-gc-cross-runtime-2026-07-05.md](linear-vs-gc-cross-runtime-2026-07-05.md) | Linear vs GC クロスランタイム計測（2026-07-05） | Archive | 本ファイルは計測表・環境・スクリプト一覧の正本。ADR-002 には判定要旨のみ残す。 |
 | [memory64-validate-fail-10.md](memory64-validate-fail-10.md) | Research: 10 remaining Memory64 T3 WASM validation failures | Archive | Generated: 2026-07-18 Target: wasm32-gc with Memory64 Compiler: .build/selfhost/arukellt-s2-runtime.wasm |
 | [p2-bridged-wasi-path-roadmap.md](p2-bridged-wasi-path-roadmap.md) | P2 Bridged WASI Path — 今後の調査・修正項目 | Archive | stderr/fs/guest-native は #668 / #076。HTTP/sockets は #727。 |
-| [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | 次テーマはセルフホスト速度でよい（開発ループを数十分止める問題は機能追加より優先）。 ただし順序は次で固定する。 |
+| [selfhost-compile-latency-root-cause.md](selfhost-compile-latency-root-cause.md) | Selfhost compile latency — root cause (2026-07-17, revised 2026-07-20) | Archive | decl_emit が total の 35% かつ第 2 位の 1.5 倍を満たさず（L5: 11.1%; #829 after: 17.9%）。 receipt: receipts/824-early-body-decl-emit-defer-receipt.json |
 | [selfhost-phase-arena-ownership.md](selfhost-phase-arena-ownership.md) | Selfhost phase arena ownership (compiler bump) | Archive | この文書は セルフホストコンパイラの bump / phase arena だけを扱う。 |
 | [target-runtime-verification.md](target-runtime-verification.md) | ターゲットランタイム検証 — 実装・動作確認レポート | Archive | ADR-007 が定義する 3 ターゲット（wasm32 / wasm32-gc / native）のうち、 外部ツールチェイン依存がある以下 5 経路について、実装状況と実際の動作を確認する。 |
 | [verify-quick-latency.md](verify-quick-latency.md) | verify quick latency — wall-time breakdown (2026-07-21) | Archive | 計測環境: WSL2 worktree wave/gate-speedup @ 92e11273 |

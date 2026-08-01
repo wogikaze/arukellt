@@ -17,7 +17,7 @@ fn emit_name_custom_section(out: WasmWriter, ctx: SelfEmitCtx, import_count: i32
         return
     }
     let payload = writer_core::WasmWriter_new()
-    writer_string::emit_string(payload, String_from("name"))
+    writer_string::emit_string(payload, "name")
     emit_function_name_subsection(payload, ctx, fn_count, import_count)
     emit_local_name_subsection(payload, ctx, fn_count, import_count)
     writer_sections::emit_section(out, opcodes::SEC_CUSTOM(), payload)

@@ -21,7 +21,7 @@ pub fn reference_location_end(loc: ReferenceLocation) -> i32 {
 }
 
 pub fn collect_semantic_references(text: String, offset: i32) -> Vec<ReferenceLocation> {
-    let out = Vec_new_ReferenceLocation()
+    let out = Vec::new<ReferenceLocation>()
     let decls = session_parse::session_parse_decls(clone(text))
     let ctx = session_resolve_query::session_resolve_decls(decls)
     let target = ref_sites::find_decl_index_at_offset(ctx, offset)

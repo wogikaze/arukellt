@@ -31,7 +31,7 @@ fn mir_emit_method_mono_bodies(
         let mut return_vt = return_typeinfo::mir_return_vt_from_type_info(generic_return_ty)
         let mut rt_type_name = clone(generic_rtn)
         if len(rt_type_name) == 0 && method_mono_emit_count_raw > 0 {
-            rt_type_name = String_from("T")
+            rt_type_name = "T"
         }
         if method_mono_emit_i > 0 || method_mono_emit_count_raw > 0 {
             let concrete = entry_fns_mono::mono_instantiate_return_from_instance(ctx, clone(emit_method_name), generic_return_ty)

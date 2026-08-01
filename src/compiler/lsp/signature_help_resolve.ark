@@ -10,7 +10,7 @@ struct ResolvedSignature {
 }
 
 fn ResolvedSignature_none() -> ResolvedSignature {
-    ResolvedSignature { found: false, label: String_new(), doc: String_new(), params: Vec_new_String() }
+    ResolvedSignature { found: false, label: String_new(), doc: String_new(), params: Vec::new<String>() }
 }
 
 pub fn resolved_signature_found(sig: ResolvedSignature) -> bool {
@@ -30,7 +30,7 @@ pub fn resolved_signature_params(sig: ResolvedSignature) -> Vec<String> {
 }
 
 fn split_param_list(inner: String) -> Vec<String> {
-    let out = Vec_new_String()
+    let out = Vec::new<String>()
     if len(inner) == 0 {
         return out
     }
@@ -61,13 +61,13 @@ fn split_param_list(inner: String) -> Vec<String> {
 }
 
 fn params_from_detail(detail: String) -> Vec<String> {
-    let open = index_of(clone(detail), String_from("("))
+    let open = index_of(clone(detail), "(")
     if open < 0 {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
-    let close = index_of(substring(detail, open + 1, len(detail)), String_from(")"))
+    let close = index_of(substring(detail, open + 1, len(detail)), ")")
     if close < 0 {
-        return Vec_new_String()
+        return Vec::new<String>()
     }
     split_param_list(substring(detail, open + 1, open + 1 + close))
 }

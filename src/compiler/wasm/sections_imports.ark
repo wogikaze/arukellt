@@ -175,6 +175,11 @@ fn emit_p2_import_entries(
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("args-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("arguments"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("open-at"), get_unchecked(host_type_map, 2))
+    // Bridged P1 fd_read/fd_write ABI for bootstrap host-linker (#834).
+    // Keep off wasi:filesystem/types — stock WASI validate rejects bare
+    // `read`/`write` there and breaks component close-gates (#074/#510).
+    emit_host_func_import(import_sec, String_from("arukellt:fs@0.1.0"), String_from("read"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, String_from("arukellt:fs@0.1.0"), String_from("write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
@@ -191,6 +196,9 @@ fn emit_p2_import_entries(
     emit_host_func_import(import_sec, String_from("wasi:clocks/monotonic-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 5))
     emit_host_func_import(import_sec, String_from("wasi:clocks/wall-clock@0.2.0"), String_from("now"), get_unchecked(host_type_map, 6))
     emit_host_func_import(import_sec, String_from("wasi:random/random@0.2.0"), String_from("get-random-u64"), get_unchecked(host_type_map, 5))
+    // fd_write is `arukellt:fs@0.1.0::write` above (#834). Do not also emit
+    // wasi:filesystem/types write — that desyncs NUM_P2_IMPORTS_BASE and fails
+    // stock WASI validate (#074/#510 / merge of #807+#834).
     if needs_wasi_http_outgoing == 1 {
         emit_p2_outgoing_handler_import(import_sec, host_type_map)
         emit_p2_incoming_handler_import(import_sec, host_type_map)

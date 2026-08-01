@@ -15,6 +15,7 @@ use wasm::ctx_record
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_ref_locals
+use wasm::code_ref_locals_block_scan
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::function_local_queries
@@ -143,52 +144,60 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         if prev_op == mir::opcodes::MIR_STRUCT_SET() {
             writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
             writer_core::emit_leb128_u(w, prev_arg0)
-        } else if prev_op != mir::opcodes::MIR_LOCAL_GET() {
-            let base_local = inst_accessors_operands::MirInst_arg0(inst)
-            if base_local >= 0 {
-                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-                writer_core::emit_leb128_u(w, base_local)
-            }
+        } else if ((prev_op == mir::opcodes::MIR_STRUCT_GET() ||
+            prev_op == mir::opcodes::MIR_GC_STRUCT_GET() ||
+            prev_op == mir::opcodes::MIR_CALL() ||
+            prev_op == mir::opcodes::MIR_WIT_CALL()) &&
+        inst_accessors_operands::MirInst_arg0(inst) < 0) {
+        // Nested field / `get_unchecked(...).field`: store policy leaves the
+        // previous ref on the stack. Reloading MirInst_arg0 reads an unset
+        // temp (#834 node.span.start, fn_info_qualified_name_at).
+    } else if prev_op != mir::opcodes::MIR_LOCAL_GET() {
+        let base_local = inst_accessors_operands::MirInst_arg0(inst)
+        if base_local >= 0 {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+            writer_core::emit_leb128_u(w, base_local)
         }
-        writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-        let val_type = inst_accessors_shape::MirInst_val_type(inst)
-        // Prefer MirInst_dest when set (field gets / get_to). Fall back to
-        // val_type-only gating when dest is absent (true stack-leave).
-        let dest = inst_accessors_operands::MirInst_dest(inst)
-        if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, dest) {
-            writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
-        } else {
-            writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
-        }
-        return
     }
-    if inst_accessors_literals::MirInst_int_val(inst) > 0 {
-        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
-        writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
-        writer_core::emit_byte(w, opcodes::OP_I32_ADD())
-    }
+    writer_gc::emit_gc_ref_cast(w, gc_type_idx)
     let val_type = inst_accessors_shape::MirInst_val_type(inst)
-    if val_type == value_types::VT_F64() {
-        writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
-        writer_core::emit_byte(w, 3)
+    // Prefer MirInst_dest when set (field gets / get_to). Fall back to
+    // val_type-only gating when dest is absent (true stack-leave).
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, dest) {
+        writer_gc::emit_gc_struct_get_i32(w, gc_type_idx, field_idx)
+    } else {
+        writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
+    }
+    return
+}
+if inst_accessors_literals::MirInst_int_val(inst) > 0 {
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+}
+let val_type = inst_accessors_shape::MirInst_val_type(inst)
+if val_type == value_types::VT_F64() {
+    writer_core::emit_byte(w, opcodes::OP_F64_LOAD())
+    writer_core::emit_byte(w, 3)
+    writer_core::emit_byte(w, 0)
+} else {
+    if val_type == value_types::VT_F32() {
+        writer_core::emit_byte(w, opcodes::OP_F32_LOAD())
+        writer_core::emit_byte(w, 2)
         writer_core::emit_byte(w, 0)
     } else {
-        if val_type == value_types::VT_F32() {
-            writer_core::emit_byte(w, opcodes::OP_F32_LOAD())
+        if val_type == value_types::VT_I64() {
+            writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
             writer_core::emit_byte(w, 2)
             writer_core::emit_byte(w, 0)
         } else {
-            if val_type == value_types::VT_I64() {
-                writer_core::emit_byte(w, opcodes::OP_I64_LOAD())
-                writer_core::emit_byte(w, 2)
-                writer_core::emit_byte(w, 0)
-            } else {
-                writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
-                writer_core::emit_byte(w, 2)
-                writer_core::emit_byte(w, 0)
-            }
+            writer_core::emit_byte(w, opcodes::OP_I32_LOAD())
+            writer_core::emit_byte(w, 2)
+            writer_core::emit_byte(w, 0)
         }
     }
+}
 }
 
 fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
@@ -261,26 +270,32 @@ fn compute_field_idx_get(inst: MirInst, byte_offset: i32) -> i32 {
 }
 
 fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, byte_offset: i32, size_hint: i32) -> i32 {
-    let struct_name = inst_accessors_literals::MirInst_str_val(inst)
-    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-    }
+    // Prefer MirLocal.value_type / spine over MIR str_val. Tuple destructure
+    // may stamp size-only names like `tuple:i32,i32` while the base local
+    // already carries the concrete mono layout (e.g. pair i32+String).
     let mut base_local = inst_accessors_operands::MirInst_arg0(inst)
     if base_local < 0 && prev_arg0 >= 0 && (prev_op == mir::opcodes::MIR_LOCAL_GET() || prev_op == mir::opcodes::MIR_STRUCT_SET()) {
         base_local = prev_arg0
     }
     if base_local >= 0 {
+        let f =
+        ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+        let copied_storage =
+        code_ref_locals_block_scan::local_set_non_string_storage_type(f, base_local, ctx)
+        match copied_storage {
+            Option::Some(copied_type) => {
+                return copied_type
+            }
+            Option::None => {}
+        }
         let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base_local)
         if spine_gc >= 0 {
             return spine_gc
         }
-        let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
-        let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
-        let inferred = code_ref_locals::infer_ref_local_gc_type(f, base_local, ctx)
-        match inferred {
-            Option::Some(v) => return v,
-            Option::None => {}
-        }
+    }
+    let struct_name = inst_accessors_literals::MirInst_str_val(inst)
+    if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
+        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
     }
     let size_hint_val = size_hint
     let struct_size_est = if size_hint_val >= 100000 {

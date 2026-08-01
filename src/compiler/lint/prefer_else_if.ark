@@ -58,9 +58,9 @@ fn collect_nested_else_if(node: AstNode, starts: Vec<i32>, ends: Vec<i32>) {
 }
 
 pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
-    let warnings = Vec_new_Diagnostic()
-    let starts = Vec_new_i32()
-    let ends = Vec_new_i32()
+    let warnings = Vec::new<Diagnostic>()
+    let starts = Vec::new<i32>()
+    let ends = Vec::new<i32>()
     let dn = len(decls)
     let mut di = 0
     while di < dn {
@@ -71,7 +71,7 @@ pub fn check_prefer_else_if(decls: Vec<AstNode>) -> Vec<Diagnostic> {
     let mut i = 0
     while i < n {
         let span = record::DiagnosticSpan_from_raw(get_unchecked(starts, i), get_unchecked(ends, i))
-        let msg = String_from("nested else { if ... } can be written as else if; prefer else-if chaining")
+        let msg = "nested else { if ... } can be written as else if; prefer else-if chaining"
         push(warnings, diag_mod::Diagnostic_new(codes::DIAG_WARN_PREFER_ELSE_IF(), diag_mod::SEV_WARNING(), span, msg))
         i = i + 1
     }

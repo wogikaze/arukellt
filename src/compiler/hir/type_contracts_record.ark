@@ -9,11 +9,11 @@ struct HirType {
 }
 
 fn HirType_simple(tag: i32) -> HirType {
-    HirType { tag: tag, name: String_new(), type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: commands::TY_UNKNOWN() }
+    HirType { tag: tag, name: String_new(), type_args: Vec::new<HirType>(), param_types: Vec::new<HirType>(), return_type_tag: commands::TY_UNKNOWN() }
 }
 
 fn HirType_named(tag: i32, name: String) -> HirType {
-    HirType { tag: tag, name: name, type_args: Vec_new_HirType(), param_types: Vec_new_HirType(), return_type_tag: commands::TY_UNKNOWN() }
+    HirType { tag: tag, name: name, type_args: Vec::new<HirType>(), param_types: Vec::new<HirType>(), return_type_tag: commands::TY_UNKNOWN() }
 }
 
 fn hir_type_tag(ty: HirType) -> i32 {

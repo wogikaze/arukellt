@@ -2,7 +2,7 @@ use std::bytes
 use std::test
 
 fn main() {
-    let xs: Vec<i32> = Vec_new_i32()
+    let xs: Vec<i32> = Vec::new<i32>()
     push(xs, 256)
     push(xs, 257)
     push(xs, 255)

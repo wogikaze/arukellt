@@ -40,7 +40,24 @@ fn emit_f64_assemble(w: WasmWriter, s_pos: i32, s_neg: i32, s_k: i32, s_di: i32,
     emit_f64_assemble_init(w, s_pos, s_wpos, out_buf)
     emit_f64_assemble_sign(w, s_pos, s_neg)
     emit_f64_assemble_integer(w, s_pos, s_di, s_k, s_j, digit_buf)
+    // Skip ".frac" when shortest k is 0 (integer-valued f64 → "0", "100").
+    helpers_core::emit_local_get(w, s_k)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_gt_s(w)
+    helpers_control::emit_if_empty(w)
+    emit_f64_assemble_decimal_point(w, s_pos)
     emit_f64_assemble_fraction(w, s_pos, s_di, s_k, s_j, s_zero, digit_buf)
+    helpers_control::emit_end(w)
+}
+
+fn emit_f64_assemble_decimal_point(w: WasmWriter, s_pos: i32) {
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_numeric_i32::emit_i32_const(w, 46)
+    helpers_memory::emit_i32_store8_default(w)
+    helpers_core::emit_local_get(w, s_pos)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_pos)
 }
 
 fn emit_f64_assemble_init(w: WasmWriter, s_pos: i32, s_wpos: i32, out_buf: i32) {
@@ -83,14 +100,6 @@ fn emit_f64_assemble_integer(w: WasmWriter, s_pos: i32, s_di: i32, s_k: i32, s_j
     helpers_core::emit_local_set(w, s_j)
     emit_f64_emit_digit_run(w, s_pos, s_j, s_k, digit_buf)
     helpers_control::emit_end(w)
-    // decimal point
-    helpers_core::emit_local_get(w, s_pos)
-    helpers_numeric_i32::emit_i32_const(w, 46)
-    helpers_memory::emit_i32_store8_default(w)
-    helpers_core::emit_local_get(w, s_pos)
-    helpers_numeric_i32::emit_i32_const(w, 1)
-    helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_set(w, s_pos)
 }
 
 fn emit_f64_assemble_fraction(w: WasmWriter, s_pos: i32, s_di: i32, s_k: i32, s_j: i32, s_zero: i32, digit_buf: i32) {

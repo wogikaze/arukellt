@@ -9,12 +9,26 @@ pub fn new_i32() -> Vec<i32> {
 // ---------------------------------------------------------------------------
 // Inherent impl block for Vec<T> — method syntax (approach (a) for #700).
 //
-// Method bodies still call representation-sensitive free functions / CoreOps.
-// Those lower through the same handlers that `std::core::raw` wraps; full
-// generic raw_array_* migration is owned by #822.
+// Bodies call free CoreOp aliases (`vec_len` / `push` / …). Those lower via
+// #822 normal_call fallbacks or MIR rewrites to sealed raw; do not call
+// `raw::` here or generic method shells become `unreachable` on LM.
+//
+// Associated constructors are an exception: they have no `self`, and must call
+// `raw::raw_array_new` directly (same as free `new_i32`) so mono bodies lower
+// through the `raw.array_new` CoreOp (#845).
 // ---------------------------------------------------------------------------
 
 impl Vec<T> {
+    /// Creates a new empty vector.
+    fn new() -> Vec<T> {
+        raw::raw_array_new(0)
+    }
+
+    /// Creates a new empty vector with at least `cap` capacity.
+    fn with_capacity(cap: i32) -> Vec<T> {
+        raw::raw_array_new(cap)
+    }
+
     /// Appends `x` to the end of the vector.
     fn push(self, x: T) {
         push(self, x)

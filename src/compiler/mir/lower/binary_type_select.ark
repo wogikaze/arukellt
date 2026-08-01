@@ -15,12 +15,42 @@ fn mir_peek_core_expr_vt(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_float(expr) {
         return value_types::VT_F64()
     }
+    if core_expr_shape_atoms::mir_core_expr_is_int(expr) {
+        let vt = core_expr_shape_accessors::mir_core_expr_val_type(expr)
+        if vt == value_types::VT_I64() {
+            return value_types::VT_I64()
+        }
+        // CoreHIR may leave val_type as i32 for 2147483648; text still needs i64 (#807).
+        let text = core_expr_shape_accessors::mir_core_expr_text(expr)
+        if len(text) > 0 && mir_core_int_text_needs_i64(text) {
+            return value_types::VT_I64()
+        }
+        return value_types::VT_I32()
+    }
     core_expr_shape_accessors::mir_core_expr_val_type(expr)
+}
+
+fn mir_core_int_text_needs_i64(text: String) -> bool {
+    // Match literal_int::mir_int_literal_needs_i64 for plain decimals.
+    if len(text) >= 2 && char_at(text, 0) == 48 && (char_at(text, 1) == 120 || char_at(text, 1) == 88 || char_at(text, 1) == 98 || char_at(text, 1) == 66) {
+        return false
+    }
+    if ends_with(clone(text), String_from("i64")) || ends_with(clone(text), String_from("u64")) {
+        return true
+    }
+    if ends_with(clone(text), String_from("i32")) || ends_with(clone(text), String_from("u32")) {
+        return false
+    }
+    // Positive magnitude that does not fit in signed i32 (i32::MIN abs).
+    eq(clone(text), String_from("2147483648"))
 }
 
 fn mir_initial_binop_vt(lhs_vt: i32, rhs_vt: i32) -> i32 {
     if lhs_vt == value_types::VT_F64() || rhs_vt == value_types::VT_F64() {
         return value_types::VT_F64()
+    }
+    if lhs_vt == value_types::VT_F32() || rhs_vt == value_types::VT_F32() {
+        return value_types::VT_F32()
     }
     if lhs_vt == value_types::VT_I64() || rhs_vt == value_types::VT_I64() {
         return value_types::VT_I64()

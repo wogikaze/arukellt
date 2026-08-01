@@ -15,7 +15,7 @@ fn push_import_decl_paths(paths: Vec<String>, decl: AstNode) {
 }
 
 pub fn collect_import_paths(decls: Vec<AstNode>) -> Vec<String> {
-    let paths = Vec_new_String()
+    let paths = Vec::new<String>()
     let count = len(decls)
     let mut i = 0
     while i < count {

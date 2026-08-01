@@ -2,16 +2,16 @@ use parser::kinds
 
 fn expr_control_node_kind_name(kind: i32) -> String {
     if kind == kinds::NK_IF_EXPR() {
-        return String_from("If")
+        return "If"
     }
     if kind == kinds::NK_MATCH_EXPR() {
-        return String_from("Match")
+        return "Match"
     }
     if kind == kinds::NK_CLOSURE() {
-        return String_from("Closure")
+        return "Closure"
     }
     if kind == kinds::NK_BLOCK() {
-        return String_from("Block")
+        return "Block"
     }
     String_new()
 }

@@ -480,6 +480,7 @@ run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
 run:regression/vec_struct_len.ark
 run:scalar/comparison.ark
+run:scalar/const_i32.ark
 run:scalar/conversion.ark
 run:scalar/f32_basic.ark
 run:scalar/f32_local.ark
@@ -776,6 +777,7 @@ run:stdlib_csv/csv_parse_row.ark
 run:stdlib_env/env_basic.ark
 run:stdlib_env/env_var_default.ark
 run:stdlib_env/env_var_lookup.ark
+run:stdlib_env/env_var_or_default.ark
 run:stdlib_filter/filter_string.ark
 run:stdlib_fs/exists_probe_contract.ark
 run:stdlib_fs/host_capability_contract.ark
@@ -1106,6 +1108,24 @@ run:stdlib_json/json_stringify_object.ark
 run:stdlib_json/json_stringify_string.ark
 run:stdlib_json/property_parse_stringify_roundtrip.ark
 run:stdlib_json/property_type_predicate_exclusivity.ark
+run:stdlib_json/rfc8259/n_array_unclosed.ark
+run:stdlib_json/rfc8259/n_object_unclosed.ark
+run:stdlib_json/rfc8259/n_string_backslash_alone.ark
+run:stdlib_json/rfc8259/n_string_incomplete_unicode.ark
+run:stdlib_json/rfc8259/n_string_invalid_escape.ark
+run:stdlib_json/rfc8259/n_string_unescaped_control.ark
+run:stdlib_json/rfc8259/n_structure_trailing_comma.ark
+run:stdlib_json/rfc8259/y_array_empty.ark
+run:stdlib_json/rfc8259/y_encode_control_chars.ark
+run:stdlib_json/rfc8259/y_object_empty.ark
+run:stdlib_json/rfc8259/y_streaming_field_extract.ark
+run:stdlib_json/rfc8259/y_streaming_surrogate_pair.ark
+run:stdlib_json/rfc8259/y_string_escape_all.ark
+run:stdlib_json/rfc8259/y_string_space.ark
+run:stdlib_json/rfc8259/y_string_surrogate_pair.ark
+run:stdlib_json/rfc8259/y_string_unicode_bmp.ark
+run:stdlib_json/rfc8259/y_structure_lonely_true.ark
+run:stdlib_json/rfc8259/y_structure_whitespace.ark
 run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/deque_wrap.ark
 run:stdlib_linear/linear_basic.ark
@@ -1381,6 +1401,8 @@ run:stdlib_string/trim_end.ark
 run:stdlib_string/trim_no_whitespace.ark
 run:stdlib_string/trim_start.ark
 run:stdlib_test/assert_eq_fail.ark
+run:stdlib_test/assert_eq_generic.ark
+run:stdlib_test/assert_eq_generic_fail.ark
 run:stdlib_test/snapshot_fail.ark
 run:stdlib_test/test_helpers.ark
 run:stdlib_text/builder_append_chain.ark
@@ -1540,9 +1562,7 @@ run:stdlib_toml/toml_ml_empty.ark
 run:stdlib_toml/toml_ml_literal.ark
 run:stdlib_toml/toml_ml_literal_backslash.ark
 run:stdlib_toml/toml_parity_nested_section.ark
-run:stdlib_toml/toml_parse_invalid_array_of_tables.ark
 run:stdlib_toml/toml_parse_invalid_empty_value.ark
-run:stdlib_toml/toml_parse_invalid_table_header.ark
 run:stdlib_toml/toml_parse_invalid_trailing_garbage.ark
 run:stdlib_toml/toml_parse_invalid_unclosed_string.ark
 run:stdlib_toml/toml_parse_valid_subset.ark
@@ -1623,6 +1643,7 @@ run:stdlib_trait/eq_i64.ark
 run:stdlib_trait/eq_string.ark
 run:stdlib_trait/eq_trait.ark
 run:stdlib_trait/eq_trait_string.ark
+run:stdlib_trait/format_debug_point.ark
 run:stdlib_trait/from_i32_to_i64.ark
 run:stdlib_trait/from_i64_to_i32.ark
 run:stdlib_trait/hash_bool_char.ark
@@ -1889,6 +1910,7 @@ run:stdlib_wit/wit_type_basic.ark
 run:stdlib_wit/wit_types.ark
 run:stdlib_wit/world_build.ark
 run:string_interp/fstring_basic.ark
+run:string_interp/fstring_debug_specifier.ark
 run:string_interp/fstring_expr.ark
 run:struct_mutation/field_assign.ark
 run:structs/basic_struct.ark
@@ -2023,6 +2045,7 @@ t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
 t3-compile:functions/recursive.ark
 t3-compile:functions/return_value.ark
+t3-compile:generics/gc_struct_field_vec_string.ark
 t3-compile:generics/identity_bool.ark
 t3-compile:generics/identity_i32.ark
 t3-compile:generics/identity_string.ark
@@ -2197,8 +2220,11 @@ t3-compile:stdlib_string/string_slice.ark
 t3-compile:stdlib_string/string_split.ark
 t3-compile:stdlib_string/string_starts_ends.ark
 t3-compile:stdlib_string/to_lower_upper.ark
+t3-compile:stdlib_test/assert_eq_generic.ark
 t3-compile:stdlib_toml/toml_full_inline_dotted.ark
 t3-compile:stdlib_toml/toml_full_table_header.ark
+run:stdlib_toml/toml_scan_find_raw_value.ark
+run:stdlib_toml/toml_err_bad_aot_header.ark
 t3-compile:stdlib_trait/buf_read.ark
 t3-compile:stdlib_trait/debug_trait.ark
 t3-compile:stdlib_trait/debug_vec.ark
@@ -2206,6 +2232,7 @@ t3-compile:stdlib_trait/display_trait.ark
 t3-compile:stdlib_trait/display_trait_vec.ark
 t3-compile:stdlib_trait/eq_trait.ark
 t3-compile:stdlib_trait/eq_trait_string.ark
+t3-compile:stdlib_trait/format_debug_point.ark
 t3-compile:stdlib_trait/hash_trait.ark
 t3-compile:stdlib_trait/hash_trait_nested.ark
 t3-compile:stdlib_trait/io_backward_compat.ark
@@ -2348,6 +2375,7 @@ t3-compile:stdlib_wit/wit_ast_parse.ark
 t3-compile:stdlib_wit/wit_names.ark
 t3-compile:stdlib_wit/wit_type_basic.ark
 t3-compile:string_interp/fstring_basic.ark
+t3-compile:string_interp/fstring_debug_specifier.ark
 t3-compile:string_interp/fstring_expr.ark
 t3-compile:struct_mutation/field_assign.ark
 t3-compile:structs/basic_struct.ark
@@ -2517,9 +2545,12 @@ t3-run:question_mark/nested_result.ark
 t3-run:question_mark/option_propagate.ark
 t3-run:question_mark/from_trait_not_inherent.ark
 t3-run:scalar/gc_hint_short_lived.ark
+t3-run:scalar/const_i32.ark
 t3-run:sealed_raw/raw_storage_differential.ark
 t3-run:stdlib_csv/csv_perf.ark
 t3-run:stdlib_env/env_var_lookup.ark
+t3-compile:stdlib_env/env_var_or_default.ark
+t3-run:stdlib_env/env_var_or_default.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_fs/host_capability_contract.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
@@ -2783,6 +2814,7 @@ t3-run:stdlib_vec_ops/reverse_i32.ark
 t3-run:stdlib_vec_ops/reverse_string.ark
 t3-run:stdlib_vec_ops/sum_i32.ark
 t3-run:string_interp/fstring_basic.ark
+t3-run:string_interp/fstring_debug_specifier.ark
 t3-run:string_interp/fstring_expr.ark
 t3-run:struct_mutation/field_assign.ark
 t3-run:structs/basic_struct.ark

@@ -26,7 +26,7 @@ pub struct SymbolIndex {
 }
 
 pub fn SymbolIndex_new() -> SymbolIndex {
-    SymbolIndex { symbols: Vec_new_IndexedSymbol(), stdlib_symbols: Vec_new_StdlibIndexedSymbol(), indexed_uris: Vec_new_String() }
+    SymbolIndex { symbols: Vec::new<IndexedSymbol>(), stdlib_symbols: Vec::new<StdlibIndexedSymbol>(), indexed_uris: Vec::new<String>() }
 }
 
 fn indexed_symbol_uri(sym: IndexedSymbol) -> String {

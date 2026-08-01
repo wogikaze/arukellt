@@ -2,7 +2,7 @@ use std::host::stdio
 use std::seq
 
 fn main() {
-    let v = Vec_new_i32()
+    let v = Vec::new<i32>()
     push(v, 3)
     push(v, 1)
     push(v, 2)

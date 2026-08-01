@@ -4,7 +4,7 @@ use std::core::error
 
 fn main() {
     let scratch = canonical::canonical_scratch_new()
-    let values = Vec_new_i32()
+    let values = Vec::new<i32>()
     push(values, 1)
     push(values, 2)
     push(values, 3)

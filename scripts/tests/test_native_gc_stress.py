@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GC stress fixtures for native-cpp root liveness / mark-sweep (#832 follow-on)."""
+"""GC stress fixtures for native-cpp root liveness / mark-sweep (#846 follow-on)."""
 
 from __future__ import annotations
 

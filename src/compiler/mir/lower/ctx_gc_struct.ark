@@ -111,10 +111,10 @@ fn gc_struct_scalar_field_suffix(type_name: String) -> String {
     if eq(clone(type_name), "char") || eq(clone(type_name), "u8") || eq(clone(type_name), "u16") || eq(clone(type_name), "u32") || eq(clone(type_name), "u64") || eq(clone(type_name), "i16") {
         return String_from("_i32")
     }
-    // Function refs are typed funcrefs, not GC struct refs. Struct-field
-    // storage still uses i32 until field layouts gain `(ref $sig)` (#831).
+    // Struct-field funcrefs use nullable `(ref $sig)` (emit_struct_field_type).
+    // Keeping i32 here made MapIter.f validate as expected-i32/found-ref (#807).
     if eq(clone(type_name), "fnref") || eq(clone(type_name), "fn") || starts_with(clone(type_name), String_from("fn(")) {
-        return String_from("_i32")
+        return String_from("_fnref")
     }
     // Unsubstituted type parameters (T, U, ?T) stay i32 until mono fills them.
     if gc_struct_field_type_is_type_param(clone(type_name)) {

@@ -42,26 +42,26 @@ pub fn analyze_with_modules(uri: String, text: String, modules: Vec<ModuleDecls>
 
 /// Serializes an analysis snapshot in the stable line-oriented IDE summary format.
 pub fn snapshot_summary(snap: AnalysisSnapshot) -> String {
-    let mut out = String_from("analysis ")
+    let mut out = "analysis "
     out = text::builder_append(out, snapshot_state_record::snapshot_uri(snap))
-    out = text::builder_append(out, String_from("\n"))
-    out = text::builder_append(out, String_from("decls="))
+    out = text::builder_append(out, "\n")
+    out = text::builder_append(out, "decls=")
     out = text::builder_append(out, to_string(snapshot_state_record::snapshot_decl_count(snap)))
-    out = text::builder_append(out, String_from(" symbols="))
+    out = text::builder_append(out, " symbols=")
     out = text::builder_append(out, to_string(snapshot_state_record::snapshot_symbol_count(snap)))
-    out = text::builder_append(out, String_from(" typed="))
+    out = text::builder_append(out, " typed=")
     out = text::builder_append(out, to_string(snapshot_state_record::snapshot_typed_fn_count(snap)))
-    out = text::builder_append(out, String_from(" diagnostics="))
+    out = text::builder_append(out, " diagnostics=")
     out = text::builder_append(out, to_string(snapshot_state_record::snapshot_reported_diagnostic_count(snap)))
-    out = text::builder_append(out, String_from("\n"))
+    out = text::builder_append(out, "\n")
     let dn = snapshot_state_record::snapshot_diagnostic_count(snap)
     let mut i = 0
     while i < dn {
         let d = snapshot_state_record::snapshot_diagnostic_at(snap, i)
         out = text::builder_append(out, phase_tags::phase_tag(diagnostic_record::analysis_diagnostic_phase(d)))
-        out = text::builder_append(out, String_from(": "))
+        out = text::builder_append(out, ": ")
         out = text::builder_append(out, diagnostic_record::analysis_diagnostic_message(d))
-        out = text::builder_append(out, String_from("\n"))
+        out = text::builder_append(out, "\n")
         i = i + 1
     }
     out

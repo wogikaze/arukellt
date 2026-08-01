@@ -1,0 +1,22 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"\\\"\\\\\\/\\b\\f\\n\\r\\t\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => {
+                test::assert_eq_i32(len(s), 8)
+                test::assert_eq_i32(char_at(s, 0), 34)
+                test::assert_eq_i32(char_at(s, 1), 92)
+                test::assert_eq_i32(char_at(s, 2), 47)
+                test::assert_eq_i32(char_at(s, 3), 8)
+                test::assert_eq_i32(char_at(s, 4), 12)
+                test::assert_eq_i32(char_at(s, 5), 10)
+                test::assert_eq_i32(char_at(s, 6), 13)
+                test::assert_eq_i32(char_at(s, 7), 9)
+            },
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse escapes failed: ", json::parse_error_message(e))),
+    }
+}

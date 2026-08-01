@@ -13,7 +13,7 @@ use mir::lower::comprehension_locals
 fn mir_begin_comprehension(ctx: LowerCtx, var_name: String, comp_vec_idx: i32) -> ComprehensionState {
     let comp_vec_local = comprehension_locals::emit_comprehension_source_vec_local(ctx)
     let comp_elem_type_name = mir_comprehension_elem_type(ctx, comp_vec_idx)
-    let comp_vec_type_str = concat(String_from("vec:"), clone(comp_elem_type_name))
+    let comp_vec_type_str = concat("vec:", clone(comp_elem_type_name))
     ctx_set_local_type(ctx, comp_vec_local, clone(comp_vec_type_str))
     let comp_result_local = comprehension_locals::emit_comprehension_result_local(ctx, clone(comp_elem_type_name), clone(comp_vec_type_str))
     let comp_end_local = comprehension_locals::emit_comprehension_end_local(ctx, comp_vec_local)
@@ -38,5 +38,5 @@ fn mir_comprehension_elem_type(ctx: LowerCtx, comp_vec_idx: i32) -> String {
     if starts_with(clone(comp_vec_type), "vec:") {
         return substring(comp_vec_type, 4, len(comp_vec_type))
     }
-    String_from("i32")
+    "i32"
 }

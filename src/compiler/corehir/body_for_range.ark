@@ -12,7 +12,7 @@ fn corehir_build_for_range_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     if !expr_node_predicates::expr_is_range(range) || expr_node_access::expr_child_count(range) < 2 {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let start_index = corehir_build_expr(table, expr_node_access::expr_child_at(range, 0))
     let end_index = corehir_build_expr(table, expr_node_access::expr_child_at(range, 1))
     let body_index = corehir_build_expr(table, expr_node_access::expr_child_at(node, 1))

@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    match json::parse("\"\\x\"") {
+        Result::Ok(_) => panic("expected error for unknown escape \\x"),
+        Result::Err(_) => {},
+    }
+    match json::parse("\"\\a\"") {
+        Result::Ok(_) => panic("expected error for unknown escape \\a"),
+        Result::Err(_) => {},
+    }
+}

@@ -10,16 +10,16 @@ use main::manifest_doc_render
 fn doc_load_manifest() -> manifest_doc_record::DocManifestTable {
     // ARUKELLT_MANIFEST env override disabled on wasm32-gc until Option/Result
     // locals from env::var validate; default manifest path only.
-    let path = String_from("std/manifest.toml")
+    let path = "std/manifest.toml"
     let read_result = fs::read_to_string(clone(path))
     match read_result {
         Result::Ok(content) => {
             manifest_doc_parse::doc_parse_manifest(content)
         },
         Result::Err(e) => {
-            stdio::eprintln(concat(String_from("error: could not load stdlib manifest: "), e))
+            stdio::eprintln(concat("error: could not load stdlib manifest: ", e))
             process::exit(1)
-            manifest_doc_record::DocManifestTable_new(Vec_new_DocFnEntry(), Vec_new_DocModuleEntry())
+            manifest_doc_record::DocManifestTable_new(Vec::new<DocFnEntry>(), Vec::new<DocModuleEntry>())
         },
     }
 }
@@ -36,14 +36,14 @@ pub fn cmd_manifest_doc(symbol: String, json_out: bool, filter_target: String) {
         return
     }
     if len(hits) == 0 {
-        stdio::eprintln(concat(String_from("error: symbol '"), concat(clone(symbol), String_from("' not found"))))
+        stdio::eprintln(concat("error: symbol '", concat(clone(symbol), "' not found")))
         let candidates = manifest_doc_fuzzy::doc_find_closest(table, clone(symbol), 3)
         if len(candidates) > 0 {
-            stdio::eprintln(String_from(""))
-            stdio::eprintln(String_from("Did you mean?"))
+            stdio::eprintln("")
+            stdio::eprintln("Did you mean?")
             let mut ci = 0
             while ci < len(candidates) {
-                stdio::eprintln(concat(String_from("  "), get_unchecked(candidates, ci)))
+                stdio::eprintln(concat("  ", get_unchecked(candidates, ci)))
                 ci = ci + 1
             }
         }

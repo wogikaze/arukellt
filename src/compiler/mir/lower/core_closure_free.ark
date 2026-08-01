@@ -45,7 +45,7 @@ fn core_closure_collect_free(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreH
 }
 
 fn core_closure_collect_caps(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, clos: CoreHirExpr) -> Vec<String> {
-    let caps = Vec_new_String()
+    let caps = Vec::new<String>()
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(clos)
     if child_count > 0 {
         let cap_body = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(clos, child_count - 1))

@@ -11,12 +11,12 @@ fn LegacyCompileOptions_new(output_path: String, has_output: bool, config: Drive
 }
 
 fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, config: DriverConfig) -> LegacyCompileOptions {
-    let mut output_path = String_from("")
+    let mut output_path = ""
     let mut has_output = false
     let mut i = start
     while i < argc {
         let flag = get_unchecked(args, i)
-        if eq(clone(flag), String_from("-o")) {
+        if eq(clone(flag), "-o") {
             if i + 1 < argc {
                 output_path = get_unchecked(args, i + 1)
                 has_output = true
@@ -25,7 +25,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, config
                 i = i + 1
             }
         } else {
-            if eq(clone(flag), String_from("--target")) {
+            if eq(clone(flag), "--target") {
                 if i + 1 < argc {
                     config_record::config_set_target(config, get_unchecked(args, i + 1))
                     i = i + 2
@@ -33,7 +33,7 @@ fn parse_legacy_compile_options(args: Vec<String>, argc: i32, start: i32, config
                     i = i + 1
                 }
             } else {
-                if eq(clone(flag), String_from("--emit")) {
+                if eq(clone(flag), "--emit") {
                     if i + 1 < argc {
                         config_record::config_set_emit_mode(config, get_unchecked(args, i + 1))
                         i = i + 2

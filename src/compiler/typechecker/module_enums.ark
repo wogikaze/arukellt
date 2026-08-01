@@ -3,7 +3,7 @@ use typechecker::ast_access
 use typechecker::contract_enum_info
 
 fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
-    let enum_defs = Vec_new_EnumInfo()
+    let enum_defs = Vec::new<EnumInfo>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
@@ -17,7 +17,7 @@ fn collect_enum_defs(decls: Vec<AstNode>) -> Vec<EnumInfo> {
 }
 
 fn collect_enum_def(node: AstNode) -> EnumInfo {
-    let variant_names = Vec_new_String()
+    let variant_names = Vec::new<String>()
     let vc = ast_access::node_child_count(node)
     let mut vi = 0
     while vi < vc {

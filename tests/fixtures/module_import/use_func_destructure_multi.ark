@@ -3,7 +3,7 @@
 // directly into scope. Bare calls `split(...)` and `join(...)` resolve to
 // `string::split(...)` and `string::join(...)` via the use-alias mechanism.
 //
-// Expected output: a,b
+// Expected output: a,b,c
 use std::text::string::{split, join}
 
 fn main() {

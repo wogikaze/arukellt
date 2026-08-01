@@ -24,8 +24,8 @@ fn parse_pattern(p: Parser) -> AstNode {
     if kind == tokens::TK_IDENT() {
         return pattern_ident::parse_ident_pattern(p, t)
     }
-    error(p, String_from("expected pattern"))
-    AstNode_leaf(kinds::NK_PAT_WILDCARD(), String_from("_"), tok_span(t))
+    error(p, "expected pattern")
+    AstNode_leaf(kinds::NK_PAT_WILDCARD(), "_", tok_span(t))
 }
 
 fn parse_tuple_pattern(p: Parser, t: Token) -> AstNode {

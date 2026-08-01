@@ -6,8 +6,12 @@ use mir::block_inst_mutation
 use mir::core_op_call
 use mir::function_block_queries
 use mir::function_identity
+use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_record
+use mir::local_access
 use mir::module_functions
 use mir::module_spine
 use mir::opcodes
@@ -28,7 +32,7 @@ fn stdlib_inline_find_function(m: MirModule, name: String) -> i32 {
 }
 
 fn stdlib_inline_rewrite_block(m: MirModule, caller: MirFunction, block: MirBlock) -> i32 {
-    let output = Vec_new_MirInst()
+    let output = Vec::new<MirInst>()
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut inlined = 0
     let mut index = 0
@@ -88,8 +92,101 @@ fn stdlib_inline_module(m: MirModule) -> i32 {
     total
 }
 
-fn stdlib_resolve_normal_call_block(m: MirModule, block: MirBlock) -> i32 {
-    let output = Vec_new_MirInst()
+fn stdlib_vec_elem_suffix_from_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return substring(clone(type_name), 4, len(type_name))
+    }
+    String_new()
+}
+
+fn stdlib_resolve_call_receiver_local(block: MirBlock, call_index: i32, call: MirInst) -> i32 {
+    let recorded = inst_accessors_operands::MirInst_arg0(call)
+    if recorded >= 0 {
+        return recorded
+    }
+    let argc = inst_accessors_literals::MirInst_int_val(call)
+    if argc <= 0 {
+        return 0 - 1
+    }
+    let staged_index = call_index - argc
+    if staged_index < 0 {
+        return 0 - 1
+    }
+    let staged = block_inst_access::MirBlock_inst_at(block, staged_index)
+    if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
+        return 0 - 1
+    }
+    inst_accessors_operands::MirInst_arg0(staged)
+}
+
+fn stdlib_vec_concrete_fallback_matches_elem(fallback: String, suffix: String) -> bool {
+    // Concrete scalar fallbacks must not absorb String/struct/fn vec calls —
+    // those stay on the CoreOp path for GC intrinsic emit (#822 / #845).
+    if eq(clone(fallback), String_from("__core_vec_push_i32_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_set_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_pop_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_impl")) {
+        return eq(clone(suffix), String_from("i32")) ||
+        eq(clone(suffix), String_from("I32")) ||
+        eq(clone(suffix), String_from("bool")) ||
+        eq(clone(suffix), String_from("char"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_i64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_i64_impl")) {
+        return eq(clone(suffix), String_from("i64")) || eq(clone(suffix), String_from("I64"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_f64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_f64_impl")) {
+        return eq(clone(suffix), String_from("f64")) || eq(clone(suffix), String_from("F64"))
+    }
+    true
+}
+
+fn stdlib_specialize_vec_fallback(
+    registry: SignatureRegistry,
+    fallback: String,
+    f: MirFunction,
+    block: MirBlock,
+    call_index: i32,
+    call: MirInst
+) -> String {
+    if !starts_with(clone(fallback), String_from("__core_vec_")) {
+        return fallback
+    }
+    if !ends_with(clone(fallback), String_from("_impl")) {
+        return fallback
+    }
+    if eq(clone(fallback), String_from("__core_vec_pop_impl")) {
+        return String_new()
+    }
+    let recv = stdlib_resolve_call_receiver_local(block, call_index, call)
+    if recv < 0 || recv >= function_locals_view::MirFunction_local_count(f) {
+        return fallback
+    }
+    let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, recv))
+    let suffix = stdlib_vec_elem_suffix_from_type_name(type_name)
+    if len(suffix) == 0 {
+        if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), suffix) {
+            return String_new()
+        }
+        return fallback
+    }
+    let specialized = concat(clone(fallback), concat(String_from("__"), suffix))
+    let specialized_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
+    if function_id::FunctionId_raw(specialized_id) >= 0 {
+        return specialized
+    }
+    // Known non-matching element (e.g. vec:String vs __core_vec_push_i32_impl):
+    // empty → caller keeps the CoreOp callee for intrinsic lowering.
+    if !stdlib_vec_concrete_fallback_matches_elem(clone(fallback), clone(suffix)) {
+        return String_new()
+    }
+    fallback
+}
+
+fn stdlib_resolve_normal_call_block(m: MirModule, f: MirFunction, block: MirBlock) -> i32 {
+    let output = Vec::new<MirInst>()
     let registry = module_spine::MirModule_signature_registry(m)
     let count = block_inst_access::MirBlock_inst_count(block)
     let mut resolved = 0
@@ -98,21 +195,32 @@ fn stdlib_resolve_normal_call_block(m: MirModule, block: MirBlock) -> i32 {
         let inst = block_inst_access::MirBlock_inst_at(block, index)
         let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
         if len(fallback) > 0 {
-            let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fallback))
-            let fallback_raw = function_id::FunctionId_raw(fallback_id)
-            if fallback_raw >= 0 {
-                // Do not shadow mut resolved (i32 count) with MirInst — shared
-                // wasm locals then mix i64 and ref under Memory64 (#730).
-                let resolved_inst = inst_record::mir_inst_with_call_target(inst, fallback, fallback_raw)
-                let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
-                inst_record::mir_inst_set_result_types(
-                    resolved_inst,
-                    signature_entry::signature_entry_return_types(fallback_entry)
-                )
-                push(output, resolved_inst)
-                resolved = resolved + 1
-                index = index + 1
-                continue
+            let specialized = stdlib_specialize_vec_fallback(
+                registry,
+                fallback,
+                f,
+                block,
+                index,
+                inst
+            )
+            // Empty specialized means "leave CoreOp" (String/struct/fn vec).
+            if len(specialized) > 0 {
+                let fallback_id = signature_registry::signature_registry_lookup_by_mangled(registry, clone(specialized))
+                let fallback_raw = function_id::FunctionId_raw(fallback_id)
+                if fallback_raw >= 0 {
+                    // Do not shadow mut resolved (i32 count) with MirInst — shared
+                    // wasm locals then mix i64 and ref under Memory64 (#730).
+                    let resolved_inst = inst_record::mir_inst_with_call_target(inst, specialized, fallback_raw)
+                    let fallback_entry = signature_registry::signature_registry_lookup_by_id(registry, fallback_id)
+                    inst_record::mir_inst_set_result_types(
+                        resolved_inst,
+                        signature_entry::signature_entry_return_types(fallback_entry)
+                    )
+                    push(output, resolved_inst)
+                    resolved = resolved + 1
+                    index = index + 1
+                    continue
+                }
             }
         }
         push(output, inst)
@@ -135,6 +243,7 @@ fn stdlib_resolve_normal_calls(m: MirModule) -> i32 {
         while block_index < block_count {
             total = total + stdlib_resolve_normal_call_block(
                 m,
+                f,
                 function_block_queries::MirFunction_block_at(f, block_index)
             )
             block_index = block_index + 1

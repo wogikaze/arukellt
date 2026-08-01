@@ -27,8 +27,8 @@ fn parse_type(p: Parser) -> AstNode {
     if type_token_predicates::is_fn_start(kind) {
         return parse_fn_type(p, t)
     }
-    core_api_expect::error(p, concat(String_from("expected type, got "), to_string(kind)))
-    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), String_from("_error"), core_api_expect::tok_span(t))
+    core_api_expect::error(p, concat("expected type, got ", to_string(kind)))
+    core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), "_error", core_api_expect::tok_span(t))
 }
 
 fn parse_named_type(p: Parser, t: Token) -> AstNode {
@@ -37,7 +37,7 @@ fn parse_named_type(p: Parser, t: Token) -> AstNode {
     while type_token_predicates::is_path_sep(core_api_cursor::peek_kind(p)) {
         p.pos = p.pos + 1
         let seg = type_token_expect::expect_ident(p)
-        type_name = text::builder_append(type_name, concat(String_from("::"), token_state::Token_text(seg)))
+        type_name = text::builder_append(type_name, concat("::", token_state::Token_text(seg)))
     }
     core_ast_factory::AstNode_leaf(kinds::NK_TYPE_NAMED(), clone(type_name), core_api_expect::tok_span(t))
 }
@@ -87,7 +87,7 @@ fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
     let fn_type = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
     // Stable surface name so Option<fn(...)> / type_ann paths keep "fnref"
     // instead of an empty TypeFn text (#831).
-    core_ast_text_fields::AstNode_set_text(fn_type, String_from("fnref"))
+    core_ast_text_fields::AstNode_set_text(fn_type, "fnref")
     core_ast_children::AstNode_set_children(fn_type, core_ast_children::AstNode_children(node))
     let ret = parse_type(p)
     core_ast_type_ann::AstNode_push_type_ann(fn_type, ret)
@@ -97,7 +97,7 @@ fn parse_tuple_fn_return_type(p: Parser, t: Token, node: AstNode) -> AstNode {
 fn parse_fn_type(p: Parser, t: Token) -> AstNode {
     p.pos = p.pos + 1
     let fn_node = core_ast_factory::AstNode_new(kinds::NK_TYPE_FN(), core_api_expect::tok_span(t))
-    core_ast_text_fields::AstNode_set_text(fn_node, String_from("fnref"))
+    core_ast_text_fields::AstNode_set_text(fn_node, "fnref")
     type_token_expect::expect_lparen(p)
     let mut first = true
     while !type_token_predicates::is_tuple_end(core_api_cursor::peek_kind(p)) && !core_api_cursor::at_eof(p) {

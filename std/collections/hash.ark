@@ -45,7 +45,7 @@ use std::core::hash
 
 pub fn hashmap_new() -> Vec<i32> {
     let cap: i32 = 16
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, cap)
     push(m, 0)
     let mut i: i32 = 0
@@ -227,7 +227,7 @@ pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
     if actual_cap < 1 {
         actual_cap = 1
     }
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, actual_cap)
     push(m, 0)
     let mut i: i32 = 0
@@ -296,7 +296,7 @@ pub fn hashmap_clear(m: Vec<i32>) {
 /// Return a Vec<i32> of all keys currently in the map.
 pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -311,7 +311,7 @@ pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
 /// Return a Vec<i32> of all values currently in the map.
 pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -327,7 +327,7 @@ pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
 /// [key0, value0, key1, value1, ...].
 pub fn hashmap_entries(m: Vec<i32>) -> Vec<i32> {
     let cap: i32 = get_unchecked(m, 0)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < cap {
         let flag: i32 = get_unchecked(m, hashmap_flag_index(cap, i))
@@ -374,7 +374,7 @@ pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
 
 /// Remove a key and return a flat [key, value] pair, or an empty Vec if absent.
 pub fn hashmap_remove_entry(m: Vec<i32>, key: i32) -> Vec<i32> {
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     match hashmap_remove(m, key) {
         Option::Some(v) => {
             push(result, key)
@@ -553,7 +553,7 @@ fn hash_vec_string_remove_at(items: Vec<String>, index: i32) {
 }
 
 pub fn hashset_str_new() -> Vec<String> {
-    Vec_new_String()
+    Vec::new<String>()
 }
 
 pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {

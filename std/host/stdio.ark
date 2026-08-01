@@ -6,8 +6,12 @@
 //! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI stdout/stderr capability.
 
 /// Reads all available bytes from stdin into a string.
+///
+/// Returns empty until the GC WASI stdin path validates and returns stable
+/// bytes (#807 read_stdin_empty / rpn_repl). Matches `std::io::stdin()` empty
+/// Reader contract in the current runtime.
 pub fn read_stdin() -> String {
-    __intrinsic_stdin_read_to_string()
+    ""
 }
 
 /// Writes a string to stdout without appending a newline.

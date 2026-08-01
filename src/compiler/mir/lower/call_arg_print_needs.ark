@@ -84,7 +84,7 @@ fn mir_print_call_result_needs_string_conversion(ctx: LowerCtx, arg: AstNode, ar
     eq(clone(cn), "is_none") ||
     eq(clone(cn), "starts_with") ||
     eq(clone(cn), "ends_with") {
-        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, "bool")
         return true
     }
     if eq(clone(cn), "len") ||
@@ -100,7 +100,7 @@ fn mir_print_call_result_needs_string_conversion(ctx: LowerCtx, arg: AstNode, ar
     eq(clone(cn), "vec_get_unchecked_i32") ||
     eq(clone(cn), "bytes_get") ||
     eq(clone(cn), "bytes_len") {
-        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, "i32")
         return true
     }
     false

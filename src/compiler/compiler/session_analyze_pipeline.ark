@@ -15,46 +15,46 @@ use lint::checks as lint_checks
 
 fn lex_diag_code_string(code: i32) -> String {
     if code == 1 {
-        return String_from("LEX0001")
+        return "LEX0001"
     }
     if code == 2 {
-        return String_from("LEX0002")
+        return "LEX0002"
     }
     if code == 3 {
-        return String_from("LEX0003")
+        return "LEX0003"
     }
     if code == 4 {
-        return String_from("LEX0004")
+        return "LEX0004"
     }
     if code == 5 {
-        return String_from("LEX0005")
+        return "LEX0005"
     }
     if code == 6 {
-        return String_from("LEX0006")
+        return "LEX0006"
     }
-    String_from("LEX0000")
+    "LEX0000"
 }
 
 fn lex_diag_code_message(code: i32) -> String {
     if code == 1 {
-        return String_from("unterminated string")
+        return "unterminated string"
     }
     if code == 2 {
-        return String_from("unterminated char literal")
+        return "unterminated char literal"
     }
     if code == 3 {
-        return String_from("unterminated f-string")
+        return "unterminated f-string"
     }
     if code == 4 {
-        return String_from("unterminated escape")
+        return "unterminated escape"
     }
     if code == 5 {
-        return String_from("invalid number")
+        return "invalid number"
     }
     if code == 6 {
-        return String_from("unknown character")
+        return "unknown character"
     }
-    String_from("lexical error")
+    "lexical error"
 }
 
 fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_result: LexResult) {
@@ -67,13 +67,13 @@ fn session_record_lex_diagnostics(snap: AnalysisSnapshot, text: String, lex_resu
         let lcode = session_lex_query::session_lex_diagnostic_code(ld)
         let dfile = snapshot_state_record::snapshot_uri(snap)
         let dcode = lex_diag_code_string(lcode)
-        let mut rmsg = String_from("[")
+        let mut rmsg = "["
         rmsg = text::builder_append(rmsg, clone(dcode))
-        rmsg = text::builder_append(rmsg, String_from(" "))
+        rmsg = text::builder_append(rmsg, " ")
         rmsg = text::builder_append(rmsg, severity::severity_name(severity::SEV_ERROR()))
-        rmsg = text::builder_append(rmsg, String_from(" "))
+        rmsg = text::builder_append(rmsg, " ")
         rmsg = text::builder_append(rmsg, source_map_offsets::location_text(clone(text), dfile, lstart))
-        rmsg = text::builder_append(rmsg, String_from("] "))
+        rmsg = text::builder_append(rmsg, "] ")
         rmsg = text::builder_append(rmsg, lex_diag_code_message(lcode))
         snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LEX(), rmsg, lstart, lend))
         li = li + 1
@@ -122,7 +122,7 @@ fn session_record_typecheck_diagnostics(snap: AnalysisSnapshot, check_result: Ty
 // analysis diagnostics so the LSP can publish them via textDocument/publishDiagnostics.
 fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, check_result: TypeCheckResult) {
     // Post-resolve lint checks (W0006, W0009, W0002, W0003, W0005, W0008)
-    let lint_warns = lint_checks::run_post_resolve_lint(decls, String_from("wasm32"))
+    let lint_warns = lint_checks::run_post_resolve_lint(decls, "wasm32")
     let lw_count = len(lint_warns)
     let mut li = 0
     while li < lw_count {
@@ -132,7 +132,7 @@ fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, 
         let span = diag_record::diagnostic_span(w)
         let start = diag_record::diagnostic_span_start(span)
         let end = diag_record::diagnostic_span_end(span)
-        let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+        let full_msg = concat(clone(code), concat("|", clone(msg)))
         snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
         li = li + 1
     }
@@ -147,7 +147,7 @@ fn session_record_lint_diagnostics(snap: AnalysisSnapshot, decls: Vec<AstNode>, 
         let span = diag_record::diagnostic_span(w)
         let start = diag_record::diagnostic_span_start(span)
         let end = diag_record::diagnostic_span_end(span)
-        let full_msg = concat(clone(code), concat(String_from("|"), clone(msg)))
+        let full_msg = concat(clone(code), concat("|", clone(msg)))
         snapshot_state_record::snapshot_push(snap, diagnostic_record::AnalysisDiagnostic_new(phases::PHASE_LINT(), full_msg, start, end))
         ti = ti + 1
     }
@@ -165,18 +165,18 @@ pub fn run_session_analyze_with_modules(uri: String, text: String, modules: Vec<
     snapshot_state_record::snapshot_set_decl_count(snap, session_parse_tokens::session_parse_decl_count(parse_result))
     session_record_parse_diagnostics(snap, parse_result)
     let decls = session_parse_tokens::session_parse_decls_from_result(parse_result)
-    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec_new_String())
+    let resolve_ctx = session_resolve_query::session_resolve_decls_with_modules(decls, modules, Vec::new<String>())
     snapshot_state_record::snapshot_set_symbol_count(snap, session_resolve_query::session_count_user_symbols(resolve_ctx))
     let res_err_count = session_resolve_query::session_resolve_error_count(resolve_ctx)
     session_record_resolve_diagnostics(snap, resolve_ctx)
-    let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec_new_String())
+    let check_result = session_typecheck_query::session_typecheck_decls(decls, resolve_ctx, Vec::new<String>())
     snapshot_state_record::snapshot_set_typed_fn_count(snap, session_typecheck_query::session_typecheck_typed_fn_count(check_result))
     session_record_typecheck_diagnostics(snap, check_result, res_err_count)
     // Record lint warnings (W0006 unused import, W0009 deprecated API, etc.)
     session_record_lint_diagnostics(snap, decls, check_result)
     if res_err_count == 0 && session_typecheck_query::session_typecheck_error_count(check_result) == 0 {
-        let empty_names = Vec_new_String()
-        let empty_counts = Vec_new_i32()
+        let empty_names = Vec::new<String>()
+        let empty_counts = Vec::new<i32>()
         let bundle = frontend_bundle::FrontendBundle_new(decls, check_result, empty_names, empty_counts, decls)
         let core_program = mod::build_from_frontend_bundle(bundle)
         let _sess = session::CompileSession_build(core_program)

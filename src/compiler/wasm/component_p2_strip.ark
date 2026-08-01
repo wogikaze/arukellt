@@ -100,9 +100,9 @@ fn copy_range(out: Vec<i32>, src: Vec<i32>, start: i32, end: i32) {
 // Returns three Vec<i32>: ids, offsets, sizes (packed sequentially).
 // Use section_ids() / section_offsets() / section_sizes() to extract.
 fn parse_wasm_sections(data: Vec<i32>) -> Vec<i32> {
-    let mut ids = Vec_new_i32()
-    let mut offsets = Vec_new_i32()
-    let mut sizes = Vec_new_i32()
+    let mut ids = Vec::new<i32>()
+    let mut offsets = Vec::new<i32>()
+    let mut sizes = Vec::new<i32>()
     let r = WasmReader_new(data)
     r.pos = 8  // skip magic + version
     while r.pos < r.len {
@@ -115,7 +115,7 @@ fn parse_wasm_sections(data: Vec<i32>) -> Vec<i32> {
         r.pos = section_offset + section_size
     }
     // Pack: [ids_len, ids..., offsets_len, offsets..., sizes_len, sizes...]
-    let result = Vec_new_i32()
+    let result = Vec::new<i32>()
     push(result, len(ids))
     append_bytes(result, ids)
     push(result, len(offsets))
@@ -127,7 +127,7 @@ fn parse_wasm_sections(data: Vec<i32>) -> Vec<i32> {
 
 fn section_ids(packed: Vec<i32>) -> Vec<i32> {
     let n = get_unchecked(packed, 0)
-    let mut out = Vec_new_i32()
+    let mut out = Vec::new<i32>()
     let mut i = 0
     while i < n {
         push(out, get_unchecked(packed, 1 + i))
@@ -140,7 +140,7 @@ fn section_offsets(packed: Vec<i32>) -> Vec<i32> {
     let ids_n = get_unchecked(packed, 0)
     let off_start = 1 + ids_n
     let n = get_unchecked(packed, off_start)
-    let mut out = Vec_new_i32()
+    let mut out = Vec::new<i32>()
     let mut i = 0
     while i < n {
         push(out, get_unchecked(packed, off_start + 1 + i))
@@ -155,7 +155,7 @@ fn section_sizes(packed: Vec<i32>) -> Vec<i32> {
     let offsets_n = get_unchecked(packed, off_start)
     let sz_start = off_start + 1 + offsets_n
     let n = get_unchecked(packed, sz_start)
-    let mut out = Vec_new_i32()
+    let mut out = Vec::new<i32>()
     let mut i = 0
     while i < n {
         push(out, get_unchecked(packed, sz_start + 1 + i))
@@ -222,7 +222,7 @@ fn func_type_results(type_data: Vec<i32>, type_idx: i32) -> Vec<i32> {
     let count = reader_uleb(r)
     let mut idx = 0
     let mut found = 0
-    let mut found_results = Vec_new_i32()
+    let mut found_results = Vec::new<i32>()
     while idx < count {
         let form = reader_byte(r)
         if form == 0x60 {
@@ -233,7 +233,7 @@ fn func_type_results(type_data: Vec<i32>, type_idx: i32) -> Vec<i32> {
                 i = i + 1
             }
             let result_count = reader_uleb(r)
-            let mut results = Vec_new_i32()
+            let mut results = Vec::new<i32>()
             let mut j = 0
             while j < result_count {
                 push(results, reader_byte(r))
@@ -275,7 +275,7 @@ fn func_type_results(type_data: Vec<i32>, type_idx: i32) -> Vec<i32> {
 // ---- Stub function body ----
 
 fn stub_func_body(results: Vec<i32>) -> Vec<i32> {
-    let body = Vec_new_i32()
+    let body = Vec::new<i32>()
     write_uleb(body, 0)  // local decls
     let n = len(results)
     let mut i = 0
@@ -345,7 +345,7 @@ fn parse_import_entries(imp_data: Vec<i32>) -> Vec<i32> {
     // Actually, let's just record everything and match later.
     // We'll store module name start/length in the packed array.
 
-    let result = Vec_new_i32()
+    let result = Vec::new<i32>()
     push(result, count)
 
     let mut i = 0
@@ -445,15 +445,15 @@ fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
     let imp_offset = get_unchecked(offsets, imp_idx)
     let imp_size = get_unchecked(sizes, imp_idx)
     // Extract import section data
-    let imp_data = Vec_new_i32()
+    let imp_data = Vec::new<i32>()
     copy_range(imp_data, wasm, imp_offset, imp_offset + imp_size)
 
     let parsed = parse_import_entries(imp_data)
     let entry_count = get_unchecked(parsed, 0)
 
     // First pass: determine which entries to strip
-    let stub_types = Vec_new_i32()
-    let kept_entry_indices = Vec_new_i32()  // indices into parsed array
+    let stub_types = Vec::new<i32>()
+    let kept_entry_indices = Vec::new<i32>()  // indices into parsed array
     let mut removing = 0
 
     let mut i = 0
@@ -495,11 +495,11 @@ fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
 
     let type_offset = get_unchecked(offsets, type_idx)
     let type_size = get_unchecked(sizes, type_idx)
-    let type_data = Vec_new_i32()
+    let type_data = Vec::new<i32>()
     copy_range(type_data, wasm, type_offset, type_offset + type_size)
 
     // Build new import section
-    let new_imp = Vec_new_i32()
+    let new_imp = Vec::new<i32>()
     write_uleb(new_imp, len(kept_entry_indices))
     let mut ki = 0
     while ki < len(kept_entry_indices) {
@@ -514,13 +514,13 @@ fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
     // Build new function section
     let func_offset = get_unchecked(offsets, func_idx)
     let func_size = get_unchecked(sizes, func_idx)
-    let fs_data = Vec_new_i32()
+    let fs_data = Vec::new<i32>()
     copy_range(fs_data, wasm, func_offset, func_offset + func_size)
     let fs_reader = WasmReader_new(fs_data)
     let fcount = reader_uleb(fs_reader)
     let fs_rest_start = fs_reader.pos
 
-    let new_fs = Vec_new_i32()
+    let new_fs = Vec::new<i32>()
     write_uleb(new_fs, fcount + stub_count)
     let mut si = 0
     while si < stub_count {
@@ -532,13 +532,13 @@ fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
     // Build new code section
     let code_offset = get_unchecked(offsets, code_idx)
     let code_size = get_unchecked(sizes, code_idx)
-    let code_data = Vec_new_i32()
+    let code_data = Vec::new<i32>()
     copy_range(code_data, wasm, code_offset, code_offset + code_size)
     let code_reader = WasmReader_new(code_data)
     let ccount = reader_uleb(code_reader)
     let code_rest_start = code_reader.pos
 
-    let new_code = Vec_new_i32()
+    let new_code = Vec::new<i32>()
     write_uleb(new_code, ccount + stub_count)
     let mut si2 = 0
     while si2 < stub_count {
@@ -557,7 +557,7 @@ fn strip_wit_imports(wasm: Vec<i32>, prefixes: Vec<String>) -> Vec<i32> {
 
 // Reassemble wasm binary, replacing sections 2 (import), 3 (func), 10 (code).
 fn rebuild_wasm(wasm: Vec<i32>, ids: Vec<i32>, offsets: Vec<i32>, sizes: Vec<i32>, new_imp: Vec<i32>, new_fs: Vec<i32>, new_code: Vec<i32>) -> Vec<i32> {
-    let out = Vec_new_i32()
+    let out = Vec::new<i32>()
     // Header (8 bytes)
     copy_range(out, wasm, 0, 8)
 

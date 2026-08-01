@@ -32,24 +32,24 @@ fn wit_strip_version(segment: String) -> String {
 
 fn wit_validate_package_id(id: String) -> String {
     if len(id) == 0 {
-        return String_from("WIT import string must not be empty")
+        return "WIT import string must not be empty"
     }
     let colon = wit_find_char(id, 58, 0)
     if colon < 0 {
-        return String_from("WIT import must use namespace:package/interface form")
+        return "WIT import must use namespace:package/interface form"
     }
     if colon == 0 {
-        return String_from("WIT import namespace must not be empty")
+        return "WIT import namespace must not be empty"
     }
     let slash = wit_find_char(id, 47, colon + 1)
     if slash < 0 {
-        return String_from("WIT import must include /interface segment")
+        return "WIT import must include /interface segment"
     }
     if slash == colon + 1 {
-        return String_from("WIT import package must not be empty")
+        return "WIT import package must not be empty"
     }
     if slash + 1 >= len(id) {
-        return String_from("WIT import interface must not be empty")
+        return "WIT import interface must not be empty"
     }
     return String_new()
 }

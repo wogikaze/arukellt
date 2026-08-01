@@ -15,7 +15,7 @@ struct TypeInterner {
 }
 
 fn TypeInterner_new() -> TypeInterner {
-    TypeInterner { type_data: Vec_new_i32(), type_starts: Vec_new_i32(), type_ends: Vec_new_i32() }
+    TypeInterner { type_data: Vec::new<i32>(), type_starts: Vec::new<i32>(), type_ends: Vec::new<i32>() }
 }
 
 fn type_interner_add(interner: TypeInterner, type_bytes: Vec<i32>) -> i32 {
@@ -53,17 +53,17 @@ fn type_interner_emit_section(out: writer_core::ComponentWriter, interner: TypeI
 
 fn comp_ensure_color_export_type(interner: TypeInterner, export_name: String, color_type_idx: i32) -> i32 {
     if naming::comp_export_uses_color(export_name) && color_type_idx < 0 {
-        let color_names = Vec_new_String()
-        push(color_names, String_from("red"))
-        push(color_names, String_from("green"))
-        push(color_names, String_from("blue"))
+        let color_names = Vec::new<String>()
+        push(color_names, "red")
+        push(color_names, "green")
+        push(color_names, "blue")
         return type_interner_add(interner, types_wit_compound::comp_wit_enum_type(color_names))
     }
     color_type_idx
 }
 
 fn emit_generic_export_types(out: writer_core::ComponentWriter, plan: export_plan::ComponentExportPlan, mir: MirModule) -> Vec<i32> {
-    let mut export_type_indices: Vec<i32> = Vec_new_i32()
+    let mut export_type_indices: Vec<i32> = Vec::new<i32>()
     let interner = TypeInterner_new()
     let mut color_type_idx = 0 - 1
 
@@ -75,7 +75,7 @@ fn emit_generic_export_types(out: writer_core::ComponentWriter, plan: export_pla
         let export_name = export_function_view::export_function_name(f)
         color_type_idx = comp_ensure_color_export_type(interner, clone(export_name), color_type_idx)
 
-        let mut param_vts: Vec<i32> = Vec_new_i32()
+        let mut param_vts: Vec<i32> = Vec::new<i32>()
         let mut pi = 0
         let param_count = export_function_view::export_function_param_count(f)
         while pi < param_count {
@@ -88,7 +88,7 @@ fn emit_generic_export_types(out: writer_core::ComponentWriter, plan: export_pla
             pi = pi + 1
         }
 
-        let mut result_vts: Vec<i32> = Vec_new_i32()
+        let mut result_vts: Vec<i32> = Vec::new<i32>()
         if export_function_view::export_function_return_type(f) != 0 {
             if naming::comp_export_result_uses_color(export_name) {
                 push(result_vts, color_type_idx)

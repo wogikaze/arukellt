@@ -44,10 +44,10 @@ fn lower_scalar_value_type(tt: TypeTable, mvt: MirValueType) -> WasmValueType {
         return gc_layout_table::WasmValueType_i32()
     }
     let name = type_table::type_entry_name(entry)
-    if eq(clone(name), String_from("i64")) {
+    if eq(clone(name), "i64") {
         return gc_layout_table::WasmValueType_i64()
     }
-    if eq(clone(name), String_from("f64")) {
+    if eq(clone(name), "f64") {
         return gc_layout_table::WasmValueType_f64()
     }
     gc_layout_table::WasmValueType_i32()

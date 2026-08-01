@@ -2,34 +2,34 @@ use lexer::tokens
 
 fn token_decl_keyword_name(kind: i32) -> String {
     if kind == tokens::TK_FN() {
-        return String_from("FN")
+        return "FN"
     }
     if kind == tokens::TK_STRUCT() {
-        return String_from("STRUCT")
+        return "STRUCT"
     }
     if kind == tokens::TK_ENUM() {
-        return String_from("ENUM")
+        return "ENUM"
     }
     if kind == tokens::TK_LET() {
-        return String_from("LET")
+        return "LET"
     }
     if kind == tokens::TK_MUT() {
-        return String_from("MUT")
+        return "MUT"
     }
     if kind == tokens::TK_PUB() {
-        return String_from("PUB")
+        return "PUB"
     }
     if kind == tokens::TK_WHERE() {
-        return String_from("WHERE")
+        return "WHERE"
     }
     if kind == tokens::TK_RESOURCE() {
-        return String_from("RESOURCE")
+        return "RESOURCE"
     }
     if kind == tokens::TK_ASYNC() {
-        return String_from("ASYNC")
+        return "ASYNC"
     }
     if kind == tokens::TK_SELF() {
-        return String_from("SELF")
+        return "SELF"
     }
     String_new()
 }

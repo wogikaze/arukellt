@@ -15,7 +15,7 @@ fn lookup_short_name(text: String, offset: i32) -> String {
     if len(lookup_name) == 0 {
         return String_new()
     }
-    if !contains(clone(lookup_name), String_from("::")) {
+    if !contains(clone(lookup_name), "::") {
         return lookup_name
     }
     let mut last_colon = 0
@@ -57,7 +57,7 @@ pub fn handle_definition(state: LspState, body: String) {
         return
     }
     let sym = feature_symbol::resolve_symbol_request(state, body)
-    let use_local_def = feature_symbol::symbol_request_found(sym) && !contains(clone(qualified), String_from("::"))
+    let use_local_def = feature_symbol::symbol_request_found(sym) && !contains(clone(qualified), "::")
     if use_local_def {
         framing::append_framed(
             state,

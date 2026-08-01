@@ -15,7 +15,7 @@ fn mir_mark_roots(
         functions,
         reachable,
         queue,
-        String_from("main")
+        "main"
     ) {
         root_count = root_count + 1
     }
@@ -24,7 +24,7 @@ fn mir_mark_roots(
         functions,
         reachable,
         queue,
-        String_from("_start")
+        "_start"
     ) {
         root_count = root_count + 1
     }

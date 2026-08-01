@@ -26,10 +26,10 @@ fn is_clone_result_callee(callee_name: String) -> bool {
     eq(clone(callee_name), "__intrinsic_string_clone") ||
     eq(clone(callee_name), "__core_string_clone_impl") ||
     eq(clone(callee_name), "raw_string_clone") ||
-    ends_with(clone(callee_name), String_from("::clone")) ||
-    ends_with(clone(callee_name), String_from("__clone")) ||
-    ends_with(clone(callee_name), String_from("::raw_string_clone")) ||
-    ends_with(clone(callee_name), String_from("string_clone"))
+    ends_with(clone(callee_name), "::clone") ||
+    ends_with(clone(callee_name), "__clone") ||
+    ends_with(clone(callee_name), "::raw_string_clone") ||
+    ends_with(clone(callee_name), "string_clone")
 }
 
 fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) -> bool {
@@ -54,7 +54,7 @@ fn mark_clone_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, fi
 
 fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if mir_callee_returns_string(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("string"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "string")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         } else {
@@ -103,5 +103,5 @@ fn mir_callee_returns_string(callee_name: String) -> bool {
     eq(clone(callee_name), "bytes::string_from_bytes") {
         return true
     }
-    ends_with(clone(callee_name), String_from("::to_string"))
+    ends_with(clone(callee_name), "::to_string")
 }

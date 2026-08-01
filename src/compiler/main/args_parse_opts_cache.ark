@@ -5,7 +5,7 @@ pub fn parse_cache_dir_option(argv: Vec<String>, argc: i32, opts: CliOptions, i:
     if next < argc {
         args_record::cli_set_cache_dir(opts, clone(get_unchecked(argv, next)))
     } else {
-        args_record::cli_set_error(opts, String_from("--cache-dir requires a directory path"))
+        args_record::cli_set_error(opts, "--cache-dir requires a directory path")
     }
     next
 }

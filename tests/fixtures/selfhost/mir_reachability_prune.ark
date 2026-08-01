@@ -30,14 +30,14 @@ fn tally<T>(v: Vec<T>) -> i32 {
 }
 
 fn dead_caller() -> i32 {
-    let mut words: Vec<String> = Vec_new_String()
+    let mut words: Vec<String> = Vec::new<String>()
     push(words, String_from("alpha"))
     push(words, String_from("beta"))
     tally(words)
 }
 
 fn main() {
-    let mut nums: Vec<i32> = Vec_new_i32()
+    let mut nums: Vec<i32> = Vec::new<i32>()
     push(nums, 10)
     push(nums, 20)
     push(nums, 30)

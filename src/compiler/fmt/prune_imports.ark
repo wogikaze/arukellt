@@ -21,7 +21,7 @@ fn prune_import_sort_group(path: String, has_alias: bool) -> i32 {
     if has_alias {
         return 2
     }
-    if starts_with(clone(path), String_from("std::")) {
+    if starts_with(clone(path), "std::") {
         return 0
     }
     1
@@ -40,7 +40,7 @@ fn prune_import_line_end(text: String, line_start: i32) -> i32 {
 }
 
 fn path_symbol_part(path: String) -> String {
-    let pos = index_of(clone(path), String_from("::"))
+    let pos = index_of(clone(path), "::")
     if pos < 0 {
         return String_new()
     }
@@ -80,7 +80,7 @@ fn import_is_used(path: String, body: String) -> bool {
         return contains_ident_usage(clone(body), sym)
     }
     let short = resolver::use_module_short_name(clone(path))
-    let needle = concat(clone(short), String_from("::"))
+    let needle = concat(clone(short), "::")
     if index_of(clone(body), needle) >= 0 {
         return true
     }
@@ -88,7 +88,7 @@ fn import_is_used(path: String, body: String) -> bool {
 }
 
 fn collect_prune_import_entries(text: String, decls: Vec<AstNode>) -> Vec<PruneImportEntry> {
-    let out = Vec_new_PruneImportEntry()
+    let out = Vec::new<PruneImportEntry>()
     let n = len(decls)
     let mut i = 0
     while i < n {

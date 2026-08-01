@@ -104,8 +104,13 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
 
-    // Void function — no value left on stack. The new array is lost; this is
-    // a known limitation of void push_char on GC targets.
+    // GC arrays are immutable in size; write the grown array back into the
+    // receiver local recorded on CALL.arg0 (#807 push_char).
+    let receiver = inst_accessors_operands::MirInst_arg0(inst)
+    if receiver >= 0 {
+        helpers_core::emit_local_get(w, s_new)
+        helpers_core::emit_local_set(w, receiver)
+    }
     return false
 }
 

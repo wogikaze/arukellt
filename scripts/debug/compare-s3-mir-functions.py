@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare MIR function multisets from native vs wasmtime compile dumps (#832)."""
+"""Compare MIR function multisets from native vs wasmtime compile dumps (#846)."""
 
 from __future__ import annotations
 

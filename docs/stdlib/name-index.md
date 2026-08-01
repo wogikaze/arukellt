@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 751
+- **Canonical names:** 760
 - **Historical/deprecated names:** 3
-- **Total entries:** 754
+- **Total entries:** 763
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -66,6 +66,7 @@ Current public API names, sorted alphabetically.
 | `assert_contains` | `std::test` | `stable` | Test |
 | `assert_eq` | `prelude` | `stable` | Assert |
 | `assert_eq_bool` | `std::test` | `stable` | Test |
+| `assert_eq_debug` | `std::test` | `stable` | Test |
 | `assert_eq_f64` | `std::test` | `stable` | Test |
 | `assert_eq_i32` | `std::test` | `stable` | Test |
 | `assert_eq_i64` | `prelude` | `stable` | Assert |
@@ -240,7 +241,10 @@ Current public API names, sorted alphabetically.
 | `find_f64` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
 | `find_i64` | `prelude` | `stable` | Collections |
+| `find_key_pos` | `std::json` | `experimental` | Json |
 | `find_String` | `prelude` | `stable` | Collections |
+| `find_toml_section` | `std::toml` | `experimental` | Toml |
+| `find_toml_value` | `std::toml` | `experimental` | Toml |
 | `flag` | `std::cli` | `stable` | Cli |
 | `floor` | `std::simd::f32x4` | `experimental` | Simd |
 | `flush` | `std::host::streams` | `provisional` | Host Streams |
@@ -388,12 +392,17 @@ Current public API names, sorted alphabetically.
 | `json_as_f64` | `std::json` | `experimental` | Json |
 | `json_as_i32` | `std::json` | `experimental` | Json |
 | `json_as_string` | `std::json` | `experimental` | Json |
+| `json_decode_escape` | `std::json` | `experimental` | Json |
 | `json_encode_string` | `std::json` | `experimental` | Json |
+| `json_escape` | `std::json` | `experimental` | Json |
 | `json_get` | `std::json` | `experimental` | Json |
 | `json_get_index` | `std::json` | `experimental` | Json |
+| `json_get_int` | `std::json` | `experimental` | Json |
+| `json_get_str` | `std::json` | `experimental` | Json |
 | `json_null` | `std::json` | `experimental` | Json |
 | `json_parse_bool` | `std::json` | `experimental` | Json |
 | `json_parse_i32` | `std::json` | `experimental` | Json |
+| `json_parse_string_at` | `std::json` | `experimental` | Json |
 | `json_stringify_bool` | `std::json` | `experimental` | Json |
 | `json_stringify_i32` | `std::json` | `experimental` | Json |
 | `json_stringify_string` | `std::json` | `experimental` | Json |
@@ -496,9 +505,11 @@ Current public API names, sorted alphabetically.
 | `parent` | `std::path` | `stable` | Path |
 | `parse` | `std::json` | `experimental` | Json |
 | `parse_args` | `std::cli` | `stable` | Cli |
+| `parse_content_length` | `std::json` | `experimental` | Json |
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
 | `parse_i64` | `prelude` | `stable` | Conversion |
+| `parse_int_at` | `std::json` | `experimental` | Json |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
 | `position` | `std::io` | `stable` | Io |
@@ -515,6 +526,7 @@ Current public API names, sorted alphabetically.
 | `product_i32` | `prelude` | `stable` | Collections |
 | `push` | `prelude` | `stable` | Collections |
 | `push_char` | `prelude` | `stable` | String |
+| `quote_string` | `std::json` | `experimental` | Json |
 | `random_bool` | `std::host::random` | `stable` | Host Random |
 | `random_i32` | `std::host::random` | `stable` | Host Random |
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
@@ -595,6 +607,7 @@ Current public API names, sorted alphabetically.
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `skip_i32` | `std::seq` | `stable` | Seq |
+| `skip_ws` | `std::json` | `experimental` | Json |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
 | `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
@@ -664,9 +677,13 @@ Current public API names, sorted alphabetically.
 | `toml_as_bool` | `std::toml` | `experimental` | Toml |
 | `toml_as_int` | `std::toml` | `experimental` | Toml |
 | `toml_as_string` | `std::toml` | `experimental` | Toml |
+| `toml_find_raw_value` | `std::toml` | `experimental` | Toml |
+| `toml_find_section` | `std::toml` | `experimental` | Toml |
+| `toml_find_value` | `std::toml` | `experimental` | Toml |
 | `toml_get` | `std::toml` | `experimental` | Toml |
 | `toml_parse` | `std::toml` | `experimental` | Toml |
 | `toml_parse_line` | `std::toml` | `experimental` | Toml |
+| `toml_parse_string_array` | `std::toml` | `experimental` | Toml |
 | `toml_stringify` | `std::toml` | `experimental` | Toml |
 | `toml_table_keys` | `std::toml` | `experimental` | Toml |
 | `trim` | `prelude` | `stable` | String |
@@ -718,14 +735,6 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
-| `Vec_new_f64` | `prelude` | `stable` | Collections |
-| `Vec_new_f64_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_i32` | `prelude` | `provisional` | Collections |
-| `Vec_new_i32_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_i64` | `prelude` | `provisional` | Collections |
-| `Vec_new_i64_with_cap` | `prelude` | `stable` | Collections |
-| `Vec_new_String` | `prelude` | `stable` | Collections |
-| `Vec_new_v128` | `prelude` | `provisional` | Collections |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -838,6 +847,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_contains` | ✅ `stable` | `std::test` | Test |
 | `assert_eq` | ✅ `stable` | `prelude` | Assert |
 | `assert_eq_bool` | ✅ `stable` | `std::test` | Test |
+| `assert_eq_debug` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_f64` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_i32` | ✅ `stable` | `std::test` | Test |
 | `assert_eq_i64` | ✅ `stable` | `prelude` | Assert |
@@ -1014,7 +1024,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `find_f64` | ✅ `stable` | `prelude` | Collections |
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
 | `find_i64` | ✅ `stable` | `prelude` | Collections |
+| `find_key_pos` | ✅ `experimental` | `std::json` | Json |
 | `find_String` | ✅ `stable` | `prelude` | Collections |
+| `find_toml_section` | ✅ `experimental` | `std::toml` | Toml |
+| `find_toml_value` | ✅ `experimental` | `std::toml` | Toml |
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `floor` | ✅ `experimental` | `std::simd::f32x4` | Simd |
 | `flush` | ✅ `provisional` | `std::host::streams` | Host Streams |
@@ -1163,12 +1176,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `json_as_f64` | ✅ `experimental` | `std::json` | Json |
 | `json_as_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_as_string` | ✅ `experimental` | `std::json` | Json |
+| `json_decode_escape` | ✅ `experimental` | `std::json` | Json |
 | `json_encode_string` | ✅ `experimental` | `std::json` | Json |
+| `json_escape` | ✅ `experimental` | `std::json` | Json |
 | `json_get` | ✅ `experimental` | `std::json` | Json |
 | `json_get_index` | ✅ `experimental` | `std::json` | Json |
+| `json_get_int` | ✅ `experimental` | `std::json` | Json |
+| `json_get_str` | ✅ `experimental` | `std::json` | Json |
 | `json_null` | ✅ `experimental` | `std::json` | Json |
 | `json_parse_bool` | ✅ `experimental` | `std::json` | Json |
 | `json_parse_i32` | ✅ `experimental` | `std::json` | Json |
+| `json_parse_string_at` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_bool` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
@@ -1271,9 +1289,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parent` | ✅ `stable` | `std::path` | Path |
 | `parse` | ✅ `experimental` | `std::json` | Json |
 | `parse_args` | ✅ `stable` | `std::cli` | Cli |
+| `parse_content_length` | ✅ `experimental` | `std::json` | Json |
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
+| `parse_int_at` | ✅ `experimental` | `std::json` | Json |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
 | `position` | ✅ `stable` | `std::io` | Io |
@@ -1290,6 +1310,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `product_i32` | ✅ `stable` | `prelude` | Collections |
 | `push` | ✅ `stable` | `prelude` | Collections |
 | `push_char` | ✅ `stable` | `prelude` | String |
+| `quote_string` | ✅ `experimental` | `std::json` | Json |
 | `random_bool` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
@@ -1370,6 +1391,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | `skip_i32` | ✅ `stable` | `std::seq` | Seq |
+| `skip_ws` | ✅ `experimental` | `std::json` | Json |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
 | `slotmap_contains` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -1439,9 +1461,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `toml_as_bool` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_as_int` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_as_string` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_raw_value` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_section` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_find_value` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_get` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_parse` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_parse_line` | ✅ `experimental` | `std::toml` | Toml |
+| `toml_parse_string_array` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_stringify` | ✅ `experimental` | `std::toml` | Toml |
 | `toml_table_keys` | ✅ `experimental` | `std::toml` | Toml |
 | `trim` | ✅ `stable` | `prelude` | String |
@@ -1493,14 +1519,6 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
-| `Vec_new_f64` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_f64_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_i32` | ✅ `provisional` | `prelude` | Collections |
-| `Vec_new_i32_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_i64` | ✅ `provisional` | `prelude` | Collections |
-| `Vec_new_i64_with_cap` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_String` | ✅ `stable` | `prelude` | Collections |
-| `Vec_new_v128` | ✅ `provisional` | `prelude` | Collections |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |

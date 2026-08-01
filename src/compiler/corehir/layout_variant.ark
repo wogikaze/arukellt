@@ -24,7 +24,7 @@ fn layout_variant_payload_field_name_at(variant: CoreHirLayoutVariant, index: i3
     if index < len(variant.payload_field_names) {
         return get_unchecked(variant.payload_field_names, index)
     }
-    String_from("")
+    ""
 }
 
 fn layout_variant_has_payload(variant: CoreHirLayoutVariant) -> bool {

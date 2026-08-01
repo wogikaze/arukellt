@@ -3,7 +3,7 @@ use std::simd::i32x4
 
 fn main() {
     let v = i32x4::splat(99)
-    let arr: Vec<v128> = Vec_new_v128()
+    let arr: Vec<v128> = Vec::new<v128>()
     arr.push(v)
     let lane0 = i32x4::extract_lane(arr[0], 0)
     stdio::println((lane0).to_string())

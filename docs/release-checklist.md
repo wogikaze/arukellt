@@ -33,8 +33,8 @@ not individual checks.
 - [ ] **CI `check_selfhost_fixpoint`** — `python3 scripts/manager.py selfhost fixpoint --build` (job: `verification`)
 - [ ] **CI `check_selfhost_cli_parity`** [FAIL] — `python3 scripts/manager.py selfhost parity --mode --cli` (job: `verification`)
 - [ ] **CI `check_selfhost_diag_parity`** [FAIL] — `python3 scripts/manager.py selfhost diag-parity` (job: `verification`)
-- [ ] **CI `check_wat_roundtrip`** [FAIL] — `bash scripts/run/wat-roundtrip.sh` (job: `verification`)
-- [ ] **CI `check_component_interop_wasmtime`** [FAIL] — `python3 scripts/manager.py verify component-interop` (job: `verification`)
+- [ ] **CI `check_wat_roundtrip`** — `bash scripts/run/wat-roundtrip.sh` (job: `verification`)
+- [ ] **CI `check_component_interop_wasmtime`** — `python3 scripts/manager.py verify component-interop` (job: `verification`)
 <!-- END GENERATED:release-blockers -->
 
 ## Non-blocking informational checks

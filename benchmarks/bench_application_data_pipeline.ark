@@ -12,7 +12,7 @@ struct Record {
 
 fn main() {
     // Stage 1: generate 3,000 synthetic records
-    let mut records: Vec<Record> = Vec_new_Record()
+    let mut records: Vec<Record> = Vec::new<Record>()
     let mut i: i32 = 0
     while i < 3000 {
         let rec: Record = Record { id: i, value: i * 3 + 7, group: i - i / 5 * 5 }
@@ -24,7 +24,7 @@ fn main() {
     let threshold: i32 = 1
     let filter_fn = |g: i32| -> bool { g > threshold }
 
-    let mut filtered: Vec<Record> = Vec_new_Record()
+    let mut filtered: Vec<Record> = Vec::new<Record>()
     let mut j: i32 = 0
     while j < len(records) {
         let rec: Record = get_unchecked(records, j)
@@ -39,7 +39,7 @@ fn main() {
     let offset: i32 = 5
     let map_fn = |v: i32| -> i32 { v * scale + offset }
 
-    let mut mapped: Vec<i32> = Vec_new_i32()
+    let mut mapped: Vec<i32> = Vec::new<i32>()
     let mut k: i32 = 0
     while k < len(filtered) {
         push(mapped, map_fn(get_unchecked(filtered, k).value))

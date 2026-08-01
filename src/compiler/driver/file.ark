@@ -17,7 +17,7 @@ fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             pipeline_backend::compile_source(source, config)
         },
         Result::Err(e) => {
-            result_record::CompileResult_err(0, concat(String_from("failed to read file: "), e))
+            result_record::CompileResult_err(0, concat("failed to read file: ", e))
         },
     }
 }

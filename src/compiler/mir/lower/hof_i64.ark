@@ -17,12 +17,12 @@ fn mir_lower_hof_i64(ctx: LowerCtx, hof_fn_name: String, hof_vec_local: i32, hof
     let hof_result_local = emit_i64_result_vec(ctx, is_fold_i64_i64)
     hof_loop::emit_hof_loop_open(ctx)
     hof_loop::emit_hof_loop_bounds(ctx, hof_idx_local, hof_n_local)
-    let hof_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof_vec_local, hof_idx_local, value_types::VT_I64(), String_from("vec_get_unchecked_i64"))
+    let hof_elem_local = hof_loop::emit_hof_loop_elem(ctx, hof_vec_local, hof_idx_local, value_types::VT_I64(), "vec_get_unchecked_i64")
     if is_map_i64_i64 {
-        hof_loop_steps::emit_hof_map_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, value_types::VT_I64(), String_from("push_i64"))
+        hof_loop_steps::emit_hof_map_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, value_types::VT_I64(), "push_i64")
     }
     if is_filter_i64 {
-        hof_loop_steps::emit_hof_filter_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, String_from("push_i64"))
+        hof_loop_steps::emit_hof_filter_step(ctx, hof_fn_name, hof_result_local, hof_elem_local, "push_i64")
     }
     if is_fold_i64_i64 {
         hof_loop_steps::emit_hof_fold_step(ctx, hof_fn_name, hof_acc_local, hof_elem_local, value_types::VT_I64())
@@ -48,7 +48,7 @@ fn emit_i64_fold_acc_init(ctx: LowerCtx, hof_init_idx: i32, hof_acc_local: i32, 
 fn emit_i64_result_vec(ctx: LowerCtx, is_fold_i64_i64: bool) -> i32 {
     let hof_result_local = hof_results::hof_result_local(ctx)
     if !is_fold_i64_i64 {
-        hof_results::emit_hof_result_vec_init(ctx, hof_result_local, String_from("Vec_new_i64"), String_from("vec:i64"))
+        hof_results::emit_hof_result_vec_init(ctx, hof_result_local, "Vec::new__i64", "vec:i64")
     }
     hof_result_local
 }

@@ -3,44 +3,44 @@ use mir::lower_kinds
 
 fn mir_operator_method_name(mir_op: i32) -> String {
     if mir_op == opcodes::MIR_ADD() {
-        return String_from("add")
+        return "add"
     }
     if mir_op == opcodes::MIR_SUB() {
-        return String_from("sub")
+        return "sub"
     }
     if mir_op == opcodes::MIR_MUL() {
-        return String_from("mul")
+        return "mul"
     }
     if mir_op == opcodes::MIR_DIV() {
-        return String_from("div")
+        return "div"
     }
     if mir_op == opcodes::MIR_MOD() {
-        return String_from("rem")
+        return "rem"
     }
     if mir_op == opcodes::MIR_EQ() {
-        return String_from("eq")
+        return "eq"
     }
     if mir_op == opcodes::MIR_NEQ() {
-        return String_from("ne")
+        return "ne"
     }
     if mir_op == opcodes::MIR_LT() {
-        return String_from("lt")
+        return "lt"
     }
     if mir_op == opcodes::MIR_GT() {
-        return String_from("gt")
+        return "gt"
     }
     if mir_op == opcodes::MIR_LTEQ() {
-        return String_from("le")
+        return "le"
     }
     if mir_op == opcodes::MIR_GTEQ() {
-        return String_from("ge")
+        return "ge"
     }
     String_new()
 }
 
 fn mir_unary_operator_method_name(uop: i32) -> String {
     if uop == lower_kinds::UOP_NEG() {
-        return String_from("neg")
+        return "neg"
     }
     String_new()
 }

@@ -14,9 +14,17 @@ fn parse_type_param(p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     if core_api_cursor::peek_kind(p) == tokens::TK_COLON() {
         p.pos = p.pos + 1
-        core_api_cursor::skip_newlines(p)
-        let bound = types::parse_type(p)
-        core_ast_type_ann::AstNode_push_type_ann(param, bound)
+        // Support `T: Eq + Debug` — each bound is a separate type annotation.
+        while true {
+            core_api_cursor::skip_newlines(p)
+            let bound = types::parse_type(p)
+            core_ast_type_ann::AstNode_push_type_ann(param, bound)
+            core_api_cursor::skip_newlines(p)
+            if core_api_cursor::peek_kind(p) != tokens::TK_PLUS() {
+                break
+            }
+            p.pos = p.pos + 1
+        }
     }
     param
 }

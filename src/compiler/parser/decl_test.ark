@@ -24,7 +24,7 @@ fn is_test_decl_start(p: Parser) -> bool {
     if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
         return false
     }
-    if !eq(core_api_cursor::peek_text(p), String_from("test")) {
+    if !eq(core_api_cursor::peek_text(p), "test") {
         return false
     }
     // Peek ahead past newlines to the token after `test`.
@@ -44,7 +44,7 @@ fn is_test_decl_start(p: Parser) -> bool {
     if k1 == tokens::TK_IDENT() {
         let t1 = core_api_cursor::peek_text_at_index(p, idx)
         // test mod "name" { ... }
-        if eq(clone(t1), String_from("mod")) {
+        if eq(clone(t1), "mod") {
             let mut idx2 = idx + 1
             while idx2 < state_record::parser_token_count(p) {
                 let k2 = core_api_cursor::peek_kind_at_index(p, idx2)
@@ -75,7 +75,7 @@ pub fn parse_test_decl(p: Parser) -> AstNode {
     let t = core_api_expect::expect_token(p, tokens::TK_IDENT())
     let span = core_api_expect::tok_span(t)
     core_api_cursor::skip_newlines(p)
-    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() && eq(core_api_cursor::peek_text(p), String_from("mod")) {
+    if core_api_cursor::peek_kind(p) == tokens::TK_IDENT() && eq(core_api_cursor::peek_text(p), "mod") {
         return parse_test_mod(p, span)
     }
     parse_test_unit(p, span)
@@ -102,7 +102,7 @@ fn parse_test_mod(p: Parser, span: Span) -> AstNode {
             let inner = parse_test_unit_decl(p)
             core_ast_children::AstNode_push_child(node, inner)
         } else {
-            core_api_expect::error(p, String_from("expected `test` declaration inside test mod"))
+            core_api_expect::error(p, "expected `test` declaration inside test mod")
             state_record::parser_advance(p)
         }
         core_api_cursor::skip_newlines(p)

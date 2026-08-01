@@ -25,7 +25,7 @@ fn stdlib_inline_find_single_arg_local(block: MirBlock, call_index: i32) -> i32 
 }
 
 fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst) -> Vec<i32> {
-    let args = Vec_new_i32()
+    let args = Vec::new<i32>()
     let count = inst_accessors_literals::MirInst_int_val(call)
     if count == 1 {
         push(args, stdlib_inline_find_single_arg_local(block, call_index))
@@ -35,11 +35,11 @@ fn stdlib_inline_call_arg_locals(block: MirBlock, call_index: i32, call: MirInst
     while index < count {
         let staged_index = call_index - count + index
         if staged_index < 0 {
-            return Vec_new_i32()
+            return Vec::new<i32>()
         }
         let staged = block_inst_access::MirBlock_inst_at(block, staged_index)
         if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
-            return Vec_new_i32()
+            return Vec::new<i32>()
         }
         push(args, inst_accessors_operands::MirInst_arg0(staged))
         index = index + 1

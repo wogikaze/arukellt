@@ -22,8 +22,12 @@ pub struct RangeInclusive {
 }
 
 /// Builds a half-open range `[start, end)`.
-pub fn range_new(start: i32, end: i32) -> Range {
+fn __core_range_new_impl(start: i32, end: i32) -> Range {
     Range { start: start, end: end }
+}
+
+pub fn range_new(start: i32, end: i32) -> Range {
+    __core_range_new_impl(start, end)
 }
 
 /// Returns true when `value` lies inside the half-open range.

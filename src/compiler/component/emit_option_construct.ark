@@ -67,13 +67,13 @@ fn comp_bool_to_option_i64_adapter_core_module(export_name: String) -> Vec<i32> 
 }
 
 fn comp_emit_option_construct_adapter_sections(out: writer_core::ComponentWriter, export_name: String, kind: i32) {
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     push(user_params, 0x7f)
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7f)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     push(abi_params, 0x7f)
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, 0x7f)
     adapters_single_export_sections::comp_emit_single_adapter_type_section(out, user_params, user_results, abi_params, abi_results)
 
@@ -106,9 +106,9 @@ fn emit_option_construct_type_section(out: writer_core::ComponentWriter, param_t
     let type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(type_sec, 2)
     writer_core::comp_emit_bytes(type_sec, types_wit_collection::comp_wit_option_type(option_elem_type))
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, param_type)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, 0)
     writer_core::comp_emit_bytes(type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, 7, type_sec)

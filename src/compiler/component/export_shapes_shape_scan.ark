@@ -55,10 +55,10 @@ fn comp_function_is_shape_to_f64_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("f64")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "f64") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Shape")
 }
 
 fn comp_function_is_shape_to_shape_export(f: MirFunction) -> bool {
@@ -68,10 +68,10 @@ fn comp_function_is_shape_to_shape_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("Shape")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "Shape") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("Shape"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "Shape")
 }
 
 fn comp_shape_single_shape_to_f64_name(scan: ComponentShapeExportScan) -> String {

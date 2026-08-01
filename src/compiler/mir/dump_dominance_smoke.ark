@@ -29,12 +29,12 @@ fn run_dominance_smoke() {
     dump_expect::mir_expect_frontier(f, join_bb, 0, 0, 0)
     let dom_info = dominance::mir_collect_dom_info_for_function(f)
     if dominance_info::MirDomInfo_idom_count(dom_info) != 4 {
-        stdio::eprintln(String_from("dominance snapshot check failed: expected 4 idom entries"))
+        stdio::eprintln("dominance snapshot check failed: expected 4 idom entries")
         process::exit(1)
     }
     dump_smoke_dominance_fixture::mir_dump_dominance_fixture_print_string_interns(m)
     dump_core::dump_mir(m)
-    stdio::println(String_from("MIR predecessor self-check OK."))
-    stdio::println(String_from("MIR dominance self-check OK."))
-    stdio::println(String_from("MIR module OK."))
+    stdio::println("MIR predecessor self-check OK.")
+    stdio::println("MIR dominance self-check OK.")
+    stdio::println("MIR module OK.")
 }

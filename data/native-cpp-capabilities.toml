@@ -497,20 +497,32 @@ implementation = "native_runtime"
 id = "raw.array_get_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.array_grow"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
-status = "planned"
-phase = 2
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
 id = "raw.array_len"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_new"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.array_set_len"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "planned"
@@ -521,8 +533,75 @@ implementation = "native_runtime"
 id = "raw.array_set_unchecked"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f32_promote_f64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_bits_hi"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_bits_lo"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
 status = "planned"
 phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_sqrt"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.f64_to_string"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_f64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_i32"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.parse_i64"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_byte_at_unchecked"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
@@ -540,24 +619,26 @@ status = "supported"
 implementation = "native_runtime"
 
 [[core_ops]]
-id = "raw.string_new"
-registry_layer = "target_raw"
-registry_lowering = "target_intrinsic"
-status = "supported"
-implementation = "native_runtime"
-
-[[core_ops]]
-id = "raw.string_byte_at_unchecked"
-registry_layer = "target_raw"
-registry_lowering = "target_intrinsic"
-status = "supported"
-implementation = "native_runtime"
-
-[[core_ops]]
 id = "raw.string_len_bytes"
 registry_layer = "target_raw"
 registry_lowering = "target_intrinsic"
 status = "supported"
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_new"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
+implementation = "native_runtime"
+
+[[core_ops]]
+id = "raw.string_push_char"
+registry_layer = "target_raw"
+registry_lowering = "target_intrinsic"
+status = "planned"
+phase = 2
 implementation = "native_runtime"
 
 [[core_ops]]
@@ -2521,22 +2602,6 @@ phase = 2
 implementation = "ark_fallback"
 
 [[core_ops]]
-id = "vec.Vec_new_f64"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_vec_new"
-
-[[core_ops]]
-id = "vec.Vec_new_fallback"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_fallback"
-
-[[core_ops]]
 id = "vec.contains_i32"
 registry_layer = "semantic_stdlib"
 registry_lowering = "normal_call"
@@ -2647,51 +2712,3 @@ registry_lowering = "legacy_emitter"
 status = "supported"
 phase = 2
 implementation = "ark_fallback"
-
-[[core_ops]]
-id = "hashmap.new"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_new"
-
-[[core_ops]]
-id = "hashmap.insert"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_insert"
-
-[[core_ops]]
-id = "hashmap.get"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_get"
-
-[[core_ops]]
-id = "hashmap.contains"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_contains"
-
-[[core_ops]]
-id = "hashmap.remove"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_remove"
-
-[[core_ops]]
-id = "hashmap.len"
-registry_layer = "semantic_stdlib"
-registry_lowering = "legacy_emitter"
-status = "supported"
-phase = 2
-implementation = "ark_rt_hashmap_len"

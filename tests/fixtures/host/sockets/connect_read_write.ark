@@ -21,7 +21,7 @@ fn main() {
     match sockets::connect("127.0.0.1", port) {
         Result::Err(e) => stdio::println(concat("connect: ", e)),
         Result::Ok(fd) => {
-            let out_bytes: Vec<i32> = Vec_new_i32()
+            let out_bytes: Vec<i32> = Vec::new<i32>()
             push(out_bytes, 72)
             push(out_bytes, 105)
             match sockets::write(fd, out_bytes) {

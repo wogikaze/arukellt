@@ -14,8 +14,8 @@ struct SignatureRegistry {
 
 fn SignatureRegistry_new() -> SignatureRegistry {
     SignatureRegistry {
-        entries: Vec_new_SignatureEntry(),
-        id_to_mangled: Vec_new_String(),
+        entries: Vec::new<SignatureEntry>(),
+        id_to_mangled: Vec::new<String>(),
         mangled_to_id: name_index::NameIndex_new(8192),
         next_id: 0,
     }
@@ -69,8 +69,8 @@ fn signature_registry_register_core_op_alias(
     let entry = signature_entry::SignatureEntry_new(
         FunctionId_new(0),
         clone(alias),
-        Vec_new_MirValueType(),
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
+        Vec::new<MirValueType>(),
         false,
         receiver,
         0 - 1,
@@ -90,8 +90,8 @@ fn signature_registry_lookup_by_id(registry: SignatureRegistry, id: FunctionId) 
     signature_entry::SignatureEntry_new(
         FUNCTION_ID_INVALID(),
         String_new(),
-        Vec_new_MirValueType(),
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
+        Vec::new<MirValueType>(),
         false,
         mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), 0, 0),
         0 - 1,

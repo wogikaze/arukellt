@@ -14,7 +14,7 @@ fn typed_fn_sig(node: AstNode) -> FnSig {
 
 fn typed_fn_param_types(node: AstNode) -> Vec<TypeInfo> {
     let sig = typed_fn_sig(node)
-    let result = Vec_new_TypeInfo()
+    let result = Vec::new<TypeInfo>()
     let count = contract_fn_sig::FnSig_param_count(sig)
     let mut i = 0
     while i < count {

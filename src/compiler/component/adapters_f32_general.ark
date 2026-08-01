@@ -63,23 +63,23 @@ fn comp_emit_f32_general_type_section(out: writer_core::ComponentWriter, plan: e
         let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
         let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
         let param_count = comp_f32_general_kind_param_count(kind)
-        let user_params = Vec_new_i32()
+        let user_params = Vec::new<i32>()
         let mut pi = 0
         while pi < param_count {
             push(user_params, 0x7f)
             pi = pi + 1
         }
-        let user_results = Vec_new_i32()
+        let user_results = Vec::new<i32>()
         push(user_results, 0x7f)
         sections::comp_emit_core_func_type(type_sec, user_params, user_results)
-        let abi_params = Vec_new_i32()
+        let abi_params = Vec::new<i32>()
         if param_count > 0 {
             push(abi_params, comp_f32_general_kind_abi_param0_type(kind))
         }
         if param_count > 1 {
             push(abi_params, comp_f32_general_kind_abi_param1_type(kind))
         }
-        let abi_results = Vec_new_i32()
+        let abi_results = Vec::new<i32>()
         push(abi_results, comp_f32_general_kind_abi_result_type(kind))
         sections::comp_emit_core_func_type(type_sec, abi_params, abi_results)
         i = i + 1
@@ -95,7 +95,7 @@ fn comp_emit_f32_general_import_section(out: writer_core::ComponentWriter, plan:
     while i < count {
         let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
         let name = export_shapes_f32_general::F32GeneralExport_name(entry)
-        writer_core::comp_emit_string(import_sec, String_from("user"))
+        writer_core::comp_emit_string(import_sec, "user")
         writer_core::comp_emit_string(import_sec, clone(name))
         writer_core::comp_emit_byte(import_sec, 0x00)
         writer_core::comp_emit_leb128_u(import_sec, i * 2 + 1)

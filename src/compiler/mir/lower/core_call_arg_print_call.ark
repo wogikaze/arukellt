@@ -30,11 +30,11 @@ fn mir_core_print_call_arg_needs_string_conversion(ctx: LowerCtx, arg: CoreHirEx
         }
     }
     if core_call_arg_names::mir_core_call_bool_result_name(clone(cn)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, "bool")
         return true
     }
     if core_call_arg_names::mir_core_call_i32_result_name(cn) {
-        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, arg_idx, "i32")
         return true
     }
     if arg_idx >= 0 {

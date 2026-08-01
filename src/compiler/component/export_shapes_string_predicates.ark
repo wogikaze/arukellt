@@ -3,7 +3,7 @@ use component::naming
 use mir::value_types
 
 fn comp_function_is_string_to_i32_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("i32"))
+    comp_function_is_string_to_named_i32_export(f, "i32")
 }
 
 fn comp_function_is_string_to_named_i32_export(f: MirFunction, return_name: String) -> bool {
@@ -16,31 +16,31 @@ fn comp_function_is_string_to_named_i32_export(f: MirFunction, return_name: Stri
     if !eq(export_function_view::export_function_return_type_name(f), return_name) {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("String"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "String")
 }
 
 fn comp_function_is_string_to_bool_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("bool"))
+    comp_function_is_string_to_named_i32_export(f, "bool")
 }
 
 fn comp_function_is_string_to_char_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("char"))
+    comp_function_is_string_to_named_i32_export(f, "char")
 }
 
 fn comp_function_is_string_to_f64_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("f64"))
+    comp_function_is_string_to_named_i32_export(f, "f64")
 }
 
 fn comp_function_is_string_to_i64_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("i64"))
+    comp_function_is_string_to_named_i32_export(f, "i64")
 }
 
 fn comp_function_is_string_to_u64_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("u64"))
+    comp_function_is_string_to_named_i32_export(f, "u64")
 }
 
 fn comp_function_is_string_to_f32_export(f: MirFunction) -> bool {
-    comp_function_is_string_to_named_i32_export(f, String_from("f32"))
+    comp_function_is_string_to_named_i32_export(f, "f32")
 }
 
 fn comp_function_is_string_unary_export(f: MirFunction) -> bool {
@@ -50,10 +50,10 @@ fn comp_function_is_string_unary_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("String")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "String") {
         return false
     }
-    eq(export_function_view::export_function_param_type_name(f, 0), String_from("String"))
+    eq(export_function_view::export_function_param_type_name(f, 0), "String")
 }
 
 fn comp_function_is_i32_to_string_export(f: MirFunction) -> bool {
@@ -63,7 +63,7 @@ fn comp_function_is_i32_to_string_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("String")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "String") {
         return false
     }
     export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32()

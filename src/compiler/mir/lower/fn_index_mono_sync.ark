@@ -2,7 +2,7 @@ use mir::legacy_vt_compat
 use mir::lower::mono_instance_table
 
 fn fn_index_sync_mono_returns_from_spine(fn_names: Vec<String>, fn_return_vts: Vec<i32>, mono_table: MonoInstanceTable, type_table: TypeTable) -> Vec<i32> {
-    let result = Vec_new_i32()
+    let result = Vec::new<i32>()
     let count = len(fn_names)
     let mut i = 0
     while i < count {

@@ -23,7 +23,7 @@ fn corehir_type_name_from_ann(node: AstNode) -> String {
 }
 
 fn corehir_build_let_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     let type_name = corehir_type_name_from_ann(node)
     let mut vt = types::corehir_vt_from_type_name(clone(type_name))
     if expr_node_access::expr_child_count(node) >= 1 {

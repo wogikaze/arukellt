@@ -16,7 +16,7 @@ fn try_lower_overloaded_binary(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     if len(ov_method) <= 0 {
         return 0 - 1
     }
-    let ov_callee = concat(clone(ov_ltype), concat(String_from("::"), clone(ov_method)))
+    let ov_callee = concat(clone(ov_ltype), concat("::", clone(ov_method)))
     if ctx_fn_exists::ctx_fn_exists(ctx, clone(ov_callee)) == 0 {
         return 0 - 1
     }

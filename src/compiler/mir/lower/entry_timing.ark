@@ -30,8 +30,8 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
     let ms = mir_lower_phase_ms(t_start, t_end)
     stdio::eprintln(
         concat(
-            String_from("[arukellt] lower."),
-            concat(clone(label), concat(String_from(": "), concat(to_string(ms), String_from("ms"))))
+            "[arukellt] lower.",
+            concat(clone(label), concat(": ", concat(to_string(ms), "ms")))
         )
     )
 }
@@ -42,8 +42,8 @@ fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
     }
     stdio::eprintln(
         concat(
-            String_from("[arukellt] lower.reachability_fns: before="),
-            concat(to_string(before), concat(String_from(" after="), to_string(after)))
+            "[arukellt] lower.reachability_fns: before=",
+            concat(to_string(before), concat(" after=", to_string(after)))
         )
     )
 }
@@ -60,19 +60,19 @@ fn mir_lower_phase_mir_size(
     }
     stdio::eprintln(
         concat(
-            String_from("[arukellt] lower.reachability_blocks: before="),
+            "[arukellt] lower.reachability_blocks: before=",
             concat(
                 to_string(blocks_before),
-                concat(String_from(" after="), to_string(blocks_after))
+                concat(" after=", to_string(blocks_after))
             )
         )
     )
     stdio::eprintln(
         concat(
-            String_from("[arukellt] lower.reachability_insts: before="),
+            "[arukellt] lower.reachability_insts: before=",
             concat(
                 to_string(insts_before),
-                concat(String_from(" after="), to_string(insts_after))
+                concat(" after=", to_string(insts_after))
             )
         )
     )

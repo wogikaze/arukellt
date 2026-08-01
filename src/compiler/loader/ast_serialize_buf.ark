@@ -20,7 +20,7 @@ fn buf_push_byte(buf: Vec<i32>, val: i32) {
 }
 
 pub fn serialize_ast_nodes(nodes: Vec<AstNode>) -> Vec<i32> {
-    let buf: Vec<i32> = Vec_new_i32()
+    let buf: Vec<i32> = Vec::new<i32>()
     // Header
     push(buf, 65)  // 'A'
     push(buf, 83)  // 'S'

@@ -2322,9 +2322,31 @@ int32_t ark_rt_vec_len(ark_vec *vector) {
     return (int32_t)vector->length;
 }
 
+ark_vec *ark_rt_vec_grow(ark_vec *vector, int32_t new_length) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
+    if (new_length < 0) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    uint32_t old_length = vector->length;
+    uint32_t requested = (uint32_t)new_length;
+    if (requested > old_length) {
+        ark_vec_reserve(vector, requested);
+        memset(
+            vector->data + old_length,
+            0,
+            (size_t)(requested - old_length) * sizeof(*vector->data)
+        );
+    }
+    vector->length = requested;
+    return vector;
+}
+
 ark_value ark_rt_vec_get(ark_vec *vector, int32_t index) {
     if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    return vector->data[index];
+}
+
+ark_value ark_rt_vec_get_unchecked(ark_vec *vector, int32_t index) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     return vector->data[index];
 }
 
@@ -2430,6 +2452,12 @@ ark_object_header *ark_rt_vec_get_option(ark_vec *vector, int32_t index, uint32_
 ark_unit ark_rt_vec_set(ark_vec *vector, int32_t index, ark_value value) {
     if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     if (index < 0 || (uint32_t)index >= vector->length) ark_rt_trap_kind(ARK_TRAP_BOUNDS);
+    vector->data[index] = value;
+    return 0;
+}
+
+ark_unit ark_rt_vec_set_unchecked(ark_vec *vector, int32_t index, ark_value value) {
+    if (vector == NULL) ark_rt_trap_kind(ARK_TRAP_NULL_REF);
     vector->data[index] = value;
     return 0;
 }

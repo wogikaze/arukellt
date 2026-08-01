@@ -13,13 +13,13 @@ fn infer_core_let_type_name_is_string(type_name: String) -> bool {
 
 fn infer_core_let_call_result_type_name(ctx: LowerCtx, callee: String) -> String {
     if core_call_arg_names::mir_core_call_string_result_name(clone(callee)) {
-        return String_from("string")
+        return "string"
     }
     let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee))
     if infer_core_let_type_name_is_string(clone(rtn)) {
         return rtn
     }
-    String_from("")
+    ""
 }
 
 fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr, local_idx: i32, val_idx: i32, type_name: String, child_count: i32) {
@@ -28,23 +28,23 @@ fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
     }
     let init_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, 0))
     if core_expr_shape_atoms::mir_core_expr_is_int(init_expr) {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "i32")
         return
     }
     if core_expr_shape_atoms::mir_core_expr_is_bool(init_expr) {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "bool")
         return
     }
     if core_expr_shape_atoms::mir_core_expr_is_char(init_expr) {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("char"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "char")
         return
     }
     if core_expr_shape_atoms::mir_core_expr_is_float(init_expr) {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "f64")
         return
     }
     if core_expr_shape_atoms::mir_core_expr_is_string(init_expr) {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("string"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "string")
         return
     }
     if core_expr_shape_calls::mir_core_expr_is_match(init_expr) {
@@ -67,15 +67,15 @@ fn infer_core_let_local_type_name(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: 
     }
     let val_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
     if val_vt == value_types::VT_I32() {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "i32")
         return
     }
     if val_vt == value_types::VT_I64() {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("i64"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "i64")
         return
     }
     if val_vt == value_types::VT_F64() {
-        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, String_from("f64"))
+        ctx_api_local_types::ctx_set_local_type(ctx, local_idx, "f64")
         return
     }
 }

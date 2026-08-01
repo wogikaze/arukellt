@@ -2,7 +2,7 @@ use collections::vec_extend
 use loader::module_state_modules
 use loader::module_state
 pub fn combine_loaded_and_main_decls(modules: Vec<ModuleDecls>, main_decls: Vec<AstNode>) -> Vec<AstNode> {
-    let all_decls = Vec_new_AstNode()
+    let all_decls = Vec::new<AstNode>()
     let combined_mc = len(modules)
     let mut combined_mi = 0
     while combined_mi < combined_mc {

@@ -55,80 +55,82 @@ alias = "__intrinsic_string_new"
 core_op_id = "raw.string_new"
 
 [[legacy_bindings]]
-alias = "Vec_new_f64"
-core_op_id = "vec.Vec_new_f64"
-
-[[legacy_bindings]]
-alias = "Vec_new_i64"
-core_op_id = "vec.Vec_new_f64"
-
-[[legacy_bindings]]
-alias = "Vec_new_i32"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "Vec_new_String"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "Vec_new_i32_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "Vec_new_i64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "Vec_new_f64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i32"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_String"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i32_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_i64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "__intrinsic_Vec_new_f64_with_cap"
-core_op_id = "vec.Vec_new_fallback"
-
-[[legacy_bindings]]
-alias = "Vec_new_v128"
-core_op_id = "vec.Vec_new_f64"
-
-# Prefix family bindings evaluated only after exact legacy_bindings / manifest
-# aliases miss. Used by MIR call_func_id; Wasm exact lookup stays unchanged.
-[[legacy_binding_patterns]]
-kind = "prefix"
-pattern = "Vec_new_"
-core_op_id = "vec.Vec_new_fallback"
-precedence = "after_exact"
-require_nonempty_suffix = true
-
-[[legacy_binding_patterns]]
-kind = "prefix"
-pattern = "__intrinsic_Vec_new_"
-core_op_id = "vec.Vec_new_fallback"
-precedence = "after_exact"
-require_nonempty_suffix = true
-
-[[legacy_bindings]]
 alias = "__intrinsic_bool_to_string"
 core_op_id = "text.format_bool"
 
 [[legacy_bindings]]
 alias = "__intrinsic_char_to_string"
 core_op_id = "text.char_to_string"
+
+
+[[legacy_bindings]]
+alias = "__intrinsic_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "raw_f64_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_sqrt"
+core_op_id = "raw.f64_sqrt"
+
+[[legacy_bindings]]
+alias = "raw_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_bits_lo"
+core_op_id = "raw.f64_bits_lo"
+
+[[legacy_bindings]]
+alias = "raw_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_bits_hi"
+core_op_id = "raw.f64_bits_hi"
+
+[[legacy_bindings]]
+alias = "__intrinsic_push_char"
+core_op_id = "raw.string_push_char"
+
+[[legacy_bindings]]
+alias = "raw_f64_to_string"
+core_op_id = "raw.f64_to_string"
+
+[[legacy_bindings]]
+alias = "raw::raw_f64_to_string"
+core_op_id = "raw.f64_to_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
+alias = "raw_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
+alias = "raw::raw_f32_promote_f64"
+core_op_id = "raw.f32_promote_f64"
+
+[[legacy_bindings]]
+alias = "raw_string_push_char"
+core_op_id = "raw.string_push_char"
+
+[[legacy_bindings]]
+alias = "raw::raw_string_push_char"
+core_op_id = "raw.string_push_char"
+
 
 [[legacy_bindings]]
 alias = "__intrinsic_concat"
@@ -164,7 +166,47 @@ core_op_id = "runtime.f32_to_f64"
 
 [[legacy_bindings]]
 alias = "__intrinsic_f64_to_string"
-core_op_id = "text.format_f64"
+core_op_id = "raw.f64_to_string"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "__intrinsic_parse_i64"
+core_op_id = "raw.parse_i64"
+
+[[legacy_bindings]]
+alias = "raw_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_f64"
+core_op_id = "raw.parse_f64"
+
+[[legacy_bindings]]
+alias = "parse_f64"
+core_op_id = "parse.parse_f64"
+
+[[legacy_bindings]]
+alias = "raw_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_i32"
+core_op_id = "raw.parse_i32"
+
+[[legacy_bindings]]
+alias = "raw_parse_i64"
+core_op_id = "raw.parse_i64"
+
+[[legacy_bindings]]
+alias = "raw::raw_parse_i64"
+core_op_id = "raw.parse_i64"
 
 [[legacy_bindings]]
 alias = "__intrinsic_fs_read_file"
@@ -999,6 +1041,30 @@ alias = "raw_array_grow"
 core_op_id = "raw.array_grow"
 
 [[legacy_bindings]]
+alias = "raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_new"
+core_op_id = "raw.array_new"
+
+[[legacy_bindings]]
+alias = "raw_array_set_len"
+core_op_id = "raw.array_set_len"
+
+[[legacy_bindings]]
+alias = "raw::raw_array_set_len"
+core_op_id = "raw.array_set_len"
+
+[[legacy_bindings]]
+alias = "std::core::raw::raw_array_set_len"
+core_op_id = "raw.array_set_len"
+
+[[legacy_bindings]]
 alias = "raw::raw_array_grow"
 core_op_id = "raw.array_grow"
 
@@ -1107,14 +1173,6 @@ alias = "convert::i64_to_string"
 core_op_id = "text.format_i64"
 
 [[legacy_bindings]]
-alias = "convert::parse_i32"
-core_op_id = "parse.parse_i32"
-
-[[legacy_bindings]]
-alias = "convert::parse_i64"
-core_op_id = "parse.parse_i64"
-
-[[legacy_bindings]]
 alias = "core::range_contains"
 core_op_id = "core.range_contains"
 
@@ -1193,6 +1251,10 @@ core_op_id = "runtime.f32_to_f64"
 [[legacy_bindings]]
 alias = "f32_to_string"
 core_op_id = "text.f32_to_string"
+
+[[legacy_bindings]]
+alias = "format_bool"
+core_op_id = "text.format_bool"
 
 [[legacy_bindings]]
 alias = "f64_bits_hi"
@@ -1447,18 +1509,6 @@ core_op_id = "string.pad_right"
 [[legacy_bindings]]
 alias = "panic"
 core_op_id = "panic"
-
-[[legacy_bindings]]
-alias = "parse_f64"
-core_op_id = "parse.parse_f64"
-
-[[legacy_bindings]]
-alias = "parse_i32"
-core_op_id = "parse.parse_i32"
-
-[[legacy_bindings]]
-alias = "parse_i64"
-core_op_id = "parse.parse_i64"
 
 [[legacy_bindings]]
 alias = "pow_i32"
@@ -1956,119 +2006,6 @@ core_op_id = "vec.push_i64"
 alias = "vec_set"
 core_op_id = "vec.set"
 
-# HashMap prelude builtins → CoreOp (exact aliases only; no prefix families).
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_new"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_new_i32_i32"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_insert"
-core_op_id = "hashmap.insert"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_get"
-core_op_id = "hashmap.get"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_contains_key"
-core_op_id = "hashmap.contains"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_remove"
-core_op_id = "hashmap.remove"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_i32_len"
-core_op_id = "hashmap.len"
-
-[[legacy_bindings]]
-alias = "HashMap_new_String_i32"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_new"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_insert"
-core_op_id = "hashmap.insert"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_get"
-core_op_id = "hashmap.get"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_contains_key"
-core_op_id = "hashmap.contains"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_remove"
-core_op_id = "hashmap.remove"
-
-[[legacy_bindings]]
-alias = "HashMap_String_i32_len"
-core_op_id = "hashmap.len"
-
-[[legacy_bindings]]
-alias = "HashMap_new_i32_String"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_new"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_insert"
-core_op_id = "hashmap.insert"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_get"
-core_op_id = "hashmap.get"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_contains_key"
-core_op_id = "hashmap.contains"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_remove"
-core_op_id = "hashmap.remove"
-
-[[legacy_bindings]]
-alias = "HashMap_i32_String_len"
-core_op_id = "hashmap.len"
-
-[[legacy_bindings]]
-alias = "HashMap_new_String_String"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_new"
-core_op_id = "hashmap.new"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_insert"
-core_op_id = "hashmap.insert"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_get"
-core_op_id = "hashmap.get"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_contains_key"
-core_op_id = "hashmap.contains"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_remove"
-core_op_id = "hashmap.remove"
-
-[[legacy_bindings]]
-alias = "HashMap_String_String_len"
-core_op_id = "hashmap.len"
-
 # Bare `write_bytes` / `write_string` must not bind to filesystem CoreOps:
 # `io::write_bytes` / `io::write_string` share those short names and must keep
 # their Ark Writer bodies. Use `fs::write_*` / `fs_write_*` / intrinsic aliases.
@@ -2310,6 +2247,85 @@ kind = "target_intrinsic"
 [operations.lowering.target]
 target_family = "wasm"
 target_id = "raw.array_grow"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_new"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Allocate sealed raw Vec storage with capacity hint (issue 822)."
+[operations.signature]
+inputs = [{ name = "cap", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = true
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_new"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.array_set_len"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Set sealed raw Vec logical length without shrinking capacity (issue 822)."
+[operations.signature]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "new_len", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = ["T"]
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "memory"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "write"
+allocates = false
+may_trap = true
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.array_set_len"
 required_capabilities = []
 required_target_features = []
 [operations.fallback]
@@ -2588,6 +2604,356 @@ required_target_features = []
 [operations.fallback]
 required = false
 
+
+[[operations]]
+id = "raw.f64_sqrt"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Wasm f64.sqrt for sealed raw float primitives (issue 822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_sqrt"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.f64_bits_lo"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Low 32 bits of an f64 bit pattern (issue 822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_bits_lo"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.f64_bits_hi"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "High 32 bits of an f64 bit pattern (issue 822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_bits_hi"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+
+
+[[operations]]
+id = "raw.f64_to_string"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Shortest round-trip f64 decimal formatter for sealed raw (issue 822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f64_to_string"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.string_push_char"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Append one byte to sealed raw String storage (issue 822)."
+[operations.signature]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "value", type = { kind = "primitive", name = "char" } },
+]
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.string_push_char"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+
+
+[[operations]]
+id = "raw.parse_f64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing f64 decimal parse primitive (issue 822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_f64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.parse_i32"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing i32 decimal parse primitive (issue 822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_i32"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.parse_i64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Sealed Result-producing i64 decimal parse primitive (issue 822)."
+[operations.signature]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "read-write"
+allocates = true
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.parse_i64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "raw.f32_promote_f64"
+visibility = "internal"
+classification = { layer = "target_raw" }
+binding = { policy = "forbidden" }
+description = "Wasm f64.promote_f32 for sealed typed f32 formatting (issue 822)."
+[operations.signature]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "canonical"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "target_intrinsic"
+[operations.lowering.target]
+target_family = "wasm"
+target_id = "raw.f32_promote_f64"
+required_capabilities = []
+required_target_features = []
+[operations.fallback]
+required = false
+
 [[operations]]
 id = "simd.i32x4.add"
 visibility = "public"
@@ -2856,9 +3222,12 @@ id = "core.range_new"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → core::range_new (aliases: 2; core::range_new, range_new)"
+description = "Construct a half-open Range through an Ark stdlib body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "start", type = { kind = "primitive", name = "i32" } },
+  { name = "end", type = { kind = "primitive", name = "i32" } },
+]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -2878,12 +3247,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "core.range_new"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_range_new_impl"
+required = true
+
 
 [[operations]]
 id = "math.abs"
@@ -3110,16 +3480,16 @@ id = "math.sqrt"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → math::sqrt (aliases: 2; sqrt, math::sqrt)"
+description = "Square root via sealed-raw f64.sqrt (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
@@ -3132,21 +3502,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "math.sqrt"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_math_sqrt_impl"
+required = true
+
 
 [[operations]]
 id = "parse.parse_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::parse_f64 (aliases: 2; parse_f64, text::parse_f64)"
+description = "Parse decimal f64 via sealed raw Result primitive (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3157,8 +3528,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3166,21 +3537,21 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_f64_impl"
+required = true
 
 [[operations]]
 id = "parse.parse_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → convert::parse_i32 (aliases: 2; parse_i32, convert::parse_i32)"
+description = "Parse decimal i32 via sealed raw Result primitive (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3191,8 +3562,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3200,21 +3571,21 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_i32_impl"
+required = true
 
 [[operations]]
 id = "parse.parse_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → convert::parse_i64 (aliases: 2; parse_i64, convert::parse_i64)"
+description = "Parse decimal i64 via sealed raw Result primitive (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "s", type = { kind = "ref", name = "string" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -3225,8 +3596,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -3234,12 +3605,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "parse.parse_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_parse_i64_impl"
+required = true
 
 [[operations]]
 id = "primitive.memory_copy"
@@ -4962,9 +5333,9 @@ id = "scalar.f64_bits_hi"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f64_bits_hi (aliases: 1; f64_bits_hi)"
+description = "High 32 bits of f64 via sealed-raw (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -4975,7 +5346,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -4984,21 +5355,22 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "scalar.f64_bits_hi"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_scalar_f64_bits_hi_impl"
+required = true
+
 
 [[operations]]
 id = "scalar.f64_bits_lo"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f64_bits_lo (aliases: 1; f64_bits_lo)"
+description = "Low 32 bits of f64 via sealed-raw (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
 generic_params = []
 constraints = []
@@ -5009,7 +5381,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -5018,12 +5390,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "scalar.f64_bits_lo"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_scalar_f64_bits_lo_impl"
+required = true
+
 
 [[operations]]
 id = "seq.binary_search"
@@ -5243,10 +5616,11 @@ id = "seq.sort_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sort_f64 (aliases: 1; sort_f64)"
+description = "Sort a f64 Vec in place through a typed-set Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -5256,7 +5630,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -5265,12 +5639,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.sort_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_sort_f64_impl"
+required = true
 
 [[operations]]
 id = "seq.sort_i32"
@@ -5312,10 +5686,11 @@ id = "seq.sort_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sort_i64 (aliases: 1; sort_i64)"
+description = "Sort a i64 Vec in place through a typed-set Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } }]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -5325,7 +5700,7 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
 may_trap = false
 noreturn = false
@@ -5334,12 +5709,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "seq.sort_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_seq_sort_i64_impl"
+required = true
 
 [[operations]]
 id = "seq.sum_i32"
@@ -12112,10 +12487,11 @@ id = "text.char_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → char_to_string (aliases: 2; char_to_string, __intrinsic_char_to_string)"
+description = "Convert a char to a one-byte String through a sealed-raw Ark body."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "char" } }]
+receiver_index = 0
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -12125,8 +12501,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12134,12 +12510,13 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.char_to_string"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_char_to_string_impl"
+required = true
+
 
 [[operations]]
 id = "text.chars"
@@ -12216,21 +12593,21 @@ id = "text.f32_to_string"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → f32_to_string (aliases: 1; f32_to_string)"
+description = "Format f32 via sealed promote + f64 formatter (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f32" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12238,19 +12615,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.f32_to_string"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_f32_to_string_impl"
+required = true
 
 [[operations]]
 id = "text.format_bool"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_bool"
+description = "Format a bool as true/false through a sealed-raw Ark body."
 [operations.signature]
 inputs = [{ name = "value", type = { kind = "primitive", name = "bool" } }]
 receiver_index = 0
@@ -12273,33 +12650,34 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.format_bool"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_bool_impl"
+required = true
+
 
 [[operations]]
 id = "text.format_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → text::format_f64 (aliases: 4; f64_to_string, text::format_f64, convert::f64_to_string, __intrinsic_f64_to_string)"
+description = "Format f64 via sealed-raw shortest round-trip formatter (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "value", type = { kind = "primitive", name = "f64" } }]
+outputs = [{ type = { kind = "ref", name = "string" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
-nan = "none"
+nan = "canonical"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12307,12 +12685,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.format_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_format_f64_impl"
+required = true
 
 [[operations]]
 id = "text.format_i64"
@@ -12424,10 +12802,14 @@ id = "text.push_char"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → push_char (aliases: 1; push_char)"
+description = "Append a char via sealed-raw string mutation (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "string", type = { kind = "ref", name = "string" } },
+  { name = "value", type = { kind = "primitive", name = "char" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
@@ -12437,8 +12819,8 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
+memory = "read-write"
+allocates = true
 may_trap = false
 noreturn = false
 external_io = false
@@ -12446,12 +12828,12 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "text.push_char"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_push_char_impl"
+required = true
 
 [[operations]]
 id = "text.string_eq"
@@ -12563,74 +12945,6 @@ implementation_symbol = "__core_format_i32_impl"
 required = true
 
 [[operations]]
-id = "vec.Vec_new_f64"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → Vec_new_i64 (aliases: 3; Vec_new_i64, Vec_new_f64, Vec_new_v128)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.Vec_new_f64"
-tracking_issue = "818"
-
-[[operations]]
-id = "vec.Vec_new_fallback"
-visibility = "internal"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "forbidden" }
-description = "Internal family handler for named-type Vec constructors via legacy_binding_patterns (exact scalar aliases still win)."
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "write"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.Vec_new_fallback"
-tracking_issue = "818"
-
-[[operations]]
 id = "vec.contains_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
@@ -12672,11 +12986,15 @@ id = "vec.get"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get (aliases: 1; vec_get)"
+description = "Bounds-checked Vec element load returning Option through sealed raw (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -12694,121 +13012,131 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get_unchecked (aliases: 2; vec_get_unchecked, get_unchecked)"
+description = "Unchecked Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "var", name = "T" } }]
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get_unchecked_f64 (aliases: 1; vec_get_unchecked_f64)"
+description = "Unchecked f64 Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "f64" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_f64_impl"
+required = true
 
 [[operations]]
 id = "vec.get_unchecked_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_get_unchecked_i64 (aliases: 1; vec_get_unchecked_i64)"
+description = "Unchecked i64 Vec element load through a sealed-raw Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+outputs = [{ type = { kind = "primitive", name = "i64" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.get_unchecked_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_get_unchecked_i64_impl"
+required = true
 
 [[operations]]
 id = "vec.is_empty"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Test Vec emptiness through its sealed raw length."
+description = "Test Vec emptiness through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -12831,19 +13159,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.is_empty"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_is_empty_impl"
+required = true
 
 [[operations]]
 id = "vec.len"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "compatibility binding during method migration", tracking_issue = "718" }
-description = "Return Vec length through the sealed raw API."
+description = "Return Vec length through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
 receiver_index = 0
@@ -12866,23 +13194,24 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.len"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_len_impl"
+required = true
 
 [[operations]]
 id = "vec.pop"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_pop (aliases: 1; vec_pop)"
+description = "Remove last Vec element returning Option through sealed raw (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+inputs = [{ name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } }]
+receiver_index = 0
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
+generic_params = ["T"]
 constraints = []
 [operations.semantics]
 const_evaluable = false
@@ -12900,19 +13229,19 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.pop"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_pop_impl"
+required = true
 
 [[operations]]
 id = "vec.push"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Append a Vec element through the sealed raw API."
+description = "Append a Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -12938,114 +13267,126 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.push_f64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → push_f64 (aliases: 1; push_f64)"
+description = "Append an f64 Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "f64" }] } },
+  { name = "value", type = { kind = "primitive", name = "f64" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
+memory = "read-write"
+allocates = true
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push_f64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_f64_impl"
+required = true
 
 [[operations]]
 id = "vec.push_i64"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → vec_push_i64 (aliases: 2; vec_push_i64, push_i64)"
+description = "Append an i64 Vec element through sealed raw grow+set Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i64" }] } },
+  { name = "value", type = { kind = "primitive", name = "i64" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
+memory = "read-write"
+allocates = true
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.push_i64"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_push_i64_impl"
+required = true
 
 [[operations]]
 id = "vec.remove_i32"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → remove_i32 (aliases: 1; remove_i32)"
+description = "Remove an i32 Vec element by shifting via concrete Ark body (issue 822)."
 [operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
+inputs = [
+  { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "primitive", name = "i32" }] } },
+  { name = "index", type = { kind = "primitive", name = "i32" } },
+]
+receiver_index = 0
+outputs = [{ type = { kind = "primitive", name = "unit" } }]
 generic_params = []
 constraints = []
 [operations.semantics]
 const_evaluable = false
 overflow = "none"
 nan = "none"
-trap = "none"
+trap = "memory"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "none"
+memory = "read-write"
 allocates = false
-may_trap = false
+may_trap = true
 noreturn = false
 external_io = false
 nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.remove_i32"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_remove_i32_impl"
+required = true
 
 [[operations]]
 id = "vec.reverse_i32"
@@ -13087,7 +13428,7 @@ id = "vec.set"
 visibility = "public"
 classification = { layer = "semantic_stdlib" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Set a Vec element through the sealed raw API."
+description = "Write a Vec element through a sealed-raw Ark body (issue 822)."
 [operations.signature]
 inputs = [
   { name = "values", type = { kind = "ref", name = "vec", args = [{ kind = "var", name = "T" }] } },
@@ -13114,226 +13455,9 @@ nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
-policy = "never"
+policy = "hint"
 [operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "vec.set"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.new"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Construct an empty HashMap; key/value kinds come from the destination type."
-[operations.signature]
-inputs = []
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "write"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.new"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.insert"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Insert or overwrite a HashMap entry (unit return for prelude builtins)."
-[operations.signature]
-inputs = [
-  { name = "map", type = { kind = "primitive", name = "i32" } },
-  { name = "key", type = { kind = "primitive", name = "i32" } },
-  { name = "value", type = { kind = "primitive", name = "i32" } },
-]
-outputs = [{ type = { kind = "primitive", name = "unit" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "write"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.insert"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.get"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Look up a HashMap key and return Option<V> (None when missing)."
-[operations.signature]
-inputs = [
-  { name = "map", type = { kind = "primitive", name = "i32" } },
-  { name = "key", type = { kind = "primitive", name = "i32" } },
-]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "read"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.get"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.contains"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Return true when a HashMap contains the given key."
-[operations.signature]
-inputs = [
-  { name = "map", type = { kind = "primitive", name = "i32" } },
-  { name = "key", type = { kind = "primitive", name = "i32" } },
-]
-outputs = [{ type = { kind = "primitive", name = "bool" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bool"
-[operations.effect]
-memory = "read"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.contains"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.remove"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Remove a HashMap key and return Option<V> (None when missing)."
-[operations.signature]
-inputs = [
-  { name = "map", type = { kind = "primitive", name = "i32" } },
-  { name = "key", type = { kind = "primitive", name = "i32" } },
-]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "write"
-allocates = true
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.remove"
-tracking_issue = "818"
-
-[[operations]]
-id = "hashmap.len"
-visibility = "public"
-classification = { layer = "semantic_stdlib" }
-binding = { policy = "optional", reason = "native-cpp HashMap family binding; Wasm keeps hash_aliases path", tracking_issue = "834" }
-description = "Return the number of live entries in a HashMap."
-[operations.signature]
-inputs = [{ name = "map", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "read"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "legacy_emitter"
-[operations.lowering.legacy]
-handler_id = "hashmap.len"
-tracking_issue = "818"
+kind = "normal_call"
+[operations.fallback]
+implementation_symbol = "__core_vec_set_impl"
+required = true

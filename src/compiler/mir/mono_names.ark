@@ -1,13 +1,13 @@
 use std::text
 
 fn mono_safe_name(name: String) -> String {
-    let mut out = String_from("")
+    let mut out = ""
     let n = len(name)
     let mut i = 0
     while i < n {
         let ch = char_at(name, i)
         if ch == 60 || ch == 62 || ch == 44 || ch == 58 || ch == 32 {
-            out = text::builder_append(out, String_from("_"))
+            out = text::builder_append(out, "_")
         } else {
             out = text::builder_append(out, substring(name, i, i + 1))
         }

@@ -26,6 +26,22 @@ fn is_hash_container_type_name(type_name: String) -> bool {
     false
 }
 
+// fn(i32, i32) -> i32 fold callbacks — comma inside the param list.
+fn funcref_type_name_is_binary_i32(type_name: String) -> bool {
+    if eq(clone(type_name), String_from("fnref2")) {
+        return true
+    }
+    if !starts_with(clone(type_name), String_from("fn(")) {
+        return false
+    }
+    let close = index_of(clone(type_name), String_from(")"))
+    if close <= 0 {
+        return false
+    }
+    let params = substring(clone(type_name), 3, close)
+    contains(params, String_from(","))
+}
+
 fn build_function_type_sig(uf: MirFunction, target: String, wasi_version: String, mir: MirModule) -> String {
     let mut sig = String_new()
     let pc = function_param_view::MirFunction_param_count(uf)
@@ -74,12 +90,16 @@ fn build_param_type_sig(
     mir: MirModule
 ) -> String {
     let p_type_name = local_access::MirLocal_type_name(p)
-    // Typed funcref params encode as the atomic segment "fnref" (no underscores)
-    // so type_sig_param_segments keeps them intact (#831).
-    if eq(clone(p_type_name), String_from("fnref")) || starts_with(clone(p_type_name), String_from("fnref")) {
-        return String_from("fnref")
-    }
-    if local_access::MirLocal_val_type(p) == value_types::VT_FUNCREF() {
+    // Typed funcref params encode as atomic segments (no underscores) so
+    // type_sig_param_segments keeps them intact (#831). Binary fold callbacks
+    // use fnref2 → WASI i32_i32_1i32; unary map/filter keep fnref (#807).
+    if eq(clone(p_type_name), String_from("fnref")) ||
+    starts_with(clone(p_type_name), String_from("fnref")) ||
+    local_access::MirLocal_val_type(p) == value_types::VT_FUNCREF() ||
+    starts_with(clone(p_type_name), String_from("fn(")) {
+        if funcref_type_name_is_binary_i32(clone(p_type_name)) {
+            return String_from("fnref2")
+        }
         return String_from("fnref")
     }
     // String byte-buffer helpers are always Vec<i32>; a mis-resolved vec:T

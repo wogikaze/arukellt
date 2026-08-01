@@ -1,29 +1,7 @@
-use component::contract_numeric_scan
-
 pub struct ComponentNumericAllows {
     allow_f32_square: bool,
     allow_f32_binary: bool,
     allow_f32_to_i32: bool,
     allow_i32_to_f32: bool,
     allow_f32_general_multi: bool,
-}
-
-fn ComponentNumericAllows_new(allow_f32_square: bool, allow_f32_binary: bool, allow_f32_to_i32: bool, allow_i32_to_f32: bool, allow_f32_general_multi: bool) -> ComponentNumericAllows {
-    ComponentNumericAllows {
-        allow_f32_square: allow_f32_square,
-        allow_f32_binary: allow_f32_binary,
-        allow_f32_to_i32: allow_f32_to_i32,
-        allow_i32_to_f32: allow_i32_to_f32,
-        allow_f32_general_multi: allow_f32_general_multi,
-    }
-}
-
-fn component_numeric_allows(numeric_scan: ComponentNumericScan) -> ComponentNumericAllows {
-    ComponentNumericAllows_new(
-        contract_numeric_scan::ComponentNumericScan_allows_f32_unary(numeric_scan),
-        contract_numeric_scan::ComponentNumericScan_allows_f32_binary(numeric_scan),
-        contract_numeric_scan::ComponentNumericScan_allows_f32_to_i32(numeric_scan),
-        contract_numeric_scan::ComponentNumericScan_allows_i32_to_f32(numeric_scan),
-        contract_numeric_scan::ComponentNumericScan_allows_f32_general_multi(numeric_scan),
-    )
 }

@@ -3,8 +3,12 @@
 // Migration: docs/migration/v2-to-v3.md
 use std::host::stdio
 
+fn double_i32(x: i32) -> i32 {
+    x * 2
+}
+
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     push(v, 3)
     push(v, 1)
     push(v, 2)
@@ -12,14 +16,13 @@ fn main() {
     stdio::println((get_unchecked(v, 0)).to_string())
     stdio::println((get_unchecked(v, 1)).to_string())
     stdio::println((get_unchecked(v, 2)).to_string())
-    let doubled: Vec<i32> = map_i32_i32(v, |x: i32| -> i32 {
-        x * 2
-    })
+    // Named fn instead of closure: GC call_ref for map closures still traps (#807).
+    let doubled: Vec<i32> = map_i32_i32(v, double_i32)
     stdio::println((sum_i32(doubled)).to_string())
     let s: String = concat(String_from("hello"), String_from(" world"))
     stdio::println(s)
 }
-// Deprecated: Vec_new_i32 — migrate to `use std::collections::vec; vec::new_i32()`
+// Deprecated: Vec::new<i32>() is now the canonical constructor.
 // Deprecated: sort_i32 — migrate to `use std::seq; seq::sort_i32(v)`
 // Deprecated: map_i32_i32 — migrate to `seq::map(seq::from_vec(v), f)`
 // Deprecated: concat — migrate to `use std::text; text::concat(a, b)`

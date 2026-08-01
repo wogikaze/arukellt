@@ -9,7 +9,7 @@
 // --- Deque (ring buffer) ---
 pub fn deque_new() -> Vec<i32> {
     let cap: i32 = 16
-    let d: Vec<i32> = Vec_new_i32()
+    let d: Vec<i32> = Vec::new<i32>()
     push(d, 0)
     push(d, 0)
     push(d, 0)
@@ -72,7 +72,7 @@ pub fn deque_is_empty(d: Vec<i32>) -> bool {
 
 // --- PriorityQueue (min-heap) ---
 pub fn pq_new() -> Vec<i32> {
-    let pq: Vec<i32> = Vec_new_i32()
+    let pq: Vec<i32> = Vec::new<i32>()
     push(pq, 0)
     pq
 }
@@ -178,7 +178,7 @@ pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
     let head: i32 = get_unchecked(d, 0)
     let count: i32 = get_unchecked(d, 2)
     let cap: i32 = get_unchecked(d, 3)
-    let result: Vec<i32> = Vec_new_i32()
+    let result: Vec<i32> = Vec::new<i32>()
     let mut i: i32 = 0
     while i < count {
         let idx: i32 = (head + i) % cap

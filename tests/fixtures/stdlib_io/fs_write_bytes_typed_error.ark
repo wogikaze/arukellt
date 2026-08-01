@@ -2,7 +2,7 @@ use std::host::fs
 use std::host::stdio
 
 fn main() {
-    let bytes: Vec<i32> = Vec_new_i32()
+    let bytes: Vec<i32> = Vec::new<i32>()
     push(bytes, 120)
     push(bytes, 121)
     push(bytes, 122)

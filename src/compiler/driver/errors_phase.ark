@@ -16,7 +16,7 @@ pub fn enrich_diagnostic(source: String, source_file: String, diag: Diagnostic) 
 }
 
 pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
-    let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), String_from("module loading error(s)"))
+    let mut result = result_record::CompileResult_err(phases::PHASE_RESOLVE(), "module loading error(s)")
     let mut le = 0
     while le < len(errors) {
         result_record::compile_result_push_error_message(result, clone(get_unchecked(errors, le)))
@@ -27,7 +27,7 @@ pub fn module_loading_errors_result(errors: Vec<String>) -> CompileResult {
 }
 
 pub fn resolve_errors_result(source: String, source_file: String, error_count: i32, diagnostics: Vec<Diagnostic>, errors: Vec<String>) -> CompileResult {
-    let mut result = result_record::CompileResult_new(false, phases::PHASE_RESOLVE(), error_count, Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+    let mut result = result_record::CompileResult_new(false, phases::PHASE_RESOLVE(), error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     let diag_count = len(diagnostics)
     if diag_count > 0 {
         let mut i = 0
@@ -49,7 +49,7 @@ pub fn resolve_errors_result(source: String, source_file: String, error_count: i
 }
 
 pub fn type_errors_result(source: String, source_file: String, error_count: i32, diagnostics: Vec<Diagnostic>, errors: Vec<String>) -> CompileResult {
-    let mut result = result_record::CompileResult_new(false, phases::PHASE_TYPECHECK(), error_count, Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+    let mut result = result_record::CompileResult_new(false, phases::PHASE_TYPECHECK(), error_count, Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     let diag_count = len(diagnostics)
     if diag_count > 0 {
         let mut i = 0
@@ -73,7 +73,7 @@ pub fn type_errors_result(source: String, source_file: String, error_count: i32,
 pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<Diagnostic>) -> CompileResult {
     // Warnings print but do not fail the process (exit 0). Use --deny / [lint] deny
     // to escalate selected rules to type_errors_result (exit 1).
-    let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), len(warnings), Vec_new_String(), Vec_new_Diagnostic(), Vec_new_i32())
+    let mut result = result_record::CompileResult_new(true, phases::PHASE_TYPECHECK(), len(warnings), Vec::new<String>(), Vec::new<Diagnostic>(), Vec::new<i32>())
     for i in 0..len(warnings) {
         let diag = get_unchecked(warnings, i)
         result_record::compile_result_push_diagnostic(result, diag)
@@ -84,5 +84,5 @@ pub fn type_warnings_result(source: String, source_file: String, warnings: Vec<D
 }
 
 pub fn mir_verify_failed_result() -> CompileResult {
-    result_record::CompileResult_err(phases::PHASE_LOWER(), String_from("MIR verify failed"))
+    result_record::CompileResult_err(phases::PHASE_LOWER(), "MIR verify failed")
 }

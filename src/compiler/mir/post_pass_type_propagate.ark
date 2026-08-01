@@ -12,6 +12,9 @@ use mir::post_pass_callee_lookup
 use mir::post_pass_enum_normalize
 use mir::post_pass_stack_scan
 use mir::typed_mir_sync_module
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_info_to_mir_value
 //
 // Propagates variant_slot and type_name through LOCAL_SET chains and
 // direct dest assignments so the emitter can resolve GC ref types
@@ -146,20 +149,35 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
     let src_loc = function_locals_view::MirFunction_local_at(f, source)
     let dst_loc = function_locals_view::MirFunction_local_at(f, dest)
     let src_variant_slot = local_access::MirLocal_variant_slot(src_loc)
-    let src_type_name = local_access::MirLocal_type_name(src_loc)
+    let source_value_type = local_access::MirLocal_value_type(src_loc)
+    let destination_value_type = local_access::MirLocal_value_type(dst_loc)
+    let mut src_type_name = local_access::MirLocal_type_name(src_loc)
+    let spine_type_name = type_info_to_mir_value::mvt_to_type_name(
+        table,
+        source_value_type
+    )
+    if len(spine_type_name) > 0 {
+        src_type_name = spine_type_name
+    }
     let dst_variant_slot = local_access::MirLocal_variant_slot(dst_loc)
     let dst_type_name = local_access::MirLocal_type_name(dst_loc)
     let mut updated = false
     let mut new_loc = dst_loc
-    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), String_from("_t"))
+    let destination_is_temporary = starts_with(local_access::MirLocal_name(dst_loc), "_t")
     // String/vec/hashmap payload locals must not inherit enum variant slots;
     // that makes emit cast field values to the enclosing Ok/Some/String variant.
     let dst_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(dst_type_name)) ||
-    eq(clone(dst_type_name), String_from("string")) ||
-    eq(clone(dst_type_name), String_from("String"))
+    eq(clone(dst_type_name), "string") ||
+    eq(clone(dst_type_name), "String")
     let src_is_payload_container = post_pass_enum_normalize::is_ref_container_type_name(clone(src_type_name)) ||
-    eq(clone(src_type_name), String_from("string")) ||
-    eq(clone(src_type_name), String_from("String"))
+    eq(clone(src_type_name), "string") ||
+    eq(clone(src_type_name), "String")
+    let destination_has_string_fallback =
+    eq(clone(dst_type_name), "string") ||
+    eq(clone(dst_type_name), "String")
+    let source_is_string =
+    eq(clone(src_type_name), "string") ||
+    eq(clone(src_type_name), "String")
     if !dst_is_payload_container && !src_is_payload_container {
         if destination_is_temporary && dst_variant_slot != src_variant_slot {
             local_access::MirLocal_set_variant_slot(new_loc, src_variant_slot)
@@ -179,10 +197,32 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
         local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
         updated = true
     }
-    if len(src_type_name) > 0 &&
+    let should_replace_type_name =
+    len(src_type_name) > 0 &&
     (len(dst_type_name) == 0 ||
-        (destination_is_temporary && !eq(clone(dst_type_name), clone(src_type_name)))) {
-        new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(new_loc, clone(src_type_name), table)
+        (destination_is_temporary && !eq(clone(dst_type_name), clone(src_type_name))) ||
+        (destination_has_string_fallback &&
+            !source_is_string &&
+            !eq(clone(dst_type_name), clone(src_type_name))))
+    let should_sync_value_type =
+    len(spine_type_name) > 0 &&
+    (should_replace_type_name || eq(clone(dst_type_name), clone(src_type_name))) &&
+    !mir_value_types_equal(source_value_type, destination_value_type)
+    if should_replace_type_name || should_sync_value_type {
+        if should_replace_type_name {
+            new_loc = typed_mir_sync_module::mir_local_with_type_name_synced(
+                new_loc,
+                clone(src_type_name),
+                table
+            )
+        }
+        if should_sync_value_type {
+            new_loc = typed_mir_sync_module::mir_local_with_value_type_synced(
+                new_loc,
+                source_value_type,
+                table
+            )
+        }
         if !post_pass_enum_normalize::is_open_enum_container_type_name(clone(src_type_name)) {
             local_access::MirLocal_set_variant_slot(new_loc, 0 - 1)
         }
@@ -192,6 +232,16 @@ fn propagate_from_local(f: MirFunction, dest: i32, source: i32, table: TypeTable
         function_local_mutation::MirFunction_set_local(f, dest, new_loc)
     }
     updated
+}
+
+fn mir_value_types_equal(a: MirValueType, b: MirValueType) -> bool {
+    type_id::type_id_eq(
+        mir_value_type::mir_value_type_type_id(a),
+        mir_value_type::mir_value_type_type_id(b)
+    ) &&
+    mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
+    mir_value_type::mir_value_type_nullability(a) ==
+    mir_value_type::mir_value_type_nullability(b)
 }
 
 // For stack-based LOCAL_SET, find the producer and propagate its type.

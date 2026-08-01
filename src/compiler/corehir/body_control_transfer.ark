@@ -16,7 +16,7 @@ fn corehir_build_optional_child(table: CoreHirBodyTable, node: AstNode, children
 }
 
 fn corehir_build_break_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     if !corehir_build_optional_child(table, node, children) {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
@@ -28,7 +28,7 @@ fn corehir_build_continue_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
 }
 
 fn corehir_build_return_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
-    let children = Vec_new_i32()
+    let children = Vec::new<i32>()
     if !corehir_build_optional_child(table, node, children) {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }

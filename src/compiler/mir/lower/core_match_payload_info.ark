@@ -63,18 +63,18 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
     let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") ||
     eq(clone(scrut_type), "Option_f64") ||
     eq(clone(scrut_type), "option:f64") ||
-    starts_with(clone(scrut_type), String_from("Result_f64_")) ||
-    starts_with(clone(scrut_type), String_from("result:f64:"))
+    starts_with(clone(scrut_type), "Result_f64_") ||
+    starts_with(clone(scrut_type), "result:f64:")
     let scrut_ok_is_i64 = eq(clone(scrut_type), "Result_i64") ||
     eq(clone(scrut_type), "Option_i64") ||
     eq(clone(scrut_type), "option:i64") ||
-    starts_with(clone(scrut_type), String_from("Result_i64_")) ||
-    starts_with(clone(scrut_type), String_from("result:i64:"))
+    starts_with(clone(scrut_type), "Result_i64_") ||
+    starts_with(clone(scrut_type), "result:i64:")
     let scrut_ok_is_i32 = eq(clone(scrut_type), "Option_i32") ||
     eq(clone(scrut_type), "Result_i32") ||
     eq(clone(scrut_type), "option:i32") ||
-    starts_with(clone(scrut_type), String_from("Result_i32_")) ||
-    starts_with(clone(scrut_type), String_from("result:i32:"))
+    starts_with(clone(scrut_type), "Result_i32_") ||
+    starts_with(clone(scrut_type), "result:i32:")
     let scrut_ok_is_ref = core_scrut_type_is_ref(scrut_type)
     let mut compare_idx = scrut_idx
     if is_payload_match || (ctx_gc_enum::ctx_is_gc_target(ctx) && has_variant_arm) {
@@ -85,15 +85,15 @@ fn core_prepare_match_payload(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Core
 }
 
 fn core_scrut_type_is_ref(scrut_type: String) -> bool {
-    if starts_with(clone(scrut_type), String_from("Option_")) || starts_with(clone(scrut_type), String_from("Result_")) {
+    if starts_with(clone(scrut_type), "Option_") || starts_with(clone(scrut_type), "Result_") {
         let suffix = substring(clone(scrut_type), 7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
-    if starts_with(clone(scrut_type), String_from("option:")) {
+    if starts_with(clone(scrut_type), "option:") {
         let suffix = substring(clone(scrut_type), 7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
-    if starts_with(clone(scrut_type), String_from("result:")) {
+    if starts_with(clone(scrut_type), "result:") {
         let suffix = substring(clone(scrut_type), 7, len(scrut_type))
         return core_suffix_is_ref(suffix)
     }
@@ -108,7 +108,7 @@ fn core_suffix_is_ref(suffix: String) -> bool {
         return false
     }
     // Funcref Option payloads use call_ref, not open GC ref (#831).
-    if eq(clone(suffix), "fnref") || eq(clone(suffix), "fn") || starts_with(clone(suffix), String_from("fn(")) {
+    if eq(clone(suffix), "fnref") || eq(clone(suffix), "fn") || starts_with(clone(suffix), "fn(") {
         return false
     }
     true
@@ -134,6 +134,15 @@ fn core_match_has_variant_pattern(exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) ->
             let scan_pat = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(scan_arm, 0))
             if core_expr_shape_patterns::mir_core_expr_is_pat_variant(scan_pat) {
                 return true
+            }
+            if core_expr_shape_patterns::mir_core_expr_is_pat_ident(scan_pat) {
+                let iname = core_expr_shape_accessors::mir_core_expr_text(scan_pat)
+                if eq(clone(iname), String_from("None")) ||
+                eq(clone(iname), String_from("Some")) ||
+                eq(clone(iname), String_from("Ok")) ||
+                eq(clone(iname), String_from("Err")) {
+                    return true
+                }
             }
             if core_expr_shape_patterns::mir_core_expr_is_pat_or(scan_pat) {
                 let alt_count = core_expr_shape_accessors::mir_core_expr_child_count(scan_pat)

@@ -22,7 +22,7 @@ fn find_payload_variant_type(ctx: SelfEmitCtx) -> i32 {
     while i < count {
         let name = clone(get_unchecked(names, i))
         // Look for "Some" or "Ok" variants (payload variants with i32 field 1)
-        if contains(name, String_from("Some")) || contains(name, String_from("Ok")) {
+        if contains(name, "Some") || contains(name, "Ok") {
             if i < len(type_map) {
                 let variant_type = get_unchecked(type_map, i)
                 let enum_open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)

@@ -1,15 +1,15 @@
 use std::text
+use std::json
 use lsp::import_graph
-use lsp::json_escape
 use lsp::positions
 
 pub fn completion_item(label: String, kind: i32, detail: String) -> String {
     let mut out = String_from("{\"label\":")
-    out = text::builder_append(out, json_escape::quote_string(label))
+    out = text::builder_append(out, json::quote_string(label))
     out = text::builder_append(out, String_from(",\"kind\":"))
     out = text::builder_append(out, to_string(kind))
     out = text::builder_append(out, String_from(",\"detail\":"))
-    out = text::builder_append(out, json_escape::quote_string(detail))
+    out = text::builder_append(out, json::quote_string(detail))
     out = text::builder_append(out, String_from("}"))
     out
 }
@@ -21,11 +21,11 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"label\":")
-    out = text::builder_append(out, json_escape::quote_string(label))
+    out = text::builder_append(out, json::quote_string(label))
     out = text::builder_append(out, String_from(",\"kind\":"))
     out = text::builder_append(out, to_string(kind))
     out = text::builder_append(out, String_from(",\"detail\":"))
-    out = text::builder_append(out, json_escape::quote_string(detail))
+    out = text::builder_append(out, json::quote_string(detail))
     out = text::builder_append(out, String_from(",\"additionalTextEdits\":[{\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
     out = text::builder_append(out, String_from(",\"character\":"))
@@ -35,7 +35,7 @@ pub fn completion_item_json(label: String, kind: i32, detail: String, text: Stri
     out = text::builder_append(out, String_from(",\"character\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
     out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
+    out = text::builder_append(out, json::quote_string(import_graph::build_use_statement(import_path)))
     out = text::builder_append(out, String_from("}]}"))
     out
 }

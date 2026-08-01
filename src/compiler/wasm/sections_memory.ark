@@ -7,7 +7,15 @@ use wasm::emit_target
 fn emit_memory_section(out: WasmWriter, target: String) {
     let mem_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     if emit_target::is_gc_target(clone(target)) {
-        emit_memory_entry(mem_sec, 1, writer_core::writer_memory64(out))
+        // Active data for full selfhost exceeds 1 page; memory32 wasi-p2 guests
+        // must fit data at instantiate (#834). Memory64 runtimes still start at 1
+        // and grow (host patcher may raise initial pages).
+        let pages = if writer_core::writer_memory64(out) {
+            1
+        } else {
+            initial_memory_pages()
+        }
+        emit_memory_entry(mem_sec, pages, writer_core::writer_memory64(out))
     } else {
         emit_memory_entry(mem_sec, initial_memory_pages(), false)
     }

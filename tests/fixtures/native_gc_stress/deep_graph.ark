@@ -1,6 +1,6 @@
 // Nested live structs under GC pressure for iterative mark (Phase 4 Branch C).
 // Avoid loop-carried record reassignment: native-cpp C emit currently mis-types
-// that LOCAL_SET as i32→ref under root clears (tracked with #833/#834 rollout).
+// that LOCAL_SET as i32→ref under root clears (tracked with #847/#848 rollout).
 struct Inner {
     label: String,
 }

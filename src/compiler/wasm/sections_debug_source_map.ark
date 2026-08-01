@@ -15,7 +15,7 @@ fn emit_debug_source_map_custom_section(out: WasmWriter, ctx: SelfEmitCtx, impor
         return
     }
     let payload = writer_core::WasmWriter_new()
-    writer_string::emit_string(payload, String_from("metadata.debug.source_map"))
+    writer_string::emit_string(payload, "metadata.debug.source_map")
     writer_core::emit_leb128_u(payload, 2) // version 2 (function-level with file table)
     // File table: always include source_file as file_id 1
     writer_core::emit_leb128_u(payload, 1) // file_count

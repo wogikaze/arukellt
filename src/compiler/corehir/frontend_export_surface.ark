@@ -4,20 +4,20 @@ use corehir::frontend_decl_kind
 use corehir::frontend_ast_identity
 
 fn should_export_func(name: String) -> bool {
-    if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
+    if eq(clone(name), "main") || eq(clone(name), "_start") {
         return false
     }
-    if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
+    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
         return false
     }
-    if contains(clone(name), String_from("::")) {
+    if contains(clone(name), "::") {
         return false
     }
     true
 }
 
 fn build_export_surface(decls: Vec<AstNode>) -> CoreHirExportSurface {
-    let export_names = Vec_new_String()
+    let export_names = Vec::new<String>()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {

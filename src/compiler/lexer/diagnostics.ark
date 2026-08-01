@@ -3,7 +3,7 @@ use lexer::errors
 use lexer::token_state
 
 fn build_lex_result(tokens: Vec<Token>) -> LexResult {
-    let mut diagnostics: Vec<LexDiagnostic> = Vec_new_LexDiagnostic()
+    let mut diagnostics: Vec<LexDiagnostic> = Vec::new<LexDiagnostic>()
     let count = len(tokens)
     let mut i = 0
     while i < count {

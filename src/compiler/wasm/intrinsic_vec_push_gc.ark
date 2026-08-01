@@ -146,15 +146,15 @@ fn push_gc_element_is_gc_ref(ctx: SelfEmitCtx, inst: MirInst, is_vec_string: boo
 }
 
 fn push_gc_primitive_vec_elem(elem: String) -> bool {
-    eq(clone(elem), String_from("i32")) ||
-    eq(clone(elem), String_from("i64")) ||
-    eq(clone(elem), String_from("f64")) ||
-    eq(clone(elem), String_from("f32")) ||
-    eq(clone(elem), String_from("bool")) ||
-    eq(clone(elem), String_from("char")) ||
-    eq(clone(elem), String_from("fnref")) ||
-    eq(clone(elem), String_from("fn")) ||
-    starts_with(clone(elem), String_from("fn("))
+    eq(clone(elem), "i32") ||
+    eq(clone(elem), "i64") ||
+    eq(clone(elem), "f64") ||
+    eq(clone(elem), "f32") ||
+    eq(clone(elem), "bool") ||
+    eq(clone(elem), "char") ||
+    eq(clone(elem), "fnref") ||
+    eq(clone(elem), "fn") ||
+    starts_with(clone(elem), "fn(")
 }
 
 // Array scratch locals must match the vec's element array type.
@@ -267,9 +267,18 @@ fn emit_gc_growth_check(w: WasmWriter, arr_tmp: i32, arr_old: i32, s_len: i32, s
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_set(w, arr_old)
 
+    // cap*2, but empty (cap=0) must grow to at least 1 (#807 vec_new_capacity_zero).
     helpers_core::emit_local_get(w, s_cap)
     helpers_numeric_i32::emit_i32_const(w, 2)
     helpers_numeric_i32::emit_i32_mul(w)
+    helpers_core::emit_local_tee(w, s_cap)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_core::emit_local_set(w, s_cap)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    helpers_core::emit_local_get(w, s_cap)
     writer_gc::emit_gc_array_new_from_widened(w, i32_array_type)
     writer_gc::emit_gc_ref_cast(w, i32_array_type)
     helpers_core::emit_local_set(w, arr_tmp)

@@ -4,11 +4,23 @@
 use mir::inst_accessors_operands
 use wasm::inst_ctx
 use wasm::inst_store
+use wasm::ctx_record
+use wasm::emit_target
+use wasm::intrinsic_assert
+use wasm::intrinsic_cast
 use wasm::intrinsic_clock
+use wasm::intrinsic_math
+use wasm::intrinsic_random
 use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
 use wasm::intrinsic_string_contains_bytes
+use wasm::intrinsic_string_from_bytes
+use wasm::intrinsic_string_collection
+use wasm::intrinsic_string_format
+use wasm::intrinsic_vec
 use wasm::intrinsic_vec_new_layout
+use wasm::intrinsic_memory
+use wasm::intrinsic_env_args
 
 fn try_emit_clone_intrinsic(
     w: WasmWriter,
@@ -40,12 +52,80 @@ fn try_emit_name_intrinsic_fallback(
     if try_emit_clone_intrinsic(w, clone(callee), inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
+    // String::eq / __intrinsic_string_eq miss core_op → drop+unreachable (#807).
+    if is_string_eq_callee(clone(callee)) {
+        let on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // i64 widen/narrow + assert_eq_i64 often miss core_op binding on GC (#807).
+    if is_i32_to_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_cast::emit_i32_to_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_i64_to_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_cast::emit_i64_to_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_assert_eq_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_assert::emit_assert_eq_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Bare assert_eq / assert_ne miss core_op → drop+unreachable; most i32
+    // fixture assertions take this path (#807 io/bytes/trait clusters).
+    if is_assert_eq_callee(clone(callee)) {
+        let on_stack = intrinsic_assert::emit_assert_eq(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_assert_ne_callee(clone(callee)) {
+        let on_stack = intrinsic_assert::emit_assert_ne(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_assert_eq_str_callee(clone(callee)) {
+        // Linear-memory assert_eq_str traps on GC strings; compare via
+        // string_eq then assert the bool (#807).
+        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            let _eq_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+            let on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+        }
+        let on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_len_callee(clone(callee)) {
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
-    // s2-runtime self-compile: Vec_new_Token (and other typed Vec_new_*) can miss
-    // core_op binding and become unresolved → unreachable in tokenize.
+    // Std builder_append / write_debug_to bodies call __intrinsic_concat; when
+    // core_op rewrite misses, drop+unreachable traps (#807 text/debug clusters).
+    if is_concat_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // text.string_from_bytes is normal_call→__core_string_from_bytes_impl, but
+    // the impl is often DCE'd; emit the GC/linear intrinsic instead (#807).
+    if is_string_from_bytes_callee(clone(callee)) {
+        let on_stack = intrinsic_string_from_bytes::emit_string_from_bytes(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Same class: i64 format Ark body deferred/DCE'd → use intrinsic (#807).
+    if is_format_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // path::normalize uses __intrinsic_split/join; core_op miss → unreachable (#807).
+    if is_split_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_split(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_string_join_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_join(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_pop_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Associated Vec::new / Vec::with_capacity fallback when MIR body is DCE'd (#845).
     if is_vec_new_callee(clone(callee)) {
         intrinsic_vec_new_layout::emit_vec_new_layout(w, 32, 44, inst, ctx)
         inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
@@ -75,20 +155,94 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_clock::emit_clock_now_ms(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Same unresolved-intrinsic hole as clock: `__intrinsic_random_i32` can
+    // miss core_op and become `unreachable` (#807 wasi_random / clock_random).
+    if is_random_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_random::emit_random_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Bulk memory: mir_op binding is forbidden/missed → drop+unreachable (#807).
+    // Args are already on the stack from CALL lowering.
+    if is_memory_fill_callee(clone(callee)) {
+        let on_stack = intrinsic_memory::emit_memory_fill(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_memory_copy_callee(clone(callee)) {
+        let on_stack = intrinsic_memory::emit_memory_copy(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // CLI/env argv: core_op rewrite miss → unreachable (#807 cli_flag_check).
+    if is_arg_count_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_arg_count(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_args_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_args(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_has_flag_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_has_flag(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_arg_at_callee(clone(callee)) {
+        let on_stack = intrinsic_env_args::emit_env_arg_at(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
 }
 
+fn is_has_flag_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("has_flag")) ||
+    eq(clone(callee), String_from("__intrinsic_has_flag")) ||
+    ends_with(clone(callee), String_from("::has_flag"))
+}
+
+fn is_arg_at_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("arg_at")) ||
+    eq(clone(callee), String_from("__intrinsic_arg_at")) ||
+    ends_with(clone(callee), String_from("::arg_at"))
+}
+
+fn is_arg_count_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("arg_count")) ||
+    eq(clone(callee), String_from("__intrinsic_arg_count")) ||
+    ends_with(clone(callee), String_from("::arg_count"))
+}
+
+fn is_args_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("args")) ||
+    eq(clone(callee), String_from("__intrinsic_args")) ||
+    ends_with(clone(callee), String_from("::args"))
+}
+
+fn is_memory_fill_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("memory_fill")) ||
+    eq(clone(callee), String_from("__intrinsic_memory_fill")) ||
+    ends_with(clone(callee), String_from("::memory_fill"))
+}
+
+fn is_memory_copy_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("memory_copy")) ||
+    eq(clone(callee), String_from("__intrinsic_memory_copy")) ||
+    ends_with(clone(callee), String_from("::memory_copy"))
+}
+
 fn is_vec_new_callee(callee: String) -> bool {
-    if starts_with(clone(callee), String_from("Vec_new_")) {
+    // Associated Vec::new / Vec::new__T / with_capacity (#845).
+    // mono_safe_name rewrites "::" to "_", so also match Vec__new__T.
+    if eq(clone(callee), String_from("Vec::new")) ||
+    starts_with(clone(callee), String_from("Vec::new__")) ||
+    eq(clone(callee), String_from("Vec__new")) ||
+    starts_with(clone(callee), String_from("Vec__new__")) {
         return true
     }
-    if eq(clone(callee), String_from("Vec_new")) {
+    if eq(clone(callee), String_from("Vec::with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
+    eq(clone(callee), String_from("Vec__with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec__with_capacity__")) {
         return true
     }
-    if contains(clone(callee), String_from("::Vec_new_")) {
-        return true
-    }
-    ends_with(clone(callee), String_from("Vec_new_fallback"))
+    false
 }
 
 fn is_contains_callee(callee: String) -> bool {
@@ -123,6 +277,60 @@ fn is_clock_now_ms_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("::clock_now_ms"))
 }
 
+fn is_random_i32_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("random_i32")) ||
+    eq(clone(callee), String_from("__intrinsic_random_i32")) ||
+    ends_with(clone(callee), String_from("::random_i32"))
+}
+
+fn is_string_eq_callee(callee: String) -> bool {
+    // Only string-eq symbols — not bare `eq` / `i32::eq` (those are scalar).
+    eq(clone(callee), String_from("__intrinsic_string_eq")) ||
+    eq(clone(callee), String_from("__core_string_eq_impl")) ||
+    eq(clone(callee), String_from("String::eq")) ||
+    eq(clone(callee), String_from("string_eq")) ||
+    ends_with(clone(callee), String_from("string_eq"))
+}
+
+fn is_i32_to_i64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("__intrinsic_i32_to_i64")) ||
+    eq(clone(callee), String_from("i32_to_i64")) ||
+    ends_with(clone(callee), String_from("i32_to_i64"))
+}
+
+fn is_i64_to_i32_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("__intrinsic_i64_to_i32")) ||
+    eq(clone(callee), String_from("i64_to_i32")) ||
+    ends_with(clone(callee), String_from("i64_to_i32"))
+}
+
+fn is_assert_eq_i64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("assert_eq_i64")) ||
+    ends_with(clone(callee), String_from("assert_eq_i64"))
+}
+
+fn is_assert_eq_callee(callee: String) -> bool {
+    // Exclude assert_eq_i64 / assert_eq_str / assert_eq_i32 / …
+    if contains(clone(callee), String_from("assert_eq_")) {
+        return false
+    }
+    eq(clone(callee), String_from("assert_eq")) ||
+    ends_with(clone(callee), String_from("assert_eq"))
+}
+
+fn is_assert_ne_callee(callee: String) -> bool {
+    if contains(clone(callee), String_from("assert_ne_")) {
+        return false
+    }
+    eq(clone(callee), String_from("assert_ne")) ||
+    ends_with(clone(callee), String_from("assert_ne"))
+}
+
+fn is_assert_eq_str_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("assert_eq_str")) ||
+    ends_with(clone(callee), String_from("assert_eq_str"))
+}
+
 fn is_clone_callee(callee: String) -> bool {
     // core_op_handler_* functions are generated constant accessors (e.g.
     // core_op_handler_raw_string_clone), not actual clone operations.
@@ -148,11 +356,67 @@ fn is_clone_callee(callee: String) -> bool {
 fn is_len_callee(callee: String) -> bool {
     eq(clone(callee), String_from("len")) ||
     eq(clone(callee), String_from("len_bytes")) ||
+    eq(clone(callee), String_from("byte_len")) ||
     eq(clone(callee), String_from("__intrinsic_len")) ||
     ends_with(clone(callee), String_from("::len")) ||
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
-    ends_with(clone(callee), String_from("__len_bytes"))
+    ends_with(clone(callee), String_from("__len_bytes")) ||
+    ends_with(clone(callee), String_from("::byte_len"))
+}
+
+fn is_concat_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("concat")) ||
+    eq(clone(callee), String_from("__intrinsic_concat")) ||
+    eq(clone(callee), String_from("__core_string_concat_impl")) ||
+    eq(clone(callee), String_from("text::concat")) ||
+    ends_with(clone(callee), String_from("::concat"))
+}
+
+fn is_string_from_bytes_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("string_from_bytes")) ||
+    eq(clone(callee), String_from("__core_string_from_bytes_impl")) ||
+    eq(clone(callee), String_from("__intrinsic_string_from_bytes")) ||
+    eq(clone(callee), String_from("raw_string_from_bytes")) ||
+    ends_with(clone(callee), String_from("::string_from_bytes")) ||
+    ends_with(clone(callee), String_from("::raw_string_from_bytes"))
+}
+
+fn is_format_i64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("format_i64")) ||
+    eq(clone(callee), String_from("__core_format_i64_impl")) ||
+    eq(clone(callee), String_from("i64_to_string")) ||
+    ends_with(clone(callee), String_from("::format_i64")) ||
+    ends_with(clone(callee), String_from("::i64_to_string"))
+}
+
+fn is_split_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("split")) ||
+    eq(clone(callee), String_from("__intrinsic_split")) ||
+    eq(clone(callee), String_from("__core_string_split_impl")) ||
+    eq(clone(callee), String_from("text::split")) ||
+    eq(clone(callee), String_from("string::split")) ||
+    ends_with(clone(callee), String_from("::split"))
+}
+
+// Vec/string join only — exclude path::join(String, String).
+fn is_string_join_callee(callee: String) -> bool {
+    if eq(clone(callee), String_from("path::join")) || ends_with(clone(callee), String_from("path::join")) {
+        return false
+    }
+    eq(clone(callee), String_from("__intrinsic_join")) ||
+    eq(clone(callee), String_from("__core_string_join_impl")) ||
+    eq(clone(callee), String_from("text::join")) ||
+    eq(clone(callee), String_from("string::join")) ||
+    eq(clone(callee), String_from("join"))
+}
+
+fn is_vec_pop_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("pop")) ||
+    eq(clone(callee), String_from("vec_pop")) ||
+    eq(clone(callee), String_from("__intrinsic_pop")) ||
+    ends_with(clone(callee), String_from("::pop")) ||
+    ends_with(clone(callee), String_from("::vec_pop"))
 }
 
 fn finish_intrinsic_fallback(

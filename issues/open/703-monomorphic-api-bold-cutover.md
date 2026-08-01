@@ -75,19 +75,17 @@ Why remove the parallel surface:
 
 ### Prerequisite (blocked by upstream issues)
 
-- [ ] #700 lands `impl Vec<T>` with `push` / `get` / `set` / `len` /
+- [x] #700 lands `impl Vec<T>` with `push` / `get` / `set` / `len` /
       `is_empty` / `clear` methods.
-- [ ] #701 lands `Vec::new<T>()` / `Vec::with_capacity<T>(n)`.
+- [x] #701 lands `Vec::new<T>()` syntax (via legacy rewrite — removal is **#845**).
 - [ ] #691 lands `Iterator` trait with `map` / `filter` / `fold` /
       `any` / `find` / `sum` / `product` adapters.
 - [ ] #695 lands `Ord` trait for `sort` / `binary_search`.
 
 ### Cutover
 
-- [ ] **Deprecate** (if `stable`) then **delete** all monomorphic `Vec_*`
-      APIs from prelude (`std/prelude.ark`): `Vec_new_i32`, `Vec_push_i32`,
-      `Vec_get_i32`, `Vec_set_i32`, `Vec_len_i32`, `Vec_new_i32_with_cap`,
-      etc. Follow ADR-014 / ADR-046 D4.
+- [ ] **Vec constructors** (`Vec_new_*` mangling + prelude): tracked by **#845**
+      (front-loaded from this issue).
 - [ ] **Deprecate** (if `stable`) then **delete** all monomorphic
       sort/map/filter/fold functions from `std/seq/mod.ark` and prelude:
       `sort_i32`, `sort_i64`, `sort_f64`, `sort_String`, `map_i32_i32`,

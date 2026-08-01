@@ -136,7 +136,7 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     let mut found = 0 - 1
     let mut gets_seen = 0
     let mut look = 1
-    let arg_srcs = Vec_new_i32()
+    let arg_srcs = Vec::new<i32>()
     while gets_seen < cur_arg_count && ii - look >= 0 {
         let prev = block_inst_access::MirBlock_inst_at(block, ii - look)
         let pop = inst_accessors_shape::MirInst_op(prev)
@@ -192,14 +192,18 @@ fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i3
                     if inst_accessors_operands::MirInst_dest(cur) == dest {
                         let cur_arg_count = inst_accessors_operands::MirInst_int_val(cur)
                         let found = find_vec_local_from_call_args(ctx, block, ii, cur_arg_count)
-                        if found >= 0 {
+                        // Prefer a definitely vec-typed local. The arg-scan
+                        // fallback may return the struct base (`p` in
+                        // `len(p.errors)`) when the field temp has no LOCAL_GET.
+                        if found >= 0 && local_type_is_vec(ctx, found) {
                             return found
                         }
-                        if ii > 0 {
-                            let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
-                            if inst_accessors_shape::MirInst_op(prev) == mir_opcodes::MIR_LOCAL_GET() {
-                                return inst_accessors_operands::MirInst_arg0(prev)
-                            }
+                        let from_prev = vec_source_local_from_prev_inst(ctx, block, ii)
+                        if from_prev >= 0 {
+                            return from_prev
+                        }
+                        if found >= 0 {
+                            return found
                         }
                     }
                 }
@@ -207,6 +211,39 @@ fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i3
             ii = ii + 1
         }
         bi = bi + 1
+    }
+    0 - 1
+}
+
+// When `len(p.errors)` or `len(foo())` leaves the vec on the stack without a
+// LOCAL_GET of the temp, the only LOCAL_GET nearby is the struct base / other
+// arg — typed as Parser, not vec:T — so resolve fell back to Vec<i32> (#834).
+fn local_type_is_vec(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let tname = local_type_name(ctx, local_idx)
+    starts_with(clone(tname), String_from("vec:")) || starts_with(clone(tname), String_from("Vec_"))
+}
+
+fn vec_source_local_from_prev_inst(ctx: SelfEmitCtx, block: MirBlock, call_ii: i32) -> i32 {
+    if call_ii <= 0 {
+        return 0 - 1
+    }
+    let prev = block_inst_access::MirBlock_inst_at(block, call_ii - 1)
+    let pop = inst_accessors_shape::MirInst_op(prev)
+    if pop == mir_opcodes::MIR_LOCAL_GET() {
+        let src = inst_accessors_operands::MirInst_arg0(prev)
+        if local_type_is_vec(ctx, src) {
+            return src
+        }
+        return 0 - 1
+    }
+    if pop == mir_opcodes::MIR_STRUCT_GET() ||
+    pop == mir_opcodes::MIR_GC_STRUCT_GET() ||
+    pop == mir_opcodes::MIR_CALL() ||
+    pop == mir_opcodes::MIR_WIT_CALL() {
+        let d = inst_accessors_operands::MirInst_dest(prev)
+        if d >= 0 && local_type_is_vec(ctx, d) {
+            return d
+        }
     }
     0 - 1
 }

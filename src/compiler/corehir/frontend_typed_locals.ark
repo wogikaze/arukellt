@@ -5,7 +5,7 @@ use corehir::frontend_stmt_kind
 use corehir::frontend_ast_type_ann
 
 fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
-    let locals = Vec_new_CoreHirTypedLocal()
+    let locals = Vec::new<CoreHirTypedLocal>()
     let decl_count = len(decls)
     let mut di = 0
     while di < decl_count {
@@ -16,7 +16,7 @@ fn scan_typed_locals(decls: Vec<AstNode>) -> Vec<CoreHirTypedLocal> {
 }
 
 fn default_type_info() -> TypeInfo {
-    TypeInfo { tag: 1, name: String_from("i32"), type_args: Vec_new_TypeInfo() }
+    TypeInfo { tag: 1, name: "i32", type_args: Vec::new<TypeInfo>() }
 }
 
 fn scan_locals_in_node(node: AstNode, locals: Vec<CoreHirTypedLocal>) {

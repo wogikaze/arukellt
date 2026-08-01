@@ -42,10 +42,13 @@ impl Eq for i64 {
     }
 }
 
-/// Built-in `String` equality via the prelude `eq` function.
+/// Built-in `String` equality via the string eq intrinsic.
+///
+/// Must not call free `eq` / `String::eq` — call rewrite maps those back here
+/// and recurses (#807). Same pattern as `Clone for String` + `__intrinsic_clone`.
 impl Eq for String {
     fn eq(self: String, other: String) -> bool {
-        eq(self, other)
+        __intrinsic_string_eq(self, other)
     }
 }
 

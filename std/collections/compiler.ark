@@ -13,7 +13,7 @@
 // Layout of backing Vec<i32>: [count, value_0, value_1, ...]
 // ArenaId = i32 index (monotonically increasing).
 pub fn arena_new() -> Vec<i32> {
-    let a: Vec<i32> = Vec_new_i32()
+    let a: Vec<i32> = Vec::new<i32>()
     push(a, 0)
     a
 }
@@ -40,7 +40,7 @@ pub fn arena_len(a: Vec<i32>) -> i32 {
 // SlotKey = i32 (the slot index, stable across removes).
 // alive_N = 1 if slot N is active, 0 if removed.
 pub fn slotmap_new() -> Vec<i32> {
-    let m: Vec<i32> = Vec_new_i32()
+    let m: Vec<i32> = Vec::new<i32>()
     push(m, 0)
     push(m, 0)
     m
@@ -102,7 +102,7 @@ pub fn slotmap_len(m: Vec<i32>) -> i32 {
 // intern returns the existing Symbol if value was already interned.
 // lookup returns Option<String> for the given Symbol.
 pub fn interner_new() -> Vec<String> {
-    Vec_new_String()
+    Vec::new<String>()
 }
 
 pub fn interner_intern(i: Vec<String>, value: String) -> i32 {

@@ -3,7 +3,7 @@ pub struct ComponentWriter {
 }
 
 fn ComponentWriter_new() -> ComponentWriter {
-    ComponentWriter { bytes: Vec_new_i32() }
+    ComponentWriter { bytes: Vec::new<i32>() }
 }
 
 fn comp_emit_byte(w: ComponentWriter, b: i32) {

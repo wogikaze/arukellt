@@ -2,7 +2,7 @@ use std::host::stdio
 
 fn main() {
     // Vec<T> method syntax via impl Vec<T> block (approach (a) for #700)
-    let v = Vec_new_i32()
+    let v = Vec::new<i32>()
     v.push(10)
     v.push(20)
     v.push(30)

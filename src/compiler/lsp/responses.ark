@@ -17,9 +17,9 @@ pub fn build_null_response(id: i32) -> String {
 }
 
 pub fn build_empty_array_response(id: i32) -> String {
-    let mut body = String_from("{\"jsonrpc\":\"2.0\",\"id\":")
+    let mut body = "{\"jsonrpc\":\"2.0\",\"id\":"
     body = concat(body, to_string(id))
-    body = concat(body, String_from(",\"result\":[]}"))
+    body = concat(body, ",\"result\":[]}")
     body
 }
 

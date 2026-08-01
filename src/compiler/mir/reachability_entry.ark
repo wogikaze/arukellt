@@ -31,13 +31,13 @@ fn mir_prune_unreachable_with_roots_for_target(
     }
     let functions = module_functions::MirModule_functions(m)
     let index = reachability_index::mir_reachability_index_build(m, functions)
-    let reachable = Vec_new_i32()
+    let reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)
         i = i + 1
     }
-    let queue = Vec_new_i32()
+    let queue = Vec::new<i32>()
     let root_count = reachability_roots::mir_mark_roots(index, functions, reachable, queue, extra_roots)
     if root_count == 0 {
         return 0

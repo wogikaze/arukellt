@@ -19,22 +19,22 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i
         }
         Option::None => {}
     }
-    if starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
@@ -51,44 +51,44 @@ fn infer_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i
 }
 
 fn infer_hashmap_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
-    if !starts_with(clone(type_name), String_from("hashmap:")) {
+    if !starts_with(clone(type_name), "hashmap:") {
         return Option::None
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32str")) {
+    if starts_with(clone(type_name), "hashmap:i32str") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_str_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32fn")) {
+    if starts_with(clone(type_name), "hashmap:i32fn") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_i32_fn_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("hashmap:si32")) {
+    if starts_with(clone(type_name), "hashmap:si32") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("hashmap:strstr")) {
+    if starts_with(clone(type_name), "hashmap:strstr") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_str_type(ctx))
     }
-    if starts_with(clone(type_name), String_from("hashmap:i32i32")) {
+    if starts_with(clone(type_name), "hashmap:i32i32") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_type(ctx))
     }
     Option::Some(ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
 }
 
 fn infer_vec_gc_type_from_type_name(type_name: String, ctx: SelfEmitCtx) -> Option<i32> {
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
     }
-    if !starts_with(clone(type_name), String_from("vec:")) {
+    if !starts_with(clone(type_name), "vec:") {
         return Option::None
     }
-    if eq(clone(type_name), String_from("vec:String")) || eq(clone(type_name), String_from("vec:string")) {
+    if eq(clone(type_name), "vec:String") || eq(clone(type_name), "vec:string") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_string_type(ctx))
     }
-    if eq(clone(type_name), String_from("vec:v128")) || eq(clone(type_name), String_from("vec:V128")) {
+    if eq(clone(type_name), "vec:v128") || eq(clone(type_name), "vec:V128") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
     }
-    if eq(clone(type_name), String_from("vec:i64")) || eq(clone(type_name), String_from("vec:I64")) {
+    if eq(clone(type_name), "vec:i64") || eq(clone(type_name), "vec:I64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx))
     }
-    if eq(clone(type_name), String_from("vec:f64")) || eq(clone(type_name), String_from("vec:F64")) {
+    if eq(clone(type_name), "vec:f64") || eq(clone(type_name), "vec:F64") {
         return Option::Some(ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx))
     }
     let elem_name = substring(clone(type_name), 4, len(type_name))

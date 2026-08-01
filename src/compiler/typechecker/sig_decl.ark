@@ -15,7 +15,7 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     let type_params = sig_bounds::collect_type_param_names(type_param_bounds)
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
-    let param_types = Vec_new_TypeInfo()
+    let param_types = Vec::new<TypeInfo>()
     let child_count = ast_access::node_child_count(node)
     if child_count > 1 {
         let mut p = 0
@@ -34,7 +34,7 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
     j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
@@ -46,22 +46,22 @@ fn fn_sig_from_fn_decl(node: AstNode) -> FnSig {
 }
 
 fn fn_sig_from_const_decl(node: AstNode) -> FnSig {
-    let param_types = Vec_new_TypeInfo()
+    let param_types = Vec::new<TypeInfo>()
     let mut return_type = simple_type(commands::TY_UNKNOWN())
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
-                return_type = types::resolve_type_ann_node_generic(ret_node, Vec_new_String())
+                return_type = types::resolve_type_ann_node_generic(ret_node, Vec::new<String>())
             }
         }
         j = j + 1
     }
-    let type_params = Vec_new_String()
-    let type_param_bounds = Vec_new_TypeParamBounds()
+    let type_params = Vec::new<String>()
+    let type_param_bounds = Vec::new<TypeParamBounds>()
     contract_fn_sig::FnSig_new(ast_access::node_text(node), param_types, return_type, type_params, type_param_bounds)
 }
 
@@ -74,7 +74,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
     let type_params = merge_type_params(impl_type_params, method_type_params)
     let ann_count = ast_access::node_type_ann_count(node)
     let mut j = 0
-    let param_types = Vec_new_TypeInfo()
+    let param_types = Vec::new<TypeInfo>()
     let child_count = ast_access::node_child_count(node)
     if child_count > 1 {
         let mut p = 0
@@ -93,7 +93,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
     j = 0
     while j < ann_count {
         let ann = ast_access::node_type_ann_at(node, j)
-        if eq(ast_access::node_text(ann), String_from("__return")) {
+        if eq(ast_access::node_text(ann), "__return") {
             if ast_access::node_child_count(ann) > 0 {
                 let ret_node = ast_access::node_child_at(ann, 0)
                 return_type = types::resolve_type_ann_node_generic(ret_node, type_params)
@@ -106,7 +106,7 @@ fn fn_sig_from_fn_decl_with_impl_type_params(node: AstNode, impl_type_params: Ve
 
 // Merge impl-level type params with method-level type params, avoiding duplicates.
 fn merge_type_params(impl_params: Vec<String>, method_params: Vec<String>) -> Vec<String> {
-    let merged = Vec_new_String()
+    let merged = Vec::new<String>()
     vec_extend::Vec_extend_String_clone(merged, impl_params)
     let impl_count = len(impl_params)
     let method_count = len(method_params)

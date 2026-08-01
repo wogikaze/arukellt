@@ -5,7 +5,7 @@
 
 | Family | APIs | Stable | Provisional | Experimental | Deprecated | Fixture Coverage | Host Dep |
 |--------|------|--------|-------------|--------------|------------|------------------|----------|
-| `prelude` | 141 | 115 | 25 | 0 | 1 | 116/140 (83%) | no |
+| `prelude` | 133 | 110 | 22 | 0 | 1 | 110/132 (83%) | no |
 | `std::bytes` | 45 | 45 | 0 | 0 | 0 | 45/45 (100%) | no |
 | `std::cli` | 6 | 6 | 0 | 0 | 0 | 6/6 (100%) | no |
 | `std::collections::compiler` | 14 | 0 | 0 | 14 | 0 | 14/14 (100%) | no |
@@ -18,7 +18,7 @@
 | `std::core::error` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
 | `std::core::hash` | 1 | 1 | 0 | 0 | 0 | 1/1 (100%) | no |
 | `std::csv` | 7 | 0 | 0 | 7 | 0 | 5/7 (71%) | no |
-| `std::env` | 6 | 5 | 0 | 0 | 1 | 4/5 (80%) | no |
+| `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
 | `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
 | `std::host::env` | 5 | 5 | 0 | 0 | 0 | 5/5 (100%) | yes |
@@ -31,7 +31,7 @@
 | `std::host::streams` | 3 | 0 | 3 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::udp` | 1 | 0 | 1 | 0 | 0 | 1/1 (100%) | yes |
 | `std::io` | 38 | 35 | 0 | 3 | 0 | 34/38 (89%) | no |
-| `std::json` | 22 | 0 | 0 | 22 | 0 | 22/22 (100%) | no |
+| `std::json` | 32 | 0 | 0 | 32 | 0 | 27/32 (84%) | no |
 | `std::path` | 9 | 9 | 0 | 0 | 0 | 9/9 (100%) | no |
 | `std::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | no |
 | `std::random` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | no |
@@ -48,15 +48,15 @@
 | `std::simd::u64x2` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::u8x16` | 4 | 0 | 0 | 4 | 0 | 4/4 (100%) | no |
 | `std::simd::v128` | 7 | 0 | 0 | 7 | 0 | 4/7 (57%) | no |
-| `std::test` | 17 | 16 | 0 | 1 | 0 | 17/17 (100%) | no |
+| `std::test` | 18 | 17 | 0 | 1 | 0 | 18/18 (100%) | no |
 | `std::text` | 34 | 32 | 0 | 2 | 0 | 34/34 (100%) | no |
 | `std::text::rope` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
 | `std::time` | 3 | 3 | 0 | 0 | 0 | 2/3 (67%) | no |
-| `std::toml` | 8 | 0 | 0 | 8 | 0 | 8/8 (100%) | no |
+| `std::toml` | 14 | 0 | 0 | 14 | 0 | 12/14 (86%) | no |
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 754 APIs, 394 stable, 52 provisional, 305 experimental, 3 deprecated, 631/751 (84%) fixture coverage
+**Total**: 763 APIs, 390 stable, 49 provisional, 321 experimental, 3 deprecated, 636/760 (84%) fixture coverage
 
 ## Legend
 

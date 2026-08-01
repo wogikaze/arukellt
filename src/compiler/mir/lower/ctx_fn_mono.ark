@@ -26,6 +26,7 @@ fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return
 
 fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {
     let count = ctx_mono_rewrites::ctx_mono_span_rewrite_count(ctx)
+    let mut first_match = 0 - 1
     let mut i = 0
     while i < count {
         let candidate_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
@@ -33,18 +34,37 @@ fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> Strin
         if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start &&
         mono_sources_match(clone(candidate_source), clone(source)) &&
         mono_target_matches_source(clone(candidate_target), clone(source)) {
-            return candidate_target
+            if first_match < 0 {
+                first_match = i
+            }
+            if get_unchecked(ctx.mono_call_span_used, i) == 0 {
+                ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
+                return candidate_target
+            }
         }
         i = i + 1
     }
-    String_from("")
+    if first_match >= 0 {
+        return ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, first_match)
+    }
+    ""
 }
 
 fn ctx_register_mono_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, target: String) {
-    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+    // Associated Vec::new__T / with_capacity__T lower via wasm name fallback
+    // (no MIR body). Still register the span rewrite so call sites get the
+    // mangled callee for mark_vec / layout (#845).
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
         return
     }
     ctx_mono_rewrites::ctx_mono_push_span_rewrite(ctx, span_start, source, target)
+}
+
+fn is_vec_ctor_mono_target(target: String) -> bool {
+    starts_with(clone(target), String_from("Vec::new__")) ||
+    starts_with(clone(target), String_from("Vec__new__")) ||
+    starts_with(clone(target), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(target), String_from("Vec__with_capacity__"))
 }
 
 fn mono_sources_match(candidate: String, requested: String) -> bool {
@@ -68,7 +88,7 @@ fn mono_bare_source(source: String) -> String {
 
 fn mono_target_matches_source(target: String, source: String) -> bool {
     let bare_source = mono_bare_source(source)
-    let prefix = concat(clone(bare_source), String_from("__"))
+    let prefix = concat(clone(bare_source), "__")
     if starts_with(clone(target), clone(prefix)) {
         let rest = substring(target, len(prefix), len(target))
         // Reject opaque numeric stubs like eq__1; accept type keys
@@ -82,11 +102,11 @@ fn mono_target_matches_source(target: String, source: String) -> bool {
         }
         return true
     }
-    contains(target, concat(String_from("__"), concat(bare_source, String_from("__"))))
+    contains(target, concat("__", concat(bare_source, "__")))
 }
 
 fn ctx_register_mono_name_rewrite(ctx: LowerCtx, source: String, target: String) {
-    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) {
+    if !ctx_fn_exists::ctx_has_fn_name(ctx, clone(target)) && !is_vec_ctor_mono_target(clone(target)) {
         return
     }
     ctx_mono_rewrites::ctx_mono_push_name_rewrite(ctx, source, target)
@@ -110,7 +130,7 @@ fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }
 
 fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
@@ -125,5 +145,5 @@ fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
         }
         i = i + 1
     }
-    String_from("")
+    ""
 }

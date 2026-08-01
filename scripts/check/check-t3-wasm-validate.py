@@ -46,7 +46,8 @@ WASMTIME_COMPILE_FLAGS = [
 COMPILE_TIMEOUT = 60  # seconds per fixture
 VALIDATE_TIMEOUT = 30  # seconds per fixture
 T3_CACHE_DIR = REPO_ROOT / ".build" / "t3-cache"
-T3_CACHE_SCHEMA_VERSION = "2"
+# Bumped for #834 host-linker compile path (invalidates wasmtime-link fail cache).
+T3_CACHE_SCHEMA_VERSION = "3"
 DEFAULT_JOBS = max(1, (os.cpu_count() or 4) // 2)
 
 # Fixtures that are known to require special flags / WIT imports and are
@@ -144,6 +145,44 @@ def find_wasm_tools() -> str | None:
     return None
 
 
+def _compiler_needs_host_linker(compiler_wasm: Path) -> bool:
+    """True when the compiler imports wasi-p2 surfaces that need host-linker (#834)."""
+    try:
+        data = compiler_wasm.read_bytes()
+    except OSError:
+        return False
+    return b"wasi:cli/" in data or b"wasi:filesystem/" in data
+
+
+def _compile_cmd(
+    wasmtime: str,
+    compiler_wasm: Path,
+    root: Path,
+    src: str,
+    guest_out: str,
+) -> list[str]:
+    guest = [
+        "compile", src,
+        "--target", T3_TARGET,
+        "-o", guest_out,
+    ]
+    if _compiler_needs_host_linker(compiler_wasm):
+        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
+        return [
+            "bash", str(hosted),
+            f"--dir={root}",
+            str(compiler_wasm), "--",
+            *guest,
+        ]
+    return [
+        wasmtime, "run",
+        *WASMTIME_COMPILE_FLAGS,
+        "--dir", str(root),
+        str(compiler_wasm), "--",
+        *guest,
+    ]
+
+
 def compile_fixture(
     wasmtime: str,
     compiler_wasm: Path,
@@ -154,8 +193,8 @@ def compile_fixture(
 ) -> tuple[bool, str]:
     """Compile a fixture with the selfhost compiler. Returns (ok, stderr).
 
-    The selfhost runs under wasmtime with ``--dir=<root>`` so the output
-    path must be relative to the repo root.  We compile into a temp dir
+    The selfhost runs under wasmtime or host-linker with ``--dir=<root>`` so the
+    output path must be relative to the repo root.  We compile into a temp dir
     *inside* the repo to satisfy that constraint.
     """
     # Use a temp directory inside the repo so wasmtime --dir can write to it.
@@ -164,15 +203,7 @@ def compile_fixture(
     guest_out = f"{tmp_rel}/{out.name}"
     try:
         result = subprocess.run(
-            [
-                wasmtime, "run",
-                *WASMTIME_COMPILE_FLAGS,
-                "--dir", str(root),
-                str(compiler_wasm), "--",
-                "compile", src,
-                "--target", T3_TARGET,
-                "-o", guest_out,
-            ],
+            _compile_cmd(wasmtime, compiler_wasm, root, src, guest_out),
             cwd=str(root),
             capture_output=True,
             text=True,

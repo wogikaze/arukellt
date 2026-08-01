@@ -1,4 +1,4 @@
-// Reference-local liveness for native-cpp GC root clears (#833 / #834).
+// Reference-local liveness for native-cpp GC root clears (#847 / #848).
 // Phase 3: last-use clears at alloc safepoints; loop-touched locals stay rooted
 // because ADR-024 leaves MirBlock succ0/succ1 unset (block-CFG is unsound).
 

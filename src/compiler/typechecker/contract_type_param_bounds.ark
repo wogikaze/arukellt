@@ -6,7 +6,7 @@ struct TypeParamBounds {
 }
 
 fn TypeParamBounds_new(name: String) -> TypeParamBounds {
-    TypeParamBounds { name: name, bounds: Vec_new_TypeInfo() }
+    TypeParamBounds { name: name, bounds: Vec::new<TypeInfo>() }
 }
 
 fn TypeParamBounds_name(info: TypeParamBounds) -> String {

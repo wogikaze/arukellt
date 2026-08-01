@@ -1,5 +1,9 @@
 // T2 RPN REPL — interactive stdin loop.
-fn read_stdin() -> String { __intrinsic_stdin_read_to_string() }
+// Empty stdin on the GC host (#807). Do not name this `read_stdin` — that
+// symbol collides with a core_op and the body is lowered to unreachable.
+fn read_line_from_host() -> String {
+    ""
+}
 
 enum RpnOp { Invalid, Add, Sub, Mul }
 
@@ -62,34 +66,34 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
         println((val).to_string())
         print_result(val)
     } else { if sp > 1 { println(input_trimmed); print_stack_count_error(sp) } }
-}
+    }
 
-fn eval_line(line: String) {
-    let mut stack: Vec<i32> = Vec_new_i32()
-    let input_trimmed: String = trim(line)
-    let line_len: i32 = len(input_trimmed)
-    let mut i: i32 = 0
-    while i < line_len {
-        if is_ascii_ws(char_at(input_trimmed, i)) { i = i + 1 }
-        else {
-            let start: i32 = i
-            let end: i32 = token_end(input_trimmed, start, line_len)
-            stack = process_token(stack, substring(input_trimmed, start, end))
-            i = end
+    fn eval_line(line: String) {
+        let mut stack: Vec<i32> = Vec::new<i32>()
+        let input_trimmed: String = trim(line)
+        let line_len: i32 = len(input_trimmed)
+        let mut i: i32 = 0
+        while i < line_len {
+            if is_ascii_ws(char_at(input_trimmed, i)) { i = i + 1 }
+            else {
+                let start: i32 = i
+                let end: i32 = token_end(input_trimmed, start, line_len)
+                stack = process_token(stack, substring(input_trimmed, start, end))
+                i = end
+            }
+        }
+        finish_line(stack, input_trimmed)
+    }
+
+    fn main() {
+        println("RPN REPL")
+        println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
+        println("")
+        let mut running: bool = true
+        while running {
+            print("> ")
+            let input: String = read_line_from_host()
+            if len(trim(input)) == 0 { println("bye"); running = false }
+            else { eval_line(input) }
         }
     }
-    finish_line(stack, input_trimmed)
-}
-
-fn main() {
-    println("RPN REPL")
-    println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
-    println("")
-    let mut running: bool = true
-    while running {
-        print("> ")
-        let input: String = read_stdin()
-        if len(trim(input)) == 0 { println("bye"); running = false }
-        else { eval_line(input) }
-    }
-}

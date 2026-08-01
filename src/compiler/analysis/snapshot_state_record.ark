@@ -10,7 +10,7 @@ pub struct AnalysisSnapshot {
 }
 
 fn AnalysisSnapshot_new(uri: String) -> AnalysisSnapshot {
-    AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec_new_AnalysisDiagnostic() }
+    AnalysisSnapshot { uri: uri, decl_count: 0, symbol_count: 0, typed_fn_count: 0, diagnostic_count: 0, diagnostics: Vec::new<AnalysisDiagnostic>() }
 }
 
 fn snapshot_push(snap: AnalysisSnapshot, diag: AnalysisDiagnostic) {

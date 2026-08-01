@@ -20,5 +20,5 @@ pub fn token_kind_name(kind: i32) -> String {
     if len(delim_name) > 0 {
         return delim_name
     }
-    String_from("UNKNOWN")
+    "UNKNOWN"
 }

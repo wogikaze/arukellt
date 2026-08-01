@@ -49,7 +49,7 @@ INLINE_POLICY_TO_INT = {
 
 def _ark_string(s: str) -> str:
     escaped = s.replace("\\", "\\\\").replace('"', '\\"')
-    return f'String_from("{escaped}")'
+    return f'"{escaped}"'
 
 
 def _handler_symbol(op_id: str) -> str:

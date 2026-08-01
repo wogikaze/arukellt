@@ -5,7 +5,7 @@ use corehir::frontend_expr_kind
 use corehir::frontend_ast_span
 
 fn scan_resolved_calls(decls: Vec<AstNode>) -> Vec<CoreHirResolvedCall> {
-    let calls = Vec_new_CoreHirResolvedCall()
+    let calls = Vec::new<CoreHirResolvedCall>()
     let decl_count = len(decls)
     let mut di = 0
     while di < decl_count {

@@ -165,16 +165,16 @@
 
 ## Active mission: native-cpp experimental promotion
 
-When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #833, or issue #834,
+When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #847, or issue #848,
 `docs/plans/native-cpp-experimental-promotion.md` is the canonical executable plan. Phase 0 and Phase 1 are complete.
 Continue from the first unchecked Phase 2 item through the Final Experimental Promotion Checklist.
 
-- Do not stop at phase completion, commit completion, #833 closure, one successful strict run, or partial performance improvement.
+- Do not stop at phase completion, commit completion, #847 closure, one successful strict run, or partial performance improvement.
 - After each validated work unit, commit, update the plan/receipt, and immediately continue to the next unchecked item.
 - Use only the hard-stop conditions written in the canonical plan. A failing test or performance gate normally
   requires diagnosis and another implementation step.
 - If one item is blocked, continue independent items and preserve concrete blocker evidence.
-- Completion requires #834 closure, strict 3/3 PASS, `high_rss_override=false`, CI enforcement, docs/state sync,
+- Completion requires #848 closure, strict 3/3 PASS, `high_rss_override=false`, CI enforcement, docs/state sync,
   and every final checkbox checked.
 - Mission prompt: `.agents/prompts/native-cpp-experimental-promotion.md`.
 

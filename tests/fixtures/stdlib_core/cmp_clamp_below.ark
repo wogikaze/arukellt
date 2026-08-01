@@ -2,8 +2,8 @@ use std::core::cmp
 use std::test
 
 fn main() {
-    // Value below range is clamped to lo
-    test::assert_eq_i32(-5.clamp(0, 10), 0)
-    test::assert_eq_i32(-100.clamp(0, 10), 0)
-    test::assert_eq_i32(-1.clamp(0, 10), 0)
+    // Value below range is clamped to lo (parenthesize: unary vs postfix).
+    test::assert_eq_i32((-5).clamp(0, 10), 0)
+    test::assert_eq_i32((-100).clamp(0, 10), 0)
+    test::assert_eq_i32((-1).clamp(0, 10), 0)
 }

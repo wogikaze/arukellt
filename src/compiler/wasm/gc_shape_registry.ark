@@ -11,7 +11,7 @@ pub struct GcShapeRegistry {
 }
 
 fn GcShapeRegistry_new() -> GcShapeRegistry {
-    GcShapeRegistry { struct_names: Vec_new_String(), struct_field_types: Vec_new_String(), array_elem_types: Vec_new_i32() }
+    GcShapeRegistry { struct_names: Vec::new<String>(), struct_field_types: Vec::new<String>(), array_elem_types: Vec::new<i32>() }
 }
 
 fn GcShapeRegistry_add_struct(reg: GcShapeRegistry, struct_name: String, field_types_code: String) -> i32 {
@@ -61,14 +61,14 @@ fn GcShapeRegistry_array_elem_type(reg: GcShapeRegistry, idx: i32) -> i32 {
 }
 
 fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    let mut sig = String_from("GS")
+    let mut sig = "GS"
     let types_code = get_unchecked(reg.struct_field_types, idx)
     let fc = len(types_code)
     let mut fi = 0
     while fi < fc {
-        sig = text::builder_append(sig, String_from("_f"))
+        sig = text::builder_append(sig, "_f")
         sig = text::builder_append(sig, to_string(fi))
-        sig = text::builder_append(sig, String_from("_"))
+        sig = text::builder_append(sig, "_")
         sig = text::builder_append(sig, code_to_gc_sig(char_at(clone(types_code), fi)))
         fi = fi + 1
     }
@@ -76,7 +76,7 @@ fn GcShapeRegistry_struct_sig(reg: GcShapeRegistry, idx: i32) -> String {
 }
 
 fn GcShapeRegistry_array_sig(reg: GcShapeRegistry, idx: i32) -> String {
-    concat(String_from("A_"), val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
+    concat("A_", val_type_to_gc_sig(get_unchecked(reg.array_elem_types, idx)))
 }
 
 fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {
@@ -84,19 +84,19 @@ fn GcShapeRegistry_total_gc_type_count(reg: GcShapeRegistry) -> i32 {
 }
 
 fn code_to_gc_sig(c: i32) -> String {
-    if c == 108 { String_from("i64") }
-    else if c == 100 { String_from("f64") }
-    else if c == 102 { String_from("f32") }
-    else if c == 118 { String_from("v128") }
-    else { String_from("i32") }
+    if c == 108 { "i64" }
+    else if c == 100 { "f64" }
+    else if c == 102 { "f32" }
+    else if c == 118 { "v128" }
+    else { "i32" }
 }
 
 fn val_type_to_gc_sig(vt: i32) -> String {
-    if vt == value_types::VT_I64() { String_from("i64") }
-    else if vt == value_types::VT_F64() { String_from("f64") }
-    else if vt == value_types::VT_F32() { String_from("f32") }
-    else if vt == value_types::VT_V128() { String_from("v128") }
-    else { String_from("i32") }
+    if vt == value_types::VT_I64() { "i64" }
+    else if vt == value_types::VT_F64() { "f64" }
+    else if vt == value_types::VT_F32() { "f32" }
+    else if vt == value_types::VT_V128() { "v128" }
+    else { "i32" }
 }
 
 fn find_struct_by_name(reg: GcShapeRegistry, name: String) -> i32 {

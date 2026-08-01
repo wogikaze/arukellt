@@ -9,8 +9,8 @@ use mir::value_types
 
 fn lower_core_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> i32 {
     let child_count = core_expr_shape_accessors::mir_core_expr_child_count(expr)
-    let mut field_locals = Vec_new_i32()
-    let mut field_vts = Vec_new_i32()
+    let mut field_locals = Vec::new<i32>()
+    let mut field_vts = Vec::new<i32>()
     let mut total_bytes = 0
     let mut i = 0
     while i < child_count {

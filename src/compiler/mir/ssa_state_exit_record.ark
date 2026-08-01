@@ -24,7 +24,7 @@ fn mir_ssa_state_load_block_entry(state: MirSsaRenameState, block_id: i32) {
     if block_id < 0 {
         return
     }
-    let next_current = Vec_new_i32()
+    let next_current = Vec::new<i32>()
     let mut i = 0
     while i < state.original_local_count {
         let idx = mir_ssa_state_exit_index(state, block_id, i)

@@ -3,27 +3,27 @@ use diagnostics::mod
 use diagnostics::record
 
 pub fn format_error_json(file: String, phase: i32, diagnostics_vec: Vec<Diagnostic>) -> String {
-    let mut out = String_from("{\"file\":\"")
-    out = text::builder_append(out, concat(clone(file), String_from("\",\"phase\":")))
-    out = text::builder_append(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
+    let mut out = "{\"file\":\""
+    out = text::builder_append(out, concat(clone(file), "\",\"phase\":"))
+    out = text::builder_append(out, concat(to_string(phase), ",\"diagnostics\":["))
     let count = len(diagnostics_vec)
     let mut i = 0
     while i < count {
         if i > 0 {
-            out = text::builder_append(out, String_from(","))
+            out = text::builder_append(out, ",")
         }
         let d = get_unchecked(diagnostics_vec, i)
         out = text::builder_append(out, mod::diagnostic_to_json(d))
         i = i + 1
     }
-    out = text::builder_append(out, String_from("]}"))
+    out = text::builder_append(out, "]}")
     out
 }
 
 pub fn format_success_json(file: String, phase: i32, size: i32) -> String {
-    let mut out = String_from("{\"file\":\"")
-    out = text::builder_append(out, concat(clone(file), String_from("\",\"phase\":")))
-    out = text::builder_append(out, concat(to_string(phase), String_from(",\"success\":true,\"output_size\":")))
-    out = text::builder_append(out, concat(to_string(size), String_from("}")))
+    let mut out = "{\"file\":\""
+    out = text::builder_append(out, concat(clone(file), "\",\"phase\":"))
+    out = text::builder_append(out, concat(to_string(phase), ",\"success\":true,\"output_size\":"))
+    out = text::builder_append(out, concat(to_string(size), "}"))
     out
 }

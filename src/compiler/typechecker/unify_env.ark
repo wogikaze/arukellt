@@ -13,7 +13,7 @@ fn fresh_var(env: TypeEnv) -> TypeInfo {
     let tv = contract_typevar::TypeVar_new(id, contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN()))
     contract_env_vars_record::type_env_push_var(env, tv)
     let t = contract_type_constructors::TypeInfo_simple(commands::TY_TYPE_VAR())
-    contract_type_mutation::TypeInfo_set_name(t, concat(String_from("t"), to_string(id)))
+    contract_type_mutation::TypeInfo_set_name(t, concat("t", to_string(id)))
     t
 }
 

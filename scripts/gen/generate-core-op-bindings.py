@@ -23,7 +23,7 @@ from core_op_mapping_common import normalize_key  # noqa: E402
 
 def _ark_string(s: str) -> str:
     escaped = s.replace("\\", "\\\\").replace('"', '\\"')
-    return f'String_from("{escaped}")'
+    return f'"{escaped}"'
 
 
 def collect_bindings() -> dict[str, str]:

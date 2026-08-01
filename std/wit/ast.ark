@@ -489,7 +489,7 @@ fn p_type(s: String, pos: i32) -> (types::WitType, i32) {
 
 /// Parse function parameters inside `(...)`.
 fn p_params(s: String, pos: i32) -> (Vec<types::WitParam>, i32) {
-    let params = Vec_new_WitParam()
+    let params = Vec::new<WitParam>()
     let mut i = p_skip_ws_comments(s, pos)
     let n = len(s)
     while i < n {
@@ -544,7 +544,7 @@ fn p_func(s: String, pos: i32) -> (WitNode, i32) {
 
 /// Parse record fields inside `{ ... }`.
 fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
-    let fields = Vec_new_WitField()
+    let fields = Vec::new<WitField>()
     let mut i = p_skip_ws_comments(s, pos)
     let n = len(s)
     while i < n {
@@ -570,7 +570,7 @@ fn p_record_fields(s: String, pos: i32) -> (Vec<types::WitField>, i32) {
 
 /// Parse enum variants inside `{ ... }`.
 fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
-    let variants = Vec_new_String()
+    let variants = Vec::new<String>()
     let mut i = p_skip_ws_comments(s, pos)
     let n = len(s)
     while i < n {
@@ -593,7 +593,7 @@ fn p_enum_variants(s: String, pos: i32) -> (Vec<String>, i32) {
 /// Parse variant cases inside `{ ... }`.
 /// Each case is `name` or `name(type)`.
 fn p_variant_cases(s: String, pos: i32) -> (Vec<types::WitVariantCase>, i32) {
-    let cases = Vec_new_WitVariantCase()
+    let cases = Vec::new<WitVariantCase>()
     let mut i = p_skip_ws_comments(s, pos)
     let n = len(s)
     while i < n {
@@ -805,7 +805,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
         // resource without body: `resource handle;`
         if i < n && char_at(s, i) == 59 {
             i = i + 1
-            return (WitNode::Resource(rname, Vec_new_WitField()), i)
+            return (WitNode::Resource(rname, Vec::new<WitField>()), i)
         }
         return (WitNode::Error(String_from("expected { or ; in resource")), i)
     }
@@ -837,7 +837,7 @@ fn p_decl(s: String, pos: i32) -> (WitNode, i32) {
 
 /// Parse a body (sequence of declarations) inside `{ ... }`.
 fn p_body(s: String, pos: i32) -> (Vec<WitNode>, i32) {
-    let items = Vec_new_WitNode()
+    let items = Vec::new<WitNode>()
     let mut i = p_skip_ws_comments(s, pos)
     let n = len(s)
     while i < n {
@@ -943,7 +943,7 @@ pub fn parse(source: String) -> WitNode {
         let (pkg, p1) = p_package_decl(source, i)
         i = p_skip_ws_comments(source, p1)
         // Parse all top-level items (world, interface, etc.)
-        let items = Vec_new_WitNode()
+        let items = Vec::new<WitNode>()
         while i < n {
             i = p_skip_ws_comments(source, i)
             if i >= n {

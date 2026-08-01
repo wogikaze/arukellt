@@ -10,7 +10,7 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
     if len(arg_type) == 0 {
         return String_new()
     }
-    if starts_with(clone(arg_type), String_from("struct:")) {
+    if starts_with(clone(arg_type), "struct:") {
         let rest = substring(clone(arg_type), 7, len(arg_type))
         let n = len(rest)
         let mut i = 0
@@ -22,21 +22,21 @@ fn mir_bare_receiver_type_name(arg_type: String) -> String {
         }
         return rest
     }
-    if starts_with(clone(arg_type), String_from("enum:")) {
+    if starts_with(clone(arg_type), "enum:") {
         return substring(clone(arg_type), 5, len(arg_type))
     }
     // Vec locals are typed "vec:i32" / "vec:String"; impl methods are
     // mangled as "Vec::read" / "Vec::seek", not "i32::seek" (#726 seek_to).
-    if starts_with(clone(arg_type), String_from("vec:")) {
-        return String_from("Vec")
+    if starts_with(clone(arg_type), "vec:") {
+        return "Vec"
     }
-    if eq(clone(arg_type), String_from("Vec")) {
-        return String_from("Vec")
+    if eq(clone(arg_type), "Vec") {
+        return "Vec"
     }
-    if starts_with(clone(arg_type), String_from("option:")) {
+    if starts_with(clone(arg_type), "option:") {
         return substring(clone(arg_type), 7, len(arg_type))
     }
-    if starts_with(clone(arg_type), String_from("Option_")) {
+    if starts_with(clone(arg_type), "Option_") {
         return substring(clone(arg_type), 7, len(arg_type))
     }
     arg_type
@@ -51,7 +51,7 @@ fn mir_try_resolve_impl_method(ctx: LowerCtx, bare_method: String, first_arg_idx
     if len(bare_type) == 0 {
         return bare_method
     }
-    let mangled = concat(clone(bare_type), concat(String_from("::"), clone(bare_method)))
+    let mangled = concat(clone(bare_type), concat("::", clone(bare_method)))
     if ctx_fn_exists::ctx_has_fn_name(ctx, clone(mangled)) {
         return mangled
     }

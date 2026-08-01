@@ -1,7 +1,7 @@
 use corehir::raw_dto
 
 fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, total_decl_count: i32) -> Vec<CoreHirModuleInfo> {
-    let infos = Vec_new_CoreHirModuleInfo()
+    let infos = Vec::new<CoreHirModuleInfo>()
     let mut decl_offset = 0
     let module_count = len(module_names)
     let mut i = 0
@@ -13,7 +13,7 @@ fn build_module_infos(module_names: Vec<String>, module_decl_counts: Vec<i32>, t
     }
     let main_decl_count = total_decl_count - decl_offset
     if main_decl_count > 0 {
-        push(infos, raw_dto::CoreHirModuleInfo_new(String_from("<main>"), decl_offset, main_decl_count))
+        push(infos, raw_dto::CoreHirModuleInfo_new("<main>", decl_offset, main_decl_count))
     }
     infos
 }

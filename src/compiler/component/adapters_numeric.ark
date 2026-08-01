@@ -54,23 +54,23 @@ fn comp_emit_numeric_adapter_sections(
 fn comp_emit_numeric_type_section(out: writer_core::ComponentWriter, user_param_count: i32, abi_param0_type: i32, abi_param1_type: i32, abi_param_count: i32, abi_result_type: i32) {
     let type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(type_sec, 2)
-    let user_params = Vec_new_i32()
+    let user_params = Vec::new<i32>()
     let mut i = 0
     while i < user_param_count {
         push(user_params, 0x7f)
         i = i + 1
     }
-    let user_results = Vec_new_i32()
+    let user_results = Vec::new<i32>()
     push(user_results, 0x7f)
     sections::comp_emit_core_func_type(type_sec, user_params, user_results)
-    let abi_params = Vec_new_i32()
+    let abi_params = Vec::new<i32>()
     if abi_param_count > 0 {
         push(abi_params, abi_param0_type)
     }
     if abi_param_count > 1 {
         push(abi_params, abi_param1_type)
     }
-    let abi_results = Vec_new_i32()
+    let abi_results = Vec::new<i32>()
     push(abi_results, abi_result_type)
     sections::comp_emit_core_func_type(type_sec, abi_params, abi_results)
     sections::comp_emit_wasm_section(out, 1, type_sec)
@@ -79,7 +79,7 @@ fn comp_emit_numeric_type_section(out: writer_core::ComponentWriter, user_param_
 fn comp_emit_numeric_import_section(out: writer_core::ComponentWriter, export_name: String) {
     let import_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(import_sec, 1)
-    writer_core::comp_emit_string(import_sec, String_from("user"))
+    writer_core::comp_emit_string(import_sec, "user")
     writer_core::comp_emit_string(import_sec, clone(export_name))
     writer_core::comp_emit_byte(import_sec, 0x00)
     writer_core::comp_emit_leb128_u(import_sec, 0)

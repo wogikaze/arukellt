@@ -13,7 +13,7 @@ pub fn csv_split_line(line: String) -> Vec<String> {
 /// Quoted fields may contain embedded commas, double-quotes (escaped as `""`),
 /// and newlines.
 pub fn csv_parse_row(line: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let n = len(line)
     let mut i = 0
     while i <= n {
@@ -131,7 +131,7 @@ pub fn csv_parse(s: String) -> Result<Vec<Vec<String>>, String> {
     if n == 0 {
         return Err("empty document")
     }
-    let rows = Vec_new_Vec_String()
+    let rows = Vec::new<Vec<String>>()
     let mut i = 0
     while i < n {
         let line = get_unchecked(lines, i)

@@ -1,7 +1,7 @@
 use mir::types_block
 
 fn MirBlock_reset_preds(block: MirBlock) {
-    block.preds = Vec_new_i32()
+    block.preds = Vec::new<i32>()
 }
 
 fn MirBlock_push_pred_unique(block: MirBlock, pred_id: i32) {

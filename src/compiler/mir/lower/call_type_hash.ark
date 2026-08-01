@@ -14,426 +14,426 @@ fn callee_eq(callee_name: String, expected: String) -> bool {
 }
 
 fn is_hashmap_si32_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("__hm_si_new")) {
+    if callee_eq(clone(callee_name), "__hm_si_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_str_i32_new")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_i32_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_String_i32")) {
+    if callee_eq(clone(callee_name), "HashMap_new_String_i32") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_i32_new"))
+    callee_eq(callee_name, "HashMap_String_i32_new")
 }
 
 fn is_hashmap_i32str_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("__hm_is_new")) {
+    if callee_eq(clone(callee_name), "__hm_is_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_i32_str_new")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_i32_String")) {
+    if callee_eq(clone(callee_name), "HashMap_new_i32_String") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_i32_String_new"))
+    callee_eq(callee_name, "HashMap_i32_String_new")
 }
 
 fn is_hashmap_i32fn_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("__hm_if_new")) {
+    if callee_eq(clone(callee_name), "__hm_if_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_fn::hashmap_i32_fn_new")) {
+    if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_i32_fn")) {
+    if callee_eq(clone(callee_name), "HashMap_new_i32_fn") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_i32_fn_new"))
+    callee_eq(callee_name, "HashMap_i32_fn_new")
 }
 
 fn is_hashmap_strfn_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("__hm_sf_new")) {
+    if callee_eq(clone(callee_name), "__hm_sf_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_str_fn::hashmap_str_fn_new")) {
+    if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_String_fn")) {
+    if callee_eq(clone(callee_name), "HashMap_new_String_fn") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_fn_new"))
+    callee_eq(callee_name, "HashMap_String_fn_new")
 }
 
 fn is_hashmap_strstr_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("__hm_ss_new")) {
+    if callee_eq(clone(callee_name), "__hm_ss_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_str_str_new")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_String_String")) {
+    if callee_eq(clone(callee_name), "HashMap_new_String_String") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_String_new"))
+    callee_eq(callee_name, "HashMap_String_String_new")
 }
 
 fn is_hashmap_i32i32_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_new")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_new_i32_i32")) {
+    if callee_eq(clone(callee_name), "HashMap_new_i32_i32") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_new")) {
+    if callee_eq(clone(callee_name), "hashmap_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_new")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_new")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_new") {
         return true
     }
-    callee_eq(callee_name, String_from("hash_map::hashmap_i32_i32_new"))
+    callee_eq(callee_name, "hash_map::hashmap_i32_i32_new")
 }
 
 fn is_hashset_i32_new(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashset_new")) {
+    if callee_eq(clone(callee_name), "hashset_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_new")) {
+    if callee_eq(clone(callee_name), "hash::hashset_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_i32_new")) {
+    if callee_eq(clone(callee_name), "hashset_i32_new") {
         return true
     }
-    callee_eq(callee_name, String_from("hash_set::hashset_i32_new"))
+    callee_eq(callee_name, "hash_set::hashset_i32_new")
 }
 
 fn is_hash_vec_i32_result(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashmap_keys")) {
+    if callee_eq(clone(callee_name), "hashmap_keys") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_keys")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_keys") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_values")) {
+    if callee_eq(clone(callee_name), "hashmap_values") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_values")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_values") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_to_vec")) {
+    if callee_eq(clone(callee_name), "hashset_to_vec") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_to_vec")) {
+    if callee_eq(clone(callee_name), "hash::hashset_to_vec") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_entries")) {
+    if callee_eq(clone(callee_name), "hashmap_entries") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_entries")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_entries") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_drain")) {
+    if callee_eq(clone(callee_name), "hashmap_drain") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_drain")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_drain") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_remove_entry")) {
+    if callee_eq(clone(callee_name), "hashmap_remove_entry") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_remove_entry")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_remove_entry") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_with_capacity")) {
+    if callee_eq(clone(callee_name), "hashmap_with_capacity") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_with_capacity")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_with_capacity") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_new")) {
+    if callee_eq(clone(callee_name), "hashset_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_new")) {
+    if callee_eq(clone(callee_name), "hash::hashset_new") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_union")) {
+    if callee_eq(clone(callee_name), "hashset_union") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_union")) {
+    if callee_eq(clone(callee_name), "hash::hashset_union") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_intersection")) {
+    if callee_eq(clone(callee_name), "hashset_intersection") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_intersection")) {
+    if callee_eq(clone(callee_name), "hash::hashset_intersection") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_difference")) {
+    if callee_eq(clone(callee_name), "hashset_difference") {
         return true
     }
-    callee_eq(callee_name, String_from("hash::hashset_difference"))
+    callee_eq(callee_name, "hash::hashset_difference")
 }
 
 fn is_option_i32_hash_query(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashmap_get_option")) {
+    if callee_eq(clone(callee_name), "hashmap_get_option") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_get_option")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_get_option") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_get")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_get")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_map::hashmap_i32_i32_get")) {
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_remove")) {
+    if callee_eq(clone(callee_name), "hashmap_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_remove")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_remove")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_remove")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_map::hashmap_i32_i32_remove")) {
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_get")) {
+    if callee_eq(clone(callee_name), "hashmap_str_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_str_get")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_str_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_i32_get")) {
+    if callee_eq(clone(callee_name), "HashMap_String_i32_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_remove")) {
+    if callee_eq(clone(callee_name), "hashmap_str_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_str_remove")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_str_remove") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_i32_remove"))
+    callee_eq(callee_name, "HashMap_String_i32_remove")
 }
 
 fn is_option_string_hash_query(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashmap_str_val_get")) {
+    if callee_eq(clone(callee_name), "hashmap_str_val_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_String_get")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_String_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_i32_str_get")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_i32_str_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_str_get")) {
+    if callee_eq(clone(callee_name), "hashmap_str_str_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_String_get")) {
+    if callee_eq(clone(callee_name), "HashMap_String_String_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_str_str_get")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_str_remove")) {
+    if callee_eq(clone(callee_name), "hashmap_str_str_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_String_remove")) {
+    if callee_eq(clone(callee_name), "HashMap_String_String_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_str_str_remove")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_str_remove") {
         return true
     }
-    callee_eq(callee_name, String_from("hash_string::hashmap_i32_str_remove"))
+    callee_eq(callee_name, "hash_string::hashmap_i32_str_remove")
 }
 
 fn is_option_fn_hash_query(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_fn_get")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_fn_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_fn::hashmap_i32_fn_get")) {
+    if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_fn_remove")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_fn_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_fn::hashmap_i32_fn_remove")) {
+    if callee_eq(clone(callee_name), "hash_fn::hashmap_i32_fn_remove") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_fn_get")) {
+    if callee_eq(clone(callee_name), "HashMap_String_fn_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_str_fn::hashmap_str_fn_get")) {
+    if callee_eq(clone(callee_name), "hash_str_fn::hashmap_str_fn_get") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_fn_remove")) {
+    if callee_eq(clone(callee_name), "HashMap_String_fn_remove") {
         return true
     }
-    callee_eq(callee_name, String_from("hash_str_fn::hashmap_str_fn_remove"))
+    callee_eq(callee_name, "hash_str_fn::hashmap_str_fn_remove")
 }
 
 fn is_hash_size_query(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashmap_size")) {
+    if callee_eq(clone(callee_name), "hashmap_size") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_size")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_size") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_len")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_len") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_len")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_len") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_map::hashmap_i32_i32_len")) {
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_len") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_size")) {
+    if callee_eq(clone(callee_name), "hashset_size") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_size")) {
+    if callee_eq(clone(callee_name), "hash::hashset_size") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_size")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_size") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_string::hashmap_str_len")) {
+    if callee_eq(clone(callee_name), "hash_string::hashmap_str_len") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_i32_len"))
+    callee_eq(callee_name, "HashMap_String_i32_len")
 }
 
 fn is_hash_bool_query(callee_name: String) -> bool {
-    if callee_eq(clone(callee_name), String_from("hashmap_contains")) {
+    if callee_eq(clone(callee_name), "hashmap_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_contains")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_i32_i32_contains_key")) {
+    if callee_eq(clone(callee_name), "HashMap_i32_i32_contains_key") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_contains")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_map::hashmap_i32_i32_contains")) {
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_is_empty")) {
+    if callee_eq(clone(callee_name), "hashmap_is_empty") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashmap_is_empty")) {
+    if callee_eq(clone(callee_name), "hash::hashmap_is_empty") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_i32_i32_is_empty")) {
+    if callee_eq(clone(callee_name), "hashmap_i32_i32_is_empty") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash_map::hashmap_i32_i32_is_empty")) {
+    if callee_eq(clone(callee_name), "hash_map::hashmap_i32_i32_is_empty") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashset_contains")) {
+    if callee_eq(clone(callee_name), "hashset_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hash::hashset_contains")) {
+    if callee_eq(clone(callee_name), "hash::hashset_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_contains")) {
+    if callee_eq(clone(callee_name), "hashmap_str_contains") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("HashMap_String_i32_contains_key")) {
+    if callee_eq(clone(callee_name), "HashMap_String_i32_contains_key") {
         return true
     }
-    if callee_eq(clone(callee_name), String_from("hashmap_str_str_contains")) {
+    if callee_eq(clone(callee_name), "hashmap_str_str_contains") {
         return true
     }
-    callee_eq(callee_name, String_from("HashMap_String_String_contains_key"))
+    callee_eq(callee_name, "HashMap_String_String_contains_key")
 }
 
 fn mark_hash_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if is_hashmap_si32_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:si32"))
+        mark_hash_type_ref(ctx, dest, "hashmap:si32")
     }
     if is_hashmap_i32str_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:i32str"))
+        mark_hash_type_ref(ctx, dest, "hashmap:i32str")
     }
     if is_hashmap_i32fn_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:i32fn"))
+        mark_hash_type_ref(ctx, dest, "hashmap:i32fn")
     }
     if is_hashmap_strfn_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:strfn"))
+        mark_hash_type_ref(ctx, dest, "hashmap:strfn")
     }
     if is_hashmap_strstr_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:strstr"))
+        mark_hash_type_ref(ctx, dest, "hashmap:strstr")
     }
-    if callee_eq(clone(callee_name), String_from("__hm_si_get_key")) {
-        mark_hash_type_ref(ctx, dest, String_from("string"))
+    if callee_eq(clone(callee_name), "__hm_si_get_key") {
+        mark_hash_type_ref(ctx, dest, "string")
     }
-    if callee_eq(clone(callee_name), String_from("__hm_is_get_key")) ||
-    callee_eq(clone(callee_name), String_from("__hm_if_get_key")) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+    if callee_eq(clone(callee_name), "__hm_is_get_key") ||
+    callee_eq(clone(callee_name), "__hm_if_get_key") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "i32")
     }
-    if callee_eq(clone(callee_name), String_from("__hm_is_get_val")) ||
-    callee_eq(clone(callee_name), String_from("__hm_ss_get_key")) ||
-    callee_eq(clone(callee_name), String_from("__hm_ss_get_val")) {
-        mark_hash_type_ref(ctx, dest, String_from("string"))
+    if callee_eq(clone(callee_name), "__hm_is_get_val") ||
+    callee_eq(clone(callee_name), "__hm_ss_get_key") ||
+    callee_eq(clone(callee_name), "__hm_ss_get_val") {
+        mark_hash_type_ref(ctx, dest, "string")
     }
-    if callee_eq(clone(callee_name), String_from("__hm_if_get_val")) ||
-    callee_eq(clone(callee_name), String_from("__hm_sf_get_val")) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("fnref"))
+    if callee_eq(clone(callee_name), "__hm_if_get_val") ||
+    callee_eq(clone(callee_name), "__hm_sf_get_val") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "fnref")
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
     }
-    if callee_eq(clone(callee_name), String_from("__hm_sf_get_key")) {
-        mark_hash_type_ref(ctx, dest, String_from("string"))
+    if callee_eq(clone(callee_name), "__hm_sf_get_key") {
+        mark_hash_type_ref(ctx, dest, "string")
     }
     if is_hashmap_i32i32_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("hashmap:i32i32"))
+        mark_hash_type_ref(ctx, dest, "hashmap:i32i32")
     }
     if is_hashset_i32_new(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("vec:i32"))
+        mark_hash_type_ref(ctx, dest, "vec:i32")
     }
     if is_hash_vec_i32_result(clone(callee_name)) {
-        mark_hash_type_ref(ctx, dest, String_from("vec:i32"))
+        mark_hash_type_ref(ctx, dest, "vec:i32")
     }
-    if callee_eq(clone(callee_name), String_from("hashset_str_new")) || callee_eq(clone(callee_name), String_from("hash_map::hashset_str_new")) {
-        mark_hash_type_ref(ctx, dest, String_from("vec:String"))
+    if callee_eq(clone(callee_name), "hashset_str_new") || callee_eq(clone(callee_name), "hash_map::hashset_str_new") {
+        mark_hash_type_ref(ctx, dest, "vec:String")
     }
     mark_hash_query_result_type(ctx, callee_name, dest)
 }
 
 fn mark_hash_query_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     if is_option_i32_hash_query(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "Option_i32")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
     if is_option_string_hash_query(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("Option_String"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "Option_String")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
     if is_option_fn_hash_query(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("option:fnref"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "option:fnref")
         if ctx_gc_enum::ctx_is_gc_target(ctx) {
             ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_GC_REF())
         }
     }
     if is_hash_size_query(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("i32"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "i32")
     }
     if is_hash_bool_query(clone(callee_name)) {
-        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("bool"))
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, "bool")
     }
 }
 // MIR call result type propagation for hash collections.

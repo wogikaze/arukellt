@@ -3,7 +3,7 @@ use std::test
 
 fn main() {
     let w = io::writer_new()
-    let data: Vec<i32> = Vec_new_i32()
+    let data: Vec<i32> = Vec::new<i32>()
     push(data, 65)
     push(data, 66)
     push(data, 67)

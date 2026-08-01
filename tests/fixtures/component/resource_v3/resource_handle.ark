@@ -22,7 +22,7 @@ pub fn close(f: FileHandle) {
 
 fn main() {
     let f = open(String_from("test.txt"))
-    let buf = Vec_new_i32()
+    let buf = Vec::new<i32>()
     let bytes = read(f, buf)
     let _ = bytes
 }

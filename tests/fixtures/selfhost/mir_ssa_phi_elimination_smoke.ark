@@ -21,7 +21,7 @@ struct Block {
 }
 
 fn Phi_new(ssa_name: String, dest_version: i32, val_type: i32) -> Phi {
-    Phi { ssa_name: ssa_name, dest_version: dest_version, val_type: val_type, args: Vec_new_PhiArg() }
+    Phi { ssa_name: ssa_name, dest_version: dest_version, val_type: val_type, args: Vec::new<PhiArg>() }
 }
 
 fn phi_add_arg(phi: Phi, pred_block: i32, version: i32) {
@@ -84,9 +84,9 @@ fn format_phi(phi: Phi) -> String {
 }
 
 fn main() {
-    let then_block = Block { id: 1, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 1 }
-    let else_block = Block { id: 2, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 2 }
-    let join_block = Block { id: 3, preds: Vec_new_i32(), dom_frontier: Vec_new_i32(), last_value: 0 - 1 }
+    let then_block = Block { id: 1, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 1 }
+    let else_block = Block { id: 2, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 2 }
+    let join_block = Block { id: 3, preds: Vec::new<i32>(), dom_frontier: Vec::new<i32>(), last_value: 0 - 1 }
     push(join_block.preds, then_block.id)
     push(join_block.preds, else_block.id)
     push(then_block.dom_frontier, join_block.id)

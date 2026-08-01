@@ -1,21 +1,19 @@
-use std::toml
-
 pub fn file_path_to_uri(path: String) -> String {
-    if starts_with(clone(path), String_from("file://")) {
+    if starts_with(clone(path), "file://") {
         return path
     }
-    concat(String_from("file://"), path)
+    concat("file://", path)
 }
 
 pub fn uri_to_file_path(uri: String) -> String {
-    if starts_with(clone(uri), String_from("file://")) {
+    if starts_with(clone(uri), "file://") {
         return substring(uri, 7, len(uri))
     }
     uri
 }
 
 pub fn root_uri_from_initialize(body: String) -> String {
-    let root_uri = extract_json_string_field(clone(body), String_from("rootUri"))
+    let root_uri = extract_json_string_field(clone(body), "rootUri")
     if len(root_uri) > 0 {
         return root_uri
     }
@@ -23,25 +21,25 @@ pub fn root_uri_from_initialize(body: String) -> String {
 }
 
 fn extract_workspace_folder_uri(body: String) -> String {
-    let pos = index_of(clone(body), String_from("workspaceFolders"))
+    let pos = index_of(clone(body), "workspaceFolders")
     if pos < 0 {
         return String_new()
     }
-    let uri_pos = index_of(substring(body, pos, len(body)), String_from("\"uri\""))
+    let uri_pos = index_of(substring(body, pos, len(body)), "\"uri\"")
     if uri_pos < 0 {
         return String_new()
     }
-    extract_json_string_field(substring(body, pos + uri_pos, len(body)), String_from("uri"))
+    extract_json_string_field(substring(body, pos + uri_pos, len(body)), "uri")
 }
 
 pub fn extract_json_string_field(body: String, key: String) -> String {
-    let key_pat = concat(concat(String_from("\""), clone(key)), String_from("\""))
+    let key_pat = concat(concat("\"", clone(key)), "\"")
     let pos = index_of(clone(body), key_pat)
     if pos < 0 {
         return String_new()
     }
     let tail = substring(body, pos, len(body))
-    let colon = index_of(clone(tail), String_from(":"))
+    let colon = index_of(clone(tail), ":")
     if colon < 0 {
         return String_new()
     }
@@ -55,56 +53,52 @@ pub fn extract_json_string_field(body: String, key: String) -> String {
         }
         p = p + 1
     }
-    if p < after_len && char_at(after, p) == 110 && starts_with(substring(after, p, after_len), String_from("null")) {
+    if p < after_len && char_at(after, p) == 110 && starts_with(substring(after, p, after_len), "null") {
         return String_new()
     }
     if p >= after_len || char_at(after, p) != 34 {
         return String_new()
     }
     let rest = substring(after, p + 1, after_len)
-    let q2 = index_of(clone(rest), String_from("\""))
+    let q2 = index_of(clone(rest), "\"")
     if q2 < 0 {
         return String_new()
     }
     substring(rest, 0, q2)
 }
 
-pub fn find_toml_value(content: String, key: String) -> String {
-    toml::toml_find_value(content, key)
-}
-
 pub fn join_path(base: String, rel: String) -> String {
     if len(base) == 0 {
         return rel
     }
-    if ends_with(clone(base), String_from("/")) {
+    if ends_with(clone(base), "/") {
         return concat(base, rel)
     }
-    concat(concat(base, String_from("/")), rel)
+    concat(concat(base, "/"), rel)
 }
 
 pub fn resolve_relative_path(base: String, rel: String) -> String {
     if len(rel) == 0 {
         return clone(base)
     }
-    if starts_with(clone(rel), String_from("../")) {
+    if starts_with(clone(rel), "../") {
         let parent = loader::module_paths::parent_dir(clone(base))
         return resolve_relative_path(parent, substring(rel, 3, len(rel)))
     }
-    if starts_with(clone(rel), String_from("./")) {
+    if starts_with(clone(rel), "./") {
         return resolve_relative_path(clone(base), substring(rel, 2, len(rel)))
     }
     join_path(clone(base), rel)
 }
 
 pub fn find_dependency_path(content: String, dep_name: String) -> String {
-    let needle = concat(clone(dep_name), String_from(" = { path = \""))
+    let needle = concat(clone(dep_name), " = { path = \"")
     let pos = index_of(clone(content), needle)
     if pos < 0 {
         return String_new()
     }
     let tail = substring(content, pos + len(needle), len(content))
-    let end = index_of(clone(tail), String_from("\""))
+    let end = index_of(clone(tail), "\"")
     if end < 0 {
         return String_new()
     }

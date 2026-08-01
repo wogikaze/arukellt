@@ -5,406 +5,406 @@ use mir::opcodes
 
 fn native_c_capability_opcode_name(op: i32) -> String {
     if op == opcodes::MIR_CONST_I32() {
-        return String_from("MIR_CONST_I32")
+        return "MIR_CONST_I32"
     }
     if op == opcodes::MIR_CONST_I64() {
-        return String_from("MIR_CONST_I64")
+        return "MIR_CONST_I64"
     }
     if op == opcodes::MIR_CONST_F64() {
-        return String_from("MIR_CONST_F64")
+        return "MIR_CONST_F64"
     }
     if op == opcodes::MIR_CONST_BOOL() {
-        return String_from("MIR_CONST_BOOL")
+        return "MIR_CONST_BOOL"
     }
     if op == opcodes::MIR_CONST_STRING() {
-        return String_from("MIR_CONST_STRING")
+        return "MIR_CONST_STRING"
     }
     if op == opcodes::MIR_LOCAL_GET() {
-        return String_from("MIR_LOCAL_GET")
+        return "MIR_LOCAL_GET"
     }
     if op == opcodes::MIR_LOCAL_SET() {
-        return String_from("MIR_LOCAL_SET")
+        return "MIR_LOCAL_SET"
     }
     if op == opcodes::MIR_ADD() {
-        return String_from("MIR_ADD")
+        return "MIR_ADD"
     }
     if op == opcodes::MIR_SUB() {
-        return String_from("MIR_SUB")
+        return "MIR_SUB"
     }
     if op == opcodes::MIR_MUL() {
-        return String_from("MIR_MUL")
+        return "MIR_MUL"
     }
     if op == opcodes::MIR_DIV() {
-        return String_from("MIR_DIV")
+        return "MIR_DIV"
     }
     if op == opcodes::MIR_MOD() {
-        return String_from("MIR_MOD")
+        return "MIR_MOD"
     }
     if op == opcodes::MIR_EQ() {
-        return String_from("MIR_EQ")
+        return "MIR_EQ"
     }
     if op == opcodes::MIR_NEQ() {
-        return String_from("MIR_NEQ")
+        return "MIR_NEQ"
     }
     if op == opcodes::MIR_LT() {
-        return String_from("MIR_LT")
+        return "MIR_LT"
     }
     if op == opcodes::MIR_LTEQ() {
-        return String_from("MIR_LTEQ")
+        return "MIR_LTEQ"
     }
     if op == opcodes::MIR_GT() {
-        return String_from("MIR_GT")
+        return "MIR_GT"
     }
     if op == opcodes::MIR_GTEQ() {
-        return String_from("MIR_GTEQ")
+        return "MIR_GTEQ"
     }
     if op == opcodes::MIR_AND() {
-        return String_from("MIR_AND")
+        return "MIR_AND"
     }
     if op == opcodes::MIR_OR() {
-        return String_from("MIR_OR")
+        return "MIR_OR"
     }
     if op == opcodes::MIR_NEG() {
-        return String_from("MIR_NEG")
+        return "MIR_NEG"
     }
     if op == opcodes::MIR_NOT() {
-        return String_from("MIR_NOT")
+        return "MIR_NOT"
     }
     if op == opcodes::MIR_BIT_AND() {
-        return String_from("MIR_BIT_AND")
+        return "MIR_BIT_AND"
     }
     if op == opcodes::MIR_BIT_OR() {
-        return String_from("MIR_BIT_OR")
+        return "MIR_BIT_OR"
     }
     if op == opcodes::MIR_BIT_XOR() {
-        return String_from("MIR_BIT_XOR")
+        return "MIR_BIT_XOR"
     }
     if op == opcodes::MIR_SHL() {
-        return String_from("MIR_SHL")
+        return "MIR_SHL"
     }
     if op == opcodes::MIR_SHR() {
-        return String_from("MIR_SHR")
+        return "MIR_SHR"
     }
     if op == opcodes::MIR_CALL() {
-        return String_from("MIR_CALL")
+        return "MIR_CALL"
     }
     if op == opcodes::MIR_CALL_INDIRECT() {
-        return String_from("MIR_CALL_INDIRECT")
+        return "MIR_CALL_INDIRECT"
     }
     if op == opcodes::MIR_RETURN() {
-        return String_from("MIR_RETURN")
+        return "MIR_RETURN"
     }
     if op == opcodes::MIR_WIT_CALL() {
-        return String_from("MIR_WIT_CALL")
+        return "MIR_WIT_CALL"
     }
     if op == opcodes::MIR_EXTEND_I32_TO_I64() {
-        return String_from("MIR_EXTEND_I32_TO_I64")
+        return "MIR_EXTEND_I32_TO_I64"
     }
     if op == opcodes::MIR_TRUNC_I64_TO_I32() {
-        return String_from("MIR_TRUNC_I64_TO_I32")
+        return "MIR_TRUNC_I64_TO_I32"
     }
     if op == opcodes::MIR_BR() {
-        return String_from("MIR_BR")
+        return "MIR_BR"
     }
     if op == opcodes::MIR_BR_IF() {
-        return String_from("MIR_BR_IF")
+        return "MIR_BR_IF"
     }
     if op == opcodes::MIR_BR_TABLE() {
-        return String_from("MIR_BR_TABLE")
+        return "MIR_BR_TABLE"
     }
     if op == opcodes::MIR_BLOCK() {
-        return String_from("MIR_BLOCK")
+        return "MIR_BLOCK"
     }
     if op == opcodes::MIR_LOOP() {
-        return String_from("MIR_LOOP")
+        return "MIR_LOOP"
     }
     if op == opcodes::MIR_IF() {
-        return String_from("MIR_IF")
+        return "MIR_IF"
     }
     if op == opcodes::MIR_ELSE() {
-        return String_from("MIR_ELSE")
+        return "MIR_ELSE"
     }
     if op == opcodes::MIR_END() {
-        return String_from("MIR_END")
+        return "MIR_END"
     }
     if op == opcodes::MIR_EQZ() {
-        return String_from("MIR_EQZ")
+        return "MIR_EQZ"
     }
     if op == opcodes::MIR_STRUCT_NEW() {
-        return String_from("MIR_STRUCT_NEW")
+        return "MIR_STRUCT_NEW"
     }
     if op == opcodes::MIR_STRUCT_GET() {
-        return String_from("MIR_STRUCT_GET")
+        return "MIR_STRUCT_GET"
     }
     if op == opcodes::MIR_STRUCT_SET() {
-        return String_from("MIR_STRUCT_SET")
+        return "MIR_STRUCT_SET"
     }
     if op == opcodes::MIR_ARRAY_NEW() {
-        return String_from("MIR_ARRAY_NEW")
+        return "MIR_ARRAY_NEW"
     }
     if op == opcodes::MIR_ARRAY_GET() {
-        return String_from("MIR_ARRAY_GET")
+        return "MIR_ARRAY_GET"
     }
     if op == opcodes::MIR_ARRAY_SET() {
-        return String_from("MIR_ARRAY_SET")
+        return "MIR_ARRAY_SET"
     }
     if op == opcodes::MIR_ARRAY_LEN() {
-        return String_from("MIR_ARRAY_LEN")
+        return "MIR_ARRAY_LEN"
     }
     if op == opcodes::MIR_DROP() {
-        return String_from("MIR_DROP")
+        return "MIR_DROP"
     }
     if op == opcodes::MIR_NOP() {
-        return String_from("MIR_NOP")
+        return "MIR_NOP"
     }
     if op == opcodes::MIR_UNREACHABLE() {
-        return String_from("MIR_UNREACHABLE")
+        return "MIR_UNREACHABLE"
     }
     if op == opcodes::MIR_PHI() {
-        return String_from("MIR_PHI")
+        return "MIR_PHI"
     }
     if op == opcodes::MIR_GC_HINT() {
-        return String_from("MIR_GC_HINT")
+        return "MIR_GC_HINT"
     }
     if op == opcodes::MIR_GC_HINT_SHORT_LIVED() {
-        return String_from("MIR_GC_HINT_SHORT_LIVED")
+        return "MIR_GC_HINT_SHORT_LIVED"
     }
     if op == opcodes::MIR_FUTURE_NEW() {
-        return String_from("MIR_FUTURE_NEW")
+        return "MIR_FUTURE_NEW"
     }
     if op == opcodes::MIR_AWAIT() {
-        return String_from("MIR_AWAIT")
+        return "MIR_AWAIT"
     }
     if op == opcodes::MIR_BR_ON_CAST() {
-        return String_from("MIR_BR_ON_CAST")
+        return "MIR_BR_ON_CAST"
     }
     if op == opcodes::MIR_BR_ON_CAST_FAIL() {
-        return String_from("MIR_BR_ON_CAST_FAIL")
+        return "MIR_BR_ON_CAST_FAIL"
     }
     if op == opcodes::MIR_REF_TEST() {
-        return String_from("MIR_REF_TEST")
+        return "MIR_REF_TEST"
     }
     if op == opcodes::MIR_REF_CAST() {
-        return String_from("MIR_REF_CAST")
+        return "MIR_REF_CAST"
     }
     if op == opcodes::MIR_GC_STRUCT_NEW() {
-        return String_from("MIR_GC_STRUCT_NEW")
+        return "MIR_GC_STRUCT_NEW"
     }
     if op == opcodes::MIR_GC_STRUCT_GET() {
-        return String_from("MIR_GC_STRUCT_GET")
+        return "MIR_GC_STRUCT_GET"
     }
     if op == opcodes::MIR_GC_STRUCT_SET() {
-        return String_from("MIR_GC_STRUCT_SET")
+        return "MIR_GC_STRUCT_SET"
     }
     if op == opcodes::MIR_CALL_REF() {
-        return String_from("MIR_CALL_REF")
+        return "MIR_CALL_REF"
     }
     if op == opcodes::MIR_REF_FUNC() {
-        return String_from("MIR_REF_FUNC")
+        return "MIR_REF_FUNC"
     }
-    concat(String_from("MIR_OPCODE_"), i32_to_string(op))
+    concat("MIR_OPCODE_", i32_to_string(op))
 }
 
 fn native_c_capability_status_detail(op: i32) -> String {
     if op == opcodes::MIR_CONST_I32() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CONST_I64() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CONST_F64() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CONST_BOOL() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CONST_STRING() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_LOCAL_GET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_LOCAL_SET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ADD() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_SUB() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_MUL() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_DIV() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_MOD() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_EQ() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_NEQ() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_LT() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_LTEQ() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_GT() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_GTEQ() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_AND() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_OR() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_NEG() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_NOT() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BIT_AND() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BIT_OR() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BIT_XOR() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_SHL() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_SHR() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CALL() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_CALL_INDIRECT() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_RETURN() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_WIT_CALL() {
-        return String_from("unsupported: WIT and Component Model are outside the native-cpp MVP scope")
+        return "unsupported: WIT and Component Model are outside the native-cpp MVP scope"
     }
     if op == opcodes::MIR_EXTEND_I32_TO_I64() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_TRUNC_I64_TO_I32() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BR() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BR_IF() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_BR_TABLE() {
-        return String_from("planned phase 1")
+        return "planned phase 1"
     }
     if op == opcodes::MIR_BLOCK() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_LOOP() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_IF() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ELSE() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_END() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_EQZ() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_STRUCT_NEW() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_STRUCT_GET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_STRUCT_SET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ARRAY_NEW() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ARRAY_GET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ARRAY_SET() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_ARRAY_LEN() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_DROP() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_NOP() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_UNREACHABLE() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_PHI() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_GC_HINT() {
-        return String_from("planned phase 2")
+        return "planned phase 2"
     }
     if op == opcodes::MIR_GC_HINT_SHORT_LIVED() {
-        return String_from("planned phase 2")
+        return "planned phase 2"
     }
     if op == opcodes::MIR_FUTURE_NEW() {
-        return String_from("unsupported: future and async are outside the native-cpp MVP scope")
+        return "unsupported: future and async are outside the native-cpp MVP scope"
     }
     if op == opcodes::MIR_AWAIT() {
-        return String_from("unsupported: future and async are outside the native-cpp MVP scope")
+        return "unsupported: future and async are outside the native-cpp MVP scope"
     }
     if op == opcodes::MIR_BR_ON_CAST() {
-        return String_from("planned phase 3")
+        return "planned phase 3"
     }
     if op == opcodes::MIR_BR_ON_CAST_FAIL() {
-        return String_from("planned phase 3")
+        return "planned phase 3"
     }
     if op == opcodes::MIR_REF_TEST() {
-        return String_from("planned phase 3")
+        return "planned phase 3"
     }
     if op == opcodes::MIR_REF_CAST() {
-        return String_from("planned phase 3")
+        return "planned phase 3"
     }
     if op == opcodes::MIR_GC_STRUCT_NEW() {
-        return String_from("planned phase 2")
+        return "planned phase 2"
     }
     if op == opcodes::MIR_GC_STRUCT_GET() {
-        return String_from("planned phase 2")
+        return "planned phase 2"
     }
     if op == opcodes::MIR_GC_STRUCT_SET() {
-        return String_from("planned phase 2")
+        return "planned phase 2"
     }
     if op == opcodes::MIR_CALL_REF() {
-        return String_from("supported")
+        return "supported"
     }
     if op == opcodes::MIR_REF_FUNC() {
-        return String_from("supported")
+        return "supported"
     }
-    String_from("unknown capability")
+    "unknown capability"
 }
 
 fn native_c_capability_is_supported(op: i32) -> bool {
@@ -507,10 +507,10 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 14 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 15 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 16 {
         return String_from("supported")
@@ -528,13 +528,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 21 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 22 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 23 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 24 {
         return String_from("planned phase 2")
@@ -543,13 +543,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 26 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 27 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 28 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 29 {
         return String_from("supported")
@@ -558,25 +558,25 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 31 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 32 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 33 {
         return String_from("supported")
     }
     if index == 34 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 35 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 36 {
-        return String_from("supported")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 37 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 38 {
         return String_from("supported")
@@ -591,13 +591,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 42 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 43 {
         return String_from("supported")
     }
     if index == 44 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 45 {
         return String_from("supported")
@@ -609,7 +609,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 48 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 49 {
         return String_from("planned phase 4")
@@ -621,13 +621,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 52 {
-        return String_from("supported")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 53 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 54 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 55 {
         return String_from("supported")
@@ -636,7 +636,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 57 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 58 {
         return String_from("supported")
@@ -645,43 +645,43 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 60 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 61 {
         return String_from("supported")
     }
     if index == 62 {
-        return String_from("unsupported: host random is outside the native-cpp executor runtime boundary")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 63 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 64 {
         return String_from("supported")
     }
     if index == 65 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("planned phase 4")
     }
     if index == 66 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 67 {
-        return String_from("supported")
+        return String_from("unsupported: host random is outside the native-cpp executor runtime boundary")
     }
     if index == 68 {
-        return String_from("supported")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 69 {
         return String_from("supported")
     }
     if index == 70 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 71 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 72 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 73 {
         return String_from("supported")
@@ -690,22 +690,22 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 75 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 76 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 77 {
-        return String_from("planned phase 2")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 78 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 79 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 80 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 81 {
         return String_from("supported")
@@ -714,13 +714,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 83 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 84 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 85 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 86 {
         return String_from("supported")
@@ -729,22 +729,22 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("planned phase 2")
     }
     if index == 88 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 89 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 90 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 91 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 92 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("planned phase 2")
     }
     if index == 93 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("planned phase 2")
     }
     if index == 94 {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
@@ -1203,19 +1203,19 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 246 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 247 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 248 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 249 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 250 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 251 {
         return String_from("supported")
@@ -1284,7 +1284,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 273 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 274 {
         return String_from("supported")
@@ -1299,7 +1299,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 278 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 279 {
         return String_from("supported")
@@ -1362,6 +1362,15 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 299 {
+        return String_from("supported")
+    }
+    if index == 300 {
+        return String_from("supported")
+    }
+    if index == 301 {
+        return String_from("supported")
+    }
+    if index == 302 {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     String_from("unknown capability")
@@ -1382,57 +1391,53 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 11 ||
     index == 12 ||
     index == 13 ||
-    index == 14 ||
-    index == 15 ||
     index == 16 ||
     index == 17 ||
     index == 18 ||
     index == 19 ||
-    index == 26 ||
-    index == 27 ||
-    index == 28 ||
+    index == 21 ||
+    index == 22 ||
+    index == 23 ||
     index == 29 ||
     index == 30 ||
+    index == 31 ||
+    index == 32 ||
     index == 33 ||
-    index == 34 ||
-    index == 35 ||
-    index == 36 ||
-    index == 37 ||
     index == 38 ||
     index == 39 ||
     index == 40 ||
     index == 41 ||
+    index == 42 ||
     index == 43 ||
+    index == 44 ||
     index == 45 ||
     index == 46 ||
+    index == 48 ||
     index == 50 ||
     index == 51 ||
-    index == 52 ||
-    index == 53 ||
-    index == 54 ||
     index == 55 ||
     index == 56 ||
+    index == 57 ||
     index == 58 ||
     index == 59 ||
+    index == 60 ||
     index == 61 ||
+    index == 63 ||
     index == 64 ||
-    index == 67 ||
-    index == 68 ||
+    index == 66 ||
     index == 69 ||
+    index == 72 ||
     index == 73 ||
     index == 74 ||
-    index == 75 ||
-    index == 76 ||
+    index == 78 ||
+    index == 79 ||
+    index == 80 ||
     index == 81 ||
-    index == 83 ||
-    index == 84 ||
-    index == 85 ||
     index == 86 ||
-    index == 246 ||
-    index == 247 ||
-    index == 248 ||
-    index == 249 ||
-    index == 250 ||
+    index == 88 ||
+    index == 89 ||
+    index == 90 ||
+    index == 91 ||
     index == 251 ||
     index == 252 ||
     index == 253 ||
@@ -1455,11 +1460,11 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 270 ||
     index == 271 ||
     index == 272 ||
+    index == 273 ||
     index == 274 ||
     index == 275 ||
     index == 276 ||
     index == 277 ||
-    index == 278 ||
     index == 279 ||
     index == 280 ||
     index == 281 ||
@@ -1479,5 +1484,8 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 295 ||
     index == 296 ||
     index == 297 ||
-    index == 298
+    index == 298 ||
+    index == 299 ||
+    index == 300 ||
+    index == 301
 }

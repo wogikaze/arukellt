@@ -9,8 +9,6 @@
 //
 // NOTE: This is a v0 arukellt transliteration of parser.rs.
 // It demonstrates the language's expressiveness and limitations.
-import io
-
 fn str_find(s: String, needle: String) -> Option<i32> {
     let n = len(needle)
     let m = len(s)
@@ -28,7 +26,7 @@ fn str_char_count(s: String) -> i32 {
     len(s)
 }
 
-fn trim_start(s: String) -> String {
+fn parser_trim_start(s: String) -> String {
     let mut i = 0
     while i < len(s) && char_at(s, i) == 32 || char_at(s, i) == 9 || char_at(s, i) == 13 {
         i = i + 1
@@ -185,7 +183,7 @@ fn extract_front_matter(text: String) -> Option<FmResult> {
             } else {
                 ""
             }
-            let mut fields: Vec<FrontMatterField> = Vec_new_FrontMatterField()
+            let mut fields: Vec<FrontMatterField> = Vec::new<FrontMatterField>()
             let lines = split(fm_str, "\n")
             let mut i = 0
             while i < len(lines) {
@@ -234,7 +232,7 @@ struct ParseCtx {
 }
 
 fn ParseCtx_new(input: String, source: String) -> ParseCtx {
-    let mut starts = Vec_new_i32()
+    let mut starts = Vec::new<i32>()
     push(starts, 0)
     let mut i = 0
     while i < len(input) {
@@ -342,8 +340,8 @@ fn parse(text: String) -> ParserResult {
 
 fn parse_with_source(text: String, source: String) -> ParserResult {
     let ctx = ParseCtx_new(text, source)
-    let mut events: Vec<Event> = Vec_new_Event()
-    let mut warnings: Vec<Warning> = Vec_new_Warning()
+    let mut events: Vec<Event> = Vec::new<Event>()
+    let mut warnings: Vec<Warning> = Vec::new<Warning>()
     let content = match extract_front_matter(text) {
         Option::Some(r) => {
             push(events, Event::FrontMatter(r.fields))
@@ -353,7 +351,7 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
     }
     let lines = split(content, "\n")
     let fn_defs = collect_fn_defs(lines)
-    let mut fn_refs: Vec<String> = Vec_new_String()
+    let mut fn_refs: Vec<String> = Vec::new<String>()
     parse_blocks(lines, events, warnings, ctx, true, fn_defs, fn_refs)
     emit_fn_section(fn_defs, fn_refs, events, warnings, ctx)
     ParserResult { events: events, warnings: warnings }
@@ -374,7 +372,7 @@ fn fnv1a(s: String) -> i32 {
 
 // ── Source block splitting ────────────────────────────────────────────────────
 fn split_source_blocks(input: String) -> Vec<String> {
-    let mut result: Vec<String> = Vec_new_String()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut block_start: Option<i32> = None
     let mut block_end: i32 = 0
     let mut in_fence: bool = false
@@ -384,7 +382,7 @@ fn split_source_blocks(input: String) -> Vec<String> {
     while i < len(lines) {
         let line = get(lines, i)
         let line_end = pos + len(line)
-        let trimmed = trim_start(line)
+        let trimmed = parser_trim_start(line)
         if starts_with(trimmed, "```") {
             in_fence = !in_fence
         }
@@ -523,10 +521,10 @@ struct FnDef {
 }
 
 fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
-    let mut defs: Vec<FnDef> = Vec_new_FnDef()
+    let mut defs: Vec<FnDef> = Vec::new<FnDef>()
     let mut i = 0
     while i < len(lines) {
-        let t = trim_start(get(lines, i))
+        let t = parser_trim_start(get(lines, i))
         if starts_with(t, "[^") {
             let rest = substring(t, 2, len(t))
             let colon_idx = str_find(rest, "]: ")
@@ -610,7 +608,7 @@ fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, events: Vec<Event>
         match content {
             Option::Some(c) => {
                 push(events, Event::Start(Tag::FootnoteItem(num)))
-                let mut nested_refs: Vec<String> = Vec_new_String()
+                let mut nested_refs: Vec<String> = Vec::new<String>()
                 parse_inline(c, events, warnings, ctx, false, fn_defs, nested_refs)
                 push(events, Event::End(Tag::FootnoteItem(num)))
             },
@@ -625,10 +623,10 @@ fn emit_fn_section(fn_defs: Vec<FnDef>, fn_refs: Vec<String>, events: Vec<Event>
 // ── Block parser ──────────────────────────────────────────────────────────────
 fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, root: bool, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) {
     let mut i = 0
-    let mut section_stack: Vec<i32> = Vec_new_i32()
+    let mut section_stack: Vec<i32> = Vec::new<i32>()
     while i < len(lines) {
         let line = get(lines, i)
-        let tline = trim_start(line)
+        let tline = parser_trim_start(line)
         if len(tline) == 0 {
             i = i + 1
         } else {
@@ -674,7 +672,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                         push(events, Event::BlockId(fnv1a(tline)))
                         push(events, Event::Start(Tag::CodeBlock(lang, filename)))
                         i = i + 1
-                        while i < len(lines) && !starts_with(trim_start(get(lines, i)), "```") {
+                        while i < len(lines) && !starts_with(parser_trim_start(get(lines, i)), "```") {
                             push(events, Event::Text(get(lines, i)))
                             push(events, Event::Text("\n"))
                             i = i + 1
@@ -728,7 +726,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                     i = i + 1
                                 } else {
                                     if starts_with(line, ">") {
-                                        let mut bq_lines: Vec<String> = Vec_new_String()
+                                        let mut bq_lines: Vec<String> = Vec::new<String>()
                                         let mut j = i
                                         while j < len(lines) {
                                             let ln = get(lines, j)
@@ -810,7 +808,7 @@ fn parse_blocks(lines: Vec<String>, events: Vec<Event>, warnings: Vec<Warning>, 
                                                 push(events, Event::Start(Tag::List(is_ol)))
                                                 let mut j = i
                                                 while j < len(lines) {
-                                                    let l2 = trim_start(get(lines, j))
+                                                    let l2 = parser_trim_start(get(lines, j))
                                                     let matches_type = if is_ol {
                                                         is_ol_line(l2)
                                                     } else {
@@ -874,7 +872,7 @@ fn close_sections_until(events: Vec<Event>, stack: Vec<i32>, level: i32) {
 }
 
 fn is_table_line(line: String) -> bool {
-    starts_with(trim_start(line), "|")
+    starts_with(parser_trim_start(line), "|")
 }
 
 fn is_ul_line(tline: String) -> bool {
@@ -948,7 +946,7 @@ fn parse_table_cells(line: String) -> Vec<String> {
         t2
     }
     let parts = split(t3, "|")
-    let mut result: Vec<String> = Vec_new_String()
+    let mut result: Vec<String> = Vec::new<String>()
     let mut i = 0
     while i < len(parts) {
         push(result, trim(get(parts, i)))
@@ -958,7 +956,7 @@ fn parse_table_cells(line: String) -> Vec<String> {
 }
 
 fn parse_alignments(sep_cells: Vec<String>) -> Vec<Alignment> {
-    let mut aligns: Vec<Alignment> = Vec_new_Alignment()
+    let mut aligns: Vec<Alignment> = Vec::new<Alignment>()
     let mut i = 0
     while i < len(sep_cells) {
         let s = trim(get(sep_cells, i))
@@ -987,11 +985,11 @@ fn is_block_start(line: String, tline: String) -> bool {
 }
 
 fn parse_paragraph(lines: Vec<String>, start: i32, events: Vec<Event>, warnings: Vec<Warning>, ctx: ParseCtx, fn_defs: Vec<FnDef>, fn_refs: Vec<String>) -> i32 {
-    let mut para: Vec<String> = Vec_new_String()
+    let mut para: Vec<String> = Vec::new<String>()
     let mut j = start
     while j < len(lines) {
         let ln = get(lines, j)
-        let t = trim_start(ln)
+        let t = parser_trim_start(ln)
         if is_block_start(ln, t) {
             break
         } else {
@@ -1261,7 +1259,7 @@ fn parse_inline(text: String, events: Vec<Event>, warnings: Vec<Warning>, ctx: P
                                                                 let parts = split_at_depth_zero(content, 47)
                                                                 if len(parts) >= 2 {
                                                                     let base = get(parts, 0)
-                                                                    let mut notes: Vec<String> = Vec_new_String()
+                                                                    let mut notes: Vec<String> = Vec::new<String>()
                                                                     let mut ni = 1
                                                                     while ni < len(parts) {
                                                                         push(notes, get(parts, ni))
@@ -1388,7 +1386,7 @@ fn find_slash_at_depth_zero(content: String) -> Option<i32> {
 }
 
 fn split_at_depth_zero(content: String, sep: i32) -> Vec<String> {
-    let mut parts: Vec<String> = Vec_new_String()
+    let mut parts: Vec<String> = Vec::new<String>()
     let mut last = 0
     let mut blk = 0
     let mut i = 0

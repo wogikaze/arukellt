@@ -5,7 +5,7 @@ use parser::decl_multiclause_where_probe
 
 fn parse_optional_where_block(p: Parser) -> Vec<AstNode> {
     core_api_cursor::skip_newlines(p)
-    let mut bindings = Vec_new_AstNode()
+    let mut bindings = Vec::new<AstNode>()
     if core_api_cursor::peek_kind(p) != tokens::TK_WHERE() {
         return bindings
     }

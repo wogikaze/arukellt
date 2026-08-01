@@ -15,16 +15,16 @@ fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_get = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
+        // Typed i64/f64 helpers remain for direct call sites; other Vec receivers
+        // go through sealed raw so element type comes from the source local (#822).
         if eq(clone(arg_type_get), "vec:i64") {
             return String_from("vec_get_unchecked_i64")
-        } else {
-            if eq(clone(arg_type_get), "vec:f64") {
-                return String_from("vec_get_unchecked_f64")
-            } else {
-                if starts_with(clone(arg_type_get), "vec:") {
-                    return String_from("vec_get_unchecked")
-                }
-            }
+        }
+        if eq(clone(arg_type_get), "vec:f64") {
+            return String_from("vec_get_unchecked_f64")
+        }
+        if starts_with(clone(arg_type_get), "vec:") {
+            return String_from("raw_array_get_unchecked")
         }
     }
     callee_name

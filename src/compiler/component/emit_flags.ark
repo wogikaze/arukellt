@@ -31,15 +31,15 @@ fn emit_flags_alias_section(out: writer_core::ComponentWriter, export_name: Stri
 
 fn emit_flags_type_export_sections(out: writer_core::ComponentWriter) {
     type_section_entries::emit_single_type_section(out, types_wit_compound::comp_wit_flags_type(export_shapes_flags_scan::comp_flags_member_names()))
-    type_section_entries::emit_single_type_export_section(out, String_from("perms"), 0)
+    type_section_entries::emit_single_type_export_section(out, "perms", 0)
 }
 
 fn emit_flags_func_type_section(out: writer_core::ComponentWriter) {
     let func_type_sec = writer_core::ComponentWriter_new()
     writer_core::comp_emit_leb128_u(func_type_sec, 1)
-    let params = Vec_new_i32()
+    let params = Vec::new<i32>()
     push(params, 0)
-    let results = Vec_new_i32()
+    let results = Vec::new<i32>()
     push(results, 0)
     writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
@@ -64,5 +64,5 @@ fn try_emit_flags_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Ve
     if len(export_name) > 0 {
         return emit_flags_roundtrip_component(core_wasm, export_name)
     }
-    Vec_new_i32()
+    Vec::new<i32>()
 }

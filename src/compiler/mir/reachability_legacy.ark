@@ -56,10 +56,10 @@ fn mir_legacy_mark_reachable_name(functions: Vec<MirFunction>, reachable: Vec<i3
 
 fn mir_legacy_mark_roots(functions: Vec<MirFunction>, reachable: Vec<i32>, extra_roots: Vec<String>) -> i32 {
     let mut root_count = 0
-    if mir_legacy_mark_reachable_name(functions, reachable, String_from("main")) {
+    if mir_legacy_mark_reachable_name(functions, reachable, "main") {
         root_count = root_count + 1
     }
-    if mir_legacy_mark_reachable_name(functions, reachable, String_from("_start")) {
+    if mir_legacy_mark_reachable_name(functions, reachable, "_start") {
         root_count = root_count + 1
     }
     let extra_count = len(extra_roots)
@@ -142,7 +142,7 @@ fn mir_prune_unreachable_legacy_fixpoint(m: MirModule, extra_roots: Vec<String>)
         return 0
     }
     let functions = module_functions::MirModule_functions(m)
-    let reachable = Vec_new_i32()
+    let reachable = Vec::new<i32>()
     let mut i = 0
     while i < fn_count {
         push(reachable, 0)

@@ -9,8 +9,8 @@ use mir::value_types
 
 fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let child_count = ast_node::node_child_count(node)
-    let mut field_locals = Vec_new_i32()
-    let mut field_vts = Vec_new_i32()
+    let mut field_locals = Vec::new<i32>()
+    let mut field_vts = Vec::new<i32>()
     let mut total_bytes = 0
     let mut ti = 0
     while ti < child_count {

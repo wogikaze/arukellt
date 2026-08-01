@@ -5,12 +5,12 @@ fn fmt_is_full_line_comment(trimmed: String) -> bool {
 }
 
 fn fmt_line_starts_block_comment(trimmed: String) -> bool {
-    index_of(clone(trimmed), String_from("/*")) >= 0
+    index_of(clone(trimmed), "/*") >= 0
 }
 
 fn fmt_preserve_comment_lines(lines: Vec<String>) -> Vec<String> {
     let n = len(lines)
-    let mut out = Vec_new_String()
+    let mut out = Vec::new<String>()
     let mut i = 0
     while i < n {
         let raw = get_unchecked(lines, i)

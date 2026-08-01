@@ -6,8 +6,8 @@ Read first:
 
 1. `AGENTS.md`
 2. `docs/plans/native-cpp-experimental-promotion.md`
-3. `issues/open/833-native-cpp-root-liveness-reenable.md`
-4. `issues/open/834-native-cpp-experimental-promotion.md`
+3. `issues/done/847-native-cpp-root-liveness-reenable.md`
+4. `issues/done/848-native-cpp-experimental-promotion.md`
 5. `docs/current-state.md`
 6. ADR-049 and RFC-008
 
@@ -30,7 +30,7 @@ Rules:
 - Do not wait for user approval between rollout stages.
 - A failed test is a debugging task, not a stop signal.
 - A failed performance gate selects the next measured optimization branch.
-- Closing #833 must be followed by continuing #834.
+- Closing #847 must be followed by continuing #848.
 - Never accept `--allow-high-rss`, stress-only green, or one strict PASS as completion.
 - Use the hard-stop conditions in the canonical plan. When one task is blocked, continue all independent tasks.
 - Preserve old baselines and create timestamped new receipts; never rewrite Phase 0 evidence.

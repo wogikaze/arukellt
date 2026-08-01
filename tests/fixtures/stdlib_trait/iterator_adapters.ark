@@ -6,7 +6,7 @@ fn is_even(x: i32) -> bool { x / 2 * 2 == x }
 fn add_i32(a: i32, b: i32) -> i32 { a + b }
 
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
+    let v: Vec<i32> = Vec::new<i32>()
     push(v, 1)
     push(v, 2)
     push(v, 3)
@@ -32,13 +32,13 @@ fn main() {
     // map+filter+take pipeline (single pass, no intermediate Vec)
     let pipe = iter::collect_map_filter_take_i32(v, double, is_even, 2)
     assert(len(pipe) == 2)
-    assert(get_unchecked(pipe, 0) == 4)
-    assert(get_unchecked(pipe, 1) == 8)
+    assert(get_unchecked(pipe, 0) == 2)
+    assert(get_unchecked(pipe, 1) == 4)
     // fold (named callback — anonymous closures emit GC stubs that fail validate)
     let sum = iter::iter_fold_i32(v, 0, add_i32)
     assert(sum == 15)
     // chain
-    let a: Vec<i32> = Vec_new_i32()
+    let a: Vec<i32> = Vec::new<i32>()
     push(a, 10)
     push(a, 20)
     let chained = iter::collect_chain_i32(v, a)

@@ -14,9 +14,9 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
     let decl_source = decl_source::mir_decl_source_from_view(view)
     let decl_count = decl_source::mir_decl_source_count(decl_source)
     let source = fn_index_source::mir_fn_index_source_from_view(view)
-    let fn_names = Vec_new_String()
-    let fn_return_vts = Vec_new_i32()
-    let fn_return_type_names = Vec_new_String()
+    let fn_names = Vec::new<String>()
+    let fn_return_vts = Vec::new<i32>()
+    let fn_return_type_names = Vec::new<String>()
     let mut fn_index = 0
     let mut d = 0
     while d < decl_count {
@@ -40,9 +40,9 @@ fn mir_build_fn_index_from_view(view: CoreHirMirView, midx: MonoIndex, m: MirMod
         signature_spine::mir_signature_spine_mono_table(spine),
         signature_spine::mir_signature_spine_type_table(spine)
     )
-    let qualified_names = Vec_new_String()
-    let qualified_return_vts = Vec_new_i32()
-    let qualified_return_type_names = Vec_new_String()
+    let qualified_names = Vec::new<String>()
+    let qualified_return_vts = Vec::new<i32>()
+    let qualified_return_type_names = Vec::new<String>()
     mir_collect_qualified_fn_aliases(
         decl_source,
         source,
@@ -98,7 +98,7 @@ fn mir_collect_qualified_fn_aliases(
 
 fn mir_import_facing_qualified_name(qualified_name: String) -> String {
     let name_len = len(qualified_name)
-    let separators = Vec_new_i32()
+    let separators = Vec::new<i32>()
     let mut index = 0
     while index < name_len - 1 {
         if char_at(qualified_name, index) == 58 && char_at(qualified_name, index + 1) == 58 {

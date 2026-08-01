@@ -20,15 +20,15 @@ fn ComposeWitWorld_new(imports: Vec<ComposeWitFuncSig>, exports: Vec<ComposeWitF
 }
 
 fn ComposeWitWorld_empty() -> ComposeWitWorld {
-    ComposeWitWorld_new(Vec_new_ComposeWitFuncSig(), Vec_new_ComposeWitFuncSig())
+    ComposeWitWorld_new(Vec::new<ComposeWitFuncSig>(), Vec::new<ComposeWitFuncSig>())
 }
 
 fn compose_wit_sidecar_for_wasm(wasm_path: String) -> String {
-    if ends_with(clone(wasm_path), String_from(".wasm")) {
+    if ends_with(clone(wasm_path), ".wasm") {
         let base = substring(wasm_path, 0, len(wasm_path) - 5)
-        return concat(base, String_from(".wit"))
+        return concat(base, ".wit")
     }
-    concat(wasm_path, String_from(".wit"))
+    concat(wasm_path, ".wit")
 }
 
 fn compose_wit_normalize_sig(sig: String) -> String {
@@ -36,7 +36,7 @@ fn compose_wit_normalize_sig(sig: String) -> String {
 }
 
 fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFuncSig> {
-    let funcs = Vec_new_ComposeWitFuncSig()
+    let funcs = Vec::new<ComposeWitFuncSig>()
     let key_len = len(keyword)
     let mut pos = 0
     while pos < len(text) {
@@ -47,7 +47,7 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
         }
         let entry_start = pos + rel + key_len
         let name_tail = substring(text, entry_start, len(text))
-        let colon_rel = index_of(name_tail, String_from(":"))
+        let colon_rel = index_of(name_tail, ":")
         if colon_rel < 0 {
             break
         }
@@ -55,14 +55,14 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
         let name = compose_wit_normalize_sig(substring(text, entry_start, name_end))
         let after_colon = name_end + 1
         let rest = substring(text, after_colon, len(text))
-        let func_rel = index_of(rest, String_from("func"))
+        let func_rel = index_of(rest, "func")
         if func_rel < 0 {
             pos = entry_start + 1
             continue
         }
         let sig_start = after_colon + func_rel
         let sig_tail = substring(text, sig_start, len(text))
-        let semi_rel = index_of(sig_tail, String_from(";"))
+        let semi_rel = index_of(sig_tail, ";")
         if semi_rel < 0 {
             break
         }
@@ -76,8 +76,8 @@ fn compose_wit_scan_entries(text: String, keyword: String) -> Vec<ComposeWitFunc
 
 fn compose_wit_parse_world_text(text: String) -> ComposeWitWorld {
     ComposeWitWorld_new(
-        compose_wit_scan_entries(clone(text), String_from("import ")),
-        compose_wit_scan_entries(clone(text), String_from("export "))
+        compose_wit_scan_entries(clone(text), "import "),
+        compose_wit_scan_entries(clone(text), "export ")
     )
 }
 
@@ -106,25 +106,25 @@ fn compose_wit_validate_imports(socket_imports: Vec<ComposeWitFuncSig>, provider
         let export_idx = compose_wit_find_export(provider_exports, clone(imp.name))
         if export_idx < 0 {
             return concat(
-                String_from("error: compose conflict: socket import '"),
+                "error: compose conflict: socket import '",
                 concat(
                     clone(imp.name),
-                    concat(String_from("' has no matching provider export"), String_new())
+                    concat("' has no matching provider export", String_new())
                 )
             )
         }
         let exp = get_unchecked(provider_exports, export_idx)
         if !eq(clone(imp.signature), clone(exp.signature)) {
             return concat(
-                String_from("error: compose conflict: import/export type mismatch for '"),
+                "error: compose conflict: import/export type mismatch for '",
                 concat(
                     clone(imp.name),
                     concat(
-                        String_from("': socket expects "),
+                        "': socket expects ",
                         concat(
                             clone(imp.signature),
                             concat(
-                                String_from(" but provider exports "),
+                                " but provider exports ",
                                 clone(exp.signature)
                             )
                         )
@@ -160,13 +160,13 @@ fn validate_plug_surfaces(provider_wasm: String, socket_wasm: String) -> String 
     }
     if provider_has && !socket_has {
         return concat(
-            String_from("error: compose conflict: missing WIT sidecar for socket component: "),
+            "error: compose conflict: missing WIT sidecar for socket component: ",
             clone(socket_wit)
         )
     }
     if !provider_has && socket_has {
         return concat(
-            String_from("error: compose conflict: missing WIT sidecar for provider component: "),
+            "error: compose conflict: missing WIT sidecar for provider component: ",
             clone(provider_wit)
         )
     }

@@ -60,7 +60,7 @@ fn MonoInstance_type_arg_at(instance: MonoInstance, index: i32) -> TypeInfo {
 }
 
 fn TypeInfo_simple(tag: i32) -> TypeInfo {
-    TypeInfo { tag: tag, name: String_new(), type_args: Vec_new_TypeInfo() }
+    TypeInfo { tag: tag, name: String_new(), type_args: Vec::new<TypeInfo>() }
 }
 
 fn TypeInfo_new(tag: i32, name: String, type_args: Vec<TypeInfo>) -> TypeInfo {

@@ -26,35 +26,23 @@ graph LR
   I693["693 693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification"]
   I694["694 694 — `Error` trait and unified error type ecosystem"]
   I695["695 695 — `Ord` / `PartialOrd` traits and comparison-based algorithms"]
-  I696["696 696 — `Debug` trait and `format!` / `write!` equivalent formatting"]
   I702["702 702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch"]
-  I704["704 std::json Full JSON RFC 8259 Compliance"]
-  I705["705 std::toml Full TOML 1.0 Compliance"]
   I706["706 std::wit Full WIT 1.0 Compliance"]
   I708["708 708 — `TryFrom` / `TryInto` traits for fallible conversions"]
   I715["715 715 — In-file test coverage targets for compiler and stdlib"]
   I718["718 718 — Stdlib free-function → method/trait migration inventory"]
   I721["721 Final Types (`sub final`) を全 struct に適用"]
   I723["723 Wasm Exception Handling (`exnref`) 統合の検討"]
-  I724["724 ADR-040 Phase 3b-7: Typed MIR Signature Registry 残作業"]
-  I725["725 ADR-040 Phase 5e: 命令トレーサ完全削除 (infer_ref_local_gc_type_depth)"]
   I728["728 728 — WIR / backend target IR for ADR-007 multi-target separation"]
+  I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I760["760 ADR 台帳の規則追従 — research/plans 分離と supersession 整合"]
   I791["791 791 — Eliminate the Ark canonical parser baseline"]
-  I807["807 807 — Fixture parity: 367 remaining failures"]
-  I809["809 809 — WAT roundtrip failure"]
-  I810["810 810 — Component interop failures"]
   I815["815 815 — Diagnostic/T3 compile skips"]
   I819["819 819 — Runtime ABI CoreOp lowering and emitter host-operation removal"]
-  I822["822 822 — Representation-dependent and allocating stdlib migration"]
-  I824["824 Early body lowering (worklist; design first)"]
   I825["825 AST cache format repair (not “re-enable as-is”)"]
-  I826["826 P2a: symbol / path interning + hot-path clone audit"]
   I830["830 830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap"]
-  I840["840 840 — Enable `?` From conversion on wasm32-gc"]
   I841["841 841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims"]
-  I842["842 native-executor wasm32-gc S3 validation drift (func 118)"]
-  I843["843 Pin bootstrap to validating Memory64 wasm32-gc"]
+  I849["849 849 — native-executor wasm32-gc S3 validation drift (func 118)"]
   I673["673 673 — Component export aggregate expansion (Tier 2 blocked shapes)"]
   I682["682 682 — Component / WIT product-claim verification audit"]
   I698["698 698 — std::simd explicit SIMD library API and v128 first-class type"]
@@ -63,7 +51,6 @@ graph LR
   I703["703 703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)"]
   I719["719 719 — `arukellt test` execution harness (ADR-041 Phase 2)"]
   I799["799 799 — CQ-18: code-quality closed-loop strict final audit"]
-  I729["729 729 — Intrinsic layer separation (unblocked epic)"]
   I814["814 814 — Formatter/parser exceptions (23 files)"]
   I818["818 818 — CoreOpRegistry production scaffold exit"]
   I675["675 675 — Host capability user-reachability and runtime permission flags"]
@@ -84,10 +71,8 @@ graph LR
   I695 --> I703
   I715 --> I719
   I715 --> I799
-  I724 --> I729
   I791 --> I814
   I819 --> I818
-  I822 --> I818
   I841 --> I675
   I682 --> I683
   I698 --> I699
@@ -130,35 +115,23 @@ graph LR
 - **693** depends on: 688, 692; blocks: none
 - **694** depends on: 690, 692; blocks: none
 - **695** depends on: 688; blocks: 697, 703, 709
-- **696** depends on: none; blocks: none
 - **702** depends on: 688, 700, 692; blocks: none
-- **704** depends on: 606; blocks: none
-- **705** depends on: 606; blocks: none
 - **706** depends on: 606; blocks: none
 - **708** depends on: 692, 707; blocks: none
 - **715** depends on: 041, done); blocks: 719, 799
 - **718** depends on: 700, 701; blocks: none
 - **721** depends on: none; blocks: none
 - **723** depends on: none; blocks: none
-- **724** depends on: none; blocks: 729
-- **725** depends on: None; blocks: none
 - **728** depends on: none; blocks: none
+- **729** depends on: 843; blocks: none
 - **760** depends on: none; blocks: none
 - **791** depends on: 785; blocks: 814
-- **807** depends on: 287, framework); blocks: none
-- **809** depends on: none; blocks: none
-- **810** depends on: none; blocks: none
 - **815** depends on: none; blocks: none
 - **819** depends on: 727, 798; blocks: 818
-- **822** depends on: 798, 816, 817, 820; blocks: 818
-- **824** depends on: 829; blocks: none
 - **825** depends on: 823; blocks: none
-- **826** depends on: 823; blocks: none
 - **830** depends on: 730; blocks: none
-- **840** depends on: 839; blocks: none
 - **841** depends on: 727; blocks: 675
-- **842** depends on: none; blocks: none
-- **843** depends on: 730; blocks: none
+- **849** depends on: none; blocks: none
 - **673** depends on: 648, 660, 667; blocks: none
 - **682** depends on: 679, 680; blocks: 683
 - **698** depends on: 686, 649; blocks: 699
@@ -167,7 +140,6 @@ graph LR
 - **703** depends on: 700, 701, 691, 695; blocks: 709
 - **719** depends on: 715; blocks: none
 - **799** depends on: 715, 796, 797; blocks: none
-- **729** depends on: 724; blocks: none
 - **814** depends on: 791; blocks: none
 - **818** depends on: 798, 816, 817, 819, 820, 821, 822; blocks: none
 - **675** depends on: 841; blocks: none

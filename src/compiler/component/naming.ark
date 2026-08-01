@@ -27,10 +27,28 @@ fn comp_should_export_func(name: String) -> bool {
     if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
         return false
     }
+    // Std host/env helpers lower to short MIR names. Counting them as library
+    // exports would force p1-component wrapping on wasi-p2 command fixtures (#668).
+    if comp_is_std_host_helper_name(clone(name)) {
+        return false
+    }
     if contains(clone(name), String_from("::")) {
         return false
     }
     true
+}
+
+fn comp_is_std_host_helper_name(name: String) -> bool {
+    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+        return true
+    }
+    if eq(clone(name), String_from("var_or_default")) || eq(clone(name), String_from("args")) {
+        return true
+    }
+    if eq(clone(name), String_from("arg_count")) || eq(clone(name), String_from("arg_at")) {
+        return true
+    }
+    false
 }
 
 fn val_type_to_comp(val_type: i32) -> i32 {

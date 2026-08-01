@@ -7,7 +7,7 @@ use wasm::sections_types_sigs_mono_helpers
 fn extract_mono_suffix(fn_name: String) -> String {
     let name_len = len(fn_name)
     // Collect all "__" positions
-    let sep_positions = Vec_new_i32()
+    let sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
         if char_at(fn_name, i) == 95 && char_at(fn_name, i + 1) == 95 {
@@ -54,14 +54,14 @@ fn all_valid_type_keys(type_keys: Vec<String>, key_count: i32) -> bool {
 }
 
 fn is_valid_type_key(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) ||
-    eq(clone(key), String_from("i64")) ||
-    eq(clone(key), String_from("f64")) ||
-    eq(clone(key), String_from("f32")) ||
-    eq(clone(key), String_from("bool")) ||
-    eq(clone(key), String_from("char")) ||
-    eq(clone(key), String_from("String")) ||
-    eq(clone(key), String_from("string")) {
+    if eq(clone(key), "i32") ||
+    eq(clone(key), "i64") ||
+    eq(clone(key), "f64") ||
+    eq(clone(key), "f32") ||
+    eq(clone(key), "bool") ||
+    eq(clone(key), "char") ||
+    eq(clone(key), "String") ||
+    eq(clone(key), "string") {
         return true
     }
     // User-defined type names start with uppercase letter (A-Z = 65-90)
@@ -124,14 +124,14 @@ fn try_mono_gc_struct_param_sig(fn_name: String, type_var_name: String, param_or
     let key = get_unchecked(type_keys, type_idx)
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(key))
     if slot >= 0 {
-        return concat(String_from("gcsref"), i32_to_string(slot))
+        return concat("gcsref", i32_to_string(slot))
     }
     String_new()
 }
 
 // Split a string by "__" separator into a Vec<String>.
 fn split_by_double_underscore(s: String) -> Vec<String> {
-    let result = Vec_new_String()
+    let result = Vec::new<String>()
     let slen = len(s)
     let mut start = 0
     let mut i = 0
@@ -154,23 +154,23 @@ fn split_by_double_underscore(s: String) -> Vec<String> {
 // Uses common naming conventions for generic type parameters.
 fn type_var_name_to_index(type_var_name: String, max_count: i32) -> i32 {
     // Strip leading "?" if present.
-    let name = if starts_with(clone(type_var_name), String_from("?")) {
+    let name = if starts_with(clone(type_var_name), "?") {
         substring(clone(type_var_name), 1, len(type_var_name))
     } else {
         clone(type_var_name)
     }
     // Common single-letter type variable conventions:
     // T→0, E→1, U→2, V→3, W→4, K→0, A→0, B→1, C→2, D→3
-    if eq(clone(name), String_from("T")) { return 0 }
-    if eq(clone(name), String_from("E")) { return 1 }
-    if eq(clone(name), String_from("U")) { return 2 }
-    if eq(clone(name), String_from("V")) { return 3 }
-    if eq(clone(name), String_from("W")) { return 4 }
-    if eq(clone(name), String_from("K")) { return 0 }
-    if eq(clone(name), String_from("A")) { return 0 }
-    if eq(clone(name), String_from("B")) { return 1 }
-    if eq(clone(name), String_from("C")) { return 2 }
-    if eq(clone(name), String_from("D")) { return 3 }
+    if eq(clone(name), "T") { return 0 }
+    if eq(clone(name), "E") { return 1 }
+    if eq(clone(name), "U") { return 2 }
+    if eq(clone(name), "V") { return 3 }
+    if eq(clone(name), "W") { return 4 }
+    if eq(clone(name), "K") { return 0 }
+    if eq(clone(name), "A") { return 0 }
+    if eq(clone(name), "B") { return 1 }
+    if eq(clone(name), "C") { return 2 }
+    if eq(clone(name), "D") { return 3 }
     0
 }
 
@@ -182,7 +182,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(full_suffix) == 0 {
         return String_new()
     }
-    let suffix_with_sep = concat(String_from("__"), clone(full_suffix))
+    let suffix_with_sep = concat("__", clone(full_suffix))
     let fn_len = len(fn_name)
     let suffix_sep_len = len(suffix_with_sep)
     if fn_len <= suffix_sep_len || !ends_with(clone(fn_name), clone(suffix_with_sep)) {
@@ -201,7 +201,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     if len(receiver) == 0 {
         return String_new()
     }
-    if !starts_with(clone(fn_name), concat(clone(receiver), String_from("__"))) {
+    if !starts_with(clone(fn_name), concat(clone(receiver), "__")) {
         return String_new()
     }
     let type_keys = split_by_double_underscore(full_suffix)
@@ -219,7 +219,7 @@ fn resolve_mono_method_return_value_sig(fn_name: String, return_type_name: Strin
     }
     let slot = module_gc_struct::MirModule_gc_struct_slot(mir, clone(last_key))
     if slot >= 0 {
-        return concat(String_from("gcsref"), i32_to_string(slot))
+        return concat("gcsref", i32_to_string(slot))
     }
     String_new()
 }

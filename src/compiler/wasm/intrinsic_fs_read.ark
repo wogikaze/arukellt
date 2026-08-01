@@ -1,18 +1,18 @@
 use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::ctx_gc_type
 use wasm::emit_target
+use wasm::import_indices
 use wasm::intrinsic_fs_read_body
+use wasm::intrinsic_stdio_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
-use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i64_const
-use wasm::writer_gc
+use wasm::string_gc_helpers
 
 // Handler for: fs::read_to_string / __intrinsic_fs_read_file
 fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -23,27 +23,37 @@ fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
     emit_fs_read_open_branch(w, inst, ctx, s_path)
     intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
     helpers_control::emit_else(w)
-    intrinsic_fs_read_body::emit_fs_read_loop(w)
+    intrinsic_fs_read_body::emit_fs_read_loop(w, ctx)
     intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
     helpers_control::emit_end(w)
     return true
 }
 
-// GC validate stub: consume path and return null open-enum Result.
-// Full WASI GC emit currently traps the compiler itself (#726 fs_read_*).
+// GC: void-if around open/read so Result refs are not forced through if (result i32).
 fn emit_fs_read_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, s_path: i32) -> bool {
-    let _inst = inst
-    let _s_path = s_path
-    let s_drop = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    helpers_core::emit_local_set(w, s_drop)
-    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    writer_gc::emit_gc_ref_null(w, open_type)
+    let s_res = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let path_buf = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    helpers_core::emit_local_get(w, path_buf)
+    helpers_core::emit_local_set(w, s_path)
+    helpers_io::emit_store_string_local_to_scratch(w, s_path, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
+    emit_fs_read_open_call(w, ctx)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    intrinsic_fs_read_body::emit_fs_read_open_error(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_else(w)
+    intrinsic_fs_read_body::emit_fs_read_loop(w, ctx)
+    intrinsic_fs_read_body::emit_fs_read_success(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_res)
     return true
 }
 
 fn emit_fs_read_open_branch(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_local: i32) {
     emit_fs_read_open_setup(w, inst, ctx, path_local)
-    emit_fs_read_open_call(w)
+    emit_fs_read_open_call(w, ctx)
     emit_fs_read_open_error_branch(w)
 }
 
@@ -54,7 +64,7 @@ fn emit_fs_read_open_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, path_
     helpers_io::emit_store_string_local_to_scratch(w, path_local, constants::SCRATCH_FS_PATHPTR(), constants::SCRATCH_FS_PATHLEN())
 }
 
-fn emit_fs_read_open_call(w: WasmWriter) {
+fn emit_fs_read_open_call(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_io_const::emit_i32_const(w, 3)
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHPTR())
@@ -64,7 +74,7 @@ fn emit_fs_read_open_call(w: WasmWriter) {
     helpers_numeric_i64_const::emit_i64_const(w, 0i64)
     helpers_io_const::emit_i32_const(w, 0)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_FS_FD())
-    helpers_core::emit_call(w, 3)
+    helpers_core::emit_call(w, import_indices::path_open_import_idx(ctx))
     helpers_numeric_i32::emit_widen_i32_result(w)
 }
 

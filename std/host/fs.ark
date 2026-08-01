@@ -139,7 +139,9 @@ pub fn is_dir(_path: String) -> bool {
 /// contract is established here so that callers can write portable code that
 /// will work once backend support lands.
 pub fn read_dir(path: String) -> Result<Vec<String>, FsError> {
-    Result::Err(FsError::IoError(concat("directory listing not yet supported: ", path)))
+    // Bare `Err(...)` — `Result::Err(...)` currently lowers to unreachable on
+    // wasm32-gc when the Ok payload is Vec and Err is a nested enum (#807).
+    Err(FsError::IoError(concat("directory listing not yet supported: ", path)))
 }
 
 /// Placeholder for future structured metadata.
@@ -157,7 +159,8 @@ pub struct FsMetadata {
 /// is established here so that callers can write portable code that will work
 /// once backend support lands.
 pub fn metadata(path: String) -> Result<FsMetadata, FsError> {
-    Result::Err(FsError::IoError(concat("metadata not yet supported: ", path)))
+    // Bare `Err(...)` — see read_dir (#807).
+    Err(FsError::IoError(concat("metadata not yet supported: ", path)))
 }
 
 // ─── Raw fd helpers (experimental, wasm32 + wasi-p1 only) ──────────────────

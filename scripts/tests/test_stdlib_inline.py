@@ -11,12 +11,23 @@ FIXTURE = "tests/fixtures/stdlib_inline/abs_probe.ark"
 
 class StdlibInlineIntegrationTests(unittest.TestCase):
     def exported_body(self, wat: str, export_name: str) -> str:
-        export = re.search(rf'\(export "{export_name}" \(func (\d+)\)\)', wat)
-        self.assertIsNotNone(export)
-        function_index = export.group(1)
-        body = re.search(rf'\(func \(;{function_index};\)(.*?)(?=\n  \(func|\n\))', wat, re.S)
+        # Prefer the code-section definition `(func $name (;N;) ...)`.
+        # Do not match `(export "name" (func $name))`.
+        body = re.search(
+            rf'\(func \${re.escape(export_name)} \(;(\d+);\)(.*?)(?=\n  \(func|\n\))',
+            wat,
+            re.S,
+        )
+        if body is None:
+            numeric = re.search(rf'\(export "{export_name}" \(func (\d+)\)\)', wat)
+            self.assertIsNotNone(numeric)
+            body = re.search(
+                rf'\(func \(;{numeric.group(1)};\)(.*?)(?=\n  \(func|\n\))',
+                wat,
+                re.S,
+            )
         self.assertIsNotNone(body)
-        return body.group(1)
+        return body.group(body.lastindex)
 
     def compile_probe(self, opt_level: int) -> Path:
         output = ROOT / ".build/tests" / f"stdlib_inline_abs_o{opt_level}.wasm"
@@ -86,6 +97,22 @@ class StdlibInlineIntegrationTests(unittest.TestCase):
             ("probe_seq_read_ops", (), "1"),
             ("probe_seq_allocation_ops", (), "1"),
             ("probe_seq_sort_i32", (), "1"),
+            ("probe_format_bool_ops", (), "1"),
+            ("probe_char_to_string_ops", (), "1"),
+            ("probe_range_new_ops", (), "1"),
+            ("probe_sqrt_ops", (), "1"),
+            ("probe_f64_bits_ops", (), "1"),
+            ("probe_format_f64_ops", (), "1"),
+            ("probe_f32_to_string_ops", (), "1"),
+            ("probe_parse_ops", (), "1"),
+            ("probe_sort_i64_ops", (), "1"),
+            ("probe_sort_f64_ops", (), "1"),
+            ("probe_remove_i32_ops", (), "1"),
+            ("probe_vec_generic_mutation_ops", (), "1"),
+            ("probe_vec_typed_push_get_ops", (), "1"),
+            ("probe_vec_push_pop_get_ops", (), "1"),
+            ("probe_vec_new_capacity_ops", (), "1"),
+            ("probe_push_char_ops", (), "1"),
         )
         for output in outputs:
             validate = subprocess.run(

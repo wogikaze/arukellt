@@ -2,7 +2,7 @@
 use std::host::stdio
 
 fn main() {
-    let xs: Vec<i32> = Vec_new_i32()
+    let xs: Vec<i32> = Vec::new<i32>()
     let result = [x * 2 for x in xs]
     stdio::println((len(result)).to_string())
 }

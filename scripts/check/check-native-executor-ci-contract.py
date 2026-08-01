@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enforce native-executor CI contract for Experimental promotion (#834).
+"""Enforce native-executor CI contract for Experimental promotion (#848).
 
 - CI workflows must never pass --allow-high-rss.
 - Manager rejects --allow-high-rss when CI/GITHUB_ACTIONS is set.

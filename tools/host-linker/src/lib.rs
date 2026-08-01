@@ -3,6 +3,7 @@
 mod debug_runner;
 mod host_http;
 mod host_sockets;
+mod p2_host;
 mod source_map;
 mod wasm_debug_patch;
 
@@ -22,12 +23,22 @@ pub struct DirGrant {
 
 pub struct RuntimeCaps {
     pub dirs: Vec<DirGrant>,
+    /// Guest argv (program name + args). Empty → host supplies a default name.
+    pub args: Vec<String>,
 }
 
 impl RuntimeCaps {
     pub fn from_cli(dirs: &[String]) -> Self {
         RuntimeCaps {
             dirs: dirs.iter().map(|s| DirGrant::parse(s)).collect(),
+            args: Vec::new(),
+        }
+    }
+
+    pub fn from_cli_with_args(dirs: &[String], args: &[String]) -> Self {
+        RuntimeCaps {
+            dirs: dirs.iter().map(|s| DirGrant::parse(s)).collect(),
+            args: args.to_vec(),
         }
     }
 }
@@ -115,7 +126,13 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
     builder.inherit_env();
-    builder.arg("arukellt-host-run");
+    if caps.args.is_empty() {
+        builder.arg("arukellt-host-run");
+    } else {
+        for arg in &caps.args {
+            builder.arg(arg);
+        }
+    }
 
     for grant in &caps.dirs {
         let (dp, fp) = if grant.read_only {
@@ -150,14 +167,13 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     }
 }
 
-fn run_wasm_p2(engine: &Engine, module: &Module, _caps: &RuntimeCaps) -> Result<(), String> {
-    // P2 path uses import stubs for wasi:cli / filesystem, but bridged guest ABI
-    // (http_get / sockets_*) must bind the real host implementations — otherwise
-    // auto-stubs return 0 and GC Result finalize incorrectly yields Ok.
-    let mut linker = Linker::<()>::new(engine);
+fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
+    // Bridged P2 core imports (args + filesystem + stdio) so wasm32-gc/wasi-p2
+    // bootstrap can compile under host-linker (#834).
+    let mut linker = Linker::<p2_host::P2Store>::new(engine);
     linker.allow_shadowing(true);
-    crate::debug_runner::register_import_stubs(&mut linker, module)
-        .map_err(|e| format!("p2 stubs: {}", e))?;
+    p2_host::register_p2_imports(&mut linker, module)
+        .map_err(|e| format!("p2 imports: {}", e))?;
 
     let needs_http = module.imports().any(|imp| {
         matches!(
@@ -183,7 +199,8 @@ fn run_wasm_p2(engine: &Engine, module: &Module, _caps: &RuntimeCaps) -> Result<
         host_sockets::register_sockets_host_fns(&mut linker)?;
     }
 
-    let mut store = Store::new(engine, ());
+    let state = std::sync::Arc::new(std::sync::Mutex::new(p2_host::P2HostState::from_caps(caps)));
+    let mut store = Store::new(engine, state);
     let instance = linker
         .instantiate(&mut store, module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;

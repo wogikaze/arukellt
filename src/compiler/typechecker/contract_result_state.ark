@@ -14,11 +14,11 @@ struct TypeCheckResult {
 fn TypeCheckResult_new() -> TypeCheckResult {
     TypeCheckResult {
         error_count: 0,
-        errors: Vec_new_String(),
-        diagnostics: Vec_new_Diagnostic(),
-        warnings: Vec_new_Diagnostic(),
-        typed_fns: Vec_new_TypedFn(),
-        mono_instances: Vec_new_MonoInstance()
+        errors: Vec::new<String>(),
+        diagnostics: Vec::new<Diagnostic>(),
+        warnings: Vec::new<Diagnostic>(),
+        typed_fns: Vec::new<TypedFn>(),
+        mono_instances: Vec::new<MonoInstance>()
     }
 }
 

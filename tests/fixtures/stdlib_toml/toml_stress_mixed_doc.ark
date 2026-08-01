@@ -7,7 +7,7 @@ fn main() {
     match toml::toml_parse(doc) {
         Result::Ok(table) => {
             let keys = toml::toml_table_keys(table)
-            test::assert_eq_i32(len(keys), 3)
+            test::assert_eq_i32(len(keys), 4)
             match toml::toml_get(table, "items") {
                 Option::Some(v) => match toml::toml_as_array(v) {
                     Option::Some(arr) => test::assert_eq_i32(len(arr), 2),

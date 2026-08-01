@@ -19,8 +19,8 @@ Source: ADR-050 experimental public native C99 run
 Public `arukellt run --target native-cpp` is experimental on Linux x86-64
 (ADR-050). Pathway: Ark → MIR → C99 → clang → native executable.
 
-Canonical design: [ADR-050](../../docs/adr/ADR-050-experimental-public-native-c99-run.md)  
-Executable plan: [native-cpp-public-run-promotion.md](../../docs/plans/native-cpp-public-run-promotion.md)  
+Canonical design: [ADR-050](../../docs/adr/ADR-050-experimental-public-native-c99-run.md)
+Executable plan: [native-cpp-public-run-promotion.md](../../docs/plans/native-cpp-public-run-promotion.md)
 Promotion receipt: [native-cpp-run-promotion-receipt.json](../../docs/data/native-cpp-run-promotion-receipt.json)
 
 ## Done evidence

@@ -68,31 +68,31 @@ fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfE
 
 // Check if a type_name string indicates a GC reference type.
 fn type_name_is_ref(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("hashmap:")) {
+    if starts_with(clone(type_name), "hashmap:") {
         return true
     }
-    if eq(clone(type_name), String_from("string")) || eq(clone(type_name), String_from("String")) {
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         return true
     }
-    if starts_with(clone(type_name), String_from("vec:")) {
+    if starts_with(clone(type_name), "vec:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Option_")) ||
-    starts_with(clone(type_name), String_from("option:")) ||
-    starts_with(clone(type_name), String_from("Option:")) ||
-    starts_with(clone(type_name), String_from("Option<")) {
+    if starts_with(clone(type_name), "Option_") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option:") ||
+    starts_with(clone(type_name), "Option<") {
         return true
     }
-    if starts_with(clone(type_name), String_from("Result_")) ||
-    starts_with(clone(type_name), String_from("result:")) ||
-    starts_with(clone(type_name), String_from("Result:")) ||
-    starts_with(clone(type_name), String_from("Result<")) {
+    if starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") {
         return true
     }
-    if starts_with(clone(type_name), String_from("enum:")) {
+    if starts_with(clone(type_name), "enum:") {
         return true
     }
-    if starts_with(clone(type_name), String_from("struct:")) {
+    if starts_with(clone(type_name), "struct:") {
         return true
     }
     false
@@ -563,6 +563,14 @@ fn local_body_has_i64_stack_set(f: MirFunction, local_idx: i32) -> bool {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             if dest == local_idx && inst_op_produces_ref_value(op) {
                 blocked_by_ref = true
+            }
+            // fs::write_string / read_to_string lower as MIR_CALL with VT_GC_REF;
+            // without this, Result dest locals demote to i32 (#834).
+            if dest == local_idx && op == opcodes::MIR_CALL() {
+                let call_vt = inst_accessors_shape::MirInst_val_type(inst)
+                if call_vt == value_types::VT_GC_REF() || call_vt == value_types::VT_REF() {
+                    blocked_by_ref = true
+                }
             }
             if op == opcodes::MIR_LOCAL_SET() &&
             inst_accessors_operands::MirInst_arg0(inst) == local_idx &&

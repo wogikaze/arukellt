@@ -1,7 +1,7 @@
 fn legacy_arg_start(args: Vec<String>, argc: i32) -> i32 {
     if argc > 0 {
         let first = get_unchecked(args, 0)
-        if eq(clone(first), String_from("--")) {
+        if eq(clone(first), "--") {
             return 1
         }
     }

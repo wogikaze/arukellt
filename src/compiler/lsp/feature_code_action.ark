@@ -1,10 +1,10 @@
 use std::text
+use std::json
 use analysis::ident_span
 use analysis::symbols
 use lsp::feature_request
 use lsp::framing
 use lsp::import_graph
-use lsp::json_escape
 use lsp::organize_imports
 use lsp::positions
 use lsp::responses
@@ -16,9 +16,9 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     let offset = import_graph::first_use_insert_offset(clone(text))
     let pos = positions::offset_to_position(clone(text), offset)
     let mut out = String_from("{\"title\":")
-    out = text::builder_append(out, json_escape::quote_string(title))
+    out = text::builder_append(out, json::quote_string(title))
     out = text::builder_append(out, String_from(",\"kind\":\"quickfix\",\"edit\":{\"changes\":{"))
-    out = text::builder_append(out, json_escape::quote_string(uri))
+    out = text::builder_append(out, json::quote_string(uri))
     out = text::builder_append(out, String_from(":[{\"range\":{\"start\":{\"line\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_line(pos)))
     out = text::builder_append(out, String_from(",\"character\":"))
@@ -28,7 +28,7 @@ fn build_import_action(title: String, uri: String, import_path: String, text: St
     out = text::builder_append(out, String_from(",\"character\":"))
     out = text::builder_append(out, to_string(positions::lsp_position_character(pos)))
     out = text::builder_append(out, String_from("}},\"newText\":"))
-    out = text::builder_append(out, json_escape::quote_string(import_graph::build_use_statement(import_path)))
+    out = text::builder_append(out, json::quote_string(import_graph::build_use_statement(import_path)))
     out = text::builder_append(out, String_from("}]}}}"))
     out
 }

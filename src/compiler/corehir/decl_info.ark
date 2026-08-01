@@ -39,7 +39,7 @@ fn entry_main_decl_index(decl_infos: Vec<CoreHirDeclInfo>, fn_infos: Vec<CoreHir
     while i < decl_count {
         let info = get_unchecked(decl_infos, i)
         if info.kind == commands::COREHIR_DECL_FN() {
-            if eq(clone(info.name), String_from("main")) {
+            if eq(clone(info.name), "main") {
                 entry_main = i
             }
         }

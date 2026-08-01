@@ -4,17 +4,18 @@ use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
+use wasm::import_indices
 use wasm::intrinsic_fs_read_body
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::writer_gc
 
-fn emit_fs_write_success_writev_and_close(w: WasmWriter) {
-    helpers_core::emit_call(w, 0)
+fn emit_fs_write_success_writev_and_close(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_core::emit_call(w, import_indices::fd_write_import_idx(ctx))
     helpers_core::emit_drop(w)
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
-    helpers_core::emit_call(w, 5)
+    helpers_core::emit_call(w, import_indices::fd_close_import_idx(ctx))
     helpers_core::emit_drop(w)
 }
 
@@ -91,7 +92,7 @@ fn emit_fs_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
 
 fn emit_fs_write_unit_ok_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
-    let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Result::Ok"))
+    let ok_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Result::Ok")
     let type_idx = if ok_type >= 0 { ok_type } else { open_type }
     // Result<(), String> Ok: tag=0 with i32 payload 0 (builtin _f1_i32 Ok).
     // GC struct i32 fields must stay true i32 under Memory64 (#730).

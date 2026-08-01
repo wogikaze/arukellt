@@ -13,7 +13,7 @@ fn comp_function_is_i32_to_option_i32_export(f: MirFunction) -> bool {
         return false
     }
     let param_type_name = export_function_view::export_function_param_type_name(f, 0)
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && len(param_type_name) == 0 || eq(param_type_name, String_from("i32"))
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && len(param_type_name) == 0 || eq(param_type_name, "i32")
 }
 
 fn comp_function_is_bool_to_option_bool_export(f: MirFunction) -> bool {
@@ -26,7 +26,7 @@ fn comp_function_is_bool_to_option_bool_export(f: MirFunction) -> bool {
     if !naming::comp_type_name_is_option_bool(export_function_view::export_function_return_type_name(f)) {
         return false
     }
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), String_from("bool"))
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), "bool")
 }
 
 fn comp_function_is_bool_to_option_i64_export(f: MirFunction) -> bool {
@@ -39,7 +39,7 @@ fn comp_function_is_bool_to_option_i64_export(f: MirFunction) -> bool {
     if !naming::comp_type_name_is_option_i64(export_function_view::export_function_return_type_name(f)) {
         return false
     }
-    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), String_from("bool"))
+    export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32() && eq(export_function_view::export_function_param_type_name(f, 0), "bool")
 }
 
 fn comp_function_is_option_i32_to_i32_export(f: MirFunction) -> bool {
@@ -49,7 +49,7 @@ fn comp_function_is_option_i32_to_i32_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("i32")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "i32") {
         return false
     }
     naming::comp_type_name_is_option_i32(export_function_view::export_function_param_type_name(f, 0))
@@ -62,7 +62,7 @@ fn comp_function_is_option_i64_to_i64_export(f: MirFunction) -> bool {
     if export_function_view::export_function_param_count(f) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), String_from("i64")) {
+    if !eq(export_function_view::export_function_return_type_name(f), "i64") {
         return false
     }
     naming::comp_type_name_is_option_i64(export_function_view::export_function_param_type_name(f, 0))

@@ -23,10 +23,10 @@
 //
 // ## Legacy / Compat Section (deprecated — bold cutover per ADR-036)
 //
-// **Monomorphic Vec constructors** (`Vec_new_i32`, `Vec_new_i64`, …) and all
-// monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
+// Monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
 // **deprecated** and will be removed via **bold cutover** (ADR-036 D2) once
 // issues #688–#697 (trait-based stdlib redesign) are complete.
+// Vec constructors (`Vec_new_*`) were removed in #845; use `Vec::new<T>()`.
 //
 use std::collections::string
 use std::core::scalar_format
@@ -36,7 +36,6 @@ use std::core::scalar_format
 //
 //   | Deprecated (this file)        | Trait-based replacement (post-#688) |
 //   |-------------------------------|--------------------------------------|
-//   | `Vec_new_i32()`               | `Vec::new()` (generic, #697)         |
 //   | `map_i32_i32(v, f)`           | `v.map(f)` (Iterator trait, #691)    |
 //   | `filter_i32(v, f)`            | `v.filter(f)` (Iterator trait, #691) |
 //   | `sort_i32(v)`                 | `v.sort()` (Vec method, #697)        |
@@ -111,7 +110,7 @@ pub fn replace(s: String, from: String, to: String) -> String {
 // Use inherent method `x.to_string()` instead.
 
 pub fn char_to_string(c: char) -> String {
-    panic(String_new()); return String_new()
+    __core_char_to_string_impl(c)
 }
 
 // to_string — polymorphic builtin dispatched by the compiler.
@@ -121,28 +120,28 @@ pub fn char_to_string(c: char) -> String {
 // Implementation: compiler-handled builtin in the selfhost emitter (src/compiler/emitter.ark)
 // Conversion: from string
 pub fn parse_i32(s: String) -> Result<i32, String> {
-    panic(String_new()); return Ok(0)
+    __core_parse_i32_impl(s)
 }
 
 pub fn parse_i64(s: String) -> Result<i64, String> {
-    panic(String_new()); return Ok(0_i64)
+    __core_parse_i64_impl(s)
 }
 
 pub fn parse_f64(s: String) -> Result<f64, String> {
-    panic(String_new()); return Ok(0.0)
+    __core_parse_f64_impl(s)
 }
 
 // Math
 pub fn sqrt(x: f64) -> f64 {
-    panic(String_new()); return 0.0
+    __core_math_sqrt_impl(x)
 }
 
 pub fn f64_bits_lo(x: f64) -> i32 {
-    panic(String_new()); return 0
+    __core_scalar_f64_bits_lo_impl(x)
 }
 
 pub fn f64_bits_hi(x: f64) -> i32 {
-    panic(String_new()); return 0
+    __core_scalar_f64_bits_hi_impl(x)
 }
 
 // --- Scalar type conversion functions (issue #040) ---
@@ -266,45 +265,6 @@ pub fn panic(s: String) {
 // LEGACY COMPAT — @deprecated, will be removed via bold cutover (ADR-036 D2)
 // once issues #688–#697 are complete. Use trait-based method syntax instead.
 // =============================================================================
-// Vec constructors (deprecated)
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_i32() -> Vec<i32> {
-    panic(String_new()); return Vec_new_i32()
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_i64() -> Vec<i64> {
-    panic(String_new()); return Vec_new_i64()
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_f64() -> Vec<f64> {
-    panic(String_new()); return Vec_new_f64()
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_v128() -> Vec<v128> {
-    panic(String_new()); return Vec_new_v128()
-}
-
-// @deprecated: use `Vec::new()` (generic, #697) instead. See ADR-036.
-pub fn Vec_new_String() -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
-}
-
-// Vec pre-allocation with exact capacity (no realloc on push up to cap elements)
-pub fn Vec_new_i32_with_cap(cap: i32) -> Vec<i32> {
-    panic(String_new()); return Vec_new_i32_with_cap(cap)
-}
-
-pub fn Vec_new_i64_with_cap(cap: i32) -> Vec<i64> {
-    panic(String_new()); return Vec_new_i64_with_cap(cap)
-}
-
-pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
-    panic(String_new()); return Vec_new_f64_with_cap(cap)
-}
-
 // Vec sorting (deprecated)
 // @deprecated: use `v.sort()` (Vec method, #697) instead. See ADR-036.
 fn __core_seq_sort_i32_impl(v: Vec<i32>) {
@@ -332,7 +292,15 @@ pub fn sort_String(v: Vec<String>) {
 // Vec higher-order (deprecated)
 // @deprecated: use `v.map(f)` (Iterator trait, #691) instead. See ADR-036.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
-    __intrinsic_map_i32_i32(v, f)
+    // Real Ark body: `__intrinsic_map_i32_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let out: Vec<i32> = Vec::new<i32>()
+    let mut i = 0
+    while i < n {
+        push(out, f(get_unchecked(v, i)))
+        i = i + 1
+    }
+    out
 }
 
 // @deprecated: use `v.filter(f)` (Iterator trait, #691) instead. See ADR-036.
@@ -350,17 +318,36 @@ pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
 }
 
 pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
-    __intrinsic_any_i32(v, f)
+    // Real Ark body: `__intrinsic_any_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        if f(get_unchecked(v, i)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
-    __intrinsic_find_i32(v, f)
+    // Real Ark body: `__intrinsic_find_i32` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        let x = get_unchecked(v, i)
+        if f(x) {
+            return Some(x)
+        }
+        i = i + 1
+    }
+    None
 }
 
 // String: split/join/push_char
 // @deprecated: use `s.split(delim)` (String method) instead. See ADR-036.
 pub fn split(s: String, delim: String) -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
+    panic(String_new()); return Vec::new<String>()
 }
 
 // @deprecated: use `v.join(sep)` (Vec/Iterator method, #691) instead. See ADR-036.
@@ -369,16 +356,44 @@ pub fn join(v: Vec<String>, sep: String) -> String {
 }
 
 pub fn push_char(s: String, c: char) {
-    panic(String_new())
+    __core_push_char_impl(s, c)
 }
 
-// Vec: additional sorting
+// Vec: additional sorting (typed LM set unblocked for i64/f64, #822).
+fn __core_seq_sort_i64_impl(v: Vec<i64>) {
+    let mut index = 1
+    while index < len(v) {
+        let value = get_unchecked(v, index)
+        let mut insertion = index
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            set(v, insertion, get_unchecked(v, insertion - 1))
+            insertion = insertion - 1
+        }
+        set(v, insertion, value)
+        index = index + 1
+    }
+}
+
 pub fn sort_i64(v: Vec<i64>) {
-    panic(String_new())
+    __core_seq_sort_i64_impl(v)
+}
+
+fn __core_seq_sort_f64_impl(v: Vec<f64>) {
+    let mut index = 1
+    while index < len(v) {
+        let value = get_unchecked(v, index)
+        let mut insertion = index
+        while insertion > 0 && get_unchecked(v, insertion - 1) > value {
+            set(v, insertion, get_unchecked(v, insertion - 1))
+            insertion = insertion - 1
+        }
+        set(v, insertion, value)
+        index = index + 1
+    }
 }
 
 pub fn sort_f64(v: Vec<f64>) {
-    panic(String_new())
+    __core_seq_sort_f64_impl(v)
 }
 
 // Vec: higher-order (String variants)
@@ -397,9 +412,18 @@ pub fn assert(cond: bool) {
     }
 }
 
+/// Legacy i32 equality assertion (compat). Prefer `test::assert_eq_i32` or
+/// generic `test::assert_eq_debug` (#696) for Debug-backed diagnostics.
+///
+/// Residual: bare `assert_eq` call sites are still CoreOp-inlined today, so
+/// this Ark body is not what most call sites execute. A generic named exactly
+/// `assert_eq` also mis-lowers scalar monomorphizations — use
+/// `test::assert_eq_debug` instead. Do not `use std::core::convert` here:
+/// pulling Convert/Debug into the auto-prelude regresses W0011 on clean fixtures.
 pub fn assert_eq(a: i32, b: i32) {
     if a != b {
-        panic(String_from("assertion failed"))
+        let msg = concat("assert_eq failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        panic(msg)
     }
 }
 
@@ -409,15 +433,19 @@ pub fn assert_ne(a: i32, b: i32) {
     }
 }
 
+/// Legacy i64 equality assertion (compat). Prefer `test::assert_eq_i64`.
 pub fn assert_eq_i64(a: i64, b: i64) {
     if a != b {
-        panic(String_from("assertion failed"))
+        let msg = concat("assert_eq_i64 failed: expected ", concat((b).to_string(), concat(", got ", (a).to_string())))
+        panic(msg)
     }
 }
 
+/// Legacy String equality assertion (compat). Prefer `test::assert_eq_string`.
 pub fn assert_eq_str(a: String, b: String) {
-    if !eq(a, b) {
-        panic(String_from("assertion failed"))
+    if a != b {
+        let msg = concat("assert_eq_str failed: expected \"", concat(b, concat("\", got \"", concat(a, "\""))))
+        panic(msg)
     }
 }
 
@@ -443,10 +471,83 @@ pub fn filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64> {
     __intrinsic_filter_f64(v, f)
 }
 
+// Sealed-raw CoreOp aliases (no `use std::core::raw`) so bootstrap overlays
+// that strip collections modules still resolve these fallback symbols (#822).
+fn __core_vec_len_impl<T>(values: Vec<T>) -> i32 {
+    raw_array_len(values)
+}
+
+fn __core_vec_is_empty_impl<T>(values: Vec<T>) -> bool {
+    raw_array_len(values) == 0
+}
+
+fn __core_vec_get_unchecked_impl<T>(values: Vec<T>, index: i32) -> T {
+    raw_array_get_unchecked(values, index)
+}
+
+fn __core_vec_set_impl<T>(values: Vec<T>, index: i32, value: T) {
+    raw_array_set_unchecked(values, index, value)
+}
+
+fn __core_vec_get_unchecked_i64_impl(values: Vec<i64>, index: i32) -> i64 {
+    raw_array_get_unchecked(values, index)
+}
+
+fn __core_vec_get_unchecked_f64_impl(values: Vec<f64>, index: i32) -> f64 {
+    raw_array_get_unchecked(values, index)
+}
+
+// Generic `Vec<T>` push shells lower to `unreachable` on LM; keep concrete
+// i32/i64/f64 bodies and rewrite String/stdlib sites to sealed grow+set (#822).
+fn __core_vec_push_i32_impl(values: Vec<i32>, value: i32) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<i32> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_push_i64_impl(values: Vec<i64>, value: i64) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<i64> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_push_f64_impl(values: Vec<f64>, value: f64) {
+    let n: i32 = raw_array_len(values)
+    let grown: Vec<f64> = raw_array_grow(values, n + 1)
+    raw_array_set_unchecked(grown, n, value)
+}
+
+fn __core_vec_get_impl(values: Vec<i32>, index: i32) -> Option<i32> {
+    if index < 0 || index >= raw_array_len(values) {
+        return None
+    }
+    Some(raw_array_get_unchecked(values, index))
+}
+
+fn __core_vec_pop_impl(values: Vec<i32>) -> Option<i32> {
+    let n: i32 = raw_array_len(values)
+    if n == 0 {
+        return None
+    }
+    let idx: i32 = n - 1
+    let value: i32 = raw_array_get_unchecked(values, idx)
+    // Shrink logical length through grow (set_len dispatch still incomplete).
+    let _shrunk: Vec<i32> = raw_array_grow(values, idx)
+    Some(value)
+}
+
+fn __core_vec_new_fallback_impl(cap: i32) -> Vec<i32> {
+    raw_array_new(cap)
+}
+
+fn __core_vec_new_f64_impl(cap: i32) -> Vec<f64> {
+    raw_array_new(cap)
+}
+
 fn __core_vec_contains_i32_impl(v: Vec<i32>, x: i32) -> bool {
     let mut i: i32 = 0
-    while i < len(v) {
-        if get_unchecked(v, i) == x {
+    while i < raw_array_len(v) {
+        if raw_array_get_unchecked(v, i) == x {
             return true
         }
         i = i + 1
@@ -470,13 +571,13 @@ pub fn contains_String(v: Vec<String>, x: String) -> bool {
 }
 
 fn __core_vec_reverse_i32_impl(v: Vec<i32>) {
-    let n: i32 = len(v)
+    let n: i32 = raw_array_len(v)
     let mut lo: i32 = 0
     let mut hi: i32 = n - 1
     while lo < hi {
-        let tmp: i32 = get_unchecked(v, lo)
-        set(v, lo, get_unchecked(v, hi))
-        set(v, hi, tmp)
+        let tmp: i32 = raw_array_get_unchecked(v, lo)
+        raw_array_set_unchecked(v, lo, raw_array_get_unchecked(v, hi))
+        raw_array_set_unchecked(v, hi, tmp)
         lo = lo + 1
         hi = hi - 1
     }
@@ -503,14 +604,18 @@ pub fn reverse_String(v: Vec<String>) {
     __core_vec_reverse_string_impl(v)
 }
 
-pub fn remove_i32(v: Vec<i32>, index: i32) {
-    let n: i32 = len(v)
+fn __core_vec_remove_i32_impl(v: Vec<i32>, index: i32) {
+    let n: i32 = raw_array_len(v)
     let mut i: i32 = index
     while i < n - 1 {
-        set(v, i, get_unchecked(v, i + 1))
+        raw_array_set_unchecked(v, i, raw_array_get_unchecked(v, i + 1))
         i = i + 1
     }
     pop(v)
+}
+
+pub fn remove_i32(v: Vec<i32>, index: i32) {
+    __core_vec_remove_i32_impl(v, index)
 }
 
 // Vec aggregation (Ark-native)
@@ -579,7 +684,8 @@ pub fn get_unchecked<T>(v: Vec<T>, idx: i32) -> T {
 }
 
 pub fn pop(v: Vec<i32>) -> Option<i32> {
-    panic(String_new()); return None
+    // Rewrite to vec_pop intrinsic (prelude panic stub had no emitter) (#807).
+    vec_pop(v)
 }
 
 pub fn set<T>(v: Vec<T>, idx: i32, val: T) {
@@ -642,7 +748,7 @@ pub fn index_of(s: String, sub: String) -> i32 {
 
 // Process / env
 pub fn args() -> Vec<String> {
-    panic(String_new()); return Vec_new_String()
+    panic(String_new()); return Vec::new<String>()
 }
 
 pub fn exit(code: i32) {
@@ -730,7 +836,7 @@ pub fn format_i32(n: i32) -> String {
 }
 
 pub fn format_bool(b: bool) -> String {
-    panic(String_new()); return String_new()
+    __core_format_bool_impl(b)
 }
 
 // HOF extended (types not in prelude's monomorphic set)
@@ -747,7 +853,17 @@ pub fn any_String(v: Vec<String>, f: fn(String) -> bool) -> bool {
 }
 
 pub fn find_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Option<i64> {
-    __intrinsic_find_i64(v, f)
+    // Real Ark body: `__intrinsic_find_i64` has no wasm emitter (#807).
+    let n = len(v)
+    let mut i = 0
+    while i < n {
+        let x = get_unchecked(v, i)
+        if f(x) {
+            return Some(x)
+        }
+        i = i + 1
+    }
+    None
 }
 
 pub fn find_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Option<f64> {
@@ -768,5 +884,5 @@ pub fn i32_to_u32(n: i32) -> u32 {
 }
 
 pub fn f32_to_string(n: f32) -> String {
-    panic(String_new()); return String_new()
+    __core_f32_to_string_impl(n)
 }

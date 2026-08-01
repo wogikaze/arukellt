@@ -61,7 +61,7 @@ fn wit_split_param_txt(param: String) -> String {
 }
 
 fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
-    let items = Vec_new_String()
+    let items = Vec::new<String>()
     let n = len(inner)
     let mut start = 0
     let mut depth = 0
@@ -87,7 +87,7 @@ fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
 }
 
 fn wit_extract_package(text: String) -> String {
-    let mark = index_of(text, String_from("package "))
+    let mark = index_of(text, "package ")
     if mark < 0 {
         return String_new()
     }
@@ -99,7 +99,7 @@ fn wit_extract_package(text: String) -> String {
 }
 
 fn wit_extract_interface_name(text: String) -> String {
-    let mark = index_of(text, String_from("interface "))
+    let mark = index_of(text, "interface ")
     if mark < 0 {
         return String_new()
     }
@@ -111,7 +111,7 @@ fn wit_extract_interface_name(text: String) -> String {
 }
 
 fn wit_extract_interface_body(text: String) -> String {
-    let mark = index_of(text, String_from("interface "))
+    let mark = index_of(text, "interface ")
     if mark < 0 {
         return String_new()
     }

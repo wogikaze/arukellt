@@ -14,11 +14,11 @@ fn render_index_hover_markdown(detail: String, doc: String, minimal: bool) -> St
     if minimal {
         return detail
     }
-    let mut out = String_from("```ark\n")
+    let mut out = "```ark\n"
     out = concat(out, detail)
-    out = concat(out, String_from("\n```"))
+    out = concat(out, "\n```")
     if len(doc) > 0 {
-        out = concat(out, concat(String_from("\n\n"), doc))
+        out = concat(out, concat("\n\n", doc))
     }
     out
 }
@@ -28,7 +28,7 @@ fn lookup_short_name(text: String, offset: i32) -> String {
     if len(lookup_name) == 0 {
         return String_new()
     }
-    if !contains(clone(lookup_name), String_from("::")) {
+    if !contains(clone(lookup_name), "::") {
         return lookup_name
     }
     let mut last_colon = 0

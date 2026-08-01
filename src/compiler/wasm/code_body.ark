@@ -6,6 +6,7 @@ use wasm::ctx_scratch
 use wasm::ctx_vec_locals
 use wasm::ctx_record
 use wasm::host_intrinsic_adapter
+use wasm::host_intrinsic_gc_body
 use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
@@ -37,6 +38,17 @@ fn emit_function_body(
         code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
         return body
     }
+    if host_intrinsic_adapter::host_intrinsic_should_emit_gc_adapter_body(f, ctx) {
+        if host_intrinsic_gc_body::try_emit_host_intrinsic_gc_adapter_body(body, f, ctx) {
+            writer_core::emit_byte(body, opcodes::OP_END())
+            code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+            return body
+        }
+        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(body, opcodes::OP_END())
+        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+        return body
+    }
     if host_intrinsic_adapter::host_intrinsic_should_emit_unreachable_gc_stub(f, ctx) {
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
@@ -62,7 +74,7 @@ fn is_generic_function(f: MirFunction) -> bool {
     while j < pc {
         let p = function_param_view::MirFunction_param_at(f, j)
         let tn = local_access::MirLocal_type_name(p)
-        if starts_with(clone(tn), String_from("?")) && !is_concrete_option_result_wrapper(clone(tn)) {
+        if starts_with(clone(tn), "?") && !is_concrete_option_result_wrapper(clone(tn)) {
             return true
         }
         j = j + 1
@@ -71,11 +83,11 @@ fn is_generic_function(f: MirFunction) -> bool {
 }
 
 fn is_concrete_option_result_wrapper(type_name: String) -> bool {
-    if starts_with(clone(type_name), String_from("?Option:")) {
+    if starts_with(clone(type_name), "?Option:") {
         let inner = substring(type_name, 8, len(type_name))
         return len(inner) > 0 && !is_generic_type_var_name(inner)
     }
-    if starts_with(clone(type_name), String_from("?Result:")) {
+    if starts_with(clone(type_name), "?Result:") {
         let inner = substring(type_name, 8, len(type_name))
         if len(inner) == 0 {
             return false
@@ -97,7 +109,7 @@ fn is_generic_type_var_name(name: String) -> bool {
     if len(name) == 0 {
         return false
     }
-    if starts_with(clone(name), String_from("?")) {
+    if starts_with(clone(name), "?") {
         return is_generic_type_var_name(substring(name, 1, len(name)))
     }
     if len(name) == 1 {

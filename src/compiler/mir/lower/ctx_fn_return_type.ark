@@ -41,7 +41,7 @@ fn ctx_fn_return_type_name(ctx: LowerCtx, name: String) -> String {
             return ctx_fn_index::ctx_fn_index_return_type_name_at(ctx, dunder_found)
         }
     }
-    String_from("")
+    ""
 }
 
 // Bare name after the last "__" (parser_token_state__Token_float_val → Token_float_val).
@@ -60,7 +60,7 @@ fn short_name_after_last_dunder(name: String) -> String {
 // Strip mono type suffix from a mangled function name for fn_index lookup.
 fn mono_strip_suffix_for_lookup(name: String) -> String {
     let name_len = len(name)
-    let sep_positions = Vec_new_i32()
+    let sep_positions = Vec::new<i32>()
     let mut i = 0
     while i < name_len - 1 {
         if char_at(name, i) == 95 && char_at(name, i + 1) == 95 {
@@ -113,14 +113,14 @@ fn mono_suffix_looks_like_type_keys(suffix: String) -> bool {
 }
 
 fn mono_type_key_looks_valid(key: String) -> bool {
-    if eq(clone(key), String_from("i32")) ||
-    eq(clone(key), String_from("i64")) ||
-    eq(clone(key), String_from("f64")) ||
-    eq(clone(key), String_from("f32")) ||
-    eq(clone(key), String_from("bool")) ||
-    eq(clone(key), String_from("char")) ||
-    eq(clone(key), String_from("String")) ||
-    eq(clone(key), String_from("string")) {
+    if eq(clone(key), "i32") ||
+    eq(clone(key), "i64") ||
+    eq(clone(key), "f64") ||
+    eq(clone(key), "f32") ||
+    eq(clone(key), "bool") ||
+    eq(clone(key), "char") ||
+    eq(clone(key), "String") ||
+    eq(clone(key), "string") {
         return true
     }
     // Nominal mono keys are PascalCase type names (Point), not snake_case

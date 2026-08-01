@@ -20,6 +20,6 @@ fn emit_comprehension_loop_break_check(ctx: LowerCtx, comp_idx_local: i32, comp_
 fn emit_comprehension_load_iter(ctx: LowerCtx, comp_vec_local: i32, comp_idx_local: i32, comp_iter_var: i32) {
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_vec_local))
     ctx_emit(ctx, inst_local_get::MirInst_local_get(comp_idx_local))
-    ctx_emit(ctx, inst_call::MirInst_call(String_from("vec_get_unchecked"), 2, comp_iter_var))
+    ctx_emit(ctx, inst_call::MirInst_call("vec_get_unchecked", 2, comp_iter_var))
     ctx_emit(ctx, inst_local_set::MirInst_local_set(comp_iter_var))
 }

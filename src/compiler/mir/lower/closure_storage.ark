@@ -5,7 +5,7 @@ fn closure_storage_clear_pending_bind(ctx: LowerCtx) {
 }
 
 fn closure_storage_next_synth_name(ctx: LowerCtx) -> String {
-    let synth = concat(String_from("__closure_"), to_string(ctx.closure_counter))
+    let synth = concat("__closure_", to_string(ctx.closure_counter))
     ctx.closure_counter = ctx.closure_counter + 1
     synth
 }

@@ -58,12 +58,12 @@ fn native_c_target_capability_diagnostic(op: i32, function_name: String) -> Stri
     let opcode_name = native_c_capabilities_generated::native_c_capability_opcode_name(op)
     let status = native_c_capabilities_generated::native_c_capability_status_detail(op)
     concat(
-        String_from("target `native-cpp` does not support MIR opcode "),
+        "target `native-cpp` does not support MIR opcode ",
         concat(
             opcode_name,
             concat(
-                String_from(" in function `"),
-                concat(function_name, concat(String_from("` ("), concat(status, String_from(")"))))
+                " in function `",
+                concat(function_name, concat("` (", concat(status, ")")))
             )
         )
     )
@@ -433,5 +433,6 @@ pub fn emit_native_c_module(mir_module: MirModule) -> NativeCEmitResult {
     )
     native_c_append_bytes(source_bytes, String_from("    ark_rt_shutdown();\n"))
     native_c_append_bytes(source_bytes, String_from("    return 0;\n}\n"))
-    NativeCEmitResult_ok(__intrinsic_string_from_bytes(source_bytes))
+    let source = __intrinsic_string_from_bytes(source_bytes)
+    NativeCEmitResult_ok(source)
 }

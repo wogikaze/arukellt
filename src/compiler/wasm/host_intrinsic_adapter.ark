@@ -1,16 +1,9 @@
 //
 // Maps host intrinsic names to HostIntrinsicSpec entries and provides
-// ABI-aware result emission for GC targets.  The adapter converts the
-// linear-memory i32 representation used by the runtime into GC ref
-// types expected by the typed MIR signature.
-//
-// Currently this is a registration skeleton: the 24 host intrinsic
-// stubs are classified by ABI sub-kind (LinearMemoryPtr / GcRef /
-// Scalar) so that code_body can decide whether to emit a real body
-// or keep the unreachable stub.  Stubs classified as Scalar (e.g.
-// clock_now, exists, is_file) can emit a real body immediately; the
-// LinearMemoryPtr stubs (e.g. read_to_string, write_string) require
-// adapter functions that are not yet implemented.
+// ABI-aware classification for GC targets. LinearMemoryPtr stubs that
+// have GC emitters are synthesized in `host_intrinsic_gc_body.ark`
+// (i32 / linear boundary → GC ref). Remaining network/HTTP stubs still
+// emit unreachable until #819 / #727 land runtime ABI bodies.
 
 use corehir::kinds
 use corehir::host_intrinsic_spec
@@ -45,31 +38,6 @@ fn host_intrinsic_abi_kind(name: String) -> i32 {
     if eq(clone(name), String_from("is_readable_file")) {
         return kinds::HOST_ABI_SCALAR()
     }
-    // HTTP/sockets host wrappers emit GC Result enums directly (#727).
-    if eq(clone(name), String_from("get")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("request")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("serve")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("connect")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("read")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("write")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("listen")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
-    if eq(clone(name), String_from("accept")) {
-        return kinds::HOST_ABI_GC_REF()
-    }
     // All other host intrinsics return i32 pointers (string handles,
     // vec handles, etc.) that need adapter conversion to GC refs.
     kinds::HOST_ABI_LINEAR_MEMORY_PTR()
@@ -82,27 +50,88 @@ fn host_intrinsic_can_emit_gc_body(name: String) -> bool {
     abi == kinds::HOST_ABI_SCALAR() || abi == kinds::HOST_ABI_GC_REF()
 }
 
+// LinearMemoryPtr stubs that `host_intrinsic_gc_body` can synthesize today.
+fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
+    if host_intrinsic_abi_kind(clone(name)) != kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
+        return false
+    }
+    if eq(clone(name), String_from("args")) {
+        return true
+    }
+    if eq(clone(name), String_from("arg_at")) {
+        return true
+    }
+    if eq(clone(name), String_from("var")) || eq(clone(name), String_from("get_var")) {
+        return true
+    }
+    if eq(clone(name), String_from("var_or_default")) {
+        return true
+    }
+    if eq(clone(name), String_from("read_stdin")) {
+        return true
+    }
+    if host_intrinsic_is_network_adapter_name(clone(name)) {
+        return true
+    }
+    false
+}
+
+fn host_intrinsic_is_network_adapter_name(name: String) -> bool {
+    if eq(clone(name), String_from("connect")) {
+        return true
+    }
+    if eq(clone(name), String_from("read")) {
+        return true
+    }
+    if eq(clone(name), String_from("write")) {
+        return true
+    }
+    if eq(clone(name), String_from("listen")) {
+        return true
+    }
+    if eq(clone(name), String_from("accept")) {
+        return true
+    }
+    if eq(clone(name), String_from("get")) {
+        return true
+    }
+    if eq(clone(name), String_from("request")) {
+        return true
+    }
+    if eq(clone(name), String_from("serve")) {
+        return true
+    }
+    false
+}
+
 // Build a HostIntrinsicSpec for the given name.
 // Currently returns a placeholder spec with the correct ABI kind;
 // full param/return type population will be added as adapters are
 // implemented.
 fn host_intrinsic_spec_for(name: String) -> HostIntrinsicSpec {
     let abi = host_intrinsic_abi_kind(clone(name))
-    let returns = Vec_new_MirValueType()
+    let returns = Vec::new<MirValueType>()
+    let boundary_returns = Vec::new<MirValueType>()
+    let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
     if abi == kinds::HOST_ABI_GC_REF() || abi == kinds::HOST_ABI_LINEAR_MEMORY_PTR() {
         let string_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
         push(returns, string_mvt)
+        // Canonical memory32 boundary: ptr (+ optional len) as i32 scalars.
+        push(boundary_returns, i32_mvt)
+        push(boundary_returns, i32_mvt)
     } else {
-        let i32_mvt = mir_value_type::MirValueType_new(type_id::TYPE_ID_INVALID(), kinds::VALUE_REPR_SCALAR(), kinds::NULLABILITY_NOT_REF())
         push(returns, i32_mvt)
+        push(boundary_returns, i32_mvt)
     }
+    // Pointer width comes from the adapter's canonical memory index type (memory32),
+    // not from the guest target name.
     host_intrinsic_spec::HostIntrinsicSpec_new(
         name,
         abi,
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
         returns,
-        Vec_new_MirValueType(),
-        Vec_new_MirValueType(),
+        Vec::new<MirValueType>(),
+        boundary_returns,
         32,
         0 - 1,
         0 - 1
@@ -125,5 +154,23 @@ fn host_intrinsic_should_emit_unreachable_gc_stub(f: MirFunction, ctx: SelfEmitC
     if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name) {
         return false
     }
-    return !host_intrinsic_can_emit_gc_body(clone(name))
+    if host_intrinsic_can_emit_gc_body(clone(name)) {
+        return false
+    }
+    // Adapter-capable LinearMemoryPtr stubs synthesize a GC body instead.
+    if host_intrinsic_needs_gc_adapter(clone(name)) {
+        return false
+    }
+    true
+}
+
+fn host_intrinsic_should_emit_gc_adapter_body(f: MirFunction, ctx: SelfEmitCtx) -> bool {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return false
+    }
+    let name = function_identity::MirFunction_name(f)
+    if !host_intrinsic_stub_names::host_intrinsic_stub_is_known(name) {
+        return false
+    }
+    host_intrinsic_needs_gc_adapter(clone(name))
 }

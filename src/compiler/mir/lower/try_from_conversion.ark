@@ -7,7 +7,11 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_module
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_fn_exists
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
+use mir::lower::variant_payload
 use mir::inst_call
+use mir::inst_gc_struct
 use mir::inst_local_get
 use mir::inst_local_set
 use mir::inst_return
@@ -24,12 +28,7 @@ use mir::function_return_view
 // ADR-039 D2 / RFC-004 §6: language-syntax desugaring resolves by canonical
 // SemanticTraitId::From on SignatureEntry (import-independent). The callee
 // mangled name is the lookup result, not a string invented at the use site.
-fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> String {
-    if is_gc {
-        // wasm32-gc Err payload rewrite for From is not wired yet.
-        // TODO(#840 owner=compiler removal="enable From conversion on wasm32-gc Err path" recheck=2026-10-25)
-        return String_new()
-    }
+fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32) -> String {
     let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
     let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
     let source_err_type = try_extract_err_payload_type(clone(inner_type_name))
@@ -58,7 +57,12 @@ fn try_resolve_from_conversion(ctx: LowerCtx, inner_idx: i32, is_gc: bool) -> St
 // Emit the Err path with From conversion: extract Err payload, call
 // From::from, store converted error back, then return.
 // Result struct layout (T1): offset 0=tag, offset 4=payload (union).
-fn try_emit_err_from_conversion(ctx: LowerCtx, res_ptr: i32, from_fn_name: String) {
+// wasm32-gc rebuilds Result::Err with the converted payload (#840).
+fn try_emit_err_from_conversion(ctx: LowerCtx, res_ptr: i32, from_fn_name: String, inner_idx: i32) {
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        try_emit_err_from_conversion_gc(ctx, res_ptr, from_fn_name, inner_idx)
+        return
+    }
     let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
     ctx_api_emit::ctx_emit(ctx, inst_struct_get::MirInst_struct_get(4, value_types::VT_VOID()))
@@ -69,4 +73,78 @@ fn try_emit_err_from_conversion(ctx: LowerCtx, res_ptr: i32, from_fn_name: Strin
     ctx_api_emit::ctx_emit(ctx, inst_struct_set::MirInst_struct_set(res_ptr, converted_local, 4, value_types::VT_VOID()))
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
+// GC Err rewrite: extract typed Err payload → From::from → new Result::Err.
+fn try_emit_err_from_conversion_gc(ctx: LowerCtx, res_ptr: i32, from_fn_name: String, inner_idx: i32) {
+    let source_err_type = try_extract_err_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
+    let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
+    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
+    let source_vt = try_err_payload_vt_gc(clone(source_err_type))
+    let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
+    if len(source_err_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, err_local, clone(source_err_type))
+    }
+    let source_payload_vts = Vec::new<i32>()
+    push(source_payload_vts, source_vt)
+    let mut err_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
+        ctx,
+        String_from("Err"),
+        source_payload_vts,
+        clone(source_err_type)
+    )
+    if err_slot < 0 {
+        err_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Err"))
+    }
+    let mut field_vt = value_types::VT_VOID()
+    if source_vt == value_types::VT_F64() {
+        field_vt = value_types::VT_F64()
+    } else if source_vt == value_types::VT_I64() {
+        field_vt = value_types::VT_I64()
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(err_local, res_ptr, err_slot, 1, field_vt))
+    let target_vt = try_err_payload_vt_gc(clone(target_err_type))
+    let converted_local = ctx_api_local_alloc::ctx_fresh_local(ctx, target_vt)
+    if len(target_err_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, converted_local, clone(target_err_type))
+    }
+    // Push the Err payload explicitly — call_with_first_arg alone does not
+    // reload GC refs before the callee on this path (#840 from_error).
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(err_local))
+    ctx_api_emit::ctx_emit(ctx, inst_call::MirInst_call(clone(from_fn_name), 1, converted_local))
+    let out_locals = Vec::new<i32>()
+    push(out_locals, converted_local)
+    let out_vts = Vec::new<i32>()
+    push(out_vts, target_vt)
+    let dest = variant_payload::lower_payload_variant_from_locals(
+        ctx,
+        1,
+        out_locals,
+        out_vts,
+        8,
+        String_from("Err")
+    )
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
+    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
+// Map Err payload type names to GC value types. Named enums/strings are refs;
+// unknown non-scalars default to GC ref so From callees stay subtype-safe.
+fn try_err_payload_vt_gc(err_type_name: String) -> i32 {
+    if len(err_type_name) == 0 {
+        return value_types::VT_I32()
+    }
+    if eq(clone(err_type_name), "f64") || eq(clone(err_type_name), "F64") {
+        return value_types::VT_F64()
+    }
+    if eq(clone(err_type_name), "i64") || eq(clone(err_type_name), "I64") {
+        return value_types::VT_I64()
+    }
+    if eq(clone(err_type_name), "i32") ||
+    eq(clone(err_type_name), "I32") ||
+    eq(clone(err_type_name), "bool") ||
+    eq(clone(err_type_name), "Bool") {
+        return value_types::VT_I32()
+    }
+    value_types::VT_GC_REF()
 }

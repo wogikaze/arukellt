@@ -6,19 +6,19 @@ Closed: 2026-07-25
 ID: 835
 Track: compiler-internal
 Depends on: 833
-Related: ADR-033, #831, #845
+Related: ADR-033, #831, #833
 Orchestration class: implementation-ready
 Orchestration upstream: 833
 Blocks v{N}: none
 Priority: 2
-Source: #845 Notes — Option&lt;fn&gt; mut assign traps on ref.as_non_null
+Source: #833 Notes — Option&lt;fn&gt; mut assign traps on ref.as_non_null
 ---
 
 # Option&lt;fn&gt; mut 代入 lowering
 
 ## Summary
 
-#845 で `HashMap&lt;i32, fn&gt;` MVP は閉じた。stdlib は early `return Some/None` で回避していた。
+#833 で `HashMap&lt;i32, fn&gt;` MVP は閉じた。stdlib は early `return Some/None` で回避していた。
 `let mut result: Option&lt;fn&gt; = None` 後に `result = Some(...)` する形は、
 スロットに funcref が入っていても `ref.as_non_null` で trap していた。
 `Option&lt;String&gt;` の同型パターン（`hash_string`）は問題なし。
@@ -49,6 +49,6 @@ mut `Option` / `Result` 一時 local が None 構築後に sticky な concrete v
 
 ## Related
 
-- #845 HashMap&lt;i32, fn&gt; funcref value ABI（upstream）
+- #833 HashMap&lt;i32, fn&gt; funcref value ABI（upstream）
 - #831 call_ref emitter
 - ADR-033

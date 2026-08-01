@@ -16,12 +16,16 @@ pub fn parse_wasi_version_option(argv: Vec<String>, argc: i32, opts: CliOptions,
         let input = clone(get_unchecked(argv, next))
         if eq(clone(input), String_from("p1")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p1"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
         } else if eq(clone(input), String_from("p2")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p2"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
         } else if eq(clone(input), String_from("p3")) {
             args_record::cli_set_wasi_version(opts, String_from("wasi-p3"))
+            args_record::cli_set_wasi_version_explicit(opts, true)
         } else if eq(clone(input), String_from("wasi-p1")) || eq(clone(input), String_from("wasi-p2")) || eq(clone(input), String_from("wasi-p3")) {
             args_record::cli_set_wasi_version(opts, input)
+            args_record::cli_set_wasi_version_explicit(opts, true)
         } else {
             args_record::cli_set_error(opts, String_from("--wasi-version requires wasi-p1, wasi-p2, or wasi-p3"))
         }

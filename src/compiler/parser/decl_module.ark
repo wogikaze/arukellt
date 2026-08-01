@@ -52,7 +52,7 @@ fn sync_to_decl_start(p: Parser) {
 }
 
 fn parse_module_impl(p: Parser) -> Vec<AstNode> {
-    let mut decls: Vec<AstNode> = Vec_new_AstNode()
+    let mut decls: Vec<AstNode> = Vec::new<AstNode>()
     core_api_cursor::skip_newlines(p)
     while !core_api_cursor::at_eof(p) {
         core_api_cursor::skip_newlines(p)

@@ -1,0 +1,20 @@
+use std::json
+use std::test
+
+fn main() {
+    // U+1F600 GRINNING FACE as UTF-16 surrogate pair \uD83D\uDE00
+    match json::parse("\"\\uD83D\\uDE00\"") {
+        Result::Ok(v) => match json::json_as_string(v) {
+            Option::Some(s) => {
+                // UTF-8 encoding is 4 bytes: F0 9F 98 80
+                test::assert_eq_i32(len(s), 4)
+                test::assert_eq_i32(char_at(s, 0), 240)
+                test::assert_eq_i32(char_at(s, 1), 159)
+                test::assert_eq_i32(char_at(s, 2), 152)
+                test::assert_eq_i32(char_at(s, 3), 128)
+            },
+            None => panic("expected string"),
+        },
+        Result::Err(e) => panic(concat("parse surrogate failed: ", json::parse_error_message(e))),
+    }
+}

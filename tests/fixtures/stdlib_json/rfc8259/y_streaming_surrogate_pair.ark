@@ -1,0 +1,13 @@
+use std::json
+use std::test
+
+fn main() {
+    let parsed = json::json_parse_string_at("\"\\uD83D\\uDE00\"", 0)
+    test::assert_eq_bool(json::json_str_result_ok(parsed), true)
+    let s = json::json_str_result_value(parsed)
+    test::assert_eq_i32(len(s), 4)
+    test::assert_eq_i32(char_at(s, 0), 240)
+    test::assert_eq_i32(char_at(s, 1), 159)
+    test::assert_eq_i32(char_at(s, 2), 152)
+    test::assert_eq_i32(char_at(s, 3), 128)
+}
