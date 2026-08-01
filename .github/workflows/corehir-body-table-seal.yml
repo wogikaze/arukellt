@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check construction and seal contract
+      - name: Check construction, seal, and admission contract
         run: python3 scripts/check/check-corehir-body-table-seal.py
 
       - name: Install wasmtime
@@ -50,7 +50,7 @@ jobs:
             echo 's2/s3 byte fixpoint deferred while CoreHIR representation changes'
           fi
 
-      - name: Compile through sealed CoreHIR table
+      - name: Compile through admitted CoreHIR table
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3.wasm
         run: |
