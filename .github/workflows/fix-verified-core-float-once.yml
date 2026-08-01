@@ -1,42 +1,11 @@
-name: Fix VerifiedCore float once
+name: Disabled one-shot VerifiedCore float fix
 
 on:
-  pull_request:
-    branches: [agent/formal-verification-hard-gates]
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  patch:
-    if: github.event.pull_request.head.ref == 'agent/typed-verified-core-emitter'
+  disabled:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: agent/typed-verified-core-emitter
-          fetch-depth: 0
-
-      - name: Avoid selfhost f64 to_string lowering
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('src/compiler/driver/verified_core_render.ark')
-          text = path.read_text()
-          old = '    out = concat(out, concat(",\\"float_value\\":", to_string(expr_raw::corehir_expr_float_val(expr))))\n'
-          new = '''    let float_json = if kind == 7 { expr_raw::corehir_expr_text(expr) } else { "0.0" }
-              out = concat(out, concat(",\\"float_value\\":", float_json))
-          '''
-          if old not in text:
-              raise SystemExit('float renderer line missing')
-          path.write_text(text.replace(old, new, 1))
-          PY
-
-      - name: Commit patch
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/compiler/driver/verified_core_render.ark
-          git commit -m 'fix(proof): serialize CoreHIR float literals without f64 to_string'
-          git push origin HEAD:agent/typed-verified-core-emitter
+      - run: echo disabled
