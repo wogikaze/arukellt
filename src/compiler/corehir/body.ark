@@ -25,6 +25,18 @@ fn corehir_push_method_body_root(table: CoreHirBodyTable, root: i32) {
     body_table::corehir_body_table_push_method_body_root(table, root)
 }
 
+fn corehir_seal_body_table(table: CoreHirBodyTable) {
+    body_table::corehir_body_table_seal(table)
+}
+
+fn corehir_body_table_is_sealed(table: CoreHirBodyTable) -> bool {
+    body_table::corehir_body_table_is_sealed(table)
+}
+
+fn corehir_body_table_has_mutation_violation(table: CoreHirBodyTable) -> bool {
+    body_table::corehir_body_table_has_mutation_violation(table)
+}
+
 fn corehir_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
     body_table::corehir_body_table_fn_body_root_count(table)
 }
