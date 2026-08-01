@@ -11,7 +11,7 @@ use driver::debug
 use driver::emit
 use driver::lower
 use driver::result_record
-use driver::verified_core_render_safe
+use driver::typed_corehir_render
 use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
@@ -55,13 +55,13 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
-    if eq(config_record::config_emit_mode(config), "verified-core") {
-        let rendered = verified_core_render_safe::render_verified_core(
+    if eq(config_record::config_emit_mode(config), "typed-corehir") {
+        let rendered = typed_corehir_render::render_typed_corehir(
             checked_program::checked_program_core_program(program),
             config
         )
         if len(clone(rendered)) == 0 {
-            return result_record::CompileResult_err(4, "VerifiedCore rendering failed")
+            return result_record::CompileResult_err(4, "TypedCoreHIR rendering failed")
         }
         stdio::println(rendered)
         mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
