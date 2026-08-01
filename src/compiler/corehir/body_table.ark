@@ -2,10 +2,24 @@ struct CoreHirBodyTable {
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,
     method_body_roots: Vec<i32>,
+    fn_contract_starts: Vec<i32>,
+    fn_contract_counts: Vec<i32>,
+    contract_roots: Vec<i32>,
+    contract_kinds: Vec<String>,
+    contract_result_names: Vec<String>,
 }
 
 fn CoreHirBodyTable_new() -> CoreHirBodyTable {
-    CoreHirBodyTable { exprs: Vec::new<CoreHirExpr>(), fn_body_roots: Vec::new<i32>(), method_body_roots: Vec::new<i32>() }
+    CoreHirBodyTable {
+        exprs: Vec::new<CoreHirExpr>(),
+        fn_body_roots: Vec::new<i32>(),
+        method_body_roots: Vec::new<i32>(),
+        fn_contract_starts: Vec::new<i32>(),
+        fn_contract_counts: Vec::new<i32>(),
+        contract_roots: Vec::new<i32>(),
+        contract_kinds: Vec::new<String>(),
+        contract_result_names: Vec::new<String>(),
+    }
 }
 
 fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
@@ -40,6 +54,84 @@ fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
     get_unchecked(table.method_body_roots, index)
+}
+
+fn corehir_body_table_begin_fn_contracts(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_roots)
+}
+
+fn corehir_body_table_push_fn_contract(
+    table: CoreHirBodyTable,
+    root: i32,
+    kind: String,
+    result_name: String
+) {
+    push(table.contract_roots, root)
+    push(table.contract_kinds, kind)
+    push(table.contract_result_names, result_name)
+}
+
+fn corehir_body_table_end_fn_contracts(table: CoreHirBodyTable, start: i32) {
+    push(table.fn_contract_starts, start)
+    push(table.fn_contract_counts, len(table.contract_roots) - start)
+}
+
+fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32) -> i32 {
+    if body_index < 0 || body_index >= len(table.fn_contract_counts) {
+        return 0
+    }
+    get_unchecked(table.fn_contract_counts, body_index)
+}
+
+fn corehir_body_table_fn_contract_flat_index(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> i32 {
+    if body_index < 0 || body_index >= len(table.fn_contract_starts) {
+        return 0 - 1
+    }
+    let count = corehir_body_table_fn_contract_count(table, body_index)
+    if contract_index < 0 || contract_index >= count {
+        return 0 - 1
+    }
+    get_unchecked(table.fn_contract_starts, body_index) + contract_index
+}
+
+fn corehir_body_table_fn_contract_root_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> i32 {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return 0 - 1
+    }
+    get_unchecked(table.contract_roots, flat_index)
+}
+
+fn corehir_body_table_fn_contract_kind_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> String {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return String_new()
+    }
+    clone(get_unchecked(table.contract_kinds, flat_index))
+}
+
+fn corehir_body_table_fn_contract_result_name_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> String {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return String_new()
+    }
+    clone(get_unchecked(table.contract_result_names, flat_index))
 }
 
 fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
