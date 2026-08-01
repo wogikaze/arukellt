@@ -1,4 +1,4 @@
-name: VerifiedCore emitter
+name: TypedCoreHIR emitter
 
 on:
   pull_request:
@@ -6,19 +6,21 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: verified-core-${{ github.event.pull_request.number || github.ref }}
+  group: typed-corehir-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verified-core-emitter:
-    name: "VerifiedCore emitter"
+  typed-corehir-emitter:
+    name: "TypedCoreHIR emitter"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate host-side artifact contracts
+      - name: Validate artifact contracts
         run: |
-          python3 -m unittest scripts.tests.test_proof_artifacts
+          python3 -m unittest \
+            scripts.tests.test_proof_artifacts \
+            scripts.tests.test_typed_corehir_artifacts
           python3 scripts/check/check-formal-verification-gates.py tests/proof/proof-required-policy.json
 
       - name: Install wasmtime
@@ -43,5 +45,7 @@ jobs:
           test -s .build/selfhost/arukellt-s3.wasm
           cmp .build/selfhost/arukellt-s2.wasm .build/selfhost/arukellt-s3.wasm
 
-      - name: Validate emitted VerifiedCore
-        run: python3 scripts/check/check-verified-core-emission.py
+      - name: Validate emitted TypedCoreHIR
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s3.wasm
+        run: python3 scripts/check/check-typed-corehir-emission.py
