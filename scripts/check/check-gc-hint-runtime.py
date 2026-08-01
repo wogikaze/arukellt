@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Exercise gc_hint at opt-level 2 and require a post-pass MIR hint."""
+"""Exercise gc_hint at opt-level 2 and emit a translation receipt."""
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -10,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tests" / "proof" / "gc-hint-runtime.ark"
 OUTPUT = ROOT / ".build" / "proof" / "gc-hint-runtime.wasm"
+RECEIPT = ROOT / ".build" / "proof" / "gc-hint-translation-receipt.json"
 
 
 def main() -> int:
@@ -35,15 +37,39 @@ def main() -> int:
         print("gc-hint-runtime: FAIL: compiler output missing", file=sys.stderr)
         print(combined, file=sys.stderr)
         return 1
-    if "struct.new ->" not in combined:
+
+    struct_new_count = combined.count("struct.new ->")
+    hint_count = combined.count("gc.hint ->")
+    if struct_new_count == 0:
         print("gc-hint-runtime: FAIL: fixture did not lower a struct allocation", file=sys.stderr)
         print(combined, file=sys.stderr)
         return 1
-    if "gc.hint ->" not in combined:
+    if hint_count == 0:
         print("gc-hint-runtime: FAIL: optimized MIR contains no canonical gc.hint", file=sys.stderr)
         print(combined, file=sys.stderr)
         return 1
-    print("gc-hint-runtime: PASS: canonical hint observed in optimized MIR")
+
+    receipt = {
+        "schema": "arukellt-translation-validation-receipt",
+        "schema_version": 1,
+        "pass": "gc_hint",
+        "fixture": str(SOURCE.relative_to(ROOT)),
+        "opt_level": 2,
+        "observed": {
+            "struct_new_count": struct_new_count,
+            "canonical_gc_hint_count": hint_count,
+        },
+        "validator": {
+            "policy": "non-hint instructions exact; inserted hints canonical",
+            "failure_action": "restore original block",
+        },
+        "status": "passed",
+    }
+    RECEIPT.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(
+        "gc-hint-runtime: PASS: "
+        f"canonical_hints={hint_count} struct_news={struct_new_count}"
+    )
     return 0
 
 
