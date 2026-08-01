@@ -26,6 +26,7 @@ jobs:
             scripts.tests.test_typed_corehir_artifacts \
             scripts.tests.test_typed_corehir_convert \
             scripts.tests.test_source_contract_profile \
+            scripts.tests.test_source_proof_binding \
             scripts.tests.test_smtlib_v1 \
             scripts.tests.test_solver_receipts \
             scripts.tests.test_solver_driver
@@ -41,21 +42,21 @@ jobs:
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
-      - name: Build current selfhost compiler
+      - name: Build current selfhost stage 2
         run: |
-          set +e
-          python3 scripts/manager.py selfhost fixpoint --build
-          rc=$?
-          set -e
-          if [ "$rc" -eq 2 ]; then
-            echo 'selfhost stage build or validation failed'
-            exit 1
-          fi
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from selfhost.checks import rebuild_current_s2
+
+          path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
+          if path is None:
+              raise SystemExit(error or "stage-2 build failed")
+          print(f"typed-contract-s2: PASS: path={path} elapsed={elapsed:.3f}s")
+          PY
           test -s .build/selfhost/arukellt-s2.wasm
-          test -s .build/selfhost/arukellt-s3.wasm
-          if [ "$rc" -eq 1 ]; then
-            echo 'byte fixpoint deferred until bootstrap refresh'
-          fi
 
       - name: Emit and validate typed source contracts
         env:
@@ -73,6 +74,14 @@ jobs:
           python3 scripts/gen/write-smt-vcs.py \
             --subject .build/typed-contract-proof/verified-core.json \
             --output .build/typed-contract-proof/verified-core-vcs.smt2
+          python3 scripts/gen/write-source-proof-binding.py \
+            --source tests/verified-core/contract_identity.ark \
+            --producer-executable .build/selfhost/arukellt-s2.wasm \
+            --typed-corehir .build/typed-contract-proof/typed-corehir.json \
+            --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
+            --verified-core-normalized .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --output .build/typed-contract-proof/source-proof-binding.json
 
       - name: Install Z3
         run: |
@@ -85,7 +94,12 @@ jobs:
           mkdir -p .build/typed-contract-toolchain
           cp .build/selfhost/arukellt-s2.wasm .build/typed-contract-toolchain/arukellt-s2.wasm
           cp "$(command -v z3)" .build/typed-contract-toolchain/z3
+          cp .build/typed-contract-proof/source-proof-binding.json .build/typed-contract-toolchain/source-proof-binding.json
+          cp scripts/proof/common.py .build/typed-contract-toolchain/common.py
           cp scripts/proof/smtlib_v1.py .build/typed-contract-toolchain/smtlib_v1.py
+          cp scripts/proof/source_proof_binding.py .build/typed-contract-toolchain/source_proof_binding.py
+          cp scripts/proof/typed_corehir.py .build/typed-contract-toolchain/typed_corehir.py
+          cp scripts/proof/typed_corehir_impl.py .build/typed-contract-toolchain/typed_corehir_impl.py
           cp scripts/proof/typed_corehir_contract_convert.py .build/typed-contract-toolchain/typed_corehir_contract_convert.py
           cp scripts/proof/typed_corehir_convert.py .build/typed-contract-toolchain/typed_corehir_convert.py
           cp scripts/proof/normalize_source_contract_profile.py .build/typed-contract-toolchain/normalize_source_contract_profile.py
@@ -123,6 +137,36 @@ jobs:
               },
               "assumptions": [],
               "trusted_components": [
+                  {
+                      "name": "arukellt-source-proof-binding-v1",
+                      "role": "source-artifact-binding",
+                      "version": "1",
+                      "artifact": "source-proof-binding.json",
+                  },
+                  {
+                      "name": "arukellt-source-proof-binding-validator-v1",
+                      "role": "source-artifact-binding-validator",
+                      "version": "1",
+                      "artifact": "source_proof_binding.py",
+                  },
+                  {
+                      "name": "arukellt-typed-corehir-validator-v1",
+                      "role": "typed-corehir-validator",
+                      "version": "1",
+                      "artifact": "typed_corehir.py",
+                  },
+                  {
+                      "name": "arukellt-typed-corehir-validator-impl-v1",
+                      "role": "typed-corehir-validator-implementation",
+                      "version": "1",
+                      "artifact": "typed_corehir_impl.py",
+                  },
+                  {
+                      "name": "arukellt-proof-common-v1",
+                      "role": "proof-validation-library",
+                      "version": "1",
+                      "artifact": "common.py",
+                  },
                   {
                       "name": "arukellt-typed-corehir-contract-converter-v2",
                       "role": "typed-proof-boundary",
@@ -178,6 +222,7 @@ jobs:
           from pathlib import Path
 
           sys.path.insert(0, "scripts")
+          from proof.source_proof_binding import validate_binding
           from proof.trust import validate_bound_proof
           from proof.verified_core import validate_document
 
@@ -187,12 +232,29 @@ jobs:
           manifest_path = proof_root / "trust-manifest.json"
           receipt_path = proof_root / "proof-receipt.json"
           solver_output = proof_root / "solver-output.txt"
+          binding_path = proof_root / "source-proof-binding.json"
           validate_document(json.loads(subject.read_text()))
           validate_bound_proof(subject, manifest_path, receipt_path, solver_output)
+          validate_binding(
+              json.loads(binding_path.read_text()),
+              {
+                  "source": Path("tests/verified-core/contract_identity.ark"),
+                  "producer_executable": Path(".build/selfhost/arukellt-s2.wasm"),
+                  "typed_corehir": proof_root / "typed-corehir.json",
+                  "verified_core_machine": proof_root / "verified-core-machine.json",
+                  "verified_core_normalized": proof_root / "verified-core.json",
+                  "solver_input": proof_root / "verified-core-vcs.smt2",
+              },
+          )
 
           manifest = json.loads(manifest_path.read_text())
           receipt = json.loads(receipt_path.read_text())
           expected = {
+              "source-artifact-binding": "source-proof-binding.json",
+              "source-artifact-binding-validator": "source_proof_binding.py",
+              "typed-corehir-validator": "typed_corehir.py",
+              "typed-corehir-validator-implementation": "typed_corehir_impl.py",
+              "proof-validation-library": "common.py",
               "typed-proof-boundary": "typed_corehir_contract_convert.py",
               "typed-proof-expression-library": "typed_corehir_convert.py",
               "semantic-profile-normalizer": "normalize_source_contract_profile.py",
