@@ -19,11 +19,16 @@ jobs:
       - name: Check structured source boundary
         run: python3 scripts/check/check-typed-contract-source.py
 
-      - name: Validate host artifact contracts
+      - name: Validate proof adapters
         run: |
           python3 -m unittest \
             scripts.tests.test_proof_artifacts \
-            scripts.tests.test_typed_corehir_artifacts
+            scripts.tests.test_typed_corehir_artifacts \
+            scripts.tests.test_typed_corehir_convert \
+            scripts.tests.test_source_contract_profile \
+            scripts.tests.test_smtlib_v1 \
+            scripts.tests.test_solver_receipts \
+            scripts.tests.test_solver_driver
 
       - name: Install wasmtime
         run: |
@@ -52,7 +57,153 @@ jobs:
             echo 'byte fixpoint deferred until bootstrap refresh'
           fi
 
-      - name: Exercise typed source contracts
+      - name: Emit and validate typed source contracts
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2.wasm
         run: python3 scripts/check/check-typed-contract-emission.py
+
+      - name: Convert compiler artifact into proof VCs
+        run: |
+          python3 scripts/gen/convert-typed-corehir.py \
+            --input .build/typed-contract-proof/typed-corehir.json \
+            --output .build/typed-contract-proof/verified-core-machine.json
+          python3 scripts/gen/normalize-source-contract-profile.py \
+            --input .build/typed-contract-proof/verified-core-machine.json \
+            --output .build/typed-contract-proof/verified-core.json
+          python3 scripts/gen/write-smt-vcs.py \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --output .build/typed-contract-proof/verified-core-vcs.smt2
+
+      - name: Install Z3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build hash-bound proof toolchain
+        run: |
+          mkdir -p .build/typed-contract-toolchain
+          cp .build/selfhost/arukellt-s2.wasm .build/typed-contract-toolchain/arukellt-s2.wasm
+          cp "$(command -v z3)" .build/typed-contract-toolchain/z3
+          cp scripts/proof/smtlib_v1.py .build/typed-contract-toolchain/smtlib_v1.py
+          cp scripts/proof/typed_corehir_convert.py .build/typed-contract-toolchain/typed_corehir_convert.py
+          cp scripts/proof/normalize_source_contract_profile.py .build/typed-contract-toolchain/normalize_source_contract_profile.py
+          cp scripts/proof/verified_core.py .build/typed-contract-toolchain/verified_core.py
+          python3 - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          version = subprocess.check_output(["z3", "--version"], text=True).strip()
+          document = {
+              "schema": "arukellt-proof-toolchain",
+              "schema_version": 1,
+              "producer": {
+                  "name": "arukellt-selfhost-typed-contract-emitter",
+                  "version": "current-s2",
+                  "executable": "arukellt-s2.wasm",
+              },
+              "translator": {
+                  "name": "arukellt-verified-core-smtlib",
+                  "version": "1",
+                  "executable": "smtlib_v1.py",
+              },
+              "solver": {
+                  "name": "z3",
+                  "version": version,
+                  "executable": "z3",
+                  "arguments": ["-in", "-smt2"],
+              },
+              "semantic_profile": {
+                  "integer_model": "mathematical",
+                  "overflow": "checked",
+                  "floating_point": "unsupported",
+                  "memory": "pure-values",
+              },
+              "assumptions": [],
+              "trusted_components": [
+                  {
+                      "name": "arukellt-typed-corehir-to-verified-core",
+                      "role": "typed-proof-boundary",
+                      "version": "1",
+                      "artifact": "typed_corehir_convert.py",
+                  },
+                  {
+                      "name": "arukellt-source-contract-profile-normalizer",
+                      "role": "semantic-profile-normalizer",
+                      "version": "1",
+                      "artifact": "normalize_source_contract_profile.py",
+                  },
+                  {
+                      "name": "arukellt-verified-core-v1",
+                      "role": "artifact-validator",
+                      "version": "1",
+                      "artifact": "verified_core.py",
+                  },
+              ],
+              "limits": {
+                  "timeout_ms": 10000,
+                  "memory_bytes": 1073741824,
+              },
+          }
+          Path(".build/typed-contract-toolchain/toolchain.json").write_text(
+              json.dumps(document, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Prove compiler-emitted contracts with Z3
+        run: |
+          python3 scripts/run/run-proof-solver.py \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --toolchain .build/typed-contract-toolchain/toolchain.json \
+            --solver-output .build/typed-contract-proof/solver-output.txt \
+            --trust-manifest-output .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt-output .build/typed-contract-proof/proof-receipt.json
+
+      - name: Verify source-to-receipt bindings
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from proof.trust import validate_bound_proof
+          from proof.verified_core import validate_document
+
+          proof_root = Path(".build/typed-contract-proof")
+          toolchain_root = Path(".build/typed-contract-toolchain")
+          subject = proof_root / "verified-core.json"
+          manifest_path = proof_root / "trust-manifest.json"
+          receipt_path = proof_root / "proof-receipt.json"
+          solver_output = proof_root / "solver-output.txt"
+          validate_document(json.loads(subject.read_text()))
+          validate_bound_proof(subject, manifest_path, receipt_path, solver_output)
+
+          manifest = json.loads(manifest_path.read_text())
+          receipt = json.loads(receipt_path.read_text())
+          expected = {
+              "typed-proof-boundary": "typed_corehir_convert.py",
+              "semantic-profile-normalizer": "normalize_source_contract_profile.py",
+              "artifact-validator": "verified_core.py",
+          }
+          by_role = {item["role"]: item for item in manifest["trusted_components"]}
+          for role, filename in expected.items():
+              digest = hashlib.sha256((toolchain_root / filename).read_bytes()).hexdigest()
+              assert by_role[role]["artifact_sha256"] == digest
+          assert solver_output.read_text().strip() == "unsat"
+          assert receipt["status"] == "proved", receipt
+          print("typed-source-contract-proof: PASS")
+          PY
+
+      - name: Upload source proof bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: typed-source-contract-proof
+          path: |
+            .build/typed-contract-proof
+            .build/typed-contract-toolchain/toolchain.json
+          if-no-files-found: error
