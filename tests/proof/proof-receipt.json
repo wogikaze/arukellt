@@ -1,0 +1,16 @@
+{
+  "schema": "arukellt-proof-receipt",
+  "schema_version": 1,
+  "subject": "tests/proof-ir/basic.json",
+  "proof_ir_sha256": "e3dade3c4dbb41703551c1e2878aee8d35cd7f685aba453bb4fa48e0aab12ec8",
+  "trust_manifest_sha256": "943724fa8ec725eca6484e08d8b6d57d006b75b20ce8642b3793277619c21eb5",
+  "solver_output_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+  "status": "proved",
+  "obligations": {
+    "total": 1,
+    "proved": 1,
+    "refuted": 0,
+    "unknown": 0,
+    "errors": 0
+  }
+}
