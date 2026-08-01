@@ -80,9 +80,23 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def canonical_json_sha256(value: Any) -> str:
+    encoded = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def json_file_sha256(path: Path) -> str:
+    return canonical_json_sha256(load_json(path))
 
 
 def validate_header(obj: dict[str, Any], path: str, schema: str, version: int) -> None:
