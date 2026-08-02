@@ -16,6 +16,8 @@ LICM = MIR_OPT / "licm_core.ark"
 LICM_VALIDATOR = MIR_OPT / "licm_translation_validation.ark"
 UNROLL = MIR_OPT / "loop_unroll.ark"
 UNROLL_VALIDATOR = MIR_OPT / "loop_unroll_translation_validation.ark"
+STDLIB_RESOLVE = MIR_OPT / "stdlib_resolve_validated.ark"
+STDLIB_RESOLVE_VALIDATOR = MIR_OPT / "stdlib_resolve_translation_validation.ark"
 ORCHESTRATE = MIR_OPT / "orchestrate.ark"
 SUMMARY = MIR_OPT / "summary_record.ark"
 
@@ -34,6 +36,8 @@ def main() -> int:
     licm_validator = LICM_VALIDATOR.read_text(encoding="utf-8")
     unroll = UNROLL.read_text(encoding="utf-8")
     unroll_validator = UNROLL_VALIDATOR.read_text(encoding="utf-8")
+    stdlib_resolve = STDLIB_RESOLVE.read_text(encoding="utf-8")
+    stdlib_resolve_validator = STDLIB_RESOLVE_VALIDATOR.read_text(encoding="utf-8")
     orchestrate = ORCHESTRATE.read_text(encoding="utf-8")
     summary = SUMMARY.read_text(encoding="utf-8")
 
@@ -145,6 +149,42 @@ def main() -> int:
             "loop unroll must not hide an unvalidated const-fold transformation"
         )
 
+    require(
+        stdlib_resolve_validator,
+        "fn stdlib_resolve_validator_expected_target",
+        "independent expected call-target reconstruction",
+    )
+    require(
+        stdlib_resolve_validator,
+        "signature_registry_lookup_by_mangled",
+        "call-target registry identity validation",
+    )
+    require(
+        stdlib_resolve_validator,
+        "stdlib_resolve_result_types_match_entry",
+        "call return-type validation",
+    )
+    require(
+        stdlib_resolve_validator,
+        "fn stdlib_resolve_block_translation_valid",
+        "stdlib call-target block validator",
+    )
+    require(
+        stdlib_resolve,
+        "stdlib_inline::stdlib_resolve_normal_call_block",
+        "candidate call-target rewrite",
+    )
+    require(
+        stdlib_resolve,
+        "stdlib_resolve_block_translation_valid",
+        "guarded call-target adoption",
+    )
+    require(
+        stdlib_resolve,
+        "MirBlock_set_instructions(block, before)",
+        "call-target original-block restoration",
+    )
+
     active_orchestrate = [
         line.strip()
         for line in orchestrate.splitlines()
@@ -152,10 +192,17 @@ def main() -> int:
     ]
     if "stdlib_inline::stdlib_inline_module(m)" in active_orchestrate:
         raise ValueError("stdlib inline is enabled without an independent validator")
+    if "stdlib_inline::stdlib_resolve_normal_calls(m)" in active_orchestrate:
+        raise ValueError("stdlib call resolution bypasses its validated wrapper")
     require(
         orchestrate,
         "async_lower::async_lower_optimize_module(m)",
         "validated async-lowering invocation",
+    )
+    require(
+        orchestrate,
+        "stdlib_resolve_validated::stdlib_resolve_normal_calls_validated(m)",
+        "validated stdlib target-resolution invocation",
     )
     require(orchestrate, "loop_unroll::run_loop_unroll(f)", "validated unroll invocation")
     require(orchestrate, "licm::run_licm(f)", "validated LICM invocation")
@@ -180,7 +227,8 @@ def main() -> int:
 
     print(
         "mir-opt-translation-validation: PASS: "
-        "async_lower gc_hint licm loop_unroll; stdlib_inline=disabled"
+        "async_lower stdlib_resolve gc_hint licm loop_unroll; "
+        "stdlib_inline=disabled"
     )
     return 0
 
