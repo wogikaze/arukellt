@@ -5,7 +5,7 @@
   "hard_gates": {
     "versioned_boundary_artifacts": false,
     "explicit_backend_type_abi_layout": false,
-    "typed_verified_core_emission": false,
+    "typed_verified_core_emission": true,
     "optimizer_translation_validation": false,
     "solver_trust_manifest": true,
     "legacy_mutable_table_removed": false,
