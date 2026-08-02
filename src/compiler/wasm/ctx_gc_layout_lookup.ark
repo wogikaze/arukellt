@@ -39,8 +39,14 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirVa
     )
 }
 
+// Target storage is selected by the explicit TypeId layout plan. Semantic
+// representation may remain LINEAR_PTR for target-independent String while the
+// wasm32-gc storage binding is a GC array.
 fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
-    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    SelfEmitCtx_wasm_ref_type_idx_for_type_id(
+        ctx,
+        mir_value_type::mir_value_type_type_id(mvt)
+    )
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
