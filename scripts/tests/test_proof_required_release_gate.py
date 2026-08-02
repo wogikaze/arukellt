@@ -77,7 +77,11 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             "release_payload_manifest": self.payload_manifest_path,
         }
         for index, (name, path) in enumerate(self.paths.items()):
-            if name not in {"release_provenance", "release_payload_manifest"}:
+            if name in {"release_provenance", "release_payload_manifest"}:
+                continue
+            if name == "producer_executable":
+                path.write_bytes(self.payload.read_bytes())
+            else:
                 path.write_bytes(f"artifact-{index}\n".encode())
 
         self.binding_path = self.root / "source-proof-binding.json"
@@ -257,6 +261,20 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
     def test_rejects_payload_substitution_after_proof(self) -> None:
         self.payload.write_bytes(b"different-release-payload\n")
         with self.assertRaisesRegex(ReleasePayloadError, "payload digest mismatch"):
+            self.validate()
+
+    def test_rejects_manifest_valid_but_unproved_payload(self) -> None:
+        self.payload.write_bytes(b"different-release-payload\n")
+        self.payload_manifest_path.write_text(
+            json.dumps(create_release_payload_manifest(self.payloads)),
+            encoding="utf-8",
+        )
+        write_binding(self.paths, self.binding_path)
+        self.write_manifest()
+        with self.assertRaisesRegex(
+            ProofRequiredReleaseError,
+            "not the proved producer executable",
+        ):
             self.validate()
 
     def test_rejects_proof_optional_policy(self) -> None:
