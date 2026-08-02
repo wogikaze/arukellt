@@ -123,12 +123,23 @@ def validate_proof_required_release(
         )
 
     producer_path = bound_paths["producer_executable"]
+    producer_digest = sha256_file(producer_path)
     producer = manifest.get("producer")
     if not isinstance(producer, dict):
         raise ProofRequiredReleaseError("TrustManifest producer must be an object")
-    if producer.get("executable_sha256") != sha256_file(producer_path):
+    if producer.get("executable_sha256") != producer_digest:
         raise ProofRequiredReleaseError(
             "TrustManifest producer does not bind the supplied compiler executable"
+        )
+
+    release_binary = release_payloads.get("arukellt-wasm")
+    if release_binary is None:
+        raise ProofRequiredReleaseError(
+            "release payload must contain the canonical arukellt-wasm artifact"
+        )
+    if sha256_file(release_binary) != producer_digest:
+        raise ProofRequiredReleaseError(
+            "authorized arukellt-wasm payload is not the proved producer executable"
         )
 
     normalized_subject = bound_paths["verified_core_normalized"]
