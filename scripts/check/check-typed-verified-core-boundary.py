@@ -14,6 +14,7 @@ SEMANTICS = ROOT / "scripts" / "proof" / "verified_core_typed.py"
 TYPED_SMT = ROOT / "scripts" / "proof" / "smtlib_typed_v1.py"
 RECEIPT_VALIDATOR = ROOT / "scripts" / "proof" / "typed_verified_core_receipt.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "typed-corehir-proof-pipeline.yml"
+POLICY_SELF = "scripts/check/check-typed-verified-core-boundary.py"
 
 
 def require(text: str, token: str, label: str) -> None:
@@ -24,9 +25,11 @@ def require(text: str, token: str, label: str) -> None:
 def reject_production_bypasses() -> None:
     allowed_legacy_converter = {
         "scripts/proof/typed_corehir_typed_convert.py",
+        POLICY_SELF,
     }
     allowed_structural_smt = {
         "scripts/proof/smtlib_typed_v1.py",
+        POLICY_SELF,
     }
     violations: list[str] = []
     for path in sorted((ROOT / "scripts").rglob("*.py")):
