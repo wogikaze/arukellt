@@ -1,13 +1,13 @@
 use corehir::body
-use corehir::body_table
+use corehir::body_builder
 use corehir::decl_children
 use corehir::decl_member_collections
 use corehir::decl_node
 use corehir::frontend_ast_node
 use corehir::frontend_kind_map
 
-fn lower_fn_contracts(table: CoreHirBodyTable, decl: AstNode) -> i32 {
-    let start = body_table::corehir_body_table_begin_fn_contracts(table)
+fn lower_fn_contracts(builder: CoreHirBodyTable, decl: AstNode) -> i32 {
+    let start = body_builder::corehir_body_builder_begin_fn_contracts(builder)
     let annotation_count = frontend_ast_node::corehir_node_type_ann_count(decl)
     let mut annotation_index = 0
     while annotation_index < annotation_count {
@@ -16,15 +16,15 @@ fn lower_fn_contracts(table: CoreHirBodyTable, decl: AstNode) -> i32 {
             let child_count = frontend_ast_node::corehir_node_child_count(annotation)
             if child_count == 1 {
                 let expression = frontend_ast_node::corehir_node_child_at(annotation, 0)
-                let root = corehir_build_expr(table, expression)
+                let root = corehir_build_expr(builder, expression)
                 let kind = frontend_ast_node::corehir_node_text(annotation)
                 let result_name = if eq(clone(kind), "ensures") {
                     "result"
                 } else {
                     ""
                 }
-                body_table::corehir_body_table_push_fn_contract(
-                    table,
+                body_builder::corehir_body_builder_push_fn_contract(
+                    builder,
                     root,
                     kind,
                     result_name
@@ -37,20 +37,20 @@ fn lower_fn_contracts(table: CoreHirBodyTable, decl: AstNode) -> i32 {
 }
 
 fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
-    let table = body::CoreHirBodyTable_new()
+    let builder = body::CoreHirBodyTable_new()
     let decl_count = len(decls)
     let mut i = 0
     while i < decl_count {
         let decl = get_unchecked(decls, i)
         if decl_node::decl_is_fn(decl) {
-            let contract_start = lower_fn_contracts(table, decl)
+            let contract_start = lower_fn_contracts(builder, decl)
             let body_idx = decl_children::decl_body_index(decl)
             let mut root = 0 - 1
             if body_idx >= 0 {
-                root = corehir_build_expr(table, decl_children::decl_child_at(decl, body_idx))
+                root = corehir_build_expr(builder, decl_children::decl_child_at(decl, body_idx))
             }
-            corehir_push_fn_body_root(table, root)
-            body_table::corehir_body_table_end_fn_contracts(table, contract_start)
+            corehir_push_fn_body_root(builder, root)
+            body_builder::corehir_body_builder_end_fn_contracts(builder, contract_start)
         }
         if decl_node::decl_is_impl(decl) {
             let method_count = decl_member_collections::decl_method_count(decl)
@@ -60,15 +60,15 @@ fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
                 let body_idx = decl_member_collections::method_body_index(method)
                 let mut root = 0 - 1
                 if body_idx >= 0 {
-                    root = corehir_build_expr(table, decl_children::decl_child_at(method, body_idx))
+                    root = corehir_build_expr(builder, decl_children::decl_child_at(method, body_idx))
                 }
-                corehir_push_method_body_root(table, root)
+                corehir_push_method_body_root(builder, root)
                 mi = mi + 1
             }
         }
         i = i + 1
     }
-    table
+    body_builder::corehir_body_builder_finish(builder)
 }
 
 fn fn_body_root(table: CoreHirBodyTable, fn_info_index: i32) -> i32 {
