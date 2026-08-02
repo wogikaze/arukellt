@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Mapping
 
 from proof.common import load_json, sha256_file
+from proof.release_payload import validate_release_payload_manifest
+from proof.release_provenance import validate_release_provenance
 from proof.source_proof_binding import REQUIRED_ARTIFACTS, validate_binding
 from proof.trust import check_release_policy, validate_trust_manifest
 
@@ -28,11 +30,30 @@ def _resolve_policy_file(base: Path, raw: object, label: str) -> Path:
     return resolved
 
 
-def _trusted_component_digest(
+def primary_release_artifact_paths(policy_path: Path) -> dict[str, Path]:
+    policy = load_json(policy_path)
+    if not isinstance(policy, dict):
+        raise ProofRequiredReleaseError("release policy must be an object")
+    artifacts = policy.get("artifacts")
+    if not isinstance(artifacts, list) or len(artifacts) != 1:
+        raise ProofRequiredReleaseError(
+            "source-bound proof-required release requires exactly one artifact entry"
+        )
+    artifact = artifacts[0]
+    if not isinstance(artifact, dict):
+        raise ProofRequiredReleaseError("release artifact entry must be an object")
+    base = policy_path.parent.resolve()
+    return {
+        field: _resolve_policy_file(base, artifact.get(field), f"release artifact {field}")
+        for field in ("subject", "trust_manifest", "receipt", "solver_output")
+    }
+
+
+def _trusted_component(
     manifest: dict[str, object],
     *,
     role: str,
-) -> str:
+) -> dict[str, object]:
     components = manifest.get("trusted_components")
     if not isinstance(components, list):
         raise ProofRequiredReleaseError("TrustManifest trusted_components must be an array")
@@ -45,18 +66,18 @@ def _trusted_component_digest(
         raise ProofRequiredReleaseError(
             f"TrustManifest must contain exactly one component with role={role!r}"
         )
-    digest = matching[0].get("artifact_sha256")
-    if not isinstance(digest, str):
-        raise ProofRequiredReleaseError(
-            f"TrustManifest component role={role!r} has no artifact_sha256"
-        )
-    return digest
+    return matching[0]
 
 
 def validate_proof_required_release(
     policy_path: Path,
     source_binding_path: Path,
     bound_paths: Mapping[str, Path],
+    *,
+    expected_repository: str,
+    expected_commit: str,
+    expected_tag: str,
+    release_payloads: Mapping[str, Path],
 ) -> tuple[str, int]:
     mode, artifact_count = check_release_policy(policy_path)
     if mode != "proof-required":
@@ -73,34 +94,32 @@ def validate_proof_required_release(
         )
     validate_binding(load_json(source_binding_path), bound_paths)
 
-    policy = load_json(policy_path)
-    if not isinstance(policy, dict):
-        raise ProofRequiredReleaseError("release policy must be an object")
-    artifacts = policy.get("artifacts")
-    if not isinstance(artifacts, list) or len(artifacts) != 1:
-        raise ProofRequiredReleaseError(
-            "source-bound proof-required release currently requires exactly one artifact entry"
-        )
-    artifact = artifacts[0]
-    if not isinstance(artifact, dict):
-        raise ProofRequiredReleaseError("release artifact entry must be an object")
-
-    policy_base = policy_path.parent.resolve()
-    manifest_path = _resolve_policy_file(
-        policy_base,
-        artifact.get("trust_manifest"),
-        "release artifact trust_manifest",
+    validate_release_provenance(
+        load_json(bound_paths["release_provenance"]),
+        expected_repository=expected_repository,
+        expected_commit=expected_commit,
+        expected_tag=expected_tag,
     )
-    manifest = validate_trust_manifest(load_json(manifest_path))
+    validate_release_payload_manifest(
+        load_json(bound_paths["release_payload_manifest"]),
+        release_payloads,
+    )
 
-    binding_digest = sha256_file(source_binding_path)
-    recorded_binding_digest = _trusted_component_digest(
+    artifact_paths = primary_release_artifact_paths(policy_path)
+    manifest = validate_trust_manifest(load_json(artifact_paths["trust_manifest"]))
+
+    binding_component = _trusted_component(
         manifest,
         role="source-artifact-binding",
     )
-    if recorded_binding_digest != binding_digest:
+    binding_digest = sha256_file(source_binding_path)
+    if binding_component.get("artifact_sha256") != binding_digest:
         raise ProofRequiredReleaseError(
             "TrustManifest does not bind the supplied source proof binding"
+        )
+    if binding_component.get("version") != "3":
+        raise ProofRequiredReleaseError(
+            "TrustManifest must identify source-artifact-binding version 3"
         )
 
     producer_path = bound_paths["producer_executable"]
@@ -112,10 +131,25 @@ def validate_proof_required_release(
             "TrustManifest producer does not bind the supplied compiler executable"
         )
 
+    normalized_subject = bound_paths["verified_core_normalized"]
+    normalized_digest = sha256_file(normalized_subject)
+    manifest_subject = manifest.get("subject")
+    if not isinstance(manifest_subject, dict):
+        raise ProofRequiredReleaseError("TrustManifest subject must be an object")
+    if manifest_subject.get("sha256") != normalized_digest:
+        raise ProofRequiredReleaseError(
+            "TrustManifest proof subject is not the normalized VerifiedCore in the source binding"
+        )
+    if sha256_file(artifact_paths["subject"]) != normalized_digest:
+        raise ProofRequiredReleaseError(
+            "release policy subject is not the normalized VerifiedCore in the source binding"
+        )
+
     return mode, artifact_count
 
 
 __all__ = [
     "ProofRequiredReleaseError",
+    "primary_release_artifact_paths",
     "validate_proof_required_release",
 ]
