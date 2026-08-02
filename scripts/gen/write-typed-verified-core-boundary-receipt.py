@@ -27,6 +27,7 @@ BOUNDARY_FILES = (
     "scripts/tests/test_typed_corehir_convert.py",
     "scripts/tests/test_verified_core_typed.py",
     "scripts/tests/test_smtlib_typed_v1.py",
+    "scripts/tests/test_typed_verified_core_receipt.py",
     "tests/proof/typed-corehir.json",
     ".github/workflows/typed-corehir-proof-pipeline.yml",
     "release/proof-policy.json",
