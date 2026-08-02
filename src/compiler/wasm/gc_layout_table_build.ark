@@ -1,54 +1,87 @@
-use corehir::kinds
-use corehir::type_id
-use corehir::type_table
-use mir::module_gc_enum
-use mir::module_gc_struct
+use std::host::process
+use std::host::stdio
+use mir::gc_layout_plan
+use mir::gc_layout_plan_validator
+use mir::module_gc_layout_plan
 use wasm::gc_layout_table
+
+fn gc_layout_plan_type_index(
+    binding: MirGcLayoutBinding,
+    gc_type_base: i32,
+    gc_enum_variant_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>
+) -> i32 {
+    let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
+    let source_value = gc_layout_plan::mir_gc_layout_binding_source_value(binding)
+    if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() {
+        if gc_type_base < 0 {
+            return 0 - 1
+        }
+        return gc_type_base + source_value
+    }
+    if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() {
+        if source_value < 0 || source_value >= len(gc_struct_type_map) {
+            return 0 - 1
+        }
+        return get_unchecked(gc_struct_type_map, source_value)
+    }
+    if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+        if source_value < 0 || source_value >= len(gc_enum_variant_type_map) {
+            return 0 - 1
+        }
+        return get_unchecked(gc_enum_variant_type_map, source_value)
+    }
+    0 - 1
+}
+
+fn gc_layout_plan_struct_type_index(binding: MirGcLayoutBinding, type_idx: i32) -> i32 {
+    let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
+    if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() ||
+       source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+        return type_idx
+    }
+    0 - 1
+}
 
 fn populate_gc_layout_table_for_emit(
     table: GcLayoutTable,
-    tt: TypeTable,
     mir: MirModule,
     gc_type_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_type_map: Vec<i32>
 ) {
-    // Use find_existing instead of intern to avoid mutating the TypeTable
-    // during emit — interning new entries shifts type IDs and corrupts
-    // downstream emit phases.
-    register_builtin(table, tt, kinds::TYPE_KIND_STRING(), String_from("String"), gc_type_base + 0)
-    // Open enum / Option / Result share the GC open-base type (offset 14).
-    register_builtin(table, tt, kinds::TYPE_KIND_ENUM(), String_from("enum:open"), gc_type_base + 14)
-    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i32"), gc_type_base + 10)
-    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:String"), gc_type_base + 19)
-    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:v128"), gc_type_base + 21)
-    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:i64"), gc_type_base + 22)
-    register_builtin(table, tt, kinds::TYPE_KIND_VEC(), String_from("vec:f64"), gc_type_base + 23)
-    // MIR / CoreHIR use abbreviated hashmap aliases (hashmap:si32, ...).
-    // Keep the longer colon forms for any residual TypeTable entries.
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:si32"), gc_type_base + 16)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32str"), gc_type_base + 17)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:strstr"), gc_type_base + 18)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32i32"), gc_type_base + 10)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32fn"), gc_type_base + 30)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:strfn"), gc_type_base + 31)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:i32"), gc_type_base + 16)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:i32:String"), gc_type_base + 17)
-    register_builtin(table, tt, kinds::TYPE_KIND_HASHMAP(), String_from("hashmap:String:String"), gc_type_base + 18)
-    gc_layout_table::gc_layout_table_populate_from_type_table(table, tt, gc_type_base)
-    gc_layout_table::gc_layout_table_register_enum_variant_names(table, tt, module_gc_enum::MirModule_gc_enum_variant_names(mir), gc_enum_variant_type_map)
-    gc_layout_table::gc_layout_table_register_struct_names(table, tt, module_gc_struct::MirModule_gc_struct_names(mir), gc_struct_type_map)
-}
-
-fn register_builtin(table: GcLayoutTable, tt: TypeTable, kind: i32, name: String, type_idx: i32) {
-    let tid = type_table::type_table_find_existing(tt, kind, clone(name), Vec::new<TypeId>())
-    if !type_id::type_id_is_valid(tid) {
-        return
+    let plan = module_gc_layout_plan::MirModule_gc_layout_plan(mir)
+    if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
+        stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
+        process::exit(1)
     }
-    gc_layout_table::gc_layout_table_register_key(
-        table,
-        gc_layout_table::GcLayoutKey_new(tid, gc_layout_table::GcMemberKey_aggregate()),
-        gc_layout_table::WasmRefType_new(type_idx, 1),
-        0 - 1
-    )
+    let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
+    let mut index = 0
+    while index < count {
+        let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
+        let type_idx = gc_layout_plan_type_index(
+            binding,
+            gc_type_base,
+            gc_enum_variant_type_map,
+            gc_struct_type_map
+        )
+        if type_idx < 0 {
+            stdio::eprintln("compiler ICE: GC layout plan references an unavailable type-section slot")
+            process::exit(1)
+        }
+        let layout_id = gc_layout_table::gc_layout_table_register_key(
+            table,
+            gc_layout_table::GcLayoutKey_new(
+                gc_layout_plan::mir_gc_layout_binding_type_id(binding),
+                gc_layout_table::GcMemberKey_aggregate()
+            ),
+            gc_layout_table::WasmRefType_new(type_idx, 1),
+            gc_layout_plan_struct_type_index(binding, type_idx)
+        )
+        if !gc_layout_table::gc_layout_id_is_valid(layout_id) {
+            stdio::eprintln("compiler ICE: conflicting explicit GC layout binding")
+            process::exit(1)
+        }
+        index = index + 1
+    }
 }
