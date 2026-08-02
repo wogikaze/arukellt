@@ -19,11 +19,15 @@ jobs:
       - name: Reject untyped or name-inferred conversion paths
         run: python3 scripts/check/check-typed-verified-core-boundary.py
 
+      - name: Write typed VerifiedCore boundary receipt
+        run: python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
+
       - name: Test conversion, semantic typing, and VC generation
         run: |
           python3 -m unittest \
             scripts.tests.test_typed_corehir_convert \
             scripts.tests.test_verified_core_typed \
+            scripts.tests.test_smtlib_typed_v1 \
             scripts.tests.test_smtlib_v1 \
             scripts.tests.test_solver_receipts \
             scripts.tests.test_solver_driver
@@ -34,16 +38,8 @@ jobs:
           python3 scripts/gen/convert-typed-corehir.py \
             --input tests/proof/typed-corehir.json \
             --output .build/typed-corehir-proof/verified-core.json
-          python3 - <<'PY'
-          import json
-          import sys
-          from pathlib import Path
-          sys.path.insert(0, "scripts")
-          from proof.verified_core_typed import validate_typed_document
-          path = Path(".build/typed-corehir-proof/verified-core.json")
-          validate_typed_document(json.loads(path.read_text()))
-          print("typed-verified-core-admission: PASS")
-          PY
+          python3 scripts/check/check-typed-verified-core.py \
+            .build/typed-corehir-proof/verified-core.json
           python3 scripts/gen/write-smt-vcs.py \
             --subject .build/typed-corehir-proof/verified-core.json \
             --output .build/typed-corehir-proof/verified-core-vcs.smt2
@@ -59,12 +55,15 @@ jobs:
           mkdir -p .build/typed-corehir-toolchain
           cp "$(command -v z3)" .build/typed-corehir-toolchain/z3
           cp tests/proof/toolchain/producer.bin .build/typed-corehir-toolchain/producer.bin
+          cp scripts/proof/smtlib_typed_v1.py .build/typed-corehir-toolchain/smtlib_typed_v1.py
           cp scripts/proof/smtlib_v1.py .build/typed-corehir-toolchain/smtlib_v1.py
           cp scripts/proof/typed_corehir_typed_convert.py .build/typed-corehir-toolchain/typed_corehir_typed_convert.py
           cp scripts/proof/typed_corehir_convert.py .build/typed-corehir-toolchain/typed_corehir_convert.py
           cp scripts/proof/verified_core.py .build/typed-corehir-toolchain/verified_core.py
           cp scripts/proof/verified_core_typed.py .build/typed-corehir-toolchain/verified_core_typed.py
+          cp scripts/check/check-typed-verified-core.py .build/typed-corehir-toolchain/check-typed-verified-core.py
           cp scripts/check/check-typed-verified-core-boundary.py .build/typed-corehir-toolchain/check-typed-verified-core-boundary.py
+          cp .build/proof/typed-verified-core-boundary.json .build/typed-corehir-toolchain/typed-verified-core-boundary.json
           python3 - <<'PY'
           import json
           import subprocess
@@ -80,9 +79,9 @@ jobs:
                   "executable": "producer.bin",
               },
               "translator": {
-                  "name": "arukellt-verified-core-smtlib",
+                  "name": "arukellt-typed-verified-core-smtlib",
                   "version": "1",
-                  "executable": "smtlib_v1.py",
+                  "executable": "smtlib_typed_v1.py",
               },
               "solver": {
                   "name": "z3",
@@ -123,10 +122,34 @@ jobs:
                       "artifact": "verified_core_typed.py",
                   },
                   {
+                      "name": "arukellt-typed-verified-core-admission-cli-v1",
+                      "role": "typed-artifact-admission",
+                      "version": "1",
+                      "artifact": "check-typed-verified-core.py",
+                  },
+                  {
+                      "name": "arukellt-typed-verified-core-smt-adapter-v1",
+                      "role": "typed-smt-adapter",
+                      "version": "1",
+                      "artifact": "smtlib_typed_v1.py",
+                  },
+                  {
+                      "name": "arukellt-smt-renderer-v1",
+                      "role": "smt-renderer-implementation",
+                      "version": "1",
+                      "artifact": "smtlib_v1.py",
+                  },
+                  {
                       "name": "arukellt-typed-verified-core-boundary-policy-v1",
                       "role": "typed-boundary-policy",
                       "version": "1",
                       "artifact": "check-typed-verified-core-boundary.py",
+                  },
+                  {
+                      "name": "arukellt-typed-verified-core-boundary-receipt-v1",
+                      "role": "typed-boundary-receipt",
+                      "version": "1",
+                      "artifact": "typed-verified-core-boundary.json",
                   },
               ],
               "limits": {
@@ -178,15 +201,22 @@ jobs:
               "typed-proof-boundary-implementation": "typed_corehir_convert.py",
               "artifact-validator": "verified_core.py",
               "typed-artifact-validator": "verified_core_typed.py",
+              "typed-artifact-admission": "check-typed-verified-core.py",
+              "typed-smt-adapter": "smtlib_typed_v1.py",
+              "smt-renderer-implementation": "smtlib_v1.py",
               "typed-boundary-policy": "check-typed-verified-core-boundary.py",
+              "typed-boundary-receipt": "typed-verified-core-boundary.json",
           }
           by_role = {item["role"]: item for item in manifest["trusted_components"]}
           for role, filename in expected.items():
               digest = hashlib.sha256((toolchain / filename).read_bytes()).hexdigest()
               assert by_role[role]["artifact_sha256"] == digest
+          assert manifest["translator"]["executable_sha256"] == hashlib.sha256(
+              (toolchain / "smtlib_typed_v1.py").read_bytes()
+          ).hexdigest()
           assert solver_output.read_text().strip() == "unsat"
           assert receipt["status"] == "proved", receipt
-          print("typed-corehir-proof-pipeline: PASS: typed_semantics=bound")
+          print("typed-corehir-proof-pipeline: PASS: typed_semantics=bound-through-solver")
           PY
 
       - name: Upload end-to-end proof bundle
@@ -196,4 +226,5 @@ jobs:
           path: |
             .build/typed-corehir-proof
             .build/typed-corehir-toolchain/toolchain.json
+            .build/proof/typed-verified-core-boundary.json
           if-no-files-found: error
