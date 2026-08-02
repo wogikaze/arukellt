@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write a digest binding for a source-contract proof run."""
+"""Write a digest binding for source proof and architecture evidence."""
 
 from __future__ import annotations
 
@@ -26,6 +26,9 @@ def main() -> int:
     parser.add_argument("--verified-core-machine", required=True, type=Path)
     parser.add_argument("--verified-core-normalized", required=True, type=Path)
     parser.add_argument("--solver-input", required=True, type=Path)
+    parser.add_argument("--backend-typeid-audit", required=True, type=Path)
+    parser.add_argument("--optimizer-translation-registry", required=True, type=Path)
+    parser.add_argument("--corehir-body-boundary-validator", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     write_binding(
@@ -36,6 +39,9 @@ def main() -> int:
             "verified_core_machine": args.verified_core_machine,
             "verified_core_normalized": args.verified_core_normalized,
             "solver_input": args.solver_input,
+            "backend_typeid_audit": args.backend_typeid_audit,
+            "optimizer_translation_registry": args.optimizer_translation_registry,
+            "corehir_body_boundary_validator": args.corehir_body_boundary_validator,
         },
         args.output,
     )
