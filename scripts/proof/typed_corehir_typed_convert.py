@@ -99,7 +99,7 @@ def _normalize_types(source: dict[str, Any]) -> tuple[dict[str, Any], dict[int, 
         type_id = _require_int(raw.get("id"), f"{path}.id")
         _require(type_id not in explicit_by_id, f"{path}.id: duplicate type id {type_id}")
         kind = _require_string(raw.get("kind"), f"{path}.kind")
-        name = _require_string(raw.get("name"), f"{path}.name")
+        _require_string(raw.get("name"), f"{path}.name")
         explicit = copy.deepcopy(raw)
         legacy = {
             key: copy.deepcopy(raw[key])
@@ -171,7 +171,10 @@ def convert_typed_document(value: Any) -> dict[str, Any]:
     _require(source.get("schema_version") == SOURCE_VERSION, f"$.schema_version: expected {SOURCE_VERSION}")
 
     normalized, explicit_types = _normalize_types(source)
-    converted = convert_legacy_document(normalized)
+    try:
+        converted = convert_legacy_document(normalized)
+    except UnsupportedTypedCoreHir as exc:
+        raise ExplicitTypedCoreHirError(str(exc)) from exc
     converted_by_id = {int(entry["id"]): entry for entry in converted["types"]}
     _require(set(converted_by_id) == set(explicit_types), "$.types: converted type set changed")
 
