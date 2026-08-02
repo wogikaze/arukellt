@@ -12,6 +12,7 @@ SMT_CLI = ROOT / "scripts" / "gen" / "write-smt-vcs.py"
 BOUNDARY = ROOT / "scripts" / "proof" / "typed_corehir_typed_convert.py"
 SEMANTICS = ROOT / "scripts" / "proof" / "verified_core_typed.py"
 TYPED_SMT = ROOT / "scripts" / "proof" / "smtlib_typed_v1.py"
+RECEIPT_VALIDATOR = ROOT / "scripts" / "proof" / "typed_verified_core_receipt.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "typed-corehir-proof-pipeline.yml"
 
 
@@ -26,6 +27,7 @@ def main() -> int:
     boundary = BOUNDARY.read_text(encoding="utf-8")
     semantics = SEMANTICS.read_text(encoding="utf-8")
     typed_smt = TYPED_SMT.read_text(encoding="utf-8")
+    receipt_validator = RECEIPT_VALIDATOR.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     require(cli, "from proof.typed_corehir_typed_convert import", "v2 CLI import")
@@ -77,13 +79,23 @@ def main() -> int:
         require(typed_smt, token, label)
 
     for token, label in (
+        ("REQUIRED_SEMANTIC_CHECKS", "receipt semantic check registry"),
+        ("sha256_file(path)", "receipt file digest verification"),
+        ("duplicate path", "receipt duplicate path rejection"),
+    ):
+        require(receipt_validator, token, label)
+
+    for token, label in (
         ("scripts.tests.test_verified_core_typed", "semantic negative tests"),
         ("scripts.tests.test_smtlib_typed_v1", "typed SMT negative tests"),
+        ("scripts.tests.test_typed_verified_core_receipt", "receipt negative tests"),
         ("verified_core_typed.py", "semantic validator TrustManifest component"),
         ("typed_corehir_typed_convert.py", "v2 converter TrustManifest component"),
         ("smtlib_typed_v1.py", "typed SMT TrustManifest component"),
+        ("typed_verified_core_receipt.py", "receipt validator TrustManifest component"),
         ("check-typed-verified-core.py", "standalone typed admission"),
         ("write-typed-verified-core-boundary-receipt.py", "versioned boundary receipt"),
+        ("check-typed-verified-core-boundary-receipt.py", "independent receipt check"),
         ("check-typed-verified-core-boundary.py", "source gate execution"),
     ):
         require(workflow, token, label)
