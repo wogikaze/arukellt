@@ -36,7 +36,8 @@ jobs:
         run: |
           python3 -m unittest \
             scripts.tests.test_source_proof_binding \
-            scripts.tests.test_proof_required_release_gate
+            scripts.tests.test_proof_required_release_gate \
+            scripts.tests.test_release_authorization
 
       - name: Install Wasmtime and Z3
         run: |
@@ -54,6 +55,20 @@ jobs:
 
       - name: Prove and authorize release payload
         run: bash scripts/run/proof-required-release.sh
+
+      - name: Verify publisher-side authorization
+        run: |
+          python3 scripts/check/check-release-authorization.py \
+            --authorization .build/proof-required-release/release-authorization.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --commit "$GITHUB_SHA" \
+            --tag "$GITHUB_REF_NAME" \
+            --policy .build/typed-contract-proof/release-policy.json \
+            --source-binding .build/typed-contract-proof/source-proof-binding.json \
+            --trust-manifest .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt .build/typed-contract-proof/proof-receipt.json \
+            --release-payload-manifest .build/proof-required-release/release-payload-manifest.json \
+            --release-payload arukellt-wasm=.build/proof-required-release/arukellt-s2-runtime.wasm
 
       - name: Upload authorized proof release bundle
         uses: actions/upload-artifact@v4
