@@ -1,4 +1,4 @@
-"""Digest binding for the source-contract proof pipeline."""
+"""Digest binding for the source-contract and release-evidence pipeline."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Mapping
 
 SCHEMA = "arukellt-source-proof-binding"
-VERSION = 1
+VERSION = 2
 REQUIRED_ARTIFACTS = (
     "source",
     "producer_executable",
@@ -16,6 +16,9 @@ REQUIRED_ARTIFACTS = (
     "verified_core_machine",
     "verified_core_normalized",
     "solver_input",
+    "backend_typeid_audit",
+    "optimizer_translation_registry",
+    "corehir_body_boundary_validator",
 )
 
 
