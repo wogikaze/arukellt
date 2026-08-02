@@ -32,6 +32,9 @@ jobs:
       - name: Reject unguarded release entrypoints
         run: python3 scripts/check/check-proof-release-entrypoints.py
 
+      - name: Write release enforcement boundary receipt
+        run: python3 scripts/gen/write-proof-release-enforcement-receipt.py
+
       - name: Validate release gate libraries
         run: |
           python3 -m unittest \
@@ -84,6 +87,7 @@ jobs:
             .build/typed-contract-proof/trust-manifest.json
             .build/typed-contract-proof/proof-receipt.json
             .build/typed-contract-proof/solver-output.txt
+            .build/proof/proof-release-enforcement.json
             .build/proof/backend-typeid-layout.json
             .build/proof/mir-opt-translation-registry.json
             .build/proof/corehir-body-boundary.json
