@@ -8,8 +8,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CLI = ROOT / "scripts" / "gen" / "convert-typed-corehir.py"
+SMT_CLI = ROOT / "scripts" / "gen" / "write-smt-vcs.py"
 BOUNDARY = ROOT / "scripts" / "proof" / "typed_corehir_typed_convert.py"
 SEMANTICS = ROOT / "scripts" / "proof" / "verified_core_typed.py"
+TYPED_SMT = ROOT / "scripts" / "proof" / "smtlib_typed_v1.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "typed-corehir-proof-pipeline.yml"
 
 
@@ -20,8 +22,10 @@ def require(text: str, token: str, label: str) -> None:
 
 def main() -> int:
     cli = CLI.read_text(encoding="utf-8")
+    smt_cli = SMT_CLI.read_text(encoding="utf-8")
     boundary = BOUNDARY.read_text(encoding="utf-8")
     semantics = SEMANTICS.read_text(encoding="utf-8")
+    typed_smt = TYPED_SMT.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     require(cli, "from proof.typed_corehir_typed_convert import", "v2 CLI import")
@@ -59,17 +63,34 @@ def main() -> int:
     ):
         require(semantics, token, label)
 
+    require(
+        smt_cli,
+        "from proof.smtlib_typed_v1 import",
+        "typed SMT CLI import",
+    )
+    if "from proof.smtlib_v1 import" in smt_cli:
+        raise ValueError("SMT CLI bypasses typed VerifiedCore admission")
+    for token, label in (
+        ("validate_typed_document(value)", "semantic admission before SMT"),
+        ("return generate_smtlib(document)", "post-admission SMT rendering"),
+    ):
+        require(typed_smt, token, label)
+
     for token, label in (
         ("scripts.tests.test_verified_core_typed", "semantic negative tests"),
+        ("scripts.tests.test_smtlib_typed_v1", "typed SMT negative tests"),
         ("verified_core_typed.py", "semantic validator TrustManifest component"),
         ("typed_corehir_typed_convert.py", "v2 converter TrustManifest component"),
+        ("smtlib_typed_v1.py", "typed SMT TrustManifest component"),
+        ("check-typed-verified-core.py", "standalone typed admission"),
+        ("write-typed-verified-core-boundary-receipt.py", "versioned boundary receipt"),
         ("check-typed-verified-core-boundary.py", "source gate execution"),
     ):
         require(workflow, token, label)
 
     print(
         "typed-verified-core-boundary: PASS: "
-        "explicit logical types, semantic operators, and parameter locals enforced"
+        "explicit logical types and semantic admission enforced through SMT"
     )
     return 0
 
