@@ -140,15 +140,3 @@ fn corehir_body_table_fn_contract_result_name_at(
     }
     corehir_body_table_contract_result_name_flat_at(table, flat_index)
 }
-
-fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
-    table.exprs
-}
-
-fn corehir_body_table_fn_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.fn_body_roots
-}
-
-fn corehir_body_table_method_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.method_body_roots
-}
