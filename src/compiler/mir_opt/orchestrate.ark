@@ -1,7 +1,7 @@
 //
-// Every enabled optimizer transformation must be guarded by an independent
-// fail-closed translation validator. stdlib inlining remains disabled until
-// its call-expansion validator is implemented.
+// Every enabled optimizer transformation is guarded by an independent
+// fail-closed translation validator. stdlib call expansion remains disabled;
+// normal-call target resolution is separately validated before adoption.
 //
 // The wasm32-gc path gates loop_unroll and licm until they are independently
 // verified GC-safe. gc_hint is enabled on all targets.
@@ -12,14 +12,15 @@ use mir_opt::async_lower
 use mir_opt::gc_hint
 use mir_opt::licm
 use mir_opt::loop_unroll
-use mir_opt::stdlib_inline
+use mir_opt::stdlib_resolve_validated
 use mir_opt::target_gate
 
 fn mir_opt_optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
     let m = async_lower::async_lower_optimize_module(m)
-    // stdlib_inline::stdlib_inline_module(m) is intentionally disabled:
-    // no call-expansion translation validator exists yet.
-    stdlib_inline::stdlib_resolve_normal_calls(m)
+    // stdlib call expansion is intentionally disabled until an independent
+    // expansion validator exists. Call-target normalization is enabled only
+    // through the validated wrapper.
+    stdlib_resolve_validated::stdlib_resolve_normal_calls_validated(m)
     if opt_level < 2 {
         return m
     }
