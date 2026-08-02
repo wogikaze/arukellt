@@ -26,9 +26,21 @@ def main() -> int:
     parser.add_argument("--verified-core-machine", required=True, type=Path)
     parser.add_argument("--verified-core-normalized", required=True, type=Path)
     parser.add_argument("--solver-input", required=True, type=Path)
-    parser.add_argument("--backend-typeid-audit", required=True, type=Path)
-    parser.add_argument("--optimizer-translation-registry", required=True, type=Path)
-    parser.add_argument("--corehir-body-boundary-validator", required=True, type=Path)
+    parser.add_argument(
+        "--backend-typeid-audit",
+        type=Path,
+        default=ROOT / ".build" / "audit" / "backend-name-lookup.json",
+    )
+    parser.add_argument(
+        "--optimizer-translation-registry",
+        type=Path,
+        default=ROOT / ".build" / "proof" / "mir-opt-translation-registry.json",
+    )
+    parser.add_argument(
+        "--corehir-body-boundary-validator",
+        type=Path,
+        default=ROOT / "scripts" / "check" / "check-corehir-body-boundary.py",
+    )
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     write_binding(
