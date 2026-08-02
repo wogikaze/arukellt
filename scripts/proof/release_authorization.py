@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from proof.common import sha256_file
+from proof.common import load_json, sha256_file
 
 SCHEMA = "arukellt-proof-release-authorization"
 VERSION = 1
@@ -93,11 +93,53 @@ def validate_release_authorization(value: object) -> dict[str, object]:
     return value
 
 
+def validate_bound_release_authorization(
+    authorization_path: Path,
+    *,
+    repository: str,
+    commit_sha: str,
+    tag: str,
+    policy_path: Path,
+    source_binding_path: Path,
+    trust_manifest_path: Path,
+    proof_receipt_path: Path,
+    payload_manifest_path: Path,
+) -> dict[str, object]:
+    authorization = validate_release_authorization(load_json(authorization_path))
+    expected_identity = {
+        "repository": repository,
+        "commit_sha": commit_sha.lower(),
+        "tag": tag,
+    }
+    for field, expected in expected_identity.items():
+        if authorization.get(field) != expected:
+            raise ReleaseAuthorizationError(
+                f"{field} mismatch: expected {expected}, got {authorization.get(field)}"
+            )
+    bound_files = {
+        "policy_sha256": policy_path,
+        "source_binding_sha256": source_binding_path,
+        "trust_manifest_sha256": trust_manifest_path,
+        "proof_receipt_sha256": proof_receipt_path,
+        "release_payload_manifest_sha256": payload_manifest_path,
+    }
+    for field, path in bound_files.items():
+        if not path.is_file():
+            raise ReleaseAuthorizationError(f"{field}: file not found: {path}")
+        digest = sha256_file(path)
+        if authorization.get(field) != digest:
+            raise ReleaseAuthorizationError(
+                f"{field} mismatch: expected {digest}, got {authorization.get(field)}"
+            )
+    return authorization
+
+
 __all__ = [
     "SCHEMA",
     "VERSION",
     "ReleaseAuthorizationError",
     "create_release_authorization",
+    "validate_bound_release_authorization",
     "validate_release_authorization",
     "write_release_authorization",
 ]
