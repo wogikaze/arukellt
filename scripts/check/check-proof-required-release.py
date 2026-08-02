@@ -30,6 +30,9 @@ def main() -> int:
     parser.add_argument("--verified-core-machine", type=Path, required=True)
     parser.add_argument("--verified-core-normalized", type=Path, required=True)
     parser.add_argument("--solver-input", type=Path, required=True)
+    parser.add_argument("--backend-typeid-audit", type=Path, required=True)
+    parser.add_argument("--optimizer-translation-registry", type=Path, required=True)
+    parser.add_argument("--corehir-body-boundary-validator", type=Path, required=True)
     args = parser.parse_args()
 
     paths = {
@@ -39,6 +42,9 @@ def main() -> int:
         "verified_core_machine": args.verified_core_machine,
         "verified_core_normalized": args.verified_core_normalized,
         "solver_input": args.solver_input,
+        "backend_typeid_audit": args.backend_typeid_audit,
+        "optimizer_translation_registry": args.optimizer_translation_registry,
+        "corehir_body_boundary_validator": args.corehir_body_boundary_validator,
     }
     try:
         mode, count = validate_proof_required_release(
@@ -57,7 +63,7 @@ def main() -> int:
         return 1
     print(
         "proof-required-release: PASS: "
-        f"mode={mode} artifacts={count} source_binding=verified"
+        f"mode={mode} artifacts={count} source_and_architecture_binding=verified"
     )
     return 0
 
