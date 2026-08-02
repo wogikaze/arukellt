@@ -11,80 +11,122 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from proof.typed_corehir_convert import UnsupportedTypedCoreHir, convert_document  # noqa: E402
+from proof.typed_corehir_typed_convert import (  # noqa: E402
+    ExplicitTypedCoreHirError,
+    convert_typed_document,
+)
 
 
 class TypedCoreHirConvertTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.source = json.loads((ROOT / "tests" / "proof" / "typed-corehir.json").read_text())
+        cls.source = json.loads(
+            (ROOT / "tests" / "proof" / "typed-corehir.json").read_text()
+        )
 
-    def test_identity_converts_to_structured_verified_core(self) -> None:
-        converted = convert_document(copy.deepcopy(self.source))
+    def test_identity_converts_to_structured_typed_verified_core(self) -> None:
+        converted = convert_typed_document(copy.deepcopy(self.source))
         function = converted["functions"][0]
         self.assertEqual(converted["schema"], "arukellt-verified-core")
-        self.assertEqual(function["body"]["blocks"][0]["terminator"]["value"], {
-            "kind": "local",
-            "type_id": 1,
-            "local_id": 0,
-        })
+        self.assertEqual(converted["generator"], "arukellt-typed-corehir-converter-v2")
+        self.assertEqual(
+            function["body"]["blocks"][0]["terminator"]["value"],
+            {"kind": "local", "type_id": 1, "local_id": 0},
+        )
         expression = function["contracts"][0]["expression"]
         self.assertEqual(expression["kind"], "ge")
         self.assertEqual(expression["operands"][0]["kind"], "local")
         self.assertEqual(expression["operands"][1]["kind"], "local")
 
+    def test_integer_name_is_identity_not_type_inference(self) -> None:
+        converted = convert_typed_document(copy.deepcopy(self.source))
+        integer = next(entry for entry in converted["types"] if entry["id"] == 1)
+        self.assertEqual(integer["name"], "ApplicationCounter")
+        self.assertEqual(integer["bits"], 32)
+        self.assertIs(integer["signed"], True)
+        self.assertEqual(integer["representation"]["wasm"], ["i32"])
+
     def test_result_identifier_converts_to_result_node(self) -> None:
         document = copy.deepcopy(self.source)
         function = document["functions"][0]
-        function["body"]["expressions"].append({
-            "id": 3,
-            "kind": "ident",
-            "kind_id": 5,
-            "type_id": 1,
-            "value_type": "i32",
-            "text": "result",
-            "int_value": 0,
-            "float_value": 0.0,
-            "span_start": 3,
-            "children": [],
-        })
+        function["body"]["expressions"].append(
+            {
+                "id": 3,
+                "kind": "ident",
+                "kind_id": 5,
+                "type_id": 1,
+                "value_type": "i32",
+                "text": "result",
+                "int_value": 0,
+                "float_value": 0.0,
+                "span_start": 3,
+                "children": [],
+            }
+        )
         function["body"]["expressions"][2]["children"] = [3, 1]
-        converted = convert_document(document)
+        converted = convert_typed_document(document)
         expression = converted["functions"][0]["contracts"][0]["expression"]
         self.assertEqual(expression["operands"][0]["kind"], "result")
+
+    def test_missing_integer_metadata_fails_closed(self) -> None:
+        document = copy.deepcopy(self.source)
+        integer = document["types"][1]
+        integer.pop("bits")
+        with self.assertRaisesRegex(
+            ExplicitTypedCoreHirError,
+            "requires explicit bits and signed",
+        ):
+            convert_typed_document(document)
+
+    def test_integer_representation_mismatch_fails_closed(self) -> None:
+        document = copy.deepcopy(self.source)
+        document["types"][1]["representation"]["wasm"] = ["i64"]
+        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "explicit type mismatch"):
+            convert_typed_document(document)
+
+    def test_integer_value_type_mismatch_fails_closed(self) -> None:
+        document = copy.deepcopy(self.source)
+        document["types"][1]["value_type"] = "i64"
+        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "expected 'i32'"):
+            convert_typed_document(document)
 
     def test_multiple_executable_body_children_fail_closed(self) -> None:
         document = copy.deepcopy(self.source)
         function = document["functions"][0]
         function["body"]["root_expr_id"] = 0
         function["body"]["expressions"][0]["children"] = [1, 1, 2]
-        with self.assertRaisesRegex(UnsupportedTypedCoreHir, "exactly one non-contract return"):
-            convert_document(document)
+        with self.assertRaisesRegex(
+            ExplicitTypedCoreHirError,
+            "exactly one non-contract return",
+        ):
+            convert_typed_document(document)
 
     def test_unknown_contract_identifier_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
         function = document["functions"][0]
         function["body"]["expressions"][1]["text"] = "missing"
-        with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unknown proof identifier"):
-            convert_document(document)
+        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "unknown proof identifier"):
+            convert_typed_document(document)
 
     def test_reference_type_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
-        document["types"].append({
-            "id": 3,
-            "kind": "reference",
-            "name": "String",
-            "value_type": "gc-ref",
-            "representation": {
-                "kind": "gc-ref",
-                "wasm": ["gc-ref"],
-                "nullable": True,
-                "size_bytes": 4,
-                "align_bytes": 4,
-            },
-        })
-        with self.assertRaisesRegex(UnsupportedTypedCoreHir, "unsupported proof type"):
-            convert_document(document)
+        document["types"].append(
+            {
+                "id": 3,
+                "kind": "reference",
+                "name": "String",
+                "value_type": "gc-ref",
+                "representation": {
+                    "kind": "gc-ref",
+                    "wasm": ["gc-ref"],
+                    "nullable": True,
+                    "size_bytes": 4,
+                    "align_bytes": 4,
+                },
+            }
+        )
+        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "unsupported explicit proof type"):
+            convert_typed_document(document)
 
 
 if __name__ == "__main__":
