@@ -1,3 +1,4 @@
+// Frozen CoreHIR body artifact. Mutation is owned exclusively by body_builder.
 struct CoreHirBodyTable {
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,
@@ -9,35 +10,12 @@ struct CoreHirBodyTable {
     contract_result_names: Vec<String>,
 }
 
-fn CoreHirBodyTable_new() -> CoreHirBodyTable {
-    CoreHirBodyTable {
-        exprs: Vec::new<CoreHirExpr>(),
-        fn_body_roots: Vec::new<i32>(),
-        method_body_roots: Vec::new<i32>(),
-        fn_contract_starts: Vec::new<i32>(),
-        fn_contract_counts: Vec::new<i32>(),
-        contract_roots: Vec::new<i32>(),
-        contract_kinds: Vec::new<String>(),
-        contract_result_names: Vec::new<String>(),
-    }
-}
-
-fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
-    let idx = len(table.exprs)
-    push(table.exprs, expr)
-    idx
+fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
+    len(table.exprs)
 }
 
 fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
     get_unchecked(table.exprs, index)
-}
-
-fn corehir_body_table_push_fn_body_root(table: CoreHirBodyTable, root: i32) {
-    push(table.fn_body_roots, root)
-}
-
-fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) {
-    push(table.method_body_roots, root)
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
@@ -54,26 +32,6 @@ fn corehir_body_table_method_body_root_count(table: CoreHirBodyTable) -> i32 {
 
 fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -> i32 {
     get_unchecked(table.method_body_roots, index)
-}
-
-fn corehir_body_table_begin_fn_contracts(table: CoreHirBodyTable) -> i32 {
-    len(table.contract_roots)
-}
-
-fn corehir_body_table_push_fn_contract(
-    table: CoreHirBodyTable,
-    root: i32,
-    kind: String,
-    result_name: String
-) {
-    push(table.contract_roots, root)
-    push(table.contract_kinds, kind)
-    push(table.contract_result_names, result_name)
-}
-
-fn corehir_body_table_end_fn_contracts(table: CoreHirBodyTable, start: i32) {
-    push(table.fn_contract_starts, start)
-    push(table.fn_contract_counts, len(table.contract_roots) - start)
 }
 
 fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32) -> i32 {
