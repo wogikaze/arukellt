@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile focused fixtures, enforce the ratchet, and identify name lookups."""
+"""Compile focused fixtures and prove backend GC layout lookup is TypeId-only."""
 
 from __future__ import annotations
 
@@ -55,88 +55,57 @@ def compile_fixture(relative: str) -> dict[str, object]:
         totals["name"] += int(match.group(2))
         totals["fallback"] += int(match.group(3))
         totals["conflict"] += int(match.group(4))
+
+    identities = [match.group(1).strip() for match in NAME_IDENTITY.finditer(combined)]
+    if totals["name"] != 0 or identities:
+        raise ValueError(
+            f"{relative}: backend name lookup observed: count={totals['name']} identities={identities}"
+        )
     if totals["fallback"] != 0 or totals["conflict"] != 0:
         raise ValueError(
             f"{relative}: fallback={totals['fallback']} conflict={totals['conflict']}"
         )
-
-    identities = [match.group(1).strip() for match in NAME_IDENTITY.finditer(combined)]
-    if len(identities) != totals["name"]:
-        raise ValueError(
-            f"{relative}: name identity count {len(identities)} != summary {totals['name']}"
-        )
-    identity_counts: dict[str, int] = {}
-    for identity in identities:
-        identity_counts[identity] = identity_counts.get(identity, 0) + 1
     return {
         "fixture": relative,
         "summary_lines": len(matches),
         "counts": totals,
-        "name_lookup_identities": [
-            {"type_name": name, "count": count}
-            for name, count in sorted(identity_counts.items())
-        ],
+        "typeid_only": True,
     }
 
 
 def main() -> int:
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
-    baseline_fixture = str(baseline["fixture"])
-    max_name = int(baseline["max_name_lookup_count"])
+    if int(baseline["max_name_lookup_count"]) != 0:
+        raise ValueError("backend name lookup baseline must be exactly zero")
+    if baseline.get("name_lookup_must_be_zero") is not True:
+        raise ValueError("backend name lookup zero policy is not enabled")
 
+    baseline_fixture = str(baseline["fixture"])
     ordered: list[str] = []
     for fixture in (baseline_fixture, *PROBE_FIXTURES):
         if fixture not in ordered:
             ordered.append(fixture)
     results = [compile_fixture(fixture) for fixture in ordered]
-    by_fixture = {result["fixture"]: result for result in results}
-    primary = by_fixture[baseline_fixture]
-    primary_counts = primary["counts"]
-    if not isinstance(primary_counts, dict):
-        raise TypeError("baseline counts must be an object")
-    if int(primary_counts["name"]) > max_name:
-        raise ValueError(f"name lookup regression {primary_counts['name']} > {max_name}")
 
-    nonzero = [
-        {
-            "fixture": result["fixture"],
-            "name_lookup_count": result["counts"]["name"],
-            "identities": result["name_lookup_identities"],
-        }
-        for result in results
-        if isinstance(result["counts"], dict) and int(result["counts"]["name"]) > 0
-    ]
-    aggregate: dict[str, int] = {}
-    for result in results:
-        for identity in result["name_lookup_identities"]:
-            name = str(identity["type_name"])
-            aggregate[name] = aggregate.get(name, 0) + int(identity["count"])
     document = {
-        "schema": "arukellt-backend-name-lookup-audit",
-        "schema_version": 3,
+        "schema": "arukellt-backend-typeid-only-audit",
+        "schema_version": 1,
         "baseline_fixture": baseline_fixture,
         "fixtures": results,
-        "nonzero_name_lookup_fixtures": nonzero,
-        "aggregate_name_lookup_identities": [
-            {"type_name": name, "count": count}
-            for name, count in sorted(aggregate.items())
-        ],
-        "ratchet": {"max_name_lookup_count": max_name},
         "policy": {
+            "name_lookup_must_be_zero": True,
             "fallback_must_be_zero": True,
             "conflict_must_be_zero": True,
-            "name_lookup_is_observational": True,
         },
+        "status": "passed",
     }
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    typed_total = sum(int(result["counts"]["typed"]) for result in results)
     print(
         "backend-name-lookup-runtime: PASS: "
-        f"baseline_name={primary_counts['name']}/{max_name} "
-        f"identities={len(aggregate)}"
+        f"fixtures={len(results)} typed={typed_total} name=0 fallback=0 conflict=0"
     )
-    for name, count in sorted(aggregate.items()):
-        print(f"backend-name-lookup-runtime: identity: type_name={name} count={count}")
     return 0
 
 
