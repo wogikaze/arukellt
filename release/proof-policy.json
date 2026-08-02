@@ -8,7 +8,7 @@
     "typed_verified_core_emission": false,
     "optimizer_translation_validation": false,
     "solver_trust_manifest": true,
-    "legacy_mutable_table_removed": false,
+    "legacy_mutable_table_removed": true,
     "proof_receipt_release_enforced": true
   },
   "artifacts": []
