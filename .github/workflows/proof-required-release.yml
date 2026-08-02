@@ -29,6 +29,9 @@ jobs:
             *) echo "proof-required release requires refs/tags/v*" >&2; exit 1 ;;
           esac
 
+      - name: Reject unguarded release entrypoints
+        run: python3 scripts/check/check-proof-release-entrypoints.py
+
       - name: Validate release gate libraries
         run: |
           python3 -m unittest \
