@@ -3,6 +3,8 @@ name: Typed proof contract frontend
 on:
   pull_request:
     branches: [agent/typed-corehir-to-verified-core, agent/typed-verified-core-emitter, agent/formal-verification-hard-gates, master]
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 concurrency:
@@ -27,6 +29,7 @@ jobs:
             scripts.tests.test_typed_corehir_convert \
             scripts.tests.test_source_contract_profile \
             scripts.tests.test_source_proof_binding \
+            scripts.tests.test_proof_required_release_gate \
             scripts.tests.test_smtlib_v1 \
             scripts.tests.test_solver_receipts \
             scripts.tests.test_solver_driver
@@ -277,6 +280,44 @@ jobs:
           assert receipt["status"] == "proved", receipt
           print("typed-source-contract-proof: PASS")
           PY
+
+      - name: Enforce proof-required tagged release
+        run: |
+          cat > .build/typed-contract-proof/release-policy.json <<'JSON'
+          {
+            "schema": "arukellt-proof-release-policy",
+            "schema_version": 1,
+            "mode": "proof-required",
+            "hard_gates": {
+              "versioned_boundary_artifacts": true,
+              "explicit_backend_type_abi_layout": true,
+              "typed_verified_core_emission": true,
+              "optimizer_translation_validation": true,
+              "solver_trust_manifest": true,
+              "legacy_mutable_table_removed": true,
+              "proof_receipt_release_enforced": true
+            },
+            "artifacts": [
+              {
+                "label": "source-contract-identity",
+                "subject": "verified-core.json",
+                "trust_manifest": "trust-manifest.json",
+                "receipt": "proof-receipt.json",
+                "solver_output": "solver-output.txt",
+                "translation_receipts": []
+              }
+            ]
+          }
+          JSON
+          python3 scripts/check/check-proof-required-release.py \
+            .build/typed-contract-proof/release-policy.json \
+            --source-binding .build/typed-contract-proof/source-proof-binding.json \
+            --source tests/verified-core/contract_identity.ark \
+            --producer-executable .build/selfhost/arukellt-s2-runtime.wasm \
+            --typed-corehir .build/typed-contract-proof/typed-corehir.json \
+            --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
+            --verified-core-normalized .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2
 
       - name: Upload source proof bundle
         uses: actions/upload-artifact@v4
