@@ -11,5 +11,8 @@
     "legacy_mutable_table_removed": false,
     "proof_receipt_release_enforced": true
   },
-  "artifacts": []
+  "artifacts": [],
+  "evidence": {
+    "optimizer_translation_validation": ".build/proof/mir-opt-translation-registry.json"
+  }
 }
