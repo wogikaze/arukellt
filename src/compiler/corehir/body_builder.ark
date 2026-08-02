@@ -1,9 +1,13 @@
+use std::host::process
+use std::host::stdio
 use corehir::body_table
+use corehir::body_validator
 
 // Construction-only capability. This module is owned by the frontend CoreHIR
 // builder and must not be imported by MIR, backend, or artifact renderers.
 fn CoreHirBodyBuilder_new() -> CoreHirBodyTable {
     CoreHirBodyTable {
+        schema_version: 1,
         exprs: Vec::new<CoreHirExpr>(),
         fn_body_roots: Vec::new<i32>(),
         method_body_roots: Vec::new<i32>(),
@@ -49,8 +53,12 @@ fn corehir_body_builder_end_fn_contracts(builder: CoreHirBodyTable, start: i32) 
     push(builder.fn_contract_counts, len(builder.contract_roots) - start)
 }
 
-// Explicit handoff from construction capability to the read-only body-table
-// boundary. No mutation API accepts the returned value outside this module.
+// Explicit fail-closed handoff from construction capability to the frozen
+// read-only artifact boundary.
 fn corehir_body_builder_finish(builder: CoreHirBodyTable) -> CoreHirBodyTable {
+    if !body_validator::corehir_body_artifact_valid(builder) {
+        stdio::eprintln(String_from("compiler ICE: invalid CoreHIR body artifact v1"))
+        process::exit(1)
+    }
     builder
 }
