@@ -1,23 +1,23 @@
-use std::host::stdio
-use collections::name_index
 use wasm::ctx_record
-use wasm::ctx_gc_type
 use wasm::gc_layout_table
 use wasm::code_ref_locals_scan
 use corehir::mir_value_type
 use corehir::type_id
-use corehir::type_table
-use corehir::type_info_to_mir_value
 use corehir::kinds
 use mir::function_locals_view
 use mir::local_access
-use mir::value_types
 
 fn SelfEmitCtx_gc_layout_id_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> GcLayoutId {
-    gc_layout_table::gc_layout_table_find_by_type_id(ctx_record::SelfEmitCtx_gc_layout_table(ctx), mir_value_type::mir_value_type_type_id(mvt))
+    gc_layout_table::gc_layout_table_find_by_type_id(
+        ctx_record::SelfEmitCtx_gc_layout_table(ctx),
+        mir_value_type::mir_value_type_type_id(mvt)
+    )
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i32 {
+    if !type_id::type_id_is_valid(tid) {
+        return 0 - 1
+    }
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
     let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
     if !gc_layout_table::gc_layout_id_is_valid(lid) {
@@ -33,11 +33,14 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirVa
     if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() {
         return 0 - 1
     }
-    SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
+    SelfEmitCtx_wasm_ref_type_idx_for_type_id(
+        ctx,
+        mir_value_type::mir_value_type_type_id(mvt)
+    )
 }
 
 fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
-    SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, mir_value_type::mir_value_type_type_id(mvt))
+    SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
 }
 
 fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
@@ -50,102 +53,26 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_local(ctx: SelfEmitCtx, local_idx: i32) -> 
         return 0 - 1
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let local_type_name = local_access::MirLocal_type_name(loc)
-    if local_access::MirLocal_val_type(loc) == value_types::VT_I32() {
-        return 0 - 1
-    }
     let variant_slot = local_access::MirLocal_variant_slot(loc)
-    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
-    let is_payload_with_stray_variant = variant_slot >= 0 && !is_struct_new_dest
+    let is_struct_new_dest = code_ref_locals_scan::local_is_direct_gc_struct_new_dest(
+        f,
+        local_idx,
+        ctx
+    )
     if variant_slot >= 0 && is_struct_new_dest {
         let variant_gc = SelfEmitCtx_wasm_ref_type_idx_for_variant_slot(ctx, variant_slot)
         if variant_gc >= 0 {
             return variant_gc
         }
     }
+
     let mvt = local_access::MirLocal_value_type(loc)
     let mvt_gc = SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
-    if mvt_gc >= 0 {
-        if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
-            return mvt_gc
-        }
-    }
-    if len(local_type_name) > 0 {
-        let type_name_gc = SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(local_type_name))
-        if type_name_gc >= 0 {
-            if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_name_gc) {
-                return type_name_gc
-            }
-        }
-        let named_struct_gc = SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx, clone(local_type_name))
-        if named_struct_gc >= 0 {
-            return named_struct_gc
-        }
-    }
-    if is_payload_with_stray_variant {
+    if mvt_gc < 0 {
         return 0 - 1
     }
-    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let legacy_mvt = type_info_to_mir_value::vt_to_mir_value(tt, local_access::MirLocal_val_type(loc), local_type_name)
-    SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, legacy_mvt)
-}
-
-fn strip_module_double_colon(type_name: String) -> String {
-    let type_name_len = len(type_name)
-    let mut index = type_name_len - 2
-    while index >= 0 {
-        if char_at(type_name, index) == 58 && char_at(type_name, index + 1) == 58 {
-            return substring(type_name, index + 2, type_name_len)
-        }
-        index = index - 1
-    }
-    type_name
-}
-
-fn SelfEmitCtx_wasm_ref_type_idx_for_named_gc_struct(ctx: SelfEmitCtx, type_name: String) -> i32 {
-    if len(type_name) == 0 {
-        return 0 - 1
-    }
-    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name)
-    }
-    let bare_name = strip_module_double_colon(type_name)
-    if len(bare_name) > 0 && !eq(clone(bare_name), clone(type_name)) {
-        if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare_name)) {
-            return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare_name)
-        }
-    }
-    if starts_with(clone(type_name), "struct:") {
-        let mut first_colon = 0 - 1
-        let mut last_colon = 0 - 1
-        let n = len(type_name)
-        let mut i = 0
-        while i < n {
-            if char_at(type_name, i) == 58 {
-                if first_colon < 0 {
-                    first_colon = i
-                }
-                last_colon = i
-            }
-            i = i + 1
-        }
-        if first_colon >= 0 && last_colon > first_colon {
-            let struct_name = substring(type_name, first_colon + 1, last_colon)
-            if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-                return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, struct_name)
-            }
-        }
-    }
-    if len(bare_name) > 0 {
-        let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
-        let mut name_index = 0
-        while name_index < len(names) {
-            let candidate = get_unchecked(names, name_index)
-            if eq(clone(bare_name), strip_module_double_colon(clone(candidate))) {
-                return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(candidate))
-            }
-            name_index = name_index + 1
-        }
+    if is_struct_new_dest || !SelfEmitCtx_wasm_type_is_enum_variant(ctx, mvt_gc) {
+        return mvt_gc
     }
     0 - 1
 }
@@ -174,89 +101,4 @@ fn SelfEmitCtx_wasm_type_is_enum_variant(ctx: SelfEmitCtx, wasm_type_idx: i32) -
         i = i + 1
     }
     false
-}
-
-fn SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx: SelfEmitCtx, type_name: String) -> i32 {
-    if len(type_name) == 0 {
-        return 0 - 1
-    }
-    let bare_name = strip_module_double_colon(type_name)
-    let cached_name = if eq(clone(bare_name), clone(type_name)) {
-        type_name
-    } else {
-        bare_name
-    }
-    let index = ctx_record::SelfEmitCtx_type_name_ref_index(ctx)
-    let encoded = name_index::name_index_get(index, clone(cached_name))
-    if encoded >= 1 {
-        return encoded - 2
-    }
-    let resolved = SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx, clone(cached_name))
-    name_index::name_index_set(index, cached_name, resolved + 2)
-    resolved
-}
-
-fn SelfEmitCtx_wasm_ref_type_idx_for_type_name_uncached(ctx: SelfEmitCtx, type_name: String) -> i32 {
-    let tt = ctx_record::SelfEmitCtx_type_table(ctx)
-    let tid = gc_layout_type_id_for_name(tt, clone(type_name))
-    let tid_result = SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, tid)
-    if tid_result >= 0 {
-        gc_layout_table::gc_layout_table_observe_name_lookup(
-            ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-        )
-        stdio::eprintln(concat(String_from("gc-layout-audit: name lookup type_name="), clone(type_name)))
-        return tid_result
-    }
-    let gc_type_base = ctx_record::SelfEmitCtx_gc_type_base(ctx)
-    if gc_type_base >= 0 {
-        let would_fallback = gc_layout_table::gc_layout_table_ref_offset_for_type_name(
-            clone(type_name),
-            gc_type_base
-        )
-        if would_fallback >= 0 {
-            gc_layout_table::gc_layout_table_observe_fallback_lookup(
-                ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-            )
-            stdio::eprintln(concat(String_from("gc-layout-audit: typed miss type_name="), type_name))
-        }
-    }
-    0 - 1
-}
-
-fn gc_layout_type_id_for_name(tt: TypeTable, type_name: String) -> TypeId {
-    let name = if eq(clone(type_name), "string") {
-        "String"
-    } else {
-        clone(type_name)
-    }
-    let empty = Vec::new<TypeId>()
-    let string_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRING(), clone(name), empty)
-    if type_id::type_id_is_valid(string_id) {
-        return string_id
-    }
-    let vec_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_VEC(), clone(name), empty)
-    if type_id::type_id_is_valid(vec_id) {
-        return vec_id
-    }
-    let hashmap_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_HASHMAP(), clone(name), empty)
-    if type_id::type_id_is_valid(hashmap_id) {
-        return hashmap_id
-    }
-    let hashset_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_HASHSET(), clone(name), empty)
-    if type_id::type_id_is_valid(hashset_id) {
-        return hashset_id
-    }
-    let option_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_OPTION(), clone(name), empty)
-    if type_id::type_id_is_valid(option_id) {
-        return option_id
-    }
-    let result_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_RESULT(), clone(name), empty)
-    if type_id::type_id_is_valid(result_id) {
-        return result_id
-    }
-    let struct_id = type_table::type_table_find_existing(tt, kinds::TYPE_KIND_STRUCT(), clone(name), empty)
-    if type_id::type_id_is_valid(struct_id) {
-        return struct_id
-    }
-    type_table::type_table_find_existing(tt, kinds::TYPE_KIND_ENUM(), name, empty)
 }
