@@ -34,6 +34,9 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             "verified_core_machine": self.root / "verified-core-machine.json",
             "verified_core_normalized": self.root / "verified-core.json",
             "solver_input": self.root / "vcs.smt2",
+            "backend_typeid_audit": self.root / "backend-typeid-audit.json",
+            "optimizer_translation_registry": self.root / "mir-opt-registry.json",
+            "corehir_body_boundary_validator": self.root / "body-boundary-validator.py",
         }
         for index, path in enumerate(self.paths.values()):
             path.write_bytes(f"artifact-{index}\n".encode())
@@ -104,6 +107,28 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
     def test_rejects_stale_source_digest(self) -> None:
         self.paths["source"].write_text("changed\n", encoding="utf-8")
         with self.assertRaisesRegex(SourceProofBindingError, "source: digest mismatch"):
+            self.validate()
+
+    def test_rejects_stale_optimizer_registry(self) -> None:
+        self.paths["optimizer_translation_registry"].write_text(
+            "substituted\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(
+            SourceProofBindingError,
+            "optimizer_translation_registry: digest mismatch",
+        ):
+            self.validate()
+
+    def test_rejects_stale_backend_audit(self) -> None:
+        self.paths["backend_typeid_audit"].write_text(
+            "substituted\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(
+            SourceProofBindingError,
+            "backend_typeid_audit: digest mismatch",
+        ):
             self.validate()
 
     def test_rejects_unbound_source_binding(self) -> None:
