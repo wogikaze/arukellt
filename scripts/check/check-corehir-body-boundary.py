@@ -11,19 +11,20 @@ COMPILER = ROOT / "src" / "compiler"
 BODY_TABLE = COMPILER / "corehir" / "body_table.ark"
 BODY_BUILDER = COMPILER / "corehir" / "body_builder.ark"
 BODY_VALIDATOR = COMPILER / "corehir" / "body_validator.ark"
+MIR_BODY_SOURCE = COMPILER / "corehir" / "mir_body_source.ark"
 ALLOWED_BUILDER_IMPORTS = {
     "src/compiler/corehir/body.ark",
     "src/compiler/corehir/body_roots.ark",
 }
-MUTABLE_FIELDS = (
-    ".exprs",
-    ".fn_body_roots",
-    ".method_body_roots",
-    ".fn_contract_starts",
-    ".fn_contract_counts",
-    ".contract_roots",
-    ".contract_kinds",
-    ".contract_result_names",
+STORAGE_FIELDS = (
+    "exprs",
+    "fn_body_roots",
+    "method_body_roots",
+    "fn_contract_starts",
+    "fn_contract_counts",
+    "contract_roots",
+    "contract_kinds",
+    "contract_result_names",
 )
 FORBIDDEN_READ_API_TOKENS = (
     "CoreHirBodyTable_new",
@@ -31,6 +32,17 @@ FORBIDDEN_READ_API_TOKENS = (
     "corehir_body_table_begin_",
     "corehir_body_table_end_",
     "push(table.",
+    "fn corehir_body_table_exprs",
+    "fn corehir_body_table_fn_body_roots",
+    "fn corehir_body_table_method_body_roots",
+)
+FORBIDDEN_VECTOR_FACADE_TOKENS = (
+    "fn body_exprs(",
+    "fn body_fn_roots(",
+    "fn body_method_roots(",
+    "body::body_exprs(",
+    "body::body_fn_roots(",
+    "body::body_method_roots(",
 )
 
 
@@ -47,6 +59,7 @@ def main() -> int:
     table = BODY_TABLE.read_text(encoding="utf-8")
     builder = BODY_BUILDER.read_text(encoding="utf-8")
     validator = BODY_VALIDATOR.read_text(encoding="utf-8")
+    mir_body_source = MIR_BODY_SOURCE.read_text(encoding="utf-8")
 
     require(table, "struct CoreHirBodyTable", "frozen body artifact record")
     require(table, "schema_version: i32", "body artifact schema version field")
@@ -55,9 +68,11 @@ def main() -> int:
         "fn corehir_body_table_schema_version",
         "body artifact schema version accessor",
     )
+    require(table, "fn corehir_body_table_expr_count", "expression count accessor")
+    require(table, "fn corehir_body_table_expr_at", "expression indexed accessor")
     for token in FORBIDDEN_READ_API_TOKENS:
         if token in table:
-            raise ValueError(f"body_table exposes mutation capability: {token}")
+            raise ValueError(f"body_table exposes mutation or storage alias: {token}")
 
     require(builder, "fn CoreHirBodyBuilder_new", "construction capability constructor")
     require(builder, "schema_version: 1", "body artifact v1 construction")
@@ -90,21 +105,48 @@ def main() -> int:
         "contract root validation",
     )
 
+    require(
+        mir_body_source,
+        "fn mir_body_source_copy_expr",
+        "detached expression copy",
+    )
+    require(
+        mir_body_source,
+        "let exprs = Vec::new<CoreHirExpr>()",
+        "detached expression vector",
+    )
+    require(
+        mir_body_source,
+        "let children = Vec::new<i32>()",
+        "detached child vector",
+    )
+    require(
+        mir_body_source,
+        "corehir_body_expr_count(table)",
+        "count-based body snapshot",
+    )
+    require(
+        mir_body_source,
+        "corehir_body_expr_at(table, expr_index)",
+        "indexed body snapshot",
+    )
+
     violations: list[str] = []
     for path in sorted(COMPILER.rglob("*.ark")):
         rel = relative(path)
         text = path.read_text(encoding="utf-8")
         if "use corehir::body_builder" in text and rel not in ALLOWED_BUILDER_IMPORTS:
             violations.append(f"{rel}: imports construction-only body_builder")
-        if rel not in {
-            "src/compiler/corehir/body_builder.ark",
-            "src/compiler/corehir/body_table.ark",
-        }:
-            for field in MUTABLE_FIELDS:
-                if field in text and "push(" in text:
-                    violations.append(
-                        f"{rel}: directly mutates CoreHIR body storage field {field}"
-                    )
+        if rel != "src/compiler/corehir/body_builder.ark":
+            for field in STORAGE_FIELDS:
+                for prefix in ("push(table.", "push(builder.", "set(table.", "set(builder."):
+                    if f"{prefix}{field}" in text:
+                        violations.append(
+                            f"{rel}: directly mutates CoreHIR body storage field {field}"
+                        )
+        for token in FORBIDDEN_VECTOR_FACADE_TOKENS:
+            if token in text:
+                violations.append(f"{rel}: exposes or consumes body storage vector: {token}")
 
     for prefix in ("src/compiler/driver/", "src/compiler/mir/", "src/compiler/wasm/"):
         for path in sorted((ROOT / prefix).rglob("*.ark")):
@@ -125,7 +167,7 @@ def main() -> int:
         raise ValueError("\n".join(violations))
     print(
         "corehir-body-boundary: PASS: "
-        "version=1 builder -> independent validator -> frozen artifact"
+        "version=1 builder -> validator -> frozen artifact -> detached MIR snapshot"
     )
     return 0
 
