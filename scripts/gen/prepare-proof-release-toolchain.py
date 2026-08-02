@@ -20,6 +20,11 @@ COMPONENTS = (
     ("arukellt-release-gate-v1", "proof-required-release-gate", "1", "scripts/proof/release_gate.py"),
     ("arukellt-release-authorization-v1", "release-authorization-writer", "1", "scripts/proof/release_authorization.py"),
     ("arukellt-proof-release-cli-v1", "release-gate-cli", "1", "scripts/check/check-proof-required-release.py"),
+    ("arukellt-proof-trust-validator-v1", "trust-artifact-validator", "1", "scripts/proof/trust.py"),
+    ("arukellt-solver-receipt-generator-v1", "proof-receipt-generator", "1", "scripts/proof/solver_receipts.py"),
+    ("arukellt-solver-process-driver-v1", "solver-process-driver", "1", "scripts/proof/solver_driver.py"),
+    ("arukellt-proof-solver-cli-v1", "solver-driver-cli", "1", "scripts/run/run-proof-solver.py"),
+    ("arukellt-verified-core-smtlib-v1", "smt-translator-implementation", "1", "scripts/proof/smtlib_v1.py"),
     ("arukellt-typed-corehir-validator-v1", "typed-corehir-validator", "1", "scripts/proof/typed_corehir.py"),
     ("arukellt-typed-corehir-validator-impl-v1", "typed-corehir-validator-implementation", "1", "scripts/proof/typed_corehir_impl.py"),
     ("arukellt-proof-common-v1", "proof-validation-library", "1", "scripts/proof/common.py"),
@@ -64,7 +69,10 @@ def main() -> int:
             if not source.is_file():
                 raise ValueError(f"trusted component missing: {relative}")
             artifact_name = source.name
-            shutil.copy2(source, output / artifact_name)
+            destination = output / artifact_name
+            if destination.exists() and destination.read_bytes() != source.read_bytes():
+                raise ValueError(f"trusted component basename collision: {relative}")
+            shutil.copy2(source, destination)
         trusted_components.append(
             {
                 "name": name,
