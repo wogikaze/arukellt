@@ -27,6 +27,14 @@ def require(text: str, needle: str, label: str) -> None:
         raise ValueError(f"missing {label}: {needle}")
 
 
+def active_lines(text: str) -> list[str]:
+    return [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip() and not line.strip().startswith("//")
+    ]
+
+
 def main() -> int:
     generic = GENERIC.read_text(encoding="utf-8")
     async_lower = ASYNC.read_text(encoding="utf-8")
@@ -185,11 +193,7 @@ def main() -> int:
         "call-target original-block restoration",
     )
 
-    active_orchestrate = [
-        line.strip()
-        for line in orchestrate.splitlines()
-        if line.strip() and not line.strip().startswith("//")
-    ]
+    active_orchestrate = active_lines(orchestrate)
     if "stdlib_inline::stdlib_inline_module(m)" in active_orchestrate:
         raise ValueError("stdlib inline is enabled without an independent validator")
     if "stdlib_inline::stdlib_resolve_normal_calls(m)" in active_orchestrate:
@@ -207,6 +211,23 @@ def main() -> int:
     require(orchestrate, "loop_unroll::run_loop_unroll(f)", "validated unroll invocation")
     require(orchestrate, "licm::run_licm(f)", "validated LICM invocation")
     require(orchestrate, "gc_hint::run_gc_hint(f)", "validated gc_hint invocation")
+
+    bypasses: list[str] = []
+    for path in sorted(MIR_OPT.rglob("*.ark")):
+        lines = active_lines(path.read_text(encoding="utf-8"))
+        rel = path.relative_to(ROOT).as_posix()
+        for line in lines:
+            if "stdlib_inline::stdlib_inline_module(" in line:
+                bypasses.append(f"{rel}: unvalidated stdlib inline call")
+            if "stdlib_inline::stdlib_resolve_normal_calls(" in line:
+                bypasses.append(f"{rel}: raw stdlib resolver call")
+            if (
+                "stdlib_inline::stdlib_resolve_normal_call_block(" in line
+                and path != STDLIB_RESOLVE
+            ):
+                bypasses.append(f"{rel}: raw block resolver outside validated wrapper")
+    if bypasses:
+        raise ValueError("\n".join(bypasses))
 
     require(summary, "translation_validation_failures: i32", "summary field")
     require(
@@ -228,7 +249,7 @@ def main() -> int:
     print(
         "mir-opt-translation-validation: PASS: "
         "async_lower stdlib_resolve gc_hint licm loop_unroll; "
-        "stdlib_inline=disabled"
+        "stdlib_inline=disabled; bypasses=0"
     )
     return 0
 
