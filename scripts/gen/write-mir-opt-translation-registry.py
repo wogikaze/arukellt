@@ -18,6 +18,14 @@ ENABLED_PASSES = (
         "failure_action": "restore original block",
     },
     {
+        "name": "stdlib_resolve_normal_calls",
+        "implementation": "src/compiler/mir_opt/stdlib_resolve_validated.ark",
+        "validator": "src/compiler/mir_opt/stdlib_resolve_translation_validation.ark",
+        "support_files": ["src/compiler/mir_opt/stdlib_inline.ark"],
+        "policy": "same-length call-target rewrite to the independently reconstructed fallback specialization and matching SignatureRegistry return types",
+        "failure_action": "restore original block",
+    },
+    {
         "name": "gc_hint",
         "implementation": "src/compiler/mir_opt/gc_hint_core.ark",
         "validator": "src/compiler/mir_opt/gc_hint_core.ark",
@@ -78,12 +86,26 @@ def main() -> int:
         validator = ROOT / str(entry["validator"])
         if not implementation.is_file() or not validator.is_file():
             raise ValueError(f"pass files missing: {entry['name']}")
+        support: list[dict[str, str]] = []
+        for relative in entry.get("support_files", []):
+            support_path = ROOT / str(relative)
+            if not support_path.is_file():
+                raise ValueError(
+                    f"pass support file missing: {entry['name']}: {relative}"
+                )
+            support.append(
+                {
+                    "path": str(relative),
+                    "sha256": sha256(support_path),
+                }
+            )
         enabled.append(
             {
                 **entry,
                 "status": "enforced",
                 "implementation_sha256": sha256(implementation),
                 "validator_sha256": sha256(validator),
+                "support_files": support,
             }
         )
 
@@ -101,7 +123,7 @@ def main() -> int:
 
     document = {
         "schema": "arukellt-mir-opt-translation-validator-registry",
-        "schema_version": 2,
+        "schema_version": 3,
         "orchestrator": {
             "path": ORCHESTRATOR,
             "sha256": sha256(orchestrator),
