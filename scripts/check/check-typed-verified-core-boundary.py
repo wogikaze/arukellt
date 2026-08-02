@@ -21,6 +21,33 @@ def require(text: str, token: str, label: str) -> None:
         raise ValueError(f"missing {label}: {token}")
 
 
+def reject_production_bypasses() -> None:
+    allowed_legacy_converter = {
+        "scripts/proof/typed_corehir_typed_convert.py",
+    }
+    allowed_structural_smt = {
+        "scripts/proof/smtlib_typed_v1.py",
+    }
+    violations: list[str] = []
+    for path in sorted((ROOT / "scripts").rglob("*.py")):
+        relative = path.relative_to(ROOT).as_posix()
+        if relative.startswith("scripts/tests/"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        if (
+            "from proof.typed_corehir_convert import" in text
+            and relative not in allowed_legacy_converter
+        ):
+            violations.append(f"{relative}: direct legacy TypedCoreHIR converter import")
+        if (
+            "from proof.smtlib_v1 import" in text
+            and relative not in allowed_structural_smt
+        ):
+            violations.append(f"{relative}: direct structural-only SMT renderer import")
+    if violations:
+        raise ValueError("\n".join(violations))
+
+
 def main() -> int:
     cli = CLI.read_text(encoding="utf-8")
     smt_cli = SMT_CLI.read_text(encoding="utf-8")
@@ -100,6 +127,7 @@ def main() -> int:
     ):
         require(workflow, token, label)
 
+    reject_production_bypasses()
     print(
         "typed-verified-core-boundary: PASS: "
         "explicit logical types and semantic admission enforced through SMT"
