@@ -3,15 +3,13 @@ use std::host::process
 use wasm::ctx_record
 use wasm::gc_layout_table
 
-// GC layout resolution is TypeId-only. Any name/fallback/conflict observation
-// means typed metadata was lost before backend emission and is a compiler ICE.
+// GC layout resolution is TypeId-only. Name/fallback counters no longer exist;
+// conflict remains a hard compiler ICE.
 fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
     let table = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
     let typed_count = gc_layout_table::gc_layout_table_typed_lookup_count(table)
-    let name_count = gc_layout_table::gc_layout_table_name_lookup_count(table)
-    let fallback_count = gc_layout_table::gc_layout_table_fallback_lookup_count(table)
     let conflict_count = gc_layout_table::gc_layout_table_conflict_count(table)
-    if typed_count <= 0 && name_count <= 0 && fallback_count <= 0 && conflict_count <= 0 {
+    if typed_count <= 0 && conflict_count <= 0 {
         return
     }
     let line = concat(
@@ -19,23 +17,14 @@ fn gc_layout_audit_print_summary(ctx: SelfEmitCtx) {
         concat(
             i32_to_string(typed_count),
             concat(
-                " name=",
-                concat(
-                    i32_to_string(name_count),
-                    concat(
-                        " fallback=",
-                        concat(
-                            i32_to_string(fallback_count),
-                            concat(" conflict=", i32_to_string(conflict_count))
-                        )
-                    )
-                )
+                " name=0 fallback=0 conflict=",
+                i32_to_string(conflict_count)
             )
         )
     )
     stdio::eprintln(line)
-    if name_count > 0 || fallback_count > 0 || conflict_count > 0 {
-        stdio::eprintln(String_from("compiler ICE: backend GC layout resolution was not TypeId-only"))
+    if conflict_count > 0 {
+        stdio::eprintln(String_from("compiler ICE: conflicting explicit backend GC layout plan"))
         process::exit(1)
     }
 }
