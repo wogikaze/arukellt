@@ -1,4 +1,4 @@
-name: GC hint translation validation
+name: MIR optimizer translation validation
 
 on:
   pull_request:
@@ -6,18 +6,21 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: gc-hint-translation-${{ github.event.pull_request.number || github.ref }}
+  group: mir-opt-translation-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  gc-hint-translation-validation:
-    name: "GC hint translation validation"
+  mir-opt-translation-validation:
+    name: "MIR optimizer translation validation"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check fail-closed source contract
+      - name: Check every enabled transformation is fail-closed
         run: python3 scripts/check/check-gc-hint-translation-validation.py
+
+      - name: Write hash-bound optimizer validator registry
+        run: python3 scripts/gen/write-mir-opt-translation-registry.py
 
       - name: Enable focused gc_hint bootstrap overlay
         run: python3 scripts/bootstrap/enable-gc-hint-overlay.py
@@ -64,9 +67,11 @@ jobs:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-gc-hint-runtime.py
 
-      - name: Upload translation receipt
+      - name: Upload optimizer validation evidence
         uses: actions/upload-artifact@v4
         with:
-          name: gc-hint-translation-receipt
-          path: .build/proof/gc-hint-translation-receipt.json
+          name: mir-opt-translation-validation
+          path: |
+            .build/proof/mir-opt-translation-registry.json
+            .build/proof/gc-hint-translation-receipt.json
           if-no-files-found: error
