@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Require every repository release/publish entrypoint to consume proof authorization."""
+"""Require every repository release/publish entrypoint to verify proof authorization."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 CANONICAL = WORKFLOWS / "proof-required-release.yml"
 CANONICAL_SCRIPT = ROOT / "scripts" / "run" / "proof-required-release.sh"
+PUBLISH_AUTHORIZATION_COMMAND = "python3 scripts/check/check-release-authorization.py"
 
 PUBLISH_TOKENS = (
     "gh release create",
@@ -24,11 +25,6 @@ PUBLISH_TOKENS = (
     "docker push",
     "docker/build-push-action",
 )
-AUTHORIZATION_TOKENS = (
-    "release-authorization.json",
-    "check-release-authorization.py",
-    "proof-required-release.sh",
-)
 
 
 def main() -> int:
@@ -37,11 +33,12 @@ def main() -> int:
     canonical = CANONICAL.read_text(encoding="utf-8")
     script = CANONICAL_SCRIPT.read_text(encoding="utf-8")
     for token in (
-        'tags:',
+        "tags:",
         '"v*"',
         "permissions:",
         "contents: read",
         "bash scripts/run/proof-required-release.sh",
+        PUBLISH_AUTHORIZATION_COMMAND,
         "release-authorization.json",
     ):
         if token not in canonical:
@@ -51,9 +48,11 @@ def main() -> int:
     for token in (
         "check-proof-required-release.py",
         "--authorization-output",
+        "--expected-repository",
         "--expected-commit",
         "--expected-tag",
         "--release-payload-manifest",
+        "--release-payload \"arukellt-wasm=$PAYLOAD\"",
         "test -s \"$AUTHORIZATION\"",
     ):
         if token not in script:
@@ -62,22 +61,53 @@ def main() -> int:
     violations: list[str] = []
     for workflow in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
         text = workflow.read_text(encoding="utf-8")
-        matched = [token for token in PUBLISH_TOKENS if token in text]
-        if not matched:
+        publish_positions = [
+            (token, text.index(token))
+            for token in PUBLISH_TOKENS
+            if token in text
+        ]
+        if not publish_positions:
             continue
-        if not any(token in text for token in AUTHORIZATION_TOKENS):
+        relative = workflow.relative_to(ROOT)
+        if PUBLISH_AUTHORIZATION_COMMAND not in text:
             violations.append(
-                f"{workflow.relative_to(ROOT)}: publish token(s) {matched} without proof authorization"
+                f"{relative}: publish token(s) {[token for token, _ in publish_positions]} "
+                "without check-release-authorization.py"
             )
+        else:
+            authorization_position = text.index(PUBLISH_AUTHORIZATION_COMMAND)
+            first_publish_position = min(position for _, position in publish_positions)
+            if authorization_position > first_publish_position:
+                violations.append(
+                    f"{relative}: proof authorization is checked after the first publish action"
+                )
+            required_arguments = (
+                "--authorization",
+                "--repository",
+                "--commit",
+                "--tag",
+                "--policy",
+                "--source-binding",
+                "--trust-manifest",
+                "--proof-receipt",
+                "--release-payload-manifest",
+                "--release-payload",
+            )
+            prefix = text[authorization_position:first_publish_position]
+            missing = [argument for argument in required_arguments if argument not in prefix]
+            if missing:
+                violations.append(
+                    f"{relative}: authorization check before publish is missing argument(s): {missing}"
+                )
         if "continue-on-error: true" in text:
             violations.append(
-                f"{workflow.relative_to(ROOT)}: publish workflow allows continue-on-error"
+                f"{relative}: publish workflow allows continue-on-error"
             )
     if violations:
         raise ValueError("\n".join(violations))
     print(
         "proof-release-entrypoints: PASS: "
-        "canonical authorization workflow present; no unguarded publisher"
+        "canonical authorization workflow present; every publisher verifies first"
     )
     return 0
 
