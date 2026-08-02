@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write a hash-bound registry for fail-closed MIR optimization validators."""
+"""Write a hash-bound registry for MIR optimizer validation policy."""
 
 from __future__ import annotations
 
@@ -9,7 +9,14 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PASSES = (
+ENABLED_PASSES = (
+    {
+        "name": "async_lower",
+        "implementation": "src/compiler/mir_opt/async_lower/mod.ark",
+        "validator": "src/compiler/mir_opt/async_lower/translation_validation.ark",
+        "policy": "one-for-one AWAIT/FUTURE_NEW to LOCAL_SET substitution; all other instructions exact",
+        "failure_action": "restore original block",
+    },
     {
         "name": "gc_hint",
         "implementation": "src/compiler/mir_opt/gc_hint_core.ark",
@@ -32,7 +39,17 @@ PASSES = (
         "failure_action": "restore original block",
     },
 )
+DISABLED_PASSES = (
+    {
+        "name": "stdlib_inline",
+        "implementation": "src/compiler/mir_opt/stdlib_inline.ark",
+        "status": "disabled",
+        "reason": "no independent call-expansion translation validator",
+        "reenable_requires": "versioned validator plus fail-closed candidate restoration",
+    },
+)
 SHARED_VALIDATOR = "src/compiler/mir_opt/translation_validation.ark"
+ORCHESTRATOR = "src/compiler/mir_opt/orchestrate.ark"
 
 
 def sha256(path: Path) -> str:
@@ -51,31 +68,51 @@ def main() -> int:
     args = parser.parse_args()
 
     shared = ROOT / SHARED_VALIDATOR
-    if not shared.is_file():
-        raise ValueError(f"shared validator missing: {SHARED_VALIDATOR}")
-    entries: list[dict[str, object]] = []
-    for entry in PASSES:
+    orchestrator = ROOT / ORCHESTRATOR
+    if not shared.is_file() or not orchestrator.is_file():
+        raise ValueError("optimizer validation boundary files are missing")
+
+    enabled: list[dict[str, object]] = []
+    for entry in ENABLED_PASSES:
         implementation = ROOT / str(entry["implementation"])
         validator = ROOT / str(entry["validator"])
         if not implementation.is_file() or not validator.is_file():
             raise ValueError(f"pass files missing: {entry['name']}")
-        entries.append(
+        enabled.append(
             {
                 **entry,
+                "status": "enforced",
                 "implementation_sha256": sha256(implementation),
                 "validator_sha256": sha256(validator),
             }
         )
 
+    disabled: list[dict[str, object]] = []
+    for entry in DISABLED_PASSES:
+        implementation = ROOT / str(entry["implementation"])
+        if not implementation.is_file():
+            raise ValueError(f"disabled pass implementation missing: {entry['name']}")
+        disabled.append(
+            {
+                **entry,
+                "implementation_sha256": sha256(implementation),
+            }
+        )
+
     document = {
         "schema": "arukellt-mir-opt-translation-validator-registry",
-        "schema_version": 1,
+        "schema_version": 2,
+        "orchestrator": {
+            "path": ORCHESTRATOR,
+            "sha256": sha256(orchestrator),
+        },
         "shared_instruction_validator": {
             "path": SHARED_VALIDATOR,
             "sha256": sha256(shared),
         },
-        "passes": entries,
-        "required_passes": [entry["name"] for entry in PASSES],
+        "enabled_passes": enabled,
+        "disabled_passes": disabled,
+        "required_enabled_passes": [entry["name"] for entry in ENABLED_PASSES],
         "status": "enforced",
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +122,7 @@ def main() -> int:
     )
     print(
         "mir-opt-translation-registry: PASS: "
-        f"passes={len(entries)} output={args.output}"
+        f"enabled={len(enabled)} disabled={len(disabled)} output={args.output}"
     )
     return 0
 
