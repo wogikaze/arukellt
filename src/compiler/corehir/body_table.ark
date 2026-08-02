@@ -1,5 +1,7 @@
-// Frozen CoreHIR body artifact. Mutation is owned exclusively by body_builder.
+// Frozen versioned CoreHIR body artifact. Mutation is owned exclusively by
+// body_builder and the completed artifact is validated by body_validator.
 struct CoreHirBodyTable {
+    schema_version: i32,
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,
     method_body_roots: Vec<i32>,
@@ -8,6 +10,10 @@ struct CoreHirBodyTable {
     contract_roots: Vec<i32>,
     contract_kinds: Vec<String>,
     contract_result_names: Vec<String>,
+}
+
+fn corehir_body_table_schema_version(table: CoreHirBodyTable) -> i32 {
+    table.schema_version
 }
 
 fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
@@ -41,19 +47,62 @@ fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32
     get_unchecked(table.fn_contract_counts, body_index)
 }
 
+fn corehir_body_table_fn_contract_start(table: CoreHirBodyTable, body_index: i32) -> i32 {
+    if body_index < 0 || body_index >= len(table.fn_contract_starts) {
+        return 0 - 1
+    }
+    get_unchecked(table.fn_contract_starts, body_index)
+}
+
 fn corehir_body_table_fn_contract_flat_index(
     table: CoreHirBodyTable,
     body_index: i32,
     contract_index: i32
 ) -> i32 {
-    if body_index < 0 || body_index >= len(table.fn_contract_starts) {
+    let start = corehir_body_table_fn_contract_start(table, body_index)
+    if start < 0 {
         return 0 - 1
     }
     let count = corehir_body_table_fn_contract_count(table, body_index)
     if contract_index < 0 || contract_index >= count {
         return 0 - 1
     }
-    get_unchecked(table.fn_contract_starts, body_index) + contract_index
+    start + contract_index
+}
+
+fn corehir_body_table_contract_flat_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_roots)
+}
+
+fn corehir_body_table_contract_root_flat_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    get_unchecked(table.contract_roots, index)
+}
+
+fn corehir_body_table_contract_kind_flat_at(table: CoreHirBodyTable, index: i32) -> String {
+    clone(get_unchecked(table.contract_kinds, index))
+}
+
+fn corehir_body_table_contract_result_name_flat_at(
+    table: CoreHirBodyTable,
+    index: i32
+) -> String {
+    clone(get_unchecked(table.contract_result_names, index))
+}
+
+fn corehir_body_table_contract_kind_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_kinds)
+}
+
+fn corehir_body_table_contract_result_name_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_result_names)
+}
+
+fn corehir_body_table_fn_contract_range_count(table: CoreHirBodyTable) -> i32 {
+    len(table.fn_contract_starts)
+}
+
+fn corehir_body_table_fn_contract_count_record_count(table: CoreHirBodyTable) -> i32 {
+    len(table.fn_contract_counts)
 }
 
 fn corehir_body_table_fn_contract_root_at(
@@ -65,7 +114,7 @@ fn corehir_body_table_fn_contract_root_at(
     if flat_index < 0 {
         return 0 - 1
     }
-    get_unchecked(table.contract_roots, flat_index)
+    corehir_body_table_contract_root_flat_at(table, flat_index)
 }
 
 fn corehir_body_table_fn_contract_kind_at(
@@ -77,7 +126,7 @@ fn corehir_body_table_fn_contract_kind_at(
     if flat_index < 0 {
         return String_new()
     }
-    clone(get_unchecked(table.contract_kinds, flat_index))
+    corehir_body_table_contract_kind_flat_at(table, flat_index)
 }
 
 fn corehir_body_table_fn_contract_result_name_at(
@@ -89,7 +138,7 @@ fn corehir_body_table_fn_contract_result_name_at(
     if flat_index < 0 {
         return String_new()
     }
-    clone(get_unchecked(table.contract_result_names, flat_index))
+    corehir_body_table_contract_result_name_flat_at(table, flat_index)
 }
 
 fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
