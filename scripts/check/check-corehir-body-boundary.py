@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enforce construction-only mutation for the CoreHIR body artifact."""
+"""Enforce a versioned builder-to-frozen CoreHIR body boundary."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 COMPILER = ROOT / "src" / "compiler"
 BODY_TABLE = COMPILER / "corehir" / "body_table.ark"
 BODY_BUILDER = COMPILER / "corehir" / "body_builder.ark"
+BODY_VALIDATOR = COMPILER / "corehir" / "body_validator.ark"
 ALLOWED_BUILDER_IMPORTS = {
     "src/compiler/corehir/body.ark",
     "src/compiler/corehir/body_roots.ark",
@@ -37,19 +38,57 @@ def relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
 
 
+def require(text: str, needle: str, label: str) -> None:
+    if needle not in text:
+        raise ValueError(f"missing {label}: {needle}")
+
+
 def main() -> int:
     table = BODY_TABLE.read_text(encoding="utf-8")
     builder = BODY_BUILDER.read_text(encoding="utf-8")
+    validator = BODY_VALIDATOR.read_text(encoding="utf-8")
 
-    if "struct CoreHirBodyTable" not in table:
-        raise ValueError("frozen CoreHirBodyTable record is missing")
+    require(table, "struct CoreHirBodyTable", "frozen body artifact record")
+    require(table, "schema_version: i32", "body artifact schema version field")
+    require(
+        table,
+        "fn corehir_body_table_schema_version",
+        "body artifact schema version accessor",
+    )
     for token in FORBIDDEN_READ_API_TOKENS:
         if token in table:
             raise ValueError(f"body_table exposes mutation capability: {token}")
-    if "fn CoreHirBodyBuilder_new" not in builder:
-        raise ValueError("construction capability constructor is missing")
-    if "fn corehir_body_builder_finish" not in builder:
-        raise ValueError("builder-to-artifact handoff is missing")
+
+    require(builder, "fn CoreHirBodyBuilder_new", "construction capability constructor")
+    require(builder, "schema_version: 1", "body artifact v1 construction")
+    require(builder, "fn corehir_body_builder_finish", "builder-to-artifact handoff")
+    require(
+        builder,
+        "body_validator::corehir_body_artifact_valid(builder)",
+        "independent validator invocation",
+    )
+    require(builder, "process::exit(1)", "fail-closed invalid artifact action")
+
+    require(
+        validator,
+        "fn corehir_body_artifact_valid",
+        "independent body artifact validator",
+    )
+    require(
+        validator,
+        "corehir_body_table_schema_version(table) != 1",
+        "body artifact version validation",
+    )
+    require(
+        validator,
+        "expected_start != flat_contract_count",
+        "contract range coverage validation",
+    )
+    require(
+        validator,
+        "root < 0 || root >= expr_count",
+        "contract root validation",
+    )
 
     violations: list[str] = []
     for path in sorted(COMPILER.rglob("*.ark")):
@@ -84,7 +123,10 @@ def main() -> int:
 
     if violations:
         raise ValueError("\n".join(violations))
-    print("corehir-body-boundary: PASS: builder -> frozen read-only artifact")
+    print(
+        "corehir-body-boundary: PASS: "
+        "version=1 builder -> independent validator -> frozen artifact"
+    )
     return 0
 
 
