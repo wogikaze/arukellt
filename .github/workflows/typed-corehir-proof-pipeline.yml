@@ -19,8 +19,11 @@ jobs:
       - name: Reject untyped or name-inferred conversion paths
         run: python3 scripts/check/check-typed-verified-core-boundary.py
 
-      - name: Write typed VerifiedCore boundary receipt
-        run: python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
+      - name: Write and independently validate typed boundary receipt
+        run: |
+          python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
+          python3 scripts/check/check-typed-verified-core-boundary-receipt.py \
+            .build/proof/typed-verified-core-boundary.json
 
       - name: Test conversion, semantic typing, and VC generation
         run: |
@@ -28,6 +31,7 @@ jobs:
             scripts.tests.test_typed_corehir_convert \
             scripts.tests.test_verified_core_typed \
             scripts.tests.test_smtlib_typed_v1 \
+            scripts.tests.test_typed_verified_core_receipt \
             scripts.tests.test_smtlib_v1 \
             scripts.tests.test_solver_receipts \
             scripts.tests.test_solver_driver
@@ -61,8 +65,10 @@ jobs:
           cp scripts/proof/typed_corehir_convert.py .build/typed-corehir-toolchain/typed_corehir_convert.py
           cp scripts/proof/verified_core.py .build/typed-corehir-toolchain/verified_core.py
           cp scripts/proof/verified_core_typed.py .build/typed-corehir-toolchain/verified_core_typed.py
+          cp scripts/proof/typed_verified_core_receipt.py .build/typed-corehir-toolchain/typed_verified_core_receipt.py
           cp scripts/check/check-typed-verified-core.py .build/typed-corehir-toolchain/check-typed-verified-core.py
           cp scripts/check/check-typed-verified-core-boundary.py .build/typed-corehir-toolchain/check-typed-verified-core-boundary.py
+          cp scripts/check/check-typed-verified-core-boundary-receipt.py .build/typed-corehir-toolchain/check-typed-verified-core-boundary-receipt.py
           cp .build/proof/typed-verified-core-boundary.json .build/typed-corehir-toolchain/typed-verified-core-boundary.json
           python3 - <<'PY'
           import json
@@ -146,6 +152,18 @@ jobs:
                       "artifact": "check-typed-verified-core-boundary.py",
                   },
                   {
+                      "name": "arukellt-typed-verified-core-receipt-validator-v1",
+                      "role": "typed-boundary-receipt-validator",
+                      "version": "1",
+                      "artifact": "typed_verified_core_receipt.py",
+                  },
+                  {
+                      "name": "arukellt-typed-verified-core-receipt-checker-v1",
+                      "role": "typed-boundary-receipt-checker",
+                      "version": "1",
+                      "artifact": "check-typed-verified-core-boundary-receipt.py",
+                  },
+                  {
                       "name": "arukellt-typed-verified-core-boundary-receipt-v1",
                       "role": "typed-boundary-receipt",
                       "version": "1",
@@ -183,6 +201,7 @@ jobs:
 
           sys.path.insert(0, "scripts")
           from proof.trust import validate_bound_proof
+          from proof.typed_verified_core_receipt import validate_boundary_receipt
           from proof.verified_core_typed import validate_typed_document
 
           root = Path(".build/typed-corehir-proof")
@@ -191,7 +210,9 @@ jobs:
           manifest_path = root / "trust-manifest.json"
           receipt_path = root / "proof-receipt.json"
           solver_output = root / "solver-output.txt"
+          boundary_receipt = Path(".build/proof/typed-verified-core-boundary.json")
           validate_typed_document(json.loads(subject.read_text()))
+          validate_boundary_receipt(json.loads(boundary_receipt.read_text()), root=Path.cwd())
           validate_bound_proof(subject, manifest_path, receipt_path, solver_output)
 
           manifest = json.loads(manifest_path.read_text())
@@ -205,6 +226,8 @@ jobs:
               "typed-smt-adapter": "smtlib_typed_v1.py",
               "smt-renderer-implementation": "smtlib_v1.py",
               "typed-boundary-policy": "check-typed-verified-core-boundary.py",
+              "typed-boundary-receipt-validator": "typed_verified_core_receipt.py",
+              "typed-boundary-receipt-checker": "check-typed-verified-core-boundary-receipt.py",
               "typed-boundary-receipt": "typed-verified-core-boundary.json",
           }
           by_role = {item["role"]: item for item in manifest["trusted_components"]}
