@@ -11,7 +11,7 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from proof.typed_corehir_convert import convert_document  # noqa: E402
+from proof.typed_corehir_typed_convert import convert_typed_document  # noqa: E402
 from proof.verified_core_typed import (  # noqa: E402
     TypedVerifiedCoreError,
     validate_typed_document,
@@ -21,8 +21,10 @@ from proof.verified_core_typed import (  # noqa: E402
 class TypedVerifiedCoreTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        source = json.loads((ROOT / "tests" / "proof" / "typed-corehir.json").read_text())
-        cls.document = convert_document(source)
+        source = json.loads(
+            (ROOT / "tests" / "proof" / "typed-corehir.json").read_text()
+        )
+        cls.document = convert_typed_document(source)
 
     def validate(self, document: dict[str, object]) -> dict[str, object]:
         return validate_typed_document(copy.deepcopy(document))
