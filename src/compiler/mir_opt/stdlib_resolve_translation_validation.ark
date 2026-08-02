@@ -1,0 +1,112 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::core_op_call
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::opcodes
+use mir::types
+use mir_opt::translation_validation
+
+fn stdlib_resolve_target_name_matches_fallback(
+    fallback: String,
+    target_name: String
+) -> bool {
+    if eq(clone(target_name), clone(fallback)) {
+        return true
+    }
+    starts_with(target_name, concat(fallback, String_from("__")))
+}
+
+fn stdlib_resolve_result_types_match_entry(
+    after: MirInst,
+    entry: SignatureEntry
+) -> bool {
+    let count = inst_record::mir_inst_result_type_count(after)
+    if count != signature_entry::signature_entry_return_count(entry) {
+        return false
+    }
+    let mut i = 0
+    while i < count {
+        if !translation_validation::mir_translation_value_type_equal(
+            inst_record::mir_inst_result_type_at(after, i),
+            signature_entry::signature_entry_return_at(entry, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn stdlib_resolve_rewrite_valid(
+    m: MirModule,
+    registry: SignatureRegistry,
+    before: MirInst,
+    after: MirInst
+) -> bool {
+    if translation_validation::mir_translation_inst_equal(before, after) {
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(before) != opcodes::MIR_CALL() ||
+       inst_accessors_shape::MirInst_op(after) != opcodes::MIR_CALL() {
+        return false
+    }
+    if inst_accessors_operands::MirInst_dest(before) != inst_accessors_operands::MirInst_dest(after) ||
+       inst_accessors_operands::MirInst_arg0(before) != inst_accessors_operands::MirInst_arg0(after) ||
+       inst_accessors_operands::MirInst_arg1(before) != inst_accessors_operands::MirInst_arg1(after) ||
+       inst_accessors_literals::MirInst_int_val(before) != inst_accessors_literals::MirInst_int_val(after) ||
+       inst_accessors_literals::MirInst_float_val(before) != inst_accessors_literals::MirInst_float_val(after) ||
+       inst_accessors_shape::MirInst_val_type(before) != inst_accessors_shape::MirInst_val_type(after) {
+        return false
+    }
+
+    let target_raw = inst_record::mir_inst_func_id_raw(after)
+    if target_raw < 0 || target_raw >= signature_registry::signature_registry_entry_count(registry) {
+        return false
+    }
+    let target_id = function_id::FunctionId_new(target_raw)
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, target_id)
+    let target_name = inst_accessors_literals::MirInst_str_val(after)
+    if !eq(
+        clone(target_name),
+        signature_registry::signature_registry_mangled_at(registry, target_raw)
+    ) {
+        return false
+    }
+    if function_id::FunctionId_raw(signature_entry::signature_entry_id(entry)) != target_raw {
+        return false
+    }
+    let fallback = core_op_call::mir_call_normal_fallback_symbol(m, before)
+    if len(fallback) == 0 ||
+       !stdlib_resolve_target_name_matches_fallback(fallback, target_name) {
+        return false
+    }
+    stdlib_resolve_result_types_match_entry(after, entry)
+}
+
+fn stdlib_resolve_block_translation_valid(
+    m: MirModule,
+    registry: SignatureRegistry,
+    before: Vec<MirInst>,
+    after: Vec<MirInst>
+) -> bool {
+    if len(before) != len(after) {
+        return false
+    }
+    let mut i = 0
+    while i < len(before) {
+        if !stdlib_resolve_rewrite_valid(
+            m,
+            registry,
+            get_unchecked(before, i),
+            get_unchecked(after, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
