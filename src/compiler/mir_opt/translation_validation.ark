@@ -1,0 +1,88 @@
+use corehir::mir_value_type
+use corehir::type_id
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::types
+
+fn mir_translation_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(a)) ==
+        type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
+    mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
+    mir_value_type::mir_value_type_nullability(a) ==
+        mir_value_type::mir_value_type_nullability(b)
+}
+
+fn mir_translation_inst_equal(a: MirInst, b: MirInst) -> bool {
+    if inst_accessors_shape::MirInst_op(a) != inst_accessors_shape::MirInst_op(b) {
+        return false
+    }
+    if inst_accessors_operands::MirInst_dest(a) != inst_accessors_operands::MirInst_dest(b) ||
+       inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
+       inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
+        return false
+    }
+    if inst_accessors_literals::MirInst_int_val(a) != inst_accessors_literals::MirInst_int_val(b) ||
+       inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
+       !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
+        return false
+    }
+    if inst_accessors_shape::MirInst_val_type(a) != inst_accessors_shape::MirInst_val_type(b) ||
+       inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
+        return false
+    }
+    let result_count = inst_record::mir_inst_result_type_count(a)
+    if result_count != inst_record::mir_inst_result_type_count(b) {
+        return false
+    }
+    let mut i = 0
+    while i < result_count {
+        if !mir_translation_value_type_equal(
+            inst_record::mir_inst_result_type_at(a, i),
+            inst_record::mir_inst_result_type_at(b, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_translation_vector_equal(a: Vec<MirInst>, b: Vec<MirInst>) -> bool {
+    if len(a) != len(b) {
+        return false
+    }
+    let mut i = 0
+    while i < len(a) {
+        if !mir_translation_inst_equal(get_unchecked(a, i), get_unchecked(b, i)) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_translation_insert_only_valid(
+    before: Vec<MirInst>,
+    after: Vec<MirInst>,
+    inserted_template: MirInst
+) -> bool {
+    let mut before_i = 0
+    let mut after_i = 0
+    while after_i < len(after) {
+        let candidate = get_unchecked(after, after_i)
+        if before_i < len(before) &&
+           mir_translation_inst_equal(get_unchecked(before, before_i), candidate) {
+            before_i = before_i + 1
+            after_i = after_i + 1
+            continue
+        }
+        if mir_translation_inst_equal(candidate, inserted_template) {
+            after_i = after_i + 1
+            continue
+        }
+        return false
+    }
+    before_i == len(before)
+}
