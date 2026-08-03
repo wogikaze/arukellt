@@ -3,7 +3,7 @@
   "schema_version": 1,
   "mode": "proof-optional",
   "hard_gates": {
-    "versioned_boundary_artifacts": false,
+    "versioned_boundary_artifacts": true,
     "explicit_backend_type_abi_layout": false,
     "typed_verified_core_emission": false,
     "optimizer_translation_validation": false,
