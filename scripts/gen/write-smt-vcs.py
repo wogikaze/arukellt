@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate fail-closed SMT-LIB verification conditions from VerifiedCore v1."""
+"""Generate fail-closed SMT-LIB VCs from semantically typed VerifiedCore v1."""
 
 from __future__ import annotations
 
@@ -12,7 +12,10 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from proof.smtlib_v1 import UnsupportedVerifiedCore, generate_smtlib_file  # noqa: E402
+from proof.smtlib_typed_v1 import (  # noqa: E402
+    UnsupportedTypedVerifiedCore,
+    generate_typed_smtlib_file,
+)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -25,11 +28,20 @@ def parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = parser().parse_args()
     try:
-        count = generate_smtlib_file(args.subject.resolve(), args.output.resolve())
-    except (OSError, ValueError, KeyError, TypeError, UnsupportedVerifiedCore) as exc:
+        count = generate_typed_smtlib_file(
+            args.subject.resolve(),
+            args.output.resolve(),
+        )
+    except (
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+        UnsupportedTypedVerifiedCore,
+    ) as exc:
         print(f"write-smt-vcs: FAIL: {exc}", file=sys.stderr)
         return 1
-    print(f"write-smt-vcs: PASS: obligations={count}")
+    print(f"write-smt-vcs: PASS: obligations={count} typed_semantics=validated")
     return 0
 
 
