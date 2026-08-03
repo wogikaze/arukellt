@@ -6,7 +6,7 @@
     "versioned_boundary_artifacts": false,
     "explicit_backend_type_abi_layout": false,
     "typed_verified_core_emission": false,
-    "optimizer_translation_validation": false,
+    "optimizer_translation_validation": true,
     "solver_trust_manifest": true,
     "legacy_mutable_table_removed": false,
     "proof_receipt_release_enforced": true

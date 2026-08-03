@@ -4,16 +4,26 @@ use mir::function_block_mutation
 use mir::function_block_queries
 use mir::types
 use mir_opt::licm_predicates
+use mir_opt::licm_translation_validation
 use mir_opt::loop_regions
 use mir_opt::summary_record
 
 struct LicmBlockResult {
     instructions: Vec<MirInst>,
     hoisted: i32,
+    validation_failures: i32,
 }
 
-fn LicmBlockResult_new(instructions: Vec<MirInst>, hoisted: i32) -> LicmBlockResult {
-    LicmBlockResult { instructions: instructions, hoisted: hoisted }
+fn LicmBlockResult_new(
+    instructions: Vec<MirInst>,
+    hoisted: i32,
+    validation_failures: i32
+) -> LicmBlockResult {
+    LicmBlockResult {
+        instructions: instructions,
+        hoisted: hoisted,
+        validation_failures: validation_failures,
+    }
 }
 
 fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult {
@@ -34,7 +44,7 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
         i = i + 1
     }
     if hoist_count == 0 {
-        return LicmBlockResult_new(insts, 0)
+        return LicmBlockResult_new(insts, 0, 0)
     }
     let out = Vec::new<MirInst>()
     i = 0
@@ -53,7 +63,7 @@ fn licm_hoist_region(insts: Vec<MirInst>, region: LoopRegion) -> LicmBlockResult
         }
         i = i + 1
     }
-    LicmBlockResult_new(out, hoist_count)
+    LicmBlockResult_new(out, hoist_count, 0)
 }
 
 fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
@@ -61,18 +71,30 @@ fn licm_optimize_block_insts(insts: Vec<MirInst>) -> LicmBlockResult {
     let ordered = loop_regions::mir_opt_regions_by_depth_desc(regions)
     let mut current = insts
     let mut total = 0
+    let mut validation_failures = 0
     for ri in 0..len(ordered) {
-        let result = licm_hoist_region(current, get_unchecked(ordered, ri))
-        current = result.instructions
-        total = total + result.hoisted
+        let region = get_unchecked(ordered, ri)
+        let result = licm_hoist_region(current, region)
+        if licm_translation_validation::licm_translation_valid(
+            current,
+            result.instructions,
+            region,
+            result.hoisted
+        ) {
+            current = result.instructions
+            total = total + result.hoisted
+        } else {
+            validation_failures = validation_failures + 1
+        }
     }
-    LicmBlockResult_new(current, total)
+    LicmBlockResult_new(current, total, validation_failures)
 }
 
 fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let updated_blocks = Vec::new<MirBlock>()
     let mut total_hoisted = 0
+    let mut validation_failures = 0
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
@@ -80,9 +102,17 @@ fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
         let result = licm_optimize_block_insts(insts)
         block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
         total_hoisted = total_hoisted + result.hoisted
+        validation_failures = validation_failures + result.validation_failures
         push(updated_blocks, block)
         bi = bi + 1
     }
     function_block_mutation::MirFunction_set_blocks(f, updated_blocks)
-    summary_record::OptimizationSummary_add_licm(summary_record::OptimizationSummary_new(), total_hoisted)
+    let summary = summary_record::OptimizationSummary_add_licm(
+        summary_record::OptimizationSummary_new(),
+        total_hoisted
+    )
+    summary_record::OptimizationSummary_add_translation_validation_failure(
+        summary,
+        validation_failures
+    )
 }
