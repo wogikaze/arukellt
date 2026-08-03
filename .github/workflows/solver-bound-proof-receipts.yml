@@ -19,11 +19,18 @@ jobs:
       - name: Reject detached solver result paths
         run: python3 scripts/check/check-solver-trust-manifest-boundary.py
 
+      - name: Write and independently validate solver trust receipt
+        run: |
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
       - name: Run receipt and result tests
         run: |
           python3 -m unittest \
             scripts.tests.test_solver_receipts \
-            scripts.tests.test_solver_result
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt
 
       - name: Generate complete result from captured solver output
         run: |
@@ -52,5 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: solver-bound-proof-result
-          path: .build/proof-generated
+          path: |
+            .build/proof-generated
+            .build/proof/solver-trust-boundary.json
           if-no-files-found: error
