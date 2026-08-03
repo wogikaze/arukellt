@@ -1,0 +1,121 @@
+{
+  "schema": "arukellt-typed-corehir",
+  "schema_version": 1,
+  "generator": "fixture",
+  "module": "identity",
+  "target_profile": {
+    "integer_model": "mathematical",
+    "overflow": "checked",
+    "floating_point": "unsupported",
+    "pointer_width": 32
+  },
+  "types": [
+    {
+      "id": 0,
+      "kind": "unit",
+      "name": "unit",
+      "value_type": "void",
+      "representation": {
+        "kind": "unit",
+        "wasm": [],
+        "nullable": false,
+        "size_bytes": 0,
+        "align_bytes": 1
+      }
+    },
+    {
+      "id": 1,
+      "kind": "integer",
+      "name": "i32",
+      "value_type": "i32",
+      "representation": {
+        "kind": "scalar",
+        "wasm": ["i32"],
+        "nullable": false,
+        "size_bytes": 4,
+        "align_bytes": 4
+      }
+    },
+    {
+      "id": 2,
+      "kind": "bool",
+      "name": "bool",
+      "value_type": "i32",
+      "representation": {
+        "kind": "scalar",
+        "wasm": ["i32"],
+        "nullable": false,
+        "size_bytes": 4,
+        "align_bytes": 4
+      }
+    }
+  ],
+  "functions": [
+    {
+      "id": 0,
+      "name": "identity",
+      "signature": {
+        "parameters": [
+          {"name": "x", "type_id": 1}
+        ],
+        "return_type_id": 1
+      },
+      "abi": {
+        "calling_convention": "arukellt",
+        "parameters": [
+          {"type_id": 1, "passing": "value", "wasm": ["i32"]}
+        ],
+        "results": [
+          {"type_id": 1, "passing": "value", "wasm": ["i32"]}
+        ]
+      },
+      "locals": [
+        {"id": 0, "name": "x", "type_id": 1, "storage": "parameter"}
+      ],
+      "contracts": [
+        {"kind": "ensures", "expression_id": 2, "result_name": "result"}
+      ],
+      "body": {
+        "root_expr_id": 0,
+        "expressions": [
+          {
+            "id": 0,
+            "kind": "block",
+            "kind_id": 1,
+            "type_id": 1,
+            "value_type": "i32",
+            "text": "",
+            "int_value": 0,
+            "float_value": 0.0,
+            "span_start": 0,
+            "children": [1, 2]
+          },
+          {
+            "id": 1,
+            "kind": "ident",
+            "kind_id": 5,
+            "type_id": 1,
+            "value_type": "i32",
+            "text": "x",
+            "int_value": 0,
+            "float_value": 0.0,
+            "span_start": 1,
+            "children": []
+          },
+          {
+            "id": 2,
+            "kind": "binary",
+            "kind_id": 11,
+            "type_id": 2,
+            "value_type": "i32",
+            "text": ">=",
+            "int_value": 0,
+            "float_value": 0.0,
+            "span_start": 2,
+            "children": [1, 1]
+          }
+        ]
+      }
+    }
+  ]
+}
