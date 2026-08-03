@@ -29,21 +29,28 @@ jobs:
             *) echo "proof-required release requires refs/tags/v*" >&2; exit 1 ;;
           esac
 
-      - name: Reject unguarded release and boundary entrypoints
+      - name: Reject unguarded entrypoints
         run: |
           python3 scripts/check/check-proof-release-entrypoints.py
           python3 scripts/check/check-versioned-boundary-enforcement.py
+          python3 scripts/check/check-solver-trust-manifest-boundary.py
 
-      - name: Write release enforcement boundary receipt
-        run: python3 scripts/gen/write-proof-release-enforcement-receipt.py
+      - name: Write release and solver boundary receipts
+        run: |
+          python3 scripts/gen/write-proof-release-enforcement-receipt.py
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
 
-      - name: Validate release gate libraries
+      - name: Validate release libraries
         run: |
           python3 -m unittest \
             scripts.tests.test_boundary_registry \
             scripts.tests.test_source_proof_binding \
             scripts.tests.test_proof_required_release_gate \
-            scripts.tests.test_release_authorization
+            scripts.tests.test_release_authorization \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt
 
       - name: Install Wasmtime and Z3
         run: |
@@ -61,6 +68,17 @@ jobs:
 
       - name: Prove and authorize release payload
         run: bash scripts/run/proof-required-release.sh
+
+      - name: Independently validate SolverResult
+        run: |
+          python3 scripts/check/check-solver-result.py \
+            .build/typed-contract-proof/solver-result.json \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --toolchain .build/proof-release-toolchain/toolchain.json \
+            --solver-output .build/typed-contract-proof/solver-output.txt \
+            --trust-manifest .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt .build/typed-contract-proof/proof-receipt.json
 
       - name: Verify publisher-side authorization
         run: |
@@ -94,6 +112,7 @@ jobs:
             release/boundary-registry.json
             .build/proof/boundary-registry-validation.json
             .build/proof/proof-release-enforcement.json
+            .build/proof/solver-trust-boundary.json
             .build/proof/backend-typeid-layout.json
             .build/proof/mir-opt-translation-registry.json
             .build/proof/corehir-body-boundary.json
