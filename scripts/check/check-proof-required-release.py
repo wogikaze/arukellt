@@ -46,6 +46,16 @@ def main() -> int:
     parser.add_argument("--verified-core-normalized", type=Path, required=True)
     parser.add_argument("--solver-input", type=Path, required=True)
     parser.add_argument(
+        "--boundary-registry",
+        type=Path,
+        default=ROOT / "release" / "boundary-registry.json",
+    )
+    parser.add_argument(
+        "--boundary-registry-validation-receipt",
+        type=Path,
+        default=ROOT / ".build" / "proof" / "boundary-registry-validation.json",
+    )
+    parser.add_argument(
         "--backend-typeid-layout-receipt",
         type=Path,
         default=ROOT / ".build" / "proof" / "backend-typeid-layout.json",
@@ -83,6 +93,8 @@ def main() -> int:
         "verified_core_machine": args.verified_core_machine,
         "verified_core_normalized": args.verified_core_normalized,
         "solver_input": args.solver_input,
+        "boundary_registry": args.boundary_registry,
+        "boundary_registry_validation_receipt": args.boundary_registry_validation_receipt,
         "backend_typeid_layout_receipt": args.backend_typeid_layout_receipt,
         "optimizer_translation_registry": args.optimizer_translation_registry,
         "corehir_body_boundary_receipt": args.corehir_body_boundary_receipt,
