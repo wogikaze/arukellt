@@ -137,7 +137,8 @@ python3 scripts/run/run-proof-solver.py \
   --toolchain "$TOOLCHAIN_ROOT/toolchain.json" \
   --solver-output "$PROOF_ROOT/solver-output.txt" \
   --trust-manifest-output "$PROOF_ROOT/trust-manifest.json" \
-  --proof-receipt-output "$PROOF_ROOT/proof-receipt.json"
+  --proof-receipt-output "$PROOF_ROOT/proof-receipt.json" \
+  --solver-result-output "$PROOF_ROOT/solver-result.json"
 
 python3 scripts/gen/write-proof-required-release-policy.py --output "$POLICY"
 python3 scripts/check/check-proof-required-release.py \
@@ -162,5 +163,6 @@ python3 scripts/check/check-proof-required-release.py \
   --expected-tag "$GITHUB_REF_NAME" \
   --authorization-output "$AUTHORIZATION"
 
+test -s "$PROOF_ROOT/solver-result.json"
 test -s "$AUTHORIZATION"
 echo "proof-required-release: AUTHORIZED: tag=$GITHUB_REF_NAME commit=$GITHUB_SHA payload=$PAYLOAD"
