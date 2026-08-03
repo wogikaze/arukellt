@@ -85,11 +85,11 @@ class FormalArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "validated requires every obligation"):
             validate_translation_receipt(document)
 
-    def test_optional_policy_records_unmet_gates(self) -> None:
+    def test_optional_policy_records_completed_gates(self) -> None:
         policy = json.loads((ROOT / "release" / "proof-policy.json").read_text())
         checked = validate_release_policy(policy)
         self.assertEqual(checked["mode"], "proof-optional")
-        self.assertFalse(checked["hard_gates"]["typed_verified_core_emission"])
+        self.assertTrue(all(checked["hard_gates"].values()))
 
     def test_required_policy_rejects_unmet_gate(self) -> None:
         policy = json.loads((self.proof_dir / "proof-required-policy.json").read_text())
