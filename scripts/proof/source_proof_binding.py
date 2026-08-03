@@ -1,4 +1,4 @@
-"""Digest binding for the source-contract proof pipeline."""
+"""Digest binding for the source-contract and proof-authorized release pipeline."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Mapping
 
 SCHEMA = "arukellt-source-proof-binding"
-VERSION = 1
+VERSION = 4
 REQUIRED_ARTIFACTS = (
     "source",
     "producer_executable",
@@ -16,6 +16,13 @@ REQUIRED_ARTIFACTS = (
     "verified_core_machine",
     "verified_core_normalized",
     "solver_input",
+    "boundary_registry",
+    "boundary_registry_validation_receipt",
+    "backend_typeid_layout_receipt",
+    "optimizer_translation_registry",
+    "corehir_body_boundary_receipt",
+    "release_provenance",
+    "release_payload_manifest",
 )
 
 
@@ -67,6 +74,8 @@ def write_binding(paths: Mapping[str, Path], output: Path) -> dict[str, object]:
 def validate_binding(value: object, paths: Mapping[str, Path]) -> dict[str, object]:
     if not isinstance(value, dict):
         raise SourceProofBindingError("binding must be an object")
+    if set(value) != {"schema", "schema_version", "artifacts"}:
+        raise SourceProofBindingError("binding fields mismatch")
     if value.get("schema") != SCHEMA or value.get("schema_version") != VERSION:
         raise SourceProofBindingError("binding schema identity mismatch")
     entries = value.get("artifacts")
@@ -74,11 +83,15 @@ def validate_binding(value: object, paths: Mapping[str, Path]) -> dict[str, obje
         raise SourceProofBindingError("binding artifacts must be an array")
     by_name: dict[str, dict[str, object]] = {}
     for entry in entries:
-        if not isinstance(entry, dict) or not isinstance(entry.get("name"), str):
+        if not isinstance(entry, dict) or set(entry) != {"name", "path", "sha256"}:
             raise SourceProofBindingError("invalid binding artifact entry")
-        name = str(entry["name"])
+        name = entry.get("name")
+        if not isinstance(name, str) or not name:
+            raise SourceProofBindingError("invalid binding artifact name")
         if name in by_name:
             raise SourceProofBindingError(f"duplicate binding artifact: {name}")
+        if not isinstance(entry.get("path"), str) or not entry["path"]:
+            raise SourceProofBindingError(f"{name}: invalid bound path")
         by_name[name] = entry
     if set(by_name) != set(REQUIRED_ARTIFACTS):
         raise SourceProofBindingError(
@@ -88,8 +101,13 @@ def validate_binding(value: object, paths: Mapping[str, Path]) -> dict[str, obje
         path = paths.get(name)
         if path is None or not path.is_file():
             raise SourceProofBindingError(f"{name}: file not found")
+        entry = by_name[name]
+        if entry.get("path") != path.as_posix():
+            raise SourceProofBindingError(
+                f"{name}: path mismatch: expected {path.as_posix()}, got {entry.get('path')}"
+            )
         expected = sha256_file(path)
-        actual = by_name[name].get("sha256")
+        actual = entry.get("sha256")
         if actual != expected:
             raise SourceProofBindingError(
                 f"{name}: digest mismatch: expected {expected}, got {actual}"
