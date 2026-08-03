@@ -238,7 +238,7 @@
       },
       "producer": {
         "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
-        "path": "scripts/proof/release_gate.py",
+        "path": "scripts/check/check-proof-required-release.py",
         "required_tokens": ["create_release_authorization", "write_release_authorization"]
       },
       "validator": {
