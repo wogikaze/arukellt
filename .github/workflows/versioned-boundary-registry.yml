@@ -1,0 +1,46 @@
+name: Versioned major boundary registry
+
+on:
+  pull_request:
+    branches: [agent/proof-required-release-gate, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: versioned-boundary-registry-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-major-boundaries:
+    name: "Validate pinned artifact and validator boundaries"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run boundary registry negative tests
+        run: python3 -m unittest scripts.tests.test_boundary_registry
+
+      - name: Validate every pinned boundary and write receipt
+        run: |
+          python3 scripts/check/check-boundary-registry.py \
+            --registry release/boundary-registry.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --receipt-output .build/proof/boundary-registry-validation.json
+
+      - name: Independently revalidate registry receipt
+        run: |
+          python3 scripts/check/check-boundary-registry-receipt.py \
+            --registry release/boundary-registry.json \
+            --receipt .build/proof/boundary-registry-validation.json \
+            --repository "$GITHUB_REPOSITORY"
+
+      - name: Upload boundary registry evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: versioned-boundary-registry
+          path: |
+            release/boundary-registry.json
+            .build/proof/boundary-registry-validation.json
+          if-no-files-found: error
