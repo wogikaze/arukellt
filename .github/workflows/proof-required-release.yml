@@ -90,6 +90,7 @@ jobs:
             .build/typed-contract-proof/trust-manifest.json
             .build/typed-contract-proof/proof-receipt.json
             .build/typed-contract-proof/solver-output.txt
+            .build/typed-contract-proof/solver-result.json
             release/boundary-registry.json
             .build/proof/boundary-registry-validation.json
             .build/proof/proof-release-enforcement.json
