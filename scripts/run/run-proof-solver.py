@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a configured solver and emit SHA-bound proof artifacts."""
+"""Run a configured solver and emit a manifest-carrying solver result."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--solver-output", type=Path, required=True)
     result.add_argument("--trust-manifest-output", type=Path, required=True)
     result.add_argument("--proof-receipt-output", type=Path, required=True)
+    result.add_argument("--solver-result-output", type=Path, required=True)
     return result
 
 
@@ -36,6 +37,7 @@ def main() -> int:
             args.solver_output.resolve(),
             args.trust_manifest_output.resolve(),
             args.proof_receipt_output.resolve(),
+            args.solver_result_output.resolve(),
         )
     except (OSError, ValueError, KeyError, TypeError) as exc:
         print(f"run-proof-solver: FAIL: {exc}", file=sys.stderr)
@@ -43,7 +45,7 @@ def main() -> int:
     print(
         "run-proof-solver: "
         f"status={result.proof_status} obligations={result.obligation_count} "
-        f"solver_exit={result.process_returncode}"
+        f"solver_exit={result.process_returncode} result={result.solver_result_path}"
     )
     if result.process_returncode != 0 or result.proof_status != "proved":
         return 2
