@@ -42,11 +42,14 @@ class BoundaryRegistryTests(unittest.TestCase):
     def setUp(self) -> None:
         self.registry_path = ROOT / "release" / "boundary-registry.json"
         self.registry = load_registry(self.registry_path)
-        self.files: dict[tuple[str, str], bytes] = {}
+        token_sets: dict[tuple[str, str], set[str]] = {}
         for _, ref in iter_file_references(self.registry):
             key = (ref["commit"], ref["path"])
-            tokens = "\n".join(ref["required_tokens"])
-            self.files.setdefault(key, (tokens + "\n").encode("utf-8"))
+            token_sets.setdefault(key, set()).update(ref["required_tokens"])
+        self.files = {
+            key: ("\n".join(sorted(tokens)) + "\n").encode("utf-8")
+            for key, tokens in token_sets.items()
+        }
         self.source = FakeSource(self.files)
 
     def test_complete_registry_validates_all_seven_boundaries(self) -> None:
