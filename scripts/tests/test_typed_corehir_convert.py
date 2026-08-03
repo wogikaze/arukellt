@@ -24,6 +24,24 @@ class TypedCoreHirConvertTests(unittest.TestCase):
             (ROOT / "tests" / "proof" / "typed-corehir.json").read_text()
         )
 
+    @staticmethod
+    def add_reference_type(document: dict[str, object]) -> None:
+        document["types"].append(
+            {
+                "id": 3,
+                "kind": "reference",
+                "name": "String",
+                "value_type": "gc-ref",
+                "representation": {
+                    "kind": "gc-ref",
+                    "wasm": ["gc-ref"],
+                    "nullable": True,
+                    "size_bytes": 4,
+                    "align_bytes": 4,
+                },
+            }
+        )
+
     def test_identity_converts_to_structured_typed_verified_core(self) -> None:
         converted = convert_typed_document(copy.deepcopy(self.source))
         function = converted["functions"][0]
@@ -108,24 +126,37 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         with self.assertRaisesRegex(ExplicitTypedCoreHirError, "unknown proof identifier"):
             convert_typed_document(document)
 
-    def test_reference_type_fails_closed(self) -> None:
+    def test_unreachable_reference_type_is_excluded(self) -> None:
         document = copy.deepcopy(self.source)
-        document["types"].append(
-            {
-                "id": 3,
-                "kind": "reference",
-                "name": "String",
-                "value_type": "gc-ref",
-                "representation": {
-                    "kind": "gc-ref",
-                    "wasm": ["gc-ref"],
-                    "nullable": True,
-                    "size_bytes": 4,
-                    "align_bytes": 4,
-                },
-            }
-        )
-        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "unsupported explicit proof type"):
+        self.add_reference_type(document)
+        converted = convert_typed_document(document)
+        self.assertNotIn(3, {entry["id"] for entry in converted["types"]})
+
+    def test_reachable_reference_type_fails_closed(self) -> None:
+        document = copy.deepcopy(self.source)
+        self.add_reference_type(document)
+        function = document["functions"][0]
+        function["signature"]["parameters"][0]["type_id"] = 3
+        function["signature"]["return_type_id"] = 3
+        function["abi"]["parameters"][0] = {
+            "type_id": 3,
+            "passing": "reference",
+            "wasm": ["gc-ref"],
+        }
+        function["abi"]["results"][0] = {
+            "type_id": 3,
+            "passing": "reference",
+            "wasm": ["gc-ref"],
+        }
+        function["locals"][0]["type_id"] = 3
+        function["body"]["expressions"][0]["type_id"] = 3
+        function["body"]["expressions"][0]["value_type"] = "gc-ref"
+        function["body"]["expressions"][1]["type_id"] = 3
+        function["body"]["expressions"][1]["value_type"] = "gc-ref"
+        with self.assertRaisesRegex(
+            ExplicitTypedCoreHirError,
+            "unsupported reachable proof type",
+        ):
             convert_typed_document(document)
 
 
