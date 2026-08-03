@@ -1,0 +1,129 @@
+use typechecker::ast_access
+use typechecker::ast_expr_predicates
+use typechecker::body_params
+use typechecker::contract_fn_sig
+use typechecker::contract_type_access
+use typechecker::infer
+use typechecker::kinds
+use typechecker::name_display
+use typechecker::scope
+use typechecker::unify
+
+fn proof_contract_nodes(node: AstNode) -> Vec<AstNode> {
+    let contracts = Vec::new<AstNode>()
+    let count = ast_access::node_type_ann_count(node)
+    let mut i = 0
+    while i < count {
+        let ann = ast_access::node_type_ann_at(node, i)
+        if ast_access::node_kind(ann) == kinds::NK_PROOF_CONTRACT() {
+            push(contracts, ann)
+        }
+        i = i + 1
+    }
+    contracts
+}
+
+fn proof_contract_scope(node: AstNode, sig: FnSig) -> LocalScope {
+    let contract_scope = scope::LocalScope_new()
+    body_params::bind_fn_params_from_sig(contract_scope, node, sig)
+    contract_scope
+}
+
+fn proof_expression_uses_result(node: AstNode) -> bool {
+    if ast_expr_predicates::node_is_ident(node) && eq(ast_access::node_text(node), "result") {
+        return true
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        if proof_expression_uses_result(ast_access::node_child_at(node, child_index)) {
+            return true
+        }
+        child_index = child_index + 1
+    }
+    false
+}
+
+fn proof_expression_identifiers_are_bound(
+    env: TypeEnv,
+    contract_scope: LocalScope,
+    node: AstNode
+) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        let binding_type = scope::scope_lookup(contract_scope, clone(name))
+        if contract_type_access::TypeInfo_tag(binding_type) == commands::TY_UNKNOWN() {
+            unify::type_error(env, concat("unknown proof identifier: ", name))
+            return false
+        }
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        if !proof_expression_identifiers_are_bound(
+            env,
+            contract_scope,
+            ast_access::node_child_at(node, child_index)
+        ) {
+            return false
+        }
+        child_index = child_index + 1
+    }
+    true
+}
+
+fn check_proof_contracts(
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode,
+    sig: FnSig
+) {
+    let contracts = proof_contract_nodes(node)
+    let count = len(contracts)
+    if count == 0 {
+        return
+    }
+    let mut i = 0
+    while i < count {
+        let contract = get_unchecked(contracts, i)
+        let kind_name = ast_access::node_text(contract)
+        let contract_scope = proof_contract_scope(node, sig)
+        if eq(clone(kind_name), "ensures") {
+            scope::scope_define(
+                contract_scope,
+                "result",
+                contract_fn_sig::FnSig_return_type(sig)
+            )
+        }
+        if ast_access::node_child_count(contract) == 0 {
+            unify::type_error(env, concat("empty proof contract: ", kind_name))
+            i = i + 1
+            continue
+        }
+        let expression = ast_access::node_child_at(contract, 0)
+        if eq(clone(kind_name), "requires") && proof_expression_uses_result(expression) {
+            unify::type_error(env, "result is only available in ensures contracts")
+            i = i + 1
+            continue
+        }
+        if !proof_expression_identifiers_are_bound(env, contract_scope, expression) {
+            i = i + 1
+            continue
+        }
+        let actual = unify::resolve_type(
+            env,
+            infer::infer_expr(env, contract_scope, fn_sigs, enum_defs, expression)
+        )
+        if contract_type_access::TypeInfo_tag(actual) != commands::TY_BOOL() {
+            unify::type_error(
+                env,
+                concat(
+                    concat("proof contract must have type bool, found ", name_display::type_display_name(actual)),
+                    concat(" in ", kind_name)
+                )
+            )
+        }
+        i = i + 1
+    }
+}

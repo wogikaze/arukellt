@@ -26,6 +26,7 @@ class TypedCoreHirArtifactTests(unittest.TestCase):
         checked = validate_document(copy.deepcopy(self.document))
         self.assertEqual(checked["schema"], "arukellt-typed-corehir")
         self.assertEqual(checked["functions"][0]["body"]["root_expr_id"], 0)
+        self.assertEqual(checked["functions"][0]["contracts"][0]["expression_id"], 2)
 
     def test_rejects_verified_core_identity(self) -> None:
         document = copy.deepcopy(self.document)
@@ -45,9 +46,22 @@ class TypedCoreHirArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "unknown expression id"):
             validate_document(document)
 
-    def test_rejects_unreachable_expression(self) -> None:
+    def test_rejects_unreachable_non_contract_expression(self) -> None:
         document = copy.deepcopy(self.document)
-        document["functions"][0]["body"]["expressions"][0]["children"] = [1]
+        document["functions"][0]["body"]["expressions"].append(
+            {
+                "id": 3,
+                "kind": "ident",
+                "kind_id": 5,
+                "type_id": 1,
+                "value_type": "i32",
+                "text": "orphan",
+                "int_value": 0,
+                "float_value": 0.0,
+                "span_start": 3,
+                "children": [],
+            }
+        )
         with self.assertRaisesRegex(ValidationError, "unreachable expression"):
             validate_document(document)
 

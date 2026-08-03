@@ -121,5 +121,5 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
     if source_function_count == 0 {
         return "TypedCoreHIR reject: no functions in entry source module"
     }
-    "TypedCoreHIR reject: renderer returned empty after preconditions"
+    "TypedCoreHIR reject: contract renderer returned empty after preconditions"
 }
