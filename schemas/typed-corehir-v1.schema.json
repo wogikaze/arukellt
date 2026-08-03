@@ -49,9 +49,18 @@
         "id": {"type": "integer", "minimum": 0},
         "kind": {"enum": ["unit", "bool", "integer", "float", "string", "reference", "function", "vector"]},
         "name": {"type": "string", "minLength": 1, "pattern": "^(?!unknown$)(?!\\?).+"},
+        "bits": {"enum": [32, 64]},
+        "signed": {"const": true},
         "value_type": {"enum": ["void", "i32", "i64", "f32", "f64", "v128", "ref", "gc-ref", "funcref"]},
         "representation": {"$ref": "#/$defs/representation"}
-      }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "integer"}}, "required": ["kind"]},
+          "then": {"required": ["bits", "signed"]},
+          "else": {"not": {"anyOf": [{"required": ["bits"]}, {"required": ["signed"]}]}}
+        }
+      ]
     },
     "parameter": {
       "type": "object",

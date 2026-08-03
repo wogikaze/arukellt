@@ -3,9 +3,9 @@ use corehir::raw_decls
 use corehir::raw_dto
 use corehir::raw_record
 use driver::config_record
+use driver::typed_corehir_contract_render
 use driver::typed_corehir_render_diagnostics
 use driver::verified_core_render_primitives
-use driver::verified_core_render_safe
 use std::host::stdio
 
 fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
@@ -26,6 +26,22 @@ fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
         module_index = module_index + 1
     }
     0 - 1
+}
+
+fn typed_corehir_render_type(type_id: i32, pointer_width: i32) -> String {
+    let rendered = verified_core_render_primitives::vc_render_type(type_id, pointer_width)
+    if type_id != 1 && type_id != 3 && type_id != 4 {
+        return rendered
+    }
+    let bits = if type_id == 4 { 64 } else { 32 }
+    let n = len(rendered)
+    if n < 1 {
+        return rendered
+    }
+    concat(
+        substring(rendered, 0, n - 1),
+        concat(",\"bits\":", concat(to_string(bits), ",\"signed\":true}"))
+    )
 }
 
 fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> String {
@@ -55,7 +71,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         if type_id > 0 {
             out = concat(out, ",")
         }
-        out = concat(out, verified_core_render_primitives::vc_render_type(type_id, pointer_width))
+        out = concat(out, typed_corehir_render_type(type_id, pointer_width))
         type_id = type_id + 1
     }
     out = concat(out, "],\"functions\":[")
@@ -66,7 +82,7 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
     while function_index < len(fn_infos) {
         let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
         if decl_index >= source_decl_start && decl_index < source_decl_end {
-            let rendered = verified_core_render_safe::vcs_render_function(program, function_index)
+            let rendered = typed_corehir_contract_render::render_function(program, function_index)
             if len(clone(rendered)) == 0 {
                 stdio::eprintln(
                     typed_corehir_render_diagnostics::diagnose_typed_corehir_rejection(program)

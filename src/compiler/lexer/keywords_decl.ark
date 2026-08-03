@@ -25,6 +25,9 @@ pub fn keyword_kind_decl(word: String) -> i32 {
     if eq(word, "const") {
         return tokens::TK_CONST()
     }
+    if eq(word, "proof") {
+        return tokens::TK_PROOF()
+    }
     if eq(word, "resource") {
         return tokens::TK_RESOURCE()
     }
