@@ -19,6 +19,12 @@ jobs:
       - name: Reject solver results without TrustManifest bundle
         run: python3 scripts/check/check-solver-trust-manifest-boundary.py
 
+      - name: Write and independently validate solver trust receipt
+        run: |
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
       - name: Enable deterministic solver fixture
         run: chmod +x tests/proof/toolchain/fake_solver.py
 
@@ -27,6 +33,7 @@ jobs:
           python3 -m unittest \
             scripts.tests.test_solver_receipts \
             scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt \
             scripts.tests.test_solver_driver
 
       - name: Run a proved obligation end to end
@@ -85,5 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: proof-solver-run
-          path: .build/proof-run
+          path: |
+            .build/proof-run
+            .build/proof/solver-trust-boundary.json
           if-no-files-found: error
