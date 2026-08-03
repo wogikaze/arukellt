@@ -74,6 +74,7 @@ def main() -> int:
         ("--boundary-registry-validation-receipt", "source binding receipt argument"),
         ("write-source-proof-binding.py", "source binding writer invocation"),
         ("run-proof-solver.py", "solver invocation"),
+        ("--solver-result-output", "complete SolverResult output"),
         ("check-proof-required-release.py", "release authorization invocation"),
     ):
         require(release_command, token, label)
@@ -129,6 +130,7 @@ def main() -> int:
             f"{label} validation receipt retention",
         )
         require(workflow, "test_boundary_registry", f"{label} registry negative tests")
+        require(workflow, "solver-result.json", f"{label} complete solver result")
 
     for token, label in (
         ("check-boundary-registry.py", "registry workflow generator"),
