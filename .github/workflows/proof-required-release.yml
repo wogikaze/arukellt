@@ -38,6 +38,7 @@ jobs:
       - name: Validate release gate libraries
         run: |
           python3 -m unittest \
+            scripts.tests.test_boundary_registry \
             scripts.tests.test_source_proof_binding \
             scripts.tests.test_proof_required_release_gate \
             scripts.tests.test_release_authorization
@@ -87,6 +88,8 @@ jobs:
             .build/typed-contract-proof/trust-manifest.json
             .build/typed-contract-proof/proof-receipt.json
             .build/typed-contract-proof/solver-output.txt
+            release/boundary-registry.json
+            .build/proof/boundary-registry-validation.json
             .build/proof/proof-release-enforcement.json
             .build/proof/backend-typeid-layout.json
             .build/proof/mir-opt-translation-registry.json
