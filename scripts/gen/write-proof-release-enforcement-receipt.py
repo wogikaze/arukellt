@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 BOUNDARY_FILES = (
     ".github/workflows/proof-required-release.yml",
+    ".github/workflows/typed-contract-frontend.yml",
     ".github/workflows/versioned-boundary-registry.yml",
     "release/boundary-registry.json",
     "scripts/run/proof-required-release.sh",
