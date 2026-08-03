@@ -13,8 +13,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 COMPONENTS = (
-    ("arukellt-source-proof-binding-v3", "source-artifact-binding", "3", None),
-    ("arukellt-source-proof-binding-validator-v3", "source-artifact-binding-validator", "3", "scripts/proof/source_proof_binding.py"),
+    ("arukellt-source-proof-binding-v4", "source-artifact-binding", "4", None),
+    ("arukellt-source-proof-binding-validator-v4", "source-artifact-binding-validator", "4", "scripts/proof/source_proof_binding.py"),
+    ("arukellt-major-boundary-registry-v1", "major-boundary-registry", "1", "release/boundary-registry.json"),
+    ("arukellt-major-boundary-registry-validator-v1", "major-boundary-registry-validator", "1", "scripts/proof/boundary_registry.py"),
+    ("arukellt-major-boundary-receipt-validator-v1", "major-boundary-receipt-validator", "1", "scripts/proof/boundary_registry_receipt.py"),
+    ("arukellt-major-boundary-checker-v1", "major-boundary-checker", "1", "scripts/check/check-boundary-registry.py"),
+    ("arukellt-major-boundary-receipt-checker-v1", "major-boundary-receipt-checker", "1", "scripts/check/check-boundary-registry-receipt.py"),
     ("arukellt-release-provenance-validator-v1", "release-provenance-validator", "1", "scripts/proof/release_provenance.py"),
     ("arukellt-release-payload-validator-v1", "release-payload-validator", "1", "scripts/proof/release_payload.py"),
     ("arukellt-release-gate-v1", "proof-required-release-gate", "1", "scripts/proof/release_gate.py"),
