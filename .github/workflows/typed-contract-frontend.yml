@@ -153,7 +153,8 @@ jobs:
             --toolchain .build/typed-contract-toolchain/toolchain.json \
             --solver-output .build/typed-contract-proof/solver-output.txt \
             --trust-manifest-output .build/typed-contract-proof/trust-manifest.json \
-            --proof-receipt-output .build/typed-contract-proof/proof-receipt.json
+            --proof-receipt-output .build/typed-contract-proof/proof-receipt.json \
+            --solver-result-output .build/typed-contract-proof/solver-result.json
 
       - name: Verify source-to-receipt bindings
         run: |
@@ -194,6 +195,8 @@ jobs:
           receipt = json.loads((proof / "proof-receipt.json").read_text())
           if receipt["status"] != "proved":
               raise SystemExit(receipt)
+          if not (proof / "solver-result.json").is_file():
+              raise SystemExit("solver-result.json missing")
           print("typed-source-contract-proof: PASS")
           PY
 
