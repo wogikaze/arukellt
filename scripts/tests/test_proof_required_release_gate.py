@@ -70,6 +70,8 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             "verified_core_machine": self.root / "verified-core-machine.json",
             "verified_core_normalized": self.root / "verified-core.json",
             "solver_input": self.root / "vcs.smt2",
+            "boundary_registry": self.root / "boundary-registry.json",
+            "boundary_registry_validation_receipt": self.root / "boundary-registry-validation.json",
             "backend_typeid_layout_receipt": self.root / "backend-typeid-layout.json",
             "optimizer_translation_registry": self.root / "mir-opt-registry.json",
             "corehir_body_boundary_receipt": self.root / "body-boundary.json",
@@ -121,7 +123,7 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
         *,
         binding_digest: str | None = None,
         subject_digest: str | None = None,
-        binding_version: str = "3",
+        binding_version: str = "4",
     ) -> None:
         self.manifest_path.write_text(
             json.dumps(
@@ -174,6 +176,23 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
         with self.assertRaisesRegex(SourceProofBindingError, "source: digest mismatch"):
             self.validate()
 
+    def test_rejects_stale_boundary_registry(self) -> None:
+        self.paths["boundary_registry"].write_text("substituted\n", encoding="utf-8")
+        with self.assertRaisesRegex(
+            SourceProofBindingError, "boundary_registry: digest mismatch"
+        ):
+            self.validate()
+
+    def test_rejects_stale_boundary_registry_validation_receipt(self) -> None:
+        self.paths["boundary_registry_validation_receipt"].write_text(
+            "substituted\n", encoding="utf-8"
+        )
+        with self.assertRaisesRegex(
+            SourceProofBindingError,
+            "boundary_registry_validation_receipt: digest mismatch",
+        ):
+            self.validate()
+
     def test_rejects_stale_optimizer_registry(self) -> None:
         self.paths["optimizer_translation_registry"].write_text(
             "substituted\n", encoding="utf-8"
@@ -201,8 +220,8 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             self.validate()
 
     def test_rejects_legacy_source_binding_version(self) -> None:
-        self.write_manifest(binding_version="2")
-        with self.assertRaisesRegex(ProofRequiredReleaseError, "version 3"):
+        self.write_manifest(binding_version="3")
+        with self.assertRaisesRegex(ProofRequiredReleaseError, "version 4"):
             self.validate()
 
     def test_rejects_unbound_compiler_executable(self) -> None:
