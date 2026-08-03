@@ -4,7 +4,7 @@ from __future__ import annotations
 import sys
 
 source = sys.stdin.read()
-if "prove" in source:
+if "prove" in source or "(check-sat)" in source:
     print("unsat")
 elif "refute" in source:
     print("sat")
