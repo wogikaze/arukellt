@@ -21,3 +21,5 @@
 | [006-sealed-raw-api.md](006-sealed-raw-api.md) | RFC-006: Sealed raw API for Vec/String representation | ACCEPTED | 関連 issue: #817 関連 plan: intrinsic-layer-separation.md |
 | [007-memory64-gc-layout-and-wasi-boundary.md](007-memory64-gc-layout-and-wasi-boundary.md) | RFC-007: Memory64 GC レイアウトと WASI P2 境界 | DRAFT | ADR-040（ACCEPTED） |
 | [008-native-cpp-c99-backend-runtime-abi.md](008-native-cpp-c99-backend-runtime-abi.md) | RFC-008: native-cpp C99 backend と runtime ABI | ACCEPTED | 関連 plan: native-cpp MVP implementation plan |
+| [009-verifiable-compiler-architecture.md](009-verifiable-compiler-architecture.md) | RFC-009: Verifiable Compiler Architecture | DRAFT | 関連 RFC: RFC-010: Proof-Driven Development |
+| [010-proof-driven-development.md](010-proof-driven-development.md) | RFC-010: Proof-Driven Development | DRAFT | 関連 RFC: RFC-009 |
