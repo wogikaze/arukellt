@@ -12,6 +12,10 @@ RESULT = ROOT / "scripts" / "proof" / "solver_result.py"
 RUNNER = ROOT / "scripts" / "run" / "run-proof-solver.py"
 CAPTURED = ROOT / "scripts" / "gen" / "write-solver-receipts.py"
 CHECKER = ROOT / "scripts" / "check" / "check-solver-result.py"
+BOUNDARY_GENERATOR = ROOT / "scripts" / "gen" / "write-solver-trust-boundary-receipt.py"
+BOUNDARY_VALIDATOR = ROOT / "scripts" / "proof" / "solver_trust_boundary_receipt.py"
+BOUNDARY_CHECKER = ROOT / "scripts" / "check" / "check-solver-trust-boundary-receipt.py"
+POLICY = ROOT / "release" / "proof-policy.json"
 WORKFLOWS = ROOT / ".github" / "workflows"
 
 
@@ -55,7 +59,18 @@ def _reject_production_bypasses() -> None:
 
 
 def main() -> int:
-    for path in (DRIVER, RESULT, RUNNER, CAPTURED, CHECKER):
+    required_files = (
+        DRIVER,
+        RESULT,
+        RUNNER,
+        CAPTURED,
+        CHECKER,
+        BOUNDARY_GENERATOR,
+        BOUNDARY_VALIDATOR,
+        BOUNDARY_CHECKER,
+        POLICY,
+    )
+    for path in required_files:
         if not path.is_file():
             raise ValueError(f"solver trust boundary file missing: {path.relative_to(ROOT)}")
 
@@ -63,6 +78,9 @@ def main() -> int:
     result = RESULT.read_text(encoding="utf-8")
     runner = RUNNER.read_text(encoding="utf-8")
     captured = CAPTURED.read_text(encoding="utf-8")
+    boundary_generator = BOUNDARY_GENERATOR.read_text(encoding="utf-8")
+    boundary_validator = BOUNDARY_VALIDATOR.read_text(encoding="utf-8")
+    policy = POLICY.read_text(encoding="utf-8")
 
     for token, label in (
         ("create_solver_result", "driver result construction"),
@@ -86,6 +104,20 @@ def main() -> int:
         require(text, '"--solver-result-output"', f"{label} result argument")
         require(text, "required=True", f"{label} mandatory result argument")
 
+    for token, label in (
+        ('"arukellt-solver-trust-boundary"', "boundary receipt schema"),
+        ('"arukellt-solver-result@1"', "primary result identity"),
+        ('"embedded-and-file-bound"', "embedded artifact policy"),
+    ):
+        require(boundary_generator, token, label)
+    for token, label in (
+        ("REQUIRED_CAPABILITIES", "mandatory capability registry"),
+        ("sha256_file(resolved)", "receipt digest verification"),
+        ("duplicate path", "duplicate path rejection"),
+    ):
+        require(boundary_validator, token, label)
+    require(policy, '"solver_trust_manifest": true', "release hard gate")
+
     _reject_production_bypasses()
     for workflow in sorted((*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml"))):
         text = workflow.read_text(encoding="utf-8")
@@ -93,8 +125,16 @@ def main() -> int:
             _require_result_argument_near_calls(workflow, "run-proof-solver.py")
         if "write-solver-receipts.py" in text:
             _require_result_argument_near_calls(workflow, "write-solver-receipts.py")
-        if ("run-proof-solver.py" in text or "write-solver-receipts.py" in text) and "solver-result" not in text:
-            raise ValueError(f"{workflow.relative_to(ROOT)}: solver workflow does not retain SolverResult")
+        if "run-proof-solver.py" in text or "write-solver-receipts.py" in text:
+            if "solver-result" not in text:
+                raise ValueError(f"{workflow.relative_to(ROOT)}: solver workflow does not retain SolverResult")
+            for token in (
+                "write-solver-trust-boundary-receipt.py",
+                "check-solver-trust-boundary-receipt.py",
+                "check-solver-result.py",
+            ):
+                if token not in text:
+                    raise ValueError(f"{workflow.relative_to(ROOT)}: missing solver trust step {token}")
 
     print(
         "solver-trust-manifest-boundary: PASS: "
