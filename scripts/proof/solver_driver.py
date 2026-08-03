@@ -1,4 +1,4 @@
-"""Run a configured proof solver and generate bound proof artifacts."""
+"""Run a configured proof solver and emit one complete solver result artifact."""
 
 from __future__ import annotations
 
@@ -9,6 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from proof.solver_receipts import generate_solver_receipts, load_toolchain
+from proof.solver_result import (
+    create_solver_result,
+    validate_solver_result_file,
+    write_solver_result,
+)
 
 
 @dataclass(frozen=True)
@@ -19,6 +24,7 @@ class SolverRunResult:
     solver_output_path: Path
     trust_manifest_path: Path
     proof_receipt_path: Path
+    solver_result_path: Path
 
 
 def _string(value: Any, label: str) -> str:
@@ -90,6 +96,7 @@ def run_solver_and_generate_receipts(
     solver_output_path: Path,
     trust_manifest_path: Path,
     proof_receipt_path: Path,
+    solver_result_path: Path,
 ) -> SolverRunResult:
     toolchain = load_toolchain(toolchain_path)
     executable = _solver_executable(toolchain_path, toolchain)
@@ -135,6 +142,29 @@ def run_solver_and_generate_receipts(
     status = str(receipt["status"])
     if timed_out and status != "error":
         raise ValueError("timed-out solver run did not produce status=error")
+
+    solver_result = create_solver_result(
+        subject_path=subject_path,
+        solver_input_path=solver_input_path,
+        toolchain_path=toolchain_path,
+        solver_output_path=solver_output_path,
+        trust_manifest_path=trust_manifest_path,
+        proof_receipt_path=proof_receipt_path,
+        execution_mode="solver-process",
+        process_returncode=returncode,
+        timed_out=timed_out,
+    )
+    write_solver_result(solver_result, solver_result_path)
+    validate_solver_result_file(
+        solver_result_path,
+        subject_path=subject_path,
+        solver_input_path=solver_input_path,
+        toolchain_path=toolchain_path,
+        solver_output_path=solver_output_path,
+        trust_manifest_path=trust_manifest_path,
+        proof_receipt_path=proof_receipt_path,
+    )
+
     return SolverRunResult(
         process_returncode=returncode,
         proof_status=status,
@@ -142,6 +172,7 @@ def run_solver_and_generate_receipts(
         solver_output_path=solver_output_path,
         trust_manifest_path=trust_manifest_path,
         proof_receipt_path=proof_receipt_path,
+        solver_result_path=solver_result_path,
     )
 
 
