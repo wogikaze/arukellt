@@ -133,6 +133,7 @@ def main() -> int:
     for token, label in (
         ("check-boundary-registry.py", "registry workflow generator"),
         ("check-boundary-registry-receipt.py", "registry workflow independent checker"),
+        ("check-versioned-boundary-enforcement.py", "registry workflow integration checker"),
         ("release/boundary-registry.json", "registry workflow artifact"),
         ("boundary-registry-validation.json", "registry workflow receipt artifact"),
     ):
@@ -142,7 +143,9 @@ def main() -> int:
         ('"release/boundary-registry.json"', "release enforcement registry binding"),
         ('"scripts/proof/boundary_registry.py"', "release enforcement registry validator binding"),
         ('"scripts/proof/boundary_registry_receipt.py"', "release enforcement receipt validator binding"),
+        ('"scripts/check/check-versioned-boundary-enforcement.py"', "release enforcement integration checker binding"),
         ('"scripts/tests/test_boundary_registry.py"', "release enforcement negative tests binding"),
+        ('"scripts/tests/test_source_proof_binding.py"', "release enforcement binding-v4 tests"),
         ("pinned major boundary registry and validation receipt", "authorization binding declaration"),
     ):
         require(enforcement_receipt, token, label)
