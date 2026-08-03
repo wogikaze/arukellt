@@ -29,8 +29,10 @@ jobs:
             *) echo "proof-required release requires refs/tags/v*" >&2; exit 1 ;;
           esac
 
-      - name: Reject unguarded release entrypoints
-        run: python3 scripts/check/check-proof-release-entrypoints.py
+      - name: Reject unguarded release and boundary entrypoints
+        run: |
+          python3 scripts/check/check-proof-release-entrypoints.py
+          python3 scripts/check/check-versioned-boundary-enforcement.py
 
       - name: Write release enforcement boundary receipt
         run: python3 scripts/gen/write-proof-release-enforcement-receipt.py
