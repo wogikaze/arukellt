@@ -2,7 +2,7 @@ name: Z3 proof run
 
 on:
   pull_request:
-    branches: [agent/proof-solver-driver, agent/solver-bound-proof-receipts, agent/formal-verification-hard-gates, master]
+    branches: [agent/z3-proof-run, agent/proof-solver-driver, agent/solver-bound-proof-receipts, agent/formal-verification-hard-gates, master]
   workflow_dispatch:
 
 concurrency:
@@ -16,18 +16,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test VerifiedCore SMT adapter
+        run: python3 -m unittest scripts.tests.test_smtlib_v1
+
       - name: Install Z3
         run: |
           sudo apt-get update
           sudo apt-get install -y z3
           z3 --version
 
+      - name: Generate verification conditions from VerifiedCore
+        run: |
+          mkdir -p .build/z3-proof
+          python3 scripts/gen/write-smt-vcs.py \
+            --subject tests/proof/verified-core.json \
+            --output .build/z3-proof/verified-core-vcs.smt2
+          grep -q '(check-sat)' .build/z3-proof/verified-core-vcs.smt2
+
       - name: Build hash-bound toolchain bundle
         run: |
           mkdir -p .build/z3-toolchain
           cp "$(command -v z3)" .build/z3-toolchain/z3
           cp tests/proof/toolchain/producer.bin .build/z3-toolchain/producer.bin
-          cp tests/proof/toolchain/translator.txt .build/z3-toolchain/translator.txt
+          cp scripts/proof/smtlib_v1.py .build/z3-toolchain/smtlib_v1.py
           cp tests/proof/toolchain/trusted-component.txt .build/z3-toolchain/trusted-component.txt
           python3 - <<'PY'
           import json
@@ -44,9 +55,9 @@ jobs:
                   "executable": "producer.bin",
               },
               "translator": {
-                  "name": "arukellt-smtlib",
-                  "version": "identity-vc-v1",
-                  "executable": "translator.txt",
+                  "name": "arukellt-verified-core-smtlib",
+                  "version": "1",
+                  "executable": "smtlib_v1.py",
               },
               "solver": {
                   "name": "z3",
@@ -80,18 +91,17 @@ jobs:
           )
           PY
 
-      - name: Prove identity contract with Z3
+      - name: Prove generated contracts with Z3
         run: |
-          mkdir -p .build/z3-proof
           python3 scripts/run/run-proof-solver.py \
             --subject tests/proof/verified-core.json \
-            --solver-input tests/proof/z3-identity-vc.smt2 \
+            --solver-input .build/z3-proof/verified-core-vcs.smt2 \
             --toolchain .build/z3-toolchain/toolchain.json \
             --solver-output .build/z3-proof/solver-output.txt \
             --trust-manifest-output .build/z3-proof/trust-manifest.json \
             --proof-receipt-output .build/z3-proof/proof-receipt.json
 
-      - name: Verify real solver identity and bindings
+      - name: Verify translator, solver identity, and bindings
         run: |
           python3 - <<'PY'
           import hashlib
@@ -111,10 +121,14 @@ jobs:
           manifest = json.loads(manifest_path.read_text())
           receipt = json.loads(receipt_path.read_text())
           z3_path = Path(".build/z3-toolchain/z3")
+          translator_path = Path(".build/z3-toolchain/smtlib_v1.py")
           z3_hash = hashlib.sha256(z3_path.read_bytes()).hexdigest()
+          translator_hash = hashlib.sha256(translator_path.read_bytes()).hexdigest()
           assert manifest["solver"]["name"] == "z3", manifest["solver"]
           assert manifest["solver"]["executable_sha256"] == z3_hash
           assert manifest["solver"]["version"].startswith("Z3 version")
+          assert manifest["translator"]["name"] == "arukellt-verified-core-smtlib"
+          assert manifest["translator"]["executable_sha256"] == translator_hash
           assert output.read_text().strip() == "unsat"
           assert receipt["status"] == "proved", receipt
           assert receipt["obligations"] == {
@@ -124,13 +138,13 @@ jobs:
               "unknown": 0,
               "errors": 0,
           }
-          print("z3-proof-run: PASS")
+          print("verified-core-z3-proof-run: PASS")
           PY
 
-      - name: Upload real Z3 proof artifacts
+      - name: Upload generated proof artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: z3-proof-run
+          name: verified-core-z3-proof-run
           path: |
             .build/z3-toolchain/toolchain.json
             .build/z3-proof
