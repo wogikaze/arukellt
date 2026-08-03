@@ -32,6 +32,7 @@ jobs:
       - name: Validate proof adapters
         run: |
           python3 -m unittest \
+            scripts.tests.test_boundary_registry \
             scripts.tests.test_proof_artifacts \
             scripts.tests.test_typed_corehir_artifacts \
             scripts.tests.test_typed_corehir_convert \
@@ -58,6 +59,14 @@ jobs:
 
       - name: Generate architecture evidence
         run: |
+          python3 scripts/check/check-boundary-registry.py \
+            --registry release/boundary-registry.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --receipt-output .build/proof/boundary-registry-validation.json
+          python3 scripts/check/check-boundary-registry-receipt.py \
+            --registry release/boundary-registry.json \
+            --receipt .build/proof/boundary-registry-validation.json \
+            --repository "$GITHUB_REPOSITORY"
           python3 scripts/gen/write-backend-typeid-layout-receipt.py
           python3 scripts/gen/write-mir-opt-translation-registry.py
           python3 scripts/gen/write-corehir-body-boundary-receipt.py
@@ -118,6 +127,8 @@ jobs:
             --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
             --verified-core-normalized .build/typed-contract-proof/verified-core.json \
             --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --boundary-registry release/boundary-registry.json \
+            --boundary-registry-validation-receipt .build/proof/boundary-registry-validation.json \
             --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
             --optimizer-translation-registry .build/proof/mir-opt-translation-registry.json \
             --corehir-body-boundary-receipt .build/proof/corehir-body-boundary.json \
@@ -171,6 +182,8 @@ jobs:
                   "verified_core_machine": proof / "verified-core-machine.json",
                   "verified_core_normalized": proof / "verified-core.json",
                   "solver_input": proof / "verified-core-vcs.smt2",
+                  "boundary_registry": Path("release/boundary-registry.json"),
+                  "boundary_registry_validation_receipt": Path(".build/proof/boundary-registry-validation.json"),
                   "backend_typeid_layout_receipt": Path(".build/proof/backend-typeid-layout.json"),
                   "optimizer_translation_registry": Path(".build/proof/mir-opt-translation-registry.json"),
                   "corehir_body_boundary_receipt": Path(".build/proof/corehir-body-boundary.json"),
@@ -191,6 +204,8 @@ jobs:
           path: |
             .build/typed-contract-proof
             .build/typed-contract-toolchain/toolchain.json
+            release/boundary-registry.json
+            .build/proof/boundary-registry-validation.json
             .build/proof/backend-typeid-layout.json
             .build/proof/mir-opt-translation-registry.json
             .build/proof/corehir-body-boundary.json
