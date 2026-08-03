@@ -16,8 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test VerifiedCore SMT adapter
-        run: python3 -m unittest scripts.tests.test_smtlib_v1
+      - name: Test VerifiedCore SMT adapter and SolverResult
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_smtlib_v1 \
+            scripts.tests.test_solver_result
 
       - name: Install Z3
         run: |
@@ -80,10 +83,7 @@ jobs:
                       "artifact": "trusted-component.txt",
                   }
               ],
-              "limits": {
-                  "timeout_ms": 10000,
-                  "memory_bytes": 1073741824,
-              },
+              "limits": {"timeout_ms": 10000, "memory_bytes": 1073741824},
           }
           Path(".build/z3-toolchain/toolchain.json").write_text(
               json.dumps(document, indent=2) + "\n",
@@ -99,7 +99,16 @@ jobs:
             --toolchain .build/z3-toolchain/toolchain.json \
             --solver-output .build/z3-proof/solver-output.txt \
             --trust-manifest-output .build/z3-proof/trust-manifest.json \
-            --proof-receipt-output .build/z3-proof/proof-receipt.json
+            --proof-receipt-output .build/z3-proof/proof-receipt.json \
+            --solver-result-output .build/z3-proof/solver-result.json
+          python3 scripts/check/check-solver-result.py \
+            .build/z3-proof/solver-result.json \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/z3-proof/verified-core-vcs.smt2 \
+            --toolchain .build/z3-toolchain/toolchain.json \
+            --solver-output .build/z3-proof/solver-output.txt \
+            --trust-manifest .build/z3-proof/trust-manifest.json \
+            --proof-receipt .build/z3-proof/proof-receipt.json
 
       - name: Verify translator, solver identity, and bindings
         run: |
@@ -122,22 +131,11 @@ jobs:
           receipt = json.loads(receipt_path.read_text())
           z3_path = Path(".build/z3-toolchain/z3")
           translator_path = Path(".build/z3-toolchain/smtlib_v1.py")
-          z3_hash = hashlib.sha256(z3_path.read_bytes()).hexdigest()
-          translator_hash = hashlib.sha256(translator_path.read_bytes()).hexdigest()
-          assert manifest["solver"]["name"] == "z3", manifest["solver"]
-          assert manifest["solver"]["executable_sha256"] == z3_hash
-          assert manifest["solver"]["version"].startswith("Z3 version")
-          assert manifest["translator"]["name"] == "arukellt-verified-core-smtlib"
-          assert manifest["translator"]["executable_sha256"] == translator_hash
+          assert manifest["solver"]["name"] == "z3"
+          assert manifest["solver"]["executable_sha256"] == hashlib.sha256(z3_path.read_bytes()).hexdigest()
+          assert manifest["translator"]["executable_sha256"] == hashlib.sha256(translator_path.read_bytes()).hexdigest()
           assert output.read_text().strip() == "unsat"
           assert receipt["status"] == "proved", receipt
-          assert receipt["obligations"] == {
-              "total": 1,
-              "proved": 1,
-              "refuted": 0,
-              "unknown": 0,
-              "errors": 0,
-          }
           print("verified-core-z3-proof-run: PASS")
           PY
 
