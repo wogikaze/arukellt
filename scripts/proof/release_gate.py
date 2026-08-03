@@ -117,9 +117,9 @@ def validate_proof_required_release(
         raise ProofRequiredReleaseError(
             "TrustManifest does not bind the supplied source proof binding"
         )
-    if binding_component.get("version") != "3":
+    if binding_component.get("version") != "4":
         raise ProofRequiredReleaseError(
-            "TrustManifest must identify source-artifact-binding version 3"
+            "TrustManifest must identify source-artifact-binding version 4"
         )
 
     producer_path = bound_paths["producer_executable"]
