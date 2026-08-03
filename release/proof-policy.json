@@ -4,7 +4,7 @@
   "mode": "proof-optional",
   "hard_gates": {
     "versioned_boundary_artifacts": false,
-    "explicit_backend_type_abi_layout": false,
+    "explicit_backend_type_abi_layout": true,
     "typed_verified_core_emission": false,
     "optimizer_translation_validation": true,
     "solver_trust_manifest": true,

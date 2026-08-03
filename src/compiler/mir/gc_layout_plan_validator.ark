@@ -1,0 +1,39 @@
+use corehir::type_id
+use mir::gc_layout_plan
+
+fn mir_gc_layout_plan_valid(plan: MirGcLayoutPlan) -> bool {
+    if gc_layout_plan::mir_gc_layout_plan_schema_version(plan) != 1 {
+        return false
+    }
+    let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
+    let mut index = 0
+    while index < count {
+        let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
+        let tid = gc_layout_plan::mir_gc_layout_binding_type_id(binding)
+        if !type_id::type_id_is_valid(tid) {
+            return false
+        }
+        let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
+        if source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() &&
+           source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() &&
+           source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+            return false
+        }
+        if gc_layout_plan::mir_gc_layout_binding_source_value(binding) < 0 {
+            return false
+        }
+        let mut previous = 0
+        while previous < index {
+            let other = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, previous)
+            if type_id::type_id_eq(
+                tid,
+                gc_layout_plan::mir_gc_layout_binding_type_id(other)
+            ) {
+                return false
+            }
+            previous = previous + 1
+        }
+        index = index + 1
+    }
+    true
+}
