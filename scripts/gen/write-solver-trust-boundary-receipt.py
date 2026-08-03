@@ -34,6 +34,7 @@ BOUNDARY_FILES = (
     "scripts/check/check-solver-trust-boundary-receipt.py",
     "scripts/tests/test_solver_receipts.py",
     "scripts/tests/test_solver_result.py",
+    "scripts/tests/test_solver_trust_boundary_receipt.py",
     "scripts/tests/test_solver_driver.py",
     ".github/workflows/solver-bound-proof-receipts.yml",
     ".github/workflows/proof-solver-driver.yml",
