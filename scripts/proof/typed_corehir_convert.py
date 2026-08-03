@@ -10,7 +10,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from proof.common import array_value, exact_keys, int_value, object_value, string_value
+from proof.common import array_value, int_value, object_value, string_value
 from proof.typed_corehir import validate_document as validate_typed_corehir
 from proof.verified_core import validate_document as validate_verified_core
 
@@ -234,7 +234,11 @@ def _return_value(
 def convert_document(value: Any) -> dict[str, Any]:
     source = validate_typed_corehir(value)
     source_types = _index_types(source)
-    used_types: set[int] = set()
+    if 0 not in source_types or source_types[0].get("kind") != "unit":
+        raise UnsupportedTypedCoreHir("$.types: type id 0 must be unit")
+    # VerifiedCore v1 reserves type id 0 for unit even when the contracted
+    # function does not directly mention unit.
+    used_types: set[int] = {0}
     verified_functions: list[dict[str, Any]] = []
 
     for function_index, raw in enumerate(array_value(source["functions"], "$.functions")):
