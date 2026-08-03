@@ -106,6 +106,10 @@ def _normalize_source(
         legacy = copy.deepcopy(raw)
 
         if kind == "integer":
+            _require(
+                "bits" in raw and "signed" in raw,
+                f"{path}: integer type requires explicit bits and signed fields",
+            )
             bits = _require_int(raw.get("bits"), f"{path}.bits", minimum=1)
             signed = _require_bool(raw.get("signed"), f"{path}.signed")
             _require(signed and bits in {32, 64}, f"{path}: only explicit signed i32/i64 are supported")
@@ -134,6 +138,10 @@ def _admit_reachable_type(
     kind = explicit.get("kind")
     _require(rendered.get("kind") == kind, f"{path}.kind: converter changed type kind")
     if kind == "integer":
+        _require(
+            "bits" in explicit and "signed" in explicit,
+            f"{path}: integer type requires explicit bits and signed fields",
+        )
         bits = _require_int(explicit.get("bits"), f"{path}.bits", minimum=1)
         signed = _require_bool(explicit.get("signed"), f"{path}.signed")
         _require(signed and bits in {32, 64}, f"{path}: unsupported proof integer")
