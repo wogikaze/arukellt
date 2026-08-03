@@ -98,7 +98,7 @@ class SolverResultTests(unittest.TestCase):
 
     def test_stale_toolchain_is_rejected(self) -> None:
         copied = self.root / "toolchain.json"
-        copied.write_text(self.toolchain.read_text(), encoding="utf-8")
+        copied.write_text(self.toolchain.read_text() + "\n", encoding="utf-8")
         document = copy.deepcopy(self.document)
         with self.assertRaisesRegex(SolverResultError, "toolchain_sha256: digest mismatch"):
             validate_solver_result(
