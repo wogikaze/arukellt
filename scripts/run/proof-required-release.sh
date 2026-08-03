@@ -38,9 +38,22 @@ PROVENANCE="$RELEASE_ROOT/release-provenance.json"
 PAYLOAD_MANIFEST="$RELEASE_ROOT/release-payload-manifest.json"
 AUTHORIZATION="$RELEASE_ROOT/release-authorization.json"
 POLICY="$PROOF_ROOT/release-policy.json"
+BOUNDARY_REGISTRY="release/boundary-registry.json"
+BOUNDARY_REGISTRY_RECEIPT=".build/proof/boundary-registry-validation.json"
 
 rm -rf "$TOOLCHAIN_ROOT" "$RELEASE_ROOT"
 mkdir -p "$PROOF_ROOT" "$TOOLCHAIN_ROOT" "$RELEASE_ROOT" .build/proof
+
+# The major-boundary inventory is pinned to immutable commits and independently
+# revalidated before any local architecture evidence or solver process runs.
+python3 scripts/check/check-boundary-registry.py \
+  --registry "$BOUNDARY_REGISTRY" \
+  --repository "$GITHUB_REPOSITORY" \
+  --receipt-output "$BOUNDARY_REGISTRY_RECEIPT"
+python3 scripts/check/check-boundary-registry-receipt.py \
+  --registry "$BOUNDARY_REGISTRY" \
+  --receipt "$BOUNDARY_REGISTRY_RECEIPT" \
+  --repository "$GITHUB_REPOSITORY"
 
 # Architecture evidence must be generated from this exact checkout.
 python3 scripts/check/check-backend-name-lookup-audit.py
@@ -101,6 +114,8 @@ python3 scripts/gen/write-source-proof-binding.py \
   --verified-core-machine "$PROOF_ROOT/verified-core-machine.json" \
   --verified-core-normalized "$PROOF_ROOT/verified-core.json" \
   --solver-input "$PROOF_ROOT/verified-core-vcs.smt2" \
+  --boundary-registry "$BOUNDARY_REGISTRY" \
+  --boundary-registry-validation-receipt "$BOUNDARY_REGISTRY_RECEIPT" \
   --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
   --optimizer-translation-registry .build/proof/mir-opt-translation-registry.json \
   --corehir-body-boundary-receipt .build/proof/corehir-body-boundary.json \
@@ -134,6 +149,8 @@ python3 scripts/check/check-proof-required-release.py \
   --verified-core-machine "$PROOF_ROOT/verified-core-machine.json" \
   --verified-core-normalized "$PROOF_ROOT/verified-core.json" \
   --solver-input "$PROOF_ROOT/verified-core-vcs.smt2" \
+  --boundary-registry "$BOUNDARY_REGISTRY" \
+  --boundary-registry-validation-receipt "$BOUNDARY_REGISTRY_RECEIPT" \
   --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
   --optimizer-translation-registry .build/proof/mir-opt-translation-registry.json \
   --corehir-body-boundary-receipt .build/proof/corehir-body-boundary.json \
