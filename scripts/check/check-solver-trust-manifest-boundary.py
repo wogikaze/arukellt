@@ -38,6 +38,7 @@ def _require_result_argument_near_calls(path: Path, command: str) -> None:
 
 def _reject_production_bypasses() -> None:
     allowed_receipt_generators = {
+        "scripts/proof/solver_receipts.py",
         "scripts/proof/solver_driver.py",
         "scripts/gen/write-solver-receipts.py",
     }
