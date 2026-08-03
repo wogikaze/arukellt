@@ -34,6 +34,7 @@ jobs:
             scripts.tests.test_typed_verified_core_receipt \
             scripts.tests.test_smtlib_v1 \
             scripts.tests.test_solver_receipts \
+            scripts.tests.test_solver_result \
             scripts.tests.test_solver_driver
 
       - name: Convert TypedCoreHIR into semantically typed VerifiedCore
@@ -103,77 +104,19 @@ jobs:
               },
               "assumptions": [],
               "trusted_components": [
-                  {
-                      "name": "arukellt-typed-corehir-to-verified-core-v2",
-                      "role": "typed-proof-boundary",
-                      "version": "2",
-                      "artifact": "typed_corehir_typed_convert.py",
-                  },
-                  {
-                      "name": "arukellt-typed-corehir-converter-implementation-v1",
-                      "role": "typed-proof-boundary-implementation",
-                      "version": "1",
-                      "artifact": "typed_corehir_convert.py",
-                  },
-                  {
-                      "name": "arukellt-verified-core-structural-validator-v1",
-                      "role": "artifact-validator",
-                      "version": "1",
-                      "artifact": "verified_core.py",
-                  },
-                  {
-                      "name": "arukellt-verified-core-semantic-validator-v1",
-                      "role": "typed-artifact-validator",
-                      "version": "1",
-                      "artifact": "verified_core_typed.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-admission-cli-v1",
-                      "role": "typed-artifact-admission",
-                      "version": "1",
-                      "artifact": "check-typed-verified-core.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-smt-adapter-v1",
-                      "role": "typed-smt-adapter",
-                      "version": "1",
-                      "artifact": "smtlib_typed_v1.py",
-                  },
-                  {
-                      "name": "arukellt-smt-renderer-v1",
-                      "role": "smt-renderer-implementation",
-                      "version": "1",
-                      "artifact": "smtlib_v1.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-boundary-policy-v1",
-                      "role": "typed-boundary-policy",
-                      "version": "1",
-                      "artifact": "check-typed-verified-core-boundary.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-receipt-validator-v1",
-                      "role": "typed-boundary-receipt-validator",
-                      "version": "1",
-                      "artifact": "typed_verified_core_receipt.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-receipt-checker-v1",
-                      "role": "typed-boundary-receipt-checker",
-                      "version": "1",
-                      "artifact": "check-typed-verified-core-boundary-receipt.py",
-                  },
-                  {
-                      "name": "arukellt-typed-verified-core-boundary-receipt-v1",
-                      "role": "typed-boundary-receipt",
-                      "version": "1",
-                      "artifact": "typed-verified-core-boundary.json",
-                  },
+                  {"name": "arukellt-typed-corehir-to-verified-core-v2", "role": "typed-proof-boundary", "version": "2", "artifact": "typed_corehir_typed_convert.py"},
+                  {"name": "arukellt-typed-corehir-converter-implementation-v1", "role": "typed-proof-boundary-implementation", "version": "1", "artifact": "typed_corehir_convert.py"},
+                  {"name": "arukellt-verified-core-structural-validator-v1", "role": "artifact-validator", "version": "1", "artifact": "verified_core.py"},
+                  {"name": "arukellt-verified-core-semantic-validator-v1", "role": "typed-artifact-validator", "version": "1", "artifact": "verified_core_typed.py"},
+                  {"name": "arukellt-typed-verified-core-admission-cli-v1", "role": "typed-artifact-admission", "version": "1", "artifact": "check-typed-verified-core.py"},
+                  {"name": "arukellt-typed-verified-core-smt-adapter-v1", "role": "typed-smt-adapter", "version": "1", "artifact": "smtlib_typed_v1.py"},
+                  {"name": "arukellt-smt-renderer-v1", "role": "smt-renderer-implementation", "version": "1", "artifact": "smtlib_v1.py"},
+                  {"name": "arukellt-typed-verified-core-boundary-policy-v1", "role": "typed-boundary-policy", "version": "1", "artifact": "check-typed-verified-core-boundary.py"},
+                  {"name": "arukellt-typed-verified-core-receipt-validator-v1", "role": "typed-boundary-receipt-validator", "version": "1", "artifact": "typed_verified_core_receipt.py"},
+                  {"name": "arukellt-typed-verified-core-receipt-checker-v1", "role": "typed-boundary-receipt-checker", "version": "1", "artifact": "check-typed-verified-core-boundary-receipt.py"},
+                  {"name": "arukellt-typed-verified-core-boundary-receipt-v1", "role": "typed-boundary-receipt", "version": "1", "artifact": "typed-verified-core-boundary.json"},
               ],
-              "limits": {
-                  "timeout_ms": 10000,
-                  "memory_bytes": 1073741824,
-              },
+              "limits": {"timeout_ms": 10000, "memory_bytes": 1073741824},
           }
           Path(".build/typed-corehir-toolchain/toolchain.json").write_text(
               json.dumps(document, indent=2) + "\n",
@@ -189,7 +132,16 @@ jobs:
             --toolchain .build/typed-corehir-toolchain/toolchain.json \
             --solver-output .build/typed-corehir-proof/solver-output.txt \
             --trust-manifest-output .build/typed-corehir-proof/trust-manifest.json \
-            --proof-receipt-output .build/typed-corehir-proof/proof-receipt.json
+            --proof-receipt-output .build/typed-corehir-proof/proof-receipt.json \
+            --solver-result-output .build/typed-corehir-proof/solver-result.json
+          python3 scripts/check/check-solver-result.py \
+            .build/typed-corehir-proof/solver-result.json \
+            --subject .build/typed-corehir-proof/verified-core.json \
+            --solver-input .build/typed-corehir-proof/verified-core-vcs.smt2 \
+            --toolchain .build/typed-corehir-toolchain/toolchain.json \
+            --solver-output .build/typed-corehir-proof/solver-output.txt \
+            --trust-manifest .build/typed-corehir-proof/trust-manifest.json \
+            --proof-receipt .build/typed-corehir-proof/proof-receipt.json
 
       - name: Verify typed end-to-end bindings
         run: |
