@@ -1,0 +1,269 @@
+{
+  "schema": "arukellt-boundary-registry",
+  "schema_version": 1,
+  "status": "enforced",
+  "repository": "wogikaze/arukellt",
+  "required_boundaries": [
+    "typed-corehir",
+    "corehir-body",
+    "verified-core",
+    "mir-optimizer",
+    "backend-layout",
+    "solver-result",
+    "release-authorization"
+  ],
+  "boundaries": [
+    {
+      "id": "typed-corehir",
+      "artifact": {
+        "schema": "arukellt-typed-corehir",
+        "schema_version": 1,
+        "kind": "serialized-json"
+      },
+      "producer": {
+        "commit": "c6b502c12f76d3f83a7c46806efd490cafba4449",
+        "path": "src/compiler/driver/typed_corehir_render.ark",
+        "required_tokens": ["render_typed_corehir", "arukellt-typed-corehir"]
+      },
+      "validator": {
+        "commit": "c6b502c12f76d3f83a7c46806efd490cafba4449",
+        "path": "scripts/proof/typed_corehir.py",
+        "required_tokens": ["Independent public validator", "validate_document"]
+      },
+      "consumers": [
+        {
+          "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+          "path": "scripts/proof/typed_corehir_typed_convert.py",
+          "required_tokens": ["convert_typed_document", "explicit logical type"]
+        }
+      ],
+      "evidence": {
+        "commit": "c6b502c12f76d3f83a7c46806efd490cafba4449",
+        "path": "scripts/check/check-typed-corehir-emission.py",
+        "required_tokens": ["typed-corehir"]
+      },
+      "workflow": {
+        "commit": "c6b502c12f76d3f83a7c46806efd490cafba4449",
+        "path": ".github/workflows/verified-core-emitter.yml",
+        "required_tokens": ["typed-corehir"]
+      },
+      "failure_action": "reject artifact before MIR or proof consumption"
+    },
+    {
+      "id": "corehir-body",
+      "artifact": {
+        "schema": "arukellt-corehir-body-artifact",
+        "schema_version": 1,
+        "kind": "in-memory-snapshot"
+      },
+      "producer": {
+        "commit": "8972fb5d377c8d4f6dca987c51c3b20fad352f00",
+        "path": "src/compiler/corehir/body_builder.ark",
+        "required_tokens": ["corehir_body_builder_finish", "body_validator"]
+      },
+      "validator": {
+        "commit": "8972fb5d377c8d4f6dca987c51c3b20fad352f00",
+        "path": "src/compiler/corehir/body_validator.ark",
+        "required_tokens": ["corehir_body_artifact_valid", "schema_version"]
+      },
+      "consumers": [
+        {
+          "commit": "8972fb5d377c8d4f6dca987c51c3b20fad352f00",
+          "path": "src/compiler/corehir/mir_body_source.ark",
+          "required_tokens": ["CoreHirMirBodySource", "children"]
+        }
+      ],
+      "evidence": {
+        "commit": "8972fb5d377c8d4f6dca987c51c3b20fad352f00",
+        "path": "scripts/gen/write-corehir-body-boundary-receipt.py",
+        "required_tokens": ["arukellt-corehir-body-boundary-receipt", "detached deep snapshot"]
+      },
+      "workflow": {
+        "commit": "8972fb5d377c8d4f6dca987c51c3b20fad352f00",
+        "path": ".github/workflows/corehir-body-boundary.yml",
+        "required_tokens": ["corehir-body-boundary"]
+      },
+      "failure_action": "compiler ICE before MIR lowering"
+    },
+    {
+      "id": "verified-core",
+      "artifact": {
+        "schema": "arukellt-verified-core",
+        "schema_version": 1,
+        "kind": "serialized-json"
+      },
+      "producer": {
+        "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+        "path": "scripts/proof/typed_corehir_typed_convert.py",
+        "required_tokens": ["convert_typed_document", "validate_typed_document"]
+      },
+      "validator": {
+        "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+        "path": "scripts/proof/verified_core_typed.py",
+        "required_tokens": ["Independent semantic type validation", "validate_typed_document"]
+      },
+      "consumers": [
+        {
+          "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+          "path": "scripts/proof/smtlib_typed_v1.py",
+          "required_tokens": ["validate_typed_document", "generate_smtlib"]
+        }
+      ],
+      "evidence": {
+        "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+        "path": "scripts/gen/write-typed-verified-core-boundary-receipt.py",
+        "required_tokens": ["arukellt-typed-verified-core-boundary", "semantic-admission-before-SMT"]
+      },
+      "workflow": {
+        "commit": "8f2623316d92eba4ae635ee9948b50e209b6e07e",
+        "path": ".github/workflows/typed-corehir-proof-pipeline.yml",
+        "required_tokens": ["typed_semantics=bound-through-solver"]
+      },
+      "failure_action": "reject before SMT generation"
+    },
+    {
+      "id": "mir-optimizer",
+      "artifact": {
+        "schema": "arukellt-mir-opt-translation-validator-registry",
+        "schema_version": 3,
+        "kind": "serialized-json"
+      },
+      "producer": {
+        "commit": "8682f784c10b7bd8cea5ebcebe47735bd67f9815",
+        "path": "scripts/gen/write-mir-opt-translation-registry.py",
+        "required_tokens": ["arukellt-mir-opt-translation-validator-registry", "ENABLED_PASSES"]
+      },
+      "validator": {
+        "commit": "8682f784c10b7bd8cea5ebcebe47735bd67f9815",
+        "path": "scripts/check/check-gc-hint-translation-validation.py",
+        "required_tokens": ["stdlib_resolve_normal_calls", "translation"]
+      },
+      "consumers": [
+        {
+          "commit": "8682f784c10b7bd8cea5ebcebe47735bd67f9815",
+          "path": "src/compiler/mir_opt/orchestrate.ark",
+          "required_tokens": ["stdlib_resolve_validated", "gc_hint"]
+        }
+      ],
+      "evidence": {
+        "commit": "8682f784c10b7bd8cea5ebcebe47735bd67f9815",
+        "path": ".github/workflows/gc-hint-translation-validation.yml",
+        "required_tokens": ["mir-opt-translation-registry.json"]
+      },
+      "workflow": {
+        "commit": "8682f784c10b7bd8cea5ebcebe47735bd67f9815",
+        "path": ".github/workflows/gc-hint-translation-validation.yml",
+        "required_tokens": ["MIR optimizer translation validation"]
+      },
+      "failure_action": "restore original MIR candidate"
+    },
+    {
+      "id": "backend-layout",
+      "artifact": {
+        "schema": "arukellt-mir-gc-layout-plan",
+        "schema_version": 1,
+        "kind": "typed-mir-snapshot"
+      },
+      "producer": {
+        "commit": "75a2aec77f9230921552d53e4a2de7bc7359c378",
+        "path": "src/compiler/mir/lower/gc_layout_plan_build.ark",
+        "required_tokens": ["gc_layout_plan", "TypeId"]
+      },
+      "validator": {
+        "commit": "75a2aec77f9230921552d53e4a2de7bc7359c378",
+        "path": "src/compiler/mir/gc_layout_plan_validator.ark",
+        "required_tokens": ["gc_layout_plan", "schema_version"]
+      },
+      "consumers": [
+        {
+          "commit": "75a2aec77f9230921552d53e4a2de7bc7359c378",
+          "path": "src/compiler/wasm/gc_layout_table_build.ark",
+          "required_tokens": ["gc_layout_plan", "type_id"]
+        }
+      ],
+      "evidence": {
+        "commit": "75a2aec77f9230921552d53e4a2de7bc7359c378",
+        "path": "scripts/gen/write-backend-typeid-layout-receipt.py",
+        "required_tokens": ["arukellt-backend-typeid-layout-boundary", "backend_layout_offset_inference"]
+      },
+      "workflow": {
+        "commit": "75a2aec77f9230921552d53e4a2de7bc7359c378",
+        "path": ".github/workflows/backend-name-lookup-audit.yml",
+        "required_tokens": ["backend-typeid-layout"]
+      },
+      "failure_action": "compiler ICE before Wasm emission"
+    },
+    {
+      "id": "solver-result",
+      "artifact": {
+        "schema": "arukellt-solver-result",
+        "schema_version": 1,
+        "kind": "serialized-json"
+      },
+      "producer": {
+        "commit": "30473e84b366f590c936ece90679c000387b7462",
+        "path": "scripts/proof/solver_driver.py",
+        "required_tokens": ["create_solver_result", "solver_result_path"]
+      },
+      "validator": {
+        "commit": "30473e84b366f590c936ece90679c000387b7462",
+        "path": "scripts/proof/solver_result.py",
+        "required_tokens": ["arukellt-solver-result", "validate_solver_result"]
+      },
+      "consumers": [
+        {
+          "commit": "30473e84b366f590c936ece90679c000387b7462",
+          "path": "scripts/check/check-solver-result.py",
+          "required_tokens": ["validate_solver_result_file"]
+        }
+      ],
+      "evidence": {
+        "commit": "30473e84b366f590c936ece90679c000387b7462",
+        "path": "scripts/gen/write-solver-trust-boundary-receipt.py",
+        "required_tokens": ["arukellt-solver-trust-boundary", "embedded-trust-manifest"]
+      },
+      "workflow": {
+        "commit": "30473e84b366f590c936ece90679c000387b7462",
+        "path": ".github/workflows/proof-solver-driver.yml",
+        "required_tokens": ["solver-result.json"]
+      },
+      "failure_action": "do not emit a valid solver result"
+    },
+    {
+      "id": "release-authorization",
+      "artifact": {
+        "schema": "arukellt-proof-release-authorization",
+        "schema_version": 1,
+        "kind": "serialized-json"
+      },
+      "producer": {
+        "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
+        "path": "scripts/proof/release_gate.py",
+        "required_tokens": ["create_release_authorization", "write_release_authorization"]
+      },
+      "validator": {
+        "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
+        "path": "scripts/check/check-release-authorization.py",
+        "required_tokens": ["validate_bound_release_authorization", "release authorization"]
+      },
+      "consumers": [
+        {
+          "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
+          "path": ".github/workflows/proof-required-release.yml",
+          "required_tokens": ["Verify publisher-side authorization"]
+        }
+      ],
+      "evidence": {
+        "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
+        "path": "scripts/gen/write-proof-release-enforcement-receipt.py",
+        "required_tokens": ["arukellt-proof-release-enforcement", "authorization_required"]
+      },
+      "workflow": {
+        "commit": "f166fd011ba04d23a71488c408ae6b546fcb0f94",
+        "path": ".github/workflows/proof-required-release.yml",
+        "required_tokens": ["Proof required release authorization"]
+      },
+      "failure_action": "publisher receives no authorization"
+    }
+  ]
+}
