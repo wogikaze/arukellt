@@ -1,4 +1,6 @@
 use corehir::body
+use corehir::expr_factory
+use corehir::expr_raw
 
 struct CoreHirMirBodySource {
     exprs: Vec<CoreHirExpr>,
@@ -6,11 +8,58 @@ struct CoreHirMirBodySource {
     method_body_roots: Vec<i32>,
 }
 
+fn mir_body_source_copy_expr(expr: CoreHirExpr) -> CoreHirExpr {
+    let children = Vec::new<i32>()
+    let child_count = expr_raw::corehir_expr_child_count(expr)
+    let mut child_index = 0
+    while child_index < child_count {
+        push(children, expr_raw::corehir_expr_child(expr, child_index))
+        child_index = child_index + 1
+    }
+    expr_factory::CoreHirExpr_new(
+        expr_raw::corehir_expr_kind(expr),
+        expr_raw::corehir_expr_text(expr),
+        expr_raw::corehir_expr_int_val(expr),
+        expr_raw::corehir_expr_float_val(expr),
+        expr_raw::corehir_expr_val_type(expr),
+        expr_raw::corehir_expr_type_name(expr),
+        expr_raw::corehir_expr_span_start(expr),
+        children
+    )
+}
+
 fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
+    let exprs = Vec::new<CoreHirExpr>()
+    let mut expr_index = 0
+    while expr_index < body::corehir_body_expr_count(table) {
+        push(
+            exprs,
+            mir_body_source_copy_expr(body::corehir_body_expr_at(table, expr_index))
+        )
+        expr_index = expr_index + 1
+    }
+
+    let fn_body_roots = Vec::new<i32>()
+    let mut fn_index = 0
+    while fn_index < body::corehir_fn_body_root_count(table) {
+        push(fn_body_roots, body::corehir_fn_body_root_at(table, fn_index))
+        fn_index = fn_index + 1
+    }
+
+    let method_body_roots = Vec::new<i32>()
+    let mut method_index = 0
+    while method_index < body::corehir_method_body_root_count(table) {
+        push(
+            method_body_roots,
+            body::corehir_method_body_root_at(table, method_index)
+        )
+        method_index = method_index + 1
+    }
+
     CoreHirMirBodySource {
-        exprs: body::body_exprs(table),
-        fn_body_roots: body::body_fn_roots(table),
-        method_body_roots: body::body_method_roots(table),
+        exprs: exprs,
+        fn_body_roots: fn_body_roots,
+        method_body_roots: method_body_roots,
     }
 }
 
