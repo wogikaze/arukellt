@@ -20,7 +20,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run boundary registry negative tests
-        run: python3 -m unittest scripts.tests.test_boundary_registry
+        run: python3 -m unittest scripts.tests.test_boundary_registry scripts.tests.test_source_proof_binding
+
+      - name: Reject incomplete release integration
+        run: python3 scripts/check/check-versioned-boundary-enforcement.py
 
       - name: Validate every pinned boundary and write receipt
         run: |
