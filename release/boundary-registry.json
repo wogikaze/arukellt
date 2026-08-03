@@ -219,7 +219,7 @@
       ],
       "evidence": {
         "commit": "30473e84b366f590c936ece90679c000387b7462",
-        "path": "scripts/gen/write-solver-trust-boundary-receipt.py",
+        "path": "scripts/proof/solver_trust_boundary_receipt.py",
         "required_tokens": ["arukellt-solver-trust-boundary", "embedded-trust-manifest"]
       },
       "workflow": {
