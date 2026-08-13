@@ -7,6 +7,8 @@ from proof.typed_corehir_program_convert import (
     SOURCE_VERSION,
     convert_document,
 )
+from proof.verified_core_interface import allow_unbound_call_interfaces, bind_call_interfaces
+from proof.verified_core_typed import validate_typed_document
 
 
 def _compat_message(message: str) -> str:
@@ -19,7 +21,13 @@ def _compat_message(message: str) -> str:
 
 def convert_typed_document(value):
     try:
-        return convert_document(value)
+        # The legacy v3 lowerer validates its result before returning. Permit
+        # only that in-process intermediate to be temporarily unbound, then
+        # attach exact callee interface digests and validate the public result.
+        with allow_unbound_call_interfaces():
+            result = convert_document(value)
+        bind_call_interfaces(result)
+        return validate_typed_document(result)
     except ExplicitTypedCoreHirError:
         raise
     except (ValueError, TypeError, KeyError) as exc:
