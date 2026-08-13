@@ -1,0 +1,14 @@
+{
+  "schema": "arukellt-proof-capabilities",
+  "schema_version": 1,
+  "verified_core_schema": 1,
+  "semantic_profile": {"integer_model": "mathematical", "overflow": "checked", "floating_point": "unsupported", "memory": "pure-values"},
+  "phases": {
+    "0": {"status": "enforced", "features": ["typed-contract-expressions", "single-return-body", "int-bool-types", "source-toolchain-receipt-binding"]},
+    "1": {"status": "enabled", "features": ["straight-line-instructions", "copy", "unary", "binary", "division-side-conditions"]},
+    "2": {"status": "enabled", "features": ["acyclic-cfg", "conditional-branch", "goto", "block-parameters", "multiple-returns", "path-conditions"]},
+    "3": {"status": "enabled", "features": ["direct-contract-calls", "callee-requires-obligations", "callee-ensures-assumptions", "non-recursive-call-graph"]}
+  },
+  "unsupported_until_later_phase": ["cyclic-cfg", "recursion", "indirect-calls", "mutable-memory", "heap-aliasing", "floating-point", "machine-integer-equivalence"],
+  "rules": {"unsupported_constructs": "reject-before-smt", "semantic_expansion": "manifest-and-validator-first", "source_profile_normalization": "reject-machine-arithmetic", "proof_receipts": "source-subject-toolchain-bound"}
+}
