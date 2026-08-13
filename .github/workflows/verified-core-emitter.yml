@@ -3,11 +3,13 @@ name: TypedCoreHIR emitter
 on:
   pull_request:
     branches: [agent/formal-verification-hard-gates, master]
+  push:
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
   group: typed-corehir-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   typed-corehir-emitter:
@@ -16,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # PR gate: artifact/schema contracts. Rebuilding and exercising the
+      # selfhost compiler is post-merge/manual exhaustive validation.
       - name: Validate artifact contracts
         run: |
           python3 -m unittest \
@@ -24,17 +28,20 @@ jobs:
           python3 scripts/check/check-formal-verification-gates.py tests/proof/proof-required-policy.json
 
       - name: Install wasmtime
+        if: github.event_name != 'pull_request'
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
       - name: Build host-linker
+        if: github.event_name != 'pull_request'
         run: |
           cargo build --release --quiet
           cargo test --lib --no-run --quiet
         working-directory: tools/host-linker
 
       - name: Build current selfhost stage 2 runtime
+        if: github.event_name != 'pull_request'
         run: |
           python3 - <<'PY'
           import sys
@@ -54,6 +61,7 @@ jobs:
           test -s .build/selfhost/arukellt-s2-runtime.wasm
 
       - name: Validate emitted TypedCoreHIR
+        if: github.event_name != 'pull_request'
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: python3 scripts/check/check-typed-corehir-emission.py
