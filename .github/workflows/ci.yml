@@ -48,6 +48,11 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
+      - name: Build host-linker once
+        if: steps.ark.outputs.count != '0'
+        run: cargo build --release --quiet
+        working-directory: tools/host-linker
+
       - name: Check formatting of changed Ark sources
         if: steps.ark.outputs.count != '0'
         shell: bash
@@ -91,6 +96,11 @@ jobs:
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Build host-linker once
+        if: steps.ark.outputs.count != '0'
+        run: cargo build --release --quiet
+        working-directory: tools/host-linker
 
       - name: Lint changed Ark sources
         if: steps.ark.outputs.count != '0'
@@ -177,8 +187,12 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Check docs consistency
-        run: python3 scripts/check/check-docs-consistency.py
+      - name: Show generated-doc drift
+        run: |
+          set -euo pipefail
+          python3 scripts/gen/generate-docs.py
+          git status --short
+          git diff --exit-code
 
   extension-tests:
     name: "VS Code extension E2E"
