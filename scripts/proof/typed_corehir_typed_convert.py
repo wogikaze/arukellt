@@ -10,7 +10,12 @@ from proof.typed_corehir_program_convert import (
 
 
 def convert_typed_document(value):
-    return convert_document(value)
+    try:
+        return convert_document(value)
+    except ExplicitTypedCoreHirError:
+        raise
+    except (ValueError, TypeError, KeyError) as exc:
+        raise ExplicitTypedCoreHirError(str(exc)) from exc
 
 
 __all__ = [
