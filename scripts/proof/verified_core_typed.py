@@ -2,13 +2,39 @@
 
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 from proof import verified_core_typed_impl as _impl
+from proof.verified_core import validate_document
 
 SCHEMA = _impl.SCHEMA
 VERSION = _impl.VERSION
 TypedVerifiedCoreError = _impl.TypedVerifiedCoreError
+
+
+def _expression_nodes(expression: dict[str, Any]) -> list[dict[str, Any]]:
+    nodes = [expression]
+    for operand in expression.get("operands", []):
+        nodes.extend(_expression_nodes(operand))
+    return nodes
+
+
+def _prepare_contract_namespaces(value: Any) -> Any:
+    prepared = copy.deepcopy(value)
+    for function in prepared.get("functions", []):
+        ids = [
+            int(node["id"])
+            for contract in function.get("contracts", [])
+            for node in _expression_nodes(contract["expression"])
+        ]
+        offset = max(ids, default=-1) + 1
+        for contract in function.get("contracts", []):
+            if contract.get("kind") != "requires":
+                continue
+            for node in _expression_nodes(contract["expression"]):
+                node["id"] = int(node["id"]) + offset
+    return prepared
 
 
 def _precheck_legacy_diagnostics(value: Any) -> None:
@@ -65,10 +91,12 @@ def _compat_message(message: str) -> str:
 
 def validate_typed_document(value: Any) -> dict[str, Any]:
     _precheck_legacy_diagnostics(value)
+    prepared = _prepare_contract_namespaces(value)
     try:
-        return _impl.validate_typed_document(value)
+        _impl.validate_typed_document(prepared)
     except TypedVerifiedCoreError as exc:
         raise TypedVerifiedCoreError(_compat_message(str(exc))) from exc
+    return validate_document(value)
 
 
 __all__ = ["SCHEMA", "VERSION", "TypedVerifiedCoreError", "validate_typed_document"]
