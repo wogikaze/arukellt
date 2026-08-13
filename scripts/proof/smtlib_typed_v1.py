@@ -1,8 +1,8 @@
 """Typed VerifiedCore v1 to SMT-LIB adapter.
 
-This is the public proof adapter. It performs semantic typed admission before
-calling the syntax-oriented SMT renderer, so malformed TypeIds or operators
-cannot reach the solver through another caller.
+Semantic admission runs before rendering. Modular calls also record the exact
+callee interface digest in the generated solver input so receipts bind the
+contract interface that was actually consumed by VC generation.
 """
 
 from __future__ import annotations
@@ -19,12 +19,31 @@ class UnsupportedTypedVerifiedCore(UnsupportedVerifiedCore):
     """The subject failed typed admission before SMT generation."""
 
 
+def _interface_comments(document: dict[str, Any]) -> list[str]:
+    comments: list[str] = []
+    for function in document["functions"]:
+        for block in function["body"]["blocks"]:
+            for instruction in block["instructions"]:
+                if instruction.get("op") != "call":
+                    continue
+                comments.append(
+                    "; callee-interface-sha256 "
+                    f"caller={function['id']} callee={instruction['callee_id']} "
+                    f"sha256={instruction['callee_interface_sha256']}"
+                )
+    return comments
+
+
 def generate_typed_smtlib(value: Any) -> str:
     try:
         document = validate_typed_document(value)
     except (ValueError, TypeError, KeyError) as exc:
         raise UnsupportedTypedVerifiedCore(str(exc)) from exc
-    return generate_smtlib(document)
+    rendered = generate_smtlib(document)
+    comments = _interface_comments(document)
+    if not comments:
+        return rendered
+    return "\n".join(comments) + "\n" + rendered
 
 
 def generate_typed_smtlib_file(subject_path: Path, output_path: Path) -> int:
