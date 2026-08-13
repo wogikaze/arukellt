@@ -23,10 +23,12 @@ def main() -> int:
         "scripts/proof/typed_corehir_typed_convert.py": ["Explicit logical type", "typed_corehir_program_convert"],
         "scripts/proof/typed_corehir_program_convert.py": ["arukellt-typed-corehir-converter-v3", "expected 32 or 64", "only signed integers are supported", 'kind == "if"', 'kind == "call"', "indirect calls are outside phase 3", "validate_typed_document(result)"],
         "scripts/proof/verified_core_program.py": ["INSTRUCTION_OPS", "TERMINATORS", "unsupported instruction"],
-        "scripts/proof/verified_core_typed.py": ["cyclic CFG is outside proof phase 2", "call signature mismatch", "recursive proof calls are outside phase 3", "contract must be bool"],
+        "scripts/proof/verified_core_typed.py": ["verified_core_typed_impl", "_prepare_contract_namespaces"],
+        "scripts/proof/verified_core_typed_impl.py": ["cyclic CFG is outside proof phase 2", "call signature mismatch", "recursive proof calls are outside phase 3", "contract must be bool"],
         "scripts/proof/smtlib_typed_v1.py": ["validate_typed_document(value)", "generate_smtlib(document)"],
         "scripts/proof/smtlib_v1.py": ["callee-requires", "local_facts.append", "path_conditions", 'block["parameters"]'],
         "scripts/proof/typed_verified_core_receipt.py": ["straight-line-instruction-typing", "acyclic-cfg-edge-typing", "direct-call-contract-typing", "recursive-call-rejection"],
+        "scripts/check/check-proof-phase3-modular.py": ["callee requires did not become a caller obligation", "modular call value"],
         ".github/workflows/typed-corehir-proof-pipeline.yml": ["scripts.tests.test_proof_program_phases", "scripts.tests.test_proof_phase3_calls", "typed_corehir_program_convert.py", "verified_core_program.py"],
     }
     for path, tokens in required.items():
