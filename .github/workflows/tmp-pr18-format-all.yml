@@ -1,0 +1,56 @@
+name: Temporary PR18 canonical format all
+
+on:
+  push:
+    branches: [fmt/pr18-canonical-all-20260813]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fmt/pr18-canonical-all-20260813
+          fetch-depth: 0
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Build host runner
+        env:
+          CARGO_PROFILE_DEV_DEBUG: "0"
+        run: cargo build --quiet --bin arukellt-host-run
+        working-directory: tools/host-linker
+      - name: Format failing files
+        env:
+          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
+        run: |
+          set -euo pipefail
+          wrapper=scripts/run/arukellt-selfhost.sh
+          "$wrapper" fmt \
+            src/compiler/corehir/body_validator.ark \
+            src/compiler/driver/typed_corehir_render.ark \
+            src/compiler/driver/verified_core_render_primitives.ark \
+            src/compiler/mir/typed_mir_sync_module.ark \
+            src/compiler/mir_opt/licm_translation_validation.ark
+          "$wrapper" fmt \
+            src/compiler/mir_opt/loop_unroll_translation_validation.ark \
+            src/compiler/mir_opt/stdlib_resolve_translation_validation.ark \
+            src/compiler/mir_opt/stdlib_resolve_validated.ark \
+            src/compiler/mir_opt/translation_validation.ark
+      - name: Commit canonical output
+        run: |
+          set -euo pipefail
+          git add src/compiler
+          if git diff --cached --quiet; then
+            echo "already canonical"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'tmp: canonicalize PR18 Ark sources'
+          git push origin HEAD:fmt/pr18-canonical-all-20260813
