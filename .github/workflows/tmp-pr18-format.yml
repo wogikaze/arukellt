@@ -1,0 +1,43 @@
+name: Temporary PR18 canonical format
+
+on:
+  push:
+    branches: [fmt/pr18-canonical-20260813]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fmt/pr18-canonical-20260813
+          fetch-depth: 0
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Build host runner
+        env:
+          CARGO_PROFILE_DEV_DEBUG: "0"
+        run: cargo build --quiet --bin arukellt-host-run
+        working-directory: tools/host-linker
+      - name: Format target
+        env:
+          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
+        run: python3 scripts/manager.py fmt src/compiler/driver/typed_corehir_contract_render.ark
+      - name: Commit canonical output
+        run: |
+          set -euo pipefail
+          git add src/compiler/driver/typed_corehir_contract_render.ark
+          if git diff --cached --quiet; then
+            echo "already canonical"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'tmp: canonicalize typed CoreHIR contract renderer'
+          git push origin HEAD:fmt/pr18-canonical-20260813
