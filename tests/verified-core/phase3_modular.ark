@@ -1,0 +1,25 @@
+fn nonnegative_identity(x: i32) -> i32 proof {
+    requires: x >= 0;
+    ensures: result >= 0;
+} {
+    x
+}
+
+fn forward_nonnegative(x: i32) -> i32 proof {
+    requires: x >= 0;
+    ensures: result >= 0;
+} {
+    nonnegative_identity(x)
+}
+
+fn choose_nonnegative(x: i32) -> i32 proof {
+    ensures: result >= 0;
+} {
+    if x >= 0 {
+        forward_nonnegative(x)
+    } else {
+        0
+    }
+}
+
+fn main() {}
