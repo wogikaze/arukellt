@@ -9,7 +9,14 @@ use parser::expr
 use parser::kinds
 use parser::token_state
 
-fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
+fn proof_contract_kind_allowed(kind_name: String, loop_mode: bool) -> bool {
+    if loop_mode {
+        return eq(clone(kind_name), "invariant") || eq(kind_name, "decreases")
+    }
+    eq(clone(kind_name), "requires") || eq(kind_name, "ensures")
+}
+
+fn parse_contract_block(p: Parser, node: AstNode, loop_mode: bool) -> bool {
     core_api_cursor::skip_newlines(p)
     if !core_api_cursor::at(p, tokens::TK_PROOF()) {
         return true
@@ -18,17 +25,29 @@ fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
     core_api_cursor::skip_newlines(p)
     core_api_expect::expect_token(p, tokens::TK_LBRACE())
     core_api_cursor::skip_newlines(p)
+    let mut invariant_count = 0
+    let mut decreases_count = 0
 
     while !core_api_cursor::at(p, tokens::TK_RBRACE()) && !core_api_cursor::at_eof(p) {
         if core_api_cursor::peek_kind(p) != tokens::TK_IDENT() {
-            core_api_expect::error(p, "expected requires or ensures in proof block")
+            core_api_expect::error(p, if loop_mode { "expected invariant or decreases in loop proof block" } else { "expected requires or ensures in proof block" })
             return false
         }
         let kind_token = core_api_cursor::bump(p)
         let kind_name = token_state::Token_text(kind_token)
-        if !eq(clone(kind_name), "requires") && !eq(clone(kind_name), "ensures") {
+        if !proof_contract_kind_allowed(clone(kind_name), loop_mode) {
             core_api_expect::error(p, concat("unsupported proof contract kind: ", kind_name))
             return false
+        }
+        if eq(clone(kind_name), "invariant") {
+            invariant_count = invariant_count + 1
+        }
+        if eq(clone(kind_name), "decreases") {
+            decreases_count = decreases_count + 1
+            if decreases_count > 1 {
+                core_api_expect::error(p, "loop proof block requires exactly one decreases clause")
+                return false
+            }
         }
         core_api_cursor::skip_newlines(p)
         core_api_expect::expect_token(p, tokens::TK_COLON())
@@ -53,5 +72,21 @@ fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
         return false
     }
     core_api_expect::expect_token(p, tokens::TK_RBRACE())
+    if loop_mode && invariant_count == 0 {
+        core_api_expect::error(p, "loop proof block requires at least one invariant")
+        return false
+    }
+    if loop_mode && decreases_count != 1 {
+        core_api_expect::error(p, "loop proof block requires exactly one decreases clause")
+        return false
+    }
     true
+}
+
+fn parse_proof_contract_block(p: Parser, node: AstNode) -> bool {
+    parse_contract_block(p, node, false)
+}
+
+fn parse_loop_proof_contract_block(p: Parser, node: AstNode) -> bool {
+    parse_contract_block(p, node, true)
 }
