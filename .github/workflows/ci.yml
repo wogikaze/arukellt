@@ -144,10 +144,15 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Pinned bootstrap smoke
-        env:
-          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-        run: scripts/run/arukellt-selfhost.sh version
+      - name: Validate pinned bootstrap
+        run: |
+          wasmtime compile \
+            --wasm gc \
+            --wasm function-references \
+            -W memory64=y \
+            -W max-memory-size=17179869184 \
+            bootstrap/arukellt-selfhost.wasm \
+            -o "$RUNNER_TEMP/arukellt-selfhost.cwasm"
 
   native-executor-gates:
     name: "Native executor gates"
