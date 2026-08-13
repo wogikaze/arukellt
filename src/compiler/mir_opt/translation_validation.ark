@@ -8,10 +8,10 @@ use mir::types
 
 fn mir_translation_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
     type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(a)) ==
-        type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
     mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
     mir_value_type::mir_value_type_nullability(a) ==
-        mir_value_type::mir_value_type_nullability(b)
+    mir_value_type::mir_value_type_nullability(b)
 }
 
 fn mir_translation_inst_equal(a: MirInst, b: MirInst) -> bool {
@@ -19,17 +19,17 @@ fn mir_translation_inst_equal(a: MirInst, b: MirInst) -> bool {
         return false
     }
     if inst_accessors_operands::MirInst_dest(a) != inst_accessors_operands::MirInst_dest(b) ||
-       inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
-       inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
+    inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
+    inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
         return false
     }
     if inst_accessors_literals::MirInst_int_val(a) != inst_accessors_literals::MirInst_int_val(b) ||
-       inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
-       !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
+    inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
+    !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
         return false
     }
     if inst_accessors_shape::MirInst_val_type(a) != inst_accessors_shape::MirInst_val_type(b) ||
-       inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
+    inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
         return false
     }
     let result_count = inst_record::mir_inst_result_type_count(a)
@@ -73,7 +73,7 @@ fn mir_translation_insert_only_valid(
     while after_i < len(after) {
         let candidate = get_unchecked(after, after_i)
         if before_i < len(before) &&
-           mir_translation_inst_equal(get_unchecked(before, before_i), candidate) {
+        mir_translation_inst_equal(get_unchecked(before, before_i), candidate) {
             before_i = before_i + 1
             after_i = after_i + 1
             continue

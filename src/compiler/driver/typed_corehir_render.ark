@@ -1,3 +1,4 @@
+use std::host::stdio
 use corehir::fn_info
 use corehir::raw_decls
 use corehir::raw_dto
@@ -6,7 +7,6 @@ use driver::config_record
 use driver::typed_corehir_contract_render
 use driver::typed_corehir_render_diagnostics
 use driver::verified_core_render_primitives
-use std::host::stdio
 
 fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
     let modules = raw_record::raw_program_modules(program)

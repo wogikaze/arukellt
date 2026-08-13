@@ -15,11 +15,11 @@ fn corehir_body_artifact_valid(table: CoreHirBodyTable) -> bool {
     let flat_contract_count = body_table::corehir_body_table_contract_flat_count(table)
 
     if body_table::corehir_body_table_fn_contract_range_count(table) != fn_count ||
-       body_table::corehir_body_table_fn_contract_count_record_count(table) != fn_count {
+    body_table::corehir_body_table_fn_contract_count_record_count(table) != fn_count {
         return false
     }
     if body_table::corehir_body_table_contract_kind_count(table) != flat_contract_count ||
-       body_table::corehir_body_table_contract_result_name_count(table) != flat_contract_count {
+    body_table::corehir_body_table_contract_result_name_count(table) != flat_contract_count {
         return false
     }
 

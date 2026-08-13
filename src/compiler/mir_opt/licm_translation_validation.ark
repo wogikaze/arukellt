@@ -40,8 +40,8 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
         while source_i < end {
             let original = get_unchecked(before, source_i)
             if translation_validation::mir_translation_inst_equal(original, candidate) &&
-               licm_predicates::licm_is_hoistable_inst(original) &&
-               !licm_predicates::licm_inst_depends_on_any(original, modified) {
+            licm_predicates::licm_is_hoistable_inst(original) &&
+            !licm_predicates::licm_inst_depends_on_any(original, modified) {
                 found = source_i
                 source_i = end
                 continue
@@ -65,7 +65,7 @@ fn licm_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>, region: Loo
             continue
         }
         if after_i >= len(after) ||
-           !translation_validation::mir_translation_inst_equal(get_unchecked(before, before_i), get_unchecked(after, after_i)) {
+        !translation_validation::mir_translation_inst_equal(get_unchecked(before, before_i), get_unchecked(after, after_i)) {
             return false
         }
         before_i = before_i + 1

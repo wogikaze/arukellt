@@ -115,7 +115,7 @@ fn mir_existing_value_type_is_canonical(
 fn mir_local_sync_value_type_preserving(loc: MirLocal, table: TypeTable) -> MirLocal {
     let existing = local_access::MirLocal_value_type(loc)
     if type_info_to_mir_value::mvt_is_concrete(table, existing) &&
-       mir_existing_value_type_is_canonical(loc, table, existing) {
+    mir_existing_value_type_is_canonical(loc, table, existing) {
         let synced = local_mutation::MirLocal_copy_with_value_type(loc, existing)
         local_mutation::MirLocal_set_val_type_only(synced, legacy_vt_compat::legacy_vt_from_mir_value_type(table, existing))
         return synced
