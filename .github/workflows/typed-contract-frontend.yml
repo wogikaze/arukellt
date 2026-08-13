@@ -3,6 +3,8 @@ name: Typed proof contract frontend
 on:
   pull_request:
     branches: [agent/formal-verification-hard-gates, master]
+  push:
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -10,7 +12,7 @@ permissions:
 
 concurrency:
   group: typed-contract-frontend-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   typed-contract-frontend:
@@ -21,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      # PR feedback is bounded to deterministic source, adapter, and receipt
+      # checks. Current-selfhost reconstruction and end-to-end proof execution
+      # run on master after merge or via manual dispatch.
       - name: Check source and architecture boundaries
         run: |
           python3 scripts/check/check-typed-contract-source.py
@@ -49,20 +54,6 @@ jobs:
             scripts.tests.test_solver_trust_boundary_receipt \
             scripts.tests.test_solver_driver
 
-      - name: Install Wasmtime and Z3
-        run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
-          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-          sudo apt-get update
-          sudo apt-get install -y z3
-          z3 --version
-
-      - name: Build host linker
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
       - name: Generate and validate boundary evidence
         run: |
           python3 scripts/check/check-boundary-registry.py \
@@ -83,7 +74,24 @@ jobs:
           python3 scripts/check/check-solver-trust-boundary-receipt.py \
             .build/proof/solver-trust-boundary.json
 
+      - name: Install Wasmtime and Z3
+        if: github.event_name != 'pull_request'
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build host linker
+        if: github.event_name != 'pull_request'
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
       - name: Build current selfhost stage 2 runtime
+        if: github.event_name != 'pull_request'
         run: |
           python3 - <<'PY'
           import sys
@@ -101,6 +109,7 @@ jobs:
           test -s .build/selfhost/arukellt-s2-runtime.wasm
 
       - name: Emit and convert typed source contracts
+        if: github.event_name != 'pull_request'
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: |
@@ -120,12 +129,13 @@ jobs:
             --output .build/typed-contract-proof/verified-core-vcs.smt2
 
       - name: Bind proof invocation and payload
+        if: github.event_name != 'pull_request'
         run: |
           cp .build/selfhost/arukellt-s2-runtime.wasm \
             .build/typed-contract-proof/arukellt-s2-runtime.wasm
           python3 scripts/gen/write-release-provenance.py \
             --repository "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" \
-            --ref-type pull_request --ref-name "$GITHUB_REF_NAME" \
+            --ref-type push --ref-name "$GITHUB_REF_NAME" \
             --workflow "$GITHUB_WORKFLOW" --run-id "$GITHUB_RUN_ID" \
             --output .build/typed-contract-proof/proof-provenance.json
           python3 scripts/gen/write-release-payload-manifest.py \
@@ -148,6 +158,7 @@ jobs:
             --output .build/typed-contract-proof/source-proof-binding.json
 
       - name: Build hash-bound proof toolchain
+        if: github.event_name != 'pull_request'
         run: |
           python3 scripts/gen/prepare-proof-release-toolchain.py \
             --runtime .build/selfhost/arukellt-s2-runtime.wasm \
@@ -157,6 +168,7 @@ jobs:
             --z3 "$(command -v z3)"
 
       - name: Prove and independently validate SolverResult
+        if: github.event_name != 'pull_request'
         run: |
           python3 scripts/run/run-proof-solver.py \
             --subject .build/typed-contract-proof/verified-core.json \
@@ -176,6 +188,7 @@ jobs:
             --proof-receipt .build/typed-contract-proof/proof-receipt.json
 
       - name: Verify source binding
+        if: github.event_name != 'pull_request'
         run: |
           python3 - <<'PY'
           import json, sys
@@ -205,6 +218,7 @@ jobs:
           PY
 
       - name: Upload source proof bundle
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: typed-source-contract-proof
