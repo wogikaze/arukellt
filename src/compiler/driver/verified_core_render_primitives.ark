@@ -86,9 +86,9 @@ fn vc_type_info_value_type(ty: TypeInfo) -> i32 {
     if tag == kinds::TY_STRING() { return value_types::VT_REF() }
     if tag == kinds::TY_FN() { return value_types::VT_FUNCREF() }
     if tag == kinds::TY_VEC() || tag == kinds::TY_OPTION() || tag == kinds::TY_RESULT() ||
-       tag == kinds::TY_HASHMAP() || tag == kinds::TY_FUTURE() || tag == kinds::TY_STREAM() ||
-       tag == kinds::TY_TUPLE() || tag == kinds::TY_STRUCT() || tag == kinds::TY_ENUM() ||
-       tag == kinds::TY_RESOURCE() {
+    tag == kinds::TY_HASHMAP() || tag == kinds::TY_FUTURE() || tag == kinds::TY_STREAM() ||
+    tag == kinds::TY_TUPLE() || tag == kinds::TY_STRUCT() || tag == kinds::TY_ENUM() ||
+    tag == kinds::TY_RESOURCE() {
         return value_types::VT_GC_REF()
     }
     0 - 1
