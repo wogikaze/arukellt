@@ -18,6 +18,7 @@ jobs:
       - name: Enforce boundaries
         run: |
           python3 scripts/check/check-typed-verified-core-boundary.py
+          python3 scripts/check/check-proof-phase3-modular.py
           python3 scripts/check/check-solver-trust-manifest-boundary.py
           python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
           python3 scripts/check/check-typed-verified-core-boundary-receipt.py .build/proof/typed-verified-core-boundary.json
@@ -52,9 +53,11 @@ jobs:
           cp scripts/proof/verified_core.py .build/typed-corehir-toolchain/verified_core.py
           cp scripts/proof/verified_core_program.py .build/typed-corehir-toolchain/verified_core_program.py
           cp scripts/proof/verified_core_typed.py .build/typed-corehir-toolchain/verified_core_typed.py
+          cp scripts/proof/verified_core_typed_impl.py .build/typed-corehir-toolchain/verified_core_typed_impl.py
           cp scripts/proof/smtlib_typed_v1.py .build/typed-corehir-toolchain/smtlib_typed_v1.py
           cp scripts/proof/smtlib_v1.py .build/typed-corehir-toolchain/smtlib_v1.py
           cp scripts/proof/typed_verified_core_receipt.py .build/typed-corehir-toolchain/typed_verified_core_receipt.py
+          cp scripts/proof/typed_verified_core_receipt_impl.py .build/typed-corehir-toolchain/typed_verified_core_receipt_impl.py
           cp scripts/check/check-typed-verified-core.py .build/typed-corehir-toolchain/check-typed-verified-core.py
           cp scripts/check/check-typed-verified-core-boundary.py .build/typed-corehir-toolchain/check-typed-verified-core-boundary.py
           cp scripts/check/check-typed-verified-core-boundary-receipt.py .build/typed-corehir-toolchain/check-typed-verified-core-boundary-receipt.py
@@ -70,9 +73,11 @@ jobs:
               ("artifact-validator", "1", "verified_core.py"),
               ("artifact-validator-implementation", "1", "verified_core_program.py"),
               ("typed-artifact-validator", "2", "verified_core_typed.py"),
+              ("typed-artifact-validator-implementation", "2", "verified_core_typed_impl.py"),
               ("typed-smt-adapter", "1", "smtlib_typed_v1.py"),
               ("smt-renderer-implementation", "3", "smtlib_v1.py"),
               ("typed-boundary-receipt-validator", "1", "typed_verified_core_receipt.py"),
+              ("typed-boundary-receipt-validator-implementation", "1", "typed_verified_core_receipt_impl.py"),
               ("typed-artifact-admission", "1", "check-typed-verified-core.py"),
               ("typed-boundary-policy", "1", "check-typed-verified-core-boundary.py"),
               ("typed-boundary-receipt-checker", "1", "check-typed-verified-core-boundary-receipt.py"),
