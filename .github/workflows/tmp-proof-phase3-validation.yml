@@ -1,0 +1,58 @@
+name: Proof phase source validation
+on:
+  push:
+    branches: [feature/proof-phase3-validation]
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check typed boundary
+        run: python3 scripts/check/check-typed-verified-core-boundary.py
+      - name: Check modular VerifiedCore
+        run: python3 scripts/check/check-proof-phase3-modular.py
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Build host runner
+        run: cargo build --quiet --bin arukellt-host-run
+        working-directory: tools/host-linker
+      - name: Compile Phase 3 source
+        run: scripts/run/arukellt-selfhost.sh compile tests/verified-core/phase3_modular.ark --emit typed-corehir > /tmp/phase3.jsonl
+      - name: Extract TypedCoreHIR
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          docs=[]
+          for line in Path('/tmp/phase3.jsonl').read_text().splitlines():
+              try: value=json.loads(line)
+              except json.JSONDecodeError: continue
+              if value.get('schema') == 'arukellt-typed-corehir': docs.append(value)
+          if len(docs) != 1: raise SystemExit(f'expected one TypedCoreHIR artifact, got {len(docs)}')
+          Path('/tmp/phase3-typed.json').write_text(json.dumps(docs[0]))
+          PY
+      - name: Convert Phase 3 program
+        run: python3 scripts/gen/convert-typed-corehir.py --input /tmp/phase3-typed.json --output /tmp/phase3-machine.json
+      - name: Normalize proof profile
+        run: python3 scripts/gen/normalize-source-contract-profile.py --input /tmp/phase3-machine.json --output /tmp/phase3-verified.json
+      - name: Generate Phase 3 VCs
+        run: python3 scripts/gen/write-smt-vcs.py --subject /tmp/phase3-verified.json --output /tmp/phase3.smt2
+      - name: Check Phase 3 lowering shape
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          value=json.loads(Path('/tmp/phase3-machine.json').read_text())
+          names={str(f['name']).split('::')[-1] for f in value['functions']}
+          required={'nonnegative_identity','forward_nonnegative','choose_nonnegative'}
+          if not required <= names: raise SystemExit(f'missing functions: {required-names}')
+          calls=[i for f in value['functions'] for b in f['body']['blocks'] for i in b['instructions'] if i['op']=='call']
+          if not calls: raise SystemExit('direct call missing')
+          if not any(len(f['body']['blocks']) > 1 for f in value['functions']): raise SystemExit('CFG branch missing')
+          text=Path('/tmp/phase3.smt2').read_text()
+          if 'callee-requires' not in text: raise SystemExit('callee requires obligation missing')
+          print('phase3-source: PASS',len(value['functions']),len(calls),text.count('(check-sat)'))
+          PY
