@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise Phase 3 modular direct-call verification with unique proof IDs."""
+"""Exercise Phase 3 modular direct-call verification with exact interface binding."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from proof.smtlib_typed_v1 import generate_typed_smtlib
+from proof.verified_core_interface import bind_call_interfaces
 
 
 def contract(kind: str, base: int) -> dict:
@@ -92,9 +93,12 @@ def main() -> int:
             function(1, "forward_nonnegative", 0),
         ],
     }
+    bind_call_interfaces(document)
     rendered = generate_typed_smtlib(document)
     if "callee-requires" not in rendered:
         raise ValueError("callee requires did not become a caller obligation")
+    if "callee-interface-sha256" not in rendered:
+        raise ValueError("callee interface digest is missing from solver input")
     if "f1_forward_nonnegative_b0_i0_call0" not in rendered:
         raise ValueError("callee result was not represented as a modular call value")
     print(f"proof-phase3-modular: PASS: obligations={rendered.count('(check-sat)')}")
