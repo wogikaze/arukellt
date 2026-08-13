@@ -1,4 +1,4 @@
-"""Normalize comparison-only source contracts to the mathematical SMT profile."""
+"""Normalize source-emitted VerifiedCore to the mathematical proof profile."""
 
 from __future__ import annotations
 
@@ -11,20 +11,34 @@ from proof.verified_core import validate_document
 
 
 class UnsupportedSourceContractProfile(ValueError):
-    """The compiler artifact cannot be soundly normalized to mathematical integers."""
+    pass
 
 
 _ARITHMETIC_KINDS = {"add", "sub", "mul", "div", "mod", "neg"}
 
 
-def _reject_arithmetic(expression: dict[str, Any], path: str) -> None:
-    kind = expression["kind"]
-    if kind in _ARITHMETIC_KINDS:
+def _reject_contract_arithmetic(expression: dict[str, Any], path: str) -> None:
+    if expression["kind"] in _ARITHMETIC_KINDS:
         raise UnsupportedSourceContractProfile(
-            f"{path}.kind: machine arithmetic cannot be normalized: {kind}"
+            f"{path}.kind: machine arithmetic cannot be normalized: {expression['kind']}"
         )
     for index, operand in enumerate(expression.get("operands", [])):
-        _reject_arithmetic(operand, f"{path}.operands[{index}]")
+        _reject_contract_arithmetic(operand, f"{path}.operands[{index}]")
+
+
+def _reject_body_arithmetic(document: dict[str, Any]) -> None:
+    for function_index, function in enumerate(document["functions"]):
+        for block_index, block in enumerate(function["body"]["blocks"]):
+            for instruction_index, instruction in enumerate(block["instructions"]):
+                path = f"$.functions[{function_index}].body.blocks[{block_index}].instructions[{instruction_index}]"
+                if instruction["op"] == "unary" and instruction.get("operator") == "neg":
+                    raise UnsupportedSourceContractProfile(
+                        f"{path}.operator: machine arithmetic cannot be normalized: neg"
+                    )
+                if instruction["op"] == "binary" and instruction.get("operator") in {"add", "sub", "mul", "div", "mod"}:
+                    raise UnsupportedSourceContractProfile(
+                        f"{path}.operator: machine arithmetic cannot be normalized: {instruction['operator']}"
+                    )
 
 
 def normalize_document(value: Any) -> dict[str, Any]:
@@ -34,18 +48,15 @@ def normalize_document(value: Any) -> dict[str, Any]:
         raise UnsupportedSourceContractProfile(
             "$.target_profile.floating_point: unknown source floating-point profile"
         )
-
     for function_index, function in enumerate(document["functions"]):
         for contract_index, contract in enumerate(function["contracts"]):
-            _reject_arithmetic(
+            _reject_contract_arithmetic(
                 contract["expression"],
                 f"$.functions[{function_index}].contracts[{contract_index}].expression",
             )
-
+    _reject_body_arithmetic(document)
     normalized = copy.deepcopy(document)
-    normalized["generator"] = (
-        str(document["generator"]) + "+comparison-profile-normalizer-v1"
-    )
+    normalized["generator"] = str(document.get("generator", "unknown")) + "+proof-profile-normalizer-v2"
     normalized["target_profile"] = {
         "integer_model": "mathematical",
         "overflow": "checked",
@@ -59,14 +70,7 @@ def normalize_file(input_path: Path, output_path: Path) -> None:
     value = json.loads(input_path.read_text(encoding="utf-8"))
     normalized = normalize_document(value)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        json.dumps(normalized, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    output_path.write_text(json.dumps(normalized, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-__all__ = [
-    "UnsupportedSourceContractProfile",
-    "normalize_document",
-    "normalize_file",
-]
+__all__ = ["UnsupportedSourceContractProfile", "normalize_document", "normalize_file"]

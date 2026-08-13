@@ -2,7 +2,7 @@ name: TypedCoreHIR proof pipeline
 
 on:
   pull_request:
-    branches: [agent/formal-verification-hard-gates, master]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -12,50 +12,45 @@ concurrency:
 jobs:
   typed-corehir-proof:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
-      - name: Enforce typed and solver boundaries
+      - name: Enforce boundaries
         run: |
           python3 scripts/check/check-typed-verified-core-boundary.py
           python3 scripts/check/check-solver-trust-manifest-boundary.py
           python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
-          python3 scripts/check/check-typed-verified-core-boundary-receipt.py \
-            .build/proof/typed-verified-core-boundary.json
+          python3 scripts/check/check-typed-verified-core-boundary-receipt.py .build/proof/typed-verified-core-boundary.json
           python3 scripts/gen/write-solver-trust-boundary-receipt.py
-          python3 scripts/check/check-solver-trust-boundary-receipt.py \
-            .build/proof/solver-trust-boundary.json
-
-      - name: Run typed semantic negative tests
+          python3 scripts/check/check-solver-trust-boundary-receipt.py .build/proof/solver-trust-boundary.json
+      - name: Run phase tests
         run: |
           python3 -m unittest \
             scripts.tests.test_typed_corehir_convert \
             scripts.tests.test_verified_core_typed \
             scripts.tests.test_smtlib_typed_v1 \
+            scripts.tests.test_proof_program_phases \
+            scripts.tests.test_proof_phase3_calls \
             scripts.tests.test_typed_verified_core_receipt \
             scripts.tests.test_solver_result \
             scripts.tests.test_solver_driver
-
-      - name: Convert and admit fixture
+      - name: Convert fixture
         run: |
           mkdir -p .build/typed-corehir-proof .build/typed-corehir-toolchain
-          python3 scripts/gen/convert-typed-corehir.py \
-            --input tests/proof/typed-corehir.json \
-            --output .build/typed-corehir-proof/verified-core.json
-          python3 scripts/check/check-typed-verified-core.py \
-            .build/typed-corehir-proof/verified-core.json
-          python3 scripts/gen/write-smt-vcs.py \
-            --subject .build/typed-corehir-proof/verified-core.json \
-            --output .build/typed-corehir-proof/verified-core-vcs.smt2
-
-      - name: Build typed fixture toolchain
+          python3 scripts/gen/convert-typed-corehir.py --input tests/proof/typed-corehir.json --output .build/typed-corehir-proof/verified-core.json
+          python3 scripts/check/check-typed-verified-core.py .build/typed-corehir-proof/verified-core.json
+          python3 scripts/gen/write-smt-vcs.py --subject .build/typed-corehir-proof/verified-core.json --output .build/typed-corehir-proof/verified-core-vcs.smt2
+      - name: Build fixture toolchain
         run: |
           chmod +x tests/proof/toolchain/fake_solver.py
           cp tests/proof/toolchain/producer.bin .build/typed-corehir-toolchain/producer.bin
           cp tests/proof/toolchain/fake_solver.py .build/typed-corehir-toolchain/fake_solver.py
+          cp docs/data/proof-capabilities-v1.json .build/typed-corehir-toolchain/proof-capabilities-v1.json
+          cp scripts/proof/capabilities.py .build/typed-corehir-toolchain/capabilities.py
           cp scripts/proof/typed_corehir_typed_convert.py .build/typed-corehir-toolchain/typed_corehir_typed_convert.py
-          cp scripts/proof/typed_corehir_convert.py .build/typed-corehir-toolchain/typed_corehir_convert.py
+          cp scripts/proof/typed_corehir_program_convert.py .build/typed-corehir-toolchain/typed_corehir_program_convert.py
           cp scripts/proof/verified_core.py .build/typed-corehir-toolchain/verified_core.py
+          cp scripts/proof/verified_core_program.py .build/typed-corehir-toolchain/verified_core_program.py
           cp scripts/proof/verified_core_typed.py .build/typed-corehir-toolchain/verified_core_typed.py
           cp scripts/proof/smtlib_typed_v1.py .build/typed-corehir-toolchain/smtlib_typed_v1.py
           cp scripts/proof/smtlib_v1.py .build/typed-corehir-toolchain/smtlib_v1.py
@@ -68,12 +63,15 @@ jobs:
           import json
           from pathlib import Path
           components = [
-              ("typed-proof-boundary", "2", "typed_corehir_typed_convert.py"),
-              ("typed-proof-boundary-implementation", "1", "typed_corehir_convert.py"),
+              ("proof-capability-profile", "1", "proof-capabilities-v1.json"),
+              ("proof-capability-validator", "1", "capabilities.py"),
+              ("typed-proof-boundary", "3", "typed_corehir_typed_convert.py"),
+              ("typed-proof-program-lowering", "3", "typed_corehir_program_convert.py"),
               ("artifact-validator", "1", "verified_core.py"),
-              ("typed-artifact-validator", "1", "verified_core_typed.py"),
+              ("artifact-validator-implementation", "1", "verified_core_program.py"),
+              ("typed-artifact-validator", "2", "verified_core_typed.py"),
               ("typed-smt-adapter", "1", "smtlib_typed_v1.py"),
-              ("smt-renderer-implementation", "1", "smtlib_v1.py"),
+              ("smt-renderer-implementation", "3", "smtlib_v1.py"),
               ("typed-boundary-receipt-validator", "1", "typed_verified_core_receipt.py"),
               ("typed-artifact-admission", "1", "check-typed-verified-core.py"),
               ("typed-boundary-policy", "1", "check-typed-verified-core-boundary.py"),
@@ -83,39 +81,19 @@ jobs:
           document = {
               "schema": "arukellt-proof-toolchain", "schema_version": 1,
               "producer": {"name": "typed-corehir-fixture", "version": "1", "executable": "producer.bin"},
-              "translator": {"name": "typed-verified-core-smt", "version": "1", "executable": "smtlib_typed_v1.py"},
+              "translator": {"name": "typed-verified-core-smt", "version": "3", "executable": "smtlib_typed_v1.py"},
               "solver": {"name": "fake-z3", "version": "1", "executable": "fake_solver.py", "arguments": []},
               "semantic_profile": {"integer_model": "mathematical", "overflow": "checked", "floating_point": "unsupported", "memory": "pure-values"},
               "assumptions": [],
-              "trusted_components": [
-                  {"name": f"arukellt-{role}", "role": role, "version": version, "artifact": artifact}
-                  for role, version, artifact in components
-              ],
+              "trusted_components": [{"name": f"arukellt-{role}", "role": role, "version": version, "artifact": artifact} for role, version, artifact in components],
               "limits": {"timeout_ms": 10000, "memory_bytes": 1073741824},
           }
           Path(".build/typed-corehir-toolchain/toolchain.json").write_text(json.dumps(document, indent=2) + "\n")
           PY
-
-      - name: Prove and validate SolverResult
+      - name: Prove fixture
         run: |
-          python3 scripts/run/run-proof-solver.py \
-            --subject .build/typed-corehir-proof/verified-core.json \
-            --solver-input .build/typed-corehir-proof/verified-core-vcs.smt2 \
-            --toolchain .build/typed-corehir-toolchain/toolchain.json \
-            --solver-output .build/typed-corehir-proof/solver-output.txt \
-            --trust-manifest-output .build/typed-corehir-proof/trust-manifest.json \
-            --proof-receipt-output .build/typed-corehir-proof/proof-receipt.json \
-            --solver-result-output .build/typed-corehir-proof/solver-result.json
-          python3 scripts/check/check-solver-result.py \
-            .build/typed-corehir-proof/solver-result.json \
-            --subject .build/typed-corehir-proof/verified-core.json \
-            --solver-input .build/typed-corehir-proof/verified-core-vcs.smt2 \
-            --toolchain .build/typed-corehir-toolchain/toolchain.json \
-            --solver-output .build/typed-corehir-proof/solver-output.txt \
-            --trust-manifest .build/typed-corehir-proof/trust-manifest.json \
-            --proof-receipt .build/typed-corehir-proof/proof-receipt.json
-          echo 'typed_semantics=bound-through-solver'
-
+          python3 scripts/run/run-proof-solver.py --subject .build/typed-corehir-proof/verified-core.json --solver-input .build/typed-corehir-proof/verified-core-vcs.smt2 --toolchain .build/typed-corehir-toolchain/toolchain.json --solver-output .build/typed-corehir-proof/solver-output.txt --trust-manifest-output .build/typed-corehir-proof/trust-manifest.json --proof-receipt-output .build/typed-corehir-proof/proof-receipt.json --solver-result-output .build/typed-corehir-proof/solver-result.json
+          python3 scripts/check/check-solver-result.py .build/typed-corehir-proof/solver-result.json --subject .build/typed-corehir-proof/verified-core.json --solver-input .build/typed-corehir-proof/verified-core-vcs.smt2 --toolchain .build/typed-corehir-toolchain/toolchain.json --solver-output .build/typed-corehir-proof/solver-output.txt --trust-manifest .build/typed-corehir-proof/trust-manifest.json --proof-receipt .build/typed-corehir-proof/proof-receipt.json
       - uses: actions/upload-artifact@v4
         with:
           name: typed-corehir-proof-pipeline
