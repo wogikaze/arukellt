@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 EXTRA_FILES = (
     "scripts/gen/write_typed_verified_core_boundary_receipt_impl.py",
     "scripts/proof/verified_core_typed_impl.py",
+    "scripts/proof/typed_verified_core_receipt_impl.py",
     "scripts/check/check-proof-phase3-modular.py",
 )
 
