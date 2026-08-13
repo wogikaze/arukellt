@@ -1,0 +1,32 @@
+name: PR18 regenerate docs
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.head_ref == 'agent/formal-verification-hard-gates' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Regenerate and commit canonical docs
+        run: |
+          set -euo pipefail
+          python3 scripts/gen/generate-docs.py
+          git add docs/adr/README.md docs/data/release-guarantees.md
+          if git diff --cached --quiet; then
+            echo 'Canonical docs already clean.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: regenerate after proof integration rebase'
+          git push origin HEAD:${{ github.head_ref }}
