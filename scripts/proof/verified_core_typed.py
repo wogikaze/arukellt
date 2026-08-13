@@ -7,6 +7,7 @@ from typing import Any
 
 from proof import verified_core_typed_impl as _impl
 from proof.verified_core import validate_document
+from proof.verified_core_interface import call_interfaces_may_be_unbound, interface_sha256
 
 SCHEMA = _impl.SCHEMA
 VERSION = _impl.VERSION
@@ -89,6 +90,27 @@ def _compat_message(message: str) -> str:
     return message
 
 
+def _validate_call_interface_digests(document: dict[str, Any]) -> None:
+    functions = {int(function["id"]): function for function in document["functions"]}
+    for function_index, function in enumerate(document["functions"]):
+        for block_index, block in enumerate(function["body"]["blocks"]):
+            for instruction_index, instruction in enumerate(block["instructions"]):
+                if instruction.get("op") != "call":
+                    continue
+                path = f"$.functions[{function_index}].body.blocks[{block_index}].instructions[{instruction_index}]"
+                callee_id = int(instruction["callee_id"])
+                actual = instruction.get("callee_interface_sha256")
+                if actual is None and call_interfaces_may_be_unbound():
+                    continue
+                if callee_id not in functions:
+                    raise TypedVerifiedCoreError(f"{path}.callee_id: unknown function")
+                expected = interface_sha256(functions[callee_id])
+                if actual != expected:
+                    raise TypedVerifiedCoreError(
+                        f"{path}.callee_interface_sha256: exact callee interface is not bound"
+                    )
+
+
 def validate_typed_document(value: Any) -> dict[str, Any]:
     _precheck_legacy_diagnostics(value)
     prepared = _prepare_contract_namespaces(value)
@@ -96,7 +118,9 @@ def validate_typed_document(value: Any) -> dict[str, Any]:
         _impl.validate_typed_document(prepared)
     except TypedVerifiedCoreError as exc:
         raise TypedVerifiedCoreError(_compat_message(str(exc))) from exc
-    return validate_document(value)
+    document = validate_document(value)
+    _validate_call_interface_digests(document)
+    return document
 
 
 __all__ = ["SCHEMA", "VERSION", "TypedVerifiedCoreError", "validate_typed_document"]
