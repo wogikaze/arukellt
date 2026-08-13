@@ -7,6 +7,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: tmp-pr18-canonical-format
+  cancel-in-progress: true
+
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -36,12 +40,18 @@ jobs:
             src/compiler/driver/typed_corehir_render.ark \
             src/compiler/driver/verified_core_render_primitives.ark \
             src/compiler/mir/typed_mir_sync_module.ark \
-            src/compiler/mir_opt/licm_translation_validation.ark
+            src/compiler/mir_opt/licm_translation_validation.ark &
+          p1=$!
           "$wrapper" fmt \
             src/compiler/mir_opt/loop_unroll_translation_validation.ark \
             src/compiler/mir_opt/stdlib_resolve_translation_validation.ark \
             src/compiler/mir_opt/stdlib_resolve_validated.ark \
-            src/compiler/mir_opt/translation_validation.ark
+            src/compiler/mir_opt/translation_validation.ark &
+          p2=$!
+          rc=0
+          wait "$p1" || rc=1
+          wait "$p2" || rc=1
+          exit "$rc"
       - name: Commit canonical output
         run: |
           set -euo pipefail
