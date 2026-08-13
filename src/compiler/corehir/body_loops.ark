@@ -2,6 +2,8 @@ use corehir::expr_builder_control_loop
 use corehir::expr_factory
 use corehir::expr_predicates
 use corehir::expr_node_access
+use corehir::frontend_ast_node
+use corehir::frontend_kind_map
 
 fn corehir_build_loop_children(table: CoreHirBodyTable, node: AstNode, children: Vec<i32>) -> bool {
     let child_count = expr_node_access::expr_child_count(node)
@@ -19,6 +21,32 @@ fn corehir_build_loop_children(table: CoreHirBodyTable, node: AstNode, children:
     unsupported
 }
 
+fn corehir_append_while_proof_kind(
+    table: CoreHirBodyTable,
+    node: AstNode,
+    children: Vec<i32>,
+    wanted: String
+) -> bool {
+    let annotation_count = frontend_ast_node::corehir_node_type_ann_count(node)
+    let mut annotation_index = 0
+    while annotation_index < annotation_count {
+        let annotation = frontend_ast_node::corehir_node_type_ann_at(node, annotation_index)
+        if frontend_ast_node::corehir_node_kind(annotation) == frontend_kind_map::nk_proof_contract() {
+            let kind = frontend_ast_node::corehir_node_text(annotation)
+            if eq(kind, clone(wanted)) && frontend_ast_node::corehir_node_child_count(annotation) == 1 {
+                let expression = frontend_ast_node::corehir_node_child_at(annotation, 0)
+                let expression_index = corehir_build_expr(table, expression)
+                push(children, expression_index)
+                if expr_predicates::expr_is_unsupported(corehir_body_expr_at(table, expression_index)) {
+                    return true
+                }
+            }
+        }
+        annotation_index = annotation_index + 1
+    }
+    false
+}
+
 fn corehir_build_while_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     let child_count = expr_node_access::expr_child_count(node)
     if child_count < 2 {
@@ -26,6 +54,12 @@ fn corehir_build_while_expr(table: CoreHirBodyTable, node: AstNode) -> i32 {
     }
     let children = Vec::new<i32>()
     if corehir_build_loop_children(table, node, children) {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    if corehir_append_while_proof_kind(table, node, children, "invariant") {
+        return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
+    }
+    if corehir_append_while_proof_kind(table, node, children, "decreases") {
         return corehir_push_expr(table, expr_factory::CoreHirExpr_unsupported(expr_node_access::expr_span_start(node)))
     }
     corehir_push_expr(table, expr_builder_control_loop::corehir_expr_while(expr_node_access::expr_span_start(node), children))
