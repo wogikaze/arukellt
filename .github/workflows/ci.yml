@@ -100,7 +100,7 @@ jobs:
         shell: bash
         env:
           ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-          ARUKELLT_LINT_WORKERS: "2"
+          ARUKELLT_LINT_WORKERS: "8"
         run: |
           set -euo pipefail
           mapfile -t files < "$RUNNER_TEMP/shard-ark.txt"
