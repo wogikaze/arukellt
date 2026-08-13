@@ -144,6 +144,16 @@ owner = "wasm-backend"
 notes = "Round-trip verification is canonical; handwritten layout is preserved"
 
 [[families]]
+ext = ".smt2"
+formatter = ""
+linter = ""
+canonical_fmt = ""
+canonical_lint = ""
+status = "deferred"
+owner = "proof"
+notes = "Solver inputs under tests/proof/; no rewriting formatter"
+
+[[families]]
 ext = ".mjs"
 formatter = "biome"
 linter = "biome"

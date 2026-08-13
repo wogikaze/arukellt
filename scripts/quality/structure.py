@@ -366,6 +366,9 @@ def _ci_job_body(workflow: str, job: str) -> str:
     return match.group(1) if match else ""
 
 
+_MANAGER_HELP_CACHE: dict[tuple[str, ...], bool] = {}
+
+
 def _manager_command_exists(root: Path, canonical: str) -> bool:
     tokens = shlex.split(canonical)
     if len(tokens) < 3 or tokens[0] not in {"python", "python3"}:
@@ -375,15 +378,21 @@ def _manager_command_exists(root: Path, canonical: str) -> bool:
     manager = root / tokens[1]
     if not manager.is_file():
         return False
+    help_key = tuple(tokens[2:])
+    cached = _MANAGER_HELP_CACHE.get(help_key)
+    if cached is not None:
+        return cached
     result = subprocess.run(
         [sys.executable, str(manager), *tokens[2:], "--help"],
         cwd=root,
         capture_output=True,
         text=True,
         check=False,
-        timeout=20,
+        timeout=120,
     )
-    return result.returncode == 0
+    exists = result.returncode == 0
+    _MANAGER_HELP_CACHE[help_key] = exists
+    return exists
 
 
 def quality_contract_findings(root: Path) -> list[Finding]:

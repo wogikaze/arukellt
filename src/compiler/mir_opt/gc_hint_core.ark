@@ -39,7 +39,7 @@ fn GcHintUseTarget_new(local: i32, from: i32, ignore_initialization_receiver: bo
 
 fn gc_hint_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
     type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(a)) ==
-        type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
     mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
     mir_value_type::mir_value_type_nullability(a) == mir_value_type::mir_value_type_nullability(b)
 }
@@ -49,17 +49,17 @@ fn gc_hint_instruction_equal(a: MirInst, b: MirInst) -> bool {
         return false
     }
     if inst_accessors_operands::MirInst_dest(a) != inst_accessors_operands::MirInst_dest(b) ||
-       inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
-       inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
+    inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
+    inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
         return false
     }
     if inst_accessors_literals::MirInst_int_val(a) != inst_accessors_literals::MirInst_int_val(b) ||
-       inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
-       !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
+    inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
+    !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
         return false
     }
     if inst_accessors_shape::MirInst_val_type(a) != inst_accessors_shape::MirInst_val_type(b) ||
-       inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
+    inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
         return false
     }
     let result_count = inst_record::mir_inst_result_type_count(a)
@@ -107,6 +107,13 @@ fn gc_hint_is_constructor_initialization(inst: MirInst, local: i32) -> bool {
     inst_accessors_operands::MirInst_arg0(inst) == local
 }
 
+fn gc_hint_is_local_reload(inst: MirInst, local: i32) -> bool {
+    // Ident lowering emits local.get_to(idx, idx) before field access. That
+    // reload is not a second consumer of the allocation.
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local
+}
+
 fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> GcHintUseTarget {
     let mut alias = 0 - 1
     let mut alias_at = 0 - 1
@@ -121,6 +128,10 @@ fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i3
             if arg1 == local {
                 direct_uses = direct_uses + 1
             }
+            i = i + 1
+            continue
+        }
+        if gc_hint_is_local_reload(inst, local) {
             i = i + 1
             continue
         }
@@ -161,6 +172,10 @@ fn gc_hint_count_local_uses(
     let mut i = from
     while i <= to {
         let inst = get_unchecked(insts, i)
+        if gc_hint_is_local_reload(inst, local) {
+            i = i + 1
+            continue
+        }
         let arg0 = inst_accessors_operands::MirInst_arg0(inst)
         let arg1 = inst_accessors_operands::MirInst_arg1(inst)
         if arg0 == local && !(ignore_initialization_receiver && gc_hint_is_constructor_initialization(inst, local)) {

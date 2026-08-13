@@ -1,8 +1,16 @@
 use corehir::type_id
 
-fn MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() -> i32 { 1 }
-fn MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() -> i32 { 2 }
-fn MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() -> i32 { 3 }
+fn MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() -> i32 {
+    1
+}
+
+fn MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() -> i32 {
+    2
+}
+
+fn MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() -> i32 {
+    3
+}
 
 struct MirGcLayoutBinding {
     type_id: TypeId,

@@ -1,6 +1,6 @@
 # ADR-051: Formal verification hard gates
 
-Status: **ACCEPTED**
+ステータス: **ACCEPTED** — 検証境界を独立実行可能にし、`proof-required` を 7 ゲートの fail-closed 契約とする
 
 Date: 2026-08-01
 

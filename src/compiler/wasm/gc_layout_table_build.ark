@@ -37,7 +37,7 @@ fn gc_layout_plan_type_index(
 fn gc_layout_plan_struct_type_index(binding: MirGcLayoutBinding, type_idx: i32) -> i32 {
     let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
     if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() ||
-       source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+    source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
         return type_idx
     }
     0 - 1

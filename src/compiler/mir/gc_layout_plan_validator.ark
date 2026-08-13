@@ -15,8 +15,8 @@ fn mir_gc_layout_plan_valid(plan: MirGcLayoutPlan) -> bool {
         }
         let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
         if source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() &&
-           source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() &&
-           source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
+        source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() &&
+        source_kind != gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() {
             return false
         }
         if gc_layout_plan::mir_gc_layout_binding_source_value(binding) < 0 {
