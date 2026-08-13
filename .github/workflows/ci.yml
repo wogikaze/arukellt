@@ -187,12 +187,8 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Show generated-doc drift
-        run: |
-          set -euo pipefail
-          python3 scripts/gen/generate-docs.py
-          git status --short
-          git diff --exit-code
+      - name: Check docs consistency
+        run: python3 scripts/check/check-docs-consistency.py
 
   extension-tests:
     name: "VS Code extension E2E"
