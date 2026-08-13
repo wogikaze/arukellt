@@ -95,7 +95,7 @@ jobs:
         run: cargo build --quiet --bin arukellt-host-run
         working-directory: tools/host-linker
 
-      - name: Check formatting and lint in parallel
+      - name: Full format and bounded lint
         if: steps.shard.outputs.count != '0'
         shell: bash
         env:
@@ -103,24 +103,41 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t files < "$RUNNER_TEMP/shard-ark.txt"
-          (
-            ARUKELLT_LINT_WORKERS=4 python3 scripts/manager.py fmt --check "${files[@]}"
-          ) &
-          fmt_pid=$!
-          (
-            ARUKELLT_LINT_WORKERS=4 python3 scripts/manager.py lint "${files[@]}"
-          ) &
-          lint_pid=$!
+          wrapper="scripts/run/arukellt-selfhost.sh"
+          pids=()
+          labels=()
+
+          # The pinned formatter supports multiple inputs. Keep each invocation
+          # at <=5 files to bound wasm memory while amortizing cold start.
+          batch_no=0
+          for ((start=0; start<${#files[@]}; start+=5)); do
+            batch=("${files[@]:start:5}")
+            ("$wrapper" fmt --check "${batch[@]}") &
+            pids+=("$!")
+            labels+=("fmt-batch-$batch_no")
+            batch_no=$((batch_no + 1))
+          done
+
+          # The pinned lint CLI is single-input. PR CI samples one deterministic
+          # file per shard; exhaustive lint remains in full-validation.
+          sample="${files[0]}"
+          echo "PR lint sample: $sample"
+          ("$wrapper" lint --local "$sample") &
+          pids+=("$!")
+          labels+=("lint-sample")
+
+          rc=0
           set +e
-          wait "$fmt_pid"
-          fmt_rc=$?
-          wait "$lint_pid"
-          lint_rc=$?
+          for i in "${!pids[@]}"; do
+            wait "${pids[$i]}"
+            child_rc=$?
+            if [[ "$child_rc" -ne 0 ]]; then
+              echo "${labels[$i]} failed with rc=$child_rc" >&2
+              rc=1
+            fi
+          done
           set -e
-          if [[ "$fmt_rc" -ne 0 || "$lint_rc" -ne 0 ]]; then
-            echo "quality shard failed: fmt=$fmt_rc lint=$lint_rc" >&2
-            exit 1
-          fi
+          exit "$rc"
 
   quality-format:
     name: "quality-format"
