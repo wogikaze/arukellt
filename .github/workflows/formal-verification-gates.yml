@@ -1,0 +1,34 @@
+name: Formal verification gates
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    tags: ["v*", "[0-9]*"]
+  workflow_dispatch:
+
+jobs:
+  formal-verification-gates:
+    name: "Formal verification gates"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate artifact schemas
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path("schemas").glob("*-v1.schema.json")):
+              json.loads(path.read_text(encoding="utf-8"))
+              print(f"schema: PASS: {path}")
+          PY
+
+      - name: Run formal artifact unit tests
+        run: python3 -m unittest scripts.tests.test_proof_artifacts
+
+      - name: Validate proof-required fixture
+        run: python3 scripts/check/check-formal-verification-gates.py tests/proof/proof-required-policy.json
+
+      - name: Validate repository release policy
+        run: python3 scripts/check/check-formal-verification-gates.py release/proof-policy.json

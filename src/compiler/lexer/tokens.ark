@@ -40,6 +40,7 @@ pub fn TK_ENUM() -> i32 { 12 }
 pub fn TK_TRAIT() -> i32 { 28 }
 pub fn TK_IMPL() -> i32 { 29 }
 pub fn TK_CONST() -> i32 { 35 }
+pub fn TK_PROOF() -> i32 { 36 }
 
 // kind_keyword_loop
 pub fn TK_WHILE() -> i32 { 18 }
@@ -114,6 +115,7 @@ test mod "tokens" {
     test "ident" { assert(TK_IDENT() == 1) }
     test "eof" { assert(TK_EOF() == 0) }
     test "fn" { assert(TK_FN() == 10) }
+    test "proof" { assert(TK_PROOF() == 36) }
     test "eqeq" { assert(TK_EQEQ() == 46) }
     test "plus" { assert(TK_PLUS() == 40) }
 }

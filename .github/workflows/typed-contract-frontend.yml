@@ -1,0 +1,235 @@
+name: Typed proof contract frontend
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: typed-contract-frontend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  typed-contract-frontend:
+    name: "Typed proof contract frontend"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # PR feedback is bounded to deterministic source, adapter, and receipt
+      # checks. Current-selfhost reconstruction and end-to-end proof execution
+      # run on master after merge or via manual dispatch.
+      - name: Check source and architecture boundaries
+        run: |
+          python3 scripts/check/check-typed-contract-source.py
+          python3 scripts/check/check-typed-verified-core-boundary.py
+          python3 scripts/check/check-solver-trust-manifest-boundary.py
+          python3 scripts/check/check-backend-name-lookup-audit.py
+          python3 scripts/check/check-backend-typeid-first.py
+          python3 scripts/check/check-gc-hint-translation-validation.py
+          python3 scripts/check/check-corehir-body-boundary.py
+          python3 scripts/check/check-versioned-boundary-enforcement.py
+
+      - name: Validate proof adapters
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_boundary_registry \
+            scripts.tests.test_proof_artifacts \
+            scripts.tests.test_typed_corehir_artifacts \
+            scripts.tests.test_typed_corehir_convert \
+            scripts.tests.test_verified_core_typed \
+            scripts.tests.test_smtlib_typed_v1 \
+            scripts.tests.test_typed_verified_core_receipt \
+            scripts.tests.test_source_contract_profile \
+            scripts.tests.test_source_proof_binding \
+            scripts.tests.test_proof_required_release_gate \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt \
+            scripts.tests.test_solver_driver
+
+      - name: Generate and validate boundary evidence
+        run: |
+          python3 scripts/check/check-boundary-registry.py \
+            --registry release/boundary-registry.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --receipt-output .build/proof/boundary-registry-validation.json
+          python3 scripts/check/check-boundary-registry-receipt.py \
+            --registry release/boundary-registry.json \
+            --receipt .build/proof/boundary-registry-validation.json \
+            --repository "$GITHUB_REPOSITORY"
+          python3 scripts/gen/write-backend-typeid-layout-receipt.py
+          python3 scripts/gen/write-mir-opt-translation-registry.py
+          python3 scripts/gen/write-corehir-body-boundary-receipt.py
+          python3 scripts/gen/write-typed-verified-core-boundary-receipt.py
+          python3 scripts/check/check-typed-verified-core-boundary-receipt.py \
+            .build/proof/typed-verified-core-boundary.json
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
+      - name: Install Wasmtime and Z3
+        if: github.event_name != 'pull_request'
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build host linker
+        if: github.event_name != 'pull_request'
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
+      - name: Build current selfhost stage 2 runtime
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from selfhost.checks import rebuild_current_s2
+          path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
+          if path is None:
+              raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
+          print(f"typed-contract-s2: PASS: path={path} elapsed={elapsed:.3f}s")
+          PY
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
+
+      - name: Emit and convert typed source contracts
+        if: github.event_name != 'pull_request'
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: |
+          python3 scripts/check/check-typed-contract-emission.py
+          python3 scripts/gen/convert-typed-corehir.py \
+            --input .build/typed-contract-proof/typed-corehir.json \
+            --output .build/typed-contract-proof/verified-core-machine.json
+          python3 scripts/check/check-typed-verified-core.py \
+            .build/typed-contract-proof/verified-core-machine.json
+          python3 scripts/gen/normalize-source-contract-profile.py \
+            --input .build/typed-contract-proof/verified-core-machine.json \
+            --output .build/typed-contract-proof/verified-core.json
+          python3 scripts/check/check-typed-verified-core.py \
+            .build/typed-contract-proof/verified-core.json
+          python3 scripts/gen/write-smt-vcs.py \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --output .build/typed-contract-proof/verified-core-vcs.smt2
+
+      - name: Bind proof invocation and payload
+        if: github.event_name != 'pull_request'
+        run: |
+          cp .build/selfhost/arukellt-s2-runtime.wasm \
+            .build/typed-contract-proof/arukellt-s2-runtime.wasm
+          python3 scripts/gen/write-release-provenance.py \
+            --repository "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" \
+            --ref-type branch --ref-name "$GITHUB_REF_NAME" \
+            --workflow "$GITHUB_WORKFLOW" --run-id "$GITHUB_RUN_ID" \
+            --output .build/typed-contract-proof/proof-provenance.json
+          python3 scripts/gen/write-release-payload-manifest.py \
+            --payload arukellt-wasm=.build/typed-contract-proof/arukellt-s2-runtime.wasm \
+            --output .build/typed-contract-proof/proof-payload-manifest.json
+          python3 scripts/gen/write-source-proof-binding.py \
+            --source tests/verified-core/contract_identity.ark \
+            --producer-executable .build/selfhost/arukellt-s2-runtime.wasm \
+            --typed-corehir .build/typed-contract-proof/typed-corehir.json \
+            --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
+            --verified-core-normalized .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --boundary-registry release/boundary-registry.json \
+            --boundary-registry-validation-receipt .build/proof/boundary-registry-validation.json \
+            --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
+            --optimizer-translation-registry .build/proof/mir-opt-translation-registry.json \
+            --corehir-body-boundary-receipt .build/proof/corehir-body-boundary.json \
+            --release-provenance .build/typed-contract-proof/proof-provenance.json \
+            --release-payload-manifest .build/typed-contract-proof/proof-payload-manifest.json \
+            --output .build/typed-contract-proof/source-proof-binding.json
+
+      - name: Build hash-bound proof toolchain
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 scripts/gen/prepare-proof-release-toolchain.py \
+            --runtime .build/selfhost/arukellt-s2-runtime.wasm \
+            --source-binding .build/typed-contract-proof/source-proof-binding.json \
+            --output-dir .build/typed-contract-toolchain \
+            --toolchain-output .build/typed-contract-toolchain/toolchain.json \
+            --z3 "$(command -v z3)"
+
+      - name: Prove and independently validate SolverResult
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 scripts/run/run-proof-solver.py \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --toolchain .build/typed-contract-toolchain/toolchain.json \
+            --solver-output .build/typed-contract-proof/solver-output.txt \
+            --trust-manifest-output .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt-output .build/typed-contract-proof/proof-receipt.json \
+            --solver-result-output .build/typed-contract-proof/solver-result.json
+          python3 scripts/check/check-solver-result.py \
+            .build/typed-contract-proof/solver-result.json \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --toolchain .build/typed-contract-toolchain/toolchain.json \
+            --solver-output .build/typed-contract-proof/solver-output.txt \
+            --trust-manifest .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt .build/typed-contract-proof/proof-receipt.json
+
+      - name: Verify source binding
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from proof.source_proof_binding import validate_binding
+          proof = Path(".build/typed-contract-proof")
+          validate_binding(json.loads((proof / "source-proof-binding.json").read_text()), {
+              "source": Path("tests/verified-core/contract_identity.ark"),
+              "producer_executable": Path(".build/selfhost/arukellt-s2-runtime.wasm"),
+              "typed_corehir": proof / "typed-corehir.json",
+              "verified_core_machine": proof / "verified-core-machine.json",
+              "verified_core_normalized": proof / "verified-core.json",
+              "solver_input": proof / "verified-core-vcs.smt2",
+              "boundary_registry": Path("release/boundary-registry.json"),
+              "boundary_registry_validation_receipt": Path(".build/proof/boundary-registry-validation.json"),
+              "backend_typeid_layout_receipt": Path(".build/proof/backend-typeid-layout.json"),
+              "optimizer_translation_registry": Path(".build/proof/mir-opt-translation-registry.json"),
+              "corehir_body_boundary_receipt": Path(".build/proof/corehir-body-boundary.json"),
+              "release_provenance": proof / "proof-provenance.json",
+              "release_payload_manifest": proof / "proof-payload-manifest.json",
+          })
+          result = json.loads((proof / "solver-result.json").read_text())
+          if result["status"] != "proved":
+              raise SystemExit(result)
+          print("typed-source-contract-proof: PASS")
+          PY
+
+      - name: Upload source proof bundle
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: typed-source-contract-proof
+          path: |
+            .build/typed-contract-proof
+            .build/typed-contract-toolchain/toolchain.json
+            release/boundary-registry.json
+            .build/proof/boundary-registry-validation.json
+            .build/proof/backend-typeid-layout.json
+            .build/proof/mir-opt-translation-registry.json
+            .build/proof/corehir-body-boundary.json
+            .build/proof/typed-verified-core-boundary.json
+            .build/proof/solver-trust-boundary.json
+          if-no-files-found: error

@@ -1,5 +1,5 @@
-// Call-result GC typing via SignatureRegistry / Mir return / type_name →
-// GcLayoutTable (#842). Emit-time callee-name → wasm type tables removed.
+// Call-result GC typing via SignatureRegistry return TypeId / MirValueType.
+// Backend layout is never selected from a type name.
 
 use corehir::function_id
 use corehir::mir_value_type
@@ -35,14 +35,6 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
             return named_struct
         }
         Option::None => {}
-    }
-    // Phase 5e: structured lookup (GcLayoutTable + centralized name→offset
-    // fallback) handles vec/string/hashmap/option/result/enum.
-    if len(ret_name) > 0 {
-        let structured_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(ret_name))
-        if structured_gc >= 0 {
-            return Option::Some(structured_gc)
-        }
     }
     infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
 }
@@ -81,10 +73,6 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
 fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None
-    }
-    let structured_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(ret_name))
-    if structured_gc >= 0 {
-        return Option::Some(structured_gc)
     }
     if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
     starts_with(clone(ret_name), "Result_") ||

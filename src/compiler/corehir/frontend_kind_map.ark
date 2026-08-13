@@ -51,3 +51,4 @@ fn nk_type_named() -> i32 { kinds::NK_TYPE_NAMED() }
 fn nk_type_generic() -> i32 { kinds::NK_TYPE_GENERIC() }
 fn nk_type_tuple() -> i32 { kinds::NK_TYPE_TUPLE() }
 fn nk_type_fn() -> i32 { kinds::NK_TYPE_FN() }
+fn nk_proof_contract() -> i32 { kinds::NK_PROOF_CONTRACT() }

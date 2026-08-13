@@ -1,0 +1,227 @@
+use corehir::function_id
+use corehir::signature_entry
+use corehir::signature_registry
+use mir::core_op_call
+use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_record
+use mir::local_access
+use mir::opcodes
+use mir::types
+use mir_opt::translation_validation
+
+fn stdlib_resolve_validator_receiver_local(
+    before: Vec<MirInst>,
+    call_index: i32,
+    call: MirInst
+) -> i32 {
+    let recorded = inst_accessors_operands::MirInst_arg0(call)
+    if recorded >= 0 {
+        return recorded
+    }
+    let argc = inst_accessors_literals::MirInst_int_val(call)
+    if argc <= 0 {
+        return 0 - 1
+    }
+    let staged_index = call_index - argc
+    if staged_index < 0 || staged_index >= len(before) {
+        return 0 - 1
+    }
+    let staged = get_unchecked(before, staged_index)
+    if inst_accessors_shape::MirInst_op(staged) != opcodes::MIR_LOCAL_GET() {
+        return 0 - 1
+    }
+    inst_accessors_operands::MirInst_arg0(staged)
+}
+
+fn stdlib_resolve_validator_vec_suffix(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return substring(clone(type_name), 4, len(type_name))
+    }
+    String_new()
+}
+
+fn stdlib_resolve_validator_fallback_matches_elem(
+    fallback: String,
+    suffix: String
+) -> bool {
+    if eq(clone(fallback), String_from("__core_vec_push_i32_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_set_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_pop_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_impl")) {
+        return eq(clone(suffix), String_from("i32")) ||
+        eq(clone(suffix), String_from("I32")) ||
+        eq(clone(suffix), String_from("bool")) ||
+        eq(clone(suffix), String_from("char"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_i64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_i64_impl")) {
+        return eq(clone(suffix), String_from("i64")) ||
+        eq(clone(suffix), String_from("I64"))
+    }
+    if eq(clone(fallback), String_from("__core_vec_push_f64_impl")) ||
+    eq(clone(fallback), String_from("__core_vec_get_unchecked_f64_impl")) {
+        return eq(clone(suffix), String_from("f64")) ||
+        eq(clone(suffix), String_from("F64"))
+    }
+    true
+}
+
+fn stdlib_resolve_validator_expected_target(
+    m: MirModule,
+    registry: SignatureRegistry,
+    f: MirFunction,
+    before: Vec<MirInst>,
+    call_index: i32,
+    call: MirInst
+) -> String {
+    let fallback = core_op_call::mir_call_normal_fallback_symbol(m, call)
+    if len(fallback) == 0 {
+        return String_new()
+    }
+    if !starts_with(clone(fallback), String_from("__core_vec_")) ||
+    !ends_with(clone(fallback), String_from("_impl")) {
+        return fallback
+    }
+    if eq(clone(fallback), String_from("__core_vec_pop_impl")) {
+        return String_new()
+    }
+
+    let recv = stdlib_resolve_validator_receiver_local(before, call_index, call)
+    if recv < 0 || recv >= function_locals_view::MirFunction_local_count(f) {
+        return fallback
+    }
+    let type_name = local_access::MirLocal_type_name(
+        function_locals_view::MirFunction_local_at(f, recv)
+    )
+    let suffix = stdlib_resolve_validator_vec_suffix(type_name)
+    if len(suffix) == 0 {
+        if !stdlib_resolve_validator_fallback_matches_elem(clone(fallback), suffix) {
+            return String_new()
+        }
+        return fallback
+    }
+
+    let specialized = concat(clone(fallback), concat(String_from("__"), clone(suffix)))
+    let specialized_id = signature_registry::signature_registry_lookup_by_mangled(
+        registry,
+        clone(specialized)
+    )
+    if function_id::FunctionId_raw(specialized_id) >= 0 {
+        return specialized
+    }
+    if !stdlib_resolve_validator_fallback_matches_elem(clone(fallback), suffix) {
+        return String_new()
+    }
+    fallback
+}
+
+fn stdlib_resolve_result_types_match_entry(
+    after: MirInst,
+    entry: SignatureEntry
+) -> bool {
+    let count = inst_record::mir_inst_result_type_count(after)
+    if count != signature_entry::signature_entry_return_count(entry) {
+        return false
+    }
+    let mut i = 0
+    while i < count {
+        if !translation_validation::mir_translation_value_type_equal(
+            inst_record::mir_inst_result_type_at(after, i),
+            signature_entry::signature_entry_return_at(entry, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn stdlib_resolve_rewrite_valid(
+    m: MirModule,
+    registry: SignatureRegistry,
+    f: MirFunction,
+    before_block: Vec<MirInst>,
+    index: i32,
+    before: MirInst,
+    after: MirInst
+) -> bool {
+    if translation_validation::mir_translation_inst_equal(before, after) {
+        return true
+    }
+    if inst_accessors_shape::MirInst_op(before) != opcodes::MIR_CALL() ||
+    inst_accessors_shape::MirInst_op(after) != opcodes::MIR_CALL() {
+        return false
+    }
+    if inst_accessors_operands::MirInst_dest(before) != inst_accessors_operands::MirInst_dest(after) ||
+    inst_accessors_operands::MirInst_arg0(before) != inst_accessors_operands::MirInst_arg0(after) ||
+    inst_accessors_operands::MirInst_arg1(before) != inst_accessors_operands::MirInst_arg1(after) ||
+    inst_accessors_literals::MirInst_int_val(before) != inst_accessors_literals::MirInst_int_val(after) ||
+    inst_accessors_literals::MirInst_float_val(before) != inst_accessors_literals::MirInst_float_val(after) ||
+    inst_accessors_shape::MirInst_val_type(before) != inst_accessors_shape::MirInst_val_type(after) {
+        return false
+    }
+
+    let expected_target = stdlib_resolve_validator_expected_target(
+        m,
+        registry,
+        f,
+        before_block,
+        index,
+        before
+    )
+    let target_name = inst_accessors_literals::MirInst_str_val(after)
+    if len(expected_target) == 0 || !eq(clone(target_name), expected_target) {
+        return false
+    }
+
+    let resolved_id = signature_registry::signature_registry_lookup_by_mangled(
+        registry,
+        clone(target_name)
+    )
+    let target_raw = function_id::FunctionId_raw(resolved_id)
+    if target_raw < 0 ||
+    target_raw != inst_record::mir_inst_func_id_raw(after) ||
+    target_raw >= signature_registry::signature_registry_entry_count(registry) {
+        return false
+    }
+    if !eq(
+        clone(target_name),
+        signature_registry::signature_registry_mangled_at(registry, target_raw)
+    ) {
+        return false
+    }
+    let entry = signature_registry::signature_registry_lookup_by_id(registry, resolved_id)
+    stdlib_resolve_result_types_match_entry(after, entry)
+}
+
+fn stdlib_resolve_block_translation_valid(
+    m: MirModule,
+    registry: SignatureRegistry,
+    f: MirFunction,
+    before: Vec<MirInst>,
+    after: Vec<MirInst>
+) -> bool {
+    if len(before) != len(after) {
+        return false
+    }
+    let mut i = 0
+    while i < len(before) {
+        if !stdlib_resolve_rewrite_valid(
+            m,
+            registry,
+            f,
+            before,
+            i,
+            get_unchecked(before, i),
+            get_unchecked(after, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}

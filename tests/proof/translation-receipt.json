@@ -1,0 +1,33 @@
+{
+  "schema": "arukellt-translation-validation",
+  "schema_version": 1,
+  "pass": {
+    "name": "identity",
+    "version": "fixture",
+    "configuration_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "source": {
+    "schema": "arukellt-verified-core",
+    "schema_version": 1,
+    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
+  },
+  "target": {
+    "schema": "arukellt-verified-core",
+    "schema_version": 1,
+    "sha256": "74f54300a6b0020e6a5d374be1deb271097bbf3b047d3c91e51c569922abfd0c"
+  },
+  "validator": {
+    "name": "arukellt-translation-validator",
+    "version": "fixture",
+    "executable_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "trust_manifest_sha256": "61ad0593a85aaaad12df58dc0e3c0796178344c18812294a52442e5d96e48110",
+  "status": "validated",
+  "obligations": {
+    "total": 1,
+    "validated": 1,
+    "failed": 0,
+    "unknown": 0,
+    "errors": 0
+  }
+}

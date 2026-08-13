@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schema/verified-core-v1.schema.json",
+  "title": "Arukellt VerifiedCore v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "module", "target_profile", "types", "functions"],
+  "properties": {
+    "schema": {"const": "arukellt-verified-core"},
+    "schema_version": {"const": 1},
+    "generator": {"type": "string", "minLength": 1},
+    "module": {"type": "string", "minLength": 1},
+    "target_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["integer_model", "overflow", "floating_point", "pointer_width"],
+      "properties": {
+        "integer_model": {"type": "string", "minLength": 1},
+        "overflow": {"type": "string", "minLength": 1},
+        "floating_point": {"type": "string", "minLength": 1},
+        "pointer_width": {"enum": [32, 64]}
+      }
+    },
+    "types": {"type": "array", "items": {"$ref": "#/$defs/type"}},
+    "functions": {"type": "array", "items": {"$ref": "#/$defs/function"}}
+  },
+  "$defs": {
+    "representation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wasm", "nullable", "size_bytes", "align_bytes"],
+      "properties": {
+        "wasm": {"type": "array", "items": {"enum": ["i32", "i64", "f32", "f64", "v128", "funcref", "externref"]}},
+        "nullable": {"type": "boolean"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "align_bytes": {"type": "integer", "minimum": 1},
+        "layout_id": {"type": "integer", "minimum": 0}
+      }
+    },
+    "type": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "name", "representation"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "kind": {"enum": ["unit", "bool", "integer", "float", "string", "reference", "tuple", "struct", "enum", "function"]},
+        "name": {"type": "string", "minLength": 1, "pattern": "^(?!unknown$)(?!\\?).+"},
+        "representation": {"$ref": "#/$defs/representation"},
+        "bits": {"type": "integer", "minimum": 1},
+        "signed": {"type": "boolean"},
+        "pointee_type_id": {"type": "integer", "minimum": 0},
+        "elements": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type_id", "offset_bytes"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "type_id": {"type": "integer", "minimum": 0},
+              "offset_bytes": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "tag", "payload_type_ids"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "tag": {"type": "integer", "minimum": 0},
+              "payload_type_ids": {"type": "array", "items": {"type": "integer", "minimum": 0}}
+            }
+          }
+        }
+      }
+    },
+    "function": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "signature", "abi", "locals", "contracts", "body"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "minLength": 1, "not": {"const": "<unknown>"}},
+        "signature": {"type": "object"},
+        "abi": {"type": "object"},
+        "locals": {"type": "array"},
+        "contracts": {"type": "array"},
+        "body": {"type": "object"}
+      }
+    }
+  }
+}

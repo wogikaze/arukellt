@@ -1,0 +1,78 @@
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::inst_const_i32
+use mir::opcodes
+use mir::types
+use mir_opt::translation_validation
+
+fn loop_unroll_translation_valid(
+    before: Vec<MirInst>,
+    after: Vec<MirInst>,
+    start: i32,
+    end: i32,
+    body_start: i32,
+    body_end: i32,
+    counter: i32,
+    trips: i32
+) -> bool {
+    if start < 0 || end < start || end >= len(before) ||
+    body_start < start || body_end < body_start || body_end > end ||
+    counter < 0 || trips <= 0 {
+        return false
+    }
+
+    let mut before_i = 0
+    let mut after_i = 0
+    while before_i < start {
+        if after_i >= len(after) ||
+        !translation_validation::mir_translation_inst_equal(
+            get_unchecked(before, before_i),
+            get_unchecked(after, after_i)
+        ) {
+            return false
+        }
+        before_i = before_i + 1
+        after_i = after_i + 1
+    }
+
+    let mut trip = 0
+    while trip < trips {
+        let mut body_i = body_start
+        while body_i < body_end {
+            let original = get_unchecked(before, body_i)
+            let expected = if inst_accessors_shape::MirInst_op(original) == opcodes::MIR_LOCAL_GET() &&
+            inst_accessors_operands::MirInst_arg0(original) == counter {
+                inst_const_i32::MirInst_const_i32(
+                    trip,
+                    inst_accessors_operands::MirInst_dest(original)
+                )
+            } else {
+                original
+            }
+            if after_i >= len(after) ||
+            !translation_validation::mir_translation_inst_equal(
+                expected,
+                get_unchecked(after, after_i)
+            ) {
+                return false
+            }
+            body_i = body_i + 1
+            after_i = after_i + 1
+        }
+        trip = trip + 1
+    }
+
+    before_i = end + 1
+    while before_i < len(before) {
+        if after_i >= len(after) ||
+        !translation_validation::mir_translation_inst_equal(
+            get_unchecked(before, before_i),
+            get_unchecked(after, after_i)
+        ) {
+            return false
+        }
+        before_i = before_i + 1
+        after_i = after_i + 1
+    }
+    after_i == len(after)
+}

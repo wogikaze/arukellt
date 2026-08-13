@@ -1,0 +1,53 @@
+use std::host::stdio
+use mir::block_inst_access
+use mir::block_inst_mutation
+use mir::function_block_queries
+use mir::module_functions
+use mir::module_spine
+use mir::types
+use mir_opt::stdlib_inline
+use mir_opt::stdlib_resolve_translation_validation
+
+fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
+    let registry = module_spine::MirModule_signature_registry(m)
+    let function_count = module_functions::MirModule_function_count(m)
+    let mut total = 0
+    let mut failures = 0
+    let mut function_index = 0
+    while function_index < function_count {
+        let f = module_functions::MirModule_function_at(m, function_index)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut block_index = 0
+        while block_index < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, block_index)
+            let before = block_inst_access::MirBlock_instructions(block)
+            let resolved = stdlib_inline::stdlib_resolve_normal_call_block(
+                m,
+                f,
+                block
+            )
+            let after = block_inst_access::MirBlock_instructions(block)
+            if stdlib_resolve_translation_validation::stdlib_resolve_block_translation_valid(
+                m,
+                registry,
+                f,
+                before,
+                after
+            ) {
+                total = total + resolved
+            } else {
+                block_inst_mutation::MirBlock_set_instructions(block, before)
+                failures = failures + 1
+            }
+            block_index = block_index + 1
+        }
+        function_index = function_index + 1
+    }
+    if failures > 0 {
+        stdio::eprintln(concat(
+                String_from("mir-opt translation validation rejected stdlib call-target block(s): "),
+                i32_to_string(failures)
+            ))
+    }
+    total
+}

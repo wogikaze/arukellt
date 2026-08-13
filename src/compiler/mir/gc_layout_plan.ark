@@ -1,0 +1,97 @@
+use corehir::type_id
+
+fn MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() -> i32 {
+    1
+}
+
+fn MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() -> i32 {
+    2
+}
+
+fn MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT() -> i32 {
+    3
+}
+
+struct MirGcLayoutBinding {
+    type_id: TypeId,
+    source_kind: i32,
+    source_value: i32,
+}
+
+struct MirGcLayoutPlan {
+    schema_version: i32,
+    bindings: Vec<MirGcLayoutBinding>,
+}
+
+fn MirGcLayoutBinding_new(
+    type_id_value: TypeId,
+    source_kind: i32,
+    source_value: i32
+) -> MirGcLayoutBinding {
+    MirGcLayoutBinding {
+        type_id: type_id_value,
+        source_kind: source_kind,
+        source_value: source_value,
+    }
+}
+
+fn MirGcLayoutPlan_new() -> MirGcLayoutPlan {
+    MirGcLayoutPlan {
+        schema_version: 1,
+        bindings: Vec::new<MirGcLayoutBinding>(),
+    }
+}
+
+fn mir_gc_layout_plan_schema_version(plan: MirGcLayoutPlan) -> i32 {
+    plan.schema_version
+}
+
+fn mir_gc_layout_plan_binding_count(plan: MirGcLayoutPlan) -> i32 {
+    len(plan.bindings)
+}
+
+fn mir_gc_layout_plan_binding_at(plan: MirGcLayoutPlan, index: i32) -> MirGcLayoutBinding {
+    get_unchecked(plan.bindings, index)
+}
+
+fn mir_gc_layout_binding_type_id(binding: MirGcLayoutBinding) -> TypeId {
+    binding.type_id
+}
+
+fn mir_gc_layout_binding_source_kind(binding: MirGcLayoutBinding) -> i32 {
+    binding.source_kind
+}
+
+fn mir_gc_layout_binding_source_value(binding: MirGcLayoutBinding) -> i32 {
+    binding.source_value
+}
+
+fn mir_gc_layout_plan_find_type(plan: MirGcLayoutPlan, type_id_value: TypeId) -> i32 {
+    let count = len(plan.bindings)
+    let mut index = 0
+    while index < count {
+        let binding = get_unchecked(plan.bindings, index)
+        if type_id::type_id_eq(binding.type_id, type_id_value) {
+            return index
+        }
+        index = index + 1
+    }
+    0 - 1
+}
+
+// Producer-side binding. More-specific struct/enum slot bindings replace a
+// previously recorded fixed open/container binding for the same semantic TypeId.
+fn mir_gc_layout_plan_bind(
+    plan: MirGcLayoutPlan,
+    type_id_value: TypeId,
+    source_kind: i32,
+    source_value: i32
+) {
+    let existing = mir_gc_layout_plan_find_type(plan, type_id_value)
+    let binding = MirGcLayoutBinding_new(type_id_value, source_kind, source_value)
+    if existing >= 0 {
+        set(plan.bindings, existing, binding)
+        return
+    }
+    push(plan.bindings, binding)
+}

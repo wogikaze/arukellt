@@ -1,0 +1,87 @@
+name: MIR optimizer translation validation
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: mir-opt-translation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  mir-opt-translation-validation:
+    name: "MIR optimizer translation validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # PR gate: fail-closed transformation inventory and hash-bound registry.
+      # Runtime reconstruction/execution is post-merge or manually dispatched.
+      - name: Check every enabled transformation is fail-closed
+        run: python3 scripts/check/check-gc-hint-translation-validation.py
+
+      - name: Write hash-bound optimizer validator registry
+        run: python3 scripts/gen/write-mir-opt-translation-registry.py
+
+      - name: Enable focused gc_hint bootstrap overlay
+        if: github.event_name != 'pull_request'
+        run: python3 scripts/bootstrap/enable-gc-hint-overlay.py
+
+      - name: Install wasmtime
+        if: github.event_name != 'pull_request'
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+
+      - name: Build host-linker
+        if: github.event_name != 'pull_request'
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
+      - name: Build focused gc_hint-enabled stage 2 runtime
+        if: github.event_name != 'pull_request'
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          from selfhost.checks import rebuild_current_s2
+
+          path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
+          if path is None:
+              raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
+          print(f"focused-gc-hint-s2: PASS: path={path} elapsed={elapsed:.3f}s")
+          PY
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
+          wasmtime compile \
+            --wasm gc \
+            --wasm function-references \
+            -W memory64=y \
+            -W max-memory-size=17179869184 \
+            .build/selfhost/arukellt-s2-runtime.wasm \
+            -o .build/selfhost/arukellt-s2-runtime.cwasm
+
+      - name: Exercise gc hint at opt-level 2
+        if: github.event_name != 'pull_request'
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: python3 scripts/check/check-gc-hint-runtime.py
+
+      - name: Upload optimizer validation evidence
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir-opt-translation-validation
+          path: |
+            .build/proof/mir-opt-translation-registry.json
+            .build/proof/gc-hint-translation-receipt.json
+          if-no-files-found: error

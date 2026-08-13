@@ -1,0 +1,106 @@
+use std::host::stdio
+use corehir::fn_info
+use corehir::raw_decls
+use corehir::raw_dto
+use corehir::raw_record
+use driver::config_record
+use driver::typed_corehir_contract_render
+use driver::typed_corehir_render_diagnostics
+use driver::verified_core_render_primitives
+
+fn typed_corehir_main_module_index(program: CoreHirRawProgram) -> i32 {
+    let modules = raw_record::raw_program_modules(program)
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let entry_decl = fn_info::fn_info_entry_main_decl_index(fn_infos)
+    if entry_decl < 0 {
+        return 0 - 1
+    }
+    let mut module_index = 0
+    while module_index < len(modules) {
+        let module = get_unchecked(modules, module_index)
+        let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
+        let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
+        if entry_decl >= decl_start && entry_decl < decl_end {
+            return module_index
+        }
+        module_index = module_index + 1
+    }
+    0 - 1
+}
+
+fn typed_corehir_render_type(type_id: i32, pointer_width: i32) -> String {
+    let rendered = verified_core_render_primitives::vc_render_type(type_id, pointer_width)
+    if type_id != 1 && type_id != 3 && type_id != 4 {
+        return rendered
+    }
+    let bits = if type_id == 4 { 64 } else { 32 }
+    let n = len(rendered)
+    if n < 1 {
+        return rendered
+    }
+    concat(
+        substring(rendered, 0, n - 1),
+        concat(",\"bits\":", concat(to_string(bits), ",\"signed\":true}"))
+    )
+}
+
+fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> String {
+    let pointer_width = if contains(config_record::config_target(config), "64") { 64 } else { 32 }
+    let module_name = if len(config_record::config_source_file(config)) > 0 {
+        config_record::config_source_file(config)
+    } else {
+        "<memory>"
+    }
+    let modules = raw_record::raw_program_modules(program)
+    let source_module_index = typed_corehir_main_module_index(program)
+    if source_module_index < 0 || source_module_index >= len(modules) {
+        stdio::eprintln("TypedCoreHIR reject: entry main module not found")
+        return ""
+    }
+    let source_module = get_unchecked(modules, source_module_index)
+    let source_decl_start = raw_dto::CoreHirModuleInfo_decl_start(source_module)
+    let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
+
+    let mut out = "{\"schema\":\"arukellt-typed-corehir\",\"schema_version\":1,\"generator\":\"arukellt-selfhost\",\"module\":"
+    out = concat(out, verified_core_render_primitives::vc_quote(module_name))
+    out = concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"compiler-current\",\"floating_point\":\"ieee754\",\"pointer_width\":")
+    out = concat(out, concat(to_string(pointer_width), "}"))
+    out = concat(out, ",\"types\":[")
+    let mut type_id = 0
+    while type_id < verified_core_render_primitives::vc_type_count() {
+        if type_id > 0 {
+            out = concat(out, ",")
+        }
+        out = concat(out, typed_corehir_render_type(type_id, pointer_width))
+        type_id = type_id + 1
+    }
+    out = concat(out, "],\"functions\":[")
+
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let mut first_function = true
+    let mut function_index = 0
+    while function_index < len(fn_infos) {
+        let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
+        if decl_index >= source_decl_start && decl_index < source_decl_end {
+            let rendered = typed_corehir_contract_render::render_function(program, function_index)
+            if len(clone(rendered)) == 0 {
+                stdio::eprintln(
+                    typed_corehir_render_diagnostics::diagnose_typed_corehir_rejection(program)
+                )
+                return ""
+            }
+            if !first_function {
+                out = concat(out, ",")
+            }
+            out = concat(out, rendered)
+            first_function = false
+        }
+        function_index = function_index + 1
+    }
+    if first_function {
+        stdio::eprintln("TypedCoreHIR reject: no functions in entry main module")
+        return ""
+    }
+    out = concat(out, "]}")
+    out
+}

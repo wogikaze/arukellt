@@ -1,29 +1,61 @@
+use corehir::expr_factory
+use corehir::expr_raw
+
+// Frozen versioned CoreHIR body artifact. Mutation is owned exclusively by
+// body_builder and the completed artifact is validated by body_validator.
 struct CoreHirBodyTable {
+    schema_version: i32,
     exprs: Vec<CoreHirExpr>,
     fn_body_roots: Vec<i32>,
     method_body_roots: Vec<i32>,
+    fn_contract_starts: Vec<i32>,
+    fn_contract_counts: Vec<i32>,
+    contract_roots: Vec<i32>,
+    contract_kinds: Vec<String>,
+    contract_result_names: Vec<String>,
 }
 
-fn CoreHirBodyTable_new() -> CoreHirBodyTable {
-    CoreHirBodyTable { exprs: Vec::new<CoreHirExpr>(), fn_body_roots: Vec::new<i32>(), method_body_roots: Vec::new<i32>() }
+fn corehir_body_table_schema_version(table: CoreHirBodyTable) -> i32 {
+    table.schema_version
 }
 
-fn corehir_body_table_push_expr(table: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
-    let idx = len(table.exprs)
-    push(table.exprs, expr)
-    idx
+fn corehir_body_table_expr_count(table: CoreHirBodyTable) -> i32 {
+    len(table.exprs)
 }
 
 fn corehir_body_table_expr_at(table: CoreHirBodyTable, index: i32) -> CoreHirExpr {
     get_unchecked(table.exprs, index)
 }
 
-fn corehir_body_table_push_fn_body_root(table: CoreHirBodyTable, root: i32) {
-    push(table.fn_body_roots, root)
-}
-
-fn corehir_body_table_push_method_body_root(table: CoreHirBodyTable, root: i32) {
-    push(table.method_body_roots, root)
+// Compatibility for proof renderers. This is not an alias to frozen storage:
+// every expression and every children vector is reconstructed into a new Vec.
+fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
+    let snapshot = Vec::new<CoreHirExpr>()
+    let mut index = 0
+    while index < corehir_body_table_expr_count(table) {
+        let expr = corehir_body_table_expr_at(table, index)
+        let children = Vec::new<i32>()
+        let mut child_index = 0
+        while child_index < expr_raw::corehir_expr_child_count(expr) {
+            push(children, expr_raw::corehir_expr_child(expr, child_index))
+            child_index = child_index + 1
+        }
+        push(
+            snapshot,
+            expr_factory::CoreHirExpr_new(
+                expr_raw::corehir_expr_kind(expr),
+                expr_raw::corehir_expr_text(expr),
+                expr_raw::corehir_expr_int_val(expr),
+                expr_raw::corehir_expr_float_val(expr),
+                expr_raw::corehir_expr_val_type(expr),
+                expr_raw::corehir_expr_type_name(expr),
+                expr_raw::corehir_expr_span_start(expr),
+                children
+            )
+        )
+        index = index + 1
+    }
+    snapshot
 }
 
 fn corehir_body_table_fn_body_root_count(table: CoreHirBodyTable) -> i32 {
@@ -42,14 +74,103 @@ fn corehir_body_table_method_body_root_at(table: CoreHirBodyTable, index: i32) -
     get_unchecked(table.method_body_roots, index)
 }
 
-fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
-    table.exprs
+fn corehir_body_table_fn_contract_count(table: CoreHirBodyTable, body_index: i32) -> i32 {
+    if body_index < 0 || body_index >= len(table.fn_contract_counts) {
+        return 0
+    }
+    get_unchecked(table.fn_contract_counts, body_index)
 }
 
-fn corehir_body_table_fn_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.fn_body_roots
+fn corehir_body_table_fn_contract_start(table: CoreHirBodyTable, body_index: i32) -> i32 {
+    if body_index < 0 || body_index >= len(table.fn_contract_starts) {
+        return 0 - 1
+    }
+    get_unchecked(table.fn_contract_starts, body_index)
 }
 
-fn corehir_body_table_method_body_roots(table: CoreHirBodyTable) -> Vec<i32> {
-    table.method_body_roots
+fn corehir_body_table_fn_contract_flat_index(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> i32 {
+    let start = corehir_body_table_fn_contract_start(table, body_index)
+    if start < 0 {
+        return 0 - 1
+    }
+    let count = corehir_body_table_fn_contract_count(table, body_index)
+    if contract_index < 0 || contract_index >= count {
+        return 0 - 1
+    }
+    start + contract_index
+}
+
+fn corehir_body_table_contract_flat_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_roots)
+}
+
+fn corehir_body_table_contract_root_flat_at(table: CoreHirBodyTable, index: i32) -> i32 {
+    get_unchecked(table.contract_roots, index)
+}
+
+fn corehir_body_table_contract_kind_flat_at(table: CoreHirBodyTable, index: i32) -> String {
+    clone(get_unchecked(table.contract_kinds, index))
+}
+
+fn corehir_body_table_contract_result_name_flat_at(
+    table: CoreHirBodyTable,
+    index: i32
+) -> String {
+    clone(get_unchecked(table.contract_result_names, index))
+}
+
+fn corehir_body_table_contract_kind_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_kinds)
+}
+
+fn corehir_body_table_contract_result_name_count(table: CoreHirBodyTable) -> i32 {
+    len(table.contract_result_names)
+}
+
+fn corehir_body_table_fn_contract_range_count(table: CoreHirBodyTable) -> i32 {
+    len(table.fn_contract_starts)
+}
+
+fn corehir_body_table_fn_contract_count_record_count(table: CoreHirBodyTable) -> i32 {
+    len(table.fn_contract_counts)
+}
+
+fn corehir_body_table_fn_contract_root_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> i32 {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return 0 - 1
+    }
+    corehir_body_table_contract_root_flat_at(table, flat_index)
+}
+
+fn corehir_body_table_fn_contract_kind_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> String {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return String_new()
+    }
+    corehir_body_table_contract_kind_flat_at(table, flat_index)
+}
+
+fn corehir_body_table_fn_contract_result_name_at(
+    table: CoreHirBodyTable,
+    body_index: i32,
+    contract_index: i32
+) -> String {
+    let flat_index = corehir_body_table_fn_contract_flat_index(table, body_index, contract_index)
+    if flat_index < 0 {
+        return String_new()
+    }
+    corehir_body_table_contract_result_name_flat_at(table, flat_index)
 }

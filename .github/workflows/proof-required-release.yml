@@ -1,0 +1,120 @@
+name: Proof required release authorization
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proof-required-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  authorize-release:
+    name: "Authorize exact tag and payload"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject non-tag manual invocation
+        run: |
+          case "$GITHUB_REF" in
+            refs/tags/v*) ;;
+            *) echo "proof-required release requires refs/tags/v*" >&2; exit 1 ;;
+          esac
+
+      - name: Reject unguarded entrypoints
+        run: |
+          python3 scripts/check/check-proof-release-entrypoints.py
+          python3 scripts/check/check-versioned-boundary-enforcement.py
+          python3 scripts/check/check-solver-trust-manifest-boundary.py
+
+      - name: Write release and solver boundary receipts
+        run: |
+          python3 scripts/gen/write-proof-release-enforcement-receipt.py
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
+      - name: Validate release libraries
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_boundary_registry \
+            scripts.tests.test_source_proof_binding \
+            scripts.tests.test_proof_required_release_gate \
+            scripts.tests.test_release_authorization \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt
+
+      - name: Install Wasmtime and Z3
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build host linker
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+        working-directory: tools/host-linker
+
+      - name: Prove and authorize release payload
+        run: bash scripts/run/proof-required-release.sh
+
+      - name: Independently validate SolverResult
+        run: |
+          python3 scripts/check/check-solver-result.py \
+            .build/typed-contract-proof/solver-result.json \
+            --subject .build/typed-contract-proof/verified-core.json \
+            --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
+            --toolchain .build/proof-release-toolchain/toolchain.json \
+            --solver-output .build/typed-contract-proof/solver-output.txt \
+            --trust-manifest .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt .build/typed-contract-proof/proof-receipt.json
+
+      - name: Verify publisher-side authorization
+        run: |
+          python3 scripts/check/check-release-authorization.py \
+            --authorization .build/proof-required-release/release-authorization.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --commit "$GITHUB_SHA" \
+            --tag "$GITHUB_REF_NAME" \
+            --policy .build/typed-contract-proof/release-policy.json \
+            --source-binding .build/typed-contract-proof/source-proof-binding.json \
+            --trust-manifest .build/typed-contract-proof/trust-manifest.json \
+            --proof-receipt .build/typed-contract-proof/proof-receipt.json \
+            --release-payload-manifest .build/proof-required-release/release-payload-manifest.json \
+            --release-payload arukellt-wasm=.build/proof-required-release/arukellt-s2-runtime.wasm
+
+      - name: Upload authorized proof release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-required-release-${{ github.ref_name }}
+          path: |
+            .build/proof-required-release/release-authorization.json
+            .build/proof-required-release/release-provenance.json
+            .build/proof-required-release/release-payload-manifest.json
+            .build/proof-required-release/arukellt-s2-runtime.wasm
+            .build/typed-contract-proof/release-policy.json
+            .build/typed-contract-proof/source-proof-binding.json
+            .build/typed-contract-proof/trust-manifest.json
+            .build/typed-contract-proof/proof-receipt.json
+            .build/typed-contract-proof/solver-output.txt
+            .build/typed-contract-proof/solver-result.json
+            release/boundary-registry.json
+            .build/proof/boundary-registry-validation.json
+            .build/proof/proof-release-enforcement.json
+            .build/proof/solver-trust-boundary.json
+            .build/proof/backend-typeid-layout.json
+            .build/proof/mir-opt-translation-registry.json
+            .build/proof/corehir-body-boundary.json
+          if-no-files-found: error
+          retention-days: 90

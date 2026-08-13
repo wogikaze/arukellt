@@ -7,16 +7,16 @@ use mir::inst_factory
 use mir::module_functions
 use mir::opcodes
 use mir::value_types
+use mir_opt::async_lower::translation_validation
 
 fn async_lower_optimize_module(m: MirModule) -> MirModule {
     let fn_count = module_functions::MirModule_function_count(m)
-    let mut updated = Vec::new<MirFunction>()
+    let updated = Vec::new<MirFunction>()
     let mut fi = 0
     while fi < fn_count {
         let f = module_functions::MirModule_function_at(m, fi)
         if function_has_async_op(f) {
-            let lowered = lower_async_ops(f)
-            push(updated, lowered)
+            push(updated, lower_async_ops(f))
         } else {
             push(updated, f)
         }
@@ -51,28 +51,36 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut filtered = Vec::new<MirInst>()
+        let before = block_inst_access::MirBlock_instructions(block)
+        let filtered = Vec::new<MirInst>()
         let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        while ii < len(before) {
+            let inst = get_unchecked(before, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
-            if op == opcodes::MIR_AWAIT() {
-                let dest = inst_accessors_operands::MirInst_dest(inst)
-                let src = inst_accessors_operands::MirInst_arg0(inst)
-                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
-                push(filtered, copy_inst)
-            } else if op == opcodes::MIR_FUTURE_NEW() {
-                let dest = inst_accessors_operands::MirInst_dest(inst)
-                let src = inst_accessors_operands::MirInst_arg0(inst)
-                let copy_inst = inst_factory::MirInst_full(opcodes::MIR_LOCAL_SET(), 0 - 1, dest, src, 0, 0.0, String_new(), value_types::VT_VOID())
-                push(filtered, copy_inst)
+            if op == opcodes::MIR_AWAIT() || op == opcodes::MIR_FUTURE_NEW() {
+                push(
+                    filtered,
+                    inst_factory::MirInst_full(
+                        opcodes::MIR_LOCAL_SET(),
+                        0 - 1,
+                        inst_accessors_operands::MirInst_dest(inst),
+                        inst_accessors_operands::MirInst_arg0(inst),
+                        0,
+                        0.0,
+                        String_new(),
+                        value_types::VT_VOID()
+                    )
+                )
             } else {
                 push(filtered, inst)
             }
             ii = ii + 1
         }
-        block_inst_mutation::MirBlock_set_instructions(block, filtered)
+        if translation_validation::async_lower_translation_valid(before, filtered) {
+            block_inst_mutation::MirBlock_set_instructions(block, filtered)
+        } else {
+            block_inst_mutation::MirBlock_set_instructions(block, before)
+        }
         bi = bi + 1
     }
     f

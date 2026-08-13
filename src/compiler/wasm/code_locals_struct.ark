@@ -173,22 +173,9 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
         writer_core::emit_leb128_s(body, struct_gc)
         return true
     }
-    // Try gc_layout table lookup for raw struct names (e.g. "Point") not in gc_struct_names.
-    // Skip concrete enum-variant types unless this local is the GC_STRUCT_NEW dest;
-    // payload field locals often carry the variant's type_name by mistake.
-    if len(type_name) > 0 {
-        let layout_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(ctx, clone(type_name))
-        if layout_gc >= 0 {
-            let allow_layout = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) ||
-            !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, layout_gc)
-            if allow_layout {
-                writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                writer_core::emit_leb128_s(body, layout_gc)
-                return true
-            }
-        }
-    }
-    // Fallback: scan function for MIR_STRUCT_NEW with this struct name to determine byte_size.
+    // Raw-name layout-table reconstruction is forbidden. Typed local TypeId
+    // lookup below is authoritative; the remaining name handling is limited to
+    // fixed compatibility classes and struct byte-size diagnostics.
     if len(type_name) > 0 {
         let byte_size = lookup_struct_byte_size(f, clone(type_name), ctx)
         if byte_size > 0 {

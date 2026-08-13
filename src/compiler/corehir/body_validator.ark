@@ -1,0 +1,86 @@
+use corehir::body_table
+
+fn corehir_body_artifact_root_valid(table: CoreHirBodyTable, root: i32) -> bool {
+    root == 0 - 1 ||
+    (root >= 0 && root < body_table::corehir_body_table_expr_count(table))
+}
+
+fn corehir_body_artifact_valid(table: CoreHirBodyTable) -> bool {
+    if body_table::corehir_body_table_schema_version(table) != 1 {
+        return false
+    }
+    let expr_count = body_table::corehir_body_table_expr_count(table)
+    let fn_count = body_table::corehir_body_table_fn_body_root_count(table)
+    let method_count = body_table::corehir_body_table_method_body_root_count(table)
+    let flat_contract_count = body_table::corehir_body_table_contract_flat_count(table)
+
+    if body_table::corehir_body_table_fn_contract_range_count(table) != fn_count ||
+    body_table::corehir_body_table_fn_contract_count_record_count(table) != fn_count {
+        return false
+    }
+    if body_table::corehir_body_table_contract_kind_count(table) != flat_contract_count ||
+    body_table::corehir_body_table_contract_result_name_count(table) != flat_contract_count {
+        return false
+    }
+
+    let mut i = 0
+    while i < fn_count {
+        if !corehir_body_artifact_root_valid(
+            table,
+            body_table::corehir_body_table_fn_body_root_at(table, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < method_count {
+        if !corehir_body_artifact_root_valid(
+            table,
+            body_table::corehir_body_table_method_body_root_at(table, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+
+    let mut expected_start = 0
+    i = 0
+    while i < fn_count {
+        let start = body_table::corehir_body_table_fn_contract_start(table, i)
+        let count = body_table::corehir_body_table_fn_contract_count(table, i)
+        if start != expected_start || count < 0 || start + count > flat_contract_count {
+            return false
+        }
+        expected_start = start + count
+        i = i + 1
+    }
+    if expected_start != flat_contract_count {
+        return false
+    }
+
+    i = 0
+    while i < flat_contract_count {
+        let root = body_table::corehir_body_table_contract_root_flat_at(table, i)
+        if root < 0 || root >= expr_count {
+            return false
+        }
+        let kind = body_table::corehir_body_table_contract_kind_flat_at(table, i)
+        let result_name = body_table::corehir_body_table_contract_result_name_flat_at(table, i)
+        if eq(clone(kind), "requires") {
+            if len(result_name) != 0 {
+                return false
+            }
+        } else {
+            if eq(clone(kind), "ensures") {
+                if !eq(result_name, "result") {
+                    return false
+                }
+            } else {
+                return false
+            }
+        }
+        i = i + 1
+    }
+    true
+}

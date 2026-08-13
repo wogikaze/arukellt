@@ -1,0 +1,65 @@
+name: Solver-bound proof receipts
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: solver-bound-proof-receipts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  solver-bound-proof-receipts:
+    name: "Solver-bound proof receipts"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reject detached solver result paths
+        run: python3 scripts/check/check-solver-trust-manifest-boundary.py
+
+      - name: Write and independently validate solver trust receipt
+        run: |
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
+      - name: Run receipt and result tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_solver_receipts \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt
+
+      - name: Generate complete result from captured solver output
+        run: |
+          mkdir -p .build/proof-generated
+          python3 scripts/gen/write-solver-receipts.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/solver-input.smt2 \
+            --solver-output tests/proof/solver-results.txt \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --trust-manifest-output .build/proof-generated/trust-manifest.json \
+            --proof-receipt-output .build/proof-generated/proof-receipt.json \
+            --solver-result-output .build/proof-generated/solver-result.json
+
+      - name: Revalidate complete result independently
+        run: |
+          python3 scripts/check/check-solver-result.py \
+            .build/proof-generated/solver-result.json \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/solver-input.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output tests/proof/solver-results.txt \
+            --trust-manifest .build/proof-generated/trust-manifest.json \
+            --proof-receipt .build/proof-generated/proof-receipt.json
+
+      - name: Upload complete captured result
+        uses: actions/upload-artifact@v4
+        with:
+          name: solver-bound-proof-result
+          path: |
+            .build/proof-generated
+            .build/proof/solver-trust-boundary.json
+          if-no-files-found: error

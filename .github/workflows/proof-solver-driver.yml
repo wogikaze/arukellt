@@ -1,0 +1,98 @@
+name: Proof solver driver
+
+on:
+  pull_request:
+    branches: [agent/solver-bound-proof-receipts, agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: proof-solver-driver-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof-solver-driver:
+    name: "Proof solver driver"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reject solver results without TrustManifest bundle
+        run: python3 scripts/check/check-solver-trust-manifest-boundary.py
+
+      - name: Write and independently validate solver trust receipt
+        run: |
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+
+      - name: Enable deterministic solver fixture
+        run: chmod +x tests/proof/toolchain/fake_solver.py
+
+      - name: Run solver result and receipt tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_solver_receipts \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_trust_boundary_receipt \
+            scripts.tests.test_solver_driver
+
+      - name: Run a proved obligation end to end
+        run: |
+          mkdir -p .build/proof-run
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/solver-input.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/solver-output.txt \
+            --trust-manifest-output .build/proof-run/trust-manifest.json \
+            --proof-receipt-output .build/proof-run/proof-receipt.json \
+            --solver-result-output .build/proof-run/solver-result.json
+          python3 scripts/check/check-solver-result.py \
+            .build/proof-run/solver-result.json \
+            --subject tests/proof/verified-core.json \
+            --solver-input tests/proof/solver-input.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/solver-output.txt \
+            --trust-manifest .build/proof-run/trust-manifest.json \
+            --proof-receipt .build/proof-run/proof-receipt.json
+
+      - name: Require unknown to remain non-success
+        run: |
+          printf 'not-modelled\n' > .build/proof-run/unknown.smt2
+          set +e
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/proof-run/unknown.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/unknown-output.txt \
+            --trust-manifest-output .build/proof-run/unknown-trust-manifest.json \
+            --proof-receipt-output .build/proof-run/unknown-proof-receipt.json \
+            --solver-result-output .build/proof-run/unknown-solver-result.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+          python3 scripts/check/check-solver-result.py \
+            .build/proof-run/unknown-solver-result.json \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/proof-run/unknown.smt2 \
+            --toolchain tests/proof/toolchain/toolchain.json \
+            --solver-output .build/proof-run/unknown-output.txt \
+            --trust-manifest .build/proof-run/unknown-trust-manifest.json \
+            --proof-receipt .build/proof-run/unknown-proof-receipt.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('.build/proof-run/unknown-solver-result.json').read_text())
+          assert result['status'] == 'unknown', result
+          assert result['proof_receipt']['status'] == 'unknown', result
+          assert result['trust_manifest']['schema'] == 'arukellt-trust-manifest', result
+          PY
+
+      - name: Upload complete proof run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-solver-run
+          path: |
+            .build/proof-run
+            .build/proof/solver-trust-boundary.json
+          if-no-files-found: error

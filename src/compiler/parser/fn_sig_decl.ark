@@ -7,6 +7,7 @@ use parser::core_api_expect
 use parser::fn_params_regular
 use parser::fn_return
 use parser::kinds
+use parser::proof_contracts
 use parser::token_state
 use parser::type_params
 use parser::type_where
@@ -22,6 +23,8 @@ fn parse_fn_decl_header(p: Parser) -> AstNode {
     core_api_cursor::skip_newlines(p)
     type_where::parse_optional_where_clause_stub(p)
     fn_return::parse_fn_return_annotation_into_node(p, node)
+    core_api_cursor::skip_newlines(p)
+    proof_contracts::parse_proof_contract_block(p, node)
     core_api_cursor::skip_newlines(p)
     node
 }

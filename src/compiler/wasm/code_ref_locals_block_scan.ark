@@ -2,6 +2,10 @@
 // Replaces body-scan infer_local_storage_gc_type: field ABI and Result/Option
 // base type_names decide storage, not producer rescans.
 
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::inst_accessors_literals
@@ -137,23 +141,13 @@ fn local_vec_access_storage_type(
                 }
                 let receiver =
                 vec_access_receiver_local(block, inst_index, inst)
-                if receiver >= 0 &&
-                receiver < function_locals_view::MirFunction_local_count(f) {
-                    let receiver_local =
-                    function_locals_view::MirFunction_local_at(f, receiver)
-                    let receiver_type = local_access::MirLocal_type_name(receiver_local)
-                    if starts_with(clone(receiver_type), "vec:") {
-                        let element_type =
-                        substring(receiver_type, 4, len(receiver_type))
-                        let storage_type =
-                        ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_name(
-                            ctx,
-                            element_type
-                        )
-                        if storage_type >= 0 {
-                            return Option::Some(storage_type)
-                        }
+                let from_type_id =
+                vec_element_storage_type_from_receiver(f, receiver, ctx)
+                match from_type_id {
+                    Option::Some(_storage_type) => {
+                        return from_type_id
                     }
+                    Option::None => {}
                 }
             }
             inst_index = inst_index + 1
@@ -161,6 +155,41 @@ fn local_vec_access_storage_type(
         block_index = block_index + 1
     }
     Option::None
+}
+
+// Vec element storage comes from the receiver TypeId's type parameter, not
+// from parsing a `vec:` type name in the backend.
+fn vec_element_storage_type_from_receiver(
+    f: MirFunction,
+    receiver: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    if receiver < 0 || receiver >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let receiver_local = function_locals_view::MirFunction_local_at(f, receiver)
+    let vec_tid = mir_value_type::mir_value_type_type_id(
+        local_access::MirLocal_value_type(receiver_local)
+    )
+    if !type_id::type_id_is_valid(vec_tid) {
+        return Option::None
+    }
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let entry = type_table::TypeTable_lookup(table, vec_tid)
+    if type_table::type_entry_kind(entry) != kinds::TYPE_KIND_VEC() {
+        return Option::None
+    }
+    if type_table::type_entry_type_param_count(entry) != 1 {
+        return Option::None
+    }
+    let storage_type = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_id(
+        ctx,
+        type_table::type_entry_type_param_at(entry, 0)
+    )
+    if storage_type < 0 {
+        return Option::None
+    }
+    Option::Some(storage_type)
 }
 
 fn vec_access_receiver_local(
