@@ -69,7 +69,6 @@ incidents, not by individual checks.
 | `check_dap` | `dap` | no | — | — | ⬜ not-run | ❓ unknown | `manual` | — | — | `—` | `manual / scaffold` |
 | `check_vscode_dap` | `vscode_dap` | no | — | — | ⚠️ partial | ⏰ stale | `smoke` | — | — | `a80b4181` | `extension-tests (partial)` |
 
-
 ### Stale check derivation details
 
 Stale status is derived from `verified_at` + `stale_after_days` relative to the current date.
