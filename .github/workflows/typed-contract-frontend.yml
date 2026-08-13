@@ -135,7 +135,7 @@ jobs:
             .build/typed-contract-proof/arukellt-s2-runtime.wasm
           python3 scripts/gen/write-release-provenance.py \
             --repository "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" \
-            --ref-type push --ref-name "$GITHUB_REF_NAME" \
+            --ref-type branch --ref-name "$GITHUB_REF_NAME" \
             --workflow "$GITHUB_WORKFLOW" --run-id "$GITHUB_RUN_ID" \
             --output .build/typed-contract-proof/proof-provenance.json
           python3 scripts/gen/write-release-payload-manifest.py \
