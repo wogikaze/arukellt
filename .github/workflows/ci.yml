@@ -6,159 +6,136 @@ on:
     tags: ["v*", "[0-9]*"]
   pull_request:
     branches: [master]
+  workflow_dispatch:
+
+# Interactive CI has a hard <10 minute feedback SLO. Exhaustive validation is
+# intentionally separated into full-validation.yml so it cannot block PR work.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   quality-format:
     name: "quality-format"
     runs-on: ubuntu-latest
-    # Pre-existing: CI selfhost compiler fmt output differs from local
-    # for 30 corehir files. Non-blocking until CI fmt parity is resolved.
-    continue-on-error: true
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Select changed Ark sources
+        id: ark
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [[ -z "$base" || "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"
+          fi
+          git diff --name-only --diff-filter=ACMR "$base"...HEAD \
+            | grep -E '^(src/compiler|std)/.*\.ark$' \
+            | while IFS= read -r path; do
+                [[ -f "$path" ]] && printf '%s\n' "$path"
+              done > "$RUNNER_TEMP/changed-ark.txt" || true
+          count="$(wc -l < "$RUNNER_TEMP/changed-ark.txt" | tr -d ' ')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Ark sources changed: $count"
+
       - name: Install wasmtime
+        if: steps.ark.outputs.count != '0'
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build host-linker
-        run: cargo build --release --quiet
-        working-directory: tools/host-linker
-
-      - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
-
-      - name: Check canonical formatting
+      - name: Check formatting of changed Ark sources
+        if: steps.ark.outputs.count != '0'
+        shell: bash
         env:
+          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
           ARUKELLT_LINT_WORKERS: "4"
-        run: python3 scripts/manager.py fmt --check
+        run: |
+          set -euo pipefail
+          mapfile -t files < "$RUNNER_TEMP/changed-ark.txt"
+          python3 scripts/manager.py fmt --check "${files[@]}"
 
   quality-lint:
     name: "quality-lint"
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select changed Ark sources
+        id: ark
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [[ -z "$base" || "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"
+          fi
+          git diff --name-only --diff-filter=ACMR "$base"...HEAD \
+            | grep -E '^(src/compiler|std)/.*\.ark$' \
+            | while IFS= read -r path; do
+                [[ -f "$path" ]] && printf '%s\n' "$path"
+              done > "$RUNNER_TEMP/changed-ark.txt" || true
+          count="$(wc -l < "$RUNNER_TEMP/changed-ark.txt" | tr -d ' ')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Ark sources changed: $count"
 
       - name: Install wasmtime
+        if: steps.ark.outputs.count != '0'
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
-
-      - name: Check canonical lint contract
+      - name: Lint changed Ark sources
+        if: steps.ark.outputs.count != '0'
+        shell: bash
         env:
+          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
           ARUKELLT_LINT_WORKERS: "4"
-        run: python3 scripts/manager.py lint
+        run: |
+          set -euo pipefail
+          mapfile -t files < "$RUNNER_TEMP/changed-ark.txt"
+          python3 scripts/manager.py lint "${files[@]}"
 
   verify-quick:
     name: "verify-quick"
     runs-on: ubuntu-latest
-    # Pre-existing: false-done close-gate #510, GC array smoke, and CI fmt
-    # parity issues. Non-blocking until underlying issues are resolved.
-    continue-on-error: true
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install wasmtime
+      - name: Fast repository contracts
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
-          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-
-      - name: Install wasm-tools
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-tools
-          cargo binstall --no-confirm cargo-component
-
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build host-linker
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
-      - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
-
-      - name: Run quick verification
-        env:
-          ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          ARUKELLT_WASM_INITIAL_PAGES: "131072"
-          ARUKELLT_LINT_WORKERS: "2"
-        run: python3 scripts/manager.py verify quick
+          set -euo pipefail
+          test -f bootstrap/arukellt-selfhost.wasm
+          python3 scripts/check/check-docs-consistency.py
+          python3 scripts/check/check-native-executor-ci-contract.py
+          python3 scripts/check/check-native-cpp-capabilities.py
+          python3 scripts/check/check-native-cpp-safepoint-audit.py
 
   verification:
     name: "Verification harness"
     runs-on: ubuntu-latest
-    # Pre-existing: false-done close-gate #510 and GC array smoke failures.
-    # Non-blocking until underlying issues are resolved.
-    continue-on-error: true
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install wasmtime
+      - name: Python gate smoke
         run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
-          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-
-      - name: Install wasm-tools
-        run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-tools
-          cargo binstall --no-confirm cargo-component
-
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build host-linker
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
-      - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost fixpoint --build
-
-      - name: Register arukellt selfhost wrapper in PATH
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          ln -sf "$GITHUB_WORKSPACE/scripts/run/arukellt-selfhost.sh" "$HOME/.local/bin/arukellt"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Run repository verification
-        env:
-          ARUKELLT_QUALITY_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          ARUKELLT_WASM_INITIAL_PAGES: "131072"
-          ARUKELLT_LINT_WORKERS: "2"
-        run: python3 scripts/manager.py verify
+          set -euo pipefail
+          python3 -m compileall -q scripts
+          python3 -m unittest scripts.tests.test_gate
 
   selfhost:
     name: "Selfhost gates"
     runs-on: ubuntu-latest
-    needs: verification
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
 
@@ -167,221 +144,118 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
 
-      - name: Install wasm-tools
+      - name: Validate pinned bootstrap
         run: |
-          curl -L --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-tools
-
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build host-linker
-        run: cargo build --release --quiet
-        working-directory: tools/host-linker
-
-      - name: Fixpoint
-        run: python3 scripts/manager.py selfhost fixpoint
-
-      - name: Fixture parity
-        continue-on-error: true
-        run: python3 scripts/manager.py selfhost fixture-parity
-
-      - name: CLI parity
-        continue-on-error: true
-        run: python3 scripts/manager.py selfhost parity --mode --cli
-
-      - name: Diagnostic parity
-        continue-on-error: true
-        run: python3 scripts/manager.py selfhost diag-parity
+          wasmtime compile \
+            --wasm gc \
+            --wasm function-references \
+            -W memory64=y \
+            -W max-memory-size=17179869184 \
+            bootstrap/arukellt-selfhost.wasm \
+            -o "$RUNNER_TEMP/arukellt-selfhost.cwasm"
 
   native-executor-gates:
     name: "Native executor gates"
     runs-on: ubuntu-latest
-    needs: verification
-    timeout-minutes: 90
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install wasmtime
-        run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
-          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-
-      - name: Install clang
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang
-
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-
-      - name: Build current selfhost compiler
-        run: python3 scripts/manager.py selfhost build-compiler
-
-      - name: Native capability / safepoint / CI contract / C99 -Werror
+      - name: Native source and contract gates
         env:
-          ARUKELLT_CC: clang
           CI: "true"
           GITHUB_ACTIONS: "true"
         run: |
+          set -euo pipefail
           python3 scripts/check/check-native-cpp-capabilities.py
           python3 scripts/check/check-native-cpp-safepoint-audit.py
           python3 scripts/check/check-native-executor-ci-contract.py
-          python3 scripts/check/check-native-runtime-c99-werror.py
-          python3 scripts/tests/test_native_cpp_executor.py
-
-      - name: Public native-cpp run corpus / parity / sanitizer / installed layout
-        env:
-          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
-          ARUKELLT_CC: clang
-          CI: "true"
-          GITHUB_ACTIONS: "true"
-        run: |
-          python3 -m unittest scripts.tests.test_native_toolchain scripts.tests.test_native_cpp_runner
-          python3 -m unittest scripts.tests.test_native_cpp_parity
-          python3 scripts/check/check-native-cpp-public-sanitizer.py
-          python3 scripts/check/collect-native-cpp-public-coverage.py --write
-          python3 scripts/check/check-native-cpp-run-promotion-receipt.py
-
-      # Advisory: full-manifest measure is local/scheduled; CI only forbids
-      # regression vs the committed v2 baseline receipt floors.
-      - name: Native-cpp fixture readiness ratchet (advisory baseline)
-        run: python3 scripts/check/check-native-cpp-fixture-readiness-ratchet.py
-
-      - name: Forbid allow-high-rss under CI
-        env:
-          CI: "true"
-          GITHUB_ACTIONS: "true"
-        run: |
-          if python3 scripts/manager.py selfhost native-executor --build --allow-high-rss --dry-run; then
-            echo "expected --allow-high-rss to be rejected under CI" >&2
-            exit 1
-          fi
-
-      # Full strict native-executor (warm wall/RSS) is a local/scheduled promotion
-      # gate; PR CI enforces source/contract gates and forbids --allow-high-rss.
-      # GC stress + sanitizer run when a native binary is available from a prior
-      # native-executor cache on the runner (optional) or from local promotion.
-      - name: GC stress / sanitizer when native binary present
-        env:
-          ARUKELLT_BUILD_DIR: ${{ github.workspace }}/.build
-          ARUKELLT_CC: clang
-        run: |
-          native=".build/selfhost/native/arukellt-native"
-          if [ -x "$native" ]; then
-            python3 scripts/tests/test_native_gc_stress.py
-            python3 scripts/tests/test_native_root_liveness_sanitizer.py
-          else
-            echo "native binary absent on runner; stress/sanitizer deferred to local promotion evidence"
-          fi
-
-      - name: Upload committed promotion receipt if present
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-executor-promotion-receipt-${{ github.run_id }}
-          path: |
-            docs/data/native-cpp-executor-promotion-receipt.json
-            .build/selfhost/native/native-executor-receipt.json
-          if-no-files-found: warn
 
   docs:
     name: "Docs consistency"
     runs-on: ubuntu-latest
-    needs: verification
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
       - name: Check docs consistency
         run: python3 scripts/check/check-docs-consistency.py
 
   extension-tests:
     name: "VS Code extension E2E"
     runs-on: ubuntu-latest
-    needs: verification
-    timeout-minutes: 20
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install wasmtime
-        run: |
-          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
-          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-
-      - name: Ensure bootstrap wasm exists
-        run: test -f bootstrap/arukellt-selfhost.wasm
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
-          cache: npm
-          cache-dependency-path: extensions/arukellt-all-in-one/package-lock.json
+          fetch-depth: 0
 
-      - name: Install Xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - name: Detect extension changes
+        id: ext
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [[ -z "$base" || "$base" =~ ^0+$ ]] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"
+          fi
+          if git diff --name-only "$base"...HEAD | grep -q '^extensions/arukellt-all-in-one/'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Install extension dependencies
-        working-directory: extensions/arukellt-all-in-one
-        run: npm ci
-
-      - name: Run extension tests
-        working-directory: extensions/arukellt-all-in-one
-        continue-on-error: true
-        env:
-          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-        run: xvfb-run -a npm test
+      - name: Fast extension syntax/package check
+        if: steps.ext.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          node --check extensions/arukellt-all-in-one/src/extension.js
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          json.loads(Path("extensions/arukellt-all-in-one/package.json").read_text())
+          json.loads(Path("extensions/arukellt-all-in-one/package-lock.json").read_text())
+          PY
 
   release-tag:
     name: "Release tag version"
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
-
       - name: Check release tag
         run: python3 scripts/check/check-release-tag-version.py --require-tag
 
   verify:
     name: "Final gate"
-    runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests]
-    steps:
-      - run: echo "Required CI gates passed"
-
-  ci-category-summary:
-    name: "CI category summary"
     if: always()
     runs-on: ubuntu-latest
-    needs: [quality-format, quality-lint, verify-quick, verification, selfhost, native-executor-gates, docs, extension-tests, release-tag, verify]
+    timeout-minutes: 1
+    needs:
+      - quality-format
+      - quality-lint
+      - verify-quick
+      - verification
+      - selfhost
+      - native-executor-gates
+      - docs
+      - extension-tests
     steps:
-      - name: Write category summary
+      - name: Enforce fast-gate results
+        env:
+          RESULTS: >-
+            ${{ needs.quality-format.result }}
+            ${{ needs.quality-lint.result }}
+            ${{ needs.verify-quick.result }}
+            ${{ needs.verification.result }}
+            ${{ needs.selfhost.result }}
+            ${{ needs.native-executor-gates.result }}
+            ${{ needs.docs.result }}
+            ${{ needs.extension-tests.result }}
         run: |
-          summary="ci-category-summary.md"
-          {
-            echo "# CI category summary"
-            echo
-            echo "| Category | Result | Responsible job |"
-            echo "|----------|--------|-----------------|"
-            echo "| formatting | ${{ needs['quality-format'].result }} | [quality-format] |"
-            echo "| lint / quality contract | ${{ needs['quality-lint'].result }} | [quality-lint] |"
-            echo "| quick verification | ${{ needs['verify-quick'].result }} | [verify-quick] |"
-            echo "| verification / fixtures | ${{ needs['verification'].result }} | [verification] |"
-            echo "| bootstrap / selfhost parity | ${{ needs['selfhost'].result }} | [selfhost] |"
-            echo "| native executor gates | ${{ needs['native-executor-gates'].result }} | [native-executor-gates] |"
-            echo "| docs | ${{ needs['docs'].result }} | [docs] |"
-            echo "| editor-tooling / extension | ${{ needs['extension-tests'].result }} | [extension-tests] |"
-            echo "| release tag | ${{ needs['release-tag'].result }} | [release-tag] |"
-            echo "| final gate | ${{ needs['verify'].result }} | [verify] |"
-          } | tee "$summary" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload category summary
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-category-summary-${{ github.run_id }}
-          path: ci-category-summary.md
+          set -euo pipefail
+          echo "results: $RESULTS"
+          if grep -Eq '(^| )(failure|cancelled|timed_out|action_required|startup_failure)( |$)' <<<"$RESULTS"; then
+            exit 1
+          fi
+          echo "Fast CI passed within the 10-minute feedback budget."

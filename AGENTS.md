@@ -238,3 +238,29 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
 
 - 調査詳細: `docs/research/agent-tooling-latency.md`
 - Devin 生成 wiki: 同梱 `Agent Tooling Efficiency` ページ（`~/.local/share/devin/cli/wiki/.../wiki.md`）
+
+## Cursor Cloud specific instructions
+
+このリポジトリは Web サーバー等を持たない **セルフホスト型 CLI コンパイラツールチェーン**である。開発の中心は「セルフホスト wasm コンパイラを wasmtime 上で走らせて `.ark` をコンパイル・実行する」流れ。基本コマンドは上記「基本コマンド」節と `docs/data/verification-commands.toml`、hello world は `docs/quickstart.md` を正とする。以下は環境固有の非自明な注意点のみ。
+
+### ツールチェーン（update script が用意する）
+
+- `wasmtime`（`.tool-versions` = 46.0.1）、`wasm-tools`、`cargo-binstall` は update script で導入し、`/usr/local/bin` に symlink 済み。`wasmtime` が無いと `scripts/run/arukellt-selfhost.sh` は exit 127 で全実行が失敗する。
+- Rust/cargo・Python3・Node・`clang`（18）はベースイメージに存在（追加 pip 依存なし）。
+- `wasmtime` は GC / function-references / memory64 を要求するため、旧版では動かない（wrapper が `--wasm gc --wasm function-references -W memory64=y` を付与）。
+
+### 実行の非自明な落とし穴
+
+- stdio を使う `.ark` を `arukellt run` で実行すると、生成 core module が `wasi:cli/stdout@0.2.0` を import し、素の `wasmtime run` では `unknown import` で失敗する。確実な hello world 経路は **component を明示生成してから wasmtime で直接実行**する:
+  - `scripts/run/arukellt-selfhost.sh compile --target wasm32-gc --emit component -o out.component.wasm prog.ark`
+  - `wasmtime run --wasm gc --wasm function-references --dir=. out.component.wasm`
+  - `run --emit component` を wrapper 経由で使う場合は、出力パス検出のため `-o <path>` を明示すること（未指定だと "component compile produced no output path" になる）。
+- HTTP/sockets や `std::host::fs` を伴う wasm は `scripts/run/arukellt-run-hosted.sh`（host-linker, cargo build 自動）経由になる。
+- ファイルパスは wrapper が repo root を `--dir` で preopen するため、**リポジトリルート相対**で渡す（絶対パスは "file open error" になりうる）。
+
+### 検証ゲートの所要時間・前提
+
+- `python3 scripts/manager.py selfhost build-compiler`: コールドキャッシュだと ~5.5 分（overlay cache miss 警告が出る）、ウォームで ~45–50s。emitter 編集後に 1 回だけ実行する。
+- `python3 scripts/manager.py lint`（全 2027 `.ark` を wasm で lint）: **~70 分**かかる。編集ループでは `verify lane` を使い、全 lint は必要時のみ。
+- `python3 scripts/manager.py verify quick`: tool 未導入だと数分で fail-fast、tool 導入後は T3 fixture 検証等が実走して ~15 分。`ARUKELLT_CC=clang` を設定すること（native C99 gate は既定 `clang-16` を探すが未導入。generic `clang`=18 を使わせる）。
+- master 上では `verify quick` の `docs consistency` チェックが「generated docs are out of date」で fail することがある（生成物ドリフト、環境とは無関係）。環境セットアップの成否とは切り離して扱う。修正が必要なら `python3 scripts/gen/generate-docs.py` で再生成する（生成物の手編集はしない）。
