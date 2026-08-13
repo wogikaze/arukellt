@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+SELF = "scripts/check/check-typed-verified-core-boundary.py"
 
 
 def require(path: str, token: str) -> None:
@@ -39,7 +40,7 @@ def main() -> int:
     violations = []
     for path in sorted((ROOT / "scripts").rglob("*.py")):
         relative = path.relative_to(ROOT).as_posix()
-        if relative.startswith("scripts/tests/"):
+        if relative.startswith("scripts/tests/") or relative == SELF:
             continue
         text = path.read_text(encoding="utf-8")
         if "from proof.typed_corehir_convert import" in text:
