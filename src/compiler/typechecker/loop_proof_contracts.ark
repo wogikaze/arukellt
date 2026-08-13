@@ -1,0 +1,93 @@
+use typechecker::ast_access
+use typechecker::ast_expr_predicates
+use typechecker::contract_type_access
+use typechecker::infer
+use typechecker::kinds
+use typechecker::scope
+use typechecker::unify
+
+fn loop_proof_identifiers_are_bound(env: TypeEnv, local_scope: LocalScope, node: AstNode) -> bool {
+    if ast_expr_predicates::node_is_ident(node) {
+        let name = ast_access::node_text(node)
+        let binding_type = scope::scope_lookup(local_scope, clone(name))
+        if contract_type_access::TypeInfo_tag(binding_type) == commands::TY_UNKNOWN() {
+            unify::type_error(env, concat("unknown loop proof identifier: ", name))
+            return false
+        }
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        if !loop_proof_identifiers_are_bound(env, local_scope, ast_access::node_child_at(node, child_index)) {
+            return false
+        }
+        child_index = child_index + 1
+    }
+    true
+}
+
+fn check_while_proof_contracts(
+    env: TypeEnv,
+    local_scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode
+) {
+    let count = ast_access::node_type_ann_count(node)
+    let mut index = 0
+    let mut invariant_count = 0
+    let mut decreases_count = 0
+    while index < count {
+        let contract = ast_access::node_type_ann_at(node, index)
+        if ast_access::node_kind(contract) == kinds::NK_PROOF_CONTRACT() {
+            let kind_name = ast_access::node_text(contract)
+            if eq(clone(kind_name), "invariant") {
+                invariant_count = invariant_count + 1
+            } else {
+                if eq(clone(kind_name), "decreases") {
+                    decreases_count = decreases_count + 1
+                }
+            }
+            if ast_access::node_child_count(contract) != 1 {
+                unify::type_error(env, concat("loop proof contract requires one expression: ", kind_name))
+            } else {
+                let expression = ast_access::node_child_at(contract, 0)
+                if loop_proof_identifiers_are_bound(env, local_scope, expression) {
+                    let actual = unify::resolve_type(env, infer::infer_expr(env, local_scope, fn_sigs, enum_defs, expression))
+                    let tag = contract_type_access::TypeInfo_tag(actual)
+                    if eq(clone(kind_name), "invariant") && tag != commands::TY_BOOL() {
+                        unify::type_error(env, "loop invariant must have type bool")
+                    }
+                    if eq(clone(kind_name), "decreases") && tag != commands::TY_I32() && tag != commands::TY_I64() {
+                        unify::type_error(env, "loop decreases expression must have integer type")
+                    }
+                }
+            }
+        }
+        index = index + 1
+    }
+    if count > 0 && invariant_count == 0 {
+        unify::type_error(env, "annotated while requires at least one invariant")
+    }
+    if count > 0 && decreases_count != 1 {
+        unify::type_error(env, "annotated while requires exactly one decreases clause")
+    }
+}
+
+fn check_loop_proof_contracts(
+    env: TypeEnv,
+    local_scope: LocalScope,
+    fn_sigs: Vec<FnSig>,
+    enum_defs: Vec<EnumInfo>,
+    node: AstNode
+) {
+    if ast_access::node_kind(node) == kinds::NK_WHILE() {
+        check_while_proof_contracts(env, local_scope, fn_sigs, enum_defs, node)
+    }
+    let child_count = ast_access::node_child_count(node)
+    let mut child_index = 0
+    while child_index < child_count {
+        check_loop_proof_contracts(env, local_scope, fn_sigs, enum_defs, ast_access::node_child_at(node, child_index))
+        child_index = child_index + 1
+    }
+}
