@@ -5,6 +5,7 @@ use parser::core_ast_children
 use parser::core_api_cursor
 use parser::core_api_expect
 use parser::kinds
+use parser::proof_contracts
 use parser::token_state
 
 pub fn parse_while(p: Parser) -> AstNode {
@@ -13,6 +14,8 @@ pub fn parse_while(p: Parser) -> AstNode {
     skip_newlines(p)
     let cond = parse_expr(p)
     core_ast_children::AstNode_push_child(node, cond)
+    skip_newlines(p)
+    proof_contracts::parse_loop_proof_contract_block(p, node)
     skip_newlines(p)
     let body = parse_block(p)
     core_ast_children::AstNode_push_child(node, body)
