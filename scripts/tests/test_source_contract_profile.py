@@ -15,7 +15,9 @@ from proof.normalize_source_contract_profile import (  # noqa: E402
     UnsupportedSourceContractProfile,
     normalize_document,
 )
-from proof.typed_corehir_contract_convert import convert_document  # noqa: E402
+from proof.typed_corehir_typed_convert import (  # noqa: E402
+    convert_typed_document as convert_document,
+)
 
 
 class SourceContractProfileTests(unittest.TestCase):
