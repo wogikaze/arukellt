@@ -130,7 +130,7 @@ fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
     }
     let name = verified_core_render_safe::vcs_function_name(program, function_index)
     if len(clone(name)) == 0 ||
-       !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
+    !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) {
         return ""
     }
 
