@@ -10,6 +10,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from proof.smtlib_typed_v1 import generate_typed_smtlib
+from proof.verified_core_interface import bind_call_interfaces
 from proof.verified_core_typed import TypedVerifiedCoreError, validate_typed_document
 
 
@@ -52,22 +53,32 @@ def _function(function_id, name, call=None):
 
 
 def document():
-    return {
+    value = {
         "schema": "arukellt-verified-core", "schema_version": 1, "generator": "phase3-test", "module": "phase3",
         "target_profile": {"integer_model": "mathematical", "overflow": "checked", "floating_point": "unsupported", "pointer_width": 32},
         "types": _types(), "functions": [_function(0, "nonnegative_identity"), _function(1, "forward_nonnegative", 0)],
     }
+    return bind_call_interfaces(value)
 
 
 class ProofPhase3CallTests(unittest.TestCase):
     def test_direct_call_is_verified_modularly(self):
         rendered = generate_typed_smtlib(document())
         self.assertIn("callee-requires", rendered)
+        self.assertIn("callee-interface-sha256", rendered)
         self.assertIn("f1_forward_nonnegative_b0_i0_call0", rendered)
+
+    def test_stale_callee_interface_is_rejected(self):
+        value = document()
+        call = value["functions"][1]["body"]["blocks"][0]["instructions"][0]
+        call["callee_interface_sha256"] = "0" * 64
+        with self.assertRaisesRegex((TypedVerifiedCoreError, ValueError), "interface"):
+            validate_typed_document(value)
 
     def test_recursive_call_graph_is_rejected(self):
         value = document()
         value["functions"][0] = _function(0, "nonnegative_identity", 0)
+        bind_call_interfaces(value)
         with self.assertRaisesRegex(TypedVerifiedCoreError, "recursive proof calls"):
             validate_typed_document(value)
 
