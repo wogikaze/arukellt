@@ -50,7 +50,7 @@ jobs:
 
       - name: Build host-linker once
         if: steps.ark.outputs.count != '0'
-        run: cargo build --release --quiet
+        run: cargo build --quiet
         working-directory: tools/host-linker
 
       - name: Check formatting of changed Ark sources
@@ -99,7 +99,7 @@ jobs:
 
       - name: Build host-linker once
         if: steps.ark.outputs.count != '0'
-        run: cargo build --release --quiet
+        run: cargo build --quiet
         working-directory: tools/host-linker
 
       - name: Lint changed Ark sources
@@ -107,7 +107,7 @@ jobs:
         shell: bash
         env:
           ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-          ARUKELLT_LINT_WORKERS: "4"
+          ARUKELLT_LINT_WORKERS: "8"
         run: |
           set -euo pipefail
           mapfile -t files < "$RUNNER_TEMP/changed-ark.txt"
