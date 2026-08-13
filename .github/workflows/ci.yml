@@ -95,27 +95,32 @@ jobs:
         run: cargo build --quiet --bin arukellt-host-run
         working-directory: tools/host-linker
 
-      - name: Check formatting
+      - name: Check formatting and lint in parallel
         if: steps.shard.outputs.count != '0'
         shell: bash
         env:
           ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-          ARUKELLT_LINT_WORKERS: "8"
         run: |
           set -euo pipefail
           mapfile -t files < "$RUNNER_TEMP/shard-ark.txt"
-          python3 scripts/manager.py fmt --check "${files[@]}"
-
-      - name: Lint shard
-        if: steps.shard.outputs.count != '0'
-        shell: bash
-        env:
-          ARUKELLT_SELFHOST_WASM: ${{ github.workspace }}/bootstrap/arukellt-selfhost.wasm
-          ARUKELLT_LINT_WORKERS: "8"
-        run: |
-          set -euo pipefail
-          mapfile -t files < "$RUNNER_TEMP/shard-ark.txt"
-          python3 scripts/manager.py lint "${files[@]}"
+          (
+            ARUKELLT_LINT_WORKERS=4 python3 scripts/manager.py fmt --check "${files[@]}"
+          ) &
+          fmt_pid=$!
+          (
+            ARUKELLT_LINT_WORKERS=4 python3 scripts/manager.py lint "${files[@]}"
+          ) &
+          lint_pid=$!
+          set +e
+          wait "$fmt_pid"
+          fmt_rc=$?
+          wait "$lint_pid"
+          lint_rc=$?
+          set -e
+          if [[ "$fmt_rc" -ne 0 || "$lint_rc" -ne 0 ]]; then
+            echo "quality shard failed: fmt=$fmt_rc lint=$lint_rc" >&2
+            exit 1
+          fi
 
   quality-format:
     name: "quality-format"
