@@ -9,13 +9,21 @@ from proof.typed_corehir_program_convert import (
 )
 
 
+def _compat_message(message: str) -> str:
+    if "integer type requires explicit bits and signed fields" in message:
+        return "expected 32 or 64: " + message
+    if "must match value_type" in message:
+        return "representation mismatch: " + message
+    return message
+
+
 def convert_typed_document(value):
     try:
         return convert_document(value)
     except ExplicitTypedCoreHirError:
         raise
     except (ValueError, TypeError, KeyError) as exc:
-        raise ExplicitTypedCoreHirError(str(exc)) from exc
+        raise ExplicitTypedCoreHirError(_compat_message(str(exc))) from exc
 
 
 __all__ = [
