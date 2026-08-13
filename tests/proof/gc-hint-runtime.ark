@@ -1,0 +1,14 @@
+struct Box {
+    value: i32,
+}
+
+fn main() {
+    let mut i = 0
+    let mut total = 0
+    while i < 4 {
+        let item = Box { value: i }
+        total = total + item.value
+        i = i + 1
+    }
+    println(to_string(total))
+}

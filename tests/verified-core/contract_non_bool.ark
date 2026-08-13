@@ -1,0 +1,7 @@
+fn invalid(x: i32) -> i32 proof {
+    requires: x + 1;
+} {
+    x
+}
+
+fn main() {}

@@ -1,7 +1,6 @@
 use mir::module_wit_imports
 use mir::module_gc_enum
 use mir::module_gc_struct
-use mir::module_spine
 use wasm::emit_target
 use wasm::gc_layout_table_build
 use wasm::opcodes
@@ -72,7 +71,6 @@ fn emit_type_section(
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
             gc_layout,
-            module_spine::MirModule_type_table(mir),
             mir,
             sections_type_plan::TypeSectionPlan_gc_type_base(plan),
             sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),

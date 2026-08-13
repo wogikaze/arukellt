@@ -1,0 +1,98 @@
+name: Z3 proof run
+
+on:
+  pull_request:
+    branches: [agent/formal-verification-hard-gates, master]
+  workflow_dispatch:
+
+concurrency:
+  group: z3-proof-run-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  z3-proof-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate solver trust boundary
+        run: |
+          python3 scripts/check/check-solver-trust-manifest-boundary.py
+          python3 scripts/gen/write-solver-trust-boundary-receipt.py
+          python3 scripts/check/check-solver-trust-boundary-receipt.py \
+            .build/proof/solver-trust-boundary.json
+          python3 -m unittest \
+            scripts.tests.test_smtlib_typed_v1 \
+            scripts.tests.test_solver_result \
+            scripts.tests.test_solver_driver
+
+      - name: Install Z3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Generate typed verification conditions
+        run: |
+          mkdir -p .build/z3-proof .build/z3-toolchain
+          python3 scripts/check/check-typed-verified-core.py tests/proof/verified-core.json
+          python3 scripts/gen/write-smt-vcs.py \
+            --subject tests/proof/verified-core.json \
+            --output .build/z3-proof/verified-core-vcs.smt2
+
+      - name: Build hash-bound Z3 toolchain
+        run: |
+          cp "$(command -v z3)" .build/z3-toolchain/z3
+          cp tests/proof/toolchain/producer.bin .build/z3-toolchain/producer.bin
+          cp scripts/proof/smtlib_typed_v1.py .build/z3-toolchain/smtlib_typed_v1.py
+          cp scripts/proof/smtlib_v1.py .build/z3-toolchain/smtlib_v1.py
+          cp scripts/proof/verified_core.py .build/z3-toolchain/verified_core.py
+          cp scripts/proof/verified_core_typed.py .build/z3-toolchain/verified_core_typed.py
+          python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          document = {
+              "schema": "arukellt-proof-toolchain", "schema_version": 1,
+              "producer": {"name": "verified-core-fixture", "version": "1", "executable": "producer.bin"},
+              "translator": {"name": "typed-verified-core-smt", "version": "1", "executable": "smtlib_typed_v1.py"},
+              "solver": {"name": "z3", "version": subprocess.check_output(["z3", "--version"], text=True).strip(), "executable": "z3", "arguments": ["-in", "-smt2"]},
+              "semantic_profile": {"integer_model": "mathematical", "overflow": "checked", "floating_point": "unsupported", "memory": "pure-values"},
+              "assumptions": [],
+              "trusted_components": [
+                  {"name": "arukellt-verified-core", "role": "artifact-validator", "version": "1", "artifact": "verified_core.py"},
+                  {"name": "arukellt-verified-core-typed", "role": "typed-artifact-validator", "version": "1", "artifact": "verified_core_typed.py"},
+                  {"name": "arukellt-typed-smt", "role": "typed-smt-adapter", "version": "1", "artifact": "smtlib_typed_v1.py"},
+                  {"name": "arukellt-smt-renderer", "role": "smt-renderer-implementation", "version": "1", "artifact": "smtlib_v1.py"},
+              ],
+              "limits": {"timeout_ms": 10000, "memory_bytes": 1073741824},
+          }
+          Path(".build/z3-toolchain/toolchain.json").write_text(json.dumps(document, indent=2) + "\n")
+          PY
+
+      - name: Prove and independently validate SolverResult
+        run: |
+          python3 scripts/run/run-proof-solver.py \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/z3-proof/verified-core-vcs.smt2 \
+            --toolchain .build/z3-toolchain/toolchain.json \
+            --solver-output .build/z3-proof/solver-output.txt \
+            --trust-manifest-output .build/z3-proof/trust-manifest.json \
+            --proof-receipt-output .build/z3-proof/proof-receipt.json \
+            --solver-result-output .build/z3-proof/solver-result.json
+          python3 scripts/check/check-solver-result.py \
+            .build/z3-proof/solver-result.json \
+            --subject tests/proof/verified-core.json \
+            --solver-input .build/z3-proof/verified-core-vcs.smt2 \
+            --toolchain .build/z3-toolchain/toolchain.json \
+            --solver-output .build/z3-proof/solver-output.txt \
+            --trust-manifest .build/z3-proof/trust-manifest.json \
+            --proof-receipt .build/z3-proof/proof-receipt.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-core-z3-proof-run
+          path: |
+            .build/z3-proof
+            .build/z3-toolchain/toolchain.json
+            .build/proof/solver-trust-boundary.json
+          if-no-files-found: error

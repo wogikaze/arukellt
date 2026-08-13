@@ -1,0 +1,9 @@
+{
+  "schema": "arukellt-backend-name-lookup-baseline",
+  "schema_version": 2,
+  "fixture": "tests/fixtures/stdlib_vec/vec_get.ark",
+  "max_name_lookup_count": 0,
+  "fallback_must_be_zero": true,
+  "conflict_must_be_zero": true,
+  "name_lookup_must_be_zero": true
+}

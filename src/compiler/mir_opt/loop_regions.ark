@@ -39,10 +39,9 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
         }
         if op == opcodes::MIR_END() {
             if len(stack) > 0 {
-                let start = get_unchecked(stack, len(stack) - 1)
-                pop(stack)
-                let depth = get_unchecked(depths, len(depths) - 1)
-                pop(depths)
+                // pop returns Option<i32>; unwrap before the i32 LoopRegion fields.
+                let start = pop(stack).unwrap()
+                let depth = pop(depths).unwrap()
                 push(regions, LoopRegion_new(start, i, depth))
             }
         }

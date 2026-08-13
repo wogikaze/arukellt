@@ -39,6 +39,10 @@ def yn(v) -> str:
 
 
 def write(path: Path, content: str, check: bool, stale: list[Path]) -> None:
+    import re
+    content = re.sub(r"\n{3,}", "\n\n", content)
+    if not content.endswith("\n"):
+        content = content + "\n"
     if check:
         if not path.is_file() or path.read_text(encoding="utf-8") != content:
             stale.append(path)
@@ -402,7 +406,6 @@ def render_release_guarantees(data: dict) -> str:
     stale_checks = [ch for ch in checks if check_freshness(ch) == "stale"]
     if stale_checks:
         lines.extend([
-            "",
             "### Stale check derivation details",
             "",
             "Stale status is derived from `verified_at` + `stale_after_days` relative to the current date.",

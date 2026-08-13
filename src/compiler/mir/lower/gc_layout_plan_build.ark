@@ -1,0 +1,330 @@
+use std::host::process
+use std::host::stdio
+use corehir::kinds
+use corehir::type_id
+use corehir::type_table
+use mir::gc_layout_plan
+use mir::gc_layout_plan_validator
+use mir::module_gc_enum
+use mir::module_gc_layout_plan
+use mir::module_gc_struct
+use mir::module_spine
+use wasm::emit_target
+
+fn gc_layout_plan_name_is_fn(name: String) -> bool {
+    eq(clone(name), "fn") ||
+    eq(clone(name), "fnref") ||
+    starts_with(name, "fn(")
+}
+
+fn gc_layout_plan_name_is_i32(name: String) -> bool {
+    eq(clone(name), "i32") || eq(clone(name), "I32") ||
+    eq(clone(name), "bool") || eq(clone(name), "char") ||
+    eq(clone(name), "u8") || eq(clone(name), "u16") ||
+    eq(clone(name), "u32") || eq(clone(name), "i16")
+}
+
+fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32 {
+    if !type_id::type_id_is_valid(elem_id) {
+        return 0 - 1
+    }
+    let elem = type_table::TypeTable_lookup(table, elem_id)
+    let kind = type_table::type_entry_kind(elem)
+    let name = type_table::type_entry_name(elem)
+    if kind == kinds::TYPE_KIND_STRING() {
+        return 19
+    }
+    if kind == kinds::TYPE_KIND_OPTION() ||
+    kind == kinds::TYPE_KIND_RESULT() ||
+    kind == kinds::TYPE_KIND_ENUM() {
+        return 29
+    }
+    if kind == kinds::TYPE_KIND_PRIMITIVE() {
+        if eq(clone(name), "v128") || eq(clone(name), "V128") { return 21 }
+        if eq(clone(name), "i64") || eq(clone(name), "I64") { return 22 }
+        if eq(clone(name), "f64") || eq(clone(name), "F64") { return 23 }
+        if gc_layout_plan_name_is_fn(clone(name)) { return 27 }
+        if gc_layout_plan_name_is_i32(name) { return 10 }
+    }
+    // Nested containers and user aggregates use the structref-array Vec layout.
+    25
+}
+
+fn gc_layout_plan_vec_offset_from_name(name: String) -> i32 {
+    if starts_with(clone(name), "vec:String") ||
+    starts_with(clone(name), "vec:string") ||
+    starts_with(clone(name), "Vec<String>") ||
+    starts_with(clone(name), "Vec<string>") {
+        return 19
+    }
+    if starts_with(clone(name), "vec:v128") || starts_with(clone(name), "vec:V128") {
+        return 21
+    }
+    if starts_with(clone(name), "vec:i64") || starts_with(clone(name), "vec:I64") {
+        return 22
+    }
+    if starts_with(clone(name), "vec:f64") || starts_with(clone(name), "vec:F64") {
+        return 23
+    }
+    if starts_with(clone(name), "vec:fn") || starts_with(clone(name), "Vec<fn") {
+        return 27
+    }
+    if starts_with(clone(name), "vec:Option") ||
+    starts_with(clone(name), "vec:Result") ||
+    starts_with(clone(name), "vec:option:") ||
+    starts_with(clone(name), "vec:result:") ||
+    starts_with(clone(name), "vec:enum:") ||
+    starts_with(clone(name), "Vec<Option") ||
+    starts_with(clone(name), "Vec<Result") {
+        return 29
+    }
+    if starts_with(clone(name), "vec:Vec") ||
+    starts_with(clone(name), "vec:vec:") {
+        return 25
+    }
+    if starts_with(clone(name), "Vec<") &&
+    !(contains(clone(name), "i32") || contains(clone(name), "I32") ||
+        contains(clone(name), "bool") || contains(clone(name), "char")) {
+        return 25
+    }
+    10
+}
+
+fn gc_layout_plan_hashmap_offset_from_types(
+    table: TypeTable,
+    key_id: TypeId,
+    value_id: TypeId
+) -> i32 {
+    if !type_id::type_id_is_valid(key_id) || !type_id::type_id_is_valid(value_id) {
+        return 0 - 1
+    }
+    let key = type_table::TypeTable_lookup(table, key_id)
+    let value = type_table::TypeTable_lookup(table, value_id)
+    let key_kind = type_table::type_entry_kind(key)
+    let value_kind = type_table::type_entry_kind(value)
+    let key_name = type_table::type_entry_name(key)
+    let value_name = type_table::type_entry_name(value)
+    let key_string = key_kind == kinds::TYPE_KIND_STRING()
+    let value_string = value_kind == kinds::TYPE_KIND_STRING()
+    let key_i32 = key_kind == kinds::TYPE_KIND_PRIMITIVE() && gc_layout_plan_name_is_i32(key_name)
+    let value_i32 = value_kind == kinds::TYPE_KIND_PRIMITIVE() && gc_layout_plan_name_is_i32(clone(value_name))
+    let value_fn = value_kind == kinds::TYPE_KIND_PRIMITIVE() && gc_layout_plan_name_is_fn(value_name)
+    if key_i32 && value_i32 { return 10 }
+    if key_string && value_i32 { return 16 }
+    if key_i32 && value_string { return 17 }
+    if key_string && value_string { return 18 }
+    if key_i32 && value_fn { return 30 }
+    if key_string && value_fn { return 31 }
+    16
+}
+
+fn gc_layout_plan_hashmap_offset_from_name(name: String) -> i32 {
+    if starts_with(clone(name), "hashmap:i32fn") { return 30 }
+    if starts_with(clone(name), "hashmap:strfn") { return 31 }
+    if starts_with(clone(name), "hashmap:i32str") ||
+    starts_with(clone(name), "hashmap:i32:String") { return 17 }
+    if starts_with(clone(name), "hashmap:strstr") ||
+    starts_with(clone(name), "hashmap:String:String") { return 18 }
+    if starts_with(clone(name), "hashmap:i32i32") { return 10 }
+    16
+}
+
+fn gc_layout_plan_fixed_offset_for_entry(table: TypeTable, entry: TypeEntry) -> i32 {
+    let kind = type_table::type_entry_kind(entry)
+    if kind == kinds::TYPE_KIND_STRING() {
+        return 0
+    }
+    if kind == kinds::TYPE_KIND_OPTION() ||
+    kind == kinds::TYPE_KIND_RESULT() ||
+    kind == kinds::TYPE_KIND_ENUM() {
+        return 14
+    }
+    if kind == kinds::TYPE_KIND_HASHSET() {
+        return 16
+    }
+    if kind == kinds::TYPE_KIND_VEC() {
+        if type_table::type_entry_type_param_count(entry) == 1 {
+            let typed = gc_layout_plan_vec_offset_from_elem(
+                table,
+                type_table::type_entry_type_param_at(entry, 0)
+            )
+            if typed >= 0 { return typed }
+        }
+        return gc_layout_plan_vec_offset_from_name(type_table::type_entry_name(entry))
+    }
+    if kind == kinds::TYPE_KIND_HASHMAP() {
+        if type_table::type_entry_type_param_count(entry) == 2 {
+            let typed = gc_layout_plan_hashmap_offset_from_types(
+                table,
+                type_table::type_entry_type_param_at(entry, 0),
+                type_table::type_entry_type_param_at(entry, 1)
+            )
+            if typed >= 0 { return typed }
+        }
+        return gc_layout_plan_hashmap_offset_from_name(type_table::type_entry_name(entry))
+    }
+    0 - 1
+}
+
+fn gc_layout_plan_bare_suffix(name: String) -> String {
+    let n = len(name)
+    let mut index = n - 1
+    while index >= 0 {
+        if char_at(clone(name), index) == 58 {
+            if index + 1 < n {
+                return substring(name, index + 1, n)
+            }
+            return String_new()
+        }
+        index = index - 1
+    }
+    name
+}
+
+fn gc_layout_plan_find_named_type(
+    table: TypeTable,
+    kind: i32,
+    name: String
+) -> TypeId {
+    let empty = Vec::new<TypeId>()
+    let direct = type_table::type_table_find_existing(table, kind, clone(name), empty)
+    if type_id::type_id_is_valid(direct) {
+        return direct
+    }
+    let bare = gc_layout_plan_bare_suffix(clone(name))
+    if len(bare) > 0 && !eq(clone(bare), name) {
+        return type_table::type_table_find_existing(
+            table,
+            kind,
+            bare,
+            Vec::new<TypeId>()
+        )
+    }
+    type_id::TYPE_ID_INVALID()
+}
+
+fn gc_layout_plan_name_is_option_variant(name: String) -> bool {
+    eq(clone(name), "Some") ||
+    eq(clone(name), "None") ||
+    starts_with(name, "Option::")
+}
+
+fn gc_layout_plan_name_is_result_variant(name: String) -> bool {
+    eq(clone(name), "Ok") ||
+    eq(clone(name), "Err") ||
+    starts_with(name, "Result::")
+}
+
+fn gc_layout_plan_variant_type_kind(name: String) -> i32 {
+    if gc_layout_plan_name_is_option_variant(clone(name)) {
+        return kinds::TYPE_KIND_OPTION()
+    }
+    if gc_layout_plan_name_is_result_variant(name) {
+        return kinds::TYPE_KIND_RESULT()
+    }
+    kinds::TYPE_KIND_ENUM()
+}
+
+// Variant payload slots are compiler GC types. TypeTable interned the parent
+// Option/Result/enum, not `Option::Some` / `Color::Red`. Intern each slot as
+// name#sig so i32/i64/ref payloads of the same variant keep distinct TypeIds.
+fn gc_layout_plan_type_id_for_variant_slot(
+    table: TypeTable,
+    name: String,
+    sig: String
+) -> TypeId {
+    let kind = gc_layout_plan_variant_type_kind(clone(name))
+    let intern_name = concat(name, concat("#", sig))
+    let found = gc_layout_plan_find_named_type(table, kind, clone(intern_name))
+    if type_id::type_id_is_valid(found) {
+        return found
+    }
+    type_table::TypeTable_intern(table, kind, intern_name, Vec::new<TypeId>())
+}
+
+fn gc_layout_plan_bind_fixed_entries(plan: MirGcLayoutPlan, table: TypeTable) {
+    let count = type_table::TypeTable_entry_count(table)
+    let mut index = 0
+    while index < count {
+        let entry = type_table::TypeTable_entry_at(table, index)
+        let offset = gc_layout_plan_fixed_offset_for_entry(table, entry)
+        if offset >= 0 {
+            gc_layout_plan::mir_gc_layout_plan_bind(
+                plan,
+                type_table::type_entry_id(entry),
+                gc_layout_plan::MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET(),
+                offset
+            )
+        }
+        index = index + 1
+    }
+}
+
+fn gc_layout_plan_bind_struct_slots(
+    plan: MirGcLayoutPlan,
+    table: TypeTable,
+    module: MirModule
+) {
+    let count = module_gc_struct::MirModule_gc_struct_sig_count(module)
+    let mut slot = 0
+    while slot < count {
+        let name = module_gc_struct::MirModule_gc_struct_name_at(module, slot)
+        let tid = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), name)
+        if !type_id::type_id_is_valid(tid) {
+            stdio::eprintln("compiler ICE: GC struct slot has no semantic TypeId")
+            process::exit(1)
+        }
+        gc_layout_plan::mir_gc_layout_plan_bind(
+            plan,
+            tid,
+            gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT(),
+            slot
+        )
+        slot = slot + 1
+    }
+}
+
+fn gc_layout_plan_bind_enum_variant_slots(
+    plan: MirGcLayoutPlan,
+    table: TypeTable,
+    module: MirModule
+) {
+    let count = module_gc_enum::MirModule_gc_enum_variant_sig_count(module)
+    let mut slot = 0
+    while slot < count {
+        let name = module_gc_enum::MirModule_gc_enum_variant_name_at(module, slot)
+        let sig = module_gc_enum::MirModule_gc_enum_variant_sig_at(module, slot)
+        let tid = gc_layout_plan_type_id_for_variant_slot(table, clone(name), sig)
+        if !type_id::type_id_is_valid(tid) {
+            stdio::eprintln(
+                concat(
+                    "compiler ICE: GC enum variant slot has no semantic TypeId: ",
+                    name
+                )
+            )
+            process::exit(1)
+        }
+        gc_layout_plan::mir_gc_layout_plan_bind(
+            plan,
+            tid,
+            gc_layout_plan::MIR_GC_LAYOUT_SOURCE_ENUM_VARIANT_SLOT(),
+            slot
+        )
+        slot = slot + 1
+    }
+}
+
+fn mir_module_build_gc_layout_plan(module: MirModule, target: String) {
+    let plan = gc_layout_plan::MirGcLayoutPlan_new()
+    if emit_target::is_gc_target(target) {
+        let table = module_spine::MirModule_type_table(module)
+        gc_layout_plan_bind_fixed_entries(plan, table)
+        gc_layout_plan_bind_struct_slots(plan, table, module)
+        gc_layout_plan_bind_enum_variant_slots(plan, table, module)
+    }
+    if !gc_layout_plan_validator::mir_gc_layout_plan_valid(plan) {
+        stdio::eprintln("compiler ICE: invalid MIR GC layout plan")
+        process::exit(1)
+    }
+    module_gc_layout_plan::MirModule_set_gc_layout_plan(module, plan)
+}

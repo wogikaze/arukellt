@@ -1,0 +1,9 @@
+use mir::module_record
+
+fn MirModule_set_gc_layout_plan(m: MirModule, plan: MirGcLayoutPlan) {
+    m.gc_layout_plan = plan
+}
+
+fn MirModule_gc_layout_plan(m: MirModule) -> MirGcLayoutPlan {
+    m.gc_layout_plan
+}

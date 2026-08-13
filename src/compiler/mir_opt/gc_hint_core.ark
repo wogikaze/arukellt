@@ -1,10 +1,14 @@
+use corehir::mir_value_type
+use corehir::type_id
 use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_mutation
 use mir::function_block_queries
+use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_gc_hint
+use mir::inst_record
 use mir::opcodes
 use mir::types
 use mir_opt::loop_regions
@@ -15,19 +19,169 @@ pub struct GcHintAnnotateResult {
     annotated: i32,
 }
 
+struct GcHintUseTarget {
+    local: i32,
+    from: i32,
+    ignore_initialization_receiver: bool,
+}
+
 fn GcHintAnnotateResult_new(instructions: Vec<MirInst>, annotated: i32) -> GcHintAnnotateResult {
     GcHintAnnotateResult { instructions: instructions, annotated: annotated }
 }
 
-fn gc_hint_count_local_uses(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> i32 {
+fn GcHintUseTarget_new(local: i32, from: i32, ignore_initialization_receiver: bool) -> GcHintUseTarget {
+    GcHintUseTarget {
+        local: local,
+        from: from,
+        ignore_initialization_receiver: ignore_initialization_receiver,
+    }
+}
+
+fn gc_hint_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(a)) ==
+    type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(b)) &&
+    mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
+    mir_value_type::mir_value_type_nullability(a) == mir_value_type::mir_value_type_nullability(b)
+}
+
+fn gc_hint_instruction_equal(a: MirInst, b: MirInst) -> bool {
+    if inst_accessors_shape::MirInst_op(a) != inst_accessors_shape::MirInst_op(b) {
+        return false
+    }
+    if inst_accessors_operands::MirInst_dest(a) != inst_accessors_operands::MirInst_dest(b) ||
+    inst_accessors_operands::MirInst_arg0(a) != inst_accessors_operands::MirInst_arg0(b) ||
+    inst_accessors_operands::MirInst_arg1(a) != inst_accessors_operands::MirInst_arg1(b) {
+        return false
+    }
+    if inst_accessors_literals::MirInst_int_val(a) != inst_accessors_literals::MirInst_int_val(b) ||
+    inst_accessors_literals::MirInst_float_val(a) != inst_accessors_literals::MirInst_float_val(b) ||
+    !eq(inst_accessors_literals::MirInst_str_val(a), inst_accessors_literals::MirInst_str_val(b)) {
+        return false
+    }
+    if inst_accessors_shape::MirInst_val_type(a) != inst_accessors_shape::MirInst_val_type(b) ||
+    inst_record::mir_inst_func_id_raw(a) != inst_record::mir_inst_func_id_raw(b) {
+        return false
+    }
+    let result_count = inst_record::mir_inst_result_type_count(a)
+    if result_count != inst_record::mir_inst_result_type_count(b) {
+        return false
+    }
+    let mut i = 0
+    while i < result_count {
+        if !gc_hint_value_type_equal(
+            inst_record::mir_inst_result_type_at(a, i),
+            inst_record::mir_inst_result_type_at(b, i)
+        ) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn gc_hint_is_canonical_inserted_hint(inst: MirInst) -> bool {
+    gc_hint_instruction_equal(inst, inst_gc_hint::MirInst_gc_hint_short_lived())
+}
+
+fn gc_hint_translation_valid(before: Vec<MirInst>, after: Vec<MirInst>) -> bool {
+    let mut before_i = 0
+    let mut after_i = 0
+    while after_i < len(after) {
+        let candidate = get_unchecked(after, after_i)
+        if before_i < len(before) && gc_hint_instruction_equal(get_unchecked(before, before_i), candidate) {
+            before_i = before_i + 1
+            after_i = after_i + 1
+            continue
+        }
+        if gc_hint_is_canonical_inserted_hint(candidate) {
+            after_i = after_i + 1
+            continue
+        }
+        return false
+    }
+    before_i == len(before)
+}
+
+fn gc_hint_is_constructor_initialization(inst: MirInst, local: i32) -> bool {
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_SET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local
+}
+
+fn gc_hint_is_local_reload(inst: MirInst, local: i32) -> bool {
+    // Ident lowering emits local.get_to(idx, idx) before field access. That
+    // reload is not a second consumer of the allocation.
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_GET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local
+}
+
+fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> GcHintUseTarget {
+    let mut alias = 0 - 1
+    let mut alias_at = 0 - 1
+    let mut direct_uses = 0
+    let mut i = from
+    while i <= to {
+        let inst = get_unchecked(insts, i)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+        if gc_hint_is_constructor_initialization(inst, local) {
+            if arg1 == local {
+                direct_uses = direct_uses + 1
+            }
+            i = i + 1
+            continue
+        }
+        if gc_hint_is_local_reload(inst, local) {
+            i = i + 1
+            continue
+        }
+        if op == opcodes::MIR_LOCAL_SET() && arg1 == local {
+            if alias >= 0 || arg0 < 0 || arg0 == local {
+                return GcHintUseTarget_new(0 - 1, from, false)
+            }
+            alias = arg0
+            alias_at = i
+            i = i + 1
+            continue
+        }
+        if arg0 == local {
+            direct_uses = direct_uses + 1
+        }
+        if arg1 == local {
+            direct_uses = direct_uses + 1
+        }
+        i = i + 1
+    }
+    if alias >= 0 {
+        if direct_uses != 0 {
+            return GcHintUseTarget_new(0 - 1, from, false)
+        }
+        return GcHintUseTarget_new(alias, alias_at + 1, false)
+    }
+    GcHintUseTarget_new(local, from, true)
+}
+
+fn gc_hint_count_local_uses(
+    insts: Vec<MirInst>,
+    from: i32,
+    to: i32,
+    local: i32,
+    ignore_initialization_receiver: bool
+) -> i32 {
     let mut uses = 0
     let mut i = from
     while i <= to {
         let inst = get_unchecked(insts, i)
-        if inst_accessors_operands::MirInst_arg0(inst) == local {
+        if gc_hint_is_local_reload(inst, local) {
+            i = i + 1
+            continue
+        }
+        let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+        let arg1 = inst_accessors_operands::MirInst_arg1(inst)
+        if arg0 == local && !(ignore_initialization_receiver && gc_hint_is_constructor_initialization(inst, local)) {
             uses = uses + 1
         }
-        if inst_accessors_operands::MirInst_arg1(inst) == local {
+        if arg1 == local {
             uses = uses + 1
         }
         i = i + 1
@@ -67,11 +221,21 @@ fn gc_hint_should_annotate(insts: Vec<MirInst>, idx: i32, end: i32) -> bool {
     if dest < 0 {
         return false
     }
-    let uses = gc_hint_count_local_uses(insts, idx + 1, end, dest)
+    let target = gc_hint_resolve_use_target(insts, idx + 1, end, dest)
+    if target.local < 0 || target.from > end {
+        return false
+    }
+    let uses = gc_hint_count_local_uses(
+        insts,
+        target.from,
+        end,
+        target.local,
+        target.ignore_initialization_receiver
+    )
     if uses != 1 {
         return false
     }
-    if gc_hint_local_escapes(insts, idx + 1, end, dest) {
+    if gc_hint_local_escapes(insts, target.from, end, target.local) {
         return false
     }
     true
@@ -113,16 +277,29 @@ fn gc_hint_optimize_function(f: MirFunction) -> OptimizationSummary {
     let block_count = function_block_queries::MirFunction_block_count(f)
     let updated_blocks = Vec::new<MirBlock>()
     let mut total = 0
+    let mut translation_validation_failures = 0
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
         let insts = block_inst_access::MirBlock_instructions(block)
         let result = gc_hint_optimize_block_insts(insts)
-        block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
-        total = total + result.annotated
+        if gc_hint_translation_valid(insts, result.instructions) {
+            block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
+            total = total + result.annotated
+        } else {
+            block_inst_mutation::MirBlock_set_instructions(block, insts)
+            translation_validation_failures = translation_validation_failures + 1
+        }
         push(updated_blocks, block)
         bi = bi + 1
     }
     function_block_mutation::MirFunction_set_blocks(f, updated_blocks)
-    summary_record::OptimizationSummary_add_gc_hint(summary_record::OptimizationSummary_new(), total)
+    let summary = summary_record::OptimizationSummary_add_gc_hint(
+        summary_record::OptimizationSummary_new(),
+        total
+    )
+    summary_record::OptimizationSummary_add_translation_validation_failure(
+        summary,
+        translation_validation_failures
+    )
 }

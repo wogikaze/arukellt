@@ -1,6 +1,7 @@
 use corehir::signature_registry
 use corehir::type_table
 use mir::function_core_record
+use mir::gc_layout_plan
 use mir::lower::mono_instance_table
 
 pub struct MirModule {
@@ -11,6 +12,7 @@ pub struct MirModule {
     gc_enum_variant_names: Vec<String>,
     gc_struct_sigs: Vec<String>,
     gc_struct_names: Vec<String>,
+    gc_layout_plan: MirGcLayoutPlan,
     spine_populated: bool,
     type_table: TypeTable,
     signature_registry: SignatureRegistry,
@@ -26,6 +28,7 @@ fn MirModule_new() -> MirModule {
         gc_enum_variant_names: Vec::new<String>(),
         gc_struct_sigs: Vec::new<String>(),
         gc_struct_names: Vec::new<String>(),
+        gc_layout_plan: gc_layout_plan::MirGcLayoutPlan_new(),
         spine_populated: false,
         type_table: type_table::TypeTable_new(),
         signature_registry: signature_registry::SignatureRegistry_new(),

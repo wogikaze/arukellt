@@ -52,6 +52,7 @@
 | [ADR-048-design-heuristics-application-order.md](ADR-048-design-heuristics-application-order.md) | ADR-048: 設計原則の適用順序 | 提案日: 2026-07-13 採択日: 2026-07-13 |
 | [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
 | [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
+| [ADR-051-formal-verification-hard-gates.md](ADR-051-formal-verification-hard-gates.md) | ADR-051: Formal verification hard gates | Arukellt uses a hybrid verification architecture. Proof-facing syntax may live in the language, but semantics, verification-condition generation, solver execution, translation validation, and receipt checking remain independently executable boundaries. |
 
 ## 提案
 
@@ -60,8 +61,6 @@
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
-| [ADR-051-verifiable-compiler-architecture.md](ADR-051-verifiable-compiler-architecture.md) | ADR-051: 検証可能なコンパイラ・アーキテクチャ | 提案日: 2026-07-30 |
-| [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | 提案日: 2026-07-30 |
 
 ## 後継済み
 

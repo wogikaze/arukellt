@@ -1,4 +1,5 @@
 use std::host::clock
+use std::host::stdio
 use driver::config_record
 use driver::errors_phase
 use driver::local_lint
@@ -9,6 +10,8 @@ use driver::checked_program
 use driver::debug
 use driver::emit
 use driver::lower
+use driver::result_record
+use driver::typed_corehir_render
 use loader::mod
 use loader::module_decls
 use mir_opt::optimize_module
@@ -52,6 +55,18 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
+    if eq(config_record::config_emit_mode(config), "typed-corehir") {
+        let rendered = typed_corehir_render::render_typed_corehir(
+            checked_program::checked_program_core_program(program),
+            config
+        )
+        if len(clone(rendered)) == 0 {
+            return result_record::CompileResult_err(4, "TypedCoreHIR rendering failed")
+        }
+        stdio::println(rendered)
+        mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
+        return result_record::CompileResult_ok(4)
+    }
     mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
     let t_typecheck = backend_typecheck::typecheck_result_t_typecheck(checked)
     let mir_lowered = lower::lower_checked_program(program, config, clone(source))

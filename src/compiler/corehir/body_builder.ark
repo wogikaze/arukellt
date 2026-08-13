@@ -1,0 +1,64 @@
+use std::host::process
+use std::host::stdio
+use corehir::body_table
+use corehir::body_validator
+
+// Construction-only capability. This module is owned by the frontend CoreHIR
+// builder and must not be imported by MIR, backend, or artifact renderers.
+fn CoreHirBodyBuilder_new() -> CoreHirBodyTable {
+    CoreHirBodyTable {
+        schema_version: 1,
+        exprs: Vec::new<CoreHirExpr>(),
+        fn_body_roots: Vec::new<i32>(),
+        method_body_roots: Vec::new<i32>(),
+        fn_contract_starts: Vec::new<i32>(),
+        fn_contract_counts: Vec::new<i32>(),
+        contract_roots: Vec::new<i32>(),
+        contract_kinds: Vec::new<String>(),
+        contract_result_names: Vec::new<String>(),
+    }
+}
+
+fn corehir_body_builder_push_expr(builder: CoreHirBodyTable, expr: CoreHirExpr) -> i32 {
+    let index = len(builder.exprs)
+    push(builder.exprs, expr)
+    index
+}
+
+fn corehir_body_builder_push_fn_body_root(builder: CoreHirBodyTable, root: i32) {
+    push(builder.fn_body_roots, root)
+}
+
+fn corehir_body_builder_push_method_body_root(builder: CoreHirBodyTable, root: i32) {
+    push(builder.method_body_roots, root)
+}
+
+fn corehir_body_builder_begin_fn_contracts(builder: CoreHirBodyTable) -> i32 {
+    len(builder.contract_roots)
+}
+
+fn corehir_body_builder_push_fn_contract(
+    builder: CoreHirBodyTable,
+    root: i32,
+    kind: String,
+    result_name: String
+) {
+    push(builder.contract_roots, root)
+    push(builder.contract_kinds, kind)
+    push(builder.contract_result_names, result_name)
+}
+
+fn corehir_body_builder_end_fn_contracts(builder: CoreHirBodyTable, start: i32) {
+    push(builder.fn_contract_starts, start)
+    push(builder.fn_contract_counts, len(builder.contract_roots) - start)
+}
+
+// Explicit fail-closed handoff from construction capability to the frozen
+// read-only artifact boundary.
+fn corehir_body_builder_finish(builder: CoreHirBodyTable) -> CoreHirBodyTable {
+    if !body_validator::corehir_body_artifact_valid(builder) {
+        stdio::eprintln(String_from("compiler ICE: invalid CoreHIR body artifact v1"))
+        process::exit(1)
+    }
+    builder
+}
