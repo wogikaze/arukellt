@@ -3,8 +3,9 @@
 
 This script is intentionally idempotent and is removed before the PR is marked
 ready. It renames host-operation emitter modules to the runtime ABI namespace,
-renames the runtime-routing flag, and moves internal host-operation spellings
-from __intrinsic_* to __runtime_* without touching GC/compiler intrinsics.
+renames the runtime-routing flag, moves internal host-operation spellings from
+__intrinsic_* to __runtime_*, and applies temporary branch-local source edits
+that are easier to express mechanically while the ABI is being migrated.
 """
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WASM = ROOT / "src" / "compiler" / "wasm"
 FAMILIES = ("http", "sockets", "fs", "env", "process", "stdio", "time", "random")
 RUNTIME_ADAPTER_METHODS = (
-    "buffer_len", "buffer_byte", "buffer_close",
+    "buffer_new", "buffer_push", "buffer_len", "buffer_byte", "buffer_close",
     "http_get", "http_request", "http_serve",
     "socket_connect", "socket_read", "socket_write", "socket_listen", "socket_accept", "socket_close",
     "fs_read_file", "fs_write_file", "fs_write_bytes", "fs_read_dir", "fs_metadata", "fs_remove_file", "fs_create_dir_all",
@@ -90,6 +91,16 @@ def rewrite_text() -> None:
             path.write_text(new, encoding="utf-8")
 
 
+def _replace_function(text: str, start: str, next_start: str, replacement: str) -> str:
+    begin = text.find(start)
+    if begin < 0:
+        return text
+    end = text.find(next_start, begin)
+    if end < 0:
+        raise RuntimeError(f"unable to find function boundary after {start!r}")
+    return text[:begin] + replacement.rstrip() + "\n\n" + text[end:]
+
+
 def rewrite_runtime_adapter() -> None:
     path = ROOT / "runtime" / "wasi-p2-adapter" / "src" / "lib.rs"
     text = path.read_text(encoding="utf-8")
@@ -99,6 +110,67 @@ def rewrite_runtime_adapter() -> None:
     )
     for name in RUNTIME_ADAPTER_METHODS:
         text = text.replace(f"    fn {name}(", f"    fn runtime_{name}(")
+
+    marker = "impl Guest for RuntimeAdapter {\n"
+    if "fn runtime_buffer_new(" not in text:
+        methods = '''impl Guest for RuntimeAdapter {
+    fn runtime_buffer_new() -> u32 {
+        state()
+            .lock()
+            .expect("runtime state poisoned")
+            .insert(HandleValue::Buffer(Vec::new()))
+    }
+
+    fn runtime_buffer_push(handle: u32, byte: u8) {
+        let mut guard = state().lock().expect("runtime state poisoned");
+        if let Some(HandleValue::Buffer(bytes)) = guard.get_mut(handle) {
+            bytes.push(byte);
+        }
+    }
+'''
+        text = text.replace(marker, methods, 1)
+
+    text = _replace_function(
+        text,
+        "    fn runtime_socket_write(",
+        "    fn runtime_socket_listen(",
+        '''    fn runtime_socket_write(socket: u32, buffer: u32) -> i32 {
+        let mut guard = state().lock().expect("runtime state poisoned");
+        let bytes = match guard.get(buffer) {
+            Some(HandleValue::Buffer(bytes)) => bytes.clone(),
+            _ => {
+                drop(guard);
+                return store_error("invalid socket buffer handle");
+            }
+        };
+        let Some(HandleValue::Stream(stream)) = guard.get_mut(socket) else {
+            drop(guard);
+            return store_error("invalid socket handle");
+        };
+        match stream.write(&bytes) {
+            Ok(written) => written as i32,
+            Err(error) => {
+                drop(guard);
+                store_error(format!("socket write failed: {error}"))
+            }
+        }
+    }''',
+    )
+    text = _replace_function(
+        text,
+        "    fn runtime_fs_write_bytes(",
+        "    fn runtime_fs_read_dir(",
+        '''    fn runtime_fs_write_bytes(path: String, buffer: u32) -> i32 {
+        let bytes = {
+            let guard = state().lock().expect("runtime state poisoned");
+            match guard.get(buffer) {
+                Some(HandleValue::Buffer(bytes)) => bytes.clone(),
+                _ => return store_error("invalid filesystem buffer handle"),
+            }
+        };
+        store_io(fs::write(path, bytes), |_| 0)
+    }''',
+    )
     path.write_text(text, encoding="utf-8")
 
 
