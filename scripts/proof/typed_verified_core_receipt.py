@@ -3,7 +3,7 @@
 from proof import typed_verified_core_receipt_impl as _impl
 
 SCHEMA = _impl.SCHEMA
-VERSION = _impl.VERSION
+VERSION = 4
 TypedVerifiedCoreReceiptError = _impl.TypedVerifiedCoreReceiptError
 REQUIRED_SEMANTIC_CHECKS = {
     "operator-arity-and-TypeId-preservation",
@@ -15,7 +15,12 @@ REQUIRED_SEMANTIC_CHECKS = {
     "straight-line-instruction-typing",
     "acyclic-cfg-edge-typing",
     "direct-call-contract-typing",
+    "exact-callee-interface-sha256-binding",
     "recursive-call-rejection",
+    "annotated-loop-invariant-typing",
+    "loop-initiation-preservation-exit-vc",
+    "strict-decreases-termination-vc",
+    "unannotated-cycle-rejection",
     "semantic-admission-before-SMT",
 }
 _impl.REQUIRED_SEMANTIC_CHECKS = REQUIRED_SEMANTIC_CHECKS
