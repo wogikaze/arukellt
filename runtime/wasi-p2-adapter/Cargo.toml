@@ -1,0 +1,12 @@
+[package]
+name = "arukellt-wasi-p2-adapter"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasip2 = "1.0.4"
+wit-bindgen = "0.60.0"
