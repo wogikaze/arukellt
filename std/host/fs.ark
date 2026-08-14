@@ -5,7 +5,6 @@
 //! adapter implements those operations with real WASI filesystem facilities.
 //! Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
 
-
 pub enum FsError {
     NotFound(String),
     PermissionDenied(String),
@@ -64,10 +63,10 @@ pub fn metadata(path: String) -> Result<FsMetadata, FsError> {
             match convert::parse_i64(get_unchecked(fields, 0)) {
                 Option::None => Result::Err(FsError::IoError("metadata: invalid length")),
                 Option::Some(size) => Result::Ok(FsMetadata {
-                    len: size,
-                    is_file: get_unchecked(fields, 1) == "1",
-                    is_dir: get_unchecked(fields, 2) == "1",
-                }),
+                        len: size,
+                        is_file: get_unchecked(fields, 1) == "1",
+                        is_dir: get_unchecked(fields, 2) == "1",
+                    }),
             }
         },
     }
