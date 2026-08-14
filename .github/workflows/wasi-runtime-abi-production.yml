@@ -1,0 +1,52 @@
+name: WASI runtime ABI production
+
+on:
+  pull_request:
+    paths:
+      - "src/compiler/wasm/**"
+      - "std/host/**"
+      - "tools/host-linker/**"
+      - "scripts/run/**"
+      - "scripts/check/gate-076*"
+      - "scripts/check/gate-676*"
+      - "scripts/check/gate-819*"
+      - "scripts/check/gate-841*"
+      - "tests/fixtures/host/**"
+      - "tests/fixtures/wasi_p2_native/**"
+      - "issues/open/076-*"
+      - "issues/open/676-*"
+      - "issues/open/819-*"
+      - "issues/open/841-*"
+      - "issues/done/076-*"
+      - "issues/done/676-*"
+      - "issues/done/819-*"
+      - "issues/done/841-*"
+      - ".github/workflows/wasi-runtime-abi-production.yml"
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  close-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run WASI/runtime ABI close gates
+        run: |
+          set -euo pipefail
+          for gate in \
+            scripts/check/gate-076-wasi-p2-filesystem.py \
+            scripts/check/gate-676-std-host-fs-env-process.py \
+            scripts/check/gate-819-runtime-abi-core-op-lowering.py \
+            scripts/check/gate-841-real-wasi-network-abi.py; do
+            if [[ -f "$gate" ]]; then
+              python3 "$gate"
+            fi
+          done
