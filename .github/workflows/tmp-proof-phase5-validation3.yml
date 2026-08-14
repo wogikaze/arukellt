@@ -1,0 +1,16 @@
+name: Temporary proof phase5 validation3
+on:
+  push:
+    branches: [feature/proof-phase5-validation3]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m compileall -q scripts
+      - run: python3 scripts/check/check-proof-phase3-modular.py
+      - run: python3 scripts/check/check-proof-phase5-boundary.py
+      - run: python3 -m unittest scripts.tests.test_typed_corehir_convert scripts.tests.test_verified_core_typed scripts.tests.test_smtlib_typed_v1 scripts.tests.test_proof_program_phases scripts.tests.test_proof_phase3_calls scripts.tests.test_loop_proof_v4 scripts.tests.test_proof_phase5_aggregates
+      - run: python3 scripts/gen/write-typed-verified-core-boundary-receipt-v5.py --output .build/proof/typed-verified-core-boundary-v5.json
+      - run: python3 scripts/check/check-typed-verified-core-boundary-receipt-v5.py .build/proof/typed-verified-core-boundary-v5.json
