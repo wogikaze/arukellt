@@ -128,3 +128,5 @@ jobs:
             .build/pr43-debug/
             .ark-debug/rejected-arukellt-s2-runtime-*.wasm
             .ark-debug/rejected-arukellt-s3-*.wasm
+
+# rerun marker after bootstrap alias canonicalization
