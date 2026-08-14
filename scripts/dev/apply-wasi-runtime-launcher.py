@@ -131,5 +131,9 @@ old_hosted = '''  # Hosted runner for simplified guest ABI on WIT-shaped modules
   fi
 '''
 text = text.replace(old_hosted, "")
-
 PATH.write_text(text, encoding="utf-8")
+
+deny_script = ROOT / "scripts/dev/apply-deny-process.py"
+if deny_script.exists():
+    code = compile(deny_script.read_text(encoding="utf-8"), str(deny_script), "exec")
+    exec(code, {"__name__": "__main__", "__file__": str(deny_script)})
