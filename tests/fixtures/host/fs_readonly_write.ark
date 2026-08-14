@@ -1,0 +1,9 @@
+use std::host::fs
+use std::host::stdio
+
+fn main() {
+    match fs::write_string(".build/gate-676/readonly/value.txt", "blocked") {
+        Result::Ok(_) => stdio::println("unexpected ok"),
+        Result::Err(_) => stdio::println("readonly denied"),
+    }
+}
