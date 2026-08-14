@@ -27,7 +27,7 @@ jobs:
           cargo binstall --no-confirm wasm-tools
       - name: Build current compiler
         run: python3 scripts/manager.py selfhost build-compiler
-      - name: Inspect current s2 runtime
+      - name: Inspect current and rejected s2 artifacts
         run: |
           mkdir -p .build/pr43-debug
           python3 - <<'PY'
@@ -35,49 +35,66 @@ jobs:
           import re
           import subprocess
 
-          wasm = Path('.build/selfhost/arukellt-s2-runtime.wasm')
-          if not wasm.exists():
-              raise SystemExit('missing s2 runtime')
-          validate = subprocess.run(
-              ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
-              capture_output=True,
-              text=True,
-          )
-          output = (validate.stdout or '') + (validate.stderr or '')
-          print(f's2_validate_exit={validate.returncode}')
-          print(output)
-          if validate.returncode == 0:
-              raise SystemExit(0)
-          matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
-          target = int(matches[-1]) if matches else 6697
-          printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
-          if printed.returncode != 0:
-              print((printed.stdout or '') + (printed.stderr or ''))
-              raise SystemExit(0)
-          Path('.build/pr43-debug/s2.wat').write_text(printed.stdout)
-          lines = printed.stdout.splitlines()
-          needle = f'(func (;{target};)'
-          hits = [i for i, line in enumerate(lines) if needle in line]
-          print(f's2_validator_func={target}')
-          if not hits:
-              print('function unavailable in WAT')
-              raise SystemExit(0)
-          start = max(0, hits[0] - 30)
-          end = min(len(lines), hits[0] + 280)
-          for i in range(start, end):
-              print(f'{i+1}: {lines[i]}')
+          candidates = []
+          runtime = Path('.build/selfhost/arukellt-s2-runtime.wasm')
+          raw = Path('.build/selfhost/arukellt-s2.wasm')
+          if runtime.exists(): candidates.append(runtime)
+          candidates.extend(sorted(Path('.ark-debug').glob('rejected-arukellt-s2-runtime-*.wasm'))[-2:])
+          if raw.exists(): candidates.append(raw)
+          if not candidates:
+              raise SystemExit('missing all s2 artifacts')
+
+          invalid = False
+          for wasm in candidates:
+              validate = subprocess.run(
+                  ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
+                  capture_output=True,
+                  text=True,
+              )
+              output = (validate.stdout or '') + (validate.stderr or '')
+              print(f'ARTIFACT={wasm} validate_exit={validate.returncode}')
+              print(output)
+              if validate.returncode == 0:
+                  continue
+              invalid = True
+              matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
+              target = int(matches[-1]) if matches else 6697
+              printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
+              if printed.returncode != 0:
+                  print((printed.stdout or '') + (printed.stderr or ''))
+                  continue
+              lines = printed.stdout.splitlines()
+              needle = f'(func (;{target};)'
+              hits = [i for i, line in enumerate(lines) if needle in line]
+              print(f'validator_func={target}')
+              if not hits:
+                  print('function unavailable in WAT')
+                  continue
+              start = max(0, hits[0] - 40)
+              end = min(len(lines), hits[0] + 320)
+              print(f'--- {wasm.name} func {target} ---')
+              for i in range(start, end):
+                  print(f'{i+1}: {lines[i]}')
+          if not runtime.exists():
+              print('RUNTIME_MISSING_AFTER_BUILD=1')
+          # Diagnostic only; representative compile/fixpoint steps decide hard pass.
           PY
       - name: Compile and validate representative fixtures
         run: |
           set +e
           failed=0
+          compiler=.build/selfhost/arukellt-s2-runtime.wasm
+          if [ ! -f "$compiler" ]; then
+            echo 'runtime compiler missing'
+            exit 1
+          fi
           for spec in \
             'array:tests/fixtures/arrays/array_literal.ark' \
             'trait:tests/fixtures/generics_v1/trait_method_resolve.ark'; do
             name=${spec%%:*}
             src=${spec#*:}
             out=.build/pr43-debug/${name}.wasm
-            ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm \
+            ARUKELLT_SELFHOST_WASM="$compiler" \
               bash scripts/run/arukellt-selfhost.sh compile "$src" --target wasm32-gc -o "$out" \
               2>&1 | tee .build/pr43-debug/${name}-compile.log
             c=${PIPESTATUS[0]}
