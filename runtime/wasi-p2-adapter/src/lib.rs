@@ -1,3 +1,4 @@
+use std::fs;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Mutex, OnceLock};
@@ -69,6 +70,13 @@ fn store_buffer(bytes: Vec<u8>) -> i32 {
 fn store_error(message: impl Into<String>) -> i32 {
     let handle = store_buffer(message.into().into_bytes());
     -handle
+}
+
+fn store_io<T>(result: std::io::Result<T>, ok: impl FnOnce(T) -> i32) -> i32 {
+    match result {
+        Ok(value) => ok(value),
+        Err(error) => store_error(error.to_string()),
+    }
 }
 
 fn decode_http_url(url: &str) -> Result<(&str, &str), String> {
@@ -192,14 +200,7 @@ fn http_serve_once(port: u16, body: &str) -> Result<(), String> {
         .map_err(|error| format!("HTTP response write failed: {error}"))
 }
 
-impl exports::arukellt::runtime::network::Guest for RuntimeAdapter {
-    fn http_request(method: String, url: String, body: String) -> i32 {
-        match http_request(&method, &url, body.as_bytes()) {
-            Ok(bytes) => store_buffer(bytes),
-            Err(error) => store_error(error),
-        }
-    }
-
+impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
     fn buffer_len(handle: u32) -> u32 {
         let guard = state().lock().expect("runtime state poisoned");
         match guard.get(handle) {
@@ -218,6 +219,27 @@ impl exports::arukellt::runtime::network::Guest for RuntimeAdapter {
 
     fn buffer_close(handle: u32) {
         state().lock().expect("runtime state poisoned").remove(handle);
+    }
+
+    fn http_get(url: String) -> i32 {
+        match http_request("GET", &url, &[]) {
+            Ok(bytes) => store_buffer(bytes),
+            Err(error) => store_error(error),
+        }
+    }
+
+    fn http_request(method: String, url: String, body: String) -> i32 {
+        match http_request(&method, &url, body.as_bytes()) {
+            Ok(bytes) => store_buffer(bytes),
+            Err(error) => store_error(error),
+        }
+    }
+
+    fn http_serve(port: u16, body: String) -> i32 {
+        match http_serve_once(port, &body) {
+            Ok(()) => 0,
+            Err(error) => store_error(error),
+        }
     }
 
     fn socket_connect(host: String, port: u16) -> i32 {
@@ -293,10 +315,77 @@ impl exports::arukellt::runtime::network::Guest for RuntimeAdapter {
         state().lock().expect("runtime state poisoned").remove(handle);
     }
 
-    fn http_serve(port: u16, body: String) -> i32 {
-        match http_serve_once(port, &body) {
-            Ok(()) => 0,
-            Err(error) => store_error(error),
+    fn fs_read_file(path: String) -> i32 {
+        store_io(fs::read(path), |bytes| store_buffer(bytes))
+    }
+
+    fn fs_write_file(path: String, contents: String) -> i32 {
+        store_io(fs::write(path, contents.as_bytes()), |_| 0)
+    }
+
+    fn fs_write_bytes(path: String, contents: Vec<u8>) -> i32 {
+        store_io(fs::write(path, contents), |_| 0)
+    }
+
+    fn fs_read_dir(path: String) -> i32 {
+        match fs::read_dir(path) {
+            Ok(entries) => {
+                let mut names = Vec::new();
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => names.push(entry.file_name().to_string_lossy().into_owned()),
+                        Err(error) => return store_error(error.to_string()),
+                    }
+                }
+                names.sort();
+                store_buffer(names.join("\n").into_bytes())
+            }
+            Err(error) => store_error(error.to_string()),
+        }
+    }
+
+    fn fs_metadata(path: String) -> i32 {
+        match fs::metadata(path) {
+            Ok(metadata) => store_buffer(
+                format!(
+                    "{}\t{}\t{}",
+                    metadata.len(),
+                    if metadata.is_file() { 1 } else { 0 },
+                    if metadata.is_dir() { 1 } else { 0 }
+                )
+                .into_bytes(),
+            ),
+            Err(error) => store_error(error.to_string()),
+        }
+    }
+
+    fn fs_remove_file(path: String) -> i32 {
+        store_io(fs::remove_file(path), |_| 0)
+    }
+
+    fn fs_create_dir_all(path: String) -> i32 {
+        store_io(fs::create_dir_all(path), |_| 0)
+    }
+
+    fn env_vars() -> i32 {
+        let mut values: Vec<String> = std::env::vars()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect();
+        values.sort();
+        store_buffer(values.join("\0").into_bytes())
+    }
+
+    fn env_current_dir() -> i32 {
+        match std::env::current_dir() {
+            Ok(path) => store_buffer(path.to_string_lossy().as_bytes().to_vec()),
+            Err(error) => store_error(error.to_string()),
+        }
+    }
+
+    fn env_var(name: String) -> i32 {
+        match std::env::var(name) {
+            Ok(value) => store_buffer(value.into_bytes()),
+            Err(error) => store_error(error.to_string()),
         }
     }
 }
