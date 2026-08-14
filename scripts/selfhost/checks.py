@@ -3116,8 +3116,16 @@ def _compiler_source_content_hash(root: Path) -> str:
                 file_hash = "<missing>"
             digest.update(file_hash.encode())
             digest.update(b"\0")
-    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
-    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
+    # Also hash std files that the overlay copies.  Component/WIT naming is a
+    # bootstrap dependency since #706/#44; keep it cache-bound with the rest.
+    for std_rel in (
+        "std/prelude.ark",
+        "std/toml.ark",
+        "std/json.ark",
+        "std/json/parser.ark",
+        "std/text/mod.ark",
+        "std/wit/names.ark",
+    ):
         std_path = root / std_rel
         if std_path.is_file():
             h = hashlib.sha256()
@@ -3327,6 +3335,14 @@ def _prepare_flattened_selfhost_source_locked(
     text_mod = root / "std" / "text" / "mod.ark"
     if text_mod.is_file():
         shutil.copyfile(text_mod, std_dst / "text.ark")
+    # Component naming facades in the current compiler import std::wit::names
+    # (#706/#44).  Component sources are intentionally live in the bootstrap
+    # overlay, so their shared std dependency must be present as well.
+    wit_names_src = root / "std" / "wit" / "names.ark"
+    if wit_names_src.is_file():
+        wit_dst = std_dst / "wit"
+        wit_dst.mkdir(exist_ok=True)
+        shutil.copyfile(wit_names_src, wit_dst / "names.ark")
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
