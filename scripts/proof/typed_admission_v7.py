@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from proof.readonly_memory_compat_v7 import compatibility_view
+from proof.readonly_memory_phase7_limits import validate_phase7_reference_composition
 from proof.readonly_memory_semantics import validate_readonly_memory_semantics
 from proof.typed_admission_v6 import TypedVerifiedCoreError, validate_typed_document as validate_phase6
 
@@ -12,6 +13,7 @@ VERSION = 7
 def validate_typed_document(value: Any) -> dict[str, Any]:
     if not isinstance(value, dict):
         return validate_phase6(value)
+    validate_phase7_reference_composition(value)
     validate_readonly_memory_semantics(value)
     compatibility = compatibility_view(value)
     try:
