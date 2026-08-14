@@ -1,0 +1,12 @@
+name: Temporary proof phase6 validation
+on:
+  push:
+    branches: [agent/proof-phase-5-7]
+jobs:
+  phase6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m compileall -q scripts
+      - run: python3 -m unittest scripts.tests.test_proof_phase6_machine_int
