@@ -1,21 +1,26 @@
-// WIT import registration helpers (#663, #664).
+// WIT import registration helpers (#663, #664, #670).
 
 use component::wit_parse_text
 use resolver::register_exports
 use resolver::scope_define
+use resolver::scope_error
 use resolver::scope_lookup
 use resolver::wit_surface
 use resolver::wit_type_map
 
-fn wit_ensure_module_alias(ctx: ResolveCtx, alias: String) {
+fn wit_ensure_module_alias_at(ctx: ResolveCtx, alias: String, span_start: i32, span_end: i32) {
     let existing = scope_lookup::lookup(ctx, clone(alias))
     if existing < 0 {
-        scope_define::define_pub(ctx, clone(alias), commands::SYM_MODULE())
+        scope_define::define_with_vis_span(ctx, clone(alias), commands::SYM_MODULE(), true, span_start, span_end)
         return
     }
     if scope_lookup::lookup_kind(ctx, clone(alias)) != commands::SYM_MODULE() {
-        scope_define::define_pub(ctx, clone(alias), commands::SYM_MODULE())
+        scope_error::resolve_duplicate_symbol(ctx, alias, span_start, span_end)
     }
+}
+
+fn wit_ensure_module_alias(ctx: ResolveCtx, alias: String) {
+    wit_ensure_module_alias_at(ctx, alias, 0, 0)
 }
 
 fn wit_doc_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
