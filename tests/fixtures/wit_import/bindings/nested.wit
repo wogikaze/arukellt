@@ -1,0 +1,13 @@
+package test:bindings@0.1.0;
+
+interface nested {
+    record item {
+        display-name: string,
+        tags: list<string>,
+        maybe-count: option<s32>,
+        outcome: result<s32, string>,
+        pair: tuple<s32, s32>,
+    }
+    enum status { ready, in-progress, done }
+    variant response { ok(item), error(string), empty }
+}

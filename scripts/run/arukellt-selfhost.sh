@@ -88,6 +88,18 @@ EOF
   exit 2
 fi
 
+# #674: manifest-driven component graphs are host-side packaging, like the
+# existing `wac plug` path. Intercept this form before resolving the compiler
+# wasm so dependency resolution/lock generation works independently of the
+# bootstrap compiler binary.
+if [[ "${1:-}" == "compose" ]]; then
+  for arg in "$@"; do
+    if [[ "$arg" == "--manifest" ]]; then
+      exec python3 "$REPO_ROOT/scripts/component-deps.py" compose "${@:2}"
+    fi
+  done
+fi
+
 WASMTIME_BIN="${ARUKELLT_WASMTIME_BIN:-wasmtime}"
 if ! command -v "$WASMTIME_BIN" >/dev/null 2>&1; then
   echo "arukellt-selfhost: error — wasmtime not found in PATH; install wasmtime ≥ 30" >&2

@@ -1,19 +1,18 @@
 use component::component_base
+use component::emit_specialized
 use component::export_plan
 use component::export_sections
 use component::export_types
 use component::writer_core
 use wasm
 
-fn emit_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, wasi_version: String, _world: String) -> Vec<i32> {
+fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
     if eq(clone(wasi_version), "wasi-p2") {
         return wasm::emit_p2_command_component(core_wasm)
     }
     if eq(clone(wasi_version), "p1-component") {
-        return wasm::emit_library_component(core_wasm, mir)
+        return emit_library_component(core_wasm, mir, target, wasi_version, world)
     }
-    // Specialized emit lowered to drop+unreachable with an i64 return temp and
-    // failed validate (#730). Generic export path is enough for selfhost fixpoint.
     let out = component_base::comp_new_component_writer()
     let plan = export_plan::collect_component_exports(mir)
     emit_component_generic_exports(out, core_wasm, plan, mir)
@@ -26,6 +25,18 @@ fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, 
 }
 
 fn emit_component_generic_exports(out: writer_core::ComponentWriter, core_wasm: Vec<i32>, plan: export_plan::ComponentExportPlan, mir: MirModule) -> Vec<i32> {
+    // The generic path is also used by the flattened bootstrap component facade.
+    // Always try canonical-ABI specialized adapters before scalar generic export
+    // lowering so string/record/list/option/result library surfaces cannot regress
+    // to s32 merely because the caller went through the bootstrap overlay (#667).
+    let specialized = emit_specialized::emit_specialized_component(
+        clone(core_wasm),
+        mir,
+        export_plan::export_plan_names(plan)
+    )
+    if len(specialized) > 0 {
+        return specialized
+    }
     component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
     export_sections::emit_generic_alias_section(out, plan)
     let export_type_indices = export_types::emit_generic_export_types(out, plan, mir)

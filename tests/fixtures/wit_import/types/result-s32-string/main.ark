@@ -1,0 +1,3 @@
+import "test:types/result-s32-string" as host
+
+fn main() {}

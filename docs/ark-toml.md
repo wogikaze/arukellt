@@ -58,11 +58,32 @@ packages use Layer C identifiers (`namespace:package`) per [ADR-031](adr/ADR-031
 ```toml
 [dependencies]
 my-lib = { path = "../my-lib" }
-"test:host" = { path = "vendor/host" }   # resolves vendor/host/mod.wit for WIT imports
+"test:host" = { path = "vendor/host" }
+"acme:greeter" = {
+  path = "vendor/greeter",
+  component = "vendor/greeter/greeter.component.wasm",
+  package = "acme:greeter",
+  world = "provider",
+}
 ```
 
-Version-string dependencies (`my-lib = "0.1.0"`) are accepted by the parser but not yet resolved.
-WIT package entries resolve `mod.wit` (or `interface.wit`) under the vendor path into `--wit` paths automatically.
+For WIT imports, a path dependency still resolves `mod.wit` (or `interface.wit`) into the compiler's
+`--wit` paths automatically. For Component Model composition, `scripts/component-deps.py resolve
+--manifest ark.toml` resolves the dependency's component `.wasm`, extracts its WIT with `wasm-tools
+component wit` when available (falling back to the WIT sidecar), checks the package/world contract,
+copies content-addressed artifacts into `.build/components/`, and writes deterministic `ark.lock`
+metadata containing the SHA-256 digest. If `component` is omitted, the resolver checks
+`component.wasm`, `<package>.component.wasm`, `mod.component.wasm`, then an unambiguous
+`*.component.wasm` file below `path`.
+
+`package` defaults to the dependency key for WIT package identifiers. `world` is optional; when set,
+the resolved component must expose that world. A missing component, package mismatch, or world
+mismatch is a hard diagnostic before composition. Version-string dependencies such as
+`my-lib = "0.1.0"` remain intentionally unresolved until registry/version resolution is defined.
+
+The host composition path accepts a manifest graph through the dependency resolver and uses `wac
+plug` for binary linking. Multiple dependencies are applied in deterministic dependency-name order,
+using the locked/cache artifact for each provider.
 
 ### `[world]` *(optional)*
 
@@ -104,6 +125,9 @@ Schema violations produce actionable error messages:
 | `ark.toml` not found | `error: ark.toml not found in current directory or any parent` + hint to run `init` |
 | TOML parse error | `error: failed to parse ark.toml: <detail>` |
 | Missing `[bin]` on `arukellt build` | `error: ark.toml must contain a [bin] section` + field hint |
+| Missing component dependency | `component-deps: error: dependency '<name>' component wasm is missing: <path>` |
+| Package mismatch | `component-deps: error: dependency '<name>' package mismatch: ...` |
+| World mismatch | `component-deps: error: dependency '<name>' incompatible world: ...` |
 
 ## Single-file vs project mode
 
@@ -114,7 +138,7 @@ Schema violations produce actionable error messages:
 
 Both modes use the same compiler pipeline. Single-file output defaults to the source basename;
 project output defaults to `[bin].name`. Use project mode when you need `[scripts]`, a stable
-output name, or per-target configuration.
+output name, per-target configuration, or component dependencies.
 
 ## Example
 
@@ -140,3 +164,4 @@ opt_level = 2
 - `docs/cli-startup-contract.md` — CLI / LSP binary interface
 - `docs/current-state.md` — current implementation state
 - `src/compiler/main.ark` — schema implementation
+- `scripts/component-deps.py` — component artifact resolver, lockfile/cache, and host compose helper

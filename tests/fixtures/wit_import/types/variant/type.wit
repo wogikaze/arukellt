@@ -1,0 +1,6 @@
+package test:types@0.1.0;
+
+interface variant-shape {
+    variant choice { none, number(s32), text(string) }
+    flip: func(value: choice) -> choice;
+}

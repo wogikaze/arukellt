@@ -1,21 +1,26 @@
-// WIT import registration helpers (#663, #664).
+// WIT import registration helpers (#663, #664, #670, #672).
 
 use component::wit_parse_text
 use resolver::register_exports
 use resolver::scope_define
+use resolver::scope_error
 use resolver::scope_lookup
 use resolver::wit_surface
 use resolver::wit_type_map
 
-fn wit_ensure_module_alias(ctx: ResolveCtx, alias: String) {
+fn wit_ensure_module_alias_at(ctx: ResolveCtx, alias: String, span_start: i32, span_end: i32) {
     let existing = scope_lookup::lookup(ctx, clone(alias))
     if existing < 0 {
-        scope_define::define_pub(ctx, clone(alias), commands::SYM_MODULE())
+        scope_define::define_with_vis_span(ctx, clone(alias), commands::SYM_MODULE(), true, span_start, span_end)
         return
     }
     if scope_lookup::lookup_kind(ctx, clone(alias)) != commands::SYM_MODULE() {
-        scope_define::define_pub(ctx, clone(alias), commands::SYM_MODULE())
+        scope_error::resolve_duplicate_symbol(ctx, alias, span_start, span_end)
     }
+}
+
+fn wit_ensure_module_alias(ctx: ResolveCtx, alias: String) {
+    wit_ensure_module_alias_at(ctx, alias, 0, 0)
 }
 
 fn wit_doc_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
@@ -27,9 +32,7 @@ fn wit_doc_from_import(wit_paths: Vec<String>, package_id: String) -> wit_parse_
 }
 
 fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitParsedInterface) {
-    if !wit_doc_has_surface(doc) {
-        return
-    }
+    if !wit_doc_has_surface(doc) { return }
     wit_ensure_module_alias(ctx, clone(alias))
     let records = wit_parse_text::WitParsedInterface_records(doc)
     for ri in 0..len(records) {
@@ -44,6 +47,18 @@ fn register_wit_doc(ctx: ResolveCtx, alias: String, doc: wit_parse_text::WitPars
             let variant = get_unchecked(en.variant_ark_names, vi)
             let qual_variant = concat(clone(en.ark_name), concat("::", clone(variant)))
             register_exports::register_module_export(ctx, clone(alias), qual_variant, commands::SYM_VARIANT(), true)
+        }
+    }
+    let variants = wit_parse_text::WitParsedInterface_variants(doc)
+    for vi in 0..len(variants) {
+        let variant = get_unchecked(variants, vi)
+        // Payload variants are sum types. Register the binding as a named type and
+        // each case as a variant constructor; payload typing is retained on the parsed view.
+        register_exports::register_module_export(ctx, clone(alias), clone(variant.ark_name), commands::SYM_STRUCT(), true)
+        for ci in 0..len(variant.case_ark_names) {
+            let case_name = get_unchecked(variant.case_ark_names, ci)
+            let qualified = concat(clone(variant.ark_name), concat("::", clone(case_name)))
+            register_exports::register_module_export(ctx, clone(alias), qualified, commands::SYM_VARIANT(), true)
         }
     }
     let funcs = wit_parse_text::WitParsedInterface_funcs(doc)

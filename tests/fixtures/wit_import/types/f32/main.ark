@@ -1,0 +1,3 @@
+import "test:types/f32-shape" as host
+
+fn main() {}

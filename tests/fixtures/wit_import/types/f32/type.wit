@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface f32-shape {
+    echo: func(value: f32) -> f32;
+}

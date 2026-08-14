@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface result-s32-string {
+    get-result: func() -> result<s32, string>;
+}

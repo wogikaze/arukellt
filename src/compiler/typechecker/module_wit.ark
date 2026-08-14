@@ -1,10 +1,11 @@
-// WIT function signature collection for typecheck (#653, #664).
+// WIT function signature collection for typecheck (#653, #664, #671, #672).
 
 use collections::vec_extend
 use typechecker::ast_decl_predicates
 use typechecker::ast_access
 use typechecker::contract_fn_sig
 use typechecker::contract_type_constructors
+use typechecker::contract_type_mutation
 use typechecker::contract_enum_info
 use typechecker::type_names
 use component::wit_parse_text
@@ -40,16 +41,12 @@ fn collect_wit_enum_defs(wit_paths: Vec<String>, decls: Vec<AstNode>) -> Vec<Enu
 }
 
 fn wit_import_alias(decl: AstNode) -> String {
-    if ast_access::node_type_ann_count(decl) == 0 {
-        return String_new()
-    }
+    if ast_access::node_type_ann_count(decl) == 0 { return String_new() }
     ast_access::node_text(ast_access::node_type_ann_at(decl, 0))
 }
 
 fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package_id: String, alias: String) {
-    if len(alias) == 0 {
-        return
-    }
+    if len(alias) == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
     if wit_register::wit_doc_has_surface(doc) {
         wit_push_fn_sigs_for_doc(sigs, clone(alias), doc)
@@ -66,13 +63,9 @@ fn wit_push_fn_sigs_for_import(sigs: Vec<FnSig>, wit_paths: Vec<String>, package
 }
 
 fn wit_push_enum_defs_for_import(enum_defs: Vec<EnumInfo>, wit_paths: Vec<String>, package_id: String, alias: String) {
-    if len(alias) == 0 {
-        return
-    }
+    if len(alias) == 0 { return }
     let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
-    if !wit_register::wit_doc_has_surface(doc) {
-        return
-    }
+    if !wit_register::wit_doc_has_surface(doc) { return }
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     for ei in 0..len(enums) {
         push(enum_defs, wit_enum_info_from_parsed(clone(alias), get_unchecked(enums, ei)))
@@ -86,19 +79,61 @@ fn wit_push_fn_sigs_for_doc(sigs: Vec<FnSig>, alias: String, doc: component::wit
     }
 }
 
+fn wit_binding_generic_args(name: String) -> Vec<String> {
+    let args = Vec::new<String>()
+    let open = index_of(name, "<")
+    if open < 0 { return args }
+    let mut close = len(name) - 1
+    while close > open && char_at(name, close) != 62 { close = close - 1 }
+    if close <= open { return args }
+    let inner = substring(name, open + 1, close)
+    let mut depth = 0
+    let mut start = 0
+    let mut i = 0
+    while i < len(inner) {
+        let ch = char_at(inner, i)
+        if ch == 60 { depth = depth + 1 }
+        if ch == 62 { depth = depth - 1 }
+        if ch == 44 && depth == 0 {
+            push(args, substring(inner, start, i))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    if start < len(inner) { push(args, substring(inner, start, len(inner))) }
+    args
+}
+
+fn wit_binding_type_info(name: String) -> TypeInfo {
+    if eq(clone(name), "()") || len(name) == 0 {
+        return contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
+    }
+    let open = index_of(name, "<")
+    if open > 0 {
+        let base = substring(name, 0, open)
+        let ty = if eq(clone(base), "Tuple") {
+            contract_type_constructors::TypeInfo_named(commands::TY_TUPLE(), String_new())
+        } else {
+            type_names::resolve_type_name(base)
+        }
+        let args = wit_binding_generic_args(name)
+        for i in 0..len(args) {
+            contract_type_mutation::TypeInfo_push_type_arg(ty, wit_binding_type_info(get_unchecked(args, i)))
+        }
+        return ty
+    }
+    type_names::resolve_type_name(name)
+}
+
 fn wit_fn_sig_from_parsed(alias: String, doc: component::wit_parse_text::WitParsedInterface, func: component::wit_parse_text::WitParsedFunc) -> FnSig {
     let qualified = concat(clone(alias), concat("::", clone(func.ark_name)))
     let params = Vec::new<TypeInfo>()
     let param_types = wit_surface::wit_func_param_ark_types(func, clone(alias), doc)
     for pi in 0..len(param_types) {
-        push(params, type_names::resolve_type_name(get_unchecked(param_types, pi)))
+        push(params, wit_binding_type_info(get_unchecked(param_types, pi)))
     }
     let ret_name = wit_surface::wit_func_ret_ark_type(func, clone(alias), doc)
-    let ret_ty = if len(ret_name) == 0 || eq(clone(ret_name), "()") {
-        contract_type_constructors::TypeInfo_simple(commands::TY_UNIT())
-    } else {
-        type_names::resolve_type_name(ret_name)
-    }
+    let ret_ty = wit_binding_type_info(ret_name)
     contract_fn_sig::FnSig_new(qualified, params, ret_ty, Vec::new<String>(), Vec::new<TypeParamBounds>())
 }
 

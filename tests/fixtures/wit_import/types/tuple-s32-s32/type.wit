@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface tuple-s32-s32 {
+    accept: func(value: tuple<s32, s32>);
+}

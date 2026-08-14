@@ -1,4 +1,4 @@
-// Minimal WIT text parser — package, interface, func, record, enum (#663, #664).
+// Compiler WIT AST-view facade — package/interface callable and binding surfaces (#663, #664, #672).
 
 use component::wit_names_import
 use component::wit_parse_text_scan
@@ -24,12 +24,21 @@ struct WitParsedEnum {
     variant_ark_names: Vec<String>,
 }
 
+struct WitParsedVariant {
+    wit_name: String,
+    ark_name: String,
+    case_wit_names: Vec<String>,
+    case_ark_names: Vec<String>,
+    case_payload_wit_types: Vec<String>,
+}
+
 struct WitParsedInterface {
     package: String,
     interface: String,
     funcs: Vec<WitParsedFunc>,
     records: Vec<WitParsedRecord>,
     enums: Vec<WitParsedEnum>,
+    variants: Vec<WitParsedVariant>,
 }
 
 fn WitParsedInterface_empty() -> WitParsedInterface {
@@ -39,26 +48,27 @@ fn WitParsedInterface_empty() -> WitParsedInterface {
         funcs: Vec::new<WitParsedFunc>(),
         records: Vec::new<WitParsedRecord>(),
         enums: Vec::new<WitParsedEnum>(),
+        variants: Vec::new<WitParsedVariant>(),
     }
 }
 
+// Keep the historical constructor signature for fixture helpers. Variants are populated
+// by the text/AST facade after construction.
 fn WitParsedInterface_new(package: String, interface: String, funcs: Vec<WitParsedFunc>, records: Vec<WitParsedRecord>, enums: Vec<WitParsedEnum>) -> WitParsedInterface {
-    WitParsedInterface { package: package, interface: interface, funcs: funcs, records: records, enums: enums }
+    WitParsedInterface {
+        package: package,
+        interface: interface,
+        funcs: funcs,
+        records: records,
+        enums: enums,
+        variants: Vec::new<WitParsedVariant>(),
+    }
 }
 
-// Cross-module `doc.enums` / `.funcs` / `.records` field lowers can mis-bind to
-// field 0 (package String). Keep aggregate access beside the struct definition.
-fn WitParsedInterface_funcs(doc: WitParsedInterface) -> Vec<WitParsedFunc> {
-    doc.funcs
-}
-
-fn WitParsedInterface_records(doc: WitParsedInterface) -> Vec<WitParsedRecord> {
-    doc.records
-}
-
-fn WitParsedInterface_enums(doc: WitParsedInterface) -> Vec<WitParsedEnum> {
-    doc.enums
-}
+fn WitParsedInterface_funcs(doc: WitParsedInterface) -> Vec<WitParsedFunc> { doc.funcs }
+fn WitParsedInterface_records(doc: WitParsedInterface) -> Vec<WitParsedRecord> { doc.records }
+fn WitParsedInterface_enums(doc: WitParsedInterface) -> Vec<WitParsedEnum> { doc.enums }
+fn WitParsedInterface_variants(doc: WitParsedInterface) -> Vec<WitParsedVariant> { doc.variants }
 
 fn WitParsedFunc_new(wit_name: String, ark_name: String, param_wit_types: Vec<String>, ret_wit_type: String) -> WitParsedFunc {
     WitParsedFunc { wit_name: wit_name, ark_name: ark_name, param_wit_types: param_wit_types, ret_wit_type: ret_wit_type }
@@ -70,6 +80,16 @@ fn WitParsedRecord_new(wit_name: String, ark_name: String, field_names: Vec<Stri
 
 fn WitParsedEnum_new(wit_name: String, ark_name: String, variant_wit_names: Vec<String>, variant_ark_names: Vec<String>) -> WitParsedEnum {
     WitParsedEnum { wit_name: wit_name, ark_name: ark_name, variant_wit_names: variant_wit_names, variant_ark_names: variant_ark_names }
+}
+
+fn WitParsedVariant_new(wit_name: String, ark_name: String, case_wit_names: Vec<String>, case_ark_names: Vec<String>, case_payload_wit_types: Vec<String>) -> WitParsedVariant {
+    WitParsedVariant {
+        wit_name: wit_name,
+        ark_name: ark_name,
+        case_wit_names: case_wit_names,
+        case_ark_names: case_ark_names,
+        case_payload_wit_types: case_payload_wit_types,
+    }
 }
 
 fn wit_parse_func_decl(line: String) -> WitParsedFunc {
@@ -87,11 +107,7 @@ fn wit_parse_func_decl(line: String) -> WitParsedFunc {
         String_new()
     } else {
         let semi = wit_parse_text_scan::wit_find_char_from(line, 59, arrow + 2)
-        if semi < 0 {
-            wit_parse_text_scan::wit_trim_txt(substring(line, arrow + 2, len(line)))
-        } else {
-            wit_parse_text_scan::wit_trim_txt(substring(line, arrow + 2, semi))
-        }
+        if semi < 0 { wit_parse_text_scan::wit_trim_txt(substring(line, arrow + 2, len(line))) } else { wit_parse_text_scan::wit_trim_txt(substring(line, arrow + 2, semi)) }
     }
     WitParsedFunc_new(clone(wit_name), wit_names_import::wit_import_func_name(clone(wit_name)), param_types, ret_type)
 }
@@ -124,12 +140,30 @@ fn wit_parse_enum_variants(body: String) -> WitParsedEnum {
     WitParsedEnum_new(String_new(), String_new(), wit_names, ark_names)
 }
 
+fn wit_parse_variant_cases(body: String, wit_name: String) -> WitParsedVariant {
+    let wit_names = Vec::new<String>()
+    let ark_names = Vec::new<String>()
+    let payloads = Vec::new<String>()
+    let items = wit_parse_text_scan::wit_split_csv_items_txt(body)
+    for ci in 0..len(items) {
+        let item = wit_parse_text_scan::wit_trim_txt(get_unchecked(items, ci))
+        if len(item) > 0 {
+            let open = wit_parse_text_scan::wit_find_char_from(item, 40, 0)
+            let close = if open >= 0 { wit_parse_text_scan::wit_find_char_from(item, 41, open + 1) } else { 0 - 1 }
+            let case_name = if open > 0 { wit_parse_text_scan::wit_trim_txt(substring(item, 0, open)) } else { clone(item) }
+            let payload = if open > 0 && close > open { wit_parse_text_scan::wit_trim_txt(substring(item, open + 1, close)) } else { String_new() }
+            push(wit_names, clone(case_name))
+            push(ark_names, wit_names_import::wit_enum_variant_name(case_name))
+            push(payloads, payload)
+        }
+    }
+    WitParsedVariant_new(clone(wit_name), wit_names_import::wit_enum_type_name(wit_name), wit_names, ark_names, payloads)
+}
+
 fn wit_push_record_decl(body: String, pos: i32, records: Vec<WitParsedRecord>) {
     let rest = wit_parse_text_scan::wit_trim_txt(substring(body, pos + 7, len(body)))
     let brace = wit_parse_text_scan::wit_find_char_from(rest, 123, 0)
-    if brace < 0 {
-        return
-    }
+    if brace < 0 { return }
     let rec_name = wit_parse_text_scan::wit_trim_txt(substring(rest, 0, brace))
     let close = wit_parse_text_scan::wit_find_char_from(rest, 125, brace + 1)
     let field_body = if close > brace { substring(rest, brace + 1, close) } else { String_new() }
@@ -140,9 +174,7 @@ fn wit_push_record_decl(body: String, pos: i32, records: Vec<WitParsedRecord>) {
 fn wit_push_enum_decl(body: String, pos: i32, enums: Vec<WitParsedEnum>) {
     let rest = wit_parse_text_scan::wit_trim_txt(substring(body, pos + 5, len(body)))
     let brace = wit_parse_text_scan::wit_find_char_from(rest, 123, 0)
-    if brace < 0 {
-        return
-    }
+    if brace < 0 { return }
     let enum_name = wit_parse_text_scan::wit_trim_txt(substring(rest, 0, brace))
     let close = wit_parse_text_scan::wit_find_char_from(rest, 125, brace + 1)
     let variant_body = if close > brace { substring(rest, brace + 1, close) } else { String_new() }
@@ -150,47 +182,60 @@ fn wit_push_enum_decl(body: String, pos: i32, enums: Vec<WitParsedEnum>) {
     push(enums, WitParsedEnum_new(clone(enum_name), wit_names_import::wit_enum_type_name(clone(enum_name)), variants.variant_wit_names, variants.variant_ark_names))
 }
 
+fn wit_push_variant_decl(body: String, pos: i32, variants: Vec<WitParsedVariant>) {
+    let rest = wit_parse_text_scan::wit_trim_txt(substring(body, pos + 8, len(body)))
+    let brace = wit_parse_text_scan::wit_find_char_from(rest, 123, 0)
+    if brace < 0 { return }
+    let variant_name = wit_parse_text_scan::wit_trim_txt(substring(rest, 0, brace))
+    let close = wit_parse_text_scan::wit_find_char_from(rest, 125, brace + 1)
+    let case_body = if close > brace { substring(rest, brace + 1, close) } else { String_new() }
+    push(variants, wit_parse_variant_cases(case_body, variant_name))
+}
+
 fn wit_parse_interface_body(body: String) -> WitParsedInterface {
     let funcs = Vec::new<WitParsedFunc>()
     let records = Vec::new<WitParsedRecord>()
     let enums = Vec::new<WitParsedEnum>()
+    let variants = Vec::new<WitParsedVariant>()
     let n = len(body)
     let mut i = 0
     while i < n {
         let func_mark = index_of(substring(body, i, n), ": func")
-        if func_mark < 0 {
-            break
-        }
+        if func_mark < 0 { break }
         let abs = i + func_mark
         let line_start = wit_parse_text_scan::wit_line_start_txt(body, abs)
         let line_end = wit_parse_text_scan::wit_line_end_txt(body, abs)
         let line = wit_parse_text_scan::wit_trim_txt(substring(body, line_start, line_end))
-        if len(line) > 0 {
-            push(funcs, wit_parse_func_decl(line))
-        }
+        if len(line) > 0 { push(funcs, wit_parse_func_decl(line)) }
         i = line_end + 1
     }
     let mut rec_pos = 0
     while rec_pos < len(body) {
-        let rec_mark = index_of(substring(body, rec_pos, len(body)), "record ")
-        if rec_mark < 0 {
-            break
-        }
-        let abs = rec_pos + rec_mark
+        let mark = index_of(substring(body, rec_pos, len(body)), "record ")
+        if mark < 0 { break }
+        let abs = rec_pos + mark
         wit_push_record_decl(body, abs, records)
         rec_pos = abs + 7
     }
     let mut enum_pos = 0
     while enum_pos < len(body) {
-        let enum_mark = index_of(substring(body, enum_pos, len(body)), "enum ")
-        if enum_mark < 0 {
-            break
-        }
-        let abs = enum_pos + enum_mark
+        let mark = index_of(substring(body, enum_pos, len(body)), "enum ")
+        if mark < 0 { break }
+        let abs = enum_pos + mark
         wit_push_enum_decl(body, abs, enums)
         enum_pos = abs + 5
     }
-    WitParsedInterface_new(String_new(), String_new(), funcs, records, enums)
+    let mut variant_pos = 0
+    while variant_pos < len(body) {
+        let mark = index_of(substring(body, variant_pos, len(body)), "variant ")
+        if mark < 0 { break }
+        let abs = variant_pos + mark
+        wit_push_variant_decl(body, abs, variants)
+        variant_pos = abs + 8
+    }
+    let parsed = WitParsedInterface_new(String_new(), String_new(), funcs, records, enums)
+    parsed.variants = variants
+    parsed
 }
 
 fn parse_wit_import_text(text: String) -> WitParsedInterface {
@@ -198,5 +243,7 @@ fn parse_wit_import_text(text: String) -> WitParsedInterface {
     let interface = wit_parse_text_scan::wit_extract_interface_name(text)
     let body = wit_parse_text_scan::wit_extract_interface_body(text)
     let parsed = wit_parse_interface_body(body)
-    WitParsedInterface_new(package, interface, parsed.funcs, parsed.records, parsed.enums)
+    let doc = WitParsedInterface_new(package, interface, parsed.funcs, parsed.records, parsed.enums)
+    doc.variants = parsed.variants
+    doc
 }
