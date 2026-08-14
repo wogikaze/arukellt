@@ -114,10 +114,10 @@ registered = true
 compiles = true
 links = true
 runs = true
-user_reachable = true
+user_reachable = false
 grant_required = "runtime network/HTTP grant"
 verified_on = ["wasm32-gc"]
-notes = "Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim."
+notes = "Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim. Public user reachability remains tracked by #675."
 
 [[modules]]
 id = "sockets"
