@@ -12,6 +12,7 @@ on:
       - "scripts/run/**"
       - "scripts/dev/apply-wasi-runtime-abi-rename.py"
       - "scripts/dev/apply-wasi-runtime-bridge.py"
+      - "scripts/dev/apply-wasi-runtime-launcher.py"
       - "scripts/gen/generate-wasi-runtime-bridge.py"
       - "scripts/check/gate-076*"
       - "scripts/check/gate-676*"
@@ -49,6 +50,7 @@ jobs:
         run: |
           python3 scripts/dev/apply-wasi-runtime-abi-rename.py
           python3 scripts/dev/apply-wasi-runtime-bridge.py
+          python3 scripts/dev/apply-wasi-runtime-launcher.py
       - name: Commit migration
         run: |
           if [[ -z "$(git status --porcelain)" ]]; then
