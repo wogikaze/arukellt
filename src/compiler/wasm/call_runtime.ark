@@ -32,6 +32,9 @@ fn try_emit_host_call(
     if call_runtime_io::try_emit_env_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
+    if call_runtime_io::try_emit_process_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
     if call_runtime_assert::try_emit_option_assert_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
