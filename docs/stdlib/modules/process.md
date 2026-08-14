@@ -48,17 +48,16 @@ println("Running as: " + name)
 
 Host process-control helpers.
 
-Provides process lifecycle operations: graceful exit and immediate abort.
-These APIs are host-bound and require WASI process capability.
-
-**Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
+WASI 0.2 provides process exit semantics but does not expose a portable
+POSIX-style process identifier. `id()` therefore has a stable rejection
+contract instead of returning a fabricated value.
 
 ### `std::host::process` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `exit` | `(i32) -> ()` | `stable` | ✅ functional | Requests process termination with the given exit code. |
-| `abort` | `() -> ()` | `stable` | ✅ functional | Aborts execution immediately with exit code 134 (SIGABRT convention). |
+| `exit` | `(i32) -> ()` | `stable` | ✅ functional | - |
+| `abort` | `() -> ()` | `stable` | ✅ functional | - |
 
 #### `std::host::process::exit`
 
@@ -78,21 +77,19 @@ Abort the process immediately with an abnormal-termination signal (non-zero exit
 
 Host environment helpers.
 
-Provides CLI argument access and environment variable lookup backed by
-WASI intrinsics (args_sizes_get / args_get, environ_sizes_get / environ_get).
-
-**Availability:** All targets (`wasm32` + `wasm32-gc`). Environment variable access
-(`var`) requires WASI Preview 2 component model (not available on P1).
+Arguments use the existing WASI CLI path. Environment and current working
+directory use the versioned runtime ABI so WASI P2 components can run under
+stock Wasmtime without an Arukellt-specific host linker.
 
 ### `std::host::env` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `args` | `() -> Vec<String>` | `stable` | ✅ functional | Returns the process argument vector (excluding argv[0]). |
-| `arg_count` | `() -> i32` | `stable` | ✅ functional | Returns the number of process arguments (excluding argv[0]). |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | Returns the argument at the given index when in range. |
-| `var` | `(String) -> Option<String>` | `stable` | ✅ functional | Looks up an environment variable by name. |
-| `has_flag` | `(String) -> bool` | `stable` | ✅ functional | Returns true when the argument vector contains the given flag. |
+| `args` | `() -> Vec<String>` | `stable` | ✅ functional | - |
+| `arg_count` | `() -> i32` | `stable` | ✅ functional | - |
+| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | - |
+| `var` | `(String) -> Option<String>` | `stable` | ✅ functional | - |
+| `has_flag` | `(String) -> bool` | `stable` | ✅ functional | - |
 
 #### `std::host::env::args`
 

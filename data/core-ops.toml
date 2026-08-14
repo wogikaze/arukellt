@@ -13485,3 +13485,225 @@ core_op_id = "runtime.env_vars"
 [[legacy_bindings]]
 alias = "__runtime_abi_env_current_dir"
 core_op_id = "runtime.env_current_dir"
+
+[[operations]]
+id = "runtime.fs_read_dir"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation fs_read_dir"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "fs_read_dir"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.fs_metadata"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation fs_metadata"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "fs_metadata"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.fs_remove_file"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation fs_remove_file"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "fs_remove_file"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.fs_create_dir_all"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation fs_create_dir_all"
+[operations.signature]
+inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "fs_create_dir_all"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.env_vars"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation env_vars"
+[operations.signature]
+inputs = []
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "env_vars"
+abi_version = "0.1"
+[operations.fallback]
+required = false
+
+[[operations]]
+id = "runtime.env_current_dir"
+visibility = "public"
+classification = { layer = "runtime" }
+binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
+description = "Versioned runtime ABI operation env_current_dir"
+[operations.signature]
+inputs = []
+outputs = [{ type = { kind = "primitive", name = "i32" } }]
+generic_params = []
+constraints = []
+[operations.semantics]
+const_evaluable = false
+overflow = "none"
+nan = "none"
+trap = "none"
+equivalence = "exact_bitwise"
+[operations.effect]
+memory = "none"
+allocates = false
+may_trap = false
+noreturn = false
+external_io = false
+nondeterminism = "deterministic"
+atomic = false
+volatile = false
+[operations.inline]
+policy = "never"
+[operations.lowering]
+kind = "runtime_call"
+[operations.lowering.runtime]
+kind = "internal"
+symbol = "env_current_dir"
+abi_version = "0.1"
+[operations.fallback]
+required = false
