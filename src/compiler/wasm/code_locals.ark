@@ -12,6 +12,8 @@ use wasm::emit_target
 use wasm::code_locals_struct
 use wasm::gc_layout_table
 use wasm::lower_value_type
+use corehir::kinds
+use corehir::mir_value_type
 use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
@@ -65,10 +67,18 @@ fn emit_typed_gc_local_storage(body: WasmWriter, f: MirFunction, local_idx: i32,
         return false
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let mvt = local_access::MirLocal_value_type(loc)
+    // lower_storage_type returns scalar/linear representations too. Local GC
+    // emission must only enter this aggregate-return path for semantic GC refs;
+    // String/linear-pointer and stale scalar MVTs continue through the existing
+    // specialized local rules below.
+    if mir_value_type::mir_value_type_repr(mvt) != kinds::VALUE_REPR_GC_REF() {
+        return false
+    }
     let lowered = lower_value_type::lower_storage_type(
         ctx_record::SelfEmitCtx_gc_layout_table(ctx),
         ctx_record::SelfEmitCtx_type_table(ctx),
-        local_access::MirLocal_value_type(loc),
+        mvt,
         constants::STORAGE_CONTEXT_DEFAULT_LOCAL()
     )
     if !gc_layout_table::wasm_value_type_is_ref(lowered) {
