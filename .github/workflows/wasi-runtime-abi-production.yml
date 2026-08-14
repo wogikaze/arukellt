@@ -40,7 +40,7 @@ jobs:
         with:
           targets: wasm32-wasip2
       - name: Build real-WASI runtime adapter
-        run: cargo build --manifest-path runtime/wasi-p2-adapter/Cargo.toml --target wasm32-wasip2 --release
+        run: cargo +stable build --manifest-path runtime/wasi-p2-adapter/Cargo.toml --target wasm32-wasip2 --release
 
   close-gates:
     runs-on: ubuntu-latest
