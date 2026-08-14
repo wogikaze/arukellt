@@ -52,12 +52,12 @@ nan = "none"
 trap = "none"
 equivalence = "exact_bitwise"
 [operations.effect]
-memory = "read_write"
-allocates = true
+memory = "none"
+allocates = false
 may_trap = false
 noreturn = false
-external_io = true
-nondeterminism = "runtime"
+external_io = false
+nondeterminism = "deterministic"
 atomic = false
 volatile = false
 [operations.inline]
