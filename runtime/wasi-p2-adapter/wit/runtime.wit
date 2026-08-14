@@ -1,16 +1,21 @@
 package arukellt:runtime@0.1.0;
 
-interface network {
-    /// Returns a positive buffer handle on success. A negative value is an
-    /// error-buffer handle encoded as `-handle`; zero is reserved.
-    http-request: func(method: string, url: string, body: string) -> s32;
-
+/// Internal, versioned runtime ABI. Arukellt core modules import this interface;
+/// the adapter implementation lowers it to real WASI 0.2 resources/methods.
+interface host {
+    /// Positive values are success buffer handles. Negative values are error
+    /// buffer handles encoded as `-handle`; zero is reserved where a handle is
+    /// expected. Callers read both success/error payloads through buffer-*.
     buffer-len: func(handle: u32) -> u32;
     buffer-byte: func(handle: u32, index: u32) -> u8;
     buffer-close: func(handle: u32);
 
+    http-get: func(url: string) -> s32;
+    http-request: func(method: string, url: string, body: string) -> s32;
+    http-serve: func(port: u16, body: string) -> s32;
+
     /// Socket/listener handles are positive. Errors use the same negative
-    /// error-buffer encoding as `http-request`.
+    /// error-buffer encoding. socket-read returns a buffer handle.
     socket-connect: func(host: string, port: u16) -> s32;
     socket-read: func(socket: u32, max-len: u32) -> s32;
     socket-write: func(socket: u32, bytes: list<u8>) -> s32;
@@ -18,11 +23,22 @@ interface network {
     socket-accept: func(listener: u32) -> s32;
     socket-close: func(handle: u32);
 
-    /// One-shot plaintext HTTP/1.1 loopback server used by the existing
-    /// std::host::http::serve facade. It is implemented over wasi:sockets.
-    http-serve: func(port: u16, body: string) -> s32;
+    fs-read-file: func(path: string) -> s32;
+    fs-write-file: func(path: string, contents: string) -> s32;
+    fs-write-bytes: func(path: string, contents: list<u8>) -> s32;
+    /// Newline-delimited entry names. The facade splits this into Vec<String>.
+    fs-read-dir: func(path: string) -> s32;
+    /// UTF-8 payload: `<len>\t<is-file:0|1>\t<is-dir:0|1>`.
+    fs-metadata: func(path: string) -> s32;
+    fs-remove-file: func(path: string) -> s32;
+    fs-create-dir-all: func(path: string) -> s32;
+
+    /// NUL-delimited `KEY=VALUE` records.
+    env-vars: func() -> s32;
+    env-current-dir: func() -> s32;
+    env-var: func(name: string) -> s32;
 }
 
 world runtime-adapter {
-    export network;
+    export host;
 }
