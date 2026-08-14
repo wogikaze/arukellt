@@ -1,0 +1,167 @@
+// Canonical runtime ABI wiring for the P2 command wrapper.
+//
+// The guest core keeps a small pointer/scalar ABI under
+// `arukellt:runtime/host@0.1.0`. This component layer imports typed top-level
+// component functions from the checked WASI P2 adapter, canon-lowers them into
+// shared memory, and instantiates a core bridge that exports the guest ABI.
+
+use component::types_wit_func
+use wasm::component_p2_runtime_bridge_generated
+use wasm::constants
+use wasm::writer_core
+use wasm::writer_string
+
+fn p2_runtime_component_func_names() -> Vec<String> {
+    let names = Vec::new<String>()
+    push(names, String_from("runtime-buffer-new"))
+    push(names, String_from("runtime-buffer-push"))
+    push(names, String_from("runtime-buffer-len"))
+    push(names, String_from("runtime-buffer-byte"))
+    push(names, String_from("runtime-buffer-close"))
+    push(names, String_from("runtime-http-get"))
+    push(names, String_from("runtime-http-request"))
+    push(names, String_from("runtime-http-serve"))
+    push(names, String_from("runtime-socket-connect"))
+    push(names, String_from("runtime-socket-read"))
+    push(names, String_from("runtime-socket-write"))
+    push(names, String_from("runtime-socket-listen"))
+    push(names, String_from("runtime-socket-accept"))
+    push(names, String_from("runtime-socket-close"))
+    push(names, String_from("runtime-fs-read-file"))
+    push(names, String_from("runtime-fs-write-file"))
+    push(names, String_from("runtime-fs-write-bytes"))
+    push(names, String_from("runtime-fs-read-dir"))
+    push(names, String_from("runtime-fs-metadata"))
+    push(names, String_from("runtime-fs-remove-file"))
+    push(names, String_from("runtime-fs-create-dir-all"))
+    push(names, String_from("runtime-env-vars"))
+    push(names, String_from("runtime-env-current-dir"))
+    push(names, String_from("runtime-env-var"))
+    names
+}
+
+fn p2_runtime_func_params(index: i32) -> Vec<i32> {
+    let p = Vec::new<i32>()
+    if index == 1 { push(p, constants::LIB_WIT_U32()); push(p, constants::LIB_WIT_U8()); return p }
+    if index == 2 || index == 4 || index == 12 || index == 13 { push(p, constants::LIB_WIT_U32()); return p }
+    if index == 3 || index == 9 || index == 10 { push(p, constants::LIB_WIT_U32()); push(p, constants::LIB_WIT_U32()); return p }
+    if index == 5 || index == 14 || index == 17 || index == 18 || index == 19 || index == 20 || index == 23 {
+        push(p, constants::LIB_WIT_STRING()); return p
+    }
+    if index == 6 {
+        push(p, constants::LIB_WIT_STRING()); push(p, constants::LIB_WIT_STRING()); push(p, constants::LIB_WIT_STRING()); return p
+    }
+    if index == 7 { push(p, constants::LIB_WIT_U16()); push(p, constants::LIB_WIT_STRING()); return p }
+    if index == 8 || index == 11 { push(p, constants::LIB_WIT_STRING()); push(p, constants::LIB_WIT_U16()); return p }
+    if index == 15 { push(p, constants::LIB_WIT_STRING()); push(p, constants::LIB_WIT_STRING()); return p }
+    if index == 16 { push(p, constants::LIB_WIT_STRING()); push(p, constants::LIB_WIT_U32()); return p }
+    p
+}
+
+fn p2_runtime_func_results(index: i32) -> Vec<i32> {
+    let r = Vec::new<i32>()
+    if index == 1 || index == 4 || index == 13 { return r }
+    if index == 0 || index == 2 { push(r, constants::LIB_WIT_U32()); return r }
+    if index == 3 { push(r, constants::LIB_WIT_U8()); return r }
+    push(r, constants::LIB_WIT_S32())
+    r
+}
+
+fn p2_runtime_func_needs_memory(index: i32) -> i32 {
+    if index == 5 || index == 6 || index == 7 || index == 8 || index == 11 || index == 14 || index == 15 || index == 16 || index == 17 || index == 18 || index == 19 || index == 20 || index == 23 { return 1 }
+    0
+}
+
+fn p2_runtime_emit_component_type_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(sec, 24)
+    let mut i = 0
+    while i < 24 {
+        writer_core::emit_bytes(sec, types_wit_func::comp_component_func_type(p2_runtime_func_params(i), p2_runtime_func_results(i)))
+        i = i + 1
+    }
+    p2_runtime_emit_section(out, 7, sec)
+}
+
+fn p2_runtime_emit_component_import_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    let names = p2_runtime_component_func_names()
+    writer_core::emit_leb128_u(sec, 24)
+    let mut i = 0
+    while i < 24 {
+        // externname: ordinary kebab-name
+        writer_core::emit_byte(sec, 0x00)
+        writer_string::emit_string(sec, get_unchecked(names, i))
+        // component type ref: func, type index. Prefix owns component types 0..6.
+        writer_core::emit_byte(sec, 0x01)
+        writer_core::emit_leb128_u(sec, 7 + i)
+        i = i + 1
+    }
+    p2_runtime_emit_section(out, 10, sec)
+}
+
+fn p2_runtime_emit_canon_lower_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(sec, 24)
+    let mut i = 0
+    while i < 24 {
+        // canon lower (component func 5+i). Prefix aliases own funcs 0..4.
+        writer_core::emit_byte(sec, 0x01)
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_leb128_u(sec, 5 + i)
+        if p2_runtime_func_needs_memory(i) == 1 {
+            writer_core::emit_leb128_u(sec, 2)
+            writer_core::emit_byte(sec, 0x03)
+            writer_core::emit_leb128_u(sec, 0)
+            writer_core::emit_byte(sec, 0x04)
+            writer_core::emit_leb128_u(sec, 0)
+        } else {
+            writer_core::emit_leb128_u(sec, 0)
+        }
+        i = i + 1
+    }
+    p2_runtime_emit_section(out, 8, sec)
+}
+
+fn p2_runtime_emit_core_instance_section(out: WasmWriter) {
+    let sec = writer_core::WasmWriter_new()
+    writer_core::emit_leb128_u(sec, 2)
+
+    // Core instance 9: inline canonical-lowered adapter functions. Core funcs
+    // 0=realloc and 1..5 are the existing stdio/environment lowers; runtime
+    // lowers therefore start at core func 6.
+    writer_core::emit_byte(sec, 0x01)
+    writer_core::emit_leb128_u(sec, 24)
+    let names = p2_runtime_component_func_names()
+    let mut i = 0
+    while i < 24 {
+        writer_string::emit_string(sec, get_unchecked(names, i))
+        writer_core::emit_byte(sec, 0x00)
+        writer_core::emit_leb128_u(sec, 6 + i)
+        i = i + 1
+    }
+
+    // Core instance 10: compatibility bridge module 8. `env` is the shared
+    // memory instance 0; `host` is the inline lower instance 9 above.
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 8)
+    writer_core::emit_leb128_u(sec, 2)
+    writer_string::emit_string(sec, String_from("env"))
+    writer_core::emit_byte(sec, 0x12)
+    writer_core::emit_leb128_u(sec, 0)
+    writer_string::emit_string(sec, String_from("host"))
+    writer_core::emit_byte(sec, 0x12)
+    writer_core::emit_leb128_u(sec, 9)
+
+    p2_runtime_emit_section(out, 2, sec)
+}
+
+fn p2_runtime_bridge_module_bytes() -> Vec<i32> {
+    component_p2_runtime_bridge_generated::p2_runtime_bridge_module_bytes()
+}
+
+fn p2_runtime_emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
+    writer_core::emit_byte(out, section_id)
+    writer_core::emit_leb128_u(out, writer_core::writer_size(contents))
+    writer_core::emit_bytes(out, writer_core::writer_bytes(contents))
+}
