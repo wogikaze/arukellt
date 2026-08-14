@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Close gate for #819: runtime-classified CoreOps use explicit runtime payloads."""
+"""Close gate for #819: runtime-classified CoreOps use explicit versioned payloads."""
 from __future__ import annotations
 
 import sys
@@ -20,14 +20,28 @@ def main() -> int:
     if not runtime_ops:
         return fail("no runtime-classified CoreOps")
     for op in runtime_ops:
+        op_id = op.get("id")
         lowering = op.get("lowering", {})
         runtime = lowering.get("runtime", {})
+        kind = runtime.get("kind")
         if lowering.get("kind") != "runtime_call":
-            return fail(f"{op.get('id')} is not runtime_call")
-        if runtime.get("kind") not in {"internal", "wit", "native"}:
-            return fail(f"{op.get('id')} has no explicit runtime payload kind")
-        if not str(runtime.get("symbol", "")).strip() and runtime.get("kind") == "internal":
-            return fail(f"{op.get('id')} has no internal runtime symbol")
+            return fail(f"{op_id} is not runtime_call")
+        if kind not in {"internal", "wit", "native"}:
+            return fail(f"{op_id} has no explicit runtime payload kind")
+        if kind == "internal":
+            if not str(runtime.get("symbol", "")).strip():
+                return fail(f"{op_id} has no internal runtime symbol")
+            if not str(runtime.get("abi_version", "")).strip():
+                return fail(f"{op_id} has no internal runtime ABI version")
+        elif kind == "native":
+            if not str(runtime.get("backend", "")).strip() or not str(runtime.get("symbol", "")).strip():
+                return fail(f"{op_id} has incomplete native runtime payload")
+            if not str(runtime.get("abi_version", "")).strip():
+                return fail(f"{op_id} has no native runtime ABI version")
+        else:
+            for field in ("package", "interface", "function", "version"):
+                if not str(runtime.get(field, "")).strip():
+                    return fail(f"{op_id} has incomplete WIT runtime payload: {field}")
 
     required = {
         "runtime.fs_read_dir",
@@ -43,8 +57,8 @@ def main() -> int:
     by_id = {op.get("id"): op for op in runtime_ops}
     for op_id in required:
         runtime = by_id[op_id].get("lowering", {}).get("runtime", {})
-        if runtime.get("abi_version") != "0.1":
-            return fail(f"{op_id} is not bound to runtime ABI 0.1")
+        if runtime.get("kind") != "internal" or runtime.get("abi_version") != "0.1":
+            return fail(f"{op_id} is not bound to internal runtime ABI 0.1")
 
     wasm = ROOT / "src/compiler/wasm"
     if list(wasm.glob("call_host*.ark")):
