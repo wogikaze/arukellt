@@ -58,20 +58,27 @@ def static_gate() -> tuple[int, str]:
     return 0, ""
 
 
-def dynamic_gate() -> tuple[int, str]:
-    if not WRAPPER.is_file():
-        return 2, "selfhost wrapper unavailable"
+def branch_selfhost_env() -> dict[str, str] | None:
     env = dict(os.environ)
+    explicit = env.get("ARUKELLT_SELFHOST_WASM")
+    if explicit and Path(explicit).is_file():
+        return env
     for candidate in (
-        ROOT / ".build/selfhost/arukellt-s2.wasm",
         ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",
-        ROOT / "bootstrap/arukellt-selfhost.wasm",
+        ROOT / ".build/selfhost/arukellt-s2.wasm",
     ):
         if candidate.is_file():
             env["ARUKELLT_SELFHOST_WASM"] = str(candidate)
-            break
-    if "ARUKELLT_SELFHOST_WASM" not in env:
-        return 2, "compiler wasm unavailable"
+            return env
+    return None
+
+
+def dynamic_gate() -> tuple[int, str]:
+    if not WRAPPER.is_file():
+        return 2, "selfhost wrapper unavailable"
+    env = branch_selfhost_env()
+    if env is None:
+        return 2, "branch-built s2 compiler unavailable"
     for fixture, expected in FIXTURES:
         run = subprocess.run(
             ["bash", str(WRAPPER), "check", str(fixture.relative_to(ROOT)), "--target", "wasm32-gc"],
