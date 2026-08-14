@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Temporary launcher migration for #841/#819; removed before PR readiness."""
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -131,6 +132,15 @@ old_hosted = '''  # Hosted runner for simplified guest ABI on WIT-shaped modules
   fi
 '''
 text = text.replace(old_hosted, "")
+
+# Earlier write-back attempts could reapply `old_exec` on every run because
+# the replacement still contains that exact exec line. Collapse all adjacent
+# duplicate adapter-link calls after edits so this migration is idempotent.
+text = re.sub(
+    r'(?m)^(\s*)plug_runtime_adapter_in_place "\$out_path"\n(?:\1plug_runtime_adapter_in_place "\$out_path"\n)+',
+    lambda m: f'{m.group(1)}plug_runtime_adapter_in_place "$out_path"\n',
+    text,
+)
 PATH.write_text(text, encoding="utf-8")
 
 deny_script = ROOT / "scripts/dev/apply-deny-process.py"
