@@ -30,7 +30,7 @@ def main() -> int:
     if emit.index("emit_specialized::emit_specialized_component") > emit.index("comp_emit_wasi_and_core_instance_sections"):
         print("gate-673: FAIL: specialized adapters are still bypassed", file=sys.stderr)
         return 1
-    contract = (ROOT / "src/compiler/component/contract.ark").read_text(encoding="utf-8")
+    contract = (ROOT / "src/compiler/component/contract_validation.ark").read_text(encoding="utf-8")
     if "E0401" not in contract:
         print("gate-673: FAIL: recursive/unsupported export rejection contract missing", file=sys.stderr)
         return 1
