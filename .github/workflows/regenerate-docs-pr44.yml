@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - agent/component-wit-productization
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,10 +18,31 @@ jobs:
         with:
           ref: agent/component-wit-productization
           fetch-depth: 0
+      - name: Preserve issue-index timestamp
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("issues/open/index-meta.json")
+          stamp = ""
+          if path.exists():
+              stamp = str(json.loads(path.read_text(encoding="utf-8")).get("generated_at", ""))
+          Path("/tmp/issue-index-generated-at").write_text(stamp, encoding="utf-8")
+          PY
       - name: Regenerate canonical docs and issue indexes
         run: |
           python3 scripts/gen/generate-docs.py
           bash scripts/gen/generate-issue-index.sh
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("issues/open/index-meta.json")
+          stamp = Path("/tmp/issue-index-generated-at").read_text(encoding="utf-8")
+          if path.exists() and stamp:
+              data = json.loads(path.read_text(encoding="utf-8"))
+              data["generated_at"] = stamp
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
       - name: Commit generated changes
         run: |
           if git diff --quiet && git diff --cached --quiet; then
