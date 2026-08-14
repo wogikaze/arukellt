@@ -33,25 +33,36 @@ jobs:
           spec.loader.exec_module(mod)
           overlay = mod._prepare_flattened_selfhost_source(root)
           print(f'overlay={overlay}')
-          needles = [
-              'fn wit_record_type_name',
-              'fn wit_kebab_to_snake',
-              'fn mir_callee_returns_string',
-              'fn is_wit_name_string_helper',
-              'pascal_case(',
+
+          inspect = [
+              'src/compiler/component_emit_tier3_roundtrip.ark',
+              'src/compiler/component_emit_resource.ark',
+              'src/compiler/component_emit_flags.ark',
           ]
-          for file in sorted((overlay / 'src' / 'compiler').rglob('*.ark')):
-              text = file.read_text(errors='replace')
-              for needle in needles:
-                  pos = text.find(needle)
-                  if pos < 0:
-                      continue
-                  line = text.count('\n', 0, pos) + 1
-                  start = max(0, pos - 900)
-                  end = min(len(text), pos + 1800)
-                  print(f'--- {file.relative_to(overlay)}:{line} needle={needle} ---')
-                  print(text[start:end])
-          for rel in ['std/wit/names.ark', 'std/prelude.ark']:
+          for rel in inspect:
+              f = overlay / rel
+              print(f'=== {rel} exists={f.exists()} ===')
+              if f.exists():
+                  print(f.read_text(errors='replace'))
+
+          compiler_root = overlay / 'src' / 'compiler'
+          entries = []
+          for f in sorted(compiler_root.glob('*.ark')):
+              entries.append((f.name, f.read_text(errors='replace')))
+          reachable = mod._overlay_reachable_rels(entries)
+          for rel in ['component_emit_tier3_roundtrip.ark', 'component_emit_resource.ark', 'component_emit_flags.ark']:
+              print(f'reachable {rel}={rel in reachable}')
+          keepers, renames = mod._compute_overlay_symbol_plan(entries)
+          for symbol in [
+              'try_emit_tier3_roundtrip_component',
+              'try_emit_resource_roundtrip_component',
+              'try_emit_flags_roundtrip_component',
+          ]:
+              print(f'--- symbol {symbol} ---')
+              print('keepers=', sorted(x for x in keepers if x[1] == symbol))
+              print('renames=', sorted(x for x in renames if x[1] == symbol))
+
+          for rel in ['std/wit/names.ark', 'std/wit/scan.ark', 'std/prelude.ark']:
               f = overlay / rel
               print(f'overlay_file {rel} exists={f.exists()}')
           PY
