@@ -160,8 +160,8 @@ class ProofPhase6MachineIntegerTests(unittest.TestCase):
     def test_shift_count_is_masked_by_machine_width(self):
         value = _base_document()
         block = value["functions"][0]["body"]["blocks"][0]
-        block["instructions"][0]["value"] = -1
         block["instructions"][1]["operator"] = "shl"
+        block["instructions"][1]["arguments"] = [_value(0, 1), _constant(-1, 1)]
         rendered = generate_typed_smtlib(value)
         # -1 mod 32 == 31.
         self.assertIn("2147483648", rendered)
