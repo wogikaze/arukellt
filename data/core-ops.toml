@@ -13461,3 +13461,27 @@ kind = "normal_call"
 [operations.fallback]
 implementation_symbol = "__core_vec_set_impl"
 required = true
+
+[[legacy_bindings]]
+alias = "__runtime_abi_fs_read_dir"
+core_op_id = "runtime.fs_read_dir"
+
+[[legacy_bindings]]
+alias = "__runtime_abi_fs_metadata"
+core_op_id = "runtime.fs_metadata"
+
+[[legacy_bindings]]
+alias = "__runtime_abi_fs_remove_file"
+core_op_id = "runtime.fs_remove_file"
+
+[[legacy_bindings]]
+alias = "__runtime_abi_fs_create_dir_all"
+core_op_id = "runtime.fs_create_dir_all"
+
+[[legacy_bindings]]
+alias = "__runtime_abi_env_vars"
+core_op_id = "runtime.env_vars"
+
+[[legacy_bindings]]
+alias = "__runtime_abi_env_current_dir"
+core_op_id = "runtime.env_current_dir"
