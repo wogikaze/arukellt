@@ -1,6 +1,6 @@
-"""Explicit logical type conversion facade for TypedCoreHIR proof phases 1-3."""
+"""Explicit logical type conversion facade for TypedCoreHIR proof phases 1-4."""
 
-from proof.typed_corehir_program_convert import (
+from proof.typed_corehir_phase4_convert import (
     CONVERTER,
     ExplicitTypedCoreHirError,
     SOURCE_SCHEMA,
@@ -21,9 +21,6 @@ def _compat_message(message: str) -> str:
 
 def convert_typed_document(value):
     try:
-        # The legacy v3 lowerer validates its result before returning. Permit
-        # only that in-process intermediate to be temporarily unbound, then
-        # attach exact callee interface digests and validate the public result.
         with allow_unbound_call_interfaces():
             result = convert_document(value)
         bind_call_interfaces(result)
