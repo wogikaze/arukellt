@@ -7,17 +7,17 @@ use wasm::gc_layout_table
 
 fn gc_layout_plan_type_index(
     binding: MirGcLayoutBinding,
-    gc_type_base: i32,
+    gc_fixed_type_map: Vec<i32>,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_type_map: Vec<i32>
 ) -> i32 {
     let source_kind = gc_layout_plan::mir_gc_layout_binding_source_kind(binding)
     let source_value = gc_layout_plan::mir_gc_layout_binding_source_value(binding)
     if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_FIXED_OFFSET() {
-        if gc_type_base < 0 {
+        if source_value < 0 || source_value >= len(gc_fixed_type_map) {
             return 0 - 1
         }
-        return gc_type_base + source_value
+        return get_unchecked(gc_fixed_type_map, source_value)
     }
     if source_kind == gc_layout_plan::MIR_GC_LAYOUT_SOURCE_STRUCT_SLOT() {
         if source_value < 0 || source_value >= len(gc_struct_type_map) {
@@ -46,7 +46,7 @@ fn gc_layout_plan_struct_type_index(binding: MirGcLayoutBinding, type_idx: i32) 
 fn populate_gc_layout_table_for_emit(
     table: GcLayoutTable,
     mir: MirModule,
-    gc_type_base: i32,
+    gc_fixed_type_map: Vec<i32>,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_type_map: Vec<i32>
 ) {
@@ -61,7 +61,7 @@ fn populate_gc_layout_table_for_emit(
         let binding = gc_layout_plan::mir_gc_layout_plan_binding_at(plan, index)
         let type_idx = gc_layout_plan_type_index(
             binding,
-            gc_type_base,
+            gc_fixed_type_map,
             gc_enum_variant_type_map,
             gc_struct_type_map
         )
