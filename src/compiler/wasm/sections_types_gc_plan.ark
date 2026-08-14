@@ -3,7 +3,6 @@ use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_info_to_mir_value
 use corehir::type_table
-use mir::module_gc_struct
 use mir::module_spine
 use mir::spine_lookup
 use wasm::emit_target
@@ -41,15 +40,8 @@ fn typed_mvt_sig(mir: MirModule, mvt: MirValueType, target: String) -> String {
     if kind == kinds::TYPE_KIND_OPTION() || kind == kinds::TYPE_KIND_RESULT() || kind == kinds::TYPE_KIND_ENUM() {
         return sections_types_gc::gc_enum_open_type_sig()
     }
-    if kind == kinds::TYPE_KIND_STRUCT() {
-        let struct_name = type_table::type_entry_name(entry)
-        if is_legacy_generic_struct_name(clone(struct_name)) {
-            return "structref"
-        }
-        let slot = module_gc_struct::MirModule_gc_struct_slot(mir, struct_name)
-        if slot >= 0 {
-            return concat("gcsref", i32_to_string(slot))
-        }
+    if kind == kinds::TYPE_KIND_STRUCT() && is_legacy_generic_struct_name(type_table::type_entry_name(entry)) {
+        return "structref"
     }
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, mvt)
     if len(alias) > 0 {
