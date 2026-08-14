@@ -2861,10 +2861,10 @@ def _flatten_compiler_imports(text: str) -> str:
                 ns_mod = _flatten_namespace_mod_import(parts)
                 flat = ns_mod if ns_mod is not None else "_".join(parts)
                 explicit_alias = match.group(3)
-                if explicit_alias is not None:
-                    output.append(f"{match.group(1)}use {flat} as {explicit_alias}")
-                else:
-                    output.append(f"{match.group(1)}use {flat}")
+                # Qualified alias references were canonicalized to the flat
+                # module name above. Keep the dependency import alias-free so
+                # the pinned bootstrap loader sees the actual flat module.
+                output.append(f"{match.group(1)}use {flat}")
                 continue
         rewritten = line
         for alias, flat_name in sorted(alias_map.items(), key=lambda item: len(item[0]), reverse=True):
@@ -4157,7 +4157,7 @@ def _rebuild_current_s2_locked(
                             f"{RED}error: failed to write S2 build-profile manifest: "
                             f"{profile_exc}{NC}"
                         ), time.time() - started
-                    runtime = _parity_runtime_compiler(root, pinned, out)
+                    runtime = _ensure_runtime_compiler_wasm(root, out)
                     if runtime is None:
                         return None, (
                             f"{RED}error: failed to prepare runtime compiler wasm "
@@ -4227,7 +4227,7 @@ def _rebuild_current_s2_locked(
             f"{RED}error: failed to write S2 build-profile manifest: {profile_exc}{NC}"
         ), time.time() - started
 
-    runtime = _parity_runtime_compiler(root, pinned, out)
+    runtime = _ensure_runtime_compiler_wasm(root, out)
     if runtime is None:
         return None, (
             f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
