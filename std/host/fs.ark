@@ -5,7 +5,6 @@
 //! adapter implements those operations with real WASI filesystem facilities.
 //! Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
 
-use std::core::convert
 
 pub enum FsError {
     NotFound(String),
