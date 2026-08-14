@@ -2712,3 +2712,45 @@ registry_lowering = "legacy_emitter"
 status = "supported"
 phase = 2
 implementation = "ark_fallback"
+
+[[core_ops]]
+id = "runtime.fs_read_dir"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
+
+[[core_ops]]
+id = "runtime.fs_metadata"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
+
+[[core_ops]]
+id = "runtime.fs_remove_file"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
+
+[[core_ops]]
+id = "runtime.fs_create_dir_all"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
+
+[[core_ops]]
+id = "runtime.env_vars"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
+
+[[core_ops]]
+id = "runtime.env_current_dir"
+registry_layer = "runtime"
+registry_lowering = "runtime_call"
+status = "unsupported"
+reason = "WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice"
