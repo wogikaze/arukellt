@@ -37,7 +37,7 @@ jobs:
         env:
           ARUKELLT_WASM_INITIAL_PAGES: "131072"
           ARUKELLT_LINT_WORKERS: "2"
-        run: python3 scripts/manager.py verify
+        run: python3 scripts/manager.py verify full
       - name: Fixture parity
         run: python3 scripts/manager.py selfhost fixture-parity
       - name: T1 linear non-regression
