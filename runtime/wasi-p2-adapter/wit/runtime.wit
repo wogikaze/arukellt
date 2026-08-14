@@ -1,0 +1,28 @@
+package arukellt:runtime@0.1.0;
+
+interface network {
+    /// Returns a positive buffer handle on success. A negative value is an
+    /// error-buffer handle encoded as `-handle`; zero is reserved.
+    http-request: func(method: string, url: string, body: string) -> s32;
+
+    buffer-len: func(handle: u32) -> u32;
+    buffer-byte: func(handle: u32, index: u32) -> u8;
+    buffer-close: func(handle: u32);
+
+    /// Socket/listener handles are positive. Errors use the same negative
+    /// error-buffer encoding as `http-request`.
+    socket-connect: func(host: string, port: u16) -> s32;
+    socket-read: func(socket: u32, max-len: u32) -> s32;
+    socket-write: func(socket: u32, bytes: list<u8>) -> s32;
+    socket-listen: func(host: string, port: u16) -> s32;
+    socket-accept: func(listener: u32) -> s32;
+    socket-close: func(handle: u32);
+
+    /// One-shot plaintext HTTP/1.1 loopback server used by the existing
+    /// std::host::http::serve facade. It is implemented over wasi:sockets.
+    http-serve: func(port: u16, body: string) -> s32;
+}
+
+world runtime-adapter {
+    export network;
+}
