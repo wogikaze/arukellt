@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, Iterator
+from typing import Any
 
 _UNBOUND_CALLS = ContextVar("arukellt_allow_unbound_call_interfaces", default=False)
 
@@ -15,13 +14,18 @@ def call_interfaces_may_be_unbound() -> bool:
     return bool(_UNBOUND_CALLS.get())
 
 
-@contextmanager
-def allow_unbound_call_interfaces() -> Iterator[None]:
-    token = _UNBOUND_CALLS.set(True)
-    try:
-        yield
-    finally:
-        _UNBOUND_CALLS.reset(token)
+class _UnboundCallInterfaceScope:
+    def __enter__(self):
+        self._token = _UNBOUND_CALLS.set(True)
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        _UNBOUND_CALLS.reset(self._token)
+        return False
+
+
+def allow_unbound_call_interfaces() -> _UnboundCallInterfaceScope:
+    return _UnboundCallInterfaceScope()
 
 
 def interface_payload(function: dict[str, Any]) -> dict[str, Any]:
