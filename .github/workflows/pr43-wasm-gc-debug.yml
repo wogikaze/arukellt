@@ -73,40 +73,71 @@ jobs:
           echo "$v" > .build/pr43-debug/trait_validate.status
           echo "validate_exit=$v"
           exit 0
-      - name: True fixpoint probe and invalid s3 dump
+      - name: True fixpoint probe and rejected s3 dump
         run: |
           set +e
           python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee .build/pr43-debug/fixpoint.log
           rc=${PIPESTATUS[0]}
           echo "manager_exit=$rc"
-          if [ -f .build/selfhost/arukellt-s3.wasm ]; then
-            wasm-tools validate --features gc .build/selfhost/arukellt-s3.wasm \
-              2>&1 | tee .build/pr43-debug/s3-validate.log
-            wasm-tools print .build/selfhost/arukellt-s3.wasm \
-              > .build/pr43-debug/s3.wat 2>.build/pr43-debug/s3-print.err || true
-            echo '--- validation context ---'
-            cat .build/pr43-debug/s3-validate.log || true
-            echo '--- validator function index vicinity ---'
-            python3 - <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
-          p = Path('.build/pr43-debug/s3.wat')
-          if not p.exists():
-              err = Path('.build/pr43-debug/s3-print.err')
-              print(err.read_text(errors='replace') if err.exists() else 'no WAT')
+          import re
+          import subprocess
+
+          log_path = Path('.build/pr43-debug/fixpoint.log')
+          log = log_path.read_text(errors='replace') if log_path.exists() else ''
+          matches = re.findall(r'error: func (\d+) failed to validate', log)
+          target = int(matches[-1]) if matches else -1
+          rejected = sorted(Path('.ark-debug').glob('rejected-arukellt-s3-*.wasm'))
+          if not rejected:
+              live = Path('.build/selfhost/arukellt-s3.wasm')
+              if live.exists():
+                  rejected = [live]
+          if not rejected:
+              print('rejected_s3=missing')
               raise SystemExit(0)
-          lines = p.read_text(errors='replace').splitlines()
-          target = 1223
+          wasm = rejected[-1]
+          print(f'rejected_s3={wasm}')
+          print(f'validator_func={target}')
+          validate = subprocess.run(
+              ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
+              capture_output=True,
+              text=True,
+          )
+          print('--- rejected s3 validation ---')
+          print((validate.stdout or '') + (validate.stderr or ''))
+          wat = Path('.build/pr43-debug/rejected-s3.wat')
+          printed = subprocess.run(
+              ['wasm-tools', 'print', str(wasm)],
+              capture_output=True,
+              text=True,
+          )
+          if printed.returncode != 0:
+              print('--- rejected s3 print error ---')
+              print((printed.stdout or '') + (printed.stderr or ''))
+              raise SystemExit(0)
+          wat.write_text(printed.stdout)
+          lines = printed.stdout.splitlines()
+          if target < 0:
+              print('validator function index unavailable')
+              raise SystemExit(0)
           needle = f'(func (;{target};)'
           hits = [i for i, line in enumerate(lines) if needle in line]
           if not hits:
               print(f'function index {target} unavailable in WAT')
-          else:
-              start = max(0, hits[0] - 12)
-              end = min(len(lines), hits[0] + 140)
-              for i in range(start, end):
-                  print(f'{i+1}: {lines[i]}')
+              nearby = [
+                  (i, line) for i, line in enumerate(lines)
+                  if '(func (;' in line and f';{target}' in line
+              ]
+              for i, line in nearby[:10]:
+                  print(f'{i+1}: {line}')
+              raise SystemExit(0)
+          start = max(0, hits[0] - 20)
+          end = min(len(lines), hits[0] + 220)
+          print('--- validator function WAT ---')
+          for i in range(start, end):
+              print(f'{i+1}: {lines[i]}')
           PY
-          fi
           array_c=$(cat .build/pr43-debug/array_compile.status 2>/dev/null || echo 99)
           array_v=$(cat .build/pr43-debug/array_validate.status 2>/dev/null || echo 99)
           trait_c=$(cat .build/pr43-debug/trait_compile.status 2>/dev/null || echo 99)
