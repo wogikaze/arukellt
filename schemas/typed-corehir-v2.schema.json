@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arukellt.dev/schemas/typed-corehir-v2.schema.json",
+  "title": "Arukellt TypedCoreHIR v2",
+  "type": "object",
+  "required": ["schema", "schema_version", "module", "target_profile", "types", "functions"],
+  "properties": {
+    "schema": {"const": "arukellt-typed-corehir"},
+    "schema_version": {"const": 2},
+    "module": {"type": "string"},
+    "target_profile": {"type": "object"},
+    "types": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/type"}},
+    "functions": {"type": "array", "items": {"$ref": "#/$defs/function"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "representation": {
+      "type": "object",
+      "required": ["wasm", "nullable", "size_bytes", "align_bytes"],
+      "properties": {
+        "wasm": {"type": "array", "items": {"type": "string"}},
+        "nullable": {"type": "boolean"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "align_bytes": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": true
+    },
+    "type": {
+      "type": "object",
+      "required": ["id", "kind", "name", "representation"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "kind": {"enum": ["unit", "integer", "bool", "tuple", "struct", "enum"]},
+        "name": {"type": "string"},
+        "bits": {"enum": [32, 64]},
+        "signed": {"type": "boolean"},
+        "elements": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "fields": {"type": "array", "items": {"type": "object", "required": ["name", "type_id"], "properties": {"name": {"type": "string"}, "type_id": {"type": "integer", "minimum": 0}}, "additionalProperties": false}},
+        "variants": {"type": "array", "items": {"type": "object", "required": ["name", "discriminant", "payload_type_ids"], "properties": {"name": {"type": "string"}, "discriminant": {"type": "integer", "minimum": 0}, "payload_type_ids": {"type": "array", "items": {"type": "integer", "minimum": 0}}}, "additionalProperties": false}},
+        "representation": {"$ref": "#/$defs/representation"}
+      },
+      "additionalProperties": true
+    },
+    "expression": {
+      "type": "object",
+      "required": ["id", "kind", "type_id", "children"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "kind": {"type": "string"},
+        "type_id": {"type": "integer", "minimum": 0},
+        "children": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+        "local_id": {"type": "integer", "minimum": 0},
+        "value": {},
+        "index": {"type": "integer", "minimum": 0},
+        "variant_index": {"type": "integer", "minimum": 0},
+        "payload_index": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "function": {
+      "type": "object",
+      "required": ["id", "name", "signature", "abi", "locals", "contracts", "body"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "name": {"type": "string"},
+        "signature": {"type": "object"},
+        "abi": {"type": "object"},
+        "locals": {"type": "array"},
+        "contracts": {"type": "array"},
+        "body": {"type": "object", "required": ["root_expression_id", "expressions"], "properties": {"root_expression_id": {"type": "integer", "minimum": 0}, "expressions": {"type": "array", "items": {"$ref": "#/$defs/expression"}}}, "additionalProperties": true}
+      },
+      "additionalProperties": true
+    }
+  }
+}
