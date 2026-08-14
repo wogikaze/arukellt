@@ -35,28 +35,44 @@ jobs:
           print(f'overlay={overlay}')
 
           inspect = [
+              'src/compiler/main.ark',
               'src/compiler/component_emit_tier3_roundtrip.ark',
               'src/compiler/component_emit_resource.ark',
               'src/compiler/component_emit_flags.ark',
+              'src/compiler/component_export_shapes_resource_scan.ark',
+              'src/compiler/component_types_wit_compound.ark',
           ]
           for rel in inspect:
               f = overlay / rel
               print(f'=== {rel} exists={f.exists()} ===')
               if f.exists():
-                  print(f.read_text(errors='replace'))
+                  text = f.read_text(errors='replace')
+                  print(text if rel != 'src/compiler/main.ark' else '\n'.join(text.splitlines()[:240]))
 
           compiler_root = overlay / 'src' / 'compiler'
           entries = []
           for f in sorted(compiler_root.glob('*.ark')):
               entries.append((f.name, f.read_text(errors='replace')))
           reachable = mod._overlay_reachable_rels(entries)
-          for rel in ['component_emit_tier3_roundtrip.ark', 'component_emit_resource.ark', 'component_emit_flags.ark']:
+          rels = [
+              'component_emit_tier3_roundtrip.ark',
+              'component_emit_resource.ark',
+              'component_emit_flags.ark',
+              'component_export_shapes_resource_scan.ark',
+              'component_types_wit_compound.ark',
+              'component_type_section_entries.ark',
+              'component_export_sections_entries.ark',
+          ]
+          for rel in rels:
               print(f'reachable {rel}={rel in reachable}')
           keepers, renames = mod._compute_overlay_symbol_plan(entries)
           for symbol in [
               'try_emit_tier3_roundtrip_component',
               'try_emit_resource_roundtrip_component',
               'try_emit_flags_roundtrip_component',
+              'comp_single_resource_roundtrip_export_name',
+              'comp_wit_resource_type',
+              'comp_wit_own_type',
           ]:
               print(f'--- symbol {symbol} ---')
               print('keepers=', sorted(x for x in keepers if x[1] == symbol))
