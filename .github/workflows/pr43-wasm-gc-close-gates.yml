@@ -1,15 +1,15 @@
 name: PR43 Wasm GC close gates
 
 on:
-  push:
-    branches:
-      - fix/wasm-gc-type-plan-owner-phase1
+  pull_request:
+    branches: [master]
 
 permissions:
   contents: read
 
 jobs:
   close-gates:
+    if: github.head_ref == 'fix/wasm-gc-type-plan-owner-phase1'
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
