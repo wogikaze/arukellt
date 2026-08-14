@@ -1,0 +1,22 @@
+name: Temporary proof phase57 validation
+on:
+  push:
+    branches: [agent/proof-phase-5-7]
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile proof tooling
+        run: python3 -m compileall -q scripts
+      - name: Phase 5 semantic import smoke
+        run: python3 - <<'PY'
+          from scripts.proof import aggregate_semantics, aggregate_instructions
+          assert callable(aggregate_semantics._expression_type)
+          assert callable(aggregate_instructions.validate_aggregate_semantics)
+          PY
+      - name: Phase 6 machine integers
+        run: python3 -m unittest scripts.tests.test_proof_phase6_machine_int
+      - name: Phase 7 read-only memory
+        run: python3 -m unittest scripts.tests.test_proof_phase7_readonly_memory
