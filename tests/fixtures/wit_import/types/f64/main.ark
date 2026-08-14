@@ -1,0 +1,3 @@
+import "test:types/f64-shape" as host
+
+fn main() {}

@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface bool-shape {
+    echo: func(value: bool) -> bool;
+}

@@ -1,0 +1,3 @@
+import "test:types/bool-shape" as host
+
+fn main() {}

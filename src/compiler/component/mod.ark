@@ -2,6 +2,7 @@ use component::contract
 use component::contract_preflight
 use component::emit
 use component::export_plan
+use component::wit_bindings
 use component::wit_text
 
 pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
@@ -14,6 +15,10 @@ pub fn mir_has_library_exports(mir: MirModule) -> bool {
 
 pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
     wit_text::emit_wit_text_from_decls_with_world(decls, world)
+}
+
+pub fn emit_wit_bindings_text(source: String) -> String {
+    wit_bindings::emit_wit_bindings_text(source)
 }
 
 pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {

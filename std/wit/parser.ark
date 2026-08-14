@@ -1,8 +1,16 @@
-//! WIT text parser subset (#044).
+//! WIT text parsing for `std::wit` (#044, #706).
+//!
+//! `parse_full` is the WIT 1.0 parser entry point. `parse_wit` is retained as
+//! the historical World-shaped compatibility API for existing stdlib callers.
 
 use std::core::error
+use std::wit::ast
 use std::wit::types
 use std::wit::world
+
+pub fn parse_full(source: String) -> ast::WitNode {
+    ast::parse(source)
+}
 
 fn parse_skip_ws(s: String, pos: i32) -> i32 {
     let n = len(s)

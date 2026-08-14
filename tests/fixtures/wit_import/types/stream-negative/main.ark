@@ -1,0 +1,3 @@
+import "test:types/stream-negative" as host
+
+fn main() {}

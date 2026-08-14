@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface f64-shape {
+    echo: func(value: f64) -> f64;
+}

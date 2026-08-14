@@ -1,0 +1,3 @@
+import "test:types/variant-shape" as host
+
+fn main() {}

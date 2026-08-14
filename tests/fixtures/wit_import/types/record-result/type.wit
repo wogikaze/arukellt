@@ -1,0 +1,6 @@
+package test:types@0.1.0;
+
+interface record-result {
+    record point { x: s32, y: s32 }
+    get-point: func() -> point;
+}

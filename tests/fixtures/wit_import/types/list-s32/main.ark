@@ -1,0 +1,3 @@
+import "test:types/list-s32" as host
+
+fn main() {}
