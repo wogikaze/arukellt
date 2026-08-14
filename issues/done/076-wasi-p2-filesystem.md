@@ -1,8 +1,8 @@
 ---
-Status: open
+Status: done
 Status note: After #714 wrap removal, gate_076 is validate-only until in-tree fs bridge lands.
 Created: 2026-03-28
-Updated: 2026-07-12
+Updated: 2026-08-14
 ID: 076
 Track: wasi-feature
 Depends on: 074, 510
@@ -51,3 +51,11 @@ during `wasm-tools component new` so `wasi_fs_p2.ark` persists bytes under
 
 - `docs/spec/spec-WASI-0.2.10/OVERVIEW.md`
 - `issues/done/074-wasi-p2-native-component.md`
+
+## Close receipt — 2026-08-14
+
+- Dedicated close gate: PASS
+- `python3 scripts/manager.py verify quick`: PASS in PR #46 CI
+- Verification harness / docs consistency / selfhost gates: PASS in PR #46 CI
+- Implementation PR: #46 (`feat(wasi): productionize runtime ABI and real WASI host paths`)
+

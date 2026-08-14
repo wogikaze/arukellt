@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-26
-Updated: 2026-07-26
+Updated: 2026-08-14
 ID: 841
 Track: wasi-feature
 Parent: 727
@@ -44,16 +44,16 @@ This issue finishes the portable path:
 
 ## Acceptance
 
-- [ ] Guest HTTP/sockets call sites use real WASI method imports (not
+- [x] Guest HTTP/sockets call sites use real WASI method imports (not
       `http_get` / `sockets_*` bridge names), or a documented component
       canon-lower that hides only at the component boundary
-- [ ] `wasmtime run` executes HTTP DNS + sockets fixtures without
+- [x] `wasmtime run` executes HTTP DNS + sockets fixtures without
       `arukellt-host-run` / custom `host_http` / `host_sockets` registration
-- [ ] `tools/host-linker/src/host_http.rs` and `host_sockets.rs` deleted
+- [x] `tools/host-linker/src/host_http.rs` and `host_sockets.rs` deleted
       (or empty stubs with removal date + gate)
-- [ ] Compiler flag `needs_arukellt_host` renamed away from `arukellt_host`
-- [ ] `gate-655`–`658` / `#727` absence gate updated for the real-ABI path
-- [ ] `python3 scripts/manager.py verify quick` exits 0
+- [x] Compiler flag `needs_arukellt_host` renamed away from `arukellt_host`
+- [x] `gate-655`–`658` / `#727` absence gate updated for the real-ABI path
+- [x] `python3 scripts/manager.py verify quick` exits 0
 
 ## Close gate
 
@@ -68,3 +68,11 @@ absent.
 - `docs/research/p2-bridged-wasi-path-roadmap.md`
 - `tools/host-linker/src/host_http.rs`, `host_sockets.rs`
 - `#714` bridged close → `#668` guest-native remaining work (stdio analogue)
+
+## Close receipt — 2026-08-14
+
+- Dedicated close gate: PASS
+- `python3 scripts/manager.py verify quick`: PASS in PR #46 CI
+- Verification harness / docs consistency / selfhost gates: PASS in PR #46 CI
+- Implementation PR: #46 (`feat(wasi): productionize runtime ABI and real WASI host paths`)
+

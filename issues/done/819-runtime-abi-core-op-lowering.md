@@ -1,7 +1,7 @@
 ---
-Status: open
+Status: done
 Created: 2026-07-15
-Updated: 2026-07-15
+Updated: 2026-08-14
 ID: 819
 Parent: 729
 Track: compiler-internal
@@ -39,12 +39,12 @@ for HTTP/sockets standard WASI imports and cover the remaining host families her
 
 ## Acceptance
 
-- [ ] Every runtime-classified CoreOp resolves to a versioned runtime/WIT/native payload
-- [ ] No runtime CoreOp dispatches to `call_host_*` or emitter `intrinsic_*` implementation
-- [ ] HTTP/sockets use the standard WASI imports delivered by #727
-- [ ] stdio/fs/env/process/clock/random runtime families have executable boundary tests
-- [ ] Runtime import-shape and behavior differential tests pass
-- [ ] `python3 scripts/manager.py verify quick` passes
+- [x] Every runtime-classified CoreOp resolves to a versioned runtime/WIT/native payload
+- [x] No runtime CoreOp dispatches to `call_host_*` or emitter `intrinsic_*` implementation
+- [x] HTTP/sockets use the standard WASI imports delivered by #727
+- [x] stdio/fs/env/process/clock/random runtime families have executable boundary tests
+- [x] Runtime import-shape and behavior differential tests pass
+- [x] `python3 scripts/manager.py verify quick` passes
 
 ## References
 
@@ -53,3 +53,11 @@ for HTTP/sockets standard WASI imports and cover the remaining host families her
 - `issues/open/818-core-op-production-scaffold-exit.md`
 - `data/core-ops.toml`
 - `docs/adr/ADR-042-intrinsic-layer-separation.md`
+
+## Close receipt — 2026-08-14
+
+- Dedicated close gate: PASS
+- `python3 scripts/manager.py verify quick`: PASS in PR #46 CI
+- Verification harness / docs consistency / selfhost gates: PASS in PR #46 CI
+- Implementation PR: #46 (`feat(wasi): productionize runtime ABI and real WASI host paths`)
+
