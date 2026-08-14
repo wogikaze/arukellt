@@ -26,8 +26,8 @@ def main() -> int:
             return fail(f"{op.get('id')} is not runtime_call")
         if runtime.get("kind") not in {"internal", "wit", "native"}:
             return fail(f"{op.get('id')} has no explicit runtime payload kind")
-        if not str(runtime.get("abi_version", "")).strip():
-            return fail(f"{op.get('id')} has no runtime ABI version")
+        if not str(runtime.get("symbol", "")).strip() and runtime.get("kind") == "internal":
+            return fail(f"{op.get('id')} has no internal runtime symbol")
 
     required = {
         "runtime.fs_read_dir",
@@ -40,6 +40,11 @@ def main() -> int:
     ids = {op.get("id") for op in runtime_ops}
     if not required <= ids:
         return fail(f"missing production fs/env CoreOps: {sorted(required - ids)}")
+    by_id = {op.get("id"): op for op in runtime_ops}
+    for op_id in required:
+        runtime = by_id[op_id].get("lowering", {}).get("runtime", {})
+        if runtime.get("abi_version") != "0.1":
+            return fail(f"{op_id} is not bound to runtime ABI 0.1")
 
     wasm = ROOT / "src/compiler/wasm"
     if list(wasm.glob("call_host*.ark")):
