@@ -1,0 +1,34 @@
+name: Regenerate PR44 docs
+
+on:
+  push:
+    branches:
+      - agent/component-wit-productization
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/component-wit-productization
+          fetch-depth: 0
+      - name: Regenerate canonical docs and issue indexes
+        run: |
+          python3 scripts/gen/generate-docs.py
+          bash scripts/gen/generate-issue-index.sh
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "generated state already fresh"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs issues/open/index.md issues/open/dependency-graph.md issues/open/index-meta.json
+          git commit -m "docs: regenerate after Component/WIT closure"
+          git push origin HEAD:agent/component-wit-productization
