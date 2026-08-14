@@ -317,6 +317,7 @@ if [[ "${1:-}" == "run" ]]; then
     plug_runtime_adapter_in_place "$out_path"
     plug_runtime_adapter_in_place "$out_path"
     plug_runtime_adapter_in_place "$out_path"
+    plug_runtime_adapter_in_place "$out_path"
     exec wasmtime run --wasm gc --wasm function-references --dir="$REPO_ROOT" "$out_path"
   fi
 
