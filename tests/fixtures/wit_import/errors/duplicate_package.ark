@@ -1,0 +1,4 @@
+import "test:host/math" as first
+import "test:host/math" as second
+
+fn main() {}
