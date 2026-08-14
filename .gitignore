@@ -71,7 +71,7 @@ docs/spec/spec-*/
 # Node.js
 **/node_modules/
 
-# Arukellt Board build artifacts (run `npm run build` in CI for Pages; run `npm run build:app` locally)
+# Arukellt Board build artifacts (run `npm run build` in tools/board)
 tools/board/dist/
 tools/board/*.tsbuildinfo
 tools/board/**/*.js
