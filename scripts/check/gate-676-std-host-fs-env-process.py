@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+BUILD = ROOT / ".build" / "gate-676"
 
 
 def fail(message: str) -> int:
@@ -22,6 +23,54 @@ def require(path: str, markers: tuple[str, ...]) -> int:
         if marker not in text:
             return fail(f"{path}: missing {marker}")
     return 0
+
+
+def _compile_and_run(rel: str) -> tuple[int, str, str]:
+    fixture = ROOT / rel
+    BUILD.mkdir(parents=True, exist_ok=True)
+    component = BUILD / (fixture.stem + ".component.wasm")
+    component.unlink(missing_ok=True)
+    compile_run = subprocess.run(
+        [
+            str(ROOT / "scripts/run/arukellt-selfhost.sh"),
+            "compile",
+            rel,
+            "--target",
+            "wasm32-gc",
+            "--wasi-version",
+            "p2",
+            "--emit",
+            "component",
+            "-o",
+            str(component.relative_to(ROOT)),
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        timeout=240,
+    )
+    if compile_run.returncode != 0:
+        return compile_run.returncode, "", (compile_run.stdout + compile_run.stderr)[-1600:]
+    if not component.is_file():
+        return 1, "", "component compile produced no output"
+    run = subprocess.run(
+        [
+            "wasmtime",
+            "run",
+            "--wasm",
+            "gc",
+            "--wasm",
+            "function-references",
+            f"--dir={ROOT}",
+            str(component),
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        timeout=120,
+    )
+    component.unlink(missing_ok=True)
+    return run.returncode, run.stdout, run.stderr
 
 
 def main() -> int:
@@ -67,16 +116,15 @@ def main() -> int:
         for tool in ("wasmtime", "wac"):
             if shutil.which(tool) is None:
                 return fail(f"required E2E tool missing: {tool}")
-        launcher = ROOT / "scripts/run/arukellt-selfhost.sh"
         for rel, expected in (
             ("tests/fixtures/host/fs_env_process_surface.ark", "host surface ok"),
             ("tests/fixtures/host/fs_path_traversal.ark", "sandbox denied"),
         ):
-            run = subprocess.run([str(launcher), "run", str(ROOT / rel)], cwd=ROOT, text=True, capture_output=True)
-            if run.returncode != 0:
-                return fail(f"E2E failed for {rel}: {run.stderr[-1200:]}")
-            if expected not in run.stdout:
-                return fail(f"E2E output for {rel} did not contain {expected!r}: {run.stdout!r}")
+            rc, stdout, stderr = _compile_and_run(rel)
+            if rc != 0:
+                return fail(f"direct P2 E2E failed for {rel}: {stderr[-1600:]}")
+            if expected not in stdout:
+                return fail(f"E2E output for {rel} did not contain {expected!r}: {stdout!r}")
 
     print("gate-676-std-host-fs-env-process: PASS")
     return 0
