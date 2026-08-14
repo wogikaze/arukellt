@@ -3125,6 +3125,7 @@ def _compiler_source_content_hash(root: Path) -> str:
         "std/json/parser.ark",
         "std/text/mod.ark",
         "std/wit/names.ark",
+        "std/wit/scan.ark",
     ):
         std_path = root / std_rel
         if std_path.is_file():
@@ -3338,11 +3339,12 @@ def _prepare_flattened_selfhost_source_locked(
     # Component naming facades in the current compiler import std::wit::names
     # (#706/#44).  Component sources are intentionally live in the bootstrap
     # overlay, so their shared std dependency must be present as well.
-    wit_names_src = root / "std" / "wit" / "names.ark"
-    if wit_names_src.is_file():
-        wit_dst = std_dst / "wit"
-        wit_dst.mkdir(exist_ok=True)
-        shutil.copyfile(wit_names_src, wit_dst / "names.ark")
+    wit_dst = std_dst / "wit"
+    wit_dst.mkdir(exist_ok=True)
+    for wit_name in ("names.ark", "scan.ark"):
+        wit_src = root / "std" / "wit" / wit_name
+        if wit_src.is_file():
+            shutil.copyfile(wit_src, wit_dst / wit_name)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
