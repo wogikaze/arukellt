@@ -201,6 +201,19 @@ fn http_serve_once(port: u16, body: &str) -> Result<(), String> {
 }
 
 impl Guest for RuntimeAdapter {
+    fn runtime_buffer_new() -> u32 {
+        state()
+            .lock()
+            .expect("runtime state poisoned")
+            .insert(HandleValue::Buffer(Vec::new()))
+    }
+
+    fn runtime_buffer_push(handle: u32, byte: u8) {
+        let mut guard = state().lock().expect("runtime state poisoned");
+        if let Some(HandleValue::Buffer(bytes)) = guard.get_mut(handle) {
+            bytes.push(byte);
+        }
+    }
     fn runtime_buffer_len(handle: u32) -> u32 {
         let guard = state().lock().expect("runtime state poisoned");
         match guard.get(handle) {
@@ -271,8 +284,15 @@ impl Guest for RuntimeAdapter {
         }
     }
 
-    fn runtime_socket_write(socket: u32, bytes: Vec<u8>) -> i32 {
+    fn runtime_socket_write(socket: u32, buffer: u32) -> i32 {
         let mut guard = state().lock().expect("runtime state poisoned");
+        let bytes = match guard.get(buffer) {
+            Some(HandleValue::Buffer(bytes)) => bytes.clone(),
+            _ => {
+                drop(guard);
+                return store_error("invalid socket buffer handle");
+            }
+        };
         let Some(HandleValue::Stream(stream)) = guard.get_mut(socket) else {
             drop(guard);
             return store_error("invalid socket handle");
@@ -323,8 +343,15 @@ impl Guest for RuntimeAdapter {
         store_io(fs::write(path, contents.as_bytes()), |_| 0)
     }
 
-    fn runtime_fs_write_bytes(path: String, contents: Vec<u8>) -> i32 {
-        store_io(fs::write(path, contents), |_| 0)
+    fn runtime_fs_write_bytes(path: String, buffer: u32) -> i32 {
+        let bytes = {
+            let guard = state().lock().expect("runtime state poisoned");
+            match guard.get(buffer) {
+                Some(HandleValue::Buffer(bytes)) => bytes.clone(),
+                _ => return store_error("invalid filesystem buffer handle"),
+            }
+        };
+        store_io(fs::write(path, bytes), |_| 0)
     }
 
     fn runtime_fs_read_dir(path: String) -> i32 {
