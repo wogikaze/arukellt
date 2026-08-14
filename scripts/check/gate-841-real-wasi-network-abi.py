@@ -44,11 +44,12 @@ def main() -> int:
         return fail("product component path does not plug the checked adapter")
     if "arukellt-run-hosted.sh" in launcher and "http_get|http_request|http_serve" in launcher:
         return fail("network runtime still falls back to custom hosted runner")
-    if "needs_runtime_host" in "\n".join(
+    ark_sources = "\n".join(
         p.read_text(encoding="utf-8", errors="ignore")
         for p in (ROOT / "src").rglob("*.ark")
-    ):
-        return fail("legacy needs_runtime_host flag remains")
+    )
+    if "needs_arukellt_host" in ark_sources:
+        return fail("legacy needs_arukellt_host flag remains")
 
     if os.environ.get("ARUKELLT_REQUIRE_RUNTIME_E2E") == "1":
         for tool in ("wasmtime", "wac"):
