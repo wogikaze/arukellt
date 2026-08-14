@@ -1,0 +1,6 @@
+[package]
+name = "component-deps-fixture"
+version = "0.1.0"
+
+[dependencies]
+"test:greeter" = { path = "vendor/greeter", package = "test:greeter", world = "provider" }

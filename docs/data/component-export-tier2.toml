@@ -1,0 +1,72 @@
+# User-visible component export Tier-2 matrix. #673 closes by making every row explicit.
+version = 1
+
+[[shape]]
+id = "option-string"
+status = "deferred"
+reason = "canonical ABI string payload allocation for nested option is not generalized"
+
+[[shape]]
+id = "option-vec-i32"
+status = "deferred"
+reason = "nested list payload lowering is not generalized"
+
+[[shape]]
+id = "result-string-string"
+status = "deferred"
+reason = "both result payload arms require generalized string lift/lower"
+
+[[shape]]
+id = "result-vec-i32-string"
+status = "deferred"
+reason = "nested list/string result payload lowering is not generalized"
+
+[[shape]]
+id = "vec-string"
+status = "deferred"
+reason = "list-of-string ownership and allocation is not generalized"
+
+[[shape]]
+id = "vec-u8"
+status = "deferred"
+reason = "byte-list canonical ABI path is not generalized"
+
+[[shape]]
+id = "vec-i64"
+status = "deferred"
+reason = "non-i32 list element lowering is not generalized"
+
+[[shape]]
+id = "vec-option-i32"
+status = "deferred"
+reason = "nested option list element lowering is not generalized"
+
+[[shape]]
+id = "tuple-string-string"
+status = "deferred"
+reason = "tuple string ownership is not generalized"
+
+[[shape]]
+id = "tuple-3"
+status = "deferred"
+reason = "generic tuple arity adapter is not implemented"
+
+[[shape]]
+id = "general-record-enum-variant"
+status = "deferred"
+reason = "name-independent aggregate layout planning remains outside the fixture adapters"
+
+[[shape]]
+id = "mixed-scalar-aggregate-multi-export"
+status = "supported"
+reason = "#667 restores specialized-first dispatch before scalar generic fallback"
+
+[[shape]]
+id = "multi-export-string-list"
+status = "deferred"
+reason = "mixed generalized list/string ownership remains unsupported"
+
+[[shape]]
+id = "recursive-export"
+status = "rejected"
+reason = "recursive canonical ABI export shapes remain E0401 by contract"
