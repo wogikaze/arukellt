@@ -31,9 +31,13 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_run
     }
     if needs_wasi_http_outgoing == 1 { push(type_sigs, "i32_i32_1i32") }
     if needs_runtime_host == 1 {
+        // Canonical-lowered arukellt:runtime@0.1.0 top-level host calls.
+        // r0 = three i32 params -> i32 (string+scalar / scalar+string)
+        // r1 = six i32 params -> i32 (three canonical strings)
+        // r2 = two i32 params -> void (buffer push)
         push(type_sigs, "i32_i32_i32_1i32")
-        push(type_sigs, "i32_i32_i32_i32_i32_i32_i32_1i32")
-        push(type_sigs, "i32_i32_i32_i32_1i32")
+        push(type_sigs, "i32_i32_i32_i32_i32_i32_1i32")
+        push(type_sigs, "i32_i32_0")
     }
 }
 
