@@ -149,11 +149,11 @@ alias = "__intrinsic_ends_with"
 core_op_id = "string.ends_with"
 
 [[legacy_bindings]]
-alias = "__intrinsic_env_get_var"
+alias = "__runtime_abi_env_get_var"
 core_op_id = "runtime.get_var"
 
 [[legacy_bindings]]
-alias = "__intrinsic_env_var"
+alias = "__runtime_abi_env_var"
 core_op_id = "runtime.var"
 
 [[legacy_bindings]]
@@ -209,27 +209,27 @@ alias = "raw::raw_parse_i64"
 core_op_id = "raw.parse_i64"
 
 [[legacy_bindings]]
-alias = "__intrinsic_fs_read_file"
+alias = "__runtime_abi_fs_read_file"
 core_op_id = "runtime.fs_read_file"
 
 [[legacy_bindings]]
-alias = "__intrinsic_fs_write_bytes"
+alias = "__runtime_abi_fs_write_bytes"
 core_op_id = "runtime.write_bytes"
 
 [[legacy_bindings]]
-alias = "__intrinsic_fs_write_file"
+alias = "__runtime_abi_fs_write_file"
 core_op_id = "runtime.write_string"
 
 [[legacy_bindings]]
-alias = "__intrinsic_http_get"
+alias = "__runtime_abi_http_get"
 core_op_id = "runtime.get"
 
 [[legacy_bindings]]
-alias = "__intrinsic_http_request"
+alias = "__runtime_abi_http_request"
 core_op_id = "runtime.request"
 
 [[legacy_bindings]]
-alias = "__intrinsic_http_serve"
+alias = "__runtime_abi_http_serve"
 core_op_id = "runtime.serve"
 
 [[legacy_bindings]]
@@ -265,35 +265,35 @@ alias = "__intrinsic_split"
 core_op_id = "string.split"
 
 [[legacy_bindings]]
-alias = "__intrinsic_process_abort"
+alias = "__runtime_abi_process_abort"
 core_op_id = "runtime.process.abort"
 
 [[legacy_bindings]]
-alias = "__intrinsic_process_exit"
+alias = "__runtime_abi_process_exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
-alias = "__intrinsic_random_i32"
+alias = "__runtime_abi_random_i32"
 core_op_id = "runtime.random_i32"
 
 [[legacy_bindings]]
-alias = "__intrinsic_sockets_accept"
+alias = "__runtime_abi_sockets_accept"
 core_op_id = "runtime.accept"
 
 [[legacy_bindings]]
-alias = "__intrinsic_sockets_connect"
+alias = "__runtime_abi_sockets_connect"
 core_op_id = "runtime.connect"
 
 [[legacy_bindings]]
-alias = "__intrinsic_sockets_listen"
+alias = "__runtime_abi_sockets_listen"
 core_op_id = "runtime.listen"
 
 [[legacy_bindings]]
-alias = "__intrinsic_sockets_read"
+alias = "__runtime_abi_sockets_read"
 core_op_id = "runtime.read"
 
 [[legacy_bindings]]
-alias = "__intrinsic_sockets_write"
+alias = "__runtime_abi_sockets_write"
 core_op_id = "runtime.write"
 
 [[legacy_bindings]]
@@ -3689,7 +3689,7 @@ id = "runtime.accept"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::accept (aliases: 4; sockets_accept, __intrinsic_sockets_accept, sockets::accept, std::host::sockets::accept)"
+description = "Legacy handler branch → sockets::accept (aliases: 4; sockets_accept, __runtime_abi_sockets_accept, sockets::accept, std::host::sockets::accept)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4098,7 +4098,7 @@ id = "runtime.connect"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::connect (aliases: 4; sockets_connect, __intrinsic_sockets_connect, sockets::connect, std::host::sockets::connect)"
+description = "Legacy handler branch → sockets::connect (aliases: 4; sockets_connect, __runtime_abi_sockets_connect, sockets::connect, std::host::sockets::connect)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4248,7 +4248,7 @@ id = "runtime.fs_read_file"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::read_to_string (aliases: 4; fs::read_to_string, read_to_string, fs_read_file, __intrinsic_fs_read_file)"
+description = "Legacy handler branch → fs::read_to_string (aliases: 4; fs::read_to_string, read_to_string, fs_read_file, __runtime_abi_fs_read_file)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4285,7 +4285,7 @@ id = "runtime.get"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::get (aliases: 4; http_get, __intrinsic_http_get, http::get, std::host::http::get)"
+description = "Legacy handler branch → http::get (aliases: 4; http_get, __runtime_abi_http_get, http::get, std::host::http::get)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4324,7 +4324,7 @@ id = "runtime.get_var"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → env::get_var (aliases: 3; env::get_var, __intrinsic_env_get_var, env_get_var)"
+description = "Legacy handler branch → env::get_var (aliases: 3; env::get_var, __runtime_abi_env_get_var, env_get_var)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4657,7 +4657,7 @@ id = "runtime.listen"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::listen (aliases: 4; sockets_listen, __intrinsic_sockets_listen, sockets::listen, std::host::sockets::listen)"
+description = "Legacy handler branch → sockets::listen (aliases: 4; sockets_listen, __runtime_abi_sockets_listen, sockets::listen, std::host::sockets::listen)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4770,7 +4770,7 @@ id = "runtime.process.abort"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → process::abort (aliases: 3; process::abort, host::process::abort, __intrinsic_process_abort)"
+description = "Legacy handler branch → process::abort (aliases: 3; process::abort, host::process::abort, __runtime_abi_process_abort)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4807,7 +4807,7 @@ id = "runtime.process.exit"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → process::exit (aliases: 3; process::exit, host::process::exit, __intrinsic_process_exit)"
+description = "Legacy handler branch → process::exit (aliases: 3; process::exit, host::process::exit, __runtime_abi_process_exit)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4844,7 +4844,7 @@ id = "runtime.random_i32"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → random_i32 (aliases: 2; __intrinsic_random_i32, random_i32)"
+description = "Legacy handler branch → random_i32 (aliases: 2; __runtime_abi_random_i32, random_i32)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4881,7 +4881,7 @@ id = "runtime.read"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::read (aliases: 4; sockets_read, __intrinsic_sockets_read, sockets::read, std::host::sockets::read)"
+description = "Legacy handler branch → sockets::read (aliases: 4; sockets_read, __runtime_abi_sockets_read, sockets::read, std::host::sockets::read)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4957,7 +4957,7 @@ id = "runtime.request"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::request (aliases: 4; http_request, __intrinsic_http_request, http::request, std::host::http::request)"
+description = "Legacy handler branch → http::request (aliases: 4; http_request, __runtime_abi_http_request, http::request, std::host::http::request)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -4996,7 +4996,7 @@ id = "runtime.serve"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Guest export contract wasi:http/incoming-handler::handle (legacy http::serve aliases: http_serve, __intrinsic_http_serve, http::serve, std::host::http::serve)"
+description = "Guest export contract wasi:http/incoming-handler::handle (legacy http::serve aliases: http_serve, __runtime_abi_http_serve, http::serve, std::host::http::serve)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5146,7 +5146,7 @@ id = "runtime.var"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → env::var (aliases: 3; env::var, env_var, __intrinsic_env_var)"
+description = "Legacy handler branch → env::var (aliases: 3; env::var, env_var, __runtime_abi_env_var)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5220,7 +5220,7 @@ id = "runtime.write"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::write (aliases: 4; sockets_write, __intrinsic_sockets_write, sockets::write, std::host::sockets::write)"
+description = "Legacy handler branch → sockets::write (aliases: 4; sockets_write, __runtime_abi_sockets_write, sockets::write, std::host::sockets::write)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5259,7 +5259,7 @@ id = "runtime.write_bytes"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __intrinsic_fs_write_bytes)"
+description = "Legacy handler branch → fs::write_bytes (aliases: fs::write_bytes, fs_write_bytes, __runtime_abi_fs_write_bytes)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]
@@ -5296,7 +5296,7 @@ id = "runtime.write_string"
 visibility = "public"
 classification = { layer = "runtime" }
 binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → fs::write_string (aliases: fs::write_string, fs_write_file, __intrinsic_fs_write_file)"
+description = "Legacy handler branch → fs::write_string (aliases: fs::write_string, fs_write_file, __runtime_abi_fs_write_file)"
 [operations.signature]
 inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
 outputs = [{ type = { kind = "primitive", name = "i32" } }]

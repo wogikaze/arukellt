@@ -1,5 +1,5 @@
 use mir::opcodes
-use wasm::call_host_io
+use wasm::call_runtime_io
 use wasm::inst_store
 use wasm::intrinsic_assert
 use wasm::intrinsic_option_result
@@ -26,7 +26,7 @@ fn try_emit_option_assert_call(
     if try_emit_assert_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
-    call_host_io::try_emit_process_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
+    call_runtime_io::try_emit_process_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op)
 }
 
 fn try_emit_option_result_call(

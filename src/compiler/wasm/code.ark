@@ -49,7 +49,7 @@ fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i3
             main_idx,
             ctx_record::SelfEmitCtx_target(ctx),
             ctx_record::SelfEmitCtx_wasi_version(ctx),
-            ctx_record::SelfEmitCtx_needs_arukellt_host(ctx),
+            ctx_record::SelfEmitCtx_needs_network_runtime(ctx),
             ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
             wit_import_count
         )

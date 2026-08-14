@@ -23,7 +23,7 @@ REQUIRED_PATHS = (
     "std/host/clock.ark",
     "std/random/mod.ark",
     "src/compiler/wasm/intrinsic_clock.ark",
-    "src/compiler/wasm/call_host_time.ark",
+    "src/compiler/wasm/call_runtime_time.ark",
     "tests/fixtures/stdlib_time/monotonic.ark",
     "tests/fixtures/stdlib_time/duration.ark",
     "tests/fixtures/stdlib_host/wasi_clock.ark",
@@ -48,7 +48,7 @@ def main() -> int:
         if not (REPO_ROOT / rel).is_file():
             failures.append(f"missing {rel}")
 
-    clock_emitter = (REPO_ROOT / "src/compiler/wasm/call_host_time.ark").read_text(
+    clock_emitter = (REPO_ROOT / "src/compiler/wasm/call_runtime_time.ark").read_text(
         encoding="utf-8"
     )
     required_handlers = (
@@ -58,7 +58,7 @@ def main() -> int:
     )
     for handler in required_handlers:
         if handler not in clock_emitter:
-            failures.append(f"call_host_time.ark lacks typed {handler} dispatch")
+            failures.append(f"call_runtime_time.ark lacks typed {handler} dispatch")
 
     if failures:
         print("gate-051-std-time-random: FAIL", file=sys.stderr)

@@ -34,7 +34,7 @@ fn emit_export_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
@@ -44,8 +44,8 @@ fn emit_export_section(
     let main_idx = ExportSectionPlan_main_idx(plan)
     writer_core::emit_leb128_u(export_sec, export_count)
     emit_memory_export_entry(export_sec)
-    emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
-    emit_function_export_entries(export_sec, mir, fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
+    emit_function_export_entries(export_sec, mir, fn_count, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
     writer_sections::emit_section(out, opcodes::SEC_EXPORT(), export_sec)
 }
 
@@ -99,7 +99,7 @@ fn emit_start_export_entry(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
@@ -107,9 +107,9 @@ fn emit_start_export_entry(
         writer_string::emit_string(export_sec, "_start")
         writer_core::emit_byte(export_sec, 0)
         if needs_wrapper == 1 {
-            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count))
         } else {
-            writer_core::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count))
         }
     }
 }
@@ -120,7 +120,7 @@ fn emit_function_export_entries(
     fn_count: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
@@ -139,7 +139,7 @@ fn emit_function_export_entries(
                     push(seen_short_names, clone(ef_name))
                     writer_string::emit_string(export_sec, export_name)
                     writer_core::emit_byte(export_sec, 0)
-                    writer_core::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count))
+                    writer_core::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count))
                 }
             }
         }
@@ -181,10 +181,10 @@ fn is_generic_function(f: MirFunction) -> bool {
     false
 }
 
-fn wasm_function_export_index(function_idx: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    function_indices::defined_function_index(function_idx, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+fn wasm_function_export_index(function_idx: i32, target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
+    function_indices::defined_function_index(function_idx, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
 }
 
-fn wasm_wrapper_export_index(fn_count: i32, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    function_indices::wrapper_function_index(fn_count, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+fn wasm_wrapper_export_index(fn_count: i32, target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
+    function_indices::wrapper_function_index(fn_count, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
 }

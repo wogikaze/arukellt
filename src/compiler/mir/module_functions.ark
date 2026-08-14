@@ -106,7 +106,7 @@ fn mir_module_needs_wasi_http_outgoing(mir: MirModule) -> i32 {
     0
 }
 
-fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {
+fn mir_module_needs_network_runtime(mir: MirModule) -> i32 {
     let fn_count = MirModule_function_count(mir)
     let mut fi = 0
     while fi < fn_count {

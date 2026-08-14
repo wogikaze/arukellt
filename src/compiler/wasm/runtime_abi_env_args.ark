@@ -1,12 +1,12 @@
 use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_scratch
-use wasm::intrinsic_env_arg_at_body
-use wasm::intrinsic_env_arg_list_populate
-use wasm::intrinsic_env_args_gc
-use wasm::intrinsic_env_has_flag_body
-use wasm::intrinsic_env_var
-use wasm::intrinsic_env_var_gc
+use wasm::runtime_abi_env_arg_at_body
+use wasm::runtime_abi_env_arg_list_populate
+use wasm::runtime_abi_env_args_gc
+use wasm::runtime_abi_env_has_flag_body
+use wasm::runtime_abi_env_var
+use wasm::runtime_abi_env_var_gc
 use wasm::emit_target
 use wasm::ctx_record
 use wasm::import_indices
@@ -30,16 +30,16 @@ fn emit_env_arg_count(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_env_args(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return intrinsic_env_args_gc::emit_env_args_gc(w, ctx)
+        return runtime_abi_env_args_gc::emit_env_args_gc(w, ctx)
     }
     emit_env_args_prepare_vec(w, ctx)
-    intrinsic_env_arg_list_populate::emit_env_args_populate(w, ctx)
+    runtime_abi_env_arg_list_populate::emit_env_args_populate(w, ctx)
     helpers_core::emit_local_get(w, ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1))
     return true
 }
 
 fn emit_env_has_flag(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_env_has_flag_body::emit_has_flag(w, inst, ctx)
+    runtime_abi_env_has_flag_body::emit_has_flag(w, inst, ctx)
 }
 
 fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -48,7 +48,7 @@ fn emit_env_arg_at(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         // `match env::arg_at(i) { None => … }` works (#807 cli_basic).
         return emit_env_arg_at_gc_none(w, ctx)
     }
-    intrinsic_env_arg_at_body::emit_arg_at(w, ctx)
+    runtime_abi_env_arg_at_body::emit_arg_at(w, ctx)
 }
 
 fn emit_env_arg_at_gc_none(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
@@ -69,16 +69,16 @@ fn emit_env_arg_at_gc_none(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_env_var::emit_env_var(w, inst, ctx)
+    runtime_abi_env_var::emit_env_var(w, inst, ctx)
 }
 
 fn emit_env_get_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_env_var::emit_env_get_var(w, inst, ctx)
+    runtime_abi_env_var::emit_env_get_var(w, inst, ctx)
 }
 
 fn emit_env_var_or_default(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        return intrinsic_env_var_gc::emit_env_var_or_default_gc(w, inst, ctx)
+        return runtime_abi_env_var_gc::emit_env_var_or_default_gc(w, inst, ctx)
     }
     emit_env_var_default_fallback(w, ctx_scratch::SelfEmitCtx_scratch_base(ctx))
     return true

@@ -1,0 +1,20 @@
+use wasm::runtime_abi_fs_exists
+use wasm::runtime_abi_fs_read
+use wasm::runtime_abi_fs_write_bytes
+use wasm::runtime_abi_fs_write_string
+
+fn emit_fs_exists(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    runtime_abi_fs_exists::emit_fs_exists(w, inst, ctx)
+}
+
+fn emit_fs_read_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    runtime_abi_fs_read::emit_fs_read_to_string(w, inst, ctx)
+}
+
+fn emit_fs_write_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    runtime_abi_fs_write_string::emit_fs_write_string(w, inst, ctx)
+}
+
+fn emit_fs_write_bytes(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    runtime_abi_fs_write_bytes::emit_fs_write_bytes(w, inst, ctx)
+}

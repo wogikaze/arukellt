@@ -6,8 +6,8 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
-use wasm::intrinsic_env_args_gc
-use wasm::intrinsic_stdio_gc
+use wasm::runtime_abi_env_args_gc
+use wasm::runtime_abi_stdio_gc
 use wasm::intrinsic_vec_access_gc
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -20,7 +20,7 @@ use wasm::writer_core
 use wasm::writer_gc
 
 fn emit_env_var_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    let name_ptr = intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    let name_ptr = runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
     let name_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     helpers_core::emit_local_get(w, name_ptr)
     helpers_numeric_i32::emit_i32_const(w, 4)
@@ -216,12 +216,12 @@ fn emit_env_var_gc_build_some(w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, n
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_set(w, value_start)
-    intrinsic_env_args_gc::emit_env_args_gc_cstr_len(w, value_start, value_len)
+    runtime_abi_env_args_gc::emit_env_args_gc_cstr_len(w, value_start, value_len)
 
     helpers_core::emit_local_get(w, value_len)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, s_str)
-    intrinsic_env_args_gc::emit_env_args_gc_copy_bytes(w, value_start, value_len, s_str, s_k, string_type)
+    runtime_abi_env_args_gc::emit_env_args_gc_copy_bytes(w, value_start, value_len, s_str, s_k, string_type)
 
     let some_type = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, "_f1_ref0", open_type)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())

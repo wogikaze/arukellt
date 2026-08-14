@@ -18,7 +18,7 @@
 - HTTPS URL は stable diagnostic で拒否（`#727` の host-linker 実装 or 追加ロジック）。
 - `std/manifest.toml` + `docs/data/capabilities.toml` + `docs/capability-surface.md` + 生成 stdlib docs を `user_reachable` に更新。
 - `scripts/gen/generate-docs.py` に `capabilities.toml` と `manifest.toml` / `availability` の drift check を追加。
-- `call_host.ark` / `call_host_network.ark` の runtime capability audit gate を追加/更新。
+- `call_host.ark` / `call_runtime_network.ark` の runtime capability audit gate を追加/更新。
 - Close gate: `gate-675-host-capability-reachability.py` または `#138` gate 拡張。
 - `python3 scripts/manager.py verify quick` exits 0.
 
@@ -83,7 +83,7 @@
 - `tests/fixtures/host/http/` および `host/udp/` から #727 gate fixture を再利用/追加。
 - `tests/fixtures/manifest.txt` に `run:` / `t3-run:` エントリ追加。
 - `scripts/check/gate-675-host-capability-reachability.py`（新規 or 更新）:
-  - static: manifest / `capabilities.toml` / `call_host_network.ark` / host-linker caps フラグ。
+  - static: manifest / `capabilities.toml` / `call_runtime_network.ark` / host-linker caps フラグ。
   - runtime: `arukellt-selfhost.sh run --allow-http --allow-net <fixture>` 実行と期待出力検証。
 - `scripts/manager.py` の `verify quick` `bg_checks` リストに追加。
 

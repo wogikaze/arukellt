@@ -2,7 +2,7 @@ use wasm::constants
 use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::writer_core
-use wasm::intrinsic_stdio_gc
+use wasm::runtime_abi_stdio_gc
 use wasm::import_indices
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -40,7 +40,7 @@ fn emit_has_flag_setup(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
     let s_bufsize = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        intrinsic_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+        runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
     } else {
         helpers_core::emit_local_set(w, s_flag)
     }

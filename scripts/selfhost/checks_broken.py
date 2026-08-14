@@ -1947,7 +1947,7 @@ def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
         return
     text = path.read_text(encoding="utf-8")
     stubs: tuple[tuple[str, str], ...] = (
-        ("mir_module_needs_arukellt_host", "mir: MirModule"),
+        ("mir_module_needs_network_runtime", "mir: MirModule"),
         ("mir_module_needs_wasi_http_outgoing", "mir: MirModule"),
         ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
     )

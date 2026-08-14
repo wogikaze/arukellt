@@ -34,8 +34,8 @@ def _static_evidence() -> tuple[int, str]:
     if "t3-run:host/http/incoming_smoke.ark" not in manifest:
         return 1, "manifest missing t3-run:host/http/incoming_smoke.ark"
     text = (REPO_ROOT / "std/host/http.ark").read_text(encoding="utf-8")
-    if "serve" not in text or "__intrinsic_http_serve" not in text:
-        return 1, "std/host/http.ark lacks serve / __intrinsic_http_serve"
+    if "serve" not in text or "__runtime_abi_http_serve" not in text:
+        return 1, "std/host/http.ark lacks serve / __runtime_abi_http_serve"
     return 0, ""
 
 

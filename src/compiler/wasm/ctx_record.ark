@@ -20,7 +20,7 @@ pub struct SelfEmitCtx {
     vec_locals: Vec<i32>,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     gc_hint_offsets: Vec<i32>,
     needs_wasi_http_outgoing: i32,
     source_file: String,
@@ -76,7 +76,7 @@ fn SelfEmitCtx_new(
     false_str_idx: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     source_file: String
 ) -> SelfEmitCtx {
@@ -120,7 +120,7 @@ fn SelfEmitCtx_new(
         vec_locals: empty_i32,
         target: target,
         wasi_version: wasi_version,
-        needs_arukellt_host: needs_arukellt_host,
+        needs_network_runtime: needs_network_runtime,
         gc_hint_offsets: empty_i32_b,
         needs_wasi_http_outgoing: needs_wasi_http_outgoing,
         source_file: source_file,
@@ -223,8 +223,8 @@ fn SelfEmitCtx_set_local_producer_index_entries(ctx: SelfEmitCtx, cache: Vec<i32
     ctx.local_producer_index_entries = cache
 }
 
-fn SelfEmitCtx_needs_arukellt_host(ctx: SelfEmitCtx) -> i32 {
-    ctx.needs_arukellt_host
+fn SelfEmitCtx_needs_network_runtime(ctx: SelfEmitCtx) -> i32 {
+    ctx.needs_network_runtime
 }
 
 fn SelfEmitCtx_needs_wasi_http_outgoing(ctx: SelfEmitCtx) -> i32 {

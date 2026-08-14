@@ -3,19 +3,19 @@ use mir::opcodes
 use wasm::constants
 use wasm::ctx_record
 use wasm::emit_target
-use wasm::intrinsic_stdio_gc
-use wasm::intrinsic_stdio_read
+use wasm::runtime_abi_stdio_gc
+use wasm::runtime_abi_stdio_read
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io
 use wasm::intrinsics::helpers_io_p2
 
 fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
-    intrinsic_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
+    runtime_abi_stdio_read::emit_read_stdin_to_string(w, inst, ctx)
 }
 
 fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_ref: bool, next_op: i32, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
+        runtime_abi_stdio_gc::emit_gc_println(w, inst, ctx, drop_stray_text_ref, next_op, prev_op)
     } else {
         emit_println_t1(w, inst, ctx, prev_op)
     }
@@ -24,7 +24,7 @@ fn emit_println(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, drop_stray_text_
 
 fn emit_print(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_print(w, inst, ctx, prev_op)
+        runtime_abi_stdio_gc::emit_gc_print(w, inst, ctx, prev_op)
     } else {
         emit_print_t1(w, inst, ctx, prev_op)
     }
@@ -55,7 +55,7 @@ fn emit_print_t1(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) {
 
 fn emit_eprintln(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) && emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        intrinsic_stdio_gc::emit_gc_eprintln(w, inst, ctx, prev_op)
+        runtime_abi_stdio_gc::emit_gc_eprintln(w, inst, ctx, prev_op)
     } else {
         emit_eprintln_t1(w, inst, ctx, prev_op)
     }

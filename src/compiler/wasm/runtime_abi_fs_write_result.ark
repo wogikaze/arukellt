@@ -5,7 +5,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::import_indices
-use wasm::intrinsic_fs_read_body
+use wasm::runtime_abi_fs_read_body
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
@@ -71,7 +71,7 @@ fn emit_fs_write_error_message(w: WasmWriter) {
 fn emit_fs_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         // tag=1 → Result::Err(String); reuses fs_read GC string+variant emit.
-        intrinsic_fs_read_body::emit_fs_read_result_pair(w, 1, ctx)
+        runtime_abi_fs_read_body::emit_fs_read_result_pair(w, 1, ctx)
         return
     }
     helpers_core::emit_heap_get(w)

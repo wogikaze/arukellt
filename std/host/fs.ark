@@ -13,7 +13,7 @@
 //!
 //! - `is_readable_file(path)` (formerly `exists`) is a **read probe /
 //!   readable-file check**, not a general path-existence query. It is
-//!   implemented on top of `__intrinsic_fs_read_file`, so directories,
+//!   implemented on top of `__runtime_abi_fs_read_file`, so directories,
 //!   missing paths, and any other unreadable paths return `false`.
 //! - `read_dir` and `metadata` return errors on all current targets because
 //!   the WASI P1/P2 intrinsic layer does not yet expose directory iteration
@@ -63,17 +63,17 @@ fn classify_fs_error(raw: String, path: String, op: String) -> FsError {
 /// Use `read_dir` / `metadata` for `FsError`-typed errors; whole-file I/O keeps
 /// string errors until intrinsic lowering supports `FsError` ABI (#613 follow-up).
 pub fn read_to_string(path: String) -> Result<String, String> {
-    __intrinsic_fs_read_file(path)
+    __runtime_abi_fs_read_file(path)
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
 pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __intrinsic_fs_write_file(path, contents)
+    __runtime_abi_fs_write_file(path, contents)
 }
 
 /// Writes a byte array to a file, replacing any existing contents.
 pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
-    __intrinsic_fs_write_bytes(path, bytes)
+    __runtime_abi_fs_write_bytes(path, bytes)
 }
 
 // ─── Path predicates (read-probe based) ────────────────────────────────────
@@ -81,7 +81,7 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
 /// Read-probe semantics — **not** a general path-existence query.
 ///
 /// This function attempts a full UTF-8 file read via the same intrinsic as
-/// `read_to_string` (`__intrinsic_fs_read_file`) and returns `true` only when
+/// `read_to_string` (`__runtime_abi_fs_read_file`) and returns `true` only when
 /// that read succeeds end-to-end. The result is **best-effort**:
 ///
 /// - A `false` result does **not** distinguish between *missing file*,
@@ -98,7 +98,7 @@ pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
 /// deprecated wrapper for backward compatibility). The new name makes it clear
 /// that only *readable regular files* are detected.
 pub fn is_readable_file(path: String) -> bool {
-    match __intrinsic_fs_read_file(path) {
+    match __runtime_abi_fs_read_file(path) {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }

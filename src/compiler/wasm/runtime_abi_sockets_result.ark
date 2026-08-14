@@ -2,8 +2,8 @@ use wasm::constants
 use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::ctx_scratch
-use wasm::intrinsic_http_result
-use wasm::intrinsic_sockets_vec
+use wasm::runtime_abi_http_result
+use wasm::runtime_abi_sockets_vec
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
@@ -15,7 +15,7 @@ use wasm::writer_core
 use wasm::writer_gc
 
 fn emit_sockets_finalize_i32_result(w: WasmWriter) {
-    intrinsic_http_result::emit_http_store_abs_len(w, constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN())
+    runtime_abi_http_result::emit_http_store_abs_len(w, constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN())
     emit_sockets_write_err_len_prefix(w)
     emit_sockets_bump_heap_for_err(w)
     emit_sockets_build_result_enum(w)
@@ -29,7 +29,7 @@ fn emit_sockets_write_err_len_prefix(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_lt_s(w)
     helpers_control::emit_if_empty(w)
-    intrinsic_http_result::emit_http_write_len_prefix(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_ABSLEN())
+    runtime_abi_http_result::emit_http_write_len_prefix(w, constants::SCRATCH_SOCK_RESPPTR(), constants::SCRATCH_SOCK_ABSLEN())
     helpers_control::emit_end(w)
 }
 
@@ -39,7 +39,7 @@ fn emit_sockets_bump_heap_for_err(w: WasmWriter) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_lt_s(w)
     helpers_control::emit_if_empty(w)
-    intrinsic_http_result::emit_http_bump_heap_by_abs_len(w, constants::SCRATCH_SOCK_ABSLEN())
+    runtime_abi_http_result::emit_http_bump_heap_by_abs_len(w, constants::SCRATCH_SOCK_ABSLEN())
     helpers_control::emit_end(w)
 }
 
@@ -80,7 +80,7 @@ fn emit_sockets_build_result_enum(w: WasmWriter) {
 }
 
 fn emit_sockets_finalize_read_result(w: WasmWriter, ctx: SelfEmitCtx) {
-    intrinsic_http_result::emit_http_store_abs_len(w, constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN())
+    runtime_abi_http_result::emit_http_store_abs_len(w, constants::SCRATCH_SOCK_RET(), constants::SCRATCH_SOCK_ABSLEN())
     emit_sockets_write_err_len_prefix(w)
     emit_sockets_bump_heap_for_err(w)
     emit_sockets_finalize_read_branch(w, ctx)
@@ -96,8 +96,8 @@ fn emit_sockets_finalize_read_branch(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_control::emit_if_empty(w)
     emit_sockets_build_read_err_enum(w)
     helpers_control::emit_else(w)
-    intrinsic_sockets_vec::emit_sockets_build_read_vec(w, ctx)
-    intrinsic_sockets_vec::emit_sockets_build_vec_ok_enum(w, ctx)
+    runtime_abi_sockets_vec::emit_sockets_build_read_vec(w, ctx)
+    runtime_abi_sockets_vec::emit_sockets_build_vec_ok_enum(w, ctx)
     helpers_control::emit_end(w)
 }
 
@@ -186,15 +186,15 @@ fn emit_sockets_finalize_i32_result_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let ret_slot = constants::SCRATCH_SOCK_RET()
     let resp_slot = constants::SCRATCH_SOCK_RESPPTR()
     let abs_slot = constants::SCRATCH_SOCK_ABSLEN()
-    intrinsic_http_result::emit_http_store_abs_len(w, ret_slot, abs_slot)
+    runtime_abi_http_result::emit_http_store_abs_len(w, ret_slot, abs_slot)
     helpers_io_layout::emit_scratch_addr(w, ret_slot)
     helpers_memory::emit_i32_load_default(w)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_lt_s(w)
     helpers_control::emit_if_empty(w)
-    intrinsic_http_result::emit_http_bump_heap_by_abs_len(w, abs_slot)
-    intrinsic_http_result::emit_http_gc_string_from_linear(w, s_str, s_i, s_len, resp_slot, abs_slot, string_type)
-    intrinsic_http_result::emit_http_gc_result_string_variant(w, ctx, s_str, 1)
+    runtime_abi_http_result::emit_http_bump_heap_by_abs_len(w, abs_slot)
+    runtime_abi_http_result::emit_http_gc_string_from_linear(w, s_str, s_i, s_len, resp_slot, abs_slot, string_type)
+    runtime_abi_http_result::emit_http_gc_result_string_variant(w, ctx, s_str, 1)
     helpers_core::emit_local_set(w, s_result)
     helpers_control::emit_else(w)
     emit_sockets_gc_result_i32_ok(w, ctx, ret_slot)
@@ -214,18 +214,18 @@ fn emit_sockets_finalize_read_result_gc(w: WasmWriter, ctx: SelfEmitCtx) {
     let ret_slot = constants::SCRATCH_SOCK_RET()
     let resp_slot = constants::SCRATCH_SOCK_RESPPTR()
     let abs_slot = constants::SCRATCH_SOCK_ABSLEN()
-    intrinsic_http_result::emit_http_store_abs_len(w, ret_slot, abs_slot)
-    intrinsic_http_result::emit_http_bump_heap_by_abs_len(w, abs_slot)
+    runtime_abi_http_result::emit_http_store_abs_len(w, ret_slot, abs_slot)
+    runtime_abi_http_result::emit_http_bump_heap_by_abs_len(w, abs_slot)
     helpers_io_layout::emit_scratch_addr(w, ret_slot)
     helpers_memory::emit_i32_load_default(w)
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_numeric_i32::emit_i32_lt_s(w)
     helpers_control::emit_if_empty(w)
-    intrinsic_http_result::emit_http_gc_string_from_linear(w, s_str, s_i, s_len, resp_slot, abs_slot, string_type)
-    intrinsic_http_result::emit_http_gc_result_string_variant(w, ctx, s_str, 1)
+    runtime_abi_http_result::emit_http_gc_string_from_linear(w, s_str, s_i, s_len, resp_slot, abs_slot, string_type)
+    runtime_abi_http_result::emit_http_gc_result_string_variant(w, ctx, s_str, 1)
     helpers_core::emit_local_set(w, s_result)
     helpers_control::emit_else(w)
-    intrinsic_sockets_vec::emit_sockets_build_read_vec_gc(w, ctx, s_vec, s_i, s_len)
+    runtime_abi_sockets_vec::emit_sockets_build_read_vec_gc(w, ctx, s_vec, s_i, s_len)
     emit_sockets_gc_result_vec_ok(w, ctx, s_vec)
     helpers_core::emit_local_set(w, s_result)
     helpers_control::emit_end(w)

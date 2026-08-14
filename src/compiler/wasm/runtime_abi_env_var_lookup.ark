@@ -2,20 +2,20 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
-use wasm::intrinsic_env_var_result
-use wasm::intrinsic_env_var_scan
+use wasm::runtime_abi_env_var_result
+use wasm::runtime_abi_env_var_scan
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_env_var_lookup(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32) {
-    intrinsic_env_var_result::emit_env_var_clear_result(w)
+    runtime_abi_env_var_result::emit_env_var_clear_result(w)
     let name_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     emit_env_var_read_name_len(w, name_ptr, name_len)
     emit_env_var_fetch_environ(w, ctx)
-    intrinsic_env_var_scan::emit_env_var_scan_entries(w, ctx, name_ptr, name_len)
-    intrinsic_env_var_result::emit_env_var_load_or_none(w, ctx)
+    runtime_abi_env_var_scan::emit_env_var_scan_entries(w, ctx, name_ptr, name_len)
+    runtime_abi_env_var_result::emit_env_var_load_or_none(w, ctx)
 }
 
 fn emit_env_var_read_name_len(w: WasmWriter, name_ptr: i32, name_len: i32) {

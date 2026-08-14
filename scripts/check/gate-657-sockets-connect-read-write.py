@@ -14,7 +14,7 @@ def _static_evidence() -> tuple[int, str]:
     required = [
         REPO_ROOT / "std/host/sockets.ark",
         REPO_ROOT / "src/compiler/wasm/import_indices.ark",
-        REPO_ROOT / "src/compiler/wasm/intrinsic_sockets_vec.ark",
+        REPO_ROOT / "src/compiler/wasm/runtime_abi_sockets_vec.ark",
         REPO_ROOT / "tests/fixtures/host/sockets/connect_read_write.ark",
         REPO_ROOT / "tests/fixtures/target_gating/t1_import_sockets.ark",
     ]

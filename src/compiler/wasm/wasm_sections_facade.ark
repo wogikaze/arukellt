@@ -15,7 +15,7 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     gc_layout: GcLayoutTable
@@ -28,7 +28,7 @@ fn emit_type_section(
         needs_wrapper,
         target,
         wasi_version,
-        needs_arukellt_host,
+        needs_network_runtime,
         needs_wasi_http_outgoing,
         bindings,
         gc_layout
@@ -40,12 +40,12 @@ fn emit_import_section(
     host_type_map: Vec<i32>,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     wit_type_map: Vec<i32>
 ) {
-    sections_imports::emit_import_section(out, host_type_map, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, bindings, wit_type_map)
+    sections_imports::emit_import_section(out, host_type_map, target, wasi_version, needs_network_runtime, needs_wasi_http_outgoing, bindings, wit_type_map)
 }
 
 fn emit_function_section(out: WasmWriter, fn_count: i32, fn_type_map: Vec<i32>, needs_wrapper: i32, wrapper_type_idx: i32) {
@@ -71,15 +71,15 @@ fn emit_export_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_network_runtime: i32,
     needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
-    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+    sections_exports::emit_export_section(out, mir, fn_count, needs_wrapper, target, wasi_version, needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
 }
 
-fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
-    sections_table::emit_element_section(out, mir, target, wasi_version, needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+    sections_table::emit_element_section(out, mir, target, wasi_version, needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
 }
 
 fn emit_tail_sections(out: WasmWriter, ctx: SelfEmitCtx, strings: EmitStringTablePlan, opt_level: i32, import_count: i32, strip_debug: bool, source_file: String) {

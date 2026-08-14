@@ -1,7 +1,7 @@
 use wasm::ctx_scratch
-use wasm::intrinsic_env_arg_list_populate
-use wasm::intrinsic_env_var_option
-use wasm::intrinsic_env_var_result
+use wasm::runtime_abi_env_arg_list_populate
+use wasm::runtime_abi_env_var_option
+use wasm::runtime_abi_env_var_result
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
@@ -94,11 +94,11 @@ fn emit_env_var_build_some(w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, name
     helpers_numeric_i32::emit_i32_add(w)
     helpers_core::emit_local_set(w, value_start)
     let value_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
-    intrinsic_env_arg_list_populate::emit_env_args_cstr_len(w, value_start, value_len)
+    runtime_abi_env_arg_list_populate::emit_env_args_cstr_len(w, value_start, value_len)
     let value_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 11)
-    intrinsic_env_arg_list_populate::emit_env_args_copy_cstr_to_string(w, ctx, value_start, value_len, value_str)
-    intrinsic_env_var_option::emit_env_var_option_some(w, ctx, value_str)
-    intrinsic_env_var_result::emit_env_var_store_result(w, ctx)
+    runtime_abi_env_arg_list_populate::emit_env_args_copy_cstr_to_string(w, ctx, value_start, value_len, value_str)
+    runtime_abi_env_var_option::emit_env_var_option_some(w, ctx, value_str)
+    runtime_abi_env_var_result::emit_env_var_store_result(w, ctx)
 }
 
 fn emit_env_var_advance_loop(w: WasmWriter, loop_i: i32) {

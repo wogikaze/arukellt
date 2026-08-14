@@ -21,8 +21,8 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if index == 7 { return "__intrinsic_clock_now_ms" }
     if index == 8 { return "__intrinsic_concat" }
     if index == 9 { return "__intrinsic_ends_with" }
-    if index == 10 { return "__intrinsic_env_get_var" }
-    if index == 11 { return "__intrinsic_env_var" }
+    if index == 10 { return "__runtime_abi_env_get_var" }
+    if index == 11 { return "__runtime_abi_env_var" }
     if index == 12 { return "__intrinsic_eprintln" }
     if index == 13 { return "__intrinsic_f32_promote_f64" }
     if index == 14 { return "__intrinsic_f32_to_f64" }
@@ -30,12 +30,12 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if index == 16 { return "__intrinsic_f64_bits_lo" }
     if index == 17 { return "__intrinsic_f64_to_f32" }
     if index == 18 { return "__intrinsic_f64_to_string" }
-    if index == 19 { return "__intrinsic_fs_read_file" }
-    if index == 20 { return "__intrinsic_fs_write_bytes" }
-    if index == 21 { return "__intrinsic_fs_write_file" }
-    if index == 22 { return "__intrinsic_http_get" }
-    if index == 23 { return "__intrinsic_http_request" }
-    if index == 24 { return "__intrinsic_http_serve" }
+    if index == 19 { return "__runtime_abi_fs_read_file" }
+    if index == 20 { return "__runtime_abi_fs_write_bytes" }
+    if index == 21 { return "__runtime_abi_fs_write_file" }
+    if index == 22 { return "__runtime_abi_http_get" }
+    if index == 23 { return "__runtime_abi_http_request" }
+    if index == 24 { return "__runtime_abi_http_serve" }
     if index == 25 { return "__intrinsic_i32_to_string" }
     if index == 26 { return "__intrinsic_i64_to_string" }
     if index == 27 { return "__intrinsic_join" }
@@ -45,15 +45,15 @@ fn core_op_binding_callee_at(index: i32) -> String {
     if index == 31 { return "__intrinsic_parse_i64" }
     if index == 32 { return "__intrinsic_print" }
     if index == 33 { return "__intrinsic_println" }
-    if index == 34 { return "__intrinsic_process_abort" }
-    if index == 35 { return "__intrinsic_process_exit" }
+    if index == 34 { return "__runtime_abi_process_abort" }
+    if index == 35 { return "__runtime_abi_process_exit" }
     if index == 36 { return "__intrinsic_push_char" }
-    if index == 37 { return "__intrinsic_random_i32" }
-    if index == 38 { return "__intrinsic_sockets_accept" }
-    if index == 39 { return "__intrinsic_sockets_connect" }
-    if index == 40 { return "__intrinsic_sockets_listen" }
-    if index == 41 { return "__intrinsic_sockets_read" }
-    if index == 42 { return "__intrinsic_sockets_write" }
+    if index == 37 { return "__runtime_abi_random_i32" }
+    if index == 38 { return "__runtime_abi_sockets_accept" }
+    if index == 39 { return "__runtime_abi_sockets_connect" }
+    if index == 40 { return "__runtime_abi_sockets_listen" }
+    if index == 41 { return "__runtime_abi_sockets_read" }
+    if index == 42 { return "__runtime_abi_sockets_write" }
     if index == 43 { return "__intrinsic_split" }
     if index == 44 { return "__intrinsic_sqrt" }
     if index == 45 { return "__intrinsic_starts_with" }
