@@ -26,10 +26,16 @@ jobs:
           curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           cargo binstall --no-confirm wasm-tools
       - name: Build current compiler
-        run: python3 scripts/manager.py selfhost build-compiler
-      - name: Inspect current and rejected s2 artifacts
         run: |
           mkdir -p .build/pr43-debug
+          set +e
+          python3 scripts/manager.py selfhost build-compiler 2>&1 | tee .build/pr43-debug/build-compiler.log
+          rc=${PIPESTATUS[0]}
+          echo "$rc" > .build/pr43-debug/build-compiler.status
+          echo "build_compiler_exit=$rc"
+          exit 0
+      - name: Inspect current and rejected s2 artifacts
+        run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -42,7 +48,8 @@ jobs:
           candidates.extend(sorted(Path('.ark-debug').glob('rejected-arukellt-s2-runtime-*.wasm'))[-2:])
           if raw.exists(): candidates.append(raw)
           if not candidates:
-              raise SystemExit('missing all s2 artifacts')
+              print('missing all s2 artifacts')
+              raise SystemExit(0)
 
           for wasm in candidates:
               validate = subprocess.run(
@@ -56,7 +63,7 @@ jobs:
               if validate.returncode == 0:
                   continue
               matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
-              target = int(matches[-1]) if matches else 6697
+              target = int(matches[-1]) if matches else -1
               printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
               if printed.returncode != 0:
                   print((printed.stdout or '') + (printed.stderr or ''))
@@ -64,6 +71,9 @@ jobs:
               wat_path = Path('.build/pr43-debug') / f'{wasm.stem}.wat'
               wat_path.write_text(printed.stdout)
               lines = printed.stdout.splitlines()
+              if target < 0:
+                  print('validator function index unavailable')
+                  continue
               marker = f'(;{target};)'
               func_hits = [i for i, line in enumerate(lines) if marker in line and '(func' in line]
               all_hits = [i for i, line in enumerate(lines) if marker in line]
@@ -85,6 +95,11 @@ jobs:
       - name: Compile and validate representative fixtures
         run: |
           set +e
+          build_rc=$(cat .build/pr43-debug/build-compiler.status 2>/dev/null || echo 99)
+          if [ "$build_rc" -ne 0 ]; then
+            echo "build-compiler failed rc=$build_rc"
+            exit 1
+          fi
           failed=0
           compiler=.build/selfhost/arukellt-s2-runtime.wasm
           if [ ! -f "$compiler" ]; then
@@ -126,7 +141,7 @@ jobs:
           if-no-files-found: ignore
           path: |
             .build/pr43-debug/
+            .build/selfhost/arukellt-s2.wasm
+            .build/selfhost/arukellt-s2-runtime.wasm
             .ark-debug/rejected-arukellt-s2-runtime-*.wasm
             .ark-debug/rejected-arukellt-s3-*.wasm
-
-# rerun marker after bootstrap alias canonicalization
