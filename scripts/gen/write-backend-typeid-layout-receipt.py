@@ -6,6 +6,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +32,72 @@ def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def _run_runtime_e2e_once() -> None:
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return
+    if os.environ.get("GITHUB_WORKFLOW") != "Backend TypeId layout boundary":
+        return
+
+    env = dict(os.environ)
+    if shutil.which("wasmtime") is None:
+        subprocess.run(
+            ["bash", "-lc", "curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1"],
+            cwd=ROOT,
+            check=True,
+            timeout=180,
+        )
+    env["PATH"] = "/tmp:" + str(Path.home() / ".wasmtime/bin") + os.pathsep + env.get("PATH", "")
+    os.environ["PATH"] = env["PATH"]
+
+    wac = Path("/tmp/wac")
+    if not wac.is_file():
+        subprocess.run(
+            [
+                "curl",
+                "-fL",
+                "https://github.com/bytecodealliance/wac/releases/download/v0.10.1/wac-cli-x86_64-unknown-linux-musl",
+                "-o",
+                str(wac),
+            ],
+            cwd=ROOT,
+            check=True,
+            timeout=180,
+        )
+        subprocess.run(
+            [
+                "bash",
+                "-lc",
+                "echo '250c11762916ba733c7d22b62487580f21270ec9dde4f13460ea69d300e25406  /tmp/wac' | sha256sum -c -",
+            ],
+            cwd=ROOT,
+            check=True,
+            timeout=30,
+        )
+        wac.chmod(0o755)
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from selfhost.checks import rebuild_current_s2
+
+    compiler, error, elapsed = rebuild_current_s2(ROOT, force=True)
+    if compiler is None:
+        raise RuntimeError(f"runtime-e2e: current-source s2 rebuild failed after {elapsed:.1f}s: {error}")
+
+    env["ARUKELLT_SELFHOST_WASM"] = str(compiler)
+    env["ARUKELLT_REQUIRE_RUNTIME_E2E"] = "1"
+    print(f"runtime-e2e: current-source compiler={compiler} rebuild_s={elapsed:.1f}", flush=True)
+    subprocess.run(["wasmtime", "--version"], cwd=ROOT, env=env, check=True, timeout=30)
+    subprocess.run([str(wac), "--version"], cwd=ROOT, env=env, check=True, timeout=30)
+    for gate in (
+        "scripts/check/gate-076-wasi-p2-filesystem.py",
+        "scripts/check/gate-676-std-host-fs-env-process.py",
+        "scripts/check/gate-819-runtime-abi-core-op-lowering.py",
+        "scripts/check/gate-841-real-wasi-network-abi.py",
+    ):
+        print(f"runtime-e2e: run {gate}", flush=True)
+        subprocess.run([sys.executable, gate], cwd=ROOT, env=env, check=True, timeout=900)
+    print("runtime-e2e: PASS: branch-built s2 -> linked P2 components -> bare Wasmtime", flush=True)
 
 
 def main() -> int:
@@ -67,12 +137,13 @@ def main() -> int:
         "backend-typeid-layout-receipt: PASS: "
         f"files={len(files)} output={args.output}"
     )
+    _run_runtime_e2e_once()
     return 0
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         print(f"backend-typeid-layout-receipt: FAIL: {exc}")
         raise SystemExit(1)
