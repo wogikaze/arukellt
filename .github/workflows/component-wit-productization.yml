@@ -56,7 +56,7 @@ jobs:
       - name: Regenerate canonical docs and issue indexes
         run: |
           python3 scripts/gen/generate-docs.py
-          bash scripts/gen/generate-issue-index.sh
+          python3 scripts/gen/generate-issue-index.py
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -75,6 +75,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md docs issues/open/index.md issues/open/dependency-graph.md issues/open/index-meta.json
+          git add README.md docs issues/open/index.md issues/open/dependency-graph.md issues/open/priority-table.md issues/open/index-meta.json
           git commit -m "docs: regenerate after Component/WIT closure"
           git push origin HEAD:agent/component-wit-productization
