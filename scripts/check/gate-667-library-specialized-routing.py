@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 EMIT = ROOT / "src/compiler/component/emit.ark"
+PROVENANCE = ROOT / "bootstrap/PROVENANCE.md"
 STRING_RUN = ROOT / "tests/component-interop/jco/string-greet/run.sh"
 RECORD_RUN = ROOT / "tests/component-interop/jco/record-point/run.sh"
 CALC = ROOT / "examples/ark/export-library/calculator.ark"
@@ -32,6 +33,10 @@ def static_gate() -> tuple[int, str]:
     generic = text.index("component_base::comp_emit_wasi_and_core_instance_sections")
     if marker > generic:
         return 1, "specialized dispatch is not before generic export lowering"
+    provenance = PROVENANCE.read_text(encoding="utf-8")
+    for needle in ("pin→s2→s3 fixpoint", "sha256 equal", "s2 == s3"):
+        if needle not in provenance:
+            return 1, f"bootstrap provenance no longer records fixpoint contract: {needle!r}"
     for path in (STRING_RUN, RECORD_RUN, CALC, WRAPPER):
         if not path.exists():
             return 1, f"missing {path.relative_to(ROOT)}"
@@ -81,7 +86,7 @@ def main() -> int:
         return 1
     rc, msg = runtime_gate()
     if rc == 2:
-        print(f"gate-667: runtime skipped ({msg}); static evidence is complete")
+        print(f"gate-667: runtime skipped ({msg}); specialized routing + fixpoint provenance are complete")
     elif rc:
         print(f"gate-667-library-specialized-routing: FAIL: {msg}", file=sys.stderr)
         return 1
