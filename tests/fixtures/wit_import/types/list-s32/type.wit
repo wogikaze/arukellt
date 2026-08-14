@@ -1,0 +1,5 @@
+package test:types@0.1.0;
+
+interface list-s32 {
+    echo: func(value: list<s32>) -> list<s32>;
+}
