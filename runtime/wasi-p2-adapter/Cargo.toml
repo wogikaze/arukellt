@@ -10,3 +10,5 @@ crate-type = ["cdylib"]
 [dependencies]
 wasip2 = "1.0.4"
 wit-bindgen = "0.60.0"
+
+[workspace]
