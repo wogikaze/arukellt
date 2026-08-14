@@ -55,6 +55,7 @@ fn populate_gc_layout_table_for_emit(
         stdio::eprintln("compiler ICE: backend received invalid MIR GC layout plan")
         process::exit(1)
     }
+    gc_layout_table::gc_layout_table_set_fixed_type_map(table, gc_fixed_type_map)
     let count = gc_layout_plan::mir_gc_layout_plan_binding_count(plan)
     let mut index = 0
     while index < count {
