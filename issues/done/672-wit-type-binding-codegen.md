@@ -14,7 +14,7 @@ Priority: 3
 
 ## Close summary
 
-`src/compiler/component/wit_bindings.ark` provides a WIT→Arukellt surface renderer for records, enums and payload variants. Nested list/option/result/tuple fields are rendered recursively, kebab-case/reserved-style names pass through shared stable naming helpers, and package/interface metadata is retained in generated output.
+`src/compiler/component/wit_bindings.ark` provides a WIT→Arukellt surface renderer for records, enums and payload variants. Nested list/option/result/tuple fields are rendered recursively, kebab-case/reserved-style names pass through shared stable naming helpers, and package/interface metadata is retained in generated output. `--dump-phases wit-bindings` exposes the generated Ark surface through the normal compiler pipeline.
 
 Parsed variants now retain case payload WIT types and are registered in resolver scope. Direct recursive value records and resource-handle fields that cannot be represented as ordinary value bindings are rejected with E0402 instead of generating invalid Ark types.
 
@@ -23,6 +23,7 @@ Parsed variants now retain case payload WIT types and are registered in resolver
 - [x] Record/enum/variant binding generation exists.
 - [x] Option/Result/tuple/list and nested fields are rendered recursively.
 - [x] Package/interface metadata and stable mangling are preserved.
+- [x] Generated bindings are inspectable with `--dump-phases wit-bindings`.
 - [x] Recursive value bindings/resource-handle value fields have explicit diagnostics.
 - [x] Nested binding fixture and close gate are present.
 
