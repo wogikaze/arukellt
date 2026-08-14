@@ -78,44 +78,12 @@ fn type_table_type_param_ids_equal(a: Vec<TypeId>, b: Vec<TypeId>) -> bool {
     true
 }
 
-// Legacy MIR type names encode a struct layout as `struct:<nominal>:<bytes>`.
-// The byte count is representation metadata, not source nominal identity.
-// Canonicalizing it here keeps typed MIR locals and the GC layout plan on the
-// same TypeId without asking the Wasm backend to recover identity from names.
-fn type_table_canonical_name(kind: i32, name: String) -> String {
-    if kind != kinds::TYPE_KIND_STRUCT() || !starts_with(clone(name), "struct:") {
-        return name
-    }
-    let n = len(name)
-    let mut last_colon = 0 - 1
-    let mut i = 7
-    while i < n {
-        if char_at(clone(name), i) == 58 {
-            last_colon = i
-        }
-        i = i + 1
-    }
-    if last_colon <= 7 || last_colon + 1 >= n {
-        return name
-    }
-    let mut j = last_colon + 1
-    while j < n {
-        let ch = char_at(clone(name), j)
-        if ch < 48 || ch > 57 {
-            return name
-        }
-        j = j + 1
-    }
-    substring(name, 7, last_colon)
-}
-
 fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
-    let canonical_name = type_table_canonical_name(kind, name)
     let count = len(table.entries)
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
-        if entry.kind == kind && eq(clone(entry.name), clone(canonical_name)) && type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
+        if entry.kind == kind && eq(clone(entry.name), clone(name)) && type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
             return entry.id
         }
         i = i + 1
@@ -124,14 +92,13 @@ fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_para
 }
 
 fn TypeTable_intern(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
-    let canonical_name = type_table_canonical_name(kind, name)
-    let existing = type_table_find_existing(table, kind, clone(canonical_name), type_param_ids)
+    let existing = type_table_find_existing(table, kind, clone(name), type_param_ids)
     if type_id_is_valid(existing) {
         return existing
     }
     let id = TypeId_new(table.next_id)
     table.next_id = table.next_id + 1
-    let entry = TypeEntry { id: id, kind: kind, name: canonical_name, type_param_ids: type_param_ids }
+    let entry = TypeEntry { id: id, kind: kind, name: name, type_param_ids: type_param_ids }
     push(table.entries, entry)
     id
 }
