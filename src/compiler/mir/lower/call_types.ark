@@ -63,23 +63,7 @@ fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
     }
 }
 
-fn is_wit_name_string_helper(callee_name: String) -> bool {
-    if eq(clone(callee_name), "kebab_name") ||
-    eq(clone(callee_name), "kebab_to_snake") ||
-    eq(clone(callee_name), "pascal_case") ||
-    eq(clone(callee_name), "capitalize_first") {
-        return true
-    }
-    ends_with(clone(callee_name), "::kebab_name") ||
-    ends_with(clone(callee_name), "::kebab_to_snake") ||
-    ends_with(clone(callee_name), "::pascal_case") ||
-    ends_with(clone(callee_name), "::capitalize_first")
-}
-
 fn mir_callee_returns_string(callee_name: String) -> bool {
-    if is_wit_name_string_helper(clone(callee_name)) {
-        return true
-    }
     if eq(clone(callee_name), "String_from") ||
     eq(clone(callee_name), "concat") ||
     eq(clone(callee_name), "__intrinsic_concat") ||
