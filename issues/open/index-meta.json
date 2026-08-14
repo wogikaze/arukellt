@@ -1,938 +1,798 @@
 {
-  "schema": "arukellt-issue-index-meta-v1",
+  "blocked_external": [],
   "generated_at": "2026-07-29T23:33:27Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
-      "id": "474",
-      "path": "474-async-component-support-v5.md",
-      "title": "Async component support (v5)",
-      "track": "wasm-feature",
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "blocks_issue_ids": [
+        "676"
+      ],
+      "depends_on": [
+        "074",
+        "510"
+      ],
+      "id": "076",
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "None"
+      },
+      "path": "076-wasi-p2-filesystem.md",
       "status": "open",
+      "title": "076-wasi-p2-filesystem",
+      "track": "wasi-feature"
+    },
+    {
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 4
+      },
+      "blocks_issue_ids": [],
       "depends_on": [
         "035",
         "done)",
         "074"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 4
-      },
+      "id": "474",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "None"
-      }
+      },
+      "path": "474-async-component-support-v5.md",
+      "status": "open",
+      "title": "Async component support (v5)",
+      "track": "wasm-feature"
     },
     {
-      "id": "62",
-      "path": "076-wasi-p2-filesystem.md",
-      "title": "076-wasi-p2-filesystem",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 0
+        "unchecked": 10
       },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "667",
-      "path": "667-library-component-emit-routing-regression.md",
-      "title": "667 — Library component routing: scalar emitter bypasses specialized / WIT-complete path",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "666"
-      ],
-      "blocks_issue_ids": [
-        "673"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "669",
-      "path": "669-wit-import-ide-formatter.md",
-      "title": "669 — WIT import IDE and formatter surface",
-      "track": "lsp-navigation",
-      "status": "open",
+      "blocks_issue_ids": [],
       "depends_on": [
         "652",
         "done)"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
+      "id": "669",
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "669-wit-import-ide-formatter.md",
+      "status": "open",
+      "title": "669 — WIT import IDE and formatter surface",
+      "track": "lsp-navigation"
     },
     {
-      "id": "670",
-      "path": "670-wit-import-resolver-hardening.md",
-      "title": "670 — WIT import resolver hardening (duplicates, spans, collisions)",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "653",
-        "done)"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 11
+        "unchecked": 13
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "475",
+        "485"
+      ],
+      "id": "677",
+      "orchestration": {
+        "class": "design-ready",
+        "upstream_notes": "None"
+      },
+      "path": "677-component-developer-experience.md",
+      "status": "open",
+      "title": "677 — Component developer experience (CLI, cookbooks, diagnostics explain)",
+      "track": "cli"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "678",
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "678-verification-gates-docs-release.md",
+      "status": "open",
+      "title": "678 — Verification gates: stale docs, release checklist, and close-gate coverage",
+      "track": "tooling-contract"
     },
     {
-      "id": "671",
-      "path": "671-wit-import-callable-type-matrix.md",
-      "title": "671 — WIT import callable type matrix (fixtures + gates)",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "653",
-        "654"
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [
+        "682"
       ],
+      "depends_on": [
+        "679"
+      ],
+      "id": "680",
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      },
+      "path": "680-target-tier-honesty-audit.md",
+      "status": "open",
+      "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
+      "track": "docs-audit"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [
+        "711"
+      ],
+      "depends_on": [
+        "679"
+      ],
+      "id": "681",
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      },
+      "path": "681-stdlib-manifest-reachability-audit.md",
+      "status": "open",
+      "title": "681 — Stdlib manifest reachability contract audit",
+      "track": "docs-audit"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
       "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "684",
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      },
+      "path": "684-false-done-limited-scope-reaudit.md",
+      "status": "open",
+      "title": "684 — False-done and limited-scope done issue re-audit program",
+      "track": "docs-audit"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "679"
+      ],
+      "id": "685",
+      "orchestration": {
+        "class": "audit-ready",
+        "upstream_notes": "None"
+      },
+      "path": "685-ide-playground-extension-claim-audit.md",
+      "status": "open",
+      "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
+      "track": "docs-audit"
+    },
+    {
+      "acceptance": {
+        "checked": 12,
+        "unchecked": 4
+      },
+      "blocks_issue_ids": [
+        "698",
+        "801"
+      ],
+      "depends_on": [],
+      "id": "686",
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      },
+      "path": "686-wasm-gc-selfhost-implementation.md",
+      "status": "open",
+      "title": "Wasm GC Selfhost Implementation",
+      "track": "main"
+    },
+    {
       "acceptance": {
         "checked": 0,
         "unchecked": 16
       },
+      "blocks_issue_ids": [
+        "697",
+        "703",
+        "709",
+        "710"
+      ],
+      "depends_on": [
+        "688",
+        "707"
+      ],
+      "id": "691",
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
+      },
+      "path": "691-iterator-trait-lazy-adapters.md",
+      "status": "open",
+      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
+      "track": "stdlib-api"
     },
     {
-      "id": "672",
-      "path": "672-wit-type-binding-codegen.md",
-      "title": "672 — WIT type binding code generation",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [
-        "664",
-        "done)"
-      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 16
+      },
       "blocks_issue_ids": [],
+      "depends_on": [
+        "688",
+        "692"
+      ],
+      "id": "693",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
+      },
+      "path": "693-read-write-traits-io-unification.md",
+      "status": "open",
+      "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
+      "track": "stdlib-api"
+    },
+    {
       "acceptance": {
         "checked": 0,
         "unchecked": 12
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "690",
+        "692"
+      ],
+      "id": "694",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#690 ? operator + From, #692 From trait"
+      },
+      "path": "694-error-trait-unified-ecosystem.md",
+      "status": "open",
+      "title": "694 — `Error` trait and unified error type ecosystem",
+      "track": "stdlib-api"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "blocks_issue_ids": [
+        "697",
+        "703",
+        "709"
+      ],
+      "depends_on": [
+        "688"
+      ],
+      "id": "695",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch"
+      },
+      "path": "695-ord-partialord-traits.md",
+      "status": "open",
+      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
+      "track": "stdlib-api"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 15
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "688",
+        "700",
+        "692"
+      ],
+      "id": "702",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
+      },
+      "path": "702-to-string-clone-hash-trait-integration.md",
+      "status": "open",
+      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
+      "track": "stdlib-api"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "692",
+        "707"
+      ],
+      "id": "708",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#692 From/Into traits, #707 Self return type support"
+      },
+      "path": "708-tryfrom-tryinto-traits.md",
+      "status": "open",
+      "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
+      "track": "stdlib-api"
+    },
+    {
+      "acceptance": {
+        "checked": 13,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [
+        "719",
+        "799"
+      ],
+      "depends_on": [
+        "041",
+        "done)"
+      ],
+      "id": "715",
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      },
+      "path": "715-in-file-test-coverage-targets.md",
+      "status": "open",
+      "title": "715 — In-file test coverage targets for compiler and stdlib",
+      "track": "testing"
+    },
+    {
+      "acceptance": {
+        "checked": 15,
+        "unchecked": 4
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "700",
+        "701"
+      ],
+      "id": "718",
+      "orchestration": {
+        "class": "incremental",
+        "upstream_notes": "None"
+      },
+      "path": "718-stdlib-free-function-method-migration.md",
+      "status": "open",
+      "title": "718 — Stdlib free-function → method/trait migration inventory",
+      "track": "stdlib-api"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "721",
+      "orchestration": {
+        "class": "implementation-ready",
+        "upstream_notes": "none"
+      },
+      "path": "721-final-types-emit-for-all-structs.md",
+      "status": "open",
+      "title": "Final Types (`sub final`) を全 struct に適用",
+      "track": "wasm-feature"
+    },
+    {
+      "acceptance": {
+        "checked": 4,
+        "unchecked": 1
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "723",
+      "orchestration": {
+        "class": "design-required",
+        "upstream_notes": "none"
+      },
+      "path": "723-exception-handling-exnref-evaluation.md",
+      "status": "open",
+      "title": "Wasm Exception Handling (`exnref`) 統合の検討",
+      "track": "language-design"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "728",
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "728-wir-target-backend-ir.md",
+      "status": "open",
+      "title": "728 — WIR / backend target IR for ADR-007 multi-target separation",
+      "track": "compiler-internal"
     },
     {
-      "id": "674",
-      "path": "674-component-composition-deps-interop.md",
-      "title": "674 — Component composition: dependency wasm, lockfile, and external interop",
-      "track": "component-composition",
-      "status": "open",
-      "depends_on": [
-        "443",
-        "663",
-        "665"
-      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
       "blocks_issue_ids": [],
+      "depends_on": [
+        "843"
+      ],
+      "id": "729",
+      "orchestration": {
+        "class": "unblocked",
+        "upstream_notes": "none"
+      },
+      "path": "729-intrinsic-layer-separation.md",
+      "status": "open",
+      "title": "729 — Intrinsic layer separation (unblocked epic)",
+      "track": "compiler-internal"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "760",
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      },
+      "path": "760-adr-registry-rule-compliance.md",
+      "status": "open",
+      "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
+      "track": "main"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "blocks_issue_ids": [
+        "814"
+      ],
+      "depends_on": [
+        "785"
+      ],
+      "id": "791",
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      },
+      "path": "791-formatter-parse-baseline-elimination.md",
+      "status": "open",
+      "title": "791 — Eliminate the Ark canonical parser baseline",
+      "track": "tooling-contract"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "815",
+      "orchestration": {
+        "class": "ready",
+        "upstream_notes": "None"
+      },
+      "path": "815-diagnostic-t3-compile-skips.md",
+      "status": "open",
+      "title": "815 — Diagnostic/T3 compile skips",
+      "track": "selfhost"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [
+        "818"
+      ],
+      "depends_on": [
+        "727",
+        "798"
+      ],
+      "id": "819",
+      "orchestration": {
+        "class": "blocked",
+        "upstream_notes": "727"
+      },
+      "path": "819-runtime-abi-core-op-lowering.md",
+      "status": "open",
+      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
+      "track": "compiler-internal"
+    },
+    {
       "acceptance": {
         "checked": 0,
         "unchecked": 10
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "823"
+      ],
+      "id": "825",
       "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
+        "class": "implementation",
+        "upstream_notes": null
+      },
+      "path": "825-ast-cache-format-repair.md",
+      "status": "open",
+      "title": "AST cache format repair (not “re-enable as-is”)",
+      "track": "selfhost-infra"
     },
     {
-      "id": "676",
-      "path": "676-std-host-fs-env-process-polish.md",
-      "title": "676 — std::host fs / env / process capability completion",
-      "track": "stdlib-api",
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 5
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "730"
+      ],
+      "id": "830",
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      },
+      "path": "830-wasm-heap-grow-patcher-retirement.md",
       "status": "open",
+      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
+      "track": "selfhost-infra"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 6
+      },
+      "blocks_issue_ids": [
+        "675"
+      ],
+      "depends_on": [
+        "727"
+      ],
+      "id": "841",
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": "None"
+      },
+      "path": "841-wit-network-real-wasi-abi.md",
+      "status": "open",
+      "title": "841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims",
+      "track": "wasi-feature"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 0
+      },
+      "blocks_issue_ids": [],
+      "depends_on": [],
+      "id": "849",
+      "orchestration": {
+        "class": null,
+        "upstream_notes": null
+      },
+      "path": "849-native-executor-wasm32-gc-func118-validation.md",
+      "status": "open",
+      "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
+      "track": "main"
+    },
+    {
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 12
+      },
+      "blocks_issue_ids": [],
       "depends_on": [
         "076",
         "done)",
         "445",
         "done)"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
+      "id": "676",
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "677",
-      "path": "677-component-developer-experience.md",
-      "title": "677 — Component developer experience (CLI, cookbooks, diagnostics explain)",
-      "track": "cli",
-      "status": "open",
-      "depends_on": [
-        "475",
-        "485"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
       },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
+      "path": "676-std-host-fs-env-process-polish.md",
+      "status": "open",
+      "title": "676 — std::host fs / env / process capability completion",
+      "track": "stdlib-api"
     },
     {
-      "id": "678",
-      "path": "678-verification-gates-docs-release.md",
-      "title": "678 — Verification gates: stale docs, release checklist, and close-gate coverage",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "680",
-      "path": "680-target-tier-honesty-audit.md",
-      "title": "680 — Target tier honesty audit (stable / smoke / scaffold / none)",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "679"
-      ],
-      "blocks_issue_ids": [
-        "682"
-      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 6
       },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "681",
-      "path": "681-stdlib-manifest-reachability-audit.md",
-      "title": "681 — Stdlib manifest reachability contract audit",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "679"
-      ],
       "blocks_issue_ids": [
-        "711"
+        "683"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "684",
-      "path": "684-false-done-limited-scope-reaudit.md",
-      "title": "684 — False-done and limited-scope done issue re-audit program",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "685",
-      "path": "685-ide-playground-extension-claim-audit.md",
-      "title": "685 — IDE / Playground / Extension product-claim vs compiler gate audit",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "679"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "audit-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "686",
-      "path": "686-wasm-gc-selfhost-implementation.md",
-      "title": "Wasm GC Selfhost Implementation",
-      "track": "main",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [
-        "698",
-        "801"
-      ],
-      "acceptance": {
-        "checked": 12,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "691",
-      "path": "691-iterator-trait-lazy-adapters.md",
-      "title": "691 — `Iterator` trait, lazy adapters, and `FromIterator` / `collect`",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "688",
-        "707"
-      ],
-      "blocks_issue_ids": [
-        "697",
-        "703",
-        "709",
-        "710"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch"
-      }
-    },
-    {
-      "id": "693",
-      "path": "693-read-write-traits-io-unification.md",
-      "title": "693 — `Read` / `Write` / `BufRead` / `Seek` traits and IO unification",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "688",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 16
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait dispatch, #692 From/Into/AsRef"
-      }
-    },
-    {
-      "id": "694",
-      "path": "694-error-trait-unified-ecosystem.md",
-      "title": "694 — `Error` trait and unified error type ecosystem",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "690",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#690 ? operator + From, #692 From trait"
-      }
-    },
-    {
-      "id": "695",
-      "path": "695-ord-partialord-traits.md",
-      "title": "695 — `Ord` / `PartialOrd` traits and comparison-based algorithms",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "688"
-      ],
-      "blocks_issue_ids": [
-        "697",
-        "703",
-        "709"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch"
-      }
-    },
-    {
-      "id": "702",
-      "path": "702-to-string-clone-hash-trait-integration.md",
-      "title": "702 — Integrate `to_string` / `clone` / `hash` builtins into trait dispatch",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "688",
-        "700",
-        "692"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 15
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#688 trait method dispatch, #700 builtin type method syntax, #692 Clone/Default/From/Into"
-      }
-    },
-    {
-      "id": "706",
-      "path": "706-std-wit-full-compliance.md",
-      "title": "std::wit Full WIT 1.0 Compliance",
-      "track": "stdlib",
-      "status": "open",
-      "depends_on": [
-        "606"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "708",
-      "path": "708-tryfrom-tryinto-traits.md",
-      "title": "708 — `TryFrom` / `TryInto` traits for fallible conversions",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "692",
-        "707"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#692 From/Into traits, #707 Self return type support"
-      }
-    },
-    {
-      "id": "715",
-      "path": "715-in-file-test-coverage-targets.md",
-      "title": "715 — In-file test coverage targets for compiler and stdlib",
-      "track": "testing",
-      "status": "open",
-      "depends_on": [
-        "041",
-        "done)"
-      ],
-      "blocks_issue_ids": [
-        "719",
-        "799"
-      ],
-      "acceptance": {
-        "checked": 13,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "718",
-      "path": "718-stdlib-free-function-method-migration.md",
-      "title": "718 — Stdlib free-function → method/trait migration inventory",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "700",
-        "701"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 15,
-        "unchecked": 4
-      },
-      "orchestration": {
-        "class": "incremental",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "721",
-      "path": "721-final-types-emit-for-all-structs.md",
-      "title": "Final Types (`sub final`) を全 struct に適用",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 7
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "723",
-      "path": "723-exception-handling-exnref-evaluation.md",
-      "title": "Wasm Exception Handling (`exnref`) 統合の検討",
-      "track": "language-design",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 4,
-        "unchecked": 1
-      },
-      "orchestration": {
-        "class": "design-required",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "728",
-      "path": "728-wir-target-backend-ir.md",
-      "title": "728 — WIR / backend target IR for ADR-007 multi-target separation",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "729",
-      "path": "729-intrinsic-layer-separation.md",
-      "title": "729 — Intrinsic layer separation (unblocked epic)",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "843"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "unblocked",
-        "upstream_notes": "none"
-      }
-    },
-    {
-      "id": "760",
-      "path": "760-adr-registry-rule-compliance.md",
-      "title": "ADR 台帳の規則追従 — research/plans 分離と supersession 整合",
-      "track": "main",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "791",
-      "path": "791-formatter-parse-baseline-elimination.md",
-      "title": "791 — Eliminate the Ark canonical parser baseline",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [
-        "785"
-      ],
-      "blocks_issue_ids": [
-        "814"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "815",
-      "path": "815-diagnostic-t3-compile-skips.md",
-      "title": "815 — Diagnostic/T3 compile skips",
-      "track": "selfhost",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "819",
-      "path": "819-runtime-abi-core-op-lowering.md",
-      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "727",
-        "798"
-      ],
-      "blocks_issue_ids": [
-        "818"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "727"
-      }
-    },
-    {
-      "id": "825",
-      "path": "825-ast-cache-format-repair.md",
-      "title": "AST cache format repair (not “re-enable as-is”)",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "823"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 10
-      },
-      "orchestration": {
-        "class": "implementation",
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "841",
-      "path": "841-wit-network-real-wasi-abi.md",
-      "title": "841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "727"
-      ],
-      "blocks_issue_ids": [
-        "675"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "849",
-      "path": "849-native-executor-wasm32-gc-func118-validation.md",
-      "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
-      "track": "main",
-      "status": "open",
-      "depends_on": [],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": null,
-        "upstream_notes": null
-      }
-    },
-    {
-      "id": "673",
-      "path": "673-component-export-aggregate-expansion.md",
-      "title": "673 — Component export aggregate expansion (Tier 2 blocked shapes)",
-      "track": "component-model",
-      "status": "open",
-      "depends_on": [
-        "648",
-        "660",
-        "667"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "682",
-      "path": "682-component-wit-product-claim-audit.md",
-      "title": "682 — Component / WIT product-claim verification audit",
-      "track": "docs-audit",
-      "status": "open",
       "depends_on": [
         "679",
         "680"
       ],
-      "blocks_issue_ids": [
-        "683"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
+      "id": "682",
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "wasm-tools (CI install policy)"
-      }
+      },
+      "path": "682-component-wit-product-claim-audit.md",
+      "status": "open",
+      "title": "682 — Component / WIT product-claim verification audit",
+      "track": "docs-audit"
     },
     {
-      "id": "698",
-      "path": "698-std-simd-explicit-library.md",
-      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
-      "track": "wasm-feature",
-      "status": "open",
-      "depends_on": [
-        "686",
-        "649"
-      ],
-      "blocks_issue_ids": [
-        "699"
-      ],
       "acceptance": {
         "checked": 49,
         "unchecked": 0
       },
+      "blocks_issue_ids": [
+        "699"
+      ],
+      "depends_on": [
+        "686",
+        "649"
+      ],
+      "id": "698",
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "698-std-simd-explicit-library.md",
+      "status": "open",
+      "title": "698 — std::simd explicit SIMD library API and v128 first-class type",
+      "track": "wasm-feature"
     },
     {
-      "id": "801",
-      "path": "801-gc-rebuild-plan.md",
-      "title": "GC 完了までのプラン",
-      "track": "gc",
-      "status": "open",
-      "depends_on": [
-        "686"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "686"
+      ],
+      "id": "801",
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": 686
-      }
+        "upstream_notes": "686"
+      },
+      "path": "801-gc-rebuild-plan.md",
+      "status": "open",
+      "title": "GC 完了までのプラン",
+      "track": "gc"
     },
     {
-      "id": "697",
-      "path": "697-vec-operation-extension.md",
-      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695"
-      ],
-      "blocks_issue_ids": [
-        "709",
-        "710"
-      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 15
       },
+      "blocks_issue_ids": [
+        "709",
+        "710"
+      ],
+      "depends_on": [
+        "691",
+        "695"
+      ],
+      "id": "697",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord"
-      }
+      },
+      "path": "697-vec-operation-extension.md",
+      "status": "open",
+      "title": "697 — `Vec<T>` operation extension (windows / chunks / retain / sort_by / drain / splice)",
+      "track": "stdlib-api"
     },
     {
-      "id": "703",
-      "path": "703-monomorphic-api-bold-cutover.md",
-      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
-      "track": "stdlib-api",
-      "status": "open",
+      "acceptance": {
+        "checked": 2,
+        "unchecked": 17
+      },
+      "blocks_issue_ids": [
+        "709"
+      ],
       "depends_on": [
         "700",
         "701",
         "691",
         "695"
       ],
-      "blocks_issue_ids": [
-        "709"
-      ],
-      "acceptance": {
-        "checked": 2,
-        "unchecked": 17
-      },
+      "id": "703",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#700 builtin method syntax, #701 associated function syntax, #691 Iterator, #695 Ord"
-      }
+      },
+      "path": "703-monomorphic-api-bold-cutover.md",
+      "status": "open",
+      "title": "703 — Monomorphic API cutover (ADR-036 D2 + ADR-046)",
+      "track": "stdlib-api"
     },
     {
-      "id": "719",
-      "path": "719-test-execution-harness.md",
-      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
-      "track": "tooling",
-      "status": "open",
-      "depends_on": [
-        "715"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "715"
+      ],
+      "id": "719",
       "orchestration": {
         "class": "implementation",
         "upstream_notes": "None"
-      }
+      },
+      "path": "719-test-execution-harness.md",
+      "status": "open",
+      "title": "719 — `arukellt test` execution harness (ADR-041 Phase 2)",
+      "track": "tooling"
     },
     {
-      "id": "799",
-      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
-      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
-      "track": "code-quality",
-      "status": "open",
+      "acceptance": {
+        "checked": 10,
+        "unchecked": 1
+      },
+      "blocks_issue_ids": [],
       "depends_on": [
         "715",
         "796",
         "797"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 10,
-        "unchecked": 1
-      },
+      "id": "799",
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": 715
-      }
+        "upstream_notes": "715"
+      },
+      "path": "799-cq-18-code-quality-closed-loop-strict-final-audit.md",
+      "status": "open",
+      "title": "799 — CQ-18: code-quality closed-loop strict final audit",
+      "track": "code-quality"
     },
     {
-      "id": "814",
-      "path": "814-formatter-parser-exceptions.md",
-      "title": "814 — Formatter/parser exceptions (23 files)",
-      "track": "code-quality",
-      "status": "open",
-      "depends_on": [
-        "791"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 0
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "791"
+      ],
+      "id": "814",
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "814-formatter-parser-exceptions.md",
+      "status": "open",
+      "title": "814 — Formatter/parser exceptions (23 files)",
+      "track": "code-quality"
     },
     {
-      "id": "818",
-      "path": "818-core-op-production-scaffold-exit.md",
-      "title": "818 — CoreOpRegistry production scaffold exit",
-      "track": "compiler-internal",
-      "status": "open",
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "blocks_issue_ids": [],
       "depends_on": [
         "798",
         "816",
@@ -942,108 +802,110 @@
         "821",
         "822"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
+      "id": "818",
       "orchestration": {
         "class": "blocked",
         "upstream_notes": "816, 817, 819, 820, 821, 822"
-      }
+      },
+      "path": "818-core-op-production-scaffold-exit.md",
+      "status": "open",
+      "title": "818 — CoreOpRegistry production scaffold exit",
+      "track": "compiler-internal"
     },
     {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "841"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "841"
+      ],
+      "id": "675",
       "orchestration": {
         "class": "implementation-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "675-host-capability-reachability-flags.md",
+      "status": "open",
+      "title": "675 — Host capability user-reachability and runtime permission flags",
+      "track": "capability"
     },
     {
-      "id": "683",
-      "path": "683-user-facing-executable-example-audit.md",
-      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
-      "track": "docs-audit",
-      "status": "open",
-      "depends_on": [
-        "679",
-        "682"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 6
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "679",
+        "682"
+      ],
+      "id": "683",
       "orchestration": {
         "class": "audit-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "683-user-facing-executable-example-audit.md",
+      "status": "open",
+      "title": "683 — User-facing executable example audit (Quickstart / skip-doc-check)",
+      "track": "docs-audit"
     },
     {
-      "id": "699",
-      "path": "699-t4-llvm-native-simd-lowering.md",
-      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
-      "track": "native-feature",
-      "status": "open",
-      "depends_on": [
-        "649",
-        "698"
-      ],
-      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
         "unchecked": 9
       },
+      "blocks_issue_ids": [],
+      "depends_on": [
+        "649",
+        "698"
+      ],
+      "id": "699",
       "orchestration": {
         "class": "design-ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "699-t4-llvm-native-simd-lowering.md",
+      "status": "open",
+      "title": "699 — T4 LLVM native SIMD lowering for std::simd",
+      "track": "native-feature"
     },
     {
-      "id": "709",
-      "path": "709-stdlib-trait-first-api-policy.md",
-      "title": "709 — Stdlib trait-first API policy and free-function eradication",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "691",
-        "695",
-        "697",
-        "703"
-      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
       "blocks_issue_ids": [
         "710",
         "711",
         "712",
         "713"
       ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
+      "depends_on": [
+        "691",
+        "695",
+        "697",
+        "703"
+      ],
+      "id": "709",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#691 Iterator, #695 Ord, #697 Vec<T> operations, #703 monomorphic API cutover"
-      }
+      },
+      "path": "709-stdlib-trait-first-api-policy.md",
+      "status": "open",
+      "title": "709 — Stdlib trait-first API policy and free-function eradication",
+      "track": "stdlib-api"
     },
     {
-      "id": "710",
-      "path": "710-stdlib-linear-collections-type-surface.md",
-      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
-      "track": "stdlib-api",
-      "status": "open",
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "blocks_issue_ids": [
+        "711"
+      ],
       "depends_on": [
         "691",
         "697",
@@ -1051,85 +913,83 @@
         "707",
         "709"
       ],
-      "blocks_issue_ids": [
-        "711"
-      ],
+      "id": "710",
+      "orchestration": {
+        "class": "blocked-by-upstream",
+        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
+      },
+      "path": "710-stdlib-linear-collections-type-surface.md",
+      "status": "open",
+      "title": "710 — Linear collection ADTs: `Deque<T>` / queue / stack / list type surface",
+      "track": "stdlib-api"
+    },
+    {
       "acceptance": {
         "checked": 0,
         "unchecked": 13
       },
-      "orchestration": {
-        "class": "blocked-by-upstream",
-        "upstream_notes": "#691 Iterator, #697 Vec<T>, #701 associated functions, #707 Self return type, #709 trait-first policy"
-      }
-    },
-    {
-      "id": "711",
-      "path": "711-stdlib-docs-rich-reference-quality.md",
-      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
-      "track": "stdlib-docs",
-      "status": "open",
+      "blocks_issue_ids": [
+        "712",
+        "713"
+      ],
       "depends_on": [
         "681",
         "709",
         "710"
       ],
-      "blocks_issue_ids": [
-        "712",
-        "713"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
+      "id": "711",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#681 manifest reachability, #709 trait-first policy, #710 linear collection type surface"
-      }
+      },
+      "path": "711-stdlib-docs-rich-reference-quality.md",
+      "status": "open",
+      "title": "711 — Rich stdlib reference docs with crates.io / docs.rs / JSR readability",
+      "track": "stdlib-docs"
     },
     {
-      "id": "712",
-      "path": "712-llm-code-quality-signal-gates.md",
-      "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
-      "track": "tooling-contract",
-      "status": "open",
-      "depends_on": [
-        "709",
-        "711"
-      ],
-      "blocks_issue_ids": [
-        "713"
-      ],
       "acceptance": {
         "checked": 0,
         "unchecked": 11
       },
+      "blocks_issue_ids": [
+        "713"
+      ],
+      "depends_on": [
+        "709",
+        "711"
+      ],
+      "id": "712",
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
-      }
+      },
+      "path": "712-llm-code-quality-signal-gates.md",
+      "status": "open",
+      "title": "712 — LLM code quality signal gates for readability and stdlib misuse",
+      "track": "tooling-contract"
     },
     {
-      "id": "713",
-      "path": "713-stdlib-best-practices-doc-pack.md",
-      "title": "713 — Stdlib and Arukellt code best-practices doc pack",
-      "track": "language-docs",
-      "status": "open",
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 13
+      },
+      "blocks_issue_ids": [],
       "depends_on": [
         "709",
         "711",
         "712"
       ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 13
-      },
+      "id": "713",
       "orchestration": {
         "class": "blocked-by-upstream",
         "upstream_notes": "#709 trait-first policy, #711 stdlib docs, #712 LLM quality signals"
-      }
+      },
+      "path": "713-stdlib-best-practices-doc-pack.md",
+      "status": "open",
+      "title": "713 — Stdlib and Arukellt code best-practices doc pack",
+      "track": "language-docs"
     }
   ],
-  "blocked_external": []
+  "schema": "arukellt-issue-index-meta-v1"
 }
