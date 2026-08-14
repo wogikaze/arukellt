@@ -1,7 +1,8 @@
 """Strict typed admission for proof Phase 7 read-only memory."""
 from __future__ import annotations
 from typing import Any
-from proof.readonly_memory_semantics import compatibility_view, validate_readonly_memory_semantics
+from proof.readonly_memory_compat_v7 import compatibility_view
+from proof.readonly_memory_semantics import validate_readonly_memory_semantics
 from proof.typed_admission_v6 import TypedVerifiedCoreError, validate_typed_document as validate_phase6
 
 SCHEMA = "arukellt-typed-verified-core-admission"
