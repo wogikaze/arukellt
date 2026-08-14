@@ -6,7 +6,7 @@ fn emit_wasm_context_new(
     strings: EmitStringTablePlan,
     target: String,
     wasi_version: String,
-    needs_network_runtime: i32,
+    needs_runtime_host: i32,
     needs_wasi_http_outgoing: i32,
     source_file: String
 ) -> SelfEmitCtx {
@@ -20,7 +20,7 @@ fn emit_wasm_context_new(
         strings::EmitStringTablePlan_false_idx(strings),
         target,
         wasi_version,
-        needs_network_runtime,
+        needs_runtime_host,
         needs_wasi_http_outgoing,
         source_file
     )

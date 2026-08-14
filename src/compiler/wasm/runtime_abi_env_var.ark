@@ -12,7 +12,7 @@ fn emit_env_var(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
         return runtime_abi_env_var_gc::emit_env_var_gc(w, inst, ctx)
     }
     helpers_core::emit_local_set(w, name_local)
-    if emit_target::is_minimal_p1_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_network_runtime(ctx)) {
+    if emit_target::is_minimal_p1_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx), ctx_record::SelfEmitCtx_needs_runtime_host(ctx)) {
         helpers_core::emit_local_get(w, name_local)
         helpers_core::emit_drop(w)
         runtime_abi_env_var_option::emit_env_var_option_none(w, ctx)

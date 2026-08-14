@@ -29,7 +29,7 @@ fn emit_wasm_module_sections(
     let strings = strings::prepare_string_table(mir)
     // Legacy name kept while bootstrap overlay matches this symbol; means
     // "emit WIT-shaped HTTP/TCP guest imports" (not the retired arukellt_host module).
-    let needs_network_runtime = module_functions::mir_module_needs_network_runtime(mir)
+    let needs_runtime_host = module_functions::mir_module_needs_runtime_host(mir)
     let needs_wasi_http_outgoing = module_functions::mir_module_needs_wasi_http_outgoing_if_p2(mir, clone(wasi_version))
     let gc_layout = gc_layout_table::GcLayoutTable_new()
     let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
@@ -42,7 +42,7 @@ fn emit_wasm_module_sections(
         needs_wrapper,
         clone(target),
         clone(wasi_version),
-        needs_network_runtime,
+        needs_runtime_host,
         needs_wasi_http_outgoing,
         bindings,
         gc_layout
@@ -52,7 +52,7 @@ fn emit_wasm_module_sections(
         strings,
         clone(target),
         clone(wasi_version),
-        needs_network_runtime,
+        needs_runtime_host,
         needs_wasi_http_outgoing,
         clone(source_file)
     )
@@ -79,7 +79,7 @@ fn emit_wasm_module_sections(
         wasm_sections_facade::type_plan_host_type_map(type_plan),
         clone(target),
         clone(wasi_version),
-        needs_network_runtime,
+        needs_runtime_host,
         needs_wasi_http_outgoing,
         bindings,
         wasm_sections_facade::type_plan_wit_type_map(type_plan)
@@ -89,10 +89,10 @@ fn emit_wasm_module_sections(
     wasm_sections_facade::emit_memory_section(out, clone(target))
     wasm_sections_facade::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
-    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
-    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
     code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
-    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing, wit_import_count)
+    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug, source_file)
     registry_return_audit::registry_audit_print_summary(ctx)
     core_op_shadow::core_op_shadow_print_summary(ctx)

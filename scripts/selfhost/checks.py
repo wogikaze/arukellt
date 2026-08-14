@@ -3387,7 +3387,7 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
         return
     host_text = host_path.read_text(encoding="utf-8")
     text = fn_path.read_text(encoding="utf-8")
-    for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
+    for symbol in ("mir_call_is_runtime_host", "mir_call_is_wasi_http_outgoing"):
         renamed = f"mir_module_host_calls__{symbol}"
         if re.search(
             rf"pub fn {re.escape(renamed)}\(callee: String\) -> bool",
@@ -3545,11 +3545,11 @@ fn _overlay_callee_needs_network_host(callee: String) -> bool {
         )
     text = _sub_required(
         text,
-        r"pub fn mir_module_needs_network_runtime\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_network_runtime(mir: MirModule) -> i32 {"
+        r"pub fn mir_module_needs_runtime_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
+        "pub fn mir_module_needs_runtime_host(mir: MirModule) -> i32 {"
         + scan_body
         + "\n}",
-        "inline overlay-safe mir_module_needs_network_runtime scan",
+        "inline overlay-safe mir_module_needs_runtime_host scan",
         count=1,
     )
     text = _sub_required(

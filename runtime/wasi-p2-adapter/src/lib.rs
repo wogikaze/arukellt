@@ -200,8 +200,8 @@ fn http_serve_once(port: u16, body: &str) -> Result<(), String> {
         .map_err(|error| format!("HTTP response write failed: {error}"))
 }
 
-impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
-    fn buffer_len(handle: u32) -> u32 {
+impl Guest for RuntimeAdapter {
+    fn runtime_buffer_len(handle: u32) -> u32 {
         let guard = state().lock().expect("runtime state poisoned");
         match guard.get(handle) {
             Some(HandleValue::Buffer(bytes)) => bytes.len() as u32,
@@ -209,7 +209,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn buffer_byte(handle: u32, index: u32) -> u8 {
+    fn runtime_buffer_byte(handle: u32, index: u32) -> u8 {
         let guard = state().lock().expect("runtime state poisoned");
         match guard.get(handle) {
             Some(HandleValue::Buffer(bytes)) => bytes.get(index as usize).copied().unwrap_or(0),
@@ -217,32 +217,32 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn buffer_close(handle: u32) {
+    fn runtime_buffer_close(handle: u32) {
         state().lock().expect("runtime state poisoned").remove(handle);
     }
 
-    fn http_get(url: String) -> i32 {
+    fn runtime_http_get(url: String) -> i32 {
         match http_request("GET", &url, &[]) {
             Ok(bytes) => store_buffer(bytes),
             Err(error) => store_error(error),
         }
     }
 
-    fn http_request(method: String, url: String, body: String) -> i32 {
+    fn runtime_http_request(method: String, url: String, body: String) -> i32 {
         match http_request(&method, &url, body.as_bytes()) {
             Ok(bytes) => store_buffer(bytes),
             Err(error) => store_error(error),
         }
     }
 
-    fn http_serve(port: u16, body: String) -> i32 {
+    fn runtime_http_serve(port: u16, body: String) -> i32 {
         match http_serve_once(port, &body) {
             Ok(()) => 0,
             Err(error) => store_error(error),
         }
     }
 
-    fn socket_connect(host: String, port: u16) -> i32 {
+    fn runtime_socket_connect(host: String, port: u16) -> i32 {
         match socket_connect(&host, port) {
             Ok(stream) => state()
                 .lock()
@@ -252,7 +252,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn socket_read(socket: u32, max_len: u32) -> i32 {
+    fn runtime_socket_read(socket: u32, max_len: u32) -> i32 {
         let mut guard = state().lock().expect("runtime state poisoned");
         let Some(HandleValue::Stream(stream)) = guard.get_mut(socket) else {
             drop(guard);
@@ -271,7 +271,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn socket_write(socket: u32, bytes: Vec<u8>) -> i32 {
+    fn runtime_socket_write(socket: u32, bytes: Vec<u8>) -> i32 {
         let mut guard = state().lock().expect("runtime state poisoned");
         let Some(HandleValue::Stream(stream)) = guard.get_mut(socket) else {
             drop(guard);
@@ -286,7 +286,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn socket_listen(host: String, port: u16) -> i32 {
+    fn runtime_socket_listen(host: String, port: u16) -> i32 {
         match TcpListener::bind((host.as_str(), port)) {
             Ok(listener) => state()
                 .lock()
@@ -296,7 +296,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn socket_accept(listener: u32) -> i32 {
+    fn runtime_socket_accept(listener: u32) -> i32 {
         let mut guard = state().lock().expect("runtime state poisoned");
         let Some(HandleValue::Listener(listener)) = guard.get_mut(listener) else {
             drop(guard);
@@ -311,23 +311,23 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn socket_close(handle: u32) {
+    fn runtime_socket_close(handle: u32) {
         state().lock().expect("runtime state poisoned").remove(handle);
     }
 
-    fn fs_read_file(path: String) -> i32 {
+    fn runtime_fs_read_file(path: String) -> i32 {
         store_io(fs::read(path), |bytes| store_buffer(bytes))
     }
 
-    fn fs_write_file(path: String, contents: String) -> i32 {
+    fn runtime_fs_write_file(path: String, contents: String) -> i32 {
         store_io(fs::write(path, contents.as_bytes()), |_| 0)
     }
 
-    fn fs_write_bytes(path: String, contents: Vec<u8>) -> i32 {
+    fn runtime_fs_write_bytes(path: String, contents: Vec<u8>) -> i32 {
         store_io(fs::write(path, contents), |_| 0)
     }
 
-    fn fs_read_dir(path: String) -> i32 {
+    fn runtime_fs_read_dir(path: String) -> i32 {
         match fs::read_dir(path) {
             Ok(entries) => {
                 let mut names = Vec::new();
@@ -344,7 +344,7 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn fs_metadata(path: String) -> i32 {
+    fn runtime_fs_metadata(path: String) -> i32 {
         match fs::metadata(path) {
             Ok(metadata) => store_buffer(
                 format!(
@@ -359,15 +359,15 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         }
     }
 
-    fn fs_remove_file(path: String) -> i32 {
+    fn runtime_fs_remove_file(path: String) -> i32 {
         store_io(fs::remove_file(path), |_| 0)
     }
 
-    fn fs_create_dir_all(path: String) -> i32 {
+    fn runtime_fs_create_dir_all(path: String) -> i32 {
         store_io(fs::create_dir_all(path), |_| 0)
     }
 
-    fn env_vars() -> i32 {
+    fn runtime_env_vars() -> i32 {
         let mut values: Vec<String> = std::env::vars()
             .map(|(key, value)| format!("{key}={value}"))
             .collect();
@@ -375,14 +375,14 @@ impl exports::arukellt::runtime::host::Guest for RuntimeAdapter {
         store_buffer(values.join("\0").into_bytes())
     }
 
-    fn env_current_dir() -> i32 {
+    fn runtime_env_current_dir() -> i32 {
         match std::env::current_dir() {
             Ok(path) => store_buffer(path.to_string_lossy().as_bytes().to_vec()),
             Err(error) => store_error(error.to_string()),
         }
     }
 
-    fn env_var(name: String) -> i32 {
+    fn runtime_env_var(name: String) -> i32 {
         match std::env::var(name) {
             Ok(value) => store_buffer(value.into_bytes()),
             Err(error) => store_error(error.to_string()),

@@ -18,7 +18,7 @@ fn mir_call_is_wasi_http_outgoing(callee: String) -> bool {
     false
 }
 
-fn mir_call_is_arukellt_host_sockets(callee: String) -> bool {
+fn mir_call_is_runtime_host_sockets(callee: String) -> bool {
     if eq(clone(callee), "sockets_connect") { return true }
     if eq(clone(callee), "__runtime_abi_sockets_connect") { return true }
     if eq(clone(callee), "sockets::connect") { return true }
@@ -47,8 +47,8 @@ fn mir_call_is_arukellt_host_sockets(callee: String) -> bool {
     false
 }
 
-fn mir_call_is_arukellt_host(callee: String) -> bool {
+fn mir_call_is_runtime_host(callee: String) -> bool {
     if mir_call_is_wasi_http_outgoing(clone(callee)) { return true }
-    if mir_call_is_arukellt_host_sockets(clone(callee)) { return true }
+    if mir_call_is_runtime_host_sockets(clone(callee)) { return true }
     false
 }

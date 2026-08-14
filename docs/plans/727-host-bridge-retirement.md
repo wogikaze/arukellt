@@ -13,7 +13,7 @@
 
 - Phase 0–7 done（bridged close）。issue は `issues/done/` 済み。
 - 達成: guest import から `arukellt_host` を除去し、HTTP/sockets を WIT 形 module 名へ統一。
-- 残ギャップ（`#841`）: 真の WASI method / resource ABI、bare `wasmtime run`、`host_http` / `host_sockets` shim 削除、`needs_network_runtime` リネーム。
+- 残ギャップ（`#841`）: 真の WASI method / resource ABI、bare `wasmtime run`、`host_http` / `host_sockets` shim 削除、`needs_runtime_host` リネーム。
 - これにより `#819` runtime ABI CoreOp lowering の前提が整う。
 
 ## 2. 前提・依存
@@ -36,7 +36,7 @@
 ### Phase 4 — host-linker WIT bind（bridged）
 - host-linker は WIT module 名へ簡略 guest ABI を bind。
 - `host_http.rs` / `host_sockets.rs` のカスタム実装削除と真の `wasmtime-wasi` リンクは `#841`。
-- `needs_network_runtime` フラグ改名は overlay 都合で `#841` へ延期。
+- `needs_runtime_host` フラグ改名は overlay 都合で `#841` へ延期。
 
 ### Phase 5 — runner / gate / fixture 更新
 - `gate-655`–`658` に WIT import 検査を追加済み。
@@ -71,7 +71,7 @@ python3 scripts/check/gate-658-sockets-listen-accept.py    # PASS
 ## 6. リスク（残）
 
 - 真の WASI ABI 差分は `#841` で解消する。
-- `needs_network_runtime` 名の残存は overlay 都合の既知延期。
+- `needs_runtime_host` 名の残存は overlay 都合の既知延期。
 
 ## 7. 進捗更新規則
 

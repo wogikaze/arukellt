@@ -22,7 +22,7 @@ fn emit_hm_si_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_network_runtime(ctx),
+                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
                 ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )
@@ -87,7 +87,7 @@ fn emit_hm_is_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_network_runtime(ctx),
+                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
                 ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )
@@ -172,7 +172,7 @@ fn emit_hm_ss_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, 
                 fn_idx,
                 ctx_record::SelfEmitCtx_target(ctx),
                 ctx_record::SelfEmitCtx_wasi_version(ctx),
-                ctx_record::SelfEmitCtx_needs_network_runtime(ctx),
+                ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
                 ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                 wit_import_count
             )

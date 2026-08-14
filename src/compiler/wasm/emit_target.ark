@@ -33,91 +33,91 @@ fn is_component_stub_wasi(wasi_version: String) -> bool {
 
 // Canonical wasm32 modules without arukellt_host use the same 7-import WASI
 // surface as pinned bootstrap and p1-component stubs (ADR-029 parity).
-fn is_minimal_p1_wasi(wasi_version: String, needs_network_runtime: i32) -> bool {
+fn is_minimal_p1_wasi(wasi_version: String, needs_runtime_host: i32) -> bool {
     if is_p2_wasi(clone(wasi_version)) {
         return false
     }
     if is_component_stub_wasi(clone(wasi_version)) {
         return false
     }
-    if needs_network_runtime == 1 {
+    if needs_runtime_host == 1 {
         return false
     }
     return true
 }
 
-fn p2_host_import_count(needs_network_runtime: i32, needs_wasi_http_outgoing: i32) -> i32 {
+fn p2_host_import_count(needs_runtime_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     let base = constants::NUM_P2_IMPORTS_BASE()
     let with_outgoing = if needs_wasi_http_outgoing == 1 {
         base + constants::NUM_P2_HTTP_OUTGOING_IMPORTS()
     } else {
         base
     }
-    if needs_network_runtime == 1 {
-        with_outgoing + constants::NUM_ARUKELLT_HOST_IMPORTS()
+    if needs_runtime_host == 1 {
+        with_outgoing + constants::NUM_RUNTIME_HOST_IMPORTS()
     } else {
         with_outgoing
     }
 }
 
-fn p2_host_type_count(needs_network_runtime: i32, needs_wasi_http_outgoing: i32) -> i32 {
+fn p2_host_type_count(needs_runtime_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     // Base WASI shapes (5) + P2 clocks (2) + get-stream/bwaf (2).
     let mut count = 9
     if needs_wasi_http_outgoing == 1 { count = count + 1 }
-    if needs_network_runtime == 1 { count = count + 3 }
+    if needs_runtime_host == 1 { count = count + 3 }
     return count
 }
 
-fn wasi_host_type_count(needs_network_runtime: i32, needs_wasi_http_outgoing: i32) -> i32 {
+fn wasi_host_type_count(needs_runtime_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     let base = constants::NUM_WASI_TYPES_BASE()
     let with_outgoing = if needs_wasi_http_outgoing == 1 {
         base + 1
     } else {
         base
     }
-    if needs_network_runtime == 1 {
+    if needs_runtime_host == 1 {
         with_outgoing + 3
     } else {
         with_outgoing
     }
 }
 
-fn host_import_count(target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32) -> i32 {
+fn host_import_count(target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     if is_p2_wasi(clone(wasi_version)) {
-        return p2_host_import_count(needs_network_runtime, needs_wasi_http_outgoing)
+        return p2_host_import_count(needs_runtime_host, needs_wasi_http_outgoing)
     }
     if is_component_stub_wasi(clone(wasi_version)) {
         return constants::NUM_WASI_IMPORTS_COMPONENT()
     }
-    if is_minimal_p1_wasi(clone(wasi_version), needs_network_runtime) {
+    if is_minimal_p1_wasi(clone(wasi_version), needs_runtime_host) {
         return constants::NUM_WASI_IMPORTS_COMPONENT()
     }
-    if needs_network_runtime == 1 {
+    if needs_runtime_host == 1 {
         return constants::NUM_WASI_IMPORTS()
     }
     constants::NUM_WASI_IMPORTS_BASE()
 }
 
-fn host_type_count(target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32) -> i32 {
+fn host_type_count(target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32) -> i32 {
     if is_p2_wasi(clone(wasi_version)) {
-        return p2_host_type_count(needs_network_runtime, needs_wasi_http_outgoing)
+        return p2_host_type_count(needs_runtime_host, needs_wasi_http_outgoing)
     }
     if is_component_stub_wasi(clone(wasi_version)) {
         return constants::NUM_WASI_TYPES_COMPONENT()
     }
-    if is_minimal_p1_wasi(clone(wasi_version), needs_network_runtime) {
+    if is_minimal_p1_wasi(clone(wasi_version), needs_runtime_host) {
         return constants::NUM_WASI_TYPES_COMPONENT()
     }
-    if needs_network_runtime == 1 {
+    if needs_runtime_host == 1 {
         return constants::NUM_WASI_TYPES()
     }
     constants::NUM_WASI_TYPES_BASE()
 }
 
-fn total_import_count(target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    host_import_count(clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing) + wit_import_count
+fn total_import_count(target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
+    host_import_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing) + wit_import_count
 }
 
-fn total_host_type_count(target: String, wasi_version: String, needs_network_runtime: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    host_type_count(clone(target), clone(wasi_version), needs_network_runtime, needs_wasi_http_outgoing) + wit_import_count
+fn total_host_type_count(target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
+    host_type_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing) + wit_import_count
 }

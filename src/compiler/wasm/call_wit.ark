@@ -24,7 +24,7 @@ fn try_emit_wit_call(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, bindings: V
         bind_idx,
         ctx_record::SelfEmitCtx_target(ctx),
         ctx_record::SelfEmitCtx_wasi_version(ctx),
-        ctx_record::SelfEmitCtx_needs_network_runtime(ctx),
+        ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
         ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
         len(bindings)
     )
