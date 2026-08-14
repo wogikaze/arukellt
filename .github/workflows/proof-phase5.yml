@@ -1,0 +1,44 @@
+name: Proof Phase 5
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: proof-phase5-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  proof-phase5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Python proof tooling
+        run: python3 -m compileall -q scripts
+      - name: Enforce Phase 3-5 boundaries
+        run: |
+          python3 scripts/check/check-proof-phase3-modular.py
+          python3 scripts/check/check-proof-phase5-boundary.py
+          python3 scripts/gen/write-proof-phase5-boundary-receipt.py --output .build/proof/proof-phase5-boundary.json
+          python3 scripts/check/check-proof-phase5-boundary-receipt.py .build/proof/proof-phase5-boundary.json
+      - name: Run Phase 3-5 proof tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_proof_phase3_calls \
+            scripts.tests.test_loop_proof_v4 \
+            scripts.tests.test_proof_phase5_final \
+            scripts.tests.test_typed_corehir_v2_aggregates
+      - name: Run scalar regression tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_typed_corehir_convert \
+            scripts.tests.test_verified_core_typed \
+            scripts.tests.test_smtlib_typed_v1 \
+            scripts.tests.test_proof_program_phases
+      - uses: actions/upload-artifact@v4
+        with:
+          name: proof-phase5-boundary
+          path: .build/proof/proof-phase5-boundary.json
+          if-no-files-found: error
