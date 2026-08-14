@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Aggregate close gate for #667/#670/#671/#672/#673/#674/#706."""
+"""Aggregate close gate for #667/#670/#671/#672/#673/#674/#706.
+
+The aggregate verifies both implementation-specific gates and repository issue closure
+receipts so the productization PR cannot leave one of the tracked Markdown issues open.
+"""
 from __future__ import annotations
 
 import subprocess
