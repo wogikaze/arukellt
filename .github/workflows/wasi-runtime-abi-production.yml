@@ -5,6 +5,7 @@ on:
     paths:
       - "src/compiler/wasm/**"
       - "std/host/**"
+      - "runtime/wasi-p2-adapter/**"
       - "tools/host-linker/**"
       - "scripts/run/**"
       - "scripts/check/gate-076*"
@@ -30,6 +31,17 @@ permissions:
   contents: read
 
 jobs:
+  adapter-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - name: Build real-WASI runtime adapter
+        run: cargo build --manifest-path runtime/wasi-p2-adapter/Cargo.toml --target wasm32-wasip2 --release
+
   close-gates:
     runs-on: ubuntu-latest
     timeout-minutes: 20
