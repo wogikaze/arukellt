@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import json
-import tomllib
+import os
+import shutil
+import subprocess
 
 root = Path(__file__).resolve().parents[2]
-data = tomllib.loads((root / "data/core-ops.toml").read_text(encoding="utf-8"))
-rows = []
-for op in data.get("operations", []):
-    if op.get("classification", {}).get("layer") != "runtime":
-        continue
-    lowering = op.get("lowering", {})
-    rows.append({
-        "id": op.get("id"),
-        "lowering_kind": lowering.get("kind"),
-        "runtime": lowering.get("runtime", {}),
-    })
-print("RUNTIME_PAYLOADS=" + json.dumps(rows, sort_keys=True))
+if shutil.which("wasmtime") is None:
+    subprocess.run(
+        ["bash", "-lc", "curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1"],
+        cwd=root,
+        check=True,
+    )
+env = dict(os.environ)
+env["PATH"] = str(Path.home() / ".wasmtime/bin") + os.pathsep + env.get("PATH", "")
+env["ARUKELLT_SELFHOST_WASM"] = str(root / "bootstrap/arukellt-selfhost.wasm")
+wrapper = str(root / "scripts/run/arukellt-selfhost.sh")
+subprocess.run([wrapper, "fmt", "--fix", "std/host/fs.ark"], cwd=root, env=env, check=True, timeout=420)
+subprocess.run([wrapper, "fmt", "--check", "std/host/fs.ark"], cwd=root, env=env, check=True, timeout=420)
