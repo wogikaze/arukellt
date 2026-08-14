@@ -1,0 +1,25 @@
+name: Temporary proof phase5 strict validation
+permissions:
+  contents: write
+on:
+  push:
+    branches: [feature/proof-phase5-strict-validation]
+jobs:
+  test:
+    if: ${{ !contains(github.event.head_commit.message, '[phase5-strict-green]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m compileall -q scripts
+      - run: python3 scripts/check/check-proof-phase3-modular.py
+      - run: python3 -m unittest scripts.tests.test_typed_corehir_convert scripts.tests.test_verified_core_typed scripts.tests.test_smtlib_typed_v1 scripts.tests.test_proof_program_phases scripts.tests.test_proof_phase3_calls scripts.tests.test_loop_proof_v4 scripts.tests.test_proof_phase5_strict
+      - name: Mark green
+        run: |
+          mkdir -p .ci
+          printf '%s\n' "$GITHUB_SHA" > .ci/proof-phase5-strict-green
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .ci/proof-phase5-strict-green
+          git commit -m '[phase5-strict-green] ci: strict proof phase5 passed'
+          git push
