@@ -29,8 +29,14 @@ jobs:
         run: |
           cargo build --release --quiet --manifest-path scripts/bootstrap/wasm-heap-grow-patcher/Cargo.toml
           cargo build --release --quiet --manifest-path tools/host-linker/Cargo.toml
-      - name: Build and prove selfhost
-        run: python3 scripts/manager.py selfhost fixpoint --build
+      - name: Build and prove true selfhost fixpoint
+        run: |
+          set -o pipefail
+          python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee /tmp/fixpoint.log
+          if grep -q 'stage 3 compilation failed\|fixpoint not yet reached' /tmp/fixpoint.log; then
+            echo 'selfhost manager classified a real fixpoint failure as skipped'
+            exit 1
+          fi
       - name: T3 Wasm validation
         run: python3 scripts/check/check-t3-wasm-validate.py
       - name: Canonical full verification and receipt
