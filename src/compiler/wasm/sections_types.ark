@@ -51,12 +51,13 @@ fn emit_type_section(
         needs_wrapper
     )
     let gc_type_base = sections_type_plan::TypeSectionPlan_gc_type_base(plan)
+    let gc_fixed_type_map = sections_type_plan::TypeSectionPlan_gc_fixed_type_map(plan)
     let gc_struct_type_map = sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
             gc_layout,
             mir,
-            gc_type_base,
+            gc_fixed_type_map,
             sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),
             gc_struct_type_map
         )
