@@ -18,6 +18,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
 use wasm::code_ref_locals_infer_dest
+use wasm::gc_layout_table
 use wasm::sections_types_gc
 
 fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
@@ -37,7 +38,14 @@ fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> 
     }
     let offset_str = substring(clone(field_sig), 3, len(field_sig))
     let offset = sections_types_gc::parse_type_sig_int(offset_str)
-    Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
+    let type_idx = gc_layout_table::gc_layout_table_fixed_type_index(
+        ctx_record::SelfEmitCtx_gc_layout_table(ctx),
+        offset
+    )
+    if type_idx < 0 {
+        return Option::None
+    }
+    Option::Some(type_idx)
 }
 
 fn struct_get_result_payload_open_type(f: MirFunction, inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
