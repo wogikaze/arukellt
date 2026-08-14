@@ -1,0 +1,34 @@
+name: Component WIT productization
+
+on:
+  pull_request:
+    paths:
+      - "src/compiler/component/**"
+      - "src/compiler/resolver/**"
+      - "src/compiler/typechecker/**"
+      - "std/wit/**"
+      - "scripts/component-deps.py"
+      - "scripts/check/gate-67*.py"
+      - "scripts/check/gate-706-std-wit-full-compliance.py"
+      - "scripts/check/gate-component-wit-productization.py"
+      - "tests/fixtures/wit_import/**"
+      - "tests/component-interop/**"
+      - "docs/data/component-export-tier2.toml"
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  close-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Component/WIT close gates
+        run: python3 scripts/check/gate-component-wit-productization.py
