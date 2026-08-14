@@ -1,42 +1,42 @@
 // Arukellt Selfhost - WASI P2 command component emitter for bootstrap.
 //
-// Emits a valid wasi:cli/run@0.2.0 component directly from the compiler,
-// without relying on p2_component_wrap.py.
-//
-// The guest-native path:
-// 1. Strips wasi:clocks/* and wasi:random/* imports from the guest core wasm
-//    (keeps stdout/streams/stderr/env/fs/stdin/exit for direct wiring).
-// 2. Embeds helper modules (shared memory, realloc, stubs, env bridge, wrapper)
-//    + guest core module.
-// 3. Canon-lowers host get-stdout/bwaf/get-stderr and wires them to guest.
-// 4. Canon-lifts wrapper's run as wasi:cli/run@0.2.0 with result type.
+// Emits a valid wasi:cli/run@0.2.0 component directly from the compiler.
+// Host operations use a versioned internal runtime ABI: the guest core imports
+// `arukellt:runtime/host@0.1.0`, an embedded core bridge translates the legacy
+// pointer/scalar shape, and component-level canonical lowers are satisfied by
+// the checked WASI P2 adapter during final linking.
 
 use wasm::component_p2_bridged
 use wasm::component_p2_run_sections
+use wasm::component_p2_runtime
 use wasm::component_p2_shared
 use wasm::component_p2_stubs
 use wasm::component_p2_strip
 use wasm::writer_core
 
 fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
-    // 1. Strip clocks/random and bridged arukellt:fs (host-linker only; #834).
-    // Stock wasi:cli component worlds have no arukellt:fs instance.
+    // Clocks/random still use the existing stock-WASI component wrapper path.
+    // Filesystem/network imports are NOT stripped: they have already been
+    // normalized to arukellt:runtime/host@0.1.0 in the core import section.
     let prefixes = Vec::new<String>()
     push(prefixes, String_from("wasi:clocks/"))
     push(prefixes, String_from("wasi:random/"))
-    push(prefixes, String_from("arukellt:fs@"))
     let stripped = component_p2_strip::strip_wit_imports(core_wasm, prefixes)
 
-    // 2. Build component
     let out = p2_comp_new_component_writer()
 
-    // 2a. Host import prefix (component-level type/import/alias sections)
-    let prefix_bytes = component_p2_bridged::p2_host_import_prefix_bytes()
-    writer_core::emit_bytes(out, prefix_bytes)
+    // Existing stock WASI imports + aliases own component types 0..6 and
+    // component funcs 0..4.
+    writer_core::emit_bytes(out, component_p2_bridged::p2_host_import_prefix_bytes())
 
-    // 2b. Core modules (section 1):
-    //   0: mem, 1: realloc, 2: stub_env, 3: stub_fs, 4: stub_read, 5: stub_exit,
-    //   6: env_bridge, 7: wrapper, 8: guest
+    // Typed top-level runtime imports are deliberately component-level. The
+    // final `wac plug` step supplies them from runtime-adapter.wasm.
+    component_p2_runtime::p2_runtime_emit_component_type_section(out)
+    component_p2_runtime::p2_runtime_emit_component_import_section(out)
+
+    // Core modules:
+    //   0 mem, 1 realloc, 2 stub_env, 3 stub_fs, 4 stub_read, 5 stub_exit,
+    //   6 env_bridge, 7 wrapper, 8 runtime bridge, 9 guest.
     p2_comp_emit_core_module(out, component_p2_bridged::p2_shared_mem_module_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_realloc_module_bytes())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_env_module())
@@ -45,28 +45,29 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("exit"), String_from("stub_exit"), 1))
     p2_comp_emit_core_module(out, component_p2_bridged::p2_env_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_wrapper_module_bytes())
+    p2_comp_emit_core_module(out, component_p2_runtime::p2_runtime_bridge_module_bytes())
 
-    // 2c. First core instance section: 6 bare instances (mem, realloc, stubs)
+    // Bare helper instances + shared memory/realloc aliases.
     component_p2_bridged::p2_bridged_emit_instance_section_1(out)
-
-    // 2d. Core alias section: memory + realloc
     component_p2_bridged::p2_bridged_emit_core_alias_section(out)
 
-    // 2e. Canon lower: stdio + environment host funcs
+    // Stock stdio/environment lowers first (core funcs 1..5), then runtime
+    // adapter lowers (core funcs 6..29), all sharing memory/realloc aliases.
     component_p2_bridged::p2_bridged_emit_canon_lower_section(out)
+    component_p2_runtime::p2_runtime_emit_canon_lower_section(out)
 
-    // 2f. Second core instance section: inline stdio + env bridge
+    // Existing inline stdio/environment instances 6..8, followed by runtime
+    // lower instance 9 + bridge instance 10.
     component_p2_bridged::p2_bridged_emit_instance_section_2(out)
+    component_p2_runtime::p2_runtime_emit_core_instance_section(out)
 
-    // 2g. Guest core module (module 8)
+    // Guest is module 9 and imports the shared memory plus runtime bridge.
     let guest_transformed = component_p2_shared::replace_memory_with_shared_import(stripped)
     p2_comp_emit_core_module(out, guest_transformed)
 
-    // 2h. Third core instance section: guest + wrapper
+    // Guest core instance 11 + wrapper core instance 12.
     component_p2_bridged::p2_bridged_emit_instance_section_3(out)
-
-    // 2i. Run export sections — wrapper is core instance 10
-    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 10)
+    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12)
 
     writer_core::writer_bytes(out)
 }
