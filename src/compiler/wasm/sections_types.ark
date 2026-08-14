@@ -50,7 +50,6 @@ fn emit_type_section(
         fn_count,
         needs_wrapper
     )
-    let gc_type_base = sections_type_plan::TypeSectionPlan_gc_type_base(plan)
     let gc_fixed_type_map = sections_type_plan::TypeSectionPlan_gc_fixed_type_map(plan)
     let gc_struct_type_map = sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
     if emit_target::is_gc_target(clone(target)) {
@@ -64,7 +63,7 @@ fn emit_type_section(
     }
     let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(type_sec, len(canon_types))
-    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
+    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_fixed_type_map, gc_struct_type_map)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
     plan
 }
