@@ -1,0 +1,50 @@
+name: PR43 Wasm GC close gates
+
+on:
+  push:
+    branches:
+      - fix/wasm-gc-type-plan-owner-phase1
+
+permissions:
+  contents: read
+
+jobs:
+  close-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Install wasm-tools
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-tools
+      - name: Build support tools
+        run: |
+          cargo build --release --quiet --manifest-path scripts/bootstrap/wasm-heap-grow-patcher/Cargo.toml
+          cargo build --release --quiet --manifest-path tools/host-linker/Cargo.toml
+      - name: Build current selfhost compiler
+        run: python3 scripts/manager.py selfhost fixpoint --build
+      - name: Wasm GC validation corpus
+        run: python3 scripts/check/check-t3-wasm-validate.py
+      - name: Full repository verification
+        env:
+          ARUKELLT_WASM_INITIAL_PAGES: "131072"
+          ARUKELLT_LINT_WORKERS: "2"
+        run: python3 scripts/manager.py verify
+      - name: Fixture parity
+        run: python3 scripts/manager.py selfhost fixture-parity
+      - name: T1 linear non-regression
+        run: python3 scripts/manager.py verify quick
+      - name: GC hint proof
+        run: python3 scripts/check/check-gc-hint-runtime.py
+      - name: Benchmark both Wasm representations
+        run: |
+          python3 scripts/util/benchmark_runner.py --mode quick --target wasm32 --no-write-json --no-write-markdown --no-save-history
+          python3 scripts/util/benchmark_runner.py --mode quick --target wasm32-gc --no-write-json --no-write-markdown --no-save-history
