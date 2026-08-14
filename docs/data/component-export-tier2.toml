@@ -58,8 +58,8 @@ reason = "name-independent aggregate layout planning remains outside the fixture
 
 [[shape]]
 id = "mixed-scalar-aggregate-multi-export"
-status = "supported"
-reason = "#667 restores specialized-first dispatch before scalar generic fallback"
+status = "deferred"
+reason = "#667 restores specialized-first routing only for shapes with an existing specialized adapter; mixed aggregate planning is not generalized"
 
 [[shape]]
 id = "multi-export-string-list"
