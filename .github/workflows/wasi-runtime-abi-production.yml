@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "src/compiler/wasm/**"
+      - "src/compiler/corehir/core_op_*_generated.ark"
       - "std/host/**"
       - "data/core-ops.toml"
       - "runtime/wasi-p2-adapter/**"
@@ -13,6 +14,7 @@ on:
       - "scripts/dev/apply-wasi-runtime-abi-rename.py"
       - "scripts/dev/apply-wasi-runtime-bridge.py"
       - "scripts/dev/apply-wasi-runtime-launcher.py"
+      - "scripts/dev/add-wasi-runtime-coreops.py"
       - "scripts/gen/generate-wasi-runtime-bridge.py"
       - "scripts/check/gate-076*"
       - "scripts/check/gate-676*"
@@ -51,6 +53,9 @@ jobs:
           python3 scripts/dev/apply-wasi-runtime-abi-rename.py
           python3 scripts/dev/apply-wasi-runtime-bridge.py
           python3 scripts/dev/apply-wasi-runtime-launcher.py
+          python3 scripts/dev/add-wasi-runtime-coreops.py
+          python3 scripts/gen/generate-core-ops-registry.py
+          python3 scripts/gen/generate-core-op-bindings.py
       - name: Commit migration
         run: |
           if [[ -z "$(git status --porcelain)" ]]; then
