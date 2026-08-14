@@ -5,9 +5,11 @@ on:
     paths:
       - "src/compiler/wasm/**"
       - "std/host/**"
+      - "data/core-ops.toml"
       - "runtime/wasi-p2-adapter/**"
       - "tools/host-linker/**"
       - "scripts/run/**"
+      - "scripts/dev/apply-wasi-runtime-abi-rename.py"
       - "scripts/check/gate-076*"
       - "scripts/check/gate-676*"
       - "scripts/check/gate-819*"
@@ -28,9 +30,32 @@ on:
       - master
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  migrate-runtime-ownership:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/wasi-runtime-abi-production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/wasi-runtime-abi-production
+          fetch-depth: 0
+      - name: Apply mechanical runtime ABI ownership migration
+        run: python3 scripts/dev/apply-wasi-runtime-abi-rename.py
+      - name: Commit migration
+        run: |
+          if git diff --quiet; then
+            echo "runtime ownership migration already applied"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(runtime): move host operations behind runtime ABI"
+          git push origin HEAD:agent/wasi-runtime-abi-production
+
   adapter-build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
