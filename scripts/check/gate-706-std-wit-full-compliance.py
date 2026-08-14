@@ -21,13 +21,14 @@ def require(path: str, needles: tuple[str, ...]) -> str | None:
 
 def main() -> int:
     checks = (
-        ("std/wit/ast.ark", ("WitNode::Package", "WitNode::World", "WitNode::Interface", "WitNode::Record", "WitNode::Enum", "WitNode::Flags", "WitNode::Variant", "WitNode::Resource", "WitNode::TypeAlias", "WitNode::Use")),
+        ("std/wit/ast.ark", ("WitNode::Package", "WitNode::World", "WitNode::Interface", "WitNode::Record", "WitNode::Enum", "WitNode::Flags", "WitNode::Variant", "WitNode::Resource", "WitNode::TypeAlias", "WitNode::Use", "pub fn parse(source: String)")),
         ("std/wit/names.ark", ("kebab_name", "kebab_to_snake", "pascal_case")),
-        ("std/wit/types.ark", ("WitType",)),
-        ("std/wit/parser.ark", ("parse_wit",)),
+        ("std/wit/types.ark", ("WitType", "wit_type_from_ast")),
+        ("std/wit/parser.ark", ("parse_wit", "parse_full", "ast::parse")),
         ("src/compiler/component/wit_names.ark", ("std::wit::names",)),
         ("src/compiler/component/wit_names_import.ark", ("std::wit::names",)),
         ("src/compiler/component/wit_parse_text_scan.ark", ("std::wit::scan",)),
+        ("src/compiler/component/wit_parse_import.ark", ("std::wit::parser", "parser::parse_full")),
         ("src/compiler/resolver/wit_import_bind.ark", ("component::wit_parse_text",)),
     )
     for path, needles in checks:
