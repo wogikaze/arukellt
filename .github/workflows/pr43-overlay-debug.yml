@@ -1,0 +1,55 @@
+name: PR43 bootstrap overlay diagnostics
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  overlay:
+    if: github.head_ref == 'fix/wasm-gc-type-plan-owner-phase1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Generate and inspect flat bootstrap overlay
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import importlib.util
+
+          root = Path.cwd()
+          path = root / 'scripts' / 'selfhost' / 'checks.py'
+          spec = importlib.util.spec_from_file_location('selfhost_checks', path)
+          mod = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(mod)
+          overlay = mod._prepare_flattened_selfhost_source(root)
+          print(f'overlay={overlay}')
+          needles = [
+              'fn wit_record_type_name',
+              'fn wit_kebab_to_snake',
+              'fn mir_callee_returns_string',
+              'fn is_wit_name_string_helper',
+              'pascal_case(',
+          ]
+          for file in sorted((overlay / 'src' / 'compiler').rglob('*.ark')):
+              text = file.read_text(errors='replace')
+              for needle in needles:
+                  pos = text.find(needle)
+                  if pos < 0:
+                      continue
+                  line = text.count('\n', 0, pos) + 1
+                  start = max(0, pos - 900)
+                  end = min(len(text), pos + 1800)
+                  print(f'--- {file.relative_to(overlay)}:{line} needle={needle} ---')
+                  print(text[start:end])
+          for rel in ['std/wit/names.ark', 'std/prelude.ark']:
+              f = overlay / rel
+              print(f'overlay_file {rel} exists={f.exists()}')
+          PY
