@@ -1,5 +1,6 @@
 use wasm::inst_store
 use wasm::runtime_abi_env_args
+use wasm::runtime_abi_fs_env_extra
 use wasm::intrinsic_assert
 use wasm::runtime_abi_fs
 use wasm::runtime_abi_process
@@ -10,6 +11,16 @@ fn try_emit_env_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmi
         return true
     }
     if try_emit_env_arg_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_env_vars(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_env_vars(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_env_current_dir(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_env_current_dir(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
     false
@@ -74,6 +85,26 @@ fn try_emit_fs_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmit
 fn try_emit_fs_query_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
     if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_exists(){
         let _result_on_stack = runtime_abi_fs::emit_fs_exists(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_read_dir(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_fs_read_dir(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_metadata(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_fs_metadata(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_remove_file(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_fs_remove_file(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_runtime_fs_create_dir_all(){
+        let _result_on_stack = runtime_abi_fs_env_extra::emit_runtime_fs_create_dir_all(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
