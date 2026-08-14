@@ -11,6 +11,7 @@ on:
       - "tools/host-linker/**"
       - "scripts/run/**"
       - "scripts/dev/apply-wasi-runtime-abi-rename.py"
+      - "scripts/dev/apply-wasi-runtime-bridge.py"
       - "scripts/gen/generate-wasi-runtime-bridge.py"
       - "scripts/check/gate-076*"
       - "scripts/check/gate-676*"
@@ -44,18 +45,20 @@ jobs:
         with:
           ref: agent/wasi-runtime-abi-production
           fetch-depth: 0
-      - name: Apply mechanical runtime ABI ownership migration
-        run: python3 scripts/dev/apply-wasi-runtime-abi-rename.py
+      - name: Apply mechanical runtime ABI migration
+        run: |
+          python3 scripts/dev/apply-wasi-runtime-abi-rename.py
+          python3 scripts/dev/apply-wasi-runtime-bridge.py
       - name: Commit migration
         run: |
-          if git diff --quiet; then
-            echo "runtime ownership migration already applied"
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "runtime ABI migration already applied"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "refactor(runtime): move host operations behind runtime ABI"
+          git commit -m "refactor(runtime): wire P2 core through versioned runtime ABI"
           git push origin HEAD:agent/wasi-runtime-abi-production
 
   adapter-build:
@@ -96,7 +99,7 @@ jobs:
           python3 scripts/gen/generate-wasi-runtime-bridge.py
       - name: Commit checked artifacts
         run: |
-          if git diff --quiet -- runtime/wasi-p2-adapter/runtime-adapter.wasm src/compiler/wasm/component_p2_runtime_bridge_generated.ark; then
+          if [[ -z "$(git status --porcelain -- runtime/wasi-p2-adapter/runtime-adapter.wasm src/compiler/wasm/component_p2_runtime_bridge_generated.ark)" ]]; then
             echo "checked runtime artifacts already current"
             exit 0
           fi
