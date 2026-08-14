@@ -13,13 +13,19 @@ POSITIVE = ("bool", "i64", "f32", "f64", "string", "list-s32", "option-s32", "re
 NEGATIVE = ("stream-negative", "future-negative")
 
 
-def env() -> dict[str, str]:
+def branch_selfhost_env() -> dict[str, str] | None:
     out = dict(os.environ)
-    for candidate in (ROOT / ".build/selfhost/arukellt-s2.wasm", ROOT / ".build/selfhost/arukellt-s2-runtime.wasm", ROOT / "bootstrap/arukellt-selfhost.wasm"):
+    explicit = out.get("ARUKELLT_SELFHOST_WASM")
+    if explicit and Path(explicit).is_file():
+        return out
+    for candidate in (
+        ROOT / ".build/selfhost/arukellt-s2-runtime.wasm",
+        ROOT / ".build/selfhost/arukellt-s2.wasm",
+    ):
         if candidate.is_file():
             out["ARUKELLT_SELFHOST_WASM"] = str(candidate)
-            break
-    return out
+            return out
+    return None
 
 
 def static_gate() -> tuple[int, str]:
@@ -45,9 +51,9 @@ def static_gate() -> tuple[int, str]:
 def run_shape(shape: str, expect_ok: bool) -> tuple[int, str]:
     if not WRAPPER.is_file():
         return 2, "selfhost wrapper unavailable"
-    run_env = env()
-    if "ARUKELLT_SELFHOST_WASM" not in run_env:
-        return 2, "compiler wasm unavailable"
+    run_env = branch_selfhost_env()
+    if run_env is None:
+        return 2, "branch-built s2 compiler unavailable"
     source = BASE / shape / "main.ark"
     wit = BASE / shape / "type.wit"
     run = subprocess.run(["bash", str(WRAPPER), "check", str(source.relative_to(ROOT)), "--wit", str(wit.relative_to(ROOT))], cwd=ROOT, env=run_env, capture_output=True, text=True, timeout=180)
