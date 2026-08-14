@@ -1,0 +1,13 @@
+{
+  "schema": "arukellt-proof-capabilities",
+  "schema_version": 2,
+  "profile": "proof-phases-0-5",
+  "phases": {
+    "0": {"name": "boundary", "capabilities": ["typed-corehir", "verified-core", "solver-result", "trust-manifest"], "reject": ["implicit-proof-semantics"]},
+    "1": {"name": "straight-line", "capabilities": ["scalar-instructions", "typed-contracts", "checked-arithmetic-vc"], "reject": ["control-flow-cycles"]},
+    "2": {"name": "acyclic-cfg", "capabilities": ["branch", "goto", "block-parameters", "path-condition-vc"], "reject": ["unannotated-cycles"]},
+    "3": {"name": "modular-calls", "capabilities": ["direct-call-contracts", "exact-callee-interface-sha256-binding"], "reject": ["indirect-calls", "recursive-proof-calls"]},
+    "4": {"name": "annotated-loops", "capabilities": ["while", "invariant-init-preserve-exit", "strict-decreases-termination"], "reject": ["unannotated-loops", "nested-proof-loops", "break-continue-proof-edges"]},
+    "5": {"name": "pure-aggregates", "capabilities": ["tuple", "struct", "enum", "option", "result", "construct", "project", "variant-test", "variant-payload", "aggregate-equality", "arukellt-smt-datatype-v1"], "reject": ["recursive-aggregate-types", "aggregate-loops", "aggregate-calls", "mutable-reference-semantics"]}
+  }
+}
