@@ -41,8 +41,8 @@ println("Running as: " + name)
 ## Module `std::host::process`
 
 - Source: [`../../../std/host/process.ark`](../../../std/host/process.ark)
-- Manifest-backed functions: 2
-- Stability: stable 2
+- Manifest-backed functions: 3
+- Stability: stable 3
 
 > 🎯 **Availability:** `wasm32` and `wasm32-gc` · ✅ **Status:** implemented
 
@@ -58,6 +58,7 @@ contract instead of returning a fabricated value.
 |------|-----------|-----------|----------------|---------|
 | `exit` | `(i32) -> ()` | `stable` | ✅ functional | - |
 | `abort` | `() -> ()` | `stable` | ✅ functional | - |
+| `id` | `() -> Result<i32, String>` | `stable` | ✅ functional | - |
 
 #### `std::host::process::exit`
 
@@ -67,11 +68,15 @@ Terminate the process with the given exit code. 0 indicates success; non-zero in
 
 Abort the process immediately with an abnormal-termination signal (non-zero exit).
 
+#### `std::host::process::id`
+
+Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier.
+
 ## Module `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
-- Manifest-backed functions: 5
-- Stability: stable 5
+- Manifest-backed functions: 7
+- Stability: stable 7
 
 > ⚠️ **Availability:** mixed — see individual symbols · ✅ **Status:** implemented
 
@@ -89,6 +94,8 @@ stock Wasmtime without an Arukellt-specific host linker.
 | `arg_count` | `() -> i32` | `stable` | ✅ functional | - |
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ functional | - |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ functional | - |
+| `vars_snapshot` | `() -> Result<String, String>` | `stable` | ✅ functional | Returns a stable snapshot encoding of the environment. |
+| `current_dir` | `() -> Result<String, String>` | `stable` | ✅ functional | Returns the runtime current directory as a UTF-8 string. |
 | `has_flag` | `(String) -> bool` | `stable` | ✅ functional | - |
 
 #### `std::host::env::args`
@@ -117,6 +124,18 @@ _Example — Read the HOME environment variable:_
 let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }
 ```
+
+#### `std::host::env::vars_snapshot`
+
+Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtime ABI.
+
+**Availability:** ⚠️ Not available on `wasm32` — WASI Preview 2 runtime ABI.
+
+#### `std::host::env::current_dir`
+
+Return the runtime current directory as UTF-8 through the versioned runtime ABI.
+
+**Availability:** ⚠️ Not available on `wasm32` — WASI Preview 2 runtime ABI.
 
 #### `std::host::env::has_flag`
 

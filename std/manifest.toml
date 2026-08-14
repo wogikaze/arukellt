@@ -7269,3 +7269,38 @@ returns = "u32"
 prelude = true
 stability = "stable"
 doc_category = "convert"
+
+
+# === WASI P2 host surface production additions (#676) ===
+
+[[functions]]
+name = "id"
+module = "std::host::process"
+stability = "stable"
+params = []
+returns = "Result<i32, String>"
+doc_category = "host_process"
+doc = "Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "vars_snapshot"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+doc_category = "host_env"
+intrinsic = "__runtime_abi_env_vars"
+doc = "Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtime ABI."
+availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }
+
+[[functions]]
+name = "current_dir"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+doc_category = "host_env"
+intrinsic = "__runtime_abi_env_current_dir"
+doc = "Return the runtime current directory as UTF-8 through the versioned runtime ABI."
+availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }

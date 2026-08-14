@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 390 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 393 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 49 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -438,8 +438,10 @@ Expected output: `42`
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
+| `current_dir` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_current_dir` | Return the runtime current directory as UTF-8 through the versioned runtime ABI. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| `vars_snapshot` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_vars` | Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtim… |
 
 ### `var` — `std::host::env`
 
@@ -551,6 +553,7 @@ match http::serve(8080, "hello") {
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `id` | `() -> Result<i32, String>` | `std::host::process` | `stable` | `functional` | `builtin` | no | - | Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style pro… |
 
 ## Host Random
 
