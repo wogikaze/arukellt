@@ -28,7 +28,7 @@
 | `std::host::process` | `std/host/process.ark` | yes | yes | yes | yes | yes | yes | optional compile-time deny | `wasm32`, `wasm32-gc` | exit/abort are portable runtime operations; id() returns a stable Err on WASI 0.2. |
 | `std::host::clock` | `std/host/clock.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-clock; fixtures in DIAG_PARITY_SKIP (#459). |
 | `std::host::random` | `std/host/random.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-random; fixtures in DIAG_PARITY_SKIP (#459). |
-| `std::host::http` | `std/host/http.ark` | yes | yes | yes | yes | yes | yes | runtime network/HTTP grant | `wasm32-gc` | Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim. |
+| `std::host::http` | `std/host/http.ark` | yes | yes | yes | yes | yes | **no** | runtime network/HTTP grant | `wasm32-gc` | Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim. Public user reachability remains tracked by #675. |
 | `std::host::sockets` | `std/host/sockets.ark` | yes | yes | yes | yes | yes | yes | runtime network grant | `wasm32-gc` | Real WASI 0.2 TCP/streams via the checked P2 runtime adapter (#841); wasm32 remains target-gated. |
 | `std::host::udp` | `std/host/udp.ark` | yes | yes | partial | partial | no | **no** | n/a | — | Same class as sockets |
 
