@@ -1,0 +1,28 @@
+name: Temporary proof phase57 trust and Z3
+on:
+  push:
+    branches: [agent/proof-phase-5-7]
+jobs:
+  trust-z3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate capability profile
+        run: PYTHONPATH=scripts python3 -c "import json; from pathlib import Path; from proof.capabilities_v3 import validate_document; validate_document(json.loads(Path('docs/data/proof-capabilities-v3.json').read_text()))"
+      - name: Validate Phase 5-7 boundary receipts
+        run: |
+          mkdir -p .build/proof
+          python3 scripts/gen/write-proof-phase5-boundary-receipt.py --output .build/proof/proof-phase5-boundary.json
+          python3 scripts/check/check-proof-phase5-boundary.py .build/proof/proof-phase5-boundary.json
+          python3 scripts/gen/write-proof-phase6-boundary-receipt.py --output .build/proof/proof-phase6-boundary.json
+          python3 scripts/check/check-proof-phase6-boundary.py .build/proof/proof-phase6-boundary.json
+          python3 scripts/gen/write-proof-phase7-boundary-receipt.py --output .build/proof/proof-phase7-boundary.json
+          python3 scripts/check/check-proof-phase7-boundary.py .build/proof/proof-phase7-boundary.json
+      - name: Install Z3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+      - name: Prove Phase 6-7 focused fixtures
+        run: python3 scripts/check/check-proof-phase57-z3.py
