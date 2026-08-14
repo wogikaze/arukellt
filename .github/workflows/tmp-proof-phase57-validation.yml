@@ -16,3 +16,5 @@ jobs:
         run: python3 -m unittest scripts.tests.test_proof_phase6_machine_int
       - name: Phase 7 read-only memory
         run: python3 -m unittest scripts.tests.test_proof_phase7_readonly_memory
+      - name: TypedCoreHIR v3 source boundary
+        run: python3 -m unittest scripts.tests.test_typed_corehir_v3_machine_memory
