@@ -29,58 +29,98 @@ jobs:
         run: python3 scripts/manager.py selfhost build-compiler
       - name: Compile and validate array literal
         run: |
+          mkdir -p .build/pr43-debug
           set +e
-          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm bash scripts/run/arukellt-selfhost.sh compile tests/fixtures/arrays/array_literal.ark --target wasm32-gc -o /tmp/array_literal.wasm 2>&1 | tee /tmp/array_compile.log
+          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm \
+            bash scripts/run/arukellt-selfhost.sh compile \
+            tests/fixtures/arrays/array_literal.ark --target wasm32-gc \
+            -o .build/pr43-debug/array_literal.wasm \
+            2>&1 | tee .build/pr43-debug/array_compile.log
           c=${PIPESTATUS[0]}
+          echo "$c" > .build/pr43-debug/array_compile.status
           echo "compile_exit=$c"
-          if [ -f /tmp/array_literal.wasm ]; then
-            wasm-tools validate --features gc /tmp/array_literal.wasm 2>&1 | tee /tmp/array_validate.log
-            echo "validate_exit=${PIPESTATUS[0]}"
-            wasm-tools print /tmp/array_literal.wasm > /tmp/array_literal.wat 2>/dev/null || true
-            grep -n -E 'type |func \(;|array\.new|array\.get|array\.set|struct\.new|struct\.get|struct\.set' /tmp/array_literal.wat | head -n 180 || true
+          v=99
+          if [ "$c" -eq 0 ] && [ -f .build/pr43-debug/array_literal.wasm ]; then
+            wasm-tools validate --features gc .build/pr43-debug/array_literal.wasm \
+              2>&1 | tee .build/pr43-debug/array_validate.log
+            v=${PIPESTATUS[0]}
+            wasm-tools print .build/pr43-debug/array_literal.wasm \
+              > .build/pr43-debug/array_literal.wat 2>/dev/null || true
+            grep -n -E 'type |func \(;|array\.new|array\.get|array\.set|struct\.new|struct\.get|struct\.set' \
+              .build/pr43-debug/array_literal.wat | head -n 180 || true
           fi
+          echo "$v" > .build/pr43-debug/array_validate.status
+          echo "validate_exit=$v"
           exit 0
-      - name: Compile trait resolution fixture with full diagnostics
+      - name: Compile and validate trait resolution fixture
         run: |
+          mkdir -p .build/pr43-debug
           set +e
-          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm bash scripts/run/arukellt-selfhost.sh compile tests/fixtures/generics_v1/trait_method_resolve.ark --target wasm32-gc -o /tmp/trait_method_resolve.wasm 2>&1 | tee /tmp/trait_compile.log
-          echo "compile_exit=${PIPESTATUS[0]}"
-          if [ -f /tmp/trait_method_resolve.wasm ]; then
-            wasm-tools validate --features gc /tmp/trait_method_resolve.wasm 2>&1 | tee /tmp/trait_validate.log
-            echo "validate_exit=${PIPESTATUS[0]}"
+          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2-runtime.wasm \
+            bash scripts/run/arukellt-selfhost.sh compile \
+            tests/fixtures/generics_v1/trait_method_resolve.ark --target wasm32-gc \
+            -o .build/pr43-debug/trait_method_resolve.wasm \
+            2>&1 | tee .build/pr43-debug/trait_compile.log
+          c=${PIPESTATUS[0]}
+          echo "$c" > .build/pr43-debug/trait_compile.status
+          echo "compile_exit=$c"
+          v=99
+          if [ "$c" -eq 0 ] && [ -f .build/pr43-debug/trait_method_resolve.wasm ]; then
+            wasm-tools validate --features gc .build/pr43-debug/trait_method_resolve.wasm \
+              2>&1 | tee .build/pr43-debug/trait_validate.log
+            v=${PIPESTATUS[0]}
           fi
+          echo "$v" > .build/pr43-debug/trait_validate.status
+          echo "validate_exit=$v"
           exit 0
       - name: True fixpoint probe and invalid s3 dump
         run: |
           set +e
-          python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee /tmp/fixpoint.log
+          python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee .build/pr43-debug/fixpoint.log
           rc=${PIPESTATUS[0]}
           echo "manager_exit=$rc"
           if [ -f .build/selfhost/arukellt-s3.wasm ]; then
-            wasm-tools validate --features gc .build/selfhost/arukellt-s3.wasm 2>&1 | tee /tmp/s3-validate.log
-            wasm-tools print .build/selfhost/arukellt-s3.wasm > /tmp/s3.wat 2>/tmp/s3-print.err || true
+            wasm-tools validate --features gc .build/selfhost/arukellt-s3.wasm \
+              2>&1 | tee .build/pr43-debug/s3-validate.log
+            wasm-tools print .build/selfhost/arukellt-s3.wasm \
+              > .build/pr43-debug/s3.wat 2>.build/pr43-debug/s3-print.err || true
             echo '--- validation context ---'
-            cat /tmp/s3-validate.log || true
-            echo '--- function 1223 vicinity by declaration order ---'
+            cat .build/pr43-debug/s3-validate.log || true
+            echo '--- validator function index vicinity ---'
             python3 - <<'PY'
           from pathlib import Path
-          p = Path('/tmp/s3.wat')
+          p = Path('.build/pr43-debug/s3.wat')
           if not p.exists():
-              print(Path('/tmp/s3-print.err').read_text(errors='replace') if Path('/tmp/s3-print.err').exists() else 'no WAT')
+              err = Path('.build/pr43-debug/s3-print.err')
+              print(err.read_text(errors='replace') if err.exists() else 'no WAT')
               raise SystemExit(0)
           lines = p.read_text(errors='replace').splitlines()
-          funcs = [i for i, line in enumerate(lines) if line.lstrip().startswith('(func ')]
           target = 1223
-          if target < len(funcs):
-              start = max(0, funcs[target] - 8)
-              end = min(len(lines), funcs[target] + 90)
-              for i in range(start, end): print(f'{i+1}: {lines[i]}')
+          needle = f'(func (;{target};)'
+          hits = [i for i, line in enumerate(lines) if needle in line]
+          if not hits:
+              print(f'function index {target} unavailable in WAT')
           else:
-              print(f'function declaration index {target} unavailable; func declarations={len(funcs)}')
+              start = max(0, hits[0] - 12)
+              end = min(len(lines), hits[0] + 140)
+              for i in range(start, end):
+                  print(f'{i+1}: {lines[i]}')
           PY
           fi
-          if grep -q 'stage 3 compilation failed\|stage 3 wasm failed validation\|fixpoint not yet reached' /tmp/fixpoint.log; then
-            echo 'TRUE_FIXPOINT=FAIL'
+          array_c=$(cat .build/pr43-debug/array_compile.status 2>/dev/null || echo 99)
+          array_v=$(cat .build/pr43-debug/array_validate.status 2>/dev/null || echo 99)
+          trait_c=$(cat .build/pr43-debug/trait_compile.status 2>/dev/null || echo 99)
+          trait_v=$(cat .build/pr43-debug/trait_validate.status 2>/dev/null || echo 99)
+          echo "fixture_status array=${array_c}/${array_v} trait=${trait_c}/${trait_v}"
+          failed=0
+          if [ "$array_c" -ne 0 ] || [ "$array_v" -ne 0 ]; then failed=1; fi
+          if [ "$trait_c" -ne 0 ] || [ "$trait_v" -ne 0 ]; then failed=1; fi
+          if grep -q 'stage 3 compilation failed\|stage 3 wasm failed validation\|fixpoint not yet reached' \
+            .build/pr43-debug/fixpoint.log; then
+            failed=1
+          fi
+          if [ "$failed" -ne 0 ]; then
+            echo 'TARGETED_DIAGNOSTICS=FAIL'
             exit 1
           fi
-          echo 'TRUE_FIXPOINT=PASS'
+          echo 'TARGETED_DIAGNOSTICS=PASS'
