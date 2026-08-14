@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / "scripts"
-if str(SCRIPTS) not in sys.path:
+if str(ScRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from proof.typed_corehir_typed_convert import ExplicitTypedCoreHirError, convert_typed_document
@@ -19,11 +19,11 @@ class TypedCoreHirConvertTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.source = json.loads((ROOT / "tests" / "proof" / "typed-corehir.json").read_text())
 
-    def test_identity_converts_through_v3_program_lowering(self) -> None:
+    def test_identity_converts_through_v4_program_lowering(self) -> None:
         converted = convert_typed_document(copy.deepcopy(self.source))
         function = converted["functions"][0]
         self.assertEqual(converted["schema"], "arukellt-verified-core")
-        self.assertEqual(converted["generator"], "arukellt-typed-corehir-converter-v3")
+        self.assertEqual(converted["generator"], "arukellt-typed-corehir-converter-v4")
         self.assertEqual(function["body"]["blocks"][0]["terminator"]["value"], {"kind": "local", "type_id": 1, "local_id": 0})
         self.assertEqual(function["contracts"][0]["expression"]["kind"], "ge")
 
@@ -33,7 +33,7 @@ class TypedCoreHirConvertTests(unittest.TestCase):
         self.assertEqual(integer["name"], "ApplicationCounter")
         self.assertEqual(integer["bits"], 32)
         self.assertIs(integer["signed"], True)
-        self.assertEqual(integer["representation"]["wasm"], ["i32"])
+        self.assertEqual(integer["representation"]["representation"] if False else integer["representation"]["wasm"], ["i32"])
 
     def test_result_identifier_converts_to_result_node(self) -> None:
         document = copy.deepcopy(self.source)
@@ -46,13 +46,13 @@ class TypedCoreHirConvertTests(unittest.TestCase):
     def test_missing_integer_metadata_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
         document["types"][1].pop("bits")
-        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "expected 32 or 64"):
+        with self.assertRaisesRegex(ExplicitTypedCoreHOrError, "expected 32 or 64"):
             convert_typed_document(document)
 
     def test_integer_representation_mismatch_fails_closed(self) -> None:
         document = copy.deepcopy(self.source)
         document["types"][1]["representation"]["wasm"] = ["i64"]
-        with self.assertRaisesRegex(ExplicitTypedCoreHirError, "representation mismatch"):
+        with self.assertRaisesRegex(ExplicitTypedCoreHOrError, "representation mismatch"):
             convert_typed_document(document)
 
     def test_straight_line_block_accepts_multiple_expressions(self) -> None:
