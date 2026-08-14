@@ -1,19 +1,47 @@
-// WIT import registration in resolver scope (#653, #663).
+// WIT import registration in resolver scope (#653, #663, #670).
 
 use resolver::scope_lookup
 use resolver::scope_define
+use resolver::scope_error
 use resolver::register_exports
 use resolver::ast_decl_predicates
 use resolver::ast_access
 use resolver::wit_register
 
+fn wit_seen_name(items: Vec<String>, name: String) -> bool {
+    for i in 0..len(items) {
+        if eq(get_unchecked(items, i), clone(name)) {
+            return true
+        }
+    }
+    false
+}
+
 fn register_wit_imports(ctx: ResolveCtx, wit_paths: Vec<String>, decls: Vec<AstNode>) {
+    let seen_aliases = Vec::new<String>()
+    let seen_packages = Vec::new<String>()
     let count = len(decls)
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
         if ast_decl_predicates::node_is_wit_import(d) {
-            register_one_wit_import(ctx, wit_paths, ast_access::node_text(d), wit_import_alias(d))
+            let package_id = ast_access::node_text(d)
+            let alias = wit_import_alias(d)
+            let span_start = ast_access::node_span_start(d)
+            let span_end = ast_access::node_span_end(d)
+            if len(alias) > 0 && wit_seen_name(seen_aliases, clone(alias)) {
+                scope_error::resolve_duplicate_symbol(ctx, concat("WIT import alias `", concat(clone(alias), "`")), span_start, span_end)
+            } else {
+                if wit_seen_name(seen_packages, clone(package_id)) {
+                    scope_error::resolve_duplicate_symbol(ctx, concat("WIT package `", concat(clone(package_id), "`")), span_start, span_end)
+                } else {
+                    if len(alias) > 0 {
+                        push(seen_aliases, clone(alias))
+                    }
+                    push(seen_packages, clone(package_id))
+                    register_one_wit_import(ctx, wit_paths, package_id, alias, span_start, span_end)
+                }
+            }
         }
         i = i + 1
     }
@@ -30,8 +58,14 @@ fn register_wit_module_alias(ctx: ResolveCtx, alias: String) {
     wit_register::wit_ensure_module_alias(ctx, clone(alias))
 }
 
-fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String) {
+fn register_one_wit_import(ctx: ResolveCtx, wit_paths: Vec<String>, package_id: String, alias: String, span_start: i32, span_end: i32) {
     if len(alias) == 0 {
+        return
+    }
+    // Reserve the alias before registering exports. This catches collisions with
+    // ordinary modules/local imports using the WIT declaration's real span.
+    wit_register::wit_ensure_module_alias_at(ctx, clone(alias), span_start, span_end)
+    if scope_lookup::lookup_kind(ctx, clone(alias)) != commands::SYM_MODULE() {
         return
     }
     let doc = wit_register::wit_doc_from_import(wit_paths, clone(package_id))
