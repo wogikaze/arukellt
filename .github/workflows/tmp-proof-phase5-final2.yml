@@ -1,0 +1,26 @@
+name: Temporary proof phase5 final2
+permissions:
+  contents: write
+on:
+  push:
+    branches: [feature/proof-phase5-final2]
+jobs:
+  test:
+    if: ${{ !contains(github.event.head_commit.message, '[phase5-final-green]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m compileall -q scripts
+      - run: python3 scripts/check/check-proof-phase3-modular.py
+      - run: python3 scripts/check/check-proof-phase5-boundary.py
+      - run: python3 -m unittest scripts.tests.test_typed_corehir_convert scripts.tests.test_verified_core_typed scripts.tests.test_smtlib_typed_v1 scripts.tests.test_proof_program_phases scripts.tests.test_proof_phase3_calls scripts.tests.test_loop_proof_v4 scripts.tests.test_proof_phase5_final scripts.tests.test_typed_corehir_v2_aggregates
+      - name: Mark green
+        run: |
+          mkdir -p .ci
+          printf '%s\n' "$GITHUB_SHA" > .ci/proof-phase5-final-green
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .ci/proof-phase5-final-green
+          git commit -m '[phase5-final-green] ci: proof phase5 final passed'
+          git push
