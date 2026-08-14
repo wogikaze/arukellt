@@ -23,10 +23,11 @@ def _types():
 
 
 def _contract(kind, result_name=None):
-    left = {"id": 1, "kind": "result" if kind == "ensures" else "local", "type_id": 1}
+    base = 0 if kind == "requires" else 3
+    left = {"id": base + 1, "kind": "result" if kind == "ensures" else "local", "type_id": 1}
     if kind == "requires":
         left["local_id"] = 0
-    expression = {"id": 0, "kind": "ge", "type_id": 2, "operands": [left, {"id": 2, "kind": "constant", "type_id": 1, "value": 0}]}
+    expression = {"id": base, "kind": "ge", "type_id": 2, "operands": [left, {"id": base + 2, "kind": "constant", "type_id": 1, "value": 0}]}
     result = {"kind": kind, "expression": expression}
     if result_name:
         result["result_name"] = result_name
