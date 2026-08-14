@@ -1,0 +1,33 @@
+name: PR43 refresh generated docs
+
+on:
+  push:
+    branches:
+      - fix/wasm-gc-type-plan-owner-phase1
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Regenerate docs
+        run: python3 scripts/gen/generate-docs.py
+      - name: Commit generated outputs
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "generated docs already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs src/compiler/main/target_contract_generated.ark extensions/arukellt-all-in-one/src/target-contract.generated.js 2>/dev/null || true
+          git commit -m "chore(docs): refresh generated docs for wasm gc closure"
+          git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
