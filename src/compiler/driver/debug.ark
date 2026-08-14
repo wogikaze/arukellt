@@ -1,4 +1,6 @@
 use std::host::stdio
+use component::wit_parse_import
+use component::wit_parse_text
 use driver::config_record
 use driver::parser_dump_view
 use driver::resolver_dump_view
@@ -52,6 +54,52 @@ fn dump_typed_hir_if_enabled(config: DriverConfig, check_result: TypeCheckResult
 fn dump_mir_if_enabled(config: DriverConfig, mir_module: MirModule) {
     if config_record::config_dump_mir(config) {
         mir::dump_mir(mir_module)
+    }
+}
+
+fn dump_backend_plan_if_enabled(config: DriverConfig) {
+    if !config_record::config_dump_backend_plan(config) {
+        return
+    }
+    stdio::eprintln("=== BACKEND PLAN ===")
+    let paths = config_record::config_wit_paths(config)
+    stdio::eprintln(concat("wit-imports: ", to_string(len(paths))))
+    for i in 0..len(paths) {
+        let path = get_unchecked(paths, i)
+        let doc = wit_parse_import::parse_wit_import_file(clone(path))
+        let funcs = wit_parse_text::WitParsedInterface_funcs(doc)
+        let records = wit_parse_text::WitParsedInterface_records(doc)
+        let enums = wit_parse_text::WitParsedInterface_enums(doc)
+        let variants = wit_parse_text::WitParsedInterface_variants(doc)
+        let summary = concat(
+            "wit-import ",
+            concat(
+                clone(doc.package),
+                concat(
+                    "/",
+                    concat(
+                        clone(doc.interface),
+                        concat(
+                            " funcs=",
+                            concat(
+                                to_string(len(funcs)),
+                                concat(
+                                    " records=",
+                                    concat(
+                                        to_string(len(records)),
+                                        concat(
+                                            " enums=",
+                                            concat(to_string(len(enums)), concat(" variants=", to_string(len(variants))))
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        stdio::eprintln(summary)
     }
 }
 
