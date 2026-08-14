@@ -1,4 +1,4 @@
-// WIT type mapping — WIT surface types to Arukellt type names (#653, #664).
+// WIT type mapping — WIT surface types to Arukellt type names (#653, #664, #671, #672).
 
 use std::text
 use component::wit_parse_flags
@@ -12,33 +12,15 @@ fn wit_primitive_to_ark(wit_type: String) -> String {
     if starts_with(clone(t), "future<") || starts_with(clone(t), "stream<") {
         return "i32"
     }
-    if eq(clone(t), "s32") || eq(clone(t), "u32") {
-        return "i32"
-    }
-    if eq(clone(t), "s64") || eq(clone(t), "u64") {
-        return "i64"
-    }
-    if eq(clone(t), "f32") {
-        return "f32"
-    }
-    if eq(clone(t), "f64") {
-        return "f64"
-    }
-    if eq(clone(t), "bool") {
-        return "bool"
-    }
-    if eq(clone(t), "char") {
-        return "char"
-    }
-    if eq(clone(t), "string") {
-        return "String"
-    }
-    if eq(clone(t), "s8") || eq(clone(t), "u8") {
-        return "i32"
-    }
-    if eq(clone(t), "s16") || eq(clone(t), "u16") {
-        return "i32"
-    }
+    if eq(clone(t), "s32") || eq(clone(t), "u32") { return "i32" }
+    if eq(clone(t), "s64") || eq(clone(t), "u64") { return "i64" }
+    if eq(clone(t), "f32") { return "f32" }
+    if eq(clone(t), "f64") { return "f64" }
+    if eq(clone(t), "bool") { return "bool" }
+    if eq(clone(t), "char") { return "char" }
+    if eq(clone(t), "string") { return "String" }
+    if eq(clone(t), "s8") || eq(clone(t), "u8") { return "i32" }
+    if eq(clone(t), "s16") || eq(clone(t), "u16") { return "i32" }
     clone(t)
 }
 
@@ -47,17 +29,13 @@ fn wit_trim_type(t: String) -> String {
     let mut start = 0
     while start < n {
         let ch = char_at(t, start)
-        if ch != 32 && ch != 9 {
-            break
-        }
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         start = start + 1
     }
     let mut end = n
     while end > start {
         let ch = char_at(t, end - 1)
-        if ch != 32 && ch != 9 {
-            break
-        }
+        if ch != 32 && ch != 9 && ch != 10 && ch != 13 { break }
         end = end - 1
     }
     substring(t, start, end)
@@ -66,37 +44,63 @@ fn wit_trim_type(t: String) -> String {
 fn wit_record_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let names = Vec::new<String>()
-    for ri in 0..len(records) {
-        push(names, clone(get_unchecked(records, ri).wit_name))
-    }
+    for ri in 0..len(records) { push(names, clone(get_unchecked(records, ri).wit_name)) }
     names
 }
 
 fn wit_record_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let records = wit_parse_text::WitParsedInterface_records(doc)
     let names = Vec::new<String>()
-    for ri in 0..len(records) {
-        push(names, clone(get_unchecked(records, ri).ark_name))
-    }
+    for ri in 0..len(records) { push(names, clone(get_unchecked(records, ri).ark_name)) }
     names
 }
 
 fn wit_enum_wit_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let names = Vec::new<String>()
-    for ei in 0..len(enums) {
-        push(names, clone(get_unchecked(enums, ei).wit_name))
-    }
+    for ei in 0..len(enums) { push(names, clone(get_unchecked(enums, ei).wit_name)) }
     names
 }
 
 fn wit_enum_ark_names(doc: wit_parse_text::WitParsedInterface) -> Vec<String> {
     let enums = wit_parse_text::WitParsedInterface_enums(doc)
     let names = Vec::new<String>()
-    for ei in 0..len(enums) {
-        push(names, clone(get_unchecked(enums, ei).ark_name))
-    }
+    for ei in 0..len(enums) { push(names, clone(get_unchecked(enums, ei).ark_name)) }
     names
+}
+
+fn wit_generic_args(t: String) -> Vec<String> {
+    let args = Vec::new<String>()
+    let open = index_of(t, "<")
+    if open < 0 { return args }
+    let mut close = len(t) - 1
+    while close > open && char_at(t, close) != 62 { close = close - 1 }
+    if close <= open { return args }
+    let inner = substring(t, open + 1, close)
+    let mut start = 0
+    let mut depth = 0
+    let mut i = 0
+    while i < len(inner) {
+        let ch = char_at(inner, i)
+        if ch == 60 { depth = depth + 1 }
+        if ch == 62 { depth = depth - 1 }
+        if ch == 44 && depth == 0 {
+            push(args, wit_trim_type(substring(inner, start, i)))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    if start < len(inner) { push(args, wit_trim_type(substring(inner, start, len(inner)))) }
+    args
+}
+
+fn wit_render_ark_generic(base: String, args: Vec<String>, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
+    let mut out = concat(base, "<")
+    for i in 0..len(args) {
+        if i > 0 { out = text::builder_append(out, ",") }
+        out = text::builder_append(out, wit_type_to_ark(get_unchecked(args, i), clone(alias), doc))
+    }
+    text::builder_append(out, ">")
 }
 
 fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitParsedInterface) -> String {
@@ -105,108 +109,60 @@ fn wit_type_to_ark(wit_type: String, alias: String, doc: wit_parse_text::WitPars
     let enum_wit = wit_enum_wit_names(doc)
     let enum_ark = wit_enum_ark_names(doc)
     let t = wit_trim_type(wit_type)
-    if len(t) == 0 {
-        return "()"
-    }
-    if starts_with(clone(t), "list<") {
-        let inner = wit_generic_inner(t)
-        return concat("Vec<", concat(wit_type_to_ark(inner, clone(alias), doc), ">"))
-    }
-    if starts_with(clone(t), "option<") {
-        let inner = wit_generic_inner(t)
-        return concat("Option<", concat(wit_type_to_ark(inner, clone(alias), doc), ">"))
-    }
-    if starts_with(clone(t), "future<") {
-        let inner = wit_generic_inner(t)
-        return concat("Future<", concat(wit_type_to_ark(inner, clone(alias), doc), ">"))
-    }
-    if starts_with(clone(t), "stream<") {
-        let inner = wit_generic_inner(t)
-        return concat("Stream<", concat(wit_type_to_ark(inner, clone(alias), doc), ">"))
-    }
+    if len(t) == 0 { return "()" }
+    if starts_with(clone(t), "list<") { return wit_render_ark_generic("Vec", wit_generic_args(t), alias, doc) }
+    if starts_with(clone(t), "option<") { return wit_render_ark_generic("Option", wit_generic_args(t), alias, doc) }
+    if starts_with(clone(t), "result<") { return wit_render_ark_generic("Result", wit_generic_args(t), alias, doc) }
+    if starts_with(clone(t), "tuple<") { return wit_render_ark_generic("Tuple", wit_generic_args(t), alias, doc) }
+    if starts_with(clone(t), "future<") { return wit_render_ark_generic("Future", wit_generic_args(t), alias, doc) }
+    if starts_with(clone(t), "stream<") { return wit_render_ark_generic("Stream", wit_generic_args(t), alias, doc) }
     let rec_idx = wit_record_index(rec_wit, clone(t))
-    if rec_idx >= 0 {
-        let rec_name = get_unchecked(rec_ark, rec_idx)
-        return concat(clone(alias), concat("::", clone(rec_name)))
-    }
+    if rec_idx >= 0 { return concat(clone(alias), concat("::", clone(get_unchecked(rec_ark, rec_idx)))) }
     let enum_idx = wit_enum_index(enum_wit, clone(t))
-    if enum_idx >= 0 {
-        let enum_name = get_unchecked(enum_ark, enum_idx)
-        return concat(clone(alias), concat("::", clone(enum_name)))
-    }
+    if enum_idx >= 0 { return concat(clone(alias), concat("::", clone(get_unchecked(enum_ark, enum_idx)))) }
     wit_primitive_to_ark(t)
 }
 
 fn wit_generic_inner(t: String) -> String {
-    let open = index_of(t, "<")
-    let close = index_of(t, ">")
-    if open < 0 || close <= open {
-        return String_new()
-    }
-    wit_trim_type(substring(t, open + 1, close))
+    let args = wit_generic_args(t)
+    if len(args) == 0 { return String_new() }
+    get_unchecked(args, 0)
 }
 
 fn wit_record_index(names: Vec<String>, wit_name: String) -> i32 {
-    for i in 0..len(names) {
-        if eq(get_unchecked(names, i), clone(wit_name)) {
-            return i
-        }
-    }
+    for i in 0..len(names) { if eq(get_unchecked(names, i), clone(wit_name)) { return i } }
     0 - 1
 }
 
 fn wit_enum_index(names: Vec<String>, wit_name: String) -> i32 {
-    for i in 0..len(names) {
-        if eq(get_unchecked(names, i), clone(wit_name)) {
-            return i
-        }
-    }
+    for i in 0..len(names) { if eq(get_unchecked(names, i), clone(wit_name)) { return i } }
     0 - 1
 }
 
 fn wit_type_to_valtype(wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
-    if wit_parse_flags::wit_is_flags_type(wit_trim_type(wit_type)) {
-        return "i32"
-    }
+    if wit_parse_flags::wit_is_flags_type(wit_trim_type(wit_type)) { return "i32" }
     let t = wit_trim_type(wit_type)
-    if starts_with(clone(t), "future<") || starts_with(clone(t), "stream<") {
-        return "i32"
-    }
-    let rec_idx = wit_record_index(wit_record_wit_names(doc), clone(t))
-    if rec_idx >= 0 {
-        return "i32"
-    }
-    let enum_idx = wit_enum_index(wit_enum_wit_names(doc), clone(t))
-    if enum_idx >= 0 {
-        return "i32"
-    }
+    if starts_with(clone(t), "list<") || starts_with(clone(t), "option<") || starts_with(clone(t), "result<") || starts_with(clone(t), "tuple<") || starts_with(clone(t), "future<") || starts_with(clone(t), "stream<") { return "i32" }
+    if wit_record_index(wit_record_wit_names(doc), clone(t)) >= 0 { return "i32" }
+    if wit_enum_index(wit_enum_wit_names(doc), clone(t)) >= 0 { return "i32" }
     let ark = wit_primitive_to_ark(wit_type)
-    if eq(clone(ark), "i64") {
-        return "i64"
-    }
-    if eq(clone(ark), "f64") {
-        return "f64"
-    }
+    if eq(clone(ark), "i64") { return "i64" }
+    if eq(clone(ark), "f64") { return "f64" }
+    if eq(clone(ark), "f32") { return "f32" }
     "i32"
 }
 
 fn wit_func_type_sig(param_wit_types: Vec<String>, ret_wit_type: String, doc: wit_parse_text::WitParsedInterface) -> String {
     let mut sig = String_new()
     for pi in 0..len(param_wit_types) {
-        if pi > 0 {
-            sig = text::builder_append(sig, "_")
-        }
+        if pi > 0 { sig = text::builder_append(sig, "_") }
         sig = text::builder_append(sig, wit_type_to_valtype(get_unchecked(param_wit_types, pi), doc))
     }
     let ret = wit_trim_type(ret_wit_type)
     if len(ret) == 0 {
-        if len(sig) == 0 {
-            return "0"
-        }
+        if len(sig) == 0 { return "0" }
         return concat(sig, "_0")
     }
-    if len(sig) > 0 {
-        sig = text::builder_append(sig, "_")
-    }
+    if len(sig) > 0 { sig = text::builder_append(sig, "_") }
     concat(sig, concat("1", wit_type_to_valtype(ret, doc)))
 }
