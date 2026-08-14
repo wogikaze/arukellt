@@ -37,6 +37,7 @@ pub fn build_emit_config(opts: CliOptions, emit_mode: String, include_dumps: boo
         config_record::config_set_dump_hir(config, should_dump(opts, "hir"))
         config_record::config_set_dump_mir(config, should_dump(opts, "mir"))
         config_record::config_set_dump_backend_plan(config, should_dump(opts, "backend-plan"))
+        config_record::config_set_dump_wit_bindings(config, should_dump(opts, "wit-bindings"))
         config_record::config_set_dump_wasm(config, should_dump(opts, "wasm"))
     }
     config
