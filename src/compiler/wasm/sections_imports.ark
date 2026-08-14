@@ -39,6 +39,10 @@ fn arukellt_io_module_name() -> String {
     String_from("arukellt_io")
 }
 
+fn runtime_host_module_name() -> String {
+    String_from("arukellt:runtime/host@0.1.0")
+}
+
 // Guest-core import modules for HTTP/sockets (#727 Phase 2/3).
 // Module names are WIT-shaped (no `arukellt_host`). Function names remain the
 // legacy simplified ABI symbols until component bridges lower to real
@@ -92,6 +96,29 @@ fn emit_network_wit_import_entries(
     emit_host_func_import(import_sec, clone(tcp), String_from("sockets_listen"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
     emit_host_func_import(import_sec, clone(tcp), String_from("sockets_accept"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, clone(http_in), String_from("http_serve"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+}
+
+fn emit_p2_runtime_host_import_entries(
+    import_sec: WasmWriter,
+    host_type_map: Vec<i32>,
+    needs_wasi_http_outgoing: i32
+) {
+    let host_type_off = network_host_type_offset(String_from("wasi-p2"), needs_wasi_http_outgoing)
+    let runtime_host = runtime_host_module_name()
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_http_get"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_http_request"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_REQUEST() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_sockets_connect"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_sockets_read"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_sockets_write"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_sockets_listen"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_sockets_accept"), get_unchecked(host_type_map, 1))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_http_serve"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_SOCKETS_CONNECT() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_read_dir"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_metadata"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_remove_file"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_create_dir_all"), get_unchecked(host_type_map, constants::WASI_HOST_TYPE_HTTP_GET() + host_type_off))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_env_vars"), get_unchecked(host_type_map, 3))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_env_current_dir"), get_unchecked(host_type_map, 3))
 }
 
 fn emit_t2_import_entries(import_sec: WasmWriter, host_type_map: Vec<i32>) {
@@ -174,14 +201,15 @@ fn emit_p2_import_entries(
     )
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("args-sizes"), get_unchecked(host_type_map, 1))
     emit_host_func_import(import_sec, String_from("wasi:cli/environment@0.2.0"), String_from("arguments"), get_unchecked(host_type_map, 1))
-    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("open-at"), get_unchecked(host_type_map, 2))
-    // Bridged P1 fd_read/fd_write ABI for bootstrap host-linker (#834).
-    // Keep off wasi:filesystem/types — stock WASI validate rejects bare
-    // `read`/`write` there and breaks component close-gates (#074/#510).
-    emit_host_func_import(import_sec, String_from("arukellt:fs@0.1.0"), String_from("read"), get_unchecked(host_type_map, 0))
-    emit_host_func_import(import_sec, String_from("arukellt:fs@0.1.0"), String_from("write"), get_unchecked(host_type_map, 0))
+    // Filesystem operations are an internal, versioned core ABI. The P2
+    // component bridge owns the pointer/fd compatibility shape and lowers to
+    // arukellt:runtime@0.1.0 canonical functions backed by real WASI.
+    let runtime_host = runtime_host_module_name()
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_open_at"), get_unchecked(host_type_map, 2))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_read"), get_unchecked(host_type_map, 0))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_write"), get_unchecked(host_type_map, 0))
     emit_host_func_import(import_sec, String_from("wasi:cli/stdin@0.2.0"), String_from("read"), get_unchecked(host_type_map, 0))
-    emit_host_func_import(import_sec, String_from("wasi:filesystem/types@0.2.0"), String_from("close"), get_unchecked(host_type_map, 3))
+    emit_host_func_import(import_sec, clone(runtime_host), String_from("runtime_fs_close"), get_unchecked(host_type_map, 3))
     emit_host_func_import(import_sec, String_from("wasi:cli/exit@0.2.0"), String_from("exit"), get_unchecked(host_type_map, 4))
     // Stderr + environ sit before clocks/random so strip_wit_imports can still
     // treat clocks/random as a trailing suffix.
@@ -204,7 +232,7 @@ fn emit_p2_import_entries(
         emit_p2_incoming_handler_import(import_sec, host_type_map)
     }
     if needs_runtime_host == 1 {
-        emit_network_wit_import_entries(import_sec, host_type_map, clone(wasi_version), needs_wasi_http_outgoing)
+        emit_p2_runtime_host_import_entries(import_sec, host_type_map, needs_wasi_http_outgoing)
     }
 }
 

@@ -129,3 +129,10 @@ fn http_serve_import_idx(ctx: SelfEmitCtx) -> i32 {
     }
     constants::WASI_IMPORT_SOCKETS_CONNECT()
 }
+
+fn fs_read_dir_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 8 }
+fn fs_metadata_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 9 }
+fn fs_remove_file_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 10 }
+fn fs_create_dir_all_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 11 }
+fn env_vars_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 12 }
+fn env_current_dir_import_idx(ctx: SelfEmitCtx) -> i32 { runtime_host_import_base(ctx) + 13 }

@@ -29,7 +29,7 @@ fn emit_wasm_module_sections(
     let strings = strings::prepare_string_table(mir)
     // Legacy name kept while bootstrap overlay matches this symbol; means
     // "emit WIT-shaped HTTP/TCP guest imports" (not the retired arukellt_host module).
-    let needs_runtime_host = module_functions::mir_module_needs_runtime_host(mir)
+    let needs_runtime_host = if emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { module_functions::mir_module_needs_runtime_host(mir) }
     let needs_wasi_http_outgoing = module_functions::mir_module_needs_wasi_http_outgoing_if_p2(mir, clone(wasi_version))
     let gc_layout = gc_layout_table::GcLayoutTable_new()
     let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
