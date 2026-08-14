@@ -1,0 +1,47 @@
+name: PR43 apply bootstrap WIT dependency fix
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.head_ref == 'fix/wasm-gc-type-plan-owner-phase1' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Patch selfhost overlay dependencies
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/selfhost/checks.py')
+          text = path.read_text()
+          old_hash = '''    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)\n    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):\n'''
+          new_hash = '''    # Also hash std files that the overlay copies.  Component/WIT naming is a\n    # bootstrap dependency since #706/#44; keep it cache-bound with the rest.\n    for std_rel in (\n        "std/prelude.ark",\n        "std/toml.ark",\n        "std/json.ark",\n        "std/json/parser.ark",\n        "std/text/mod.ark",\n        "std/wit/names.ark",\n    ):\n'''
+          if old_hash not in text:
+              raise SystemExit('source-hash anchor not found')
+          text = text.replace(old_hash, new_hash, 1)
+          old_copy = '''    text_mod = root / "std" / "text" / "mod.ark"\n    if text_mod.is_file():\n        shutil.copyfile(text_mod, std_dst / "text.ark")\n    _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)\n'''
+          new_copy = '''    text_mod = root / "std" / "text" / "mod.ark"\n    if text_mod.is_file():\n        shutil.copyfile(text_mod, std_dst / "text.ark")\n    # Component naming facades in the current compiler import std::wit::names\n    # (#706/#44).  Component sources are intentionally live in the bootstrap\n    # overlay, so their shared std dependency must be present as well.\n    wit_names_src = root / "std" / "wit" / "names.ark"\n    if wit_names_src.is_file():\n        wit_dst = std_dst / "wit"\n        wit_dst.mkdir(exist_ok=True)\n        shutil.copyfile(wit_names_src, wit_dst / "names.ark")\n    _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)\n'''
+          if old_copy not in text:
+              raise SystemExit('std copy anchor not found')
+          text = text.replace(old_copy, new_copy, 1)
+          path.write_text(text)
+          PY
+          git diff --check
+          git diff -- scripts/selfhost/checks.py
+      - name: Commit patch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/selfhost/checks.py
+          git commit -m "fix(selfhost): include std WIT naming in bootstrap overlay"
+          git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
