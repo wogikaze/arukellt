@@ -1,0 +1,5 @@
+use std::host::process
+
+fn main() {
+    process::abort()
+}
