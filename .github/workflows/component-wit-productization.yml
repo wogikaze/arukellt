@@ -19,7 +19,7 @@ on:
       - master
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   close-gates:
@@ -32,3 +32,49 @@ jobs:
           python-version: "3.11"
       - name: Run Component/WIT close gates
         run: python3 scripts/check/gate-component-wit-productization.py
+
+  regenerate-pr44:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/component-wit-productization'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/component-wit-productization
+          fetch-depth: 0
+      - name: Preserve issue-index timestamp
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("issues/open/index-meta.json")
+          stamp = ""
+          if path.exists():
+              stamp = str(json.loads(path.read_text(encoding="utf-8")).get("generated_at", ""))
+          Path("/tmp/issue-index-generated-at").write_text(stamp, encoding="utf-8")
+          PY
+      - name: Regenerate canonical docs and issue indexes
+        run: |
+          python3 scripts/gen/generate-docs.py
+          bash scripts/gen/generate-issue-index.sh
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("issues/open/index-meta.json")
+          stamp = Path("/tmp/issue-index-generated-at").read_text(encoding="utf-8")
+          if path.exists() and stamp:
+              data = json.loads(path.read_text(encoding="utf-8"))
+              data["generated_at"] = stamp
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "generated state already fresh"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs issues/open/index.md issues/open/dependency-graph.md issues/open/index-meta.json
+          git commit -m "docs: regenerate after Component/WIT closure"
+          git push origin HEAD:agent/component-wit-productization
