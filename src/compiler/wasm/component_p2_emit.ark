@@ -9,6 +9,7 @@
 use wasm::component_p2_bridged
 use wasm::component_p2_run_sections
 use wasm::component_p2_runtime
+use wasm::component_p2_runtime_instances
 use wasm::component_p2_shared
 use wasm::component_p2_stubs
 use wasm::component_p2_strip
@@ -66,7 +67,7 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     p2_comp_emit_core_module(out, guest_transformed)
 
     // Guest core instance 11 + wrapper core instance 12.
-    component_p2_bridged::p2_bridged_emit_instance_section_3(out)
+    component_p2_runtime_instances::p2_runtime_emit_guest_wrapper_instances(out)
     component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12)
 
     writer_core::writer_bytes(out)
