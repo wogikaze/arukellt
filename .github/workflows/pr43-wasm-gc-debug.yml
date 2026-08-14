@@ -1,0 +1,65 @@
+name: PR43 Wasm GC targeted diagnostics
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  targeted:
+    if: github.head_ref == 'fix/wasm-gc-type-plan-owner-phase1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Install wasm-tools
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-tools
+      - name: Build host linker
+        run: cargo build --release --quiet --manifest-path tools/host-linker/Cargo.toml
+      - name: Build current compiler
+        run: python3 scripts/manager.py selfhost build-compiler
+      - name: Compile and validate array literal
+        run: |
+          set +e
+          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm bash scripts/run/arukellt-selfhost.sh compile tests/fixtures/arrays/array_literal.ark --target wasm32-gc -o /tmp/array_literal.wasm 2>&1 | tee /tmp/array_compile.log
+          c=${PIPESTATUS[0]}
+          echo "compile_exit=$c"
+          if [ -f /tmp/array_literal.wasm ]; then
+            wasm-tools validate --features gc /tmp/array_literal.wasm 2>&1 | tee /tmp/array_validate.log
+            echo "validate_exit=${PIPESTATUS[0]}"
+            wasm-tools print /tmp/array_literal.wasm > /tmp/array_literal.wat 2>/dev/null || true
+            grep -n -E 'type |func \(;|array\.new|array\.get|array\.set|struct\.new|struct\.get|struct\.set' /tmp/array_literal.wat | head -n 160 || true
+          fi
+          exit 0
+      - name: Compile trait resolution failure with full diagnostics
+        run: |
+          set +e
+          ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm bash scripts/run/arukellt-selfhost.sh compile tests/fixtures/generics_v1/trait_method_resolve.ark --target wasm32-gc -o /tmp/trait_method_resolve.wasm 2>&1 | tee /tmp/trait_compile.log
+          echo "compile_exit=${PIPESTATUS[0]}"
+          if [ -f /tmp/trait_method_resolve.wasm ]; then
+            wasm-tools validate --features gc /tmp/trait_method_resolve.wasm 2>&1 | tee /tmp/trait_validate.log
+            echo "validate_exit=${PIPESTATUS[0]}"
+          fi
+          exit 0
+      - name: True fixpoint probe
+        run: |
+          set +e
+          python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee /tmp/fixpoint.log
+          rc=${PIPESTATUS[0]}
+          echo "manager_exit=$rc"
+          if grep -q 'stage 3 compilation failed\|fixpoint not yet reached' /tmp/fixpoint.log; then
+            echo 'TRUE_FIXPOINT=FAIL'
+            exit 1
+          fi
+          echo 'TRUE_FIXPOINT=PASS'
