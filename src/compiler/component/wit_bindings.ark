@@ -1,0 +1,113 @@
+// WIT -> Arukellt binding source renderer (#672).
+
+use std::text
+use component::wit_names_import
+use component::wit_parse_text
+use component::wit_parse_text_scan
+
+fn wit_binding_generic_inner(t: String) -> String {
+    let open = index_of(t, "<")
+    if open < 0 { return String_new() }
+    let mut close = len(t) - 1
+    while close > open && char_at(t, close) != 62 { close = close - 1 }
+    if close <= open { return String_new() }
+    wit_parse_text_scan::wit_trim_txt(substring(t, open + 1, close))
+}
+
+fn wit_binding_type(wit_type: String) -> String {
+    let t = wit_parse_text_scan::wit_trim_txt(wit_type)
+    if eq(clone(t), "s32") || eq(clone(t), "u32") || eq(clone(t), "s8") || eq(clone(t), "u8") || eq(clone(t), "s16") || eq(clone(t), "u16") { return "i32" }
+    if eq(clone(t), "s64") || eq(clone(t), "u64") { return "i64" }
+    if eq(clone(t), "f32") { return "f32" }
+    if eq(clone(t), "f64") { return "f64" }
+    if eq(clone(t), "bool") { return "bool" }
+    if eq(clone(t), "char") { return "char" }
+    if eq(clone(t), "string") { return "String" }
+    if starts_with(clone(t), "list<") {
+        return concat("Vec<", concat(wit_binding_type(wit_binding_generic_inner(t)), ">"))
+    }
+    if starts_with(clone(t), "option<") {
+        return concat("Option<", concat(wit_binding_type(wit_binding_generic_inner(t)), ">"))
+    }
+    if starts_with(clone(t), "result<") {
+        let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
+        let ok = if len(args) > 0 { wit_binding_type(get_unchecked(args, 0)) } else { "()" }
+        let err = if len(args) > 1 { wit_binding_type(get_unchecked(args, 1)) } else { "()" }
+        return concat("Result<", concat(ok, concat(", ", concat(err, ">"))))
+    }
+    if starts_with(clone(t), "tuple<") {
+        let args = wit_parse_text_scan::wit_split_csv_items_txt(wit_binding_generic_inner(t))
+        let mut out = "("
+        for i in 0..len(args) {
+            if i > 0 { out = text::builder_append(out, ", ") }
+            out = text::builder_append(out, wit_binding_type(get_unchecked(args, i)))
+        }
+        return text::builder_append(out, ")")
+    }
+    wit_names_import::wit_record_type_name(t)
+}
+
+fn wit_binding_validation_error(doc: wit_parse_text::WitParsedInterface) -> String {
+    let records = wit_parse_text::WitParsedInterface_records(doc)
+    for ri in 0..len(records) {
+        let record = get_unchecked(records, ri)
+        for fi in 0..len(record.field_wit_types) {
+            let field_type = get_unchecked(record.field_wit_types, fi)
+            if eq(wit_parse_text_scan::wit_trim_txt(clone(field_type)), clone(record.wit_name)) {
+                return concat("E0402 recursive WIT record binding: ", clone(record.wit_name))
+            }
+            if contains(clone(field_type), "own<") || contains(clone(field_type), "borrow<") {
+                return concat("E0402 resource handle field is not a value binding: ", clone(record.wit_name))
+            }
+        }
+    }
+    String_new()
+}
+
+fn emit_wit_bindings_from_doc(doc: wit_parse_text::WitParsedInterface) -> String {
+    let validation = wit_binding_validation_error(doc)
+    if len(validation) > 0 { return validation }
+    let mut out = concat("// wit-package: ", concat(clone(doc.package), "\n"))
+    out = text::builder_append(out, concat("// wit-interface: ", concat(clone(doc.interface), "\n\n")))
+    let records = wit_parse_text::WitParsedInterface_records(doc)
+    for ri in 0..len(records) {
+        let record = get_unchecked(records, ri)
+        out = text::builder_append(out, concat("pub struct ", concat(clone(record.ark_name), " {\n")))
+        for fi in 0..len(record.field_names) {
+            out = text::builder_append(out, "    ")
+            out = text::builder_append(out, wit_names_import::wit_kebab_to_snake(get_unchecked(record.field_names, fi)))
+            out = text::builder_append(out, ": ")
+            out = text::builder_append(out, wit_binding_type(get_unchecked(record.field_wit_types, fi)))
+            out = text::builder_append(out, ",\n")
+        }
+        out = text::builder_append(out, "}\n\n")
+    }
+    let enums = wit_parse_text::WitParsedInterface_enums(doc)
+    for ei in 0..len(enums) {
+        let en = get_unchecked(enums, ei)
+        out = text::builder_append(out, concat("pub enum ", concat(clone(en.ark_name), " {\n")))
+        for vi in 0..len(en.variant_ark_names) {
+            out = text::builder_append(out, concat("    ", concat(get_unchecked(en.variant_ark_names, vi), ",\n")))
+        }
+        out = text::builder_append(out, "}\n\n")
+    }
+    let variants = wit_parse_text::WitParsedInterface_variants(doc)
+    for vi in 0..len(variants) {
+        let variant = get_unchecked(variants, vi)
+        out = text::builder_append(out, concat("pub enum ", concat(clone(variant.ark_name), " {\n")))
+        for ci in 0..len(variant.case_ark_names) {
+            out = text::builder_append(out, concat("    ", get_unchecked(variant.case_ark_names, ci)))
+            let payload = get_unchecked(variant.case_payload_wit_types, ci)
+            if len(payload) > 0 {
+                out = text::builder_append(out, concat("(", concat(wit_binding_type(payload), ")")))
+            }
+            out = text::builder_append(out, ",\n")
+        }
+        out = text::builder_append(out, "}\n\n")
+    }
+    out
+}
+
+fn emit_wit_bindings_text(source: String) -> String {
+    emit_wit_bindings_from_doc(wit_parse_text::parse_wit_import_text(source))
+}
