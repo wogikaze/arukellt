@@ -36,6 +36,7 @@ struct CliOptions {
     strip_debug: bool,
     deny_clock: bool,
     deny_random: bool,
+    deny_process: bool,
 }
 
 fn CliOptions_default() -> CliOptions {
@@ -74,6 +75,7 @@ fn CliOptions_default() -> CliOptions {
         strip_debug: false,
         deny_clock: false,
         deny_random: false,
+        deny_process: false,
     }
 }
 
@@ -102,113 +104,42 @@ fn cli_output_file_len(opts: CliOptions) -> i32 { len(opts.output_file) }
 fn cli_has_input_file(opts: CliOptions) -> bool { cli_input_file_len(opts) > 0 }
 fn cli_has_output_file(opts: CliOptions) -> bool { cli_output_file_len(opts) > 0 }
 
-fn cli_set_command(opts: CliOptions, command: i32) {
-    opts.command = command
-}
-
-fn cli_set_component_action(opts: CliOptions, component_action: i32) {
-    opts.component_action = component_action
-}
-
-fn cli_set_input_file(opts: CliOptions, input_file: String) {
-    opts.input_file = input_file
-}
-
-fn cli_set_output_file(opts: CliOptions, output_file: String) {
-    opts.output_file = output_file
-}
-
-fn cli_set_target(opts: CliOptions, target: String) {
-    opts.target = target
-}
-
-fn cli_set_wasi_version(opts: CliOptions, wasi_version: String) {
-    opts.wasi_version = wasi_version
-}
-
-fn cli_set_wasi_version_explicit(opts: CliOptions, wasi_version_explicit: bool) {
-    opts.wasi_version_explicit = wasi_version_explicit
-}
-
-fn cli_add_wit_path(opts: CliOptions, wit_path: String) {
-    push(opts.wit_paths, wit_path)
-}
-
-fn cli_set_opt_level(opts: CliOptions, opt_level: i32) {
-    opts.opt_level = opt_level
-}
-
-fn cli_set_dump_phases(opts: CliOptions, dump_phases: String) {
-    opts.dump_phases = dump_phases
-}
-
-fn cli_set_emit_mode(opts: CliOptions, emit_mode: String) {
-    opts.emit_mode = emit_mode
-}
-
-fn cli_set_json_output(opts: CliOptions, json_output: bool) {
-    opts.json_output = json_output
-}
-
-fn cli_set_show_help(opts: CliOptions, show_help: bool) {
-    opts.show_help = show_help
-}
-
-fn cli_set_show_version(opts: CliOptions, show_version: bool) {
-    opts.show_version = show_version
-}
-
-fn cli_set_error(opts: CliOptions, error_msg: String) {
-    opts.has_error = true
-    opts.error_msg = error_msg
-}
-
-fn cli_set_show_timing(opts: CliOptions, show_timing: bool) {
-    opts.show_timing = show_timing
-}
-
+fn cli_set_command(opts: CliOptions, command: i32) { opts.command = command }
+fn cli_set_component_action(opts: CliOptions, component_action: i32) { opts.component_action = component_action }
+fn cli_set_input_file(opts: CliOptions, input_file: String) { opts.input_file = input_file }
+fn cli_set_output_file(opts: CliOptions, output_file: String) { opts.output_file = output_file }
+fn cli_set_target(opts: CliOptions, target: String) { opts.target = target }
+fn cli_set_wasi_version(opts: CliOptions, wasi_version: String) { opts.wasi_version = wasi_version }
+fn cli_set_wasi_version_explicit(opts: CliOptions, wasi_version_explicit: bool) { opts.wasi_version_explicit = wasi_version_explicit }
+fn cli_add_wit_path(opts: CliOptions, wit_path: String) { push(opts.wit_paths, wit_path) }
+fn cli_set_opt_level(opts: CliOptions, opt_level: i32) { opts.opt_level = opt_level }
+fn cli_set_dump_phases(opts: CliOptions, dump_phases: String) { opts.dump_phases = dump_phases }
+fn cli_set_emit_mode(opts: CliOptions, emit_mode: String) { opts.emit_mode = emit_mode }
+fn cli_set_json_output(opts: CliOptions, json_output: bool) { opts.json_output = json_output }
+fn cli_set_show_help(opts: CliOptions, show_help: bool) { opts.show_help = show_help }
+fn cli_set_show_version(opts: CliOptions, show_version: bool) { opts.show_version = show_version }
+fn cli_set_error(opts: CliOptions, error_msg: String) { opts.has_error = true; opts.error_msg = error_msg }
+fn cli_set_show_timing(opts: CliOptions, show_timing: bool) { opts.show_timing = show_timing }
 fn cli_init_template(opts: CliOptions) -> String { clone(opts.init_template) }
 fn cli_list_templates(opts: CliOptions) -> bool { opts.list_templates }
-
-fn cli_set_init_template(opts: CliOptions, init_template: String) {
-    opts.init_template = init_template
-}
-
-fn cli_set_list_templates(opts: CliOptions, list_templates: bool) {
-    opts.list_templates = list_templates
-}
-
+fn cli_set_init_template(opts: CliOptions, init_template: String) { opts.init_template = init_template }
+fn cli_set_list_templates(opts: CliOptions, list_templates: bool) { opts.list_templates = list_templates }
 fn cli_fmt_check(opts: CliOptions) -> bool { opts.fmt_check }
-
-fn cli_set_fmt_check(opts: CliOptions, fmt_check: bool) {
-    opts.fmt_check = fmt_check
-}
-
+fn cli_set_fmt_check(opts: CliOptions, fmt_check: bool) { opts.fmt_check = fmt_check }
 fn cli_fmt_fix(opts: CliOptions) -> bool { opts.fmt_fix }
-
-fn cli_set_fmt_fix(opts: CliOptions, fmt_fix: bool) {
-    opts.fmt_fix = fmt_fix
-}
-
+fn cli_set_fmt_fix(opts: CliOptions, fmt_fix: bool) { opts.fmt_fix = fmt_fix }
 fn cli_fmt_input_count(opts: CliOptions) -> i32 { len(opts.fmt_inputs) }
-
 fn cli_fmt_input_at(opts: CliOptions, index: i32) -> String { clone(get_unchecked(opts.fmt_inputs, index)) }
-
-fn cli_add_fmt_input(opts: CliOptions, path: String) {
-    push(opts.fmt_inputs, clone(path))
-}
-
+fn cli_add_fmt_input(opts: CliOptions, path: String) { push(opts.fmt_inputs, clone(path)) }
 fn cli_world(opts: CliOptions) -> String { clone(opts.world) }
 fn cli_has_world(opts: CliOptions) -> bool { len(opts.world) > 0 }
 fn cli_set_world(opts: CliOptions, world: String) { opts.world = world }
-
 fn cli_compose_plug(opts: CliOptions) -> String { clone(opts.compose_plug) }
 fn cli_compose_socket(opts: CliOptions) -> String { clone(opts.compose_socket) }
 fn cli_compose_validate_only(opts: CliOptions) -> bool { opts.compose_validate_only }
 fn cli_set_compose_plug(opts: CliOptions, compose_plug: String) { opts.compose_plug = compose_plug }
 fn cli_set_compose_socket(opts: CliOptions, compose_socket: String) { opts.compose_socket = compose_socket }
 fn cli_set_compose_validate_only(opts: CliOptions, compose_validate_only: bool) { opts.compose_validate_only = compose_validate_only }
-
 fn cli_lint_list(opts: CliOptions) -> bool { opts.lint_list }
 fn cli_set_lint_list(opts: CliOptions, lint_list: bool) { opts.lint_list = lint_list }
 fn cli_lint_local(opts: CliOptions) -> bool { opts.lint_local }
@@ -221,14 +152,14 @@ fn cli_add_lint_allow(opts: CliOptions, rule: String) { push(opts.lint_allow, ru
 fn cli_add_lint_deny(opts: CliOptions, rule: String) { push(opts.lint_deny, rule) }
 fn cli_set_lint_allow(opts: CliOptions, rules: Vec<String>) { opts.lint_allow = rules }
 fn cli_set_lint_deny(opts: CliOptions, rules: Vec<String>) { opts.lint_deny = rules }
-
 fn cli_cache_dir(opts: CliOptions) -> String { clone(opts.cache_dir) }
 fn cli_has_cache_dir(opts: CliOptions) -> bool { len(opts.cache_dir) > 0 }
 fn cli_set_cache_dir(opts: CliOptions, cache_dir: String) { opts.cache_dir = cache_dir }
 fn cli_strip_debug(opts: CliOptions) -> bool { opts.strip_debug }
 fn cli_set_strip_debug(opts: CliOptions, strip_debug: bool) { opts.strip_debug = strip_debug }
-
 fn cli_deny_clock(opts: CliOptions) -> bool { opts.deny_clock }
 fn cli_set_deny_clock(opts: CliOptions, deny_clock: bool) { opts.deny_clock = deny_clock }
 fn cli_deny_random(opts: CliOptions) -> bool { opts.deny_random }
 fn cli_set_deny_random(opts: CliOptions, deny_random: bool) { opts.deny_random = deny_random }
+fn cli_deny_process(opts: CliOptions) -> bool { opts.deny_process }
+fn cli_set_deny_process(opts: CliOptions, deny_process: bool) { opts.deny_process = deny_process }
