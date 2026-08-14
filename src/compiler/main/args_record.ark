@@ -118,7 +118,10 @@ fn cli_set_emit_mode(opts: CliOptions, emit_mode: String) { opts.emit_mode = emi
 fn cli_set_json_output(opts: CliOptions, json_output: bool) { opts.json_output = json_output }
 fn cli_set_show_help(opts: CliOptions, show_help: bool) { opts.show_help = show_help }
 fn cli_set_show_version(opts: CliOptions, show_version: bool) { opts.show_version = show_version }
-fn cli_set_error(opts: CliOptions, error_msg: String) { opts.has_error = true; opts.error_msg = error_msg }
+fn cli_set_error(opts: CliOptions, error_msg: String) {
+    opts.has_error = true
+    opts.error_msg = error_msg
+}
 fn cli_set_show_timing(opts: CliOptions, show_timing: bool) { opts.show_timing = show_timing }
 fn cli_init_template(opts: CliOptions) -> String { clone(opts.init_template) }
 fn cli_list_templates(opts: CliOptions) -> bool { opts.list_templates }
