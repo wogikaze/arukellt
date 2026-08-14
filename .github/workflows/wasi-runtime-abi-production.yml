@@ -67,6 +67,34 @@ jobs:
       - name: Build real-WASI runtime adapter
         run: cargo +stable build --manifest-path runtime/wasi-p2-adapter/Cargo.toml --target wasm32-wasip2 --release
 
+  seed-adapter-artifact:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/wasi-runtime-abi-production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/wasi-runtime-abi-production
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - name: Build checked runtime adapter artifact
+        run: |
+          cargo +stable build --manifest-path runtime/wasi-p2-adapter/Cargo.toml --target wasm32-wasip2 --release
+          cp runtime/wasi-p2-adapter/target/wasm32-wasip2/release/arukellt_wasi_p2_adapter.wasm runtime/wasi-p2-adapter/runtime-adapter.wasm
+      - name: Commit adapter artifact
+        run: |
+          if git diff --quiet -- runtime/wasi-p2-adapter/runtime-adapter.wasm; then
+            echo "checked adapter artifact already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add runtime/wasi-p2-adapter/runtime-adapter.wasm
+          git commit -m "build(runtime): refresh WASI P2 adapter artifact"
+          git push origin HEAD:agent/wasi-runtime-abi-production
+
   close-gates:
     runs-on: ubuntu-latest
     timeout-minutes: 20
