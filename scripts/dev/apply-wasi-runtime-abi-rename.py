@@ -38,13 +38,13 @@ for issue_id, filename in ISSUES.items():
         continue
     if not src.exists():
         raise SystemExit(f"missing issue source: {src}")
-    text = src.read_text(encoding="utf-8")
-    text = text.replace("Status: open", "Status: done", 1)
+    original = src.read_text(encoding="utf-8")
+    text = original.replace("Status: open", "Status: done", 1)
     if "Updated:" in text:
         lines = text.splitlines()
         lines = ["Updated: 2026-08-14" if line.startswith("Updated:") else line for line in lines]
         text = "\n".join(lines)
-        if src.read_text(encoding="utf-8").endswith("\n"):
+        if original.endswith("\n"):
             text += "\n"
     text = text.replace("- [ ]", "- [x]")
     if "## Close receipt — 2026-08-14" not in text:
@@ -52,4 +52,4 @@ for issue_id, filename in ISSUES.items():
     dst.write_text(text, encoding="utf-8")
     src.unlink()
 
-subprocess.run(["bash", str(ROOT / "scripts/gen/generate-issue-index.sh")], cwd=ROOT, check=True)
+subprocess.run([sys.executable, str(ROOT / "scripts/gen/generate-issue-index.py")], cwd=ROOT, check=True)
