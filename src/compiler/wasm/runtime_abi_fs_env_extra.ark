@@ -1,0 +1,146 @@
+use wasm::constants
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::emit_target
+use wasm::import_indices
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
+use wasm::runtime_abi_http_result
+use wasm::runtime_abi_stdio_gc
+
+fn emit_runtime_fs_read_dir(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_path_string_result(w, inst, ctx, import_indices::fs_read_dir_import_idx(ctx))
+}
+
+fn emit_runtime_fs_metadata(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_path_string_result(w, inst, ctx, import_indices::fs_metadata_import_idx(ctx))
+}
+
+fn emit_runtime_fs_remove_file(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_path_unit_result(w, inst, ctx, import_indices::fs_remove_file_import_idx(ctx))
+}
+
+fn emit_runtime_fs_create_dir_all(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_path_unit_result(w, inst, ctx, import_indices::fs_create_dir_all_import_idx(ctx))
+}
+
+fn emit_runtime_env_vars(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_noarg_string_result(w, inst, ctx, import_indices::env_vars_import_idx(ctx))
+}
+
+fn emit_runtime_env_current_dir(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    emit_runtime_noarg_string_result(w, inst, ctx, import_indices::env_current_dir_import_idx(ctx))
+}
+
+fn emit_runtime_path_string_result(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, import_idx: i32) -> bool {
+    emit_runtime_save_path(w, inst, ctx)
+    runtime_abi_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_RESPPTR())
+    emit_runtime_path_call(w, import_idx)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        runtime_abi_http_result::emit_http_finalize_string_result_gc(
+            w,
+            ctx,
+            constants::SCRATCH_HTTP_RESPPTR(),
+            constants::SCRATCH_HTTP_RET(),
+            constants::SCRATCH_HTTP_ABSLEN()
+        )
+        return true
+    }
+    runtime_abi_http_result::emit_http_finalize_string_result(
+        w,
+        constants::SCRATCH_HTTP_RESPPTR(),
+        constants::SCRATCH_HTTP_RET(),
+        constants::SCRATCH_HTTP_ABSLEN(),
+        constants::SCRATCH_HTTP_ENUMPTR()
+    )
+    true
+}
+
+fn emit_runtime_path_unit_result(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, import_idx: i32) -> bool {
+    emit_runtime_save_path(w, inst, ctx)
+    runtime_abi_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_RESPPTR())
+    emit_runtime_path_call(w, import_idx)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        runtime_abi_http_result::emit_http_finalize_unit_result_gc(
+            w,
+            ctx,
+            constants::SCRATCH_HTTP_RESPPTR(),
+            constants::SCRATCH_HTTP_RET(),
+            constants::SCRATCH_HTTP_ABSLEN()
+        )
+        return true
+    }
+    runtime_abi_http_result::emit_http_finalize_unit_result(
+        w,
+        constants::SCRATCH_HTTP_RESPPTR(),
+        constants::SCRATCH_HTTP_RET(),
+        constants::SCRATCH_HTTP_ABSLEN(),
+        constants::SCRATCH_HTTP_ENUMPTR()
+    )
+    true
+}
+
+fn emit_runtime_noarg_string_result(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, import_idx: i32) -> bool {
+    runtime_abi_http_result::emit_http_alloc_resp_buffer(w, constants::SCRATCH_HTTP_RESPPTR())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RESPPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, import_idx)
+    helpers_memory::emit_i32_store_default(w)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        runtime_abi_http_result::emit_http_finalize_string_result_gc(
+            w,
+            ctx,
+            constants::SCRATCH_HTTP_RESPPTR(),
+            constants::SCRATCH_HTTP_RET(),
+            constants::SCRATCH_HTTP_ABSLEN()
+        )
+        return true
+    }
+    runtime_abi_http_result::emit_http_finalize_string_result(
+        w,
+        constants::SCRATCH_HTTP_RESPPTR(),
+        constants::SCRATCH_HTTP_RET(),
+        constants::SCRATCH_HTTP_ABSLEN(),
+        constants::SCRATCH_HTTP_ENUMPTR()
+    )
+    true
+}
+
+fn emit_runtime_save_path(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
+    let s_path = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+        runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+        helpers_core::emit_local_get(w, s_tmp)
+        helpers_core::emit_local_set(w, s_path)
+        helpers_io::emit_store_string_local_to_scratch(
+            w,
+            s_path,
+            constants::SCRATCH_HTTP_URLPTR(),
+            constants::SCRATCH_HTTP_URLLEN()
+        )
+        return
+    }
+    helpers_core::emit_local_set(w, s_path)
+    helpers_io::emit_store_string_local_to_scratch(
+        w,
+        s_path,
+        constants::SCRATCH_HTTP_URLPTR(),
+        constants::SCRATCH_HTTP_URLLEN()
+    )
+}
+
+fn emit_runtime_path_call(w: WasmWriter, import_idx: i32) {
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RET())
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_URLLEN())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_io_layout::emit_scratch_addr(w, constants::SCRATCH_HTTP_RESPPTR())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_call(w, import_idx)
+    helpers_memory::emit_i32_store_default(w)
+}
