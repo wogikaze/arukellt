@@ -1,4 +1,6 @@
+use std::host::fs
 use std::host::stdio
+use component
 use component::wit_parse_import
 use component::wit_parse_text
 use driver::config_record
@@ -34,9 +36,6 @@ fn dump_ast_if_enabled(config: DriverConfig, decls: Vec<AstNode>) {
 
 fn dump_resolved_hir_if_enabled(config: DriverConfig, resolve_ctx: ResolveCtx) {
     if config_record::config_dump_hir(config) {
-        // Bind the header first so CONST_STRING gets a real dest. A bare
-        // eprintln(String_from(...)) can leave dest=-1 with SKIP and then
-        // LOCAL_GET+SET, leaving the pointer on the stack (KEEP_CLOCK validate).
         let header = "=== HIR (post-resolve) ==="
         stdio::eprintln(header)
         dump_resolved_scope(resolve_ctx)
@@ -103,6 +102,27 @@ fn dump_backend_plan_if_enabled(config: DriverConfig) {
     }
 }
 
+fn dump_wit_bindings_if_enabled(config: DriverConfig) {
+    if !config_record::config_dump_wit_bindings(config) {
+        return
+    }
+    stdio::eprintln("=== WIT BINDINGS ===")
+    let paths = config_record::config_wit_paths(config)
+    for i in 0..len(paths) {
+        let path = get_unchecked(paths, i)
+        let read_result = fs::read_to_string(clone(path))
+        match read_result {
+            Result::Ok(source) => {
+                stdio::eprintln(concat("// source: ", clone(path)))
+                stdio::eprintln(component::emit_wit_bindings_text(source))
+            },
+            Result::Err(error) => {
+                stdio::eprintln(concat("// unable to read WIT binding source: ", error))
+            },
+        }
+    }
+}
+
 fn dump_resolved_scope(ctx: ResolveCtx) {
     resolver_dump_view::driver_dump_scope(ctx)
 }
@@ -123,7 +143,6 @@ pub fn dump_tokens(tokens: Vec<Token>) {
 }
 
 fn phase_timing_ms(start: i64, end: i64) -> i32 {
-    // Inline ns→ms: `time::duration_ms` lowers to unreachable under pinned→s2 (#823).
     let diff = end - start
     if diff < 0i64 {
         return 0
