@@ -82,3 +82,20 @@ jobs:
               f = overlay / rel
               print(f'overlay_file {rel} exists={f.exists()}')
           PY
+      - name: Regenerate docs for exact CI diff
+        run: |
+          python3 scripts/gen/generate-docs.py
+          mkdir -p .build/pr43-generated-docs/files
+          git diff --name-only -- README.md docs > .build/pr43-generated-docs/changed.txt
+          git diff -- README.md docs > .build/pr43-generated-docs/generated.patch
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            mkdir -p ".build/pr43-generated-docs/files/$(dirname "$f")"
+            cp "$f" ".build/pr43-generated-docs/files/$f"
+          done < .build/pr43-generated-docs/changed.txt
+          cat .build/pr43-generated-docs/changed.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr43-generated-docs
+          path: .build/pr43-generated-docs/
+          if-no-files-found: error
