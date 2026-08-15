@@ -1,10 +1,10 @@
-use component::emit_flags as flags
-use component::emit_resource as resource
+use component::emit_flags
+use component::emit_resource
 
 fn try_emit_tier3_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    let resource_component = resource::try_emit_resource_roundtrip_component(core_wasm, mir)
+    let resource_component = emit_resource::try_emit_resource_roundtrip_component(core_wasm, mir)
     if len(resource_component) > 0 {
         return resource_component
     }
-    flags::try_emit_flags_roundtrip_component(core_wasm, mir)
+    emit_flags::try_emit_flags_roundtrip_component(core_wasm, mir)
 }
