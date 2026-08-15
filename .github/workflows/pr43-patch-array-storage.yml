@@ -1,0 +1,65 @@
+name: PR43 patch array storage
+
+on:
+  push:
+    branches:
+      - fix/wasm-gc-type-plan-owner-phase1
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Apply raw array storage typing fix
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          aggregate = Path('src/compiler/mir/lower/aggregate_array.ark')
+          text = aggregate.read_text()
+          old = '    ctx_api_local_types::ctx_set_local_type(ctx, dest, "vec:i32")\n'
+          if old not in text:
+              raise SystemExit('aggregate array semantic vec marker not found')
+          aggregate.write_text(text.replace(old, '', 1))
+
+          scan = Path('src/compiler/wasm/code_ref_locals_block_scan.ark')
+          text = scan.read_text()
+          old = '''    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let storage_type =
+'''
+          new = '''    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    if len(local_access::MirLocal_type_name(loc)) == 0 {
+        let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
+        match direct_storage {
+            Option::Some(_storage_type) => {
+                return direct_storage
+            }
+            Option::None => {}
+        }
+    }
+    let storage_type =
+'''
+          if old not in text:
+              raise SystemExit('local storage insertion point not found')
+          scan.write_text(text.replace(old, new, 1))
+          PY
+          git diff --check
+          git diff -- src/compiler/mir/lower/aggregate_array.ark src/compiler/wasm/code_ref_locals_block_scan.ark
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/compiler/mir/lower/aggregate_array.ark src/compiler/wasm/code_ref_locals_block_scan.ark
+          git commit -m 'fix(wasm-gc): lower anonymous array locals by storage producer'
+          git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
