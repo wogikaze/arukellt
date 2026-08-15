@@ -32,10 +32,16 @@ jobs:
           rc=$?
           set -e
           if [ "$rc" -ne 0 ]; then
+            unresolved="$(git diff --name-only --diff-filter=U)"
             echo 'MERGE_CONFLICT=1'
-            git status --short
-            echo '--- unresolved files ---'
-            git diff --name-only --diff-filter=U
-            exit 1
+            printf '%s\n' "$unresolved"
+            if [ "$unresolved" != 'src/compiler/wasm/sections_types.ark' ]; then
+              git status --short
+              exit 1
+            fi
+            git checkout --ours src/compiler/wasm/sections_types.ark
+            sed -i 's/needs_arukellt_host/needs_runtime_host/g' src/compiler/wasm/sections_types.ark
+            git add src/compiler/wasm/sections_types.ark
+            git commit --no-edit
           fi
           git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
