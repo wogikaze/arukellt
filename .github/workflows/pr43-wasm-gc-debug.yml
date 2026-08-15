@@ -127,9 +127,54 @@ jobs:
           exit "$failed"
       - name: True fixpoint probe
         run: |
+          set +e
           set -o pipefail
           python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee .build/pr43-debug/fixpoint.log
           rc=${PIPESTATUS[0]}
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import shutil
+          import subprocess
+
+          rejected = sorted(Path('.ark-debug').glob('rejected-arukellt-s3-*.wasm'))
+          if not rejected:
+              print('S3_REJECTED_ARTIFACT=none')
+              raise SystemExit(0)
+          wasm = rejected[-1]
+          copy = Path('.build/pr43-debug') / wasm.name
+          shutil.copy2(wasm, copy)
+          validate = subprocess.run(
+              ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
+              capture_output=True,
+              text=True,
+          )
+          output = (validate.stdout or '') + (validate.stderr or '')
+          print(f'S3_REJECTED_ARTIFACT={wasm} validate_exit={validate.returncode}')
+          print(output)
+          matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
+          target = int(matches[-1]) if matches else -1
+          printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
+          if printed.returncode != 0:
+              print((printed.stdout or '') + (printed.stderr or ''))
+              raise SystemExit(0)
+          wat = Path('.build/pr43-debug/rejected-s3.wat')
+          wat.write_text(printed.stdout)
+          lines = printed.stdout.splitlines()
+          print(f'S3_VALIDATOR_FUNC={target}')
+          if target < 0:
+              raise SystemExit(0)
+          marker = f'(;{target};)'
+          hits = [i for i, line in enumerate(lines) if marker in line and '(func' in line]
+          if not hits:
+              print('S3 validator function declaration unavailable')
+              raise SystemExit(0)
+          start = max(0, hits[0] - 120)
+          end = min(len(lines), hits[0] + 600)
+          print(f'--- rejected s3 func {target} ---')
+          for i in range(start, end):
+              print(f'{i+1}: {lines[i]}')
+          PY
           if [ "$rc" -ne 0 ] || grep -q 'stage 3 compilation failed\|stage 3 wasm failed validation\|fixpoint not yet reached' .build/pr43-debug/fixpoint.log; then
             exit 1
           fi
@@ -139,6 +184,7 @@ jobs:
         with:
           name: pr43-wasm-gc-debug-${{ github.sha }}
           if-no-files-found: ignore
+          include-hidden-files: true
           path: |
             .build/pr43-debug/
             .build/selfhost/arukellt-s2.wasm
