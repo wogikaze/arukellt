@@ -1,7 +1,8 @@
-"""Tests for gate domain checks (dry-run only, no shell scripts executed)."""
+"""Tests for gate domain checks and required product close-gates."""
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -9,6 +10,7 @@ from unittest.mock import patch
 
 # Ensure scripts/ is on path when running from repo root
 _SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+_REPO_ROOT = _SCRIPTS_DIR.parent
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
@@ -70,6 +72,32 @@ class TestGateDryRun(unittest.TestCase):
             "repro": "cmd_gate_repro",
         }
         self.assertNotIn("bogus-subcommand", dispatch)
+
+
+class TestWasiRuntimeAbiCloseGates(unittest.TestCase):
+    """Keep #076/#676/#819/#841 contracts in the existing CI harness."""
+
+    def test_wasi_runtime_abi_close_gates(self):
+        gates = (
+            "gate-076-wasi-p2-filesystem.py",
+            "gate-676-std-host-fs-env-process.py",
+            "gate-819-runtime-abi-core-op-lowering.py",
+            "gate-841-real-wasi-network-abi.py",
+        )
+        for gate in gates:
+            with self.subTest(gate=gate):
+                run = subprocess.run(
+                    [sys.executable, str(_REPO_ROOT / "scripts/check" / gate)],
+                    cwd=_REPO_ROOT,
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertEqual(
+                    run.returncode,
+                    0,
+                    msg=f"{gate} failed\nstdout:\n{run.stdout}\nstderr:\n{run.stderr}",
+                )
 
 
 if __name__ == "__main__":

@@ -21,10 +21,10 @@
 | `std::env` | 6 | 5 | 0 | 0 | 1 | 5/5 (100%) | no |
 | `std::fs` | 8 | 4 | 4 | 0 | 0 | 7/8 (88%) | no |
 | `std::host::clock` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
-| `std::host::env` | 5 | 5 | 0 | 0 | 0 | 5/5 (100%) | yes |
+| `std::host::env` | 7 | 7 | 0 | 0 | 0 | 7/7 (100%) | yes |
 | `std::host::fs` | 13 | 1 | 8 | 3 | 1 | 9/12 (75%) | yes |
 | `std::host::http` | 6 | 0 | 6 | 0 | 0 | 3/6 (50%) | yes |
-| `std::host::process` | 2 | 2 | 0 | 0 | 0 | 2/2 (100%) | yes |
+| `std::host::process` | 3 | 3 | 0 | 0 | 0 | 3/3 (100%) | yes |
 | `std::host::random` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
 | `std::host::sockets` | 5 | 0 | 5 | 0 | 0 | 5/5 (100%) | yes |
 | `std::host::stdio` | 4 | 4 | 0 | 0 | 0 | 4/4 (100%) | yes |
@@ -56,7 +56,7 @@
 | `std::wasm` | 79 | 0 | 0 | 79 | 0 | **37/79 (47%)** | no |
 | `std::wit` | 16 | 0 | 0 | 16 | 0 | **7/16 (44%)** | no |
 
-**Total**: 763 APIs, 390 stable, 49 provisional, 321 experimental, 3 deprecated, 636/760 (84%) fixture coverage
+**Total**: 766 APIs, 393 stable, 49 provisional, 321 experimental, 3 deprecated, 639/763 (84%) fixture coverage
 
 ## Legend
 

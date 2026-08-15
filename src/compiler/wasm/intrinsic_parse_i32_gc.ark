@@ -5,8 +5,8 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
 use wasm::string_gc_helpers
-use wasm::intrinsic_sockets_result
-use wasm::intrinsic_http_result
+use wasm::runtime_abi_sockets_result
+use wasm::runtime_abi_http_result
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_numeric_i32
@@ -151,7 +151,7 @@ fn emit_parse_i32_gc_digit_loop(
 }
 
 fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i32, open_type: i32) {
-    let ok_type = intrinsic_sockets_result::find_result_variant_type_by_suffix(
+    let ok_type = runtime_abi_sockets_result::find_result_variant_type_by_suffix(
         ctx,
         String_from("Result::Ok"),
         String_from("_f1_i32")
@@ -166,7 +166,7 @@ fn emit_parse_i32_gc_ok(w: WasmWriter, ctx: SelfEmitCtx, s_acc: i32, s_result: i
 
 fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result: i32, open_type: i32) {
     // Prefer String-payload Err with the canonical message (not the input).
-    let err_type = intrinsic_http_result::find_result_string_variant_type(ctx, String_from("Result::Err"))
+    let err_type = runtime_abi_http_result::find_result_string_variant_type(ctx, String_from("Result::Err"))
     if err_type >= 0 {
         let s_err = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
         emit_parse_i32_gc_invalid_integer_string(w, ctx, s_err)

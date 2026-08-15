@@ -34,6 +34,9 @@ fn print_usage() {
     stdio::println("  --local        Lint local (parse-only) rules; no module resolve")
     stdio::println("  --allow <rule> Allow (suppress) a lint rule by W-code or name")
     stdio::println("  --deny <rule>  Deny (escalate to error) a lint rule by W-code or name")
+    stdio::println("  --deny-clock   Reject programs that use host clock intrinsics")
+    stdio::println("  --deny-random  Reject programs that use host randomness intrinsics")
+    stdio::println("  --deny-process Reject programs that use process exit/abort intrinsics")
     stdio::println("  --strip-debug  Strip debug sections (name, source map) from output")
 }
 

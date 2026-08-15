@@ -3405,7 +3405,7 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
         return
     host_text = host_path.read_text(encoding="utf-8")
     text = fn_path.read_text(encoding="utf-8")
-    for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
+    for symbol in ("mir_call_is_runtime_host", "mir_call_is_wasi_http_outgoing"):
         renamed = f"mir_module_host_calls__{symbol}"
         if re.search(
             rf"pub fn {re.escape(renamed)}\(callee: String\) -> bool",
@@ -3464,42 +3464,42 @@ def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
     inline_match = """
 fn _overlay_callee_needs_network_host(callee: String) -> bool {
     if eq(clone(callee), String_from("http_get")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_get")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_http_get")) { return true }
     if eq(clone(callee), String_from("http::get")) { return true }
     if eq(clone(callee), String_from("std::host::http::get")) { return true }
     if eq(clone(callee), String_from("runtime.get")) { return true }
     if eq(clone(callee), String_from("http_request")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_request")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_http_request")) { return true }
     if eq(clone(callee), String_from("http::request")) { return true }
     if eq(clone(callee), String_from("std::host::http::request")) { return true }
     if eq(clone(callee), String_from("runtime.request")) { return true }
     if eq(clone(callee), String_from("http_serve")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_http_serve")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_http_serve")) { return true }
     if eq(clone(callee), String_from("http::serve")) { return true }
     if eq(clone(callee), String_from("std::host::http::serve")) { return true }
     if eq(clone(callee), String_from("runtime.serve")) { return true }
     if eq(clone(callee), String_from("sockets_connect")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_connect")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_sockets_connect")) { return true }
     if eq(clone(callee), String_from("sockets::connect")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
     if eq(clone(callee), String_from("runtime.connect")) { return true }
     if eq(clone(callee), String_from("sockets_read")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_read")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_sockets_read")) { return true }
     if eq(clone(callee), String_from("sockets::read")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
     if eq(clone(callee), String_from("runtime.read")) { return true }
     if eq(clone(callee), String_from("sockets_write")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_write")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_sockets_write")) { return true }
     if eq(clone(callee), String_from("sockets::write")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
     if eq(clone(callee), String_from("runtime.write")) { return true }
     if eq(clone(callee), String_from("sockets_listen")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_listen")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_sockets_listen")) { return true }
     if eq(clone(callee), String_from("sockets::listen")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
     if eq(clone(callee), String_from("runtime.listen")) { return true }
     if eq(clone(callee), String_from("sockets_accept")) { return true }
-    if eq(clone(callee), String_from("__intrinsic_sockets_accept")) { return true }
+    if eq(clone(callee), String_from("__runtime_abi_sockets_accept")) { return true }
     if eq(clone(callee), String_from("sockets::accept")) { return true }
     if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
     if eq(clone(callee), String_from("runtime.accept")) { return true }
@@ -3537,17 +3537,17 @@ fn _overlay_callee_needs_network_host(callee: String) -> bool {
         "_overlay_callee_needs_network_host(clone(callee))",
         "("
         + "eq(clone(callee), String_from(\"http_get\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_get\")) || "
+        + "eq(clone(callee), String_from(\"__runtime_abi_http_get\")) || "
         + "eq(clone(callee), String_from(\"http::get\")) || "
         + "eq(clone(callee), String_from(\"std::host::http::get\")) || "
         + "eq(clone(callee), String_from(\"runtime.get\")) || "
         + "eq(clone(callee), String_from(\"http_request\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_request\")) || "
+        + "eq(clone(callee), String_from(\"__runtime_abi_http_request\")) || "
         + "eq(clone(callee), String_from(\"http::request\")) || "
         + "eq(clone(callee), String_from(\"std::host::http::request\")) || "
         + "eq(clone(callee), String_from(\"runtime.request\")) || "
         + "eq(clone(callee), String_from(\"http_serve\")) || "
-        + "eq(clone(callee), String_from(\"__intrinsic_http_serve\")) || "
+        + "eq(clone(callee), String_from(\"__runtime_abi_http_serve\")) || "
         + "eq(clone(callee), String_from(\"http::serve\")) || "
         + "eq(clone(callee), String_from(\"std::host::http::serve\")) || "
         + "eq(clone(callee), String_from(\"runtime.serve\"))"
@@ -3563,11 +3563,11 @@ fn _overlay_callee_needs_network_host(callee: String) -> bool {
         )
     text = _sub_required(
         text,
-        r"pub fn mir_module_needs_arukellt_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_arukellt_host(mir: MirModule) -> i32 {"
+        r"pub fn mir_module_needs_runtime_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
+        "pub fn mir_module_needs_runtime_host(mir: MirModule) -> i32 {"
         + scan_body
         + "\n}",
-        "inline overlay-safe mir_module_needs_arukellt_host scan",
+        "inline overlay-safe mir_module_needs_runtime_host scan",
         count=1,
     )
     text = _sub_required(

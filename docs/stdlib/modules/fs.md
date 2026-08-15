@@ -44,58 +44,37 @@ write_string("output.txt", "hello")
 
 > ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 4/13 APIs have limited or placeholder semantics
 
-Host filesystem helpers backed by the current WASI filesystem intrinsics.
+Host filesystem helpers backed by the versioned runtime ABI.
 
-These APIs perform real host I/O and require runtime directory access (e.g.
-`--dir`) on every call. Pure path manipulation lives in `std::path`; a
-smaller stable-shaped bridge over the same intrinsics lives in `std::fs`.
-
-This module is **not** a complete filesystem facade. Directory listing,
-structured metadata, and streaming I/O are not yet supported at the
-intrinsic level. The `fd_*` helpers are explicitly experimental and
-currently `wasm32` (WASI P1) only.
-
-### Honesty caveats (see #604 — issues/done/604-stdlib-baseline-contract-honesty.md)
-
-- `is_readable_file(path)` (formerly `exists`) is a **read probe /
-readable-file check**, not a general path-existence query. It is
-implemented on top of `__intrinsic_fs_read_file`, so directories,
-missing paths, and any other unreadable paths return `false`.
-- `read_dir` and `metadata` return errors on all current targets because
-the WASI P1/P2 intrinsic layer does not yet expose directory iteration
-or stat-based metadata. These are API contracts awaiting backend support.
-- `is_file` / `is_dir` are backed by the same read probe as
-`is_readable_file` and do **not** distinguish file types.
-- `fd_seek`, `fd_tell`, and `fd_fdstat_errno` operate on raw WASI P1 file
-descriptors and are experimental.
-- **`wasm32`** (WASI P1) and **`wasm32-gc`** (WASI P2) both provide the three base intrinsics
-(`read_file`, `write_file`, `write_bytes`). Directory/metadata capabilities
-are future on both targets.
+Whole-file I/O, directory listing, metadata and basic mutation all lower
+through runtime CoreOps. On `wasm32-gc` / WASI P2 the component runtime
+adapter implements those operations with real WASI filesystem facilities.
+Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
 
 ### `std::host::fs` — Public Types
 
 | Name | Kind | Summary |
 |------|------|---------|
 | `FsError` | `enum` | - |
-| `FsMetadata` | `struct` | Placeholder for future structured metadata. |
+| `FsMetadata` | `struct` | - |
 
 ### `std::host::fs` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
 | `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ functional | - |
-| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | Writes a byte array to a file, replacing any existing contents. |
-| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | Read-probe semantics — not a general path-existence query. |
-| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | @deprecated Use is_readable_file instead. This function has the same |
-| `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns true when the path is a readable file (same semantics as |
-| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | Returns false unconditionally on current targets. |
-| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ⚠️ limited semantics | List the entries in a directory. |
-| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ⚠️ limited semantics | Query file metadata for a given path. |
-| `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | Seeks within an open file descriptor. |
-| `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | Returns the current file offset for an open file descriptor. |
-| `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | Returns the errno from fd_fdstat_get for an open file descriptor. |
+| `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | - |
+| `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | - |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | - |
+| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ⚠️ limited semantics | - |
+| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ⚠️ limited semantics | - |
+| ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | - |
+| `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | - |
+| `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
+| `is_dir` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | - |
+| `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | - |
+| `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | - |
 
 #### `std::host::fs::fs_error_message`
 
@@ -132,15 +111,31 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
-#### `std::host::fs::is_readable_file`
+#### `std::host::fs::metadata`
 
-Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query.
+Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed.
 
-**Availability:** Requires the --dir capability flag at runtime.
+**Availability:** Honest rejection until backend support lands.
+
+**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
+
+#### `std::host::fs::read_dir`
+
+Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer.
+
+**Availability:** Honest rejection until backend support lands.
+
+**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
 
 #### `std::host::fs::exists`
 
 Deprecated alias for is_readable_file. Same read-probe semantics — NOT a general path-existence query.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+#### `std::host::fs::is_readable_file`
+
+Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query.
 
 **Availability:** Requires the --dir capability flag at runtime.
 
@@ -155,22 +150,6 @@ Read-probe equivalent to is_readable_file on current targets. Does not distingui
 Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed.
 
 **Availability:** Honest stub: no directory metadata intrinsic yet.
-
-#### `std::host::fs::read_dir`
-
-Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer.
-
-**Availability:** Honest rejection until backend support lands.
-
-**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
-
-#### `std::host::fs::metadata`
-
-Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed.
-
-**Availability:** Honest rejection until backend support lands.
-
-**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
 
 #### `std::host::fs::fd_seek`
 

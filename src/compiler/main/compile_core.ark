@@ -227,8 +227,16 @@ fn source_uses_random_intrinsics(source: String) -> bool {
     contains(source, String_from("std::host::random"))
 }
 
+fn source_uses_process_intrinsics(source: String) -> bool {
+    contains(clone(source), String_from("process::exit")) ||
+    contains(clone(source), String_from("process::abort")) ||
+    contains(clone(source), String_from("std::host::process")) ||
+    contains(clone(source), String_from("__runtime_abi_process_exit")) ||
+    contains(source, String_from("__runtime_abi_process_abort"))
+}
+
 fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
-    if !args_record::cli_deny_clock(opts) && !args_record::cli_deny_random(opts) {
+    if !args_record::cli_deny_clock(opts) && !args_record::cli_deny_random(opts) && !args_record::cli_deny_process(opts) {
         return true
     }
     let read_result = fs::read_to_string(clone(input_file))
@@ -238,8 +246,12 @@ fn enforce_capability_denies(opts: CliOptions, input_file: String) -> bool {
                 stdio::eprintln(String_from("--deny-clock: this program uses clock intrinsics"))
                 return false
             }
-            if args_record::cli_deny_random(opts) && source_uses_random_intrinsics(source) {
+            if args_record::cli_deny_random(opts) && source_uses_random_intrinsics(clone(source)) {
                 stdio::eprintln(String_from("--deny-random: this program uses random intrinsics"))
+                return false
+            }
+            if args_record::cli_deny_process(opts) && source_uses_process_intrinsics(source) {
+                stdio::eprintln(String_from("--deny-process: this program uses process-control intrinsics"))
                 return false
             }
             true

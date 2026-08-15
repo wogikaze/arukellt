@@ -25,6 +25,8 @@ tests/component-interop/**/jco-out/
 # wasm build/test artifacts
 *.wasm
 *.cwasm
+# Checked product runtime adapter is a release/runtime input, not a test output.
+!runtime/wasi-p2-adapter/runtime-adapter.wasm
 
 # Playground static assets (built in CI for Pages; run `npm run build:app` locally)
 docs/playground/dist/

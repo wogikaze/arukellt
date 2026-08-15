@@ -1,16 +1,17 @@
 //! Host process-control helpers.
 //!
-//! Provides process lifecycle operations: graceful exit and immediate abort.
-//! These APIs are host-bound and require WASI process capability.
-//!
-//! **Availability:** All targets (`wasm32` + `wasm32-gc`). Requires WASI runtime.
+//! WASI 0.2 provides process exit semantics but does not expose a portable
+//! POSIX-style process identifier. `id()` therefore has a stable rejection
+//! contract instead of returning a fabricated value.
 
-/// Requests process termination with the given exit code.
 pub fn exit(code: i32) {
-    __intrinsic_process_exit(code)
+    __runtime_abi_process_exit(code)
 }
 
-/// Aborts execution immediately with exit code 134 (SIGABRT convention).
 pub fn abort() {
-    __intrinsic_process_abort()
+    __runtime_abi_process_abort()
+}
+
+pub fn id() -> Result<i32, String> {
+    Result::Err("process id is not defined by the WASI 0.2 process model")
 }

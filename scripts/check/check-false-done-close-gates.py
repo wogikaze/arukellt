@@ -78,7 +78,7 @@ ISSUE_ID_RE = re.compile(r"^(\d{3})")
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
     "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
-    "076": ["P2 filesystem fixture in-tree compile + wasm-tools validate (runtime I/O tracked by #076)"],
+    "076": ["real-WASI P2 filesystem production gate (gate-076-wasi-p2-filesystem.py)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
     "500": ["playground wasm typecheck export gate"],
@@ -545,10 +545,19 @@ def gate_076() -> tuple[int, str]:
     entry = "component-compile:wasi_fs_p2.ark"
     if not _manifest_contains(entry):
         return 1, f"manifest missing {entry}"
-    _GATE076_LOCK.parent.mkdir(parents=True, exist_ok=True)
-    with _GATE076_LOCK.open("w", encoding="utf-8") as lock_file:
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-        return _gate_076_locked()
+    script = REPO_ROOT / "scripts" / "check" / "gate-076-wasi-p2-filesystem.py"
+    if not script.is_file():
+        return 1, "missing scripts/check/gate-076-wasi-p2-filesystem.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if result.returncode != 0:
+        return 1, (result.stdout + result.stderr)[-800:]
+    return 0, ""
 
 
 def _gate_076_locked() -> tuple[int, str]:

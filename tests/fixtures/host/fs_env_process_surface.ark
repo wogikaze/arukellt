@@ -1,0 +1,55 @@
+use std::host::env
+use std::host::fs
+use std::host::process
+
+fn main() {
+    let dir = "runtime_abi_fixture_dir"
+    let path = "runtime_abi_fixture_dir/value.txt"
+    match fs::create_dir_all(dir) {
+        Result::Err(_) => panic("create_dir_all failed"),
+        Result::Ok(_) => {
+        },
+    }
+    match fs::write_string(path, "runtime abi") {
+        Result::Err(_) => panic("write failed"),
+        Result::Ok(_) => {
+        },
+    }
+    match fs::metadata(path) {
+        Result::Err(_) => panic("metadata failed"),
+        Result::Ok(meta) => {
+            if !meta.is_file {
+                panic("metadata did not report file")
+            }
+        },
+    }
+    match fs::read_dir(dir) {
+        Result::Err(_) => panic("read_dir failed"),
+        Result::Ok(entries) => {
+            if len(entries) < 1 {
+                panic("read_dir returned no entries")
+            }
+        },
+    }
+    match env::current_dir() {
+        Result::Err(_) => panic("current_dir failed"),
+        Result::Ok(_) => {
+        },
+    }
+    match env::vars_snapshot() {
+        Result::Err(_) => panic("vars_snapshot failed"),
+        Result::Ok(_) => {
+        },
+    }
+    match process::id() {
+        Result::Ok(_) => panic("WASI process id must not be fabricated"),
+        Result::Err(_) => {
+        },
+    }
+    match fs::remove_file(path) {
+        Result::Err(_) => panic("remove_file failed"),
+        Result::Ok(_) => {
+        },
+    }
+    println("host surface ok")
+}

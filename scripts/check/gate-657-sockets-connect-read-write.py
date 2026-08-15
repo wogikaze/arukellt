@@ -1,69 +1,25 @@
 #!/usr/bin/env python3
-"""Close-gate helper for #657 sockets connect/read/write."""
-
+"""Close gate for #657 on the real-WASI runtime-adapter path."""
 from __future__ import annotations
-
-import subprocess
 import sys
 from pathlib import Path
+ROOT = Path(__file__).resolve().parents[2]
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _static_evidence() -> tuple[int, str]:
-    required = [
-        REPO_ROOT / "std/host/sockets.ark",
-        REPO_ROOT / "src/compiler/wasm/import_indices.ark",
-        REPO_ROOT / "src/compiler/wasm/intrinsic_sockets_vec.ark",
-        REPO_ROOT / "tests/fixtures/host/sockets/connect_read_write.ark",
-        REPO_ROOT / "tests/fixtures/target_gating/t1_import_sockets.ark",
-    ]
-    for path in required:
-        if not path.is_file():
-            return 1, f"missing {path.relative_to(REPO_ROOT)}"
-    text = (REPO_ROOT / "src/compiler/wasm/sections_imports.ark").read_text(encoding="utf-8")
-    if "sockets_read" not in text or "sockets_write" not in text:
-        return 1, "sections_imports.ark lacks sockets_read/write imports"
-    if "wasi:sockets/tcp@0.2.0" not in text:
-        return 1, "sections_imports.ark lacks wasi:sockets/tcp@0.2.0"
-    if '"arukellt_host"' in text or "'arukellt_host'" in text:
-        return 1, "sections_imports.ark still emits arukellt_host module string"
-    manifest = (REPO_ROOT / "tests/fixtures/manifest.txt").read_text(encoding="utf-8")
-    if "t3-run:host/sockets/connect_read_write.ark" not in manifest:
-        return 1, "manifest missing t3-run:host/sockets/connect_read_write.ark"
-    return 0, ""
-
-
-def _host_linker_echo_test() -> tuple[int, str]:
-    result = subprocess.run(
-        ["cargo", "test", "--lib", "tcp_echo_roundtrip", "--", "--nocapture"],
-        cwd=str(REPO_ROOT / "tools" / "host-linker"),
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
+def fail(msg: str) -> int:
+    print(f"gate-657-sockets: FAIL: {msg}", file=sys.stderr); return 1
 
 def main() -> int:
-    failures: list[str] = []
-    for name, fn in (
-        ("static evidence", _static_evidence),
-        ("host-linker echo", _host_linker_echo_test),
-    ):
-        rc, msg = fn()
-        if rc != 0:
-            failures.append(f"{name}: {msg}")
-    if failures:
-        print("gate-657-sockets: FAIL", file=sys.stderr)
-        for line in failures:
-            print(f"  - {line}", file=sys.stderr)
-        return 1
-    print("gate-657-sockets: PASS")
-    return 0
+    for rel in ("std/host/sockets.ark", "tests/fixtures/host/sockets/connect_read_write.ark", "tests/fixtures/host/sockets/connect_dns_fail.ark"):
+        if not (ROOT / rel).is_file(): return fail(f"missing {rel}")
+    component = (ROOT / "src/compiler/wasm/component_p2_runtime.ark").read_text(encoding="utf-8")
+    for marker in ("runtime-socket-connect", "runtime-socket-read", "runtime-socket-write"):
+        if marker not in component: return fail(f"component runtime socket import missing: {marker}")
+    adapter = (ROOT / "runtime/wasi-p2-adapter/src/lib.rs").read_text(encoding="utf-8")
+    for marker in ("TcpStream", "socket_connect", "socket_read", "socket_write"):
+        if marker not in adapter: return fail(f"adapter marker missing: {marker}")
+    if (ROOT / "tools/host-linker/src/host_sockets.rs").exists(): return fail("legacy host_sockets shim remains")
+    manifest = (ROOT / "tests/fixtures/manifest.txt").read_text(encoding="utf-8")
+    if "t3-run:host/sockets/connect_read_write.ark" not in manifest: return fail("socket I/O fixture missing from manifest")
+    print("gate-657-sockets: PASS"); return 0
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__ == "__main__": raise SystemExit(main())

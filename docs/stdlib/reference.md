@@ -8,7 +8,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| `stable` | 390 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
+| `stable` | 393 | Compatibility commitment within the stated versioning policy; not a production-readiness claim. |
 | `provisional` | 49 | API is usable but may change in minor versions based on feedback. |
 | `experimental` | 321 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -413,8 +413,8 @@ Expected output: `42`
 | `is_readable_file` | `(String) -> bool` | `std::fs` | `stable` | `functional` | `builtin` | no | - | Preferred read-probe name; semantics identical to exists. |
 | `metadata` | `(String) -> Result<String, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — path metadata not yet supported. |
 | `read_dir` | `(String) -> Result<Vec<String>, String>` | `std::fs` | `provisional` | `limited` | `builtin` | no | - | Always Err on current targets — directory listing not yet supported. |
-| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
+| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 
 ### `read_string` — `std::fs`
 
@@ -438,8 +438,10 @@ Expected output: `42`
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_arg_count` | Return the number of user-supplied command-line arguments, excluding argv[0]. |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_args` | Return user-supplied command-line arguments, excluding argv[0]. Index 0 is the first user argument. |
+| `current_dir` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_current_dir` | Return the runtime current directory as UTF-8 through the versioned runtime ABI. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `functional` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| `vars_snapshot` | `() -> Result<String, String>` | `std::host::env` | `stable` | `functional` | `builtin` | no | `__runtime_abi_env_vars` | Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtim… |
 
 ### `var` — `std::host::env`
 
@@ -463,12 +465,12 @@ match home { Some(p) => println(p), None => println("not set") }
 | `fs_error_message` | `(FsError) -> String` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | - | Format an FsError for display (used by read_dir/metadata and future typed fs APIs). |
 | `is_dir` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Always false on current targets — directory-type detection requires path_filestat_get-style intrinsi… |
 | `is_file` | `(String) -> bool` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Read-probe equivalent to is_readable_file on current targets. Does not distinguish file types until … |
-| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs… |
+| `is_readable_file` | `(String) -> bool` | `std::host::fs` | `stable` | `functional` | `builtin` | no | - | Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing … |
 | `metadata` | `(String) -> Result<FsMetadata, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Structured metadata API contract. Always returns Err(IoError) on current targets because path_filest… |
 | `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `std::host::fs` | `provisional` | `limited` | `builtin` | no | - | Directory listing API contract. Always returns Err(IoError) on current targets because WASI director… |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `provisional` | `functional` | `builtin` | no | `__runtime_abi_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
 ### `metadata` — `std::host::fs`
 
@@ -501,12 +503,12 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
 | `read_body` | `(HttpResponse) -> String` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | - |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `request_with_headers` | `(String, String, Vec<String>, Vec<String>, String) -> Result<HttpResponse, String>` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | Send HTTP with header vectors (provisional; headers not forwarded to bridge yet). |
 | `response_status` | `(HttpResponse) -> i32` | `std::host::http` | `provisional` | `unreachable` | `builtin (wasm32-gc)` | no | - | - |
-| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
+| `serve` | `(i32, String) -> Result<(), String>` | `std::host::http` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_http_serve` | Serve one HTTP GET on loopback at port, responding with body (HTTP/1.1 200). Maps to capability … |
 
 ### `get` — `std::host::http`
 
@@ -549,17 +551,18 @@ match http::serve(8080, "hello") {
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `functional` | `builtin` | no | `__runtime_abi_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `id` | `() -> Result<i32, String>` | `std::host::process` | `stable` | `functional` | `builtin` | no | - | Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style pro… |
 
 ## Host Random
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
-| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
-| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
-| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
+| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
+| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a random boolean value with equal probability of true and false. |
+| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a cryptographically-secure random i32 value. |
+| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `functional` | `builtin` | no | `__runtime_abi_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
 
 ### `random_i32_range` — `std::host::random`
 
@@ -575,11 +578,11 @@ let n = random::random_i32_range(1, 7)
 
 | Name | Signature | Module | Stability | Implementation | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|----------------|------|---------|-----------|-------------|
-| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
-| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
-| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_read` | Read up to max_len bytes from an open socket fd. |
-| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__intrinsic_sockets_write` | Write byte values from a Vec to an open socket fd. |
+| `accept` | `(i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_accept` | Accept one inbound TCP connection on a listener fd. Returns connected socket fd. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+| `listen` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_listen` | Bind a TCP listener on the given hostname and port. Returns a listener fd on success. |
+| `read` | `(i32, i32) -> Result<Vec<i32>, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_read` | Read up to max_len bytes from an open socket fd. |
+| `write` | `(i32, Vec<i32>) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `unreachable` | `intrinsic_wrapper (wasm32-gc)` | no | `__runtime_abi_sockets_write` | Write byte values from a Vec to an open socket fd. |
 
 ### `accept` — `std::host::sockets`
 

@@ -1,0 +1,16 @@
+[package]
+name = "arukellt-wasi-p2-bridge"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[workspace]

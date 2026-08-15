@@ -1916,7 +1916,7 @@ def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
         return
     host_text = host_path.read_text(encoding="utf-8")
     text = fn_path.read_text(encoding="utf-8")
-    for symbol in ("mir_call_is_arukellt_host", "mir_call_is_wasi_http_outgoing"):
+    for symbol in ("mir_call_is_runtime_host", "mir_call_is_wasi_http_outgoing"):
         if not re.search(
             rf"pub fn (?:mir_module_host_calls__)?{re.escape(symbol)}\(callee: String\) -> bool",
             host_text,
@@ -1947,7 +1947,7 @@ def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
         return
     text = path.read_text(encoding="utf-8")
     stubs: tuple[tuple[str, str], ...] = (
-        ("mir_module_needs_arukellt_host", "mir: MirModule"),
+        ("mir_module_needs_runtime_host", "mir: MirModule"),
         ("mir_module_needs_wasi_http_outgoing", "mir: MirModule"),
         ("mir_module_needs_wasi_http_outgoing_if_p2", "mir: MirModule, wasi_version: String"),
     )

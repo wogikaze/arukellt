@@ -1,0 +1,285 @@
+// GC target: real environ lookup via P1-shaped environ-sizes / environ-get.
+// Name arrives as a GC string; result is Option<String> (enum-open ref).
+
+use wasm::constants
+use wasm::ctx_gc_type
+use wasm::ctx_record
+use wasm::ctx_scratch
+use wasm::emit_target
+use wasm::runtime_abi_env_args_gc
+use wasm::runtime_abi_stdio_gc
+use wasm::intrinsic_vec_access_gc
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::opcodes
+use wasm::string_gc_helpers
+use wasm::writer_core
+use wasm::writer_gc
+
+fn emit_env_var_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let name_ptr = runtime_abi_stdio_gc::emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    let name_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    helpers_core::emit_local_get(w, name_ptr)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, name_len)
+
+    emit_env_var_gc_fetch_environ(w, ctx)
+    emit_env_var_gc_scan(w, ctx, name_ptr, name_len)
+    true
+}
+
+fn emit_env_var_gc_fetch_environ(w: WasmWriter, ctx: SelfEmitCtx) {
+    emit_env_var_gc_align_heap(w)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGC())
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_core::emit_call(w, environ_sizes_import_index(ctx))
+    helpers_core::emit_drop(w)
+    let env_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let buf_size = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, env_count)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGV_SIZE())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, buf_size)
+    let ptrs_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let buf_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, ptrs_base)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, env_count)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_set(w, buf_base)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, buf_size)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+    helpers_io_layout::emit_wasi_i32_from_local(w, ptrs_base)
+    helpers_io_layout::emit_wasi_i32_from_local(w, buf_base)
+    helpers_core::emit_call(w, environ_get_import_index(ctx))
+    helpers_core::emit_drop(w)
+}
+
+fn environ_sizes_import_index(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ENVIRON_SIZES()
+    }
+    constants::WASI_IMPORT_ENVIRON_SIZES_GET()
+}
+
+fn environ_get_import_index(ctx: SelfEmitCtx) -> i32 {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        return constants::P2_IMPORT_ENVIRON_GET()
+    }
+    constants::WASI_IMPORT_ENVIRON_GET()
+}
+
+fn emit_env_var_gc_align_heap(w: WasmWriter) {
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 3)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_div_u(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_core::emit_heap_set(w)
+}
+
+fn emit_env_var_gc_scan(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32, name_len: i32) {
+    let env_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let ptrs_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let loop_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 11)
+    let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+
+    emit_env_var_gc_none_into(w, ctx, s_opt)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, found)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, loop_i)
+
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, found)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_core::emit_local_get(w, env_count)
+    helpers_numeric_i32::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    emit_env_var_gc_try_entry(w, ctx, name_ptr, name_len, ptrs_base, loop_i, found, s_opt)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, open_type)
+}
+
+fn emit_env_var_gc_try_entry(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    name_ptr: i32,
+    name_len: i32,
+    ptrs_base: i32,
+    loop_i: i32,
+    found: i32,
+    s_opt: i32
+) {
+    let entry_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    helpers_core::emit_local_get(w, ptrs_base)
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, entry_ptr)
+    emit_env_var_gc_entry_match(w, ctx, name_ptr, name_len, entry_ptr, loop_i, found, s_opt)
+}
+
+fn emit_env_var_gc_entry_match(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    name_ptr: i32,
+    name_len: i32,
+    entry_ptr: i32,
+    loop_i: i32,
+    found: i32,
+    s_opt: i32
+) {
+    let cmp_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, cmp_j)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_core::emit_local_get(w, name_ptr)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_numeric_i32::emit_i32_ne(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, cmp_j)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 61)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    emit_env_var_gc_build_some(w, ctx, entry_ptr, name_len, s_opt)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, found)
+    helpers_control::emit_else(w)
+    emit_env_var_gc_advance(w, loop_i)
+    helpers_control::emit_end(w)
+    helpers_control::emit_else(w)
+    emit_env_var_gc_advance(w, loop_i)
+    helpers_control::emit_end(w)
+}
+
+fn emit_env_var_gc_build_some(w: WasmWriter, ctx: SelfEmitCtx, entry_ptr: i32, name_len: i32, s_opt: i32) {
+    let value_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    let value_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
+    // Reuse cmp_j slot (offset 8). Offsets 12+ are f64/i64/GC, not i32.
+    let s_k = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, value_start)
+    runtime_abi_env_args_gc::emit_env_args_gc_cstr_len(w, value_start, value_len)
+
+    helpers_core::emit_local_get(w, value_len)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, s_str)
+    runtime_abi_env_args_gc::emit_env_args_gc_copy_bytes(w, value_start, value_len, s_str, s_k, string_type)
+
+    let some_type = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, "_f1_ref0", open_type)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    helpers_core::emit_local_get(w, s_str)
+    writer_gc::emit_gc_ref_as_non_null(w)
+    writer_gc::emit_gc_struct_new(w, some_type)
+    helpers_core::emit_local_set(w, s_opt)
+}
+
+fn emit_env_var_gc_none_into(w: WasmWriter, ctx: SelfEmitCtx, s_opt: i32) {
+    let none_type = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, "Option::None")
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let none_type_idx = if none_type >= 0 { none_type } else { open_type }
+    writer_gc::emit_gc_struct_new_default(w, none_type_idx)
+    helpers_core::emit_local_set(w, s_opt)
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, none_type_idx)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    writer_gc::emit_gc_struct_set_i32(w, none_type_idx, 0)
+}
+
+fn emit_env_var_gc_advance(w: WasmWriter, loop_i: i32) {
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, loop_i)
+}
+
+// Stack: [name, default] with default on top. Leaves String (GC ref) on stack.
+// Reuses emit_env_var_gc then unwraps Option<String> (Some=0 / None=1).
+fn emit_env_var_or_default_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Keep default in string slot 1; emit_env_var_gc only uses slot 0 for temps.
+    let s_def = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
+    let s_out = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 2)
+    let s_opt = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    helpers_core::emit_local_set(w, s_def)
+
+    let _looked_up = emit_env_var_gc(w, inst, ctx)
+    helpers_core::emit_local_set(w, s_opt)
+
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let some_type = intrinsic_vec_access_gc::find_option_some_variant_type(ctx, "_f1_ref0", open_type)
+
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, open_type)
+    writer_gc::emit_gc_struct_get_i32(w, open_type, 0)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, s_opt)
+    writer_gc::emit_gc_ref_cast(w, some_type)
+    writer_gc::emit_gc_struct_get(w, some_type, 1)
+    helpers_core::emit_local_set(w, s_out)
+    helpers_control::emit_else(w)
+    helpers_core::emit_local_get(w, s_def)
+    helpers_core::emit_local_set(w, s_out)
+    helpers_control::emit_end(w)
+
+    helpers_core::emit_local_get(w, s_out)
+    true
+}

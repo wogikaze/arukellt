@@ -79,3 +79,10 @@ arukellt compose --validate --plug <provider> <socket> -o <output>
 See [`current-state.md`](current-state.md) for `compile`, `run`, `check`, `build`,
 `fmt`, `test`, `lint`, `targets`, `analyze`, `init`, `script`, `lsp`, and
 `debug-adapter`.
+
+
+## Host capability defaults
+
+WASI P2 host capabilities are explicit runtime authorities. Filesystem access is deny-by-default and requires a preopened directory (for example Wasmtime `--dir`). HTTP and sockets require the runtime network/HTTP grants used by the embedding runtime. Environment access sees only values supplied by the runtime. Process `exit`/`abort` are available by default on supported host targets; `--deny-process` rejects programs that use those process-control intrinsics during compilation/checking. `--deny-clock` and `--deny-random` provide the analogous compile-time deny controls for clock and host randomness.
+
+The compiler does not manufacture a process ID on WASI 0.2: `std::host::process::id()` returns `Err`. Runtime directory traversal outside a granted preopen is rejected by the WASI filesystem boundary.

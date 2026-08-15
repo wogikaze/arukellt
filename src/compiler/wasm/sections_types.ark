@@ -21,12 +21,12 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_runtime_host: i32,
     needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     gc_layout: GcLayoutTable
 ) -> TypeSectionPlan {
-    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
+    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing)
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut gc_fixed_count = 0
     let mut enum_variant_count = 0
@@ -36,7 +36,7 @@ fn emit_type_section(
         enum_variant_count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
         gc_struct_count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
     }
-    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, bindings)
+    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
@@ -87,12 +87,12 @@ fn build_type_sigs(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_arukellt_host: i32,
+    needs_runtime_host: i32,
     needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> Vec<String> {
     let type_sigs = Vec::new<String>()
-    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing)
+    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing)
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)

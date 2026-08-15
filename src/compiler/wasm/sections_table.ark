@@ -41,7 +41,7 @@ fn emit_table_section(out: WasmWriter, mir: MirModule) {
     writer_sections::emit_section(out, opcodes::SEC_TABLE(), table_sec)
 }
 
-fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
+fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) {
     if !module_has_funcref_params(mir) {
         return
     }
@@ -55,7 +55,7 @@ fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_ve
     writer_core::emit_leb128_u(elem_sec, fn_count)
     let mut i = 0
     while i < fn_count {
-        let defined_idx = function_indices::defined_function_index(i, clone(target), clone(wasi_version), needs_arukellt_host, needs_wasi_http_outgoing, wit_import_count)
+        let defined_idx = function_indices::defined_function_index(i, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
         writer_core::emit_leb128_u(elem_sec, defined_idx)
         i = i + 1
     }

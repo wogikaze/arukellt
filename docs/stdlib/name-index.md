@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 760
+- **Canonical names:** 763
 - **Historical/deprecated names:** 3
-- **Total entries:** 763
+- **Total entries:** 766
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -175,6 +175,7 @@ Current public API names, sorted alphabetically.
 | `csv_parse_with_header` | `std::csv` | `experimental` | Csv |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `csv_stringify_row` | `std::csv` | `experimental` | Csv |
+| `current_dir` | `std::host::env` | `stable` | Host Env |
 | `cursor_new` | `std::bytes` | `stable` | Bytes |
 | `cursor_pos` | `std::bytes` | `stable` | Bytes |
 | `cursor_remaining` | `std::bytes` | `stable` | Bytes |
@@ -350,6 +351,7 @@ Current public API names, sorted alphabetically.
 | `i32_to_u8` | `prelude` | `stable` | Scalar Conversion |
 | `i64_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
+| `id` | `std::host::process` | `stable` | Host Process |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
 | `index_map_insert` | `std::collections::ordered` | `experimental` | Collections |
@@ -735,6 +737,7 @@ Current public API names, sorted alphabetically.
 | `var` | `std::host::env` | `stable` | Host Env |
 | `var` | `std::env` | `stable` | Env |
 | `var_or_default` | `std::env` | `stable` | Env |
+| `vars_snapshot` | `std::host::env` | `stable` | Host Env |
 | `Vec_with_capacity_i32` | `prelude` | `stable` | Collections |
 | `Vec_with_capacity_String` | `prelude` | `stable` | Collections |
 | `wasm_magic` | `std::wasm` | `experimental` | Wasm |
@@ -957,6 +960,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `csv_parse_with_header` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
 | `csv_stringify_row` | ✅ `experimental` | `std::csv` | Csv |
+| `current_dir` | ✅ `stable` | `std::host::env` | Host Env |
 | `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
@@ -1134,6 +1138,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `i32_to_u8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `id` | ✅ `stable` | `std::host::process` | Host Process |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_map_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
@@ -1519,6 +1524,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `var` | ✅ `stable` | `std::host::env` | Host Env |
 | `var` | ✅ `stable` | `std::env` | Env |
 | `var_or_default` | ✅ `stable` | `std::env` | Env |
+| `vars_snapshot` | ✅ `stable` | `std::host::env` | Host Env |
 | `Vec_with_capacity_i32` | ✅ `stable` | `prelude` | Collections |
 | `Vec_with_capacity_String` | ✅ `stable` | `prelude` | Collections |
 | `wasm_magic` | ✅ `experimental` | `std::wasm` | Wasm |

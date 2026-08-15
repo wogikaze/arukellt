@@ -25,17 +25,18 @@
 | `std::host::stdio` | `std/host/stdio.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` | Always available |
 | `std::host::fs` | `std/host/fs.ark` | yes | yes | yes | yes | yes | yes | yes (--dir) | `wasm32`, `wasm32-gc` | Deny-by-default |
 | `std::host::env` | `std/host/env.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` |  |
-| `std::host::process` | `std/host/process.ark` | yes | yes | yes | yes | yes | yes | no | `wasm32`, `wasm32-gc` |  |
+| `std::host::process` | `std/host/process.ark` | yes | yes | yes | yes | yes | yes | optional compile-time deny | `wasm32`, `wasm32-gc` | exit/abort are portable runtime operations; id() returns a stable Err on WASI 0.2. |
 | `std::host::clock` | `std/host/clock.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-clock; fixtures in DIAG_PARITY_SKIP (#459). |
 | `std::host::random` | `std/host/random.ark` | yes | yes | yes | yes | yes | yes | intended deny flags (not in selfhost CLI) | `wasm32`, `wasm32-gc` | Module runs. Intended deny: compile-time MIR on run (#291). Selfhost CLI has no --deny-random; fixtures in DIAG_PARITY_SKIP (#459). |
-| `std::host::http` | `std/host/http.ark` | yes | yes | partial | partial | no | **no** | n/a | — | host_http_user_reachable=false; WIT-bridged wasi:http imports (#727); real ABI #841 |
-| `std::host::sockets` | `std/host/sockets.ark` | yes | yes | partial | partial | no | **no** | n/a | — | E0500 on wasm32; not user-reachable; WIT-bridged wasi:sockets/tcp (#727); real ABI #841 |
+| `std::host::http` | `std/host/http.ark` | yes | yes | yes | yes | yes | **no** | runtime network/HTTP grant | `wasm32-gc` | Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim. Not user-reachable on the current public contract; reachability remains tracked by #675. |
+| `std::host::sockets` | `std/host/sockets.ark` | yes | yes | yes | yes | yes | yes | runtime network grant | `wasm32-gc` | Real WASI 0.2 TCP/streams via the checked P2 runtime adapter (#841); wasm32 remains target-gated. |
 | `std::host::udp` | `std/host/udp.ark` | yes | yes | partial | partial | no | **no** | n/a | — | Same class as sockets |
 
 ## Deny enforcement (structured)
 
 | Module | Flag | Current enforcement | Intended | Transitive | Applies to |
 |--------|------|---------------------|----------|:----------:|------------|
+| `std::host::process` | `--deny-process` | `compile_time_mir` | `compile_time_mir` | yes | `compile, run, check` |
 | `std::host::clock` | `--deny-clock` | `unimplemented` | `compile_time_mir` | yes | `run` |
 | `std::host::random` | `--deny-random` | `unimplemented` | `compile_time_mir` | yes | `run` |
 

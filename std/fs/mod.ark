@@ -29,7 +29,7 @@
 /// Returns `Err` if the file does not exist, the path is not readable,
 /// or the content is not valid UTF-8.
 pub fn read_string(path: String) -> Result<String, String> {
-    __intrinsic_fs_read_file(path)
+    __runtime_abi_fs_read_file(path)
 }
 
 /// Writes a UTF-8 string to a file, creating or truncating it.
@@ -37,7 +37,7 @@ pub fn read_string(path: String) -> Result<String, String> {
 /// Returns `Err` if the path is not writable or the parent directory
 /// does not exist.
 pub fn write_string(path: String, contents: String) -> Result<(), String> {
-    __intrinsic_fs_write_file(path, contents)
+    __runtime_abi_fs_write_file(path, contents)
 }
 
 /// Read probe / readable-file check: `true` when a full read succeeds; not a path-existence query.
@@ -52,7 +52,7 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
 /// let link_ok = fs::exists("tests/fixtures/stdlib_fs/broken_link")
 /// ```
 pub fn exists(path: String) -> bool {
-    match __intrinsic_fs_read_file(path) {
+    match __runtime_abi_fs_read_file(path) {
         Result::Ok(_) => true,
         Result::Err(_) => false,
     }
