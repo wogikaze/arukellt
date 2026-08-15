@@ -1,0 +1,1 @@
+--deny-process: this program uses process-control intrinsics

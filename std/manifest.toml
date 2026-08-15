@@ -1964,7 +1964,7 @@ returns = "()"
 doc_category = "host_process"
 doc = "Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure."
 availability = { t1 = true, t3 = true }
-intrinsic = "__intrinsic_process_exit"
+intrinsic = "__runtime_abi_process_exit"
 
 [[functions]]
 name = "abort"
@@ -1975,7 +1975,7 @@ returns = "()"
 doc_category = "host_process"
 doc = "Abort the process immediately with an abnormal-termination signal (non-zero exit)."
 availability = { t1 = true, t3 = true }
-intrinsic = "__intrinsic_process_abort"
+intrinsic = "__runtime_abi_process_abort"
 
 # === std::host::env ===
 
@@ -1997,7 +1997,7 @@ stability = "stable"
 params = ["String"]
 returns = "Option<String>"
 doc_category = "host_env"
-intrinsic = "__intrinsic_env_var"
+intrinsic = "__runtime_abi_env_var"
 doc = "Look up an environment variable by name. Returns None if the variable is not set."
 errors = "Returns None (not Err) when the variable is absent; no panic is raised."
 availability = { t1 = false, t3 = true, note = "Environment variable access requires WASI Preview 2 component model." }
@@ -2121,7 +2121,7 @@ doc_category = "fs"
 stability = "stable"
 params = ["String"]
 returns = "Result<String, String>"
-intrinsic = "__intrinsic_fs_read_file"
+intrinsic = "__runtime_abi_fs_read_file"
 doc = "Read the entire contents of a file into a UTF-8 string."
 errors = "Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
@@ -2133,7 +2133,7 @@ doc_category = "fs"
 stability = "stable"
 params = ["String", "String"]
 returns = "Result<(), String>"
-intrinsic = "__intrinsic_fs_write_file"
+intrinsic = "__runtime_abi_fs_write_file"
 doc = "Write a UTF-8 string to a file, creating or truncating it."
 errors = "Returns Err if the path is not writable or the parent directory does not exist."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
@@ -2215,7 +2215,7 @@ module = "std::host::fs"
 stability = "provisional"
 params = ["String"]
 returns = "Result<String, String>"
-intrinsic = "__intrinsic_fs_read_file"
+intrinsic = "__runtime_abi_fs_read_file"
 doc_category = "host_fs"
 doc = "Read the entire contents of a file at the given path and return them as a UTF-8 string."
 errors = "Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8."
@@ -2228,7 +2228,7 @@ module = "std::host::fs"
 stability = "provisional"
 params = ["String", "String"]
 returns = "Result<(), String>"
-intrinsic = "__intrinsic_fs_write_file"
+intrinsic = "__runtime_abi_fs_write_file"
 doc_category = "host_fs"
 doc = "Write a UTF-8 string to the given file path, creating or truncating the file."
 errors = "Returns Err if the path is not writable or the directory does not exist."
@@ -2240,7 +2240,7 @@ module = "std::host::fs"
 stability = "provisional"
 params = ["String", "Vec<i32>"]
 returns = "Result<(), String>"
-intrinsic = "__intrinsic_fs_write_bytes"
+intrinsic = "__runtime_abi_fs_write_bytes"
 doc_category = "host_fs"
 doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
 errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
@@ -2264,7 +2264,7 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 doc_category = "host_fs"
-doc = "Read-probe / readable-file check via __intrinsic_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query."
+doc = "Read-probe / readable-file check via __runtime_abi_fs_read_file. False does not distinguish missing vs unreadable vs directory; not a path-existence query."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -2433,7 +2433,7 @@ module = "std::host::random"
 stability = "stable"
 params = []
 returns = "i32"
-intrinsic = "__intrinsic_random_i32"
+intrinsic = "__runtime_abi_random_i32"
 doc_category = "host_random"
 doc = "Return a cryptographically-secure random i32 value."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
@@ -2444,7 +2444,7 @@ module = "std::host::random"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "i32"
-intrinsic = "__intrinsic_random_i32"
+intrinsic = "__runtime_abi_random_i32"
 doc_category = "host_random"
 doc = "Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < hi."
 errors = "Panics at runtime if lo >= hi."
@@ -2457,7 +2457,7 @@ module = "std::host::random"
 stability = "stable"
 params = []
 returns = "bool"
-intrinsic = "__intrinsic_random_i32"
+intrinsic = "__runtime_abi_random_i32"
 doc_category = "host_random"
 doc = "Return a random boolean value with equal probability of true and false."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
@@ -2468,7 +2468,7 @@ module = "std::host::random"
 stability = "stable"
 params = []
 returns = "f64"
-intrinsic = "__intrinsic_random_next_f64"
+intrinsic = "__runtime_abi_random_next_f64"
 doc_category = "host_random"
 doc = "Return a host-provided random f64 value in the range [0.0, 1.0)."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
@@ -2497,13 +2497,13 @@ target = ["wasm32-gc"]
 stability = "provisional"
 family = "expansion"
 capability_id = "host.http"
-doc = "HTTP client helpers (provisional). `wasm32-gc` bridged path imports `wasi:http/outgoing-handler@0.2.0` (simplified guest ABI; host-linker). Not user-reachable on the current selfhost compile path (call_host_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. HTTP/1.1 over TCP only; HTTPS is not supported. Real WASI method ABI: #841."
+doc = "HTTP client helpers (provisional). `wasm32-gc` bridged path imports `wasi:http/outgoing-handler@0.2.0` (simplified guest ABI; host-linker). Not user-reachable on the current selfhost compile path (call_runtime_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. HTTP/1.1 over TCP only; HTTPS is not supported. Real WASI method ABI: #841."
 
 [[functions]]
 name = "request"
 module = "std::host::http"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_http_request"
+intrinsic = "__runtime_abi_http_request"
 params = ["String", "String", "String"]
 returns = "Result<String, String>"
 target = ["wasm32-gc"]
@@ -2519,7 +2519,7 @@ examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com
 name = "get"
 module = "std::host::http"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_http_get"
+intrinsic = "__runtime_abi_http_get"
 params = ["String"]
 returns = "Result<String, String>"
 target = ["wasm32-gc"]
@@ -2535,7 +2535,7 @@ examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\
 name = "serve"
 module = "std::host::http"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_http_serve"
+intrinsic = "__runtime_abi_http_serve"
 params = ["i32", "String"]
 returns = "Result<(), String>"
 target = ["wasm32-gc"]
@@ -2600,7 +2600,7 @@ doc = "TCP socket helpers (provisional). `wasm32-gc` bridged path imports `wasi:
 name = "connect"
 module = "std::host::sockets"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_sockets_connect"
+intrinsic = "__runtime_abi_sockets_connect"
 params = ["String", "i32"]
 returns = "Result<i32, String>"
 target = ["wasm32-gc"]
@@ -2616,7 +2616,7 @@ examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch soc
 name = "read"
 module = "std::host::sockets"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_sockets_read"
+intrinsic = "__runtime_abi_sockets_read"
 params = ["i32", "i32"]
 returns = "Result<Vec<i32>, String>"
 target = ["wasm32-gc"]
@@ -2631,7 +2631,7 @@ availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `
 name = "write"
 module = "std::host::sockets"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_sockets_write"
+intrinsic = "__runtime_abi_sockets_write"
 params = ["i32", "Vec<i32>"]
 returns = "Result<i32, String>"
 target = ["wasm32-gc"]
@@ -2646,7 +2646,7 @@ availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `
 name = "listen"
 module = "std::host::sockets"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_sockets_listen"
+intrinsic = "__runtime_abi_sockets_listen"
 params = ["String", "i32"]
 returns = "Result<i32, String>"
 target = ["wasm32-gc"]
@@ -2661,7 +2661,7 @@ availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `
 name = "accept"
 module = "std::host::sockets"
 kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_sockets_accept"
+intrinsic = "__runtime_abi_sockets_accept"
 params = ["i32"]
 returns = "Result<i32, String>"
 target = ["wasm32-gc"]
@@ -7269,3 +7269,38 @@ returns = "u32"
 prelude = true
 stability = "stable"
 doc_category = "convert"
+
+
+# === WASI P2 host surface production additions (#676) ===
+
+[[functions]]
+name = "id"
+module = "std::host::process"
+stability = "stable"
+params = []
+returns = "Result<i32, String>"
+doc_category = "host_process"
+doc = "Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier."
+availability = { t1 = true, t3 = true }
+
+[[functions]]
+name = "vars_snapshot"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+doc_category = "host_env"
+intrinsic = "__runtime_abi_env_vars"
+doc = "Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtime ABI."
+availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }
+
+[[functions]]
+name = "current_dir"
+module = "std::host::env"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+doc_category = "host_env"
+intrinsic = "__runtime_abi_env_current_dir"
+doc = "Return the runtime current directory as UTF-8 through the versioned runtime ABI."
+availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }

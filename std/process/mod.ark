@@ -6,12 +6,12 @@
 ///
 /// This function does not return.
 pub fn exit(code: i32) {
-    __intrinsic_process_exit(code)
+    __runtime_abi_process_exit(code)
 }
 
 /// Terminates the process immediately with an abort signal (exit code 134).
 ///
 /// This function does not return.
 pub fn abort() {
-    __intrinsic_process_abort()
+    __runtime_abi_process_abort()
 }

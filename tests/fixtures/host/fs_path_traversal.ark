@@ -1,0 +1,8 @@
+use std::host::fs
+
+fn main() {
+    match fs::read_to_string("../outside-runtime-abi.txt") {
+        Result::Ok(_) => panic("WASI sandbox allowed parent traversal"),
+        Result::Err(_) => println("sandbox denied"),
+    }
+}

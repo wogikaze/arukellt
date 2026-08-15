@@ -1,8 +1,10 @@
-//! Wasmtime runner with conditional WIT-shaped HTTP/TCP guest import linking (#727).
+//! Legacy core-module runner.
+//!
+//! Product WASI P2 components link the checked runtime adapter and run directly
+//! under Wasmtime. This crate remains for bootstrap/core-module execution only;
+//! it no longer registers Arukellt HTTP or socket bridge functions.
 
 mod debug_runner;
-mod host_http;
-mod host_sockets;
 mod p2_host;
 mod source_map;
 mod wasm_debug_patch;
@@ -79,7 +81,6 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let module = Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
 
-    // Check if the module uses P2-style imports
     let uses_p2 = module.imports().any(|imp| imp.module().starts_with("wasi:"));
     if uses_p2 {
         return run_wasm_p2(&engine, &module, caps);
@@ -98,30 +99,6 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
             },
         )
         .map_err(|e| format!("proc_exit override error: {}", e))?;
-
-    let needs_http = module.imports().any(|imp| {
-        matches!(
-            (imp.module(), imp.name()),
-            ("wasi:http/outgoing-handler@0.2.0", "http_get" | "http_request")
-                | ("wasi:http/incoming-handler@0.2.0", "http_serve")
-        )
-    });
-    if needs_http {
-        host_http::register_http_host_fns(&mut linker)?;
-    }
-
-    let needs_sockets = module.imports().any(|imp| {
-        matches!(
-            (imp.module(), imp.name()),
-            (
-                "wasi:sockets/tcp@0.2.0",
-                "sockets_connect" | "sockets_listen" | "sockets_accept"
-            ) | ("wasi:io/streams@0.2.0", "sockets_read" | "sockets_write")
-        )
-    });
-    if needs_sockets {
-        host_sockets::register_sockets_host_fns(&mut linker)?;
-    }
 
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
@@ -145,13 +122,10 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
             .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
     }
     let wasi_ctx = builder.build_p1();
-
     let mut store = Store::new(&engine, wasi_ctx);
-
     let instance = linker
         .instantiate(&mut store, &module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
-
     let start = instance
         .get_typed_func::<(), ()>(&mut store, "_start")
         .map_err(|e| format!("missing _start: {}", e))?;
@@ -168,36 +142,12 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
 }
 
 fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
-    // Bridged P2 core imports (args + filesystem + stdio) so wasm32-gc/wasi-p2
-    // bootstrap can compile under host-linker (#834).
+    // Bootstrap-only core-module compatibility. Product P2 components use the
+    // real-WASI runtime adapter and never enter this path.
     let mut linker = Linker::<p2_host::P2Store>::new(engine);
     linker.allow_shadowing(true);
     p2_host::register_p2_imports(&mut linker, module)
         .map_err(|e| format!("p2 imports: {}", e))?;
-
-    let needs_http = module.imports().any(|imp| {
-        matches!(
-            (imp.module(), imp.name()),
-            ("wasi:http/outgoing-handler@0.2.0", "http_get" | "http_request")
-                | ("wasi:http/incoming-handler@0.2.0", "http_serve")
-        )
-    });
-    if needs_http {
-        host_http::register_http_host_fns(&mut linker)?;
-    }
-
-    let needs_sockets = module.imports().any(|imp| {
-        matches!(
-            (imp.module(), imp.name()),
-            (
-                "wasi:sockets/tcp@0.2.0",
-                "sockets_connect" | "sockets_listen" | "sockets_accept"
-            ) | ("wasi:io/streams@0.2.0", "sockets_read" | "sockets_write")
-        )
-    });
-    if needs_sockets {
-        host_sockets::register_sockets_host_fns(&mut linker)?;
-    }
 
     let state = std::sync::Arc::new(std::sync::Mutex::new(p2_host::P2HostState::from_caps(caps)));
     let mut store = Store::new(engine, state);
@@ -254,10 +204,10 @@ pub(crate) fn write_error<T>(
     let ptr = resp_ptr as usize;
     let bytes = msg.as_bytes();
     if let Some(mem) = caller.get_export("memory").and_then(|e| e.into_memory()) {
-        let d = mem.data_mut(caller);
+        let data = mem.data_mut(caller);
         let end = ptr + bytes.len();
-        if end <= d.len() {
-            d[ptr..end].copy_from_slice(bytes);
+        if end <= data.len() {
+            data[ptr..end].copy_from_slice(bytes);
         }
     }
     -(bytes.len() as i32)

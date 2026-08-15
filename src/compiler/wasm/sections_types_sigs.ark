@@ -10,13 +10,13 @@ fn append_wit_type_sigs(type_sigs: Vec<String>, bindings: Vec<resolver::wit_impo
     }
 }
 
-fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_arukellt_host: i32, needs_wasi_http_outgoing: i32) {
+fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32) {
     push(type_sigs, "i32_i32_i32_i32_1i32")
     push(type_sigs, "i32_i32_1i32")
     push(type_sigs, "i32_i32_i32_i32_i32_i64_i64_i32_i32_1i32")
     push(type_sigs, "i32_1i32")
     push(type_sigs, "i32_0")
-    if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_arukellt_host) {
+    if emit_target::is_component_stub_wasi(clone(wasi_version)) || emit_target::is_minimal_p1_wasi(clone(wasi_version), needs_runtime_host) {
         push(type_sigs, "i32_i64_i32_1i32")
         return
     }
@@ -30,7 +30,9 @@ fn append_wasi_type_sigs(type_sigs: Vec<String>, wasi_version: String, needs_aru
         push(type_sigs, "i32_i64_i32_1i32")
     }
     if needs_wasi_http_outgoing == 1 { push(type_sigs, "i32_i32_1i32") }
-    if needs_arukellt_host == 1 {
+    if needs_runtime_host == 1 {
+        // Internal guest-core runtime ABI. The P2 component bridge translates
+        // these pointer/scalar shapes to canonical component functions.
         push(type_sigs, "i32_i32_i32_1i32")
         push(type_sigs, "i32_i32_i32_i32_i32_i32_i32_1i32")
         push(type_sigs, "i32_i32_i32_i32_1i32")

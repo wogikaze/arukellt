@@ -28,11 +28,11 @@ class AliasConsolidationTests(unittest.TestCase):
         self.assertEqual(self.alias_map["stdio::println"], "runtime.println")
 
     def test_process_exit_aliases_share_core_op(self) -> None:
-        for alias in ("process::exit", "host::process::exit", "__intrinsic_process_exit"):
+        for alias in ("process::exit", "host::process::exit", "__runtime_abi_process_exit"):
             self.assertEqual(self.alias_map[alias], "runtime.process.exit")
 
     def test_process_abort_aliases_share_core_op(self) -> None:
-        for alias in ("process::abort", "host::process::abort", "__intrinsic_process_abort"):
+        for alias in ("process::abort", "host::process::abort", "__runtime_abi_process_abort"):
             self.assertEqual(self.alias_map[alias], "runtime.process.abort")
 
     def test_string_slice_aliases_share_core_op(self) -> None:

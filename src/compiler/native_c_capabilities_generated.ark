@@ -609,49 +609,49 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 48 {
-        return String_from("supported")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 49 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 50 {
         return String_from("supported")
     }
     if index == 51 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 52 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 53 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 54 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 55 {
-        return String_from("supported")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 56 {
         return String_from("supported")
     }
     if index == 57 {
-        return String_from("supported")
+        return String_from("unsupported: WASI P2 runtime adapter operation; native-cpp support is outside this productionization slice")
     }
     if index == 58 {
-        return String_from("supported")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 59 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 60 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 61 {
         return String_from("supported")
     }
     if index == 62 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 63 {
         return String_from("supported")
@@ -660,13 +660,13 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 65 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 66 {
         return String_from("supported")
     }
     if index == 67 {
-        return String_from("unsupported: host random is outside the native-cpp executor runtime boundary")
+        return String_from("supported")
     }
     if index == 68 {
         return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
@@ -675,25 +675,25 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 70 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 71 {
-        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
+        return String_from("planned phase 4")
     }
     if index == 72 {
         return String_from("supported")
     }
     if index == 73 {
-        return String_from("supported")
+        return String_from("unsupported: host random is outside the native-cpp executor runtime boundary")
     }
     if index == 74 {
-        return String_from("supported")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 75 {
-        return String_from("planned phase 4")
+        return String_from("supported")
     }
     if index == 76 {
-        return String_from("planned phase 4")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 77 {
         return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
@@ -708,61 +708,61 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 81 {
-        return String_from("supported")
+        return String_from("planned phase 4")
     }
     if index == 82 {
-        return String_from("planned phase 2")
+        return String_from("planned phase 4")
     }
     if index == 83 {
-        return String_from("planned phase 2")
+        return String_from("unsupported: network runtime is outside the native-cpp MVP scope")
     }
     if index == 84 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 85 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 86 {
         return String_from("supported")
     }
     if index == 87 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 88 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 89 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 90 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 91 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 92 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 93 {
         return String_from("planned phase 2")
     }
     if index == 94 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 95 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 96 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 97 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("supported")
     }
     if index == 98 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("planned phase 2")
     }
     if index == 99 {
-        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
+        return String_from("planned phase 2")
     }
     if index == 100 {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
@@ -1218,22 +1218,22 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 251 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 252 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 253 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 254 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 255 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 256 {
-        return String_from("supported")
+        return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     if index == 257 {
         return String_from("supported")
@@ -1299,7 +1299,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 278 {
-        return String_from("planned phase 2")
+        return String_from("supported")
     }
     if index == 279 {
         return String_from("supported")
@@ -1317,7 +1317,7 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 284 {
-        return String_from("supported")
+        return String_from("planned phase 2")
     }
     if index == 285 {
         return String_from("supported")
@@ -1371,6 +1371,24 @@ fn native_c_core_capability_status_detail(index: i32) -> String {
         return String_from("supported")
     }
     if index == 302 {
+        return String_from("supported")
+    }
+    if index == 303 {
+        return String_from("supported")
+    }
+    if index == 304 {
+        return String_from("supported")
+    }
+    if index == 305 {
+        return String_from("supported")
+    }
+    if index == 306 {
+        return String_from("supported")
+    }
+    if index == 307 {
+        return String_from("supported")
+    }
+    if index == 308 {
         return String_from("unsupported: SIMD is outside the native-cpp MVP scope")
     }
     String_from("unknown capability")
@@ -1412,38 +1430,32 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 44 ||
     index == 45 ||
     index == 46 ||
-    index == 48 ||
     index == 50 ||
-    index == 51 ||
-    index == 55 ||
+    index == 52 ||
     index == 56 ||
-    index == 57 ||
-    index == 58 ||
-    index == 59 ||
-    index == 60 ||
     index == 61 ||
+    index == 62 ||
     index == 63 ||
     index == 64 ||
+    index == 65 ||
     index == 66 ||
+    index == 67 ||
     index == 69 ||
+    index == 70 ||
     index == 72 ||
-    index == 73 ||
-    index == 74 ||
+    index == 75 ||
     index == 78 ||
     index == 79 ||
     index == 80 ||
-    index == 81 ||
+    index == 84 ||
+    index == 85 ||
     index == 86 ||
-    index == 88 ||
-    index == 89 ||
-    index == 90 ||
-    index == 91 ||
-    index == 251 ||
-    index == 252 ||
-    index == 253 ||
-    index == 254 ||
-    index == 255 ||
-    index == 256 ||
+    index == 87 ||
+    index == 92 ||
+    index == 94 ||
+    index == 95 ||
+    index == 96 ||
+    index == 97 ||
     index == 257 ||
     index == 258 ||
     index == 259 ||
@@ -1465,12 +1477,12 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 275 ||
     index == 276 ||
     index == 277 ||
+    index == 278 ||
     index == 279 ||
     index == 280 ||
     index == 281 ||
     index == 282 ||
     index == 283 ||
-    index == 284 ||
     index == 285 ||
     index == 286 ||
     index == 287 ||
@@ -1487,5 +1499,11 @@ fn native_c_core_capability_is_supported(index: i32) -> bool {
     index == 298 ||
     index == 299 ||
     index == 300 ||
-    index == 301
+    index == 301 ||
+    index == 302 ||
+    index == 303 ||
+    index == 304 ||
+    index == 305 ||
+    index == 306 ||
+    index == 307
 }

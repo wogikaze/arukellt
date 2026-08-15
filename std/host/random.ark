@@ -7,12 +7,12 @@
 
 /// Returns a host-provided random `i32`.
 pub fn random_i32() -> i32 {
-    __intrinsic_random_i32()
+    __runtime_abi_random_i32()
 }
 
 /// Returns a host-provided random value in `[lo, hi)`.
 pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
-    let r = __intrinsic_random_i32()
+    let r = __runtime_abi_random_i32()
     let range = hi - lo
     if range <= 0 {
         lo
@@ -28,11 +28,11 @@ pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
 
 /// Returns a host-provided random boolean.
 pub fn random_bool() -> bool {
-    __intrinsic_random_i32() % 2 == 0
+    __runtime_abi_random_i32() % 2 == 0
 }
 
 /// Returns a host-provided random f64 in the range [0.0, 1.0).
-/// Stub: returns 0.0 until __intrinsic_random_next_f64 is wired in the wasm32 emitter.
+/// Stub: returns 0.0 until __runtime_abi_random_next_f64 is wired in the wasm32 emitter.
 pub fn next_f64() -> f64 {
     0.0
 }

@@ -58,9 +58,14 @@ compiles = true
 links = true
 runs = true
 user_reachable = true
-grant_required = "no"
+grant_required = "optional compile-time deny"
+deny_flag = "--deny-process"
+deny_enforcement = "compile_time_mir"
+deny_intended_enforcement = "compile_time_mir"
+deny_transitive = true
+deny_applies_to = "compile, run, check"
 verified_on = ["wasm32", "wasm32-gc"]
-notes = ""
+notes = "exit/abort are portable runtime operations; id() returns a stable Err on WASI 0.2."
 
 [[modules]]
 id = "clock"
@@ -106,13 +111,13 @@ module = "std::host::http"
 path = "std/host/http.ark"
 declared = true
 registered = true
-compiles = "partial"
-links = "partial"
-runs = false
+compiles = true
+links = true
+runs = true
 user_reachable = false
-grant_required = "n/a"
-verified_on = []
-notes = "host_http_user_reachable=false; WIT-bridged wasi:http imports (#727); real ABI #841"
+grant_required = "runtime network/HTTP grant"
+verified_on = ["wasm32-gc"]
+notes = "Real WASI 0.2 HTTP via the checked P2 runtime adapter (#841); no Arukellt host shim. Not user-reachable on the current public contract; reachability remains tracked by #675."
 
 [[modules]]
 id = "sockets"
@@ -120,13 +125,13 @@ module = "std::host::sockets"
 path = "std/host/sockets.ark"
 declared = true
 registered = true
-compiles = "partial"
-links = "partial"
-runs = false
-user_reachable = false
-grant_required = "n/a"
-verified_on = []
-notes = "E0500 on wasm32; not user-reachable; WIT-bridged wasi:sockets/tcp (#727); real ABI #841"
+compiles = true
+links = true
+runs = true
+user_reachable = true
+grant_required = "runtime network grant"
+verified_on = ["wasm32-gc"]
+notes = "Real WASI 0.2 TCP/streams via the checked P2 runtime adapter (#841); wasm32 remains target-gated."
 
 [[modules]]
 id = "udp"

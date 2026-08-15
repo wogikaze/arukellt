@@ -169,7 +169,7 @@ def intended_core_op_id_for_aliases(aliases: list[str], owner: str) -> str:
         a.startswith(("env::", "fs::", "stdio::", "process::", "http::", "sockets::", "host::"))
         for a in aliases
     ):
-        # Collapse process::exit / host::process::exit / __intrinsic_process_exit → runtime.process.exit
+        # Collapse process::exit / host::process::exit / __runtime_abi_process_exit → runtime.process.exit
         if primary in {"exit", "process_exit"} or any("process::exit" in a or a.endswith("process_exit") for a in aliases):
             return "runtime.process.exit"
         if primary in {"abort", "process_abort"} or any("process::abort" in a or a.endswith("process_abort") for a in aliases):

@@ -1,0 +1,43 @@
+package arukellt:runtime@0.1.0;
+
+/// Internal, versioned runtime ABI. The compiler component wrapper imports
+/// these top-level functions and canon-lowers them to the guest core module.
+/// This adapter then implements them with real WASI 0.2 facilities.
+world runtime-adapter {
+    /// Positive values are success buffer handles. Negative values are error
+    /// buffer handles encoded as `-handle`; zero is reserved where a handle is
+    /// expected. Callers read both success/error payloads through buffer-*.
+    export runtime-buffer-new: func() -> u32;
+    export runtime-buffer-push: func(handle: u32, byte: u8);
+    export runtime-buffer-len: func(handle: u32) -> u32;
+    export runtime-buffer-byte: func(handle: u32, index: u32) -> u8;
+    export runtime-buffer-close: func(handle: u32);
+
+    export runtime-http-get: func(url: string) -> s32;
+    export runtime-http-request: func(method: string, url: string, body: string) -> s32;
+    export runtime-http-serve: func(port: u16, body: string) -> s32;
+
+    /// Socket/listener handles are positive. Errors use the same negative
+    /// error-buffer encoding. socket-read returns a buffer handle.
+    export runtime-socket-connect: func(host: string, port: u16) -> s32;
+    export runtime-socket-read: func(socket: u32, max-len: u32) -> s32;
+    export runtime-socket-write: func(socket: u32, buffer: u32) -> s32;
+    export runtime-socket-listen: func(host: string, port: u16) -> s32;
+    export runtime-socket-accept: func(listener: u32) -> s32;
+    export runtime-socket-close: func(handle: u32);
+
+    export runtime-fs-read-file: func(path: string) -> s32;
+    export runtime-fs-write-file: func(path: string, contents: string) -> s32;
+    export runtime-fs-write-bytes: func(path: string, buffer: u32) -> s32;
+    /// Newline-delimited entry names. The facade splits this into Vec<String>.
+    export runtime-fs-read-dir: func(path: string) -> s32;
+    /// UTF-8 payload: `<len>\t<is-file:0|1>\t<is-dir:0|1>`.
+    export runtime-fs-metadata: func(path: string) -> s32;
+    export runtime-fs-remove-file: func(path: string) -> s32;
+    export runtime-fs-create-dir-all: func(path: string) -> s32;
+
+    /// NUL-delimited `KEY=VALUE` records.
+    export runtime-env-vars: func() -> s32;
+    export runtime-env-current-dir: func() -> s32;
+    export runtime-env-var: func(name: string) -> s32;
+}

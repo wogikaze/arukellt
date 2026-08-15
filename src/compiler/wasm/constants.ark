@@ -90,7 +90,7 @@ fn WASI_IMPORT_FD_CLOSE() -> i32 { 5 }
 // Host type map indices for guest-native stdio (after base WASI + P2 clock types).
 fn P2_HOST_TYPE_GET_STREAM() -> i32 { 7 }
 fn P2_HOST_TYPE_BWAF() -> i32 { 8 }
-fn NUM_ARUKELLT_HOST_IMPORTS() -> i32 { 8 }
+fn NUM_RUNTIME_HOST_IMPORTS() -> i32 { 14 }
 fn WASI_HOST_TYPE_HTTP_OUTGOING() -> i32 { 6 }
 fn NUM_T2_TYPES() -> i32 { 3 }
 fn T2_IMPORT_WRITE() -> i32 { 0 }

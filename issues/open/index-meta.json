@@ -1,30 +1,8 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-07-29T23:33:27Z",
+  "generated_at": "2026-08-14T14:07:16Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
-    {
-      "id": "076",
-      "path": "076-wasi-p2-filesystem.md",
-      "title": "076-wasi-p2-filesystem",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "074",
-        "510"
-      ],
-      "blocks_issue_ids": [
-        "676"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 0
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
-      }
-    },
     {
       "id": "474",
       "path": "474-async-component-support-v5.md",
@@ -63,6 +41,25 @@
       },
       "orchestration": {
         "class": "design-ready",
+        "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "675",
+      "path": "675-host-capability-reachability-flags.md",
+      "title": "675 — Host capability user-reachability and runtime permission flags",
+      "track": "capability",
+      "status": "open",
+      "depends_on": [
+        "841"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 11
+      },
+      "orchestration": {
+        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -499,25 +496,28 @@
       }
     },
     {
-      "id": "819",
-      "path": "819-runtime-abi-core-op-lowering.md",
-      "title": "819 — Runtime ABI CoreOp lowering and emitter host-operation removal",
+      "id": "818",
+      "path": "818-core-op-production-scaffold-exit.md",
+      "title": "818 — CoreOpRegistry production scaffold exit",
       "track": "compiler-internal",
       "status": "open",
       "depends_on": [
-        "727",
-        "798"
+        "798",
+        "816",
+        "817",
+        "819",
+        "820",
+        "821",
+        "822"
       ],
-      "blocks_issue_ids": [
-        "818"
-      ],
+      "blocks_issue_ids": [],
       "acceptance": {
         "checked": 0,
-        "unchecked": 6
+        "unchecked": 11
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "727"
+        "upstream_notes": "816, 817, 819, 820, 821, 822"
       }
     },
     {
@@ -559,27 +559,6 @@
       }
     },
     {
-      "id": "841",
-      "path": "841-wit-network-real-wasi-abi.md",
-      "title": "841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims",
-      "track": "wasi-feature",
-      "status": "open",
-      "depends_on": [
-        "727"
-      ],
-      "blocks_issue_ids": [
-        "675"
-      ],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 6
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
-      }
-    },
-    {
       "id": "849",
       "path": "849-native-executor-wasm32-gc-func118-validation.md",
       "title": "849 — native-executor wasm32-gc S3 validation drift (func 118)",
@@ -594,28 +573,6 @@
       "orchestration": {
         "class": null,
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "676",
-      "path": "676-std-host-fs-env-process-polish.md",
-      "title": "676 — std::host fs / env / process capability completion",
-      "track": "stdlib-api",
-      "status": "open",
-      "depends_on": [
-        "076",
-        "done)",
-        "445",
-        "done)"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 12
-      },
-      "orchestration": {
-        "class": "implementation-ready",
-        "upstream_notes": "None"
       }
     },
     {
@@ -784,50 +741,6 @@
       },
       "orchestration": {
         "class": "ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "818",
-      "path": "818-core-op-production-scaffold-exit.md",
-      "title": "818 — CoreOpRegistry production scaffold exit",
-      "track": "compiler-internal",
-      "status": "open",
-      "depends_on": [
-        "798",
-        "816",
-        "817",
-        "819",
-        "820",
-        "821",
-        "822"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "blocked",
-        "upstream_notes": "816, 817, 819, 820, 821, 822"
-      }
-    },
-    {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "841"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },

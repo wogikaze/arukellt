@@ -5,7 +5,7 @@ use corehir::signature_registry
 use corehir::function_id
 use mir::inst_record
 use wasm::ctx_record
-use wasm::call_host
+use wasm::call_runtime
 use wasm::call_seq
 use wasm::call_text
 use wasm::call_scalar
@@ -54,7 +54,7 @@ fn try_emit_call_via_core_op_registry(
     // registry intrinsic emitters — they match on handler_id only, so
     // unrelated Call-kind ops simply fall through to fallback.
     let prev_handler_id = handler_id_for_function_id_raw(registry, prev_func_id_raw)
-    if call_host::try_emit_host_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_handler_id, next_op, next_arg0, next_arg1, next2_op) {
+    if call_runtime::try_emit_host_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_handler_id, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     if call_seq::try_emit_seq_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {

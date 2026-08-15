@@ -20,17 +20,17 @@
 /// Sends an HTTP request with the given method, URL, and body.
 /// Returns the response body or an error string.
 pub fn request(method: String, url: String, body: String) -> Result<String, String> {
-    __intrinsic_http_request(method, url, body)
+    __runtime_abi_http_request(method, url, body)
 }
 
 /// Sends an HTTP GET request to the given URL.
 /// Returns the response body or an error string.
 pub fn get(url: String) -> Result<String, String> {
-    __intrinsic_http_get(url)
+    __runtime_abi_http_get(url)
 }
 
 /// Serves one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200).
 /// Maps to the `wasi:http/incoming-handler` proxy-world server bridge (#656).
 pub fn serve(port: i32, body: String) -> Result<(), String> {
-    __intrinsic_http_serve(port, body)
+    __runtime_abi_http_serve(port, body)
 }
