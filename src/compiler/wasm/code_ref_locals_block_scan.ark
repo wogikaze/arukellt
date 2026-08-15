@@ -238,6 +238,16 @@ fn local_set_non_string_storage_type(
     if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
         return Option::None
     }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    if len(local_access::MirLocal_type_name(loc)) == 0 {
+        let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
+        match direct_storage {
+            Option::Some(_storage_type) => {
+                return direct_storage
+            }
+            Option::None => {}
+        }
+    }
     let storage_type =
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
     if storage_type >= 0 &&
