@@ -1,0 +1,41 @@
+name: PR43 sync master
+
+on:
+  push:
+    branches:
+      - fix/wasm-gc-type-plan-owner-phase1
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Merge current master
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git fetch origin master
+          if [ "$(git rev-list --count HEAD..origin/master)" -eq 0 ]; then
+            echo 'branch already contains master'
+            exit 0
+          fi
+          set +e
+          git merge --no-edit origin/master
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo 'MERGE_CONFLICT=1'
+            git status --short
+            echo '--- unresolved files ---'
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+          git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
