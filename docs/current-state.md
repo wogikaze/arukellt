@@ -129,9 +129,9 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 
 | ID | Scope | Category | Affected | Incident | Failure summary | Command | Owner | Issue | First seen | Last verified | Freshness |
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
-| `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `fresh` |
-| `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `fresh` |
-| `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `fresh` |
+| `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `stale` |
+| `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `stale` |
+| `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `stale` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
