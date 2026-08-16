@@ -18,6 +18,7 @@ use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
 use wasm::code_ref_locals_infer_dest
+use wasm::code_ref_locals_infer_callee
 use wasm::gc_layout_table
 use wasm::sections_types_gc
 
@@ -278,6 +279,21 @@ fn copied_non_string_storage_type(
             inst_accessors_operands::MirInst_arg0(inst) == local_idx {
                 let source = local_set_source_local(block, inst_index, inst)
                 if source >= 0 && source != local_idx {
+                    let source_loc = function_locals_view::MirFunction_local_at(f, source)
+                    let source_name = local_access::MirLocal_type_name(source_loc)
+                    let source_named =
+                    code_ref_locals_infer_callee::resolve_named_struct_gc_type(
+                        ctx,
+                        clone(source_name)
+                    )
+                    match source_named {
+                        Option::Some(source_named_type) => {
+                            if source_named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                return Option::Some(source_named_type)
+                            }
+                        }
+                        Option::None => {}
+                    }
                     let source_type =
                     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, source)
                     if source_type >= 0 &&
