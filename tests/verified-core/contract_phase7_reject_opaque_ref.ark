@@ -1,0 +1,8 @@
+fn opaque_ref(s: String) -> i32 proof {
+    requires: true;
+    ensures: result == 0;
+} {
+    0
+}
+
+fn main() {}
