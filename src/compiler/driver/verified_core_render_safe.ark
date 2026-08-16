@@ -9,9 +9,9 @@ use corehir::raw_record
 use corehir::raw_types
 use corehir::value_types
 use driver::config_record
+use driver::proof_type_registry
 use driver::verified_core_render_primitives
 use typechecker::contract_typed_fn
-use typechecker::name_display
 
 // Keep GC-reference-bearing locals in small helpers. The selfhost Wasm GC
 // backend otherwise has to assign several unrelated struct/array reference
@@ -38,8 +38,9 @@ fn vcs_return_value_type(program: CoreHirRawProgram, function_index: i32) -> i32
         return 0 - 1
     }
     let typed_fn = get_unchecked(typed_fns, typed_index)
-    let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
-    verified_core_render_primitives::vc_type_info_value_type(return_type)
+    proof_type_registry::ptr_value_type(
+        contract_typed_fn::TypedFn_return_type(typed_fn)
+    )
 }
 
 fn vcs_return_type_id(program: CoreHirRawProgram, function_index: i32) -> i32 {
@@ -49,11 +50,8 @@ fn vcs_return_type_id(program: CoreHirRawProgram, function_index: i32) -> i32 {
         return 0 - 1
     }
     let typed_fn = get_unchecked(typed_fns, typed_index)
-    let return_type = contract_typed_fn::TypedFn_return_type(typed_fn)
-    let return_vt = verified_core_render_primitives::vc_type_info_value_type(return_type)
-    verified_core_render_primitives::vc_type_id(
-        return_vt,
-        name_display::type_display_name(return_type)
+    proof_type_registry::ptr_type_id(
+        contract_typed_fn::TypedFn_return_type(typed_fn)
     )
 }
 
@@ -65,6 +63,42 @@ fn vcs_typed_param_count(program: CoreHirRawProgram, function_index: i32) -> i32
     }
     let typed_fn = get_unchecked(typed_fns, typed_index)
     len(contract_typed_fn::TypedFn_param_types(typed_fn))
+}
+
+fn vcs_typed_param_type_id(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    param_index: i32
+) -> i32 {
+    let typed_index = vcs_typed_index(program, function_index)
+    let typed_fns = raw_types::program_typed_fns(program)
+    if typed_index < 0 || typed_index >= len(typed_fns) {
+        return 0 - 1
+    }
+    let typed_fn = get_unchecked(typed_fns, typed_index)
+    let params = contract_typed_fn::TypedFn_param_types(typed_fn)
+    if param_index < 0 || param_index >= len(params) {
+        return 0 - 1
+    }
+    proof_type_registry::ptr_type_id(get_unchecked(params, param_index))
+}
+
+fn vcs_typed_param_value_type(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    param_index: i32
+) -> i32 {
+    let typed_index = vcs_typed_index(program, function_index)
+    let typed_fns = raw_types::program_typed_fns(program)
+    if typed_index < 0 || typed_index >= len(typed_fns) {
+        return 0 - 1
+    }
+    let typed_fn = get_unchecked(typed_fns, typed_index)
+    let params = contract_typed_fn::TypedFn_param_types(typed_fn)
+    if param_index < 0 || param_index >= len(params) {
+        return 0 - 1
+    }
+    proof_type_registry::ptr_value_type(get_unchecked(params, param_index))
 }
 
 fn vcs_body_root(program: CoreHirRawProgram, function_index: i32) -> i32 {
@@ -120,7 +154,58 @@ fn vcs_collect_reachable(program: CoreHirRawProgram, root: i32) -> Vec<i32> {
     reachable
 }
 
-fn vcs_reachable_is_typed(program: CoreHirRawProgram, reachable: Vec<i32>) -> bool {
+fn vcs_parameter_type_id_by_name(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    name: String
+) -> i32 {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let param_count = fn_info::fn_info_param_count_at(fn_infos, function_index, 0)
+    let mut i = 0
+    while i < param_count {
+        let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
+        if eq(param::param_name(p), clone(name)) {
+            return vcs_typed_param_type_id(program, function_index, i)
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn vcs_expression_type_id(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    expression_id: i32
+) -> i32 {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    if expression_id < 0 || expression_id >= len(exprs) {
+        return 0 - 1
+    }
+    let expression = get_unchecked(exprs, expression_id)
+    let fixed = verified_core_render_primitives::vc_type_id(
+        expr_raw::corehir_expr_val_type(expression),
+        expr_raw::corehir_expr_type_name(expression)
+    )
+    if fixed >= 0 {
+        return fixed
+    }
+    let kind = expr_raw::corehir_expr_kind(expression)
+    if kind == 5 || kind == 28 {
+        return vcs_parameter_type_id_by_name(
+            program,
+            function_index,
+            expr_raw::corehir_expr_text(expression)
+        )
+    }
+    0 - 1
+}
+
+fn vcs_reachable_is_typed(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    reachable: Vec<i32>
+) -> bool {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
     let mut i = 0
@@ -129,12 +214,7 @@ fn vcs_reachable_is_typed(program: CoreHirRawProgram, reachable: Vec<i32>) -> bo
         if id < 0 || id >= len(exprs) {
             return false
         }
-        let expr = get_unchecked(exprs, id)
-        let type_id = verified_core_render_primitives::vc_type_id(
-            expr_raw::corehir_expr_val_type(expr),
-            expr_raw::corehir_expr_type_name(expr)
-        )
-        if type_id < 0 {
+        if vcs_expression_type_id(program, function_index, id) < 0 {
             return false
         }
         i = i + 1
@@ -160,10 +240,9 @@ fn vcs_parameters_are_valid(program: CoreHirRawProgram, function_index: i32) -> 
     let mut i = 0
     while i < param_count {
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        if verified_core_render_primitives::vc_type_id(
-            param::param_value_type(p),
-            param::param_type_name(p)
-        ) < 0 {
+        let type_id = vcs_typed_param_type_id(program, function_index, i)
+        let value_type = vcs_typed_param_value_type(program, function_index, i)
+        if type_id < 0 || value_type < 0 || value_type != param::param_value_type(p) {
             return false
         }
         i = i + 1
@@ -181,10 +260,7 @@ fn vcs_render_signature_parameters(program: CoreHirRawProgram, function_index: i
             out = concat(out, ",")
         }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        let type_id = verified_core_render_primitives::vc_type_id(
-            param::param_value_type(p),
-            param::param_type_name(p)
-        )
+        let type_id = vcs_typed_param_type_id(program, function_index, i)
         out = concat(out, concat("{\"name\":", verified_core_render_primitives::vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", concat(to_string(type_id), "}")))
         i = i + 1
@@ -201,9 +277,8 @@ fn vcs_render_abi_parameters(program: CoreHirRawProgram, function_index: i32) ->
         if i > 0 {
             out = concat(out, ",")
         }
-        let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        let value_type = param::param_value_type(p)
-        let type_id = verified_core_render_primitives::vc_type_id(value_type, param::param_type_name(p))
+        let type_id = vcs_typed_param_type_id(program, function_index, i)
+        let value_type = vcs_typed_param_value_type(program, function_index, i)
         out = concat(out, verified_core_render_primitives::vc_render_abi_item(type_id, value_type))
         i = i + 1
     }
@@ -220,10 +295,7 @@ fn vcs_render_parameter_locals(program: CoreHirRawProgram, function_index: i32) 
             out = concat(out, ",")
         }
         let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
-        let type_id = verified_core_render_primitives::vc_type_id(
-            param::param_value_type(p),
-            param::param_type_name(p)
-        )
+        let type_id = vcs_typed_param_type_id(program, function_index, i)
         out = concat(out, concat("{\"id\":", to_string(i)))
         out = concat(out, concat(",\"name\":", verified_core_render_primitives::vc_quote(param::param_name(p))))
         out = concat(out, concat(",\"type_id\":", to_string(type_id)))
@@ -244,7 +316,11 @@ fn vcs_is_reachable(reachable: Vec<i32>, expr_id: i32) -> bool {
     false
 }
 
-fn vcs_render_expressions(program: CoreHirRawProgram, reachable: Vec<i32>) -> String {
+fn vcs_render_expressions(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    reachable: Vec<i32>
+) -> String {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
     let mut out = ""
@@ -255,7 +331,14 @@ fn vcs_render_expressions(program: CoreHirRawProgram, reachable: Vec<i32>) -> St
             if !first {
                 out = concat(out, ",")
             }
-            out = concat(out, verified_core_render_primitives::vc_render_expression(program, expr_id))
+            out = concat(
+                out,
+                verified_core_render_primitives::vc_render_expression_with_type_id(
+                    program,
+                    expr_id,
+                    vcs_expression_type_id(program, function_index, expr_id)
+                )
+            )
             first = false
         }
         expr_id = expr_id + 1
@@ -272,7 +355,7 @@ fn vcs_render_function(program: CoreHirRawProgram, function_index: i32) -> Strin
         return ""
     }
     let reachable = vcs_collect_reachable(program, root)
-    if !vcs_reachable_is_typed(program, reachable) {
+    if !vcs_reachable_is_typed(program, function_index, reachable) {
         return ""
     }
     let return_vt = vcs_return_value_type(program, function_index)
@@ -302,7 +385,7 @@ fn vcs_render_function(program: CoreHirRawProgram, function_index: i32) -> Strin
     out = concat(out, "],\"contracts\":[]")
     out = concat(out, concat(",\"body\":{\"root_expr_id\":", to_string(root)))
     out = concat(out, ",\"expressions\":[")
-    out = concat(out, vcs_render_expressions(program, reachable))
+    out = concat(out, vcs_render_expressions(program, function_index, reachable))
     out = concat(out, "]}}")
     out
 }
