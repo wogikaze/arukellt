@@ -42,6 +42,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--producer-executable", type=Path, required=True)
     parser.add_argument("--typed-corehir", type=Path, required=True)
+    parser.add_argument("--typed-corehir-canonical", type=Path, required=True)
     parser.add_argument("--verified-core-machine", type=Path, required=True)
     parser.add_argument("--verified-core-normalized", type=Path, required=True)
     parser.add_argument("--solver-input", type=Path, required=True)
@@ -90,6 +91,7 @@ def main() -> int:
         "source": args.source,
         "producer_executable": args.producer_executable,
         "typed_corehir": args.typed_corehir,
+        "typed_corehir_canonical": args.typed_corehir_canonical,
         "verified_core_machine": args.verified_core_machine,
         "verified_core_normalized": args.verified_core_normalized,
         "solver_input": args.solver_input,
