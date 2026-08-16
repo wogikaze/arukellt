@@ -33,15 +33,17 @@ class SourceProofBindingTests(unittest.TestCase):
             written = write_binding(paths, output)
             loaded = json.loads(output.read_text())
             self.assertEqual(written, loaded)
-            self.assertEqual(loaded["schema_version"], 4)
+            self.assertEqual(loaded["schema_version"], 5)
             validate_binding(loaded, paths)
 
-            paths["typed_corehir"].write_bytes(b"changed")
+            paths["typed_corehir_canonical"].write_bytes(b"changed")
             with self.assertRaisesRegex(SourceProofBindingError, "digest mismatch"):
                 validate_binding(loaded, paths)
 
-    def test_v4_requires_registry_and_validation_receipt(self) -> None:
-        self.assertEqual(VERSION, 4)
+    def test_v5_requires_raw_canonical_and_registry_evidence(self) -> None:
+        self.assertEqual(VERSION, 5)
+        self.assertIn("typed_corehir", REQUIRED_ARTIFACTS)
+        self.assertIn("typed_corehir_canonical", REQUIRED_ARTIFACTS)
         self.assertIn("boundary_registry", REQUIRED_ARTIFACTS)
         self.assertIn("boundary_registry_validation_receipt", REQUIRED_ARTIFACTS)
 
