@@ -120,7 +120,11 @@ fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
         return ""
     }
     let reachable = tccr_collect_reachable(program, function_index, root)
-    if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
+    if !verified_core_render_safe::vcs_reachable_is_typed(
+        program,
+        function_index,
+        reachable
+    ) {
         return ""
     }
     let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
@@ -174,7 +178,14 @@ fn render_function(program: CoreHirRawProgram, function_index: i32) -> String {
     out = concat(out, "]")
     out = concat(out, concat(",\"body\":{\"root_expr_id\":", to_string(root)))
     out = concat(out, ",\"expressions\":[")
-    out = concat(out, verified_core_render_safe::vcs_render_expressions(program, reachable))
+    out = concat(
+        out,
+        verified_core_render_safe::vcs_render_expressions(
+            program,
+            function_index,
+            reachable
+        )
+    )
     out = concat(out, "]}}")
     out
 }
