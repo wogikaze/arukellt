@@ -33,6 +33,11 @@ PROOF_ROOT=".build/typed-contract-proof"
 TOOLCHAIN_ROOT=".build/proof-release-toolchain"
 RELEASE_ROOT=".build/proof-required-release"
 RUNTIME=".build/selfhost/arukellt-s2-runtime.wasm"
+RAW_TYPED_COREHIR="$PROOF_ROOT/typed-corehir.json"
+CANONICAL_TYPED_COREHIR="$PROOF_ROOT/typed-corehir-v3.json"
+VERIFIED_CORE_MACHINE="$PROOF_ROOT/verified-core-machine.json"
+VERIFIED_CORE="$PROOF_ROOT/verified-core.json"
+SOLVER_INPUT="$PROOF_ROOT/verified-core-vcs.smt2"
 PAYLOAD="$RELEASE_ROOT/arukellt-s2-runtime.wasm"
 PROVENANCE="$RELEASE_ROOT/release-provenance.json"
 PAYLOAD_MANIFEST="$RELEASE_ROOT/release-payload-manifest.json"
@@ -93,15 +98,19 @@ test -s "$RUNTIME"
 ARUKELLT_SELFHOST_WASM="$RUNTIME" \
   python3 scripts/check/check-typed-contract-emission.py
 
-python3 scripts/gen/convert-typed-corehir.py \
-  --input "$PROOF_ROOT/typed-corehir.json" \
-  --output "$PROOF_ROOT/verified-core-machine.json"
-python3 scripts/gen/normalize-source-contract-profile.py \
-  --input "$PROOF_ROOT/verified-core-machine.json" \
-  --output "$PROOF_ROOT/verified-core.json"
-python3 scripts/gen/write-smt-vcs.py \
-  --subject "$PROOF_ROOT/verified-core.json" \
-  --output "$PROOF_ROOT/verified-core-vcs.smt2"
+# The producer still emits frozen TypedCoreHIR v1.  Upgrade only the strictly
+# admitted scalar subset, then stay in the Phase 6/7 machine/read-only profile.
+python3 scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py \
+  --input "$RAW_TYPED_COREHIR" \
+  --output "$CANONICAL_TYPED_COREHIR"
+python3 scripts/gen/convert-typed-corehir-v7.py \
+  --input "$CANONICAL_TYPED_COREHIR" \
+  --output "$VERIFIED_CORE_MACHINE"
+cp "$VERIFIED_CORE_MACHINE" "$VERIFIED_CORE"
+cmp "$VERIFIED_CORE_MACHINE" "$VERIFIED_CORE"
+python3 scripts/gen/write-smt-vcs-v7.py \
+  --subject "$VERIFIED_CORE" \
+  --output "$SOLVER_INPUT"
 
 cp "$RUNTIME" "$PAYLOAD"
 python3 scripts/gen/write-release-provenance.py \
@@ -119,10 +128,11 @@ python3 scripts/gen/write-release-payload-manifest.py \
 python3 scripts/gen/write-source-proof-binding.py \
   --source tests/verified-core/contract_identity.ark \
   --producer-executable "$RUNTIME" \
-  --typed-corehir "$PROOF_ROOT/typed-corehir.json" \
-  --verified-core-machine "$PROOF_ROOT/verified-core-machine.json" \
-  --verified-core-normalized "$PROOF_ROOT/verified-core.json" \
-  --solver-input "$PROOF_ROOT/verified-core-vcs.smt2" \
+  --typed-corehir "$RAW_TYPED_COREHIR" \
+  --typed-corehir-canonical "$CANONICAL_TYPED_COREHIR" \
+  --verified-core-machine "$VERIFIED_CORE_MACHINE" \
+  --verified-core-normalized "$VERIFIED_CORE" \
+  --solver-input "$SOLVER_INPUT" \
   --boundary-registry "$BOUNDARY_REGISTRY" \
   --boundary-registry-validation-receipt "$BOUNDARY_REGISTRY_RECEIPT" \
   --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
@@ -136,7 +146,8 @@ Z3_BIN="${Z3_BIN:-$(command -v z3)}"
 python3 scripts/gen/prepare-proof-release-toolchain-v7.py \
   --runtime "$RUNTIME" \
   --source-binding "$PROOF_ROOT/source-proof-binding.json" \
-  --typed-corehir "$PROOF_ROOT/typed-corehir.json" \
+  --typed-corehir-raw "$RAW_TYPED_COREHIR" \
+  --typed-corehir "$CANONICAL_TYPED_COREHIR" \
   --phase6-boundary "$PHASE6_BOUNDARY" \
   --phase7-boundary "$PHASE7_BOUNDARY" \
   --output-dir "$TOOLCHAIN_ROOT" \
@@ -144,8 +155,8 @@ python3 scripts/gen/prepare-proof-release-toolchain-v7.py \
   --z3 "$Z3_BIN"
 
 python3 scripts/run/run-proof-solver.py \
-  --subject "$PROOF_ROOT/verified-core.json" \
-  --solver-input "$PROOF_ROOT/verified-core-vcs.smt2" \
+  --subject "$VERIFIED_CORE" \
+  --solver-input "$SOLVER_INPUT" \
   --toolchain "$TOOLCHAIN_ROOT/toolchain.json" \
   --solver-output "$PROOF_ROOT/solver-output.txt" \
   --trust-manifest-output "$PROOF_ROOT/trust-manifest.json" \
@@ -158,10 +169,11 @@ python3 scripts/check/check-proof-required-release.py \
   --source-binding "$PROOF_ROOT/source-proof-binding.json" \
   --source tests/verified-core/contract_identity.ark \
   --producer-executable "$RUNTIME" \
-  --typed-corehir "$PROOF_ROOT/typed-corehir.json" \
-  --verified-core-machine "$PROOF_ROOT/verified-core-machine.json" \
-  --verified-core-normalized "$PROOF_ROOT/verified-core.json" \
-  --solver-input "$PROOF_ROOT/verified-core-vcs.smt2" \
+  --typed-corehir "$RAW_TYPED_COREHIR" \
+  --typed-corehir-canonical "$CANONICAL_TYPED_COREHIR" \
+  --verified-core-machine "$VERIFIED_CORE_MACHINE" \
+  --verified-core-normalized "$VERIFIED_CORE" \
+  --solver-input "$SOLVER_INPUT" \
   --boundary-registry "$BOUNDARY_REGISTRY" \
   --boundary-registry-validation-receipt "$BOUNDARY_REGISTRY_RECEIPT" \
   --backend-typeid-layout-receipt .build/proof/backend-typeid-layout.json \
