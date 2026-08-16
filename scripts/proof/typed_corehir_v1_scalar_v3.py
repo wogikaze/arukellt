@@ -1,11 +1,11 @@
-"""Fail-closed scalar TypedCoreHIR v1 -> canonical v3 proof-source bridge.
+"""Fail-closed selfhost TypedCoreHIR v1 -> canonical v3 proof-source bridge.
 
-This bridge is intentionally narrower than either schema.  It upgrades only the
-selfhost subset whose machine/checked/no-float profile is observationally safe:
-unit/bool/signed i32/i64 values, constants, locals/results, blocks, comparisons,
-and boolean logic.  Overflow-capable arithmetic, references, floating point,
-calls, control flow, and unknown expression kinds are rejected before a v3
-artifact can be produced.
+The bridge admits only semantics that are structurally recoverable from the
+producer artifact. Scalar unit/bool/signed i32/i64 values support constants,
+locals/results, blocks, comparisons, and boolean logic. Compiler-assigned Vec
+reference TypeIds 101/102/104 support read-only indexing and length only.
+Overflow-capable arithmetic, floats, opaque references, calls, control flow,
+mutation, allocation, and unknown operations are rejected before v3 emission.
 """
 from __future__ import annotations
 
@@ -15,8 +15,9 @@ from typing import Any
 from proof.typed_corehir import validate_document as validate_v1_document
 from proof.typed_corehir_v3 import validate_document as validate_v3_document
 
-GENERATOR = "arukellt-selfhost-v1-scalar-upgrade-v1"
+GENERATOR = "arukellt-selfhost-v1-proof-upgrade-v2"
 CAPABILITY_PROFILE = "proof-phases-0-7"
+REFERENCE_TYPE_IDS = {101, 102, 104}
 
 _BINARY = {
     "==": "eq",
@@ -29,12 +30,16 @@ _BINARY = {
     "||": "or",
 }
 _UNARY = {"!": "not"}
-_ALLOWED_TYPE_KINDS = {"unit", "bool", "integer"}
+_ALLOWED_TYPE_KINDS = {"unit", "bool", "integer", "reference"}
 _SELFHOST_NON_INTEGER_TYPE_IDS = {3, 5, 6, 7, 8, 9}
 
 
 def _fail(path: str, message: str) -> None:
     raise ValueError(f"{path}: {message}")
+
+
+def _reference_element_type_id(type_id: int) -> int:
+    return type_id - 100 if type_id in REFERENCE_TYPE_IDS else -1
 
 
 def _children(expression: dict[str, Any], path: str) -> list[int]:
@@ -76,10 +81,10 @@ def _type_entry(
 ) -> dict[str, Any]:
     kind = str(source.get("kind", ""))
     if kind not in _ALLOWED_TYPE_KINDS:
-        _fail(f"{path}.kind", f"scalar bridge rejects {kind!r}")
+        _fail(f"{path}.kind", f"proof bridge rejects {kind!r}")
     type_id = int(source.get("id", -1))
     if source_generator == "arukellt-selfhost" and type_id in _SELFHOST_NON_INTEGER_TYPE_IDS:
-        _fail(path, f"selfhost TypeId {type_id} is outside scalar i32/i64 proof semantics")
+        _fail(path, f"selfhost TypeId {type_id} is outside admitted proof semantics")
     representation = source.get("representation")
     if not isinstance(representation, dict):
         _fail(f"{path}.representation", "expected object")
@@ -107,15 +112,34 @@ def _type_entry(
     elif kind == "bool":
         if representation.get("wasm") != ["i32"] or representation.get("nullable") is not False:
             _fail(f"{path}.representation", "bool must be non-null i32")
-    else:
+    elif kind == "unit":
         if representation.get("wasm") != [] or representation.get("nullable") is not False:
             _fail(f"{path}.representation", "unit must have empty non-null representation")
+    else:
+        element_type_id = _reference_element_type_id(type_id)
+        if source_generator != "arukellt-selfhost" or element_type_id < 0:
+            _fail(path, f"reference TypeId {type_id} is not a compiler structural Vec TypeId")
+        if representation.get("wasm") != ["gc-ref"] or representation.get("nullable") is not True:
+            _fail(f"{path}.representation", "structural Vec reference must be nullable gc-ref")
+        result["pointee_type_id"] = element_type_id
     return result
+
+
+def _source_expression_type(
+    expressions: dict[int, dict[str, Any]],
+    expression_id: int,
+    path: str,
+) -> int:
+    expression = expressions.get(expression_id)
+    if expression is None:
+        _fail(path, f"unknown expression id {expression_id}")
+    return int(expression["type_id"])
 
 
 def _canonical_expression(
     source: dict[str, Any],
     *,
+    expressions: dict[int, dict[str, Any]],
     local_names: dict[str, int],
     result_names: set[str],
     contract_roots: set[int],
@@ -145,7 +169,7 @@ def _canonical_expression(
             result["kind"] = "result"
             result["children"] = []
             return result
-        _fail(f"{path}.text", f"unknown scalar proof identifier {text!r}")
+        _fail(f"{path}.text", f"unknown proof identifier {text!r}")
     if kind == "int":
         result["kind"] = "constant"
         result["value"] = int(source.get("int_value", 0))
@@ -162,7 +186,7 @@ def _canonical_expression(
     if kind == "binary":
         operator = _BINARY.get(str(source.get("text", "")))
         if operator is None:
-            _fail(path, "overflow-capable or unsupported binary operation is outside scalar bridge")
+            _fail(path, "overflow-capable or unsupported binary operation is outside proof bridge")
         if len(children) != 2:
             _fail(f"{path}.children", "binary operation requires two operands")
         result["kind"] = operator
@@ -170,14 +194,38 @@ def _canonical_expression(
     if kind == "unary":
         operator = _UNARY.get(str(source.get("text", "")))
         if operator is None:
-            _fail(path, "overflow-capable or unsupported unary operation is outside scalar bridge")
+            _fail(path, "overflow-capable or unsupported unary operation is outside proof bridge")
         if len(children) != 1:
             _fail(f"{path}.children", "unary operation requires one operand")
         result["kind"] = operator
         return result
+    if kind == "index":
+        if len(children) != 2:
+            _fail(f"{path}.children", "Vec index requires reference and index")
+        reference_type_id = _source_expression_type(expressions, children[0], f"{path}.children[0]")
+        element_type_id = _reference_element_type_id(reference_type_id)
+        if element_type_id < 0:
+            _fail(path, "index source is not an admitted structural Vec reference")
+        if _source_expression_type(expressions, children[1], f"{path}.children[1]") != 1:
+            _fail(path, "Vec index must use i32 TypeId 1")
+        if type_id != element_type_id:
+            _fail(path, "Vec index result TypeId does not match structural element TypeId")
+        result["kind"] = "array_get"
+        return result
+    if kind == "method-call":
+        method = str(source.get("text", ""))
+        if method != "len" or len(children) != 1:
+            _fail(path, f"method call {method!r} is outside read-only Vec proof bridge")
+        reference_type_id = _source_expression_type(expressions, children[0], f"{path}.children[0]")
+        if _reference_element_type_id(reference_type_id) < 0:
+            _fail(path, "len receiver is not an admitted structural Vec reference")
+        if type_id != 1:
+            _fail(path, "Vec len result must use i32 TypeId 1")
+        result["kind"] = "array_len"
+        return result
     if kind == "block":
         return result
-    _fail(path, f"expression kind {kind!r} is outside scalar v1->v3 bridge")
+    _fail(path, f"expression kind {kind!r} is outside v1->v3 proof bridge")
 
 
 def upgrade_scalar_document(value: Any) -> dict[str, Any]:
@@ -222,6 +270,7 @@ def upgrade_scalar_document(value: Any) -> dict[str, Any]:
             expression = expression_index[expression_id]
             canonical = _canonical_expression(
                 expression,
+                expressions=expression_index,
                 local_names=local_names,
                 result_names=result_names,
                 contract_roots=contract_roots,
@@ -254,13 +303,18 @@ def upgrade_scalar_document(value: Any) -> dict[str, Any]:
 
     if not functions:
         _fail("$.functions", "no contracted functions")
-    for required in (0,):
-        if required in source_types:
-            used_type_ids.add(required)
+    if 0 in source_types:
+        used_type_ids.add(0)
     bool_ids = [type_id for type_id, entry in source_types.items() if entry.get("kind") == "bool"]
     if len(bool_ids) != 1:
-        _fail("$.types", "scalar bridge requires exactly one bool TypeId")
+        _fail("$.types", "proof bridge requires exactly one bool TypeId")
     used_type_ids.add(bool_ids[0])
+
+    for type_id in list(used_type_ids):
+        element_type_id = _reference_element_type_id(type_id)
+        if element_type_id >= 0:
+            used_type_ids.add(element_type_id)
+            used_type_ids.add(1)
 
     missing = sorted(type_id for type_id in used_type_ids if type_id not in source_types)
     if missing:
@@ -272,6 +326,16 @@ def upgrade_scalar_document(value: Any) -> dict[str, Any]:
             path=f"$.types[id={type_id}]",
         )
         for type_id in sorted(used_type_ids)
+    ]
+    references = [
+        {
+            "type_id": type_id,
+            "kind": "array",
+            "element_type_id": _reference_element_type_id(type_id),
+            "length_type_id": 1,
+        }
+        for type_id in sorted(used_type_ids)
+        if _reference_element_type_id(type_id) >= 0
     ]
     document = {
         "schema": "arukellt-typed-corehir",
@@ -286,10 +350,15 @@ def upgrade_scalar_document(value: Any) -> dict[str, Any]:
             "pointer_width": pointer_width,
         },
         "types": types,
-        "proof_memory": {"model": "arukellt-readonly-heap-v1", "references": []},
+        "proof_memory": {"model": "arukellt-readonly-heap-v1", "references": references},
         "functions": functions,
     }
     return validate_v3_document(document)
 
 
-__all__ = ["CAPABILITY_PROFILE", "GENERATOR", "upgrade_scalar_document"]
+__all__ = [
+    "CAPABILITY_PROFILE",
+    "GENERATOR",
+    "REFERENCE_TYPE_IDS",
+    "upgrade_scalar_document",
+]
