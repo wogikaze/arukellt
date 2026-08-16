@@ -1,0 +1,87 @@
+name: Proof Phase 7 selfhost Vec
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master, agent/proof-phase-5-7]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proof-phase7-selfhost-vec-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  selfhost-vec:
+    name: "Proof Phase 7 selfhost Vec"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Phase 7 boundary and Python semantics
+        run: |
+          python3 -m compileall -q scripts
+          python3 -m unittest \
+            scripts.tests.test_typed_corehir_v1_scalar_v3 \
+            scripts.tests.test_typed_corehir_v3_machine_memory \
+            scripts.tests.test_proof_phase7_readonly_memory
+          mkdir -p .build/proof
+          python3 scripts/gen/write-proof-phase6-boundary-receipt.py --output .build/proof/proof-phase6-boundary.json
+          python3 scripts/check/check-proof-phase6-boundary.py .build/proof/proof-phase6-boundary.json
+          python3 scripts/gen/write-proof-phase7-boundary-receipt.py --output .build/proof/proof-phase7-boundary.json
+          python3 scripts/check/check-proof-phase7-boundary.py .build/proof/proof-phase7-boundary.json
+
+      - name: Install Wasmtime and Z3
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Build host linker
+        working-directory: tools/host-linker
+        run: |
+          cargo build --release --quiet
+          cargo test --lib --no-run --quiet
+
+      - name: Build current selfhost stage 2 runtime
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from selfhost.checks import rebuild_current_s2
+          path, error, elapsed = rebuild_current_s2(Path.cwd(), force=True)
+          if path is None:
+              raise SystemExit(error or "stage-2 build failed")
+          expected = Path(".build/selfhost/arukellt-s2-runtime.wasm").resolve()
+          if path.resolve() != expected:
+              raise SystemExit(f"unexpected stage-2 runtime path: {path}")
+          print(f"proof-phase7-selfhost-s2: PASS: path={path} elapsed={elapsed:.3f}s")
+          PY
+          test -s .build/selfhost/arukellt-s2-runtime.wasm
+
+      - name: Validate structural proof type registry emission
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: python3 scripts/check/check-proof-type-registry-emission.py
+
+      - name: Prove selfhost read-only Vec contract through Phase 7
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: python3 scripts/check/check-selfhost-phase7-vec-proof.py
+
+      - name: Upload Phase 7 selfhost evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-phase7-selfhost-vec
+          path: |
+            .build/proof/proof-phase6-boundary.json
+            .build/proof/proof-phase7-boundary.json
+            .build/typed-contract-proof/vec-phase7
+          if-no-files-found: error
