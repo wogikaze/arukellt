@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from proof.verified_core import validate_document
+from proof.verified_core_program import validate_document
 
 SCHEMA = "arukellt-typed-verified-core-admission"
 VERSION = 2
