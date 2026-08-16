@@ -111,7 +111,7 @@ def main() -> int:
 
     for token, label in (
         ('"source-artifact-binding", "5"', "source binding v5 TrustManifest component"),
-        ('"proof-source-upgrader", "1"', "v1 to v3 upgrader TrustManifest component"),
+        ('"proof-source-upgrader", "2"', "v1 to v3 proof upgrader TrustManifest component"),
         ('"proof-source-converter-cli", "7"', "v7 converter CLI TrustManifest component"),
         ('"typed-smt-adapter-cli", "7"', "v7 SMT CLI TrustManifest component"),
         ('"major-boundary-registry"', "registry TrustManifest component"),
