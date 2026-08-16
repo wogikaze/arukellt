@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 from typing import Any
 from proof import verified_core_program as legacy
+from proof.aggregate_compat_v5 import compatibility_view as aggregate_compatibility_view
+from proof.aggregate_semantics import has_aggregates
 from proof.verified_core_interface import validate_call_interface_binding
 SCHEMA = legacy.SCHEMA
 VERSION = legacy.VERSION
@@ -24,6 +26,11 @@ def validate_document(value: Any) -> dict[str, Any]:
         return legacy.validate_document(value)
     document = copy.deepcopy(value)
     compatibility = copy.deepcopy(document)
+    # Phase 5 aggregate selectors/constructors carry fields unknown to the
+    # frozen v1 structural validator.  They are independently type-checked by
+    # aggregate_semantics; only the validation copy is projected to v1 here.
+    if has_aggregates(document):
+        compatibility = aggregate_compatibility_view(compatibility)
     for function in compatibility.get("functions", []):
         for block in function.get("body", {}).get("blocks", []):
             block.pop("loop", None)
