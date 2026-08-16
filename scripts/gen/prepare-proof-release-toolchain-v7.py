@@ -24,6 +24,7 @@ EXTRA_COMPONENTS = (
     ("arukellt-typed-corehir-v3-schema", "proof-source-schema", "3", "schemas/typed-corehir-v3.schema.json"),
     ("arukellt-typed-corehir-v3-validator", "proof-source-validator", "3", "scripts/proof/typed_corehir_v3.py"),
     ("arukellt-typed-corehir-v7-converter", "proof-source-converter", "7", "scripts/proof/typed_corehir_v3_convert.py"),
+    ("arukellt-typed-corehir-v7-converter-cli", "proof-source-converter-cli", "7", "scripts/gen/convert-typed-corehir-v7.py"),
     ("arukellt-machine-int-v1", "machine-integer-semantic-validator", "1", "scripts/proof/machine_integer_semantics.py"),
     ("arukellt-machine-int-range-v1", "machine-integer-vc-renderer", "1", "scripts/proof/proof_phase6_vc.py"),
     ("arukellt-typed-proof-admission-v6", "phase6-typed-artifact-validator", "6", "scripts/proof/typed_admission_v6.py"),
@@ -34,6 +35,7 @@ EXTRA_COMPONENTS = (
     ("arukellt-typed-proof-admission-v7", "typed-artifact-validator", "7", "scripts/proof/typed_admission_v7.py"),
     ("arukellt-readonly-heap-smt-v1", "readonly-memory-vc-renderer", "1", "scripts/proof/proof_phase7_vc.py"),
     ("arukellt-phase7-smt-adapter", "typed-smt-adapter", "7", "scripts/proof/smtlib_typed_v7.py"),
+    ("arukellt-phase7-smt-adapter-cli", "typed-smt-adapter-cli", "7", "scripts/gen/write-smt-vcs-v7.py"),
     ("arukellt-proof-phase7-boundary-v1", "phase7-boundary-checker", "1", "scripts/check/check-proof-phase7-boundary.py"),
 )
 UPGRADER_COMPONENTS = (
@@ -94,7 +96,11 @@ def _apply_source_profile(document: dict, source_version: int, raw_source_versio
     profile["phase67_available"] = True
     profile["phase67_active"] = active
     if active:
-        document["translator"]["version"] = "7"
+        document["translator"].update({
+            "name": "arukellt-phase7-smt-adapter",
+            "version": "7",
+            "executable": "smtlib_typed_v7.py",
+        })
         profile.update({
             "integer_model": "machine",
             "overflow": "checked",
