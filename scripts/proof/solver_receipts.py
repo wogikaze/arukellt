@@ -105,19 +105,17 @@ def _semantic_profile(value: Any) -> dict[str, Any]:
     }
     for field in sorted(_PROFILE_STRING_OPTIONAL):
         if field in profile:
-            rendered[field] = _require_string(profile[field], f"toolchain.semantic_profile.{field}")
+            _require_string(profile[field], f"toolchain.semantic_profile.{field}")
     for field in sorted(_PROFILE_INT_OPTIONAL):
         if field in profile:
             raw = profile[field]
             if type(raw) is not int or raw < 1:
                 raise ValueError(f"toolchain.semantic_profile.{field}: expected positive integer")
-            rendered[field] = raw
     for field in sorted(_PROFILE_BOOL_OPTIONAL):
         if field in profile:
             raw = profile[field]
             if type(raw) is not bool:
                 raise ValueError(f"toolchain.semantic_profile.{field}: expected boolean")
-            rendered[field] = raw
     return rendered
 
 
