@@ -13,8 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 COMPONENTS = (
-    ("arukellt-source-proof-binding-v4", "source-artifact-binding", "4", None),
-    ("arukellt-source-proof-binding-validator-v4", "source-artifact-binding-validator", "4", "scripts/proof/source_proof_binding.py"),
+    ("arukellt-source-proof-binding-v5", "source-artifact-binding", "5", None),
+    ("arukellt-source-proof-binding-validator-v5", "source-artifact-binding-validator", "5", "scripts/proof/source_proof_binding.py"),
     ("arukellt-major-boundary-registry-v1", "major-boundary-registry", "1", "release/boundary-registry.json"),
     ("arukellt-major-boundary-registry-validator-v1", "major-boundary-registry-validator", "1", "scripts/proof/boundary_registry.py"),
     ("arukellt-major-boundary-receipt-validator-v1", "major-boundary-receipt-validator", "1", "scripts/proof/boundary_registry_receipt.py"),
