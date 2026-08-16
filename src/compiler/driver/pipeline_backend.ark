@@ -10,6 +10,7 @@ use driver::checked_program
 use driver::debug
 use driver::emit
 use driver::lower
+use driver::proof_type_registry
 use driver::result_record
 use driver::typed_corehir_render
 use loader::mod
@@ -55,6 +56,17 @@ fn run_backend(source: String, config: DriverConfig, decls: Vec<AstNode>, t0: i6
         backend_resolve::resolve_result_loaded_modules(resolved),
         decls
     )
+    if eq(config_record::config_emit_mode(config), "proof-type-registry") {
+        let pointer_width = if contains(config_record::config_target(config), "64") { 64 } else { 32 }
+        stdio::println(
+            proof_type_registry::ptr_render_registry_json(
+                checked_program::checked_program_core_program(program),
+                pointer_width
+            )
+        )
+        mod::release_module_asts(backend_resolve::resolve_result_load_state(resolved))
+        return result_record::CompileResult_ok(4)
+    }
     if eq(config_record::config_emit_mode(config), "typed-corehir") {
         let rendered = typed_corehir_render::render_typed_corehir(
             checked_program::checked_program_core_program(program),
