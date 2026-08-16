@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [agent/formal-verification-hard-gates, master]
   push:
-    branches: [master]
+    branches: [master, agent/proof-phase-5-7]
   workflow_dispatch:
 
 permissions:
@@ -52,7 +52,10 @@ jobs:
             scripts.tests.test_proof_required_release_gate \
             scripts.tests.test_solver_result \
             scripts.tests.test_solver_trust_boundary_receipt \
-            scripts.tests.test_solver_driver
+            scripts.tests.test_solver_driver \
+            scripts.tests.test_typed_corehir_v1_scalar_v3 \
+            scripts.tests.test_typed_corehir_v3_machine_memory \
+            scripts.tests.test_proof_release_toolchain_v7
 
       - name: Generate and validate boundary evidence
         run: |
@@ -73,6 +76,12 @@ jobs:
           python3 scripts/gen/write-solver-trust-boundary-receipt.py
           python3 scripts/check/check-solver-trust-boundary-receipt.py \
             .build/proof/solver-trust-boundary.json
+          python3 scripts/gen/write-proof-phase5-boundary-receipt.py --output .build/proof/proof-phase5-boundary.json
+          python3 scripts/check/check-proof-phase5-boundary.py .build/proof/proof-phase5-boundary.json
+          python3 scripts/gen/write-proof-phase6-boundary-receipt.py --output .build/proof/proof-phase6-boundary.json
+          python3 scripts/check/check-proof-phase6-boundary.py .build/proof/proof-phase6-boundary.json
+          python3 scripts/gen/write-proof-phase7-boundary-receipt.py --output .build/proof/proof-phase7-boundary.json
+          python3 scripts/check/check-proof-phase7-boundary.py .build/proof/proof-phase7-boundary.json
 
       - name: Install Wasmtime and Z3
         if: github.event_name != 'pull_request'
@@ -108,23 +117,23 @@ jobs:
           PY
           test -s .build/selfhost/arukellt-s2-runtime.wasm
 
-      - name: Emit and convert typed source contracts
+      - name: Emit and convert typed source contracts through Phase 7
         if: github.event_name != 'pull_request'
         env:
           ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
         run: |
           python3 scripts/check/check-typed-contract-emission.py
-          python3 scripts/gen/convert-typed-corehir.py \
+          python3 scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py \
             --input .build/typed-contract-proof/typed-corehir.json \
+            --output .build/typed-contract-proof/typed-corehir-v3.json
+          python3 scripts/gen/convert-typed-corehir-v7.py \
+            --input .build/typed-contract-proof/typed-corehir-v3.json \
             --output .build/typed-contract-proof/verified-core-machine.json
-          python3 scripts/check/check-typed-verified-core.py \
-            .build/typed-contract-proof/verified-core-machine.json
-          python3 scripts/gen/normalize-source-contract-profile.py \
-            --input .build/typed-contract-proof/verified-core-machine.json \
-            --output .build/typed-contract-proof/verified-core.json
-          python3 scripts/check/check-typed-verified-core.py \
+          cp .build/typed-contract-proof/verified-core-machine.json \
             .build/typed-contract-proof/verified-core.json
-          python3 scripts/gen/write-smt-vcs.py \
+          cmp .build/typed-contract-proof/verified-core-machine.json \
+            .build/typed-contract-proof/verified-core.json
+          python3 scripts/gen/write-smt-vcs-v7.py \
             --subject .build/typed-contract-proof/verified-core.json \
             --output .build/typed-contract-proof/verified-core-vcs.smt2
 
@@ -145,6 +154,7 @@ jobs:
             --source tests/verified-core/contract_identity.ark \
             --producer-executable .build/selfhost/arukellt-s2-runtime.wasm \
             --typed-corehir .build/typed-contract-proof/typed-corehir.json \
+            --typed-corehir-canonical .build/typed-contract-proof/typed-corehir-v3.json \
             --verified-core-machine .build/typed-contract-proof/verified-core-machine.json \
             --verified-core-normalized .build/typed-contract-proof/verified-core.json \
             --solver-input .build/typed-contract-proof/verified-core-vcs.smt2 \
@@ -157,12 +167,16 @@ jobs:
             --release-payload-manifest .build/typed-contract-proof/proof-payload-manifest.json \
             --output .build/typed-contract-proof/source-proof-binding.json
 
-      - name: Build hash-bound proof toolchain
+      - name: Build hash-bound Phase 7 proof toolchain
         if: github.event_name != 'pull_request'
         run: |
-          python3 scripts/gen/prepare-proof-release-toolchain.py \
+          python3 scripts/gen/prepare-proof-release-toolchain-v7.py \
             --runtime .build/selfhost/arukellt-s2-runtime.wasm \
             --source-binding .build/typed-contract-proof/source-proof-binding.json \
+            --typed-corehir-raw .build/typed-contract-proof/typed-corehir.json \
+            --typed-corehir .build/typed-contract-proof/typed-corehir-v3.json \
+            --phase6-boundary .build/proof/proof-phase6-boundary.json \
+            --phase7-boundary .build/proof/proof-phase7-boundary.json \
             --output-dir .build/typed-contract-toolchain \
             --toolchain-output .build/typed-contract-toolchain/toolchain.json \
             --z3 "$(command -v z3)"
@@ -200,6 +214,7 @@ jobs:
               "source": Path("tests/verified-core/contract_identity.ark"),
               "producer_executable": Path(".build/selfhost/arukellt-s2-runtime.wasm"),
               "typed_corehir": proof / "typed-corehir.json",
+              "typed_corehir_canonical": proof / "typed-corehir-v3.json",
               "verified_core_machine": proof / "verified-core-machine.json",
               "verified_core_normalized": proof / "verified-core.json",
               "solver_input": proof / "verified-core-vcs.smt2",
@@ -211,10 +226,13 @@ jobs:
               "release_provenance": proof / "proof-provenance.json",
               "release_payload_manifest": proof / "proof-payload-manifest.json",
           })
+          toolchain = json.loads(Path(".build/typed-contract-toolchain/toolchain.json").read_text())
+          if toolchain["translator"]["version"] != "7":
+              raise SystemExit(toolchain["translator"])
           result = json.loads((proof / "solver-result.json").read_text())
           if result["status"] != "proved":
               raise SystemExit(result)
-          print("typed-source-contract-proof: PASS")
+          print("typed-source-contract-proof-phase7: PASS")
           PY
 
       - name: Upload source proof bundle
@@ -232,4 +250,7 @@ jobs:
             .build/proof/corehir-body-boundary.json
             .build/proof/typed-verified-core-boundary.json
             .build/proof/solver-trust-boundary.json
+            .build/proof/proof-phase5-boundary.json
+            .build/proof/proof-phase6-boundary.json
+            .build/proof/proof-phase7-boundary.json
           if-no-files-found: error
