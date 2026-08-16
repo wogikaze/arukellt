@@ -250,8 +250,7 @@ fn local_set_non_string_storage_type(
     let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
     match direct_storage {
         Option::Some(direct_type) => {
-            if len(type_name) == 0 ||
-            direct_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+            if len(type_name) == 0 || direct_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                 return direct_storage
             }
         }
@@ -350,12 +349,12 @@ fn local_direct_producer_storage_type(
             let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
             if inst_accessors_operands::MirInst_dest(inst) == local_idx {
                 let inferred =
-                code_ref_locals_infer_dest::infer_ref_local_from_producer(
-                    f,
-                    inst,
-                    inst_accessors_shape::MirInst_op(inst),
-                    ctx
-                )
+                    code_ref_locals_infer_dest::infer_ref_local_from_producer(
+                        f,
+                        inst,
+                        inst_accessors_shape::MirInst_op(inst),
+                        ctx
+                    )
                 match inferred {
                     Option::Some(_storage_type) => {
                         return inferred
