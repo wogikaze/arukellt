@@ -136,6 +136,7 @@ Z3_BIN="${Z3_BIN:-$(command -v z3)}"
 python3 scripts/gen/prepare-proof-release-toolchain-v7.py \
   --runtime "$RUNTIME" \
   --source-binding "$PROOF_ROOT/source-proof-binding.json" \
+  --typed-corehir "$PROOF_ROOT/typed-corehir.json" \
   --phase6-boundary "$PHASE6_BOUNDARY" \
   --phase7-boundary "$PHASE7_BOUNDARY" \
   --output-dir "$TOOLCHAIN_ROOT" \
