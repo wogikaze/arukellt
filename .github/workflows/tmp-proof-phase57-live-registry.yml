@@ -1,0 +1,37 @@
+name: Temporary proof phase57 live registry
+
+on:
+  push:
+    branches: [agent/proof-phase-5-7]
+
+permissions:
+  contents: read
+
+jobs:
+  live-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run registry and release boundary unit checks
+        run: |
+          python3 -m unittest scripts.tests.test_boundary_registry scripts.tests.test_source_proof_binding
+          python3 scripts/check/check-versioned-boundary-enforcement.py
+      - name: Validate pinned boundary files from GitHub
+        run: |
+          python3 scripts/check/check-boundary-registry.py \
+            --registry release/boundary-registry.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --receipt-output .build/proof/boundary-registry-validation.json
+          python3 scripts/check/check-boundary-registry-receipt.py \
+            --registry release/boundary-registry.json \
+            --receipt .build/proof/boundary-registry-validation.json \
+            --repository "$GITHUB_REPOSITORY"
+      - name: Validate Phase 5-7 release trust wiring
+        run: |
+          grep -q 'prepare-proof-release-toolchain-v7.py' scripts/run/proof-required-release.sh
+          grep -q -- '--phase6-boundary "$PHASE6_BOUNDARY"' scripts/run/proof-required-release.sh
+          grep -q -- '--phase7-boundary "$PHASE7_BOUNDARY"' scripts/run/proof-required-release.sh
+          grep -q 'proof-phase5-boundary.json' .github/workflows/proof-required-release.yml
+          grep -q 'proof-phase6-boundary.json' .github/workflows/proof-required-release.yml
+          grep -q 'proof-phase7-boundary.json' .github/workflows/proof-required-release.yml
