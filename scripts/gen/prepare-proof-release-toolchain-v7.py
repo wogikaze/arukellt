@@ -39,8 +39,8 @@ EXTRA_COMPONENTS = (
     ("arukellt-proof-phase7-boundary-v1", "phase7-boundary-checker", "1", "scripts/check/check-proof-phase7-boundary.py"),
 )
 UPGRADER_COMPONENTS = (
-    ("arukellt-selfhost-v1-scalar-upgrade-v1", "proof-source-upgrader", "1", "scripts/proof/typed_corehir_v1_scalar_v3.py"),
-    ("arukellt-selfhost-v1-scalar-upgrade-cli-v1", "proof-source-upgrade-cli", "1", "scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py"),
+    ("arukellt-selfhost-v1-proof-upgrade-v2", "proof-source-upgrader", "2", "scripts/proof/typed_corehir_v1_scalar_v3.py"),
+    ("arukellt-selfhost-v1-proof-upgrade-cli-v2", "proof-source-upgrade-cli", "2", "scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py"),
 )
 
 
@@ -78,7 +78,7 @@ def _verify_source_upgrade(raw_version: int, raw: dict, canonical_version: int, 
         raise ValueError(f"unsupported TypedCoreHIR source upgrade: v{raw_version} -> v{canonical_version}")
     expected = upgrade_scalar_document(raw)
     if expected != canonical:
-        raise ValueError("canonical TypedCoreHIR v3 does not match trusted v1 scalar upgrade")
+        raise ValueError("canonical TypedCoreHIR v3 does not match trusted v1 proof upgrade")
     return True
 
 
