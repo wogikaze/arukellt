@@ -79,7 +79,7 @@ fn ptr_render_reference_descriptor(ty: TypeInfo) -> String {
     let mut out = concat("{\"type_id\":", to_string(type_id))
     out = concat(out, ",\"kind\":\"array\"")
     out = concat(out, concat(",\"element_type_id\":", to_string(element_id)))
-    out = concat(out, concat(",\"length_type_id\":1,\"nullable\":true}"))
+    out = concat(out, ",\"length_type_id\":1,\"nullable\":true}")
     out
 }
 
