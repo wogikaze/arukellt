@@ -116,5 +116,8 @@ jobs:
             .build/proof/backend-typeid-layout.json
             .build/proof/mir-opt-translation-registry.json
             .build/proof/corehir-body-boundary.json
+            .build/proof/proof-phase5-boundary.json
+            .build/proof/proof-phase6-boundary.json
+            .build/proof/proof-phase7-boundary.json
           if-no-files-found: error
           retention-days: 90
