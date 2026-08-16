@@ -257,14 +257,16 @@ fn vc_expr_kind_name(kind: i32) -> String {
     "unsupported"
 }
 
-fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
+fn vc_render_expression_with_type_id(
+    program: CoreHirRawProgram,
+    expr_id: i32,
+    type_id: i32
+) -> String {
     let table = raw_bodies::program_body_table(program)
     let exprs = body_table::corehir_body_table_exprs(table)
     let expr = get_unchecked(exprs, expr_id)
     let kind = expr_raw::corehir_expr_kind(expr)
     let value_type = expr_raw::corehir_expr_val_type(expr)
-    let type_name = expr_raw::corehir_expr_type_name(expr)
-    let type_id = vc_type_id(value_type, type_name)
 
     let mut out = "{\"id\":"
     out = concat(out, to_string(expr_id))
@@ -304,6 +306,17 @@ fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
     }
     out = concat(out, "]}")
     out
+}
+
+fn vc_render_expression(program: CoreHirRawProgram, expr_id: i32) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let expr = get_unchecked(exprs, expr_id)
+    let type_id = vc_type_id(
+        expr_raw::corehir_expr_val_type(expr),
+        expr_raw::corehir_expr_type_name(expr)
+    )
+    vc_render_expression_with_type_id(program, expr_id, type_id)
 }
 
 fn vc_render_abi_item(type_id: i32, value_type: i32) -> String {
