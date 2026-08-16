@@ -1,0 +1,67 @@
+name: Proof Phase 5-7
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+    tags: ["v*", "[0-9]*"]
+  workflow_dispatch:
+
+concurrency:
+  group: proof-phase57-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  proof-phase57:
+    name: "Proof Phase 5-7"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile proof tooling
+        run: python3 -m compileall -q scripts
+
+      - name: Validate capability profile v3
+        run: >-
+          PYTHONPATH=scripts python3 -c
+          "import json; from pathlib import Path; from proof.capabilities_v3 import validate_document; validate_document(json.loads(Path('docs/data/proof-capabilities-v3.json').read_text()))"
+
+      - name: Validate Phase 5-7 semantic boundaries
+        run: |
+          mkdir -p .build/proof
+          python3 scripts/gen/write-proof-phase5-boundary-receipt.py --output .build/proof/proof-phase5-boundary.json
+          python3 scripts/check/check-proof-phase5-boundary.py .build/proof/proof-phase5-boundary.json
+          python3 scripts/gen/write-proof-phase6-boundary-receipt.py --output .build/proof/proof-phase6-boundary.json
+          python3 scripts/check/check-proof-phase6-boundary.py .build/proof/proof-phase6-boundary.json
+          python3 scripts/gen/write-proof-phase7-boundary-receipt.py --output .build/proof/proof-phase7-boundary.json
+          python3 scripts/check/check-proof-phase7-boundary.py .build/proof/proof-phase7-boundary.json
+
+      - name: Run Phase 5-7 proof boundary tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_proof_phase5_final \
+            scripts.tests.test_typed_corehir_v2_aggregates \
+            scripts.tests.test_proof_phase6_machine_int \
+            scripts.tests.test_proof_phase7_readonly_memory \
+            scripts.tests.test_typed_corehir_v3_machine_memory
+
+      - name: Install Z3
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y z3
+          z3 --version
+
+      - name: Prove Phase 6-7 focused fixtures
+        run: python3 scripts/check/check-proof-phase57-z3.py
+
+      - name: Upload semantic boundary receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: proof-phase57-boundaries
+          path: |
+            .build/proof/proof-phase5-boundary.json
+            .build/proof/proof-phase6-boundary.json
+            .build/proof/proof-phase7-boundary.json
+          if-no-files-found: error
