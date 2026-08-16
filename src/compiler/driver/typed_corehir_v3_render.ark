@@ -1,0 +1,310 @@
+use std::host::stdio
+use corehir::body_table
+use corehir::expr_raw
+use corehir::fn_info
+use corehir::param
+use corehir::raw_bodies
+use corehir::raw_decls
+use corehir::raw_dto
+use corehir::raw_record
+use corehir::value_types
+use driver::config_record
+use driver::proof_type_registry
+use driver::typed_corehir_contract_render
+use driver::verified_core_render_primitives
+use driver::verified_core_render_safe
+
+fn tcv3_main_module_index(program: CoreHirRawProgram) -> i32 {
+    let modules = raw_record::raw_program_modules(program)
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let entry_decl = fn_info::fn_info_entry_main_decl_index(fn_infos)
+    if entry_decl < 0 { return 0 - 1 }
+    let mut module_index = 0
+    while module_index < len(modules) {
+        let module = get_unchecked(modules, module_index)
+        let decl_start = raw_dto::CoreHirModuleInfo_decl_start(module)
+        let decl_end = decl_start + raw_dto::CoreHirModuleInfo_decl_count(module)
+        if entry_decl >= decl_start && entry_decl < decl_end { return module_index }
+        module_index = module_index + 1
+    }
+    0 - 1
+}
+
+fn tcv3_contract_count(program: CoreHirRawProgram, function_index: i32) -> i32 {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
+    if body_index < 0 { return 0 }
+    let table = raw_bodies::program_body_table(program)
+    body_table::corehir_body_table_fn_contract_count(table, body_index)
+}
+
+fn tcv3_is_contract_root(program: CoreHirRawProgram, function_index: i32, expression_id: i32) -> bool {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
+    if body_index < 0 { return false }
+    let table = raw_bodies::program_body_table(program)
+    let count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let mut i = 0
+    while i < count {
+        if body_table::corehir_body_table_fn_contract_root_at(table, body_index, i) == expression_id {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn tcv3_is_result_name(program: CoreHirRawProgram, function_index: i32, name: String) -> bool {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let body_index = fn_info::fn_info_body_index_at(fn_infos, function_index, 0 - 1)
+    if body_index < 0 { return false }
+    let table = raw_bodies::program_body_table(program)
+    let count = body_table::corehir_body_table_fn_contract_count(table, body_index)
+    let mut i = 0
+    while i < count {
+        let kind = body_table::corehir_body_table_fn_contract_kind_at(table, body_index, i)
+        if eq(clone(kind), "ensures") {
+            let result_name = body_table::corehir_body_table_fn_contract_result_name_at(table, body_index, i)
+            if len(clone(result_name)) > 0 && eq(result_name, clone(name)) { return true }
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn tcv3_parameter_local_id(program: CoreHirRawProgram, function_index: i32, name: String) -> i32 {
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let count = fn_info::fn_info_param_count_at(fn_infos, function_index, 0)
+    let mut i = 0
+    while i < count {
+        let p = fn_info::fn_info_param_at(fn_infos, function_index, i)
+        if eq(param::param_name(p), clone(name)) { return i }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn tcv3_binary_kind(text: String) -> String {
+    if eq(clone(text), "==") { return "eq" }
+    if eq(clone(text), "!=") { return "ne" }
+    if eq(clone(text), "<") { return "lt" }
+    if eq(clone(text), "<=") { return "le" }
+    if eq(clone(text), ">") { return "gt" }
+    if eq(clone(text), ">=") { return "ge" }
+    if eq(clone(text), "&&") { return "and" }
+    if eq(clone(text), "||") { return "or" }
+    ""
+}
+
+fn tcv3_render_children(
+    program: CoreHirRawProgram,
+    function_index: i32,
+    expression: CoreHirExprRaw,
+    filter_contract_roots: bool
+) -> String {
+    let count = expr_raw::corehir_expr_child_count(expression)
+    let mut out = ""
+    let mut first = true
+    let mut i = 0
+    while i < count {
+        let child = expr_raw::corehir_expr_child(expression, i)
+        if !filter_contract_roots || !tcv3_is_contract_root(program, function_index, child) {
+            if !first { out = concat(out, ",") }
+            out = concat(out, to_string(child))
+            first = false
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn tcv3_render_expression(program: CoreHirRawProgram, function_index: i32, expression_id: i32) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    if expression_id < 0 || expression_id >= len(exprs) { return "" }
+    let expression = get_unchecked(exprs, expression_id)
+    let raw_kind = expr_raw::corehir_expr_kind(expression)
+    let type_id = verified_core_render_safe::vcs_expression_type_id(program, function_index, expression_id)
+    if type_id < 0 { return "" }
+    let text = expr_raw::corehir_expr_text(expression)
+    let mut kind = ""
+    let mut extra = ""
+    let mut children = ""
+
+    if raw_kind == 5 || raw_kind == 28 {
+        let local_id = tcv3_parameter_local_id(program, function_index, clone(text))
+        if local_id >= 0 {
+            kind = "local"
+            extra = concat(",\"local_id\":", to_string(local_id))
+        } else if tcv3_is_result_name(program, function_index, clone(text)) {
+            kind = "result"
+        } else {
+            return ""
+        }
+    } else if raw_kind == 6 {
+        kind = "constant"
+        extra = concat(",\"value\":", to_string(expr_raw::corehir_expr_int_val(expression)))
+    } else if raw_kind == 9 {
+        kind = "constant"
+        if eq(clone(text), "true") {
+            extra = ",\"value\":true"
+        } else if eq(clone(text), "false") {
+            extra = ",\"value\":false"
+        } else {
+            return ""
+        }
+    } else if raw_kind == 11 {
+        kind = tcv3_binary_kind(clone(text))
+        if len(clone(kind)) == 0 || expr_raw::corehir_expr_child_count(expression) != 2 { return "" }
+        children = tcv3_render_children(program, function_index, expression, false)
+    } else if raw_kind == 12 {
+        if !eq(clone(text), "!") || expr_raw::corehir_expr_child_count(expression) != 1 { return "" }
+        kind = "not"
+        children = tcv3_render_children(program, function_index, expression, false)
+    } else if raw_kind == 1 {
+        kind = "block"
+        children = tcv3_render_children(program, function_index, expression, true)
+    } else if raw_kind == 16 {
+        if expr_raw::corehir_expr_child_count(expression) != 2 { return "" }
+        let reference_id = expr_raw::corehir_expr_child(expression, 0)
+        let index_id = expr_raw::corehir_expr_child(expression, 1)
+        let reference_type_id = verified_core_render_safe::vcs_expression_type_id(program, function_index, reference_id)
+        let index_type_id = verified_core_render_safe::vcs_expression_type_id(program, function_index, index_id)
+        let element_type_id = proof_type_registry::ptr_vec_element_id_from_type_id(reference_type_id)
+        if element_type_id < 0 || index_type_id != 1 || type_id != element_type_id { return "" }
+        kind = "array_get"
+        children = tcv3_render_children(program, function_index, expression, false)
+    } else if raw_kind == 19 {
+        if !eq(clone(text), "len") || expr_raw::corehir_expr_child_count(expression) != 1 || type_id != 1 { return "" }
+        let reference_id = expr_raw::corehir_expr_child(expression, 0)
+        let reference_type_id = verified_core_render_safe::vcs_expression_type_id(program, function_index, reference_id)
+        if proof_type_registry::ptr_vec_element_id_from_type_id(reference_type_id) < 0 { return "" }
+        kind = "array_len"
+        children = tcv3_render_children(program, function_index, expression, false)
+    } else {
+        return ""
+    }
+
+    let mut out = concat("{\"id\":", to_string(expression_id))
+    out = concat(out, concat(",\"kind\":", verified_core_render_primitives::vc_quote(kind)))
+    out = concat(out, concat(",\"type_id\":", to_string(type_id)))
+    out = concat(out, concat(",\"children\":[", concat(children, "]")))
+    out = concat(out, extra)
+    out = concat(out, "}")
+    out
+}
+
+fn tcv3_render_expressions(program: CoreHirRawProgram, function_index: i32, reachable: Vec<i32>) -> String {
+    let table = raw_bodies::program_body_table(program)
+    let exprs = body_table::corehir_body_table_exprs(table)
+    let mut out = ""
+    let mut first = true
+    let mut expression_id = 0
+    while expression_id < len(exprs) {
+        if verified_core_render_safe::vcs_is_reachable(reachable, expression_id) {
+            let rendered = tcv3_render_expression(program, function_index, expression_id)
+            if len(clone(rendered)) == 0 { return "" }
+            if !first { out = concat(out, ",") }
+            out = concat(out, rendered)
+            first = false
+        }
+        expression_id = expression_id + 1
+    }
+    out
+}
+
+fn tcv3_render_function(program: CoreHirRawProgram, function_index: i32) -> String {
+    if tcv3_contract_count(program, function_index) <= 0 { return "" }
+    if !verified_core_render_safe::vcs_typed_function_exists(program, function_index) { return "" }
+    let root = verified_core_render_safe::vcs_body_root(program, function_index)
+    if !verified_core_render_safe::vcs_body_root_is_valid(program, root) { return "" }
+    let reachable = typed_corehir_contract_render::tccr_collect_reachable(program, function_index, root)
+    if !verified_core_render_safe::vcs_reachable_is_typed(program, function_index, reachable) { return "" }
+    let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
+    let return_type_id = verified_core_render_safe::vcs_return_type_id(program, function_index)
+    if return_vt < 0 || return_type_id < 0 { return "" }
+    if !verified_core_render_safe::vcs_parameters_are_valid(program, function_index) { return "" }
+    let expressions = tcv3_render_expressions(program, function_index, reachable)
+    if len(clone(expressions)) == 0 { return "" }
+
+    let name = verified_core_render_safe::vcs_function_name(program, function_index)
+    let mut out = concat("{\"id\":", to_string(function_index))
+    out = concat(out, concat(",\"name\":", verified_core_render_primitives::vc_quote(name)))
+    out = concat(out, ",\"signature\":{\"parameters\":[")
+    out = concat(out, verified_core_render_safe::vcs_render_signature_parameters(program, function_index))
+    out = concat(out, concat("],\"return_type_id\":", concat(to_string(return_type_id), "}")))
+    out = concat(out, ",\"abi\":{\"calling_convention\":\"arukellt\",\"parameters\":[")
+    out = concat(out, verified_core_render_safe::vcs_render_abi_parameters(program, function_index))
+    out = concat(out, "],\"results\":[")
+    if return_vt != value_types::VT_VOID() {
+        out = concat(out, verified_core_render_primitives::vc_render_abi_item(return_type_id, return_vt))
+    }
+    out = concat(out, "]}")
+    out = concat(out, ",\"locals\":[")
+    out = concat(out, verified_core_render_safe::vcs_render_parameter_locals(program, function_index))
+    out = concat(out, "],\"contracts\":[")
+    out = concat(out, typed_corehir_contract_render::tccr_render_contracts(program, function_index))
+    out = concat(out, "]")
+    out = concat(out, concat(",\"body\":{\"root_expression_id\":", to_string(root)))
+    out = concat(out, ",\"expressions\":[")
+    out = concat(out, expressions)
+    out = concat(out, "]}}")
+    out
+}
+
+fn tcv3_render_scalar_types(pointer_width: i32) -> String {
+    let mut out = "{\"id\":0,\"kind\":\"unit\",\"name\":\"()\",\"representation\":{\"kind\":\"unit\",\"wasm\":[],\"nullable\":false,\"size_bytes\":0,\"align_bytes\":1}}"
+    out = concat(out, ",{\"id\":1,\"kind\":\"integer\",\"name\":\"i32\",\"bits\":32,\"signed\":true,\"representation\":{\"kind\":\"scalar\",\"wasm\":[\"i32\"],\"nullable\":false,\"size_bytes\":4,\"align_bytes\":4}}")
+    out = concat(out, ",{\"id\":2,\"kind\":\"bool\",\"name\":\"bool\",\"representation\":{\"kind\":\"scalar\",\"wasm\":[\"i32\"],\"nullable\":false,\"size_bytes\":4,\"align_bytes\":4}}")
+    out = concat(out, ",{\"id\":4,\"kind\":\"integer\",\"name\":\"i64\",\"bits\":64,\"signed\":true,\"representation\":{\"kind\":\"scalar\",\"wasm\":[\"i64\"],\"nullable\":false,\"size_bytes\":8,\"align_bytes\":8}}")
+    out
+}
+
+fn render_typed_corehir_v3(program: CoreHirRawProgram, config: DriverConfig) -> String {
+    let pointer_width = if contains(config_record::config_target(config), "64") { 64 } else { 32 }
+    let module_name = if len(config_record::config_source_file(config)) > 0 { config_record::config_source_file(config) } else { "<memory>" }
+    let modules = raw_record::raw_program_modules(program)
+    let source_module_index = tcv3_main_module_index(program)
+    if source_module_index < 0 || source_module_index >= len(modules) {
+        stdio::eprintln("TypedCoreHIR v3 reject: entry main module not found")
+        return ""
+    }
+    let source_module = get_unchecked(modules, source_module_index)
+    let source_decl_start = raw_dto::CoreHirModuleInfo_decl_start(source_module)
+    let source_decl_end = source_decl_start + raw_dto::CoreHirModuleInfo_decl_count(source_module)
+
+    let mut out = "{\"schema\":\"arukellt-typed-corehir\",\"schema_version\":3,\"generator\":\"arukellt-selfhost-typed-corehir-v3\",\"capability_profile\":\"proof-phases-0-7\",\"module\":"
+    out = concat(out, verified_core_render_primitives::vc_quote(module_name))
+    out = concat(out, ",\"target_profile\":{\"integer_model\":\"machine\",\"overflow\":\"checked\",\"floating_point\":\"unsupported\",\"pointer_width\":")
+    out = concat(out, concat(to_string(pointer_width), "}"))
+    out = concat(out, ",\"types\":[")
+    out = concat(out, tcv3_render_scalar_types(pointer_width))
+    out = concat(out, proof_type_registry::ptr_render_v3_reference_types(program, pointer_width))
+    out = concat(out, "],\"proof_memory\":{\"model\":\"arukellt-readonly-heap-v1\",\"references\":[")
+    out = concat(out, proof_type_registry::ptr_render_v3_reference_descriptors(program))
+    out = concat(out, "]},\"functions\":[")
+
+    let fn_infos = raw_decls::program_fn_infos(program)
+    let mut first = true
+    let mut function_index = 0
+    while function_index < len(fn_infos) {
+        let decl_index = fn_info::fn_info_decl_index_at(fn_infos, function_index, 0 - 1)
+        if decl_index >= source_decl_start && decl_index < source_decl_end && tcv3_contract_count(program, function_index) > 0 {
+            let rendered = tcv3_render_function(program, function_index)
+            if len(clone(rendered)) == 0 {
+                stdio::eprintln(concat("TypedCoreHIR v3 reject: unsupported contracted function index=", to_string(function_index)))
+                return ""
+            }
+            if !first { out = concat(out, ",") }
+            out = concat(out, rendered)
+            first = false
+        }
+        function_index = function_index + 1
+    }
+    if first {
+        stdio::eprintln("TypedCoreHIR v3 reject: no supported contracted functions")
+        return ""
+    }
+    out = concat(out, "]}")
+    out
+}
