@@ -67,6 +67,7 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             "source": self.root / "source.ark",
             "producer_executable": self.root / "compiler.wasm",
             "typed_corehir": self.root / "typed-corehir.json",
+            "typed_corehir_canonical": self.root / "typed-corehir-v3.json",
             "verified_core_machine": self.root / "verified-core-machine.json",
             "verified_core_normalized": self.root / "verified-core.json",
             "solver_input": self.root / "vcs.smt2",
@@ -123,7 +124,7 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
         *,
         binding_digest: str | None = None,
         subject_digest: str | None = None,
-        binding_version: str = "4",
+        binding_version: str = "5",
     ) -> None:
         self.manifest_path.write_text(
             json.dumps(
@@ -150,14 +151,22 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def _patches(self):
+        return (
+            patch(
+                "proof.release_gate.check_release_policy",
+                return_value=("proof-required", 1),
+            ),
+            patch(
+                "proof.release_gate.validate_trust_manifest",
+                side_effect=lambda value: value,
+            ),
+            patch("proof.release_gate._validate_phase7_chain", return_value=None),
+        )
+
     def validate(self) -> tuple[str, int]:
-        with patch(
-            "proof.release_gate.check_release_policy",
-            return_value=("proof-required", 1),
-        ), patch(
-            "proof.release_gate.validate_trust_manifest",
-            side_effect=lambda value: value,
-        ):
+        policy_patch, manifest_patch, phase7_patch = self._patches()
+        with policy_patch, manifest_patch, phase7_patch:
             return validate_proof_required_release(
                 self.policy_path,
                 self.binding_path,
@@ -174,6 +183,13 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
     def test_rejects_stale_source_digest(self) -> None:
         self.paths["source"].write_text("changed\n", encoding="utf-8")
         with self.assertRaisesRegex(SourceProofBindingError, "source: digest mismatch"):
+            self.validate()
+
+    def test_rejects_stale_canonical_source_digest(self) -> None:
+        self.paths["typed_corehir_canonical"].write_text("changed\n", encoding="utf-8")
+        with self.assertRaisesRegex(
+            SourceProofBindingError, "typed_corehir_canonical: digest mismatch"
+        ):
             self.validate()
 
     def test_rejects_stale_boundary_registry(self) -> None:
@@ -220,8 +236,8 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             self.validate()
 
     def test_rejects_legacy_source_binding_version(self) -> None:
-        self.write_manifest(binding_version="3")
-        with self.assertRaisesRegex(ProofRequiredReleaseError, "version 4"):
+        self.write_manifest(binding_version="4")
+        with self.assertRaisesRegex(ProofRequiredReleaseError, "version 5"):
             self.validate()
 
     def test_rejects_unbound_compiler_executable(self) -> None:
@@ -240,13 +256,8 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
             self.validate()
 
     def test_rejects_receipt_replay_on_different_commit(self) -> None:
-        with patch(
-            "proof.release_gate.check_release_policy",
-            return_value=("proof-required", 1),
-        ), patch(
-            "proof.release_gate.validate_trust_manifest",
-            side_effect=lambda value: value,
-        ):
+        policy_patch, manifest_patch, phase7_patch = self._patches()
+        with policy_patch, manifest_patch, phase7_patch:
             with self.assertRaisesRegex(ReleaseProvenanceError, "commit mismatch"):
                 validate_proof_required_release(
                     self.policy_path,
@@ -259,13 +270,8 @@ class ProofRequiredReleaseGateTests(unittest.TestCase):
                 )
 
     def test_rejects_receipt_replay_on_different_tag(self) -> None:
-        with patch(
-            "proof.release_gate.check_release_policy",
-            return_value=("proof-required", 1),
-        ), patch(
-            "proof.release_gate.validate_trust_manifest",
-            side_effect=lambda value: value,
-        ):
+        policy_patch, manifest_patch, phase7_patch = self._patches()
+        with policy_patch, manifest_patch, phase7_patch:
             with self.assertRaisesRegex(ReleaseProvenanceError, "tag mismatch"):
                 validate_proof_required_release(
                     self.policy_path,
