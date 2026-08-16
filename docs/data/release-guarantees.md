@@ -15,7 +15,7 @@
 | `compile_wasm32_gc` | `guaranteed` | `every-pr` | arukellt compile --target wasm32-gc produces valid Wasm (CLI default) | `docs/examples/hello.ark`, `target:wasm32-gc`, `wasm-validation` | ✅ pass | ⏰ stale | smoke | `a80b4181` | — |
 | `compile_wasm32` | `guaranteed` | `every-pr` | arukellt compile --target wasm32 produces valid Wasm (supported / AtCoder path) | `docs/examples/hello.ark`, `target:wasm32`, `wasm-validation` | ✅ pass | ⏰ stale | smoke | `a80b4181` | Not the primary CI emphasis; still contract-stable |
 | `run_wasmtime` | `guaranteed` | `every-pr` | arukellt run executes via wasmtime | `tests/fixtures/hello_world.ark`, `default-target`, `wasmtime` | ✅ pass | ⏰ stale | smoke | `a80b4181` | — |
-| `fixture_harness` | `guaranteed` | `every-pr` | Fixture harness passes for the current observed harness snapshot | `tests/fixtures/manifest.txt`, `registered-harness-cases` | ❌ fail | 🟢 fresh | fixture-set | `982f3102` | See fixture accounting: observed harness ≠ full manifest expansion |
+| `fixture_harness` | `guaranteed` | `every-pr` | Fixture harness passes for the current observed harness snapshot | `tests/fixtures/manifest.txt`, `registered-harness-cases` | ❌ fail | ⏰ stale | fixture-set | `982f3102` | See fixture accounting: observed harness ≠ full manifest expansion |
 | `determinism` | `guaranteed` | `every-pr` | Same input → identical Wasm bytes | `scripts/check/check-release-determinism.sh::declared-corpus` | ✅ pass | ⏰ stale | smoke | `a80b4181` | — |
 | `no_panic_user_paths` | `guaranteed` | `every-pr` | No panic on user-reachable CLI paths | `scripts/check/check-panic-audit.sh::user-reachable-scan` | ✅ pass | ⏰ stale | static-scan | `a80b4181` | — |
 | `cli_check` | `guaranteed` | `every-pr` | The check command rejects an invalid source without producing Wasm | `tests/fixtures/diagnostics/type_mismatch.ark`, `diagnostic-exit-status` | ✅ pass | ⏰ stale | smoke | `a80b4181` | Guarantee is command behavior, not acceptance of every valid program |
@@ -47,7 +47,7 @@ incidents, not by individual checks.
 | `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
 | `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
-| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `fixture-set` | 1089 | `incident_fixture_parity_1089` | `982f3102` | `python3 scripts/manager.py verify fixtures` |
+| `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `fixture-set` | 1089 | `incident_fixture_parity_1089` | `982f3102` | `python3 scripts/manager.py verify fixtures` |
 | `check_determinism` | `determinism` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `bash scripts/check/check-release-determinism.sh` |
 | `check_no_panic` | `no_panic_user_paths` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `static-scan` | — | — | `a80b4181` | `bash scripts/check/check-panic-audit.sh` |
 | `check_cli_check` | `cli_check` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py check` |
@@ -57,8 +57,8 @@ incidents, not by individual checks.
 | `check_close_gate_076` | — | 🔴 yes | — | ✓ | ✅ pass | ⏰ stale | `smoke` | — | — | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-false-done-close-gates.py` |
 | `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `e18c09aa` | `python3 scripts/check/check-t3-wasm-validate.py` |
 | `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `exhaustive` | 0 | `incident_selfhost_fixpoint` | `fb8a3827` | `python3 scripts/manager.py selfhost fixpoint --build` |
-| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
-| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | 🟢 fresh | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
+| `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
+| `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
 | `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `4e07e2a6` | `bash scripts/run/wat-roundtrip.sh` |
 | `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `fixture-set` | 0 | — | `f2b2a899` | `python3 scripts/manager.py verify component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
@@ -79,6 +79,7 @@ Each stale check records the reason and threshold for mechanical verification.
 | `check_compile_wasm32_gc` | 2026-07-11 | 30 | — |
 | `check_compile_wasm32` | 2026-07-11 | 30 | — |
 | `check_run_wasmtime` | 2026-07-11 | 30 | — |
+| `check_fixture_harness` | 2026-07-15 | 30 | — |
 | `check_determinism` | 2026-07-11 | 30 | — |
 | `check_no_panic` | 2026-07-11 | 30 | — |
 | `check_cli_check` | 2026-07-11 | 30 | — |
@@ -86,6 +87,8 @@ Each stale check records the reason and threshold for mechanical verification.
 | `check_cli_doc` | 2026-07-11 | 30 | — |
 | `check_cli_help` | 2026-07-11 | 30 | — |
 | `check_close_gate_076` | 2026-07-14 | 30 | — |
+| `check_selfhost_cli_parity` | 2026-07-15 | 30 | — |
+| `check_selfhost_diag_parity` | 2026-07-15 | 30 | — |
 | `check_opt_equivalence` | 2026-07-11 | 30 | — |
 | `check_binary_version` | 2026-07-11 | 30 | — |
 | `check_emit_component` | 2026-07-11 | 30 | — |
