@@ -25,7 +25,7 @@ EXPECTED_FILES = {
 }
 EXPECTED_CHECKS = {
     "phase5-boundary-hash-chain",
-    "selfhost-v1-scalar-upgrade-fail-closed",
+    "selfhost-v1-proof-upgrade-v2-fail-closed",
     "raw-to-canonical-v3-machine-profile",
     "overflow-capable-source-upgrade-rejection",
     "signed-i32-i64-TypeId-metadata",
@@ -49,7 +49,7 @@ EXPECTED_SCALARS = {
     "status": "enforced",
     "capability_profile": "proof-phases-0-7@3",
     "source_schema": "arukellt-typed-corehir@3",
-    "source_upgrade": "arukellt-selfhost-v1-scalar-upgrade-v1",
+    "source_upgrade": "arukellt-selfhost-v1-proof-upgrade-v2",
     "target_schema": "arukellt-verified-core@1",
     "semantic_validator": "typed_admission_v6.py@6",
     "solver_adapter": "smtlib_typed_v6.py@6",
