@@ -8,11 +8,12 @@ from pathlib import Path
 from typing import Mapping
 
 SCHEMA = "arukellt-source-proof-binding"
-VERSION = 4
+VERSION = 5
 REQUIRED_ARTIFACTS = (
     "source",
     "producer_executable",
     "typed_corehir",
+    "typed_corehir_canonical",
     "verified_core_machine",
     "verified_core_normalized",
     "solver_input",
