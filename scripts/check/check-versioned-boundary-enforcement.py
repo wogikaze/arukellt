@@ -21,6 +21,7 @@ RELEASE_COMMAND = ROOT / "scripts" / "run" / "proof-required-release.sh"
 BINDING_WRITER = ROOT / "scripts" / "gen" / "write-source-proof-binding.py"
 RELEASE_CHECKER = ROOT / "scripts" / "check" / "check-proof-required-release.py"
 TOOLCHAIN_WRITER = ROOT / "scripts" / "gen" / "prepare-proof-release-toolchain.py"
+TOOLCHAIN_WRITER_IMPL = ROOT / "scripts" / "gen" / "prepare_proof_release_toolchain_impl.py"
 RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "proof-required-release.yml"
 PROOF_WORKFLOW = ROOT / ".github" / "workflows" / "typed-contract-frontend.yml"
 REGISTRY_WORKFLOW = ROOT / ".github" / "workflows" / "versioned-boundary-registry.yml"
@@ -61,7 +62,11 @@ def main() -> int:
     release_command = RELEASE_COMMAND.read_text(encoding="utf-8")
     binding_writer = BINDING_WRITER.read_text(encoding="utf-8")
     release_checker = RELEASE_CHECKER.read_text(encoding="utf-8")
-    toolchain_writer = TOOLCHAIN_WRITER.read_text(encoding="utf-8")
+    toolchain_writer = (
+        TOOLCHAIN_WRITER.read_text(encoding="utf-8")
+        + "\n"
+        + TOOLCHAIN_WRITER_IMPL.read_text(encoding="utf-8")
+    )
     release_workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
     proof_workflow = PROOF_WORKFLOW.read_text(encoding="utf-8")
     registry_workflow = REGISTRY_WORKFLOW.read_text(encoding="utf-8")
