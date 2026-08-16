@@ -13,6 +13,20 @@ from proof.verified_core import validate_document as validate_verified_core
 TOOLCHAIN_SCHEMA = "arukellt-proof-toolchain"
 TOOLCHAIN_VERSION = 1
 
+_PROFILE_REQUIRED = {"integer_model", "overflow", "floating_point", "memory"}
+_PROFILE_STRING_OPTIONAL = {
+    "aggregate_model",
+    "aggregate_encoding",
+    "machine_integer_model",
+    "machine_integer_encoding",
+    "memory_model",
+    "memory_encoding",
+    "capability_profile",
+}
+_PROFILE_INT_OPTIONAL = {"source_schema_version", "raw_source_schema_version"}
+_PROFILE_BOOL_OPTIONAL = {"source_upgrade_active", "phase67_available", "phase67_active"}
+_PROFILE_OPTIONAL = _PROFILE_STRING_OPTIONAL | _PROFILE_INT_OPTIONAL | _PROFILE_BOOL_OPTIONAL
+
 _STATUS_MAP = {
     "proved": "proved",
     "unsat": "proved",
@@ -80,6 +94,31 @@ def _tool(value: Any, base: Path, label: str) -> dict[str, Any]:
             raise ValueError(f"{label}.arguments: expected string array")
         result["arguments"] = arguments
     return result
+
+
+def _semantic_profile(value: Any) -> dict[str, Any]:
+    profile = _require_object(value, "toolchain.semantic_profile")
+    _exact_keys(profile, "toolchain.semantic_profile", _PROFILE_REQUIRED, _PROFILE_OPTIONAL)
+    rendered: dict[str, Any] = {
+        field: _require_string(profile[field], f"toolchain.semantic_profile.{field}")
+        for field in sorted(_PROFILE_REQUIRED)
+    }
+    for field in sorted(_PROFILE_STRING_OPTIONAL):
+        if field in profile:
+            rendered[field] = _require_string(profile[field], f"toolchain.semantic_profile.{field}")
+    for field in sorted(_PROFILE_INT_OPTIONAL):
+        if field in profile:
+            raw = profile[field]
+            if type(raw) is not int or raw < 1:
+                raise ValueError(f"toolchain.semantic_profile.{field}: expected positive integer")
+            rendered[field] = raw
+    for field in sorted(_PROFILE_BOOL_OPTIONAL):
+        if field in profile:
+            raw = profile[field]
+            if type(raw) is not bool:
+                raise ValueError(f"toolchain.semantic_profile.{field}: expected boolean")
+            rendered[field] = raw
+    return rendered
 
 
 def load_toolchain(path: Path) -> dict[str, Any]:
@@ -153,13 +192,7 @@ def _subject_ref(subject_path: Path) -> dict[str, Any]:
 def build_trust_manifest(subject_path: Path, toolchain_path: Path) -> dict[str, Any]:
     toolchain = load_toolchain(toolchain_path)
     base = toolchain_path.parent.resolve()
-
-    profile = _require_object(toolchain["semantic_profile"], "toolchain.semantic_profile")
-    _exact_keys(profile, "toolchain.semantic_profile", {"integer_model", "overflow", "floating_point", "memory"})
-    semantic_profile = {
-        field: _require_string(profile[field], f"toolchain.semantic_profile.{field}")
-        for field in ("integer_model", "overflow", "floating_point", "memory")
-    }
+    semantic_profile = _semantic_profile(toolchain["semantic_profile"])
 
     assumptions = toolchain["assumptions"]
     if not isinstance(assumptions, list) or any(not isinstance(item, str) or not item for item in assumptions):
