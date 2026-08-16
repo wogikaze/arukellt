@@ -1,0 +1,120 @@
+use corehir::raw_types
+use corehir::value_types
+use driver::verified_core_render_primitives
+use typechecker::contract_type_access
+use typechecker::contract_typed_fn
+use typechecker::kinds
+
+// Proof TypeIds 0..9 are the frozen primitive ids in
+// verified_core_render_primitives. Structured read-only references start at
+// 100 and are derived only from TypeInfo tags/type_args, never display names.
+fn ptr_scalar_type_id(ty: TypeInfo) -> i32 {
+    let tag = contract_type_access::TypeInfo_tag(ty)
+    if tag == kinds::TY_UNIT() || tag == kinds::TY_NEVER() { return 0 }
+    if tag == kinds::TY_I32() { return 1 }
+    if tag == kinds::TY_BOOL() { return 2 }
+    if tag == kinds::TY_I64() { return 4 }
+    0 - 1
+}
+
+fn ptr_vec_element_type_id(ty: TypeInfo) -> i32 {
+    if contract_type_access::TypeInfo_tag(ty) != kinds::TY_VEC() {
+        return 0 - 1
+    }
+    if contract_type_access::TypeInfo_type_arg_count(ty) != 1 {
+        return 0 - 1
+    }
+    let element = contract_type_access::TypeInfo_type_arg_at(ty, 0)
+    ptr_scalar_type_id(element)
+}
+
+fn ptr_type_id(ty: TypeInfo) -> i32 {
+    let scalar = ptr_scalar_type_id(ty)
+    if scalar >= 0 { return scalar }
+    let element_id = ptr_vec_element_type_id(ty)
+    if element_id < 0 { return 0 - 1 }
+    // 101 = Vec<i32>, 102 = Vec<bool>, 104 = Vec<i64>.
+    100 + element_id
+}
+
+fn ptr_value_type(ty: TypeInfo) -> i32 {
+    if ptr_vec_element_type_id(ty) >= 0 {
+        return value_types::VT_GC_REF()
+    }
+    verified_core_render_primitives::vc_type_info_value_type(ty)
+}
+
+fn ptr_is_vec_type_id(type_id: i32) -> bool {
+    type_id == 101 || type_id == 102 || type_id == 104
+}
+
+fn ptr_vec_element_id_from_type_id(type_id: i32) -> i32 {
+    if !ptr_is_vec_type_id(type_id) { return 0 - 1 }
+    type_id - 100
+}
+
+fn ptr_render_v1_vec_type(ty: TypeInfo, pointer_width: i32) -> String {
+    let type_id = ptr_type_id(ty)
+    let element_id = ptr_vec_element_type_id(ty)
+    if !ptr_is_vec_type_id(type_id) || element_id < 0 {
+        return ""
+    }
+    let size = pointer_width / 8
+    let mut out = concat("{\"id\":", to_string(type_id))
+    out = concat(out, ",\"kind\":\"reference\"")
+    out = concat(out, concat(",\"name\":\"proof-vec-", concat(to_string(element_id), "\"")))
+    out = concat(out, ",\"value_type\":\"gc-ref\"")
+    out = concat(out, ",\"representation\":{\"kind\":\"gc-ref\",\"wasm\":[\"gc-ref\"],\"nullable\":true")
+    out = concat(out, concat(",\"size_bytes\":", to_string(size)))
+    out = concat(out, concat(",\"align_bytes\":", concat(to_string(size), "}}")))
+    out
+}
+
+fn ptr_seen_type_id(ids: Vec<i32>, type_id: i32) -> bool {
+    let mut i = 0
+    while i < len(ids) {
+        if get_unchecked(ids, i) == type_id { return true }
+        i = i + 1
+    }
+    false
+}
+
+fn ptr_append_vec_type(out: String, ids: Vec<i32>, ty: TypeInfo, pointer_width: i32) -> String {
+    let type_id = ptr_type_id(ty)
+    if !ptr_is_vec_type_id(type_id) || ptr_seen_type_id(ids, type_id) {
+        return out
+    }
+    let rendered = ptr_render_v1_vec_type(ty, pointer_width)
+    if len(clone(rendered)) == 0 { return out }
+    push(ids, type_id)
+    concat(out, concat(",", rendered))
+}
+
+fn ptr_render_v1_reference_types(program: CoreHirRawProgram, pointer_width: i32) -> String {
+    let typed_fns = raw_types::program_typed_fns(program)
+    let ids = Vec::new<i32>()
+    let mut out = ""
+    let mut function_index = 0
+    while function_index < len(typed_fns) {
+        let typed_fn = get_unchecked(typed_fns, function_index)
+        let params = contract_typed_fn::TypedFn_param_types(typed_fn)
+        let mut param_index = 0
+        while param_index < len(params) {
+            out = ptr_append_vec_type(
+                out,
+                ids,
+                get_unchecked(params, param_index),
+                pointer_width
+            )
+            param_index = param_index + 1
+        }
+        out = ptr_append_vec_type(
+            out,
+            ids,
+            contract_typed_fn::TypedFn_return_type(typed_fn),
+            pointer_width
+        )
+        function_index = function_index + 1
+    }
+    out
+}
