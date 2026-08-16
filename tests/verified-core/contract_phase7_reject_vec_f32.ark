@@ -1,0 +1,8 @@
+fn unsupported_vec(a: Vec<f32>) -> i32 proof {
+    requires: true;
+    ensures: result == 0;
+} {
+    0
+}
+
+fn main() {}
