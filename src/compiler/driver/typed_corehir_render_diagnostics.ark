@@ -5,7 +5,6 @@ use corehir::raw_bodies
 use corehir::raw_decls
 use corehir::raw_dto
 use corehir::raw_record
-use driver::verified_core_render_primitives
 use driver::verified_core_render_safe
 
 fn typed_corehir_diagnostic_module_index(program: CoreHirRawProgram) -> i32 {
@@ -48,7 +47,11 @@ fn diagnose_first_untyped_expression(
         let expression = get_unchecked(exprs, expression_id)
         let value_type = expr_raw::corehir_expr_val_type(expression)
         let type_name = expr_raw::corehir_expr_type_name(expression)
-        let type_id = verified_core_render_primitives::vc_type_id(value_type, clone(type_name))
+        let type_id = verified_core_render_safe::vcs_expression_type_id(
+            program,
+            function_index,
+            expression_id
+        )
         if type_id < 0 {
             let mut message = concat("TypedCoreHIR reject: untyped expression function=", function_name)
             message = concat(message, concat(" function_index=", to_string(function_index)))
@@ -94,7 +97,11 @@ fn diagnose_typed_corehir_rejection(program: CoreHirRawProgram) -> String {
                 )
             }
             let reachable = verified_core_render_safe::vcs_collect_reachable(program, root)
-            if !verified_core_render_safe::vcs_reachable_is_typed(program, reachable) {
+            if !verified_core_render_safe::vcs_reachable_is_typed(
+                program,
+                function_index,
+                reachable
+            ) {
                 return diagnose_first_untyped_expression(program, function_index, reachable)
             }
             let return_vt = verified_core_render_safe::vcs_return_value_type(program, function_index)
