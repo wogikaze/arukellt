@@ -8,8 +8,10 @@ from typing import Mapping
 from proof.common import load_json, sha256_file
 from proof.release_payload import validate_release_payload_manifest
 from proof.release_provenance import validate_release_provenance
-from proof.source_proof_binding import REQUIRED_ARTIFACTS, validate_binding
+from proof.source_proof_binding import REQUIRED_ARTIFACTS, VERSION as BINDING_VERSION, validate_binding
 from proof.trust import check_release_policy, validate_trust_manifest
+from proof.typed_admission_v7 import validate_typed_document as validate_v7_verified_core
+from proof.typed_corehir_v3 import validate_document as validate_typed_corehir_source
 
 
 class ProofRequiredReleaseError(ValueError):
@@ -69,6 +71,73 @@ def _trusted_component(
     return matching[0]
 
 
+def _require_component_version(manifest: dict[str, object], role: str, version: str) -> dict[str, object]:
+    component = _trusted_component(manifest, role=role)
+    if component.get("version") != version:
+        raise ProofRequiredReleaseError(
+            f"TrustManifest component role={role!r} must have version {version}"
+        )
+    return component
+
+
+def _validate_phase7_chain(bound_paths: Mapping[str, Path], manifest: dict[str, object]) -> None:
+    raw_source = validate_typed_corehir_source(load_json(bound_paths["typed_corehir"]))
+    canonical_source = validate_typed_corehir_source(load_json(bound_paths["typed_corehir_canonical"]))
+    if canonical_source.get("schema_version") != 3:
+        raise ProofRequiredReleaseError("canonical TypedCoreHIR release source must be schema v3")
+    profile = canonical_source.get("target_profile")
+    if not isinstance(profile, dict) or (
+        profile.get("integer_model"),
+        profile.get("overflow"),
+        profile.get("floating_point"),
+    ) != ("machine", "checked", "unsupported"):
+        raise ProofRequiredReleaseError("canonical TypedCoreHIR does not carry Phase 6/7 machine proof profile")
+
+    raw_version = raw_source.get("schema_version")
+    if raw_version == 1:
+        if canonical_source.get("generator") != "arukellt-selfhost-v1-scalar-upgrade-v1":
+            raise ProofRequiredReleaseError("v1 producer source is not bound to the trusted scalar v3 upgrader")
+        _require_component_version(manifest, "proof-source-upgrader", "1")
+        _require_component_version(manifest, "proof-source-upgrade-cli", "1")
+    elif raw_version == 3:
+        if sha256_file(bound_paths["typed_corehir"]) != sha256_file(bound_paths["typed_corehir_canonical"]):
+            raise ProofRequiredReleaseError("native v3 raw/canonical TypedCoreHIR artifacts must be identical")
+    else:
+        raise ProofRequiredReleaseError(f"proof-required Phase 7 release does not admit raw TypedCoreHIR v{raw_version}")
+
+    machine = validate_v7_verified_core(load_json(bound_paths["verified_core_machine"]))
+    if machine.get("generator") != "arukellt-typed-corehir-converter-v7":
+        raise ProofRequiredReleaseError("VerifiedCore machine artifact was not produced by converter v7")
+    machine_profile = machine.get("target_profile")
+    if not isinstance(machine_profile, dict) or (
+        machine_profile.get("integer_model"),
+        machine_profile.get("overflow"),
+        machine_profile.get("floating_point"),
+    ) != ("machine", "checked", "unsupported"):
+        raise ProofRequiredReleaseError("VerifiedCore machine artifact lost the Phase 6 profile")
+    memory = machine.get("proof_memory")
+    if not isinstance(memory, dict) or memory.get("model") != "arukellt-readonly-heap-v1":
+        raise ProofRequiredReleaseError("VerifiedCore machine artifact lost the Phase 7 memory profile")
+    if sha256_file(bound_paths["verified_core_machine"]) != sha256_file(bound_paths["verified_core_normalized"]):
+        raise ProofRequiredReleaseError("Phase 7 release subject must not be rewritten by the legacy mathematical normalizer")
+
+    _require_component_version(manifest, "proof-source-converter", "7")
+    _require_component_version(manifest, "proof-source-converter-cli", "7")
+    _require_component_version(manifest, "typed-smt-adapter", "7")
+    _require_component_version(manifest, "typed-smt-adapter-cli", "7")
+    translator = manifest.get("translator")
+    if not isinstance(translator, dict) or translator.get("version") != "7":
+        raise ProofRequiredReleaseError("TrustManifest translator must be Phase 7")
+    trust_profile = manifest.get("semantic_profile")
+    if not isinstance(trust_profile, dict) or (
+        trust_profile.get("integer_model"),
+        trust_profile.get("overflow"),
+        trust_profile.get("floating_point"),
+        trust_profile.get("memory"),
+    ) != ("machine", "checked", "unsupported", "read-only-heap"):
+        raise ProofRequiredReleaseError("TrustManifest semantic profile is not Phase 7")
+
+
 def validate_proof_required_release(
     policy_path: Path,
     source_binding_path: Path,
@@ -117,10 +186,12 @@ def validate_proof_required_release(
         raise ProofRequiredReleaseError(
             "TrustManifest does not bind the supplied source proof binding"
         )
-    if binding_component.get("version") != "4":
+    if BINDING_VERSION != 5 or binding_component.get("version") != "5":
         raise ProofRequiredReleaseError(
-            "TrustManifest must identify source-artifact-binding version 4"
+            "TrustManifest must identify source-artifact-binding version 5"
         )
+
+    _validate_phase7_chain(bound_paths, manifest)
 
     producer_path = bound_paths["producer_executable"]
     producer_digest = sha256_file(producer_path)
