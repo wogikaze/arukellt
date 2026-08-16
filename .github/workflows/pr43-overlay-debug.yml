@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   overlay:
@@ -99,48 +99,3 @@ jobs:
           name: pr43-generated-docs
           path: .build/pr43-generated-docs/
           if-no-files-found: error
-      - name: Patch copied named-struct storage propagation
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('src/compiler/wasm/code_ref_locals_block_scan.ark')
-          text = p.read_text()
-          old_import = 'use wasm::code_ref_locals_infer_dest\n'
-          new_import = 'use wasm::code_ref_locals_infer_dest\nuse wasm::code_ref_locals_infer_callee\n'
-          if 'use wasm::code_ref_locals_infer_callee\n' not in text:
-              if old_import not in text:
-                  raise SystemExit('infer_dest import not found')
-              text = text.replace(old_import, new_import, 1)
-          old = '''                if source >= 0 && source != local_idx {
-                    let source_type =
-                    ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, source)
-'''
-          new = '''                if source >= 0 && source != local_idx {
-                    let source_loc = function_locals_view::MirFunction_local_at(f, source)
-                    let source_name = local_access::MirLocal_type_name(source_loc)
-                    let source_named =
-                    code_ref_locals_infer_callee::resolve_named_struct_gc_type(
-                        ctx,
-                        clone(source_name)
-                    )
-                    match source_named {
-                        Option::Some(source_named_type) => {
-                            if source_named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                return Option::Some(source_named_type)
-                            }
-                        }
-                        Option::None => {}
-                    }
-                    let source_type =
-                    ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, source)
-'''
-          if old not in text:
-              raise SystemExit('copied storage insertion point not found')
-          p.write_text(text.replace(old, new, 1))
-          PY
-          git diff --check
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src/compiler/wasm/code_ref_locals_block_scan.ark
-          git commit -m 'fix(wasm-gc): propagate named struct storage through copies'
-          git push origin HEAD:fix/wasm-gc-type-plan-owner-phase1
