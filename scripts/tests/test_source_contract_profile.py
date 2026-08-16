@@ -41,7 +41,7 @@ class SourceContractProfileTests(unittest.TestCase):
             "floating_point": "unsupported",
             "pointer_width": 32,
         })
-        self.assertIn("comparison-profile-normalizer-v1", normalized["generator"])
+        self.assertIn("proof-profile-normalizer-v2", normalized["generator"])
 
     def test_machine_arithmetic_contract_fails_closed(self) -> None:
         document = copy.deepcopy(self.verified)
