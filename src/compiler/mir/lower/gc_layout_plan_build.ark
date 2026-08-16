@@ -46,7 +46,6 @@ fn gc_layout_plan_vec_offset_from_elem(table: TypeTable, elem_id: TypeId) -> i32
         if gc_layout_plan_name_is_fn(clone(name)) { return 27 }
         if gc_layout_plan_name_is_i32(name) { return 10 }
     }
-    // Nested containers and user aggregates use the structref-array Vec layout.
     25
 }
 
@@ -203,6 +202,22 @@ fn gc_layout_plan_find_named_type(
     type_id::TYPE_ID_INVALID()
 }
 
+fn gc_layout_plan_type_id_for_struct_slot(table: TypeTable, name: String) -> TypeId {
+    let found = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), clone(name))
+    if type_id::type_id_is_valid(found) {
+        return found
+    }
+    // A named GC struct can be required by aggregate layout even when no
+    // semantic local/signature mentions that struct directly. Assign its
+    // identity while building typed MIR; the backend must never invent it.
+    type_table::TypeTable_intern(
+        table,
+        kinds::TYPE_KIND_STRUCT(),
+        name,
+        Vec::new<TypeId>()
+    )
+}
+
 fn gc_layout_plan_name_is_option_variant(name: String) -> bool {
     eq(clone(name), "Some") ||
     eq(clone(name), "None") ||
@@ -225,9 +240,6 @@ fn gc_layout_plan_variant_type_kind(name: String) -> i32 {
     kinds::TYPE_KIND_ENUM()
 }
 
-// Variant payload slots are compiler GC types. TypeTable interned the parent
-// Option/Result/enum, not `Option::Some` / `Color::Red`. Intern each slot as
-// name#sig so i32/i64/ref payloads of the same variant keep distinct TypeIds.
 fn gc_layout_plan_type_id_for_variant_slot(
     table: TypeTable,
     name: String,
@@ -269,9 +281,9 @@ fn gc_layout_plan_bind_struct_slots(
     let mut slot = 0
     while slot < count {
         let name = module_gc_struct::MirModule_gc_struct_name_at(module, slot)
-        let tid = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), name)
+        let tid = gc_layout_plan_type_id_for_struct_slot(table, clone(name))
         if !type_id::type_id_is_valid(tid) {
-            stdio::eprintln("compiler ICE: GC struct slot has no semantic TypeId")
+            stdio::eprintln(concat("compiler ICE: GC struct slot has no semantic TypeId: ", name))
             process::exit(1)
         }
         gc_layout_plan::mir_gc_layout_plan_bind(

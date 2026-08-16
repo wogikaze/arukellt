@@ -1,11 +1,11 @@
-use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
 use wasm::string_gc_helpers
 
 fn emit_starts_with_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_gc0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_gc1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let s_len_main = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_len_prefix = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
@@ -34,7 +34,7 @@ fn emit_starts_with_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 fn emit_ends_with_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_gc0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_gc1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let s_len_main = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_len_suffix = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)

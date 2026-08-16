@@ -3,12 +3,12 @@ use corehir::value_types
 fn corehir_vt_from_type_name(type_name: String) -> i32 {
     if eq(clone(type_name), "f64") {
         return value_types::VT_F64()
-        if eq(clone(name), "f32") {
-            return value_types::VT_F32()
-        }
-        if eq(clone(name), "v128") {
-            return value_types::VT_V128()
-        }
+    }
+    if eq(clone(type_name), "f32") {
+        return value_types::VT_F32()
+    }
+    if eq(clone(type_name), "v128") {
+        return value_types::VT_V128()
     }
     if eq(clone(type_name), "i64") || eq(clone(type_name), "u64") {
         return value_types::VT_I64()
@@ -16,7 +16,52 @@ fn corehir_vt_from_type_name(type_name: String) -> i32 {
     if eq(clone(type_name), "void") {
         return value_types::VT_VOID()
     }
+    if eq(clone(type_name), "fn") ||
+    eq(clone(type_name), "fnref") ||
+    starts_with(clone(type_name), "fn(") {
+        return value_types::VT_FUNCREF()
+    }
+    if eq(clone(type_name), "String") ||
+    eq(clone(type_name), "string") ||
+    eq(clone(type_name), "str") {
+        return value_types::VT_REF()
+    }
+    if eq(clone(type_name), "i32") ||
+    eq(clone(type_name), "bool") ||
+    eq(clone(type_name), "char") ||
+    eq(clone(type_name), "u8") ||
+    eq(clone(type_name), "u16") ||
+    eq(clone(type_name), "u32") ||
+    eq(clone(type_name), "i8") ||
+    eq(clone(type_name), "i16") {
+        return value_types::VT_I32()
+    }
+    // Explicit generic/container and named user-type annotations denote
+    // aggregate references in CoreHIR. Keep unsubstituted type variables i32
+    // until monomorphization resolves them, matching parameter classification.
+    if corehir_type_name_is_type_param(clone(type_name)) || eq(clone(type_name), "_") {
+        return value_types::VT_I32()
+    }
+    if len(type_name) > 0 {
+        return value_types::VT_GC_REF()
+    }
     value_types::VT_I32()
+}
+
+fn corehir_type_name_is_type_param(type_name: String) -> bool {
+    if len(type_name) == 0 {
+        return false
+    }
+    if starts_with(clone(type_name), "?") {
+        return corehir_type_name_is_type_param(substring(type_name, 1, len(type_name)))
+    }
+    if len(type_name) == 1 {
+        let ch = char_at(type_name, 0)
+        if ch >= 65 && ch <= 90 {
+            return true
+        }
+    }
+    false
 }
 
 fn corehir_literal_type_name(kind_name: String) -> String {

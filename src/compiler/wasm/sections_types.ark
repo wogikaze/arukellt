@@ -36,74 +36,36 @@ fn emit_type_section(
         enum_variant_count = module_gc_enum::MirModule_gc_enum_variant_sig_count(mir)
         gc_struct_count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
     }
-    let gc_type_count = gc_fixed_count + enum_variant_count + gc_struct_count
     let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
-    let gc_type_base = first_gc_type_index(canon_types)
-    // Named GC structs are emitted before enum variants so Option/Result
-    // payloads can reference them via gcsref without forward type indices
-    // (#726 display_trait_vec / toml).
-    let mut gc_struct_base = 0 - 1
-    if gc_struct_count > 0 && gc_type_base >= 0 {
-        gc_struct_base = gc_type_base + gc_fixed_count
-    }
-    let mut gc_enum_variant_base = 0 - 1
-    if enum_variant_count > 0 && gc_type_base >= 0 {
-        gc_enum_variant_base = gc_type_base + gc_fixed_count + gc_struct_count
-    }
-    let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
-    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, enum_variant_count)
     let plan = sections_type_plan::build_type_section_plan(
         type_map,
         num_host_types,
         wit_import_count,
-        gc_type_count,
+        gc_fixed_count,
+        gc_struct_count,
+        enum_variant_count,
         fn_count,
-        needs_wrapper,
-        gc_type_base,
-        gc_enum_variant_base,
-        gc_enum_variant_type_map,
-        gc_struct_base,
-        gc_struct_type_map
+        needs_wrapper
     )
+    let gc_fixed_type_map = sections_type_plan::TypeSectionPlan_gc_fixed_type_map(plan)
+    let gc_struct_type_map = sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
             gc_layout,
             mir,
-            sections_type_plan::TypeSectionPlan_gc_type_base(plan),
+            gc_fixed_type_map,
             sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),
-            sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
+            gc_struct_type_map
         )
     }
     let type_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(type_sec, len(canon_types))
-    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_type_base, gc_struct_type_map)
+    sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_fixed_type_map, gc_struct_type_map)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
     plan
-}
-
-fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {
-    let mut struct_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count
-    let mut si = 0
-    while si < gc_struct_count {
-        push(struct_map, get_unchecked(type_map, base_idx + si))
-        si = si + 1
-    }
-    struct_map
-}
-
-fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32, enum_variant_count: i32) -> Vec<i32> {
-    let mut variant_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_struct_count
-    let mut si = 0
-    while si < enum_variant_count {
-        push(variant_map, get_unchecked(type_map, base_idx + si))
-        si = si + 1
-    }
-    variant_map
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -179,20 +141,4 @@ fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
         cti = cti + 1
     }
     found
-}
-
-fn first_gc_type_index(canon_types: Vec<String>) -> i32 {
-    for i in 0..len(canon_types) {
-        let sig = get_unchecked(canon_types, i)
-        if char_at(clone(sig), 0) == 65 {
-            return i
-        }
-        if starts_with(clone(sig), "GS_f") {
-            return i
-        }
-        if starts_with(clone(sig), "Sub") {
-            return i
-        }
-    }
-    0 - 1
 }
