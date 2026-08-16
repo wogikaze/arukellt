@@ -4,6 +4,7 @@ use corehir::raw_decls
 use corehir::raw_dto
 use corehir::raw_record
 use driver::config_record
+use driver::proof_type_registry
 use driver::typed_corehir_contract_render
 use driver::typed_corehir_render_diagnostics
 use driver::verified_core_render_primitives
@@ -74,6 +75,10 @@ fn render_typed_corehir(program: CoreHirRawProgram, config: DriverConfig) -> Str
         out = concat(out, typed_corehir_render_type(type_id, pointer_width))
         type_id = type_id + 1
     }
+    out = concat(
+        out,
+        proof_type_registry::ptr_render_v1_reference_types(program, pointer_width)
+    )
     out = concat(out, "],\"functions\":[")
 
     let fn_infos = raw_decls::program_fn_infos(program)
