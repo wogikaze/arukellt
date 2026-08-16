@@ -23,9 +23,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # PR feedback is bounded to deterministic source, adapter, and receipt
-      # checks. Current-selfhost reconstruction and end-to-end proof execution
-      # run on master after merge or via manual dispatch.
       - name: Check source and architecture boundaries
         run: |
           python3 scripts/check/check-typed-contract-source.py
@@ -116,6 +113,12 @@ jobs:
           print(f"typed-contract-s2: PASS: path={path} elapsed={elapsed:.3f}s")
           PY
           test -s .build/selfhost/arukellt-s2-runtime.wasm
+
+      - name: Validate compiler structural proof type registry
+        if: github.event_name != 'pull_request'
+        env:
+          ARUKELLT_SELFHOST_WASM: .build/selfhost/arukellt-s2-runtime.wasm
+        run: python3 scripts/check/check-proof-type-registry-emission.py
 
       - name: Emit and convert typed source contracts through Phase 7
         if: github.event_name != 'pull_request'
