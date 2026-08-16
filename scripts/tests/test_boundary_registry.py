@@ -52,7 +52,7 @@ class BoundaryRegistryTests(unittest.TestCase):
         }
         self.source = FakeSource(self.files)
 
-    def test_complete_registry_validates_all_seven_boundaries(self) -> None:
+    def test_complete_registry_validates_all_eight_boundaries(self) -> None:
         fetched = validate_registry_files(self.registry, self.source)
         self.assertEqual(set(self.registry["required_boundaries"]), {
             "typed-corehir",
@@ -62,8 +62,9 @@ class BoundaryRegistryTests(unittest.TestCase):
             "backend-layout",
             "solver-result",
             "release-authorization",
+            "proof-semantics",
         })
-        self.assertGreaterEqual(len(fetched), 28)
+        self.assertGreaterEqual(len(fetched), 33)
 
     def test_missing_major_boundary_is_rejected(self) -> None:
         document = copy.deepcopy(self.registry)
@@ -107,7 +108,7 @@ class BoundaryRegistryTests(unittest.TestCase):
             source=self.source,
         )
         self.assertEqual(validated["status"], "validated")
-        self.assertEqual(validated["boundary_count"], 7)
+        self.assertEqual(validated["boundary_count"], 8)
 
     def test_stale_remote_file_invalidates_receipt(self) -> None:
         receipt = create_validation_receipt(self.registry_path, self.source)

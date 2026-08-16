@@ -40,6 +40,9 @@ AUTHORIZATION="$RELEASE_ROOT/release-authorization.json"
 POLICY="$PROOF_ROOT/release-policy.json"
 BOUNDARY_REGISTRY="release/boundary-registry.json"
 BOUNDARY_REGISTRY_RECEIPT=".build/proof/boundary-registry-validation.json"
+PHASE5_BOUNDARY=".build/proof/proof-phase5-boundary.json"
+PHASE6_BOUNDARY=".build/proof/proof-phase6-boundary.json"
+PHASE7_BOUNDARY=".build/proof/proof-phase7-boundary.json"
 
 rm -rf "$TOOLCHAIN_ROOT" "$RELEASE_ROOT"
 mkdir -p "$PROOF_ROOT" "$TOOLCHAIN_ROOT" "$RELEASE_ROOT" .build/proof
@@ -63,6 +66,12 @@ python3 scripts/check/check-gc-hint-translation-validation.py
 python3 scripts/gen/write-mir-opt-translation-registry.py
 python3 scripts/check/check-corehir-body-boundary.py
 python3 scripts/gen/write-corehir-body-boundary-receipt.py
+python3 scripts/gen/write-proof-phase5-boundary-receipt.py --output "$PHASE5_BOUNDARY"
+python3 scripts/check/check-proof-phase5-boundary.py "$PHASE5_BOUNDARY"
+python3 scripts/gen/write-proof-phase6-boundary-receipt.py --output "$PHASE6_BOUNDARY"
+python3 scripts/check/check-proof-phase6-boundary.py "$PHASE6_BOUNDARY"
+python3 scripts/gen/write-proof-phase7-boundary-receipt.py --output "$PHASE7_BOUNDARY"
+python3 scripts/check/check-proof-phase7-boundary.py "$PHASE7_BOUNDARY"
 
 python3 - <<'PY'
 import sys
@@ -124,9 +133,11 @@ python3 scripts/gen/write-source-proof-binding.py \
   --output "$PROOF_ROOT/source-proof-binding.json"
 
 Z3_BIN="${Z3_BIN:-$(command -v z3)}"
-python3 scripts/gen/prepare-proof-release-toolchain.py \
+python3 scripts/gen/prepare-proof-release-toolchain-v7.py \
   --runtime "$RUNTIME" \
   --source-binding "$PROOF_ROOT/source-proof-binding.json" \
+  --phase6-boundary "$PHASE6_BOUNDARY" \
+  --phase7-boundary "$PHASE7_BOUNDARY" \
   --output-dir "$TOOLCHAIN_ROOT" \
   --toolchain-output "$TOOLCHAIN_ROOT/toolchain.json" \
   --z3 "$Z3_BIN"

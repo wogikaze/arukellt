@@ -28,6 +28,7 @@ REQUIRED_BOUNDARIES = {
     "backend-layout",
     "solver-result",
     "release-authorization",
+    "proof-semantics",
 }
 ARTIFACT_KINDS = {
     "serialized-json",
