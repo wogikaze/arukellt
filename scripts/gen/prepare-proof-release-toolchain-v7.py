@@ -10,6 +10,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = ROOT / "scripts"
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from proof.typed_corehir_v3 import validate_document as validate_v3_source  # noqa: E402
+
 BASE = ROOT / "scripts" / "gen" / "prepare-proof-release-toolchain-v5.py"
 EXTRA_COMPONENTS = (
     ("arukellt-proof-capability-profile-v3", "proof-capability-profile", "3", "docs/data/proof-capabilities-v3.json"),
@@ -43,10 +49,25 @@ def _copy_component(document: dict, output_dir: Path, *, name: str, role: str, v
     document["trusted_components"].append({"name": name, "role": role, "version": version, "artifact": artifact_name})
 
 
+def _source_version(path: Path) -> tuple[int, dict]:
+    if not path.is_file():
+        raise ValueError(f"TypedCoreHIR source missing: {path}")
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if document.get("schema") != "arukellt-typed-corehir":
+        raise ValueError("TypedCoreHIR source schema mismatch")
+    version = document.get("schema_version")
+    if type(version) is not int or version not in {1, 2, 3}:
+        raise ValueError(f"unsupported TypedCoreHIR source version: {version!r}")
+    if version == 3:
+        validate_v3_source(document)
+    return version, document
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--source-binding", type=Path, required=True)
+    parser.add_argument("--typed-corehir", type=Path, required=True)
     parser.add_argument("--phase6-boundary", type=Path, required=True)
     parser.add_argument("--phase7-boundary", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -54,6 +75,7 @@ def main() -> int:
     parser.add_argument("--z3", type=Path, required=True)
     args = parser.parse_args()
 
+    source_version, _ = _source_version(args.typed_corehir)
     command = [
         sys.executable, str(BASE),
         "--runtime", str(args.runtime),
@@ -64,21 +86,26 @@ def main() -> int:
     ]
     subprocess.run(command, cwd=ROOT, check=True)
     document = json.loads(args.toolchain_output.read_text(encoding="utf-8"))
-    document["translator"]["version"] = "7"
-    document["semantic_profile"].update({
-        "integer_model": "machine",
-        "overflow": "checked",
-        "floating_point": "unsupported",
-        "machine_integer_model": "arukellt-machine-int-v1",
-        "machine_integer_encoding": "arukellt-machine-int-range-v1",
-        "memory": "read-only-heap",
-        "memory_model": "arukellt-readonly-heap-v1",
-        "memory_encoding": "arukellt-readonly-heap-smt-v1",
-        "capability_profile": "proof-phases-0-7@3",
-    })
+    document["semantic_profile"]["source_schema_version"] = source_version
+    document["semantic_profile"]["phase67_available"] = True
+    document["semantic_profile"]["phase67_active"] = source_version == 3
 
-    for name, role, version, relative in EXTRA_COMPONENTS:
-        _copy_component(document, args.output_dir, name=name, role=role, version=version, source=ROOT / relative)
+    if source_version == 3:
+        document["translator"]["version"] = "7"
+        document["semantic_profile"].update({
+            "integer_model": "machine",
+            "overflow": "checked",
+            "floating_point": "unsupported",
+            "machine_integer_model": "arukellt-machine-int-v1",
+            "machine_integer_encoding": "arukellt-machine-int-range-v1",
+            "memory": "read-only-heap",
+            "memory_model": "arukellt-readonly-heap-v1",
+            "memory_encoding": "arukellt-readonly-heap-smt-v1",
+            "capability_profile": "proof-phases-0-7@3",
+        })
+        for name, role, version, relative in EXTRA_COMPONENTS:
+            _copy_component(document, args.output_dir, name=name, role=role, version=version, source=ROOT / relative)
+
     _copy_component(
         document,
         args.output_dir,
@@ -98,7 +125,11 @@ def main() -> int:
         artifact="proof-phase7-boundary.json",
     )
     args.toolchain_output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"proof-release-toolchain-v7: PASS: components={len(document['trusted_components'])} output={args.toolchain_output}")
+    print(
+        "proof-release-toolchain-v7: PASS: "
+        f"source_schema=v{source_version} phase67_active={source_version == 3} "
+        f"components={len(document['trusted_components'])} output={args.toolchain_output}"
+    )
     return 0
 
 
