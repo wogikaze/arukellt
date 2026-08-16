@@ -149,9 +149,9 @@ fn local_vec_access_storage_type(
                     Option::None => {}
                 }
                 let receiver =
-                vec_access_receiver_local(block, inst_index, inst)
+                    vec_access_receiver_local(block, inst_index, inst)
                 let from_type_id =
-                vec_element_storage_type_from_receiver(f, receiver, ctx)
+                    vec_element_storage_type_from_receiver(f, receiver, ctx)
                 match from_type_id {
                     Option::Some(_storage_type) => {
                         return from_type_id
@@ -240,20 +240,22 @@ fn local_set_non_string_storage_type(
         return Option::None
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    if len(local_access::MirLocal_type_name(loc)) == 0 {
-        let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
-        match direct_storage {
-            Option::Some(_storage_type) => {
-                return direct_storage
-            }
-            Option::None => {}
-        }
-    }
+    let type_name = local_access::MirLocal_type_name(loc)
     let storage_type =
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
     if storage_type >= 0 &&
     storage_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
         return Option::None
+    }
+    let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
+    match direct_storage {
+        Option::Some(direct_type) => {
+            if len(type_name) == 0 ||
+            direct_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return direct_storage
+            }
+        }
+        Option::None => {}
     }
     copied_non_string_storage_type(f, local_idx, ctx, 0)
 }
