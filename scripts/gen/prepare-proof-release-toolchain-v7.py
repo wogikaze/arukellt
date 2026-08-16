@@ -14,6 +14,7 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
+from proof.typed_corehir_v1_scalar_v3 import upgrade_scalar_document  # noqa: E402
 from proof.typed_corehir_v3 import validate_document as validate_v3_source  # noqa: E402
 
 BASE = ROOT / "scripts" / "gen" / "prepare-proof-release-toolchain-v5.py"
@@ -34,6 +35,10 @@ EXTRA_COMPONENTS = (
     ("arukellt-readonly-heap-smt-v1", "readonly-memory-vc-renderer", "1", "scripts/proof/proof_phase7_vc.py"),
     ("arukellt-phase7-smt-adapter", "typed-smt-adapter", "7", "scripts/proof/smtlib_typed_v7.py"),
     ("arukellt-proof-phase7-boundary-v1", "phase7-boundary-checker", "1", "scripts/check/check-proof-phase7-boundary.py"),
+)
+UPGRADER_COMPONENTS = (
+    ("arukellt-selfhost-v1-scalar-upgrade-v1", "proof-source-upgrader", "1", "scripts/proof/typed_corehir_v1_scalar_v3.py"),
+    ("arukellt-selfhost-v1-scalar-upgrade-cli-v1", "proof-source-upgrade-cli", "1", "scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py"),
 )
 
 
@@ -58,17 +63,34 @@ def _source_version(path: Path) -> tuple[int, dict]:
     version = document.get("schema_version")
     if type(version) is not int or version not in {1, 2, 3}:
         raise ValueError(f"unsupported TypedCoreHIR source version: {version!r}")
-    if version == 3:
-        validate_v3_source(document)
+    validate_v3_source(document)
     return version, document
 
 
-def _apply_source_profile(document: dict, source_version: int) -> bool:
+def _verify_source_upgrade(raw_version: int, raw: dict, canonical_version: int, canonical: dict) -> bool:
+    if raw_version == canonical_version:
+        if raw != canonical:
+            raise ValueError("same-version raw/canonical TypedCoreHIR artifacts differ")
+        return False
+    if (raw_version, canonical_version) != (1, 3):
+        raise ValueError(f"unsupported TypedCoreHIR source upgrade: v{raw_version} -> v{canonical_version}")
+    expected = upgrade_scalar_document(raw)
+    if expected != canonical:
+        raise ValueError("canonical TypedCoreHIR v3 does not match trusted v1 scalar upgrade")
+    return True
+
+
+def _apply_source_profile(document: dict, source_version: int, raw_source_version: int | None = None) -> bool:
     if source_version not in {1, 2, 3}:
         raise ValueError(f"unsupported TypedCoreHIR source version: {source_version!r}")
+    raw_version = source_version if raw_source_version is None else raw_source_version
+    if raw_version not in {1, 2, 3}:
+        raise ValueError(f"unsupported raw TypedCoreHIR source version: {raw_version!r}")
     active = source_version == 3
     profile = document["semantic_profile"]
     profile["source_schema_version"] = source_version
+    profile["raw_source_schema_version"] = raw_version
+    profile["source_upgrade_active"] = raw_version != source_version
     profile["phase67_available"] = True
     profile["phase67_active"] = active
     if active:
@@ -91,7 +113,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--source-binding", type=Path, required=True)
-    parser.add_argument("--typed-corehir", type=Path, required=True)
+    parser.add_argument("--typed-corehir", type=Path, required=True, help="canonical proof source")
+    parser.add_argument("--typed-corehir-raw", type=Path, help="raw producer artifact; defaults to canonical source")
     parser.add_argument("--phase6-boundary", type=Path, required=True)
     parser.add_argument("--phase7-boundary", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -99,7 +122,11 @@ def main() -> int:
     parser.add_argument("--z3", type=Path, required=True)
     args = parser.parse_args()
 
-    source_version, _ = _source_version(args.typed_corehir)
+    canonical_version, canonical = _source_version(args.typed_corehir)
+    raw_path = args.typed_corehir_raw or args.typed_corehir
+    raw_version, raw = _source_version(raw_path)
+    upgraded = _verify_source_upgrade(raw_version, raw, canonical_version, canonical)
+
     command = [
         sys.executable, str(BASE),
         "--runtime", str(args.runtime),
@@ -110,10 +137,13 @@ def main() -> int:
     ]
     subprocess.run(command, cwd=ROOT, check=True)
     document = json.loads(args.toolchain_output.read_text(encoding="utf-8"))
-    active = _apply_source_profile(document, source_version)
+    active = _apply_source_profile(document, canonical_version, raw_version)
 
     if active:
         for name, role, version, relative in EXTRA_COMPONENTS:
+            _copy_component(document, args.output_dir, name=name, role=role, version=version, source=ROOT / relative)
+    if upgraded:
+        for name, role, version, relative in UPGRADER_COMPONENTS:
             _copy_component(document, args.output_dir, name=name, role=role, version=version, source=ROOT / relative)
 
     _copy_component(
@@ -137,7 +167,8 @@ def main() -> int:
     args.toolchain_output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
         "proof-release-toolchain-v7: PASS: "
-        f"source_schema=v{source_version} phase67_active={active} "
+        f"raw_source_schema=v{raw_version} source_schema=v{canonical_version} "
+        f"source_upgrade={upgraded} phase67_active={active} "
         f"components={len(document['trusted_components'])} output={args.toolchain_output}"
     )
     return 0
