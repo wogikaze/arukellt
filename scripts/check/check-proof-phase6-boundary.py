@@ -12,6 +12,9 @@ EXPECTED_FILES = {
     "scripts/proof/capabilities_v3.py",
     "scripts/gen/write-proof-phase5-boundary-receipt.py",
     "scripts/check/check-proof-phase5-boundary.py",
+    "scripts/proof/typed_corehir_v1_scalar_v3.py",
+    "scripts/gen/upgrade-typed-corehir-v1-scalar-v3.py",
+    "scripts/tests/test_typed_corehir_v1_scalar_v3.py",
     "scripts/proof/machine_integer_semantics.py",
     "scripts/proof/typed_admission_v6.py",
     "scripts/proof/proof_phase6_vc.py",
@@ -22,6 +25,9 @@ EXPECTED_FILES = {
 }
 EXPECTED_CHECKS = {
     "phase5-boundary-hash-chain",
+    "selfhost-v1-scalar-upgrade-fail-closed",
+    "raw-to-canonical-v3-machine-profile",
+    "overflow-capable-source-upgrade-rejection",
     "signed-i32-i64-TypeId-metadata",
     "display-name-independent-machine-semantics",
     "checked-add-sub-mul-neg-overflow-vc",
@@ -42,6 +48,8 @@ EXPECTED_SCALARS = {
     "phase": 6,
     "status": "enforced",
     "capability_profile": "proof-phases-0-7@3",
+    "source_schema": "arukellt-typed-corehir@3",
+    "source_upgrade": "arukellt-selfhost-v1-scalar-upgrade-v1",
     "target_schema": "arukellt-verified-core@1",
     "semantic_validator": "typed_admission_v6.py@6",
     "solver_adapter": "smtlib_typed_v6.py@6",
