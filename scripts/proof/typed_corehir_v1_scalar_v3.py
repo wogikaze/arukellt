@@ -86,7 +86,7 @@ def _type_entry(
     rendered_representation = {
         key: copy.deepcopy(value)
         for key, value in representation.items()
-        if key in {"kind", "wasm", "nullable", "size_bytes", "align_bytes", "layout_id"}
+        if key in {"wasm", "nullable", "size_bytes", "align_bytes", "layout_id"}
     }
     result: dict[str, Any] = {
         "id": type_id,
