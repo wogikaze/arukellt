@@ -22,6 +22,7 @@ BINDING_WRITER = ROOT / "scripts" / "gen" / "write-source-proof-binding.py"
 RELEASE_CHECKER = ROOT / "scripts" / "check" / "check-proof-required-release.py"
 TOOLCHAIN_WRITER = ROOT / "scripts" / "gen" / "prepare-proof-release-toolchain.py"
 TOOLCHAIN_WRITER_IMPL = ROOT / "scripts" / "gen" / "prepare_proof_release_toolchain_impl.py"
+TOOLCHAIN_WRITER_V7 = ROOT / "scripts" / "gen" / "prepare-proof-release-toolchain-v7.py"
 RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "proof-required-release.yml"
 PROOF_WORKFLOW = ROOT / ".github" / "workflows" / "typed-contract-frontend.yml"
 REGISTRY_WORKFLOW = ROOT / ".github" / "workflows" / "versioned-boundary-registry.yml"
@@ -50,14 +51,16 @@ def main() -> int:
     if not isinstance(gates, dict) or gates.get("versioned_boundary_artifacts") is not True:
         raise ValueError("release policy does not enable versioned_boundary_artifacts")
 
-    if BINDING_VERSION != 4:
-        raise ValueError(f"source proof binding must be v4, found v{BINDING_VERSION}")
+    if BINDING_VERSION != 5:
+        raise ValueError(f"source proof binding must be v5, found v{BINDING_VERSION}")
     required_binding_artifacts = {
+        "typed_corehir",
+        "typed_corehir_canonical",
         "boundary_registry",
         "boundary_registry_validation_receipt",
     }
     if not required_binding_artifacts <= set(REQUIRED_ARTIFACTS):
-        raise ValueError("source proof binding omits registry evidence")
+        raise ValueError("source proof binding omits raw/canonical proof source or registry evidence")
 
     release_command = RELEASE_COMMAND.read_text(encoding="utf-8")
     binding_writer = BINDING_WRITER.read_text(encoding="utf-8")
@@ -66,6 +69,8 @@ def main() -> int:
         TOOLCHAIN_WRITER.read_text(encoding="utf-8")
         + "\n"
         + TOOLCHAIN_WRITER_IMPL.read_text(encoding="utf-8")
+        + "\n"
+        + TOOLCHAIN_WRITER_V7.read_text(encoding="utf-8")
     )
     release_workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
     proof_workflow = PROOF_WORKFLOW.read_text(encoding="utf-8")
@@ -75,6 +80,11 @@ def main() -> int:
     for token, label in (
         ("check-boundary-registry.py", "registry validation command"),
         ("check-boundary-registry-receipt.py", "independent registry receipt command"),
+        ("upgrade-typed-corehir-v1-scalar-v3.py", "raw-to-canonical source upgrade"),
+        ("convert-typed-corehir-v7.py", "Phase 7 source converter"),
+        ("write-smt-vcs-v7.py", "Phase 7 SMT writer"),
+        ("--typed-corehir-canonical", "canonical source binding argument"),
+        ("--typed-corehir-raw", "raw source toolchain argument"),
         ("--boundary-registry", "source binding registry argument"),
         ("--boundary-registry-validation-receipt", "source binding receipt argument"),
         ("write-source-proof-binding.py", "source binding writer invocation"),
@@ -83,57 +93,42 @@ def main() -> int:
         ("check-proof-required-release.py", "release authorization invocation"),
     ):
         require(release_command, token, label)
-    require_order(
-        release_command,
-        "check-boundary-registry.py",
-        "check-boundary-registry-receipt.py",
-        "registry validation sequence",
-    )
-    require_order(
-        release_command,
-        "check-boundary-registry-receipt.py",
-        "write-source-proof-binding.py",
-        "registry-to-source-binding sequence",
-    )
-    require_order(
-        release_command,
-        "write-source-proof-binding.py",
-        "run-proof-solver.py",
-        "source-binding-to-solver sequence",
-    )
+    require_order(release_command, "check-boundary-registry.py", "check-boundary-registry-receipt.py", "registry validation sequence")
+    require_order(release_command, "upgrade-typed-corehir-v1-scalar-v3.py", "convert-typed-corehir-v7.py", "source upgrade sequence")
+    require_order(release_command, "convert-typed-corehir-v7.py", "write-smt-vcs-v7.py", "v7 translation sequence")
+    require_order(release_command, "write-smt-vcs-v7.py", "write-source-proof-binding.py", "solver-input-to-binding sequence")
+    require_order(release_command, "check-boundary-registry-receipt.py", "write-source-proof-binding.py", "registry-to-source-binding sequence")
+    require_order(release_command, "write-source-proof-binding.py", "prepare-proof-release-toolchain-v7.py", "binding-to-toolchain sequence")
+    require_order(release_command, "prepare-proof-release-toolchain-v7.py", "run-proof-solver.py", "toolchain-to-solver sequence")
 
     for text, label in (
         (binding_writer, "source binding writer"),
         (release_checker, "release checker"),
     ):
+        require(text, '"typed_corehir_canonical"', f"{label} canonical source path map")
         require(text, '"boundary_registry"', f"{label} registry path map")
-        require(
-            text,
-            '"boundary_registry_validation_receipt"',
-            f"{label} validation receipt path map",
-        )
+        require(text, '"boundary_registry_validation_receipt"', f"{label} validation receipt path map")
 
     for token, label in (
-        ('"source-artifact-binding", "4"', "source binding v4 TrustManifest component"),
+        ('"source-artifact-binding", "5"', "source binding v5 TrustManifest component"),
+        ('"proof-source-upgrader", "1"', "v1 to v3 upgrader TrustManifest component"),
+        ('"proof-source-converter-cli", "7"', "v7 converter CLI TrustManifest component"),
+        ('"typed-smt-adapter-cli", "7"', "v7 SMT CLI TrustManifest component"),
         ('"major-boundary-registry"', "registry TrustManifest component"),
         ('"major-boundary-registry-validator"', "registry validator TrustManifest component"),
         ('"major-boundary-receipt-validator"', "receipt validator TrustManifest component"),
         ('"major-boundary-receipt-checker"', "receipt checker TrustManifest component"),
     ):
         require(toolchain_writer, token, label)
-    if "source-proof-binding-v3" in toolchain_writer or '"source-artifact-binding", "3"' in toolchain_writer:
-        raise ValueError("legacy source-artifact-binding v3 remains in release toolchain")
+    if "source-proof-binding-v4" in toolchain_writer or '"source-artifact-binding", "4"' in toolchain_writer:
+        raise ValueError("legacy source-artifact-binding v4 remains in release toolchain")
 
     for workflow, label in (
         (release_workflow, "release workflow"),
         (proof_workflow, "proof workflow"),
     ):
         require(workflow, "release/boundary-registry.json", f"{label} registry retention")
-        require(
-            workflow,
-            ".build/proof/boundary-registry-validation.json",
-            f"{label} validation receipt retention",
-        )
+        require(workflow, ".build/proof/boundary-registry-validation.json", f"{label} validation receipt retention")
         require(workflow, "test_boundary_registry", f"{label} registry negative tests")
         require(workflow, "solver-result.json", f"{label} complete solver result")
 
@@ -152,7 +147,10 @@ def main() -> int:
         ('"scripts/proof/boundary_registry_receipt.py"', "release enforcement receipt validator binding"),
         ('"scripts/check/check-versioned-boundary-enforcement.py"', "release enforcement integration checker binding"),
         ('"scripts/tests/test_boundary_registry.py"', "release enforcement negative tests binding"),
-        ('"scripts/tests/test_source_proof_binding.py"', "release enforcement binding-v4 tests"),
+        ('"scripts/tests/test_source_proof_binding.py"', "release enforcement binding-v5 tests"),
+        ('"scripts/proof/typed_corehir_v1_scalar_v3.py"', "raw-to-canonical upgrader binding"),
+        ('"scripts/gen/convert-typed-corehir-v7.py"', "v7 converter CLI binding"),
+        ('"scripts/gen/write-smt-vcs-v7.py"', "v7 SMT CLI binding"),
         ("pinned major boundary registry and validation receipt", "authorization binding declaration"),
     ):
         require(enforcement_receipt, token, label)
