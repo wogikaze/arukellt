@@ -95,10 +95,10 @@ def _validate_phase7_chain(bound_paths: Mapping[str, Path], manifest: dict[str, 
 
     raw_version = raw_source.get("schema_version")
     if raw_version == 1:
-        if canonical_source.get("generator") != "arukellt-selfhost-v1-scalar-upgrade-v1":
-            raise ProofRequiredReleaseError("v1 producer source is not bound to the trusted scalar v3 upgrader")
-        _require_component_version(manifest, "proof-source-upgrader", "1")
-        _require_component_version(manifest, "proof-source-upgrade-cli", "1")
+        if canonical_source.get("generator") != "arukellt-selfhost-v1-proof-upgrade-v2":
+            raise ProofRequiredReleaseError("v1 producer source is not bound to the trusted proof v3 upgrader")
+        _require_component_version(manifest, "proof-source-upgrader", "2")
+        _require_component_version(manifest, "proof-source-upgrade-cli", "2")
     elif raw_version == 3:
         if sha256_file(bound_paths["typed_corehir"]) != sha256_file(bound_paths["typed_corehir_canonical"]):
             raise ProofRequiredReleaseError("native v3 raw/canonical TypedCoreHIR artifacts must be identical")
