@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master]
   push:
-    branches: [master]
+    branches: [master, agent/proof-phase-5-7]
     tags: ["v*", "[0-9]*"]
   workflow_dispatch:
 
@@ -45,7 +45,13 @@ jobs:
             scripts.tests.test_typed_corehir_v2_aggregates \
             scripts.tests.test_proof_phase6_machine_int \
             scripts.tests.test_proof_phase7_readonly_memory \
-            scripts.tests.test_typed_corehir_v3_machine_memory
+            scripts.tests.test_typed_corehir_v3_machine_memory \
+            scripts.tests.test_proof_release_toolchain_v7
+
+      - name: Validate release trust integration
+        run: |
+          python3 -m unittest scripts.tests.test_boundary_registry scripts.tests.test_source_proof_binding
+          python3 scripts/check/check-versioned-boundary-enforcement.py
 
       - name: Install Z3
         run: |
