@@ -63,6 +63,30 @@ def _source_version(path: Path) -> tuple[int, dict]:
     return version, document
 
 
+def _apply_source_profile(document: dict, source_version: int) -> bool:
+    if source_version not in {1, 2, 3}:
+        raise ValueError(f"unsupported TypedCoreHIR source version: {source_version!r}")
+    active = source_version == 3
+    profile = document["semantic_profile"]
+    profile["source_schema_version"] = source_version
+    profile["phase67_available"] = True
+    profile["phase67_active"] = active
+    if active:
+        document["translator"]["version"] = "7"
+        profile.update({
+            "integer_model": "machine",
+            "overflow": "checked",
+            "floating_point": "unsupported",
+            "machine_integer_model": "arukellt-machine-int-v1",
+            "machine_integer_encoding": "arukellt-machine-int-range-v1",
+            "memory": "read-only-heap",
+            "memory_model": "arukellt-readonly-heap-v1",
+            "memory_encoding": "arukellt-readonly-heap-smt-v1",
+            "capability_profile": "proof-phases-0-7@3",
+        })
+    return active
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runtime", type=Path, required=True)
@@ -86,23 +110,9 @@ def main() -> int:
     ]
     subprocess.run(command, cwd=ROOT, check=True)
     document = json.loads(args.toolchain_output.read_text(encoding="utf-8"))
-    document["semantic_profile"]["source_schema_version"] = source_version
-    document["semantic_profile"]["phase67_available"] = True
-    document["semantic_profile"]["phase67_active"] = source_version == 3
+    active = _apply_source_profile(document, source_version)
 
-    if source_version == 3:
-        document["translator"]["version"] = "7"
-        document["semantic_profile"].update({
-            "integer_model": "machine",
-            "overflow": "checked",
-            "floating_point": "unsupported",
-            "machine_integer_model": "arukellt-machine-int-v1",
-            "machine_integer_encoding": "arukellt-machine-int-range-v1",
-            "memory": "read-only-heap",
-            "memory_model": "arukellt-readonly-heap-v1",
-            "memory_encoding": "arukellt-readonly-heap-smt-v1",
-            "capability_profile": "proof-phases-0-7@3",
-        })
+    if active:
         for name, role, version, relative in EXTRA_COMPONENTS:
             _copy_component(document, args.output_dir, name=name, role=role, version=version, source=ROOT / relative)
 
@@ -127,7 +137,7 @@ def main() -> int:
     args.toolchain_output.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
         "proof-release-toolchain-v7: PASS: "
-        f"source_schema=v{source_version} phase67_active={source_version == 3} "
+        f"source_schema=v{source_version} phase67_active={active} "
         f"components={len(document['trusted_components'])} output={args.toolchain_output}"
     )
     return 0
