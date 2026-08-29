@@ -149,9 +149,9 @@ fn local_vec_access_storage_type(
                     Option::None => {}
                 }
                 let receiver =
-                    vec_access_receiver_local(block, inst_index, inst)
+                vec_access_receiver_local(block, inst_index, inst)
                 let from_type_id =
-                    vec_element_storage_type_from_receiver(f, receiver, ctx)
+                vec_element_storage_type_from_receiver(f, receiver, ctx)
                 match from_type_id {
                     Option::Some(_storage_type) => {
                         return from_type_id
@@ -349,12 +349,12 @@ fn local_direct_producer_storage_type(
             let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
             if inst_accessors_operands::MirInst_dest(inst) == local_idx {
                 let inferred =
-                    code_ref_locals_infer_dest::infer_ref_local_from_producer(
-                        f,
-                        inst,
-                        inst_accessors_shape::MirInst_op(inst),
-                        ctx
-                    )
+                code_ref_locals_infer_dest::infer_ref_local_from_producer(
+                    f,
+                    inst,
+                    inst_accessors_shape::MirInst_op(inst),
+                    ctx
+                )
                 match inferred {
                     Option::Some(_storage_type) => {
                         return inferred
