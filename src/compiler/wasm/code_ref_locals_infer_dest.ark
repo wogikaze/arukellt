@@ -64,13 +64,9 @@ fn infer_raw_array_grow_result_gc_type(
     }
     let receiver = inst_accessors_operands::MirInst_arg0(inst)
     if receiver >= 0 && receiver < function_locals_view::MirFunction_local_count(f) {
-        let from_local = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, receiver)
-        if from_local >= 0 {
-            return Option::Some(from_local)
-        }
-        let from_type_id = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, receiver)
-        if from_type_id >= 0 {
-            return Option::Some(from_type_id)
+        let from_name = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, receiver)
+        if from_name >= 0 {
+            return Option::Some(from_name)
         }
     }
     let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(
@@ -78,10 +74,19 @@ fn infer_raw_array_grow_result_gc_type(
         inst_accessors_literals::MirInst_str_val(inst),
         inst
     )
-    if vec_type < 0 {
-        return Option::None
+    if vec_type >= 0 && vec_type != ctx_gc_type::SelfEmitCtx_vec_type(ctx) {
+        return Option::Some(vec_type)
     }
-    Option::Some(vec_type)
+    if receiver >= 0 && receiver < function_locals_view::MirFunction_local_count(f) {
+        let from_type_id = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, receiver)
+        if from_type_id >= 0 && from_type_id != ctx_gc_type::SelfEmitCtx_vec_type(ctx) {
+            return Option::Some(from_type_id)
+        }
+    }
+    if vec_type >= 0 {
+        return Option::Some(vec_type)
+    }
+    Option::None
 }
 
 fn is_get_unchecked_callee_name(name: String) -> bool {

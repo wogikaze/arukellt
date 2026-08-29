@@ -454,18 +454,12 @@ fn local_set_non_string_storage_type(
             !is_vec_storage_binding(ctx, storage_type, clone(type_name)) {
                 return direct_storage
             }
-            if direct_type != string_type && len(type_name) == 0 {
+            if leftover_i32_vec_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) ||
+            (direct_type != string_type && len(type_name) == 0) {
                 let copied = copied_non_string_storage_type(f, local_idx, ctx, 0)
                 match copied {
                     Option::Some(_copied_type) => {
                         return copied
-                    }
-                    Option::None => {}
-                }
-                let forward = vec_element_storage_from_forward_copy(f, local_idx, ctx)
-                match forward {
-                    Option::Some(_forward_type) => {
-                        return forward
                     }
                     Option::None => {}
                 }
@@ -476,10 +470,42 @@ fn local_set_non_string_storage_type(
     }
     if len(type_name) > 0 &&
     storage_type >= 0 &&
-    storage_type != string_type {
+    storage_type != string_type &&
+    !is_unmarked_temp_local_name(local_access::MirLocal_name(loc)) {
         return Option::None
     }
     copied_non_string_storage_type(f, local_idx, ctx, 0)
+}
+
+fn is_unmarked_temp_local_name(name: String) -> bool {
+    starts_with(clone(name), "_t") || starts_with(clone(name), "#local")
+}
+
+fn leftover_i32_vec_yields_to_infer(
+    ctx: SelfEmitCtx,
+    leftover_type: i32,
+    type_name: String,
+    infer_type: i32
+) -> bool {
+    if infer_type < 0 || infer_type == leftover_type || !is_vec_storage_type_idx(ctx, infer_type) {
+        return false
+    }
+    leftover_type == ctx_gc_type::SelfEmitCtx_vec_type(ctx) ||
+    eq(clone(type_name), "vec:i32") ||
+    eq(clone(type_name), "Vec<i32>") ||
+    eq(clone(type_name), "Vec_i32") ||
+    eq(clone(type_name), "Vec")
+}
+
+fn is_vec_storage_type_idx(ctx: SelfEmitCtx, type_idx: i32) -> bool {
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_string_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_i64_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_f64_type(ctx) ||
+    type_idx == ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx) ||
+    type_idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx) ||
+    type_idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) ||
+    type_idx == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx)
 }
 
 fn is_vec_storage_binding(ctx: SelfEmitCtx, storage_type: i32, type_name: String) -> bool {
