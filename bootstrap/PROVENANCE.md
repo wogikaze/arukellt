@@ -17,7 +17,7 @@ the four gates do **not** require the legacy Rust binary
 | sha256 | `4f4b89920d27f8e5c801e0bf21f9dced9d311e9258ddc0a98c92fa9d56fc9c99` |
 | Built from commit | `53ce8aac` wasm32-gc TypeSectionPlan + gc_hint overlay (s3==s4) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
-| Producer | Host-linker s2→s3→s4 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
+| Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Intermediate s3==s4 before refresh. Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
 ## Reproducibility recipe
 
