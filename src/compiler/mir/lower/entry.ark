@@ -36,12 +36,16 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let mono_view = mono_view::mir_lower_mono_view_from_core(view)
     let midx = mono_view::mir_lower_mono_view_index(mono_view)
     let fn_index_info = entry_fn_index_facade::mir_build_fn_index_from_view(view, midx, m)
+    let t_after_fn_index = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "fn_index", t_enter, t_after_fn_index)
     let mir_tr = entry_trace::mir_lower_entry_trace_enabled()
     mir_lower_trace_line(mir_tr, -1, decl_count, entry_fn_index_facade::mir_fn_index_typed_fn_count(fn_index_info), 0, 0)
     let source_text = clone(input.source_text)
     let fn_source_locations = entry_source_locations::compute_fn_source_locations(view, input.decl_nodes, clone(source_text))
     let ctx = entry_context::mir_prepare_lower_ctx(m, fn_index_info, mono_view, mir_tr, input.wit_paths, input.decl_nodes, input.target, source_text, fn_source_locations)
     registry_view::mir_register_view_layouts(ctx, view)
+    let t_after_ctx = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "ctx_prep", t_after_fn_index, t_after_ctx)
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
     // Nested struct fields register parents before children; reorder so gcsref
     // type indices are never forward references in the Wasm type section.
@@ -49,6 +53,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     ctx_gc_enum::ctx_flush_gc_enum_variants(ctx)
     ctx_gc_struct::ctx_flush_gc_structs(ctx)
     let t_after_decl = entry_timing::mir_lower_phase_now()
+    entry_timing::mir_lower_phase_note(timing, "body_emit", t_after_ctx, t_after_decl)
     entry_timing::mir_lower_phase_note(timing, "decl_emit", t_enter, t_after_decl)
 
     let module = ctx_api_module::ctx_current_module(ctx)
