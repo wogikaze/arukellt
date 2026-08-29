@@ -184,6 +184,9 @@ SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
 # Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds.
 # Pinned bootstrap is memory32 wasm32-gc / wasi-p2 (#834); host-linker runs it.
+# Official pin stays wasm32-gc / wasi-p2 (#834). wasm32 self-emit validates, but
+# a wasm32 successor of current overlay still leaks on full-compiler compile.
+# Do not flip BOOTSTRAP_EMIT until that successor runs overlay and s2==s3.
 BOOTSTRAP_EMIT_TARGET = "wasm32-gc"
 BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p2"
 # KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
@@ -709,27 +712,52 @@ def _fixpoint_cache_try_write(
     _fixpoint_cache_write(root, entry)
 
 
+def _wasm_section_payload(data: bytes, section_id: int) -> bytes | None:
+    """Return the first section payload with ``section_id``, or None."""
+    if len(data) < 8 or data[0:4] != b"\x00asm":
+        return None
+    offset = 8
+    while offset < len(data):
+        sid = data[offset]
+        offset += 1
+        size, offset = _read_leb_u32(data, offset)
+        end = offset + size
+        if end > len(data):
+            return None
+        if sid == section_id:
+            return data[offset:end]
+        offset = end
+    return None
+
+
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP/P2 ABI)."""
+    """True when guest *imports* need tools/host-linker (bridged HTTP/TCP/P2 ABI).
+
+    Scan only the import section. Data-section string literals such as
+    ``wasi:cli/`` in a wasm32/p1 compiler module used to false-trigger this
+    and skip Memory64 widen, then the 4GiB heap faulted.
+    """
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
+    imports = _wasm_section_payload(data, 2)
+    hay = imports if imports is not None else b""
     # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
     # or core wasi-p2 imports that plain wasmtime cannot link (#834).
     return (
-        b"arukellt_host" in data
-        or b"wasi:http/outgoing-handler@" in data
-        or b"wasi:http/incoming-handler@" in data
-        or b"wasi:sockets/tcp@" in data
-        or b"wasi:cli/" in data
-        or b"wasi:filesystem/" in data
-        or b"arukellt:fs@" in data
-        or b"sockets_connect" in data
-        or b"sockets_listen" in data
-        or b"http_get" in data
-        or b"http_request" in data
-        or b"http_serve" in data
+        b"arukellt_host" in hay
+        or b"wasi:http/outgoing-handler@" in hay
+        or b"wasi:http/incoming-handler@" in hay
+        or b"wasi:sockets/tcp@" in hay
+        or b"wasi:cli/" in hay
+        or b"wasi:filesystem/" in hay
+        or b"arukellt:fs@" in hay
+        or b"sockets_connect" in hay
+        or b"sockets_listen" in hay
+        or b"http_get" in hay
+        or b"http_request" in hay
+        or b"http_serve" in hay
     )
 
 
