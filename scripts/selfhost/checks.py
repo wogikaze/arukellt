@@ -237,25 +237,46 @@ BOOTSTRAP_REQUIRED_MIR_OPT_SOURCES = (
     "mir_opt/stdlib_inline_eligibility.ark",
     "mir_opt/stdlib_inline_locals.ark",
     "mir_opt/stdlib_inline_rewrite.ark",
+    "mir_opt/gc_hint.ark",
+    "mir_opt/gc_hint_core.ark",
+    "mir_opt/loop_regions.ark",
+    "mir_opt/summary_record.ark",
 )
 
 # Bootstrap overlay: freeze wasm/mir gc_hint files at pre-ff8f8ded (selfhost trap).
 BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {}
 
-# ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
+# Full mir_opt (LICM / loop_unroll) still traps in some flat-overlay hops.
+# Keep the namespace stubbed and enable only stdlib inline + validated gc_hint.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
 # Nested imports that flatten to the namespace owner when the namespace is stubbed.
 BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
     ("mir_opt", "optimize_module"): "mir_opt",
 }
-BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — retain only the bounded stdlib pass.
+BOOTSTRAP_MIR_OPT_STUB = """// Overlay stub — stdlib inline plus validated gc_hint (LICM/unroll stay out).
+use mir_module_functions
+use mir_opt_gc_hint
 use mir_opt_stdlib_inline
 
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+    let _target = target
     if opt_level >= 1 {
         mir_opt_stdlib_inline::stdlib_inline_module(m)
     }
     mir_opt_stdlib_inline::stdlib_resolve_normal_calls(m)
+    if opt_level < 2 {
+        return m
+    }
+    let fn_count = mir_module_functions::MirModule_function_count(m)
+    let updated = Vec::new<MirFunction>()
+    let mut fi = 0
+    while fi < fn_count {
+        let f = mir_module_functions::MirModule_function_at(m, fi)
+        mir_opt_gc_hint::run_gc_hint(f)
+        push(updated, f)
+        fi = fi + 1
+    }
+    mir_module_functions::MirModule_set_functions(m, updated)
     m
 }
 """
