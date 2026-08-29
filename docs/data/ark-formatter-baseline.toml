@@ -14,9 +14,6 @@ sha256 = "da974e25854efe40a8afb35c268213075800f1df4b8c663689fccfbf772f2486"
 path = "src/compiler/component/emit_resource.ark"
 sha256 = "5b1bd95f7c4f71999bd9f673d2d881be550fa38e9b57fc9cd025ac2f16afb2c8"
 [[exceptions]]
-path = "src/compiler/component/emit_tier3_roundtrip.ark"
-sha256 = "6698556fa0557a14870ff9a71c2ef561361d55853c568c5cc125d6d5e5443893"
-[[exceptions]]
 path = "src/compiler/diagnostics/codes.ark"
 sha256 = "4fcf2f36f51d1321db375c5940b73a49afd1d9cf512fd8483e69795bd901a721"
 [[exceptions]]
