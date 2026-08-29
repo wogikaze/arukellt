@@ -108,18 +108,43 @@ fn try_register_known(
         ("wasi:cli/environment@0.2.0", "environ-get") => register_environ_get(linker, ft),
         ("wasi:cli/stdin@0.2.0", "read") => register_stdin_read(linker, ft),
         ("wasi:cli/exit@0.2.0", "exit") => register_exit(linker, ft),
-        ("wasi:filesystem/types@0.2.0", "open-at") => register_open_at(linker, ft),
+        ("wasi:filesystem/types@0.2.0", "open-at") => {
+            register_open_at(linker, ft, "wasi:filesystem/types@0.2.0", "open-at")
+        }
         // Bridged fd_read/fd_write ABI: prefer arukellt:fs (#834 close-gates).
         // Keep wasi:filesystem aliases so the previous pin can still bootstrap.
-        ("arukellt:fs@0.1.0", "read") => register_fs_read(linker, ft, "arukellt:fs@0.1.0"),
-        ("arukellt:fs@0.1.0", "write") => register_fs_write(linker, ft, "arukellt:fs@0.1.0"),
+        ("arukellt:fs@0.1.0", "read") => {
+            register_fs_read(linker, ft, "arukellt:fs@0.1.0", "read")
+        }
+        ("arukellt:fs@0.1.0", "write") => {
+            register_fs_write(linker, ft, "arukellt:fs@0.1.0", "write")
+        }
         ("wasi:filesystem/types@0.2.0", "read") => {
-            register_fs_read(linker, ft, "wasi:filesystem/types@0.2.0")
+            register_fs_read(linker, ft, "wasi:filesystem/types@0.2.0", "read")
         }
         ("wasi:filesystem/types@0.2.0", "write") => {
-            register_fs_write(linker, ft, "wasi:filesystem/types@0.2.0")
+            register_fs_write(linker, ft, "wasi:filesystem/types@0.2.0", "write")
         }
-        ("wasi:filesystem/types@0.2.0", "close") => register_fs_close(linker, ft),
+        ("wasi:filesystem/types@0.2.0", "close") => {
+            register_fs_close(linker, ft, "wasi:filesystem/types@0.2.0", "close")
+        }
+        // New emitter names the same P1-shaped FS ABI under the versioned
+        // runtime host module. Stubbing these made s3 compile empty programs.
+        ("arukellt:runtime/host@0.1.0", "runtime_fs_open_at") => register_open_at(
+            linker,
+            ft,
+            "arukellt:runtime/host@0.1.0",
+            "runtime_fs_open_at",
+        ),
+        ("arukellt:runtime/host@0.1.0", "runtime_fs_read") => {
+            register_fs_read(linker, ft, "arukellt:runtime/host@0.1.0", "runtime_fs_read")
+        }
+        ("arukellt:runtime/host@0.1.0", "runtime_fs_write") => {
+            register_fs_write(linker, ft, "arukellt:runtime/host@0.1.0", "runtime_fs_write")
+        }
+        ("arukellt:runtime/host@0.1.0", "runtime_fs_close") => {
+            register_fs_close(linker, ft, "arukellt:runtime/host@0.1.0", "runtime_fs_close")
+        },
         ("wasi:clocks/monotonic-clock@0.2.0", "now") => register_clock_now(linker, mod_name, field_name, ft),
         ("wasi:clocks/wall-clock@0.2.0", "now") => register_clock_now(linker, mod_name, field_name, ft),
         ("wasi:random/random@0.2.0", "get-random-u64") => register_random_u64(linker, ft),
@@ -359,12 +384,17 @@ fn register_exit(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), Stri
     Ok(())
 }
 
-fn register_open_at(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), String> {
+fn register_open_at(
+    linker: &mut Linker<P2Store>,
+    ft: &FuncType,
+    module: &'static str,
+    field_name: &'static str,
+) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
-            "wasi:filesystem/types@0.2.0",
-            "open-at",
+            module,
+            field_name,
             ft,
             move |mut caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
                 // (dirfd, dirflags, path_ptr, path_len, oflags, rights_base:i64,
@@ -463,12 +493,13 @@ fn register_fs_read(
     linker: &mut Linker<P2Store>,
     ft: &FuncType,
     module: &'static str,
+    field_name: &'static str,
 ) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
             module,
-            "read",
+            field_name,
             ft,
             move |mut caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
                 let errno = fs_iov(&mut caller, p, true);
@@ -486,12 +517,13 @@ fn register_fs_write(
     linker: &mut Linker<P2Store>,
     ft: &FuncType,
     module: &'static str,
+    field_name: &'static str,
 ) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
             module,
-            "write",
+            field_name,
             ft,
             move |mut caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
                 let errno = fs_iov(&mut caller, p, false);
@@ -505,12 +537,17 @@ fn register_fs_write(
     Ok(())
 }
 
-fn register_fs_close(linker: &mut Linker<P2Store>, ft: &FuncType) -> Result<(), String> {
+fn register_fs_close(
+    linker: &mut Linker<P2Store>,
+    ft: &FuncType,
+    module: &'static str,
+    field_name: &'static str,
+) -> Result<(), String> {
     let ft = ft.clone();
     linker
         .func_new(
-            "wasi:filesystem/types@0.2.0",
-            "close",
+            module,
+            field_name,
             ft,
             move |caller: Caller<'_, P2Store>, p: &[Val], r: &mut [Val]| {
                 let fd = match p.first() {
