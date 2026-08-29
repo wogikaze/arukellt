@@ -1,23 +1,65 @@
 // WIT import naming — canonical shared mangling for Arukellt bindings (#653, #706).
+//
+// Algorithms live here instead of `std::wit::names::*` calls. In a full
+// compiler compile the host DCE misses those module-path edges, so the
+// wrappers become drop+unreachable and return an i32 local as String
+// (`expected ref, found i32` at wit_record_type_name). Isolated programs
+// that call `names::pascal_case` still validate.
 
-use std::wit::names
+use std::text
 
 fn wit_kebab_to_snake(name: String) -> String {
-    names::kebab_to_snake(name)
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 45 {
+            out = text::builder_append(out, String_from("_"))
+        } else {
+            out = text::builder_append(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
+}
+
+fn wit_pascal_case_text(name: String) -> String {
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    let mut capitalize_next = true
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 45 || ch == 95 {
+            capitalize_next = true
+        } else if capitalize_next {
+            if ch >= 97 && ch <= 122 {
+                out = text::builder_append(out, char_to_string(ch - 32))
+            } else {
+                out = text::builder_append(out, substring(name, i, i + 1))
+            }
+            capitalize_next = false
+        } else {
+            out = text::builder_append(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
 }
 
 fn wit_record_type_name(record_name: String) -> String {
-    names::pascal_case(record_name)
+    wit_pascal_case_text(record_name)
 }
 
 fn wit_import_func_name(wit_name: String) -> String {
-    names::kebab_to_snake(wit_name)
+    wit_kebab_to_snake(wit_name)
 }
 
 fn wit_enum_type_name(enum_name: String) -> String {
-    names::pascal_case(enum_name)
+    wit_pascal_case_text(enum_name)
 }
 
 fn wit_enum_variant_name(variant_name: String) -> String {
-    names::pascal_case(variant_name)
+    wit_pascal_case_text(variant_name)
 }

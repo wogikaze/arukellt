@@ -23,6 +23,11 @@ fn StringGeneralPlan_new(entries: Vec<StringGeneralExport>) -> StringGeneralPlan
     StringGeneralPlan { entries: entries }
 }
 
+fn StringGeneralPlan_empty() -> StringGeneralPlan {
+    let empty: Vec<StringGeneralExport> = Vec_new()
+    StringGeneralPlan_new(empty)
+}
+
 fn StringGeneralPlan_count(plan: StringGeneralPlan) -> i32 {
     len(plan.entries)
 }
@@ -42,14 +47,14 @@ fn comp_string_general_plan(mir: MirModule) -> StringGeneralPlan {
         if naming::comp_should_export_func(clone(export_name)) {
             export_count = export_count + 1
             if !export_shapes_string_predicates::comp_function_is_string_unary_export(f) {
-                return StringGeneralPlan_new(Vec_new())
+                return StringGeneralPlan_empty()
             }
             push(entries, StringGeneralExport_new(export_name))
         }
         i = i + 1
     }
     if export_count < 2 {
-        return StringGeneralPlan_new(Vec_new())
+        return StringGeneralPlan_empty()
     }
     StringGeneralPlan_new(entries)
 }

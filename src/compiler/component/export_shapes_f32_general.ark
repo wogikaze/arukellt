@@ -29,6 +29,11 @@ fn F32GeneralPlan_new(entries: Vec<F32GeneralExport>) -> F32GeneralPlan {
     F32GeneralPlan { entries: entries }
 }
 
+fn F32GeneralPlan_empty() -> F32GeneralPlan {
+    let empty: Vec<F32GeneralExport> = Vec_new()
+    F32GeneralPlan_new(empty)
+}
+
 fn F32GeneralPlan_count(plan: F32GeneralPlan) -> i32 {
     len(plan.entries)
 }
@@ -65,14 +70,14 @@ fn comp_f32_general_plan(mir: MirModule) -> F32GeneralPlan {
             export_count = export_count + 1
             let kind = comp_function_f32_scalar_export_kind(f)
             if kind < 0 {
-                return F32GeneralPlan_new(Vec_new())
+                return F32GeneralPlan_empty()
             }
             push(entries, F32GeneralExport_new(export_name, kind))
         }
         i = i + 1
     }
     if export_count < 2 {
-        return F32GeneralPlan_new(Vec_new())
+        return F32GeneralPlan_empty()
     }
     F32GeneralPlan_new(entries)
 }
