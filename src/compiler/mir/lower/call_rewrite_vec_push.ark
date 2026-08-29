@@ -39,7 +39,9 @@ fn mir_rewrite_vec_push(ctx: LowerCtx, callee_name: String, first_arg_idx: i32, 
             if eq(clone(arg_type_push), "vec:f64") {
                 rewritten = "push_f64"
             } else {
-                if starts_with(clone(arg_type_push), "vec:") {
+                if starts_with(clone(arg_type_push), "vec:") || len(arg_type_push) == 0 {
+                    // Empty type_name is the unannotated Vec::new<i32> dest.
+                    // Treat it as i32-element vec so core_op binds to vec_push.
                     rewritten = "vec_push"
                 }
             }

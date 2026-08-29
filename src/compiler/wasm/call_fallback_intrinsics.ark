@@ -18,6 +18,7 @@ use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use wasm::intrinsic_vec
+use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
 use wasm::runtime_abi_env_args
@@ -123,6 +124,20 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_vec_pop_callee(clone(callee)) {
         let on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Bare / rewritten `push` misses core_op and becomes drop+unreachable.
+    // That traps NameIndex_new (and every unannotated Vec<i32> push) on s3.
+    if is_vec_push_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, true)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_push_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_push_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_push_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_push(w, inst, ctx, true, next_op)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // Associated Vec::new / Vec::with_capacity fallback when MIR body is DCE'd (#845).
@@ -417,6 +432,31 @@ fn is_vec_pop_callee(callee: String) -> bool {
     eq(clone(callee), String_from("__intrinsic_pop")) ||
     ends_with(clone(callee), String_from("::pop")) ||
     ends_with(clone(callee), String_from("::vec_pop"))
+}
+
+fn is_vec_push_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("push")) ||
+    eq(clone(callee), String_from("vec_push")) ||
+    eq(clone(callee), String_from("__core_vec_push_i32_impl")) ||
+    eq(clone(callee), String_from("__intrinsic_push")) ||
+    eq(clone(callee), String_from("__intrinsic_vec_push")) ||
+    eq(clone(callee), String_from("Vec::push")) ||
+    ends_with(clone(callee), String_from("::push")) ||
+    ends_with(clone(callee), String_from("::vec_push"))
+}
+
+fn is_vec_push_i64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("push_i64")) ||
+    eq(clone(callee), String_from("vec_push_i64")) ||
+    eq(clone(callee), String_from("__core_vec_push_i64_impl")) ||
+    ends_with(clone(callee), String_from("::push_i64"))
+}
+
+fn is_vec_push_f64_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("push_f64")) ||
+    eq(clone(callee), String_from("vec_push_f64")) ||
+    eq(clone(callee), String_from("__core_vec_push_f64_impl")) ||
+    ends_with(clone(callee), String_from("::push_f64"))
 }
 
 fn finish_intrinsic_fallback(
