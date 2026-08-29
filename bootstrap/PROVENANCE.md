@@ -13,11 +13,11 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 5 553 192 bytes (≈ 5.30 MiB) |
-| sha256 | `4d2da710115215965514608fe8f1d70cedabba35adf1c729abb0c0d2aa7539bd` |
-| Built from commit | #834 GC pin two-round fixpoint `4d2da710` (parse_f64_gc, literal_int OOB, arukellt:fs) |
+| Size | 6 950 518 bytes (≈ 6.63 MiB) |
+| sha256 | `4f4b89920d27f8e5c801e0bf21f9dced9d311e9258ddc0a98c92fa9d56fc9c99` |
+| Built from commit | `53ce8aac` wasm32-gc TypeSectionPlan + gc_hint overlay (s3==s4) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
-| Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS bridged via arukellt:fs@0.1.0; do not --to-memory64 |
+| Producer | Host-linker s2→s3→s4 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
 ## Reproducibility recipe
 
@@ -66,13 +66,23 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
-### wasm32-gc pinned (#834)
+### wasm32-gc pinned (`53ce8aac`)
 
 Pinned bootstrap is native `wasm32-gc` / `wasi-p2` with guest memory32
 (`(memory 8192)`). `BOOTSTRAP_EMIT_TARGET` / `BOOTSTRAP_EMIT_WASI_VERSION` in
 `scripts/selfhost/checks.py` match. `_ensure_bootstrap_compiler_wasm` copies
 the pin without `--to-memory64`. Execution uses `scripts/run/arukellt-run-hosted.sh`
-(host-linker) for `wasi:cli/` / `wasi:filesystem/` imports.
+(host-linker) for `wasi:cli/` and `arukellt:runtime/host@0.1.0` filesystem imports.
+
+Intentional drift from the previous #834 pin (`4d2da710`):
+
+- FS imports moved from `wasi:filesystem/types@0.2.0` + `arukellt:fs@0.1.0`
+  to `arukellt:runtime/host@0.1.0` (host-linker binds the same P1-shaped impls)
+- Extra runtime host func types shift GC array indices (was type 9, now 11)
+- TypeSectionPlan is the only type-index owner (`name=0 fallback=0`)
+- Vec push and `i32.to_string` no longer lower to `unreachable`
+- Overlay `optimize_module` runs validated `gc_hint` at O2 (LICM/unroll stay stubbed)
+- Ordinary structs emit `final`; enum base stays `open`
 
 ## Why this artifact is committed
 
