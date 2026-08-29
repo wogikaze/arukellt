@@ -69,15 +69,26 @@ impl DirGrant {
     }
 }
 
-pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+fn make_run_engine() -> Result<Engine, String> {
     let mut config = Config::new();
-    config.cranelift_opt_level(OptLevel::None);
+    // Selfhost compile is minutes of guest work. OptLevel::None made every
+    // phase 4–20× slower than wasmtime CLI (default Speed) on the same wasm.
+    // Debug runner keeps None so breakpoint modules stay cheap to compile.
+    config.cranelift_opt_level(OptLevel::Speed);
     config.wasm_bulk_memory(true);
     config.wasm_reference_types(true);
     config.wasm_function_references(true);
     config.wasm_gc(true);
+    // Compiled-module cache only — not AST / s3 / overlay source cache.
+    // First run pays Cranelift; later runs deserialize the same engine key.
+    if let Ok(cache) = Cache::new(CacheConfig::new()) {
+        config.cache(Some(cache));
+    }
+    Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))
+}
 
-    let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
+pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+    let engine = make_run_engine()?;
     let module = Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
 
