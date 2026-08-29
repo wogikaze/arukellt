@@ -455,6 +455,13 @@ fn local_set_non_string_storage_type(
                 return direct_storage
             }
             if direct_type != string_type && len(type_name) == 0 {
+                let copied = copied_non_string_storage_type(f, local_idx, ctx, 0)
+                match copied {
+                    Option::Some(_copied_type) => {
+                        return copied
+                    }
+                    Option::None => {}
+                }
                 return direct_storage
             }
         }
