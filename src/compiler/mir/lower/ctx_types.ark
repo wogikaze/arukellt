@@ -66,4 +66,7 @@ pub struct LowerCtx {
     mono_instances: Vec<MonoInstance>,
     source_text: String,
     fn_source_locations: Vec<SourceLocation>,
+    // Callee names that are not in fn_name_index (HashMap aliases, etc.).
+    // Must not go into MirModule.string_constants — the emitter dumps those.
+    edge_names: Vec<String>,
 }

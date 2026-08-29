@@ -53,5 +53,6 @@ fn LowerCtx_new_for_target(m: MirModule, target: String, source_text: String, fn
         mono_instances: Vec::new<MonoInstance>(),
         source_text: source_text,
         fn_source_locations: fn_source_locations,
+        edge_names: Vec::new<String>(),
     }
 }

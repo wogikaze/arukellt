@@ -1,4 +1,5 @@
 use mir::lower::ctx_api_module
+use mir::lower::ctx_call_edges
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_struct
 use mir::lower::ctx_gc_struct_order
@@ -57,10 +58,13 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     if prune_enabled {
         // Sync/propagate is O(locals^2) per function; prune with export roots first
         // so selfhost-scale modules do not sync the full emitter graph (#730).
-        let _pruned = reachability::mir_prune_unreachable_with_roots_for_target(
+        let _pruned = reachability::mir_prune_unreachable_with_roots_for_target_and_edges(
             module,
             export_roots,
-            clone(input.target)
+            clone(input.target),
+            ctx_call_edges::ctx_edge_table(ctx),
+            ctx_call_edges::ctx_edge_fn_names(ctx),
+            ctx_call_edges::ctx_edge_overflow_names(ctx)
         )
     }
     let fns_after = module_functions::MirModule_function_count(module)

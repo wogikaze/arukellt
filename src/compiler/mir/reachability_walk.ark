@@ -15,7 +15,251 @@ use corehir::signature_registry
 use mir::module_spine
 use wasm::hash_aliases
 
+fn mir_edge_header_len() -> i32 {
+    10
+}
+
+fn mir_edge_map_mark() -> i32 {
+    0 - 8
+}
+
+fn mir_edge_intern_bias() -> i32 {
+    1000000
+}
+
+fn mir_edge_ensure_i32_len(values: Vec<i32>, min_len: i32, fill: i32) {
+    while len(values) < min_len {
+        push(values, fill)
+    }
+}
+
+// Packed table: [fn_count, recorded[fn_count], offset[fn_count+1], callees...]
+fn mir_build_recorded_edge_lists(edges: Vec<i32>, fn_count: i32) -> Vec<i32> {
+    let recorded = Vec::new<i32>()
+    let counts = Vec::new<i32>()
+    let mut fi = 0
+    while fi < fn_count {
+        push(recorded, 0)
+        push(counts, 0)
+        fi = fi + 1
+    }
+    let n = len(edges)
+    let header = mir_edge_header_len()
+    let packed = Vec::new<i32>()
+    push(packed, fn_count)
+    if n <= header || fn_count <= 0 {
+        fi = 0
+        while fi < fn_count {
+            push(packed, 0)
+            fi = fi + 1
+        }
+        fi = 0
+        while fi <= fn_count {
+            push(packed, 0)
+            fi = fi + 1
+        }
+        return packed
+    }
+    let frame_to_mir = Vec::new<i32>()
+    let mark = mir_edge_map_mark()
+    let mut i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark {
+            if i + 2 >= n {
+                i = n
+            } else {
+                let frame = get_unchecked(edges, i + 1)
+                let mir = get_unchecked(edges, i + 2)
+                if frame >= 0 {
+                    mir_edge_ensure_i32_len(frame_to_mir, frame + 1, 0 - 1)
+                    set(frame_to_mir, frame, mir)
+                }
+                if mir >= 0 && mir < fn_count {
+                    set(recorded, mir, 1)
+                }
+                i = i + 3
+            }
+        } else {
+            i = i + 2
+        }
+    }
+    i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark {
+            if i + 2 >= n {
+                i = n
+            } else {
+                i = i + 3
+            }
+        } else if i + 1 >= n {
+            i = n
+        } else {
+            let frame = get_unchecked(edges, i)
+            if frame >= 0 && frame < len(frame_to_mir) {
+                let mir = get_unchecked(frame_to_mir, frame)
+                if mir >= 0 && mir < fn_count {
+                    set(recorded, mir, 1)
+                    set(counts, mir, get_unchecked(counts, mir) + 1)
+                }
+            }
+            i = i + 2
+        }
+    }
+    fi = 0
+    while fi < fn_count {
+        push(packed, get_unchecked(recorded, fi))
+        fi = fi + 1
+    }
+    let mut running = 1 + fn_count + fn_count + 1
+    fi = 0
+    while fi < fn_count {
+        push(packed, running)
+        running = running + get_unchecked(counts, fi)
+        fi = fi + 1
+    }
+    push(packed, running)
+    let cursor = Vec::new<i32>()
+    fi = 0
+    while fi < fn_count {
+        push(cursor, get_unchecked(packed, 1 + fn_count + fi))
+        fi = fi + 1
+    }
+    i = header
+    while i < n {
+        if get_unchecked(edges, i) == mark {
+            if i + 2 >= n {
+                i = n
+            } else {
+                i = i + 3
+            }
+        } else if i + 1 >= n {
+            i = n
+        } else {
+            let frame = get_unchecked(edges, i)
+            let fid = get_unchecked(edges, i + 1)
+            if frame >= 0 && frame < len(frame_to_mir) {
+                let mir = get_unchecked(frame_to_mir, frame)
+                if mir >= 0 && mir < fn_count {
+                    let at = get_unchecked(cursor, mir)
+                    mir_edge_ensure_i32_len(packed, at + 1, 0)
+                    set(packed, at, fid)
+                    set(cursor, mir, at + 1)
+                }
+            }
+            i = i + 2
+        }
+    }
+    packed
+}
+
 fn mir_enqueue_call_edges(
+    m: MirModule,
+    index: MirReachabilityIndex,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    f: MirFunction,
+    target: String,
+    packed: Vec<i32>,
+    fi: i32,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>
+) {
+    if len(packed) > 0 && fi >= 0 && fi < get_unchecked(packed, 0) {
+        mir_enqueue_recorded_callees(
+            m,
+            index,
+            functions,
+            reachable,
+            queue,
+            clone(target),
+            packed,
+            fi,
+            fn_names,
+            edge_names
+        )
+        return
+    }
+    mir_enqueue_call_edges_from_insts(m, index, functions, reachable, queue, f, target)
+}
+
+fn mir_enqueue_recorded_payload(
+    m: MirModule,
+    index: MirReachabilityIndex,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    payload: i32,
+    target: String,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>
+) {
+    if payload >= 0 {
+        reachability_index::mir_reachability_enqueue_by_func_id(index, reachable, queue, payload)
+        return
+    }
+    let tagged = 0 - payload - 10
+    if tagged < 0 {
+        return
+    }
+    let bias = mir_edge_intern_bias()
+    if tagged < bias {
+        if tagged < len(fn_names) {
+            reachability_names::mir_enqueue_reachable_name(
+                index,
+                functions,
+                reachable,
+                queue,
+                clone(get_unchecked(fn_names, tagged))
+            )
+        }
+        return
+    }
+    let overflow = tagged - bias
+    if overflow >= 0 && overflow < len(edge_names) {
+        reachability_names::mir_enqueue_reachable_name(
+            index,
+            functions,
+            reachable,
+            queue,
+            clone(get_unchecked(edge_names, overflow))
+        )
+    }
+}
+
+fn mir_enqueue_recorded_callees(
+    m: MirModule,
+    index: MirReachabilityIndex,
+    functions: Vec<MirFunction>,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    target: String,
+    packed: Vec<i32>,
+    fi: i32,
+    fn_names: Vec<String>,
+    edge_names: Vec<String>
+) {
+    let fn_count = get_unchecked(packed, 0)
+    let off = get_unchecked(packed, 1 + fn_count + fi)
+    let off_end = get_unchecked(packed, 1 + fn_count + fi + 1)
+    let mut i = off
+    while i < off_end && i < len(packed) {
+        mir_enqueue_recorded_payload(
+            m,
+            index,
+            functions,
+            reachable,
+            queue,
+            get_unchecked(packed, i),
+            clone(target),
+            fn_names,
+            edge_names
+        )
+        i = i + 1
+    }
+}
+
+fn mir_enqueue_call_edges_from_insts(
     m: MirModule,
     index: MirReachabilityIndex,
     functions: Vec<MirFunction>,
@@ -24,20 +268,23 @@ fn mir_enqueue_call_edges(
     f: MirFunction,
     target: String
 ) {
+    let call_op = opcodes::MIR_CALL()
+    let ref_op = opcodes::MIR_REF_FUNC()
+    let skip_fallback = eq(clone(target), String_from("wasm32-gc"))
     let block_count = function_block_queries::MirFunction_block_count(f)
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let insts = block_inst_access::MirBlock_instructions(block)
+        let inst_count = len(insts)
         let mut ii = 0
         while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let inst = get_unchecked(insts, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
-            if op == opcodes::MIR_CALL() || op == opcodes::MIR_REF_FUNC() {
+            if op == call_op || op == ref_op {
                 mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, clone(target))
             }
-            if op == opcodes::MIR_CALL() &&
-            !eq(clone(target), String_from("wasm32-gc")) {
+            if op == call_op && !skip_fallback {
                 let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
                 if len(fallback) > 0 {
                     mir_enqueue_symbol(m, index, functions, reachable, queue, fallback, clone(target))
@@ -64,7 +311,6 @@ fn mir_enqueue_inst_callee(
             return
         }
     }
-    // Unresolved FunctionId (or core-op-only id): string fallback.
     mir_enqueue_symbol(
         m,
         index,
@@ -106,10 +352,6 @@ fn mir_enqueue_symbol(
     if reachability_names::mir_enqueue_reachable_name(index, functions, reachable, queue, clone(symbol)) {
         return
     }
-    // Builtin HashMap_* names resolve at emit via hash_aliases; keep the same
-    // stdlib bodies reachable so DCE does not leave call sites as unreachable.
-    // native-cpp lowers CoreOp-bound HashMap_* directly; chasing hash_string /
-    // __hm_* Ark bodies would pull Wasm-GC slot intrinsics that native rejects.
     let alias = hash_aliases::hashmap_builtin_alias(clone(symbol))
     if eq(clone(alias), clone(symbol)) {
         return

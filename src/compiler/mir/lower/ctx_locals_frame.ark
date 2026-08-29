@@ -1,4 +1,5 @@
 use mir::block_alloc
+use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_index_storage
 use mir::lower::ctx_local_type_storage
@@ -26,6 +27,7 @@ fn LowerCtxLocalFrame_capture(ctx: LowerCtx) -> LowerCtxLocalFrame {
 }
 
 fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
+    ctx_call_edges::ctx_edge_restore_parent(ctx)
     ctx_current_storage::ctx_set_current_func_value(ctx, frame.func)
     ctx_current_storage::ctx_set_current_block_value(ctx, frame.cur_block)
     ctx_local_index_storage::ctx_local_index_restore(ctx, frame.local_names, frame.local_indices)
@@ -33,6 +35,7 @@ fn ctx_restore_local_frame(ctx: LowerCtx, frame: LowerCtxLocalFrame) {
 }
 
 fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
+    ctx_call_edges::ctx_edge_begin_function(ctx)
     ctx_current_storage::ctx_set_current_func_value(ctx, func)
     ctx_local_index_storage::ctx_local_index_reset_for_function(ctx)
     ctx_local_type_storage::ctx_local_type_reset_for_function(ctx)

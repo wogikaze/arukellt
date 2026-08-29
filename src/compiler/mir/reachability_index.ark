@@ -36,9 +36,17 @@ fn mir_reachability_index_bind_fid(m: MirModule, fid_to_mir: Vec<i32>, fname: St
     set(fid_to_mir, raw, fi)
 }
 
+fn mir_reachability_index_bind_name(name_to_mir: NameIndex, fname: String, fi: i32) {
+    name_index::name_index_insert_first(name_to_mir, clone(fname), fi)
+    let short = resolver::use_module_short_name(clone(fname))
+    if !eq(clone(short), clone(fname)) {
+        name_index::name_index_insert_first(name_to_mir, short, fi)
+    }
+}
+
 fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> MirReachabilityIndex {
     let fn_count = len(functions)
-    let name_to_mir = name_index::NameIndex_new(fn_count)
+    let name_to_mir = name_index::NameIndex_new(fn_count + fn_count)
     let fid_to_mir = Vec::new<i32>()
     let mut registry_count = 0
     if module_spine::MirModule_signature_spine_populated(m) {
@@ -55,7 +63,7 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
     while fi < fn_count {
         let f = get_unchecked(functions, fi)
         let fname = function_identity::MirFunction_name(f)
-        name_index::name_index_insert_first(name_to_mir, clone(fname), fi)
+        mir_reachability_index_bind_name(name_to_mir, clone(fname), fi)
         mir_reachability_index_bind_fid(m, fid_to_mir, fname, fi)
         fi = fi + 1
     }
@@ -91,6 +99,19 @@ fn mir_reachability_enqueue_by_func_id(
     mir_reachability_try_enqueue(reachable, queue, mir_index)
 }
 
+fn mir_reachability_enqueue_by_name_exact(
+    index: MirReachabilityIndex,
+    reachable: Vec<i32>,
+    queue: Vec<i32>,
+    name: String
+) -> bool {
+    let exact = name_index::name_index_get(index.name_to_mir, name)
+    if exact < 0 {
+        return false
+    }
+    mir_reachability_try_enqueue(reachable, queue, exact)
+}
+
 // Exact NameIndex hit first; short-name fallback scans all Mir names (rare path).
 fn mir_reachability_enqueue_by_name(
     index: MirReachabilityIndex,
@@ -107,17 +128,9 @@ fn mir_reachability_enqueue_by_name(
     if eq(clone(short), clone(name)) {
         return false
     }
-    let mut changed = false
-    let count = len(functions)
-    let mut i = 0
-    while i < count {
-        let f = get_unchecked(functions, i)
-        if eq(function_identity::MirFunction_name(f), clone(short)) {
-            if mir_reachability_try_enqueue(reachable, queue, i) {
-                changed = true
-            }
-        }
-        i = i + 1
+    let short_hit = name_index::name_index_get(index.name_to_mir, short)
+    if short_hit < 0 {
+        return false
     }
-    changed
+    mir_reachability_try_enqueue(reachable, queue, short_hit)
 }
