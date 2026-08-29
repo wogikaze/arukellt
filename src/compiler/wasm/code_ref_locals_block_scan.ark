@@ -443,7 +443,10 @@ fn local_set_non_string_storage_type(
     let type_name = local_access::MirLocal_type_name(loc)
     let storage_type =
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
-    if storage_type >= 0 &&
+    // Named locals keep their TypeId layout. Unmarked temps often inherit a
+    // leftover TypeId; the CALL/LOCAL_SET producer is the storage owner.
+    if len(type_name) > 0 &&
+    storage_type >= 0 &&
     storage_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
         return Option::None
     }
