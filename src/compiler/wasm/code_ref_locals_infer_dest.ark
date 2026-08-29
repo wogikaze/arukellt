@@ -400,7 +400,11 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 if starts_with(clone(field_sig), "ref") {
                     let offset_str = substring(clone(field_sig), 3, len(field_sig))
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
-                    return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
+                    let type_idx = ctx_gc_type::SelfEmitCtx_fixed_gc_type(ctx, offset)
+                    if type_idx < 0 {
+                        return Option::None
+                    }
+                    return Option::Some(type_idx)
                 }
             }
         }

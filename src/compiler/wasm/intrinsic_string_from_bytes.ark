@@ -91,7 +91,7 @@ fn emit_string_from_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
     let s_data = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
     let dest = inst_accessors_operands::MirInst_dest(inst)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let i32_array_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     // This CoreOp accepts Vec<i32> bytes. Context-wide Vec inference can pick
     // an unrelated Vec<String> local in the same function, so select the

@@ -1,4 +1,5 @@
 use wasm::ctx_record
+use wasm::ctx_gc_type
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::opcodes
@@ -50,7 +51,7 @@ fn emit_string_eq_setup(w: WasmWriter, s_a: i32, s_b: i32, s_la: i32, s_i: i32, 
 fn emit_string_eq_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_gc0 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_gc1 = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let s_la = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_result = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)

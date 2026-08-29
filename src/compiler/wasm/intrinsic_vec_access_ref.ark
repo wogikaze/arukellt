@@ -25,7 +25,7 @@ fn vec_ref_dest_storage_type(ctx: SelfEmitCtx, inst: MirInst) -> i32 {
     let loc = function_locals_view::MirFunction_local_at(f, dest)
     let vt = local_access::MirLocal_val_type(loc)
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
-        return ctx_record::SelfEmitCtx_gc_type_base(ctx)
+        return ctx_gc_type::SelfEmitCtx_string_type(ctx)
     }
     0 - 1
 }

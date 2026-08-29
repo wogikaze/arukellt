@@ -227,7 +227,7 @@ fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32,
     }
     if vt == value_types::VT_REF() || vt == value_types::VT_GC_REF() {
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx))
+        writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
         return true
     }
     false

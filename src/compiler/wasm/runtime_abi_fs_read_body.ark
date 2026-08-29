@@ -142,7 +142,7 @@ fn emit_fs_read_result_pair_gc(w: WasmWriter, tag: i32, ctx: SelfEmitCtx) {
     let s_str = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     emit_fs_read_gc_string_from_scratch(w, s_str, s_i, s_len, string_type)
     let variant_name = if tag == 0 { String_from("Result::Ok") } else { String_from("Result::Err") }
     let variant_type = find_result_string_variant_type(ctx, clone(variant_name))
