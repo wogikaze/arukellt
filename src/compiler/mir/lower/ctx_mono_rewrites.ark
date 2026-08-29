@@ -23,6 +23,38 @@ fn ctx_mono_push_span_rewrite(ctx: LowerCtx, span_start: i32, source: String, ta
     push(ctx.mono_call_span_sources, source)
     push(ctx.mono_call_span_targets, target)
     push(ctx.mono_call_span_used, 0)
+    ctx_mono_span_hash_insert(ctx, span_start)
+}
+
+fn ctx_mono_span_hash_insert(ctx: LowerCtx, span_start: i32) {
+    if len(ctx.mono_span_buckets) == 0 {
+        let mut i = 0
+        while i < 1024 {
+            push(ctx.mono_span_buckets, 0)
+            i = i + 1
+        }
+    }
+    let capacity = len(ctx.mono_span_buckets)
+    let mut slot = span_start
+    if slot < 0 {
+        slot = 0
+    }
+    slot = slot % capacity
+    let head = get_unchecked(ctx.mono_span_buckets, slot)
+    push(ctx.mono_span_next, head)
+    set(ctx.mono_span_buckets, slot, len(ctx.mono_call_starts))
+}
+
+fn ctx_mono_span_hash_head(ctx: LowerCtx, span_start: i32) -> i32 {
+    let capacity = len(ctx.mono_span_buckets)
+    if capacity <= 0 {
+        return 0
+    }
+    let mut slot = span_start
+    if slot < 0 {
+        slot = 0
+    }
+    get_unchecked(ctx.mono_span_buckets, slot % capacity)
 }
 
 fn ctx_mono_name_rewrite_count(ctx: LowerCtx) -> i32 {

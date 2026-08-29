@@ -2,6 +2,7 @@ use resolver::kinds
 use resolver::ref_sites
 use resolver::scope_error
 use resolver::scope_lookup
+use resolver::scope_record
 use resolver::scope_stack_scopes
 use resolver::scope_stack_symbols
 
@@ -9,11 +10,10 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_star
     let idx = scope_stack_scopes::ResolveCtx_take_next_decl_index(ctx)
     let current_depth = scope_stack_scopes::ResolveCtx_current_depth(ctx)
     let scope = scope_stack_scopes::ResolveCtx_scope_at(ctx, current_depth)
-    let sym_count = scope_stack_scopes::Scope_symbol_count(scope)
-    let mut i = 0
-    while i < sym_count {
-        let existing = scope_stack_scopes::Scope_symbol_at(scope, i)
-        if eq(scope_stack_symbols::Symbol_name(existing), clone(name)) && scope_stack_symbols::Symbol_scope_depth(existing) == current_depth {
+    let existing_index = scope_record::scope_find_symbol_index(scope, clone(name))
+    if existing_index >= 0 {
+        let existing = scope_stack_scopes::Scope_symbol_at(scope, existing_index)
+        if scope_stack_symbols::Symbol_scope_depth(existing) == current_depth {
             if can_replace_existing_symbol(kind, scope_stack_symbols::Symbol_kind(existing)) {
                 scope_stack_symbols::Symbol_set_kind(existing, kind)
                 scope_stack_symbols::Symbol_set_decl_index(existing, idx)
@@ -23,7 +23,6 @@ fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool, span_star
             scope_error::resolve_duplicate_symbol(ctx, clone(name), span_start, span_end)
             return
         }
-        i = i + 1
     }
     let sym = scope_stack_symbols::Symbol_new(name, kind, current_depth, idx, is_pub)
     scope_stack_scopes::Scope_push_symbol(scope, sym)

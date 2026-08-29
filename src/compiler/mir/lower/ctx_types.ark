@@ -49,6 +49,9 @@ pub struct LowerCtx {
     mono_call_span_sources: Vec<String>,
     mono_call_span_targets: Vec<String>,
     mono_call_span_used: Vec<i32>,
+    // Chains of rewrite indices (1-based) keyed by span_start % capacity.
+    mono_span_buckets: Vec<i32>,
+    mono_span_next: Vec<i32>,
     mono_call_sources: Vec<String>,
     mono_call_name_targets: Vec<String>,
     mono_call_used: Vec<i32>,
