@@ -15,11 +15,13 @@ use mir::local_access
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
 use wasm::code_ref_locals_infer_dest
 use wasm::code_ref_locals_infer_callee
 use wasm::gc_layout_table
+use wasm::intrinsic_vec_type
 use wasm::sections_types_gc
 
 fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
@@ -132,36 +134,102 @@ fn local_vec_access_storage_type(
         let mut inst_index = 0
         while inst_index < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
-            inst_accessors_operands::MirInst_dest(inst) == local_idx &&
-            is_vec_access_callee(inst_accessors_literals::MirInst_str_val(inst)) {
-                let inferred =
-                code_ref_locals_infer_dest::infer_ref_local_from_producer(
-                    f,
-                    inst,
-                    opcodes::MIR_CALL(),
-                    ctx
-                )
-                match inferred {
-                    Option::Some(_storage_type) => {
-                        return inferred
+            let access_inst = vec_access_call_for_local(block, inst_index, inst, local_idx)
+            match access_inst {
+                Option::Some(call_inst) => {
+                    let from_call = vec_access_storage_from_call(f, block, inst_index, call_inst, ctx)
+                    match from_call {
+                        Option::Some(_storage_type) => {
+                            return from_call
+                        }
+                        Option::None => {}
                     }
-                    Option::None => {}
                 }
-                let receiver =
-                vec_access_receiver_local(block, inst_index, inst)
-                let from_type_id =
-                vec_element_storage_type_from_receiver(f, receiver, ctx)
-                match from_type_id {
-                    Option::Some(_storage_type) => {
-                        return from_type_id
-                    }
-                    Option::None => {}
-                }
+                Option::None => {}
             }
             inst_index = inst_index + 1
         }
         block_index = block_index + 1
+    }
+    Option::None
+}
+
+fn vec_access_call_for_local(
+    block: MirBlock,
+    inst_index: i32,
+    inst: MirInst,
+    local_idx: i32
+) -> Option<MirInst> {
+    if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
+    inst_accessors_operands::MirInst_dest(inst) == local_idx &&
+    is_vec_access_callee(inst_accessors_literals::MirInst_str_val(inst)) {
+        return Option::Some(inst)
+    }
+    if inst_index > 0 &&
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+        let prev = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() &&
+        inst_accessors_operands::MirInst_dest(prev) < 0 &&
+        is_vec_access_callee(inst_accessors_literals::MirInst_str_val(prev)) {
+            return Option::Some(prev)
+        }
+    }
+    Option::None
+}
+
+fn vec_access_storage_from_call(
+    f: MirFunction,
+    block: MirBlock,
+    inst_index: i32,
+    call_inst: MirInst,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    let inferred =
+    code_ref_locals_infer_dest::infer_ref_local_from_producer(
+        f,
+        call_inst,
+        opcodes::MIR_CALL(),
+        ctx
+    )
+    match inferred {
+        Option::Some(_storage_type) => {
+            return inferred
+        }
+        Option::None => {}
+    }
+    let mut call_index = inst_index
+    if inst_accessors_shape::MirInst_op(block_inst_access::MirBlock_inst_at(block, inst_index)) !=
+    opcodes::MIR_CALL() {
+        call_index = inst_index - 1
+    }
+    let receiver = vec_access_receiver_local(block, call_index, call_inst)
+    let from_type_id = vec_element_storage_type_from_receiver(f, receiver, ctx)
+    match from_type_id {
+        Option::Some(_storage_type) => {
+            return from_type_id
+        }
+        Option::None => {}
+    }
+    vec_element_storage_from_resolved_array(
+        ctx,
+        intrinsic_vec_type::resolve_array_type_for_call(
+            ctx,
+            inst_accessors_literals::MirInst_str_val(call_inst),
+            call_inst
+        )
+    )
+}
+
+fn vec_element_storage_from_resolved_array(ctx: SelfEmitCtx, array_type: i32) -> Option<i32> {
+    if array_type < 0 {
+        return Option::None
+    }
+    if array_type == ctx_gc_type::SelfEmitCtx_string_array_type(ctx) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    }
+    if array_type == ctx_gc_type_vec_ref::SelfEmitCtx_enum_ref_array_type(ctx) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     Option::None
 }
