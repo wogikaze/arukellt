@@ -547,12 +547,14 @@ fn local_direct_producer_storage_type(
         let mut inst_index = 0
         while inst_index < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
-            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+            let producer = stack_call_or_direct_producer(block, inst_index, inst, local_idx)
+            if producer >= 0 {
+                let producer_inst = block_inst_access::MirBlock_inst_at(block, producer)
                 let inferred =
                 code_ref_locals_infer_dest::infer_ref_local_from_producer(
                     f,
-                    inst,
-                    inst_accessors_shape::MirInst_op(inst),
+                    producer_inst,
+                    inst_accessors_shape::MirInst_op(producer_inst),
                     ctx
                 )
                 match inferred {
@@ -567,6 +569,29 @@ fn local_direct_producer_storage_type(
         block_index = block_index + 1
     }
     Option::None
+}
+
+// CALL dest is often -1; the next LOCAL_SET is the real result local.
+// Returning Option<MirInst> made the selfhost compiler wasm itself invalid.
+fn stack_call_or_direct_producer(
+    block: MirBlock,
+    inst_index: i32,
+    inst: MirInst,
+    local_idx: i32
+) -> i32 {
+    if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+        return inst_index
+    }
+    if inst_index > 0 &&
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+    inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+        let prev = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() &&
+        inst_accessors_operands::MirInst_dest(prev) < 0 {
+            return inst_index - 1
+        }
+    }
+    0 - 1
 }
 
 fn local_set_source_local(block: MirBlock, inst_index: i32, inst: MirInst) -> i32 {
