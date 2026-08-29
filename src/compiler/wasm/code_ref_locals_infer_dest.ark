@@ -69,7 +69,10 @@ fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
     eq(clone(type_name), "F64") {
         return true
     }
-    vt == value_types::mir_value_types__VT_I32() || vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
+    // VT_I32 is the unmarked-temp default. Treating it as scalar hid
+    // get_unchecked dests of Vec<String>/enum and left those locals as i32
+    // while array.get produced a GC ref.
+    vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
 }
 
 fn is_container_return_type_name(ret_name: String) -> bool {
