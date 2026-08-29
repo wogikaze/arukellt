@@ -36,7 +36,15 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
         }
         Option::None => {}
     }
-    infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
+    let from_struct = infer_gc_type_from_return_struct(ctx, ret_type, ret_name)
+    match from_struct {
+        Option::Some(_opt_v) => {
+            return from_struct
+        }
+        Option::None => {}
+    }
+    // String / vec:Elem are fixed GC slots, not gc_struct_names entries.
+    resolve_gc_type_from_return_type_name(ctx, ret_name)
 }
 
 // Resolve call-result GC type from SignatureRegistry (host + builtin entries).
