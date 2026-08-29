@@ -47,6 +47,30 @@ Recommended loop:
 Parallel agents must **share** one rebuilt s2 (parent rebuilds once); each lane
 must not run its own `build-compiler`.
 
+### wasm32 overlay compile: preopen the overlay only
+
+The flat overlay copies a trimmed `std/prelude.ark` (it strips
+`use std::collections::*`). Measuring or emitting a wasm32 compiler with
+`--dir=<repo>` as well lets `std/prelude.ark` resolve to the full tree, which
+pulls `impl String` methods. On wasm32 those methods rewrite `len`/`slice` and
+the successor leaks (multi-GiB) during lower.
+
+`scripts/selfhost/checks.py` `_wasm_compile` therefore preopens **only** the
+overlay workspace when one is set. Manual timing must do the same:
+
+```bash
+wasmtime run --allow-precompiled --wasm gc --wasm function-references \
+  -W memory64=y -W max-memory-size=17179869184 \
+  --dir=.build/selfhost/flat-src \
+  HOST.cwasm -- \
+  compile src/compiler/main.ark --target wasm32 --wasi-version wasi-p1 \
+  -o out.wasm
+```
+
+On this machine that path is no-cache **~25s** (`sha256` matches a second emit
+from the same host). Official `BOOTSTRAP_EMIT_TARGET` remains `wasm32-gc` until
+that overlay compile is ≤10s and fixpoint uses wasm32.
+
 ## Trust model
 
 | Stage | Artifact / check | Command |

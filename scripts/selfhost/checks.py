@@ -870,15 +870,19 @@ def _wasm_compile(
     preopen_paths: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
+        # Overlay workspace ships a trimmed std/prelude (no collections::string).
+        # Preopening the repo as well lets `std/prelude.ark` resolve to the full
+        # tree, which pulls impl String methods and leaks on wasm32 self-compile.
         preopen_paths.append(str(workspace_root))
         guest_out = "bootstrap-out.wasm"
-    preopen_paths.append(str(root))
+    else:
+        preopen_paths.append(str(root))
     # Ensure AST cache directory exists
     ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
     # Only pass --cache-dir to selfhost-built compilers (s2/s3), not pinned bootstrap
     cache_args: list[str] = []
-    if _is_selfhost_compiler(compiler_wasm, root):
+    if workspace_root is None and _is_selfhost_compiler(compiler_wasm, root):
         cache_args = ["--cache-dir", AST_CACHE_REL]
     guest_argv = [
         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
