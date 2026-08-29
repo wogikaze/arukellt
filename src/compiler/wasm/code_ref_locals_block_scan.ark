@@ -134,18 +134,16 @@ fn local_vec_access_storage_type(
         let mut inst_index = 0
         while inst_index < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
-            let access_inst = vec_access_call_for_local(block, inst_index, inst, local_idx)
-            match access_inst {
-                Option::Some(call_inst) => {
-                    let from_call = vec_access_storage_from_call(f, block, inst_index, call_inst, ctx)
-                    match from_call {
-                        Option::Some(_storage_type) => {
-                            return from_call
-                        }
-                        Option::None => {}
+            let call_index = vec_access_call_index_for_local(block, inst_index, inst, local_idx)
+            if call_index >= 0 {
+                let call_inst = block_inst_access::MirBlock_inst_at(block, call_index)
+                let from_call = vec_access_storage_from_call(f, block, call_index, call_inst, ctx)
+                match from_call {
+                    Option::Some(_storage_type) => {
+                        return from_call
                     }
+                    Option::None => {}
                 }
-                Option::None => {}
             }
             inst_index = inst_index + 1
         }
@@ -154,16 +152,16 @@ fn local_vec_access_storage_type(
     Option::None
 }
 
-fn vec_access_call_for_local(
+fn vec_access_call_index_for_local(
     block: MirBlock,
     inst_index: i32,
     inst: MirInst,
     local_idx: i32
-) -> Option<MirInst> {
+) -> i32 {
     if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
     inst_accessors_operands::MirInst_dest(inst) == local_idx &&
     is_vec_access_callee(inst_accessors_literals::MirInst_str_val(inst)) {
-        return Option::Some(inst)
+        return inst_index
     }
     if inst_index > 0 &&
     inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
@@ -172,16 +170,16 @@ fn vec_access_call_for_local(
         if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() &&
         inst_accessors_operands::MirInst_dest(prev) < 0 &&
         is_vec_access_callee(inst_accessors_literals::MirInst_str_val(prev)) {
-            return Option::Some(prev)
+            return inst_index - 1
         }
     }
-    Option::None
+    0 - 1
 }
 
 fn vec_access_storage_from_call(
     f: MirFunction,
     block: MirBlock,
-    inst_index: i32,
+    call_index: i32,
     call_inst: MirInst,
     ctx: SelfEmitCtx
 ) -> Option<i32> {
@@ -197,11 +195,6 @@ fn vec_access_storage_from_call(
             return inferred
         }
         Option::None => {}
-    }
-    let mut call_index = inst_index
-    if inst_accessors_shape::MirInst_op(block_inst_access::MirBlock_inst_at(block, inst_index)) !=
-    opcodes::MIR_CALL() {
-        call_index = inst_index - 1
     }
     let receiver = vec_access_receiver_local(block, call_index, call_inst)
     let from_type_id = vec_element_storage_type_from_receiver(f, receiver, ctx)
