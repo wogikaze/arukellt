@@ -1,12 +1,12 @@
 use corehir::mir_type_source
 use mir::lower::aggregate_tuple
+use mir::lower::ctx_api_module
 use mir::lower::entry_emit_top
 use mir::lower::entry_view_record
 use mir::lower::return_typeinfo
 use mir::lower::return_types
 use mir::lower_kinds
 use mir::mono
-use mir::mono_names
 use mir::type_contracts
 use mir::typeinfo_shape
 
@@ -52,23 +52,11 @@ fn mir_emit_top_level_fn_mono_bodies(
 }
 
 fn mono_instantiate_return_from_instance(ctx: LowerCtx, mangled: String, generic_return_ty: TypeInfo) -> TypeInfo {
-    let arg_count = lookup_mono_type_arg_count(ctx, clone(mangled))
-    if arg_count <= 0 {
+    let inst = ctx_api_module::ctx_mono_instance_at(ctx, mangled)
+    if type_contracts::MonoInstance_type_arg_count(inst) <= 0 {
         return type_contracts::TypeInfo_simple(0)
     }
-    let safe = mono_names::mono_safe_name(mangled)
-    let count = len(ctx.mono_instances)
-    let mut i = 0
-    while i < count {
-        let inst = get_unchecked(ctx.mono_instances, i)
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
-            return mono_instantiate_return_type(generic_return_ty, inst)
-        }
-        i = i + 1
-    }
-    type_contracts::TypeInfo_simple(0)
+    mono_instantiate_return_type(generic_return_ty, inst)
 }
 
 fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
@@ -98,63 +86,29 @@ fn mono_instantiate_return_type(ty: TypeInfo, inst: MonoInstance) -> TypeInfo {
 // Find the first type argument from the MonoInstance matching `mangled`.
 // Returns TY_UNKNOWN (tag 0) if not found.
 fn lookup_mono_type_arg(ctx: LowerCtx, mangled: String) -> TypeInfo {
-    let safe = mono_names::mono_safe_name(mangled)
-    let count = len(ctx.mono_instances)
-    let mut i = 0
-    while i < count {
-        let inst = get_unchecked(ctx.mono_instances, i)
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
-            if type_contracts::MonoInstance_type_arg_count(inst) > 0 {
-                return type_contracts::MonoInstance_type_arg_at(inst, 0)
-            }
-            return type_contracts::TypeInfo_simple(0)
-        }
-        i = i + 1
+    let inst = ctx_api_module::ctx_mono_instance_at(ctx, mangled)
+    if type_contracts::MonoInstance_type_arg_count(inst) > 0 {
+        return type_contracts::MonoInstance_type_arg_at(inst, 0)
     }
     type_contracts::TypeInfo_simple(0)
 }
 
 // Find the type argument at a specific index from the MonoInstance matching `mangled`.
 fn lookup_mono_type_arg_at(ctx: LowerCtx, mangled: String, index: i32) -> TypeInfo {
-    let safe = mono_names::mono_safe_name(mangled)
-    let count = len(ctx.mono_instances)
-    let mut i = 0
-    while i < count {
-        let inst = get_unchecked(ctx.mono_instances, i)
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
-            let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
-            if index >= 0 && index < arg_count {
-                return type_contracts::MonoInstance_type_arg_at(inst, index)
-            }
-            if arg_count > 0 {
-                return type_contracts::MonoInstance_type_arg_at(inst, 0)
-            }
-            return type_contracts::TypeInfo_simple(0)
-        }
-        i = i + 1
+    let inst = ctx_api_module::ctx_mono_instance_at(ctx, mangled)
+    let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+    if index >= 0 && index < arg_count {
+        return type_contracts::MonoInstance_type_arg_at(inst, index)
+    }
+    if arg_count > 0 {
+        return type_contracts::MonoInstance_type_arg_at(inst, 0)
     }
     type_contracts::TypeInfo_simple(0)
 }
 
 // Get the type argument count from the MonoInstance matching `mangled`.
 fn lookup_mono_type_arg_count(ctx: LowerCtx, mangled: String) -> i32 {
-    let safe = mono_names::mono_safe_name(mangled)
-    let count = len(ctx.mono_instances)
-    let mut i = 0
-    while i < count {
-        let inst = get_unchecked(ctx.mono_instances, i)
-        let inst_mangled = type_contracts::MonoInstance_mangled_name(inst)
-        let inst_safe = mono_names::mono_safe_name(inst_mangled)
-        if eq(clone(inst_safe), clone(safe)) {
-            return type_contracts::MonoInstance_type_arg_count(inst)
-        }
-        i = i + 1
-    }
-    0
+    type_contracts::MonoInstance_type_arg_count(ctx_api_module::ctx_mono_instance_at(ctx, mangled))
 }
 
 // Map a return type variable name (e.g. "B") to a type argument index.
