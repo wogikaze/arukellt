@@ -7640,7 +7640,10 @@ def cmd_selfhost_fixture_parity(args: argparse.Namespace) -> int:
 
     scope = f" (filter-dir={','.join(filter_dirs)})" if filter_dirs else ""
     print(f"\n{YELLOW}[selfhost] Running selfhost fixture parity check{scope}...{NC}")
-    rc, out = run_fixture_parity(root, dry_run, filter_dirs=filter_dirs or None)
+    if filter_dirs:
+        rc, out = run_fixture_parity(root, dry_run, filter_dirs=filter_dirs)
+    else:
+        rc, out = run_fixture_parity(root, dry_run)
     if out:
         print(out, end="" if out.endswith("\n") else "\n")
     if rc == 0:
