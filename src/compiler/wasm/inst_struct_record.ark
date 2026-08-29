@@ -171,6 +171,16 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
     }
     return
 }
+// wasm32: store policy SETs get_unchecked/ARRAY_GET into dest, then
+// STRUCT_GET reads that local (arg0 >= 0). Forgetting local.get leaves
+// `i32.load` with an empty stack (compiler self-emit func validate).
+let base_local = inst_accessors_operands::MirInst_arg0(inst)
+if base_local >= 0 {
+    if prev_op != mir::opcodes::MIR_LOCAL_GET() || prev_arg0 != base_local {
+        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+        writer_core::emit_leb128_u(w, base_local)
+    }
+}
 if inst_accessors_literals::MirInst_int_val(inst) > 0 {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
