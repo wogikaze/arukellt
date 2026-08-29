@@ -113,6 +113,13 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // i32 field `.to_string()` (Point.x) misses core_op after struct.get and
+    // becomes drop+unreachable. Keep i64's named fallback and the default
+    // i32 formatter used by core_op_handler_text_to_string.
+    if is_format_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     // path::normalize uses __intrinsic_split/join; core_op miss → unreachable (#807).
     if is_split_callee(clone(callee)) {
         let on_stack = intrinsic_string_collection::emit_split(w, inst, ctx)
@@ -403,6 +410,16 @@ fn is_format_i64_callee(callee: String) -> bool {
     eq(clone(callee), String_from("i64_to_string")) ||
     ends_with(clone(callee), String_from("::format_i64")) ||
     ends_with(clone(callee), String_from("::i64_to_string"))
+}
+
+fn is_format_i32_callee(callee: String) -> bool {
+    eq(clone(callee), String_from("to_string")) ||
+    eq(clone(callee), String_from("i32_to_string")) ||
+    eq(clone(callee), String_from("format_i32")) ||
+    eq(clone(callee), String_from("__core_format_i32_impl")) ||
+    eq(clone(callee), String_from("i32::to_string")) ||
+    ends_with(clone(callee), String_from("::i32_to_string")) ||
+    ends_with(clone(callee), String_from("::format_i32"))
 }
 
 fn is_split_callee(callee: String) -> bool {
