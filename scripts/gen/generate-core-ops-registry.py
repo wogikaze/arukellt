@@ -14,8 +14,12 @@ except ModuleNotFoundError:
     import tomli as tomllib  # type: ignore
 
 ROOT = Path(__file__).resolve().parents[2]
+GEN_DIR = Path(__file__).resolve().parent
 CORE_OPS = ROOT / "data" / "core-ops.toml"
 OUT = ROOT / "src" / "compiler" / "corehir" / "core_op_registry_generated.ark"
+
+sys.path.insert(0, str(GEN_DIR))
+from ark_fnv_index import emit_lookup_fn  # noqa: E402
 
 LOWERING_KIND_TO_INT = {
     "normal_call": 1,
@@ -204,19 +208,12 @@ def render(ops: list[dict]) -> str:
         lines.append("")
 
     lines.extend(
-        [
-            "fn core_op_registry_lookup_index(canonical_id: String) -> i32 {",
-            "    let count = core_op_registry_entry_count()",
-            "    let mut i = 0",
-            "    while i < count {",
-            "        if eq(clone(canonical_id), core_op_registry_canonical_id_at(i)) {",
-            "            return i",
-            "        }",
-            "        i = i + 1",
-            "    }",
-            "    return 0 - 1",
-            "}",
-        ]
+        emit_lookup_fn(
+            "core_op_registry_lookup_index",
+            "core_op_registry_canonical_id_at",
+            "core_op_registry_bucket_at",
+            ids,
+        )
     )
     return "\n".join(lines) + "\n"
 

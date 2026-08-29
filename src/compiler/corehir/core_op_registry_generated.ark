@@ -3715,14 +3715,348 @@ fn core_op_handler_wasm_v128_load() -> i32 {
     308
 }
 
-fn core_op_registry_lookup_index(canonical_id: String) -> i32 {
-    let count = core_op_registry_entry_count()
-    let mut i = 0
-    while i < count {
-        if eq(clone(canonical_id), core_op_registry_canonical_id_at(i)) {
-            return i
+fn core_op_registry_bucket_at(slot: i32) -> i32 {
+    if slot == 1 { return 206 }
+    if slot == 4 { return 210 }
+    if slot == 36 { return 182 }
+    if slot == 38 { return 181 }
+    if slot == 42 { return 150 }
+    if slot == 43 { return 200 }
+    if slot == 46 { return 26 }
+    if slot == 49 { return 278 }
+    if slot == 50 { return 307 }
+    if slot == 53 { return 85 }
+    if slot == 54 { return 202 }
+    if slot == 55 { return 253 }
+    if slot == 57 { return 84 }
+    if slot == 63 { return 71 }
+    if slot == 66 { return 259 }
+    if slot == 71 { return 219 }
+    if slot == 74 { return 193 }
+    if slot == 84 { return 160 }
+    if slot == 85 { return 114 }
+    if slot == 86 { return 159 }
+    if slot == 87 { return 212 }
+    if slot == 88 { return 15 }
+    if slot == 89 { return 24 }
+    if slot == 90 { return 49 }
+    if slot == 93 { return 257 }
+    if slot == 102 { return 62 }
+    if slot == 106 { return 47 }
+    if slot == 107 { return 154 }
+    if slot == 108 { return 153 }
+    if slot == 109 { return 187 }
+    if slot == 110 { return 188 }
+    if slot == 111 { return 293 }
+    if slot == 112 { return 304 }
+    if slot == 113 { return 142 }
+    if slot == 114 { return 296 }
+    if slot == 129 { return 29 }
+    if slot == 130 { return 133 }
+    if slot == 134 { return 117 }
+    if slot == 135 { return 192 }
+    if slot == 145 { return 134 }
+    if slot == 147 { return 225 }
+    if slot == 149 { return 199 }
+    if slot == 165 { return 75 }
+    if slot == 166 { return 32 }
+    if slot == 167 { return 113 }
+    if slot == 168 { return 131 }
+    if slot == 169 { return 213 }
+    if slot == 170 { return 230 }
+    if slot == 172 { return 205 }
+    if slot == 173 { return 60 }
+    if slot == 176 { return 231 }
+    if slot == 177 { return 271 }
+    if slot == 181 { return 268 }
+    if slot == 184 { return 132 }
+    if slot == 186 { return 180 }
+    if slot == 189 { return 254 }
+    if slot == 191 { return 236 }
+    if slot == 204 { return 208 }
+    if slot == 205 { return 42 }
+    if slot == 206 { return 94 }
+    if slot == 207 { return 195 }
+    if slot == 208 { return 27 }
+    if slot == 209 { return 279 }
+    if slot == 211 { return 88 }
+    if slot == 213 { return 25 }
+    if slot == 214 { return 207 }
+    if slot == 215 { return 105 }
+    if slot == 216 { return 272 }
+    if slot == 217 { return 169 }
+    if slot == 218 { return 281 }
+    if slot == 220 { return 37 }
+    if slot == 223 { return 170 }
+    if slot == 224 { return 51 }
+    if slot == 225 { return 81 }
+    if slot == 226 { return 90 }
+    if slot == 227 { return 157 }
+    if slot == 228 { return 209 }
+    if slot == 229 { return 12 }
+    if slot == 230 { return 156 }
+    if slot == 231 { return 255 }
+    if slot == 232 { return 28 }
+    if slot == 241 { return 240 }
+    if slot == 254 { return 119 }
+    if slot == 261 { return 16 }
+    if slot == 262 { return 288 }
+    if slot == 269 { return 301 }
+    if slot == 274 { return 215 }
+    if slot == 275 { return 45 }
+    if slot == 277 { return 286 }
+    if slot == 280 { return 216 }
+    if slot == 281 { return 17 }
+    if slot == 283 { return 214 }
+    if slot == 291 { return 252 }
+    if slot == 292 { return 52 }
+    if slot == 293 { return 72 }
+    if slot == 294 { return 83 }
+    if slot == 298 { return 263 }
+    if slot == 299 { return 69 }
+    if slot == 308 { return 218 }
+    if slot == 310 { return 91 }
+    if slot == 313 { return 98 }
+    if slot == 316 { return 78 }
+    if slot == 318 { return 95 }
+    if slot == 323 { return 243 }
+    if slot == 325 { return 244 }
+    if slot == 326 { return 176 }
+    if slot == 327 { return 261 }
+    if slot == 331 { return 143 }
+    if slot == 332 { return 270 }
+    if slot == 334 { return 55 }
+    if slot == 335 { return 59 }
+    if slot == 336 { return 266 }
+    if slot == 340 { return 282 }
+    if slot == 342 { return 34 }
+    if slot == 343 { return 262 }
+    if slot == 349 { return 203 }
+    if slot == 353 { return 164 }
+    if slot == 355 { return 238 }
+    if slot == 357 { return 237 }
+    if slot == 358 { return 260 }
+    if slot == 359 { return 165 }
+    if slot == 364 { return 161 }
+    if slot == 366 { return 162 }
+    if slot == 368 { return 149 }
+    if slot == 377 { return 249 }
+    if slot == 384 { return 14 }
+    if slot == 385 { return 36 }
+    if slot == 386 { return 74 }
+    if slot == 388 { return 66 }
+    if slot == 390 { return 40 }
+    if slot == 391 { return 57 }
+    if slot == 393 { return 70 }
+    if slot == 394 { return 175 }
+    if slot == 395 { return 226 }
+    if slot == 397 { return 122 }
+    if slot == 399 { return 227 }
+    if slot == 408 { return 284 }
+    if slot == 414 { return 19 }
+    if slot == 426 { return 64 }
+    if slot == 427 { return 89 }
+    if slot == 434 { return 46 }
+    if slot == 435 { return 172 }
+    if slot == 439 { return 18 }
+    if slot == 441 { return 256 }
+    if slot == 447 { return 137 }
+    if slot == 450 { return 251 }
+    if slot == 455 { return 33 }
+    if slot == 457 { return 97 }
+    if slot == 459 { return 35 }
+    if slot == 466 { return 120 }
+    if slot == 468 { return 158 }
+    if slot == 473 { return 221 }
+    if slot == 476 { return 136 }
+    if slot == 479 { return 222 }
+    if slot == 483 { return 92 }
+    if slot == 484 { return 267 }
+    if slot == 485 { return 245 }
+    if slot == 497 { return 96 }
+    if slot == 503 { return 298 }
+    if slot == 507 { return 300 }
+    if slot == 515 { return 306 }
+    if slot == 517 { return 291 }
+    if slot == 518 { return 0 }
+    if slot == 520 { return 65 }
+    if slot == 523 { return 43 }
+    if slot == 525 { return 103 }
+    if slot == 527 { return 30 }
+    if slot == 532 { return 124 }
+    if slot == 540 { return 283 }
+    if slot == 541 { return 93 }
+    if slot == 545 { return 80 }
+    if slot == 547 { return 184 }
+    if slot == 549 { return 183 }
+    if slot == 550 { return 115 }
+    if slot == 551 { return 204 }
+    if slot == 552 { return 1 }
+    if slot == 553 { return 287 }
+    if slot == 554 { return 235 }
+    if slot == 555 { return 179 }
+    if slot == 556 { return 127 }
+    if slot == 557 { return 234 }
+    if slot == 558 { return 104 }
+    if slot == 560 { return 61 }
+    if slot == 562 { return 250 }
+    if slot == 571 { return 63 }
+    if slot == 582 { return 58 }
+    if slot == 584 { return 264 }
+    if slot == 585 { return 273 }
+    if slot == 595 { return 276 }
+    if slot == 600 { return 116 }
+    if slot == 605 { return 144 }
+    if slot == 615 { return 303 }
+    if slot == 616 { return 146 }
+    if slot == 620 { return 297 }
+    if slot == 625 { return 86 }
+    if slot == 643 { return 171 }
+    if slot == 646 { return 100 }
+    if slot == 647 { return 292 }
+    if slot == 653 { return 274 }
+    if slot == 665 { return 48 }
+    if slot == 682 { return 290 }
+    if slot == 684 { return 139 }
+    if slot == 685 { return 223 }
+    if slot == 686 { return 20 }
+    if slot == 687 { return 145 }
+    if slot == 691 { return 21 }
+    if slot == 702 { return 3 }
+    if slot == 709 { return 305 }
+    if slot == 714 { return 224 }
+    if slot == 717 { return 138 }
+    if slot == 718 { return 6 }
+    if slot == 722 { return 302 }
+    if slot == 724 { return 189 }
+    if slot == 725 { return 79 }
+    if slot == 727 { return 130 }
+    if slot == 730 { return 50 }
+    if slot == 731 { return 129 }
+    if slot == 732 { return 141 }
+    if slot == 733 { return 174 }
+    if slot == 734 { return 173 }
+    if slot == 736 { return 44 }
+    if slot == 737 { return 99 }
+    if slot == 747 { return 23 }
+    if slot == 753 { return 308 }
+    if slot == 767 { return 39 }
+    if slot == 770 { return 269 }
+    if slot == 773 { return 54 }
+    if slot == 774 { return 201 }
+    if slot == 775 { return 163 }
+    if slot == 779 { return 258 }
+    if slot == 786 { return 5 }
+    if slot == 790 { return 123 }
+    if slot == 795 { return 229 }
+    if slot == 797 { return 228 }
+    if slot == 799 { return 22 }
+    if slot == 802 { return 295 }
+    if slot == 804 { return 7 }
+    if slot == 805 { return 110 }
+    if slot == 812 { return 217 }
+    if slot == 813 { return 56 }
+    if slot == 814 { return 68 }
+    if slot == 819 { return 109 }
+    if slot == 820 { return 13 }
+    if slot == 829 { return 4 }
+    if slot == 832 { return 220 }
+    if slot == 835 { return 108 }
+    if slot == 836 { return 275 }
+    if slot == 837 { return 140 }
+    if slot == 840 { return 155 }
+    if slot == 841 { return 166 }
+    if slot == 846 { return 168 }
+    if slot == 851 { return 135 }
+    if slot == 852 { return 107 }
+    if slot == 870 { return 294 }
+    if slot == 875 { return 185 }
+    if slot == 877 { return 186 }
+    if slot == 882 { return 151 }
+    if slot == 884 { return 152 }
+    if slot == 890 { return 289 }
+    if slot == 891 { return 77 }
+    if slot == 892 { return 38 }
+    if slot == 893 { return 112 }
+    if slot == 894 { return 265 }
+    if slot == 895 { return 10 }
+    if slot == 897 { return 31 }
+    if slot == 899 { return 2 }
+    if slot == 902 { return 242 }
+    if slot == 913 { return 198 }
+    if slot == 919 { return 197 }
+    if slot == 921 { return 128 }
+    if slot == 922 { return 177 }
+    if slot == 931 { return 87 }
+    if slot == 936 { return 178 }
+    if slot == 937 { return 67 }
+    if slot == 939 { return 246 }
+    if slot == 940 { return 106 }
+    if slot == 941 { return 118 }
+    if slot == 943 { return 241 }
+    if slot == 949 { return 101 }
+    if slot == 950 { return 167 }
+    if slot == 952 { return 121 }
+    if slot == 954 { return 53 }
+    if slot == 955 { return 73 }
+    if slot == 956 { return 247 }
+    if slot == 957 { return 248 }
+    if slot == 958 { return 299 }
+    if slot == 965 { return 41 }
+    if slot == 982 { return 111 }
+    if slot == 987 { return 8 }
+    if slot == 988 { return 82 }
+    if slot == 989 { return 277 }
+    if slot == 993 { return 11 }
+    if slot == 994 { return 285 }
+    if slot == 995 { return 76 }
+    if slot == 996 { return 126 }
+    if slot == 997 { return 125 }
+    if slot == 998 { return 196 }
+    if slot == 999 { return 194 }
+    if slot == 1001 { return 211 }
+    if slot == 1002 { return 190 }
+    if slot == 1004 { return 191 }
+    if slot == 1005 { return 233 }
+    if slot == 1006 { return 9 }
+    if slot == 1007 { return 232 }
+    if slot == 1009 { return 148 }
+    if slot == 1015 { return 102 }
+    if slot == 1016 { return 147 }
+    if slot == 1017 { return 239 }
+    if slot == 1023 { return 280 }
+    return 0 - 1
+}
+
+fn core_op_registry_lookup_index(name: String) -> i32 {
+    let capacity = 1024
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
         }
-        i = i + 1
+        hi = hi + 1
+    }
+    if hash < 0 {
+        hash = 0
+    }
+    let mut slot = hash % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let idx = core_op_registry_bucket_at(slot)
+        if idx < 0 {
+            return 0 - 1
+        }
+        if eq(clone(name), core_op_registry_canonical_id_at(idx)) {
+            return idx
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
     }
     return 0 - 1
 }
