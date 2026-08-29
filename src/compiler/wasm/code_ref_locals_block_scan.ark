@@ -462,6 +462,13 @@ fn local_set_non_string_storage_type(
                     }
                     Option::None => {}
                 }
+                let forward = vec_element_storage_from_forward_copy(f, local_idx, ctx)
+                match forward {
+                    Option::Some(_forward_type) => {
+                        return forward
+                    }
+                    Option::None => {}
+                }
                 return direct_storage
             }
         }
