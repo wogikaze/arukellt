@@ -3848,6 +3848,9 @@ class SelfhostFixpointResult:
 
 # ── Runtime lock helper ──────────────────────────────────────────────────────
 
+_RUNTIME_LOCK_MOD = None
+
+
 def _with_runtime_lock(fn, root: Path):
     """Serialize selfhost compile/parity operations per worktree/build dir.
 
@@ -3855,18 +3858,24 @@ def _with_runtime_lock(fn, root: Path):
     ``<ARUKELLT_BUILD_DIR or root/.build>/selfhost-runtime.lock`` so concurrent
     agents in the same tree cannot overwrite s2/s3 artifacts. Separate worktrees
     (or distinct ARUKELLT_BUILD_DIR values) use distinct locks.
-    """
-    import importlib.util
 
-    spec = importlib.util.spec_from_file_location(
-        "runtime_lock",
-        Path(__file__).parent / "runtime_lock.py",
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn, root=root)
+    The lock module is loaded once. Reloading it on every call discarded the
+    in-process nesting depth and deadlocked fixture-parity on its own flock.
+    """
+    global _RUNTIME_LOCK_MOD
+    if _RUNTIME_LOCK_MOD is None:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "runtime_lock",
+            Path(__file__).parent / "runtime_lock.py",
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _RUNTIME_LOCK_MOD = mod
+    return _RUNTIME_LOCK_MOD.with_selfhost_runtime_lock(fn, root=root)
 
 
 # ── run_fixpoint ──────────────────────────────────────────────────────────────
