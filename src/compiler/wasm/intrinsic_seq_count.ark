@@ -2,9 +2,19 @@
 
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::writer_gc
+use wasm::string_gc_helpers
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 
 // Handler for: seq::count_eq
 fn emit_seq_count_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_seq_count_eq_gc(w, ctx)
+    }
     let target_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let seq_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let count_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -15,6 +25,58 @@ fn emit_seq_count_eq(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_seq_count_loop(w, target_local, count_local, data_local, len_local, index_local)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, count_local)
+    return true
+}
+
+fn emit_seq_count_eq_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
+    let s_target = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    helpers_core::emit_local_set(w, s_target)
+    helpers_core::emit_local_set(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_arr)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_len)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_count)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_get(w, s_target)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_count)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_count)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_count)
     return true
 }
 

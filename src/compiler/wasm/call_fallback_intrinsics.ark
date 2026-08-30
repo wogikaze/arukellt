@@ -33,6 +33,8 @@ use wasm::intrinsic_string_replace_all
 use wasm::intrinsic_string_transform
 use wasm::intrinsic_sort
 use wasm::intrinsic_seq
+use wasm::intrinsic_seq_unique
+use wasm::intrinsic_string_pad
 use wasm::intrinsic_vec_contains
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::runtime_abi_env_args
@@ -415,6 +417,34 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_sort_i64_callee(clone(callee)) {
         let on_stack = intrinsic_sort::emit_sort_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_min_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_min_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_max_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_max_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_count_eq_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_count_eq(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_binary_search_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_binary_search(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_unique_callee(clone(callee)) {
+        let on_stack = intrinsic_seq_unique::emit_seq_unique(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_pad_left_callee(clone(callee)) {
+        let on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_pad_right_callee(clone(callee)) {
+        let on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     false
@@ -830,6 +860,50 @@ fn is_sort_i64_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_seq_sort_i64_impl")) ||
     callee_name_is(clone(callee), String_from("sort_i64")) ||
     ends_with(clone(callee), String_from("::sort_i64"))
+}
+
+fn is_seq_min_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_min_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("min_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::min_i32"))
+}
+
+fn is_seq_max_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_max_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("max_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::max_i32"))
+}
+
+fn is_seq_count_eq_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_count_eq_impl")) ||
+    callee_name_is(clone(callee), String_from("count_eq")) ||
+    callee_name_is(clone(callee), String_from("seq::count_eq"))
+}
+
+fn is_seq_binary_search_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_binary_search_impl")) ||
+    callee_name_is(clone(callee), String_from("binary_search")) ||
+    callee_name_is(clone(callee), String_from("seq::binary_search"))
+}
+
+fn is_seq_unique_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_unique_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("unique")) ||
+    callee_name_is(clone(callee), String_from("seq::unique"))
+}
+
+fn is_pad_left_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_pad_left_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_pad_left_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_left")) ||
+    callee_name_is(clone(callee), String_from("text::pad_left"))
+}
+
+fn is_pad_right_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_pad_right_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_pad_right_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_right")) ||
+    callee_name_is(clone(callee), String_from("text::pad_right"))
 }
 
 fn is_concat_callee(callee: String) -> bool {
