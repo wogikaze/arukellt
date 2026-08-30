@@ -481,6 +481,34 @@ fn vec_receiver_elem_name(f: MirFunction, receiver: i32, ctx: SelfEmitCtx) -> St
     )
 }
 
+fn local_enum_open_storage_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> Option<i32> {
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let loc = function_locals_view::MirFunction_local_at(f, local_idx)
+    let type_name = local_access::MirLocal_type_name(loc)
+    if starts_with(clone(type_name), "enum:") ||
+    starts_with(clone(type_name), "option:") ||
+    starts_with(clone(type_name), "Option") ||
+    starts_with(clone(type_name), "result:") ||
+    starts_with(clone(type_name), "Result") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    let tid = mir_value_type::mir_value_type_type_id(local_access::MirLocal_value_type(loc))
+    if !type_id::type_id_is_valid(tid) {
+        return Option::None
+    }
+    let kind = type_table::type_entry_kind(
+        type_table::TypeTable_lookup(ctx_record::SelfEmitCtx_type_table(ctx), tid)
+    )
+    if kind == kinds::TYPE_KIND_ENUM() ||
+    kind == kinds::TYPE_KIND_OPTION() ||
+    kind == kinds::TYPE_KIND_RESULT() {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    Option::None
+}
+
 fn local_set_non_string_storage_type(
     f: MirFunction,
     local_idx: i32,
@@ -606,6 +634,13 @@ fn copied_non_string_storage_type(
                             if source_named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                                 return Option::Some(source_named_type)
                             }
+                        }
+                        Option::None => {}
+                    }
+                    let source_enum = local_enum_open_storage_type(f, source, ctx)
+                    match source_enum {
+                        Option::Some(_enum_type) => {
+                            return source_enum
                         }
                         Option::None => {}
                     }
