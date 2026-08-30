@@ -27,26 +27,29 @@ struct Header {
     seq: i32,
 }
 
+fn make_header(kind: HeaderKind, seq: i32) -> Header {
+    Header { kind: kind, seq: seq }
+}
+
 fn parse_header(token: i32, seq: i32) -> Header {
     let kind: i32 = token - token / 5 * 5
-    let h: HeaderKind = if kind == 0 {
-        HeaderKind::ContentType { value: token * 7 + 1 }
+    if kind == 0 {
+        make_header(HeaderKind::ContentType { value: token * 7 + 1 }, seq)
     } else {
         if kind == 1 {
-            HeaderKind::ContentLength { bytes: token * 3 + 42 }
+            make_header(HeaderKind::ContentLength { bytes: token * 3 + 42 }, seq)
         } else {
             if kind == 2 {
-                HeaderKind::Authorization { token: token + seq }
+                make_header(HeaderKind::Authorization { token: token + seq }, seq)
             } else {
                 if kind == 3 {
-                    HeaderKind::Accept { mask: token - seq }
+                    make_header(HeaderKind::Accept { mask: token - seq }, seq)
                 } else {
-                    HeaderKind::Unknown
+                    make_header(HeaderKind::Unknown, seq)
                 }
             }
         }
     }
-    Header { kind: h, seq: seq }
 }
 
 fn header_value(h: Header) -> i32 {
