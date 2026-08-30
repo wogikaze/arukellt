@@ -131,7 +131,7 @@ fn emit_replace_gc_copy_loop(
     string_type: i32
 ) {
     helpers_control::emit_block_loop_header(w)
-    // if s_pos + s_pat_len > s_src_len: break (copy remaining suffix)
+    // if s_pos + s_pat_len > s_src_len: exit the block, then copy the suffix.
     helpers_core::emit_local_get(w, s_pos)
     helpers_core::emit_local_get(w, s_pat_len)
     helpers_numeric_i32::emit_i32_add(w)
@@ -167,8 +167,10 @@ fn emit_replace_gc_copy_loop(
     helpers_control::emit_end(w)
     helpers_control::emit_br(w, 0)
     helpers_control::emit_end(w)
-    // Copy remaining suffix: source[s_pos..s_src_len] to dest[s_dst..]
-    // array.copy wants i32 offsets/len; Memory64 keeps cursors as i64 (#730).
+    helpers_control::emit_end(w)
+    // br_if 1 exits the outer block, so the remaining suffix must be copied
+    // after both loop/block ends. Placing array.copy between those ends made
+    // it unreachable (text_ops replace dropped " World!").
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_dst)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
@@ -179,7 +181,6 @@ fn emit_replace_gc_copy_loop(
     helpers_core::emit_local_get(w, s_pos)
     helpers_numeric_i32::emit_i32_sub(w)
     writer_gc::emit_gc_array_copy(w, string_type, string_type)
-    helpers_control::emit_end(w)
 }
 
 // Match branch of the copy loop: copy replacement bytes and advance cursors.
