@@ -148,3 +148,44 @@ fn try_err_payload_vt_gc(err_type_name: String) -> i32 {
     }
     value_types::VT_GC_REF()
 }
+
+// True when `?` operand E and the function Result E are both known and differ.
+// Same E keeps identity return; missing names also keep identity.
+fn try_err_payload_types_differ(ctx: LowerCtx, inner_idx: i32) -> bool {
+    let inner_type_name = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
+    let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
+    let source_err_type = try_extract_err_payload_type(clone(inner_type_name))
+    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
+    if len(source_err_type) == 0 || len(target_err_type) == 0 {
+        return false
+    }
+    !eq(source_err_type, target_err_type)
+}
+
+// Rebuild Result::Err of the function return type when From is absent.
+// Payload is the zero/null default of target E so the variant type matches
+// the caller; wildcard `Err(_)` only needs the tag and a legal ref.cast.
+fn try_emit_err_unconverted_gc(ctx: LowerCtx, inner_idx: i32) {
+    let _inner_idx = inner_idx
+    let fn_return_type_name = function_return_view::MirFunction_return_type_name(ctx_current_storage::ctx_current_func_value(ctx))
+    let target_err_type = try_extract_err_payload_type(clone(fn_return_type_name))
+    let target_vt = try_err_payload_vt_gc(clone(target_err_type))
+    let payload_local = ctx_api_local_alloc::ctx_fresh_local(ctx, target_vt)
+    if len(target_err_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, payload_local, clone(target_err_type))
+    }
+    let out_locals = Vec::new<i32>()
+    push(out_locals, payload_local)
+    let out_vts = Vec::new<i32>()
+    push(out_vts, target_vt)
+    let dest = variant_payload::lower_payload_variant_from_locals(
+        ctx,
+        1,
+        out_locals,
+        out_vts,
+        8,
+        String_from("Err")
+    )
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
+    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
