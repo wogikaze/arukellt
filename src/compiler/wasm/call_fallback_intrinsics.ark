@@ -28,6 +28,7 @@ use wasm::intrinsic_memory
 use wasm::intrinsic_parse_f64
 use wasm::intrinsic_parse_i64
 use wasm::intrinsic_string_extra
+use wasm::intrinsic_string_trim
 use wasm::intrinsic_string_index_of
 use wasm::intrinsic_string_replace_all
 use wasm::intrinsic_string_transform
@@ -299,6 +300,16 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_format::emit_String_new(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Check start/end before bare `trim`: DCE of text::trim_start/trim_end
+    // leaves drop+unreachable after the first println (string_trim).
+    if is_trim_start_callee(clone(callee)) {
+        let on_stack = intrinsic_string_trim::emit_trim_start(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_trim_end_callee(clone(callee)) {
+        let on_stack = intrinsic_string_trim::emit_trim_end(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_trim_callee(clone(callee)) {
         let on_stack = intrinsic_string_extra::emit_trim(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -472,10 +483,25 @@ fn is_string_new_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("::string_new"))
 }
 
+fn is_trim_start_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("trim_start")) ||
+    callee_name_is(clone(callee), String_from("text::trim_start")) ||
+    callee_name_is(clone(callee), String_from("__core_string_trim_start_impl")) ||
+    ends_with(clone(callee), String_from("::trim_start"))
+}
+
+fn is_trim_end_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("trim_end")) ||
+    callee_name_is(clone(callee), String_from("text::trim_end")) ||
+    callee_name_is(clone(callee), String_from("__core_string_trim_end_impl")) ||
+    ends_with(clone(callee), String_from("::trim_end"))
+}
+
 fn is_trim_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("trim")) ||
     callee_name_is(clone(callee), String_from("text::trim")) ||
     callee_name_is(clone(callee), String_from("__core_string_trim_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_trim")) ||
     ends_with(clone(callee), String_from("::trim"))
 }
 
