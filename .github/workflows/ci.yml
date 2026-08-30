@@ -46,7 +46,9 @@ jobs:
     if: needs.ark-changes.outputs.count != '0'
     needs: ark-changes
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    # 7m timed out on large compiler Ark diffs; GitHub marks that cancelled
+    # and quality-format/lint then fail even when fmt --check is clean.
+    timeout-minutes: 9
     strategy:
       fail-fast: false
       matrix:
@@ -151,6 +153,7 @@ jobs:
           SHARD_RESULT: ${{ needs.quality-shard.result }}
         run: |
           set -euo pipefail
+          # Shards implement: python3 scripts/manager.py fmt --check
           case "$SHARD_RESULT" in
             success|skipped) exit 0 ;;
             *) echo "formatting shard result: $SHARD_RESULT" >&2; exit 1 ;;
@@ -168,6 +171,7 @@ jobs:
           SHARD_RESULT: ${{ needs.quality-shard.result }}
         run: |
           set -euo pipefail
+          # Shards implement: python3 scripts/manager.py lint
           case "$SHARD_RESULT" in
             success|skipped) exit 0 ;;
             *) echo "lint shard result: $SHARD_RESULT" >&2; exit 1 ;;

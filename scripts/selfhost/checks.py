@@ -237,25 +237,46 @@ BOOTSTRAP_REQUIRED_MIR_OPT_SOURCES = (
     "mir_opt/stdlib_inline_eligibility.ark",
     "mir_opt/stdlib_inline_locals.ark",
     "mir_opt/stdlib_inline_rewrite.ark",
+    "mir_opt/gc_hint.ark",
+    "mir_opt/gc_hint_core.ark",
+    "mir_opt/loop_regions.ark",
+    "mir_opt/summary_record.ark",
 )
 
 # Bootstrap overlay: freeze wasm/mir gc_hint files at pre-ff8f8ded (selfhost trap).
 BOOTSTRAP_OVERLAY_FILE_FREEZE_REVS: dict[str, str] = {}
 
-# ff8f8ded mir_opt LICM/GC passes trap in flat-overlay selfhost wasm; use passthrough stub.
+# Full mir_opt (LICM / loop_unroll) still traps in some flat-overlay hops.
+# Keep the namespace stubbed and enable only stdlib inline + validated gc_hint.
 BOOTSTRAP_STUB_OVERLAY_NAMESPACES: frozenset[str] = frozenset({"mir_opt"})
 # Nested imports that flatten to the namespace owner when the namespace is stubbed.
 BOOTSTRAP_STUB_NAMESPACE_FLAT_IMPORTS: dict[tuple[str, ...], str] = {
     ("mir_opt", "optimize_module"): "mir_opt",
 }
-BOOTSTRAP_MIR_OPT_STUB = """// Bootstrap overlay stub — retain only the bounded stdlib pass.
+BOOTSTRAP_MIR_OPT_STUB = """// Overlay stub — stdlib inline plus validated gc_hint (LICM/unroll stay out).
+use mir_module_functions
+use mir_opt_gc_hint
 use mir_opt_stdlib_inline
 
 pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModule {
+    let _target = target
     if opt_level >= 1 {
         mir_opt_stdlib_inline::stdlib_inline_module(m)
     }
     mir_opt_stdlib_inline::stdlib_resolve_normal_calls(m)
+    if opt_level < 2 {
+        return m
+    }
+    let fn_count = mir_module_functions::MirModule_function_count(m)
+    let updated = Vec::new<MirFunction>()
+    let mut fi = 0
+    while fi < fn_count {
+        let f = mir_module_functions::MirModule_function_at(m, fi)
+        mir_opt_gc_hint::run_gc_hint(f)
+        push(updated, f)
+        fi = fi + 1
+    }
+    mir_module_functions::MirModule_set_functions(m, updated)
     m
 }
 """
@@ -2861,10 +2882,10 @@ def _flatten_compiler_imports(text: str) -> str:
                 ns_mod = _flatten_namespace_mod_import(parts)
                 flat = ns_mod if ns_mod is not None else "_".join(parts)
                 explicit_alias = match.group(3)
-                if explicit_alias is not None:
-                    output.append(f"{match.group(1)}use {flat} as {explicit_alias}")
-                else:
-                    output.append(f"{match.group(1)}use {flat}")
+                # Qualified alias references were canonicalized to the flat
+                # module name above. Keep the dependency import alias-free so
+                # the pinned bootstrap loader sees the actual flat module.
+                output.append(f"{match.group(1)}use {flat}")
                 continue
         rewritten = line
         for alias, flat_name in sorted(alias_map.items(), key=lambda item: len(item[0]), reverse=True):
@@ -3116,8 +3137,17 @@ def _compiler_source_content_hash(root: Path) -> str:
                 file_hash = "<missing>"
             digest.update(file_hash.encode())
             digest.update(b"\0")
-    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
-    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
+    # Also hash std files that the overlay copies.  Component/WIT naming is a
+    # bootstrap dependency since #706/#44; keep it cache-bound with the rest.
+    for std_rel in (
+        "std/prelude.ark",
+        "std/toml.ark",
+        "std/json.ark",
+        "std/json/parser.ark",
+        "std/text/mod.ark",
+        "std/wit/names.ark",
+        "std/wit/scan.ark",
+    ):
         std_path = root / std_rel
         if std_path.is_file():
             h = hashlib.sha256()
@@ -3327,6 +3357,15 @@ def _prepare_flattened_selfhost_source_locked(
     text_mod = root / "std" / "text" / "mod.ark"
     if text_mod.is_file():
         shutil.copyfile(text_mod, std_dst / "text.ark")
+    # Component naming facades in the current compiler import std::wit::names
+    # (#706/#44).  Component sources are intentionally live in the bootstrap
+    # overlay, so their shared std dependency must be present as well.
+    wit_dst = std_dst / "wit"
+    wit_dst.mkdir(exist_ok=True)
+    for wit_name in ("names.ark", "scan.ark"):
+        wit_src = root / "std" / "wit" / wit_name
+        if wit_src.is_file():
+            shutil.copyfile(wit_src, wit_dst / wit_name)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
@@ -3830,6 +3869,9 @@ class SelfhostFixpointResult:
 
 # ── Runtime lock helper ──────────────────────────────────────────────────────
 
+_RUNTIME_LOCK_MOD = None
+
+
 def _with_runtime_lock(fn, root: Path):
     """Serialize selfhost compile/parity operations per worktree/build dir.
 
@@ -3837,18 +3879,24 @@ def _with_runtime_lock(fn, root: Path):
     ``<ARUKELLT_BUILD_DIR or root/.build>/selfhost-runtime.lock`` so concurrent
     agents in the same tree cannot overwrite s2/s3 artifacts. Separate worktrees
     (or distinct ARUKELLT_BUILD_DIR values) use distinct locks.
-    """
-    import importlib.util
 
-    spec = importlib.util.spec_from_file_location(
-        "runtime_lock",
-        Path(__file__).parent / "runtime_lock.py",
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn, root=root)
+    The lock module is loaded once. Reloading it on every call discarded the
+    in-process nesting depth and deadlocked fixture-parity on its own flock.
+    """
+    global _RUNTIME_LOCK_MOD
+    if _RUNTIME_LOCK_MOD is None:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "runtime_lock",
+            Path(__file__).parent / "runtime_lock.py",
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _RUNTIME_LOCK_MOD = mod
+    return _RUNTIME_LOCK_MOD.with_selfhost_runtime_lock(fn, root=root)
 
 
 # ── run_fixpoint ──────────────────────────────────────────────────────────────
@@ -4139,7 +4187,7 @@ def _rebuild_current_s2_locked(
                             f"{RED}error: failed to write S2 build-profile manifest: "
                             f"{profile_exc}{NC}"
                         ), time.time() - started
-                    runtime = _parity_runtime_compiler(root, pinned, out)
+                    runtime = _ensure_runtime_compiler_wasm(root, out)
                     if runtime is None:
                         return None, (
                             f"{RED}error: failed to prepare runtime compiler wasm "
@@ -4209,7 +4257,7 @@ def _rebuild_current_s2_locked(
             f"{RED}error: failed to write S2 build-profile manifest: {profile_exc}{NC}"
         ), time.time() - started
 
-    runtime = _parity_runtime_compiler(root, pinned, out)
+    runtime = _ensure_runtime_compiler_wasm(root, out)
     if runtime is None:
         return None, (
             f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"

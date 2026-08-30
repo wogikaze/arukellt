@@ -47,6 +47,14 @@ class ToolResult:
     output: str
 
 
+def _is_scratch_ark_path(rel: str) -> bool:
+    norm = rel.replace("\\", "/")
+    while norm.startswith("./"):
+        norm = norm[2:]
+    first = norm.split("/", 1)[0]
+    return first.startswith(".build") or first.startswith(".ark-")
+
+
 def _git_paths(root: Path, args: list[str]) -> list[str]:
     result = subprocess.run(
         ["git", *args, "-z"], cwd=root, capture_output=True, check=False,
@@ -81,7 +89,10 @@ def changed_paths(root: Path, base: str | None = None) -> list[str]:
         _git_paths(root, ["diff", "--name-only", "--diff-filter=ACMR", compare_base])
     )
     paths.update(_git_paths(root, ["ls-files", "--others", "--exclude-standard"]))
-    return sorted(path for path in paths if (root / path).is_file())
+    return sorted(
+        path for path in paths
+        if (root / path).is_file() and not _is_scratch_ark_path(path)
+    )
 
 
 def tracked_paths(root: Path) -> list[str]:
@@ -108,12 +119,16 @@ def ark_paths(root: Path, requested: list[str] | None = None) -> list[str]:
             absolute = path if path.is_absolute() else root / path
             if absolute.is_dir():
                 candidates.update(
-                    str(item.relative_to(root)).replace("\\", "/")
+                    rel
                     for item in absolute.rglob("*.ark")
                     if item.is_file()
+                    for rel in [str(item.relative_to(root)).replace("\\", "/")]
+                    if not _is_scratch_ark_path(rel)
                 )
             elif absolute.is_file() and absolute.suffix == ".ark":
-                candidates.add(str(absolute.relative_to(root)).replace("\\", "/"))
+                rel = str(absolute.relative_to(root)).replace("\\", "/")
+                if not _is_scratch_ark_path(rel):
+                    candidates.add(rel)
         return sorted(candidates)
 
     family = _ark_inventory(root)
@@ -797,6 +812,7 @@ def run_quality(
         path for path in (selected or [])
         if path.endswith(".ark")
         and not path.startswith("tests/fixtures/diagnostics/")
+        and not _is_scratch_ark_path(path)
     ]
     selected_ark = _paths_without_known_fixture_parity_exclusions(root, ark_selected)
     lint_selected = selected_ark

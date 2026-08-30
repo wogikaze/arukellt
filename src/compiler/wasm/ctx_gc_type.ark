@@ -2,73 +2,74 @@ use collections::name_index
 use wasm::ctx_record
 use wasm::ctx_gc_type_locals
 use wasm::ctx_gc_type_vec_ref
-use wasm::sections_types_gc
+use wasm::gc_layout_table
 use mir::function_identity
 use mir::function_locals_view
 use mir::local_access
 use wasm::sections_types_gc_phase7
 
+fn SelfEmitCtx_fixed_gc_type(ctx: SelfEmitCtx, slot: i32) -> i32 {
+    gc_layout_table::gc_layout_table_fixed_type_index(
+        ctx_record::SelfEmitCtx_gc_layout_table(ctx),
+        slot
+    )
+}
+
 fn SelfEmitCtx_i32_array_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1
+    SelfEmitCtx_fixed_gc_type(ctx, 1)
 }
 
 fn SelfEmitCtx_string_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    SelfEmitCtx_fixed_gc_type(ctx, 0)
 }
 
 fn SelfEmitCtx_struct_type(ctx: SelfEmitCtx, byte_size: i32) -> i32 {
-    // Map byte_size to the matching GC struct type index.
-    // Available: S_f0_i32 (idx 2) through S_f0_i32_..._f7_i32 (idx 9)
-    // Each i32 field is 4 bytes; struct type count = ceil(byte_size / 4) fields.
     let field_count = (byte_size + 3) / 4
     if field_count <= 1 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
+        SelfEmitCtx_fixed_gc_type(ctx, 2)
     } else if field_count == 2 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 3
+        SelfEmitCtx_fixed_gc_type(ctx, 3)
     } else if field_count == 3 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 4
+        SelfEmitCtx_fixed_gc_type(ctx, 4)
     } else if field_count == 4 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 5
+        SelfEmitCtx_fixed_gc_type(ctx, 5)
     } else if field_count == 5 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 6
+        SelfEmitCtx_fixed_gc_type(ctx, 6)
     } else if field_count == 6 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 7
+        SelfEmitCtx_fixed_gc_type(ctx, 7)
     } else if field_count == 7 {
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 8
+        SelfEmitCtx_fixed_gc_type(ctx, 8)
     } else {
-        // 8+ fields → use S_f0_i32_..._f7_i32 (idx 9)
-        ctx_record::SelfEmitCtx_gc_type_base(ctx) + 9
+        SelfEmitCtx_fixed_gc_type(ctx, 9)
     }
 }
 
 fn SelfEmitCtx_vec_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 10
+    SelfEmitCtx_fixed_gc_type(ctx, 10)
 }
 
 fn SelfEmitCtx_vec_string_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 19
+    SelfEmitCtx_fixed_gc_type(ctx, 19)
 }
 
 fn SelfEmitCtx_vec_v128_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 21
+    SelfEmitCtx_fixed_gc_type(ctx, 21)
 }
 
 fn SelfEmitCtx_vec_i64_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 22
+    SelfEmitCtx_fixed_gc_type(ctx, 22)
 }
 
 fn SelfEmitCtx_vec_f64_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 23
+    SelfEmitCtx_fixed_gc_type(ctx, 23)
 }
 
 fn SelfEmitCtx_string_array_type(ctx: SelfEmitCtx) -> i32 {
-    // Vec<String> uses the same element type as String (i8 array = type 0).
-    // The String ref array type is at offset 15 (A_ref0).
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 15
+    SelfEmitCtx_fixed_gc_type(ctx, 15)
 }
 
 fn SelfEmitCtx_v128_array_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 20
+    SelfEmitCtx_fixed_gc_type(ctx, 20)
 }
 
 fn SelfEmitCtx_vec_type_for_ctx(ctx: SelfEmitCtx) -> i32 {
@@ -86,10 +87,6 @@ fn SelfEmitCtx_vec_type_for_ctx(ctx: SelfEmitCtx) -> i32 {
     }
     SelfEmitCtx_vec_type(ctx)
 }
-
-// Determine the vec GC type index from a specific local index.
-// Returns -1 if the local index is invalid or the local type is unknown,
-// in which case the caller should fall back to vec_type_for_ctx.
 
 fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     if local_idx < 0 {
@@ -133,7 +130,6 @@ fn SelfEmitCtx_vec_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
     0 - 1
 }
 
-// Normalize Vec<T> / Vec_T / bare Vec onto the vec: prefix used by emit.
 fn normalize_vec_type_name(type_name: String) -> String {
     if starts_with(clone(type_name), String_from("vec:")) {
         return type_name
@@ -167,43 +163,43 @@ fn SelfEmitCtx_array_type_for_vec(ctx: SelfEmitCtx) -> i32 {
 }
 
 fn SelfEmitCtx_i64_array_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 11
+    SelfEmitCtx_fixed_gc_type(ctx, 11)
 }
 
 fn SelfEmitCtx_f64_array_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 12
+    SelfEmitCtx_fixed_gc_type(ctx, 12)
 }
 
 fn SelfEmitCtx_i64_struct_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 13
+    SelfEmitCtx_fixed_gc_type(ctx, 13)
 }
 
 fn SelfEmitCtx_enum_open_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset()
+    SelfEmitCtx_fixed_gc_type(ctx, 14)
 }
 
 fn SelfEmitCtx_string_ref_array_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 15
+    SelfEmitCtx_fixed_gc_type(ctx, 15)
 }
 
 fn SelfEmitCtx_hashmap_str_i32_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 16
+    SelfEmitCtx_fixed_gc_type(ctx, 16)
 }
 
 fn SelfEmitCtx_hashmap_i32_str_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 17
+    SelfEmitCtx_fixed_gc_type(ctx, 17)
 }
 
 fn SelfEmitCtx_hashmap_str_str_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 18
+    SelfEmitCtx_fixed_gc_type(ctx, 18)
 }
 
 fn SelfEmitCtx_hashmap_i32_fn_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 30
+    SelfEmitCtx_fixed_gc_type(ctx, 30)
 }
 
 fn SelfEmitCtx_hashmap_str_fn_type(ctx: SelfEmitCtx) -> i32 {
-    ctx_record::SelfEmitCtx_gc_type_base(ctx) + 31
+    SelfEmitCtx_fixed_gc_type(ctx, 31)
 }
 
 fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
@@ -211,14 +207,10 @@ fn SelfEmitCtx_enum_variant_type(ctx: SelfEmitCtx, type_slot: i32) -> i32 {
         return SelfEmitCtx_enum_open_type(ctx)
     }
     let map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
-    if type_slot >= 0 && type_slot < len(map) {
+    if type_slot < len(map) {
         return get_unchecked(map, type_slot)
     }
-    let base = ctx_record::SelfEmitCtx_gc_enum_variant_base(ctx)
-    if base < 0 {
-        return ctx_record::SelfEmitCtx_gc_type_base(ctx) + 2
-    }
-    base + type_slot
+    0 - 1
 }
 
 fn SelfEmitCtx_struct_type_by_name(ctx: SelfEmitCtx, struct_name: String) -> i32 {

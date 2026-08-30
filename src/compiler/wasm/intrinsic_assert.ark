@@ -6,6 +6,7 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
+use wasm::intrinsic_math
 use wasm::runtime_abi_process
 use wasm::runtime_abi_stdio_gc
 use wasm::intrinsics::helpers_control
@@ -37,6 +38,12 @@ fn emit_assert_ne(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 }
 
 fn emit_assert_eq_str(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        // Linear i32 pointer arithmetic is invalid on GC string refs.
+        // string_eq leaves a bool; assert fails when that bool is 0.
+        let _eq_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
+        return emit_assert(w, inst, ctx)
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)

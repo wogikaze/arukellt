@@ -13,6 +13,8 @@ use wasm::writer_numbers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_numeric_i32_convert
+use wasm::string_gc_helpers
 
 // Real GC parse_f64 for finish_decimal_number / float lex (#834).
 // Copies the String into linear memory, reuses the LM digit scanner, then
@@ -154,17 +156,36 @@ fn emit_parse_f64_gc_ok(w: WasmWriter, ctx: SelfEmitCtx) {
 }
 
 fn emit_parse_f64_gc_err(w: WasmWriter, ctx: SelfEmitCtx, s_gc: i32) {
-    // Prefer String-payload Err (_f1_ref0). Reuse the input GC string — match
-    // in finish_decimal_number ignores the Err message and emits TK_ERROR.
+    // Canonical Result<f64, String> Err payload matches the linear-memory
+    // path (`parse error: invalid float`). Do not reuse the input slice.
+    emit_parse_f64_gc_invalid_float_string(w, ctx, s_gc)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     let err_name = String_from("Result::Err")
     let err_suffix = String_from("_f1_ref0")
     let err_type = runtime_abi_sockets_result::find_result_variant_type_by_suffix(ctx, err_name, err_suffix)
     let type_idx = if err_type >= 0 { err_type } else { open_type }
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     helpers_io_const::emit_i32_const(w, 1)
     helpers_core::emit_local_get(w, s_gc)
     writer_gc::emit_gc_ref_cast(w, string_type)
     writer_gc::emit_gc_struct_new(w, type_idx)
     writer_gc::emit_gc_ref_cast(w, open_type)
+}
+
+fn emit_parse_f64_gc_invalid_float_string(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let msg = String_from("parse error: invalid float")
+    let msg_len = 26
+    string_gc_helpers::emit_gc_i32_const(w, msg_len)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    string_gc_helpers::emit_gc_local_set(w, dest)
+    let mut i = 0
+    while i < msg_len {
+        helpers_core::emit_local_get(w, dest)
+        string_gc_helpers::emit_gc_i32_const(w, i)
+        helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+        string_gc_helpers::emit_gc_i32_const(w, char_at(msg, i))
+        string_gc_helpers::emit_gc_array_set(w, string_type)
+        i = i + 1
+    }
 }

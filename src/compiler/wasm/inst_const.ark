@@ -5,6 +5,7 @@
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use wasm::ctx_record
+use wasm::ctx_gc_type
 use wasm::ctx_scratch
 use wasm::ctx_string_view
 use wasm::emit_target
@@ -54,20 +55,18 @@ fn emit_const_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_const_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let str_idx = inst_accessors_operands::MirInst_arg0(inst)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     if str_idx >= 0 && str_idx < ctx_string_view::SelfEmitCtx_string_offset_count(ctx) {
         let offset = ctx_string_view::SelfEmitCtx_string_offset_at(ctx, str_idx)
         let target_str = clone(inst_accessors_literals::MirInst_str_val(inst))
         let str_len = len(target_str)
-        let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
         let dest = inst_accessors_operands::MirInst_dest(inst)
         let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
 
-        // result = array.new_default $string_type (str_len)
         string_gc_helpers::emit_gc_i32_const(w, str_len)
         string_gc_helpers::emit_gc_array_new(w, string_type)
         string_gc_helpers::emit_gc_local_set(w, dest)
 
-        // Loop: for i = 0 to str_len-1: result[i] = i32.load8_u(memory[offset + i])
         string_gc_helpers::emit_gc_i32_const(w, 0)
         string_gc_helpers::emit_gc_local_set(w, s_i)
 
@@ -79,16 +78,13 @@ fn emit_const_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
         string_gc_helpers::emit_gc_local_get(w, dest)
         string_gc_helpers::emit_gc_local_get(w, s_i)
-        // GC array index must stay a true i32 under Memory64 scalar widen.
         helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
-        // Read byte from data section memory (address is Memory64-widened).
         string_gc_helpers::emit_gc_i32_const(w, offset)
         string_gc_helpers::emit_gc_local_get(w, s_i)
         string_gc_helpers::emit_gc_i32_add(w)
         writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
         writer_core::emit_byte(w, 0)
         writer_core::emit_byte(w, 0)
-        // Widen the loaded byte so array_set's narrow sees a consistent scalar.
         helpers_numeric_i32_convert::emit_widen_i32_result(w)
         string_gc_helpers::emit_gc_array_set(w, string_type)
 
@@ -99,11 +95,9 @@ fn emit_const_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         string_gc_helpers::emit_gc_br(w, 0)
         string_gc_helpers::emit_gc_block_loop_end(w)
 
-        // Push result onto the stack so the store policy can handle it.
         string_gc_helpers::emit_gc_local_get(w, dest)
     } else {
-        // Fallback for invalid string index: push null
-        string_gc_helpers::emit_gc_ref_null(w, ctx_record::SelfEmitCtx_gc_type_base(ctx))
+        string_gc_helpers::emit_gc_ref_null(w, string_type)
     }
 }
 

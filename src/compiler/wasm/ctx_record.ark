@@ -38,6 +38,7 @@ pub struct SelfEmitCtx {
     gc_struct_name_index: NameIndex,
     current_func_idx: i32,
     fn_type_map: Vec<i32>,
+    fn_result_gc_map: Vec<i32>,
     signature_registry: SignatureRegistry,
     type_table: TypeTable,
     mono_instance_table: MonoInstanceTable,
@@ -138,6 +139,7 @@ fn SelfEmitCtx_new(
         gc_struct_name_index: name_index::NameIndex_new(0),
         current_func_idx: 0,
         fn_type_map: empty_i32_e,
+        fn_result_gc_map: Vec::new<i32>(),
         signature_registry: sig,
         type_table: types,
         mono_instance_table: mono,
@@ -433,6 +435,14 @@ fn SelfEmitCtx_fn_type_map(ctx: SelfEmitCtx) -> Vec<i32> {
 
 fn SelfEmitCtx_set_fn_type_map(ctx: SelfEmitCtx, fn_type_map: Vec<i32>) {
     ctx.fn_type_map = fn_type_map
+}
+
+fn SelfEmitCtx_fn_result_gc_map(ctx: SelfEmitCtx) -> Vec<i32> {
+    ctx.fn_result_gc_map
+}
+
+fn SelfEmitCtx_set_fn_result_gc_map(ctx: SelfEmitCtx, fn_result_gc_map: Vec<i32>) {
+    ctx.fn_result_gc_map = fn_result_gc_map
 }
 
 fn SelfEmitCtx_signature_registry(ctx: SelfEmitCtx) -> SignatureRegistry {

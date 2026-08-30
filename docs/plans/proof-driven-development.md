@@ -1,6 +1,6 @@
 # Proof-Driven Development Rollout
 
-関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)
+関連 ADR: [ADR-053](../adr/ADR-053-verifiable-compiler-architecture.md)
 
 関連 RFC: [RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
 

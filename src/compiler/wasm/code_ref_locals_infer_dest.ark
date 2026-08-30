@@ -6,6 +6,7 @@ use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
 use mir::block_inst_access
+use mir::block_record
 use mir::opcodes
 use mir::value_types
 use mir::function_locals_view
@@ -20,6 +21,7 @@ use wasm::ctx_record
 use wasm::emit_target
 use wasm::code_ref_locals_infer_callee
 use wasm::inst_ctx
+use wasm::intrinsic_vec_type
 use wasm::sections_types_gc
 
 fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
@@ -46,6 +48,48 @@ fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
     0 - 1
 }
 
+fn is_raw_array_grow_callee(name: String) -> bool {
+    eq(clone(name), "raw_array_grow") ||
+    eq(clone(name), "raw::raw_array_grow") ||
+    eq(clone(name), "std::core::raw::raw_array_grow")
+}
+
+fn infer_raw_array_grow_result_gc_type(
+    f: MirFunction,
+    ctx: SelfEmitCtx,
+    inst: MirInst,
+    callee: String
+) -> Option<i32> {
+    if !is_raw_array_grow_callee(callee) {
+        return Option::None
+    }
+    let receiver = inst_accessors_operands::MirInst_arg0(inst)
+    if receiver >= 0 && receiver < function_locals_view::MirFunction_local_count(f) {
+        let from_name = ctx_gc_type::SelfEmitCtx_vec_type_for_local(ctx, receiver)
+        if from_name >= 0 {
+            return Option::Some(from_name)
+        }
+    }
+    let vec_type = intrinsic_vec_type::resolve_vec_type_for_call(
+        ctx,
+        inst_accessors_literals::MirInst_str_val(inst),
+        inst
+    )
+    if vec_type >= 0 && vec_type != ctx_gc_type::SelfEmitCtx_vec_type(ctx) {
+        return Option::Some(vec_type)
+    }
+    if receiver >= 0 && receiver < function_locals_view::MirFunction_local_count(f) {
+        let from_type_id = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, receiver)
+        if from_type_id >= 0 && from_type_id != ctx_gc_type::SelfEmitCtx_vec_type(ctx) {
+            return Option::Some(from_type_id)
+        }
+    }
+    if vec_type >= 0 {
+        return Option::Some(vec_type)
+    }
+    Option::None
+}
+
 fn is_get_unchecked_callee_name(name: String) -> bool {
     if eq(clone(name), "vec_get_unchecked") ||
     eq(clone(name), "get_unchecked") ||
@@ -69,7 +113,10 @@ fn is_scalar_get_unchecked_result(type_name: String, vt: i32) -> bool {
     eq(clone(type_name), "F64") {
         return true
     }
-    vt == value_types::mir_value_types__VT_I32() || vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
+    // VT_I32 is the unmarked-temp default. Treating it as scalar hid
+    // get_unchecked dests of Vec<String>/enum and left those locals as i32
+    // while array.get produced a GC ref.
+    vt == value_types::mir_value_types__VT_I64() || vt == value_types::mir_value_types__VT_F64()
 }
 
 fn is_container_return_type_name(ret_name: String) -> bool {
@@ -109,6 +156,13 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
         elem = substring(clone(vec_tn), 4, len(vec_tn))
     } else if starts_with(clone(vec_tn), "Vec_") {
         elem = substring(clone(vec_tn), 4, len(vec_tn))
+    } else if starts_with(clone(vec_tn), "Vec<") {
+        let n = len(vec_tn)
+        if n > 4 && char_at(vec_tn, n - 1) == 62 {
+            elem = substring(clone(vec_tn), 4, n - 1)
+        } else {
+            return Option::None
+        }
     } else {
         return Option::None
     }
@@ -128,7 +182,7 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
         }
         Option::None => {}
     }
-    Option::None
+    code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, elem)
 }
 
 fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfEmitCtx) -> Option<i32> {
@@ -158,6 +212,16 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
                                     if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                                         return named
                                     }
+                                }
+                                Option::None => {}
+                            }
+                            let enum_open = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(
+                                ctx,
+                                clone(pname)
+                            )
+                            match enum_open {
+                                Option::Some(_enum_type) => {
+                                    return enum_open
                                 }
                                 Option::None => {}
                             }
@@ -400,7 +464,11 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 if starts_with(clone(field_sig), "ref") {
                     let offset_str = substring(clone(field_sig), 3, len(field_sig))
                     let offset = sections_types_gc::parse_type_sig_int(offset_str)
-                    return Option::Some(ctx_record::SelfEmitCtx_gc_type_base(ctx) + offset)
+                    let type_idx = ctx_gc_type::SelfEmitCtx_fixed_gc_type(ctx, offset)
+                    if type_idx < 0 {
+                        return Option::None
+                    }
+                    return Option::Some(type_idx)
                 }
             }
         }
@@ -436,25 +504,30 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
     }
     if op == opcodes::MIR_CALL() {
         let callee = inst_record::mir_inst_str_val(inst)
-        // clone(T)->T: use arg0's GC type before string-intrinsic fallback (#730).
+        // raw_array_grow returns the same vec it received. Generic call-result
+        // infer falls back to Vec<i32> and then local.set of the grow dest
+        // rejects the body emitter's vec:String / structref cast.
+        let grow_type = infer_raw_array_grow_result_gc_type(f, ctx, inst, clone(callee))
+        match grow_type {
+            Option::Some(_storage_type) => {
+                return grow_type
+            }
+            Option::None => {}
+        }
+        // clone(T)->T: use the source local's GC type before string-intrinsic
+        // fallback (#730). Intrinsic clone often has dest=-1 / arg0=-1; the
+        // source is the LOCAL_GET immediately before the CALL.
         if post_pass_callee_lookup::is_generic_clone_intrinsic(clone(callee)) {
-            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
-            if arg0 >= 0 && arg0 < function_locals_view::MirFunction_local_count(f) {
-                let arg_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, arg0))
-                let named_arg = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(arg_tn))
-                match named_arg {
-                    Option::Some(_opt_v) => {
-                        return named_arg
-                    }
-                    Option::None => {}
+            let from_arg = storage_from_clone_arg_local(
+                f,
+                inst_accessors_operands::MirInst_arg0(inst),
+                ctx
+            )
+            match from_arg {
+                Option::Some(_storage_type) => {
+                    return from_arg
                 }
-                if eq(clone(arg_tn), "String") || eq(clone(arg_tn), "string") {
-                    return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
-                }
-                let from_local = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, arg0)
-                if from_local >= 0 {
-                    return Option::Some(from_local)
-                }
+                Option::None => {}
             }
         }
         // get_unchecked: prefer the dest local's element type (set by MIR
@@ -470,17 +543,17 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 dest_tn = local_access::MirLocal_type_name(loc)
                 dest_vt = local_access::MirLocal_val_type(loc)
             }
-            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
-                return Option::None
-            }
-            // Prefer the vec receiver's element type over a poisoned String dest
-            // (get_unchecked__String mono / sticky type_name) (#730).
+            // Prefer the vec receiver's element type over a leftover dest
+            // type_name (unmarked i32 / get_unchecked__String) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
             match from_vec {
                 Option::Some(_opt_v) => {
                     return from_vec
                 }
                 Option::None => {}
+            }
+            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
+                return Option::None
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
             match from_use {
@@ -505,6 +578,13 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                     if named_dest_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                         return named_dest
                     }
+                }
+                Option::None => {}
+            }
+            let dest_enum = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, clone(dest_tn))
+            match dest_enum {
+                Option::Some(_enum_type) => {
+                    return dest_enum
                 }
                 Option::None => {}
             }
@@ -553,4 +633,47 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         }
     }
     Option::None
+}
+
+fn storage_from_clone_arg_local(f: MirFunction, arg: i32, ctx: SelfEmitCtx) -> Option<i32> {
+    if arg < 0 || arg >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let arg_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, arg))
+    let named_arg = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(arg_tn))
+    match named_arg {
+        Option::Some(_opt_v) => {
+            return named_arg
+        }
+        Option::None => {}
+    }
+    if eq(clone(arg_tn), "String") || eq(clone(arg_tn), "string") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    }
+    let from_local = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, arg)
+    if from_local >= 0 {
+        return Option::Some(from_local)
+    }
+    Option::None
+}
+
+// Intrinsic clone is a no-op; the source is the LOCAL_GET before the CALL.
+fn infer_clone_stack_arg_storage(
+    f: MirFunction,
+    block: MirBlock,
+    call_index: i32,
+    inst: MirInst,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    if !post_pass_callee_lookup::is_generic_clone_intrinsic(inst_record::mir_inst_str_val(inst)) {
+        return Option::None
+    }
+    let mut arg = inst_accessors_operands::MirInst_arg0(inst)
+    if arg < 0 && call_index > 0 {
+        let prev = block_inst_access::MirBlock_inst_at(block, call_index - 1)
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+            arg = inst_accessors_operands::MirInst_arg0(prev)
+        }
+    }
+    storage_from_clone_arg_local(f, arg, ctx)
 }

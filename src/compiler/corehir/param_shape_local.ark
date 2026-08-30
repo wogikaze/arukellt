@@ -3,6 +3,7 @@ use corehir::decl_ann_name
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
 use corehir::param_shape_node
+use corehir::type_ann_local_name
 
 fn param_named_local_type_name(ann: AstNode) -> String {
     if decl_ann_name::decl_ann_is_named(ann) {
@@ -96,7 +97,10 @@ fn fn_param_local_type_name(node: AstNode) -> String {
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return concat(
                 String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                concat(
+                    type_ann_local_name::type_ann_mir_arg_name(ok_ty),
+                    concat(String_from(":"), type_ann_local_name::type_ann_mir_arg_name(err_ty))
+                )
             )
         }
     } else {
@@ -172,7 +176,10 @@ fn method_param_local_type_name(node: AstNode) -> String {
             let err_ty = decl_ann_children::decl_ann_child_at(ann, 2)
             return concat(
                 String_from("result:"),
-                concat(decl_ann_name::decl_ann_name(ok_ty), concat(String_from(":"), decl_ann_name::decl_ann_name(err_ty)))
+                concat(
+                    type_ann_local_name::type_ann_mir_arg_name(ok_ty),
+                    concat(String_from(":"), type_ann_local_name::type_ann_mir_arg_name(err_ty))
+                )
             )
         }
     } else {

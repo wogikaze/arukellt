@@ -1,30 +1,31 @@
 // Stdlib benchmark: hash map insert/get with String keys and i32 values.
-// Exercises std::collections::hash hashmap_str_* hot paths: insert,
-// get (Option<i32>), contains, remove, plus hashmap_keys/values/clear.
-use std::collections::hash
+// Exercises std::collections::hash_string hashmap_str_* hot paths: insert,
+// get (Option<i32>), contains, remove, plus len. The Vec<i32> hashmap_new
+// surface is the i32-key map and must not be mixed with String keys.
+use std::collections::hash_string
 use std::host::stdio
 
 fn main() {
-    let m = hash::hashmap_new()
+    let m = hash_string::hashmap_str_i32_new()
     let mut checksum: i32 = 0
     let mut i: i32 = 0
 
     // Insert 100 entries (String key, i32 value)
     while i < 100 {
         let key = concat("key_", (i).to_string())
-        let prev = hash::hashmap_str_set(m, key, i * 7)
+        let prev = hash_string::hashmap_str_set(m, key, i * 7)
         if prev {
             checksum = checksum + 1000
         }
         i = i + 1
     }
-    checksum = checksum + hash::hashmap_size(m)
+    checksum = checksum + hash_string::hashmap_str_len(m)
 
     // Get each entry
     i = 0
     while i < 100 {
         let key = concat("key_", (i).to_string())
-        match hash::hashmap_str_get(m, key) {
+        match hash_string::hashmap_str_get(m, key) {
             Option::Some(v) => checksum = checksum + v,
             None => checksum = checksum + 10000,
         }
@@ -35,7 +36,7 @@ fn main() {
     i = 0
     while i < 100 {
         let key = concat("key_", (i).to_string())
-        if hash::hashmap_str_contains(m, key) {
+        if hash_string::hashmap_str_contains(m, key) {
             checksum = checksum + 1
         }
         i = i + 1
@@ -45,7 +46,7 @@ fn main() {
     i = 0
     while i < 100 {
         let key = concat("key_", (i).to_string())
-        match hash::hashmap_str_remove(m, key) {
+        match hash_string::hashmap_str_remove(m, key) {
             Option::Some(_) => checksum = checksum + 2,
             None => checksum = checksum + 20000,
         }
@@ -53,7 +54,7 @@ fn main() {
     }
 
     // Remaining size
-    checksum = checksum + hash::hashmap_size(m)
+    checksum = checksum + hash_string::hashmap_str_len(m)
 
     stdio::println((checksum).to_string())
 }

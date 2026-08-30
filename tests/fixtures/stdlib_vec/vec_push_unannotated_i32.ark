@@ -1,0 +1,14 @@
+use std::test
+
+fn main() {
+    // Unannotated Vec::new<i32> must still lower push (NameIndex buckets).
+    let buckets = Vec::new<i32>()
+    let mut i = 0
+    while i < 16 {
+        push(buckets, 0)
+        i = i + 1
+    }
+    test::assert_eq_i32(len(buckets), 16)
+    test::assert_eq_i32(get_unchecked(buckets, 0), 0)
+    test::assert_eq_i32(get_unchecked(buckets, 15), 0)
+}

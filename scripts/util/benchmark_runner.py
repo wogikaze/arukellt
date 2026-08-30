@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DEFAULT_TARGET = "wasm32"
 DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
 DEFAULT_BASELINE_RESULTS = ROOT / "tests" / "baselines" / "perf" / "baselines.json"
@@ -526,7 +528,16 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [
+                str(compiler),
+                "compile",
+                "--time",
+                "--target",
+                target,
+                "-o",
+                rel(wasm_path),
+                case.source,
+            ],
             cwd=ROOT,
             time_bin=time_bin,
         )
@@ -579,6 +590,22 @@ def measure_compile(
     return result
 
 
+def guest_runtime_cmd(wasm_path: Path, extra_runtime_args: tuple[str, ...] = ()) -> list[str]:
+    """Execute guest wasm the same way fixture-parity does.
+
+    Raw ``wasmtime <module>`` cannot parse wasm32-gc (needs ``--wasm gc``) and
+    cannot link ``wasi:cli`` / host imports. Reuse ``_wasm_run_argv`` so
+    host-linker and selfhost wasmtime flags stay in one owner.
+    """
+    from scripts.selfhost.checks import _wasm_run_argv
+
+    cmd = _wasm_run_argv(ROOT, wasm_path)
+    extra_dirs = [arg for arg in extra_runtime_args if arg.startswith("--dir")]
+    if extra_dirs:
+        cmd = cmd[:-1] + extra_dirs + [cmd[-1]]
+    return cmd
+
+
 def measure_runtime(
     wasm_path: Path,
     expected_text: str | None,
@@ -602,7 +629,7 @@ def measure_runtime(
             "correctness": "skipped",
             "command": None,
         }
-    runtime_cmd = [wasmtime_bin, *runtime_args, str(wasm_path)]
+    runtime_cmd = guest_runtime_cmd(wasm_path, runtime_args)
     warmup_cmd = runtime_cmd
     for _ in range(warmups):
         warm = run_measured(warmup_cmd, cwd=ROOT, time_bin=time_bin)
@@ -720,13 +747,21 @@ def measure_startup_probe(
         return None
     wasm_path = work_dir / "startup-probe.wasm"
     compile_out = run_measured(
-        [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(startup_source)],
+        [
+            str(compiler),
+            "compile",
+            "--target",
+            target,
+            "-o",
+            rel(wasm_path),
+            rel(startup_source),
+        ],
         cwd=ROOT,
         time_bin=None,
     )
     if compile_out["returncode"] != 0 or not wasm_path.exists():
         return None
-    runtime_cmd = [wasmtime_bin, str(wasm_path)]
+    runtime_cmd = guest_runtime_cmd(wasm_path)
     probe_samples: list[float] = []
     for _ in range(latency_iterations):
         out = run_measured(runtime_cmd, cwd=ROOT, time_bin=time_bin)
@@ -773,8 +808,10 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
         else preset["runtime_latency_iterations"]
     )
 
-    with tempfile.TemporaryDirectory(prefix="arukellt-bench-") as tmp_dir:
-        work_dir = Path(tmp_dir)
+    # Selfhost wasmtime --dir=REPO_ROOT cannot open /tmp or other absolute paths.
+    work_dir = ROOT / ".build" / "bench"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    if True:
         # Measure the startup probe once for the whole run; used to separate
         # wasmtime instantiation overhead from guest execution time.
         startup_ms = measure_startup_probe(

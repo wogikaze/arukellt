@@ -33,12 +33,12 @@ fn emit_resource_type_export_sections(out: writer_core::ComponentWriter) {
     type_section_entries::emit_two_type_section(
         out,
         types_wit_compound::comp_wit_resource_type(),
-        types_wit_compound::comp_wit_own_type(0),
+        types_wit_compound::comp_wit_own_type(0)
     )
     type_section_entries::emit_single_type_export_section(
         out,
         export_shapes_resource_scan::comp_resource_type_export_name(),
-        0,
+        0
     )
 }
 
@@ -67,7 +67,7 @@ fn emit_resource_export_section(out: writer_core::ComponentWriter, export_name: 
     writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
 }
 
-fn try_emit_resource_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+pub fn try_emit_resource_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
     let export_name = export_shapes_resource_scan::comp_single_resource_roundtrip_export_name(mir)
     if len(export_name) > 0 {
         return emit_resource_roundtrip_component(core_wasm, export_name)

@@ -110,6 +110,10 @@ fn type_plan_fn_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     sections_type_plan::TypeSectionPlan_fn_type_map(plan)
 }
 
+fn type_plan_fn_result_gc_map(plan: TypeSectionPlan) -> Vec<i32> {
+    sections_type_plan::TypeSectionPlan_fn_result_gc_map(plan)
+}
+
 fn type_plan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     sections_type_plan::TypeSectionPlan_host_type_map(plan)
 }

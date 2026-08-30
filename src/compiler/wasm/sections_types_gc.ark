@@ -2,8 +2,8 @@
 // Type sig format:
 //   A_{elem}        - array type with element type {elem}
 //   S_f{N}_{T}...   - struct type with fields at offsets {N} of types {T}
-//   Sub{N}_S_...    - subtype of type at index {N} with struct body S_...
-//   SubF{N}_S_...   - final subtype of type at index {N} with struct body S_...
+//   Sub{N}_S_...    - subtype of fixed GC slot {N} with struct body S_...
+//   SubF{N}_S_...   - final subtype of fixed GC slot {N} with struct body S_...
 //   SubF_GS_f...    - final struct with no supertype (user-defined structs)
 
 use mir::module_gc_enum
@@ -13,32 +13,36 @@ use wasm::opcodes
 use wasm::writer_core
 use wasm::sections_type_plan
 
-fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32) {
+fn fixed_gc_type_index(gc_fixed_type_map: Vec<i32>, slot: i32) -> i32 {
+    if slot < 0 || slot >= len(gc_fixed_type_map) {
+        return 0 - 1
+    }
+    get_unchecked(gc_fixed_type_map, slot)
+}
+
+fn emit_struct_type_entry(type_sec: WasmWriter, sig: String, gc_fixed_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_STRUCT())
     let field_sigs = struct_field_sigs(sig)
     writer_core::emit_leb128_u(type_sec, len(field_sigs))
     for fi in 0..len(field_sigs) {
-        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_type_base)
+        emit_struct_field_type(type_sec, get_unchecked(field_sigs, fi), gc_fixed_type_map, gc_struct_type_map)
     }
 }
 
-fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_type_base: i32) {
+fn emit_struct_field_type(type_sec: WasmWriter, ft: String, gc_fixed_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) {
     if starts_with(clone(ft), "gcsref") {
-        // gcsref<slot> is handled by the caller (sections_types_emit)
-        // which has access to gc_struct_type_map.  Fall through to ref handling.
-        let _slot = parse_type_sig_int(substring(ft, 6, len(ft)))
-        // Without gc_struct_type_map, we cannot resolve the slot.
-        // Use ref14 as fallback (should not happen in practice).
-        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(type_sec, gc_type_base + 14)
-        writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
-        return
+        let slot = parse_type_sig_int(substring(ft, 6, len(ft)))
+        if slot >= 0 && slot < len(gc_struct_type_map) {
+            writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(type_sec, get_unchecked(gc_struct_type_map, slot))
+            writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
+            return
+        }
     }
     if starts_with(clone(ft), "ref") {
-        let offset_str = substring(ft, 3, len(ft))
-        let offset = parse_type_sig_int(offset_str)
+        let slot = parse_type_sig_int(substring(ft, 3, len(ft)))
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_leb128_s(type_sec, fixed_gc_type_index(gc_fixed_type_map, slot))
         writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
         return
     }
@@ -60,13 +64,13 @@ fn parse_type_sig_int(s: String) -> i32 {
     val
 }
 
-fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+fn emit_array_type_entry(type_sec: WasmWriter, sig: String, gc_fixed_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) {
     writer_core::emit_byte(type_sec, opcodes::SEC_TYPE_ARRAY())
-    emit_array_elem_type(type_sec, array_elem_type(sig), gc_type_base, gc_struct_type_map)
+    emit_array_elem_type(type_sec, array_elem_type(sig), gc_fixed_type_map, gc_struct_type_map)
     writer_core::emit_byte(type_sec, constants::WASM_MUTABLE())
 }
 
-fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i32, gc_struct_type_map: Vec<i32>) {
+fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_fixed_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) {
     if eq(clone(elem_type), "structref") {
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
         writer_core::emit_byte(type_sec, constants::WASM_STRUCTREF())
@@ -74,18 +78,16 @@ fn emit_array_elem_type(type_sec: WasmWriter, elem_type: String, gc_type_base: i
     }
     if starts_with(clone(elem_type), "gcsref") {
         let slot = parse_type_sig_int(substring(elem_type, 6, len(elem_type)))
-        if slot < len(gc_struct_type_map) {
-            let type_idx = get_unchecked(gc_struct_type_map, slot)
+        if slot >= 0 && slot < len(gc_struct_type_map) {
             writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(type_sec, type_idx)
+            writer_core::emit_leb128_s(type_sec, get_unchecked(gc_struct_type_map, slot))
             return
         }
     }
     if starts_with(clone(elem_type), "ref") {
-        let offset_str = substring(elem_type, 3, len(elem_type))
-        let offset = parse_type_sig_int(offset_str)
+        let slot = parse_type_sig_int(substring(elem_type, 3, len(elem_type)))
         writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(type_sec, gc_type_base + offset)
+        writer_core::emit_leb128_s(type_sec, fixed_gc_type_index(gc_fixed_type_map, slot))
         return
     }
     writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(elem_type))
@@ -166,9 +168,9 @@ fn append_gc_type_sigs(type_sigs: Vec<String>) {
     // Vec<Option/Result>: nullable open-enum array + vec header (#832).
     push(type_sigs, "A_ref14")
     push(type_sigs, "SubF_GS_f0_ref28_f1_i32")
-    // HashMap<i32, fn>: keys A_i32, vals A_fnref (offset 26), flags A_i32 (#833).
+    // HashMap<i32, fn>: keys A_i32, vals A_fnref (slot 26), flags A_i32 (#833).
     push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref1_f3_ref26_f4_ref1")
-    // HashMap<String, fn>: keys A_ref0 (offset 15), vals A_fnref (offset 26) (#838).
+    // HashMap<String, fn>: keys A_ref0 (slot 15), vals A_fnref (slot 26) (#838).
     push(type_sigs, "SubF_GS_f0_i32_f1_i32_f2_ref15_f3_ref26_f4_ref1")
 }
 
@@ -185,8 +187,6 @@ fn gc_enum_open_type_sig() -> String {
 }
 
 fn gc_struct_type_sig_from_byte_size(byte_size: i32) -> String {
-    // Struct types are indexed by field count (each i32 field = 4 bytes).
-    // Offset 2 = 1 field, offset 3 = 2 fields, ..., offset 9 = 8+ fields.
     let field_count = (byte_size + 3) / 4
     let offset = if field_count <= 1 {
         2

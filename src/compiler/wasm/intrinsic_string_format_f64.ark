@@ -1,4 +1,5 @@
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
 use wasm::intrinsic_string_format_f64_assemble
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
@@ -42,7 +43,14 @@ fn emit_f64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_set(w, s_zero)
     intrinsic_string_format_f64_assemble::emit_f64_assemble(w, s_pos, s_neg, s_k, s_di, s_j, s_wpos, s_zero, digit_buf, out_buf)
     if emit_target::is_gc_target(clone(ctx.target)) {
-        intrinsic_string_format_f64_assemble::emit_f64_alloc_string_gc(w, s_wpos, s_len, s_pos, ctx.gc_type_base, ctx)
+        intrinsic_string_format_f64_assemble::emit_f64_alloc_string_gc(
+            w,
+            s_wpos,
+            s_len,
+            s_pos,
+            ctx_gc_type::SelfEmitCtx_string_type(ctx),
+            ctx
+        )
     } else {
         let s_alloc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
         intrinsic_string_format_f64_assemble::emit_f64_alloc_string(w, s_wpos, s_len, s_alloc, s_pos)

@@ -10,6 +10,10 @@ use wasm::intrinsic_assert
 use wasm::intrinsic_cast
 use wasm::intrinsic_clock
 use wasm::intrinsic_math
+use wasm::intrinsic_range
+use wasm::intrinsic_scalar_i32
+use wasm::intrinsic_scalar_loop_math
+use wasm::intrinsic_string_access
 use wasm::runtime_abi_random
 use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
@@ -18,9 +22,23 @@ use wasm::intrinsic_string_from_bytes
 use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use wasm::intrinsic_vec
+use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
+use wasm::intrinsic_parse_f64
+use wasm::intrinsic_parse_i64
+use wasm::intrinsic_string_extra
+use wasm::intrinsic_string_index_of
+use wasm::intrinsic_string_replace_all
+use wasm::intrinsic_string_transform
+use wasm::intrinsic_sort
+use wasm::intrinsic_seq
+use wasm::intrinsic_seq_unique
+use wasm::intrinsic_string_pad
+use wasm::intrinsic_vec_contains
+use wasm::intrinsics::helpers_numeric_i32
 use wasm::runtime_abi_env_args
+use mir::opcodes as mir_opcodes
 
 fn try_emit_clone_intrinsic(
     w: WasmWriter,
@@ -37,6 +55,31 @@ fn try_emit_clone_intrinsic(
     }
     let on_stack = intrinsic_string_basic::emit_clone(w, inst, ctx)
     finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+}
+
+// starts_with / ends_with must win over a resolved Ark wrapper. The wrapper
+// CALL is often `__core_string_*_impl`; resolved emit runs leftover-dest
+// copies that type `index` as String, and a DCE'd impl becomes
+// drop+unreachable. The affix intrinsic consumes the stack args directly.
+fn try_emit_affix_intrinsic(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if is_starts_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_starts_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_ends_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_ends_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    false
 }
 
 fn try_emit_name_intrinsic_fallback(
@@ -81,18 +124,23 @@ fn try_emit_name_intrinsic_fallback(
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     if is_assert_eq_str_callee(clone(callee)) {
-        // Linear-memory assert_eq_str traps on GC strings; compare via
-        // string_eq then assert the bool (#807).
-        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-            let _eq_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
-            let on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
-            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
-        }
         let on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Vec len is rewritten to raw_array_len; string len uses emit_len.
+    // Check the vec name first so `::len` does not steal Vec::len.
+    if is_vec_len_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     if is_len_callee(clone(callee)) {
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // text::is_empty / __core_string_is_empty_impl is DCE'd independently of
+    // len; bare `is_empty` would steal Vec::is_empty.
+    if is_text_is_empty_callee(clone(callee)) {
+        let on_stack = intrinsic_string_access::emit_text_is_empty(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // Std builder_append / write_debug_to bodies call __intrinsic_concat; when
@@ -112,6 +160,23 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_format::emit_i64_to_string(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Display::to_string for bool/f64 inlines to __intrinsic_* and misses
+    // core_op → drop+unreachable. json_parse / 0.001.to_string trap (#807).
+    if is_format_bool_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_bool_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_format_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_f64_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // i32 field `.to_string()` (Point.x) misses core_op after struct.get and
+    // becomes drop+unreachable. Keep i64's named fallback and the default
+    // i32 formatter used by core_op_handler_text_to_string.
+    if is_format_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     // path::normalize uses __intrinsic_split/join; core_op miss → unreachable (#807).
     if is_split_callee(clone(callee)) {
         let on_stack = intrinsic_string_collection::emit_split(w, inst, ctx)
@@ -123,6 +188,38 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_vec_pop_callee(clone(callee)) {
         let on_stack = intrinsic_vec::emit_vec_pop(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Bare / rewritten `push` misses core_op and becomes drop+unreachable.
+    // That traps NameIndex_new (and every unannotated Vec<i32> push) on s3.
+    if is_vec_push_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_push_i64(w, inst, ctx, true)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_push_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_push_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_push_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_push(w, inst, ctx, true, next_op)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Tiny modules DCE `__core_vec_get_*_impl`; the Call keeps the name and
+    // becomes drop+unreachable. Emit the GC get intrinsic instead.
+    if is_vec_get_unchecked_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_unchecked_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_unchecked_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_get(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // Associated Vec::new / Vec::with_capacity fallback when MIR body is DCE'd (#845).
@@ -188,6 +285,168 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = runtime_abi_env_args::emit_env_arg_at(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // parse.parse_f64 is normal_call → __core_parse_f64_impl, but the impl is
+    // often DCE'd and the CALL has no core_op_id. Unresolved fallback is
+    // drop+unreachable, so JSON number parse traps in main.
+    if is_parse_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // text / seq names miss core_op after DCE and become drop+unreachable
+    // (file_io String_new, text_ops trim, template substring, sort_i32).
+    if is_string_new_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_String_new(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_trim_callee(clone(callee)) {
+        let on_stack = intrinsic_string_extra::emit_trim(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_substring_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_slice(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_sort_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_replace_callee(clone(callee)) {
+        let on_stack = intrinsic_string_replace_all::emit_replace(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_repeat_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_repeat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_to_upper_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_to_upper(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_to_lower_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_to_lower(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_index_of_callee(clone(callee)) {
+        let on_stack = intrinsic_string_index_of::emit_index_of(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_char_to_string_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_char_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_parse_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_parse_i64::emit_parse_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_builder_new_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_String_new(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_builder_append_line_callee(clone(callee)) {
+        let _first = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        let on_stack = emit_concat_newline_suffix(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_builder_append_callee(clone(callee)) {
+        let on_stack = intrinsic_string_basic::emit_concat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_builder_build_callee(clone(callee)) {
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+    }
+    // Tiny stdlib_core fixtures DCE `__core_math_*_impl` / `__core_range_*_impl`.
+    // Do not match bare abs/min/max — those names are shared.
+    if is_math_abs_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_abs(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_min_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_min(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_max_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_max(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_clamp_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_clamp(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_pow_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_loop_math::emit_pow_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_gcd_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_loop_math::emit_gcd(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_range_new_callee(clone(callee)) {
+        if intrinsic_range::emit_range_new(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
+    }
+    if is_range_contains_callee(clone(callee)) {
+        if intrinsic_range::emit_range_contains(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
+    }
+    if is_range_len_callee(clone(callee)) {
+        if intrinsic_range::emit_range_len(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
+    }
+    if is_math_sqrt_callee(clone(callee)) {
+        let on_stack = intrinsic_math::emit_sqrt(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_char_at_callee(clone(callee)) {
+        let on_stack = intrinsic_string_access::emit_char_at(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_push_char_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_push_char(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_sum_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_sum_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_contains_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_contains::emit_contains_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_sort_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_sort::emit_sort_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_min_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_min_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_max_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_max_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_count_eq_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_count_eq(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_binary_search_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_seq_binary_search(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_seq_unique_callee(clone(callee)) {
+        let on_stack = intrinsic_seq_unique::emit_seq_unique(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_pad_left_callee(clone(callee)) {
+        let on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_pad_right_callee(clone(callee)) {
+        let on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
 }
 
@@ -195,6 +454,139 @@ fn is_has_flag_callee(callee: String) -> bool {
     eq(clone(callee), String_from("has_flag")) ||
     eq(clone(callee), String_from("__intrinsic_has_flag")) ||
     ends_with(clone(callee), String_from("::has_flag"))
+}
+
+fn is_string_new_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("String_new")) ||
+    callee_name_is(clone(callee), String_from("string_new")) ||
+    callee_name_is(clone(callee), String_from("__core_string_new_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_string_new")) ||
+    ends_with(clone(callee), String_from("::String_new")) ||
+    ends_with(clone(callee), String_from("::string_new"))
+}
+
+fn is_trim_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("trim")) ||
+    callee_name_is(clone(callee), String_from("text::trim")) ||
+    callee_name_is(clone(callee), String_from("__core_string_trim_impl")) ||
+    ends_with(clone(callee), String_from("::trim"))
+}
+
+fn is_substring_callee(callee: String) -> bool {
+    // Do not match Vec::slice / generic slice — those are not string views.
+    callee_name_is(clone(callee), String_from("substring")) ||
+    callee_name_is(clone(callee), String_from("text::substring")) ||
+    callee_name_is(clone(callee), String_from("slice")) ||
+    callee_name_is(clone(callee), String_from("text::slice")) ||
+    callee_name_is(clone(callee), String_from("string::slice")) ||
+    callee_name_is(clone(callee), String_from("__core_string_slice_impl")) ||
+    ends_with(clone(callee), String_from("::substring"))
+}
+
+fn is_sort_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("sort_i32")) ||
+    callee_name_is(clone(callee), String_from("__core_sort_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_seq_sort_i32_impl")) ||
+    ends_with(clone(callee), String_from("::sort_i32"))
+}
+
+fn is_replace_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("replace")) ||
+    callee_name_is(clone(callee), String_from("text::replace")) ||
+    callee_name_is(clone(callee), String_from("__core_string_replace_impl")) ||
+    ends_with(clone(callee), String_from("::replace"))
+}
+
+fn is_repeat_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("repeat")) ||
+    callee_name_is(clone(callee), String_from("text::repeat")) ||
+    callee_name_is(clone(callee), String_from("__core_string_repeat_impl")) ||
+    ends_with(clone(callee), String_from("::repeat"))
+}
+
+fn is_to_upper_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("to_upper")) ||
+    callee_name_is(clone(callee), String_from("to_uppercase")) ||
+    callee_name_is(clone(callee), String_from("text::to_upper")) ||
+    callee_name_is(clone(callee), String_from("__core_string_to_uppercase_impl")) ||
+    ends_with(clone(callee), String_from("::to_upper")) ||
+    ends_with(clone(callee), String_from("::to_uppercase"))
+}
+
+fn is_to_lower_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("to_lower")) ||
+    callee_name_is(clone(callee), String_from("to_lowercase")) ||
+    callee_name_is(clone(callee), String_from("text::to_lower")) ||
+    callee_name_is(clone(callee), String_from("__core_string_to_lowercase_impl")) ||
+    ends_with(clone(callee), String_from("::to_lower")) ||
+    ends_with(clone(callee), String_from("::to_lowercase"))
+}
+
+fn is_index_of_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("index_of")) ||
+    callee_name_is(clone(callee), String_from("text::index_of")) ||
+    callee_name_is(clone(callee), String_from("__core_string_index_of_impl")) ||
+    ends_with(clone(callee), String_from("::index_of"))
+}
+
+fn is_parse_i64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("parse_i64")) ||
+    callee_name_is(clone(callee), String_from("__core_parse_i64_impl")) ||
+    callee_name_is(clone(callee), String_from("raw_parse_i64")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_parse_i64")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_parse_i64")) ||
+    ends_with(clone(callee), String_from("::parse_i64"))
+}
+
+fn is_char_to_string_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("char_to_string")) ||
+    callee_name_is(clone(callee), String_from("text::char_to_string")) ||
+    callee_name_is(clone(callee), String_from("__core_char_to_string_impl")) ||
+    ends_with(clone(callee), String_from("::char_to_string"))
+}
+
+fn is_builder_new_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("builder_new")) ||
+    callee_name_is(clone(callee), String_from("text::builder_new")) ||
+    ends_with(clone(callee), String_from("::builder_new"))
+}
+
+fn is_builder_append_callee(callee: String) -> bool {
+    if is_builder_append_line_callee(clone(callee)) {
+        return false
+    }
+    callee_name_is(clone(callee), String_from("builder_append")) ||
+    callee_name_is(clone(callee), String_from("text::builder_append")) ||
+    ends_with(clone(callee), String_from("::builder_append"))
+}
+
+fn is_builder_append_line_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("builder_append_line")) ||
+    callee_name_is(clone(callee), String_from("text::builder_append_line")) ||
+    ends_with(clone(callee), String_from("::builder_append_line"))
+}
+
+fn is_builder_build_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("builder_build")) ||
+    callee_name_is(clone(callee), String_from("text::builder_build")) ||
+    ends_with(clone(callee), String_from("::builder_build"))
+}
+
+fn emit_concat_newline_suffix(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    helpers_numeric_i32::emit_i32_const(w, 10)
+    let _newline = intrinsic_string_format::emit_char_to_string(w, inst, ctx)
+    intrinsic_string_basic::emit_concat(w, inst, ctx)
+}
+
+fn is_parse_f64_callee(callee: String) -> bool {
+    // Result<f64, String> sealed parse only. Do not match convert::parse_f64
+    // (Option<f64> wrapper with a real Ark body).
+    callee_name_is(clone(callee), String_from("parse_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_parse_f64_impl")) ||
+    callee_name_is(clone(callee), String_from("raw_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("text::parse_f64"))
 }
 
 fn is_arg_at_callee(callee: String) -> bool {
@@ -248,16 +640,21 @@ fn is_vec_new_callee(callee: String) -> bool {
 fn is_contains_callee(callee: String) -> bool {
     eq(clone(callee), String_from("contains")) ||
     eq(clone(callee), String_from("__intrinsic_contains")) ||
+    eq(clone(callee), String_from("__core_string_contains_impl")) ||
     ends_with(clone(callee), String_from("::contains"))
 }
 
 fn is_starts_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("starts_with")) ||
+    callee_name_is(clone(callee), String_from("starts_with")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_starts_with")) ||
+    callee_name_is(clone(callee), String_from("__core_string_starts_with_impl")) ||
     ends_with(clone(callee), String_from("::starts_with"))
 }
 
 fn is_ends_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("ends_with")) ||
+    callee_name_is(clone(callee), String_from("ends_with")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_ends_with")) ||
+    callee_name_is(clone(callee), String_from("__core_string_ends_with_impl")) ||
     ends_with(clone(callee), String_from("::ends_with"))
 }
 
@@ -353,16 +750,160 @@ fn is_clone_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("string_clone"))
 }
 
+fn is_vec_len_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("raw_array_len")) ||
+    callee_name_is(clone(callee), String_from("vec_len")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_len_impl")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_array_len")) ||
+    callee_name_is(clone(callee), String_from("Vec::len")) ||
+    ends_with(clone(callee), String_from("::raw_array_len")) ||
+    ends_with(clone(callee), String_from("::vec_len"))
+}
+
 fn is_len_callee(callee: String) -> bool {
     eq(clone(callee), String_from("len")) ||
     eq(clone(callee), String_from("len_bytes")) ||
     eq(clone(callee), String_from("byte_len")) ||
     eq(clone(callee), String_from("__intrinsic_len")) ||
+    callee_name_is(clone(callee), String_from("__core_string_len_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_len_bytes_impl")) ||
     ends_with(clone(callee), String_from("::len")) ||
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
     ends_with(clone(callee), String_from("__len_bytes")) ||
     ends_with(clone(callee), String_from("::byte_len"))
+}
+
+fn is_text_is_empty_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_is_empty_impl")) ||
+    callee_name_is(clone(callee), String_from("text::is_empty"))
+}
+
+fn is_math_abs_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_abs_impl")) ||
+    callee_name_is(clone(callee), String_from("abs"))
+}
+
+fn is_math_min_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_min_impl")) ||
+    callee_name_is(clone(callee), String_from("min"))
+}
+
+fn is_math_max_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_max_impl")) ||
+    callee_name_is(clone(callee), String_from("max"))
+}
+
+fn is_math_clamp_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_clamp_impl"))
+}
+
+fn is_math_pow_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_pow_i32_impl"))
+}
+
+fn is_math_gcd_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_gcd_impl"))
+}
+
+fn is_range_new_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_new_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_new")) ||
+    callee_name_is(clone(callee), String_from("range_new"))
+}
+
+fn is_range_contains_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_contains_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_contains")) ||
+    callee_name_is(clone(callee), String_from("range_contains"))
+}
+
+fn is_range_len_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_len_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_len")) ||
+    callee_name_is(clone(callee), String_from("range_len"))
+}
+
+fn is_math_sqrt_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_sqrt_impl")) ||
+    callee_name_is(clone(callee), String_from("sqrt"))
+}
+
+fn is_char_at_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_char_at_impl")) ||
+    callee_name_is(clone(callee), String_from("char_at")) ||
+    callee_name_is(clone(callee), String_from("byte_at")) ||
+    callee_name_is(clone(callee), String_from("raw_string_byte_at_unchecked")) ||
+    callee_name_is(clone(callee), String_from("text::char_at"))
+}
+
+fn is_push_char_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_push_char_impl")) ||
+    callee_name_is(clone(callee), String_from("push_char")) ||
+    callee_name_is(clone(callee), String_from("text::push_char"))
+}
+
+fn is_seq_sum_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_sum_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("sum_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::sum_i32"))
+}
+
+fn is_seq_contains_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_vec_contains_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("seq_contains")) ||
+    callee_name_is(clone(callee), String_from("seq::seq_contains")) ||
+    callee_name_is(clone(callee), String_from("contains_i32"))
+}
+
+fn is_sort_i64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_sort_i64_impl")) ||
+    callee_name_is(clone(callee), String_from("sort_i64")) ||
+    ends_with(clone(callee), String_from("::sort_i64"))
+}
+
+fn is_seq_min_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_min_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("min_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::min_i32"))
+}
+
+fn is_seq_max_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_max_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("max_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::max_i32"))
+}
+
+fn is_seq_count_eq_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_count_eq_impl")) ||
+    callee_name_is(clone(callee), String_from("count_eq")) ||
+    callee_name_is(clone(callee), String_from("seq::count_eq"))
+}
+
+fn is_seq_binary_search_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_binary_search_impl")) ||
+    callee_name_is(clone(callee), String_from("binary_search")) ||
+    callee_name_is(clone(callee), String_from("seq::binary_search"))
+}
+
+fn is_seq_unique_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_unique_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("unique")) ||
+    callee_name_is(clone(callee), String_from("seq::unique"))
+}
+
+fn is_pad_left_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_pad_left_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_pad_left_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_left")) ||
+    callee_name_is(clone(callee), String_from("text::pad_left"))
+}
+
+fn is_pad_right_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_pad_right_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_pad_right_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_right")) ||
+    callee_name_is(clone(callee), String_from("text::pad_right"))
 }
 
 fn is_concat_callee(callee: String) -> bool {
@@ -388,6 +929,43 @@ fn is_format_i64_callee(callee: String) -> bool {
     eq(clone(callee), String_from("i64_to_string")) ||
     ends_with(clone(callee), String_from("::format_i64")) ||
     ends_with(clone(callee), String_from("::i64_to_string"))
+}
+
+fn callee_name_is(callee: String, name: String) -> bool {
+    let left = clone(callee)
+    eq(left, clone(name))
+}
+
+fn is_format_bool_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("bool_to_string")) ||
+    callee_name_is(clone(callee), String_from("__core_format_bool_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_bool_to_string")) ||
+    callee_name_is(clone(callee), String_from("bool::to_string")) ||
+    callee_name_is(clone(callee), String_from("convert::bool_to_string")) ||
+    ends_with(clone(callee), String_from("::bool_to_string"))
+}
+
+fn is_format_f64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("f64_to_string")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_f64_to_string")) ||
+    callee_name_is(clone(callee), String_from("__core_format_f64_impl")) ||
+    callee_name_is(clone(callee), String_from("raw_f64_to_string")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_f64_to_string")) ||
+    callee_name_is(clone(callee), String_from("f64::to_string")) ||
+    callee_name_is(clone(callee), String_from("convert::f64_to_string")) ||
+    callee_name_is(clone(callee), String_from("text::format_f64")) ||
+    ends_with(clone(callee), String_from("::f64_to_string")) ||
+    ends_with(clone(callee), String_from("::format_f64"))
+}
+
+fn is_format_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("to_string")) ||
+    callee_name_is(clone(callee), String_from("i32_to_string")) ||
+    callee_name_is(clone(callee), String_from("format_i32")) ||
+    callee_name_is(clone(callee), String_from("__core_format_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("i32::to_string")) ||
+    ends_with(clone(callee), String_from("::i32_to_string")) ||
+    ends_with(clone(callee), String_from("::format_i32"))
 }
 
 fn is_split_callee(callee: String) -> bool {
@@ -417,6 +995,68 @@ fn is_vec_pop_callee(callee: String) -> bool {
     eq(clone(callee), String_from("__intrinsic_pop")) ||
     ends_with(clone(callee), String_from("::pop")) ||
     ends_with(clone(callee), String_from("::vec_pop"))
+}
+
+fn is_vec_push_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("push")) ||
+    callee_name_is(clone(callee), String_from("vec_push")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_push")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_push")) ||
+    callee_name_is(clone(callee), String_from("Vec::push")) ||
+    ends_with(clone(callee), String_from("::push")) ||
+    ends_with(clone(callee), String_from("::vec_push"))
+}
+
+fn is_vec_push_i64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("push_i64")) ||
+    callee_name_is(clone(callee), String_from("vec_push_i64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_i64_impl")) ||
+    ends_with(clone(callee), String_from("::push_i64"))
+}
+
+fn is_vec_push_f64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("push_f64")) ||
+    callee_name_is(clone(callee), String_from("vec_push_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_f64_impl")) ||
+    ends_with(clone(callee), String_from("::push_f64"))
+}
+
+fn is_vec_get_unchecked_i64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked_i64")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked_i64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_i64_impl")) ||
+    ends_with(clone(callee), String_from("::get_unchecked_i64"))
+}
+
+fn is_vec_get_unchecked_f64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked_f64")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_f64_impl")) ||
+    ends_with(clone(callee), String_from("::get_unchecked_f64"))
+}
+
+fn is_vec_get_unchecked_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("raw_array_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_array_get_unchecked")) ||
+    ends_with(clone(callee), String_from("::get_unchecked")) ||
+    ends_with(clone(callee), String_from("::vec_get_unchecked")) ||
+    ends_with(clone(callee), String_from("::raw_array_get_unchecked"))
+}
+
+// Do not match bare `get` — HashMap/json/env get share that name.
+fn is_vec_get_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("vec_get")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_get")) ||
+    callee_name_is(clone(callee), String_from("Vec::get")) ||
+    callee_name_is(clone(callee), String_from("Vec__get")) ||
+    ends_with(clone(callee), String_from("::vec_get"))
 }
 
 fn finish_intrinsic_fallback(

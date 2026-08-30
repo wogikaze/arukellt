@@ -1,4 +1,5 @@
 use wasm::ctx_scratch
+use wasm::ctx_gc_type
 use wasm::ctx_record
 use wasm::emit_target
 use wasm::string_gc_helpers
@@ -29,7 +30,7 @@ fn emit_i64_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) ||
     contains(clone(ctx.target), String_from("-p2")) ||
     contains(clone(ctx.target), String_from("-p3")) {
-        let string_type = ctx.gc_type_base
+        let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
         emit_i64_string_alloc_gc(w, buf_end64, s_wpos64, s_len64, string_type, ctx, inst)
     } else {
         let s_alloc64 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)

@@ -62,7 +62,7 @@ def runtime_gate() -> tuple[int, str]:
         out = Path(td) / "calc.component.wasm"
         compile_run = subprocess.run(
             ["bash", str(WRAPPER), "compile", str(CALC.relative_to(ROOT)),
-             "--target", "wasm32-wasi-p2", "--emit", "component", "-o", str(out)],
+             "--target", "wasm32-gc", "--emit", "component", "-o", str(out)],
             cwd=ROOT, env=env, capture_output=True, text=True, timeout=240,
         )
         if compile_run.returncode != 0 or not out.is_file():

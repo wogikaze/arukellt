@@ -24,6 +24,7 @@ fn mir_return_vt_from_type_info(ty: TypeInfo) -> i32 {
         7 => value_types::VT_VOID(),
         8 => value_types::VT_VOID(),
         9 => value_types::VT_F32(),
+        10 => value_types::VT_GC_REF(),
         11 => value_types::VT_GC_REF(),
         12 => value_types::VT_GC_REF(),
         13 => value_types::VT_GC_REF(),

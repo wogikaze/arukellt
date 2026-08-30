@@ -1,14 +1,18 @@
+use mir::value_types
+
 pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
     wrapper_type_idx: i32,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
+    gc_fixed_type_map: Vec<i32>,
     gc_type_base: i32,
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_base: i32,
     gc_struct_type_map: Vec<i32>,
+    fn_result_gc_map: Vec<i32>,
 }
 
 fn TypeSectionPlan_new(
@@ -17,6 +21,7 @@ fn TypeSectionPlan_new(
     wrapper_type_idx: i32,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
+    gc_fixed_type_map: Vec<i32>,
     gc_type_base: i32,
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
@@ -29,11 +34,13 @@ fn TypeSectionPlan_new(
         wrapper_type_idx: wrapper_type_idx,
         wit_type_map: wit_type_map,
         wit_import_count: wit_import_count,
+        gc_fixed_type_map: gc_fixed_type_map,
         gc_type_base: gc_type_base,
         gc_enum_variant_base: gc_enum_variant_base,
         gc_enum_variant_type_map: gc_enum_variant_type_map,
         gc_struct_base: gc_struct_base,
-        gc_struct_type_map: gc_struct_type_map
+        gc_struct_type_map: gc_struct_type_map,
+        fn_result_gc_map: Vec::new<i32>()
     }
 }
 
@@ -57,6 +64,10 @@ fn TypeSectionPlan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
     plan.wrapper_type_idx
 }
 
+fn TypeSectionPlan_gc_fixed_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.gc_fixed_type_map
+}
+
 fn TypeSectionPlan_gc_type_base(plan: TypeSectionPlan) -> i32 {
     plan.gc_type_base
 }
@@ -77,24 +88,105 @@ fn TypeSectionPlan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     plan.gc_struct_type_map
 }
 
+fn TypeSectionPlan_fn_result_gc_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.fn_result_gc_map
+}
+
+fn TypeSectionPlan_set_fn_result_gc_map(plan: TypeSectionPlan, fn_result_gc_map: Vec<i32>) {
+    plan.fn_result_gc_map = fn_result_gc_map
+}
+
+fn TypeSectionPlan_with_fn_result_gc_map(plan: TypeSectionPlan, fn_result_gc_map: Vec<i32>) -> TypeSectionPlan {
+    TypeSectionPlan {
+        host_type_map: plan.host_type_map,
+        fn_type_map: plan.fn_type_map,
+        wrapper_type_idx: plan.wrapper_type_idx,
+        wit_type_map: plan.wit_type_map,
+        wit_import_count: plan.wit_import_count,
+        gc_fixed_type_map: plan.gc_fixed_type_map,
+        gc_type_base: plan.gc_type_base,
+        gc_enum_variant_base: plan.gc_enum_variant_base,
+        gc_enum_variant_type_map: plan.gc_enum_variant_type_map,
+        gc_struct_base: plan.gc_struct_base,
+        gc_struct_type_map: plan.gc_struct_type_map,
+        fn_result_gc_map: fn_result_gc_map
+    }
+}
+
 fn build_type_section_plan(
     type_map: Vec<i32>,
     num_host_types: i32,
     wit_import_count: i32,
-    gc_type_count: i32,
+    gc_fixed_count: i32,
+    gc_struct_count: i32,
+    gc_enum_variant_count: i32,
     fn_count: i32,
-    needs_wrapper: i32,
-    gc_type_base: i32,
-    gc_enum_variant_base: i32,
-    gc_enum_variant_type_map: Vec<i32>,
-    gc_struct_base: i32,
-    gc_struct_type_map: Vec<i32>
+    needs_wrapper: i32
 ) -> TypeSectionPlan {
+    let gc_type_count = gc_fixed_count + gc_struct_count + gc_enum_variant_count
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
     let fn_type_map = build_function_type_map(type_map, num_host_types, wit_import_count, gc_type_count, fn_count)
     let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper)
-    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)
+    let gc_fixed_type_map = build_gc_fixed_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count)
+    let gc_type_base = first_mapped_type_index(gc_fixed_type_map)
+    let gc_struct_type_map = build_gc_struct_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count)
+    let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, gc_enum_variant_count)
+    let gc_struct_base = first_mapped_type_index(gc_struct_type_map)
+    let gc_enum_variant_base = first_mapped_type_index(gc_enum_variant_type_map)
+    TypeSectionPlan_new(
+        host_type_map,
+        fn_type_map,
+        wrapper_type_idx,
+        wit_type_map,
+        wit_import_count,
+        gc_fixed_type_map,
+        gc_type_base,
+        gc_enum_variant_base,
+        gc_enum_variant_type_map,
+        gc_struct_base,
+        gc_struct_type_map
+    )
+}
+
+fn first_mapped_type_index(type_map: Vec<i32>) -> i32 {
+    if len(type_map) == 0 {
+        return 0 - 1
+    }
+    get_unchecked(type_map, 0)
+}
+
+fn build_gc_fixed_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32) -> Vec<i32> {
+    let mut fixed_map = Vec::new<i32>()
+    let base_idx = num_host_types + wit_import_count
+    let mut gi = 0
+    while gi < gc_fixed_count {
+        push(fixed_map, get_unchecked(type_map, base_idx + gi))
+        gi = gi + 1
+    }
+    fixed_map
+}
+
+fn build_gc_struct_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32) -> Vec<i32> {
+    let mut struct_map = Vec::new<i32>()
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count
+    let mut si = 0
+    while si < gc_struct_count {
+        push(struct_map, get_unchecked(type_map, base_idx + si))
+        si = si + 1
+    }
+    struct_map
+}
+
+fn build_gc_enum_variant_type_map(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_fixed_count: i32, gc_struct_count: i32, enum_variant_count: i32) -> Vec<i32> {
+    let mut variant_map = Vec::new<i32>()
+    let base_idx = num_host_types + wit_import_count + gc_fixed_count + gc_struct_count
+    let mut si = 0
+    while si < enum_variant_count {
+        push(variant_map, get_unchecked(type_map, base_idx + si))
+        si = si + 1
+    }
+    variant_map
 }
 
 fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
@@ -178,11 +270,14 @@ fn val_type_to_sig(vt: i32) -> String {
 }
 
 fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String {
-    if vt == 5 && !is_gc_target {
+    // Linear wasm32 stores String/Vec as i32 pointers. Emitting the GC
+    // "ref"/"gcref" sigs with an empty TypeSectionPlan map writes
+    // `ref.null` + leb128(-1) = 0x63 0x7f, which is not a valid valtype.
+    if !is_gc_target && (vt == value_types::VT_REF() || vt == value_types::VT_GC_REF()) {
         return "i32"
     }
     // Typed funcref stays a reference type under Memory64 (not an i64 index).
-    if vt == 8 {
+    if vt == value_types::VT_FUNCREF() {
         return "fnref"
     }
     // Memory64 (wasm32-gc default): widen former i32 Wasm values to i64.

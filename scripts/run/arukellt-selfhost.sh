@@ -60,7 +60,11 @@ runtime_adapter_path() {
 
 component_needs_runtime_adapter() {
   local component="$1"
-  grep -aqF 'runtime-http-get' "$component" 2>/dev/null     || grep -aqF 'runtime-fs-read-file' "$component" 2>/dev/null     || grep -aqF 'runtime-env-vars' "$component" 2>/dev/null
+  # Match component-level kebab imports only. The embedded runtime bridge also
+  # contains these names as core `host` imports; grepping the raw bytes would
+  # force `wac plug` (and wasi:http) onto every command component.
+  wasm-tools print "$component" 2>/dev/null | grep -qE \
+    '^[[:space:]]+\(import "runtime-(http-get|fs-read-file|env-vars)"'
 }
 
 plug_runtime_adapter_in_place() {
@@ -80,7 +84,17 @@ plug_runtime_adapter_in_place() {
   fi
   tmp="${component}.runtime-link.tmp.wasm"
   rm -f "$tmp"
-  wac plug --plug "$adapter" "$component" -o "$tmp"
+  if ! wac plug --plug "$adapter" "$component" -o "$tmp"; then
+    rm -f "$tmp"
+    # WIT-import sockets also emit runtime-* imports, but the adapter cannot
+    # satisfy user packages such as test:host. Keep the unplugged socket so
+    # compose can plug the real provider.
+    if grep -aqF 'test:' "$component" 2>/dev/null; then
+      echo "arukellt-selfhost: note — runtime adapter plug skipped (user WIT imports remain)" >&2
+      return 0
+    fi
+    return 1
+  fi
   mv "$tmp" "$component"
 }
 

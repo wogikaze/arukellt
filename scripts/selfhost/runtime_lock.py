@@ -81,9 +81,22 @@ def _diag(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
 
 
+# Linux flock is per file description, not per process. A nested
+# with_selfhost_runtime_lock in the same process opens a second fd and
+# deadlocks on itself (fixture-parity → rebuild_current_s2).
+_LOCK_DEPTH: dict[str, int] = {}
+
+
 def with_selfhost_runtime_lock(fn: Callable[[], T], root: Path | None = None) -> T:
     """Run ``fn`` under an exclusive flock on the worktree/build-local lock."""
     lock_path = runtime_lock_path(root)
+    lock_key = str(lock_path)
+    if _LOCK_DEPTH.get(lock_key, 0) > 0:
+        _LOCK_DEPTH[lock_key] += 1
+        try:
+            return fn()
+        finally:
+            _LOCK_DEPTH[lock_key] -= 1
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     timeout = _lock_wait_timeout_sec()
     started = time.monotonic()
@@ -129,9 +142,11 @@ def with_selfhost_runtime_lock(fn: Callable[[], T], root: Path | None = None) ->
             lock_file.flush()
         except OSError:
             pass
+        _LOCK_DEPTH[lock_key] = 1
         try:
             return fn()
         finally:
+            _LOCK_DEPTH[lock_key] = 0
             try:
                 lock_file.seek(0)
                 lock_file.truncate()

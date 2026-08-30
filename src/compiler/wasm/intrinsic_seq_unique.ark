@@ -1,11 +1,22 @@
 use mir::inst_accessors_operands
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::inst_ctx
 use wasm::intrinsic_seq_unique_loop
 use wasm::opcodes
+use wasm::writer_gc
+use wasm::string_gc_helpers
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_seq_unique(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_seq_unique_gc(w, ctx)
+        inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
+        return true
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -21,6 +32,98 @@ fn emit_seq_unique(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     emit_seq_unique_finalize(w, s1, s7)
     inst_ctx::ctx_mark_vec_local(ctx, inst_accessors_operands::MirInst_dest(inst))
     return true
+}
+
+fn emit_seq_unique_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let s_src = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_src_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_out_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 1)
+    let s_src_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let s_out_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let s_cur = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let s_found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    helpers_core::emit_local_set(w, s_src)
+    helpers_core::emit_local_get(w, s_src)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_src_arr)
+    helpers_core::emit_local_get(w, s_src)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_src_len)
+    helpers_core::emit_local_get(w, s_src_len)
+    writer_gc::emit_gc_array_new_from_widened(w, arr_type)
+    writer_gc::emit_gc_ref_cast(w, arr_type)
+    helpers_core::emit_local_set(w, s_out_arr)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_out_len)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_core::emit_local_get(w, s_src_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_src_arr)
+    helpers_core::emit_local_get(w, s_i)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_set(w, s_cur)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_found)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_j)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_j)
+    helpers_core::emit_local_get(w, s_out_len)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_out_arr)
+    helpers_core::emit_local_get(w, s_j)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    helpers_core::emit_local_get(w, s_cur)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_found)
+    string_gc_helpers::emit_gc_br(w, 2)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_j)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_j)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+    helpers_core::emit_local_get(w, s_found)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_out_arr)
+    helpers_core::emit_local_get(w, s_out_len)
+    helpers_core::emit_local_get(w, s_cur)
+    writer_gc::emit_gc_array_set_i32(w, arr_type)
+    helpers_core::emit_local_get(w, s_out_len)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_out_len)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_out_arr)
+    writer_gc::emit_gc_ref_cast(w, arr_type)
+    helpers_core::emit_local_get(w, s_out_len)
+    writer_gc::emit_gc_struct_new(w, vec_type)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
 }
 
 fn emit_seq_unique_init(w: WasmWriter, src_local: i32, vec_local: i32, outer_index_local: i32, src_len_local: i32, src_data_local: i32, result_len_local: i32, result_data_local: i32) {

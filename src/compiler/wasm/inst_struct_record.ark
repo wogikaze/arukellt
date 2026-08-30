@@ -169,6 +169,11 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
     } else {
         writer_gc::emit_gc_struct_get(w, gc_type_idx, field_idx)
     }
+    // Funcref struct fields are nullable; typed fn locals / call_ref params
+    // are non-null `(ref $sig)`. Narrow before local.set (same as GC_STRUCT_GET).
+    if val_type == value_types::VT_FUNCREF() {
+        writer_gc::emit_gc_ref_as_non_null(w)
+    }
     return
 }
 if inst_accessors_literals::MirInst_int_val(inst) > 0 {
@@ -269,10 +274,23 @@ fn compute_field_idx_get(inst: MirInst, byte_offset: i32) -> i32 {
     byte_offset / 4
 }
 
+fn enum_discriminant_open_type(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> i32 {
+    // Discriminant (field 0) lives on the open enum type. Casting a Some/Ok
+    // value to the None/Err variant before struct.get traps (for-in Option).
+    if field_idx == 0 && ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, type_idx) {
+        let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        if open_type >= 0 {
+            return open_type
+        }
+    }
+    type_idx
+}
+
 fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32, byte_offset: i32, size_hint: i32) -> i32 {
     // Prefer MirLocal.value_type / spine over MIR str_val. Tuple destructure
     // may stamp size-only names like `tuple:i32,i32` while the base local
     // already carries the concrete mono layout (e.g. pair i32+String).
+    let field_idx = compute_field_idx_get(inst, byte_offset)
     let mut base_local = inst_accessors_operands::MirInst_arg0(inst)
     if base_local < 0 && prev_arg0 >= 0 && (prev_op == mir::opcodes::MIR_LOCAL_GET() || prev_op == mir::opcodes::MIR_STRUCT_SET()) {
         base_local = prev_arg0
@@ -284,18 +302,31 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
         code_ref_locals_block_scan::local_set_non_string_storage_type(f, base_local, ctx)
         match copied_storage {
             Option::Some(copied_type) => {
-                return copied_type
+                return enum_discriminant_open_type(ctx, copied_type, field_idx)
             }
             Option::None => {}
         }
         let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base_local)
         if spine_gc >= 0 {
-            return spine_gc
+            return enum_discriminant_open_type(ctx, spine_gc, field_idx)
+        }
+        let open_storage = code_ref_locals_block_scan::local_enum_open_storage_type(f, base_local, ctx)
+        match open_storage {
+            Option::Some(open_type) => {
+                if field_idx == 0 {
+                    return open_type
+                }
+            }
+            Option::None => {}
         }
     }
     let struct_name = inst_accessors_literals::MirInst_str_val(inst)
     if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
-        return ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
+        return enum_discriminant_open_type(
+            ctx,
+            ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)),
+            field_idx
+        )
     }
     let size_hint_val = size_hint
     let struct_size_est = if size_hint_val >= 100000 {
@@ -305,5 +336,5 @@ fn resolve_gc_struct_type_idx(inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, pre
     } else {
         byte_offset + 4
     }
-    ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est)
+    enum_discriminant_open_type(ctx, ctx_gc_type::SelfEmitCtx_struct_type(ctx, struct_size_est), field_idx)
 }

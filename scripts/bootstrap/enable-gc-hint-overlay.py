@@ -86,6 +86,9 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 def main() -> int:
     text = CHECKS.read_text(encoding="utf-8")
+    if "mir_opt/gc_hint.ark" in text and "mir_opt_gc_hint::run_gc_hint" in text:
+        print("enable-gc-hint-overlay: already applied")
+        return 0
     text = replace_once(text, OLD_SOURCES, NEW_SOURCES, "required source closure")
     text = replace_once(text, OLD_STUB, NEW_STUB, "mir_opt bootstrap stub")
     CHECKS.write_text(text, encoding="utf-8")

@@ -1,12 +1,16 @@
 use mir::inst_accessors_shape
 use mir::inst_gc_hint
 use mir::types
+use wasm::ctx_gc_hint
+use wasm::writer_core
 
 fn try_emit_gc_hint_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let op = inst_accessors_shape::MirInst_op(inst)
     if op != inst_gc_hint::mir_gc_hint_opcode() {
         return false
     }
-    // GC hints are recorded via metadata.code.gc_hint; no Wasm bytecode.
+    // Hint has no opcode bytes. Record the body offset so metadata.code.gc_hint
+    // is emitted (the custom section is skipped when the offset list is empty).
+    ctx_gc_hint::SelfEmitCtx_push_gc_hint_offset(ctx, writer_core::writer_size(w))
     true
 }

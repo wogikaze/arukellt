@@ -114,6 +114,14 @@ fn gc_hint_is_local_reload(inst: MirInst, local: i32) -> bool {
     inst_accessors_operands::MirInst_arg0(inst) == local
 }
 
+fn gc_hint_is_stack_binding(inst: MirInst) -> bool {
+    // `let p = Point { ... }` stores via LOCAL_SET(arg0=p, arg1=-1) after
+    // STRUCT_NEW leaves the ref on the stack. That is an alias, not a use.
+    inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+    inst_accessors_operands::MirInst_arg1(inst) < 0 &&
+    inst_accessors_operands::MirInst_arg0(inst) >= 0
+}
+
 fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i32) -> GcHintUseTarget {
     let mut alias = 0 - 1
     let mut alias_at = 0 - 1
@@ -137,6 +145,15 @@ fn gc_hint_resolve_use_target(insts: Vec<MirInst>, from: i32, to: i32, local: i3
         }
         if op == opcodes::MIR_LOCAL_SET() && arg1 == local {
             if alias >= 0 || arg0 < 0 || arg0 == local {
+                return GcHintUseTarget_new(0 - 1, from, false)
+            }
+            alias = arg0
+            alias_at = i
+            i = i + 1
+            continue
+        }
+        if gc_hint_is_stack_binding(inst) && direct_uses == 0 && alias < 0 {
+            if arg0 == local {
                 return GcHintUseTarget_new(0 - 1, from, false)
             }
             alias = arg0

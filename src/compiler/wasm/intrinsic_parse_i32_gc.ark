@@ -22,7 +22,7 @@ fn emit_parse_i32_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_acc = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
     let s_neg = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     let s_ok = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
 
     helpers_core::emit_local_set(w, s_str)
@@ -185,7 +185,7 @@ fn emit_parse_i32_gc_err(w: WasmWriter, ctx: SelfEmitCtx, _s_str: i32, s_result:
 fn emit_parse_i32_gc_invalid_integer_string(w: WasmWriter, ctx: SelfEmitCtx, s_err: i32) {
     let msg = "parse error: invalid integer"
     let msg_len = len(msg)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     helpers_numeric_i32::emit_i32_const(w, msg_len)
     writer_gc::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, s_err)

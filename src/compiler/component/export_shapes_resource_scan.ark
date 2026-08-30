@@ -18,7 +18,7 @@ fn comp_function_is_resource_roundtrip_export(f: MirFunction) -> bool {
     eq(export_function_view::export_function_param_type_name(f, 0), "i32")
 }
 
-fn comp_single_resource_roundtrip_export_name(mir: MirModule) -> String {
+pub fn comp_single_resource_roundtrip_export_name(mir: MirModule) -> String {
     let mut i = 0
     while i < module_functions::MirModule_function_count(mir) {
         let f = module_functions::MirModule_function_at(mir, i)
@@ -30,6 +30,6 @@ fn comp_single_resource_roundtrip_export_name(mir: MirModule) -> String {
     String_new()
 }
 
-fn comp_resource_type_export_name() -> String {
+pub fn comp_resource_type_export_name() -> String {
     "handle"
 }

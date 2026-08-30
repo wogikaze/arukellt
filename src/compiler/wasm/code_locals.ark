@@ -10,9 +10,15 @@ use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
 use wasm::emit_target
 use wasm::code_locals_struct
+use mir::block_inst_access
+use mir::function_block_queries
 use mir::function_identity
 use mir::function_locals_view
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
 use mir::local_access
+use mir::opcodes
 use mir::value_types
 use wasm::writer_core
 use wasm::sections_types_gc_phase7
@@ -23,6 +29,201 @@ fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
         return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())
     }
     call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
+}
+
+fn local_type_name_is_fnref(type_name: String) -> bool {
+    eq(clone(type_name), String_from("fnref")) ||
+    eq(clone(type_name), String_from("fnref2")) ||
+    starts_with(clone(type_name), String_from("fnref")) ||
+    starts_with(clone(type_name), String_from("fn("))
+}
+
+fn local_receives_ref_func(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if op == opcodes::MIR_REF_FUNC() && inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                return true
+            }
+            if op == opcodes::MIR_LOCAL_SET() && inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if source >= 0 && local_is_ref_func_dest(f, source) {
+                    return true
+                }
+                if ii > 0 {
+                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() &&
+                    local_is_ref_func_dest(f, inst_accessors_operands::MirInst_arg0(prev)) {
+                        return true
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn local_is_ref_func_dest(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_REF_FUNC() &&
+            inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                return true
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn ref_func_fn_name_for_local(f: MirFunction, local_idx: i32) -> String {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_REF_FUNC() &&
+            inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                return inst_accessors_literals::MirInst_str_val(inst)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    String_new()
+}
+
+fn fn_type_idx_for_named_function(ctx: SelfEmitCtx, fn_name: String) -> i32 {
+    if len(fn_name) == 0 {
+        return 0 - 1
+    }
+    let fn_type_map = ctx_record::SelfEmitCtx_fn_type_map(ctx)
+    let fn_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let mut i = 0
+    while i < fn_count {
+        if eq(
+            function_identity::MirFunction_name(ctx_record::SelfEmitCtx_function_at(ctx, i)),
+            clone(fn_name)
+        ) {
+            if i < len(fn_type_map) {
+                return get_unchecked(fn_type_map, i)
+            }
+            return 0 - 1
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn fn_type_idx_from_ref_func_local(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> i32 {
+    let direct = ref_func_fn_name_for_local(f, local_idx)
+    if len(direct) > 0 {
+        return fn_type_idx_for_named_function(ctx, direct)
+    }
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if source >= 0 {
+                    let src_name = ref_func_fn_name_for_local(f, source)
+                    if len(src_name) > 0 {
+                        return fn_type_idx_for_named_function(ctx, src_name)
+                    }
+                }
+                if ii > 0 {
+                    let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                    if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_LOCAL_GET() {
+                        let src_name = ref_func_fn_name_for_local(
+                            f,
+                            inst_accessors_operands::MirInst_arg0(prev)
+                        )
+                        if len(src_name) > 0 {
+                            return fn_type_idx_for_named_function(ctx, src_name)
+                        }
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
+fn fnref_get_unchecked_elem_name(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> String {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let call_index = code_ref_locals_block_scan::vec_access_call_index_for_local(
+                block,
+                ii,
+                inst,
+                local_idx
+            )
+            if call_index >= 0 {
+                let call_inst = block_inst_access::MirBlock_inst_at(block, call_index)
+                let receiver = code_ref_locals_block_scan::vec_access_receiver_local(
+                    block,
+                    call_index,
+                    call_inst
+                )
+                let elem = code_ref_locals_block_scan::vec_receiver_elem_name(f, receiver, ctx)
+                if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem)) {
+                    return elem
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    String_new()
+}
+
+fn resolve_fnref_type_idx_for_local(
+    ctx: SelfEmitCtx,
+    f: MirFunction,
+    local_idx: i32,
+    type_name: String
+) -> i32 {
+    let from_ref_func = fn_type_idx_from_ref_func_local(f, local_idx, ctx)
+    if from_ref_func >= 0 {
+        return from_ref_func
+    }
+    let get_elem = fnref_get_unchecked_elem_name(f, local_idx, ctx)
+    if len(get_elem) > 0 {
+        return resolve_fnref_local_type_idx(ctx, get_elem)
+    }
+    resolve_fnref_local_type_idx(ctx, type_name)
 }
 
 fn is_string_byte_vec_fn(f: MirFunction) -> bool {
@@ -60,6 +261,31 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
         ))
 }
 
+// Type a RETURN operand from TypeSectionPlan when no other storage won.
+// Both-branch-return if/else still emits a fallthrough `local.get; return`.
+fn emit_gc_local_from_fn_result_plan(
+    body: WasmWriter,
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> bool {
+    if !code_ref_locals::local_feeds_return(f, local_idx) {
+        return false
+    }
+    let fn_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let result_map = ctx_record::SelfEmitCtx_fn_result_gc_map(ctx)
+    if fn_idx < 0 || fn_idx >= len(result_map) {
+        return false
+    }
+    let result_gc = get_unchecked(result_map, fn_idx)
+    if result_gc < 0 {
+        return false
+    }
+    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+    writer_core::emit_leb128_s(body, result_gc)
+    true
+}
+
 // GC-target local val type emission. Returns true if emitted as a GC ref.
 fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
@@ -78,6 +304,18 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             }
             Option::None => {}
         }
+    }
+    // Funcref dests must be non-null (ref $sig). vec_access emits (ref null)
+    // and would mismatch array.get + ref.as_non_null / ref.func.
+    let get_elem = fnref_get_unchecked_elem_name(f, local_idx, ctx)
+    if vt == value_types::VT_FUNCREF() ||
+    local_type_name_is_fnref(clone(type_name)) ||
+    local_receives_ref_func(f, local_idx) ||
+    sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(get_elem)) {
+        let type_idx = resolve_fnref_type_idx_for_local(ctx, f, local_idx, clone(type_name))
+        writer_core::emit_byte(body, constants::WASM_REF())
+        writer_core::emit_leb128_s(body, type_idx)
+        return true
     }
     let vec_access_storage =
     code_ref_locals_block_scan::local_vec_access_storage_type(f, local_idx, ctx)
@@ -99,16 +337,10 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         }
         Option::None => {}
     }
-    // Typed funcref locals: non-null `(ref $callback)` — unary map/filter or
-    // binary fold from the local's fn(...) type name (#807).
-    if vt == value_types::VT_FUNCREF() ||
-    eq(clone(type_name), String_from("fnref")) ||
-    eq(clone(type_name), String_from("fnref2")) ||
-    starts_with(clone(type_name), String_from("fnref")) ||
-    starts_with(clone(type_name), String_from("fn(")) {
-        let type_idx = resolve_fnref_local_type_idx(ctx, clone(type_name))
-        writer_core::emit_byte(body, constants::WASM_REF())
-        writer_core::emit_leb128_s(body, type_idx)
+    // After if/else branches that both return, a leftover merge local can
+    // still be the function RETURN operand. Type it from TypeSectionPlan
+    // so `local.get; return` matches the declared result (TomlValStep).
+    if emit_gc_local_from_fn_result_plan(body, f, local_idx, ctx) {
         return true
     }
     // Assert/loop temps may keep an open-enum type_name after local reuse while

@@ -67,6 +67,7 @@ docs/spec/spec-*/
 
 # local selfhost / tooling scratch outputs
 .build/
+.build-t3fix/
 
 # Node.js
 **/node_modules/

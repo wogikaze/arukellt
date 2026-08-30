@@ -68,15 +68,38 @@ fn p2_runtime_func_results(index: i32) -> Vec<i32> {
 }
 
 fn p2_runtime_func_needs_memory(index: i32) -> i32 {
-    if index == 5 || index == 6 || index == 7 || index == 8 || index == 11 || index == 14 || index == 15 || index == 16 || index == 17 || index == 18 || index == 19 || index == 20 || index == 23 { return 1 }
+    if p2_runtime_func_index_needs_memory(index) {
+        return 1
+    }
     0
 }
 
+fn p2_runtime_func_index_needs_memory(index: i32) -> bool {
+    index == 5 || index == 6 || index == 7 || index == 8
+    || index == 11 || index == 14 || index == 15 || index == 16
+    || index == 17 || index == 18 || index == 19 || index == 20
+    || index == 23
+}
+
+// Host import prefix owns component types 0..6 and funcs 0..4.
+fn p2_host_prefix_type_count() -> i32 {
+    7
+}
+
+fn p2_host_prefix_func_count() -> i32 {
+    5
+}
+
+fn p2_runtime_imported_func_count() -> i32 {
+    24
+}
+
 fn p2_runtime_emit_component_type_section(out: WasmWriter) {
+    let count = p2_runtime_imported_func_count()
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 24)
+    writer_core::emit_leb128_u(sec, count)
     let mut i = 0
-    while i < 24 {
+    while i < count {
         writer_core::emit_bytes(sec, types_wit_func::comp_component_func_type(p2_runtime_func_params(i), p2_runtime_func_results(i)))
         i = i + 1
     }
@@ -84,31 +107,33 @@ fn p2_runtime_emit_component_type_section(out: WasmWriter) {
 }
 
 fn p2_runtime_emit_component_import_section(out: WasmWriter) {
+    let count = p2_runtime_imported_func_count()
     let sec = writer_core::WasmWriter_new()
     let names = p2_runtime_component_func_names()
-    writer_core::emit_leb128_u(sec, 24)
+    writer_core::emit_leb128_u(sec, count)
     let mut i = 0
-    while i < 24 {
+    while i < count {
         // externname: ordinary kebab-name
         writer_core::emit_byte(sec, 0x00)
         writer_string::emit_string(sec, get_unchecked(names, i))
-        // component type ref: func, type index. Prefix owns component types 0..6.
+        // component type ref: func, type index. Prefix owns types 0..6.
         writer_core::emit_byte(sec, 0x01)
-        writer_core::emit_leb128_u(sec, 7 + i)
+        writer_core::emit_leb128_u(sec, p2_host_prefix_type_count() + i)
         i = i + 1
     }
     p2_runtime_emit_section(out, 10, sec)
 }
 
 fn p2_runtime_emit_canon_lower_section(out: WasmWriter) {
+    let count = p2_runtime_imported_func_count()
     let sec = writer_core::WasmWriter_new()
-    writer_core::emit_leb128_u(sec, 24)
+    writer_core::emit_leb128_u(sec, count)
     let mut i = 0
-    while i < 24 {
-        // canon lower (component func 5+i). Prefix aliases own funcs 0..4.
+    while i < count {
+        // canon lower (component func prefix_count+i). Prefix aliases own funcs 0..4.
         writer_core::emit_byte(sec, 0x01)
         writer_core::emit_byte(sec, 0x00)
-        writer_core::emit_leb128_u(sec, 5 + i)
+        writer_core::emit_leb128_u(sec, p2_host_prefix_func_count() + i)
         if p2_runtime_func_needs_memory(i) == 1 {
             writer_core::emit_leb128_u(sec, 2)
             writer_core::emit_byte(sec, 0x03)
@@ -127,24 +152,15 @@ fn p2_runtime_emit_core_instance_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 2)
 
-    // Core instance 9: inline canonical-lowered adapter functions. Core funcs
-    // 0=realloc and 1..5 are the existing stdio/environment lowers; runtime
-    // lowers therefore start at core func 6.
-    writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, 24)
-    let names = p2_runtime_component_func_names()
-    let mut i = 0
-    while i < 24 {
-        writer_string::emit_string(sec, get_unchecked(names, i))
-        writer_core::emit_byte(sec, 0x00)
-        writer_core::emit_leb128_u(sec, 6 + i)
-        i = i + 1
-    }
-
-    // Core instance 10: compatibility bridge module 8. `env` is the shared
-    // memory instance 0; `host` is the inline lower instance 9 above.
+    // Core instance 9: stub host module 8 (no adapter lowers).
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 8)
+    writer_core::emit_leb128_u(sec, 0)
+
+    // Core instance 10: runtime bridge module 9. `env` is shared memory
+    // instance 0; `host` is the stub instance 9 above.
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 9)
     writer_core::emit_leb128_u(sec, 2)
     writer_string::emit_string(sec, String_from("env"))
     writer_core::emit_byte(sec, 0x12)
