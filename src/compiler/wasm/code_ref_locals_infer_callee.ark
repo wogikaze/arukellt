@@ -347,7 +347,32 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
     byte_size
 }
 
+fn infer_call_result_gc_type_from_plan(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
+    if fn_idx < 0 {
+        return Option::None
+    }
+    let result_map = ctx_record::SelfEmitCtx_fn_result_gc_map(ctx)
+    if fn_idx >= len(result_map) {
+        return Option::None
+    }
+    let type_idx = get_unchecked(result_map, fn_idx)
+    if type_idx < 0 {
+        return Option::None
+    }
+    Option::Some(type_idx)
+}
+
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    // TypeSectionPlan already resolved this callee's result to a wasm type
+    // index. Dest locals must use that index, not leftover MIR names.
+    let from_plan = infer_call_result_gc_type_from_plan(ctx, clone(callee))
+    match from_plan {
+        Option::Some(_opt_v) => {
+            return from_plan
+        }
+        Option::None => {}
+    }
     // Defined internal functions are authoritative for their return type.
     // SignatureRegistry remains the fallback for host/builtin entries that
     // do not have a resolvable MirFunction (#725 / #842).

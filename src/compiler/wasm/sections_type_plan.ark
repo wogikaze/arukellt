@@ -10,6 +10,7 @@ pub struct TypeSectionPlan {
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_base: i32,
     gc_struct_type_map: Vec<i32>,
+    fn_result_gc_map: Vec<i32>,
 }
 
 fn TypeSectionPlan_new(
@@ -36,7 +37,8 @@ fn TypeSectionPlan_new(
         gc_enum_variant_base: gc_enum_variant_base,
         gc_enum_variant_type_map: gc_enum_variant_type_map,
         gc_struct_base: gc_struct_base,
-        gc_struct_type_map: gc_struct_type_map
+        gc_struct_type_map: gc_struct_type_map,
+        fn_result_gc_map: Vec::new<i32>()
     }
 }
 
@@ -82,6 +84,14 @@ fn TypeSectionPlan_gc_struct_base(plan: TypeSectionPlan) -> i32 {
 
 fn TypeSectionPlan_gc_struct_type_map(plan: TypeSectionPlan) -> Vec<i32> {
     plan.gc_struct_type_map
+}
+
+fn TypeSectionPlan_fn_result_gc_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.fn_result_gc_map
+}
+
+fn TypeSectionPlan_set_fn_result_gc_map(plan: TypeSectionPlan, fn_result_gc_map: Vec<i32>) {
+    plan.fn_result_gc_map = fn_result_gc_map
 }
 
 fn build_type_section_plan(

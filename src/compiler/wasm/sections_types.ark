@@ -7,6 +7,7 @@ use wasm::opcodes
 use wasm::sections_type_plan
 use wasm::sections_types_gc
 use wasm::sections_types_emit
+use wasm::sections_types_sig_parse
 use wasm::sections_types_sigs
 use wasm::writer_core
 use wasm::writer_sections
@@ -52,6 +53,18 @@ fn emit_type_section(
     )
     let gc_fixed_type_map = sections_type_plan::TypeSectionPlan_gc_fixed_type_map(plan)
     let gc_struct_type_map = sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
+    sections_type_plan::TypeSectionPlan_set_fn_result_gc_map(
+        plan,
+        build_fn_result_gc_map(
+            type_sigs,
+            num_host_types,
+            wit_import_count,
+            gc_fixed_count + gc_struct_count + enum_variant_count,
+            fn_count,
+            gc_fixed_type_map,
+            gc_struct_type_map
+        )
+    )
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
             gc_layout,
@@ -129,6 +142,76 @@ fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
         tsi = tsi + 1
     }
     TypeCanonPlan_new(canon_types, type_map)
+}
+
+// Per-function wasm result type index already used in the type section.
+// Scalar / void / funcref results are -1. Dest infer must read this map
+// instead of re-guessing from leftover MIR return names.
+fn build_fn_result_gc_map(
+    type_sigs: Vec<String>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_type_count: i32,
+    fn_count: i32,
+    gc_fixed_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>
+) -> Vec<i32> {
+    let mut result_map = Vec::new<i32>()
+    let base_idx = num_host_types + wit_import_count + gc_type_count
+    let mut fi = 0
+    while fi < fn_count {
+        push(
+            result_map,
+            result_sig_gc_type_idx(
+                get_unchecked(type_sigs, base_idx + fi),
+                gc_fixed_type_map,
+                gc_struct_type_map
+            )
+        )
+        fi = fi + 1
+    }
+    result_map
+}
+
+fn result_sig_gc_type_idx(
+    csig: String,
+    gc_fixed_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>
+) -> i32 {
+    let result_seg = sections_type_plan::type_sig_result_segment(csig)
+    if eq(clone(result_seg), "0") || len(result_seg) < 2 {
+        return 0 - 1
+    }
+    result_val_sig_gc_type_idx(
+        substring(result_seg, 1, len(result_seg)),
+        gc_fixed_type_map,
+        gc_struct_type_map
+    )
+}
+
+fn result_val_sig_gc_type_idx(
+    rt: String,
+    gc_fixed_type_map: Vec<i32>,
+    gc_struct_type_map: Vec<i32>
+) -> i32 {
+    if starts_with(clone(rt), "gcsref") {
+        let slot = sections_types_sig_parse::parse_type_sig_int(substring(rt, 6, len(rt)))
+        if slot >= 0 && slot < len(gc_struct_type_map) {
+            return get_unchecked(gc_struct_type_map, slot)
+        }
+        return 0 - 1
+    }
+    if starts_with(clone(rt), "gcref") {
+        let slot = sections_types_sig_parse::parse_gcref_offset(rt)
+        if slot >= 0 && slot < len(gc_fixed_type_map) {
+            return get_unchecked(gc_fixed_type_map, slot)
+        }
+        return 0 - 1
+    }
+    if eq(clone(rt), "ref") && len(gc_fixed_type_map) > 0 {
+        return get_unchecked(gc_fixed_type_map, 0)
+    }
+    0 - 1
 }
 
 fn find_canon_type_index(canon_types: Vec<String>, sig: String) -> i32 {
