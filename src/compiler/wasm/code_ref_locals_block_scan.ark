@@ -795,6 +795,20 @@ fn local_direct_producer_storage_type(
             let producer = stack_call_or_direct_producer(block, inst_index, inst, local_idx)
             if producer >= 0 {
                 let producer_inst = block_inst_access::MirBlock_inst_at(block, producer)
+                let clone_storage =
+                code_ref_locals_infer_dest::infer_clone_stack_arg_storage(
+                    f,
+                    block,
+                    producer,
+                    producer_inst,
+                    ctx
+                )
+                match clone_storage {
+                    Option::Some(_storage_type) => {
+                        return clone_storage
+                    }
+                    Option::None => {}
+                }
                 let inferred =
                 code_ref_locals_infer_dest::infer_ref_local_from_producer(
                     f,
