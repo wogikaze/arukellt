@@ -48,6 +48,31 @@ fn try_emit_clone_intrinsic(
     finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
 }
 
+// starts_with / ends_with must win over a resolved Ark wrapper. The wrapper
+// CALL is often `__core_string_*_impl`; resolved emit runs leftover-dest
+// copies that type `index` as String, and a DCE'd impl becomes
+// drop+unreachable. The affix intrinsic consumes the stack args directly.
+fn try_emit_affix_intrinsic(
+    w: WasmWriter,
+    callee: String,
+    inst: MirInst,
+    ctx: SelfEmitCtx,
+    next_op: i32,
+    next_arg0: i32,
+    next_arg1: i32,
+    next2_op: i32
+) -> bool {
+    if is_starts_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_starts_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_ends_with_callee(clone(callee)) {
+        let on_stack = intrinsic_string_affix::emit_ends_with(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    false
+}
+
 fn try_emit_name_intrinsic_fallback(
     w: WasmWriter,
     callee: String,
@@ -492,12 +517,16 @@ fn is_contains_callee(callee: String) -> bool {
 }
 
 fn is_starts_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("starts_with")) ||
+    callee_name_is(clone(callee), String_from("starts_with")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_starts_with")) ||
+    callee_name_is(clone(callee), String_from("__core_string_starts_with_impl")) ||
     ends_with(clone(callee), String_from("::starts_with"))
 }
 
 fn is_ends_with_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("ends_with")) ||
+    callee_name_is(clone(callee), String_from("ends_with")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_ends_with")) ||
+    callee_name_is(clone(callee), String_from("__core_string_ends_with_impl")) ||
     ends_with(clone(callee), String_from("::ends_with"))
 }
 
