@@ -104,7 +104,7 @@ than 242s/255s; RSS wash. Do **not** retry empty-default `result_types`.
 
 Next slice must emit CALL / arith / struct from columns with **no fill**
 (no hybrid fat record on the emit hot path). Do not keep a live fat
-`MirInst` beside SoA columns. Do not retry ticks 64–72 as they were.
+`MirInst` beside SoA columns. Do not retry ticks 64–73 as they were.
 
 Tick 71 skipped the enrich rewrite of constructor `result_types` on
 non-CALL (avoids a second Vec+MVT per LOCAL_GET/CONST). Overlay
@@ -114,7 +114,12 @@ non-CALL (avoids a second Vec+MVT per LOCAL_GET/CONST). Overlay
 Tick 72 skipped `ctx_enrich_inst_result_types` on every `ctx_emit`
 (CALL included). Hello 2312B matched tick49. Overlay **264.35s**,
 **s2≠s3**, RSS **1.71GB**. CALL spine enrich is required for fixpoint.
-Do **not** skip all enrich. Emit probes with the existing gc host.
+Do **not** skip all enrich.
+
+Tick 73 made `mir_inst_with_func_id_raw` mutate in place instead of
+copying the record. Overlay **264.87s**, `s2=s3`, hello 2312B matched,
+RSS **1.71GB**. Worse wall than 255s loaded. Do **not** retry in-place
+func_id attach. Emit probes with the existing gc host.
 
 ## Receipts
 
@@ -130,6 +135,7 @@ Do **not** skip all enrich. Emit probes with the existing gc host.
 | tick 70 skip default result_types; enrich CALL only | **269.91s** | yes | **1.72GB** | emit 6.90MB (257.88s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `c0a2f3a6…`; worse wall; RSS wash; reverted |
 | tick 71 keep constructor result_types; skip non-CALL enrich rewrite | **259.53s** | yes | **1.71GB** | emit 6.90MB (261.02s); hello sha256 `1dbf14ca…`; s2=s3 `104d5dac…`; wash vs 255s; reverted |
 | tick 72 skip all ctx_emit enrich | **264.35s** | **no** | **1.71GB** | emit 6.90MB (260.00s); hello sha256 `1dbf14ca…`; s2 `36b41db9…` ≠ s3 `141a7833…`; CALL enrich required; reverted |
+| tick 73 in-place mir_inst_with_func_id_raw | **264.87s** | yes | **1.71GB** | emit 6.90MB (261.77s); hello sha256 `1dbf14ca…`; s2=s3 `68c5ac45…`; worse wall; reverted |
 
 ## Non-goals
 
