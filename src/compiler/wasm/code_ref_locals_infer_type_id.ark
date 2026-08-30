@@ -163,11 +163,8 @@ fn infer_gc_type_from_callee_locals(ctx: SelfEmitCtx, called: MirFunction) -> Op
     if tuple_hits > 0 {
         return Option::Some(tuple_type)
     }
-    if saw_enum {
-        let ret_type = function_return_view::MirFunction_return_type(called)
-        if ret_type == value_types::VT_GC_REF() || ret_type == value_types::VT_REF() {
-            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
-        }
+    if saw_enum && starts_with(function_return_view::MirFunction_return_type_name(called), "enum:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     Option::None
 }
@@ -182,6 +179,50 @@ fn infer_gc_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> Option<i3
             }
             Option::None => {}
         }
+        let alt = tuple_name_string_case_alt(clone(tuple_name))
+        if len(alt) > 0 {
+            let named_alt = infer_named_struct_or_tuple(ctx, alt)
+            match named_alt {
+                Option::Some(_type_idx) => {
+                    return named_alt
+                }
+                Option::None => {}
+            }
+        }
+    }
+    infer_enum_open_from_from_callee(ctx, callee)
+}
+
+fn tuple_name_string_case_alt(tuple_name: String) -> String {
+    if ends_with(clone(tuple_name), ",String") {
+        return concat(substring(tuple_name, 0, len(tuple_name) - 6), "string")
+    }
+    if ends_with(clone(tuple_name), ",string") {
+        return concat(substring(tuple_name, 0, len(tuple_name) - 6), "String")
+    }
+    String_new()
+}
+
+fn infer_enum_open_from_from_callee(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    let mut owner = String_new()
+    if ends_with(clone(callee), "::from") {
+        owner = substring(callee, 0, len(callee) - 6)
+    } else if ends_with(clone(callee), "__from") {
+        owner = substring(callee, 0, len(callee) - 6)
+    }
+    if len(owner) == 0 {
+        return Option::None
+    }
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let count = type_table::TypeTable_entry_count(table)
+    let mut index = 0
+    while index < count {
+        let entry = type_table::TypeTable_entry_at(table, index)
+        if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_ENUM() &&
+        eq(type_table::type_entry_name(entry), clone(owner)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+        index = index + 1
     }
     Option::None
 }
@@ -201,13 +242,26 @@ fn infer_named_struct_or_tuple(ctx: SelfEmitCtx, type_name: String) -> Option<i3
     let mut name_index = 0
     while name_index < len(names) {
         let candidate = get_unchecked(names, name_index)
-        if eq(clone(type_name), clone(candidate)) ||
-        eq(clone(tuple_name), clone(candidate)) {
+        if gc_struct_name_matches_tuple(clone(candidate), clone(type_name), clone(tuple_name)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, candidate))
         }
         name_index = name_index + 1
     }
     Option::None
+}
+
+fn gc_struct_name_matches_tuple(candidate: String, type_name: String, tuple_name: String) -> bool {
+    if eq(clone(candidate), clone(type_name)) || eq(clone(candidate), clone(tuple_name)) {
+        return true
+    }
+    if len(tuple_name) > 0 && contains(clone(candidate), clone(tuple_name)) {
+        return true
+    }
+    if len(type_name) > 0 && starts_with(clone(type_name), "tuple:") &&
+    contains(clone(candidate), clone(type_name)) {
+        return true
+    }
+    false
 }
 
 fn tuple_gc_name_from_mono_callee(callee: String) -> String {
