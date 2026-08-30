@@ -4,6 +4,7 @@ use wasm::inst_store
 use wasm::intrinsic_string_collection
 use wasm::intrinsic_string_format
 use wasm::call_text_mir_view
+use wasm::intrinsics::helpers_numeric_i32
 use mir::inst_accessors_operands
 use mir::inst_record
 use wasm::ctx_record
@@ -46,7 +47,19 @@ fn try_emit_text_collection_join_call(w: WasmWriter, handler_id: i32, inst: MirI
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_string_lines(){
+        let _result_on_stack = emit_lines_as_split(w, inst, ctx)
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+        return true
+    }
     false
+}
+
+fn emit_lines_as_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Stack is [s]. emit_split wants [s, delim]; push a 1-byte LF string.
+    helpers_numeric_i32::emit_i32_const(w, 10)
+    let _newline = intrinsic_string_format::emit_char_to_string(w, inst, ctx)
+    intrinsic_string_collection::emit_split(w, inst, ctx)
 }
 
 fn try_emit_text_collection_view_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) -> bool {
