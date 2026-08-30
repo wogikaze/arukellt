@@ -167,8 +167,10 @@ fn emit_pad_right_gc(w: WasmWriter, ctx: SelfEmitCtx, has_fill: bool) {
     helpers_core::emit_local_get(w, s_width)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, g_result)
-    // Copy original string to dest at offset 0
-    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_pad, string_type)
+    // Copy original at offset 0. s_i is reset by the fill loop after this.
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_i, string_type)
     // Fill from s_slen to s_width with s_fb
     emit_pad_gc_fill_loop_offset(w, g_result, s_slen, s_pad, s_i, s_fb, string_type)
     string_gc_helpers::emit_gc_end(w)
