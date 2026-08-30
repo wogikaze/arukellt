@@ -1,6 +1,7 @@
 // WIT import document parser — fixture-backed compiler facade (#653, #706).
 
 use std::host::fs
+use std::wit::ast
 use std::wit::parser
 use component::wit_names_import
 use component::wit_parse_flags
@@ -12,12 +13,21 @@ fn wit_parse_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
     len(doc.package) > 0 && len(doc.interface) > 0
 }
 
+fn wit_import_syntax_kind(text: String) -> String {
+    // parse_full returns WitNode (enum). A discarded dest in the file-loader
+    // frame can remain leftover String, and leftover-String must not take an
+    // enum result (variant payload stays the String array). Validate in this
+    // frame so the CALL dest is the plan's WitNode type.
+    let node: ast::WitNode = parser::parse_full(text)
+    ast::ast_kind(node)
+}
+
 fn parse_wit_import_file(path: String) -> wit_parse_text::WitParsedInterface {
     match fs::read_to_string(clone(path)) {
         Result::Ok(text) => {
             // std::wit owns syntax parsing. The compiler-specific parsed view below
             // retains only resolver/codegen metadata needed after syntax validation.
-            let _ = parser::parse_full(clone(text))
+            let _syntax_kind = wit_import_syntax_kind(clone(text))
             let doc = wit_parse_text::parse_wit_import_text(text)
             if wit_parse_has_surface(doc) {
                 return doc
