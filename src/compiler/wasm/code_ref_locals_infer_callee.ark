@@ -30,6 +30,9 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     // Prefer a registered gc_struct when the return type names one. Typed-spine
     // / layout lookup can still report enum-open for user structs
     // (WitParsedInterface), which then types call-result locals incorrectly.
+    // resolve_named_struct_gc_type rejects language String so TomlValue::String
+    // cannot steal payload dests; leftover String pair/From names still reach
+    // from_callee below.
     let named_struct = resolve_named_struct_gc_type(ctx, clone(ret_name))
     match named_struct {
         Option::Some(_opt_v) => {
@@ -213,7 +216,16 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     if len(ret_name) == 0 {
         return Option::None
     }
+    // Language String is a fixed array slot. TomlValue::String (and any
+    // other enum variant whose bare name is String) must not steal dest
+    // typing from payload locals that still say "String".
+    if eq(clone(ret_name), "String") || eq(clone(ret_name), "string") {
+        return Option::None
+    }
     let bare_name = strip_module_double_colon(ret_name)
+    if eq(clone(bare_name), "String") || eq(clone(bare_name), "string") {
+        return Option::None
+    }
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare_name)) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare_name))
     }

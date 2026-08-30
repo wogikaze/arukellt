@@ -43,6 +43,8 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
     }
     // Phase 5e / #843: structured lookup only (variant_slot + type_name →
     // GcLayoutTable). Infer fallback removed; miss means no cast.
+    let loc = function_locals_view::MirFunction_local_at(f, dest)
+    let dest_type_name = local_access::MirLocal_type_name(loc)
     let mut dest_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, dest)
     let mut has_copied_storage = false
     let copied_storage =
@@ -58,14 +60,22 @@ fn emit_gc_ref_cast_to_dest(w: WasmWriter, ctx: SelfEmitCtx, dest: i32) {
         }
         Option::None => {}
     }
+    let dest_is_string_payload =
+    eq(clone(dest_type_name), "String") ||
+    eq(clone(dest_type_name), "string")
     // Concrete enum-variant casts belong only on GC_STRUCT_NEW destinations.
-    // mut Option/Result temps that receive None then Some via LOCAL_SET must
-    // cast to open-enum; narrowing Some to the first None type traps (#835).
+    // String payload copies (TomlValue::String field temps) stay on the
+    // string spine; leftover-String infer must not cast them to the
+    // enclosing variant. mut Option/Result temps that receive None then
+    // Some via LOCAL_SET must cast to open-enum (#835).
     if dest_gc >= 0 &&
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, dest_gc) &&
-    !code_ref_locals::local_is_direct_gc_struct_new_dest(f, dest, ctx) &&
-    !has_copied_storage {
-        dest_gc = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    !code_ref_locals::local_is_direct_gc_struct_new_dest(f, dest, ctx) {
+        if dest_is_string_payload {
+            dest_gc = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+        } else if !has_copied_storage {
+            dest_gc = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+        }
     }
     if dest_gc >= 0 {
         writer_gc::emit_gc_ref_cast(w, dest_gc)

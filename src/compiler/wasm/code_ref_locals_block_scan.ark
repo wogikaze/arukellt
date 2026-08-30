@@ -581,6 +581,11 @@ fn leftover_string_yields_to_infer(
     if infer_type < 0 || infer_type == leftover_type || infer_type == string_type {
         return false
     }
+    // Leftover String dests may take a tuple/struct CALL result, but never
+    // an enclosing enum variant (TomlValue::String payload stays array 11).
+    if ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, infer_type) {
+        return false
+    }
     leftover_type == string_type ||
     eq(clone(type_name), "String") ||
     eq(clone(type_name), "string")
@@ -656,18 +661,25 @@ fn copied_non_string_storage_type(
                 if source >= 0 && source != local_idx {
                     let source_loc = function_locals_view::MirFunction_local_at(f, source)
                     let source_name = local_access::MirLocal_type_name(source_loc)
-                    let source_named =
-                    code_ref_locals_infer_callee::resolve_named_struct_gc_type(
-                        ctx,
-                        clone(source_name)
-                    )
-                    match source_named {
-                        Option::Some(source_named_type) => {
-                            if source_named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
-                                return Option::Some(source_named_type)
+                    if !eq(clone(source_name), "String") &&
+                    !eq(clone(source_name), "string") {
+                        let source_named =
+                        code_ref_locals_infer_callee::resolve_named_struct_gc_type(
+                            ctx,
+                            clone(source_name)
+                        )
+                        match source_named {
+                            Option::Some(source_named_type) => {
+                                if source_named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+                                !ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(
+                                    ctx,
+                                    source_named_type
+                                ) {
+                                    return Option::Some(source_named_type)
+                                }
                             }
+                            Option::None => {}
                         }
-                        Option::None => {}
                     }
                     let source_enum = local_enum_open_storage_type(f, source, ctx)
                     match source_enum {
