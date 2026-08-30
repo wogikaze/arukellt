@@ -17,8 +17,14 @@ use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use mir::block_inst_access
+use mir::function_locals_view
 use mir::inst_accessors_operands
 use mir::inst_accessors_literals
+use mir::inst_accessors_shape
+use mir::local_access
+use mir::opcodes
+use mir::value_types
 use wasm::intrinsic_vec_type
 
 fn emit_vec_new_layout(w: WasmWriter, heap_bump: i32, _result_back_delta: i32, inst: MirInst, ctx: SelfEmitCtx) {
@@ -64,6 +70,9 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     // stores a Memory64 i64 into a slot that array.new then re-reads as i64.
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {
         helpers_numeric_i32::emit_narrow_i64_operand(w)
+        if vec_new_capacity_is_i64(ctx, inst) {
+            writer_core::emit_byte(w, opcodes::OP_I32_WRAP_I64())
+        }
         writer_gc::emit_gc_array_new(w, array_type)
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
@@ -83,6 +92,55 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     writer_core::emit_leb128_s(w, 0)
     writer_gc::emit_gc_struct_new(w, vec_type)
     writer_gc::emit_gc_ref_cast(w, vec_type)
+}
+
+fn vec_new_capacity_is_i64(ctx: SelfEmitCtx, inst: MirInst) -> bool {
+    let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
+    let cap_local = inst_accessors_operands::MirInst_arg0(inst)
+    if cap_local >= 0 && cap_local < function_locals_view::MirFunction_local_count(f) {
+        if local_access::MirLocal_val_type(function_locals_view::MirFunction_local_at(f, cap_local)) ==
+        value_types::VT_I64() {
+            return true
+        }
+    }
+    preceding_vec_new_capacity_is_i64(f, inst)
+}
+
+fn preceding_vec_new_capacity_is_i64(f: MirFunction, inst: MirInst) -> bool {
+    let dest = inst_accessors_operands::MirInst_dest(inst)
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let cur = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(cur) == opcodes::MIR_CALL() &&
+            inst_accessors_operands::MirInst_dest(cur) == dest &&
+            eq(inst_accessors_literals::MirInst_str_val(cur), clone(callee)) &&
+            ii > 0 {
+                let prev = block_inst_access::MirBlock_inst_at(block, ii - 1)
+                let prev_op = inst_accessors_shape::MirInst_op(prev)
+                if prev_op == opcodes::MIR_CONST_I64() {
+                    return true
+                }
+                if prev_op == opcodes::MIR_LOCAL_GET() {
+                    let src = inst_accessors_operands::MirInst_arg0(prev)
+                    if src >= 0 && src < function_locals_view::MirFunction_local_count(f) {
+                        return local_access::MirLocal_val_type(
+                            function_locals_view::MirFunction_local_at(f, src)
+                        ) == value_types::VT_I64()
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
 }
 
 fn ctx_has_vec_string_local(ctx: SelfEmitCtx) -> bool {

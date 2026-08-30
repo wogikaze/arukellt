@@ -55,7 +55,14 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
         Option::None => {}
     }
     // String / vec:Elem are fixed GC slots, not gc_struct_names entries.
-    resolve_gc_type_from_return_type_name(ctx, ret_name)
+    let from_name = resolve_gc_type_from_return_type_name(ctx, ret_name)
+    match from_name {
+        Option::Some(_opt_v) => {
+            return from_name
+        }
+        Option::None => {}
+    }
+    code_ref_locals_infer_type_id::infer_gc_type_from_callee_function(ctx, called)
 }
 
 // Resolve call-result GC type from SignatureRegistry (host + builtin entries).
@@ -365,6 +372,13 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
             }
             Option::None => {}
         }
+    }
+    let from_name = code_ref_locals_infer_type_id::infer_gc_type_from_callee_name(ctx, clone(callee))
+    match from_name {
+        Option::Some(_opt_v) => {
+            return from_name
+        }
+        Option::None => {}
     }
     infer_vec_new_return_gc_type(ctx, callee)
 }

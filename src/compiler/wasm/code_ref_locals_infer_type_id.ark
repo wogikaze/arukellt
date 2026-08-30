@@ -5,7 +5,12 @@ use corehir::kinds
 use corehir::mir_value_type
 use corehir::type_id
 use corehir::type_table
+use mir::function_identity
+use mir::function_locals_view
+use mir::function_return_view
+use mir::local_access
 use mir::lower::mono_instance_table
+use mir::value_types
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_gc_type
 use wasm::ctx_record
@@ -79,6 +84,168 @@ fn infer_call_result_gc_type_from_mono(ctx: SelfEmitCtx, callee: String) -> Opti
             mono_instance_table::mono_instance_entry_return_at(entry, 0)
         )
     )
+}
+
+// When MIR return_type_name is empty, TypeSectionPlan still registered the
+// tuple/enum from lowering. Recover that name from callee locals or mono suffix.
+fn infer_gc_type_from_callee_function(ctx: SelfEmitCtx, called: MirFunction) -> Option<i32> {
+    let ret_name = function_return_view::MirFunction_return_type_name(called)
+    let from_name = infer_named_or_table_gc_type(ctx, clone(ret_name))
+    match from_name {
+        Option::Some(_type_idx) => {
+            return from_name
+        }
+        Option::None => {}
+    }
+    let from_locals = infer_gc_type_from_callee_locals(ctx, called)
+    match from_locals {
+        Option::Some(_type_idx) => {
+            return from_locals
+        }
+        Option::None => {}
+    }
+    infer_gc_type_from_callee_name(ctx, function_identity::MirFunction_name(called))
+}
+
+fn infer_named_or_table_gc_type(ctx: SelfEmitCtx, type_name: String) -> Option<i32> {
+    if len(type_name) == 0 {
+        return Option::None
+    }
+    let from_table = infer_gc_type_from_type_table_name(ctx, clone(type_name))
+    match from_table {
+        Option::Some(_type_idx) => {
+            return from_table
+        }
+        Option::None => {}
+    }
+    infer_named_struct_or_tuple(ctx, type_name)
+}
+
+fn infer_gc_type_from_callee_locals(ctx: SelfEmitCtx, called: MirFunction) -> Option<i32> {
+    let local_count = function_locals_view::MirFunction_local_count(called)
+    let mut tuple_type = 0 - 1
+    let mut tuple_hits = 0
+    let mut saw_enum = false
+    let mut local_index = 0
+    while local_index < local_count {
+        let type_name = local_access::MirLocal_type_name(
+            function_locals_view::MirFunction_local_at(called, local_index)
+        )
+        if starts_with(clone(type_name), "enum:") ||
+        starts_with(clone(type_name), "option:") ||
+        starts_with(clone(type_name), "Option") ||
+        starts_with(clone(type_name), "result:") ||
+        starts_with(clone(type_name), "Result") {
+            saw_enum = true
+        }
+        if starts_with(clone(type_name), "struct:tuple:") || starts_with(clone(type_name), "tuple:") {
+            let named = infer_named_struct_or_tuple(ctx, clone(type_name))
+            match named {
+                Option::Some(type_idx) => {
+                    if tuple_hits == 0 || tuple_type == type_idx {
+                        tuple_type = type_idx
+                        tuple_hits = tuple_hits + 1
+                    } else {
+                        return Option::None
+                    }
+                }
+                Option::None => {}
+            }
+        }
+        local_index = local_index + 1
+    }
+    if tuple_hits > 0 {
+        return Option::Some(tuple_type)
+    }
+    if saw_enum {
+        let ret_type = function_return_view::MirFunction_return_type(called)
+        if ret_type == value_types::VT_GC_REF() || ret_type == value_types::VT_REF() {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+    }
+    Option::None
+}
+
+fn infer_gc_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    let tuple_name = tuple_gc_name_from_mono_callee(clone(callee))
+    if len(tuple_name) > 0 {
+        let named = infer_named_struct_or_tuple(ctx, tuple_name)
+        match named {
+            Option::Some(_type_idx) => {
+                return named
+            }
+            Option::None => {}
+        }
+    }
+    if ends_with(clone(callee), "::from") || ends_with(clone(callee), "__from") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    Option::None
+}
+
+fn infer_named_struct_or_tuple(ctx: SelfEmitCtx, type_name: String) -> Option<i32> {
+    if len(type_name) == 0 {
+        return Option::None
+    }
+    if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name))
+    }
+    let tuple_name = tuple_plan_name_from_ret_name(type_name)
+    if len(tuple_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(tuple_name)) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, tuple_name))
+    }
+    Option::None
+}
+
+fn tuple_gc_name_from_mono_callee(callee: String) -> String {
+    let suffix = mono_type_key_suffix(callee)
+    if len(suffix) == 0 {
+        return String_new()
+    }
+    let mut name = String_from("tuple:")
+    let n = len(suffix)
+    let mut i = 0
+    let mut key_count = 0
+    let mut key_start = 0
+    while i <= n {
+        let at_sep = i == n || (i + 1 < n && char_at(suffix, i) == 95 && char_at(suffix, i + 1) == 95)
+        if at_sep {
+            if i > key_start {
+                if key_count > 0 {
+                    name = concat(name, ",")
+                }
+                name = concat(name, substring(suffix, key_start, i))
+                key_count = key_count + 1
+            }
+            if i < n {
+                i = i + 1
+                key_start = i + 1
+            }
+        }
+        i = i + 1
+    }
+    if key_count < 2 {
+        return String_new()
+    }
+    name
+}
+
+fn mono_type_key_suffix(callee: String) -> String {
+    let n = len(callee)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(callee, i) == 95 && char_at(callee, i + 1) == 95 {
+            prev_sep = last_sep
+            last_sep = i
+        }
+        i = i + 1
+    }
+    if last_sep < 0 || prev_sep < 0 {
+        return String_new()
+    }
+    substring(callee, prev_sep + 2, n)
 }
 
 fn type_kind_is_enum_open(kind: i32) -> bool {
