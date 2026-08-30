@@ -22,6 +22,12 @@ use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
 use wasm::intrinsic_parse_f64
+use wasm::intrinsic_string_collection
+use wasm::intrinsic_string_extra
+use wasm::intrinsic_string_index_of
+use wasm::intrinsic_string_replace_all
+use wasm::intrinsic_string_transform
+use wasm::intrinsic_sort
 use wasm::runtime_abi_env_args
 
 fn try_emit_clone_intrinsic(
@@ -228,6 +234,48 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // text / seq names miss core_op after DCE and become drop+unreachable
+    // (file_io String_new, text_ops trim, template substring, sort_i32).
+    if is_string_new_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_String_new(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_trim_callee(clone(callee)) {
+        let on_stack = intrinsic_string_extra::emit_trim(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_substring_callee(clone(callee)) {
+        let on_stack = intrinsic_string_collection::emit_slice(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_sort_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_replace_callee(clone(callee)) {
+        let on_stack = intrinsic_string_replace_all::emit_replace(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_repeat_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_repeat(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_to_upper_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_to_upper(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_to_lower_callee(clone(callee)) {
+        let on_stack = intrinsic_string_transform::emit_to_lower(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_index_of_callee(clone(callee)) {
+        let on_stack = intrinsic_string_index_of::emit_index_of(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_char_to_string_callee(clone(callee)) {
+        let on_stack = intrinsic_string_format::emit_char_to_string(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
 }
 
@@ -235,6 +283,81 @@ fn is_has_flag_callee(callee: String) -> bool {
     eq(clone(callee), String_from("has_flag")) ||
     eq(clone(callee), String_from("__intrinsic_has_flag")) ||
     ends_with(clone(callee), String_from("::has_flag"))
+}
+
+fn is_string_new_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("String_new")) ||
+    callee_name_is(clone(callee), String_from("string_new")) ||
+    callee_name_is(clone(callee), String_from("__core_string_new_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_string_new")) ||
+    ends_with(clone(callee), String_from("::String_new")) ||
+    ends_with(clone(callee), String_from("::string_new"))
+}
+
+fn is_trim_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("trim")) ||
+    callee_name_is(clone(callee), String_from("text::trim")) ||
+    callee_name_is(clone(callee), String_from("__core_string_trim_impl")) ||
+    ends_with(clone(callee), String_from("::trim"))
+}
+
+fn is_substring_callee(callee: String) -> bool {
+    // Do not match Vec::slice / generic slice — those are not string views.
+    callee_name_is(clone(callee), String_from("substring")) ||
+    callee_name_is(clone(callee), String_from("text::substring")) ||
+    callee_name_is(clone(callee), String_from("slice")) ||
+    callee_name_is(clone(callee), String_from("text::slice")) ||
+    callee_name_is(clone(callee), String_from("string::slice")) ||
+    callee_name_is(clone(callee), String_from("__core_string_slice_impl")) ||
+    ends_with(clone(callee), String_from("::substring"))
+}
+
+fn is_sort_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("sort_i32")) ||
+    callee_name_is(clone(callee), String_from("__core_sort_i32_impl")) ||
+    ends_with(clone(callee), String_from("::sort_i32"))
+}
+
+fn is_replace_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("replace")) ||
+    callee_name_is(clone(callee), String_from("text::replace")) ||
+    callee_name_is(clone(callee), String_from("__core_string_replace_impl")) ||
+    ends_with(clone(callee), String_from("::replace"))
+}
+
+fn is_repeat_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("repeat")) ||
+    callee_name_is(clone(callee), String_from("text::repeat")) ||
+    ends_with(clone(callee), String_from("::repeat"))
+}
+
+fn is_to_upper_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("to_upper")) ||
+    callee_name_is(clone(callee), String_from("to_uppercase")) ||
+    callee_name_is(clone(callee), String_from("text::to_upper")) ||
+    ends_with(clone(callee), String_from("::to_upper")) ||
+    ends_with(clone(callee), String_from("::to_uppercase"))
+}
+
+fn is_to_lower_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("to_lower")) ||
+    callee_name_is(clone(callee), String_from("to_lowercase")) ||
+    callee_name_is(clone(callee), String_from("text::to_lower")) ||
+    ends_with(clone(callee), String_from("::to_lower")) ||
+    ends_with(clone(callee), String_from("::to_lowercase"))
+}
+
+fn is_index_of_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("index_of")) ||
+    callee_name_is(clone(callee), String_from("text::index_of")) ||
+    ends_with(clone(callee), String_from("::index_of"))
+}
+
+fn is_char_to_string_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("char_to_string")) ||
+    callee_name_is(clone(callee), String_from("text::char_to_string")) ||
+    callee_name_is(clone(callee), String_from("__core_char_to_string_impl")) ||
+    ends_with(clone(callee), String_from("::char_to_string"))
 }
 
 fn is_parse_f64_callee(callee: String) -> bool {
