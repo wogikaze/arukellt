@@ -296,14 +296,14 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         return JsonParseStep_err(JsonParseError::EmptyInput, pos)
     }
     let c = char_at(s, pos)
-    if c == 110 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "null") {
-        return JsonParseStep_ok(JsonValue::Null, pos + 4)
+    if c == 110 {
+        return parse_keyword_or_invalid(s, pos, n, String_from("null"), JsonValue::Null)
     }
-    if c == 116 && n >= pos + 4 && eq(slice(s, pos, pos + 4), "true") {
-        return JsonParseStep_ok(JsonValue::Bool(true), pos + 4)
+    if c == 116 {
+        return parse_keyword_or_invalid(s, pos, n, String_from("true"), JsonValue::Bool(true))
     }
-    if c == 102 && n >= pos + 5 && eq(slice(s, pos, pos + 5), "false") {
-        return JsonParseStep_ok(JsonValue::Bool(false), pos + 5)
+    if c == 102 {
+        return parse_keyword_or_invalid(s, pos, n, String_from("false"), JsonValue::Bool(false))
     }
     if c == 34 {
         let end = find_string_end(s, pos + 1)
@@ -374,6 +374,14 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
         }
     }
     JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
+}
+
+fn parse_keyword_or_invalid(s: String, pos: i32, n: i32, word: String, ok: JsonValue) -> JsonParseStep {
+    let word_len = len(word)
+    if n >= pos + word_len && eq(slice(s, pos, pos + word_len), clone(word)) {
+        return JsonParseStep_ok(ok, pos + word_len)
+    }
+    JsonParseStep_err(JsonParseError::InvalidLiteral(word), pos)
 }
 
 pub fn parse(s: String) -> Result<JsonValue, JsonParseError> {
