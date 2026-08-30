@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 016 856 bytes (≈ 6.69 MiB) |
-| sha256 | `dfd074f3cbcec1e1eb2468d4bfc3289e49af12e5243f128ae621368b5dd75dc2` |
-| Built from commit | `0565a6ca` drop discarded WIT `parse_full` (s2==s3) |
+| Size | 7 009 318 bytes (≈ 6.69 MiB) |
+| sha256 | `7f0b5eddaffe55b12ad9d8970611ba26b5c53675da804f1a55c0fe9e7b8be47e` |
+| Built from commit | `1d924aea` stub unused runtime host in P2 command components (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -66,13 +66,23 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
-### wasm32-gc pinned (`0565a6ca`)
+### wasm32-gc pinned (`1d924aea`)
 
 Pinned bootstrap is native `wasm32-gc` / `wasi-p2` with guest memory32
 (`(memory 8192)`). `BOOTSTRAP_EMIT_TARGET` / `BOOTSTRAP_EMIT_WASI_VERSION` in
 `scripts/selfhost/checks.py` match. `_ensure_bootstrap_compiler_wasm` copies
 the pin without `--to-memory64`. Execution uses `scripts/run/arukellt-run-hosted.sh`
 (host-linker) for `wasi:cli/` and `arukellt:runtime/host@0.1.0` filesystem imports.
+
+Intentional drift from the previous WIT-import pin (`dfd074f3` / `0565a6ca`):
+
+- P2 command components stub unused `arukellt:runtime/host` at component level
+  instead of emitting leftover `runtime-*` imports that `wac plug` cannot close
+- P2 run-world type indices are computed after prefix + runtime import count
+  (fixes `type index 7 is not a defined type`)
+- Isolated #074/#510 PASS: `wasi_p2_native/hello.ark` component validates and
+  `wasmtime run -W gc=y -W gc-support=y` prints `hello p2`
+- Isolated #665 close-gate required path still PASS
 
 Intentional drift from the previous dest-typing pin (`9f91bac4` / `ec200344`):
 
