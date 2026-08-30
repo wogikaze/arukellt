@@ -104,7 +104,7 @@ than 242s/255s; RSS wash. Do **not** retry empty-default `result_types`.
 
 Next slice must emit CALL / arith / struct from columns with **no fill**
 (no hybrid fat record on the emit hot path). Do not keep a live fat
-`MirInst` beside SoA columns. Do not retry ticks 64–75 as they were.
+`MirInst` beside SoA columns. Do not retry ticks 64–76 as they were.
 
 Tick 71 skipped the enrich rewrite of constructor `result_types` on
 non-CALL (avoids a second Vec+MVT per LOCAL_GET/CONST). Overlay
@@ -136,6 +136,13 @@ Overlay **257.30s**, `s2=s3`, hello 2312B matched, RSS **1.72GB**.
 Wash vs 255s loaded. Do **not** retry emit-audit / unused-source_text
 skips. Next slice is still SoA CALL/arith/struct **no fill**.
 
+Tick 76 re-landed SoA columns, emitted numeric arith from columns
+(no fill), and reused one scratch `MirInst` per function for leftover
+ops (CALL/struct still filled). Overlay **300.28s**, `s2=s3`, hello
+2312B matched, RSS **2.07GB**. Worse wall than tick 69 (263s) and
+255s loaded. Do **not** retry SoA + arith-from-cols + reused-scratch
+fill. CALL/struct still need column emit with **no fat record**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -153,6 +160,7 @@ skips. Next slice is still SoA CALL/arith/struct **no fill**.
 | tick 73 in-place mir_inst_with_func_id_raw | **264.87s** | yes | **1.71GB** | emit 6.90MB (261.77s); hello sha256 `1dbf14ca…`; s2=s3 `68c5ac45…`; worse wall; reverted |
 | tick 74 cached `is_gc_target` bool | **266.22s** | yes | **1.76GB** | emit 6.90MB (262.90s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `62d470c0…`; worse wall; reverted |
 | tick 75 skip emit audits + unused source_text | **257.30s** | yes | **1.72GB** | emit 6.89MB (272.81s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `9d6c02fd…`; wash vs 255s; reverted |
+| tick 76 SoA + arith-from-cols + reused scratch | **300.28s** | yes | **2.07GB** | emit 6.93MB (267.20s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `860730e9…`; worse than tick 69; reverted |
 
 ## Non-goals
 
