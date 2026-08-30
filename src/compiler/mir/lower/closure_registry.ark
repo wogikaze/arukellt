@@ -36,9 +36,9 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     // CALL_INDIRECT, and also dropped synthetic functions from reachability.
     // Dest must be VT_FUNCREF so wasm32-gc locals match ref.func (#831).
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
-    // Hidden capture params must not flip unary fn(i32)->i32 dests to fnref2.
-    let user_params = function_param_view::MirFunction_param_count(mf) - extra
-    let fnref_name = if user_params >= 2 {
+    // Dest funcref type must match the synth function's Wasm type (captures
+    // are extra params). fnref2 = (i32,i32)->i32; fnref = (i32)->i32.
+    let fnref_name = if function_param_view::MirFunction_param_count(mf) >= 2 {
         String_from("fnref2")
     } else {
         String_from("fnref")
