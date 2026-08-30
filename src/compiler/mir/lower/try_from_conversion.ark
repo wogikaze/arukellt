@@ -172,7 +172,10 @@ fn try_emit_err_unconverted_gc(ctx: LowerCtx, inner_idx: i32) {
     let target_vt = try_err_payload_vt_gc(clone(target_err_type))
     let payload_local = ctx_api_local_alloc::ctx_fresh_local(ctx, target_vt)
     if len(target_err_type) > 0 {
-        ctx_api_local_types::ctx_set_local_type(ctx, payload_local, clone(target_err_type))
+        // Bare "AppError" is stored as String (ref null $array_i8). The Err
+        // variant field is (ref null $enum-open); prefix enum: so the
+        // uninitialized local is a typed null that struct.set accepts.
+        ctx_api_local_types::ctx_set_local_type(ctx, payload_local, try_unconverted_err_local_type(clone(target_err_type)))
     }
     let out_locals = Vec::new<i32>()
     push(out_locals, payload_local)
@@ -188,4 +191,21 @@ fn try_emit_err_unconverted_gc(ctx: LowerCtx, inner_idx: i32) {
     )
     ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
+fn try_unconverted_err_local_type(target_err_type: String) -> String {
+    if eq(clone(target_err_type), "String") || eq(clone(target_err_type), "string") {
+        return String_from("String")
+    }
+    if eq(clone(target_err_type), "i32") ||
+    eq(clone(target_err_type), "I32") ||
+    eq(clone(target_err_type), "bool") ||
+    eq(clone(target_err_type), "Bool") ||
+    eq(clone(target_err_type), "i64") ||
+    eq(clone(target_err_type), "I64") ||
+    eq(clone(target_err_type), "f64") ||
+    eq(clone(target_err_type), "F64") {
+        return target_err_type
+    }
+    concat("enum:", target_err_type)
 }
