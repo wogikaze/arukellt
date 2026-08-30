@@ -21,6 +21,7 @@ use wasm::intrinsic_vec
 use wasm::intrinsic_vec_numeric
 use wasm::intrinsic_vec_new_layout
 use wasm::intrinsic_memory
+use wasm::intrinsic_parse_f64
 use wasm::runtime_abi_env_args
 
 fn try_emit_clone_intrinsic(
@@ -210,6 +211,13 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = runtime_abi_env_args::emit_env_arg_at(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // parse.parse_f64 is normal_call → __core_parse_f64_impl, but the impl is
+    // often DCE'd and the CALL has no core_op_id. Unresolved fallback is
+    // drop+unreachable, so JSON number parse traps in main.
+    if is_parse_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_parse_f64::emit_parse_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     false
 }
 
@@ -217,6 +225,17 @@ fn is_has_flag_callee(callee: String) -> bool {
     eq(clone(callee), String_from("has_flag")) ||
     eq(clone(callee), String_from("__intrinsic_has_flag")) ||
     ends_with(clone(callee), String_from("::has_flag"))
+}
+
+fn is_parse_f64_callee(callee: String) -> bool {
+    // Result<f64, String> sealed parse only. Do not match convert::parse_f64
+    // (Option<f64> wrapper with a real Ark body).
+    callee_name_is(clone(callee), String_from("parse_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_parse_f64_impl")) ||
+    callee_name_is(clone(callee), String_from("raw_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_parse_f64")) ||
+    callee_name_is(clone(callee), String_from("text::parse_f64"))
 }
 
 fn is_arg_at_callee(callee: String) -> bool {
