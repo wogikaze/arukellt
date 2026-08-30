@@ -525,7 +525,12 @@ fn local_set_non_string_storage_type(
     let plan_storage = call_dest_plan_storage_type(f, local_idx, ctx)
     match plan_storage {
         Option::Some(plan_type) => {
-            if leftover_string_yields_to_infer(ctx, storage_type, clone(type_name), plan_type) {
+            // TypeSectionPlan already chose the CALL result type. Unresolved
+            // tuple placeholders (struct:tuple:v:A,B) and leftover String
+            // dests must take that index, not a later leftover-String guess.
+            if plan_type >= 0 &&
+            !(plan_type == string_type &&
+                is_vec_storage_binding(ctx, storage_type, clone(type_name))) {
                 return plan_storage
             }
         }
@@ -759,7 +764,8 @@ fn stack_call_or_direct_producer(
     inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
     inst_accessors_operands::MirInst_arg0(inst) == local_idx {
         let prev = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
-        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() {
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() &&
+        inst_accessors_operands::MirInst_dest(prev) < 0 {
             return inst_index - 1
         }
     }
