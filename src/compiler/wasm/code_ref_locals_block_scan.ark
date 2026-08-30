@@ -431,6 +431,56 @@ fn is_vec_access_callee(callee: String) -> bool {
     starts_with(clone(callee), "vec_get_unchecked__")
 }
 
+fn vec_elem_name_from_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), "vec:") {
+        return substring(clone(type_name), 4, len(type_name))
+    }
+    if starts_with(clone(type_name), "Vec_") {
+        return substring(clone(type_name), 4, len(type_name))
+    }
+    if starts_with(clone(type_name), "Vec<") {
+        let n = len(type_name)
+        if n > 4 && char_at(type_name, n - 1) == 62 {
+            return substring(clone(type_name), 4, n - 1)
+        }
+    }
+    String_new()
+}
+
+fn vec_receiver_elem_name(f: MirFunction, receiver: i32, ctx: SelfEmitCtx) -> String {
+    if receiver < 0 || receiver >= function_locals_view::MirFunction_local_count(f) {
+        return String_new()
+    }
+    let receiver_local = function_locals_view::MirFunction_local_at(f, receiver)
+    let from_name = vec_elem_name_from_type_name(local_access::MirLocal_type_name(receiver_local))
+    if len(from_name) > 0 {
+        return from_name
+    }
+    let vec_tid = mir_value_type::mir_value_type_type_id(
+        local_access::MirLocal_value_type(receiver_local)
+    )
+    if !type_id::type_id_is_valid(vec_tid) {
+        return String_new()
+    }
+    let entry = type_table::TypeTable_lookup(ctx_record::SelfEmitCtx_type_table(ctx), vec_tid)
+    if type_table::type_entry_kind(entry) != kinds::TYPE_KIND_VEC() {
+        return String_new()
+    }
+    let from_entry = vec_elem_name_from_type_name(type_table::type_entry_name(entry))
+    if len(from_entry) > 0 {
+        return from_entry
+    }
+    if type_table::type_entry_type_param_count(entry) != 1 {
+        return String_new()
+    }
+    type_table::type_entry_name(
+        type_table::TypeTable_lookup(
+            ctx_record::SelfEmitCtx_type_table(ctx),
+            type_table::type_entry_type_param_at(entry, 0)
+        )
+    )
+}
+
 fn local_set_non_string_storage_type(
     f: MirFunction,
     local_idx: i32,
