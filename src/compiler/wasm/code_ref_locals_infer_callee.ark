@@ -360,6 +360,12 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 }
 
 fn infer_call_result_gc_type_from_plan(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    // clone(T)->T shares one canon signature. The plan result is often
+    // String and would type every clone dest as array 11, including
+    // clone(MirModule) temps in try_emit_string_component.
+    if post_pass_callee_lookup::is_generic_clone_intrinsic(clone(callee)) {
+        return Option::None
+    }
     let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
     if fn_idx < 0 {
         return Option::None

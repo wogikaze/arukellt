@@ -569,6 +569,17 @@ fn local_set_non_string_storage_type(
             // TypeSectionPlan already chose the CALL result type. Unresolved
             // tuple placeholders (struct:tuple:v:A,B) and leftover String
             // dests must take that index, not a later leftover-String guess.
+            // A String plan still yields to a copied named-struct source
+            // (clone(MirModule) temps keep leftover type_name String).
+            if plan_type == string_type {
+                let copied = copied_non_string_storage_type(f, local_idx, ctx, 0)
+                match copied {
+                    Option::Some(_copied_type) => {
+                        return copied
+                    }
+                    Option::None => {}
+                }
+            }
             if plan_type >= 0 &&
             !(plan_type == string_type &&
                 is_vec_storage_binding(ctx, storage_type, clone(type_name))) {
