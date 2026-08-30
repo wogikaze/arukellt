@@ -27,17 +27,10 @@ struct TypeEntry {
 struct TypeTable {
     entries: Vec<TypeEntry>,
     next_id: i32,
-    name_buckets: Vec<i32>,
-    name_next: Vec<i32>,
 }
 
 fn TypeTable_new() -> TypeTable {
-    TypeTable {
-        entries: Vec::new<TypeEntry>(),
-        next_id: 0,
-        name_buckets: Vec::new<i32>(),
-        name_next: Vec::new<i32>(),
-    }
+    TypeTable { entries: Vec::new<TypeEntry>(), next_id: 0 }
 }
 
 fn TypeTable_entry_count(table: TypeTable) -> i32 {
@@ -86,16 +79,16 @@ fn type_table_type_param_ids_equal(a: Vec<TypeId>, b: Vec<TypeId>) -> bool {
 }
 
 fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
-    let mut cursor = type_table_name_hash_head(table, name)
-    while cursor > 0 {
-        let i = cursor - 1
+    let count = len(table.entries)
+    let mut i = 0
+    while i < count {
         let entry = get_unchecked(table.entries, i)
         if entry.kind == kind &&
         eq(clone(entry.name), clone(name)) &&
         type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
             return entry.id
         }
-        cursor = get_unchecked(table.name_next, i)
+        i = i + 1
     }
     TYPE_ID_INVALID()
 }
@@ -109,82 +102,7 @@ fn TypeTable_intern(table: TypeTable, kind: i32, name: String, type_param_ids: V
     table.next_id = table.next_id + 1
     let entry = TypeEntry { id: id, kind: kind, name: name, type_param_ids: type_param_ids }
     push(table.entries, entry)
-    type_table_name_hash_insert(table, id)
     id
-}
-
-fn type_table_name_hash_head(table: TypeTable, name: String) -> i32 {
-    let capacity = len(table.name_buckets)
-    if capacity <= 0 {
-        return 0
-    }
-    get_unchecked(table.name_buckets, type_table_name_fnv(name) % capacity)
-}
-
-fn type_table_name_hash_insert(table: TypeTable, _id: TypeId) {
-    let count = len(table.entries)
-    if len(table.name_buckets) == 0 {
-        table.name_buckets = type_table_fresh_buckets(64)
-    }
-    let required = count * 2
-    if required > len(table.name_buckets) {
-        type_table_name_hash_rebuild(table)
-        return
-    }
-    let newest = get_unchecked(table.entries, count - 1)
-    let slot = type_table_name_fnv(newest.name) % len(table.name_buckets)
-    let head = get_unchecked(table.name_buckets, slot)
-    push(table.name_next, head)
-    set(table.name_buckets, slot, count)
-}
-
-fn type_table_name_hash_rebuild(table: TypeTable) {
-    let count = len(table.entries)
-    let mut capacity = 64
-    let required = count * 2
-    while capacity < required {
-        capacity = capacity * 2
-    }
-    table.name_buckets = type_table_fresh_buckets(capacity)
-    table.name_next = Vec::new<i32>()
-    let mut i = 0
-    while i < count {
-        let entry = get_unchecked(table.entries, i)
-        let slot = type_table_name_fnv(entry.name) % capacity
-        let head = get_unchecked(table.name_buckets, slot)
-        push(table.name_next, head)
-        set(table.name_buckets, slot, i + 1)
-        i = i + 1
-    }
-}
-
-fn type_table_fresh_buckets(capacity: i32) -> Vec<i32> {
-    let buckets = Vec::new<i32>()
-    let mut i = 0
-    while i < capacity {
-        push(buckets, 0)
-        i = i + 1
-    }
-    buckets
-}
-
-fn type_table_name_fnv(name: String) -> i32 {
-    let fnv_offset = 216613626
-    let fnv_prime = 16777619
-    let mut hash = fnv_offset
-    let name_len = len(name)
-    let mut hi = 0
-    while hi < name_len {
-        hash = hash * fnv_prime ^ char_at(name, hi)
-        if hash < 0 {
-            hash = 0 - hash
-        }
-        hi = hi + 1
-    }
-    if hash < 0 {
-        hash = 0
-    }
-    hash
 }
 
 fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
@@ -192,5 +110,10 @@ fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
     if raw >= 0 && raw < len(table.entries) {
         return get_unchecked(table.entries, raw)
     }
-    TypeEntry { id: TYPE_ID_INVALID(), kind: kinds::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec::new<TypeId>() }
+    TypeEntry {
+        id: TYPE_ID_INVALID(),
+        kind: kinds::TYPE_KIND_PRIMITIVE(),
+        name: String_new(),
+        type_param_ids: Vec::new<TypeId>()
+    }
 }

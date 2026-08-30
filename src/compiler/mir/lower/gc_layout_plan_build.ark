@@ -203,6 +203,83 @@ fn gc_layout_plan_find_named_type(
     type_id::TYPE_ID_INVALID()
 }
 
+// Typed MIR intern names are `struct:Name` or `struct:tuple:A,B:bytes`.
+// GC slots keep the bare layout name (`Range`, `tuple:i32,i32`).
+fn gc_layout_plan_strip_struct_prefix(name: String) -> String {
+    if starts_with(clone(name), "struct:") {
+        return substring(name, 7, len(name))
+    }
+    name
+}
+
+fn gc_layout_plan_strip_trailing_size(name: String) -> String {
+    let n = len(name)
+    let mut index = n - 1
+    let mut digits = 0
+    while index >= 0 {
+        let ch = char_at(clone(name), index)
+        if ch >= 48 && ch <= 57 {
+            digits = digits + 1
+            index = index - 1
+        } else {
+            break
+        }
+    }
+    if digits > 0 && index >= 0 && char_at(clone(name), index) == 58 {
+        return substring(name, 0, index)
+    }
+    name
+}
+
+fn gc_layout_plan_normalize_struct_name(name: String) -> String {
+    if starts_with(clone(name), "struct:") {
+        return gc_layout_plan_strip_trailing_size(gc_layout_plan_strip_struct_prefix(name))
+    }
+    name
+}
+
+fn gc_layout_plan_find_struct_type(table: TypeTable, name: String) -> TypeId {
+    let found = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), clone(name))
+    if type_id::type_id_is_valid(found) {
+        return found
+    }
+    if !starts_with(clone(name), "struct:") {
+        let prefixed = concat("struct:", clone(name))
+        let prefixed_id = gc_layout_plan_find_named_type(
+            table,
+            kinds::TYPE_KIND_STRUCT(),
+            prefixed
+        )
+        if type_id::type_id_is_valid(prefixed_id) {
+            return prefixed_id
+        }
+    }
+    let want = gc_layout_plan_normalize_struct_name(clone(name))
+    let count = type_table::TypeTable_entry_count(table)
+    let mut index = 0
+    while index < count {
+        let entry = type_table::TypeTable_entry_at(table, index)
+        if type_table::type_entry_kind(entry) == kinds::TYPE_KIND_STRUCT() {
+            let entry_name = type_table::type_entry_name(entry)
+            if eq(gc_layout_plan_normalize_struct_name(entry_name), clone(want)) {
+                return type_table::type_entry_id(entry)
+            }
+        }
+        index = index + 1
+    }
+    type_id::TYPE_ID_INVALID()
+}
+
+fn gc_layout_plan_type_id_for_struct_slot(table: TypeTable, name: String) -> TypeId {
+    let found = gc_layout_plan_find_struct_type(table, clone(name))
+    if type_id::type_id_is_valid(found) {
+        return found
+    }
+    // Same as variant slots: the GC name is the semantic type when lowering
+    // never interned a value-type alias (`tuple:i32,i32` vs `struct:tuple:...`).
+    type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRUCT(), name, Vec::new<TypeId>())
+}
+
 fn gc_layout_plan_name_is_option_variant(name: String) -> bool {
     eq(clone(name), "Some") ||
     eq(clone(name), "None") ||
@@ -269,9 +346,11 @@ fn gc_layout_plan_bind_struct_slots(
     let mut slot = 0
     while slot < count {
         let name = module_gc_struct::MirModule_gc_struct_name_at(module, slot)
-        let tid = gc_layout_plan_find_named_type(table, kinds::TYPE_KIND_STRUCT(), name)
+        let tid = gc_layout_plan_type_id_for_struct_slot(table, clone(name))
         if !type_id::type_id_is_valid(tid) {
-            stdio::eprintln("compiler ICE: GC struct slot has no semantic TypeId")
+            stdio::eprintln(
+                concat("compiler ICE: GC struct slot has no semantic TypeId: ", name)
+            )
             process::exit(1)
         }
         gc_layout_plan::mir_gc_layout_plan_bind(
