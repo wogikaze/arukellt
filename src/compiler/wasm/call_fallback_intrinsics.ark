@@ -116,13 +116,6 @@ fn try_emit_name_intrinsic_fallback(
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     if is_assert_eq_str_callee(clone(callee)) {
-        // Linear-memory assert_eq_str traps on GC strings; compare via
-        // string_eq then assert the bool (#807).
-        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-            let _eq_on_stack = intrinsic_math::emit_string_eq_intrinsic(w, inst, ctx)
-            let on_stack = intrinsic_assert::emit_assert(w, inst, ctx)
-            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
-        }
         let on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
