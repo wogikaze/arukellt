@@ -188,13 +188,13 @@ Continue from the first unchecked Phase 2 item through the Final Experimental Pr
 - レーン／編集ループ: `python3 scripts/manager.py verify lane`（必要なら `--gate cli-parity` 等）
 - マージ／CI ゲート: `python3 scripts/manager.py verify quick`（拡張面は `--extended`）
 - fixture: `python3 scripts/manager.py verify fixtures`
-- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~45–50s が下限**。別名 `build-s2` / `rebuild-s2`）
+- **コンパイラ wasm 更新（emitter 編集後）**: `python3 scripts/manager.py selfhost build-compiler`（stage-2 のみ、**~8–10s が下限**。別名 `build-s2` / `rebuild-s2`）
 - **fixpoint ゲート（ADR-029）**: `python3 scripts/manager.py selfhost fixpoint`（s2==s3 確認。日常の s2 再ビルドには使わない）
 - docs 再生成: `python3 scripts/manager.py docs regenerate`
 - docs 検査: `python3 scripts/manager.py docs check`
 - 全体: `python3 scripts/manager.py verify full`
 
-`build-compiler` を 1 行修正ごとに回さない（`45s × N` で律速になる）。編集をバッチして
+`build-compiler` を 1 行修正ごとに回さない（`8s × N` で律速になる）。編集をバッチして
 1 回だけ rebuild → 多数 fixture を検証する。並列レーンは親が 1 回だけ rebuild する。
 `selfhost fixpoint --build --no-cache` を emitter 作業の再ビルドに使わない。
 コピーは `/bin/cp -f`（対話的 `cp -iv` 禁止）。詳細は `docs/compiler/bootstrap.md`。
@@ -260,7 +260,7 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
 
 ### 検証ゲートの所要時間・前提
 
-- `python3 scripts/manager.py selfhost build-compiler`: コールドキャッシュだと ~5.5 分（overlay cache miss 警告が出る）、ウォームで ~45–50s。emitter 編集後に 1 回だけ実行する。
+- `python3 scripts/manager.py selfhost build-compiler`: コールドキャッシュだと overlay flatten + AOT が乗る。ウォームな wasm32 runtime では **~8–10s**。emitter 編集後に 1 回だけ実行する。
 - `python3 scripts/manager.py lint`（全 2027 `.ark` を wasm で lint）: **~70 分**かかる。編集ループでは `verify lane` を使い、全 lint は必要時のみ。
 - `python3 scripts/manager.py verify quick`: tool 未導入だと数分で fail-fast、tool 導入後は T3 fixture 検証等が実走して ~15 分。`ARUKELLT_CC=clang` を設定すること（native C99 gate は既定 `clang-16` を探すが未導入。generic `clang`=18 を使わせる）。
 - master 上では `verify quick` の `docs consistency` チェックが「generated docs are out of date」で fail することがある（生成物ドリフト、環境とは無関係）。環境セットアップの成否とは切り離して扱う。修正が必要なら `python3 scripts/gen/generate-docs.py` で再生成する（生成物の手編集はしない）。

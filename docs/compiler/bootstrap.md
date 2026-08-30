@@ -14,7 +14,7 @@ Agents and humans confuse these two. Use the table:
 
 | Goal | Command | Typical time | Notes |
 |------|---------|--------------|-------|
-| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~45–50s** (warm overlay) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
+| **Refresh the compiler after editing `src/compiler/**`** | `python3 scripts/manager.py selfhost build-compiler` | **~8–10s** (warm wasm32 overlay + AOT runtime) | Stage-2 only. **Default for emitter / Memory64 / T3 work.** |
 | Check ADR-029 fixpoint (`sha256(s2) == sha256(s3)`) | `python3 scripts/manager.py selfhost fixpoint` | seconds if s2/s3 exist | Does not refresh the emitter by itself |
 | Rebuild s2 **and** s3 then compare (gate only) | `python3 scripts/manager.py selfhost fixpoint --build` | stage-3 alone can be **tens of minutes** today | **Not** for routine iteration; latency work is [#829](../../issues/open/829-selfhost-latency-phase-reprofile-hotspot.md) |
 
@@ -26,15 +26,16 @@ parallel agents.
 
 Copy files with `/bin/cp -f` (never interactive `cp -iv`).
 
-### Why ~45s, and how to iterate without dying
+### Why ~8–10s, and how to iterate without dying
 
-`build-compiler` is a **full pinned→s2 compile of the entire selfhost compiler**
+`build-compiler` is a **full compile of the entire selfhost compiler**
 (typecheck + MIR lower + wasm emit). Overlay cache hits only skip the flat-src
-rewrite (~0.1s); they do **not** skip that compile. That ~45s is the practical
-floor today — not a fixpoint/stage-3 tax.
+rewrite (~0.1s); they do **not** skip that compile. With official
+`BOOTSTRAP_EMIT_TARGET=wasm32` and an AOT Memory64 runtime host, the no-cache
+floor on this machine is **~8–10s** — not a fixpoint/stage-3 tax.
 
 **Do not rebuild once per one-line hypothesis.** That makes agents
-latency-bound (`45s × N` tries).
+latency-bound (`8s × N` tries).
 
 Recommended loop:
 
@@ -67,9 +68,10 @@ wasmtime run --allow-precompiled --wasm gc --wasm function-references \
   -o out.wasm
 ```
 
-On this machine that path is no-cache **~25s** (`sha256` matches a second emit
-from the same host). Official `BOOTSTRAP_EMIT_TARGET` remains `wasm32-gc` until
-that overlay compile is ≤10s and fixpoint uses wasm32.
+On this machine that path is no-cache **~8.5s** median (`sha256` matches a
+second emit from the same host). Official `BOOTSTRAP_EMIT_TARGET` is `wasm32`
+/ `wasi-p1`. The pinned trust base stays `wasm32-gc` / `wasi-p2` (#834) and
+only hops through a current-source gc compiler when no wasm32 runtime exists.
 
 ## Trust model
 
