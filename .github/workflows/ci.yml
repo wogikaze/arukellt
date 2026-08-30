@@ -46,7 +46,9 @@ jobs:
     if: needs.ark-changes.outputs.count != '0'
     needs: ark-changes
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    # 7m timed out on large compiler Ark diffs; GitHub marks that cancelled
+    # and quality-format/lint then fail even when fmt --check is clean.
+    timeout-minutes: 9
     strategy:
       fail-fast: false
       matrix:
