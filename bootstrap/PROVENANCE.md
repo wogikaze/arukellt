@@ -69,7 +69,8 @@ behavioural drift in its body.
 ### wasm32-gc pinned (`25e28e48`)
 
 Pinned bootstrap is the s2==s3 fixpoint of `25e28e48`. Guest remains
-`wasm32-gc` / `wasi-p2` memory32.
+`wasm32-gc` / `wasi-p2` memory32. Re-proved 2026-08-30T21:19–21:28Z with
+`ARUKELLT_FIXPOINT_NO_CACHE=1`: pin==s2==s3=`54d01aff` EXIT 0.
 
 Intentional drift from the previous pin (`fdf2101e` / `87e5d135`):
 
