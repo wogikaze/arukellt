@@ -32,6 +32,7 @@ use wasm::intrinsic_string_index_of
 use wasm::intrinsic_string_replace_all
 use wasm::intrinsic_string_transform
 use wasm::intrinsic_sort
+use wasm::intrinsic_vec_reverse
 use wasm::intrinsic_seq
 use wasm::intrinsic_seq_unique
 use wasm::intrinsic_string_pad
@@ -310,6 +311,12 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Tiny reverse fixtures DCE `__core_vec_reverse_i32_impl`; the Call keeps
+    // the name and becomes drop+unreachable (reverse_i32 / vec_reverse_basic).
+    if is_reverse_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_reverse::emit_reverse_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_replace_callee(clone(callee)) {
         let on_stack = intrinsic_string_replace_all::emit_replace(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -488,6 +495,12 @@ fn is_sort_i32_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_sort_i32_impl")) ||
     callee_name_is(clone(callee), String_from("__core_seq_sort_i32_impl")) ||
     ends_with(clone(callee), String_from("::sort_i32"))
+}
+
+fn is_reverse_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("reverse_i32")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_reverse_i32_impl")) ||
+    ends_with(clone(callee), String_from("::reverse_i32"))
 }
 
 fn is_replace_callee(callee: String) -> bool {
