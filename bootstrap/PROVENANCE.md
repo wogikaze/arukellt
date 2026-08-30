@@ -13,11 +13,11 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 016 885 bytes (≈ 6.69 MiB) |
-| sha256 | `ec200344fa39dfc78480abda54f026544722d89a169a8c43a5f28a3ca8586aca` |
-| Built from commit | `9f91bac4` wasm32-gc dest-typing + clone(T) stack-arg (s3==s4) |
+| Size | 7 016 856 bytes (≈ 6.69 MiB) |
+| sha256 | `dfd074f3cbcec1e1eb2468d4bfc3289e49af12e5243f128ae621368b5dd75dc2` |
+| Built from commit | `0565a6ca` drop discarded WIT `parse_full` (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
-| Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Intermediate s3==s4 before refresh. Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
+| Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
 ## Reproducibility recipe
 
@@ -66,13 +66,19 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
-### wasm32-gc pinned (`9f91bac4`)
+### wasm32-gc pinned (`0565a6ca`)
 
 Pinned bootstrap is native `wasm32-gc` / `wasi-p2` with guest memory32
 (`(memory 8192)`). `BOOTSTRAP_EMIT_TARGET` / `BOOTSTRAP_EMIT_WASI_VERSION` in
 `scripts/selfhost/checks.py` match. `_ensure_bootstrap_compiler_wasm` copies
 the pin without `--to-memory64`. Execution uses `scripts/run/arukellt-run-hosted.sh`
 (host-linker) for `wasi:cli/` and `arukellt:runtime/host@0.1.0` filesystem imports.
+
+Intentional drift from the previous dest-typing pin (`9f91bac4` / `ec200344`):
+
+- `parse_wit_import_file` no longer calls discarded `parser::parse_full`
+  (`WitNode` enum into leftover String dest trapped on readable WIT files)
+- Isolated #665 close-gate required path PASS on this artifact
 
 Intentional drift from the previous TypeSectionPlan pin (`53ce8aac` / `4f4b8992`):
 
