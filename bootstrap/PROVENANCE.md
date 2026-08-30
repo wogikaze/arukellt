@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 123 259 bytes (≈ 6.79 MiB) |
-| sha256 | `fdf2101e220321527a0439a9d4f063bfafa3737d579a387aa3f3a041b5f4bed1` |
-| Built from commit | `87e5d135` variant key-match returns storage index (s3==s4) |
+| Size | 7 123 993 bytes (≈ 6.79 MiB) |
+| sha256 | `54d01aff0e529dcd90f8d4dc7f5797239d5b69932a47f0a8919abe7ee8d73c11` |
+| Built from commit | `25e28e48` skip open-enum tee into variant locals (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
