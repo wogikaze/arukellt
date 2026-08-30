@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 009 318 bytes (≈ 6.69 MiB) |
-| sha256 | `7f0b5eddaffe55b12ad9d8970611ba26b5c53675da804f1a55c0fe9e7b8be47e` |
-| Built from commit | `1d924aea` stub unused runtime host in P2 command components (s2==s3) |
+| Size | 7 009 586 bytes (≈ 6.69 MiB) |
+| sha256 | `5abf95738287333268218d722f31e220cd9776eef98ff6a9b2808849ccb81b23` |
+| Built from commit | `d4ceef89` keep callee-string and line-length ratchets (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -66,13 +66,22 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
-### wasm32-gc pinned (`1d924aea`)
+### wasm32-gc pinned (`d4ceef89`)
 
 Pinned bootstrap is native `wasm32-gc` / `wasi-p2` with guest memory32
 (`(memory 8192)`). `BOOTSTRAP_EMIT_TARGET` / `BOOTSTRAP_EMIT_WASI_VERSION` in
 `scripts/selfhost/checks.py` match. `_ensure_bootstrap_compiler_wasm` copies
 the pin without `--to-memory64`. Execution uses `scripts/run/arukellt-run-hosted.sh`
 (host-linker) for `wasi:cli/` and `arukellt:runtime/host@0.1.0` filesystem imports.
+
+Intentional drift from the previous P2-stub pin (`7f0b5edd` / `1d924aea`):
+
+- TypeSectionPlan constructor call and P2 runtime memory-index predicate
+  wrapped to restore `lines_ge_200` ratchet (2)
+- New i32 `to_string` / `vec_push` fallback predicates use `callee_name_is`
+  so `eq(clone(callee)` stays at baseline 74
+- Isolated verify-quick hygiene: ADR unique IDs, ci-jobs, gate-667 `wasm32-gc`,
+  formatter exception hashes, CI aggregate canonical manager commands
 
 Intentional drift from the previous WIT-import pin (`dfd074f3` / `0565a6ca`):
 
