@@ -37,7 +37,8 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     emit_reverse_String_gc_setup(w, s_vec, s_arr, s_len, s_lo, s_hi, vec_type)
     emit_reverse_String_gc_swap_loop(w, s_arr, s_lo, s_hi, s_tmp, arr_type)
-    return true
+    // In-place; nothing on the stack. true would store a missing result.
+    return false
 }
 
 fn emit_reverse_String_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo: i32, s_hi: i32, vec_type: i32) {
