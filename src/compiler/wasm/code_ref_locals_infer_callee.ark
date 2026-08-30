@@ -163,6 +163,21 @@ fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i3
     if len(ret_name) == 0 {
         return Option::None
     }
+    // `vec:Diagnostic` must not resolve as the Diagnostic gc_struct. The last
+    // colon strip below would do that and type a Vec return as the element.
+    if starts_with(clone(ret_name), "vec:") ||
+    starts_with(clone(ret_name), "Vec<") ||
+    starts_with(clone(ret_name), "Vec_") ||
+    starts_with(clone(ret_name), "hashmap:") ||
+    starts_with(clone(ret_name), "HashMap") ||
+    starts_with(clone(ret_name), "hashset:") ||
+    starts_with(clone(ret_name), "HashSet") ||
+    starts_with(clone(ret_name), "option:") ||
+    starts_with(clone(ret_name), "Option") ||
+    starts_with(clone(ret_name), "result:") ||
+    starts_with(clone(ret_name), "Result") {
+        return Option::None
+    }
     let bare_name = strip_module_double_colon(ret_name)
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(bare_name)) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, bare_name))
@@ -293,8 +308,20 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    // Prefer SignatureRegistry (host + builtin registration) so missing Mir
-    // name-index entries still type correctly (#725 / #842).
+    // Named MirFunction return (gc_struct) wins over a registry TypeId that
+    // collapsed to String. Registry-first made call dests (ref null $string)
+    // while the callee wasm type returned a struct.
+    let from_fn = infer_call_result_gc_type_from_fn(ctx, clone(callee))
+    match from_fn {
+        Option::Some(from_fn_type) => {
+            if from_fn_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return from_fn
+            }
+        }
+        Option::None => {}
+    }
+    // SignatureRegistry (host + builtin) when the callee is not in the MIR
+    // name index, or when both sides agree it is String (#725 / #842).
     let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
     match from_reg {
         Option::Some(_opt_v) => {
@@ -302,7 +329,6 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
         }
         Option::None => {}
     }
-    let from_fn = infer_call_result_gc_type_from_fn(ctx, clone(callee))
     match from_fn {
         Option::Some(_opt_v) => {
             return from_fn

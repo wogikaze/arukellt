@@ -1,13 +1,27 @@
 use std::text
+use corehir::kinds
+use corehir::type_id
+use corehir::type_table
 use mir::lower::ctx_struct_storage
 use mir::lower::ctx_types
 use mir::lower::ctx_struct_field_type
 use mir::lower::ctx_struct_layout
 use mir::lower::ctx_struct_size
 use mir::module_gc_struct
+use mir::module_spine
 fn ctx_is_gc_target(ctx: LowerCtx) -> bool {
     ctx.is_gc_target
 }
+
+fn ctx_intern_gc_struct_type(ctx: LowerCtx, struct_name: String) {
+    type_table::TypeTable_intern(
+        module_spine::MirModule_type_table(ctx.module),
+        kinds::TYPE_KIND_STRUCT(),
+        struct_name,
+        Vec::new<TypeId>()
+    )
+}
+
 fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     // Dedupe by name, not by sig. Distinct structs can share a field layout
     // (Range and RangeIter are both two i32 fields) but each still needs a
@@ -16,12 +30,14 @@ fn ctx_register_gc_struct(ctx: LowerCtx, struct_name: String, sig: String) {
     let mut i = 0
     while i < count {
         if eq(get_unchecked(ctx.gc_struct_names, i), clone(struct_name)) {
+            ctx_intern_gc_struct_type(ctx, struct_name)
             return
         }
         i = i + 1
     }
-    push(ctx.gc_struct_names, struct_name)
+    push(ctx.gc_struct_names, clone(struct_name))
     push(ctx.gc_struct_sigs, sig)
+    ctx_intern_gc_struct_type(ctx, struct_name)
 }
 
 fn ctx_set_gc_struct_sig(ctx: LowerCtx, struct_name: String, sig: String) {

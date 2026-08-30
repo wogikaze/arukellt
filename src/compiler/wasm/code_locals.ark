@@ -48,6 +48,12 @@ fn emit_local_decls(body: WasmWriter, f: MirFunction, local_count: i32, param_co
     code_scratch_locals::emit_scratch_local_decls(body, ctx)
 }
 
+fn gc_local_type_name_is_string_or_empty(type_name: String) -> bool {
+    len(type_name) == 0 ||
+    eq(clone(type_name), String_from("String")) ||
+    eq(clone(type_name), String_from("string"))
+}
+
 fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         if emit_gc_local_val_type(body, f, local_idx, vt, ctx) {
@@ -130,12 +136,29 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             ))
         return true
     }
+    // CALL dests can keep a sticky String TypeId while the callee returns a
+    // named struct (WitParsedInterface). Producer type wins over spine String.
+    if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
+        let producer_storage =
+        code_ref_locals_block_scan::local_direct_producer_storage_type(f, local_idx, ctx)
+        match producer_storage {
+            Option::Some(producer_type) => {
+                if producer_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                    writer_core::emit_leb128_s(body, producer_type)
+                    return true
+                }
+            }
+            Option::None => {}
+        }
+    }
     // Prefer spine string storage before enum-variant typing (#843).
     // Only when spine says String — sticky type_name alone must not beat
-    // open-enum extracts (#835).
+    // open-enum extracts (#835). Do not collapse a named struct local.
     if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
         let spine_early = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
-        if spine_early == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+        if spine_early == ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+        gc_local_type_name_is_string_or_empty(clone(type_name)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, spine_early)
             return true
@@ -189,7 +212,8 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     // Prefer spine string over a stray variant_slot on payload locals (#843).
     if !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx) {
         let spine_late = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
-        if spine_late == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+        if spine_late == ctx_gc_type::SelfEmitCtx_string_type(ctx) &&
+        gc_local_type_name_is_string_or_empty(clone(type_name)) {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, spine_late)
             return true

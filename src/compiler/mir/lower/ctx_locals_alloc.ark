@@ -11,15 +11,19 @@ fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
 }
 
 fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
-    let slot = ctx_local_index_storage::ctx_local_hash_probe_slot(ctx, name)
-    if slot < 0 {
-        return 0 - 1
+    // Hash probe can map a param name onto a later temp (snap/decls swap)
+    // and then GC local types fail to validate. Scan from the end so the
+    // newest binding wins, matching the pre-hash contract.
+    let count = ctx_local_index_storage::ctx_local_index_count(ctx)
+    let mut i = count - 1
+    while i >= 0 {
+        let n = ctx_local_index_storage::ctx_local_index_name_at(ctx, i)
+        if eq(clone(n), clone(name)) {
+            return ctx_local_index_storage::ctx_local_index_value_at(ctx, i)
+        }
+        i = i - 1
     }
-    let bucket = get_unchecked(ctx.local_name_buckets, slot)
-    if bucket == 0 {
-        return 0 - 1
-    }
-    get_unchecked(ctx.local_indices, bucket - 1)
+    0 - 1
 }
 
 fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
