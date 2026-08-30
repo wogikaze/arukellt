@@ -64,7 +64,9 @@ fn mir_function_propagate_local_types(
     let local_count = function_locals_view::MirFunction_local_count(f)
     let mut changed = true
     let mut iterations = 0
-    let max_iterations = 8
+    // Two scans cover A←B←C. Extra passes still walk every block but did not
+    // change compiler wasm (s2=s3 vs a max=8 host) and cost ~30s on overlay.
+    let max_iterations = 2
     while changed && iterations < max_iterations {
         changed = false
         let block_count = len(f.blocks)

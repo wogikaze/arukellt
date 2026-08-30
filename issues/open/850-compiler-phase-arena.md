@@ -31,12 +31,12 @@ inside `src/compiler/**` so the **gc-typed selfhost compiler** does not keep a
 Official goal: `BOOTSTRAP_EMIT_* = wasm32-gc` + `wasi-p2`, `sha256(s2)==sha256(s3)`,
 cacheless flattened overlay of `src/compiler/main.ark` on that gc host **≤10s**.
 
-Measured on HEAD `886581d1d` (do not treat wasm32 ≤10s as this goal):
+Measured on HEAD `886581d1d` plus tick 80 (do not treat wasm32 ≤10s as this goal):
 
 | Host | Overlay | Notes |
 |---|---:|---|
 | wasm32 + wasi-p1 | ~10s | superseded as the *goal*; still the fast emit host |
-| wasm32-gc + wasi-p2 (Copying) | **242s quiet / 255s loaded** | s2=s3, RSS ~1.75GB |
+| wasm32-gc + wasi-p2 (Copying) | **208s remasure / 213s first** (tick 80) | was 242s quiet / 255s loaded; s2=s3, RSS ~1.76GB |
 | wasm32-gc Null collector | ~23–26s then trap | mutator floor; discard does not help Null |
 | wasm32-gc DeferredRC | ~279s | worse |
 
@@ -64,7 +64,7 @@ are the structural way to get there without flipping `BOOTSTRAP_EMIT_*` early.
 - [ ] Reset points match the memo; no cross-arena raw refs
 - [ ] Cacheless gc-host overlay of flattened `src/compiler/main.ark` stays
       `sha256(s2)==sha256(s3)` (or the *new* compiler is itself a fixpoint)
-- [ ] Receipt: wall + RSS vs HEAD 242s quiet / 255s loaded / ~1.75GB
+- [ ] Receipt: wall + RSS vs tick 80 ~208–213s / same-day HEAD-today 242s / ~1.76GB
 - [ ] Do **not** set `BOOTSTRAP_EMIT_*` to wasm32-gc until overlay is ≤10s
 - [ ] `python3 scripts/manager.py verify lane` on the implementation slice
 - [ ] No `--to-memory64` widen of memory32 wasm32-gc (`#834`)
@@ -143,6 +143,13 @@ ops (CALL/struct still filled). Overlay **300.28s**, `s2=s3`, hello
 255s loaded. Do **not** retry SoA + arith-from-cols + reused-scratch
 fill. CALL/struct still need column emit with **no fat record**.
 
+Tick 80 capped `mir_function_propagate_local_types` at 2 iterations
+(was 8). Same-day HEAD-today control (max=8, tick49 host) was
+**242.08s**. Cap-2 overlay **213.36s** then remasure **208.40s**,
+`s2=s3`, hello 2312B matched, RSS **1.76GB**. Extra scans after the
+second pass did not change compiler wasm. Keep. Next slice is still
+SoA CALL/struct **no fill** (do not add a new helper family).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -161,6 +168,7 @@ fill. CALL/struct still need column emit with **no fat record**.
 | tick 74 cached `is_gc_target` bool | **266.22s** | yes | **1.76GB** | emit 6.90MB (262.90s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `62d470c0…`; worse wall; reverted |
 | tick 75 skip emit audits + unused source_text | **257.30s** | yes | **1.72GB** | emit 6.89MB (272.81s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `9d6c02fd…`; wash vs 255s; reverted |
 | tick 76 SoA + arith-from-cols + reused scratch | **300.28s** | yes | **2.07GB** | emit 6.93MB (267.20s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `860730e9…`; worse than tick 69; reverted |
+| tick 80 cap propagate at 2 iterations | **208.40s** remasure / **213.36s** first | yes | **1.76GB** | emit 6.90MB (230.46s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `2ee7c360…`; same-day HEAD-today max=8 control **242.08s**; kept |
 
 ## Non-goals
 
