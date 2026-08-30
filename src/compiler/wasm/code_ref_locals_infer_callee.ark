@@ -14,6 +14,7 @@ use wasm::ctx_record
 use wasm::ctx_gc_type
 use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::code_ref_locals_infer_type_id
 use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
@@ -33,6 +34,16 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     match named_struct {
         Option::Some(_opt_v) => {
             return named_struct
+        }
+        Option::None => {}
+    }
+    let from_table = code_ref_locals_infer_type_id::infer_gc_type_from_type_table_name(
+        ctx,
+        clone(ret_name)
+    )
+    match from_table {
+        Option::Some(_opt_v) => {
+            return from_table
         }
         Option::None => {}
     }
@@ -65,6 +76,16 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
         return Option::None
     }
     let mvt = signature_entry::signature_entry_return_at(entry, 0)
+    let from_tid = code_ref_locals_infer_type_id::infer_gc_type_from_type_id(
+        ctx,
+        mir_value_type::mir_value_type_type_id(mvt)
+    )
+    match from_tid {
+        Option::Some(_opt_v) => {
+            return from_tid
+        }
+        Option::None => {}
+    }
     let by_mvt = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
     if by_mvt >= 0 {
         return Option::Some(by_mvt)
@@ -83,6 +104,7 @@ fn resolve_gc_type_from_return_type_name(ctx: SelfEmitCtx, ret_name: String) -> 
         return Option::None
     }
     if code_ref_locals_types::is_option_type_name(clone(ret_name)) ||
+    starts_with(clone(ret_name), "enum:") ||
     starts_with(clone(ret_name), "Result_") ||
     starts_with(clone(ret_name), "Result:") ||
     starts_with(clone(ret_name), "Result<") ||
@@ -225,6 +247,11 @@ fn infer_gc_type_from_return_struct(ctx: SelfEmitCtx, ret_type: i32, ret_name: S
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name)))
         }
+        // Mixed tuples share a byte size with i32 pairs. Size-class 14 is not
+        // the TypeSectionPlan tuple (e.g. (i32, String)).
+        if starts_with(clone(struct_name), "tuple:") {
+            return Option::None
+        }
         let byte_size = parse_struct_byte_size_from_ret_name(clone(ret_name))
         if byte_size > 0 {
             return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type(ctx, byte_size))
@@ -308,6 +335,16 @@ fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
     match from_fn {
         Option::Some(_opt_v) => {
             return from_fn
+        }
+        Option::None => {}
+    }
+    let from_mono = code_ref_locals_infer_type_id::infer_call_result_gc_type_from_mono(
+        ctx,
+        clone(callee)
+    )
+    match from_mono {
+        Option::Some(_opt_v) => {
+            return from_mono
         }
         Option::None => {}
     }

@@ -60,11 +60,11 @@ fn emit_vec_new_layout_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
     // Step 1-2: Create backing array with the requested capacity. Constructors
     // without a capacity argument retain the established default of eight.
+    // array.new length is i32. Narrow in place; teeing through scratch_base
+    // stores a Memory64 i64 into a slot that array.new then re-reads as i64.
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {
-        let capacity = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
-        helpers_core::emit_local_set(w, capacity)
-        helpers_core::emit_local_get(w, capacity)
-        writer_gc::emit_gc_array_new_from_widened(w, array_type)
+        helpers_numeric_i32::emit_narrow_i64_operand(w)
+        writer_gc::emit_gc_array_new(w, array_type)
     } else {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, 8)

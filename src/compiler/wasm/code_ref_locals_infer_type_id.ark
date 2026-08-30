@@ -1,0 +1,142 @@
+// CALL-result GC types from TypeId / TypeTable / mono instances.
+// Tuple and bare-enum returns are not size-classes and not leftover String.
+
+use corehir::kinds
+use corehir::mir_value_type
+use corehir::type_id
+use corehir::type_table
+use mir::lower::mono_instance_table
+use wasm::ctx_gc_layout_lookup
+use wasm::ctx_gc_type
+use wasm::ctx_record
+use wasm::inst_ctx
+
+fn infer_gc_type_from_type_id(ctx: SelfEmitCtx, tid: TypeId) -> Option<i32> {
+    if !type_id::type_id_is_valid(tid) {
+        return Option::None
+    }
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let entry = type_table::TypeTable_lookup(table, tid)
+    let kind = type_table::type_entry_kind(entry)
+    if type_kind_is_enum_open(kind) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    let by_layout = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx, tid)
+    if by_layout >= 0 {
+        return Option::Some(by_layout)
+    }
+    Option::None
+}
+
+fn infer_gc_type_from_type_table_name(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
+    if len(ret_name) == 0 {
+        return Option::None
+    }
+    let table = ctx_record::SelfEmitCtx_type_table(ctx)
+    let count = type_table::TypeTable_entry_count(table)
+    let mut index = 0
+    while index < count {
+        let entry = type_table::TypeTable_entry_at(table, index)
+        if type_table_name_matches_return(type_table::type_entry_name(entry), clone(ret_name)) {
+            let from_id = infer_gc_type_from_type_id(ctx, type_table::type_entry_id(entry))
+            match from_id {
+                Option::Some(_type_idx) => {
+                    return from_id
+                }
+                Option::None => {}
+            }
+            if type_kind_is_enum_open(type_table::type_entry_kind(entry)) {
+                return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+            }
+        }
+        index = index + 1
+    }
+    if starts_with(clone(ret_name), "enum:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    Option::None
+}
+
+fn infer_call_result_gc_type_from_mono(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    let table = ctx_record::SelfEmitCtx_mono_instance_table(ctx)
+    let mut found = mono_instance_table::mono_instance_table_find_by_mangled(table, clone(callee))
+    if found < 0 {
+        let short_name = inst_ctx::strip_module_prefix(clone(callee))
+        if !eq(clone(short_name), clone(callee)) {
+            found = mono_instance_table::mono_instance_table_find_by_mangled(table, short_name)
+        }
+    }
+    if found < 0 {
+        return Option::None
+    }
+    let entry = mono_instance_table::mono_instance_table_entry_at(table, found)
+    if mono_instance_table::mono_instance_entry_return_count(entry) <= 0 {
+        return Option::None
+    }
+    infer_gc_type_from_type_id(
+        ctx,
+        mir_value_type::mir_value_type_type_id(
+            mono_instance_table::mono_instance_entry_return_at(entry, 0)
+        )
+    )
+}
+
+fn type_kind_is_enum_open(kind: i32) -> bool {
+    kind == kinds::TYPE_KIND_ENUM() ||
+    kind == kinds::TYPE_KIND_OPTION() ||
+    kind == kinds::TYPE_KIND_RESULT()
+}
+
+fn type_table_name_matches_return(entry_name: String, ret_name: String) -> bool {
+    if eq(clone(entry_name), clone(ret_name)) {
+        return true
+    }
+    let tuple_name = tuple_plan_name_from_ret_name(clone(ret_name))
+    if len(tuple_name) > 0 && eq(clone(entry_name), clone(tuple_name)) {
+        return true
+    }
+    if starts_with(clone(ret_name), "enum:") {
+        let bare = substring(clone(ret_name), 5, len(ret_name))
+        if eq(clone(entry_name), clone(bare)) || eq(clone(entry_name), clone(ret_name)) {
+            return true
+        }
+    }
+    if starts_with(clone(entry_name), "enum:") {
+        let entry_bare = substring(clone(entry_name), 5, len(entry_name))
+        if eq(clone(entry_bare), clone(ret_name)) {
+            return true
+        }
+    }
+    false
+}
+
+// `struct:tuple:i32,String:8` → `tuple:i32,String`. Size-class names stay empty.
+fn tuple_plan_name_from_ret_name(ret_name: String) -> String {
+    if !starts_with(clone(ret_name), "struct:") {
+        if starts_with(clone(ret_name), "tuple:") {
+            return ret_name
+        }
+        return String_new()
+    }
+    let n = len(ret_name)
+    let mut first_colon = 0 - 1
+    let mut last_colon = 0 - 1
+    let mut i = 0
+    while i < n {
+        if char_at(ret_name, i) == 58 {
+            if first_colon < 0 {
+                first_colon = i
+            }
+            last_colon = i
+        }
+        i = i + 1
+    }
+    if first_colon < 0 || last_colon <= first_colon {
+        return String_new()
+    }
+    let inner = substring(ret_name, first_colon + 1, last_colon)
+    if starts_with(clone(inner), "tuple:") {
+        return inner
+    }
+    String_new()
+}

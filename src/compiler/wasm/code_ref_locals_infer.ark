@@ -5,5 +5,6 @@
 // - code_ref_locals_stack_scan.ark — find_stack_value_source (post_pass)
 // - code_ref_locals_infer_dest.ark — multi-variant / producer helpers
 // - code_ref_locals_infer_callee.ark — CALL result GC type (registry + names)
+// - code_ref_locals_infer_type_id.ark — TypeId / TypeTable / mono CALL results
 // - code_ref_locals_typename.ark — type_name prefix helpers
 // - post_pass_type_propagate.ark — MIR lowering time type propagation
