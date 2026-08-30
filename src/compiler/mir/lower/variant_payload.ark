@@ -65,6 +65,12 @@ fn gc_payload_typed_variant_name(ctx: LowerCtx, local_idx: i32, type_name: Strin
     if gc_payload_is_string_type_name(clone(type_name)) {
         return "string"
     }
+    // TomlValue::String(slice(...)) often has an empty payload type_name.
+    // The Ok/Some fallback then picks enum:open and struct.set stores a
+    // String into (ref null $enum-open) (#726 toml_full_*).
+    if gc_payload_is_string_variant_name(clone(variant_name)) {
+        return "string"
+    }
     // Concrete scalar VT on the payload local must drive variant selection
     // even when the enum layout field is a wider type (Float/f64 vs i32) (#726 toml).
     if vt == value_types::VT_F64() {
@@ -178,6 +184,10 @@ fn gc_payload_typed_variant_from_layout(ctx: LowerCtx, variant_name: String, typ
 
 fn gc_payload_is_string_type_name(type_name: String) -> bool {
     eq(clone(type_name), "String") || eq(clone(type_name), "string")
+}
+
+fn gc_payload_is_string_variant_name(variant_name: String) -> bool {
+    eq(clone(variant_name), "String") || ends_with(clone(variant_name), "::String")
 }
 
 fn gc_payload_is_err_variant_name(variant_name: String) -> bool {
