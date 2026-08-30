@@ -1,3 +1,5 @@
+use mir::value_types
+
 pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
@@ -268,11 +270,14 @@ fn val_type_to_sig(vt: i32) -> String {
 }
 
 fn val_type_to_target_sig(vt: i32, is_gc_target: bool, memory64: bool) -> String {
-    if vt == 5 && !is_gc_target {
+    // Linear wasm32 stores String/Vec as i32 pointers. Emitting the GC
+    // "ref"/"gcref" sigs with an empty TypeSectionPlan map writes
+    // `ref.null` + leb128(-1) = 0x63 0x7f, which is not a valid valtype.
+    if !is_gc_target && (vt == value_types::VT_REF() || vt == value_types::VT_GC_REF()) {
         return "i32"
     }
     // Typed funcref stays a reference type under Memory64 (not an i64 index).
-    if vt == 8 {
+    if vt == value_types::VT_FUNCREF() {
         return "fnref"
     }
     // Memory64 (wasm32-gc default): widen former i32 Wasm values to i64.

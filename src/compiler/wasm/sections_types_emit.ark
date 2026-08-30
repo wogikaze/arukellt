@@ -12,6 +12,15 @@ fn gc_fixed_type_index(gc_fixed_type_map: Vec<i32>, slot: i32) -> i32 {
     get_unchecked(gc_fixed_type_map, slot)
 }
 
+fn emit_nullable_type_or_i32(type_sec: WasmWriter, type_idx: i32) {
+    if type_idx < 0 {
+        writer_core::emit_byte(type_sec, constants::WASM_I32())
+        return
+    }
+    writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
+    writer_core::emit_leb128_s(type_sec, type_idx)
+}
+
 fn emit_canon_type_entries(type_sec: WasmWriter, canon_types: Vec<String>, gc_fixed_type_map: Vec<i32>, gc_struct_type_map: Vec<i32>) {
     for cti2 in 0..len(canon_types) {
         let csig = get_unchecked(canon_types, cti2)
@@ -268,13 +277,11 @@ fn emit_sig_val_type(
     }
     if starts_with(clone(sig), String_from("gcref")) {
         let slot = sections_types_sig_parse::parse_gcref_offset(sig)
-        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(type_sec, gc_fixed_type_index(gc_fixed_type_map, slot))
+        emit_nullable_type_or_i32(type_sec, gc_fixed_type_index(gc_fixed_type_map, slot))
         return
     }
     if eq(clone(sig), "ref") {
-        writer_core::emit_byte(type_sec, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(type_sec, gc_fixed_type_index(gc_fixed_type_map, 0))
+        emit_nullable_type_or_i32(type_sec, gc_fixed_type_index(gc_fixed_type_map, 0))
         return
     }
     writer_core::emit_byte(type_sec, sections_type_plan::sig_to_wasm_type(sig))
