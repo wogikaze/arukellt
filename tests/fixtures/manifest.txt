@@ -36,6 +36,19 @@ check-only:wit_import/ark_manifest/main.ark
 check-only:wit_import/check/call_add.ark
 check-only:wit_import/check/record_enum_general.ark
 check-only:wit_import/check/record_field.ark
+check-only:wit_import/types/bool/main.ark
+check-only:wit_import/types/f32/main.ark
+check-only:wit_import/types/f64/main.ark
+check-only:wit_import/types/future-negative/main.ark
+check-only:wit_import/types/i64/main.ark
+check-only:wit_import/types/list-s32/main.ark
+check-only:wit_import/types/option-s32/main.ark
+check-only:wit_import/types/record-result/main.ark
+check-only:wit_import/types/result-s32-string/main.ark
+check-only:wit_import/types/stream-negative/main.ark
+check-only:wit_import/types/string/main.ark
+check-only:wit_import/types/tuple-s32-s32/main.ark
+check-only:wit_import/types/variant/main.ark
 compile-error:component/export_enum_color_bad_shape.ark
 compile-error:component/export_enum_color_bad_shape_order.ark
 compile-error:component/export_enum_color_bad_signature.ark
@@ -92,6 +105,8 @@ compile-error:selfhost/fn_multiclause_guard_unknown_name.ark
 compile-error:selfhost/fn_multiclause_mixed_arity.ark
 compile-error:selfhost/fn_multiclause_multi_param.ark
 compile-error:selfhost/fn_multiclause_where_unresolved.ark
+compile-error:wit_import/errors/duplicate_alias.ark
+compile-error:wit_import/errors/duplicate_package.ark
 component-compile:component/export_add.ark
 component-compile:component/export_bool.ark
 component-compile:component/export_bool_renamed.ark
@@ -213,6 +228,7 @@ component-world-error:component/world_command_missing_run.ark
 component-world-wit:component/world_command.ark
 component-world-wit:component/world_proxy.ark
 diag:deny_clock_compile.ark
+diag:deny_process_compile.ark
 diag:deny_random_compile.ark
 diag:diagnostics/capability_stub.ark
 diag:diagnostics/deprecated_prelude_println.ark
@@ -424,6 +440,9 @@ run:hello/hello.ark
 run:hello/multi_print.ark
 run:hello/print_int.ark
 run:hello_world.ark
+run:host/fs_env_process_surface.ark
+run:host/fs_path_traversal.ark
+run:host/fs_readonly_write.ark
 run:host/http/get_err_dns.ark
 run:host/http/request_err_refused.ark
 run:host/process/abort.ark
@@ -1856,6 +1875,7 @@ run:stdlib_vec/vec_push_preserves_order.ark
 run:stdlib_vec/vec_push_single.ark
 run:stdlib_vec/vec_push_string.ark
 run:stdlib_vec/vec_push_then_len.ark
+run:stdlib_vec/vec_push_unannotated_i32.ark
 run:stdlib_vec/vec_remove_first.ark
 run:stdlib_vec/vec_remove_last.ark
 run:stdlib_vec/vec_remove_middle.ark
@@ -2329,6 +2349,7 @@ t3-compile:stdlib_vec/vec_push_preserves_order.ark
 t3-compile:stdlib_vec/vec_push_single.ark
 t3-compile:stdlib_vec/vec_push_string.ark
 t3-compile:stdlib_vec/vec_push_then_len.ark
+t3-compile:stdlib_vec/vec_push_unannotated_i32.ark
 t3-compile:stdlib_vec/vec_remove_first.ark
 t3-compile:stdlib_vec/vec_remove_last.ark
 t3-compile:stdlib_vec/vec_remove_middle.ark
@@ -2774,6 +2795,7 @@ t3-run:stdlib_vec/vec_push_preserves_order.ark
 t3-run:stdlib_vec/vec_push_single.ark
 t3-run:stdlib_vec/vec_push_string.ark
 t3-run:stdlib_vec/vec_push_then_len.ark
+t3-run:stdlib_vec/vec_push_unannotated_i32.ark
 t3-run:stdlib_vec/vec_remove_first.ark
 t3-run:stdlib_vec/vec_remove_last.ark
 t3-run:stdlib_vec/vec_remove_middle.ark
