@@ -30,6 +30,7 @@ use wasm::intrinsic_string_transform
 use wasm::intrinsic_sort
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::runtime_abi_env_args
+use mir::opcodes as mir_opcodes
 
 fn try_emit_clone_intrinsic(
     w: WasmWriter,
@@ -125,6 +126,12 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_assert::emit_assert_eq_str(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // Vec len is rewritten to raw_array_len; string len uses emit_len.
+    // Check the vec name first so `::len` does not steal Vec::len.
+    if is_vec_len_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_len_callee(clone(callee)) {
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -188,6 +195,24 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_vec_push_callee(clone(callee)) {
         let on_stack = intrinsic_vec::emit_push(w, inst, ctx, true, next_op)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // Tiny modules DCE `__core_vec_get_*_impl`; the Call keeps the name and
+    // becomes drop+unreachable. Emit the GC get intrinsic instead.
+    if is_vec_get_unchecked_i64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_i64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_unchecked_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_numeric::emit_vec_get_unchecked_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_unchecked_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_get_unchecked(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_vec_get_callee(clone(callee)) {
+        let on_stack = intrinsic_vec::emit_vec_get(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // Associated Vec::new / Vec::with_capacity fallback when MIR body is DCE'd (#845).
@@ -622,11 +647,22 @@ fn is_clone_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("string_clone"))
 }
 
+fn is_vec_len_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("raw_array_len")) ||
+    callee_name_is(clone(callee), String_from("vec_len")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_len_impl")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_array_len")) ||
+    callee_name_is(clone(callee), String_from("Vec::len")) ||
+    ends_with(clone(callee), String_from("::raw_array_len")) ||
+    ends_with(clone(callee), String_from("::vec_len"))
+}
+
 fn is_len_callee(callee: String) -> bool {
     eq(clone(callee), String_from("len")) ||
     eq(clone(callee), String_from("len_bytes")) ||
     eq(clone(callee), String_from("byte_len")) ||
     eq(clone(callee), String_from("__intrinsic_len")) ||
+    callee_name_is(clone(callee), String_from("__core_string_len_impl")) ||
     ends_with(clone(callee), String_from("::len")) ||
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
@@ -748,6 +784,43 @@ fn is_vec_push_f64_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("vec_push_f64")) ||
     callee_name_is(clone(callee), String_from("__core_vec_push_f64_impl")) ||
     ends_with(clone(callee), String_from("::push_f64"))
+}
+
+fn is_vec_get_unchecked_i64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked_i64")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked_i64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_i64_impl")) ||
+    ends_with(clone(callee), String_from("::get_unchecked_i64"))
+}
+
+fn is_vec_get_unchecked_f64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked_f64")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_f64_impl")) ||
+    ends_with(clone(callee), String_from("::get_unchecked_f64"))
+}
+
+fn is_vec_get_unchecked_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("vec_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("raw_array_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_unchecked_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_get_unchecked")) ||
+    callee_name_is(clone(callee), String_from("raw::raw_array_get_unchecked")) ||
+    ends_with(clone(callee), String_from("::get_unchecked")) ||
+    ends_with(clone(callee), String_from("::vec_get_unchecked")) ||
+    ends_with(clone(callee), String_from("::raw_array_get_unchecked"))
+}
+
+// Do not match bare `get` — HashMap/json/env get share that name.
+fn is_vec_get_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("vec_get")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_get_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_get")) ||
+    callee_name_is(clone(callee), String_from("Vec::get")) ||
+    callee_name_is(clone(callee), String_from("Vec__get")) ||
+    ends_with(clone(callee), String_from("::vec_get"))
 }
 
 fn finish_intrinsic_fallback(
