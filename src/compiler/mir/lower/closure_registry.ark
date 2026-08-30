@@ -1,10 +1,12 @@
 use mir::lower::ctx_fn_mono
 use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
 use mir::function_return_view
 use mir::function_identity
+use mir::function_param_view
 use mir::inst_ref_func
 use mir::lower::closure_storage
 use mir::value_types
@@ -32,8 +34,15 @@ fn closure_register_synth_fn(ctx: LowerCtx, mf: MirFunction, packed: String, ext
     // Immediate closure values (`bench(..., || {})`) must carry a real
     // funcref. A placeholder i32 0 used to compile but crashed at the first
     // CALL_INDIRECT, and also dropped synthetic functions from reachability.
-    let dest = ctx_fresh_local(ctx, value_types::VT_I32())
-    ctx_emit(ctx, inst_ref_func::MirInst_ref_func(function_identity::MirFunction_name(mf), dest))
+    // Dest must be VT_FUNCREF so wasm32-gc locals match ref.func (#831).
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
+    let fnref_name = if function_param_view::MirFunction_param_count(mf) >= 2 {
+        String_from("fnref2")
+    } else {
+        String_from("fnref")
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, fnref_name)
+    ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(function_identity::MirFunction_name(mf), dest))
     dest
 }
 
