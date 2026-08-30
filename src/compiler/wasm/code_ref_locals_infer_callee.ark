@@ -37,6 +37,16 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
         }
         Option::None => {}
     }
+    // Specialized pair/From functions often keep a leftover String return
+    // name from a type parameter. Recover the tuple/enum from locals or the
+    // mono suffix before TypeTable resolves that leftover to array 11.
+    let from_callee = code_ref_locals_infer_type_id::infer_gc_type_from_callee_function(ctx, called)
+    match from_callee {
+        Option::Some(_opt_v) => {
+            return from_callee
+        }
+        Option::None => {}
+    }
     let from_table = code_ref_locals_infer_type_id::infer_gc_type_from_type_table_name(
         ctx,
         clone(ret_name)

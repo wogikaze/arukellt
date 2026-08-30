@@ -90,12 +90,14 @@ fn infer_call_result_gc_type_from_mono(ctx: SelfEmitCtx, callee: String) -> Opti
 // tuple/enum from lowering. Recover that name from callee locals or mono suffix.
 fn infer_gc_type_from_callee_function(ctx: SelfEmitCtx, called: MirFunction) -> Option<i32> {
     let ret_name = function_return_view::MirFunction_return_type_name(called)
-    let from_name = infer_named_or_table_gc_type(ctx, clone(ret_name))
-    match from_name {
-        Option::Some(_type_idx) => {
-            return from_name
+    if !is_leftover_string_return_name(clone(ret_name)) {
+        let from_name = infer_named_or_table_gc_type(ctx, clone(ret_name))
+        match from_name {
+            Option::Some(_type_idx) => {
+                return from_name
+            }
+            Option::None => {}
         }
-        Option::None => {}
     }
     let from_locals = infer_gc_type_from_callee_locals(ctx, called)
     match from_locals {
@@ -105,6 +107,10 @@ fn infer_gc_type_from_callee_function(ctx: SelfEmitCtx, called: MirFunction) -> 
         Option::None => {}
     }
     infer_gc_type_from_callee_name(ctx, function_identity::MirFunction_name(called))
+}
+
+fn is_leftover_string_return_name(type_name: String) -> bool {
+    eq(clone(type_name), "String") || eq(clone(type_name), "string")
 }
 
 fn infer_named_or_table_gc_type(ctx: SelfEmitCtx, type_name: String) -> Option<i32> {
