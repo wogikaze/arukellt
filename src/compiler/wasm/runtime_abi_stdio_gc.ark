@@ -1,11 +1,17 @@
+use mir::function_locals_view
 use mir::inst_accessors_operands
+use mir::local_access
+use wasm::code_ref_locals_block_scan
+use wasm::code_ref_locals_infer_callee
 use wasm::constants
-use wasm::ctx_record
+use wasm::ctx_gc_layout_lookup
 use wasm::ctx_gc_type
+use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::opcodes
 use wasm::string_gc_helpers
 use wasm::writer_core
+use wasm::writer_gc
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_p2
 use wasm::intrinsics::helpers_memory
@@ -83,10 +89,126 @@ fn emit_gc_string_to_heap_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitC
     let arg_local = inst_accessors_operands::MirInst_arg0(inst)
     let prev_leaves_string_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() ||
     prev_op == mir_opcodes::MIR_CONST_STRING()
+    // println(IoError) leftover dest is String scratch. Copying the open-enum
+    // bind into that slot then array.len fails validate. Extract the String
+    // payload first; From<IoError> for String is the same field.
+    if arg_local >= 0 && stdio_local_is_enum_not_string(ctx, arg_local) {
+        stdio_emit_enum_to_string_on_stack(w, ctx, arg_local, prev_leaves_string_on_stack)
+        return emit_gc_string_to_heap_from_stack(w, inst, ctx)
+    }
     if arg_local >= 0 && !prev_leaves_string_on_stack {
         return emit_gc_string_to_heap_from_local(w, arg_local, ctx)
     }
     emit_gc_string_to_heap_from_stack(w, inst, ctx)
+}
+
+fn stdio_local_is_enum_not_string(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    if local_idx < 0 || local_idx >= function_locals_view::MirFunction_local_count(f) {
+        return false
+    }
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let storage = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
+    if storage == string_type {
+        return false
+    }
+    let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    if storage == open || ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, storage) {
+        return true
+    }
+    let named_enum = code_ref_locals_block_scan::local_enum_open_storage_type(f, local_idx, ctx)
+    match named_enum {
+        Option::Some(_enum_type) => {
+            return true
+        }
+        Option::None => {}
+    }
+    let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, local_idx))
+    let inferred = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, type_name)
+    match inferred {
+        Option::Some(_enum_type) => {
+            true
+        }
+        Option::None => {
+            false
+        }
+    }
+}
+
+fn stdio_emit_enum_to_string_on_stack(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    leftover_local: i32,
+    leftover_on_stack: bool
+) {
+    let s_enum = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+    if leftover_on_stack {
+        helpers_core::emit_local_set(w, s_enum)
+    } else {
+        helpers_core::emit_local_get(w, leftover_local)
+        helpers_core::emit_local_set(w, s_enum)
+    }
+    helpers_core::emit_local_get(w, s_enum)
+    let variant_type = stdio_find_string_payload_variant(ctx, leftover_local)
+    if variant_type < 0 {
+        return
+    }
+    writer_gc::emit_gc_ref_cast(w, variant_type)
+    writer_gc::emit_gc_struct_get(w, variant_type, 1)
+    writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_string_type(ctx))
+}
+
+fn stdio_find_string_payload_variant(ctx: SelfEmitCtx, leftover_local: i32) -> i32 {
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    if leftover_local < 0 || leftover_local >= function_locals_view::MirFunction_local_count(f) {
+        return 0 - 1
+    }
+    let type_name = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, leftover_local))
+    let bare = stdio_enum_bare_name(type_name)
+    if len(bare) == 0 {
+        return 0 - 1
+    }
+    let prefix = concat(clone(bare), "::")
+    let names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let sigs = ctx_record::SelfEmitCtx_gc_enum_variant_sigs(ctx)
+    let type_map = ctx_record::SelfEmitCtx_gc_enum_variant_type_map(ctx)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    let count = len(names)
+    let mut fallback = 0 - 1
+    let mut i = 0
+    while i < count {
+        if starts_with(clone(get_unchecked(names, i)), clone(prefix)) {
+            if i < len(type_map) {
+                let variant_type = get_unchecked(type_map, i)
+                if variant_type != open_type {
+                    if i < len(sigs) && ends_with(clone(get_unchecked(sigs, i)), String_from("_f1_ref0")) {
+                        return variant_type
+                    }
+                    if fallback < 0 {
+                        fallback = variant_type
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    fallback
+}
+
+fn stdio_enum_bare_name(type_name: String) -> String {
+    let mut bare = type_name
+    if starts_with(clone(bare), "enum:") {
+        bare = substring(clone(bare), 5, len(bare))
+    }
+    let n = len(bare)
+    let mut i = n - 2
+    while i >= 0 {
+        if char_at(bare, i) == 58 && char_at(bare, i + 1) == 58 {
+            return substring(clone(bare), i + 2, n)
+        }
+        i = i - 1
+    }
+    bare
 }
 
 fn emit_gc_store_len_prefix(w: WasmWriter, s_buf: i32, s_len: i32) {
