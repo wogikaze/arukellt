@@ -100,3 +100,16 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
     }
     String_new()
 }
+
+// Shape one type-argument for MIR encodings (`result:…`, `option:…`, `vec:…`).
+// Bare `type_ann_name` on `Vec<String>` is just `Vec`, which match then
+// collapses to leftover `vec:i32` (`result:Vec:String` → Ok=Vec).
+fn type_ann_mir_arg_name(ann: AstNode) -> String {
+    if type_ann_node::type_ann_is_generic(ann) {
+        let shaped = type_ann_shape_local_type_name(ann, 0)
+        if len(shaped) > 0 {
+            return shaped
+        }
+    }
+    type_ann_node::type_ann_name(ann)
+}

@@ -3,6 +3,7 @@ use corehir::decl_member_collections
 use corehir::decl_type_annotations
 use corehir::frontend_ast_identity
 use corehir::frontend_type_kind
+use corehir::type_ann_local_name
 use corehir::type_ann_node
 
 fn decl_layout_name(decl: AstNode) -> String {
@@ -57,22 +58,28 @@ fn decl_layout_field_type_name(field: AstNode) -> String {
         if type_ann_node::type_ann_is_name(fty, "Vec") {
             if type_ann_node::type_ann_child_count(fty) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(fty, 1)
-                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
+                return concat("vec:", type_ann_local_name::type_ann_mir_arg_name(elem_ty))
             }
         }
         // Struct fields like JsonParseStep.value: Result<JsonValue, E>
         // must keep Ok/Err params for match payload typing (#726 json).
+        // Nested Ok/Err args must keep their element names so
+        // Result<Vec<String>, String> becomes result:vec:String:String
+        // rather than result:Vec:String (Ok collapses to vec:i32).
         if type_ann_node::type_ann_is_name(fty, "Option") {
             if type_ann_node::type_ann_child_count(fty) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(fty, 1)
-                return concat("option:", type_ann_node::type_ann_name(elem_ty))
+                return concat("option:", type_ann_local_name::type_ann_mir_arg_name(elem_ty))
             }
         }
         if type_ann_node::type_ann_is_name(fty, "Result") {
             if type_ann_node::type_ann_child_count(fty) >= 3 {
                 let ok_ty = type_ann_node::type_ann_child_at(fty, 1)
                 let err_ty = type_ann_node::type_ann_child_at(fty, 2)
-                return concat(concat("result:", type_ann_node::type_ann_name(ok_ty)), concat(":", type_ann_node::type_ann_name(err_ty)))
+                return concat(
+                    concat("result:", type_ann_local_name::type_ann_mir_arg_name(ok_ty)),
+                    concat(":", type_ann_local_name::type_ann_mir_arg_name(err_ty))
+                )
             }
         }
         let gname = type_ann_node::type_ann_name(fty)
@@ -102,20 +109,23 @@ fn decl_layout_payload_field_type_name(pfield: AstNode) -> String {
         if type_ann_node::type_ann_is_name(pfield, "Vec") {
             if type_ann_node::type_ann_child_count(pfield) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(pfield, 1)
-                return concat("vec:", type_ann_node::type_ann_name(elem_ty))
+                return concat("vec:", type_ann_local_name::type_ann_mir_arg_name(elem_ty))
             }
         }
         if type_ann_node::type_ann_is_name(pfield, "Option") {
             if type_ann_node::type_ann_child_count(pfield) >= 2 {
                 let elem_ty = type_ann_node::type_ann_child_at(pfield, 1)
-                return concat("option:", type_ann_node::type_ann_name(elem_ty))
+                return concat("option:", type_ann_local_name::type_ann_mir_arg_name(elem_ty))
             }
         }
         if type_ann_node::type_ann_is_name(pfield, "Result") {
             if type_ann_node::type_ann_child_count(pfield) >= 3 {
                 let ok_ty = type_ann_node::type_ann_child_at(pfield, 1)
                 let err_ty = type_ann_node::type_ann_child_at(pfield, 2)
-                return concat(concat("result:", type_ann_node::type_ann_name(ok_ty)), concat(":", type_ann_node::type_ann_name(err_ty)))
+                return concat(
+                    concat("result:", type_ann_local_name::type_ann_mir_arg_name(ok_ty)),
+                    concat(":", type_ann_local_name::type_ann_mir_arg_name(err_ty))
+                )
             }
         }
         // Fallback: preserve GenericName<...> text via local-name helper shape.
