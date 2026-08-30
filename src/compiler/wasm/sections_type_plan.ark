@@ -94,6 +94,23 @@ fn TypeSectionPlan_set_fn_result_gc_map(plan: TypeSectionPlan, fn_result_gc_map:
     plan.fn_result_gc_map = fn_result_gc_map
 }
 
+fn TypeSectionPlan_with_fn_result_gc_map(plan: TypeSectionPlan, fn_result_gc_map: Vec<i32>) -> TypeSectionPlan {
+    TypeSectionPlan {
+        host_type_map: plan.host_type_map,
+        fn_type_map: plan.fn_type_map,
+        wrapper_type_idx: plan.wrapper_type_idx,
+        wit_type_map: plan.wit_type_map,
+        wit_import_count: plan.wit_import_count,
+        gc_fixed_type_map: plan.gc_fixed_type_map,
+        gc_type_base: plan.gc_type_base,
+        gc_enum_variant_base: plan.gc_enum_variant_base,
+        gc_enum_variant_type_map: plan.gc_enum_variant_type_map,
+        gc_struct_base: plan.gc_struct_base,
+        gc_struct_type_map: plan.gc_struct_type_map,
+        fn_result_gc_map: fn_result_gc_map
+    }
+}
+
 fn build_type_section_plan(
     type_map: Vec<i32>,
     num_host_types: i32,

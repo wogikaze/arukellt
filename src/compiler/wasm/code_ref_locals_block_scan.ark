@@ -522,6 +522,15 @@ fn local_set_non_string_storage_type(
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let storage_type =
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
+    let plan_storage = call_dest_plan_storage_type(f, local_idx, ctx)
+    match plan_storage {
+        Option::Some(plan_type) => {
+            if leftover_string_yields_to_infer(ctx, storage_type, clone(type_name), plan_type) {
+                return plan_storage
+            }
+        }
+        Option::None => {}
+    }
     let direct_storage = local_direct_producer_storage_type(f, local_idx, ctx)
     match direct_storage {
         Option::Some(direct_type) => {
@@ -746,19 +755,54 @@ fn stack_call_or_direct_producer(
     inst: MirInst,
     local_idx: i32
 ) -> i32 {
-    if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-        return inst_index
-    }
     if inst_index > 0 &&
     inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
     inst_accessors_operands::MirInst_arg0(inst) == local_idx {
         let prev = block_inst_access::MirBlock_inst_at(block, inst_index - 1)
-        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() &&
-        inst_accessors_operands::MirInst_dest(prev) < 0 {
+        if inst_accessors_shape::MirInst_op(prev) == opcodes::MIR_CALL() {
             return inst_index - 1
         }
     }
+    if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+        return inst_index
+    }
     0 - 1
+}
+
+fn call_dest_plan_storage_type(
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    let block_count = len(f.blocks)
+    let mut block_index = 0
+    while block_index < block_count {
+        let block = get_unchecked(f.blocks, block_index)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut inst_index = 0
+        while inst_index < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, inst_index)
+            let producer = stack_call_or_direct_producer(block, inst_index, inst, local_idx)
+            if producer >= 0 {
+                let producer_inst = block_inst_access::MirBlock_inst_at(block, producer)
+                if inst_accessors_shape::MirInst_op(producer_inst) == opcodes::MIR_CALL() {
+                    let from_plan = code_ref_locals_infer_callee::infer_call_result_gc_type_from_plan(
+                        ctx,
+                        inst_accessors_literals::MirInst_str_val(producer_inst)
+                    )
+                    match from_plan {
+                        Option::Some(_type_idx) => {
+                            return from_plan
+                        }
+                        Option::None => {}
+                    }
+                }
+            }
+            inst_index = inst_index + 1
+        }
+        block_index = block_index + 1
+    }
+    Option::None
 }
 
 fn local_set_source_local(block: MirBlock, inst_index: i32, inst: MirInst) -> i32 {

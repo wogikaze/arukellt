@@ -53,14 +53,11 @@ fn emit_type_section(
     )
     let gc_fixed_type_map = sections_type_plan::TypeSectionPlan_gc_fixed_type_map(plan)
     let gc_struct_type_map = sections_type_plan::TypeSectionPlan_gc_struct_type_map(plan)
-    sections_type_plan::TypeSectionPlan_set_fn_result_gc_map(
+    let planned = sections_type_plan::TypeSectionPlan_with_fn_result_gc_map(
         plan,
-        build_fn_result_gc_map(
-            type_sigs,
-            num_host_types,
-            wit_import_count,
-            gc_fixed_count + gc_struct_count + enum_variant_count,
-            fn_count,
+        build_fn_result_gc_map_from_canon(
+            sections_type_plan::TypeSectionPlan_fn_type_map(plan),
+            canon_types,
             gc_fixed_type_map,
             gc_struct_type_map
         )
@@ -70,7 +67,7 @@ fn emit_type_section(
             gc_layout,
             mir,
             gc_fixed_type_map,
-            sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(plan),
+            sections_type_plan::TypeSectionPlan_gc_enum_variant_type_map(planned),
             gc_struct_type_map
         )
     }
@@ -78,7 +75,7 @@ fn emit_type_section(
     writer_core::emit_leb128_u(type_sec, len(canon_types))
     sections_types_emit::emit_canon_type_entries(type_sec, canon_types, gc_fixed_type_map, gc_struct_type_map)
     writer_sections::emit_section(out, opcodes::SEC_TYPE(), type_sec)
-    plan
+    planned
 }
 
 fn TypeCanonPlan_new(canon_types: Vec<String>, type_map: Vec<i32>) -> TypeCanonPlan {
@@ -147,27 +144,25 @@ fn canonicalize_type_sigs(type_sigs: Vec<String>) -> TypeCanonPlan {
 // Per-function wasm result type index already used in the type section.
 // Scalar / void / funcref results are -1. Dest infer must read this map
 // instead of re-guessing from leftover MIR return names.
-fn build_fn_result_gc_map(
-    type_sigs: Vec<String>,
-    num_host_types: i32,
-    wit_import_count: i32,
-    gc_type_count: i32,
-    fn_count: i32,
+fn build_fn_result_gc_map_from_canon(
+    fn_type_map: Vec<i32>,
+    canon_types: Vec<String>,
     gc_fixed_type_map: Vec<i32>,
     gc_struct_type_map: Vec<i32>
 ) -> Vec<i32> {
     let mut result_map = Vec::new<i32>()
-    let base_idx = num_host_types + wit_import_count + gc_type_count
     let mut fi = 0
-    while fi < fn_count {
-        push(
-            result_map,
-            result_sig_gc_type_idx(
-                get_unchecked(type_sigs, base_idx + fi),
+    while fi < len(fn_type_map) {
+        let type_idx = get_unchecked(fn_type_map, fi)
+        let mut result_idx = 0 - 1
+        if type_idx >= 0 && type_idx < len(canon_types) {
+            result_idx = result_sig_gc_type_idx(
+                get_unchecked(canon_types, type_idx),
                 gc_fixed_type_map,
                 gc_struct_type_map
             )
-        )
+        }
+        push(result_map, result_idx)
         fi = fi + 1
     }
     result_map
