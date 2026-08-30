@@ -214,8 +214,12 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, base_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
-        writer_core::emit_leb128_u(w, base_local)
+        // Discriminant sets cast to the open enum type. Teeing that ref
+        // back into a final variant local (Circle/Rect) is invalid Wasm.
+        if gc_struct_set_cast_fits_local(ctx, base_local, gc_type_idx) {
+            writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+            writer_core::emit_leb128_u(w, base_local)
+        }
         let value_local = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
         writer_core::emit_leb128_u(w, value_local)
@@ -272,6 +276,21 @@ fn compute_field_idx_get(inst: MirInst, byte_offset: i32) -> i32 {
         return arg1 / 100000
     }
     byte_offset / 4
+}
+
+fn gc_struct_set_cast_fits_local(ctx: SelfEmitCtx, base_local: i32, gc_type_idx: i32) -> bool {
+    if base_local < 0 || gc_type_idx < 0 {
+        return false
+    }
+    let local_ty = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base_local)
+    if local_ty == gc_type_idx {
+        return true
+    }
+    let f = ctx_record::SelfEmitCtx_function_at(ctx, ctx_record::SelfEmitCtx_current_func_idx(ctx))
+    match code_ref_locals_block_scan::local_set_non_string_storage_type(f, base_local, ctx) {
+        Option::Some(copied_type) => copied_type == gc_type_idx
+        Option::None => false
+    }
 }
 
 fn enum_discriminant_open_type(ctx: SelfEmitCtx, type_idx: i32, field_idx: i32) -> i32 {
