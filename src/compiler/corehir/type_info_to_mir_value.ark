@@ -171,6 +171,14 @@ fn concrete_type_outranks_mvt_alias(local_type: String, alias: String) -> bool {
     if len(local_type) == 0 {
         return false
     }
+    // Leftover vec:i32 aliases must not overwrite a concrete element
+    // (vec:TomlField, vec:String). Otherwise get_unchecked dests stay i32
+    // while array.get yields a structref.
+    if eq(clone(alias), String_from("vec:i32")) &&
+    starts_with(clone(local_type), String_from("vec:")) &&
+    !eq(clone(local_type), String_from("vec:i32")) {
+        return true
+    }
     if !mvt_gc_layout_alias_is_bare_container(clone(alias)) {
         return false
     }

@@ -226,6 +226,13 @@ fn vec_access_storage_from_call(
         }
         Option::None => {}
     }
+    let from_elem_name = vec_element_storage_from_receiver_elem_name(f, receiver, ctx)
+    match from_elem_name {
+        Option::Some(_storage_type) => {
+            return from_elem_name
+        }
+        Option::None => {}
+    }
     vec_element_storage_from_resolved_array(
         ctx,
         intrinsic_vec_type::resolve_array_type_for_call(
@@ -234,6 +241,40 @@ fn vec_access_storage_from_call(
             call_inst
         )
     )
+}
+
+fn vec_element_storage_from_receiver_elem_name(
+    f: MirFunction,
+    receiver: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    let elem = vec_receiver_elem_name(f, receiver, ctx)
+    if len(elem) == 0 {
+        return Option::None
+    }
+    if eq(clone(elem), "String") || eq(clone(elem), "string") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_string_type(ctx))
+    }
+    if eq(clone(elem), "i32") ||
+    eq(clone(elem), "I32") ||
+    eq(clone(elem), "bool") ||
+    eq(clone(elem), "char") ||
+    eq(clone(elem), "i64") ||
+    eq(clone(elem), "I64") ||
+    eq(clone(elem), "f64") ||
+    eq(clone(elem), "F64") {
+        return Option::None
+    }
+    let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(ctx, clone(elem))
+    match named {
+        Option::Some(named_type) => {
+            if named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                return named
+            }
+        }
+        Option::None => {}
+    }
+    Option::None
 }
 
 fn vec_element_storage_from_local_binding(

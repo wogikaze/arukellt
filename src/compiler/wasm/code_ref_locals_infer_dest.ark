@@ -530,17 +530,17 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 dest_tn = local_access::MirLocal_type_name(loc)
                 dest_vt = local_access::MirLocal_val_type(loc)
             }
-            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
-                return Option::None
-            }
-            // Prefer the vec receiver's element type over a poisoned String dest
-            // (get_unchecked__String mono / sticky type_name) (#730).
+            // Prefer the vec receiver's element type over a leftover dest
+            // type_name (unmarked i32 / get_unchecked__String) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
             match from_vec {
                 Option::Some(_opt_v) => {
                     return from_vec
                 }
                 Option::None => {}
+            }
+            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
+                return Option::None
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
             match from_use {
