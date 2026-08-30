@@ -61,8 +61,8 @@
 | [ADR-036-trait-stdlib-redesign.md](ADR-036-trait-stdlib-redesign.md) | ADR-036: Trait-based Stdlib Redesign Strategy | 提案日: 2026-06-26 |
 | [ADR-037-std-simd.md](ADR-037-std-simd.md) | ADR-037: std::simd — Portable SIMD 再設計と既存 API からの移行 | 提案日: 2026-06-26 |
 | [ADR-038-operator-overload-traits.md](ADR-038-operator-overload-traits.md) | ADR-038: 演算子オーバーロードを magic method から trait へ移行する | 提案日: 2026-06-26 |
-| [ADR-051-verifiable-compiler-architecture.md](ADR-051-verifiable-compiler-architecture.md) | ADR-051: 検証可能なコンパイラ・アーキテクチャ | 提案日: 2026-07-30 |
 | [ADR-052-proof-driven-development.md](ADR-052-proof-driven-development.md) | ADR-052: Proof-Driven Development を標準開発モデルにする | 提案日: 2026-07-30 |
+| [ADR-053-verifiable-compiler-architecture.md](ADR-053-verifiable-compiler-architecture.md) | ADR-053: 検証可能なコンパイラ・アーキテクチャ | 提案日: 2026-07-30 |
 
 ## 後継済み
 

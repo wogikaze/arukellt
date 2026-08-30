@@ -1,6 +1,6 @@
 # Verifiable Compiler Migration Plan
 
-関連 ADR: [ADR-051](../adr/ADR-051-verifiable-compiler-architecture.md)、[ADR-052](../adr/ADR-052-proof-driven-development.md)
+関連 ADR: [ADR-053](../adr/ADR-053-verifiable-compiler-architecture.md)、[ADR-052](../adr/ADR-052-proof-driven-development.md)
 
 関連 RFC: [RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
 
@@ -28,7 +28,7 @@
 
 成果物:
 
-- ADR-051/ADR-052採択
+- ADR-053/ADR-052採択
 - RFC-009/RFC-010レビュー
 - 全pass inventory
 - 現在のfallback、名前解析、型再推論、巨大table copyの一覧

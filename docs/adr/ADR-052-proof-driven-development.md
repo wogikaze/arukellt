@@ -4,7 +4,7 @@
 
 提案日: 2026-07-30
 
-関連: [ADR-051](ADR-051-verifiable-compiler-architecture.md)、[RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
+関連: [ADR-053](ADR-053-verifiable-compiler-architecture.md)、[RFC-009](../rfcs/009-verifiable-compiler-architecture.md)、[RFC-010](../rfcs/010-proof-driven-development.md)
 
 ---
 

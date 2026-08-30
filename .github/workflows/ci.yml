@@ -151,6 +151,7 @@ jobs:
           SHARD_RESULT: ${{ needs.quality-shard.result }}
         run: |
           set -euo pipefail
+          # Shards implement: python3 scripts/manager.py fmt --check
           case "$SHARD_RESULT" in
             success|skipped) exit 0 ;;
             *) echo "formatting shard result: $SHARD_RESULT" >&2; exit 1 ;;
@@ -168,6 +169,7 @@ jobs:
           SHARD_RESULT: ${{ needs.quality-shard.result }}
         run: |
           set -euo pipefail
+          # Shards implement: python3 scripts/manager.py lint
           case "$SHARD_RESULT" in
             success|skipped) exit 0 ;;
             *) echo "lint shard result: $SHARD_RESULT" >&2; exit 1 ;;
