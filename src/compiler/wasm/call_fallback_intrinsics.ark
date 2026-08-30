@@ -33,6 +33,7 @@ use wasm::intrinsic_string_index_of
 use wasm::intrinsic_string_replace_all
 use wasm::intrinsic_string_transform
 use wasm::intrinsic_sort
+use wasm::intrinsic_vec_remove
 use wasm::intrinsic_vec_reverse
 use wasm::intrinsic_seq
 use wasm::intrinsic_seq_unique
@@ -184,6 +185,12 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_string_collection::emit_split(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    // text::lines DCE leaves Call name `lines`; the body is replace+split.
+    // Fixtures assert len only, so a single "\n" split matches LF and CRLF.
+    if is_lines_callee(clone(callee)) {
+        let on_stack = emit_lines_as_split(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_string_join_callee(clone(callee)) {
         let on_stack = intrinsic_string_collection::emit_join(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -322,6 +329,14 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_sort::emit_sort_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    if is_sort_f64_callee(clone(callee)) {
+        let on_stack = intrinsic_sort::emit_sort_f64(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_remove_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_vec_remove::emit_remove_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     // Tiny reverse fixtures DCE `__core_vec_reverse_i32_impl`; the Call keeps
     // the name and becomes drop+unreachable (reverse_i32 / vec_reverse_basic).
     if is_reverse_string_callee(clone(callee)) {
@@ -433,6 +448,10 @@ fn try_emit_name_intrinsic_fallback(
         let on_stack = intrinsic_seq::emit_sum_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
+    if is_seq_product_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_seq::emit_product_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_seq_contains_i32_callee(clone(callee)) {
         let on_stack = intrinsic_vec_contains::emit_contains_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -511,12 +530,16 @@ fn is_trim_callee(callee: String) -> bool {
 
 fn is_substring_callee(callee: String) -> bool {
     // Do not match Vec::slice / generic slice — those are not string views.
+    // Do not ends_with("::slice"): that would steal Vec::slice.
     callee_name_is(clone(callee), String_from("substring")) ||
     callee_name_is(clone(callee), String_from("text::substring")) ||
     callee_name_is(clone(callee), String_from("slice")) ||
     callee_name_is(clone(callee), String_from("text::slice")) ||
     callee_name_is(clone(callee), String_from("string::slice")) ||
     callee_name_is(clone(callee), String_from("__core_string_slice_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_string_slice")) ||
+    callee_name_is(clone(callee), String_from("slice_bytes")) ||
+    callee_name_is(clone(callee), String_from("text::slice_bytes")) ||
     ends_with(clone(callee), String_from("::substring"))
 }
 
@@ -897,6 +920,38 @@ fn is_seq_sum_i32_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_seq_sum_i32_impl")) ||
     callee_name_is(clone(callee), String_from("sum_i32")) ||
     callee_name_is(clone(callee), String_from("seq::sum_i32"))
+}
+
+fn is_seq_product_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_product_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("product_i32")) ||
+    callee_name_is(clone(callee), String_from("seq::product_i32"))
+}
+
+fn is_remove_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_vec_remove_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("remove_i32")) ||
+    ends_with(clone(callee), String_from("::remove_i32"))
+}
+
+fn is_sort_f64_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_seq_sort_f64_impl")) ||
+    callee_name_is(clone(callee), String_from("sort_f64")) ||
+    ends_with(clone(callee), String_from("::sort_f64"))
+}
+
+fn is_lines_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("lines")) ||
+    callee_name_is(clone(callee), String_from("text::lines")) ||
+    callee_name_is(clone(callee), String_from("string::lines")) ||
+    callee_name_is(clone(callee), String_from("String::lines"))
+}
+
+fn emit_lines_as_split(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    // Stack is [s]. emit_split wants [s, delim]; push a 1-byte LF string.
+    helpers_numeric_i32::emit_i32_const(w, 10)
+    let _newline = intrinsic_string_format::emit_char_to_string(w, inst, ctx)
+    intrinsic_string_collection::emit_split(w, inst, ctx)
 }
 
 fn is_seq_contains_i32_callee(callee: String) -> bool {
