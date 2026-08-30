@@ -16,6 +16,7 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
 use wasm::intrinsics::helpers_numeric_i32_convert
 use mir::inst_accessors_literals
+use mir::inst_accessors_operands
 use mir::opcodes as mir_opcodes
 
 fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bool, next_op: i32) -> bool {
@@ -90,7 +91,20 @@ fn emit_push_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_push: bo
 
     emit_gc_growth_check(w, arr_tmp, arr_old, s_len, s_cap, array_type, vec_type, s_vec)
 
-    emit_gc_push_store_finish(w, ctx, arr_tmp, s_len, s_val, array_type, s_vec, vec_type, is_void_push, next_op, element_is_gc_ref)
+    emit_gc_push_store_finish(
+        w,
+        ctx,
+        arr_tmp,
+        s_len,
+        s_val,
+        array_type,
+        s_vec,
+        vec_type,
+        is_void_push,
+        next_op,
+        element_is_gc_ref,
+        inst_accessors_operands::MirInst_dest(inst)
+    )
     return !is_void_push
 }
 
@@ -214,7 +228,8 @@ fn emit_gc_push_store_finish(
     vec_type: i32,
     is_void_push: bool,
     next_op: i32,
-    element_is_gc_ref: bool
+    element_is_gc_ref: bool,
+    dest: i32
 ) {
     helpers_core::emit_local_get(w, arr_tmp)
     helpers_core::emit_local_get(w, s_len)
@@ -244,6 +259,15 @@ fn emit_gc_push_store_finish(
 
     if !is_void_push {
         helpers_core::emit_local_get(w, vec_local)
+        return
+    }
+    // `items: push(v, x)` is a void CALL whose dest is the STRUCT_SET value.
+    // Dropping the vec leaves that dest null; leaving it on the stack as
+    // structref fails validate. Write the mutated vec into dest instead.
+    if next_op == mir_opcodes::MIR_STRUCT_SET() && dest >= 0 {
+        helpers_core::emit_local_get(w, vec_local)
+        writer_gc::emit_gc_ref_cast(w, vec_type)
+        helpers_core::emit_local_set(w, dest)
         return
     }
     if next_op == mir_opcodes::MIR_DROP() {
