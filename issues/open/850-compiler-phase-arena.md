@@ -82,13 +82,18 @@ vec) plus column walks for async scan, in-place resolve, propagate producers,
 emit neighbors, reachability, and GC local-cache seed. Overlay still **killed
 at 315s** (RSS **1.11GB**). Handle `inst_at` is still an allocation per walk.
 
+Tick 68 tried a third SoA shape: intern fat→columns **without bind-on-push**,
+keep original fat accessors, **one scratch `MirInst` per block** filled from
+columns for `emit_mir_inst_ctx`, plus column walks for resolve / propagate /
+scan / neighbors. Hello **2312B sha256 matched tick49**. Overlay still
+**timeout 320s** (no output; `/usr/bin/time` footer lost). Scratch-fill is
+still a fat record write per instruction. Do **not** retry ticks 64–68.
+
 Next slice must make **`emit_mir_inst_ctx` take `(block, ii)`** (or raw
-column scalars) so wasm emit never touches a `MirInst` record. Tick 67
-reused one handle per block (`mir_inst_rebind`); overlay still **timeout
-320s**, RSS **1.11GB**. Rebind is not enough: accessors still chase
-`host`/`hid` on every field, and `code_ref_locals_scan` / intrinsic vec
-walks still allocate views. Do **not** retry ticks 64–67. Emit probes
-with the existing gc host (wasm32 AOT OOM/OOB on this size).
+column scalars) so wasm emit never touches a `MirInst` record, **and**
+convert leftover `inst_at` walks (`wasm/intrinsic_vec_*`, `call_resolve`,
+overlay `mir_module_functions` host-needs scan). Intern still `clone`s
+every `str_val`. Emit probes with the existing gc host.
 
 ## Receipts
 
@@ -99,6 +104,7 @@ with the existing gc host (wasm32 AOT OOM/OOB on this size).
 | tick 65 SoA + in-place resolve | timeout 320s | — | 1.06GB | hello 2164; emit/propagate still reconstruct; reverted |
 | tick 66 SoA + handle `inst_at` + column walks | killed 315s | — | 1.11GB | tick49 host emitted 6.92MB gc (259s); hello sha256 matched tick49 (2312B fixture); overlay no output; reverted |
 | tick 67 SoA + reuse one handle / block | timeout 320s | — | 1.11GB | hello 2312 matched tick49; emit 6.92MB; overlay no output; reverted |
+| tick 68 SoA + intern-no-bind + scratch fill | timeout 320s | — | n/a | tick49 host emitted 6.92MB gc (305.71s); hello sha256 matched tick49 (2312B); overlay no output; reverted |
 
 ## Non-goals
 
