@@ -104,7 +104,7 @@ than 242s/255s; RSS wash. Do **not** retry empty-default `result_types`.
 
 Next slice must emit CALL / arith / struct from columns with **no fill**
 (no hybrid fat record on the emit hot path). Do not keep a live fat
-`MirInst` beside SoA columns. Do not retry ticks 64–73 as they were.
+`MirInst` beside SoA columns. Do not retry ticks 64–74 as they were.
 
 Tick 71 skipped the enrich rewrite of constructor `result_types` on
 non-CALL (avoids a second Vec+MVT per LOCAL_GET/CONST). Overlay
@@ -121,6 +121,14 @@ copying the record. Overlay **264.87s**, `s2=s3`, hello 2312B matched,
 RSS **1.71GB**. Worse wall than 255s loaded. Do **not** retry in-place
 func_id attach. Emit probes with the existing gc host.
 
+Tick 74 used the cached `LowerCtx.is_gc_target` bool in
+`ctx_gc_enum::ctx_is_gc_target` and `ctx_edge_record_inst` instead of
+`clone(lower_target)` + `emit_target::is_gc_target` / string compare.
+Overlay **266.22s**, `s2=s3`, hello 2312B matched, RSS **1.76GB**.
+Worse wall than 255s loaded. Do **not** retry cached-bool gc-target
+reads. Did **not** skip name intern when `fid >= 0` (fid-only edges
+are closed).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -136,6 +144,7 @@ func_id attach. Emit probes with the existing gc host.
 | tick 71 keep constructor result_types; skip non-CALL enrich rewrite | **259.53s** | yes | **1.71GB** | emit 6.90MB (261.02s); hello sha256 `1dbf14ca…`; s2=s3 `104d5dac…`; wash vs 255s; reverted |
 | tick 72 skip all ctx_emit enrich | **264.35s** | **no** | **1.71GB** | emit 6.90MB (260.00s); hello sha256 `1dbf14ca…`; s2 `36b41db9…` ≠ s3 `141a7833…`; CALL enrich required; reverted |
 | tick 73 in-place mir_inst_with_func_id_raw | **264.87s** | yes | **1.71GB** | emit 6.90MB (261.77s); hello sha256 `1dbf14ca…`; s2=s3 `68c5ac45…`; worse wall; reverted |
+| tick 74 cached `is_gc_target` bool | **266.22s** | yes | **1.76GB** | emit 6.90MB (262.90s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `62d470c0…`; worse wall; reverted |
 
 ## Non-goals
 
