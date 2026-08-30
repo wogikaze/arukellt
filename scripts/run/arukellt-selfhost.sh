@@ -80,7 +80,17 @@ plug_runtime_adapter_in_place() {
   fi
   tmp="${component}.runtime-link.tmp.wasm"
   rm -f "$tmp"
-  wac plug --plug "$adapter" "$component" -o "$tmp"
+  if ! wac plug --plug "$adapter" "$component" -o "$tmp"; then
+    rm -f "$tmp"
+    # WIT-import sockets also emit runtime-* imports, but the adapter cannot
+    # satisfy user packages such as test:host. Keep the unplugged socket so
+    # compose can plug the real provider.
+    if grep -aqF 'test:' "$component" 2>/dev/null; then
+      echo "arukellt-selfhost: note — runtime adapter plug skipped (user WIT imports remain)" >&2
+      return 0
+    fi
+    return 1
+  fi
   mv "$tmp" "$component"
 }
 
