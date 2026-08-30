@@ -494,6 +494,7 @@ fn is_replace_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("replace")) ||
     callee_name_is(clone(callee), String_from("text::replace")) ||
     callee_name_is(clone(callee), String_from("__core_string_replace_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_replace")) ||
     ends_with(clone(callee), String_from("::replace"))
 }
 
