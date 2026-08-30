@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 6 950 518 bytes (≈ 6.63 MiB) |
-| sha256 | `4f4b89920d27f8e5c801e0bf21f9dced9d311e9258ddc0a98c92fa9d56fc9c99` |
-| Built from commit | `53ce8aac` wasm32-gc TypeSectionPlan + gc_hint overlay (s3==s4) |
+| Size | 7 016 885 bytes (≈ 6.69 MiB) |
+| sha256 | `ec200344fa39dfc78480abda54f026544722d89a169a8c43a5f28a3ca8586aca` |
+| Built from commit | `9f91bac4` wasm32-gc dest-typing + clone(T) stack-arg (s3==s4) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Intermediate s3==s4 before refresh. Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -66,13 +66,23 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
-### wasm32-gc pinned (`53ce8aac`)
+### wasm32-gc pinned (`9f91bac4`)
 
 Pinned bootstrap is native `wasm32-gc` / `wasi-p2` with guest memory32
 (`(memory 8192)`). `BOOTSTRAP_EMIT_TARGET` / `BOOTSTRAP_EMIT_WASI_VERSION` in
 `scripts/selfhost/checks.py` match. `_ensure_bootstrap_compiler_wasm` copies
 the pin without `--to-memory64`. Execution uses `scripts/run/arukellt-run-hosted.sh`
 (host-linker) for `wasi:cli/` and `arukellt:runtime/host@0.1.0` filesystem imports.
+
+Intentional drift from the previous TypeSectionPlan pin (`53ce8aac` / `4f4b8992`):
+
+- TypeSectionPlan `fn_result_gc_map` owns CALL dest types (tuple / enum / return)
+- leftover String dests yield to copied named-struct sources
+- `clone(T)->T` dests use the LOCAL_GET source, not the shared String plan result
+- `Result<Vec<String>, E>` encodes as `result:vec:String:E`
+- `get_unchecked(Vec<Struct>)` dests take the receiver element type
+- Isolated T3: 459 pass / 0 validate-fail / 0 compile-fail / 23 skip
+- Intermediate s3==s4 before refresh (`ec200344…`)
 
 Intentional drift from the previous #834 pin (`4d2da710`):
 
