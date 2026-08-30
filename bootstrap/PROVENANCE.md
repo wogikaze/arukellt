@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 009 586 bytes (≈ 6.69 MiB) |
-| sha256 | `5abf95738287333268218d722f31e220cd9776eef98ff6a9b2808849ccb81b23` |
-| Built from commit | `d4ceef89` keep callee-string and line-length ratchets (s2==s3) |
+| Size | 7 123 259 bytes (≈ 6.79 MiB) |
+| sha256 | `fdf2101e220321527a0439a9d4f063bfafa3737d579a387aa3f3a041b5f4bed1` |
+| Built from commit | `87e5d135` variant key-match returns storage index (s3==s4) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,25 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`87e5d135`)
+
+Pinned bootstrap is the s3==s4 fixpoint of `87e5d135` (not pin→s2 `082f4148`).
+Guest remains `wasm32-gc` / `wasi-p2` memory32. Official `fixpoint --build`
+from the previous pin produced `sha256(s2)=082f4148…` ≠ `sha256(s3)=fdf2101e…`;
+one more round compiled `s3 → s4` with `s3==s4`.
+
+Intentional drift from the previous pin (`5abf9573` / `d4ceef89`):
+
+- `ctx_variant_name_index` key-match returns a storage index so
+  `json::JsonParseError::TrailingCharacters` / `UnexpectedCharacter` compare
+  tags 2/3 (not builtin Option slots 0/1)
+- Name-fallback / core_op for `text::lines`, `slice_bytes`, `product`,
+  `remove`, `sort_f64`, trim, reverse, pad, seq min/max/count/search/unique
+- `format_bool` always leaves a String on the stack
+- JSON incomplete `true`/`false`/`null` → `InvalidLiteral`; RFC 8259 exponents
+- Empty `read_stdin` yields `""`; Result `result:T:E` keeps path-colon E
+- Isolated official-355 compiler leftovers MATCH; host/sandbox EXTERNAL remain
 
 ### wasm32-gc pinned (`d4ceef89`)
 
