@@ -261,6 +261,31 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
         ))
 }
 
+// Type a RETURN operand from TypeSectionPlan when no other storage won.
+// Both-branch-return if/else still emits a fallthrough `local.get; return`.
+fn emit_gc_local_from_fn_result_plan(
+    body: WasmWriter,
+    f: MirFunction,
+    local_idx: i32,
+    ctx: SelfEmitCtx
+) -> bool {
+    if !code_ref_locals::local_feeds_return(f, local_idx) {
+        return false
+    }
+    let fn_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
+    let result_map = ctx_record::SelfEmitCtx_fn_result_gc_map(ctx)
+    if fn_idx < 0 || fn_idx >= len(result_map) {
+        return false
+    }
+    let result_gc = get_unchecked(result_map, fn_idx)
+    if result_gc < 0 {
+        return false
+    }
+    writer_core::emit_byte(body, constants::WASM_REF_NULL())
+    writer_core::emit_leb128_s(body, result_gc)
+    true
+}
+
 // GC-target local val type emission. Returns true if emitted as a GC ref.
 fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
@@ -311,6 +336,12 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
             return true
         }
         Option::None => {}
+    }
+    // After if/else branches that both return, a leftover merge local can
+    // still be the function RETURN operand. Type it from TypeSectionPlan
+    // so `local.get; return` matches the declared result (TomlValStep).
+    if emit_gc_local_from_fn_result_plan(body, f, local_idx, ctx) {
+        return true
     }
     // Assert/loop temps may keep an open-enum type_name after local reuse while
     // the body only stores i64. Demote those; real array/string refs are skipped
