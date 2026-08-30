@@ -82,12 +82,13 @@ vec) plus column walks for async scan, in-place resolve, propagate producers,
 emit neighbors, reachability, and GC local-cache seed. Overlay still **killed
 at 315s** (RSS **1.11GB**). Handle `inst_at` is still an allocation per walk.
 
-Next slice must make **`emit_mir_inst_ctx` / remaining wasm body scans** read
-SoA columns **without allocating a `MirInst` or host vec**. Do **not** retry
-ticks 64–66 (fat reconstruct, resolve-only, or handle-on-`inst_at`).
-`emit_function_instructions` still does `inst_at` once per instruction; that
-alone is enough to lose the wall. wasm32 AOT host OOM/OOB on this size of
-change — emit the probe with the existing gc host.
+Next slice must make **`emit_mir_inst_ctx` take `(block, ii)`** (or raw
+column scalars) so wasm emit never touches a `MirInst` record. Tick 67
+reused one handle per block (`mir_inst_rebind`); overlay still **timeout
+320s**, RSS **1.11GB**. Rebind is not enough: accessors still chase
+`host`/`hid` on every field, and `code_ref_locals_scan` / intrinsic vec
+walks still allocate views. Do **not** retry ticks 64–67. Emit probes
+with the existing gc host (wasm32 AOT OOM/OOB on this size).
 
 ## Receipts
 
@@ -97,6 +98,7 @@ change — emit the probe with the existing gc host.
 | tick 64 SoA + reconstruct-on-read | timeout 320s | — | 1.06GB | hello 2164; reverted |
 | tick 65 SoA + in-place resolve | timeout 320s | — | 1.06GB | hello 2164; emit/propagate still reconstruct; reverted |
 | tick 66 SoA + handle `inst_at` + column walks | killed 315s | — | 1.11GB | tick49 host emitted 6.92MB gc (259s); hello sha256 matched tick49 (2312B fixture); overlay no output; reverted |
+| tick 67 SoA + reuse one handle / block | timeout 320s | — | 1.11GB | hello 2312 matched tick49; emit 6.92MB; overlay no output; reverted |
 
 ## Non-goals
 
