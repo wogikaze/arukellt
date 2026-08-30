@@ -20,6 +20,8 @@ use mir::module_functions
 use mir::post_pass_type_propagate
 use mir::reachability
 use mir::typed_mir_sync_module
+use corehir::mir_body_source
+use corehir::mod as corehir_mod
 
 // Bootstrap flat overlay may inject mir_dedupe_functions_by_name into monolithic
 // mir_lower.ark as an identity no-op; modular lowering never MIR-dedupes here.
@@ -47,6 +49,7 @@ fn lower_entry_input_to_mir(input: MirLowerEntryInput, export_roots: Vec<String>
     let t_after_ctx = entry_timing::mir_lower_phase_now()
     entry_timing::mir_lower_phase_note(timing, "ctx_prep", t_after_fn_index, t_after_ctx)
     entry_decls::mir_emit_view_decls(ctx, view, body_source, fn_index_info, midx, mir_tr)
+    mir_body_source::mir_body_source_release(corehir_mod::view_body_source(view))
     // Nested struct fields register parents before children; reorder so gcsref
     // type indices are never forward references in the Wasm type section.
     ctx_gc_struct_order::ctx_reorder_gc_structs_deps_first(ctx)
