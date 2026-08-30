@@ -76,6 +76,18 @@ instruction vecs) so Copying GC scans i32 tables instead of record graphs.
 Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
 parallel session-owned bump.
 
+**Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** That path
+(tick 64) cut RSS **1.75GB → 1.06GB** but overlay **timeout 320s** (exit 124).
+Resolve / propagate / emit rematerialized the record graph. Next slice must
+read SoA columns in place (`MirBlock_inst_op(block, idx)` etc.).
+
+## Receipts
+
+| Slice | Overlay | s2=s3 | RSS | Notes |
+|---|---:|---|---:|---|
+| HEAD `fee7d7588` | 242s quiet / 255s loaded | yes | ~1.75GB | baseline |
+| tick 64 SoA + reconstruct-on-read | timeout 320s | — | 1.06GB | hello 2164; reverted |
+
 ## Non-goals
 
 - Reopening `#827` or `#097` (rejected Rust `bumpalo` rewrite)
