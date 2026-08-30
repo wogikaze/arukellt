@@ -533,6 +533,7 @@ fn local_set_non_string_storage_type(
                 return direct_storage
             }
             if leftover_i32_vec_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) ||
+            leftover_string_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) ||
             (direct_type != string_type && len(type_name) == 0) {
                 let copied = copied_non_string_storage_type(f, local_idx, ctx, 0)
                 match copied {
@@ -552,6 +553,21 @@ fn local_set_non_string_storage_type(
         return Option::None
     }
     copied_non_string_storage_type(f, local_idx, ctx, 0)
+}
+
+fn leftover_string_yields_to_infer(
+    ctx: SelfEmitCtx,
+    leftover_type: i32,
+    type_name: String,
+    infer_type: i32
+) -> bool {
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    if infer_type < 0 || infer_type == leftover_type || infer_type == string_type {
+        return false
+    }
+    leftover_type == string_type ||
+    eq(clone(type_name), "String") ||
+    eq(clone(type_name), "string")
 }
 
 fn leftover_i32_vec_yields_to_infer(
