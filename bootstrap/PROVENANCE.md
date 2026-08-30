@@ -66,6 +66,18 @@ reference. Refresh procedure:
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
 
+### wasm32-gc pinned (`25e28e48`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `25e28e48`. Guest remains
+`wasm32-gc` / `wasi-p2` memory32.
+
+Intentional drift from the previous pin (`fdf2101e` / `87e5d135`):
+
+- `emit_struct_set` does not `local.tee` an open-enum `ref.cast` into a
+  final variant local (`enum_struct_variant` validates; Circle/Rect keep
+  their own type)
+- Isolated: `enum_struct_variant` MATCH `75` / `24`
+
 ### wasm32-gc pinned (`87e5d135`)
 
 Pinned bootstrap is the s3==s4 fixpoint of `87e5d135` (not pin→s2 `082f4148`).
