@@ -4287,17 +4287,12 @@ def _rebuild_current_s2_locked(
         ), time.time() - started
 
     out_rel = str(out.relative_to(root))
-    # Drop stale outputs so a failed rebuild cannot leave a half-written s2.
-    for stale in (out, build_dir / "arukellt-s2-runtime.wasm"):
+    # Keep s2-runtime.wasm / .cwasm as the wasm32 host. Deleting them first
+    # forces pin→gc hop (~8 min) on every build-compiler. Replace runtime
+    # only after the new s2 is written (_ensure_runtime_compiler_wasm).
+    if out.is_file():
         try:
-            if stale.is_file():
-                stale.unlink()
-        except OSError:
-            pass
-    # Invalidate AOT cache for the previous s2 binary.
-    for cwasm in build_dir.glob("arukellt-s2*.cwasm"):
-        try:
-            cwasm.unlink()
+            out.unlink()
         except OSError:
             pass
 
