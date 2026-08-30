@@ -104,13 +104,17 @@ than 242s/255s; RSS wash. Do **not** retry empty-default `result_types`.
 
 Next slice must emit CALL / arith / struct from columns with **no fill**
 (no hybrid fat record on the emit hot path). Do not keep a live fat
-`MirInst` beside SoA columns. Do not retry ticks 64–71 as they were.
+`MirInst` beside SoA columns. Do not retry ticks 64–72 as they were.
 
 Tick 71 skipped the enrich rewrite of constructor `result_types` on
 non-CALL (avoids a second Vec+MVT per LOCAL_GET/CONST). Overlay
 **259.53s**, `s2=s3`, hello 2312B matched, RSS **1.71GB**. Wash vs
-255s loaded (4s). Do **not** retry this enrich skip. Emit probes with
-the existing gc host.
+255s loaded (4s). Do **not** retry this enrich skip.
+
+Tick 72 skipped `ctx_enrich_inst_result_types` on every `ctx_emit`
+(CALL included). Hello 2312B matched tick49. Overlay **264.35s**,
+**s2≠s3**, RSS **1.71GB**. CALL spine enrich is required for fixpoint.
+Do **not** skip all enrich. Emit probes with the existing gc host.
 
 ## Receipts
 
@@ -125,6 +129,7 @@ the existing gc host.
 | tick 69 SoA + column GET/SET/CONST_I32 + fill fallback | **263.51s** | yes | **2.21GB** | first SoA overlay finish; emit 6.92MB (286.62s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `70363e94…`; worse wall + RSS jump; reverted |
 | tick 70 skip default result_types; enrich CALL only | **269.91s** | yes | **1.72GB** | emit 6.90MB (257.88s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `c0a2f3a6…`; worse wall; RSS wash; reverted |
 | tick 71 keep constructor result_types; skip non-CALL enrich rewrite | **259.53s** | yes | **1.71GB** | emit 6.90MB (261.02s); hello sha256 `1dbf14ca…`; s2=s3 `104d5dac…`; wash vs 255s; reverted |
+| tick 72 skip all ctx_emit enrich | **264.35s** | **no** | **1.71GB** | emit 6.90MB (260.00s); hello sha256 `1dbf14ca…`; s2 `36b41db9…` ≠ s3 `141a7833…`; CALL enrich required; reverted |
 
 ## Non-goals
 
