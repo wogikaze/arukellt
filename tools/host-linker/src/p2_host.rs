@@ -586,10 +586,16 @@ fn register_clock_now(
         .func_new(mod_name, field_name, ft, move |_: Caller<'_, P2Store>, _p: &[Val], r: &mut [Val]| {
             let nanos = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
-                .map(|d| d.as_nanos() as i64)
+                .map(|d| d.as_nanos())
                 .unwrap_or(0);
-            if !r.is_empty() {
-                r[0] = Val::I64(nanos);
+            // Monotonic `now` is a single i64 (ns). Wall-clock `now` is WIT
+            // datetime { seconds: u64, nanoseconds: u32 } → (i64, i32).
+            // Leaving r[1] unset traps the guest now_ms conversion.
+            if r.len() >= 2 {
+                r[0] = Val::I64((nanos / 1_000_000_000) as i64);
+                r[1] = Val::I32((nanos % 1_000_000_000) as i32);
+            } else if !r.is_empty() {
+                r[0] = Val::I64(nanos as i64);
             }
             Ok(())
         })
