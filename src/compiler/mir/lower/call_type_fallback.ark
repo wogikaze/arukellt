@@ -93,9 +93,14 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
-    // Result/Option encodings must not go through layout basename resolve:
-    // `Result_JsonValue_JsonParseError` would become `JsonParseError`.
-    if is_option_or_result_type_name(clone(cleaned)) {
+    // Result/Option/Vec/HashMap encodings must not go through layout
+    // basename resolve: `vec:Diagnostic` would become `Diagnostic`.
+    if is_option_or_result_type_name(clone(cleaned)) ||
+    starts_with(clone(cleaned), "vec:") ||
+    starts_with(clone(cleaned), "hashmap:") ||
+    starts_with(clone(cleaned), "hashset:") ||
+    starts_with(clone(cleaned), "Vec<") ||
+    starts_with(clone(cleaned), "Vec_") {
         ctx_api_local_types::ctx_set_local_type(
             ctx,
             dest,

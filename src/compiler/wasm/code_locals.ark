@@ -12,6 +12,7 @@ use wasm::emit_target
 use wasm::code_locals_struct
 use mir::function_identity
 use mir::function_locals_view
+use mir::function_return_view
 use mir::local_access
 use mir::value_types
 use wasm::writer_core
@@ -135,6 +136,33 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
                 writer_core::writer_memory64(body)
             ))
         return true
+    }
+    // Return temp of `-> Vec<T>` must be the vec header, not T. Vec::new<T>
+    // inlines to struct.new of the header while dest type_name stays T
+    // (json_obj_new / json_arr_new).
+    if code_ref_locals::local_feeds_return(f, local_idx) {
+        let ret_name = function_return_view::MirFunction_return_type_name(f)
+        if starts_with(clone(ret_name), String_from("vec:")) {
+            if is_string_byte_vec_fn(f) {
+                writer_core::emit_byte(body, constants::WASM_REF_NULL())
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+                return true
+            }
+            if emit_explicit_vec_gc_type(body, clone(ret_name), ctx) {
+                return true
+            }
+            if emit_vec_struct_ref_gc_type(body, clone(ret_name), ctx) {
+                return true
+            }
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            let elem_name = substring(clone(ret_name), 4, len(ret_name))
+            if ctx_gc_type_vec_ref::gc_vec_elem_is_struct_ref(clone(elem_name)) {
+                writer_core::emit_leb128_s(body, ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx))
+            } else {
+                writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_vec_type(ctx))
+            }
+            return true
+        }
     }
     // CALL dests can keep a sticky String TypeId while the callee returns a
     // named struct (WitParsedInterface). Producer type wins over spine String.

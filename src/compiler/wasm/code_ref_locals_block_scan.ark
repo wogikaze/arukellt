@@ -17,6 +17,7 @@ use mir::value_types
 use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
 use wasm::ctx_record
+use wasm::code_ref_locals_infer_callee
 use wasm::code_ref_locals_infer_dest
 use wasm::sections_types_gc
 
@@ -265,6 +266,26 @@ fn copied_non_string_storage_type(
                     if source_type >= 0 &&
                     source_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                         return Option::Some(source_type)
+                    }
+                    // Param / local type_name can name a gc_struct while the
+                    // typed spine stays String (WitParsedInterface). Use the
+                    // struct so copies keep the callee/param wasm type.
+                    if source < function_locals_view::MirFunction_local_count(f) {
+                        let source_tn = local_access::MirLocal_type_name(
+                            function_locals_view::MirFunction_local_at(f, source)
+                        )
+                        let named = code_ref_locals_infer_callee::resolve_named_struct_gc_type(
+                            ctx,
+                            source_tn
+                        )
+                        match named {
+                            Option::Some(named_v) => {
+                                if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                                    return named
+                                }
+                            }
+                            Option::None => {}
+                        }
                     }
                     let source_vec_access_type =
                     local_vec_access_storage_type(f, source, ctx)

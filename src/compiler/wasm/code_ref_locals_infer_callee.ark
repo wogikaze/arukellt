@@ -26,9 +26,35 @@ fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option
     let called = ctx_record::SelfEmitCtx_function_at(ctx, fn_idx)
     let ret_type = function_return_view::MirFunction_return_type(called)
     let ret_name = function_return_view::MirFunction_return_type_name(called)
-    // Prefer a registered gc_struct when the return type names one. Typed-spine
-    // / layout lookup can still report enum-open for user structs
-    // (WitParsedInterface), which then types call-result locals incorrectly.
+    // Same order as build_return_type_value_sig: collection / typed-spine
+    // first. A bare element name (Diagnostic) must not beat Vec<Diagnostic>.
+    let from_coll = resolve_gc_type_from_return_type_name(ctx, clone(ret_name))
+    match from_coll {
+        Option::Some(_opt_v) => {
+            return from_coll
+        }
+        Option::None => {}
+    }
+    let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
+    match from_reg {
+        Option::Some(reg_type) => {
+            // Typed spine may report enum-open or String for user structs
+            // (WitParsedInterface). Named gc_struct wins only then — not
+            // when the spine already bound a Vec/collection header.
+            if reg_type == ctx_gc_type::SelfEmitCtx_enum_open_type(ctx) ||
+            reg_type == ctx_gc_type::SelfEmitCtx_string_type(ctx) {
+                let named = resolve_named_struct_gc_type(ctx, clone(ret_name))
+                match named {
+                    Option::Some(_opt_v) => {
+                        return named
+                    }
+                    Option::None => {}
+                }
+            }
+            return from_reg
+        }
+        Option::None => {}
+    }
     let named_struct = resolve_named_struct_gc_type(ctx, clone(ret_name))
     match named_struct {
         Option::Some(_opt_v) => {
@@ -57,7 +83,9 @@ fn infer_call_result_gc_type_from_registry(ctx: SelfEmitCtx, callee: String) -> 
         return Option::None
     }
     let mvt = signature_entry::signature_entry_return_at(entry, 0)
-    let by_mvt = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx, mvt)
+    // Storage binding, not VALUE_REPR_GC_REF-only. Vec/String can stay
+    // LINEAR_PTR in the MVT while wasm32-gc storage is a GC header.
+    let by_mvt = ctx_gc_layout_lookup::SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx, mvt)
     if by_mvt >= 0 {
         return Option::Some(by_mvt)
     }
@@ -308,6 +336,15 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
+    // Vec::new__T is a header constructor. A MirFunction / registry TypeId
+    // that names only T (JsonField) must not type the dest as that struct.
+    let from_vec_new = infer_vec_new_return_gc_type(ctx, clone(callee))
+    match from_vec_new {
+        Option::Some(_opt_v) => {
+            return from_vec_new
+        }
+        Option::None => {}
+    }
     // Named MirFunction return (gc_struct) wins over a registry TypeId that
     // collapsed to String. Registry-first made call dests (ref null $string)
     // while the callee wasm type returned a struct.
