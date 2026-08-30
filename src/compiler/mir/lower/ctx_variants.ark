@@ -18,10 +18,13 @@ fn ctx_variant_name_index(ctx: LowerCtx, name: String) -> i32 {
         }
         i = i + 1
     }
-    // Module-aliased patterns like `types::WitType::Bool` must resolve to the
-    // registered layout name `WitType::Bool`. Match on the Enum::Variant key.
+    // Module-aliased patterns like `json::JsonParseError::TrailingCharacters`
+    // share the `Enum::Variant` key with the registered layout name. Callers
+    // pass this return value to `ctx_variant_tag_at`, so the key path must
+    // return a storage index. Returning the discriminant here remaps tags 2+
+    // onto the first builtin Option/Result slots (tags 0/1).
     let query_key = variant_enum_variant_key(clone(name))
-    let mut best_tag = 0 - 1
+    let mut best_idx = 0 - 1
     let mut best_len = 0 - 1
     i = 0
     while i < count {
@@ -31,12 +34,12 @@ fn ctx_variant_name_index(ctx: LowerCtx, name: String) -> i32 {
             let vn_len = len(vn)
             if vn_len > best_len {
                 best_len = vn_len
-                best_tag = ctx_variant_storage::ctx_variant_tag_at(ctx, i)
+                best_idx = i
             }
         }
         i = i + 1
     }
-    best_tag
+    best_idx
 }
 
 // Resolve `module::Enum::Variant` to the layout name `Enum::Variant` used by
