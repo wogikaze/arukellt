@@ -894,12 +894,16 @@ fn is_seq_unique_callee(callee: String) -> bool {
 
 fn is_pad_left_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_string_pad_left_impl")) ||
-    callee_name_is(clone(callee), String_from("pad_left"))
+    callee_name_is(clone(callee), String_from("__core_string_pad_left_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_left")) ||
+    callee_name_is(clone(callee), String_from("text::pad_left"))
 }
 
 fn is_pad_right_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_string_pad_right_impl")) ||
-    callee_name_is(clone(callee), String_from("pad_right"))
+    callee_name_is(clone(callee), String_from("__core_string_pad_right_fill_impl")) ||
+    callee_name_is(clone(callee), String_from("pad_right")) ||
+    callee_name_is(clone(callee), String_from("text::pad_right"))
 }
 
 fn is_concat_callee(callee: String) -> bool {

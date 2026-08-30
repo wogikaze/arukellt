@@ -171,7 +171,15 @@ fn try_emit_text_pad_call(w: WasmWriter, handler_id: i32, inst: MirInst, ctx: Se
         let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_string_pad_left_fill(){
+        let _result_on_stack = intrinsic_string_pad::emit_pad_left(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
     if handler_id == corehir::core_op_registry_generated::core_op_handler_string_pad_right(){
+        let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
+        return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_string_pad_right_fill(){
         let _result_on_stack = intrinsic_string_pad::emit_pad_right(w, inst, ctx)
         return finish_text_call(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
     }
