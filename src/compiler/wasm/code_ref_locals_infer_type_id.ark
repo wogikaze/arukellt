@@ -183,9 +183,6 @@ fn infer_gc_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> Option<i3
             Option::None => {}
         }
     }
-    if ends_with(clone(callee), "::from") || ends_with(clone(callee), "__from") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
-    }
     Option::None
 }
 
@@ -196,9 +193,19 @@ fn infer_named_struct_or_tuple(ctx: SelfEmitCtx, type_name: String) -> Option<i3
     if ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, type_name))
     }
-    let tuple_name = tuple_plan_name_from_ret_name(type_name)
+    let tuple_name = tuple_plan_name_from_ret_name(clone(type_name))
     if len(tuple_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(tuple_name)) {
         return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, tuple_name))
+    }
+    let names = ctx_record::SelfEmitCtx_gc_struct_names(ctx)
+    let mut name_index = 0
+    while name_index < len(names) {
+        let candidate = get_unchecked(names, name_index)
+        if eq(clone(type_name), clone(candidate)) ||
+        eq(clone(tuple_name), clone(candidate)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, candidate))
+        }
+        name_index = name_index + 1
     }
     Option::None
 }

@@ -532,8 +532,10 @@ fn local_set_non_string_storage_type(
             !is_vec_storage_binding(ctx, storage_type, clone(type_name)) {
                 return direct_storage
             }
+            if leftover_string_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) {
+                return direct_storage
+            }
             if leftover_i32_vec_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) ||
-            leftover_string_yields_to_infer(ctx, storage_type, clone(type_name), direct_type) ||
             (direct_type != string_type && len(type_name) == 0) {
                 let copied = copied_non_string_storage_type(f, local_idx, ctx, 0)
                 match copied {
