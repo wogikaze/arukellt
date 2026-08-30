@@ -99,7 +99,23 @@ fn type_ann_shape_result_side_name(side: AstNode) -> String {
             return shaped
         }
     }
-    type_ann_node::type_ann_name(side)
+    type_ann_bare_path_name(type_ann_node::type_ann_name(side))
+}
+
+fn type_ann_bare_path_name(name: String) -> String {
+    // result:T:E splits on ':'. Keep path types as the last segment.
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(clone(name), i) == 58 {
+            if i + 1 < n {
+                return substring(name, i + 1, n)
+            }
+            return name
+        }
+        i = i - 1
+    }
+    name
 }
 
 // Shape one type-argument for MIR encodings (`result:…`, `option:…`, `vec:…`).

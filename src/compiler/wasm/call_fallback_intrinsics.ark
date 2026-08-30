@@ -324,6 +324,10 @@ fn try_emit_name_intrinsic_fallback(
     }
     // Tiny reverse fixtures DCE `__core_vec_reverse_i32_impl`; the Call keeps
     // the name and becomes drop+unreachable (reverse_i32 / vec_reverse_basic).
+    if is_reverse_string_callee(clone(callee)) {
+        let on_stack = intrinsic_string_extra::emit_reverse_String(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
     if is_reverse_i32_callee(clone(callee)) {
         let on_stack = intrinsic_vec_reverse::emit_reverse_i32(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
@@ -521,6 +525,12 @@ fn is_sort_i32_callee(callee: String) -> bool {
     callee_name_is(clone(callee), String_from("__core_sort_i32_impl")) ||
     callee_name_is(clone(callee), String_from("__core_seq_sort_i32_impl")) ||
     ends_with(clone(callee), String_from("::sort_i32"))
+}
+
+fn is_reverse_string_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("reverse_String")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_reverse_string_impl")) ||
+    ends_with(clone(callee), String_from("::reverse_String"))
 }
 
 fn is_reverse_i32_callee(callee: String) -> bool {
