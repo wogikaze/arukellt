@@ -368,12 +368,94 @@ fn parse_value_at(s: String, pos: i32) -> JsonParseStep {
     if c >= 48 && c <= 57 || c == 45 {
         let end = find_number_end(s, pos)
         let raw = slice(s, pos, end)
-        match parse_f64(raw) {
-            Result::Ok(_) => return JsonParseStep_ok(JsonValue::Number(raw), end),
-            Result::Err(_) => return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos),
+        if is_json_number(raw) {
+            return JsonParseStep_ok(JsonValue::Number(raw), end)
         }
+        return JsonParseStep_err(JsonParseError::InvalidLiteral(String_from("number")), pos)
     }
     JsonParseStep_err(JsonParseError::UnexpectedCharacter(c), pos)
+}
+
+// JSON numbers stay raw strings. Validate RFC 8259 syntax here so exponents
+// such as 1e5 are accepted without depending on parse_f64 conversion.
+fn is_json_number(s: String) -> bool {
+    let n = len(s)
+    if n <= 0 {
+        return false
+    }
+    let mut i = 0
+    if char_at(s, 0) == 45 {
+        i = 1
+        if i >= n {
+            return false
+        }
+    }
+    i = json_number_int_end(s, i, n)
+    if i < 0 {
+        return false
+    }
+    if i < n && char_at(s, i) == 46 {
+        i = json_number_digits_end(s, i + 1, n)
+        if i < 0 {
+            return false
+        }
+    }
+    if i < n && (char_at(s, i) == 101 || char_at(s, i) == 69) {
+        i = json_number_exp_end(s, i + 1, n)
+        if i < 0 {
+            return false
+        }
+    }
+    i == n
+}
+
+fn json_number_int_end(s: String, start: i32, n: i32) -> i32 {
+    if start >= n {
+        return 0 - 1
+    }
+    let c = char_at(s, start)
+    if c == 48 {
+        return start + 1
+    }
+    if c < 49 || c > 57 {
+        return 0 - 1
+    }
+    json_number_scan_digits(s, start + 1, n)
+}
+
+fn json_number_digits_end(s: String, start: i32, n: i32) -> i32 {
+    if start >= n {
+        return 0 - 1
+    }
+    let c = char_at(s, start)
+    if c < 48 || c > 57 {
+        return 0 - 1
+    }
+    json_number_scan_digits(s, start + 1, n)
+}
+
+fn json_number_exp_end(s: String, start: i32, n: i32) -> i32 {
+    if start >= n {
+        return 0 - 1
+    }
+    let mut i = start
+    let c = char_at(s, i)
+    if c == 43 || c == 45 {
+        i = i + 1
+    }
+    json_number_digits_end(s, i, n)
+}
+
+fn json_number_scan_digits(s: String, start: i32, n: i32) -> i32 {
+    let mut i = start
+    while i < n {
+        let c = char_at(s, i)
+        if c < 48 || c > 57 {
+            return i
+        }
+        i = i + 1
+    }
+    i
 }
 
 fn parse_keyword_or_invalid(s: String, pos: i32, n: i32, word: String, ok: JsonValue) -> JsonParseStep {
