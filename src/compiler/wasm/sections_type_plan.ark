@@ -132,7 +132,19 @@ fn build_type_section_plan(
     let gc_enum_variant_type_map = build_gc_enum_variant_type_map(type_map, num_host_types, wit_import_count, gc_fixed_count, gc_struct_count, gc_enum_variant_count)
     let gc_struct_base = first_mapped_type_index(gc_struct_type_map)
     let gc_enum_variant_base = first_mapped_type_index(gc_enum_variant_type_map)
-    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_fixed_type_map, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)
+    TypeSectionPlan_new(
+        host_type_map,
+        fn_type_map,
+        wrapper_type_idx,
+        wit_type_map,
+        wit_import_count,
+        gc_fixed_type_map,
+        gc_type_base,
+        gc_enum_variant_base,
+        gc_enum_variant_type_map,
+        gc_struct_base,
+        gc_struct_type_map
+    )
 }
 
 fn first_mapped_type_index(type_map: Vec<i32>) -> i32 {

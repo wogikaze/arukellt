@@ -412,12 +412,17 @@ fn is_format_i64_callee(callee: String) -> bool {
     ends_with(clone(callee), String_from("::i64_to_string"))
 }
 
+fn callee_name_is(callee: String, name: String) -> bool {
+    let left = clone(callee)
+    eq(left, clone(name))
+}
+
 fn is_format_i32_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("to_string")) ||
-    eq(clone(callee), String_from("i32_to_string")) ||
-    eq(clone(callee), String_from("format_i32")) ||
-    eq(clone(callee), String_from("__core_format_i32_impl")) ||
-    eq(clone(callee), String_from("i32::to_string")) ||
+    callee_name_is(clone(callee), String_from("to_string")) ||
+    callee_name_is(clone(callee), String_from("i32_to_string")) ||
+    callee_name_is(clone(callee), String_from("format_i32")) ||
+    callee_name_is(clone(callee), String_from("__core_format_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("i32::to_string")) ||
     ends_with(clone(callee), String_from("::i32_to_string")) ||
     ends_with(clone(callee), String_from("::format_i32"))
 }
@@ -452,27 +457,27 @@ fn is_vec_pop_callee(callee: String) -> bool {
 }
 
 fn is_vec_push_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("push")) ||
-    eq(clone(callee), String_from("vec_push")) ||
-    eq(clone(callee), String_from("__core_vec_push_i32_impl")) ||
-    eq(clone(callee), String_from("__intrinsic_push")) ||
-    eq(clone(callee), String_from("__intrinsic_vec_push")) ||
-    eq(clone(callee), String_from("Vec::push")) ||
+    callee_name_is(clone(callee), String_from("push")) ||
+    callee_name_is(clone(callee), String_from("vec_push")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_i32_impl")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_push")) ||
+    callee_name_is(clone(callee), String_from("__intrinsic_vec_push")) ||
+    callee_name_is(clone(callee), String_from("Vec::push")) ||
     ends_with(clone(callee), String_from("::push")) ||
     ends_with(clone(callee), String_from("::vec_push"))
 }
 
 fn is_vec_push_i64_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("push_i64")) ||
-    eq(clone(callee), String_from("vec_push_i64")) ||
-    eq(clone(callee), String_from("__core_vec_push_i64_impl")) ||
+    callee_name_is(clone(callee), String_from("push_i64")) ||
+    callee_name_is(clone(callee), String_from("vec_push_i64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_i64_impl")) ||
     ends_with(clone(callee), String_from("::push_i64"))
 }
 
 fn is_vec_push_f64_callee(callee: String) -> bool {
-    eq(clone(callee), String_from("push_f64")) ||
-    eq(clone(callee), String_from("vec_push_f64")) ||
-    eq(clone(callee), String_from("__core_vec_push_f64_impl")) ||
+    callee_name_is(clone(callee), String_from("push_f64")) ||
+    callee_name_is(clone(callee), String_from("vec_push_f64")) ||
+    callee_name_is(clone(callee), String_from("__core_vec_push_f64_impl")) ||
     ends_with(clone(callee), String_from("::push_f64"))
 }
 
