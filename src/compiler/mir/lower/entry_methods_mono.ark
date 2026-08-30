@@ -23,6 +23,12 @@ fn mir_emit_method_mono_bodies(
     let generic_return_ty = fn_index_method_return_type::method_generic_return_type_from_name(clone(generic_rtn), method_mono_emit_count_raw > 0)
     let method_mono_emit_count = method_mono_emit_count_raw + 1
     let mut method_mono_emit_i = 0
+    // Top-level fns omit the unsubstituted generic when instances exist.
+    // Methods used to lower that template anyway; call sites use mangled names
+    // and prune drops the unused generic. Skip it here to match.
+    if method_mono_emit_count_raw > 0 {
+        method_mono_emit_i = 1
+    }
     while method_mono_emit_i < method_mono_emit_count {
         let mut emit_method_name = clone(mangled)
         if method_mono_emit_i > 0 {
