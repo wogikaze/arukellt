@@ -48,7 +48,11 @@ fn emit_gc_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
     let base_local = inst_accessors_operands::MirInst_arg1(inst)
     let field_idx = inst_accessors_literals::MirInst_int_val(inst)
-    let gc_type_idx = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
+    let variant_type = ctx_gc_type::SelfEmitCtx_enum_variant_type(ctx, type_slot)
+    let open_type = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
+    // Field 0 is the discriminant on the open enum. Casting Some/Ok to the
+    // None/Err variant here traps for-in / `?` before the tag is read.
+    let gc_type_idx = if field_idx == 0 && open_type >= 0 { open_type } else { variant_type }
     writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
     writer_core::emit_leb128_u(w, base_local)
     if type_slot >= 0 {
