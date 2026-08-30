@@ -60,7 +60,11 @@ runtime_adapter_path() {
 
 component_needs_runtime_adapter() {
   local component="$1"
-  grep -aqF 'runtime-http-get' "$component" 2>/dev/null     || grep -aqF 'runtime-fs-read-file' "$component" 2>/dev/null     || grep -aqF 'runtime-env-vars' "$component" 2>/dev/null
+  # Match component-level kebab imports only. The embedded runtime bridge also
+  # contains these names as core `host` imports; grepping the raw bytes would
+  # force `wac plug` (and wasi:http) onto every command component.
+  wasm-tools print "$component" 2>/dev/null | grep -qE \
+    '^[[:space:]]+\(import "runtime-(http-get|fs-read-file|env-vars)"'
 }
 
 plug_runtime_adapter_in_place() {

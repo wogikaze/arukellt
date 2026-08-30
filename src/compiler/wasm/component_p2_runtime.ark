@@ -143,24 +143,15 @@ fn p2_runtime_emit_core_instance_section(out: WasmWriter) {
     let sec = writer_core::WasmWriter_new()
     writer_core::emit_leb128_u(sec, 2)
 
-    // Core instance 9: inline canonical-lowered adapter functions. Core funcs
-    // 0=realloc and 1..5 are the existing stdio/environment lowers; runtime
-    // lowers therefore start at core func 6.
-    writer_core::emit_byte(sec, 0x01)
-    writer_core::emit_leb128_u(sec, p2_runtime_imported_func_count())
-    let names = p2_runtime_component_func_names()
-    let mut i = 0
-    while i < p2_runtime_imported_func_count() {
-        writer_string::emit_string(sec, get_unchecked(names, i))
-        writer_core::emit_byte(sec, 0x00)
-        writer_core::emit_leb128_u(sec, 6 + i)
-        i = i + 1
-    }
-
-    // Core instance 10: compatibility bridge module 8. `env` is the shared
-    // memory instance 0; `host` is the inline lower instance 9 above.
+    // Core instance 9: stub host module 8 (no adapter lowers).
     writer_core::emit_byte(sec, 0x00)
     writer_core::emit_leb128_u(sec, 8)
+    writer_core::emit_leb128_u(sec, 0)
+
+    // Core instance 10: runtime bridge module 9. `env` is shared memory
+    // instance 0; `host` is the stub instance 9 above.
+    writer_core::emit_byte(sec, 0x00)
+    writer_core::emit_leb128_u(sec, 9)
     writer_core::emit_leb128_u(sec, 2)
     writer_string::emit_string(sec, String_from("env"))
     writer_core::emit_byte(sec, 0x12)

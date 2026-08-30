@@ -27,17 +27,14 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     let out = p2_comp_new_component_writer()
 
     // Existing stock WASI imports + aliases own component types 0..6 and
-    // component funcs 0..4.
+    // component funcs 0..4. Command components keep this CLI surface only so
+    // default wasmtime can run them. Unused `arukellt:runtime/host` guest
+    // imports are satisfied by a core stub + the existing runtime bridge.
     writer_core::emit_bytes(out, component_p2_bridged::p2_host_import_prefix_bytes())
-
-    // Typed top-level runtime imports are deliberately component-level. The
-    // final `wac plug` step supplies them from runtime-adapter.wasm.
-    component_p2_runtime::p2_runtime_emit_component_type_section(out)
-    component_p2_runtime::p2_runtime_emit_component_import_section(out)
 
     // Core modules:
     //   0 mem, 1 realloc, 2 stub_env, 3 stub_fs, 4 stub_read, 5 stub_exit,
-    //   6 env_bridge, 7 wrapper, 8 runtime bridge, 9 guest.
+    //   6 env_bridge, 7 wrapper, 8 runtime host stub, 9 runtime bridge, 10 guest.
     p2_comp_emit_core_module(out, component_p2_bridged::p2_shared_mem_module_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_realloc_module_bytes())
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_env_module())
@@ -46,29 +43,27 @@ fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
     p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_single_export_named(String_from("exit"), String_from("stub_exit"), 1))
     p2_comp_emit_core_module(out, component_p2_bridged::p2_env_bridge_bytes())
     p2_comp_emit_core_module(out, component_p2_bridged::p2_wrapper_module_bytes())
+    p2_comp_emit_core_module(out, component_p2_stubs::p2_stub_runtime_host_module())
     p2_comp_emit_core_module(out, component_p2_runtime::p2_runtime_bridge_module_bytes())
 
     // Bare helper instances + shared memory/realloc aliases.
     component_p2_bridged::p2_bridged_emit_instance_section_1(out)
     component_p2_bridged::p2_bridged_emit_core_alias_section(out)
 
-    // Stock stdio/environment lowers first (core funcs 1..5), then runtime
-    // adapter lowers (core funcs 6..29), all sharing memory/realloc aliases.
+    // Stock stdio/environment lowers (core funcs 1..5). No adapter lowers:
+    // those would become leftover `runtime-*` / wasi:http component imports.
     component_p2_bridged::p2_bridged_emit_canon_lower_section(out)
-    component_p2_runtime::p2_runtime_emit_canon_lower_section(out)
 
-    // Existing inline stdio/environment instances 6..8, followed by runtime
-    // lower instance 9 + bridge instance 10.
+    // Inline stdio/environment instances 6..8, stub host 9, bridge 10.
     component_p2_bridged::p2_bridged_emit_instance_section_2(out)
     component_p2_runtime::p2_runtime_emit_core_instance_section(out)
 
-    // Guest is module 9 and imports the shared memory plus runtime bridge.
     let guest_transformed = component_p2_shared::replace_memory_with_shared_import(stripped)
     p2_comp_emit_core_module(out, guest_transformed)
 
     // Guest core instance 11 + wrapper core instance 12.
     component_p2_runtime_instances::p2_runtime_emit_guest_wrapper_instances(out)
-    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12)
+    component_p2_run_sections::p2_run_emit_command_world_sections_bridged(out, 12, 0)
 
     writer_core::writer_bytes(out)
 }
