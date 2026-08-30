@@ -1,8 +1,112 @@
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::writer_core
+use wasm::writer_gc
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
+
+fn range_field_start() -> i32 { 0 }
+fn range_field_end() -> i32 { 1 }
+
+fn range_gc_type(ctx: SelfEmitCtx) -> i32 {
+    ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Range"))
+}
 
 fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_range_new_gc(w, inst, ctx)
+    }
+    emit_range_new_linear(w, inst, ctx)
+}
+
+fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_range_contains_gc(w, inst, ctx)
+    }
+    emit_range_contains_linear(w, inst, ctx)
+}
+
+fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_range_len_gc(w, inst, ctx)
+    }
+    emit_range_len_linear(w, inst, ctx)
+}
+
+// Half-open Range is a named GC struct. Linear heap stores would leave an
+// i32 pointer where later field reads expect (ref null $Range).
+fn emit_range_new_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let range_type = range_gc_type(ctx)
+    if range_type < 0 {
+        return false
+    }
+    let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    helpers_core::emit_local_set(w, s_end)
+    helpers_core::emit_local_set(w, s_start)
+    helpers_core::emit_local_get(w, s_start)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, s_end)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    writer_gc::emit_gc_struct_new(w, range_type)
+    return true
+}
+
+fn emit_range_contains_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let range_type = range_gc_type(ctx)
+    if range_type < 0 {
+        return false
+    }
+    let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    helpers_core::emit_local_set(w, s_val)
+    helpers_core::emit_local_set(w, s_range)
+    helpers_core::emit_local_get(w, s_val)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    emit_range_field_i32(w, s_range, range_type, range_field_start())
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    helpers_core::emit_local_get(w, s_val)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    emit_range_field_i32(w, s_range, range_type, range_field_end())
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    helpers_numeric_i32::emit_i32_and(w)
+    helpers_numeric_i32::emit_widen_i32_result(w)
+    return true
+}
+
+fn emit_range_len_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let range_type = range_gc_type(ctx)
+    if range_type < 0 {
+        return false
+    }
+    let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    helpers_core::emit_local_set(w, s_range)
+    emit_range_field_i32(w, s_range, range_type, range_field_end())
+    emit_range_field_i32(w, s_range, range_type, range_field_start())
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_numeric_i32::emit_widen_i32_result(w)
+    helpers_core::emit_local_tee(w, s_len)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_widen_i32_result(w)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_widen_i32_result(w)
+    helpers_numeric_i32::emit_i32_or_widened_op(w, opcodes::OP_I32_GT_S(), opcodes::OP_I64_GT_S())
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+    return true
+}
+
+fn emit_range_field_i32(w: WasmWriter, range_local: i32, range_type: i32, field_idx: i32) {
+    helpers_core::emit_local_get(w, range_local)
+    writer_gc::emit_gc_ref_cast(w, range_type)
+    writer_gc::emit_gc_struct_get(w, range_type, field_idx)
+}
+
+fn emit_range_new_linear(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -37,7 +141,7 @@ fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_range_contains_linear(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_range = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -67,7 +171,7 @@ fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_range_len_linear(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_range = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_range)

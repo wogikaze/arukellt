@@ -10,6 +10,10 @@ use wasm::intrinsic_assert
 use wasm::intrinsic_cast
 use wasm::intrinsic_clock
 use wasm::intrinsic_math
+use wasm::intrinsic_range
+use wasm::intrinsic_scalar_i32
+use wasm::intrinsic_scalar_loop_math
+use wasm::intrinsic_string_access
 use wasm::runtime_abi_random
 use wasm::intrinsic_string_basic
 use wasm::intrinsic_string_affix
@@ -127,6 +131,12 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_len_callee(clone(callee)) {
         let on_stack = intrinsic_string_basic::emit_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    // text::is_empty / __core_string_is_empty_impl is DCE'd independently of
+    // len; bare `is_empty` would steal Vec::is_empty.
+    if is_text_is_empty_callee(clone(callee)) {
+        let on_stack = intrinsic_string_access::emit_text_is_empty(w, inst, ctx)
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     // Std builder_append / write_debug_to bodies call __intrinsic_concat; when
@@ -339,6 +349,44 @@ fn try_emit_name_intrinsic_fallback(
     }
     if is_builder_build_callee(clone(callee)) {
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+    }
+    // Tiny stdlib_core fixtures DCE `__core_math_*_impl` / `__core_range_*_impl`.
+    // Do not match bare abs/min/max — those names are shared.
+    if is_math_abs_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_abs(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_min_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_min(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_max_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_max(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_clamp_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_i32::emit_clamp(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_pow_i32_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_loop_math::emit_pow_i32(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_math_gcd_callee(clone(callee)) {
+        let on_stack = intrinsic_scalar_loop_math::emit_gcd(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_range_new_callee(clone(callee)) {
+        let on_stack = intrinsic_range::emit_range_new(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_range_contains_callee(clone(callee)) {
+        let on_stack = intrinsic_range::emit_range_contains(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+    }
+    if is_range_len_callee(clone(callee)) {
+        let on_stack = intrinsic_range::emit_range_len(w, inst, ctx)
+        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     false
 }
@@ -656,11 +704,59 @@ fn is_len_callee(callee: String) -> bool {
     eq(clone(callee), String_from("byte_len")) ||
     eq(clone(callee), String_from("__intrinsic_len")) ||
     callee_name_is(clone(callee), String_from("__core_string_len_impl")) ||
+    callee_name_is(clone(callee), String_from("__core_string_len_bytes_impl")) ||
     ends_with(clone(callee), String_from("::len")) ||
     ends_with(clone(callee), String_from("__len")) ||
     ends_with(clone(callee), String_from("::len_bytes")) ||
     ends_with(clone(callee), String_from("__len_bytes")) ||
     ends_with(clone(callee), String_from("::byte_len"))
+}
+
+fn is_text_is_empty_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_string_is_empty_impl")) ||
+    callee_name_is(clone(callee), String_from("text::is_empty"))
+}
+
+fn is_math_abs_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_abs_impl"))
+}
+
+fn is_math_min_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_min_impl"))
+}
+
+fn is_math_max_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_max_impl"))
+}
+
+fn is_math_clamp_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_clamp_impl"))
+}
+
+fn is_math_pow_i32_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_pow_i32_impl"))
+}
+
+fn is_math_gcd_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_math_gcd_impl"))
+}
+
+fn is_range_new_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_new_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_new")) ||
+    callee_name_is(clone(callee), String_from("range_new"))
+}
+
+fn is_range_contains_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_contains_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_contains")) ||
+    callee_name_is(clone(callee), String_from("range_contains"))
+}
+
+fn is_range_len_callee(callee: String) -> bool {
+    callee_name_is(clone(callee), String_from("__core_range_len_impl")) ||
+    callee_name_is(clone(callee), String_from("core::range_len")) ||
+    callee_name_is(clone(callee), String_from("range_len"))
 }
 
 fn is_concat_callee(callee: String) -> bool {
