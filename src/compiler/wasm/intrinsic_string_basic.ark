@@ -29,7 +29,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_bool_to_string_gc(w, inst, ctx)
-        return inst_accessors_operands::MirInst_dest(inst) < 0
+        return true
     }
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     helpers_core::emit_local_set(w, s_tmp)
@@ -64,9 +64,7 @@ fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_control::emit_else(w)
     emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_false_string_offset(ctx), 5, store, string_type, s_i)
     helpers_control::emit_end(w)
-    if dest < 0 {
-        helpers_core::emit_local_get(w, store)
-    }
+    helpers_core::emit_local_get(w, store)
 }
 
 fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32, string_type: i32, s_i: i32) {
