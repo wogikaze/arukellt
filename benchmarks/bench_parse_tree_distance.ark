@@ -6,7 +6,7 @@ fn is_space(ch: i32) -> bool {
 }
 
 fn dist_offset(n: i32, i: i32, j: i32) -> i32 {
-    i * 2 * n - i - 1 / 2 + j - i - 1
+    i * (2 * n - i - 1) / 2 + (j - i - 1)
 }
 
 fn main() {
