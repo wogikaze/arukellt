@@ -76,11 +76,18 @@ instruction vecs) so Copying GC scans i32 tables instead of record graphs.
 Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
 parallel session-owned bump.
 
-**Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Tick 64
-(SoA + reconstruct-on-read) and tick 65 (in-place resolve, no before/after
-snapshot) both cut RSS **1.75GB → 1.06GB** and both **timeout 320s**.
-Fixing resolve alone is not enough: propagate + wasm emit still rematerialize.
-Next slice must make those walks read SoA columns in place.
+**Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
+did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
+vec) plus column walks for async scan, in-place resolve, propagate producers,
+emit neighbors, reachability, and GC local-cache seed. Overlay still **killed
+at 315s** (RSS **1.11GB**). Handle `inst_at` is still an allocation per walk.
+
+Next slice must make **`emit_mir_inst_ctx` / remaining wasm body scans** read
+SoA columns **without allocating a `MirInst` or host vec**. Do **not** retry
+ticks 64–66 (fat reconstruct, resolve-only, or handle-on-`inst_at`).
+`emit_function_instructions` still does `inst_at` once per instruction; that
+alone is enough to lose the wall. wasm32 AOT host OOM/OOB on this size of
+change — emit the probe with the existing gc host.
 
 ## Receipts
 
@@ -89,6 +96,7 @@ Next slice must make those walks read SoA columns in place.
 | HEAD `fee7d7588` | 242s quiet / 255s loaded | yes | ~1.75GB | baseline |
 | tick 64 SoA + reconstruct-on-read | timeout 320s | — | 1.06GB | hello 2164; reverted |
 | tick 65 SoA + in-place resolve | timeout 320s | — | 1.06GB | hello 2164; emit/propagate still reconstruct; reverted |
+| tick 66 SoA + handle `inst_at` + column walks | killed 315s | — | 1.11GB | tick49 host emitted 6.92MB gc (259s); hello sha256 matched tick49 (2312B fixture); overlay no output; reverted |
 
 ## Non-goals
 
