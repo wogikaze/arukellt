@@ -526,7 +526,16 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [
+                str(compiler),
+                "compile",
+                "--time",
+                "--target",
+                target,
+                "-o",
+                rel(wasm_path),
+                case.source,
+            ],
             cwd=ROOT,
             time_bin=time_bin,
         )
@@ -720,7 +729,15 @@ def measure_startup_probe(
         return None
     wasm_path = work_dir / "startup-probe.wasm"
     compile_out = run_measured(
-        [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(startup_source)],
+        [
+            str(compiler),
+            "compile",
+            "--target",
+            target,
+            "-o",
+            rel(wasm_path),
+            rel(startup_source),
+        ],
         cwd=ROOT,
         time_bin=None,
     )
@@ -773,8 +790,10 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
         else preset["runtime_latency_iterations"]
     )
 
-    with tempfile.TemporaryDirectory(prefix="arukellt-bench-") as tmp_dir:
-        work_dir = Path(tmp_dir)
+    # Selfhost wasmtime --dir=REPO_ROOT cannot open /tmp or other absolute paths.
+    work_dir = ROOT / ".build" / "bench"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    if True:
         # Measure the startup probe once for the whole run; used to separate
         # wasmtime instantiation overhead from guest execution time.
         startup_ms = measure_startup_probe(
