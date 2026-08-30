@@ -5,28 +5,59 @@ use mir::type_contracts
 fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
     let count = len(instances)
     let idx = mono_index_types::mono_index_new()
+    // Fill one fn_name at a time so that name's mangled names stay a
+    // contiguous slice. Appending a later instance of an earlier name to the
+    // global tail made count__i32 emit as Vec__new__i32 (nested_generic_call).
+    let seen_names = Vec::new<String>()
     let mut i = 0
     while i < count {
         let mi = get_unchecked(instances, i)
-        // Index concrete instances and markers. Markers alone used to be skipped,
-        // but concrete multi-param rows (pair_first__i32__String) must appear in
-        // fn_names so span/name rewrite registration and body emit agree.
-        // Skip duplicate mangled names (marker + concrete share one mangled).
         if mono_instance_shape::mir_mono_instance_type_arg_count(mi) > 0 {
             let fn_name = mono_instance_shape::mir_mono_instance_fn_name(mi)
-            let mangled = mono_instance_shape::mir_mono_instance_mangled_name(mi)
-            if !mono_index_has_mangled(idx, clone(fn_name), clone(mangled)) {
-                let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
-                if found_at >= 0 {
-                    mono_index_types::mono_index_increment_name(idx, found_at, mangled)
-                } else {
-                    mono_index_types::mono_index_push_name(idx, fn_name, mangled)
-                }
+            if !mono_index_seen_name(seen_names, clone(fn_name)) {
+                push(seen_names, clone(fn_name))
             }
         }
         i = i + 1
     }
+    let name_count = len(seen_names)
+    let mut name_index = 0
+    while name_index < name_count {
+        let fn_name = clone(get_unchecked(seen_names, name_index))
+        let mut instance_index = 0
+        while instance_index < count {
+            let mi = get_unchecked(instances, instance_index)
+            if mono_instance_shape::mir_mono_instance_type_arg_count(mi) > 0 {
+                let inst_name = mono_instance_shape::mir_mono_instance_fn_name(mi)
+                if eq(clone(inst_name), clone(fn_name)) {
+                    let mangled = mono_instance_shape::mir_mono_instance_mangled_name(mi)
+                    if !mono_index_has_mangled(idx, clone(fn_name), clone(mangled)) {
+                        let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
+                        if found_at >= 0 {
+                            mono_index_types::mono_index_increment_name(idx, found_at, mangled)
+                        } else {
+                            mono_index_types::mono_index_push_name(idx, clone(fn_name), mangled)
+                        }
+                    }
+                }
+            }
+            instance_index = instance_index + 1
+        }
+        name_index = name_index + 1
+    }
     idx
+}
+
+fn mono_index_seen_name(seen_names: Vec<String>, fn_name: String) -> bool {
+    let count = len(seen_names)
+    let mut i = 0
+    while i < count {
+        if eq(get_unchecked(seen_names, i), clone(fn_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn mono_index_has_mangled(idx: MonoIndex, fn_name: String, mangled: String) -> bool {
