@@ -377,16 +377,19 @@ fn try_emit_name_intrinsic_fallback(
         return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
     }
     if is_range_new_callee(clone(callee)) {
-        let on_stack = intrinsic_range::emit_range_new(w, inst, ctx)
-        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+        if intrinsic_range::emit_range_new(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
     }
     if is_range_contains_callee(clone(callee)) {
-        let on_stack = intrinsic_range::emit_range_contains(w, inst, ctx)
-        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+        if intrinsic_range::emit_range_contains(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
     }
     if is_range_len_callee(clone(callee)) {
-        let on_stack = intrinsic_range::emit_range_len(w, inst, ctx)
-        return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, on_stack)
+        if intrinsic_range::emit_range_len(w, inst, ctx) {
+            return finish_intrinsic_fallback(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        }
     }
     false
 }
