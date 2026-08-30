@@ -63,6 +63,23 @@ class Wasm32GcJsonPrettyValidateTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(validate.returncode, 0, validate.stdout + validate.stderr)
+        hosted = ROOT / "scripts/run/arukellt-run-hosted.sh"
+        if not hosted.is_file():
+            self.skipTest("hosted runner is required")
+        run = subprocess.run(
+            [
+                "bash",
+                str(hosted),
+                f"--dir={ROOT}",
+                str(output),
+            ],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 
 if __name__ == "__main__":

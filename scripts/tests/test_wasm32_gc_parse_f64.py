@@ -8,8 +8,20 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-FIXTURE = "tests/fixtures/stdlib_string/parse_f64.ark"
 HOSTED = ROOT / "scripts/run/arukellt-run-hosted.sh"
+PROBE = """use std::test
+
+fn main() {
+    match parse_f64("42") {
+        Result::Ok(n) => test::assert_true(n > 41.0 && n < 43.0),
+        Result::Err(_) => panic("parse_f64 42 failed"),
+    }
+    match parse_f64("3.14") {
+        Result::Ok(n) => test::assert_eq_f64(n, 3.14),
+        Result::Err(_) => panic("parse_f64 3.14 failed"),
+    }
+}
+"""
 
 
 class Wasm32GcParseF64Tests(unittest.TestCase):
@@ -24,15 +36,18 @@ class Wasm32GcParseF64Tests(unittest.TestCase):
             runtime = ROOT / ".build/selfhost/arukellt-s2-runtime.wasm"
         if not runtime.is_file():
             self.skipTest("s2 runtime wasm is not built")
-        output = ROOT / ".build/tests/parse_f64_gc.wasm"
-        output.parent.mkdir(parents=True, exist_ok=True)
+        probe_dir = ROOT / ".build/tests"
+        probe_dir.mkdir(parents=True, exist_ok=True)
+        source = probe_dir / "parse_f64_gc_probe.ark"
+        source.write_text(PROBE, encoding="utf-8")
+        output = probe_dir / "parse_f64_gc_probe.wasm"
         env = os.environ.copy()
         env["ARUKELLT_SELFHOST_WASM"] = str(runtime)
         compile_result = subprocess.run(
             [
                 str(ROOT / "scripts/run/arukellt-selfhost.sh"),
                 "compile",
-                FIXTURE,
+                str(source.relative_to(ROOT)),
                 "--target",
                 "wasm32-gc",
                 "-o",
@@ -44,13 +59,11 @@ class Wasm32GcParseF64Tests(unittest.TestCase):
             text=True,
             check=False,
         )
-        self.assertEqual(
-            compile_result.returncode,
-            0,
-            compile_result.stdout + compile_result.stderr,
-        )
-        self.assertIn("name=0", compile_result.stdout + compile_result.stderr)
-        self.assertIn("fallback=0", compile_result.stdout + compile_result.stderr)
+        combined = compile_result.stdout + compile_result.stderr
+        self.assertEqual(compile_result.returncode, 0, combined)
+        self.assertIn("name=0", combined)
+        self.assertIn("fallback=0", combined)
+        self.assertIn("unresolved=0", combined)
         validate = subprocess.run(
             [
                 wasm_tools,
