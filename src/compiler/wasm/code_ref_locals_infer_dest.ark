@@ -156,6 +156,13 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
         elem = substring(clone(vec_tn), 4, len(vec_tn))
     } else if starts_with(clone(vec_tn), "Vec_") {
         elem = substring(clone(vec_tn), 4, len(vec_tn))
+    } else if starts_with(clone(vec_tn), "Vec<") {
+        let n = len(vec_tn)
+        if n > 4 && char_at(vec_tn, n - 1) == 62 {
+            elem = substring(clone(vec_tn), 4, n - 1)
+        } else {
+            return Option::None
+        }
     } else {
         return Option::None
     }
@@ -175,7 +182,7 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
         }
         Option::None => {}
     }
-    Option::None
+    code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, elem)
 }
 
 fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfEmitCtx) -> Option<i32> {
@@ -205,6 +212,16 @@ fn infer_get_unchecked_elem_from_dest_uses(f: MirFunction, dest: i32, ctx: SelfE
                                     if named_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                                         return named
                                     }
+                                }
+                                Option::None => {}
+                            }
+                            let enum_open = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(
+                                ctx,
+                                clone(pname)
+                            )
+                            match enum_open {
+                                Option::Some(_enum_type) => {
+                                    return enum_open
                                 }
                                 Option::None => {}
                             }
@@ -561,6 +578,13 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                     if named_dest_v != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                         return named_dest
                     }
+                }
+                Option::None => {}
+            }
+            let dest_enum = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, clone(dest_tn))
+            match dest_enum {
+                Option::Some(_enum_type) => {
+                    return dest_enum
                 }
                 Option::None => {}
             }

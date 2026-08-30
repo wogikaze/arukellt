@@ -212,6 +212,37 @@ fn strip_module_double_colon(type_name: String) -> String {
     type_name
 }
 
+// Bare enum names (JsonValue, TomlValue) are not structs. Vec element dests
+// and get_unchecked temps must use the plan's open-enum index — the same
+// storage emit_get_unchecked already casts to after array.get.
+fn resolve_named_enum_open_gc_type(ctx: SelfEmitCtx, type_name: String) -> Option<i32> {
+    if len(type_name) == 0 {
+        return Option::None
+    }
+    if code_ref_locals_types::is_option_type_name(clone(type_name)) ||
+    starts_with(clone(type_name), "enum:") ||
+    starts_with(clone(type_name), "Result_") ||
+    starts_with(clone(type_name), "Result:") ||
+    starts_with(clone(type_name), "Result<") ||
+    starts_with(clone(type_name), "result:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    let bare = strip_module_double_colon(clone(type_name))
+    if starts_with(clone(bare), "enum:") {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    let ev_names = ctx_record::SelfEmitCtx_gc_enum_variant_names(ctx)
+    let prefix = concat(clone(bare), "::")
+    let mut ei = 0
+    while ei < len(ev_names) {
+        if starts_with(clone(get_unchecked(ev_names, ei)), clone(prefix)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+        ei = ei + 1
+    }
+    Option::None
+}
+
 fn resolve_named_struct_gc_type(ctx: SelfEmitCtx, ret_name: String) -> Option<i32> {
     if len(ret_name) == 0 {
         return Option::None

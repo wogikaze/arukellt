@@ -274,7 +274,7 @@ fn vec_element_storage_from_receiver_elem_name(
         }
         Option::None => {}
     }
-    Option::None
+    code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, elem)
 }
 
 fn vec_element_storage_from_local_binding(
@@ -301,6 +301,13 @@ fn vec_element_storage_from_local_binding(
             if named_type != ctx_gc_type::SelfEmitCtx_string_type(ctx) {
                 return named
             }
+        }
+        Option::None => {}
+    }
+    let dest_enum = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, clone(type_name))
+    match dest_enum {
+        Option::Some(_enum_type) => {
+            return dest_enum
         }
         Option::None => {}
     }
@@ -528,12 +535,12 @@ fn local_enum_open_storage_type(f: MirFunction, local_idx: i32, ctx: SelfEmitCtx
     }
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
     let type_name = local_access::MirLocal_type_name(loc)
-    if starts_with(clone(type_name), "enum:") ||
-    starts_with(clone(type_name), "option:") ||
-    starts_with(clone(type_name), "Option") ||
-    starts_with(clone(type_name), "result:") ||
-    starts_with(clone(type_name), "Result") {
-        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    let named_enum = code_ref_locals_infer_callee::resolve_named_enum_open_gc_type(ctx, clone(type_name))
+    match named_enum {
+        Option::Some(_enum_type) => {
+            return named_enum
+        }
+        Option::None => {}
     }
     let tid = mir_value_type::mir_value_type_type_id(local_access::MirLocal_value_type(loc))
     if !type_id::type_id_is_valid(tid) {
