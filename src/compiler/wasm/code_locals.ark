@@ -306,18 +306,9 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     code_ref_locals_block_scan::local_set_non_string_storage_type(f, local_idx, ctx)
     match copied_storage {
         Option::Some(copied_type) => {
-            // Payload copies of String must stay on the string spine. A
-            // leftover "String" name must not pick up TomlValue::String
-            // (or any other enum variant) from copy-chain name lookup.
-            let copied_is_string_payload =
-            (eq(clone(type_name), "String") || eq(clone(type_name), "string")) &&
-            !code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
-            if !(copied_is_string_payload &&
-                ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, copied_type)) {
-                writer_core::emit_byte(body, constants::WASM_REF_NULL())
-                writer_core::emit_leb128_s(body, copied_type)
-                return true
-            }
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, copied_type)
+            return true
         }
         Option::None => {}
     }
