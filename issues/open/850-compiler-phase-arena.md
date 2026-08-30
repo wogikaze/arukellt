@@ -89,11 +89,17 @@ scan / neighbors. Hello **2312B sha256 matched tick49**. Overlay still
 **timeout 320s** (no output; `/usr/bin/time` footer lost). Scratch-fill is
 still a fat record write per instruction. Do **not** retry ticks 64–68.
 
-Next slice must make **`emit_mir_inst_ctx` take `(block, ii)`** (or raw
-column scalars) so wasm emit never touches a `MirInst` record, **and**
-convert leftover `inst_at` walks (`wasm/intrinsic_vec_*`, `call_resolve`,
-overlay `mir_module_functions` host-needs scan). Intern still `clone`s
-every `str_val`. Emit probes with the existing gc host.
+Tick 69 made `emit_mir_inst_ctx(block, hid)` and emitted LOCAL_GET /
+LOCAL_SET / CONST_I32 from columns (no fill). CALL / arith / struct still
+filled a scratch `MirInst`. First SoA overlay to **finish**: **263.51s**,
+`s2=s3`, hello 2312B matched tick49, RSS **2.21GB**. Worse wall than
+242s/255s and RSS jumped vs ~1.75GB. Hybrid fill still allocates fat
+records; intern still `clone`s every `str_val`. Do **not** retry ticks
+64–69.
+
+Next slice must emit CALL / arith / struct from columns with **no fill**
+(no hybrid fat record on the emit hot path). Do not keep a live fat
+`MirInst` beside SoA columns. Emit probes with the existing gc host.
 
 ## Receipts
 
@@ -105,6 +111,7 @@ every `str_val`. Emit probes with the existing gc host.
 | tick 66 SoA + handle `inst_at` + column walks | killed 315s | — | 1.11GB | tick49 host emitted 6.92MB gc (259s); hello sha256 matched tick49 (2312B fixture); overlay no output; reverted |
 | tick 67 SoA + reuse one handle / block | timeout 320s | — | 1.11GB | hello 2312 matched tick49; emit 6.92MB; overlay no output; reverted |
 | tick 68 SoA + intern-no-bind + scratch fill | timeout 320s | — | n/a | tick49 host emitted 6.92MB gc (305.71s); hello sha256 matched tick49 (2312B); overlay no output; reverted |
+| tick 69 SoA + column GET/SET/CONST_I32 + fill fallback | **263.51s** | yes | **2.21GB** | first SoA overlay finish; emit 6.92MB (286.62s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `70363e94…`; worse wall + RSS jump; reverted |
 
 ## Non-goals
 
