@@ -76,10 +76,11 @@ instruction vecs) so Copying GC scans i32 tables instead of record graphs.
 Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
 parallel session-owned bump.
 
-**Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** That path
-(tick 64) cut RSS **1.75GB → 1.06GB** but overlay **timeout 320s** (exit 124).
-Resolve / propagate / emit rematerialized the record graph. Next slice must
-read SoA columns in place (`MirBlock_inst_op(block, idx)` etc.).
+**Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Tick 64
+(SoA + reconstruct-on-read) and tick 65 (in-place resolve, no before/after
+snapshot) both cut RSS **1.75GB → 1.06GB** and both **timeout 320s**.
+Fixing resolve alone is not enough: propagate + wasm emit still rematerialize.
+Next slice must make those walks read SoA columns in place.
 
 ## Receipts
 
@@ -87,6 +88,7 @@ read SoA columns in place (`MirBlock_inst_op(block, idx)` etc.).
 |---|---:|---|---:|---|
 | HEAD `fee7d7588` | 242s quiet / 255s loaded | yes | ~1.75GB | baseline |
 | tick 64 SoA + reconstruct-on-read | timeout 320s | — | 1.06GB | hello 2164; reverted |
+| tick 65 SoA + in-place resolve | timeout 320s | — | 1.06GB | hello 2164; emit/propagate still reconstruct; reverted |
 
 ## Non-goals
 
