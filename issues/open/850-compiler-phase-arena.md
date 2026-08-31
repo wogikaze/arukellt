@@ -342,6 +342,20 @@ and CALL/struct **from columns with no `inst_at`** on those
 leaves (change existing signatures; do not add a new
 `try_emit_*_from_cols` pile).
 
+Tick 109 did that for GET/SET/CONST/REF_FUNC (existing signatures,
+column reads, no `inst_at` on those leaves) plus leftover
+reconstruct for CALL/arith/convert/control/struct. Hello 2312B
+matched tick49. First emit was invalid wasm (`should_skip_store_after_early_tee`
+dropped `arg0` — undefined local, stack underflow). Second emit
+6.93MB (272.03s) validated. Overlay **timeout 320s**, no output.
+RSS not captured (wrapper crashed after the timeout return).
+GET/SET/CONST column emit is **not enough** while leftover
+families still reconstruct. Do **not** retry this leftover-reconstruct
+hybrid. Next slice must emit CALL/struct/arith/convert/control
+**from columns with no `inst_at`** (change existing signatures).
+Also convert remaining hot `inst_at` in `code_ref_locals_block_scan`
+/ infer_dest / payload-extract body scans.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -388,6 +402,7 @@ leaves (change existing signatures; do not add a new
 | tick 106 skip vec-access on enum/option/result | **245.15s** | yes | **1.68GB** | emit 6.90MB (243.91s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4d052a53…`; +6s vs 239s; reverted |
 | tick 107 copy-scan only on string/empty type_name | **204.92s** | **no** | **1.69GB** | emit 6.90MB (247.24s); hello sha256 `1dbf14ca…` (2312B); s2 `20d13a2d…` (6901066) ≠ s3 `d74afe8e…` (6899719); named locals still need SET-follow; reverted |
 | tick 108 SoA columns + CALL opcode then reconstruct | timeout 320s | — | **1.08GB** | emit 6.91MB (266.15s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover GET/SET/CONST/`inst_at` rematerialize; reverted |
+| tick 109 SoA + GET/SET/CONST columns; leftover reconstruct | timeout 320s | — | n/a | emit 6.93MB (272.03s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/arith/control `inst_at`; first emit invalid (`arg0` dropped); reverted |
 
 ## Non-goals
 
