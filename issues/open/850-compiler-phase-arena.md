@@ -578,6 +578,18 @@ shared-empty-block-id-vecs. Do **not** land a 250–270s wash. Next
 slice must still remove the per-inst `MirInst` GC object (or cut
 `LowerCtx` string tables) without closed SoA families.
 
+Tick 125 interned `fn_return_type_names` / `qualified_fn_return_type_names`
+/ `local_types` into `LowerCtx.str_intern` + `NameIndex` (i32 ids; no
+`MirFunction` fields). wasm32-gc flatten. Tick77 host emit **259.81s**,
+6902771 B, validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**269.49s**, **s2=s3** `b4bc477c…`, RSS **1.72GB**. Worse wall than
+239s; RSS wash. Narrow type-name intern is not the 1.7GB, and intern +
+lookup is extra mutator work. Reverted. Do **not** retry this narrow
+`LowerCtx` type-name intern. Do **not** land a 250–270s wash. Next
+slice must still remove the per-inst `MirInst` GC object (or cut
+function-shell / remaining `LowerCtx` tables that are not unique
+type-name strings) without closed SoA families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -640,6 +652,7 @@ slice must still remove the per-inst `MirInst` GC object (or cut
 | tick 122 emit-start shared-empty `result_types` | **252.55s** | yes | **1.69GB** | emit 6.90MB (247.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c1e8aba1…`; worse than 239s; RSS wash; per-inst MVT vecs are not the emit live set; reverted |
 | tick 123 slim `MirInst` + per-block shared extras | **257.76s** | yes | **1.64GB** | emit 6.90MB (252.53s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d36b15a6…`; worse than 239s; RSS wash; child-field sharing is not the emit live set; reverted |
 | tick 124 flatten MirLocal MVT + shared block id vecs | **255.65s** | yes | **1.69GB** | emit 6.90MB (253.54s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37bb8442…`; worse than 239s; RSS wash; local MVT / unused block vecs are not the emit live set; reverted |
+| tick 125 LowerCtx type-name intern handles | **269.49s** | yes | **1.72GB** | emit 6.90MB (259.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b4bc477c…`; worse than 239s; RSS wash; narrow return/local type-name intern is not the emit live set; reverted |
 
 ## Non-goals
 
