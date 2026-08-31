@@ -116,6 +116,10 @@ Prune-after mix on flatten: GET 182625 (36%), SET 107267
 (10%), CONST 41126 (8%), arith 22120 (4%), other 22649,
 agg 5248; total 502331. GET+SET are 58% and dest-unique
 so intern (137) cannot share them.
+Do **not** replace GET-to-self with the following
+`SET_from` (tick 153: 270s worse, s2≠s3, s3 invalid
+wasm, RSS 1.78GB). Do **not** call prelude `pop` on
+`Vec<MirInst>` (it is `Vec<i32>`-only).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1037,6 +1041,29 @@ leftover-NOP / param-share / in-place-func-id / skip-staging
 shared-fresh-local-name / skip-GET-after-CONST /
 stack-const-intern / op-hist-dump families.
 
+Tick 153 replaced a GET-to-self with the following
+`SET_from` in `emit_inst` (`set` last slot; prelude
+`pop` on `Vec<MirInst>` is i32-only and made s2
+invalid). Distinct from SET dest retarget (140) and
+skip GET-after-CONST (150). `SET_from` emit already
+`local.get`s arg1. wasm32-gc flatten. Tick77 host emit
+**274.70s**, 6901780 B, validated. Hello 2312B sha256
+`1dbf14ca…` matched. Overlay **270.05s**, **s2≠s3**
+`6b2b3ddd…` (6901780) ≠ `cde18391…` (6879770), RSS
+**1.78GB**. s3 **invalid wasm** func 158 (expected i32,
+found ref null). GET-before-SET_from is not a safe
+unique-GET cut (GC cast / stack typing). Reverted. Do
+**not** retry replace GET with SET_from. Do **not**
+land a 225–276s wash. Next slice must cut GET (then
+SET) unique records, without closed SoA / pack /
+reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+/ void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name / skip-GET-after-CONST /
+stack-const-intern / op-hist-dump / GET-SET_from-replace
+families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1127,6 +1154,7 @@ stack-const-intern / op-hist-dump families.
 | tick 150 skip GET-to-self after same-dest CONST | **235.10s** | yes | **1.76GB** | emit 6.90MB (233.72s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `85f9e5a0…`; s3 valid; same size; skip almost never fires; RSS wash; reverted |
 | tick 151 dest=-1 binop CONST_I32 intern | **232.02s** | **no** | **1.76GB** | emit 6.90MB (228.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `a6f5e4c8…` (6903831) ≠ s3 `da52170e…` (6780885); s3 valid; ~123KB; RSS wash; unique dest insts remain; reverted |
 | tick 152 post-prune MIR opcode histogram | **243.54s** | yes | **1.76GB** | emit 6.91MB (256.88s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b950742e…`; s3 valid; get=182625 set=107267 call=69152 ctrl=52144 const=41126 arith=22120; GET+SET 58%; RSS wash; reverted |
+| tick 153 replace GET-to-self with SET_from | **270.05s** | **no** | **1.78GB** | emit 6.90MB (274.70s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6b2b3ddd…` (6901780) ≠ s3 `cde18391…` (6879770); s3 **invalid wasm** func 158 i32 vs ref; worse than 239s; RSS wash; reverted |
 
 ## Non-goals
 
