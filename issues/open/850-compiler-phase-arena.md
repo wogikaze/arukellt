@@ -74,7 +74,8 @@ are the structural way to get there without flipping `BOOTSTRAP_EMIT_*` early.
 Lower-phase durable handles for MIR temporaries (insts / locals / block
 instruction vecs) so Copying GC scans i32 tables instead of record graphs.
 Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
-parallel session-owned bump.
+parallel session-owned bump. Do **not** store locals on a module-lifetime
+pack that outlives reachability prune (tick 131: RSS 3.87GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -649,6 +650,23 @@ Do **not** land a 246–270s wash. Next slice must cut MIR function-shell
 records (`MirFunction` / `MirLocal` / `MirBlock`) without adding
 `MirFunction` fields and without relocating `MirInst` fields.
 
+Tick 131 stored `MirLocal` payloads in a module-lifetime `MirLocalPack`
+(SoA columns on `MirModule`). `MirLocal` is `{hid, pack}`; `ctx_alloc_local`
+/ `ctx_fresh_local` append to the module pack; `ctx_push_func_param` binds
+standalone params into the same pack. Accessors clone strings and copy
+`MirValueType` (tick 121 / 129 contracts). No `MirFunction` fields, no
+`MirInst` relocate. wasm32-gc flatten. Tick77 host emit **243.01s**,
+6907280 B, validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**219.90s**, **s2=s3** `4c371039…`, RSS **3.87GB**. Wall beat the 239s
+loaded floor but RSS more than doubled: prune drops `MirFunction` shells
+while the module pack keeps every lowered local, including unreachable
+ones. Reverted. Do **not** retry a module-lifetime local pack that
+outlives reachability prune. Do **not** land a 3GB RSS even if wall is
+~220s. Next slice must keep function-aligned local columns that die with
+the function (parallel `MirModule` table pruned with `functions`, not a
+`MirFunction` field), or cut `MirBlock` shells, without relocating
+`MirInst` fields.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -717,6 +735,7 @@ records (`MirFunction` / `MirLocal` / `MirBlock`) without adding
 | tick 128 pack-at-commit + lazy inst_at unpack | — | — | — | emit 6.91MB (278.07s) succeeded; hello **invalid wasm** func 2065 ref-null type mismatch; overlay not run; rematerialize lost type identity; reverted |
 | tick 129 slim-handle + shared pack accessors | — | — | — | emit 6.91MB (275.36s) succeeded; host **invalid wasm** func 2151 ref-null type mismatch (same class as 128); overlay not run; pack-off-record lost type identity without rematerialize; reverted |
 | tick 130 pre-propagate LowerCtx/HIR scratch release | **257.46s** | yes | **1.68GB** | emit 6.90MB (246.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d0108e1f…`; worse than 239s; RSS wash; reverted |
+| tick 131 module-lifetime MirLocal pack | **219.90s** | yes | **3.87GB** | emit 6.91MB (243.01s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `4c371039…`; wall below 239s loaded but RSS 1.76→3.87GB (prune leak); reverted |
 
 ## Non-goals
 
