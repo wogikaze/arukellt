@@ -217,6 +217,7 @@ Tick 102 i64-scan type_name guard is closed (wash).
 Tick 103 skip unused def-site cache is closed (wash).
 Tick 104 fold has_ref into first cache walk is closed (wash).
 Tick 105 payload-extract container type_name guard is closed (wash).
+Tick 106 vec-access enum/option/result guard is closed (wash).
 Next slice is still SoA CALL/struct
 **no fill** (do not add a new helper family). Compare new walls
 to ~239s same-day, not 208s.
@@ -317,6 +318,12 @@ Tick 105 skipped `local_payload_extract_storage_type` when
 today's 239s floor. Do **not** retry this extract-scan guard. Next
 slice is still SoA CALL/struct **no fill**.
 
+Tick 106 skipped `local_vec_access_storage_type` when
+`local_has_result_option_enum_type_name`. Overlay **245.15s**,
+`s2=s3`, hello 2312B matched, RSS **1.68GB**. ~6s over today's
+239s floor. Do **not** retry this vec-access guard. Next slice is
+still SoA CALL/struct **no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -360,6 +367,7 @@ slice is still SoA CALL/struct **no fill**.
 | tick 103 skip unused def-site cache fill | **239.84s** | yes | **1.66GB** | emit 6.90MB (237.64s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4e4273c7…`; wash vs 239s; −1.7KB wasm; reverted |
 | tick 104 fold has_ref mark into first cache walk | **238.29s** | yes | **1.67GB** | emit 6.90MB (234.23s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `ddd62f69…`; wash vs 239s; reverted |
 | tick 105 skip payload-extract on container type_name | **239.09s** | yes | **1.67GB** | emit 6.90MB (238.05s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `48d4e527…`; wash vs 239s; reverted |
+| tick 106 skip vec-access on enum/option/result | **245.15s** | yes | **1.68GB** | emit 6.90MB (243.91s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4d052a53…`; +6s vs 239s; reverted |
 
 ## Non-goals
 
