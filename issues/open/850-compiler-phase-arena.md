@@ -332,6 +332,16 @@ RSS **1.69GB**. s2 6901066 B `20d13a2d…` ≠ s3 6899719 B
 copy infer. Do **not** retry this copy-scan guard. Next slice is
 still SoA CALL/struct **no fill**.
 
+Tick 108 replaced `Vec<MirInst>` with SoA columns. Emit neighbors
+and CALL/struct opcode checks read columns; CALL children and
+GET/SET/CONST/arith still `inst_at` reconstruct. Hello 2312B
+matched tick49. Emit 6.91MB (266.15s). Overlay **timeout 320s**,
+RSS **1.08GB**. Same rematerialize tax as ticks 64–68. Do **not**
+retry this hybrid reconstruct. Next slice must emit GET/SET/CONST
+and CALL/struct **from columns with no `inst_at`** on those
+leaves (change existing signatures; do not add a new
+`try_emit_*_from_cols` pile).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
