@@ -101,7 +101,9 @@ call staging copies (tick 145: 212s invalid s3, s2≠s3).
 Do **not** reuse identical void-stack `CALL` in the current
 block (tick 146: 268s worse, s2=s3, RSS wash). Do **not**
 skip CALL/REF_FUNC edge name intern when `func_id_raw >= 0`
-(tick 147: 263s wash, s2≠s3, RSS 1.76GB).
+(tick 147: 263s wash, s2≠s3, RSS 1.76GB). Do **not** drop the
+`clone` on `mir_inst_str_val` (tick 148: 231s wash, s2=s3,
+RSS 1.76GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -931,6 +933,23 @@ source-map / source_text / SET-from-retarget / CONST-CSE /
 leftover-NOP / param-share / in-place-func-id / skip-staging
 / void-CALL-reuse / fid-only-edge families.
 
+Tick 148 returned `inst.str_val` from `mir_inst_str_val`
+without `clone`. Emit-time callee/name reads no longer
+allocate a fresh String per accessor. Distinct from MirLocal
+accessor no-clone (121) and write-time field/sig intern
+(126). wasm32-gc flatten. Tick77 host emit **236.61s**,
+6900916 B, validated. Hello 2312B sha256 `1dbf14ca…`
+matched. Overlay **230.63s**, **s2=s3** `954dbf63…`, RSS
+**1.76GB**. s3 valid. ~8s vs 239s loaded is same-day noise
+(225–245s), not a live-set cut. Accessor clones are not the
+1.7GB. Reverted. Do **not** retry no-clone `mir_inst_str_val`.
+Do **not** land a 225–245s wash. Next slice must cut unique
+`MirInst` objects, without closed SoA / pack / reconstruct /
+intern / sync-copy / MirBlock-vec / source-map / source_text /
+SET-from-retarget / CONST-CSE / leftover-NOP / param-share /
+in-place-func-id / skip-staging / void-CALL-reuse /
+fid-only-edge / str-val-noclone families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1016,6 +1035,7 @@ leftover-NOP / param-share / in-place-func-id / skip-staging
 | tick 145 skip call-arg staging copies | **211.63s** | **no** | **1.71GB** | emit 6.90MB (259.26s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `c00acad6…` (6900260) ≠ s3 `aae0019b…` (5714950); s3 **invalid wasm** func 139 stack leftover; false wall; reverted |
 | tick 146 reuse identical void-stack CALL | **268.47s** | yes | **1.68GB** | emit 6.90MB (257.91s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `4406d78d…`; worse than 239s; scan tax; RSS wash; unique dest insts remain; reverted |
 | tick 147 skip CALL edge name when func_id known | **262.64s** | **no** | **1.76GB** | emit 6.90MB (257.51s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `d4ba34c2…` (6900929) ≠ s3 `1be4e917…` (6900616); s3 valid; 313B smaller; worse than 239s; RSS wash; reverted |
+| tick 148 no-clone mir_inst_str_val accessor | **230.63s** | yes | **1.76GB** | emit 6.90MB (236.61s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `954dbf63…`; s3 valid; ~8s vs 239s is 225–245s noise; RSS wash; accessor clones are not the live set; reverted |
 
 ## Non-goals
 
