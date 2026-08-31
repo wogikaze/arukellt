@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-08-31T04:45:15Z",
+  "generated_at": "2026-08-31T04:59:03Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {

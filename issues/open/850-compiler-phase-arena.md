@@ -207,8 +207,9 @@ emit-loop sliding window is closed (wash wall + RSS jump). Tick 92
 opcode-first emit dispatch is closed (wash). Tick 93 line-start
 source-map index is closed (first cut `s2≠s3`; remasure wash).
 Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
-producer-index payload/vec scans is closed (wash). Next slice is
-still SoA CALL/struct **no fill** (do not add a new helper family).
+producer-index payload/vec scans is closed (wash). Tick 96
+has_ref miss memo is closed (wash). Next slice is still SoA
+CALL/struct **no fill** (do not add a new helper family).
 Compare new walls to ~239s same-day, not 208s.
 
 Tick 91 reused already-read `MirInst`s in
@@ -244,8 +245,13 @@ vec-access storage instead of a full body scan per local. Overlay
 **227.35s**, `s2=s3`, hello 2312B matched, RSS **1.72GB**. ~12s
 under today's 239s floor but inside same-day noise vs ticks 91–94
 (232–234s) and added emit helpers. Do **not** retry this
-producer-index scan rewrite. Next slice is still SoA CALL/struct
-**no fill**.
+producer-index scan rewrite.
+
+Tick 96 memoized `local_has_any_ref_assignment` misses (`cached==2`)
+so later queries skip the body scan. Overlay **230.63s**, `s2=s3`,
+hello 2312B matched, RSS **1.71GB**. Wall is wash vs today's 239s
+floor. Do **not** retry this has_ref miss memo. Next slice is still
+SoA CALL/struct **no fill**.
 
 ## Receipts
 
@@ -280,6 +286,7 @@ producer-index scan rewrite. Next slice is still SoA CALL/struct
 | tick 93 line-start source-map index | **237.45s** then **237.35s** | no then yes | **1.71GB** | first: s2 `46e17093…` ≠ s3 `a68b6bf1…` (offset edge ≠ old helpers); remasure s2=s3 `cfbb6175…`; emit 6.90MB (229.81s); hello sha256 `1dbf14ca…` (2312B); wash vs 239s; reverted |
 | tick 94 gcsref run-copy rewrite | **232.13s** | yes | **1.71GB** | emit 6.90MB (233.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `8860ca6f…`; wash vs 239s; RSS wash; reverted |
 | tick 95 producer-index payload/vec scans | **227.35s** | yes | **1.72GB** | emit 6.91MB (226.14s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4f0dfcd6…`; ~12s vs 239s, noise vs 232–234s same-day; extra helpers; reverted |
+| tick 96 has_ref miss memo (`cached==2`) | **230.63s** | yes | **1.71GB** | emit 6.90MB (225.29s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `8d454678…`; wash vs 239s; RSS wash; reverted |
 
 ## Non-goals
 
