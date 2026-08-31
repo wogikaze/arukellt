@@ -91,7 +91,8 @@ identical GET/SET/control `MirInst` records on LowerCtx (tick 137:
 Do **not** retarget `SET_from` dest onto the last producer
 (tick 140: 234s wash, s2≠s3, RSS 1.75GB). Do **not** CSE
 block-scoped `CONST_I32` by `int_val` (tick 141: 286s worse,
-s2≠s3, RSS wash).
+s2≠s3, RSS wash). Do **not** skip leftover-statement `NOP`
+(tick 142: 240s floor wash, s2≠s3, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -826,6 +827,20 @@ must cut unique `MirInst` objects, without closed SoA / pack /
 reconstruct / intern / sync-copy / MirBlock-vec / source-map /
 source_text / SET-from-retarget / CONST-CSE families.
 
+Tick 142 stopped emitting leftover-statement `NOP` in
+`lower_statement_like_expr` (the only production `MirInst_nop`
+site). Elides unique NOP objects without a scan. wasm32-gc
+flatten. Tick77 host emit **269.99s**, 6900458 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **239.64s**,
+**s2≠s3** `3ec8e8bb…` (6900458) ≠ `42398761…` (6900350),
+RSS **1.68GB**. Floor wash vs 239s; s3 is 108B smaller.
+Leftover NOP is not the 1.7GB. Reverted. Do **not** retry
+skip leftover NOP. Do **not** land a 239s floor wash. Next
+slice must cut unique `MirInst` objects, without closed SoA /
+pack / reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -905,6 +920,7 @@ source_text / SET-from-retarget / CONST-CSE families.
 | tick 139 slim MirBlock drop dump-only vecs | **245.18s** | yes | **1.68GB** | emit 6.90MB (245.60s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a3cdd24f…`; worse than 239s; RSS wash; confirms tick 124; reverted |
 | tick 140 SET_from dest retarget onto last producer | **233.76s** | **no** | **1.75GB** | emit 6.90MB (263.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6df66768…` (6901765) ≠ s3 `846086ad…` (6394549); wash vs 239s; s3 ~508KB smaller; RSS wash; reverted |
 | tick 141 block-scoped CONST_I32 CSE by int_val | **286.39s** | **no** | **1.68GB** | emit 6.90MB (273.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `90e8a309…` (6902944) ≠ s3 `7094d2bb…` (6837830); worse than 239s; scan tax; RSS wash; reverted |
+| tick 142 skip leftover-statement NOP | **239.64s** | **no** | **1.68GB** | emit 6.90MB (269.99s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `3ec8e8bb…` (6900458) ≠ s3 `42398761…` (6900350); floor wash vs 239s; s3 108B smaller; RSS wash; reverted |
 
 ## Non-goals
 
