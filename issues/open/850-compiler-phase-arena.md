@@ -430,6 +430,20 @@ reconstruct) before measuring again. Do **not** land a 250s wash
 even if s2=s3. Still no leftover-reconstruct hybrid and no global
 rewriter.
 
+Tick 115 re-landed the tick 114 SoA + leftover scan columns but kept
+HEAD resolve semantics: reconstruct only insts with `func_id_raw >= 0`,
+then `mir_inst_with_call_target` + `replace_inst` (no whole-block
+`set_instructions`, no in-place field writes). Tick77 host emit
+**278.96s**, 6941288 B, validated. Hello 2312B sha256 `1dbf14ca…`
+matched. Overlay **260.64s**, RSS **1.84GB**, **s2≠s3** (s2
+`89be2294…` 6941288 B ≠ s3 `56f6bd4c…` 6941198 B, **90 bytes**).
+Same section shape as tick 114: type **+21**, code **−47**, name
+**−64**. In-place resolve was **not** the 90-byte cause. Column
+scans / function-scoped emit still insert extra GC types. Wall is
+worse than 239s. Do **not** retry 114 or 115 as they were. Next
+slice must isolate the extra type-section entries (scan infer vs
+emit) before another full overlay. Do **not** land a 250–260s wash.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
