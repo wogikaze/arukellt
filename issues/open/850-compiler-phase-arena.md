@@ -504,6 +504,20 @@ leftover columns is closed on the official flatten. Do **not** land a
 reduction (phase arena / i32 handles) or SoA **without** function-scoped
 rewrite (69/76 already finished s2=s3 and was worse).
 
+Tick 119 split `compile_source` so `prepare_emit_request` (frontend +
+lower) returns a durable `DriverEmitRequest` (MIR + precomputed WIT
+bindings + wit decls only for `--emit wit`) and `finish_emit_request`
+calls emit without AST/HIR/resolve/`CheckedProgram` as live locals.
+wasm32-gc flatten on emit and overlay. Tick77 host emit **260.67s**,
+6903497 B, validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**268.70s**, **s2=s3** `d81bd387…`, RSS **1.68GB**. Worse wall than the
+239s loaded floor; RSS wash. Unrooting frontend graphs at the
+lower→emit call boundary does not cut Copying-GC scan tax (tick 35:
+AST is not the 1.7GB). Reverted. Do **not** retry this pipeline split.
+Do **not** land a 250–270s wash. Next slice must shrink the MIR /
+TypeTable / function-shell live set (i32 tables that GC does not walk
+as record graphs), not another driver local-unroot.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -560,6 +574,7 @@ rewrite (69/76 already finished s2=s3 and was worse).
 | tick 116 type-section decode of tick-115 probes | — | — | — | no overlay; s2 2340 vs s3 2343 types; types 132/156/181 trailing i32→i64; extras 2340–2342; lower-time `gc_struct_sigs` / function-scoped emit of lowerer, not leftover TARGET scans |
 | tick 117 flatten-target mismatch (no SoA re-land) | — | — | — | tick77 vs tick115 hosts match on i32/i64 fixtures; 90B = emit `OVERLAY_EMIT_TARGET=wasm32` (fields→i32) vs overlay `wasm32-gc` (keep i64); types 132/156/181 = driver timing records |
 | tick 118 SoA + emit rewrite + leftover scans + wasm32-gc flatten + `scratch_call_block` | timeout 320s | — | **1.62GB** | first emit invalid (`try_emit_env_stdio_gc_adapter_body`); scratch emit 6.94MB (249.03s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no compiler s3; s2 `343f0532…`; 114/115 finish was wasm32-narrowed host; reverted |
+| tick 119 lower→emit frontend unroot (`DriverEmitRequest`) | **268.70s** | yes | **1.68GB** | emit 6.90MB (260.67s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d81bd387…`; worse than 239s; RSS wash; AST/HIR locals were not the emit scan tax; reverted |
 
 ## Non-goals
 
