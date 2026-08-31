@@ -47,11 +47,10 @@ fn emit_i32_to_f32_component(core_wasm: Vec<i32>, export_name: String) -> Vec<i3
 }
 
 fn try_emit_f32_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    let plan = export_shapes_f32_general::comp_f32_general_plan(mir)
-    if !export_shapes_f32_general::comp_f32_general_plan_is_valid(plan) {
+    if !export_shapes_f32_general::comp_f32_general_exports_match(mir) {
         return Vec::new<i32>()
     }
-    emit_f32_general::emit_f32_general_component(core_wasm, plan)
+    emit_f32_general::emit_f32_general_component(core_wasm, export_shapes_f32_general::comp_f32_general_plan(mir))
 }
 
 fn NUM_ADAPTER_F32_UNARY() -> i32 { 1 }

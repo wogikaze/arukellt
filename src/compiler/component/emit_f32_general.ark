@@ -28,8 +28,7 @@ fn emit_f32_general_alias_section(out: writer_core::ComponentWriter, plan: expor
     writer_core::comp_emit_leb128_u(alias_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+        let name = export_shapes_f32_general::F32GeneralPlan_name_at(plan, i)
         export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, name)
         i = i + 1
     }
@@ -62,8 +61,7 @@ fn emit_f32_general_type_section(out: writer_core::ComponentWriter, plan: export
     writer_core::comp_emit_leb128_u(type_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
+        let kind = export_shapes_f32_general::F32GeneralPlan_kind_at(plan, i)
         let params = emit_f32_general_kind_wit_param_types(kind)
         let results = Vec::new<i32>()
         push(results, emit_f32_general_kind_wit_result_type(kind))
@@ -91,8 +89,7 @@ fn emit_f32_general_export_section(out: writer_core::ComponentWriter, plan: expo
     writer_core::comp_emit_leb128_u(func_export_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+        let name = export_shapes_f32_general::F32GeneralPlan_name_at(plan, i)
         export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(name), i, i)
         i = i + 1
     }

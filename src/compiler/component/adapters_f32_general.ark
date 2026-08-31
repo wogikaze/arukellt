@@ -60,8 +60,7 @@ fn comp_emit_f32_general_type_section(out: writer_core::ComponentWriter, plan: e
     writer_core::comp_emit_leb128_u(type_sec, count * 2)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
+        let kind = export_shapes_f32_general::F32GeneralPlan_kind_at(plan, i)
         let param_count = comp_f32_general_kind_param_count(kind)
         let user_params = Vec::new<i32>()
         let mut pi = 0
@@ -93,8 +92,7 @@ fn comp_emit_f32_general_import_section(out: writer_core::ComponentWriter, plan:
     writer_core::comp_emit_leb128_u(import_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+        let name = export_shapes_f32_general::F32GeneralPlan_name_at(plan, i)
         writer_core::comp_emit_string(import_sec, "user")
         writer_core::comp_emit_string(import_sec, clone(name))
         writer_core::comp_emit_byte(import_sec, 0x00)
@@ -122,8 +120,7 @@ fn comp_emit_f32_general_export_section(out: writer_core::ComponentWriter, plan:
     writer_core::comp_emit_leb128_u(export_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let name = export_shapes_f32_general::F32GeneralExport_name(entry)
+        let name = export_shapes_f32_general::F32GeneralPlan_name_at(plan, i)
         writer_core::comp_emit_string(export_sec, clone(name))
         writer_core::comp_emit_byte(export_sec, 0x00)
         writer_core::comp_emit_leb128_u(export_sec, i)
@@ -138,8 +135,7 @@ fn comp_emit_f32_general_code_section(out: writer_core::ComponentWriter, plan: e
     writer_core::comp_emit_leb128_u(code_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_f32_general::F32GeneralPlan_entry_at(plan, i)
-        let kind = export_shapes_f32_general::F32GeneralExport_kind(entry)
+        let kind = export_shapes_f32_general::F32GeneralPlan_kind_at(plan, i)
         comp_emit_f32_general_wrapper_body(code_sec, kind, i)
         i = i + 1
     }
