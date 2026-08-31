@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 128 122 bytes (≈ 6.80 MiB) |
-| sha256 | `427fe626fad4a8ca8bc48b87cb3a4514cf76b713ba768a0d115854d06ec84b53` |
-| Built from commit | `9a821f07` component emit bool-logic trap + core-func alias (s2==s3) |
+| Size | 7 264 783 bytes (≈ 6.93 MiB) |
+| sha256 | `f0e7abb0c813d3c4d7cdd5f4a1341de5aa53eca2fd3b0ac0158bed5e255e4c0e` |
+| Built from commit | `ca1e5621` wasm32-gc library emit uses GC canonical ABI adapter (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,25 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`ca1e5621`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `ca1e5621` (wasm32-gc library
+`--emit component` uses `wasm::emit_library_component` / GC ↔ canonical
+ABI adapter). Guest remains `wasm32-gc` / `wasi-p2` memory32. Official
+`build-compiler` then `fixpoint --build` 2026-08-31T08:19–08:29Z:
+s2==s3=`f0e7abb0` EXIT 0.
+
+Intentional drift from the previous pin (`9a821f07` / `427fe626`):
+
+- driver routes wasm32-gc library worlds to `wasm::emit_library_component`
+  so specialized linear i32 adapters are not instantiated against GC
+  String/list/record exports
+- overlay stub and driver patch match `core_wasi` (previous patch looked
+  for `config_wasi_version` and never applied)
+- Official string-multi / string-greet / string-len / list-first /
+  record-point / bool-logic validate + wasmtime invoke PASS
+- gc-layout-audit on string-multi: `name=0 fallback=0`
 
 ### wasm32-gc pinned (`9a821f07`)
 
