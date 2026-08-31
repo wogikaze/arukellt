@@ -214,6 +214,7 @@ guard is closed (wash). Tick 99 feeds_return cache seed is closed
 (wash). Tick 100 skip unused producer-index build is closed
 (wash). Tick 101 has_ref propagate cap-1 is closed (wash).
 Tick 102 i64-scan type_name guard is closed (wash).
+Tick 103 skip unused def-site cache is closed (wash).
 Next slice is still SoA CALL/struct
 **no fill** (do not add a new helper family). Compare new walls
 to ~239s same-day, not 208s.
@@ -296,6 +297,12 @@ Tick 102 checked `local_has_result_option_enum_type_name` before
 today's 239s floor. Do **not** retry this i64-scan guard. Next
 slice is still SoA CALL/struct **no fill**.
 
+Tick 103 stopped filling unused `local_def_block` / `local_def_inst`
+caches (`cached_def_*` has no callers). Overlay **239.84s**,
+`s2=s3`, hello 2312B matched, RSS **1.66GB**. Same as today's
+239s floor; wasm 6899359 B (−1.7KB). Do **not** retry this
+def-site skip. Next slice is still SoA CALL/struct **no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -336,6 +343,7 @@ slice is still SoA CALL/struct **no fill**.
 | tick 100 skip unused `build_local_producer_index` | **244.45s** | yes | **1.65GB** | emit 6.90MB (248.35s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `a26d11fb…`; +5s vs 239s; −5.7KB wasm; reverted |
 | tick 101 cap has_ref propagate at 1 | **235.04s** | yes | **1.67GB** | emit 6.90MB (236.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `da4278bc…`; wash vs 239s; reverted |
 | tick 102 enum type_name before i64 body scan | **238.18s** | yes | **1.68GB** | emit 6.90MB (241.06s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `3b47a7fc…`; wash vs 239s; reverted |
+| tick 103 skip unused def-site cache fill | **239.84s** | yes | **1.66GB** | emit 6.90MB (237.64s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4e4273c7…`; wash vs 239s; −1.7KB wasm; reverted |
 
 ## Non-goals
 
