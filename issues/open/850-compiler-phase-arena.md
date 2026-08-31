@@ -109,6 +109,13 @@ s2≠s3, RSS 1.76GB). Do **not** skip GET-to-self after a
 same-dest CONST (tick 150: 235s wash, s2=s3, RSS 1.76GB).
 Do **not** emit dest=-1 stack CONST + intern for binop i32
 literals (tick 151: 232s wash, s2≠s3, RSS 1.76GB).
+Do **not** land a post-prune MIR opcode histogram dump
+(tick 152: 244s s2=s3, RSS 1.76GB; measurement only).
+Prune-after mix on flatten: GET 182625 (36%), SET 107267
+(21%), CALL dest 51452 + void 17700 (14%), ctrl 52144
+(10%), CONST 41126 (8%), arith 22120 (4%), other 22649,
+agg 5248; total 502331. GET+SET are 58% and dest-unique
+so intern (137) cannot share them.
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1011,6 +1018,25 @@ leftover-NOP / param-share / in-place-func-id / skip-staging
 shared-fresh-local-name / skip-GET-after-CONST /
 stack-const-intern families.
 
+Tick 152 dumped post-prune opcode buckets from
+`MirModule_dump_op_hist` (stderr only; no wasm change).
+wasm32-gc flatten. Tick77 host emit **256.88s**, 6909887 B,
+validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**243.54s**, **s2=s3** `b950742e…`, RSS **1.76GB**. s3 valid.
+Hist: get=182625 set=107267 c32=28694 coth=12432
+callD=51452 callV=17700 arith=22120 agg=5248 ctrl=52144
+oth=22649 (total 502331). GET+SET = 58% dest-unique
+records; CALL/arith/CONST together are 26%. Extra walk is
+not a live-set cut. Reverted. Do **not** retry the hist
+dump. Do **not** land a 225–245s wash. Next slice must
+cut GET (then SET) unique records, without closed SoA /
+pack / reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+/ void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name / skip-GET-after-CONST /
+stack-const-intern / op-hist-dump families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1100,6 +1126,7 @@ stack-const-intern families.
 | tick 149 share _t name on ctx_fresh_local | **235.44s** | **no** | **1.76GB** | emit 6.90MB (226.67s) validated; hello **2311B** sha256 `d222a7eb…` (mismatch); s2 `c4dd7e55…` (6900596) ≠ s3 `6865e26f…` (6463583); s3 valid; ~437KB name section; RSS wash; reverted |
 | tick 150 skip GET-to-self after same-dest CONST | **235.10s** | yes | **1.76GB** | emit 6.90MB (233.72s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `85f9e5a0…`; s3 valid; same size; skip almost never fires; RSS wash; reverted |
 | tick 151 dest=-1 binop CONST_I32 intern | **232.02s** | **no** | **1.76GB** | emit 6.90MB (228.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `a6f5e4c8…` (6903831) ≠ s3 `da52170e…` (6780885); s3 valid; ~123KB; RSS wash; unique dest insts remain; reverted |
+| tick 152 post-prune MIR opcode histogram | **243.54s** | yes | **1.76GB** | emit 6.91MB (256.88s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b950742e…`; s3 valid; get=182625 set=107267 call=69152 ctrl=52144 const=41126 arith=22120; GET+SET 58%; RSS wash; reverted |
 
 ## Non-goals
 
