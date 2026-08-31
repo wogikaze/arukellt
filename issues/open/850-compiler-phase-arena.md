@@ -211,6 +211,7 @@ producer-index payload/vec scans is closed (wash). Tick 96
 has_ref miss memo is closed (wash). Tick 97 skip layout-plan
 validator is closed (wash). Tick 98 `local_feeds_return` return-type
 guard is closed (wash). Tick 99 feeds_return cache seed is closed
+(wash). Tick 100 skip unused producer-index build is closed
 (wash). Next slice is still SoA CALL/struct
 **no fill** (do not add a new helper family). Compare new walls
 to ~239s same-day, not 208s.
@@ -274,6 +275,13 @@ LOCAL_GET). Overlay **239.50s**, `s2=s3`, hello 2312B matched, RSS
 **not** retry this feeds_return cache. Next slice is still SoA
 CALL/struct **no fill**.
 
+Tick 100 skipped `build_local_producer_index` in
+`begin_function_local_gc_cache` (no readers after tick 95 revert).
+Overlay **244.45s**, `s2=s3`, hello 2312B matched, RSS **1.65GB**.
+~5s over today's 239s floor; wasm 6895312 B (−5.7KB). Do **not**
+retry this unused-index skip. Next slice is still SoA CALL/struct
+**no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -311,6 +319,7 @@ CALL/struct **no fill**.
 | tick 97 skip layout-plan validator | **231.27s** | yes | **1.67GB** | emit 6.90MB (230.39s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `f8202844…`; wash vs 239s; RSS wash; reverted |
 | tick 98 `local_feeds_return` return-type guard | **225.24s** | yes | **1.67GB** | emit 6.90MB (228.97s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `883af61d…`; ~14s vs 239s, noise vs 225–237s same-day; reverted |
 | tick 99 seed feeds_return in GC cache walk | **239.50s** | yes | **1.67GB** | emit 6.90MB (242.74s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `84fd0bf9…`; wash vs 239s; +2KB wasm; reverted |
+| tick 100 skip unused `build_local_producer_index` | **244.45s** | yes | **1.65GB** | emit 6.90MB (248.35s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `a26d11fb…`; +5s vs 239s; −5.7KB wasm; reverted |
 
 ## Non-goals
 
