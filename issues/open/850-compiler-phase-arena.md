@@ -76,6 +76,9 @@ instruction vecs) so Copying GC scans i32 tables instead of record graphs.
 Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
 parallel session-owned bump. Do **not** store locals on a module-lifetime
 pack that outlives reachability prune (tick 131: RSS 3.87GB). Do **not**
+pack `MirInst` columns on `MirModule` after each function commit and
+unpack one function for resolve/propagate/emit (tick 159: 222s /
+**4.15GB**). Do **not**
 retry a function-scoped slim-handle `MirLocal` pack (tick 132: 275s /
 1.72GB wash). Do **not** replace `MirFunction.locals` with columns and
 reconstruct a fat `MirLocal` on `local_at` (tick 133: 250s / 1.75GB wash).
@@ -149,11 +152,23 @@ unused CALL without a wasm-equivalence proof.
 Eliding GET / CONST dest / unused CALL dest
 does not move the 1.7GB (155–158). Dest-unique
 fat `MirInst` records stay live through
-sync/propagate. Next cut is **not** another
-dest=-1 / encode-on-consumer. It is either
+sync/propagate.
+Do **not** pack each function's `MirInst`s into
+MirModule columns after `ctx_push_*` and unpack
+one function for resolve / propagate / emit
+(tick 159: 222s wash, s2=s3, s3 valid, RSS
+**4.15GB**). Hello matched. `Vec<f64>`
+`get_unchecked` traps on wasm32-gc. Columns
+outlive prune and sit beside the fat records
+(tick 131 class). Do **not** retry
+pack-after-push + one-fn rematerialize.
+Next cut is **not** another dest=-1 /
+encode-on-consumer and **not** another
+function-scoped inst pack that rematerializes.
+It is either
 (1) a handle/column shape emit reads **without**
 rematerialize and **without** leftover
-reconstruct (not ticks 64–76 / 108–118), or
+reconstruct (not ticks 64–76 / 108–118 / 159), or
 (2) function-at-a-time lower→propagate→emit→drop
 after GC layout can be sealed from the view
 (`mir_register_view_layouts` + flush) **before**
@@ -1338,6 +1353,7 @@ reconstruct or leftover-column hybrids.
 | tick 156 skip 1-arg ident GET; encode first_arg | **245.28s** | **no** | **1.67GB** | emit 6.90MB (265.68s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `47768851…` (6903692) ≠ s3 `0ce3f92a…` (6910681); s3 **invalid wasm** func 158 expected ref found i32; wash vs 239s; RSS wash; reverted |
 | tick 157 reuse CONST_I32 dest for 0/1 | **252.49s** | **no** | **1.68GB** | emit 6.90MB (231.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `4dd6d7fe…` (6902711) ≠ s3 `116550d4…` (6823946); s3 **invalid wasm** func 143 stack leftover; wash vs 239s; RSS wash; reverted |
 | tick 158 void leftover block-root CALL dest | **236.66s** | **no** | **1.68GB** | emit 6.90MB (228.12s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `484a9723…` (6903974) ≠ s3 `6007e304…` (6890287); s3 **invalid wasm** func 3322 expected i32 found ref; wash vs 239s; RSS wash; reverted |
+| tick 159 function-scoped MirInst column pack | **221.88s** | yes | **4.15GB** | emit 6.92MB (240.00s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b2059f70…` (6919630); s3 valid; first emit trapped on `Vec<f64>` `get_unchecked`; hold-record float then overlay finished; wall noise vs 239s; RSS 1.76→4.15GB (columns + fat records; prune leak class); reverted |
 
 ## Non-goals
 
