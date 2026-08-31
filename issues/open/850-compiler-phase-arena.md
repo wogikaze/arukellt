@@ -189,8 +189,14 @@ scans. Do **not** retry this payload-extract count pass.
 Tick 88 delayed `stdlib_resolve_normal_call_block` output-vec
 construction until the first specialized fallback. Overlay
 **237.48s**, `s2=s3`, hello 2312B matched, RSS **1.75GB**. Worse
-than tick 80. Do **not** retry lazy resolve output. Next slice is
-still SoA CALL/struct **no fill** (do not add a new helper family).
+than tick 80. Do **not** retry lazy resolve output.
+
+Tick 89 dropped `stdlib_resolve_normal_calls` from the overlay
+`optimize_module` stub. Overlay **240.83s**, `s2=s3`, hello 2312B
+matched, RSS **1.75GB**. Resolve does not change compiler wasm, but
+skipping it made emit slower. Do **not** retry stub-skip resolve.
+Next slice is still SoA CALL/struct **no fill** (do not add a new
+helper family).
 
 ## Receipts
 
@@ -218,6 +224,7 @@ still SoA CALL/struct **no fill** (do not add a new helper family).
 | tick 86 one-pass enum slot table + SET edges | **223.55s** | **no** | **1.75GB** | emit 6.90MB (229.68s); hello sha256 `1dbf14ca…` (2312B); s2 `3e80dfab…` ≠ s3 `03ab3b43…`; not equivalent; reverted |
 | tick 87 one-pass payload-extract GET/other counts | **236.97s** | yes | **1.75GB** | emit 6.90MB (228.24s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4601f7fa…`; worse than tick 80; reverted |
 | tick 88 lazy resolve output vec | **237.48s** | yes | **1.75GB** | emit 6.90MB (227.38s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `2cd20ab6…`; worse than tick 80; reverted |
+| tick 89 overlay stub skip resolve | **240.83s** | yes | **1.75GB** | emit 6.89MB (234.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `35fff7cb…`; worse than tick 80; reverted |
 
 ## Non-goals
 
