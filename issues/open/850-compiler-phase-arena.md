@@ -172,7 +172,13 @@ Tick 85 skipped the O(insts) multi-variant scan for locals whose
 type_name is a non-enum and `variant_slot < 0`. Hello 2312B matched.
 Overlay **226.10s**, **s2≠s3**, RSS **1.75GB**. The filter drops
 joins that still change compiler wasm. Do **not** retry this
-type_name/slot filter. Next slice is still SoA CALL/struct **no fill**
+type_name/slot filter.
+
+Tick 86 replaced the per-local recursive inst scan with one inst
+walk plus 8-iteration LOCAL_SET edges. Hello 2312B matched.
+Overlay **223.55s**, **s2≠s3**, RSS **1.75GB**. The rewrite is not
+equivalent to the recursive collect. Do **not** retry this one-pass
+slot table. Next slice is still SoA CALL/struct **no fill**
 (do not add a new helper family).
 
 ## Receipts
@@ -198,6 +204,7 @@ type_name/slot filter. Next slice is still SoA CALL/struct **no fill**
 | tick 83 skip post-propagate module sync | **233.98s** | yes | **1.75GB** | emit 6.90MB (223.60s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `db410b76…`; worse than tick 80; reverted |
 | tick 84 skip enum multi-variant normalize | **225.66s** | **no** | **1.75GB** | emit 6.89MB; hello sha256 `1dbf14ca…` (2312B); s2 `5993ddff…` ≠ s3 `00e2bfce…`; worse + broke fixpoint; reverted |
 | tick 85 skip multi-variant scan on non-enum locals | **226.10s** | **no** | **1.75GB** | emit 6.90MB (229.21s); hello sha256 `1dbf14ca…` (2312B); s2 `b4e79b34…` ≠ s3 `2d66eee6…`; worse + broke fixpoint; reverted |
+| tick 86 one-pass enum slot table + SET edges | **223.55s** | **no** | **1.75GB** | emit 6.90MB (229.68s); hello sha256 `1dbf14ca…` (2312B); s2 `3e80dfab…` ≠ s3 `03ab3b43…`; not equivalent; reverted |
 
 ## Non-goals
 
