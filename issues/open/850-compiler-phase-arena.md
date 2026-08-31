@@ -444,6 +444,31 @@ worse than 239s. Do **not** retry 114 or 115 as they were. Next
 slice must isolate the extra type-section entries (scan infer vs
 emit) before another full overlay. Do **not** land a 250–260s wash.
 
+Tick 116 decoded saved tick-115 probes (no product re-land, no
+overlay). `wasm-tools print --skeleton`: s2 **2340** types / s3
+**2343** (+3, +21 B). Root is **not** leftover TARGET `code_ref_locals`
+scans. Three user GC structs interned at lower time widen trailing
+`i32` fields to `i64`:
+
+- type 132: `{i32, ref 131, ref 36, i32, i32, i32}` → last 3 `i64`
+- type 156: `{i32, ref 131, ref 64, i32}` → last `i64`
+- type 181: `{i32, ref 131, ref 114, ref 165, i32}` → last `i64`
+
+Then constructors/accessors intern i64 variants; three leftover
+functype entries sit at 2340–2342
+(`(ref 11)->(ref 98)`, `(ref 43, ref 11)->(ref 11)`, `(ref 11, i32)`).
+`gc_struct_sigs` are registered in `mir/lower/ctx_gc_struct.ark`
+(`gc_struct_build_sig` / `gc_struct_scalar_field_suffix`) **before**
+emit-time leftover scans. s2 = tick77(HEAD) compiling SoA source →
+i32 fields stay i32, so the SoA **source** of the lowerer is fine
+under HEAD. s3 = SoA host compiling the same source → i64, so the
+**SoA-compiled** typecheck/lower wasm (function-scoped emit) is what
+widens. Tick 69/76 already proved SoA + reconstruct leftover emit
+can fixpoint. Next slice: leftover column scans **plus tick 69/76
+emit** (no function-scoped rewrite of `mir/lower/**`). If that
+times out, function-scoped emit **excluding** lower/type intern.
+Do **not** retry 114/115. Do **not** land a 250–260s wash.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -496,6 +521,8 @@ emit) before another full overlay. Do **not** land a 250–260s wash.
 | tick 112 SoA + function-scoped `(block, hid)` emit (skip `inst_at` fns) | timeout 320s | — | **1.08GB** | emit 6.94MB (265.04s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover scan/SSA `inst_at`; reverted |
 | tick 113 SoA + emit + SSA/fn_cache/enum column scans | timeout 320s | — | **1.18GB** | emit 6.94MB (287.10s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover block_scan/infer_dest/`inst_at`; reverted |
 | tick 114 SoA + leftover scan columns + in-place resolve | **250.64s** | **no** | **1.84GB** | emit 6.94MB (265.97s) validated; hello sha256 `1dbf14ca…` (2312B); first SoA overlay finish since 69/76; s2 `51a1c6c8…` (6940720) ≠ s3 `7bb04a85…` (6940630); worse than 239s; reverted |
+| tick 115 SoA + leftover scans + CALL reconstruct `replace_inst` | **260.64s** | **no** | **1.84GB** | emit 6.94MB (278.96s) validated; hello sha256 `1dbf14ca…` (2312B); same 90B shape as 114 (type +21 / code −47 / name −64); resolve was not the cause; reverted |
+| tick 116 type-section decode of tick-115 probes | — | — | — | no overlay; s2 2340 vs s3 2343 types; types 132/156/181 trailing i32→i64; extras 2340–2342; lower-time `gc_struct_sigs` / function-scoped emit of lowerer, not leftover TARGET scans |
 
 ## Non-goals
 
