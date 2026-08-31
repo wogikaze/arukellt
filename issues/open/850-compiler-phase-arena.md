@@ -88,6 +88,8 @@ identical GET/SET/control `MirInst` records on LowerCtx (tick 137:
 241s s2=s3, RSS wash). Do **not** in-place typed-MIR local sync
 (tick 138: 245s s2=s3, RSS wash). Do **not** drop dump-only
 `MirBlock` phi/pred/dom vec fields (tick 139: 245s s2=s3, RSS wash).
+Do **not** retarget `SET_from` dest onto the last producer
+(tick 140: 234s wash, s2≠s3, RSS 1.75GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -793,6 +795,20 @@ Next slice must cut unique `MirInst` objects, without closed SoA /
 pack / reconstruct / intern / sync-copy / MirBlock-vec / source-map /
 source_text families.
 
+Tick 140 skipped emitting `SET_from` when the current block's last
+inst dest equals the SET source, and rewrote that dest to the SET
+target instead. Elides unique SET objects without SoA / pack /
+reconstruct / intern. wasm32-gc flatten. Tick77 host emit
+**263.42s**, 6901765 B, validated. Hello 2312B sha256 `1dbf14ca…`
+matched. Overlay **233.76s**, **s2≠s3** `6df66768…` (6901765) ≠
+`846086ad…` (6394549), RSS **1.75GB**. Wash vs 239s. Fusion shrinks
+s3 (~508KB) but one-hop cannot fixpoint; unique CALL / CONST / arith
+remain the live set. Reverted. Do **not** retry `SET_from` dest
+retarget. Do **not** land a 225–245s noise win. Next slice must cut
+unique `MirInst` objects, without closed SoA / pack / reconstruct /
+intern / sync-copy / MirBlock-vec / source-map / source_text /
+SET-from-retarget families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -870,6 +886,7 @@ source_text families.
 | tick 137 intern identical GET/SET/control MirInst | **241.05s** | yes | **1.70GB** | emit 6.91MB (233.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `ed705e51…`; wash vs 239s; RSS wash; unique insts remain; reverted |
 | tick 138 in-place typed MIR local sync | **245.41s** | yes | **1.68GB** | emit 6.90MB (242.17s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `8d9295b7…`; worse than 239s; RSS wash; sync copies are not the live set; reverted |
 | tick 139 slim MirBlock drop dump-only vecs | **245.18s** | yes | **1.68GB** | emit 6.90MB (245.60s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a3cdd24f…`; worse than 239s; RSS wash; confirms tick 124; reverted |
+| tick 140 SET_from dest retarget onto last producer | **233.76s** | **no** | **1.75GB** | emit 6.90MB (263.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6df66768…` (6901765) ≠ s3 `846086ad…` (6394549); wash vs 239s; s3 ~508KB smaller; RSS wash; reverted |
 
 ## Non-goals
 
