@@ -120,6 +120,12 @@ Do **not** replace GET-to-self with the following
 `SET_from` (tick 153: 270s worse, s2≠s3, s3 invalid
 wasm, RSS 1.78GB). Do **not** call prelude `pop` on
 `Vec<MirInst>` (it is `Vec<i32>`-only).
+Do **not** land a GET-successor histogram dump
+(tick 154: 261s s2=s3, RSS 1.76GB; measurement).
+GET next-op: SET 50780, CALL 58133, GET 49360,
+arith 5117, ret 1828, ctrl 4203, other 13185;
+to-self 172594. CALL chain (GET→GET / GET→CALL)
+is 59%; SET is 28% and 153-unsafe; arith is 3%.
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1064,6 +1070,28 @@ shared-fresh-local-name / skip-GET-after-CONST /
 stack-const-intern / op-hist-dump / GET-SET_from-replace
 families.
 
+Tick 154 dumped GET successor opcodes after prune
+(`mir-get-succ`, stderr only). wasm32-gc flatten.
+Tick77 host emit **254.22s**, 6908914 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**261.08s**, **s2=s3** `1d08e276…`, RSS **1.76GB**.
+s3 valid. Hist: self=172594 set=50780 call=58133
+arith=5117 get=49360 ret=1828 ctrl=4203 oth=13185
+tail=0. GET→SET is only 28% (153's target). GET→GET
++ GET→CALL is 59% (2-arg stack compose + 1-arg).
+Arith GETs are 3%. Extra walk is not a live-set cut.
+Reverted. Do **not** retry the GET-successor dump.
+Do **not** land a 225–276s wash. Next slice must
+cut the GET→CALL chain (not SET_from, not arith
+GET, not skip-staging), without closed SoA / pack /
+reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+/ void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name / skip-GET-after-CONST /
+stack-const-intern / op-hist-dump / GET-SET_from-replace /
+get-succ-dump families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1155,6 +1183,7 @@ families.
 | tick 151 dest=-1 binop CONST_I32 intern | **232.02s** | **no** | **1.76GB** | emit 6.90MB (228.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `a6f5e4c8…` (6903831) ≠ s3 `da52170e…` (6780885); s3 valid; ~123KB; RSS wash; unique dest insts remain; reverted |
 | tick 152 post-prune MIR opcode histogram | **243.54s** | yes | **1.76GB** | emit 6.91MB (256.88s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b950742e…`; s3 valid; get=182625 set=107267 call=69152 ctrl=52144 const=41126 arith=22120; GET+SET 58%; RSS wash; reverted |
 | tick 153 replace GET-to-self with SET_from | **270.05s** | **no** | **1.78GB** | emit 6.90MB (274.70s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6b2b3ddd…` (6901780) ≠ s3 `cde18391…` (6879770); s3 **invalid wasm** func 158 i32 vs ref; worse than 239s; RSS wash; reverted |
+| tick 154 GET successor histogram | **261.08s** | yes | **1.76GB** | emit 6.91MB (254.22s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `1d08e276…`; s3 valid; GET next SET 50780 CALL 58133 GET 49360 arith 5117; CALL chain 59%; RSS wash; reverted |
 
 ## Non-goals
 
