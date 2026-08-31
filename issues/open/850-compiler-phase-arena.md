@@ -77,7 +77,8 @@ Do not add fields to `MirFunction`. Side tables belong on `LowerCtx` or a
 parallel session-owned bump. Do **not** store locals on a module-lifetime
 pack that outlives reachability prune (tick 131: RSS 3.87GB). Do **not**
 retry a function-scoped slim-handle `MirLocal` pack (tick 132: 275s /
-1.72GB wash).
+1.72GB wash). Do **not** replace `MirFunction.locals` with columns and
+reconstruct a fat `MirLocal` on `local_at` (tick 133: 250s / 1.75GB wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -684,6 +685,20 @@ the per-local `MirLocal` record from the emit/propagate hot path (scalar
 accessors + empty `f.locals`), or cut `MirBlock` shells, without
 relocating `MirInst` fields and without a module-lifetime pack.
 
+Tick 133 replaced `MirFunction.locals: Vec<MirLocal>` with a per-function
+`MirLocalPack` (existing field type change, not a new field). `local_at`
+reconstructs a fat `MirLocal` from columns; params stay fat records.
+wasm32-gc flatten. Tick77 host emit **242.14s**, 6905901 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **249.91s**, **s2=s3**
+`a2739e05…`, RSS **1.75GB**. Worse wall than 239s; RSS wash. Stored
+local records are gone, but reconstruct-on-read plus leftover `params`
+objects keep the 1.7GB and add mutator work (same class as tick 64
+`inst_at`). Reverted. Do **not** retry locals-as-pack + `local_at`
+reconstruct. Do **not** land a 246–270s wash. Next slice must use
+scalar local accessors with **no** `MirLocal` reconstruct on emit or
+propagate, or cut `MirBlock` / `MirInst` objects, without closed pack
+families (128–133).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -754,6 +769,7 @@ relocating `MirInst` fields and without a module-lifetime pack.
 | tick 130 pre-propagate LowerCtx/HIR scratch release | **257.46s** | yes | **1.68GB** | emit 6.90MB (246.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d0108e1f…`; worse than 239s; RSS wash; reverted |
 | tick 131 module-lifetime MirLocal pack | **219.90s** | yes | **3.87GB** | emit 6.91MB (243.01s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `4c371039…`; wall below 239s loaded but RSS 1.76→3.87GB (prune leak); reverted |
 | tick 132 function-scoped MirLocal pack on LowerCtx | **275.50s** | yes | **1.72GB** | emit 6.91MB (247.05s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `8fc421d7…`; worse than 239s; RSS wash; slim handles still N objects; reverted |
+| tick 133 MirFunction.locals column pack + local_at reconstruct | **249.91s** | yes | **1.75GB** | emit 6.91MB (242.14s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a2739e05…`; worse than 239s; RSS wash; reconstruct-on-read; reverted |
 
 ## Non-goals
 
