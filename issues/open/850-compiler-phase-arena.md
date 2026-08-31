@@ -482,6 +482,28 @@ the lowerer. Next SoA overlay must set **the same**
 `ARUKELLT_OVERLAY_EMIT_TARGET=wasm32-gc` on emit **and** overlay. Do
 **not** retry 114/115 as they were. Do **not** land a 250–260s wash.
 
+Tick 118 re-landed the tick 115 SoA product (columns + function-scoped
+`(block, hid)` emit + leftover scans + HEAD CALL reconstruct) with
+**matching** `ARUKELLT_OVERLAY_EMIT_TARGET=wasm32-gc` on emit and
+overlay. Flatten kept driver timestamps as `i64` (no #813 narrow).
+`tick112_rewrite_emit.py` still skips `host_intrinsic_gc_body.ark`;
+the first emit (250.95s, 6940326 B) failed `wasm-tools validate` in
+`try_emit_env_stdio_gc_adapter_body` (`expected i32, found (ref null
+$type)`): callees now take `(block, hid)` but the skipped file still
+passed a fat `MirInst` as the second argument. `scratch_call_block`
+(push CALL into a SoA `MirBlock`, pass `(block, 0)`) fixed that.
+Second emit **249.03s**, 6940277 B, validated. Hello 2312B sha256
+`1dbf14ca…` matched. Overlay **timeout 320.25s**, RSS **1.62GB**, no
+compiler s3 (`bootstrap-out.wasm` left at the hello 2312 B fixture).
+s2 `343f0532…`. Same timeout family as ticks 112/113. 114/115 overlay
+finish was on a **wasm32-narrowed host** (i32 timestamps); the same
+product on official gc flatten does not finish in 320s. Reverted. Do
+**not** retry 114/115/118 as they were. Function-scoped SoA emit +
+leftover columns is closed on the official flatten. Do **not** land a
+250–260s wash. Next slice is not another emit rewrite; it needs live-set
+reduction (phase arena / i32 handles) or SoA **without** function-scoped
+rewrite (69/76 already finished s2=s3 and was worse).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -537,6 +559,7 @@ the lowerer. Next SoA overlay must set **the same**
 | tick 115 SoA + leftover scans + CALL reconstruct `replace_inst` | **260.64s** | **no** | **1.84GB** | emit 6.94MB (278.96s) validated; hello sha256 `1dbf14ca…` (2312B); same 90B shape as 114 (type +21 / code −47 / name −64); resolve was not the cause; reverted |
 | tick 116 type-section decode of tick-115 probes | — | — | — | no overlay; s2 2340 vs s3 2343 types; types 132/156/181 trailing i32→i64; extras 2340–2342; lower-time `gc_struct_sigs` / function-scoped emit of lowerer, not leftover TARGET scans |
 | tick 117 flatten-target mismatch (no SoA re-land) | — | — | — | tick77 vs tick115 hosts match on i32/i64 fixtures; 90B = emit `OVERLAY_EMIT_TARGET=wasm32` (fields→i32) vs overlay `wasm32-gc` (keep i64); types 132/156/181 = driver timing records |
+| tick 118 SoA + emit rewrite + leftover scans + wasm32-gc flatten + `scratch_call_block` | timeout 320s | — | **1.62GB** | first emit invalid (`try_emit_env_stdio_gc_adapter_body`); scratch emit 6.94MB (249.03s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no compiler s3; s2 `343f0532…`; 114/115 finish was wasm32-narrowed host; reverted |
 
 ## Non-goals
 
