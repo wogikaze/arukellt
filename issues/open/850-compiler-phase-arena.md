@@ -105,7 +105,8 @@ skip CALL/REF_FUNC edge name intern when `func_id_raw >= 0`
 `clone` on `mir_inst_str_val` (tick 148: 231s wash, s2=s3,
 RSS 1.76GB). Do **not** share one `"_t"` name for every
 `ctx_fresh_local` (tick 149: 235s wash, hello 2311B mismatch,
-s2≠s3, RSS 1.76GB).
+s2≠s3, RSS 1.76GB). Do **not** skip GET-to-self after a
+same-dest CONST (tick 150: 235s wash, s2=s3, RSS 1.76GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -971,6 +972,24 @@ reconstruct / intern / sync-copy / MirBlock-vec / source-map
 void-CALL-reuse / fid-only-edge / str-val-noclone /
 shared-fresh-local-name families.
 
+Tick 150 skipped GET-to-self in `ctx_emit` when the previous
+inst in the current block was CONST_I32/I64/F64/BOOL with the
+same dest (no window scan). Distinct from GET intern (137)
+and SET dest retarget (140). wasm32-gc flatten. Tick77 host
+emit **233.72s**, 6901876 B, validated. Hello 2312B sha256
+`1dbf14ca…` matched. Overlay **235.10s**, **s2=s3**
+`85f9e5a0…`, RSS **1.76GB**. s3 valid. Same size as s2 — the
+skip almost never fires on compiler lowering (literal dests
+are not re-GET'd). Same-day noise vs 239s. Reverted. Do
+**not** retry skip GET-after-CONST. Do **not** land a
+225–245s wash. Next slice must cut unique `MirInst` objects,
+without closed SoA / pack / reconstruct / intern / sync-copy
+/ MirBlock-vec / source-map / source_text / SET-from-retarget
+/ CONST-CSE / leftover-NOP / param-share / in-place-func-id
+/ skip-staging / void-CALL-reuse / fid-only-edge /
+str-val-noclone / shared-fresh-local-name / skip-GET-after-CONST
+families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1058,6 +1077,7 @@ shared-fresh-local-name families.
 | tick 147 skip CALL edge name when func_id known | **262.64s** | **no** | **1.76GB** | emit 6.90MB (257.51s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `d4ba34c2…` (6900929) ≠ s3 `1be4e917…` (6900616); s3 valid; 313B smaller; worse than 239s; RSS wash; reverted |
 | tick 148 no-clone mir_inst_str_val accessor | **230.63s** | yes | **1.76GB** | emit 6.90MB (236.61s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `954dbf63…`; s3 valid; ~8s vs 239s is 225–245s noise; RSS wash; accessor clones are not the live set; reverted |
 | tick 149 share _t name on ctx_fresh_local | **235.44s** | **no** | **1.76GB** | emit 6.90MB (226.67s) validated; hello **2311B** sha256 `d222a7eb…` (mismatch); s2 `c4dd7e55…` (6900596) ≠ s3 `6865e26f…` (6463583); s3 valid; ~437KB name section; RSS wash; reverted |
+| tick 150 skip GET-to-self after same-dest CONST | **235.10s** | yes | **1.76GB** | emit 6.90MB (233.72s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `85f9e5a0…`; s3 valid; same size; skip almost never fires; RSS wash; reverted |
 
 ## Non-goals
 
