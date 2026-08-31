@@ -146,6 +146,21 @@ Do **not** void leftover block-root CALL dest
 wasm, RSS 1.68GB). Hello matched; func 3322
 expected i32, found ref. Do **not** dest=-1
 unused CALL without a wasm-equivalence proof.
+Eliding GET / CONST dest / unused CALL dest
+does not move the 1.7GB (155–158). Dest-unique
+fat `MirInst` records stay live through
+sync/propagate. Next cut is **not** another
+dest=-1 / encode-on-consumer. It is either
+(1) a handle/column shape emit reads **without**
+rematerialize and **without** leftover
+reconstruct (not ticks 64–76 / 108–118), or
+(2) function-at-a-time lower→propagate→emit→drop
+after GC layout can be sealed from the view
+(`mir_register_view_layouts` + flush) **before**
+bodies. Layout today binds struct slots only
+after `ctx_flush_gc_structs` (post-body).
+Do **not** drop insts only after wasm emit
+(127: peak is already past).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1213,6 +1228,19 @@ op-hist-dump / GET-SET_from-replace /
 get-succ-dump / staged-GET-encode /
 ident-GET-encode / const-01-reuse /
 leftover-call-dest-void families.
+
+After 158, dest-field elision is closed as a
+live-set cut. 155 dropped ~50k staged GET
+objects and RSS stayed 1.78GB. Remaining
+peak is ~500k unique dest records held
+through module-wide sync/propagate. Next
+implementation slice: seal GC layout from
+the CoreHir view before `mir_emit_view_decls`,
+or a new i32 handle table that emit/propagate
+read as scalars (no `MirInst` reconstruct).
+Do **not** retry dest=-1 / GET-encode /
+CONST dest reuse. Do **not** retry SoA
+reconstruct or leftover-column hybrids.
 
 ## Receipts
 
