@@ -96,7 +96,8 @@ s2≠s3, RSS wash). Do **not** skip leftover-statement `NOP`
 share `params[i]` with `locals[i]` when type names match
 (tick 143: 287s worse, s2=s3, RSS wash). Do **not** rewrite
 `mir_inst_with_func_id_raw` as in-place field set (tick 144:
-255s worse, s2=s3, RSS wash).
+255s worse, s2=s3, RSS wash). Do **not** skip multi-arg
+call staging copies (tick 145: 212s invalid s3, s2≠s3).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -874,6 +875,23 @@ MirBlock-vec / source-map / source_text / SET-from-retarget /
 CONST-CSE / leftover-NOP / param-share / in-place-func-id
 families.
 
+Tick 145 stopped copying multi-arg call operands into fresh
+temps (`mir_stage_call_arg` / `mir_core_stage_call_arg` only
+record the original local). Still GET those locals before
+CALL. Not SET retarget (140), not intern (137). wasm32-gc
+flatten. Tick77 host emit **259.26s**, 6900260 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched (println does not
+stage). Overlay **211.63s**, **s2≠s3** `c00acad6…` (6900260)
+≠ `aae0019b…` (5714950), RSS **1.71GB**. s3 **invalid wasm**
+func 139 (values remaining on stack). Staging copies keep
+stack discipline. Reverted. Do **not** retry skip call-arg
+staging. Do **not** treat a faster invalid s3 as a win. Next
+slice must cut unique `MirInst` objects, without closed SoA /
+pack / reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -956,6 +974,7 @@ families.
 | tick 142 skip leftover-statement NOP | **239.64s** | **no** | **1.68GB** | emit 6.90MB (269.99s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `3ec8e8bb…` (6900458) ≠ s3 `42398761…` (6900350); floor wash vs 239s; s3 108B smaller; RSS wash; reverted |
 | tick 143 share params with locals when type names match | **286.94s** | yes | **1.68GB** | emit 6.90MB (279.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `3b0d173f…`; worse than 239s; RSS wash; duplicate params are not the live set; reverted |
 | tick 144 in-place CALL func_id attach | **255.02s** | yes | **1.68GB** | emit 6.90MB (247.19s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `59b491d0…`; worse than 239s; RSS wash; attach copies are not the live set; reverted |
+| tick 145 skip call-arg staging copies | **211.63s** | **no** | **1.71GB** | emit 6.90MB (259.26s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `c00acad6…` (6900260) ≠ s3 `aae0019b…` (5714950); s3 **invalid wasm** func 139 stack leftover; false wall; reverted |
 
 ## Non-goals
 
