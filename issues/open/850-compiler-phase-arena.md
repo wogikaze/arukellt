@@ -624,6 +624,19 @@ pack-at-commit + lazy `inst_at` unpack. Do **not** reconstruct a fat
 `MirInst` on read. Next slice must keep packed scalars through emit
 without rematerialize, and without closed SoA emit-rewrite families.
 
+Tick 129 stored inst payloads in a per-block `MirInstPack` (AoS words +
+shared `str_val` / `result_types` refs). `MirInst` is a slim `{hid, pack}`
+handle allocated at construct and rebound at push. `inst_at` returns that
+handle (no rematerialize, no emit rewrite). wasm32-gc flatten. Tick77 host
+emit **275.36s**, 6910195 B, `compilation succeeded`. Host wasm **invalid**
+func 2151 (ref-null type mismatch; same class as tick 128). Overlay not
+run. Relocating fields off the fat record still drops emit-visible type
+identity even when the `result_types` vec is shared. Reverted. Do **not**
+retry slim-handle + shared pack / accessor-through-pack. Do **not** retry
+another MirInst field-pack (128–129). Next slice must cut function-shell /
+`LowerCtx` tables, or a phase-arena that does not relocate `MirInst`
+fields, without closed SoA families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -690,6 +703,7 @@ without rematerialize, and without closed SoA emit-rewrite families.
 | tick 126 intern-share field/sig String handles | **246.78s** | yes | **1.76GB** | emit 6.90MB (264.69s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37dac859…`; worse than 239s; RSS unchanged; field/sig intern-share is not the emit live set; reverted |
 | tick 127 resolve-cache + post-emit body release | **265.53s** | yes | **1.77GB** | emit 6.90MB (275.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `6c897aed…`; worse than 239s; RSS unchanged; late body drop is after the 1.7GB peak; reverted |
 | tick 128 pack-at-commit + lazy inst_at unpack | — | — | — | emit 6.91MB (278.07s) succeeded; hello **invalid wasm** func 2065 ref-null type mismatch; overlay not run; rematerialize lost type identity; reverted |
+| tick 129 slim-handle + shared pack accessors | — | — | — | emit 6.91MB (275.36s) succeeded; host **invalid wasm** func 2151 ref-null type mismatch (same class as 128); overlay not run; pack-off-record lost type identity without rematerialize; reverted |
 
 ## Non-goals
 
