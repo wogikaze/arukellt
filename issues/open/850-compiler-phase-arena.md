@@ -86,7 +86,8 @@ Do **not** retry locals-pack + partial scalar rewrite (tick 134: 275s /
 (tick 136: 230s s2=s3 hello-ok, RSS wash). Do **not** intern
 identical GET/SET/control `MirInst` records on LowerCtx (tick 137:
 241s s2=s3, RSS wash). Do **not** in-place typed-MIR local sync
-(tick 138: 245s s2=s3, RSS wash).
+(tick 138: 245s s2=s3, RSS wash). Do **not** drop dump-only
+`MirBlock` phi/pred/dom vec fields (tick 139: 245s s2=s3, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -223,7 +224,8 @@ mismatch, `s2≠s3`, wash). Tick 136 unroot flatten `source_text`
 after location compute is closed (230s s2=s3, RSS wash). Tick 137
 intern identical GET/SET/control `MirInst` is closed (241s s2=s3,
 RSS wash). Tick 138 in-place local sync is closed (245s s2=s3, RSS
-wash).
+wash). Tick 139 slim `MirBlock` (drop dump-only vecs) is closed
+(245s s2=s3, RSS wash).
 Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
 producer-index payload/vec scans is closed (wash). Tick 96
 has_ref miss memo is closed (wash). Tick 97 skip layout-plan
@@ -779,6 +781,18 @@ land a 245s wash. Next slice must cut unique `MirInst` / `MirBlock`
 objects, without closed SoA / pack / reconstruct / intern / sync-copy /
 source-map / source_text families.
 
+Tick 139 dropped dump/SSA-only `phis` / `preds` / `dom_set` /
+`dom_frontier` from `MirBlock` (accessors stub empty; overlay emit
+never reads them). `idom` scalar kept. Distinct from tick 124 empty-vec
+share. wasm32-gc flatten. Tick77 host emit **245.60s**, 6899997 B,
+validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**245.18s**, **s2=s3** `a3cdd24f…`, RSS **1.68GB**. Worse than 239s.
+Unused block vecs are not the 1.7GB (tick 124). Reverted. Do **not**
+retry dump-only `MirBlock` field removal. Do **not** land a 245s wash.
+Next slice must cut unique `MirInst` objects, without closed SoA /
+pack / reconstruct / intern / sync-copy / MirBlock-vec / source-map /
+source_text families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -855,6 +869,7 @@ source-map / source_text families.
 | tick 136 unroot flatten source_text after locations | **230.24s** | yes | **1.64GB** | emit 6.90MB (232.62s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `40334e53…`; ~9s vs 239s, noise vs 225–245s same-day; RSS wash; reverted |
 | tick 137 intern identical GET/SET/control MirInst | **241.05s** | yes | **1.70GB** | emit 6.91MB (233.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `ed705e51…`; wash vs 239s; RSS wash; unique insts remain; reverted |
 | tick 138 in-place typed MIR local sync | **245.41s** | yes | **1.68GB** | emit 6.90MB (242.17s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `8d9295b7…`; worse than 239s; RSS wash; sync copies are not the live set; reverted |
+| tick 139 slim MirBlock drop dump-only vecs | **245.18s** | yes | **1.68GB** | emit 6.90MB (245.60s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a3cdd24f…`; worse than 239s; RSS wash; confirms tick 124; reverted |
 
 ## Non-goals
 
