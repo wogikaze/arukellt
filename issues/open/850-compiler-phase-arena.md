@@ -92,7 +92,9 @@ Do **not** retarget `SET_from` dest onto the last producer
 (tick 140: 234s wash, s2≠s3, RSS 1.75GB). Do **not** CSE
 block-scoped `CONST_I32` by `int_val` (tick 141: 286s worse,
 s2≠s3, RSS wash). Do **not** skip leftover-statement `NOP`
-(tick 142: 240s floor wash, s2≠s3, RSS wash).
+(tick 142: 240s floor wash, s2≠s3, RSS wash). Do **not**
+share `params[i]` with `locals[i]` when type names match
+(tick 143: 287s worse, s2=s3, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -841,6 +843,20 @@ pack / reconstruct / intern / sync-copy / MirBlock-vec /
 source-map / source_text / SET-from-retarget / CONST-CSE /
 leftover-NOP families.
 
+Tick 143 pushed the existing `MirLocal` into `params` when
+`sig_type_name == mir_type_name` (fn / method / self binds).
+Keeps a second object only when the names diverge. Not SoA,
+not a `MirFunction` field, not a local pack. wasm32-gc flatten.
+Tick77 host emit **279.96s**, 6902051 B, validated. Hello
+2312B sha256 `1dbf14ca…` matched. Overlay **286.94s**,
+**s2=s3** `3b0d173f…`, RSS **1.68GB**. Worse than 239s.
+Duplicate param records are not the 1.7GB. Reverted. Do
+**not** retry param/local share. Do **not** land a 246–287s
+wash. Next slice must cut unique `MirInst` objects, without
+closed SoA / pack / reconstruct / intern / sync-copy /
+MirBlock-vec / source-map / source_text / SET-from-retarget /
+CONST-CSE / leftover-NOP / param-share families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -921,6 +937,7 @@ leftover-NOP families.
 | tick 140 SET_from dest retarget onto last producer | **233.76s** | **no** | **1.75GB** | emit 6.90MB (263.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6df66768…` (6901765) ≠ s3 `846086ad…` (6394549); wash vs 239s; s3 ~508KB smaller; RSS wash; reverted |
 | tick 141 block-scoped CONST_I32 CSE by int_val | **286.39s** | **no** | **1.68GB** | emit 6.90MB (273.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `90e8a309…` (6902944) ≠ s3 `7094d2bb…` (6837830); worse than 239s; scan tax; RSS wash; reverted |
 | tick 142 skip leftover-statement NOP | **239.64s** | **no** | **1.68GB** | emit 6.90MB (269.99s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `3ec8e8bb…` (6900458) ≠ s3 `42398761…` (6900350); floor wash vs 239s; s3 108B smaller; RSS wash; reverted |
+| tick 143 share params with locals when type names match | **286.94s** | yes | **1.68GB** | emit 6.90MB (279.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `3b0d173f…`; worse than 239s; RSS wash; duplicate params are not the live set; reverted |
 
 ## Non-goals
 
