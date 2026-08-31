@@ -141,6 +141,11 @@ wasm, RSS 1.68GB). Hello matched; func 143
 values remaining on stack. Do **not** CSE
 CONST dest at birth without a wasm-equivalence
 proof (store-skip / stack leftover).
+Do **not** void leftover block-root CALL dest
+(tick 158: 237s wash, s2≠s3, s3 invalid
+wasm, RSS 1.68GB). Hello matched; func 3322
+expected i32, found ref. Do **not** dest=-1
+unused CALL without a wasm-equivalence proof.
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1182,6 +1187,33 @@ GET-SET_from-replace / get-succ-dump /
 staged-GET-encode / ident-GET-encode /
 const-01-reuse families.
 
+Tick 158 voided dest on leftover block-root
+direct CALL (`dest=-1`; nested arg calls kept
+dest). Distinct from void-CALL intern (146).
+wasm32-gc flatten. Tick77 host emit **228.12s**,
+6903974 B, validated. Hello 2312B sha256
+`1dbf14ca…` matched. Overlay **236.66s**, s2
+`484a9723…` (6903974) ≠ s3 `6007e304…`
+(6890287), RSS **1.68GB**. s3 **invalid wasm**
+func 3322 expected i32, found ref. Unused dest
+CALL records remain; dest=-1 is 145/156-class.
+Reverted. Do **not** retry leftover CALL dest
+void. Do **not** land a 225–276s wash. Next
+slice must cut unique dest CALL / arith records
+(not dest=-1 unused CALL, not CONST dest reuse,
+not ident GET, not staged GET, not SET_from),
+without closed SoA / pack / reconstruct /
+intern / sync-copy / MirBlock-vec / source-map /
+source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id /
+skip-staging / void-CALL-reuse / fid-only-edge /
+str-val-noclone / shared-fresh-local-name /
+skip-GET-after-CONST / stack-const-intern /
+op-hist-dump / GET-SET_from-replace /
+get-succ-dump / staged-GET-encode /
+ident-GET-encode / const-01-reuse /
+leftover-call-dest-void families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1277,6 +1309,7 @@ const-01-reuse families.
 | tick 155 skip 2-arg staged GET; encode on CALL | **264.94s** | yes | **1.78GB** | emit 6.90MB (257.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c74f3e91…`; s3 valid; same size; wasm-equivalent local.get; staged GET temps are not the 1.7GB; worse than 239s; reverted |
 | tick 156 skip 1-arg ident GET; encode first_arg | **245.28s** | **no** | **1.67GB** | emit 6.90MB (265.68s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `47768851…` (6903692) ≠ s3 `0ce3f92a…` (6910681); s3 **invalid wasm** func 158 expected ref found i32; wash vs 239s; RSS wash; reverted |
 | tick 157 reuse CONST_I32 dest for 0/1 | **252.49s** | **no** | **1.68GB** | emit 6.90MB (231.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `4dd6d7fe…` (6902711) ≠ s3 `116550d4…` (6823946); s3 **invalid wasm** func 143 stack leftover; wash vs 239s; RSS wash; reverted |
+| tick 158 void leftover block-root CALL dest | **236.66s** | **no** | **1.68GB** | emit 6.90MB (228.12s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `484a9723…` (6903974) ≠ s3 `6007e304…` (6890287); s3 **invalid wasm** func 3322 expected i32 found ref; wash vs 239s; RSS wash; reverted |
 
 ## Non-goals
 
