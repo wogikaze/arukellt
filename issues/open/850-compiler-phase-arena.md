@@ -215,6 +215,7 @@ guard is closed (wash). Tick 99 feeds_return cache seed is closed
 (wash). Tick 101 has_ref propagate cap-1 is closed (wash).
 Tick 102 i64-scan type_name guard is closed (wash).
 Tick 103 skip unused def-site cache is closed (wash).
+Tick 104 fold has_ref into first cache walk is closed (wash).
 Next slice is still SoA CALL/struct
 **no fill** (do not add a new helper family). Compare new walls
 to ~239s same-day, not 208s.
@@ -303,6 +304,12 @@ caches (`cached_def_*` has no callers). Overlay **239.84s**,
 239s floor; wasm 6899359 B (−1.7KB). Do **not** retry this
 def-site skip. Next slice is still SoA CALL/struct **no fill**.
 
+Tick 104 called `local_inst_marks_ref` in the existing cache walk
+and dropped `propagate_has_ref_assignments` (was 4 extra passes).
+Overlay **238.29s**, `s2=s3`, hello 2312B matched, RSS **1.67GB**.
+Same as today's 239s floor. Do **not** retry this has_ref fold.
+Next slice is still SoA CALL/struct **no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -344,6 +351,7 @@ def-site skip. Next slice is still SoA CALL/struct **no fill**.
 | tick 101 cap has_ref propagate at 1 | **235.04s** | yes | **1.67GB** | emit 6.90MB (236.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `da4278bc…`; wash vs 239s; reverted |
 | tick 102 enum type_name before i64 body scan | **238.18s** | yes | **1.68GB** | emit 6.90MB (241.06s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `3b47a7fc…`; wash vs 239s; reverted |
 | tick 103 skip unused def-site cache fill | **239.84s** | yes | **1.66GB** | emit 6.90MB (237.64s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4e4273c7…`; wash vs 239s; −1.7KB wasm; reverted |
+| tick 104 fold has_ref mark into first cache walk | **238.29s** | yes | **1.67GB** | emit 6.90MB (234.23s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `ddd62f69…`; wash vs 239s; reverted |
 
 ## Non-goals
 
