@@ -566,6 +566,18 @@ retry shared-extras / bind-at-push. Do **not** land a 250–270s wash.
 Next slice must remove the per-inst `MirInst` GC object (or cut
 function-shell / `LowerCtx` tables) without closed SoA families.
 
+Tick 124 flattened `MirLocal.value_type` into i32 scalars (`type_id_raw` /
+`repr` / `nullability`) and shared one empty i32 vec across unused
+`preds` / `dom_set` / `dom_frontier` at `MirBlock_new` (COW on first
+push). wasm32-gc flatten. Tick77 host emit **253.54s**, 6902315 B,
+validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**255.65s**, **s2=s3** `37bb8442…`, RSS **1.69GB**. Worse wall than
+239s; RSS wash. Nested local MVT objects and unused block id vecs are
+not the 1.7GB. Reverted. Do **not** retry flatten-MVT-on-local or
+shared-empty-block-id-vecs. Do **not** land a 250–270s wash. Next
+slice must still remove the per-inst `MirInst` GC object (or cut
+`LowerCtx` string tables) without closed SoA families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -627,6 +639,7 @@ function-shell / `LowerCtx` tables) without closed SoA families.
 | tick 121 MirLocal skip duplicate ssa_name + accessor unclone | **258.39s** | yes | **1.68GB** | emit 6.90MB (252.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b215d89c…`; worse than 239s; RSS wash; local-name strings are not the emit live set; reverted |
 | tick 122 emit-start shared-empty `result_types` | **252.55s** | yes | **1.69GB** | emit 6.90MB (247.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c1e8aba1…`; worse than 239s; RSS wash; per-inst MVT vecs are not the emit live set; reverted |
 | tick 123 slim `MirInst` + per-block shared extras | **257.76s** | yes | **1.64GB** | emit 6.90MB (252.53s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d36b15a6…`; worse than 239s; RSS wash; child-field sharing is not the emit live set; reverted |
+| tick 124 flatten MirLocal MVT + shared block id vecs | **255.65s** | yes | **1.69GB** | emit 6.90MB (253.54s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37bb8442…`; worse than 239s; RSS wash; local MVT / unused block vecs are not the emit live set; reverted |
 
 ## Non-goals
 
