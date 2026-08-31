@@ -94,7 +94,9 @@ block-scoped `CONST_I32` by `int_val` (tick 141: 286s worse,
 s2≠s3, RSS wash). Do **not** skip leftover-statement `NOP`
 (tick 142: 240s floor wash, s2≠s3, RSS wash). Do **not**
 share `params[i]` with `locals[i]` when type names match
-(tick 143: 287s worse, s2=s3, RSS wash).
+(tick 143: 287s worse, s2=s3, RSS wash). Do **not** rewrite
+`mir_inst_with_func_id_raw` as in-place field set (tick 144:
+255s worse, s2=s3, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -857,6 +859,21 @@ closed SoA / pack / reconstruct / intern / sync-copy /
 MirBlock-vec / source-map / source_text / SET-from-retarget /
 CONST-CSE / leftover-NOP / param-share families.
 
+Tick 144 made `mir_inst_with_func_id_raw` mutate `func_id_raw`
+on the existing CALL instead of allocating a full `MirInst`
+copy (`clone(str_val)` included). Cuts transient CALL copies
+at attach, not peak unique insts. wasm32-gc flatten. Tick77
+host emit **247.19s**, 6900594 B, validated. Hello 2312B
+sha256 `1dbf14ca…` matched. Overlay **255.02s**, **s2=s3**
+`59b491d0…`, RSS **1.68GB**. Worse than 239s. Attach copies
+are not the 239s or the 1.7GB. Reverted. Do **not** retry
+in-place CALL func_id attach. Do **not** land a 246–270s
+wash. Next slice must cut unique `MirInst` objects, without
+closed SoA / pack / reconstruct / intern / sync-copy /
+MirBlock-vec / source-map / source_text / SET-from-retarget /
+CONST-CSE / leftover-NOP / param-share / in-place-func-id
+families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -938,6 +955,7 @@ CONST-CSE / leftover-NOP / param-share families.
 | tick 141 block-scoped CONST_I32 CSE by int_val | **286.39s** | **no** | **1.68GB** | emit 6.90MB (273.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `90e8a309…` (6902944) ≠ s3 `7094d2bb…` (6837830); worse than 239s; scan tax; RSS wash; reverted |
 | tick 142 skip leftover-statement NOP | **239.64s** | **no** | **1.68GB** | emit 6.90MB (269.99s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `3ec8e8bb…` (6900458) ≠ s3 `42398761…` (6900350); floor wash vs 239s; s3 108B smaller; RSS wash; reverted |
 | tick 143 share params with locals when type names match | **286.94s** | yes | **1.68GB** | emit 6.90MB (279.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `3b0d173f…`; worse than 239s; RSS wash; duplicate params are not the live set; reverted |
+| tick 144 in-place CALL func_id attach | **255.02s** | yes | **1.68GB** | emit 6.90MB (247.19s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `59b491d0…`; worse than 239s; RSS wash; attach copies are not the live set; reverted |
 
 ## Non-goals
 
