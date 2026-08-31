@@ -61,6 +61,18 @@ fn try_emit_ref_func_inst(
         }
         i = i + 1
     }
+    // Linear ABI stores table indices in i32 locals. `ref.func` produces
+    // `(ref $sig)` and fails validate when the dest is i32 (closure_map).
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        if found == 0 {
+            writer_core::emit_leb128_s(w, 0)
+        } else {
+            writer_core::emit_leb128_s(w, mir_fn_idx)
+        }
+        inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, true)
+        return true
+    }
     // Typed funcref: emit ref.func with the module function index. Active
     // table elem segments already declare referenced functions (#831 / ADR-033).
     writer_core::emit_byte(w, opcodes::OP_REF_FUNC())

@@ -136,6 +136,18 @@ fn emit_struct_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32)
     helpers_core::emit_heap_set(w)
 }
 
+fn emit_linear_struct_get_base(w: WasmWriter, inst: MirInst, prev_op: i32, prev_arg0: i32) {
+    let base_local = inst_accessors_operands::MirInst_arg0(inst)
+    if base_local < 0 {
+        return
+    }
+    if prev_op == mir::opcodes::MIR_LOCAL_GET() && prev_arg0 == base_local {
+        return
+    }
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, base_local)
+}
+
 fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32, prev_arg0: i32) {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         let byte_offset = inst_accessors_literals::MirInst_int_val(inst)
@@ -176,6 +188,10 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
     }
     return
 }
+// Linear STRUCT_GET never had a base load. After a nested field SET
+// (`r.max` then `.x`) the pointer is only in dest, so i32.load saw
+// an empty stack (rect_area / toml_find_field_index / data_pipeline).
+emit_linear_struct_get_base(w, inst, prev_op, prev_arg0)
 if inst_accessors_literals::MirInst_int_val(inst) > 0 {
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
