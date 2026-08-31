@@ -14,13 +14,13 @@ fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_vers
         return emit_library_component(core_wasm, mir, target, wasi_version, world)
     }
     let out = component_base::comp_new_component_writer()
-    let plan = export_plan::collect_component_exports(mir)
+    let plan = export_plan::collect_component_exports(clone(mir))
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
 fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule, _target: String, _wasi_version: String, _world: String) -> Vec<i32> {
     let out = component_base::comp_new_component_writer()
-    let plan = export_plan::collect_component_exports(mir)
+    let plan = export_plan::collect_component_exports(clone(mir))
     emit_component_generic_exports(out, core_wasm, plan, mir)
 }
 
@@ -31,8 +31,8 @@ fn emit_component_generic_exports(out: writer_core::ComponentWriter, core_wasm: 
     // to s32 merely because the caller went through the bootstrap overlay (#667).
     let specialized = emit_specialized::emit_specialized_component(
         clone(core_wasm),
-        mir,
-        export_plan::export_plan_names(plan)
+        clone(mir),
+        export_plan::export_plan_names(clone(plan))
     )
     if len(specialized) > 0 {
         return specialized

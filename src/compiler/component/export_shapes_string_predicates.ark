@@ -7,13 +7,13 @@ fn comp_function_is_string_to_i32_export(f: MirFunction) -> bool {
 }
 
 fn comp_function_is_string_to_named_i32_export(f: MirFunction, return_name: String) -> bool {
-    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+    if !naming::comp_should_export_func(export_function_view::export_function_name(clone(f))) {
         return false
     }
-    if export_function_view::export_function_param_count(f) != 1 {
+    if export_function_view::export_function_param_count(clone(f)) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), return_name) {
+    if !eq(export_function_view::export_function_return_type_name(clone(f)), return_name) {
         return false
     }
     eq(export_function_view::export_function_param_type_name(f, 0), "String")
@@ -44,26 +44,26 @@ fn comp_function_is_string_to_f32_export(f: MirFunction) -> bool {
 }
 
 fn comp_function_is_string_unary_export(f: MirFunction) -> bool {
-    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+    if !naming::comp_should_export_func(export_function_view::export_function_name(clone(f))) {
         return false
     }
-    if export_function_view::export_function_param_count(f) != 1 {
+    if export_function_view::export_function_param_count(clone(f)) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), "String") {
+    if !eq(export_function_view::export_function_return_type_name(clone(f)), "String") {
         return false
     }
     eq(export_function_view::export_function_param_type_name(f, 0), "String")
 }
 
 fn comp_function_is_i32_to_string_export(f: MirFunction) -> bool {
-    if !naming::comp_should_export_func(export_function_view::export_function_name(f)) {
+    if !naming::comp_should_export_func(export_function_view::export_function_name(clone(f))) {
         return false
     }
-    if export_function_view::export_function_param_count(f) != 1 {
+    if export_function_view::export_function_param_count(clone(f)) != 1 {
         return false
     }
-    if !eq(export_function_view::export_function_return_type_name(f), "String") {
+    if !eq(export_function_view::export_function_return_type_name(clone(f)), "String") {
         return false
     }
     export_function_view::export_function_param_val_type(f, 0) == value_types::VT_I32()

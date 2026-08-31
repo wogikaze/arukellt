@@ -39,11 +39,11 @@ fn StringGeneralPlan_entry_at(plan: StringGeneralPlan, idx: i32) -> StringGenera
 fn comp_string_general_plan(mir: MirModule) -> StringGeneralPlan {
     let entries: Vec<StringGeneralExport> = Vec_new()
     let mut export_count = 0
-    let n = module_functions::MirModule_function_count(mir)
+    let n = module_functions::MirModule_function_count(clone(mir))
     let mut i = 0
     while i < n {
-        let f = module_functions::MirModule_function_at(mir, i)
-        let export_name = export_function_view::export_function_name(f)
+        let f = module_functions::MirModule_function_at(clone(mir), i)
+        let export_name = export_function_view::export_function_name(clone(f))
         if naming::comp_should_export_func(clone(export_name)) {
             export_count = export_count + 1
             if !export_shapes_string_predicates::comp_function_is_string_unary_export(f) {

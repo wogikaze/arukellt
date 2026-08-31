@@ -13,19 +13,23 @@ use component::export_shapes_shape_scan
 use component::emit_tier3_roundtrip as tier3_roundtrip
 
 fn emit_specialized_component(core_wasm: Vec<i32>, mir: MirModule, export_names: Vec<String>) -> Vec<i32> {
-    let record_component = specialized_record::try_emit_record_or_color_component(clone(core_wasm), mir, export_names)
+    let record_component = specialized_record::try_emit_record_or_color_component(
+        clone(core_wasm),
+        clone(mir),
+        clone(export_names)
+    )
     if len(record_component) > 0 {
         return record_component
     }
-    let string_component = try_emit_string_component(clone(core_wasm), mir)
+    let string_component = try_emit_string_component(clone(core_wasm), clone(mir))
     if len(string_component) > 0 {
         return string_component
     }
-    let collection_component = try_emit_collection_component(clone(core_wasm), mir)
+    let collection_component = try_emit_collection_component(clone(core_wasm), clone(mir))
     if len(collection_component) > 0 {
         return collection_component
     }
-    let shape_component = try_emit_shape_component(clone(core_wasm), mir, export_names)
+    let shape_component = try_emit_shape_component(clone(core_wasm), clone(mir), export_names)
     if len(shape_component) > 0 {
         return shape_component
     }
