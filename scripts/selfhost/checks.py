@@ -332,6 +332,9 @@ pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_
     // `component_emit__emit_component` does not receive a FunctionId under the
     // flat bootstrap overlay (native-cpp ICE). Keep the same control flow as
     // component/emit.ark: P2 command wrapper or generic library exports.
+    if eq(clone(wasi_version), "p1-component") && eq(clone(target), "wasm32-gc") {
+        return wasm::emit_library_component(core_wasm, mir)
+    }
     let _target = target
     if component_world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
         return wasm::emit_p2_command_component(core_wasm)
@@ -1614,18 +1617,29 @@ def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
     text = path.read_text(encoding="utf-8")
     old = (
         "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
+        "driver_config_record::config_target(config), core_wasi, "
+        "driver_config_record::config_world(config))"
+    )
+    old_wasi_version = (
+        "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
         "driver_config_record::config_target(config), driver_config_record::config_wasi_version(config), "
         "driver_config_record::config_world(config))"
     )
     new = (
-        "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
+        "    let comp_bytes = if eq(clone(target), \"wasm32-gc\") && "
+        "component::mir_has_library_exports(mir_module) {\n"
         "        wasm::emit_library_component(core_wasm, mir_module)\n"
         "    } else {\n"
-        "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
-        "driver_config_record::config_wasi_version(config), driver_config_record::config_world(config))\n"
+        "        component::emit_component(core_wasm, mir_module, "
+        "driver_config_record::config_target(config), core_wasi, "
+        "driver_config_record::config_world(config))\n"
         "    }"
     )
-    if old in text and "emit_library_component" not in text:
+    if "wasm::emit_library_component(core_wasm, mir_module)" in text:
+        return
+    if old_wasi_version in text and old not in text:
+        old = old_wasi_version
+    if old in text:
         text = _replace_required(
             text,
             old,
