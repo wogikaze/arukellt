@@ -602,6 +602,18 @@ Do **not** retry this field/sig intern-share. Do **not** land a
 object (or cut function-shell records) without closed SoA families
 and without further `LowerCtx` string intern.
 
+Tick 127 precomputed per-function inst-count / sole-callee on `SelfEmitCtx`
+(no `MirFunction` fields) so call resolve does not re-walk other bodies,
+then cleared each function's instruction vec after its code body was
+written. wasm32-gc flatten. Tick77 host emit **275.90s**, 6903079 B,
+validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay **265.53s**,
+**s2=s3** `6c897aed…`, RSS **1.77GB**. Worse wall than 239s; RSS
+unchanged (peak is still end-of-lower). The extra cache-fill walk is
+mutator; late body release does not cut the 1.7GB. Reverted. Do **not**
+retry this resolve-cache + post-emit body release. Do **not** land a
+250–270s wash. Next slice must still remove the per-inst `MirInst` GC
+object during lower (not after emit) without closed SoA families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -666,6 +678,7 @@ and without further `LowerCtx` string intern.
 | tick 124 flatten MirLocal MVT + shared block id vecs | **255.65s** | yes | **1.69GB** | emit 6.90MB (253.54s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37bb8442…`; worse than 239s; RSS wash; local MVT / unused block vecs are not the emit live set; reverted |
 | tick 125 LowerCtx type-name intern handles | **269.49s** | yes | **1.72GB** | emit 6.90MB (259.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b4bc477c…`; worse than 239s; RSS wash; narrow return/local type-name intern is not the emit live set; reverted |
 | tick 126 intern-share field/sig String handles | **246.78s** | yes | **1.76GB** | emit 6.90MB (264.69s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37dac859…`; worse than 239s; RSS unchanged; field/sig intern-share is not the emit live set; reverted |
+| tick 127 resolve-cache + post-emit body release | **265.53s** | yes | **1.77GB** | emit 6.90MB (275.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `6c897aed…`; worse than 239s; RSS unchanged; late body drop is after the 1.7GB peak; reverted |
 
 ## Non-goals
 
