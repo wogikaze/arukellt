@@ -356,6 +356,19 @@ hybrid. Next slice must emit CALL/struct/arith/convert/control
 Also convert remaining hot `inst_at` in `code_ref_locals_block_scan`
 / infer_dest / payload-extract body scans.
 
+Tick 110 did GET/SET/CONST **and** arith/control/convert from
+columns (existing signatures; `inst_at` only after those miss, for
+CALL/struct/gc/future). Overlay-hot walks used columns (in-place
+resolve, propagate, enum, scan, reachability, ssa `replace_inst`).
+Hello 2312B matched tick49. Emit 6.93MB (258.65s) validated.
+Overlay **timeout 320s**, RSS **1.45GB**, no output. Arith/control
+column emit is **not enough** while CALL/struct still reconstruct.
+Do **not** retry this leftover-CALL reconstruct. Next slice must
+emit CALL/struct **from columns with no `inst_at`** (change
+existing signatures; do not add a `try_emit_*_from_cols` pile).
+Also convert remaining CALL children / infer_dest `inst_at`. When
+scalarizing `should_skip_store_after_early_tee`, **keep `arg0`**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -403,6 +416,7 @@ Also convert remaining hot `inst_at` in `code_ref_locals_block_scan`
 | tick 107 copy-scan only on string/empty type_name | **204.92s** | **no** | **1.69GB** | emit 6.90MB (247.24s); hello sha256 `1dbf14ca…` (2312B); s2 `20d13a2d…` (6901066) ≠ s3 `d74afe8e…` (6899719); named locals still need SET-follow; reverted |
 | tick 108 SoA columns + CALL opcode then reconstruct | timeout 320s | — | **1.08GB** | emit 6.91MB (266.15s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover GET/SET/CONST/`inst_at` rematerialize; reverted |
 | tick 109 SoA + GET/SET/CONST columns; leftover reconstruct | timeout 320s | — | n/a | emit 6.93MB (272.03s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/arith/control `inst_at`; first emit invalid (`arg0` dropped); reverted |
+| tick 110 SoA + GET/SET/CONST/arith/control/convert columns; leftover CALL reconstruct | timeout 320s | — | **1.45GB** | emit 6.93MB (258.65s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/struct `inst_at`; reverted |
 
 ## Non-goals
 
