@@ -103,7 +103,9 @@ block (tick 146: 268s worse, s2=s3, RSS wash). Do **not**
 skip CALL/REF_FUNC edge name intern when `func_id_raw >= 0`
 (tick 147: 263s wash, s2≠s3, RSS 1.76GB). Do **not** drop the
 `clone` on `mir_inst_str_val` (tick 148: 231s wash, s2=s3,
-RSS 1.76GB).
+RSS 1.76GB). Do **not** share one `"_t"` name for every
+`ctx_fresh_local` (tick 149: 235s wash, hello 2311B mismatch,
+s2≠s3, RSS 1.76GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -950,6 +952,25 @@ SET-from-retarget / CONST-CSE / leftover-NOP / param-share /
 in-place-func-id / skip-staging / void-CALL-reuse /
 fid-only-edge / str-val-noclone families.
 
+Tick 149 named every `ctx_fresh_local` `"_t"` instead of
+`concat("_t", to_string(idx))`. Cuts per-temp concat and
+unique name strings. Distinct from ssa_name share (121) and
+LowerCtx string intern (125–126). Local names still go into
+the wasm `name` section when not stripped. wasm32-gc flatten.
+Tick77 host emit **226.67s**, 6900596 B, validated. Hello
+**2311B** sha256 `d222a7eb…` (**mismatch**; expected 2312B
+`1dbf14ca…`). Overlay **235.44s**, **s2≠s3** `c4dd7e55…`
+(6900596) ≠ `6865e26f…` (6463583), RSS **1.76GB**. s3 valid
+wasm (~437KB smaller name section). Temp-name concat is not
+the 1.7GB. Reverted. Do **not** retry shared `"_t"` fresh
+names. Do **not** land a 225–245s wash. Next slice must cut
+unique `MirInst` objects, without closed SoA / pack /
+reconstruct / intern / sync-copy / MirBlock-vec / source-map
+/ source_text / SET-from-retarget / CONST-CSE / leftover-NOP
+/ param-share / in-place-func-id / skip-staging /
+void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1036,6 +1057,7 @@ fid-only-edge / str-val-noclone families.
 | tick 146 reuse identical void-stack CALL | **268.47s** | yes | **1.68GB** | emit 6.90MB (257.91s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `4406d78d…`; worse than 239s; scan tax; RSS wash; unique dest insts remain; reverted |
 | tick 147 skip CALL edge name when func_id known | **262.64s** | **no** | **1.76GB** | emit 6.90MB (257.51s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `d4ba34c2…` (6900929) ≠ s3 `1be4e917…` (6900616); s3 valid; 313B smaller; worse than 239s; RSS wash; reverted |
 | tick 148 no-clone mir_inst_str_val accessor | **230.63s** | yes | **1.76GB** | emit 6.90MB (236.61s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `954dbf63…`; s3 valid; ~8s vs 239s is 225–245s noise; RSS wash; accessor clones are not the live set; reverted |
+| tick 149 share _t name on ctx_fresh_local | **235.44s** | **no** | **1.76GB** | emit 6.90MB (226.67s) validated; hello **2311B** sha256 `d222a7eb…` (mismatch); s2 `c4dd7e55…` (6900596) ≠ s3 `6865e26f…` (6463583); s3 valid; ~437KB name section; RSS wash; reverted |
 
 ## Non-goals
 
