@@ -637,6 +637,18 @@ another MirInst field-pack (128–129). Next slice must cut function-shell /
 `LowerCtx` tables, or a phase-arena that does not relocate `MirInst`
 fields, without closed SoA families.
 
+Tick 130 released LowerCtx scratch (hollow ctor keeping `module`), the HIR
+view, fn-index strings, mono-view instances, and entry `decl_nodes` /
+`source_text` after prune and **before** sync/propagate. wasm32-gc flatten.
+Tick77 host emit **246.42s**, 6902731 B, validated. Hello 2312B sha256
+`1dbf14ca…` matched. Overlay **257.46s**, **s2=s3** `d0108e1f…`, RSS
+**1.68GB**. Worse wall than 239s; RSS wash. Unrooting lower frontend +
+ctx tables before propagate does not cut the 1.7GB (tick 119 only unrooted
+at emit). Reverted. Do **not** retry this pre-propagate scratch release.
+Do **not** land a 246–270s wash. Next slice must cut MIR function-shell
+records (`MirFunction` / `MirLocal` / `MirBlock`) without adding
+`MirFunction` fields and without relocating `MirInst` fields.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -704,6 +716,7 @@ fields, without closed SoA families.
 | tick 127 resolve-cache + post-emit body release | **265.53s** | yes | **1.77GB** | emit 6.90MB (275.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `6c897aed…`; worse than 239s; RSS unchanged; late body drop is after the 1.7GB peak; reverted |
 | tick 128 pack-at-commit + lazy inst_at unpack | — | — | — | emit 6.91MB (278.07s) succeeded; hello **invalid wasm** func 2065 ref-null type mismatch; overlay not run; rematerialize lost type identity; reverted |
 | tick 129 slim-handle + shared pack accessors | — | — | — | emit 6.91MB (275.36s) succeeded; host **invalid wasm** func 2151 ref-null type mismatch (same class as 128); overlay not run; pack-off-record lost type identity without rematerialize; reverted |
+| tick 130 pre-propagate LowerCtx/HIR scratch release | **257.46s** | yes | **1.68GB** | emit 6.90MB (246.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d0108e1f…`; worse than 239s; RSS wash; reverted |
 
 ## Non-goals
 
