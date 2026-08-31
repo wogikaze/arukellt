@@ -1,7 +1,7 @@
 ---
 Status: open
 Created: 2026-08-31
-Updated: 2026-08-31
+Updated: 2026-09-01
 ID: 850
 Parent: 827
 Track: selfhost-infra
@@ -80,7 +80,8 @@ retry a function-scoped slim-handle `MirLocal` pack (tick 132: 275s /
 1.72GB wash). Do **not** replace `MirFunction.locals` with columns and
 reconstruct a fat `MirLocal` on `local_at` (tick 133: 250s / 1.75GB wash).
 Do **not** retry locals-pack + partial scalar rewrite (tick 134: 275s /
-1.72GB wash).
+1.72GB wash). Do **not** skip `compute_fn_source_locations` (tick 135:
+242s wash, hello 2308B, s2≠s3).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -212,6 +213,8 @@ retry those edits). Ticks 84–86 stay closed (`s2≠s3`). Tick 91
 emit-loop sliding window is closed (wash wall + RSS jump). Tick 92
 opcode-first emit dispatch is closed (wash). Tick 93 line-start
 source-map index is closed (first cut `s2≠s3`; remasure wash).
+Tick 135 skip `compute_fn_source_locations` is closed (hello
+mismatch, `s2≠s3`, wash).
 Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
 producer-index payload/vec scans is closed (wash). Tick 96
 has_ref miss memo is closed (wash). Tick 97 skip layout-plan
@@ -714,6 +717,21 @@ rewrite. Do **not** land a 246–276s wash. Next slice must cut
 `MirInst` / `MirBlock` objects (not another `MirLocal` pack), without
 closed SoA / pack / reconstruct families.
 
+Tick 135 skipped `compute_fn_source_locations` and passed an empty
+location vec (debug `source_map` custom section only). wasm32-gc
+flatten. Tick77 host emit **226.89s**, 6899192 B, validated. Hello
+**2308B** sha256 `d8a8bd11…` (**mismatch** vs 2312B `1dbf14ca…`).
+Overlay **242.06s**, **s2≠s3** `cd38e5ff…` (6899192) ≠ `7664f6c7…`
+(6833243), RSS **1.64GB**. Wash vs 239s. Tick77 host still writes
+mapped locations into s2; the new compiler writes unmapped maps into
+s3 (~66KB). One-hop overlay from an old host cannot fixpoint this
+skip. Tick 93 already showed source-map compute is not the 239s.
+Reverted. Do **not** skip location compute or empty the debug
+source_map to chase overlay wall. Do **not** land a hello-hash change
+without a new hello gate. Next slice must cut `MirInst` / `MirBlock`
+objects, without closed SoA / pack / reconstruct / source-map
+families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -786,6 +804,7 @@ closed SoA / pack / reconstruct families.
 | tick 132 function-scoped MirLocal pack on LowerCtx | **275.50s** | yes | **1.72GB** | emit 6.91MB (247.05s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `8fc421d7…`; worse than 239s; RSS wash; slim handles still N objects; reverted |
 | tick 133 MirFunction.locals column pack + local_at reconstruct | **249.91s** | yes | **1.75GB** | emit 6.91MB (242.14s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a2739e05…`; worse than 239s; RSS wash; reconstruct-on-read; reverted |
 | tick 134 locals pack + scalar emit/propagate | **275.35s** | yes | **1.72GB** | emit 6.91MB (265.66s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `7fe527ee…`; worse than 239s and tick 133; RSS wash; leftover reconstruct; reverted |
+| tick 135 skip compute_fn_source_locations | **242.06s** | **no** | **1.64GB** | emit 6.90MB (226.89s) validated; hello **2308B** sha256 `d8a8bd11…` (mismatch); s2 `cd38e5ff…` (6899192) ≠ s3 `7664f6c7…` (6833243); wash vs 239s; old host maps vs new unmapped; reverted |
 
 ## Non-goals
 
