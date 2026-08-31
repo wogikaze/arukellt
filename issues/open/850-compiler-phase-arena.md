@@ -206,7 +206,8 @@ retry those edits). Ticks 84–86 stay closed (`s2≠s3`). Tick 91
 emit-loop sliding window is closed (wash wall + RSS jump). Tick 92
 opcode-first emit dispatch is closed (wash). Tick 93 line-start
 source-map index is closed (first cut `s2≠s3`; remasure wash).
-Tick 94 gcsref run-copy rewrite is closed (wash). Next slice is
+Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
+producer-index payload/vec scans is closed (wash). Next slice is
 still SoA CALL/struct **no fill** (do not add a new helper family).
 Compare new walls to ~239s same-day, not 208s.
 
@@ -237,7 +238,14 @@ runs instead of one-char `concat`, and matched `gcsref` with
 `char_at` instead of `substring`+`eq`. Overlay **232.13s**,
 `s2=s3`, hello 2312B matched, RSS **1.71GB**. Wall is wash vs
 today's 239s floor. Do **not** retry this run-copy rewrite.
-Next slice is still SoA CALL/struct **no fill**.
+
+Tick 95 walked `#829` producer-index sites for payload-extract and
+vec-access storage instead of a full body scan per local. Overlay
+**227.35s**, `s2=s3`, hello 2312B matched, RSS **1.72GB**. ~12s
+under today's 239s floor but inside same-day noise vs ticks 91–94
+(232–234s) and added emit helpers. Do **not** retry this
+producer-index scan rewrite. Next slice is still SoA CALL/struct
+**no fill**.
 
 ## Receipts
 
@@ -271,6 +279,7 @@ Next slice is still SoA CALL/struct **no fill**.
 | tick 92 opcode-first emit dispatch (hot GET/CONST/SET/CALL/struct) | **234.23s** | yes | **1.71GB** | emit 6.90MB (230.11s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `1d63dbf1…`; wash vs 239s; RSS wash; reverted |
 | tick 93 line-start source-map index | **237.45s** then **237.35s** | no then yes | **1.71GB** | first: s2 `46e17093…` ≠ s3 `a68b6bf1…` (offset edge ≠ old helpers); remasure s2=s3 `cfbb6175…`; emit 6.90MB (229.81s); hello sha256 `1dbf14ca…` (2312B); wash vs 239s; reverted |
 | tick 94 gcsref run-copy rewrite | **232.13s** | yes | **1.71GB** | emit 6.90MB (233.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `8860ca6f…`; wash vs 239s; RSS wash; reverted |
+| tick 95 producer-index payload/vec scans | **227.35s** | yes | **1.72GB** | emit 6.91MB (226.14s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4f0dfcd6…`; ~12s vs 239s, noise vs 232–234s same-day; extra helpers; reverted |
 
 ## Non-goals
 
