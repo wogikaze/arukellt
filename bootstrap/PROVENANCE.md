@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 123 993 bytes (≈ 6.79 MiB) |
-| sha256 | `54d01aff0e529dcd90f8d4dc7f5797239d5b69932a47f0a8919abe7ee8d73c11` |
-| Built from commit | `25e28e48` skip open-enum tee into variant locals (s2==s3) |
+| Size | 7 128 369 bytes (≈ 6.80 MiB) |
+| sha256 | `695de0cb1e39cf839300033f82a3091d263ac096054b9ac5b88bace1c09983c6` |
+| Built from commit | `75401a23` merge #665 WIT import-load + leftover linear emit (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,21 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`75401a23`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `75401a23` (PR 51 `#665` +
+PR 52 leftover linear emit on clock-qmark). Guest remains `wasm32-gc` /
+`wasi-p2` memory32. Official `build-compiler` then `fixpoint --build`
+2026-08-31T05:31–05:44Z: s2==s3=`695de0cb` EXIT 0.
+
+Intentional drift from the previous pin (`25e28e48` / `54d01aff`):
+
+- WIT import-load no longer calls `parser::parse_full` (`#665`
+  `compose_roundtrip --emit component` does not trap)
+- Linear leftover: nested `STRUCT_GET` base load, `hashmap_new` inline
+  when DCE'd, `ref.func` → `i32.const` table index (`closure_map`)
+- leftover isolated T3: 460 pass / 0 validate-fail / 0 compile-fail / 23 skip
 
 ### wasm32-gc pinned (`25e28e48`)
 
