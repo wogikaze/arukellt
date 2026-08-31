@@ -81,7 +81,9 @@ retry a function-scoped slim-handle `MirLocal` pack (tick 132: 275s /
 reconstruct a fat `MirLocal` on `local_at` (tick 133: 250s / 1.75GB wash).
 Do **not** retry locals-pack + partial scalar rewrite (tick 134: 275s /
 1.72GB wash). Do **not** skip `compute_fn_source_locations` (tick 135:
-242s wash, hello 2308B, s2≠s3).
+242s wash, hello 2308B, s2≠s3). Do **not** unroot flatten
+`source_text` from `input` / `LowerCtx` after location compute
+(tick 136: 230s s2=s3 hello-ok, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -214,7 +216,8 @@ emit-loop sliding window is closed (wash wall + RSS jump). Tick 92
 opcode-first emit dispatch is closed (wash). Tick 93 line-start
 source-map index is closed (first cut `s2≠s3`; remasure wash).
 Tick 135 skip `compute_fn_source_locations` is closed (hello
-mismatch, `s2≠s3`, wash).
+mismatch, `s2≠s3`, wash). Tick 136 unroot flatten `source_text`
+after location compute is closed (230s s2=s3, RSS wash).
 Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
 producer-index payload/vec scans is closed (wash). Tick 96
 has_ref miss memo is closed (wash). Tick 97 skip layout-plan
@@ -732,6 +735,19 @@ without a new hello gate. Next slice must cut `MirInst` / `MirBlock`
 objects, without closed SoA / pack / reconstruct / source-map
 families.
 
+Tick 136 kept location compute (hello gate) and cleared
+`input.source_text` plus passed `String_new()` into LowerCtx so the
+flatten source is not a second root through body_emit / propagate.
+wasm32-gc flatten. Tick77 host emit **232.62s**, 6900936 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **230.24s**, **s2=s3**
+`40334e53…`, RSS **1.64GB**. ~9s vs 239s loaded, same 225–245s
+same-day noise band as ticks 95/98. Extra flatten-string roots are
+not the 1.7GB. Driver/session still holds the original source.
+Reverted. Do **not** retry this isolated source_text unroot. Do **not**
+land a 225–245s noise win. Next slice must cut `MirInst` / `MirBlock`
+objects, without closed SoA / pack / reconstruct / source-map /
+source_text families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -805,6 +821,7 @@ families.
 | tick 133 MirFunction.locals column pack + local_at reconstruct | **249.91s** | yes | **1.75GB** | emit 6.91MB (242.14s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a2739e05…`; worse than 239s; RSS wash; reconstruct-on-read; reverted |
 | tick 134 locals pack + scalar emit/propagate | **275.35s** | yes | **1.72GB** | emit 6.91MB (265.66s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `7fe527ee…`; worse than 239s and tick 133; RSS wash; leftover reconstruct; reverted |
 | tick 135 skip compute_fn_source_locations | **242.06s** | **no** | **1.64GB** | emit 6.90MB (226.89s) validated; hello **2308B** sha256 `d8a8bd11…` (mismatch); s2 `cd38e5ff…` (6899192) ≠ s3 `7664f6c7…` (6833243); wash vs 239s; old host maps vs new unmapped; reverted |
+| tick 136 unroot flatten source_text after locations | **230.24s** | yes | **1.64GB** | emit 6.90MB (232.62s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `40334e53…`; ~9s vs 239s, noise vs 225–245s same-day; RSS wash; reverted |
 
 ## Non-goals
 
