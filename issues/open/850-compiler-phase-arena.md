@@ -147,8 +147,14 @@ Tick 80 capped `mir_function_propagate_local_types` at 2 iterations
 (was 8). Same-day HEAD-today control (max=8, tick49 host) was
 **242.08s**. Cap-2 overlay **213.36s** then remasure **208.40s**,
 `s2=s3`, hello 2312B matched, RSS **1.76GB**. Extra scans after the
-second pass did not change compiler wasm. Keep. Next slice is still
-SoA CALL/struct **no fill** (do not add a new helper family).
+second pass did not change compiler wasm. Keep.
+
+Tick 81 capped the same fixpoint at 1 iteration. Overlay **230.55s**,
+`s2=s3`, hello 2312B matched, RSS **1.75GB**. Worse wall than tick 80
+(208s remasure). One scan still produces matching compiler wasm, but
+the second scan is cheaper than whatever incomplete types cost later.
+Do **not** retry max=1. Next slice is still SoA CALL/struct **no fill**
+(do not add a new helper family).
 
 ## Receipts
 
@@ -169,6 +175,7 @@ SoA CALL/struct **no fill** (do not add a new helper family).
 | tick 75 skip emit audits + unused source_text | **257.30s** | yes | **1.72GB** | emit 6.89MB (272.81s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `9d6c02fd…`; wash vs 255s; reverted |
 | tick 76 SoA + arith-from-cols + reused scratch | **300.28s** | yes | **2.07GB** | emit 6.93MB (267.20s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `860730e9…`; worse than tick 69; reverted |
 | tick 80 cap propagate at 2 iterations | **208.40s** remasure / **213.36s** first | yes | **1.76GB** | emit 6.90MB (230.46s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `2ee7c360…`; same-day HEAD-today max=8 control **242.08s**; kept |
+| tick 81 cap propagate at 1 iteration | **230.55s** | yes | **1.75GB** | emit 6.90MB (228.36s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `0acbd0af…`; worse than tick 80; reverted |
 
 ## Non-goals
 
