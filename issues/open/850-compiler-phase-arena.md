@@ -542,6 +542,17 @@ retry this ssa-share / accessor-unclone. Do **not** land a 250–270s
 wash. Next slice must cut fat `MirInst` / `MirBlock` record graphs
 without the closed SoA rewrite families (64–76, 108–118).
 
+Tick 122 set every inst `result_types` to one shared empty vec at
+`emit_wasm_module` start (wasm emit does not read those MVTs).
+wasm32-gc flatten. Tick77 host emit **247.97s**, 6901910 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **252.55s**,
+**s2=s3** `c1e8aba1…`, RSS **1.69GB**. Worse wall than 239s; RSS wash.
+Per-inst MVT vecs are not the 1.7GB, and the emit-start walk is extra
+mutator work. Reverted. Do **not** retry this emit-start
+`result_types` walk. Do **not** land a 250–270s wash. Next slice must
+cut the `MirInst` record itself (not a field strip that leaves the
+record graph) without closed SoA families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -601,6 +612,7 @@ without the closed SoA rewrite families (64–76, 108–118).
 | tick 119 lower→emit frontend unroot (`DriverEmitRequest`) | **268.70s** | yes | **1.68GB** | emit 6.90MB (260.67s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d81bd387…`; worse than 239s; RSS wash; AST/HIR locals were not the emit scan tax; reverted |
 | tick 120 TypeTable columns (`TypeEntry` reconstruct on lookup) | **264.65s** | yes | **1.69GB** | emit 6.90MB (246.66s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `42210430…`; worse than 239s; RSS wash; type intern is not the emit live set; reverted |
 | tick 121 MirLocal skip duplicate ssa_name + accessor unclone | **258.39s** | yes | **1.68GB** | emit 6.90MB (252.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b215d89c…`; worse than 239s; RSS wash; local-name strings are not the emit live set; reverted |
+| tick 122 emit-start shared-empty `result_types` | **252.55s** | yes | **1.69GB** | emit 6.90MB (247.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c1e8aba1…`; worse than 239s; RSS wash; per-inst MVT vecs are not the emit live set; reverted |
 
 ## Non-goals
 
