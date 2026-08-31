@@ -369,6 +369,21 @@ existing signatures; do not add a `try_emit_*_from_cols` pile).
 Also convert remaining CALL children / infer_dest `inst_at`. When
 scalarizing `should_skip_store_after_early_tee`, **keep `arg0`**.
 
+Tick 111 re-landed SoA columns and mechanically rewrote ~158 emit
+files from `inst: MirInst` to `(block, hid)` so CALL/struct would
+read columns with no `inst_at` on the emit path. Tick77 host emit
+**256.75s**, 6939700 B, `compilation succeeded (phase 6)`.
+`wasm-tools validate` **failed** at func 8133
+`lookup_struct_byte_size_in_func`: `expected i32, found (ref null
+$type)`. The rewriter replaced `MirInst_op(inst)` with
+`MirBlock_op_at(block, hid)` even in loops whose index is `ii`
+and whose signature has **no `hid`**. The type checker did not
+reject the unbound name; WAT shows a one-arg call to a two-arg
+accessor. Hello and overlay were not run. Do **not** retry a
+global `inst`→`(block, hid)` rewriter. Convert CALL/struct **by
+hand, file-by-file**, passing the real loop index (`ii`) as hid.
+Do **not** retry leftover-reconstruct hybrids (ticks 108–110).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -417,6 +432,7 @@ scalarizing `should_skip_store_after_early_tee`, **keep `arg0`**.
 | tick 108 SoA columns + CALL opcode then reconstruct | timeout 320s | — | **1.08GB** | emit 6.91MB (266.15s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover GET/SET/CONST/`inst_at` rematerialize; reverted |
 | tick 109 SoA + GET/SET/CONST columns; leftover reconstruct | timeout 320s | — | n/a | emit 6.93MB (272.03s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/arith/control `inst_at`; first emit invalid (`arg0` dropped); reverted |
 | tick 110 SoA + GET/SET/CONST/arith/control/convert columns; leftover CALL reconstruct | timeout 320s | — | **1.45GB** | emit 6.93MB (258.65s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/struct `inst_at`; reverted |
+| tick 111 SoA + mechanical `(block, hid)` emit rewrite | — | — | — | emit 6.94MB (256.75s); **invalid wasm** func 8133 `lookup_struct_byte_size_in_func` (unbound `hid` after rewriter); hello/overlay not run; reverted |
 
 ## Non-goals
 
