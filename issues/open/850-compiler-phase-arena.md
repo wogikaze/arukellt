@@ -107,6 +107,8 @@ RSS 1.76GB). Do **not** share one `"_t"` name for every
 `ctx_fresh_local` (tick 149: 235s wash, hello 2311B mismatch,
 s2≠s3, RSS 1.76GB). Do **not** skip GET-to-self after a
 same-dest CONST (tick 150: 235s wash, s2=s3, RSS 1.76GB).
+Do **not** emit dest=-1 stack CONST + intern for binop i32
+literals (tick 151: 232s wash, s2≠s3, RSS 1.76GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -990,6 +992,25 @@ without closed SoA / pack / reconstruct / intern / sync-copy
 str-val-noclone / shared-fresh-local-name / skip-GET-after-CONST
 families.
 
+Tick 151 emitted binop i32/bool/char literals as dest=-1
+`CONST_I32` (no fresh local) and interned those by `int_val`
+on `LowerCtx.stack_const_insts`. Distinct from CONST CSE dest
+rewrite (141) and GET-after-CONST skip (150). wasm32-gc
+flatten. Tick77 host emit **228.81s**, 6903831 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **232.02s**,
+**s2≠s3** `a6f5e4c8…` (6903831) ≠ `da52170e…` (6780885), RSS
+**1.76GB**. s3 valid (~123KB smaller locals). Stack-const
+intern is not the 1.7GB (unique dest CALL / arith / named
+CONST remain). Reverted. Do **not** retry dest=-1 binop CONST
+intern. Do **not** land a 225–245s wash. Next slice must cut
+unique dest CALL / arith / CONST records, without closed SoA
+/ pack / reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+/ void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name / skip-GET-after-CONST /
+stack-const-intern families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1078,6 +1099,7 @@ families.
 | tick 148 no-clone mir_inst_str_val accessor | **230.63s** | yes | **1.76GB** | emit 6.90MB (236.61s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `954dbf63…`; s3 valid; ~8s vs 239s is 225–245s noise; RSS wash; accessor clones are not the live set; reverted |
 | tick 149 share _t name on ctx_fresh_local | **235.44s** | **no** | **1.76GB** | emit 6.90MB (226.67s) validated; hello **2311B** sha256 `d222a7eb…` (mismatch); s2 `c4dd7e55…` (6900596) ≠ s3 `6865e26f…` (6463583); s3 valid; ~437KB name section; RSS wash; reverted |
 | tick 150 skip GET-to-self after same-dest CONST | **235.10s** | yes | **1.76GB** | emit 6.90MB (233.72s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `85f9e5a0…`; s3 valid; same size; skip almost never fires; RSS wash; reverted |
+| tick 151 dest=-1 binop CONST_I32 intern | **232.02s** | **no** | **1.76GB** | emit 6.90MB (228.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `a6f5e4c8…` (6903831) ≠ s3 `da52170e…` (6780885); s3 valid; ~123KB; RSS wash; unique dest insts remain; reverted |
 
 ## Non-goals
 
