@@ -384,6 +384,19 @@ global `inst`→`(block, hid)` rewriter. Convert CALL/struct **by
 hand, file-by-file**, passing the real loop index (`ii`) as hid.
 Do **not** retry leftover-reconstruct hybrids (ticks 108–110).
 
+Tick 112 re-landed SoA and converted emit functions whose
+signature is `inst: MirInst` (function-scoped; skipped any fn
+that contains `MirBlock_inst_at`). Tick77 host emit **265.04s**,
+6939781 B, validated. Hello 2312B sha256 `1dbf14ca…` matched.
+Overlay **timeout 320s**, RSS **1.08GB**, no output. CALL/struct
+column emit is **not enough** while `code_ref_locals_*` /
+enum-normalize / SSA still `inst_at` (SSA also `replace_inst`
+after a full reconstruct). Do **not** retry a global rewriter.
+Do **not** retry leftover-reconstruct hybrids. Next slice must
+convert remaining overlay-hot scans to columns with the real
+loop index (`ii`), especially `code_ref_locals_*` and SSA
+in-place column writes (no reconstruct-then-`replace_inst`).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -433,6 +446,7 @@ Do **not** retry leftover-reconstruct hybrids (ticks 108–110).
 | tick 109 SoA + GET/SET/CONST columns; leftover reconstruct | timeout 320s | — | n/a | emit 6.93MB (272.03s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/arith/control `inst_at`; first emit invalid (`arg0` dropped); reverted |
 | tick 110 SoA + GET/SET/CONST/arith/control/convert columns; leftover CALL reconstruct | timeout 320s | — | **1.45GB** | emit 6.93MB (258.65s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/struct `inst_at`; reverted |
 | tick 111 SoA + mechanical `(block, hid)` emit rewrite | — | — | — | emit 6.94MB (256.75s); **invalid wasm** func 8133 `lookup_struct_byte_size_in_func` (unbound `hid` after rewriter); hello/overlay not run; reverted |
+| tick 112 SoA + function-scoped `(block, hid)` emit (skip `inst_at` fns) | timeout 320s | — | **1.08GB** | emit 6.94MB (265.04s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover scan/SSA `inst_at`; reverted |
 
 ## Non-goals
 
