@@ -614,6 +614,16 @@ retry this resolve-cache + post-emit body release. Do **not** land a
 250–270s wash. Next slice must still remove the per-inst `MirInst` GC
 object during lower (not after emit) without closed SoA families.
 
+Tick 128 packed each function's insts into block word/str/float/result
+columns at `ctx_push_*` (no `MirFunction` fields) and lazily unpacked
+on `inst_at`. wasm32-gc flatten. Tick77 host emit **278.07s**, 6907423 B,
+`compilation succeeded`. Hello **invalid wasm** func 2065 (ref-null
+type mismatch). Overlay not run. Rematerializing `MirInst` from packed
+columns lost emit-visible type identity. Reverted. Do **not** retry
+pack-at-commit + lazy `inst_at` unpack. Do **not** reconstruct a fat
+`MirInst` on read. Next slice must keep packed scalars through emit
+without rematerialize, and without closed SoA emit-rewrite families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -679,6 +689,7 @@ object during lower (not after emit) without closed SoA families.
 | tick 125 LowerCtx type-name intern handles | **269.49s** | yes | **1.72GB** | emit 6.90MB (259.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b4bc477c…`; worse than 239s; RSS wash; narrow return/local type-name intern is not the emit live set; reverted |
 | tick 126 intern-share field/sig String handles | **246.78s** | yes | **1.76GB** | emit 6.90MB (264.69s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37dac859…`; worse than 239s; RSS unchanged; field/sig intern-share is not the emit live set; reverted |
 | tick 127 resolve-cache + post-emit body release | **265.53s** | yes | **1.77GB** | emit 6.90MB (275.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `6c897aed…`; worse than 239s; RSS unchanged; late body drop is after the 1.7GB peak; reverted |
+| tick 128 pack-at-commit + lazy inst_at unpack | — | — | — | emit 6.91MB (278.07s) succeeded; hello **invalid wasm** func 2065 ref-null type mismatch; overlay not run; rematerialize lost type identity; reverted |
 
 ## Non-goals
 
