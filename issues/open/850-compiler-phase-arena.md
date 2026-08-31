@@ -324,6 +324,14 @@ Tick 106 skipped `local_vec_access_storage_type` when
 239s floor. Do **not** retry this vec-access guard. Next slice is
 still SoA CALL/struct **no fill**.
 
+Tick 107 ran `local_set_non_string_storage_type` only when
+`gc_local_type_name_is_string_or_empty` (sticky String/empty).
+Hello 2312B matched tick49. Overlay **204.92s**, **s2≠s3**,
+RSS **1.69GB**. s2 6901066 B `20d13a2d…` ≠ s3 6899719 B
+`d74afe8e…`. Named non-string locals still need the SET-follow
+copy infer. Do **not** retry this copy-scan guard. Next slice is
+still SoA CALL/struct **no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -368,6 +376,7 @@ still SoA CALL/struct **no fill**.
 | tick 104 fold has_ref mark into first cache walk | **238.29s** | yes | **1.67GB** | emit 6.90MB (234.23s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `ddd62f69…`; wash vs 239s; reverted |
 | tick 105 skip payload-extract on container type_name | **239.09s** | yes | **1.67GB** | emit 6.90MB (238.05s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `48d4e527…`; wash vs 239s; reverted |
 | tick 106 skip vec-access on enum/option/result | **245.15s** | yes | **1.68GB** | emit 6.90MB (243.91s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4d052a53…`; +6s vs 239s; reverted |
+| tick 107 copy-scan only on string/empty type_name | **204.92s** | **no** | **1.69GB** | emit 6.90MB (247.24s); hello sha256 `1dbf14ca…` (2312B); s2 `20d13a2d…` (6901066) ≠ s3 `d74afe8e…` (6899719); named locals still need SET-follow; reverted |
 
 ## Non-goals
 
