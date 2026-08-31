@@ -203,17 +203,24 @@ loaded** as the current compare floor; 208s is quiet-best, not
 today's machine. Ticks 81/83/87–89 walls of 230–241s vs 208s were
 not proven product losses against this remasure (still do **not**
 retry those edits). Ticks 84–86 stay closed (`s2≠s3`). Tick 91
-emit-loop sliding window is closed (wash wall + RSS jump). Next
-slice is still SoA CALL/struct **no fill** (do not add a new helper
-family). Compare new walls to ~239s same-day, not 208s.
+emit-loop sliding window is closed (wash wall + RSS jump). Tick 92
+opcode-first emit dispatch is closed (wash). Next slice is still
+SoA CALL/struct **no fill** (do not add a new helper family).
+Compare new walls to ~239s same-day, not 208s.
 
 Tick 91 reused already-read `MirInst`s in
 `emit_function_instructions` (block-local cur/nxt/n2 window)
 instead of four `inst_at` peeks per instruction. Overlay
 **233.40s**, `s2=s3`, hello 2312B matched, RSS **2.16GB**. Wall
 is wash vs today's 239s floor; RSS jumped 1.77→2.16GB. Do **not**
-retry this emit-loop window. Next slice is still SoA CALL/struct
-**no fill**.
+retry this emit-loop window.
+
+Tick 92 routed hot GET/CONST/SET/CALL/struct opcodes in
+`emit_mir_inst_ctx` straight to the existing family (skip failed
+`try_emit` probes). Overlay **234.23s**, `s2=s3`, hello 2312B
+matched, RSS **1.71GB**. Wall is wash vs today's 239s floor.
+Do **not** retry this opcode-first dispatch. Next slice is still
+SoA CALL/struct **no fill**.
 
 ## Receipts
 
@@ -244,6 +251,7 @@ retry this emit-loop window. Next slice is still SoA CALL/struct
 | tick 89 overlay stub skip resolve | **240.83s** | yes | **1.75GB** | emit 6.89MB (234.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `35fff7cb…`; worse than tick 80; reverted |
 | tick 90 remasure tick-80 binary | **239.11s** | yes | **1.77GB** | no product change; s2=s3 `2ee7c360…`; same 6.90MB as tick 80; current loaded floor |
 | tick 91 emit-loop sliding window (reuse cur/nxt/n2) | **233.40s** | yes | **2.16GB** | emit 6.90MB (241.09s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `8a276b05…`; wash vs 239s + RSS jump 1.77→2.16GB; reverted |
+| tick 92 opcode-first emit dispatch (hot GET/CONST/SET/CALL/struct) | **234.23s** | yes | **1.71GB** | emit 6.90MB (230.11s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `1d63dbf1…`; wash vs 239s; RSS wash; reverted |
 
 ## Non-goals
 
