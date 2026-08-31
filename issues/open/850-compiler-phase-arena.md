@@ -99,7 +99,9 @@ share `params[i]` with `locals[i]` when type names match
 255s worse, s2=s3, RSS wash). Do **not** skip multi-arg
 call staging copies (tick 145: 212s invalid s3, s2≠s3).
 Do **not** reuse identical void-stack `CALL` in the current
-block (tick 146: 268s worse, s2=s3, RSS wash).
+block (tick 146: 268s worse, s2=s3, RSS wash). Do **not**
+skip CALL/REF_FUNC edge name intern when `func_id_raw >= 0`
+(tick 147: 263s wash, s2≠s3, RSS 1.76GB).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -910,6 +912,25 @@ intern / sync-copy / MirBlock-vec / source-map / source_text /
 SET-from-retarget / CONST-CSE / leftover-NOP / param-share /
 in-place-func-id / skip-staging / void-CALL-reuse families.
 
+Tick 147 recorded CALL/REF_FUNC edges by `func_id_raw` only
+when `fid >= 0`, and interned `str_val` only as the
+unresolved-name fallback. wasm32-gc already returns before
+the fallback-name path, so the extra `ctx_edge_record_name`
+clone was redundant on the official flatten. Distinct from
+in-place func_id attach (144) and void-CALL reuse (146).
+Prune treats `payload >= 0` as func_id. wasm32-gc flatten.
+Tick77 host emit **257.51s**, 6900929 B, validated. Hello
+2312B sha256 `1dbf14ca…` matched. Overlay **262.64s**,
+**s2≠s3** `d4ba34c2…` (6900929) ≠ `1be4e917…` (6900616),
+RSS **1.76GB**. s3 valid wasm (313B smaller). Edge-name
+clones are not the 1.7GB. Reverted. Do **not** retry
+fid-only CALL edges. Do **not** land a 246–270s wash. Next
+slice must cut unique `MirInst` objects, without closed SoA
+/ pack / reconstruct / intern / sync-copy / MirBlock-vec /
+source-map / source_text / SET-from-retarget / CONST-CSE /
+leftover-NOP / param-share / in-place-func-id / skip-staging
+/ void-CALL-reuse / fid-only-edge families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -994,6 +1015,7 @@ in-place-func-id / skip-staging / void-CALL-reuse families.
 | tick 144 in-place CALL func_id attach | **255.02s** | yes | **1.68GB** | emit 6.90MB (247.19s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `59b491d0…`; worse than 239s; RSS wash; attach copies are not the live set; reverted |
 | tick 145 skip call-arg staging copies | **211.63s** | **no** | **1.71GB** | emit 6.90MB (259.26s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `c00acad6…` (6900260) ≠ s3 `aae0019b…` (5714950); s3 **invalid wasm** func 139 stack leftover; false wall; reverted |
 | tick 146 reuse identical void-stack CALL | **268.47s** | yes | **1.68GB** | emit 6.90MB (257.91s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `4406d78d…`; worse than 239s; scan tax; RSS wash; unique dest insts remain; reverted |
+| tick 147 skip CALL edge name when func_id known | **262.64s** | **no** | **1.76GB** | emit 6.90MB (257.51s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `d4ba34c2…` (6900929) ≠ s3 `1be4e917…` (6900616); s3 valid; 313B smaller; worse than 239s; RSS wash; reverted |
 
 ## Non-goals
 
