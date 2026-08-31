@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 128 369 bytes (≈ 6.80 MiB) |
-| sha256 | `695de0cb1e39cf839300033f82a3091d263ac096054b9ac5b88bace1c09983c6` |
-| Built from commit | `75401a23` merge #665 WIT import-load + leftover linear emit (s2==s3) |
+| Size | 7 128 122 bytes (≈ 6.80 MiB) |
+| sha256 | `427fe626fad4a8ca8bc48b87cb3a4514cf76b713ba768a0d115854d06ec84b53` |
+| Built from commit | `9a821f07` component emit bool-logic trap + core-func alias (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,25 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`9a821f07`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `9a821f07` (component emit
+bool-only exports no longer trap; generic core-func alias matches
+library emit). Guest remains `wasm32-gc` / `wasi-p2` memory32. Official
+`build-compiler` then `fixpoint --build` 2026-08-31T07:48–07:57Z:
+s2==s3=`427fe626` EXIT 0.
+
+Intentional drift from the previous pin (`75401a23` / `695de0cb`):
+
+- `StringGeneralPlan` / `F32GeneralPlan` collect `Vec<String>` /
+  `Vec<i32>` only so leftover dest cannot retype `mir` as a custom
+  struct vec (`--emit component` bool-logic no longer traps)
+- generic core-func alias includes the `0x01` instance-sort byte
+- Official bool-logic 6/6 PASS on this artifact
+- string-multi still validate-fails: specialized string adapters
+  import user funcs as `(i32)->(i32)` while wasm32-gc exports
+  `(ref null String)` — next pin after the GC adapter fix
 
 ### wasm32-gc pinned (`75401a23`)
 
