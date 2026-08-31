@@ -31,3 +31,7 @@ Options:
   --local        Lint local (parse-only) rules; no module resolve
   --allow <rule> Allow (suppress) a lint rule by W-code or name
   --deny <rule>  Deny (escalate to error) a lint rule by W-code or name
+  --deny-clock   Reject programs that use host clock intrinsics
+  --deny-random  Reject programs that use host randomness intrinsics
+  --deny-process Reject programs that use process exit/abort intrinsics
+  --strip-debug  Strip debug sections (name, source map) from output

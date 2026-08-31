@@ -778,25 +778,35 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
 
 
 def _wasm_run_cmd(
-    wasmtime: str, compiler_wasm: Path, root: Path, args: list[str]
+    wasmtime: str,
+    compiler_wasm: Path,
+    root: Path,
+    args: list[str],
+    dirs: list[Path] | None = None,
 ) -> list[str]:
     """Build a run command for ``compiler_wasm``, using AOT .cwasm when available.
 
     wasi-p2 / host-linker guests skip AOT and route through
     ``arukellt-run-hosted.sh`` (plain wasmtime cannot link ``wasi:cli/*``; #834).
+    ``dirs`` defaults to ``[root]``; cli-parity passes extra preopens for
+    init/script/component cases.
     """
+    mounts = [Path(p) for p in (dirs if dirs is not None else [root])]
     if _wasm_needs_host_linker(compiler_wasm):
         hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
-        return ["bash", str(hosted), f"--dir={root}", str(compiler_wasm), "--", *args]
+        host_dirs = [f"--dir={mount}" for mount in mounts]
+        return ["bash", str(hosted), *host_dirs, str(compiler_wasm), "--", *args]
     cwasm = _ensure_aot_cwasm(compiler_wasm)
+    run_wasm = cwasm if cwasm.suffix == ".cwasm" else compiler_wasm
+    cmd = [wasmtime, "run"]
     if cwasm.suffix == ".cwasm":
-        return [wasmtime, "run", "--allow-precompiled",
-                *WASMTIME_SELFHOST_WASM_FLAGS,
-                "--wasm", "max-wasm-stack=16777216",
-                "--dir", str(root), str(cwasm), "--", *args]
-    return [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS,
-            "--wasm", "max-wasm-stack=16777216",
-            "--dir", str(root), str(compiler_wasm), "--", *args]
+        cmd.append("--allow-precompiled")
+    cmd.extend(WASMTIME_SELFHOST_WASM_FLAGS)
+    cmd.extend(["--wasm", "max-wasm-stack=16777216"])
+    for mount in mounts:
+        cmd.extend(["--dir", str(mount)])
+    cmd.extend([str(run_wasm), "--", *args])
+    return cmd
 
 
 def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
@@ -4945,10 +4955,7 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
     fail_count = 0
 
     def run_self_with_dirs(dirs: list[Path], *args: str, cwd: Path = root) -> tuple[int, str]:
-        cmd = [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS]
-        for mount in dirs:
-            cmd.extend(["--dir", str(mount)])
-        cmd.extend([str(current), "--", *args])
+        cmd = _wasm_run_cmd(wasmtime, current, root, list(args), dirs=dirs)
         r = _run(cmd, cwd)
         return r.returncode, (r.stdout + r.stderr)
 
@@ -5026,7 +5033,9 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
         tmp = Path(tmpdir)
         (tmp / "test_project" / "src").mkdir(parents=True)
         r = _run(
-            [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", ".", str(current), "--", "init", "test_project"],
+            _wasm_run_cmd(
+                wasmtime, current, root, ["init", "test_project"], dirs=[tmp]
+            ),
             tmp,
         )
         rc_i, out_i = r.returncode, (r.stdout + r.stderr)
@@ -5071,7 +5080,9 @@ def _run_cli_parity_locked(root: Path) -> tuple[int, str]:
                         dirs_exist_ok=True)
         project_dir = tmp / "basic-project"
         r = _run(
-            [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", str(project_dir), str(current), "--", "script"],
+            _wasm_run_cmd(
+                wasmtime, current, root, ["script"], dirs=[project_dir]
+            ),
             project_dir,
         )
         rc_s, out_s = r.returncode, (r.stdout + r.stderr)
