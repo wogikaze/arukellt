@@ -135,6 +135,12 @@ on CALL (tick 156: 245s wash, s2≠s3, s3 invalid
 wasm, RSS 1.67GB). Hello matched; func 158 expected
 ref but found i32. Do **not** skip GET-to-self on
 ident CALL args without a wasm-equivalence proof.
+Do **not** reuse CONST_I32 dest for 0/1
+(tick 157: 252s wash, s2≠s3, s3 invalid
+wasm, RSS 1.68GB). Hello matched; func 143
+values remaining on stack. Do **not** CSE
+CONST dest at birth without a wasm-equivalence
+proof (store-skip / stack leftover).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1150,6 +1156,32 @@ skip-GET-after-CONST / stack-const-intern /
 op-hist-dump / GET-SET_from-replace / get-succ-dump /
 staged-GET-encode / ident-GET-encode families.
 
+Tick 157 reused the same dest local for later
+i32 CONST 0 and 1 in one function (LowerCtx
+slots, reset on function frame). No block
+scan (141). bool/char did not share. wasm32-gc
+flatten. Tick77 host emit **231.93s**, 6902711 B,
+validated. Hello 2312B sha256 `1dbf14ca…` matched.
+Overlay **252.49s**, s2 `4dd6d7fe…` (6902711) ≠ s3
+`116550d4…` (6823946), RSS **1.68GB**. s3 **invalid
+wasm** func 143 values remaining on stack.
+Reuse skipped a CONST the store-skip path still
+expected. Reverted. Do **not** retry CONST 0/1
+dest reuse. Do **not** land a 225–276s wash.
+Next slice must cut unique dest CALL / arith
+records (not CONST dest reuse, not ident GET,
+not staged GET, not SET_from), without closed
+SoA / pack / reconstruct / intern / sync-copy /
+MirBlock-vec / source-map / source_text /
+SET-from-retarget / CONST-CSE / leftover-NOP /
+param-share / in-place-func-id / skip-staging /
+void-CALL-reuse / fid-only-edge / str-val-noclone /
+shared-fresh-local-name / skip-GET-after-CONST /
+stack-const-intern / op-hist-dump /
+GET-SET_from-replace / get-succ-dump /
+staged-GET-encode / ident-GET-encode /
+const-01-reuse families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -1244,6 +1276,7 @@ staged-GET-encode / ident-GET-encode families.
 | tick 154 GET successor histogram | **261.08s** | yes | **1.76GB** | emit 6.91MB (254.22s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `1d08e276…`; s3 valid; GET next SET 50780 CALL 58133 GET 49360 arith 5117; CALL chain 59%; RSS wash; reverted |
 | tick 155 skip 2-arg staged GET; encode on CALL | **264.94s** | yes | **1.78GB** | emit 6.90MB (257.90s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c74f3e91…`; s3 valid; same size; wasm-equivalent local.get; staged GET temps are not the 1.7GB; worse than 239s; reverted |
 | tick 156 skip 1-arg ident GET; encode first_arg | **245.28s** | **no** | **1.67GB** | emit 6.90MB (265.68s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `47768851…` (6903692) ≠ s3 `0ce3f92a…` (6910681); s3 **invalid wasm** func 158 expected ref found i32; wash vs 239s; RSS wash; reverted |
+| tick 157 reuse CONST_I32 dest for 0/1 | **252.49s** | **no** | **1.68GB** | emit 6.90MB (231.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `4dd6d7fe…` (6902711) ≠ s3 `116550d4…` (6823946); s3 **invalid wasm** func 143 stack leftover; wash vs 239s; RSS wash; reverted |
 
 ## Non-goals
 
