@@ -412,6 +412,24 @@ helpers, infer_dest, payload-extract body, resolve CALL) using the
 real loop index — no global rewriter, no leftover-reconstruct
 hybrid.
 
+Tick 114 re-landed SoA + function-scoped emit and finished the
+leftover overlay-hot `inst_at`: `infer_ref_local_from_producer` /
+block_scan / scan helpers / enum SET / fn_cache marks read columns,
+reachability `op_at` then reconstruct only CALL/REF, propagate
+`inst_at` only when `dest >= 0`, and overlay resolve writes
+`str_val` / `func_id_raw` / `result_types` in place (no output
+`Vec<MirInst>`). Tick77 host emit **265.97s**, 6940720 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **finished**
+**250.64s**, RSS **1.84GB** — first SoA finish since ticks 69/76 —
+but **s2≠s3** (s2 `51a1c6c8…` 6940720 B ≠ s3 `7bb04a85…` 6940630 B,
+90 bytes). Wall is worse than the 239s loaded floor. In-place
+resolve unblocks overlay; it is **not** byte-identical to the
+tick77 reconstruct path. Do **not** retry this exact combo. Next
+slice must make column resolve match reconstruct (or keep CALL-only
+reconstruct) before measuring again. Do **not** land a 250s wash
+even if s2=s3. Still no leftover-reconstruct hybrid and no global
+rewriter.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -463,6 +481,7 @@ hybrid.
 | tick 111 SoA + mechanical `(block, hid)` emit rewrite | — | — | — | emit 6.94MB (256.75s); **invalid wasm** func 8133 `lookup_struct_byte_size_in_func` (unbound `hid` after rewriter); hello/overlay not run; reverted |
 | tick 112 SoA + function-scoped `(block, hid)` emit (skip `inst_at` fns) | timeout 320s | — | **1.08GB** | emit 6.94MB (265.04s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover scan/SSA `inst_at`; reverted |
 | tick 113 SoA + emit + SSA/fn_cache/enum column scans | timeout 320s | — | **1.18GB** | emit 6.94MB (287.10s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover block_scan/infer_dest/`inst_at`; reverted |
+| tick 114 SoA + leftover scan columns + in-place resolve | **250.64s** | **no** | **1.84GB** | emit 6.94MB (265.97s) validated; hello sha256 `1dbf14ca…` (2312B); first SoA overlay finish since 69/76; s2 `51a1c6c8…` (6940720) ≠ s3 `7bb04a85…` (6940630); worse than 239s; reverted |
 
 ## Non-goals
 
