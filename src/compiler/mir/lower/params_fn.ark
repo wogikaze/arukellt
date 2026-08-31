@@ -34,7 +34,9 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
         starts_with(clone(local_type_name), String_from("Option_")) ||
         starts_with(clone(local_type_name), String_from("option:")) ||
         starts_with(clone(local_type_name), String_from("Result_")) ||
-        starts_with(clone(local_type_name), String_from("result:")) {
+        starts_with(clone(local_type_name), String_from("result:")) ||
+        starts_with(clone(local_type_name), String_from("Tuple:")) ||
+        starts_with(clone(local_type_name), String_from("tuple:")) {
             pvt = value_types::VT_GC_REF()
         } else {
             // Qualified names like "parser::TomlValue" need the bare enum
@@ -131,6 +133,15 @@ fn mir_param_resolve_no_local_type(ctx: LowerCtx, p_type_name: String) -> Vec<St
         push(result, clone(normalized))
         return result
     }
+    // Tuple params are concrete GC compounds. Prefixing "?" makes
+    // is_generic_function skip the core export and hides the name from
+    // adapter_tuple_kind_from_name (component tuple-param lift).
+    let tuple_name = mir_param_normalize_tuple_type_name(clone(p_type_name))
+    if len(tuple_name) > 0 {
+        push(result, clone(tuple_name))
+        push(result, clone(tuple_name))
+        return result
+    }
     if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(p_type_name)) {
         let mt = concat(String_from("enum:"), p_type_name)
         push(result, mt)
@@ -175,6 +186,18 @@ fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
     }
     if starts_with(clone(type_name), String_from("Result_")) {
         return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
+    }
+    String_new()
+}
+
+fn mir_param_normalize_tuple_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("tuple:")) ||
+    starts_with(clone(type_name), String_from("Tuple:")) {
+        return type_name
+    }
+    if starts_with(clone(type_name), String_from("?tuple:")) ||
+    starts_with(clone(type_name), String_from("?Tuple:")) {
+        return substring(type_name, 1, len(type_name))
     }
     String_new()
 }
