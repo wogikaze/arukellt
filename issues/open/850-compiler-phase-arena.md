@@ -209,7 +209,8 @@ source-map index is closed (first cut `s2≠s3`; remasure wash).
 Tick 94 gcsref run-copy rewrite is closed (wash). Tick 95
 producer-index payload/vec scans is closed (wash). Tick 96
 has_ref miss memo is closed (wash). Tick 97 skip layout-plan
-validator is closed (wash). Next slice is still SoA CALL/struct
+validator is closed (wash). Tick 98 `local_feeds_return` return-type
+guard is closed (wash). Next slice is still SoA CALL/struct
 **no fill** (do not add a new helper family). Compare new walls
 to ~239s same-day, not 208s.
 
@@ -258,6 +259,13 @@ binding. Overlay **231.27s**, `s2=s3`, hello 2312B matched, RSS
 **1.67GB**. Wall is wash vs today's 239s floor. Do **not** retry
 this validator skip. Next slice is still SoA CALL/struct **no fill**.
 
+Tick 98 checked `return_type_name` starts with `vec:` and
+`mir_function_returns_enum_open` before `local_feeds_return` (no new
+helpers). Overlay **225.24s**, `s2=s3`, hello 2312B matched, RSS
+**1.67GB**. ~14s under today's 239s floor but inside same-day noise
+vs ticks 91–97 (225–237s). Do **not** retry this return-type guard.
+Next slice is still SoA CALL/struct **no fill**.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -293,6 +301,7 @@ this validator skip. Next slice is still SoA CALL/struct **no fill**.
 | tick 95 producer-index payload/vec scans | **227.35s** | yes | **1.72GB** | emit 6.91MB (226.14s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4f0dfcd6…`; ~12s vs 239s, noise vs 232–234s same-day; extra helpers; reverted |
 | tick 96 has_ref miss memo (`cached==2`) | **230.63s** | yes | **1.71GB** | emit 6.90MB (225.29s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `8d454678…`; wash vs 239s; RSS wash; reverted |
 | tick 97 skip layout-plan validator | **231.27s** | yes | **1.67GB** | emit 6.90MB (230.39s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `f8202844…`; wash vs 239s; RSS wash; reverted |
+| tick 98 `local_feeds_return` return-type guard | **225.24s** | yes | **1.67GB** | emit 6.90MB (228.97s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `883af61d…`; ~14s vs 239s, noise vs 225–237s same-day; reverted |
 
 ## Non-goals
 
