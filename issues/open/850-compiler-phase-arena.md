@@ -36,7 +36,7 @@ Measured on HEAD `886581d1d` plus tick 80 (do not treat wasm32 ≤10s as this go
 | Host | Overlay | Notes |
 |---|---:|---|
 | wasm32 + wasi-p1 | ~10s | superseded as the *goal*; still the fast emit host |
-| wasm32-gc + wasi-p2 (Copying) | **208s remasure / 213s first** (tick 80) | was 242s quiet / 255s loaded; s2=s3, RSS ~1.76GB |
+| wasm32-gc + wasi-p2 (Copying) | **239s loaded** (tick 90) / **208s quiet** (tick 80) | same tick-80 binary; s2=s3, RSS ~1.76GB |
 | wasm32-gc Null collector | ~23–26s then trap | mutator floor; discard does not help Null |
 | wasm32-gc DeferredRC | ~279s | worse |
 
@@ -64,7 +64,7 @@ are the structural way to get there without flipping `BOOTSTRAP_EMIT_*` early.
 - [ ] Reset points match the memo; no cross-arena raw refs
 - [ ] Cacheless gc-host overlay of flattened `src/compiler/main.ark` stays
       `sha256(s2)==sha256(s3)` (or the *new* compiler is itself a fixpoint)
-- [ ] Receipt: wall + RSS vs tick 80 ~208–213s / same-day HEAD-today 242s / ~1.76GB
+- [ ] Receipt: wall + RSS vs tick 90 loaded **239s** / tick 80 quiet **208s** / ~1.76GB
 - [ ] Do **not** set `BOOTSTRAP_EMIT_*` to wasm32-gc until overlay is ≤10s
 - [ ] `python3 scripts/manager.py verify lane` on the implementation slice
 - [ ] No `--to-memory64` widen of memory32 wasm32-gc (`#834`)
@@ -195,8 +195,16 @@ Tick 89 dropped `stdlib_resolve_normal_calls` from the overlay
 `optimize_module` stub. Overlay **240.83s**, `s2=s3`, hello 2312B
 matched, RSS **1.75GB**. Resolve does not change compiler wasm, but
 skipping it made emit slower. Do **not** retry stub-skip resolve.
-Next slice is still SoA CALL/struct **no fill** (do not add a new
-helper family).
+
+Tick 90 remeasured the tick-80 binary on current HEAD flatten
+(no product change). Overlay **239.11s**, `s2=s3` `2ee7c360…`,
+RSS **1.77GB**. Same wasm as tick 80's 208s remasure. Treat **239s
+loaded** as the current compare floor; 208s is quiet-best, not
+today's machine. Ticks 81/83/87–89 walls of 230–241s vs 208s were
+not proven product losses against this remasure (still do **not**
+retry those edits). Ticks 84–86 stay closed (`s2≠s3`). Next slice
+is still SoA CALL/struct **no fill** (do not add a new helper
+family). Compare new walls to ~239s same-day, not 208s.
 
 ## Receipts
 
@@ -225,6 +233,7 @@ helper family).
 | tick 87 one-pass payload-extract GET/other counts | **236.97s** | yes | **1.75GB** | emit 6.90MB (228.24s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `4601f7fa…`; worse than tick 80; reverted |
 | tick 88 lazy resolve output vec | **237.48s** | yes | **1.75GB** | emit 6.90MB (227.38s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `2cd20ab6…`; worse than tick 80; reverted |
 | tick 89 overlay stub skip resolve | **240.83s** | yes | **1.75GB** | emit 6.89MB (234.02s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `35fff7cb…`; worse than tick 80; reverted |
+| tick 90 remasure tick-80 binary | **239.11s** | yes | **1.77GB** | no product change; s2=s3 `2ee7c360…`; same 6.90MB as tick 80; current loaded floor |
 
 ## Non-goals
 
