@@ -153,7 +153,14 @@ Tick 81 capped the same fixpoint at 1 iteration. Overlay **230.55s**,
 `s2=s3`, hello 2312B matched, RSS **1.75GB**. Worse wall than tick 80
 (208s remasure). One scan still produces matching compiler wasm, but
 the second scan is cheaper than whatever incomplete types cost later.
-Do **not** retry max=1. Next slice is still SoA CALL/struct **no fill**
+Do **not** retry max=1.
+
+Tick 83 skipped the post-propagate `mir_module_sync_all_value_types`
+(tick 50 skipped the pre-propagate sync). Overlay **233.98s**, `s2=s3`,
+hello 2312B matched, RSS **1.75GB**. Worse wall than tick 80 (208s).
+The second sync does not change compiler wasm, but skipping it costs
+more later in layout/emit. Do **not** retry skipping either full
+module sync. Next slice is still SoA CALL/struct **no fill**
 (do not add a new helper family).
 
 ## Receipts
@@ -176,6 +183,7 @@ Do **not** retry max=1. Next slice is still SoA CALL/struct **no fill**
 | tick 76 SoA + arith-from-cols + reused scratch | **300.28s** | yes | **2.07GB** | emit 6.93MB (267.20s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `860730e9…`; worse than tick 69; reverted |
 | tick 80 cap propagate at 2 iterations | **208.40s** remasure / **213.36s** first | yes | **1.76GB** | emit 6.90MB (230.46s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `2ee7c360…`; same-day HEAD-today max=8 control **242.08s**; kept |
 | tick 81 cap propagate at 1 iteration | **230.55s** | yes | **1.75GB** | emit 6.90MB (228.36s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `0acbd0af…`; worse than tick 80; reverted |
+| tick 83 skip post-propagate module sync | **233.98s** | yes | **1.75GB** | emit 6.90MB (223.60s); hello sha256 `1dbf14ca…` (2312B); s2=s3 `db410b76…`; worse than tick 80; reverted |
 
 ## Non-goals
 
