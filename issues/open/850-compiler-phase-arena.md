@@ -590,6 +590,18 @@ slice must still remove the per-inst `MirInst` GC object (or cut
 function-shell / remaining `LowerCtx` tables that are not unique
 type-name strings) without closed SoA families.
 
+Tick 126 intern-shared duplicate `struct_all_fields` / `struct_field_types`
+/ `gc_struct_sigs` / `gc_enum_variant_sigs` String handles at write
+(NameIndex + `str_intern`; reads stay `Vec<String>`, no i32 id).
+wasm32-gc flatten. Tick77 host emit **264.69s**, 6902217 B, validated.
+Hello 2312B sha256 `1dbf14ca…` matched. Overlay **246.78s**, **s2=s3**
+`37dac859…`, RSS **1.76GB**. Worse wall than 239s; RSS unchanged.
+Write-time intern-share of field/sig text is not the 1.7GB. Reverted.
+Do **not** retry this field/sig intern-share. Do **not** land a
+246–270s wash. Next slice must still remove the per-inst `MirInst` GC
+object (or cut function-shell records) without closed SoA families
+and without further `LowerCtx` string intern.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -653,6 +665,7 @@ type-name strings) without closed SoA families.
 | tick 123 slim `MirInst` + per-block shared extras | **257.76s** | yes | **1.64GB** | emit 6.90MB (252.53s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d36b15a6…`; worse than 239s; RSS wash; child-field sharing is not the emit live set; reverted |
 | tick 124 flatten MirLocal MVT + shared block id vecs | **255.65s** | yes | **1.69GB** | emit 6.90MB (253.54s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37bb8442…`; worse than 239s; RSS wash; local MVT / unused block vecs are not the emit live set; reverted |
 | tick 125 LowerCtx type-name intern handles | **269.49s** | yes | **1.72GB** | emit 6.90MB (259.81s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b4bc477c…`; worse than 239s; RSS wash; narrow return/local type-name intern is not the emit live set; reverted |
+| tick 126 intern-share field/sig String handles | **246.78s** | yes | **1.76GB** | emit 6.90MB (264.69s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `37dac859…`; worse than 239s; RSS unchanged; field/sig intern-share is not the emit live set; reverted |
 
 ## Non-goals
 
