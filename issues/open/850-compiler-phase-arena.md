@@ -89,7 +89,9 @@ identical GET/SET/control `MirInst` records on LowerCtx (tick 137:
 (tick 138: 245s s2=s3, RSS wash). Do **not** drop dump-only
 `MirBlock` phi/pred/dom vec fields (tick 139: 245s s2=s3, RSS wash).
 Do **not** retarget `SET_from` dest onto the last producer
-(tick 140: 234s wash, s2≠s3, RSS 1.75GB).
+(tick 140: 234s wash, s2≠s3, RSS 1.75GB). Do **not** CSE
+block-scoped `CONST_I32` by `int_val` (tick 141: 286s worse,
+s2≠s3, RSS wash).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -809,6 +811,21 @@ unique `MirInst` objects, without closed SoA / pack / reconstruct /
 intern / sync-copy / MirBlock-vec / source-map / source_text /
 SET-from-retarget families.
 
+Tick 141 reused a recent same-`int_val` `CONST_I32` dest in the
+current block (window 32, skip if dest written after) from
+`lower_int_literal` / `lower_core_literal_value` i32 paths.
+Cuts unique user-literal CONST objects without SoA / pack /
+intern-identical-inst / SET retarget. wasm32-gc flatten.
+Tick77 host emit **273.93s**, 6902944 B, validated. Hello
+2312B sha256 `1dbf14ca…` matched. Overlay **286.39s**,
+**s2≠s3** `90e8a309…` (6902944) ≠ `7094d2bb…` (6837830),
+RSS **1.68GB**. Worse than 239s (scan tax). Unique CALL /
+arith / struct remain. Reverted. Do **not** retry block-scoped
+`CONST_I32` CSE. Do **not** land a 246–286s wash. Next slice
+must cut unique `MirInst` objects, without closed SoA / pack /
+reconstruct / intern / sync-copy / MirBlock-vec / source-map /
+source_text / SET-from-retarget / CONST-CSE families.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -887,6 +904,7 @@ SET-from-retarget families.
 | tick 138 in-place typed MIR local sync | **245.41s** | yes | **1.68GB** | emit 6.90MB (242.17s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `8d9295b7…`; worse than 239s; RSS wash; sync copies are not the live set; reverted |
 | tick 139 slim MirBlock drop dump-only vecs | **245.18s** | yes | **1.68GB** | emit 6.90MB (245.60s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `a3cdd24f…`; worse than 239s; RSS wash; confirms tick 124; reverted |
 | tick 140 SET_from dest retarget onto last producer | **233.76s** | **no** | **1.75GB** | emit 6.90MB (263.42s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `6df66768…` (6901765) ≠ s3 `846086ad…` (6394549); wash vs 239s; s3 ~508KB smaller; RSS wash; reverted |
+| tick 141 block-scoped CONST_I32 CSE by int_val | **286.39s** | **no** | **1.68GB** | emit 6.90MB (273.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `90e8a309…` (6902944) ≠ s3 `7094d2bb…` (6837830); worse than 239s; scan tax; RSS wash; reverted |
 
 ## Non-goals
 
