@@ -469,6 +469,19 @@ emit** (no function-scoped rewrite of `mir/lower/**`). If that
 times out, function-scoped emit **excluding** lower/type intern.
 Do **not** retry 114/115. Do **not** land a 250–260s wash.
 
+Tick 117 did **not** re-land SoA. Cheap same-source fixtures on tick77 vs
+tick115 hosts **match** (i32-field 2828 B; i64-field 2325 B, type 43 =
+`{i32, i64, i64, i64}`). The 90 B / types 132/156/181 are
+`DriverFrontendResult` / `DriverTypecheckResult` / `DriverResolveResult`
+timestamp fields. `tick11{4,5}_emit.py` set
+`ARUKELLT_OVERLAY_EMIT_TARGET=wasm32` so flatten **narrows** those i64
+fields to i32 (`_patch_bootstrap_driver_timing`). Overlay scripts set
+`wasm32-gc`, which **skips** the patch (#813). s2 and s3 compiled
+different source. Not leftover TARGET scans, not function-scoped emit of
+the lowerer. Next SoA overlay must set **the same**
+`ARUKELLT_OVERLAY_EMIT_TARGET=wasm32-gc` on emit **and** overlay. Do
+**not** retry 114/115 as they were. Do **not** land a 250–260s wash.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -523,6 +536,7 @@ Do **not** retry 114/115. Do **not** land a 250–260s wash.
 | tick 114 SoA + leftover scan columns + in-place resolve | **250.64s** | **no** | **1.84GB** | emit 6.94MB (265.97s) validated; hello sha256 `1dbf14ca…` (2312B); first SoA overlay finish since 69/76; s2 `51a1c6c8…` (6940720) ≠ s3 `7bb04a85…` (6940630); worse than 239s; reverted |
 | tick 115 SoA + leftover scans + CALL reconstruct `replace_inst` | **260.64s** | **no** | **1.84GB** | emit 6.94MB (278.96s) validated; hello sha256 `1dbf14ca…` (2312B); same 90B shape as 114 (type +21 / code −47 / name −64); resolve was not the cause; reverted |
 | tick 116 type-section decode of tick-115 probes | — | — | — | no overlay; s2 2340 vs s3 2343 types; types 132/156/181 trailing i32→i64; extras 2340–2342; lower-time `gc_struct_sigs` / function-scoped emit of lowerer, not leftover TARGET scans |
+| tick 117 flatten-target mismatch (no SoA re-land) | — | — | — | tick77 vs tick115 hosts match on i32/i64 fixtures; 90B = emit `OVERLAY_EMIT_TARGET=wasm32` (fields→i32) vs overlay `wasm32-gc` (keep i64); types 132/156/181 = driver timing records |
 
 ## Non-goals
 
