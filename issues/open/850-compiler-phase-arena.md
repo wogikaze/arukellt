@@ -397,6 +397,21 @@ convert remaining overlay-hot scans to columns with the real
 loop index (`ii`), especially `code_ref_locals_*` and SSA
 in-place column writes (no reconstruct-then-`replace_inst`).
 
+Tick 113 re-landed SoA + function-scoped emit (tick 112 shape) and
+converted overlay-hot scans: SSA writes columns in place, `fn_cache`
+seed / producer index / `has_ref` use `op_at`/`dest_at`,
+`local_feeds_return` / enum-normalize / `local_inst_assigns_ref` /
+scalar-producer helpers read columns. Tick77 host emit **287.10s**,
+6940767 B, validated. Hello 2312B sha256 `1dbf14ca…` matched.
+Overlay **timeout 320s**, RSS **1.18GB**, no output. Column emit +
+fn_cache + SSA is **not enough** while `code_ref_locals_block_scan` /
+infer_dest / leftover `inst_defines_scalar_i64` / resolve CALL
+still `inst_at`. Do **not** retry this partial scan convert. Next
+slice must finish remaining overlay-hot `inst_at` (block_scan
+helpers, infer_dest, payload-extract body, resolve CALL) using the
+real loop index — no global rewriter, no leftover-reconstruct
+hybrid.
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -447,6 +462,7 @@ in-place column writes (no reconstruct-then-`replace_inst`).
 | tick 110 SoA + GET/SET/CONST/arith/control/convert columns; leftover CALL reconstruct | timeout 320s | — | **1.45GB** | emit 6.93MB (258.65s); hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover CALL/struct `inst_at`; reverted |
 | tick 111 SoA + mechanical `(block, hid)` emit rewrite | — | — | — | emit 6.94MB (256.75s); **invalid wasm** func 8133 `lookup_struct_byte_size_in_func` (unbound `hid` after rewriter); hello/overlay not run; reverted |
 | tick 112 SoA + function-scoped `(block, hid)` emit (skip `inst_at` fns) | timeout 320s | — | **1.08GB** | emit 6.94MB (265.04s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover scan/SSA `inst_at`; reverted |
+| tick 113 SoA + emit + SSA/fn_cache/enum column scans | timeout 320s | — | **1.18GB** | emit 6.94MB (287.10s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no output; leftover block_scan/infer_dest/`inst_at`; reverted |
 
 ## Non-goals
 
