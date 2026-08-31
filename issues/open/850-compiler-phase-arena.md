@@ -518,6 +518,19 @@ Do **not** land a 250–270s wash. Next slice must shrink the MIR /
 TypeTable / function-shell live set (i32 tables that GC does not walk
 as record graphs), not another driver local-unroot.
 
+Tick 120 replaced `TypeTable.entries: Vec<TypeEntry>` with columns
+(`kinds` / `names` / flattened `param_raws`). Intern/find no longer
+allocate `TypeEntry`; `lookup` / `entry_at` still reconstruct one for
+the existing API. wasm32-gc flatten. Tick77 host emit **246.66s**,
+6903133 B, validated. Hello 2312B sha256 `1dbf14ca…` matched. Overlay
+**264.65s**, **s2=s3** `42210430…`, RSS **1.69GB**. Worse wall than
+239s; RSS wash. A small type intern table is not the 1.7GB emit live
+set, and reconstruct-on-lookup keeps the record tax. Reverted. Do
+**not** retry TypeTable columns that rebuild `TypeEntry` on lookup.
+Do **not** land a 250–270s wash. Next slice must cut MIR function-shell
+/ inst record graphs (or TypeTable column accessors with **no**
+`TypeEntry` reconstruct on the emit hot path).
+
 ## Receipts
 
 | Slice | Overlay | s2=s3 | RSS | Notes |
@@ -575,6 +588,7 @@ as record graphs), not another driver local-unroot.
 | tick 117 flatten-target mismatch (no SoA re-land) | — | — | — | tick77 vs tick115 hosts match on i32/i64 fixtures; 90B = emit `OVERLAY_EMIT_TARGET=wasm32` (fields→i32) vs overlay `wasm32-gc` (keep i64); types 132/156/181 = driver timing records |
 | tick 118 SoA + emit rewrite + leftover scans + wasm32-gc flatten + `scratch_call_block` | timeout 320s | — | **1.62GB** | first emit invalid (`try_emit_env_stdio_gc_adapter_body`); scratch emit 6.94MB (249.03s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no compiler s3; s2 `343f0532…`; 114/115 finish was wasm32-narrowed host; reverted |
 | tick 119 lower→emit frontend unroot (`DriverEmitRequest`) | **268.70s** | yes | **1.68GB** | emit 6.90MB (260.67s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `d81bd387…`; worse than 239s; RSS wash; AST/HIR locals were not the emit scan tax; reverted |
+| tick 120 TypeTable columns (`TypeEntry` reconstruct on lookup) | **264.65s** | yes | **1.69GB** | emit 6.90MB (246.66s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `42210430…`; worse than 239s; RSS wash; type intern is not the emit live set; reverted |
 
 ## Non-goals
 
