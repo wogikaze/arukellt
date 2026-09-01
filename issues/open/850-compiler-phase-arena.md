@@ -340,6 +340,36 @@ Remaining product cut is the
 acceptance i32 handle table emit
 reads as scalars.
 
+**Handle table (tick 172 lock).**
+Birth intern at `ctx_emit` into one
+shared `MirInstTable` (i32 columns
++ string pool; **no** `Vec<f64>`).
+`MirBlock.instructions` becomes
+`Vec<i32>` handles. Blocks share
+the table object (same as
+`MirModule` / `LowerCtx`) so
+`(block, idx)` scalar accessors do
+not need a module argument.
+Fat `MirInst` is born only as a
+transient at the emit site, interned,
+then dropped — never stored.
+Do **not** reconstruct on
+`MirBlock_inst_at` in hot walks
+(64–66 timeout). Convert before
+the first overlay: `emit_function_instructions`,
+neighbors, reachability,
+propagate, callee cache,
+`stdlib_resolve` / `async_lower`,
+and every `MirBlock_instructions`
+caller. Dump / native_c may keep a
+cold reconstruct. Do **not** add
+fields to `MirFunction`. Do **not**
+dual-live fat+handles (159 / 171).
+Do **not** pack after push (169).
+`result_types` come from
+`val_type`; write-back goes to the
+table, not a stored record.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1529,6 +1559,7 @@ reconstruct or leftover-column hybrids.
 | tick 169 pack MIR after push, clear, restore at emit | **217.11s** | — | **4.15GB** | emit 6.92MB (251.28s) validated; hello sha256 `1dbf14ca…` (2312B); overlay trap in `mir_module_pack_inst`; no s3; RSS 4272432 KB; 159 class (log + fat); `set_function_at` after empty blocks did not drop peak; reverted |
 | tick 170 emit-during-lower design lock | — | — | — | no product; mapped blockers: name-keyed CALL reloc, import count not in lower, type-plan shift vs hello 2312B, new-object shell; do not retry 169 / 127 / #824 |
 | tick 171 emit-during-lower + new-object shell + CALL reloc | **195.45s** | — | **4.15GB** | emit 6.94MB (280–290s) validated; hello **2312B** sha256 `ebb7391e…` (new, valid); three overlays trapped in `mir_module_append_stream_body` (204.17s / 175.10s / 195.45s; RSS 4270096 / 4273416 / 4274904 KB); no s3; 159/169 class; shell did not unroot fat; reverted |
+| tick 172 handle-table birth intern lock | — | — | — | no product; MirInstTable i32 columns at ctx_emit; MirBlock stores Vec<i32>; scalar (block, idx) walks; no reconstruct on hot inst_at; no dual-live; no Vec<f64> |
 
 ## Non-goals
 
