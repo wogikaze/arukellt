@@ -523,6 +523,23 @@ at 480s. Next hop is
 (CALL / struct / string ADD), not
 more driver notes.
 
+**Tick 186 (unlanded).** Leftover
+op-first dispatch + GC_STRUCT /
+REF_CAST / FUTURE / GC_HINT scalar
+(no CALL-tree rewrite). Emit 260s /
+6.96MB validated; hello **2312B**
+`1dbf14ca…`. Overlay **320.14s
+timeout**, RSS **1536272 KB
+(~1.47GB)**, no s3.
+`PHASE_LAST=emit.code_fn: 4096/10287
+92760ms`. First 2048 bodies 18s;
+**2048–4096 took 75s** (~4×). Do
+**not** extrapolate 10ms/fn from the
+first bucket. Later compiler
+functions dominate. Do **not**
+rewrite the CALL emit tree. Do
+**not** remasure at 480s.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1725,6 +1742,7 @@ reconstruct or leftover-column hybrids.
 | tick 182 in-place resolve no snapshot | **320.26s** timeout | — | **1.51GB** | emit 6.94MB / 259s validated; hello **2312B** `1dbf14ca…`; RSS 1581844 KB; no s3; CALL rewrite mutates table rows |
 | tick 183 keep-stderr --time on tick 182 host | **320.13s** timeout | — | **1.61GB** | no new emit; RSS 1690532 KB; no s3; `PHASE_LAST=lower.total` 164463ms; body_emit 70032ms; propagate **85719ms**; post-lower >156s (driver end-of-run times never printed) |
 | tick 184 incremental driver --time notes | **320.13s** timeout | — | **1.56GB** | emit 6.94MB / 256s validated; hello **2312B** `1dbf14ca…`; RSS 1637008 KB; no s3; `PHASE_LAST=driver.mir_verify`; resolve 16s typecheck 11s lower 167s mir_opt **158ms** verify 0ms; stall is wasm emit >127s |
+| tick 185 emit-internal --time notes | **320.11s** timeout | — | **1.12GB** | emit 6.95MB / 290s validated; hello **2312B** `1dbf14ca…`; RSS 1174012 KB; no s3; `PHASE_LAST=emit.code_fn 2048/10279 20106ms`; strings 5s types 3s; body loop ~10ms/fn, ~100s for 10279 |
 
 ## Non-goals
 
