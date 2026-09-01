@@ -390,6 +390,31 @@ overlay `inst_at` (including
 measure. Per-block table is enough;
 shared module table is not required.
 
+**Ticks 174–177 (unlanded).** Handle
+`MirInst` (`table`+`hid`, no fat
+`inst_at`) plus scalar `(block, idx)`
+neighbors / reachability / propagate
+/ GET+SET+CONST_I32 emit. Hello
+**2312B** `1dbf14ca…` each hop.
+Overlay **320s timeout** all four
+(174 also **480.23s**); RSS **~1.10GB**
+(1154924–1155484 KB). Handle `inst_at`
+and partial scalars do not finish
+overlay. Do **not** treat 320s timeout
+as a 248s-class finish.
+
+**Tick 178 (reverted).** Direct intern
+of GET/SET/CONST_I32 at `ctx_emit`
+(169 lower call sites, no orphan
+table). Emit 256s / hello 2312B.
+Overlay **320.28s timeout**, RSS
+**1514000 KB (~1.44GB)** — worse than
+the 1.10GB handle floor. Do **not**
+retry factory-to-`push_fields`
+rewrites that skip `ctx_emit`
+attach/enrich, or measure that hop
+as a 10s path.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1581,6 +1606,11 @@ reconstruct or leftover-column hybrids.
 | tick 171 emit-during-lower + new-object shell + CALL reloc | **195.45s** | — | **4.15GB** | emit 6.94MB (280–290s) validated; hello **2312B** sha256 `ebb7391e…` (new, valid); three overlays trapped in `mir_module_append_stream_body` (204.17s / 175.10s / 195.45s; RSS 4270096 / 4273416 / 4274904 KB); no s3; 159/169 class; shell did not unroot fat; reverted |
 | tick 172 handle-table birth intern lock | — | — | — | no product; MirInstTable i32 columns at ctx_emit; MirBlock stores Vec<i32>; scalar (block, idx) walks; no reconstruct on hot inst_at; no dual-live; no Vec<f64> |
 | tick 173 per-block MirInstTable + handle blocks | **480.24s** timeout | — | **1.10GB** | emit 6.92MB / 275s validated; hello **2312B** `1dbf14ca…`; overlay timeout 320.23s then 480.24s (RSS 1155476 / 1155360 KB); no s3; first real RSS cut since tick 64; leftover reconstruct; reverted |
+| tick 174 handle MirInst (no fat inst_at) | **480.23s** timeout | — | **1.10GB** | emit 6.92MB / 274s validated; hello **2312B** `1dbf14ca…`; overlay 320.23s then 480.23s (RSS 1155484 / 1155244 KB); no s3; handle alloc still misses 480s |
+| tick 175 scalar (block, idx) walks | **320.16s** timeout | — | **1.10GB** | emit 6.92MB / 245s validated; hello **2312B** `1dbf14ca…`; RSS 1154924 KB; neighbors / reachability / propagate / async scan; leftover emit `inst_at` |
+| tick 176 skip resolve snapshots without CALL | **320.15s** timeout | — | **1.10GB** | emit 6.92MB / 247s validated; hello **2312B** `1dbf14ca…`; RSS 1155192 KB; more code_ref_locals scalars; still timeout |
+| tick 177 GET/SET/CONST_I32 scalar emit | **320.21s** timeout | — | **1.10GB** | emit 6.93MB / 240s validated; hello **2312B** `1dbf14ca…`; RSS 1155196 KB; `emit_mir_inst_ctx` still handle for CALL/arith/struct |
+| tick 178 ctx_emit GET/SET/CONST_I32 push_fields | **320.28s** timeout | — | **1.44GB** | emit 6.92MB / 256s validated; hello **2312B** `1dbf14ca…`; RSS 1514000 KB; worse than 1.10GB; 169 lower rewrites reverted |
 
 ## Non-goals
 
