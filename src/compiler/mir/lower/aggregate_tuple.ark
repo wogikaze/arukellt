@@ -206,6 +206,18 @@ fn ctx_register_tuple_gc_struct_from_return_name(ctx: LowerCtx, return_type_name
     1
 }
 
+fn ctx_register_tuple_gc_struct_from_keys(ctx: LowerCtx, keys: String) -> i32 {
+    if len(keys) == 0 {
+        return 0
+    }
+    let sig = tuple_gc_sig_from_type_keys(keys)
+    if len(sig) <= 2 {
+        return 0
+    }
+    ctx_gc_struct::ctx_register_gc_struct(ctx, concat(String_from("tuple:"), keys), sig)
+    1
+}
+
 fn tuple_gc_sig_from_type_keys(keys: String) -> String {
     let mut sig = "GS"
     let key_count = tuple_key_count(keys)

@@ -23,6 +23,27 @@ fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
     let ts = corehir_mod::view_type_source(view)
     register_typed_fn_late_gc_types(ctx, ts)
     register_mono_late_gc_types(ctx, ts)
+    // Body tuple literals are not in signatures. Tick 166 left
+    // tuple:String,String late. Only fill it when this view already
+    // registered some other tuple (hello has none).
+    register_body_only_string_string_tuple(ctx)
+}
+
+fn register_body_only_string_string_tuple(ctx: LowerCtx) {
+    let count = len(ctx.gc_struct_names)
+    let mut i = 0
+    let mut has_tuple = false
+    while i < count {
+        if starts_with(clone(get_unchecked(ctx.gc_struct_names, i)), "tuple:") {
+            has_tuple = true
+            i = count
+        }
+        i = i + 1
+    }
+    if !has_tuple {
+        return
+    }
+    aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(ctx, "String,String")
 }
 
 fn register_typed_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {

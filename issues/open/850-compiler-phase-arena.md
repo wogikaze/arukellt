@@ -241,17 +241,19 @@ second emit: **256.89s** wash, s2=s3,
 s3 valid, RSS **1.77GB**). Hello
 2312B matched. Overlay seal struct
 239→240, enum **27→27**. Late body
-struct is `tuple:String,String` (tuple
-literal; not in signatures). Enums
-are sealed. Next cut is hoist that
-body-only tuple when the view already
-has any tuple, or scan HIR tuple
-exprs — then flush-once / function-at-a-time,
-or a real i32 handle table
-(acceptance). Layout today binds
-struct slots only after
-`ctx_flush_gc_structs` (post-body).
-Do **not** drop insts only after wasm
+struct was `tuple:String,String`.
+Tick 167 registers that tuple when
+the view already has any `tuple:*`
+(**254.76s** wash, s2=s3, s3 valid,
+RSS **1.77GB**). Hello 2312B matched.
+Overlay seal struct **240→240**, enum
+**27→27**. View GC types are sealed.
+Next cut is flush-once after view
+(no second flush; a cursor-less
+double flush duplicates), then
+function-at-a-time drop, or a real
+i32 handle table (acceptance). Do
+**not** drop insts only after wasm
 emit (127: peak is already past).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
@@ -1438,6 +1440,7 @@ reconstruct or leftover-column hybrids.
 | tick 164 gc-late struct/enum names after body emit | **254.86s** | yes | **1.76GB** | emit 6.90MB (245.21s) validated; hello sha256 `1dbf14ca…` (2312B); hello no late names; overlay late structs `tuple:String,String` / `tuple:i32,i32` / `tuple:String,i32`; late enums `Result::Ok` ref14, `Option::Some` ref14, `Option::Some` ref25; s2=s3 `093463da…` (6904614); s3 valid; wash vs 239s; RSS wash; reverted |
 | tick 165 hoist inferred GC types from signatures | **273.47s** | **no** | **1.77GB** | emit 6.91MB (250.32s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct 239→240 enum 77→77; s2 `6f0afb79…` (6910779) ≠ s3 `facdf52e…` (6911311); s3 valid; worse than 239s; RSS wash; Vec/Option/Result scan added ~50 extra enum payloads; 1 body struct remains; reverted |
 | tick 166 gated late GC hoist (tuples + ref14/ref25 Ok/Some) | **256.89s** | yes | **1.77GB** | first emit hello **2341B** (unconditional 6-type insert; not landed); second emit 6.91MB (243.64s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct 239→240 enum **27→27**; late `tuple:String,String`; s2=s3 `6496b956…` (6913965); s3 valid; wash vs 239s; RSS wash; eprintln stripped; hoist kept |
+| tick 167 hoist tuple:String,String when view has any tuple | **254.76s** | yes | **1.77GB** | emit 6.91MB (250.47s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct **240→240** enum **27→27**; no late names; s2=s3 `a5626592…` (6914591); s3 valid; wash vs 239s; RSS wash; eprintln stripped; hoist kept |
 
 ## Non-goals
 
