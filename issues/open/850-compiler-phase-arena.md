@@ -191,15 +191,33 @@ RSS did not move. Either leftover reconstruct
 / create-then-drop still sit until Copying
 GC, or GET/SET objects are not the remaining
 peak after 155–158. Do **not** retry GET/SET
-seq columns (160 / 161 / 162). Next cut is
-**not** another dest=-1 / encode-on-consumer
-and **not** another function-scoped inst pack
-that rematerializes. It is function-at-a-time
-lower→propagate→emit→drop after GC layout
-can be sealed from the view
-(`mir_register_view_layouts` + flush)
-**before** bodies, or a real i32 handle
-table (acceptance). Layout today binds
+seq columns (160 / 161 / 162).
+Do **not** land an always-on
+`gc-struct-seal:` eprintln (tick 163:
+**268.50s** wash, s2=s3, s3 valid, RSS
+**1.76GB**; measurement only). Compiler
+overlay: struct 234→237, enum 24→27
+during `mir_emit_view_decls`. Hello:
+struct 0→0, enum 13→13. Bodies still
+register 3 structs + 3 enum variants
+after `mir_register_view_layouts`.
+Function-at-a-time flush-before-bodies
+is **blocked** until those late
+registrations move into the view pass
+or an append-only flush cursor exists
+(double-flush without a cursor
+duplicates). Likely sources:
+`aggregate_tuple` /
+`ctx_ensure_gc_struct_registered` and
+`ctx_ensure_gc_enum_payload_variant*`
+(try / match / `call_type_vec`). Do
+**not** flush twice. Do **not** treat
+163 as a seal. Next cut is name those
++3/+3 and move them into the view
+pass, or add an append-only flush
+cursor, then function-at-a-time drop —
+or a real i32 handle table
+(acceptance). Layout today binds
 struct slots only after `ctx_flush_gc_structs`
 (post-body). Do **not** drop insts only
 after wasm emit (127: peak is already past).
@@ -1384,6 +1402,7 @@ reconstruct or leftover-column hybrids.
 | tick 160 GET/SET seq columns on MirBlock | timeout 320s | — | **1.34GB** | emit 6.91MB (274.11s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no s3; `ru_maxrss` 1406868 KB; leftover `inst_at` alloc reconstruct timed out; 1.34GB is killed-before-peak (see 161); reverted |
 | tick 161 GET/SET columns + per-block scratch inst_at | **300.51s** | **no** | **1.75GB** | emit 6.91MB (275.29s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `7b50e9f8…` (6907810) ≠ s3 `41e2d00c…` (6912188); s3 **invalid wasm** func 44 expected i32 found ref; worse than 239s; RSS wash — 160 1.34GB was pre-peak; scratch aliased under nested `inst_at`; reverted |
 | tick 162 GET/SET columns + scalar walks, leftover reconstruct | **301.47s** | yes | **1.76GB** | emit 6.91MB (275.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `27e7eb8f…` (6914100); s3 valid; worse than 239s; RSS wash; no-fat-birth + scalar accessors did not cut the 1.7GB; reverted |
+| tick 163 gc-struct-seal count before/after body emit | **268.50s** | yes | **1.76GB** | emit 6.90MB (247.29s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal struct 0→0 enum 13→13; overlay seal struct 234→237 enum 24→27; s2=s3 `7d3719e1…` (6904049); s3 valid; wash vs 239s; RSS wash; bodies still add 3 structs + 3 enum variants after view layouts; function-at-a-time flush-before-bodies blocked; reverted |
 
 ## Non-goals
 
