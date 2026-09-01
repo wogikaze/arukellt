@@ -415,6 +415,19 @@ rewrites that skip `ctx_emit`
 attach/enrich, or measure that hop
 as a 10s path.
 
+**Tick 179 (unlanded).** Leftover
+`code_ref_locals_scan` walks and
+verify/stack_scan use scalar
+`(block, idx)`; block_scan only
+`inst_at` after dest/op match.
+Hello **2312B** `1dbf14ca…`. Overlay
+**320.20s timeout**, RSS **1382048
+KB (~1.32GB)**. Still no s3. Do
+**not** remasure at 480s. Next hop
+is remaining emit `inst_at` (CALL /
+arith / struct), not another
+ref-local scan pass.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1611,6 +1624,7 @@ reconstruct or leftover-column hybrids.
 | tick 176 skip resolve snapshots without CALL | **320.15s** timeout | — | **1.10GB** | emit 6.92MB / 247s validated; hello **2312B** `1dbf14ca…`; RSS 1155192 KB; more code_ref_locals scalars; still timeout |
 | tick 177 GET/SET/CONST_I32 scalar emit | **320.21s** timeout | — | **1.10GB** | emit 6.93MB / 240s validated; hello **2312B** `1dbf14ca…`; RSS 1155196 KB; `emit_mir_inst_ctx` still handle for CALL/arith/struct |
 | tick 178 ctx_emit GET/SET/CONST_I32 push_fields | **320.28s** timeout | — | **1.44GB** | emit 6.92MB / 256s validated; hello **2312B** `1dbf14ca…`; RSS 1514000 KB; worse than 1.10GB; 169 lower rewrites reverted |
+| tick 179 leftover ref-local/verify scalars | **320.20s** timeout | — | **1.32GB** | emit 6.93MB / 284s validated; hello **2312B** `1dbf14ca…`; RSS 1382048 KB; no s3; scan no longer `inst_at`; emit still handle for non-GET/SET/CONST |
 
 ## Non-goals
 
