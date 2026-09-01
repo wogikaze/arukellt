@@ -206,21 +206,33 @@ is **blocked** until those late
 registrations move into the view pass
 or an append-only flush cursor exists
 (double-flush without a cursor
-duplicates). Likely sources:
-`aggregate_tuple` /
-`ctx_ensure_gc_struct_registered` and
+duplicates). Tick 164 named them
+(254.86s wash, s2=s3, s3 valid, RSS
+**1.76GB**; measurement only). Late
+structs: `tuple:String,String`,
+`tuple:i32,i32`, `tuple:String,i32`.
+Late enums: `Result::Ok` (`ref14`),
+`Option::Some` (`ref14`),
+`Option::Some` (`ref25`). Hello added
+none. Sources: `aggregate_tuple`
+(`mir_emit_tuple_from_locals` /
+return-name register in
+`entry_fns_mono`) and
 `ctx_ensure_gc_enum_payload_variant*`
 (try / match / `call_type_vec`). Do
-**not** flush twice. Do **not** treat
-163 as a seal. Next cut is name those
-+3/+3 and move them into the view
-pass, or add an append-only flush
-cursor, then function-at-a-time drop —
-or a real i32 handle table
-(acceptance). Layout today binds
-struct slots only after `ctx_flush_gc_structs`
-(post-body). Do **not** drop insts only
-after wasm emit (127: peak is already past).
+**not** flush twice. Do **not** land
+the late-name eprintln. Do **not**
+treat 163/164 as a seal. Next cut is
+hoist those 3 tuples + 3 payload
+variants into `mir_register_view_layouts`
+(scan fn signatures / TypeTable), or
+add an append-only flush cursor, then
+function-at-a-time drop — or a real
+i32 handle table (acceptance). Layout
+today binds struct slots only after
+`ctx_flush_gc_structs` (post-body).
+Do **not** drop insts only after wasm
+emit (127: peak is already past).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1403,6 +1415,7 @@ reconstruct or leftover-column hybrids.
 | tick 161 GET/SET columns + per-block scratch inst_at | **300.51s** | **no** | **1.75GB** | emit 6.91MB (275.29s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `7b50e9f8…` (6907810) ≠ s3 `41e2d00c…` (6912188); s3 **invalid wasm** func 44 expected i32 found ref; worse than 239s; RSS wash — 160 1.34GB was pre-peak; scratch aliased under nested `inst_at`; reverted |
 | tick 162 GET/SET columns + scalar walks, leftover reconstruct | **301.47s** | yes | **1.76GB** | emit 6.91MB (275.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `27e7eb8f…` (6914100); s3 valid; worse than 239s; RSS wash; no-fat-birth + scalar accessors did not cut the 1.7GB; reverted |
 | tick 163 gc-struct-seal count before/after body emit | **268.50s** | yes | **1.76GB** | emit 6.90MB (247.29s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal struct 0→0 enum 13→13; overlay seal struct 234→237 enum 24→27; s2=s3 `7d3719e1…` (6904049); s3 valid; wash vs 239s; RSS wash; bodies still add 3 structs + 3 enum variants after view layouts; function-at-a-time flush-before-bodies blocked; reverted |
+| tick 164 gc-late struct/enum names after body emit | **254.86s** | yes | **1.76GB** | emit 6.90MB (245.21s) validated; hello sha256 `1dbf14ca…` (2312B); hello no late names; overlay late structs `tuple:String,String` / `tuple:i32,i32` / `tuple:String,i32`; late enums `Result::Ok` ref14, `Option::Some` ref14, `Option::Some` ref25; s2=s3 `093463da…` (6904614); s3 valid; wash vs 239s; RSS wash; reverted |
 
 ## Non-goals
 
