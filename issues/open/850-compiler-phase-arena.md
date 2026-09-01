@@ -253,10 +253,24 @@ reorder, before bodies (**248.00s**
 wash, s2=s3, s3 valid, RSS
 **1.77GB**). Hello 2312B matched.
 Do **not** flush again after bodies
-(duplicates). Next cut is
-function-at-a-time
-lower→propagate→emit→drop, or a
-real i32 handle table (acceptance).
+(duplicates).
+Do **not** pack each function into a
+module `inst_log` after
+`ctx_push_*`, clear blocks, then
+restore one function at wasm emit
+(tick 169: hello 2312B matched;
+overlay **217.11s** trap in
+`mir_module_pack_inst`, RSS
+**4.15GB**). `set_function_at`
+after `set_blocks([])` did not
+drop the live set. Same 159 class
+(columns + fat). Do **not** retry
+pack-after-push. Function-at-a-time
+must emit wasm **during** lower
+from live insts and drop without a
+second encoding, or use a real i32
+handle table emit reads without
+rematerialize (acceptance).
 Do **not** drop insts only after
 wasm emit (127: peak is already
 past). Peak still holds all insts
@@ -1448,6 +1462,7 @@ reconstruct or leftover-column hybrids.
 | tick 166 gated late GC hoist (tuples + ref14/ref25 Ok/Some) | **256.89s** | yes | **1.77GB** | first emit hello **2341B** (unconditional 6-type insert; not landed); second emit 6.91MB (243.64s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct 239→240 enum **27→27**; late `tuple:String,String`; s2=s3 `6496b956…` (6913965); s3 valid; wash vs 239s; RSS wash; eprintln stripped; hoist kept |
 | tick 167 hoist tuple:String,String when view has any tuple | **254.76s** | yes | **1.77GB** | emit 6.91MB (250.47s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct **240→240** enum **27→27**; no late names; s2=s3 `a5626592…` (6914591); s3 valid; wash vs 239s; RSS wash; eprintln stripped; hoist kept |
 | tick 168 flush GC types once after view, before bodies | **248.00s** | yes | **1.77GB** | emit 6.91MB (245.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c6ae35ef…` (6908305); s3 valid; wash vs 239s; RSS wash; no second flush; kept |
+| tick 169 pack MIR after push, clear, restore at emit | **217.11s** | — | **4.15GB** | emit 6.92MB (251.28s) validated; hello sha256 `1dbf14ca…` (2312B); overlay trap in `mir_module_pack_inst`; no s3; RSS 4272432 KB; 159 class (log + fat); `set_function_at` after empty blocks did not drop peak; reverted |
 
 ## Non-goals
 
