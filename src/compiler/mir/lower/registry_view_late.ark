@@ -1,0 +1,152 @@
+use corehir::mir_type_source
+use corehir::type_contracts
+use mir::lower::aggregate_tuple
+use mir::lower::ctx_gc_enum
+use mir::lower::ctx_gc_enum_payload
+use mir::lower::ctx_gc_enum_sig
+use mir::lower::ctx_gc_struct
+use mir::lower::entry_fns_mono
+use mir::lower::return_typeinfo
+use mir::lower_kinds
+use mir::typeinfo_shape
+use mir::value_types
+use corehir::mod as corehir_mod
+
+// Register only GC types the current view already names. Unconditional
+// insert of the compiler-overlay late set (tick 166 first emit) grew hello
+// from 2312B to 2341B. A full Option/Result/Vec walk (tick 165) added
+// unused payloads and broke s2=s3. Only tuples plus ref14/ref25 Ok/Some.
+fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
+    if !ctx_gc_struct::ctx_is_gc_target(ctx) {
+        return
+    }
+    let ts = corehir_mod::view_type_source(view)
+    register_typed_fn_late_gc_types(ctx, ts)
+    register_mono_late_gc_types(ctx, ts)
+}
+
+fn register_typed_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
+    let fn_count = type_source::mir_type_source_typed_fn_count(ts)
+    let mut fi = 0
+    while fi < fn_count {
+        let tf = type_source::mir_type_source_typed_fn_at(ts, fi)
+        register_type_info_late_gc(ctx, typeinfo_shape::mir_typed_fn_return_type(tf), 0)
+        let param_count = type_source::mir_type_source_typed_fn_param_count(ts, fi)
+        let mut pi = 0
+        while pi < param_count {
+            register_type_info_late_gc(ctx, type_source::mir_type_source_typed_fn_param_at(ts, fi, pi), 0)
+            pi = pi + 1
+        }
+        fi = fi + 1
+    }
+}
+
+fn register_mono_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {
+    let instances = type_source::mir_type_source_mono_instances(ts)
+    let mono_count = len(instances)
+    let mut mi = 0
+    while mi < mono_count {
+        let inst = get_unchecked(instances, mi)
+        let arg_count = type_contracts::MonoInstance_type_arg_count(inst)
+        let mut ai = 0
+        while ai < arg_count {
+            register_type_info_late_gc(ctx, type_contracts::MonoInstance_type_arg_at(inst, ai), 0)
+            ai = ai + 1
+        }
+        register_mono_fn_late_gc_types(ctx, ts, inst)
+        mi = mi + 1
+    }
+}
+
+fn register_mono_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource, inst: MonoInstance) {
+    let typed_index = typed_fn_index_for_name(ts, type_contracts::MonoInstance_fn_name(inst))
+    if typed_index < 0 {
+        return
+    }
+    let tf = type_source::mir_type_source_typed_fn_at(ts, typed_index)
+    register_type_info_late_gc(
+        ctx,
+        entry_fns_mono::mono_instantiate_return_type(typeinfo_shape::mir_typed_fn_return_type(tf), inst),
+        0
+    )
+    let param_count = type_source::mir_type_source_typed_fn_param_count(ts, typed_index)
+    let mut pi = 0
+    while pi < param_count {
+        register_type_info_late_gc(
+            ctx,
+            entry_fns_mono::mono_instantiate_return_type(
+                type_source::mir_type_source_typed_fn_param_at(ts, typed_index, pi),
+                inst
+            ),
+            0
+        )
+        pi = pi + 1
+    }
+}
+
+fn typed_fn_index_for_name(ts: CoreHirMirTypeSource, fn_name: String) -> i32 {
+    let fn_count = type_source::mir_type_source_typed_fn_count(ts)
+    let mut fi = 0
+    while fi < fn_count {
+        let tf = type_source::mir_type_source_typed_fn_at(ts, fi)
+        if eq(clone(tf.name), clone(fn_name)) {
+            return fi
+        }
+        fi = fi + 1
+    }
+    0 - 1
+}
+
+fn register_type_info_late_gc(ctx: LowerCtx, ty: TypeInfo, depth: i32) {
+    if depth > 6 {
+        return
+    }
+    let tag = typeinfo_shape::mir_type_info_tag(ty)
+    if tag == 0 {
+        return
+    }
+    if tag == lower_kinds::TY_TUPLE() {
+        aggregate_tuple::ctx_register_tuple_gc_struct_from_return_name(
+            ctx,
+            return_typeinfo::mir_return_type_name_from_type_info(ty)
+        )
+    }
+    if tag == lower_kinds::TY_OPTION() {
+        register_open_or_vec_payload(ctx, ty, "Option::Some")
+    }
+    if tag == lower_kinds::TY_RESULT() {
+        register_open_or_vec_payload(ctx, ty, "Result::Ok")
+    }
+    let arg_count = typeinfo_shape::mir_type_info_type_arg_count(ty)
+    let mut ai = 0
+    while ai < arg_count {
+        register_type_info_late_gc(ctx, typeinfo_shape::mir_type_info_type_arg_at(ty, ai), depth + 1)
+        ai = ai + 1
+    }
+}
+
+fn register_open_or_vec_payload(ctx: LowerCtx, ty: TypeInfo, variant_name: String) {
+    if typeinfo_shape::mir_type_info_type_arg_count(ty) <= 0 {
+        return
+    }
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return
+    }
+    let payload_ty = typeinfo_shape::mir_type_info_type_arg_at(ty, 0)
+    if typeinfo_shape::mir_type_info_tag(payload_ty) == 0 {
+        return
+    }
+    let type_name = return_typeinfo::mir_return_type_name_from_type_info(payload_ty)
+    let field_sig = ctx_gc_enum_sig::gc_enum_field_sig_for_type_ctx(ctx, clone(type_name))
+    if !eq(clone(field_sig), "_f1_ref14") && !eq(clone(field_sig), "_f1_ref25") {
+        return
+    }
+    let payload_vts = Vec::new<i32>()
+    push(payload_vts, value_types::VT_GC_REF())
+    let _slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
+        ctx,
+        variant_name,
+        payload_vts,
+        type_name
+    )
+}
