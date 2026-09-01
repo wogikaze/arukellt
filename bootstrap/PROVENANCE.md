@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 264 783 bytes (≈ 6.93 MiB) |
-| sha256 | `f0e7abb0c813d3c4d7cdd5f4a1341de5aa53eca2fd3b0ac0158bed5e255e4c0e` |
-| Built from commit | `ca1e5621` wasm32-gc library emit uses GC canonical ABI adapter (s2==s3) |
+| Size | 7 270 581 bytes (≈ 6.93 MiB) |
+| sha256 | `1e4588417d07c8ec7efe684dbbfca7df5d822ad69cc5fb0662ab8a32a5bb1d07` |
+| Built from commit | `6b3f02bf` tuple params stay concrete GC types and register tuple:A,B (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,22 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`6b3f02bf`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `6b3f02bf` (tuple component
+params are concrete GC types, not `?` type-vars, and register
+`tuple:A,B` on bind). Guest remains `wasm32-gc` / `wasi-p2` memory32.
+Official `build-compiler` then `fixpoint --build` 2026-08-31T23:50–00:08Z:
+s2==s3=`1e458841` EXIT 0.
+
+Intentional drift from the previous pin (`ca1e5621` / `f0e7abb0`):
+
+- `Tuple:` / `tuple:` params are not prefixed `?` (core export + adapter kind)
+- `ctx_register_tuple_gc_struct_from_param_name` runs on bind so the
+  user export matches the library adapter 2-field layout
+- Official 9/9 tuple interop scripts PASS on s2 `1e458841`
+  (previous VF EXIT 1 was the 6 tuple-param family fixtures)
 
 ### wasm32-gc pinned (`ca1e5621`)
 
