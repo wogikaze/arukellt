@@ -612,6 +612,29 @@ remasure 175–188 at 480s. Next hop
 is the native-c if-chains, not
 more leftover CALL scalars.
 
+**Tick 190 (unlanded).** Chunk
+`native_c_core_capability_*`
+generated tables (same ≤32
+dispatcher). Overlay **341.21s
+finished**, RSS **2185952 KB
+(~2.08GB)**, s3 **valid**,
+**s2≠s3** (one-hop). Emit 236s /
+6.97MB; hello **2312B**
+`1dbf14ca…`. Capability
+`status_detail` / `is_supported`
+left `slow_fn`. Saved ~7s vs 189.
+`native_c_emit_core_call` still
+3791 insts / **4.1s**. A
+`NativeCCoreCall`-returning chunk
+split made **invalid s2** (func
+10243: expected ref, empty stack)
+and was reverted. Do **not** retry
+record-returning native-c chunks
+under tick77. Do **not** flip
+`BOOTSTRAP_EMIT_*`. Next hop is
+i32/String helpers, not record
+returns.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1819,6 +1842,7 @@ reconstruct or leftover-column hybrids.
 | tick 187 emit.slow_fn ≥50ms cap 32 | **320.14s** timeout | — | **1.60GB** | emit 6.96MB / 261s validated; hello **2312B** `1dbf14ca…`; RSS 1674140 KB; no s3; reached 6144/10289 in 116s; cap filled by idx 1140; parse_option_args 360inst/342ms |
 | tick 188 emit.slow_fn ≥200ms cap 64 | **320.13s** timeout | — | **1.52GB** | emit 6.96MB / 251s validated; hello **2312B** `1dbf14ca…`; RSS 1590628 KB; no s3; middle-band spike is generated `if index==N` tables: binding_* 8s×3, registry_* 3s×8 ≈48s |
 | tick 189 chunk generated `_at` tables (≤32) | **348.24s** | **s2≠s3** | **2.08GB** | emit 6.96MB / 237s validated; hello **2312B** `1dbf14ca…`; s3 valid 6958828B; RSS 2184864 KB; 320s died at 9734/10478; 2048–4096 **24s** (was 75s); `native_c_emit_core_call` 5.5s tail; one-hop from tick77 |
+| tick 190 chunk native_c capability tables | **341.21s** | **s2≠s3** | **2.08GB** | emit 6.97MB / 236s validated; hello **2312B** `1dbf14ca…`; s3 valid 6970649B; RSS 2185952 KB; capability giants gone; `native_c_emit_core_call` still 4.1s; record-return split reverted (invalid s2) |
 
 ## Non-goals
 
