@@ -428,6 +428,17 @@ is remaining emit `inst_at` (CALL /
 arith / struct), not another
 ref-local scan pass.
 
+**Tick 180 (unlanded).** Scalar emit
+for control / RETURN / DROP / numeric
+arith / compare / logic. String
+ADD/EQ/NE and CALL still `inst_at`.
+Hello **2312B** `1dbf14ca…`. Overlay
+**320.29s timeout**, RSS **2075400
+KB (~1.98GB)**. No s3. Do **not**
+remasure at 480s. Next hop is CALL
+without a handle, not more control
+wrappers.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1625,6 +1636,7 @@ reconstruct or leftover-column hybrids.
 | tick 177 GET/SET/CONST_I32 scalar emit | **320.21s** timeout | — | **1.10GB** | emit 6.93MB / 240s validated; hello **2312B** `1dbf14ca…`; RSS 1155196 KB; `emit_mir_inst_ctx` still handle for CALL/arith/struct |
 | tick 178 ctx_emit GET/SET/CONST_I32 push_fields | **320.28s** timeout | — | **1.44GB** | emit 6.92MB / 256s validated; hello **2312B** `1dbf14ca…`; RSS 1514000 KB; worse than 1.10GB; 169 lower rewrites reverted |
 | tick 179 leftover ref-local/verify scalars | **320.20s** timeout | — | **1.32GB** | emit 6.93MB / 284s validated; hello **2312B** `1dbf14ca…`; RSS 1382048 KB; no s3; scan no longer `inst_at`; emit still handle for non-GET/SET/CONST |
+| tick 180 scalar control/arith/return emit | **320.29s** timeout | — | **1.98GB** | emit 6.94MB / 237s validated; hello **2312B** `1dbf14ca…`; RSS 2075400 KB; no s3; string ADD/EQ/NE + CALL still handle |
 
 ## Non-goals
 
