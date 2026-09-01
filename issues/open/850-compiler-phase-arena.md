@@ -556,6 +556,26 @@ unnamed. Early hits are small:
 is ≥200ms notes. Do **not** remasure
 at 480s.
 
+**Tick 188 (unlanded).** Same notes
+with ≥200ms / cap 64. Emit 251s /
+6.96MB; hello **2312B** `1dbf14ca…`.
+Overlay **320.13s timeout**, RSS
+**1590628 KB (~1.52GB)**, no s3.
+`PHASE_LAST=hashmap_builtin_return_type`
+idx 5066. The 2048–4096 spike is
+generated `if index == N` tables:
+`core_op_binding_*_at` 3475 insts /
+**7.6–8.0s** each (3 fns ≈ 23s);
+`core_op_registry_*_at` 2166 insts /
+2.7–4.6s each (8 fns ≈ 25s). Those
+11 functions ≈ **48s**. Generator:
+`scripts/gen/generate-core-ops-registry.py`
+(+ binding generator). Do **not**
+hand-edit `*_generated.ark`. Do
+**not** remasure at 480s. Next hop
+is table-shaped generated lookups,
+not more leftover CALL scalars.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1761,6 +1781,7 @@ reconstruct or leftover-column hybrids.
 | tick 185 emit-internal --time notes | **320.11s** timeout | — | **1.12GB** | emit 6.95MB / 290s validated; hello **2312B** `1dbf14ca…`; RSS 1174012 KB; no s3; `PHASE_LAST=emit.code_fn 2048/10279 20106ms`; strings 5s types 3s; body loop ~10ms/fn, ~100s for 10279 |
 | tick 186 leftover op-first + gc-struct scalar | **320.14s** timeout | — | **1.47GB** | emit 6.96MB / 260s validated; hello **2312B** `1dbf14ca…`; RSS 1536272 KB; no s3; `PHASE_LAST=emit.code_fn 4096/10287 92760ms`; 0–2048 18s, 2048–4096 **75s**; later fns dominate |
 | tick 187 emit.slow_fn ≥50ms cap 32 | **320.14s** timeout | — | **1.60GB** | emit 6.96MB / 261s validated; hello **2312B** `1dbf14ca…`; RSS 1674140 KB; no s3; reached 6144/10289 in 116s; cap filled by idx 1140; parse_option_args 360inst/342ms |
+| tick 188 emit.slow_fn ≥200ms cap 64 | **320.13s** timeout | — | **1.52GB** | emit 6.96MB / 251s validated; hello **2312B** `1dbf14ca…`; RSS 1590628 KB; no s3; middle-band spike is generated `if index==N` tables: binding_* 8s×3, registry_* 3s×8 ≈48s |
 
 ## Non-goals
 
