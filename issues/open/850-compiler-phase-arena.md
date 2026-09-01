@@ -505,6 +505,24 @@ name the subsection. Do **not**
 chase mir_opt. Do **not** remasure
 at 480s.
 
+**Tick 185 (unlanded).** Incremental
+`emit.strings` / `types` / `pre_code`
+/ `code_fn` notes. Emit 290s /
+6.95MB validated; hello **2312B**
+`1dbf14ca…`. Overlay **320.11s
+timeout**, RSS **1174012 KB
+(~1.12GB)**, no s3.
+`PHASE_LAST=emit.code_fn: 2048/10279
+20106ms`. strings 5036ms, types
+3387ms, pre_code 195ms, wit_bind 0ms.
+First 2048 bodies ~10ms/fn; linear
+extrapolate ~100s for 10279 — misses
+320s by ~10–15s. Do **not** remasure
+at 480s. Next hop is
+`emit_function_body` leftover
+(CALL / struct / string ADD), not
+more driver notes.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
