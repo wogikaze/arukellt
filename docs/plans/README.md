@@ -35,6 +35,7 @@
 | [native-cpp-mvp-implementation.md](native-cpp-mvp-implementation.md) | native-cpp MVP implementation plan | Archive | native-cpp-experimental-promotion.md と docs/data/native-cpp-executor-promotion-receipt.json を正とする） |
 | [native-cpp-public-run-promotion.md](native-cpp-public-run-promotion.md) | native-cpp public run (run_supported=true) 昇格計画 | Archive | 詳細仕様: RFC-008 |
 | [proof-driven-development.md](proof-driven-development.md) | Proof-Driven Development Rollout | Archive | 関連 RFC: RFC-009、RFC-010 |
+| [selfhost-compiler-core-rewrite.md](selfhost-compiler-core-rewrite.md) | セルフホストコンパイラ中核再構築 | Archive | Owner: overlay / #851 / ADR-053 Created: 2026-09-01 Last updated: 2026-09-01 |
 | [selfhost-latency-phase-reprofile.md](selfhost-latency-phase-reprofile.md) | Selfhost compile latency: Memory64後の作業計画 | Archive | 親 issue: #829 |
 | [trait-stdlib-redesign.md](trait-stdlib-redesign.md) | Trait-first stdlib 再設計 — 実装チェックリスト | Archive | See the document for details. |
 | [typed-mir-signature-registry.md](typed-mir-signature-registry.md) | Semantic Type Spine 移行計画 | Archive | MIR から Wasm emitter まで意味情報（型、シグネチャ、ABI）を欠落させず伝播し、 emitter の型推論・名前逆引きを廃止する。 |

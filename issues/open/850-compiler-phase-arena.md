@@ -3,12 +3,12 @@ Status: open
 Created: 2026-08-31
 Updated: 2026-09-01
 ID: 850
-Parent: 827
+Parent: 851
 Track: selfhost-infra
-Depends on: "827"
-Related: "#827, #823, #730, #824, #834, docs/research/selfhost-phase-arena-ownership.md, docs/research/selfhost-compile-latency-root-cause.md"
+Depends on: "851"
+Related: "#851, #827, #823, #730, #824, #834, ADR-053, docs/plans/selfhost-compiler-core-rewrite.md, docs/research/selfhost-phase-arena-ownership.md"
 Orchestration class: architecture-implementation
-Orchestration upstream: 827
+Orchestration upstream: 851
 Blocks v4 exit: False
 Priority: 1
 Source: "#827 design-only close required a new issue before product arena code"
@@ -16,20 +16,29 @@ Source: "#827 design-only close required a new issue before product arena code"
 
 # 850 — Compiler phase-arena implementation (wasm32-gc host overlay)
 
+**降格（2026-09-01）。** 10 秒 overlay の正本は `#851` /
+[ADR-053](../../docs/adr/ADR-053-selfhost-compiler-core-rewrite.md) /
+[`docs/plans/selfhost-compiler-core-rewrite.md`](../../docs/plans/selfhost-compiler-core-rewrite.md)。
+本 issue は **Phase 5（phase arena）** の製品 tracker である。
+tick 191 以降の局所 hop を始めない。`hello` 2312B は必須ではない。
+
 ## Summary
 
 Implement the compiler-bootstrap phase arena decided in
 [`docs/research/selfhost-phase-arena-ownership.md`](../../docs/research/selfhost-phase-arena-ownership.md).
-`#827` is **design-only** and stays closed. This issue is the product-code tracker.
+`#827` is **design-only** and stays closed. Product arena code waits for
+`#851` Phase 3 (function-at-a-time). The tick table below is closed-door
+evidence, not a work queue.
 
 ADR-002 (user-program Wasm GC) does not change. This is bump / handle storage
 inside `src/compiler/**` so the **gc-typed selfhost compiler** does not keep a
 ~1.5–1.8GB Copying-GC live set while compiling itself.
 
-## Why this is the remaining path
+## Why this is no longer the 10s path
 
-Official goal: `BOOTSTRAP_EMIT_* = wasm32-gc` + `wasi-p2`, `sha256(s2)==sha256(s3)`,
-cacheless flattened overlay of `src/compiler/main.ark` on that gc host **≤10s**.
+Official acceptance is now ADR-053 (median ≤7s / p95 ≤10s / RSS ≤512MB).
+Arena-first plus fat reconstruct failed: RSS could drop to ~1.10GB while
+overlay still died at 320–480s. Do **not** resume `#850` ticks.
 
 Measured on HEAD `886581d1d` plus tick 80 (do not treat wasm32 ≤10s as this goal):
 
@@ -59,13 +68,14 @@ are the structural way to get there without flipping `BOOTSTRAP_EMIT_*` early.
 
 ## Acceptance
 
+Phase 5 of `#851` only. Do not treat these as the 10s overlay acceptance.
+
+- [ ] `#851` Phase 3 gate is met (function-at-a-time; body MIR ≤ 2 functions)
 - [ ] Product arena / handle table exists in `src/compiler/**` and is used on a
       hot lower or emit path (not a stub, not stdlib `Arena<T>` demo-only)
 - [ ] Reset points match the memo; no cross-arena raw refs
-- [ ] Cacheless gc-host overlay of flattened `src/compiler/main.ark` stays
-      `sha256(s2)==sha256(s3)` (or the *new* compiler is itself a fixpoint)
-- [ ] Receipt: wall + RSS vs tick 90 loaded **239s** / tick 80 quiet **208s** / ~1.76GB
-- [ ] Do **not** set `BOOTSTRAP_EMIT_*` to wasm32-gc until overlay is ≤10s
+- [ ] No fat `MirInst` reconstruct on `inst_at`
+- [ ] Do **not** set `BOOTSTRAP_EMIT_*` until `#851` Phase 6 acceptance
 - [ ] `python3 scripts/manager.py verify lane` on the implementation slice
 - [ ] No `--to-memory64` widen of memory32 wasm32-gc (`#834`)
 

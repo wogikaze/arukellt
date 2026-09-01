@@ -163,6 +163,16 @@
 比較的よい基準: `analysis/doc_scan.ark`、`fmt/range.ark` のように短い名前付き処理を順に追えるコード。
 明確に避けるパターン: `main/args_parse.ark` のような深い分岐、薄い転送 facade、多数の bool 引数 constructor、壊れた巨大インデントや minify 埋め込み。
 
+## Active mission: selfhost compiler core rewrite (gc-host overlay)
+
+When work touches wasm32-gc overlay latency, `s2`/`s3` on gc+p2, `#850`, `#851`,
+fat `MirInst`, or `BOOTSTRAP_EMIT_*`:
+
+- Canonical plan: `docs/plans/selfhost-compiler-core-rewrite.md`
+- Decision: ADR-053
+- Tracker: `#851` ( `#850` is Phase 5 only )
+- This is a core rewrite. Do not resume `#850` tick hops or hello-byte locks.
+
 ## Active mission: native-cpp experimental promotion
 
 When working on `native-cpp`, `selfhost native-executor`, root liveness, native GC, issue #847, or issue #848,

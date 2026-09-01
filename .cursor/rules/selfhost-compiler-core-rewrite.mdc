@@ -1,0 +1,26 @@
+---
+description: wasm32-gc overlay ≤10s is a compiler-core rewrite (ADR-053 / #851)
+alwaysApply: true
+---
+
+# Selfhost compiler core rewrite (gc-host overlay)
+
+When work touches wasm32-gc overlay latency, `s2`/`s3` fixpoint on gc+p2,
+issue #850, issue #851, fat `MirInst`, whole-module propagate, or
+`BOOTSTRAP_EMIT_*`:
+
+- Treat `docs/plans/selfhost-compiler-core-rewrite.md` as the canonical
+  executable plan. Decisions are ADR-053.
+- This is a **core rewrite**, not an optimization project. Do not start
+  `#850` tick 191+ micro hops.
+- Search order: remove reasons whole-module fat MIR must stay alive.
+  Do not shave one 239s hotspot at a time.
+- Acceptance: cacheless flattened `src/compiler/main.ark`, wasm32-gc +
+  wasi-p2, `s2 == s3`, 10-run median ≤7s / p95 ≤10s, peak RSS ≤512MB.
+  `hello` 2312B / current sha256 is **not** required.
+- Do not flip `BOOTSTRAP_EMIT_*` until that acceptance holds.
+- Same-condition A/B needs ≥3 runs and ≥10% or revert. Two consecutive
+  local-opt misses on one hotspot forbid more local opts there.
+- Phase arena (`#850`) is Phase 5. Do not put it first.
+- Do not keep a fat `MirInst` reconstruct API. Do not rebuild a `Vec`
+  on every generated `_at`.

@@ -29,7 +29,7 @@
 | `vscode_dap` | `experimental` | `manual` | VS Code extension DAP wiring | — | ⚠️ partial | ⏰ stale | smoke | `a80b4181` | Stub / evolving |
 | `freestanding` | `not_guaranteed` | `release-only` | wasm32-freestanding public target | — | ⬜ not-run | ❓ unknown | — | — | ADR-007 retired / hard error |
 | `native_targets` | `not_guaranteed` | `release-only` | native-cpp / native-llvm | — | ⬜ not-run | ❓ unknown | — | — | Both targets remain scaffold/partial; native-cpp adds experimental public run (ADR-050) on top of the compiler-private executor ABI (ADR-049); native-llvm stays assembler scaffold |
-| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only) | — | ✅ pass | 🟢 fresh | fixture-set | `local` | Guarantee scope remains tests/fixtures/native_cpp_public + parity/sanitizer (not production-ready; support_tier=scaffold). Full-tree measure v2 readiness gates are COMPLETE per docs/plans/native-cpp-general-backend-readiness.md with documented expected-negative limitations; zero-capture HOF only; no public C ABI/FFI |
+| `run_native_cpp_experimental` | `experimental` | `ci` | Experimental public `arukellt run --target native-cpp` on Linux x86-64 with clang 14+ (public corpus only) | — | ✅ pass | ⏰ stale | fixture-set | `local` | Guarantee scope remains tests/fixtures/native_cpp_public + parity/sanitizer (not production-ready; support_tier=scaffold). Full-tree measure v2 readiness gates are COMPLETE per docs/plans/native-cpp-general-backend-readiness.md with documented expected-negative limitations; zero-capture HOF only; no public C ABI/FFI |
 
 ## Check catalogue
 
@@ -43,7 +43,7 @@ incidents, not by individual checks.
 
 | Check ID | Guarantee | Blocking | In full | In quick | Result | Freshness | Evidence | Affected | Incident | Last verified | Command |
 |----------|-----------|:--------:|:-------:|:--------:|--------|-----------|----------|---------:|----------|---------------|---------|
-| `check_run_native_cpp_experimental` | `run_native_cpp_experimental` | no | — | — | ✅ pass | 🟢 fresh | `fixture-set` | — | — | `local` | `python3 scripts/check/check-native-cpp-run-promotion-receipt.py && python3 -m unittest scripts.tests.test_native_cpp_runner scripts.tests.test_native_cpp_parity && python3 scripts/check/check-native-cpp-public-sanitizer.py` |
+| `check_run_native_cpp_experimental` | `run_native_cpp_experimental` | no | — | — | ✅ pass | ⏰ stale | `fixture-set` | — | — | `local` | `python3 scripts/check/check-native-cpp-run-promotion-receipt.py && python3 -m unittest scripts.tests.test_native_cpp_runner scripts.tests.test_native_cpp_parity && python3 scripts/check/check-native-cpp-public-sanitizer.py` |
 | `check_compile_wasm32_gc` | `compile_wasm32_gc` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32-gc -o .build/release-checks/wasm32-gc.wasm` |
 | `check_compile_wasm32` | `compile_wasm32` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh compile docs/examples/hello.ark --target wasm32 -o .build/release-checks/wasm32.wasm` |
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
@@ -55,12 +55,12 @@ incidents, not by individual checks.
 | `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
 | `check_cli_help` | `cli_help` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py help` |
 | `check_close_gate_076` | — | 🔴 yes | — | ✓ | ✅ pass | ⏰ stale | `smoke` | — | — | `fd14539c23288d3ed993c03600aeed36cd478d06` | `python3 scripts/check/check-false-done-close-gates.py` |
-| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `e18c09aa` | `python3 scripts/check/check-t3-wasm-validate.py` |
-| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `exhaustive` | 0 | `incident_selfhost_fixpoint` | `fb8a3827` | `python3 scripts/manager.py selfhost fixpoint --build` |
+| `check_t3_wasm_validate` | — | 🔴 yes | — | ✓ | ✅ pass | ⏰ stale | `smoke` | 0 | — | `e18c09aa` | `python3 scripts/check/check-t3-wasm-validate.py` |
+| `check_selfhost_fixpoint` | — | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `exhaustive` | 0 | `incident_selfhost_fixpoint` | `fb8a3827` | `python3 scripts/manager.py selfhost fixpoint --build` |
 | `check_selfhost_cli_parity` | — | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `smoke` | 2 | `incident_selfhost_cli_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost parity --mode --cli` |
 | `check_selfhost_diag_parity` | — | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `smoke` | 3 | `incident_selfhost_diag_parity` | `2cd10f16` | `python3 scripts/manager.py selfhost diag-parity` |
-| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `smoke` | 0 | — | `4e07e2a6` | `bash scripts/run/wat-roundtrip.sh` |
-| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ✅ pass | 🟢 fresh | `fixture-set` | 0 | — | `f2b2a899` | `python3 scripts/manager.py verify component-interop` |
+| `check_wat_roundtrip` | — | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | 0 | — | `4e07e2a6` | `bash scripts/run/wat-roundtrip.sh` |
+| `check_component_interop_wasmtime` | `emit_component` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `fixture-set` | 0 | — | `f2b2a899` | `python3 scripts/manager.py verify component-interop` |
 | `check_opt_equivalence` | — | no | — | ✓ | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `bash scripts/run/test-opt-equivalence.sh --quick` |
 | `check_binary_version` | — | no | — | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `arukellt --version` |
 | `check_emit_component` | `emit_component` | no | ✓ | — | ⚠️ partial | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/gate-666-component-library-emit.py` |
@@ -76,6 +76,7 @@ Each stale check records the reason and threshold for mechanical verification.
 
 | Check ID | Verified at | Stale after (days) | Stale reason |
 |----------|-------------|:------------------:|--------------|
+| `check_run_native_cpp_experimental` | 2026-07-25 | 30 | — |
 | `check_compile_wasm32_gc` | 2026-07-11 | 30 | — |
 | `check_compile_wasm32` | 2026-07-11 | 30 | — |
 | `check_run_wasmtime` | 2026-07-11 | 30 | — |
@@ -87,8 +88,12 @@ Each stale check records the reason and threshold for mechanical verification.
 | `check_cli_doc` | 2026-07-11 | 30 | — |
 | `check_cli_help` | 2026-07-11 | 30 | — |
 | `check_close_gate_076` | 2026-07-14 | 30 | — |
+| `check_t3_wasm_validate` | 2026-07-24 | 30 | — |
+| `check_selfhost_fixpoint` | 2026-07-24 | 30 | — |
 | `check_selfhost_cli_parity` | 2026-07-15 | 30 | — |
 | `check_selfhost_diag_parity` | 2026-07-15 | 30 | — |
+| `check_wat_roundtrip` | 2026-07-26 | 30 | — |
+| `check_component_interop_wasmtime` | 2026-07-26 | 30 | — |
 | `check_opt_equivalence` | 2026-07-11 | 30 | — |
 | `check_binary_version` | 2026-07-11 | 30 | — |
 | `check_emit_component` | 2026-07-11 | 30 | — |
