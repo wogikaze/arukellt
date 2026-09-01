@@ -370,6 +370,26 @@ Do **not** pack after push (169).
 `val_type`; write-back goes to the
 table, not a stored record.
 
+**Tick 173 (reverted).** Per-block
+`MirInstTable` + `Vec<i32>` handles
+at `push_inst`. Hello **2312B**
+`1dbf14ca…`. Overlay timed out
+twice (**320.23s** / **480.24s**);
+no s3. RSS **1155476 / 1155360 KB
+(~1.10GB)** vs 1.77GB floor —
+fat `MirInst` records were ~0.67GB,
+same class as tick 64 SoA. Leftover
+`inst_at` reconstruct on emit
+dispatch / `code_ref_locals_*` /
+resolvable `stdlib_resolve` blocks
+made mutator miss 480s. Do **not**
+retry table+reconstruct overlay.
+Next hop: scalar every remaining
+overlay `inst_at` (including
+`emit_mir_inst_ctx`) **before**
+measure. Per-block table is enough;
+shared module table is not required.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1560,6 +1580,7 @@ reconstruct or leftover-column hybrids.
 | tick 170 emit-during-lower design lock | — | — | — | no product; mapped blockers: name-keyed CALL reloc, import count not in lower, type-plan shift vs hello 2312B, new-object shell; do not retry 169 / 127 / #824 |
 | tick 171 emit-during-lower + new-object shell + CALL reloc | **195.45s** | — | **4.15GB** | emit 6.94MB (280–290s) validated; hello **2312B** sha256 `ebb7391e…` (new, valid); three overlays trapped in `mir_module_append_stream_body` (204.17s / 175.10s / 195.45s; RSS 4270096 / 4273416 / 4274904 KB); no s3; 159/169 class; shell did not unroot fat; reverted |
 | tick 172 handle-table birth intern lock | — | — | — | no product; MirInstTable i32 columns at ctx_emit; MirBlock stores Vec<i32>; scalar (block, idx) walks; no reconstruct on hot inst_at; no dual-live; no Vec<f64> |
+| tick 173 per-block MirInstTable + handle blocks | **480.24s** timeout | — | **1.10GB** | emit 6.92MB / 275s validated; hello **2312B** `1dbf14ca…`; overlay timeout 320.23s then 480.24s (RSS 1155476 / 1155360 KB); no s3; first real RSS cut since tick 64; leftover reconstruct; reverted |
 
 ## Non-goals
 
