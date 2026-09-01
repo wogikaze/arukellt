@@ -166,21 +166,29 @@ Do **not** store GET/SET as `MirBlock` seq
 columns at `emit_inst` while leftover
 `MirBlock_inst_at` still rematerializes them
 (tick 160: timeout 320s, hello matched,
-RSS **1.34GB** / 1406868 KB). Expected
-GET+SET object cut (~0.4GB of the 0.7GB
-inst portion) landed; wall died on leftover
-reconstruct (64–68 class). Emit still
-`inst_at` every current inst. Do **not**
-retry seq columns + reconstruct-on-`inst_at`.
+RSS **1.34GB** / 1406868 KB — likely
+pre-peak; see 161). Wall died on leftover
+`inst_at` alloc reconstruct (64–68 class).
+Do **not** retry seq columns + new-object
+`inst_at`. Do **not** fill one per-block
+scratch `MirInst` on GET/SET `inst_at`
+(tick 161: **300.51s** worse, s2≠s3, s3
+**invalid wasm** func 44 i32 vs ref, RSS
+**1.75GB**). Hello matched. Scratch is
+aliased when emit holds it and a nested
+scan `inst_at`s the same block (cast /
+infer). 160's 1.34GB was a killed-before-peak
+read; a finished run stays ~1.76GB. Do
+**not** retry scratch-fill `inst_at`.
 Next cut is **not** another dest=-1 /
 encode-on-consumer and **not** another
 function-scoped inst pack that rematerializes
 and **not** GET/SET columns with leftover
-reconstruct. It is either
-(1) GET/SET (or full) columns that emit **and**
-leftover walks read as **scalars** with **no**
-`inst_at` rematerialize (not 64–76 / 108–118 /
-159 / 160), or
+reconstruct or scratch alias. It is either
+(1) GET/SET columns that emit **and** leftover
+walks read as **scalars** with **no** `inst_at`
+of GET/SET at all (not 64–76 / 108–118 /
+159 / 160 / 161), or
 (2) function-at-a-time lower→propagate→emit→drop
 after GC layout can be sealed from the view
 (`mir_register_view_layouts` + flush) **before**
@@ -1366,7 +1374,8 @@ reconstruct or leftover-column hybrids.
 | tick 157 reuse CONST_I32 dest for 0/1 | **252.49s** | **no** | **1.68GB** | emit 6.90MB (231.93s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `4dd6d7fe…` (6902711) ≠ s3 `116550d4…` (6823946); s3 **invalid wasm** func 143 stack leftover; wash vs 239s; RSS wash; reverted |
 | tick 158 void leftover block-root CALL dest | **236.66s** | **no** | **1.68GB** | emit 6.90MB (228.12s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `484a9723…` (6903974) ≠ s3 `6007e304…` (6890287); s3 **invalid wasm** func 3322 expected i32 found ref; wash vs 239s; RSS wash; reverted |
 | tick 159 function-scoped MirInst column pack | **221.88s** | yes | **4.15GB** | emit 6.92MB (240.00s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b2059f70…` (6919630); s3 valid; first emit trapped on `Vec<f64>` `get_unchecked`; hold-record float then overlay finished; wall noise vs 239s; RSS 1.76→4.15GB (columns + fat records; prune leak class); reverted |
-| tick 160 GET/SET seq columns on MirBlock | timeout 320s | — | **1.34GB** | emit 6.91MB (274.11s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no s3; `ru_maxrss` 1406868 KB; RSS 1.76→1.34GB matches GET+SET fat-record cut; leftover `inst_at` reconstruct timed out (64–68 class); reverted |
+| tick 160 GET/SET seq columns on MirBlock | timeout 320s | — | **1.34GB** | emit 6.91MB (274.11s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no s3; `ru_maxrss` 1406868 KB; leftover `inst_at` alloc reconstruct timed out; 1.34GB is killed-before-peak (see 161); reverted |
+| tick 161 GET/SET columns + per-block scratch inst_at | **300.51s** | **no** | **1.75GB** | emit 6.91MB (275.29s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `7b50e9f8…` (6907810) ≠ s3 `41e2d00c…` (6912188); s3 **invalid wasm** func 44 expected i32 found ref; worse than 239s; RSS wash — 160 1.34GB was pre-peak; scratch aliased under nested `inst_at`; reverted |
 
 ## Non-goals
 
