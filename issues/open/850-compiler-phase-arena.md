@@ -451,6 +451,16 @@ rewrite the CALL emit tree next;
 resolve `Vec<MirInst>` snapshots are
 the remaining overlay alloc.
 
+**Tick 182 (unlanded).** In-place CALL
+target rewrite; no `Vec<MirInst>`
+before/after and no
+`set_instructions` rebuild. Hello
+**2312B** `1dbf14ca…`. Overlay
+**320.26s timeout**, RSS **1581844
+KB (~1.51GB)**. No s3. Do **not**
+remasure at 480s. Resolve snapshots
+were not the 320s stall.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1650,6 +1660,7 @@ reconstruct or leftover-column hybrids.
 | tick 179 leftover ref-local/verify scalars | **320.20s** timeout | — | **1.32GB** | emit 6.93MB / 284s validated; hello **2312B** `1dbf14ca…`; RSS 1382048 KB; no s3; scan no longer `inst_at`; emit still handle for non-GET/SET/CONST |
 | tick 180 scalar control/arith/return emit | **320.29s** timeout | — | **1.98GB** | emit 6.94MB / 237s validated; hello **2312B** `1dbf14ca…`; RSS 2075400 KB; no s3; string ADD/EQ/NE + CALL still handle |
 | tick 181 emit scratch handle rebind | **320.25s** timeout | — | **1.57GB** | emit 6.94MB / 268s validated; hello **2312B** `1dbf14ca…`; RSS 1643164 KB; no s3; leftover emit no longer `inst_at` |
+| tick 182 in-place resolve no snapshot | **320.26s** timeout | — | **1.51GB** | emit 6.94MB / 259s validated; hello **2312B** `1dbf14ca…`; RSS 1581844 KB; no s3; CALL rewrite mutates table rows |
 
 ## Non-goals
 
