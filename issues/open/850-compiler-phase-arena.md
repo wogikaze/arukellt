@@ -271,10 +271,51 @@ from live insts and drop without a
 second encoding, or use a real i32
 handle table emit reads without
 rematerialize (acceptance).
-Do **not** drop insts only after
-wasm emit (127: peak is already
-past). Peak still holds all insts
-through sync/propagate.
+Tick 170 mapped that emit path
+(no product). Do **not** drop
+insts only after wasm emit (127:
+peak is already past). Peak still
+holds all insts through
+sync/propagate.
+
+**Emit-during-lower (tick 170).**
+One-pass drop at `ctx_push_*`
+needs wasm bytes before prune and
+before the function list is
+complete. Closures are born during
+parent bodies, so the name→index
+map is not known at the first
+emit. CALL must be a **name-keyed
+reloc** (placeholder + patch after
+prune), not a packed MIR log
+(169). `defined_function_index`
+also needs import count, which
+lower does not have (`wasi-p2` is
+an emit flag). GC `struct.new` /
+`ref.cast` indices come from the
+type-section plan; that plan
+shifts if unused function types
+are omitted after prune, and
+hello **2312B** forbids keeping
+those unused types, unused
+function stubs, or 5-byte padded
+CALL. A new-object function shell
+(not `set_blocks` on a copy) is
+required so the fat `MirInst`
+graph is unrooted — 169's
+`set_function_at` after empty
+blocks did not drop RSS.
+Next product cut is either (1)
+name-keyed CALL reloc +
+append-only GC type base +
+new-object shell at `ctx_push`,
+accepting a new hello hash, or
+(2) the acceptance handle table
+that emit reads as scalars. Do
+**not** retry 169. Do **not**
+retry #824 skip-unreachable
+(overlay omits ~4% insts; peak is
+the survivors).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1463,6 +1504,7 @@ reconstruct or leftover-column hybrids.
 | tick 167 hoist tuple:String,String when view has any tuple | **254.76s** | yes | **1.77GB** | emit 6.91MB (250.47s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct **240→240** enum **27→27**; no late names; s2=s3 `a5626592…` (6914591); s3 valid; wash vs 239s; RSS wash; eprintln stripped; hoist kept |
 | tick 168 flush GC types once after view, before bodies | **248.00s** | yes | **1.77GB** | emit 6.91MB (245.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c6ae35ef…` (6908305); s3 valid; wash vs 239s; RSS wash; no second flush; kept |
 | tick 169 pack MIR after push, clear, restore at emit | **217.11s** | — | **4.15GB** | emit 6.92MB (251.28s) validated; hello sha256 `1dbf14ca…` (2312B); overlay trap in `mir_module_pack_inst`; no s3; RSS 4272432 KB; 159 class (log + fat); `set_function_at` after empty blocks did not drop peak; reverted |
+| tick 170 emit-during-lower design lock | — | — | — | no product; mapped blockers: name-keyed CALL reloc, import count not in lower, type-plan shift vs hello 2312B, new-object shell; do not retry 169 / 127 / #824 |
 
 ## Non-goals
 
