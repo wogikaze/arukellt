@@ -1,0 +1,193 @@
+name: PR43 Wasm GC targeted diagnostics
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  targeted:
+    if: github.head_ref == 'fix/wasm-gc-type-plan-owner-phase1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wasm-gc-type-plan-owner-phase1
+          fetch-depth: 0
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
+          echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
+      - name: Install wasm-tools
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm wasm-tools
+      - name: Build current compiler
+        run: |
+          mkdir -p .build/pr43-debug
+          set +e
+          python3 scripts/manager.py selfhost build-compiler 2>&1 | tee .build/pr43-debug/build-compiler.log
+          rc=${PIPESTATUS[0]}
+          echo "$rc" > .build/pr43-debug/build-compiler.status
+          echo "build_compiler_exit=$rc"
+          exit 0
+      - name: Inspect current and rejected s2 artifacts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+
+          candidates = []
+          runtime = Path('.build/selfhost/arukellt-s2-runtime.wasm')
+          raw = Path('.build/selfhost/arukellt-s2.wasm')
+          if runtime.exists(): candidates.append(runtime)
+          candidates.extend(sorted(Path('.ark-debug').glob('rejected-arukellt-s2-runtime-*.wasm'))[-2:])
+          if raw.exists(): candidates.append(raw)
+          if not candidates:
+              print('missing all s2 artifacts')
+              raise SystemExit(0)
+
+          for wasm in candidates:
+              validate = subprocess.run(
+                  ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
+                  capture_output=True,
+                  text=True,
+              )
+              output = (validate.stdout or '') + (validate.stderr or '')
+              print(f'ARTIFACT={wasm} validate_exit={validate.returncode}')
+              print(output)
+              if validate.returncode == 0:
+                  continue
+              matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
+              target = int(matches[-1]) if matches else -1
+              printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
+              if printed.returncode != 0:
+                  print((printed.stdout or '') + (printed.stderr or ''))
+                  continue
+              wat_path = Path('.build/pr43-debug') / f'{wasm.stem}.wat'
+              wat_path.write_text(printed.stdout)
+              lines = printed.stdout.splitlines()
+              if target < 0:
+                  print('validator function index unavailable')
+                  continue
+              marker = f'(;{target};)'
+              func_hits = [i for i, line in enumerate(lines) if marker in line and '(func' in line]
+              all_hits = [i for i, line in enumerate(lines) if marker in line]
+              print(f'validator_func={target}')
+              print(f'marker_hits={len(all_hits)} func_hits={len(func_hits)}')
+              if not func_hits:
+                  print('function declaration unavailable in WAT; marker occurrences:')
+                  for i in all_hits[:20]:
+                      print(f'{i+1}: {lines[i]}')
+                  continue
+              start = max(0, func_hits[0] - 60)
+              end = min(len(lines), func_hits[0] + 420)
+              print(f'--- {wasm.name} func {target} ---')
+              for i in range(start, end):
+                  print(f'{i+1}: {lines[i]}')
+          if not runtime.exists():
+              print('RUNTIME_MISSING_AFTER_BUILD=1')
+          PY
+      - name: Compile and validate representative fixtures
+        run: |
+          set +e
+          build_rc=$(cat .build/pr43-debug/build-compiler.status 2>/dev/null || echo 99)
+          if [ "$build_rc" -ne 0 ]; then
+            echo "build-compiler failed rc=$build_rc"
+            exit 1
+          fi
+          failed=0
+          compiler=.build/selfhost/arukellt-s2-runtime.wasm
+          if [ ! -f "$compiler" ]; then
+            echo 'runtime compiler missing'
+            exit 1
+          fi
+          for spec in \
+            'array:tests/fixtures/arrays/array_literal.ark' \
+            'trait:tests/fixtures/generics_v1/trait_method_resolve.ark'; do
+            name=${spec%%:*}
+            src=${spec#*:}
+            out=.build/pr43-debug/${name}.wasm
+            ARUKELLT_SELFHOST_WASM="$compiler" \
+              bash scripts/run/arukellt-selfhost.sh compile "$src" --target wasm32-gc -o "$out" \
+              2>&1 | tee .build/pr43-debug/${name}-compile.log
+            c=${PIPESTATUS[0]}
+            v=99
+            if [ "$c" -eq 0 ] && [ -f "$out" ]; then
+              wasm-tools validate --features gc "$out" 2>&1 | tee .build/pr43-debug/${name}-validate.log
+              v=${PIPESTATUS[0]}
+            fi
+            echo "$name compile=$c validate=$v"
+            if [ "$c" -ne 0 ] || [ "$v" -ne 0 ]; then failed=1; fi
+          done
+          exit "$failed"
+      - name: True fixpoint probe
+        run: |
+          set +e
+          set -o pipefail
+          python3 scripts/manager.py selfhost fixpoint --build 2>&1 | tee .build/pr43-debug/fixpoint.log
+          rc=${PIPESTATUS[0]}
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import shutil
+          import subprocess
+
+          rejected = sorted(Path('.ark-debug').glob('rejected-arukellt-s3-*.wasm'))
+          if not rejected:
+              print('S3_REJECTED_ARTIFACT=none')
+              raise SystemExit(0)
+          wasm = rejected[-1]
+          copy = Path('.build/pr43-debug') / wasm.name
+          shutil.copy2(wasm, copy)
+          validate = subprocess.run(
+              ['wasm-tools', 'validate', '--features', 'gc', str(wasm)],
+              capture_output=True,
+              text=True,
+          )
+          output = (validate.stdout or '') + (validate.stderr or '')
+          print(f'S3_REJECTED_ARTIFACT={wasm} validate_exit={validate.returncode}')
+          print(output)
+          matches = re.findall(r'(?:func|function)\s*\[?(\d+)\]?', output)
+          target = int(matches[-1]) if matches else -1
+          printed = subprocess.run(['wasm-tools', 'print', str(wasm)], capture_output=True, text=True)
+          if printed.returncode != 0:
+              print((printed.stdout or '') + (printed.stderr or ''))
+              raise SystemExit(0)
+          wat = Path('.build/pr43-debug/rejected-s3.wat')
+          wat.write_text(printed.stdout)
+          lines = printed.stdout.splitlines()
+          print(f'S3_VALIDATOR_FUNC={target}')
+          if target < 0:
+              raise SystemExit(0)
+          marker = f'(;{target};)'
+          hits = [i for i, line in enumerate(lines) if marker in line and '(func' in line]
+          if not hits:
+              print('S3 validator function declaration unavailable')
+              raise SystemExit(0)
+          start = max(0, hits[0] - 120)
+          end = min(len(lines), hits[0] + 600)
+          print(f'--- rejected s3 func {target} ---')
+          for i in range(start, end):
+              print(f'{i+1}: {lines[i]}')
+          PY
+          if [ "$rc" -ne 0 ] || grep -q 'stage 3 compilation failed\|stage 3 wasm failed validation\|fixpoint not yet reached' .build/pr43-debug/fixpoint.log; then
+            exit 1
+          fi
+      - name: Upload GC diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr43-wasm-gc-debug-${{ github.sha }}
+          if-no-files-found: ignore
+          include-hidden-files: true
+          path: |
+            .build/pr43-debug/
+            .build/selfhost/arukellt-s2.wasm
+            .build/selfhost/arukellt-s2-runtime.wasm
+            .ark-debug/rejected-arukellt-s2-runtime-*.wasm
+            .ark-debug/rejected-arukellt-s3-*.wasm

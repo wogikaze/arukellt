@@ -31,7 +31,7 @@ fn emit_char_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_char = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     helpers_core::emit_local_set(w, s_char)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     string_gc_helpers::emit_gc_array_new(w, string_type)
@@ -41,7 +41,6 @@ fn emit_char_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
-    // Leave the gc array ref on the stack; finish_text_call handles dest store.
     string_gc_helpers::emit_gc_local_get(w, s_gc)
 }
 
@@ -59,35 +58,26 @@ fn emit_push_char(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
-// GC target push_char: string is a GC array ref (array of mut i8).
-// Since GC arrays can't be resized, we create a new array with len+1,
-// copy old elements, set the new char, and drop the result (void fn).
 fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_char = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     let s_gc = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
     let s_new = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 1)
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
-    let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
 
-    // Stack: [string_ref, char]  (char on top)
-    // Pop char into i32 scratch
     helpers_core::emit_local_set(w, s_char)
-    // Pop string ref into GC ref scratch
     helpers_core::emit_local_set(w, s_gc)
 
-    // Get string length: array.len
     helpers_core::emit_local_get(w, s_gc)
     string_gc_helpers::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_len)
 
-    // Create new array with len+1 elements
     helpers_core::emit_local_get(w, s_len)
     string_gc_helpers::emit_gc_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, s_new)
 
-    // Copy old elements: array.copy(s_new, 0, s_gc, 0, s_len)
     helpers_core::emit_local_get(w, s_new)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
@@ -97,15 +87,12 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_len)
     writer_gc::emit_gc_array_copy(w, string_type, string_type)
 
-    // Set new char at index s_len
     helpers_core::emit_local_get(w, s_new)
     helpers_core::emit_local_get(w, s_len)
     helpers_numeric_i32::emit_narrow_i64_operand(w)
     helpers_core::emit_local_get(w, s_char)
     string_gc_helpers::emit_gc_array_set(w, string_type)
 
-    // GC arrays are immutable in size; write the grown array back into the
-    // receiver local recorded on CALL.arg0 (#807 push_char).
     let receiver = inst_accessors_operands::MirInst_arg0(inst)
     if receiver >= 0 {
         helpers_core::emit_local_get(w, s_new)
@@ -117,7 +104,7 @@ fn emit_push_char_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 // Handler for: String_new
 fn emit_String_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        let string_type = ctx_record::SelfEmitCtx_gc_type_base(ctx)
+        let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
         string_gc_helpers::emit_gc_i32_const(w, 0)
         string_gc_helpers::emit_gc_array_new(w, string_type)
         return true

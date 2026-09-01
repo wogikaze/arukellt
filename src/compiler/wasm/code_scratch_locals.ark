@@ -8,47 +8,23 @@ use wasm::emit_target
 use wasm::writer_core
 
 fn scratch_i32_local_count() -> i32 { 12 }
-
-// f64 scratch raised from 2 to 3 so f64_to_string can keep value, scale and a
-// working register simultaneously (shortest round-trip repr, #594 skip).
-// The previously reserved f32 scratch slot (offset 14) was never referenced by
-// any intrinsic and is folded into the f64 group so the i64 slot stays at
-// offset 15 and the GC scratch base (scratch_base + 16) is unchanged.
 fn scratch_f64_local_count() -> i32 { 3 }
-
 fn scratch_f32_local_count() -> i32 { 0 }
-
 fn scratch_i64_local_count() -> i32 { 1 }
-
-// replace/pad need src+pat+rep+result (4) GC string temps concurrently.
 fn scratch_gc_local_count() -> i32 { 4 }
-
 fn scratch_gc_i32_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_vec_local_count() -> i32 { 1 }
-
 fn scratch_gc_string_ref_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_hashmap_str_local_count() -> i32 { 1 }
-
 fn scratch_gc_enum_local_count() -> i32 { 1 }
-
 fn scratch_gc_v128_array_local_count() -> i32 { 2 }
-
 fn scratch_v128_local_count() -> i32 { 1 }
-
 fn scratch_gc_i64_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_f64_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_struct_ref_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_struct_ref_val_local_count() -> i32 { 1 }
-
 fn scratch_gc_fnref_array_local_count() -> i32 { 2 }
-
 fn scratch_gc_fnref_val_local_count() -> i32 { 1 }
-
 fn scratch_gc_enum_ref_array_local_count() -> i32 { 2 }
 
 fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
@@ -74,17 +50,12 @@ fn scratch_local_count(ctx: SelfEmitCtx) -> i32 {
 }
 
 fn scratch_group_count(ctx: SelfEmitCtx) -> i32 {
-    // Each scratch type is one group (batched count + type), but only when
-    // that type declares at least one local (emit_*_scratch_local_decls skips
-    // zero-count groups).  f32 scratch is currently 0, so it contributes no
-    // group; i32 / f64 / i64 always contribute one group each.
     let mut count = 0
     if scratch_i32_local_count() > 0 { count = count + 1 }
     if scratch_f64_local_count() > 0 { count = count + 1 }
     if scratch_f32_local_count() > 0 { count = count + 1 }
     if scratch_i64_local_count() > 0 { count = count + 1 }
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        // Each GC scratch local is emitted as a separate group (1 local per group).
         count = count + scratch_gc_local_count()
         count = count + scratch_gc_i32_array_local_count()
         count = count + scratch_gc_vec_local_count()
@@ -106,8 +77,8 @@ fn emit_scratch_local_decls(body: WasmWriter, ctx: SelfEmitCtx) {
     emit_f32_scratch_local_decls(body, scratch_f32_local_count())
     emit_i64_scratch_local_decls(body, scratch_i64_local_count())
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-        emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx))
-        emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_record::SelfEmitCtx_gc_type_base(ctx) + 1)
+        emit_gc_scratch_local_decls(body, scratch_gc_local_count(), ctx_gc_type::SelfEmitCtx_string_type(ctx))
+        emit_gc_scratch_local_decls(body, scratch_gc_i32_array_local_count(), ctx_gc_type::SelfEmitCtx_i32_array_type(ctx))
         emit_structref_scratch_local_decls(body, scratch_gc_vec_local_count())
         emit_gc_scratch_local_decls(body, scratch_gc_string_ref_array_local_count(), ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx))
         emit_gc_scratch_local_decls(body, scratch_gc_hashmap_str_local_count(), ctx_gc_type::SelfEmitCtx_hashmap_str_i32_type(ctx))
@@ -129,7 +100,6 @@ fn emit_fnref_scratch_local_decls(body: WasmWriter, count: i32, ctx: SelfEmitCtx
     let mut i = 0
     while i < count {
         writer_core::emit_leb128_u(body, 1)
-        // Nullable so array.get results can land here before ref.as_non_null (#832).
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, type_idx)
         i = i + 1
@@ -175,8 +145,6 @@ fn emit_v128_scratch_local_decls(body: WasmWriter, count: i32) {
     }
 }
 
-// The shared GC vec scratch local is declared as structref so it can hold a
-// vec of any element type; consumers must ref.cast before struct access.
 fn emit_structref_scratch_local_decls(body: WasmWriter, count: i32) {
     let mut i = 0
     while i < count {
@@ -186,12 +154,12 @@ fn emit_structref_scratch_local_decls(body: WasmWriter, count: i32) {
     }
 }
 
-fn emit_gc_scratch_local_decls(body: WasmWriter, count: i32, gc_type_base: i32) {
+fn emit_gc_scratch_local_decls(body: WasmWriter, count: i32, gc_type_idx: i32) {
     let mut i = 0
     while i < count {
         writer_core::emit_leb128_u(body, 1)
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
-        writer_core::emit_leb128_s(body, gc_type_base)
+        writer_core::emit_leb128_s(body, gc_type_idx)
         i = i + 1
     }
 }

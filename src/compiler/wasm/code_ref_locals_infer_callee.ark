@@ -293,19 +293,20 @@ fn parse_struct_byte_size_from_ret_name(type_name: String) -> i32 {
 }
 
 fn infer_call_result_gc_type(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    // Prefer SignatureRegistry (host + builtin registration) so missing Mir
-    // name-index entries still type correctly (#725 / #842).
-    let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
-    match from_reg {
-        Option::Some(_opt_v) => {
-            return from_reg
-        }
-        Option::None => {}
-    }
+    // Defined internal functions are authoritative for their return type.
+    // SignatureRegistry remains the fallback for host/builtin entries that
+    // do not have a resolvable MirFunction (#725 / #842).
     let from_fn = infer_call_result_gc_type_from_fn(ctx, clone(callee))
     match from_fn {
         Option::Some(_opt_v) => {
             return from_fn
+        }
+        Option::None => {}
+    }
+    let from_reg = infer_call_result_gc_type_from_registry(ctx, clone(callee))
+    match from_reg {
+        Option::Some(_opt_v) => {
+            return from_reg
         }
         Option::None => {}
     }

@@ -4,7 +4,6 @@ use wasm::code_ref_locals
 use wasm::code_ref_locals_infer_dest
 use wasm::ctx_gc_type
 use wasm::ctx_gc_layout_lookup
-use wasm::sections_types_gc
 use mir::block_inst_access
 use mir::function_locals_view
 use mir::inst_accessors_shape
@@ -15,18 +14,13 @@ use mir::value_types
 use wasm::writer_core
 fn emit_gc_enum_open_local(body: WasmWriter, ctx: SelfEmitCtx) {
     writer_core::emit_byte(body, constants::WASM_REF_NULL())
-    writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+    writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
 }
-// Enum/option/result/return-temp open-enum local typing.
 fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, type_name: String, variant_slot: i32, ctx: SelfEmitCtx) -> bool {
     if code_ref_locals::local_feeds_return(f, local_idx) && code_ref_locals::mir_function_returns_enum_open(f) {
         emit_gc_enum_open_local(body, ctx)
         return true
     }
-    // Only the GC_STRUCT_NEW destination is the variant object. Payload field
-    // locals may still carry a stray variant_slot / enum: type_name from
-    // lowering; typing them as the variant makes struct.set field stores fail
-    // (expected string/ref, found variant).
     let is_variant_constructor_dest = code_ref_locals::local_is_direct_gc_struct_new_dest(f, local_idx, ctx)
     if variant_slot >= 0 &&
     is_variant_constructor_dest &&
@@ -57,15 +51,9 @@ fn emit_gc_local_enum_like(body: WasmWriter, f: MirFunction, local_idx: i32, typ
     false
 }
 fn enum_payload_type_name(type_name: String) -> bool {
-    if len(type_name) <= 5 {
-        return false
-    }
-    if !starts_with(clone(type_name), "enum:") {
-        return false
-    }
-    if eq(clone(type_name), "enum:open") {
-        return false
-    }
+    if len(type_name) <= 5 { return false }
+    if !starts_with(clone(type_name), "enum:") { return false }
+    if eq(clone(type_name), "enum:open") { return false }
     true
 }
 fn local_has_result_option_enum_type_name(type_name: String) -> bool {
@@ -81,22 +69,14 @@ fn local_has_result_option_enum_type_name(type_name: String) -> bool {
 }
 
 fn local_has_container_type_name(type_name: String) -> bool {
-    if len(type_name) == 0 {
-        return false
-    }
-    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "struct:") {
-        return true
-    }
-    if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
-        return true
-    }
+    if len(type_name) == 0 { return false }
+    if starts_with(clone(type_name), "vec:") || starts_with(clone(type_name), "hashmap:") || starts_with(clone(type_name), "struct:") { return true }
+    if eq(clone(type_name), "string") || eq(clone(type_name), "String") { return true }
     false
 }
-// GC-target local val type for hashmap/string/option/inferred types.
 fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if starts_with(clone(type_name), "hashmap:") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             if starts_with(clone(type_name), "hashmap:i32str") {
@@ -117,7 +97,6 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
     }
     if eq(clone(type_name), "string") || eq(clone(type_name), "String") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_string_type(ctx))
@@ -129,16 +108,14 @@ fn emit_gc_local_named_type(body: WasmWriter, type_name: String, vt: i32, f: Mir
     starts_with(clone(type_name), "Option:") ||
     starts_with(clone(type_name), "Option<") {
         if vt == value_types::VT_I32() && !code_ref_locals::local_has_any_ref_assignment(f, local_idx, ctx) {
-            // Local is reused for i32 — skip ref type, try inference fallback.
         } else {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
-            writer_core::emit_leb128_s(body, ctx_record::SelfEmitCtx_gc_type_base(ctx) + sections_types_gc::gc_enum_open_type_offset())
+            writer_core::emit_leb128_s(body, ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
             return true
         }
     }
     emit_gc_local_struct_type(body, type_name, vt, f, local_idx, ctx)
 }
-// GC-target local val type for struct:/raw struct names, with inference fallback.
 fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: MirFunction, local_idx: i32, ctx: SelfEmitCtx) -> bool {
     if eq(clone(type_name), "HashMap") ||
     eq(clone(type_name), "HashSet") ||
@@ -152,13 +129,10 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
         let struct_name = extract_struct_name_from_type_name(clone(type_name))
         if len(struct_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(struct_name)) {
             let named_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(struct_name))
-            // Declared type_name / value_type is authoritative (#843). Stale
-            // reuse must be fixed in post_pass, not by emit-time infer (#808).
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
             writer_core::emit_leb128_s(body, named_gc)
             return true
         }
-        // Fallback for structs without ref fields: extract byte_size and map to GC struct type index.
         let byte_size = extract_struct_byte_size(clone(type_name))
         if byte_size > 0 {
             writer_core::emit_byte(body, constants::WASM_REF_NULL())
@@ -166,16 +140,12 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
             return true
         }
     }
-    // Check raw struct name (without "struct:" prefix) as gc_struct.
     if len(type_name) > 0 && ctx_gc_type::SelfEmitCtx_has_struct_type(ctx, clone(type_name)) {
         let struct_gc = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, clone(type_name))
         writer_core::emit_byte(body, constants::WASM_REF_NULL())
         writer_core::emit_leb128_s(body, struct_gc)
         return true
     }
-    // Raw-name layout-table reconstruction is forbidden. Typed local TypeId
-    // lookup below is authoritative; the remaining name handling is limited to
-    // fixed compatibility classes and struct byte-size diagnostics.
     if len(type_name) > 0 {
         let byte_size = lookup_struct_byte_size(f, clone(type_name), ctx)
         if byte_size > 0 {
@@ -186,7 +156,6 @@ fn emit_gc_local_struct_type(body: WasmWriter, type_name: String, vt: i32, f: Mi
     }
     emit_gc_local_inferred_type(body, f, local_idx, vt, ctx)
 }
-// Scan function instructions for MIR_STRUCT_NEW with matching struct name to extract byte_size.
 fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx) -> i32 {
     let block_count = len(f.blocks)
     let mut bi = 0
@@ -198,9 +167,7 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 let name = inst_accessors_literals::MirInst_str_val(inst)
-                if eq(clone(name), clone(struct_name)) {
-                    return inst_accessors_literals::MirInst_int_val(inst)
-                }
+                if eq(clone(name), clone(struct_name)) { return inst_accessors_literals::MirInst_int_val(inst) }
             }
             ii = ii + 1
         }
@@ -208,7 +175,6 @@ fn lookup_struct_byte_size(f: MirFunction, struct_name: String, ctx: SelfEmitCtx
     }
     0
 }
-// Extract struct name from "struct:TypeName:byte_size" format.
 fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut first_colon = 0 - 1
     let mut last_colon = 0 - 1
@@ -216,32 +182,23 @@ fn extract_struct_name_from_type_name(type_name: String) -> String {
     let mut i = 0
     while i < n {
         if char_at(type_name, i) == ':' {
-            if first_colon < 0 {
-                first_colon = i
-            }
+            if first_colon < 0 { first_colon = i }
             last_colon = i
         }
         i = i + 1
     }
-    if first_colon < 0 || last_colon < 0 || first_colon == last_colon {
-        return String_new()
-    }
+    if first_colon < 0 || last_colon < 0 || first_colon == last_colon { return String_new() }
     substring(type_name, first_colon + 1, last_colon)
 }
-// Extract byte_size from "struct:TypeName:byte_size" format.
 fn extract_struct_byte_size(type_name: String) -> i32 {
     let n = len(type_name)
     let mut last_colon = 0 - 1
     let mut i = 0
     while i < n {
-        if char_at(type_name, i) == ':' {
-            last_colon = i
-        }
+        if char_at(type_name, i) == ':' { last_colon = i }
         i = i + 1
     }
-    if last_colon < 0 {
-        return 0
-    }
+    if last_colon < 0 { return 0 }
     let mut byte_size = 0
     let mut j = last_colon + 1
     while j < n {
@@ -255,7 +212,6 @@ fn extract_struct_byte_size(type_name: String) -> i32 {
     }
     byte_size
 }
-// Spine-only local GC type (#843). Body-scan infer removed.
 fn emit_gc_local_inferred_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let spine_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, local_idx)
     if spine_gc >= 0 {

@@ -42,6 +42,7 @@ struct GcLayoutEntry {
 
 struct GcLayoutTable {
     entries: Vec<GcLayoutEntry>,
+    fixed_type_map: Vec<i32>,
     next_id: i32,
     typed_lookup_count: i32,
     conflict_count: i32,
@@ -118,10 +119,26 @@ fn wasm_value_type_ref_type(wvt: WasmValueType) -> WasmRefType {
 fn GcLayoutTable_new() -> GcLayoutTable {
     GcLayoutTable {
         entries: Vec::new<GcLayoutEntry>(),
+        fixed_type_map: Vec::new<i32>(),
         next_id: 0,
         typed_lookup_count: 0,
         conflict_count: 0
     }
+}
+
+fn gc_layout_table_set_fixed_type_map(table: GcLayoutTable, fixed_type_map: Vec<i32>) {
+    table.fixed_type_map = fixed_type_map
+}
+
+fn gc_layout_table_fixed_type_map(table: GcLayoutTable) -> Vec<i32> {
+    table.fixed_type_map
+}
+
+fn gc_layout_table_fixed_type_index(table: GcLayoutTable, slot: i32) -> i32 {
+    if slot < 0 || slot >= len(table.fixed_type_map) {
+        return 0 - 1
+    }
+    get_unchecked(table.fixed_type_map, slot)
 }
 
 fn gc_layout_table_observe_typed_lookup(table: GcLayoutTable) {

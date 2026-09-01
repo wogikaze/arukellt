@@ -66,6 +66,10 @@ fn collection_type_sig(type_name: String, target: String) -> String {
     if !emit_target::is_gc_target(clone(target)) {
         return String_new()
     }
+    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
+        let elem = substring(clone(type_name), 4, len(type_name) - 1)
+        return collection_type_sig(concat(String_from("vec:"), elem), target)
+    }
     if starts_with(clone(type_name), "vec:") {
         if eq(clone(type_name), "vec:String") || eq(clone(type_name), "vec:string") {
             return sections_types_gc::gc_vec_string_type_sig()

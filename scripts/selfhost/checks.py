@@ -2861,10 +2861,10 @@ def _flatten_compiler_imports(text: str) -> str:
                 ns_mod = _flatten_namespace_mod_import(parts)
                 flat = ns_mod if ns_mod is not None else "_".join(parts)
                 explicit_alias = match.group(3)
-                if explicit_alias is not None:
-                    output.append(f"{match.group(1)}use {flat} as {explicit_alias}")
-                else:
-                    output.append(f"{match.group(1)}use {flat}")
+                # Qualified alias references were canonicalized to the flat
+                # module name above. Keep the dependency import alias-free so
+                # the pinned bootstrap loader sees the actual flat module.
+                output.append(f"{match.group(1)}use {flat}")
                 continue
         rewritten = line
         for alias, flat_name in sorted(alias_map.items(), key=lambda item: len(item[0]), reverse=True):
@@ -3116,8 +3116,17 @@ def _compiler_source_content_hash(root: Path) -> str:
                 file_hash = "<missing>"
             digest.update(file_hash.encode())
             digest.update(b"\0")
-    # Also hash std files that the overlay copies (prelude, toml, json, json/parser, text)
-    for std_rel in ("std/prelude.ark", "std/toml.ark", "std/json.ark", "std/json/parser.ark"):
+    # Also hash std files that the overlay copies.  Component/WIT naming is a
+    # bootstrap dependency since #706/#44; keep it cache-bound with the rest.
+    for std_rel in (
+        "std/prelude.ark",
+        "std/toml.ark",
+        "std/json.ark",
+        "std/json/parser.ark",
+        "std/text/mod.ark",
+        "std/wit/names.ark",
+        "std/wit/scan.ark",
+    ):
         std_path = root / std_rel
         if std_path.is_file():
             h = hashlib.sha256()
@@ -3327,6 +3336,15 @@ def _prepare_flattened_selfhost_source_locked(
     text_mod = root / "std" / "text" / "mod.ark"
     if text_mod.is_file():
         shutil.copyfile(text_mod, std_dst / "text.ark")
+    # Component naming facades in the current compiler import std::wit::names
+    # (#706/#44).  Component sources are intentionally live in the bootstrap
+    # overlay, so their shared std dependency must be present as well.
+    wit_dst = std_dst / "wit"
+    wit_dst.mkdir(exist_ok=True)
+    for wit_name in ("names.ark", "scan.ark"):
+        wit_src = root / "std" / "wit" / wit_name
+        if wit_src.is_file():
+            shutil.copyfile(wit_src, wit_dst / wit_name)
     _FLAT_OVERLAY_CACHE = (source_mtime, overlay_root)
     # Write disk cache so subsequent processes can skip overlay regeneration.
     _flat_overlay_disk_cache_write(root, source_hash, str(overlay_root))
@@ -4139,7 +4157,7 @@ def _rebuild_current_s2_locked(
                             f"{RED}error: failed to write S2 build-profile manifest: "
                             f"{profile_exc}{NC}"
                         ), time.time() - started
-                    runtime = _parity_runtime_compiler(root, pinned, out)
+                    runtime = _ensure_runtime_compiler_wasm(root, out)
                     if runtime is None:
                         return None, (
                             f"{RED}error: failed to prepare runtime compiler wasm "
@@ -4209,7 +4227,7 @@ def _rebuild_current_s2_locked(
             f"{RED}error: failed to write S2 build-profile manifest: {profile_exc}{NC}"
         ), time.time() - started
 
-    runtime = _parity_runtime_compiler(root, pinned, out)
+    runtime = _ensure_runtime_compiler_wasm(root, out)
     if runtime is None:
         return None, (
             f"{RED}error: failed to prepare runtime compiler wasm from {out.name}{NC}"
