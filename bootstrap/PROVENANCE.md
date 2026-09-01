@@ -13,9 +13,9 @@ the four gates do **not** require the legacy Rust binary
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 7 009 586 bytes (≈ 6.69 MiB) |
-| sha256 | `5abf95738287333268218d722f31e220cd9776eef98ff6a9b2808849ccb81b23` |
-| Built from commit | `d4ceef89` keep callee-string and line-length ratchets (s2==s3) |
+| Size | 7 270 581 bytes (≈ 6.93 MiB) |
+| sha256 | `1e4588417d07c8ec7efe684dbbfca7df5d822ad69cc5fb0662ab8a32a5bb1d07` |
+| Built from commit | `6b3f02bf` tuple params stay concrete GC types and register tuple:A,B (s2==s3) |
 | Build target | `wasm32-gc` / `wasi-p2` (guest `(memory 8192)` **memory32**) |
 | Producer | Host-linker pin→s2→s3 fixpoint (sha256 equal). Guest memory32 wasm32-gc / wasi-p2; FS via `arukellt:runtime/host@0.1.0`; do not --to-memory64 |
 
@@ -65,6 +65,107 @@ reference. Refresh procedure:
 
 The refresh commit must be signed off by a maintainer and mention every
 behavioural drift in its body.
+
+### wasm32-gc pinned (`6b3f02bf`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `6b3f02bf` (tuple component
+params are concrete GC types, not `?` type-vars, and register
+`tuple:A,B` on bind). Guest remains `wasm32-gc` / `wasi-p2` memory32.
+Official `build-compiler` then `fixpoint --build` 2026-08-31T23:50–00:08Z:
+s2==s3=`1e458841` EXIT 0.
+
+Intentional drift from the previous pin (`ca1e5621` / `f0e7abb0`):
+
+- `Tuple:` / `tuple:` params are not prefixed `?` (core export + adapter kind)
+- `ctx_register_tuple_gc_struct_from_param_name` runs on bind so the
+  user export matches the library adapter 2-field layout
+- Official 9/9 tuple interop scripts PASS on s2 `1e458841`
+  (previous VF EXIT 1 was the 6 tuple-param family fixtures)
+
+### wasm32-gc pinned (`ca1e5621`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `ca1e5621` (wasm32-gc library
+`--emit component` uses `wasm::emit_library_component` / GC ↔ canonical
+ABI adapter). Guest remains `wasm32-gc` / `wasi-p2` memory32. Official
+`build-compiler` then `fixpoint --build` 2026-08-31T08:19–08:29Z:
+s2==s3=`f0e7abb0` EXIT 0.
+
+Intentional drift from the previous pin (`9a821f07` / `427fe626`):
+
+- driver routes wasm32-gc library worlds to `wasm::emit_library_component`
+  so specialized linear i32 adapters are not instantiated against GC
+  String/list/record exports
+- overlay stub and driver patch match `core_wasi` (previous patch looked
+  for `config_wasi_version` and never applied)
+- Official string-multi / string-greet / string-len / list-first /
+  record-point / bool-logic validate + wasmtime invoke PASS
+- gc-layout-audit on string-multi: `name=0 fallback=0`
+
+### wasm32-gc pinned (`9a821f07`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `9a821f07` (component emit
+bool-only exports no longer trap; generic core-func alias matches
+library emit). Guest remains `wasm32-gc` / `wasi-p2` memory32. Official
+`build-compiler` then `fixpoint --build` 2026-08-31T07:48–07:57Z:
+s2==s3=`427fe626` EXIT 0.
+
+Intentional drift from the previous pin (`75401a23` / `695de0cb`):
+
+- `StringGeneralPlan` / `F32GeneralPlan` collect `Vec<String>` /
+  `Vec<i32>` only so leftover dest cannot retype `mir` as a custom
+  struct vec (`--emit component` bool-logic no longer traps)
+- generic core-func alias includes the `0x01` instance-sort byte
+- Official bool-logic 6/6 PASS on this artifact
+- string-multi still validate-fails: specialized string adapters
+  import user funcs as `(i32)->(i32)` while wasm32-gc exports
+  `(ref null String)` — next pin after the GC adapter fix
+
+### wasm32-gc pinned (`75401a23`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `75401a23` (PR 51 `#665` +
+PR 52 leftover linear emit on clock-qmark). Guest remains `wasm32-gc` /
+`wasi-p2` memory32. Official `build-compiler` then `fixpoint --build`
+2026-08-31T05:31–05:44Z: s2==s3=`695de0cb` EXIT 0.
+
+Intentional drift from the previous pin (`25e28e48` / `54d01aff`):
+
+- WIT import-load no longer calls `parser::parse_full` (`#665`
+  `compose_roundtrip --emit component` does not trap)
+- Linear leftover: nested `STRUCT_GET` base load, `hashmap_new` inline
+  when DCE'd, `ref.func` → `i32.const` table index (`closure_map`)
+- leftover isolated T3: 460 pass / 0 validate-fail / 0 compile-fail / 23 skip
+
+### wasm32-gc pinned (`25e28e48`)
+
+Pinned bootstrap is the s2==s3 fixpoint of `25e28e48`. Guest remains
+`wasm32-gc` / `wasi-p2` memory32. Re-proved 2026-08-30T21:19–21:28Z with
+`ARUKELLT_FIXPOINT_NO_CACHE=1`: pin==s2==s3=`54d01aff` EXIT 0.
+
+Intentional drift from the previous pin (`fdf2101e` / `87e5d135`):
+
+- `emit_struct_set` does not `local.tee` an open-enum `ref.cast` into a
+  final variant local (`enum_struct_variant` validates; Circle/Rect keep
+  their own type)
+- Isolated: `enum_struct_variant` MATCH `75` / `24`
+
+### wasm32-gc pinned (`87e5d135`)
+
+Pinned bootstrap is the s3==s4 fixpoint of `87e5d135` (not pin→s2 `082f4148`).
+Guest remains `wasm32-gc` / `wasi-p2` memory32. Official `fixpoint --build`
+from the previous pin produced `sha256(s2)=082f4148…` ≠ `sha256(s3)=fdf2101e…`;
+one more round compiled `s3 → s4` with `s3==s4`.
+
+Intentional drift from the previous pin (`5abf9573` / `d4ceef89`):
+
+- `ctx_variant_name_index` key-match returns a storage index so
+  `json::JsonParseError::TrailingCharacters` / `UnexpectedCharacter` compare
+  tags 2/3 (not builtin Option slots 0/1)
+- Name-fallback / core_op for `text::lines`, `slice_bytes`, `product`,
+  `remove`, `sort_f64`, trim, reverse, pad, seq min/max/count/search/unique
+- `format_bool` always leaves a String on the stack
+- JSON incomplete `true`/`false`/`null` → `InvalidLiteral`; RFC 8259 exponents
+- Empty `read_stdin` yields `""`; Result `result:T:E` keeps path-colon E
+- Isolated official-355 compiler leftovers MATCH; host/sandbox EXTERNAL remain
 
 ### wasm32-gc pinned (`d4ceef89`)
 

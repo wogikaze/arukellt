@@ -40,6 +40,11 @@ fn mir_emit_try_unwrap(ctx: LowerCtx, inner_idx: i32) -> i32 {
     ctx_api_emit::ctx_emit(ctx, inst_structured_control::MirInst_if())
     if has_from {
         try_from_conversion::try_emit_err_from_conversion(ctx, res_ptr, from_fn_name, inner_idx)
+    } else if is_gc && try_from_conversion::try_err_payload_types_differ(ctx, inner_idx) {
+        // Same-E identity keeps the inner Result. Different E without From
+        // must still return the function's Result::Err variant type so the
+        // caller match can ref.cast it (ADR-039 D2 does not select inherent from).
+        try_from_conversion::try_emit_err_unconverted_gc(ctx, inner_idx)
     } else {
         ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
         ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())

@@ -31,23 +31,14 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         }
         if eq(clone(ann_name), "Result") {
             if type_ann_node::type_ann_child_count(ann) >= 2 {
-                let ok_ty = type_ann_node::type_ann_child_at(ann, 1)
-                if type_ann_node::type_ann_is_name(ok_ty, "f64") {
-                    return "Result_f64"
+                let ok_shaped = type_ann_shape_result_side_name(type_ann_node::type_ann_child_at(ann, 1))
+                let mut err_shaped = String_from("String")
+                if type_ann_node::type_ann_child_count(ann) >= 3 {
+                    err_shaped = type_ann_shape_result_side_name(type_ann_node::type_ann_child_at(ann, 2))
                 }
-                if type_ann_node::type_ann_is_name(ok_ty, "i64") {
-                    return "Result_i64"
-                }
-                // Nested Vec so Result<Vec<fn>, E> → Result_vec:fn… (#832).
-                if type_ann_node::type_ann_is_generic(ok_ty) {
-                    let shaped = type_ann_shape_local_type_name(ok_ty, 0)
-                    if len(shaped) > 0 {
-                        return concat("Result_", shaped)
-                    }
-                }
-                let ok_name = type_ann_node::type_ann_name(ok_ty)
-                if len(ok_name) > 0 {
-                    return concat("Result_", ok_name)
+                if len(ok_shaped) > 0 {
+                    // Keep E. Result_T dropped Err and match bound it as String.
+                    return concat(concat("result:", ok_shaped), concat(":", err_shaped))
                 }
             }
             return "enum:Result"
@@ -99,6 +90,32 @@ fn type_ann_shape_local_type_name(ann: AstNode, known_struct_fields: i32) -> Str
         return ann_name
     }
     String_new()
+}
+
+fn type_ann_shape_result_side_name(side: AstNode) -> String {
+    if type_ann_node::type_ann_is_generic(side) {
+        let shaped = type_ann_shape_local_type_name(side, 0)
+        if len(shaped) > 0 {
+            return shaped
+        }
+    }
+    type_ann_bare_path_name(type_ann_node::type_ann_name(side))
+}
+
+fn type_ann_bare_path_name(name: String) -> String {
+    // result:T:E splits on ':'. Keep path types as the last segment.
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(clone(name), i) == 58 {
+            if i + 1 < n {
+                return substring(name, i + 1, n)
+            }
+            return name
+        }
+        i = i - 1
+    }
+    name
 }
 
 // Shape one type-argument for MIR encodings (`result:…`, `option:…`, `vec:…`).

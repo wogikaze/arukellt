@@ -113,6 +113,20 @@ fn is_leftover_string_return_name(type_name: String) -> bool {
     eq(clone(type_name), "String") || eq(clone(type_name), "string")
 }
 
+fn type_table_qualified_name_matches(entry_name: String, ret_name: String) -> bool {
+    if is_leftover_string_return_name(clone(entry_name)) ||
+    is_leftover_string_return_name(clone(ret_name)) {
+        return false
+    }
+    if ends_with(clone(entry_name), concat("::", clone(ret_name))) {
+        return true
+    }
+    if ends_with(clone(ret_name), concat("::", clone(entry_name))) {
+        return true
+    }
+    false
+}
+
 fn infer_named_or_table_gc_type(ctx: SelfEmitCtx, type_name: String) -> Option<i32> {
     if len(type_name) == 0 {
         return Option::None
@@ -323,6 +337,11 @@ fn type_kind_is_enum_open(kind: i32) -> bool {
 
 fn type_table_name_matches_return(entry_name: String, ret_name: String) -> bool {
     if eq(clone(entry_name), clone(ret_name)) {
+        return true
+    }
+    // `ast::WitNode` and `WitNode` are the same TypeTable enum. Do not
+    // suffix-match leftover String against `TomlValue::String`.
+    if type_table_qualified_name_matches(clone(entry_name), clone(ret_name)) {
         return true
     }
     let tuple_name = tuple_plan_name_from_ret_name(clone(ret_name))

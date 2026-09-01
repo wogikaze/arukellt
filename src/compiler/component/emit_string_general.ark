@@ -22,11 +22,10 @@ fn emit_string_general_component(core_wasm: Vec<i32>, plan: export_shapes_string
 }
 
 fn try_emit_string_general_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    let plan = export_shapes_string_general::comp_string_general_plan(mir)
-    if !export_shapes_string_general::comp_string_general_plan_is_valid(plan) {
+    if !export_shapes_string_general::comp_string_general_exports_match(mir) {
         return Vec::new<i32>()
     }
-    emit_string_general_component(core_wasm, plan)
+    emit_string_general_component(core_wasm, export_shapes_string_general::comp_string_general_plan(mir))
 }
 
 fn emit_string_general_alias_section(out: writer_core::ComponentWriter, plan: export_shapes_string_general::StringGeneralPlan) {
@@ -37,8 +36,7 @@ fn emit_string_general_alias_section(out: writer_core::ComponentWriter, plan: ex
     export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, "realloc")
     let mut i = 0
     while i < count {
-        let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
-        let name = export_shapes_string_general::StringGeneralExport_name(entry)
+        let name = export_shapes_string_general::StringGeneralPlan_name_at(plan, i)
         export_sections_entries::emit_core_func_alias_entry(alias_sec, 2, name)
         i = i + 1
     }
@@ -79,8 +77,7 @@ fn emit_string_general_export_section(out: writer_core::ComponentWriter, plan: e
     writer_core::comp_emit_leb128_u(func_export_sec, count)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
-        let name = export_shapes_string_general::StringGeneralExport_name(entry)
+        let name = export_shapes_string_general::StringGeneralPlan_name_at(plan, i)
         export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(name), i, i)
         i = i + 1
     }

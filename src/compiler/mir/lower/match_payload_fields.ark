@@ -94,6 +94,9 @@ fn mir_payload_bind_type_is_weak(current_type: String, is_err: bool) -> bool {
 }
 
 fn mir_payload_elem_type_from_scrut(scrut_type: String, is_some_or_ok: bool) -> String {
+    // Source annotations keep Result<T, E> / Option<T>. Extract only
+    // reads result: / option: / Result_ prefixes, so normalize first.
+    let scrut_type = ctx_struct_layout::ctx_normalize_generic_type_name(scrut_type)
     if is_some_or_ok {
         // Ok/Some payload is the first type parameter.
         // Normalize Vec_/Vec<T> → vec:T like Result Ok extraction so

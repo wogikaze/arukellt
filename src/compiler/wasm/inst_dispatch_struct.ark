@@ -21,8 +21,25 @@ fn try_emit_struct_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op:
     false
 }
 
+fn next_is_nested_struct_get(next_op: i32, next_arg0: i32) -> bool {
+    next_op == opcodes::MIR_STRUCT_GET() && next_arg0 < 0
+}
+
+fn emit_set_and_reload(w: WasmWriter, dest: i32) {
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, dest)
+    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
+    writer_core::emit_leb128_u(w, dest)
+}
+
 fn emit_gc_ref_struct_get_store(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: i32, next_arg0: i32, next_arg1: i32, next2_op: i32) {
     let dest = inst_accessors_operands::MirInst_dest(inst)
+    // Nested `r.max.x` / `fields[i].name`: linear STRUCT_GET loads the base
+    // from the stack. A SET of the intermediate pointer empties it.
+    if dest >= 0 && next_is_nested_struct_get(next_op, next_arg0) {
+        emit_set_and_reload(w, dest)
+        return
+    }
     let vt = inst_accessors_shape::MirInst_val_type(inst)
     let is_ref = vt == value_types::VT_GC_REF() || vt == value_types::VT_REF()
     if dest >= 0 && is_ref && emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
@@ -93,6 +110,11 @@ fn try_emit_array_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op: 
     }
     if op == opcodes::MIR_ARRAY_GET() {
         inst_array::emit_array_get(w, inst, ctx)
+        let dest = inst_accessors_operands::MirInst_dest(inst)
+        if dest >= 0 && next_is_nested_struct_get(next_op, next_arg0) {
+            emit_set_and_reload(w, dest)
+            return true
+        }
         inst_dispatch_result::emit_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op)
         return true
     }

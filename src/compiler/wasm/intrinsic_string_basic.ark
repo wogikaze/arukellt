@@ -29,7 +29,7 @@ fn emit_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         emit_bool_to_string_gc(w, inst, ctx)
-        return inst_accessors_operands::MirInst_dest(inst) < 0
+        return true
     }
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     helpers_core::emit_local_set(w, s_tmp)
@@ -48,16 +48,23 @@ fn emit_bool_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 fn emit_bool_to_string_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let s_tmp = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
     let dest = inst_accessors_operands::MirInst_dest(inst)
+    let store = dest
+    if dest < 0 {
+        // dest<0 is an expression use. Store into a GC scratch so local_set
+        // is not clamped to local 0, then push the string back on the stack.
+        store = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 0)
+    }
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_base(ctx)
     helpers_core::emit_local_set(w, s_tmp)
     helpers_core::emit_local_get(w, s_tmp)
     helpers_numeric_i32_convert::emit_narrow_branch_condition(w)
     helpers_control::emit_if_empty(w)
-    emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_true_string_offset(ctx), 4, dest, string_type, s_i)
+    emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_true_string_offset(ctx), 4, store, string_type, s_i)
     helpers_control::emit_else(w)
-    emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_false_string_offset(ctx), 5, dest, string_type, s_i)
+    emit_gc_data_string(w, ctx_string_view::SelfEmitCtx_false_string_offset(ctx), 5, store, string_type, s_i)
     helpers_control::emit_end(w)
+    helpers_core::emit_local_get(w, store)
 }
 
 fn emit_gc_data_string(w: WasmWriter, data_offset: i32, str_len: i32, dest: i32, string_type: i32, s_i: i32) {

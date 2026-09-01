@@ -7,7 +7,7 @@ use component::export_shapes_scan
 use component::writer_core
 
 fn try_emit_basic_string_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    let string_general_component = emit_string_general::try_emit_string_general_component(clone(core_wasm), mir)
+    let string_general_component = emit_string_general::try_emit_string_general_component(clone(core_wasm), clone(mir))
     if len(string_general_component) > 0 {
         return string_general_component
     }

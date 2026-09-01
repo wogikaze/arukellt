@@ -29,6 +29,15 @@ fn emit_replace_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
     emit_replace_gc_setup(w, g_src, g_pat, g_rep, s_src_len, s_pat_len, s_rep_len)
 
+    // Empty `from` matches every index (inner scan is vacuously true) and
+    // advancing by pat_len=0 never moves `s_pos`. Fixture contract is identity.
+    helpers_core::emit_local_get(w, s_pat_len)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_empty(w)
+    helpers_core::emit_local_get(w, g_src)
+    helpers_core::emit_local_set(w, g_result)
+    helpers_control::emit_else(w)
+
     // Pass 1: count matches
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_pos)
@@ -57,6 +66,7 @@ fn emit_replace_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_numeric_i32::emit_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_dst)
     emit_replace_gc_copy_loop(w, g_src, g_pat, g_rep, g_result, s_src_len, s_pat_len, s_rep_len, s_pos, s_dst, s_matched, s_j, string_type)
+    helpers_control::emit_end(w)
 
     // Result on stack
     helpers_core::emit_local_get(w, g_result)

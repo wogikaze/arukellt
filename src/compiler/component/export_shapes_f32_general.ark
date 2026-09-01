@@ -4,42 +4,34 @@ use component::export_shapes_match
 use component::naming
 use mir::module_functions
 
-struct F32GeneralExport {
-    name: String,
-    kind: i32,
-}
-
-fn F32GeneralExport_new(name: String, kind: i32) -> F32GeneralExport {
-    F32GeneralExport { name: name, kind: kind }
-}
-
-fn F32GeneralExport_name(entry: F32GeneralExport) -> String {
-    entry.name
-}
-
-fn F32GeneralExport_kind(entry: F32GeneralExport) -> i32 {
-    entry.kind
-}
-
+// Parallel well-known vecs. Vec<F32GeneralExport> leftover-typed `mir` as that
+// vec and emitted `unreachable` at function entry (same class as string-general).
 struct F32GeneralPlan {
-    entries: Vec<F32GeneralExport>,
+    names: Vec<String>,
+    kinds: Vec<i32>,
 }
 
-fn F32GeneralPlan_new(entries: Vec<F32GeneralExport>) -> F32GeneralPlan {
-    F32GeneralPlan { entries: entries }
+fn F32GeneralPlan_new(names: Vec<String>, kinds: Vec<i32>) -> F32GeneralPlan {
+    F32GeneralPlan {
+        names: names,
+        kinds: kinds,
+    }
 }
 
 fn F32GeneralPlan_empty() -> F32GeneralPlan {
-    let entries: Vec<F32GeneralExport> = Vec_new()
-    F32GeneralPlan_new(entries)
+    F32GeneralPlan_new(Vec::new<String>(), Vec::new<i32>())
 }
 
 fn F32GeneralPlan_count(plan: F32GeneralPlan) -> i32 {
-    len(plan.entries)
+    len(plan.names)
 }
 
-fn F32GeneralPlan_entry_at(plan: F32GeneralPlan, idx: i32) -> F32GeneralExport {
-    get_unchecked(plan.entries, idx)
+fn F32GeneralPlan_name_at(plan: F32GeneralPlan, idx: i32) -> String {
+    get_unchecked(plan.names, idx)
+}
+
+fn F32GeneralPlan_kind_at(plan: F32GeneralPlan, idx: i32) -> i32 {
+    get_unchecked(plan.kinds, idx)
 }
 
 fn comp_function_f32_scalar_export_kind(f: MirFunction) -> i32 {
@@ -58,8 +50,7 @@ fn comp_function_f32_scalar_export_kind(f: MirFunction) -> i32 {
     0 - 1
 }
 
-fn comp_f32_general_plan(mir: MirModule) -> F32GeneralPlan {
-    let entries: Vec<F32GeneralExport> = Vec_new()
+fn comp_f32_general_exports_match(mir: MirModule) -> bool {
     let mut export_count = 0
     let n = module_functions::MirModule_function_count(mir)
     let mut i = 0
@@ -68,18 +59,33 @@ fn comp_f32_general_plan(mir: MirModule) -> F32GeneralPlan {
         let export_name = export_function_view::export_function_name(f)
         if naming::comp_should_export_func(clone(export_name)) {
             export_count = export_count + 1
-            let kind = comp_function_f32_scalar_export_kind(f)
-            if kind < 0 {
-                return F32GeneralPlan_empty()
+            if comp_function_f32_scalar_export_kind(f) < 0 {
+                return false
             }
-            push(entries, F32GeneralExport_new(export_name, kind))
         }
         i = i + 1
     }
-    if export_count < 2 {
+    export_count >= 2
+}
+
+fn comp_f32_general_plan(mir: MirModule) -> F32GeneralPlan {
+    if !comp_f32_general_exports_match(mir) {
         return F32GeneralPlan_empty()
     }
-    F32GeneralPlan_new(entries)
+    let names: Vec<String> = Vec::new<String>()
+    let kinds: Vec<i32> = Vec::new<i32>()
+    let n = module_functions::MirModule_function_count(mir)
+    let mut i = 0
+    while i < n {
+        let f = module_functions::MirModule_function_at(mir, i)
+        let export_name = export_function_view::export_function_name(f)
+        if naming::comp_should_export_func(clone(export_name)) {
+            push(names, export_name)
+            push(kinds, comp_function_f32_scalar_export_kind(f))
+        }
+        i = i + 1
+    }
+    F32GeneralPlan_new(names, kinds)
 }
 
 fn comp_f32_general_plan_is_valid(plan: F32GeneralPlan) -> bool {

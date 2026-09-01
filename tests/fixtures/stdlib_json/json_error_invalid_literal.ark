@@ -5,22 +5,22 @@ fn main() {
     match json::parse("tru") {
         Result::Ok(_) => panic("expected error for tru"),
         Result::Err(e) => match e {
-            json::JsonParseError::UnexpectedCharacter(_) => {},
-            _ => panic("expected UnexpectedCharacter for tru"),
+            json::JsonParseError::InvalidLiteral(kind) => test::assert_eq_string(kind, "true"),
+            _ => panic("expected InvalidLiteral for tru"),
         },
     }
     match json::parse("fals") {
         Result::Ok(_) => panic("expected error for fals"),
         Result::Err(e) => match e {
-            json::JsonParseError::UnexpectedCharacter(_) => {},
-            _ => panic("expected UnexpectedCharacter for fals"),
+            json::JsonParseError::InvalidLiteral(kind) => test::assert_eq_string(kind, "false"),
+            _ => panic("expected InvalidLiteral for fals"),
         },
     }
     match json::parse("nul") {
         Result::Ok(_) => panic("expected error for nul"),
         Result::Err(e) => match e {
-            json::JsonParseError::UnexpectedCharacter(_) => {},
-            _ => panic("expected UnexpectedCharacter for nul"),
+            json::JsonParseError::InvalidLiteral(kind) => test::assert_eq_string(kind, "null"),
+            _ => panic("expected InvalidLiteral for nul"),
         },
     }
 }

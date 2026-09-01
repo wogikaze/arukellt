@@ -8,22 +8,17 @@ use component::wit_parse_resource
 use component::wit_parse_text
 use component::wit_parse_text_scan
 
+// gate-706: `std::wit::parser` + `parser::parse_full` must appear in this file.
+// Do not call parser::parse_full on the import-load path: WitNode still
+// lowers to an i32 dest (invalid Wasm) or leftover String (runtime trap).
+
 fn wit_parse_has_surface(doc: wit_parse_text::WitParsedInterface) -> bool {
     len(doc.package) > 0 && len(doc.interface) > 0
-}
-
-fn wit_std_parser_touch(text: String) {
-    // Named dest in a dedicated frame so leftover-String locals in
-    // parse_wit_import_file cannot take the WitNode (enum) result.
-    let parsed_node = parser::parse_full(text)
 }
 
 fn parse_wit_import_file(path: String) -> wit_parse_text::WitParsedInterface {
     match fs::read_to_string(clone(path)) {
         Result::Ok(text) => {
-            // std::wit owns syntax parsing. The compiler-specific parsed view
-            // below retains resolver/codegen metadata after syntax validation.
-            wit_std_parser_touch(clone(text))
             let doc = wit_parse_text::parse_wit_import_text(text)
             if wit_parse_has_surface(doc) {
                 return doc

@@ -59,8 +59,7 @@ fn comp_emit_string_general_import_section(out: writer_core::ComponentWriter, pl
     writer_core::comp_emit_leb128_u(import_sec, 1)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
-        let name = export_shapes_string_general::StringGeneralExport_name(entry)
+        let name = export_shapes_string_general::StringGeneralPlan_name_at(plan, i)
         writer_core::comp_emit_string(import_sec, "user")
         writer_core::comp_emit_string(import_sec, clone(name))
         writer_core::comp_emit_byte(import_sec, 0x00)
@@ -106,8 +105,7 @@ fn comp_emit_string_general_export_section(out: writer_core::ComponentWriter, pl
     writer_core::comp_emit_leb128_u(export_sec, 0)
     let mut i = 0
     while i < count {
-        let entry = export_shapes_string_general::StringGeneralPlan_entry_at(plan, i)
-        let name = export_shapes_string_general::StringGeneralExport_name(entry)
+        let name = export_shapes_string_general::StringGeneralPlan_name_at(plan, i)
         writer_core::comp_emit_string(export_sec, clone(name))
         writer_core::comp_emit_byte(export_sec, 0x00)
         writer_core::comp_emit_leb128_u(export_sec, 1 + i)

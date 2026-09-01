@@ -139,6 +139,9 @@ fn tuple_gc_field_sig_for_vt(field_vt: i32, field_idx: i32) -> String {
 
 fn tuple_wasm_name_from_param_alias(param_type_name: String) -> String {
     // CoreHIR param aliases use Tuple:A:B; GC structs are tuple:A,B (#810).
+    if starts_with(clone(param_type_name), String_from("tuple:")) {
+        return param_type_name
+    }
     if !starts_with(clone(param_type_name), String_from("Tuple:")) {
         return String_new()
     }
