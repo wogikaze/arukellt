@@ -2,6 +2,7 @@ use corehir::param
 use corehir::type_info_to_mir_value
 use mir::function_identity
 use mir::legacy_vt_compat
+use mir::lower::aggregate_tuple
 use mir::lower::binary_type_names
 use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_function_frame
@@ -75,6 +76,7 @@ fn mir_bind_fn_param(ctx: LowerCtx, param: CoreHirParam) {
     let param_local = ctx_alloc_local(ctx, clone(param_name), pvt)
     ctx_push_func_param(ctx, local_factory::MirLocal_new(clone(param_name), pvt, sig_type_name))
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, mir_type_name)
+    mir_param_register_tuple_gc_struct(ctx, clone(mir_type_name), param_local)
     let func = ctx_current_storage::ctx_current_func_value(ctx)
     let func_name = function_identity::MirFunction_name(func)
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -188,6 +190,23 @@ fn mir_param_normalize_option_result_type_name(type_name: String) -> String {
         return concat(String_from("result:"), substring(type_name, 7, len(type_name)))
     }
     String_new()
+}
+
+fn mir_param_register_tuple_gc_struct(ctx: LowerCtx, type_name: String, param_local: i32) {
+    if aggregate_tuple::ctx_register_tuple_gc_struct_from_param_name(ctx, clone(type_name)) == 0 {
+        return
+    }
+    let wasm_name = aggregate_tuple::tuple_wasm_name_from_param_alias(type_name)
+    if len(wasm_name) == 0 {
+        return
+    }
+    ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(wasm_name))
+    ctx_api_function_frame::ctx_set_func_param_type(
+        ctx,
+        param_local,
+        value_types::VT_GC_REF(),
+        wasm_name
+    )
 }
 
 fn mir_param_normalize_tuple_type_name(type_name: String) -> String {
