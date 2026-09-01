@@ -461,6 +461,30 @@ KB (~1.51GB)**. No s3. Do **not**
 remasure at 480s. Resolve snapshots
 were not the 320s stall.
 
+**Tick 183 (diagnostic).** First
+`--time` remasure lost guest stderr
+(`TimeoutExpired` discarded notes).
+Keep-stderr remasure on tick 182
+host: overlay **320.13s timeout**,
+RSS **1690532 KB (~1.61GB)**, no s3.
+Lower **finished** at 164463ms
+(`PHASE_LAST=lower.total`).
+fn_index 1217ms, ctx_prep 1637ms,
+body_emit **70032ms**, decl_emit
+72886ms (includes body),
+reachability 3136ms (insts
+547664→505539), sync 2720ms,
+propagate **85719ms**. Post-lower
+(mir_opt + verify + emit) ran
+**>156s** and never printed
+end-of-run `--time`. Handle leftover
+emit made post-lower slower than the
+248s floor. Do **not** add more
+leftover emit scalars until
+incremental `driver.*` notes name
+the dying post-lower phase. Do
+**not** remasure at 480s.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1661,6 +1685,7 @@ reconstruct or leftover-column hybrids.
 | tick 180 scalar control/arith/return emit | **320.29s** timeout | — | **1.98GB** | emit 6.94MB / 237s validated; hello **2312B** `1dbf14ca…`; RSS 2075400 KB; no s3; string ADD/EQ/NE + CALL still handle |
 | tick 181 emit scratch handle rebind | **320.25s** timeout | — | **1.57GB** | emit 6.94MB / 268s validated; hello **2312B** `1dbf14ca…`; RSS 1643164 KB; no s3; leftover emit no longer `inst_at` |
 | tick 182 in-place resolve no snapshot | **320.26s** timeout | — | **1.51GB** | emit 6.94MB / 259s validated; hello **2312B** `1dbf14ca…`; RSS 1581844 KB; no s3; CALL rewrite mutates table rows |
+| tick 183 keep-stderr --time on tick 182 host | **320.13s** timeout | — | **1.61GB** | no new emit; RSS 1690532 KB; no s3; `PHASE_LAST=lower.total` 164463ms; body_emit 70032ms; propagate **85719ms**; post-lower >156s (driver end-of-run times never printed) |
 
 ## Non-goals
 
