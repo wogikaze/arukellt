@@ -49,20 +49,88 @@ fn emit_export_section(
     writer_sections::emit_section(out, opcodes::SEC_EXPORT(), export_sec)
 }
 
-fn export_name_seen_count(names: Vec<String>, name: String) -> i32 {
-    let mut total = 0
-    for i in 0..len(names) {
-        if eq(clone(get_unchecked(names, i)), clone(name)) {
-            total = total + 1
-        }
+struct ExportNameCounts {
+    keys: Vec<String>,
+    vals: Vec<i32>,
+    buckets: Vec<i32>,
+}
+
+fn ExportNameCounts_new(expected: i32) -> ExportNameCounts {
+    let mut capacity = 16
+    let required = expected * 2
+    while capacity < required {
+        capacity = capacity * 2
     }
-    total
+    let buckets = Vec::new<i32>()
+    let mut i = 0
+    while i < capacity {
+        push(buckets, 0)
+        i = i + 1
+    }
+    ExportNameCounts {
+        keys: Vec::new<String>(),
+        vals: Vec::new<i32>(),
+        buckets: buckets
+    }
+}
+
+fn export_name_seen_bump(counts: ExportNameCounts, name: String) -> i32 {
+    let capacity = len(counts.buckets)
+    if capacity <= 0 {
+        return 0
+    }
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        hi = hi + 1
+    }
+    if hash < 0 {
+        hash = 0
+    }
+    let mut slot = hash % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(counts.buckets, slot)
+        if bucket == 0 {
+            push(counts.keys, name)
+            push(counts.vals, 1)
+            set(counts.buckets, slot, len(counts.keys))
+            return 0
+        }
+        let key = get_unchecked(counts.keys, bucket - 1)
+        let mut same = len(key) == name_len
+        if same {
+            let mut i = 0
+            while i < name_len {
+                if char_at(key, i) != char_at(name, i) {
+                    same = false
+                    i = name_len
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+        if same {
+            let prev = get_unchecked(counts.vals, bucket - 1)
+            set(counts.vals, bucket - 1, prev + 1)
+            return prev
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0
 }
 
 fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
     let mut export_count = 1
     let mut main_idx = 0 - 1
-    let mut seen_names = Vec::new<String>()
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)
@@ -72,8 +140,6 @@ fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan
         } else {
             if !is_internal_export_name(clone(fname)) {
                 if !is_generic_function(f) {
-                    let seen = export_name_seen_count(seen_names, clone(fname))
-                    push(seen_names, clone(fname))
                     export_count = export_count + 1
                 }
             }
@@ -125,7 +191,7 @@ fn emit_function_export_entries(
     wit_import_count: i32
 ) {
     let functions = module_functions::MirModule_functions(mir)
-    let mut seen_short_names = Vec::new<String>()
+    let seen_short_names = ExportNameCounts_new(fn_count)
     let mut exi = 0
     while exi < fn_count {
         let ef = module_functions::MirModule_function_at(mir, exi)
@@ -134,9 +200,8 @@ fn emit_function_export_entries(
         } else {
             if !is_internal_export_name(clone(ef_name)) {
                 if !is_generic_function(ef) {
-                    let seen = export_name_seen_count(seen_short_names, clone(ef_name))
+                    let seen = export_name_seen_bump(seen_short_names, clone(ef_name))
                     let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
-                    push(seen_short_names, clone(ef_name))
                     writer_string::emit_string(export_sec, export_name)
                     writer_core::emit_byte(export_sec, 0)
                     writer_core::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count))

@@ -1,29 +1,89 @@
-// Compiler-specific WIT text view helpers. Low-level scanning lives in std::wit (#706).
-
-use std::wit::scan
+// Compiler-specific WIT text view helpers.
+// Same-file scan algorithms: host DCE drops `std::wit::scan::*` edges in a
+// full compiler compile, which left String wrappers as drop+unreachable
+// (`expected ref, found i32` at wit_trim_txt).
 
 fn wit_find_char_from(s: String, ch: i32, from: i32) -> i32 {
-    scan::wit_find_char(s, ch, from)
+    let n = len(s)
+    let mut i = from
+    while i < n {
+        if char_at(s, i) == ch {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1
 }
 
 fn wit_trim_txt(s: String) -> String {
-    scan::wit_trim(s)
+    let n = len(s)
+    let mut start = 0
+    while start < n {
+        let ch = char_at(s, start)
+        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
+            break
+        }
+        start = start + 1
+    }
+    let mut end = n
+    while end > start {
+        let ch = char_at(s, end - 1)
+        if ch != 32 && ch != 9 && ch != 13 && ch != 10 {
+            break
+        }
+        end = end - 1
+    }
+    substring(s, start, end)
 }
 
 fn wit_strip_version_txt(pkg: String) -> String {
-    scan::wit_strip_version(pkg)
+    let at = wit_find_char_from(pkg, 64, 0)
+    if at < 0 {
+        return clone(pkg)
+    }
+    substring(pkg, 0, at)
 }
 
 fn wit_before_colon_txt(s: String) -> String {
-    scan::wit_before_colon(s)
+    let colon = wit_find_char_from(s, 58, 0)
+    if colon < 0 {
+        return wit_trim_txt(s)
+    }
+    wit_trim_txt(substring(s, 0, colon))
 }
 
 fn wit_split_param_txt(param: String) -> String {
-    scan::wit_split_param(param)
+    let colon = wit_find_char_from(param, 58, 0)
+    if colon < 0 {
+        return wit_trim_txt(param)
+    }
+    wit_trim_txt(substring(param, colon + 1, len(param)))
 }
 
 fn wit_split_csv_items_txt(inner: String) -> Vec<String> {
-    scan::wit_split_csv_items(inner)
+    let items = Vec::new<String>()
+    let n = len(inner)
+    let mut start = 0
+    let mut depth = 0
+    let mut i = 0
+    while i < n {
+        let ch = char_at(inner, i)
+        if ch == 60 {
+            depth = depth + 1
+        }
+        if ch == 62 {
+            depth = depth - 1
+        }
+        if ch == 44 && depth == 0 {
+            push(items, wit_trim_txt(substring(inner, start, i)))
+            start = i + 1
+        }
+        i = i + 1
+    }
+    if start < n {
+        push(items, wit_trim_txt(substring(inner, start, n)))
+    }
+    items
 }
 
 fn wit_extract_package(text: String) -> String {
@@ -31,11 +91,11 @@ fn wit_extract_package(text: String) -> String {
     if mark < 0 {
         return String_new()
     }
-    let semi = scan::wit_find_char(text, 59, mark + 8)
+    let semi = wit_find_char_from(text, 59, mark + 8)
     if semi < 0 {
         return String_new()
     }
-    scan::wit_strip_version(scan::wit_trim(substring(text, mark + 8, semi)))
+    wit_strip_version_txt(wit_trim_txt(substring(text, mark + 8, semi)))
 }
 
 fn wit_extract_interface_name(text: String) -> String {
@@ -43,11 +103,11 @@ fn wit_extract_interface_name(text: String) -> String {
     if mark < 0 {
         return String_new()
     }
-    let brace = scan::wit_find_char(text, 123, mark + 10)
+    let brace = wit_find_char_from(text, 123, mark + 10)
     if brace < 0 {
         return String_new()
     }
-    scan::wit_trim(substring(text, mark + 10, brace))
+    wit_trim_txt(substring(text, mark + 10, brace))
 }
 
 fn wit_extract_interface_body(text: String) -> String {
@@ -55,7 +115,7 @@ fn wit_extract_interface_body(text: String) -> String {
     if mark < 0 {
         return String_new()
     }
-    let open = scan::wit_find_char(text, 123, mark)
+    let open = wit_find_char_from(text, 123, mark)
     if open < 0 {
         return String_new()
     }
@@ -79,9 +139,24 @@ fn wit_extract_interface_body(text: String) -> String {
 }
 
 fn wit_line_start_txt(text: String, pos: i32) -> i32 {
-    scan::wit_line_start(text, pos)
+    let mut i = pos
+    while i > 0 {
+        if char_at(text, i - 1) == 10 {
+            return i
+        }
+        i = i - 1
+    }
+    0
 }
 
 fn wit_line_end_txt(text: String, pos: i32) -> i32 {
-    scan::wit_line_end(text, pos)
+    let n = len(text)
+    let mut i = pos
+    while i < n {
+        if char_at(text, i) == 10 {
+            return i
+        }
+        i = i + 1
+    }
+    n
 }

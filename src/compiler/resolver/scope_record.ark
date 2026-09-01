@@ -2,11 +2,18 @@ use resolver::symbol_record
 
 struct Scope {
     symbols: Vec<Symbol>,
+    names: Vec<String>,
     parent_depth: i32,
+    name_buckets: Vec<i32>,
 }
 
 fn Scope_new(parent: i32) -> Scope {
-    Scope { symbols: Vec::new<Symbol>(), parent_depth: parent }
+    Scope {
+        symbols: Vec::new<Symbol>(),
+        names: Vec::new<String>(),
+        parent_depth: parent,
+        name_buckets: scope_hash_fresh_buckets(32),
+    }
 }
 
 fn scope_symbol_count(scope: Scope) -> i32 {
@@ -18,9 +25,119 @@ fn scope_symbol_at(scope: Scope, index: i32) -> Symbol {
 }
 
 fn scope_push_symbol(scope: Scope, sym: Symbol) {
+    push(scope.names, symbol_record::symbol_name(sym))
     push(scope.symbols, sym)
+    scope_hash_set(scope, get_unchecked(scope.names, len(scope.names) - 1))
 }
 
 fn scope_clear_symbols(scope: Scope) {
     scope.symbols = Vec::new<Symbol>()
+    scope.names = Vec::new<String>()
+    let capacity = len(scope.name_buckets)
+    let mut i = 0
+    while i < capacity {
+        set(scope.name_buckets, i, 0)
+        i = i + 1
+    }
+}
+
+fn scope_find_symbol_index(scope: Scope, name: String) -> i32 {
+    let slot = scope_hash_probe_slot(scope, name)
+    if slot < 0 {
+        return 0 - 1
+    }
+    let bucket = get_unchecked(scope.name_buckets, slot)
+    if bucket == 0 {
+        return 0 - 1
+    }
+    bucket - 1
+}
+
+fn scope_hash_set(scope: Scope, name: String) {
+    let mut slot = scope_hash_probe_slot(scope, clone(name))
+    if slot < 0 {
+        scope_hash_grow(scope)
+        slot = scope_hash_probe_slot(scope, name)
+        if slot < 0 {
+            return
+        }
+    }
+    set(scope.name_buckets, slot, len(scope.names))
+}
+
+fn scope_hash_grow(scope: Scope) {
+    let capacity = len(scope.name_buckets)
+    let mut next = 64
+    if capacity > 0 {
+        next = capacity * 2
+    }
+    scope.name_buckets = scope_hash_fresh_buckets(next)
+    let count = len(scope.names)
+    let mut i = 0
+    while i < count {
+        let slot = scope_hash_probe_slot(scope, get_unchecked(scope.names, i))
+        if slot >= 0 {
+            set(scope.name_buckets, slot, i + 1)
+        }
+        i = i + 1
+    }
+}
+
+fn scope_hash_fresh_buckets(capacity: i32) -> Vec<i32> {
+    let buckets = Vec::new<i32>()
+    let mut i = 0
+    while i < capacity {
+        push(buckets, 0)
+        i = i + 1
+    }
+    buckets
+}
+
+fn scope_hash_probe_slot(scope: Scope, name: String) -> i32 {
+    let capacity = len(scope.name_buckets)
+    if capacity <= 0 {
+        return 0 - 1
+    }
+    let fnv_offset = 216613626
+    let fnv_prime = 16777619
+    let mut hash = fnv_offset
+    let name_len = len(name)
+    let mut hi = 0
+    while hi < name_len {
+        hash = hash * fnv_prime ^ char_at(name, hi)
+        if hash < 0 {
+            hash = 0 - hash
+        }
+        hi = hi + 1
+    }
+    if hash < 0 {
+        hash = 0
+    }
+    let mut slot = hash % capacity
+    let mut probes = 0
+    while probes < capacity {
+        let bucket = get_unchecked(scope.name_buckets, slot)
+        if bucket == 0 {
+            return slot
+        }
+        let key = get_unchecked(scope.names, bucket - 1)
+        let mut same = len(key) == name_len
+        if same {
+            let mut i = 0
+            while i < name_len {
+                if char_at(key, i) != char_at(name, i) {
+                    same = false
+                    i = name_len
+                } else {
+                    i = i + 1
+                }
+            }
+        }
+        if same {
+            return slot
+        }
+        slot = (slot + 1) % capacity
+        probes = probes + 1
+    }
+    0 - 1
 }

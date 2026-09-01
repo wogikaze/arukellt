@@ -4,6 +4,7 @@ use corehir::mir_layout_source
 use corehir::mod
 use mir::lower::registry_enums
 use mir::lower::registry_structs
+use mir::lower::registry_view_late
 
 fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
     ctx_api_variants::ctx_register_builtin_variants(ctx)
@@ -22,4 +23,5 @@ fn mir_register_view_layouts(ctx: LowerCtx, view: CoreHirMirView) {
     }
     // GC named types after all layouts exist (nested Span under AstNode, etc.).
     registry_structs::mir_register_struct_gc_types(ctx)
+    registry_view_late::mir_register_view_late_gc_types(ctx, view)
 }

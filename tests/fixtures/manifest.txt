@@ -1925,6 +1925,7 @@ run:structs/struct_clone_pass_to_fn.ark
 run:structs/struct_eq.ark
 run:structs/struct_in_vec.ark
 run:structs/struct_update.ark
+run:structs/vec_elem_field_get.ark
 run:structs/vec_in_struct.ark
 run:structs/vec_in_struct_alias_drop.ark
 run:structs/vec_in_struct_alias_live.ark

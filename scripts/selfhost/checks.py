@@ -171,6 +171,12 @@ CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
 HOP_BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-hop-bootstrap.wasm"
 HOP_BOOTSTRAP_COMMIT = "a56d6d53"
 HOP_BOOTSTRAP_PATCH_REV = 2
+# Pin is wasm32-gc / wasi-p2. Its wasm32 emit of current source is not a
+# fixpoint (pin s2 ≠ s2-from-current). Hop through a current-source gc
+# compiler first, then emit official wasm32 s2.
+S2_GC_HOP_WASM_REL = ".build/selfhost/arukellt-s2-gc-hop.wasm"
+PIN_HOP_EMIT_TARGET = "wasm32-gc"
+PIN_HOP_EMIT_WASI_VERSION = "wasi-p2"
 PATCHER_DIR_REL = "scripts/bootstrap/wasm-heap-grow-patcher"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
@@ -183,9 +189,11 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
 # Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds.
-# Pinned bootstrap is memory32 wasm32-gc / wasi-p2 (#834); host-linker runs it.
-BOOTSTRAP_EMIT_TARGET = "wasm32-gc"
-BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p2"
+# Pinned bootstrap remains memory32 wasm32-gc / wasi-p2 (#834) and is only the
+# trust-base host. Official s2/s3 emit wasm32 / wasi-p1 so the successor can
+# AOT without host-linker and stay on the ≤10s overlay path.
+BOOTSTRAP_EMIT_TARGET = "wasm32"
+BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
 # KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
 CLOCK_CAPABLE_EMIT_TARGET = "wasm32"
 CLOCK_CAPABLE_EMIT_WASI_VERSION = "wasi-p1"
@@ -709,27 +717,52 @@ def _fixpoint_cache_try_write(
     _fixpoint_cache_write(root, entry)
 
 
+def _wasm_section_payload(data: bytes, section_id: int) -> bytes | None:
+    """Return the first section payload with ``section_id``, or None."""
+    if len(data) < 8 or data[0:4] != b"\x00asm":
+        return None
+    offset = 8
+    while offset < len(data):
+        sid = data[offset]
+        offset += 1
+        size, offset = _read_leb_u32(data, offset)
+        end = offset + size
+        if end > len(data):
+            return None
+        if sid == section_id:
+            return data[offset:end]
+        offset = end
+    return None
+
+
 def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest imports need tools/host-linker (bridged HTTP/TCP/P2 ABI)."""
+    """True when guest *imports* need tools/host-linker (bridged HTTP/TCP/P2 ABI).
+
+    Scan only the import section. Data-section string literals such as
+    ``wasi:cli/`` in a wasm32/p1 compiler module used to false-trigger this
+    and skip Memory64 widen, then the 4GiB heap faulted.
+    """
     try:
         data = wasm_path.read_bytes()
     except OSError:
         return False
+    imports = _wasm_section_payload(data, 2)
+    hay = imports if imports is not None else b""
     # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
     # or core wasi-p2 imports that plain wasmtime cannot link (#834).
     return (
-        b"arukellt_host" in data
-        or b"wasi:http/outgoing-handler@" in data
-        or b"wasi:http/incoming-handler@" in data
-        or b"wasi:sockets/tcp@" in data
-        or b"wasi:cli/" in data
-        or b"wasi:filesystem/" in data
-        or b"arukellt:fs@" in data
-        or b"sockets_connect" in data
-        or b"sockets_listen" in data
-        or b"http_get" in data
-        or b"http_request" in data
-        or b"http_serve" in data
+        b"arukellt_host" in hay
+        or b"wasi:http/outgoing-handler@" in hay
+        or b"wasi:http/incoming-handler@" in hay
+        or b"wasi:sockets/tcp@" in hay
+        or b"wasi:cli/" in hay
+        or b"wasi:filesystem/" in hay
+        or b"arukellt:fs@" in hay
+        or b"sockets_connect" in hay
+        or b"sockets_listen" in hay
+        or b"http_get" in hay
+        or b"http_request" in hay
+        or b"http_serve" in hay
     )
 
 
@@ -842,15 +875,19 @@ def _wasm_compile(
     preopen_paths: list[str] = []
     guest_out = out_rel
     if workspace_root is not None:
+        # Overlay workspace ships a trimmed std/prelude (no collections::string).
+        # Preopening the repo as well lets `std/prelude.ark` resolve to the full
+        # tree, which pulls impl String methods and leaks on wasm32 self-compile.
         preopen_paths.append(str(workspace_root))
         guest_out = "bootstrap-out.wasm"
-    preopen_paths.append(str(root))
+    else:
+        preopen_paths.append(str(root))
     # Ensure AST cache directory exists
     ast_cache = _resolve_build_rel(root, AST_CACHE_REL)
     ast_cache.mkdir(parents=True, exist_ok=True)
     # Only pass --cache-dir to selfhost-built compilers (s2/s3), not pinned bootstrap
     cache_args: list[str] = []
-    if _is_selfhost_compiler(compiler_wasm, root):
+    if workspace_root is None and _is_selfhost_compiler(compiler_wasm, root):
         cache_args = ["--cache-dir", AST_CACHE_REL]
     guest_argv = [
         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
@@ -2520,19 +2557,53 @@ def _widen_compiler_wasm_to_memory64(
     return out
 
 
+def _wasm_opt_memory32(src: Path, dst: Path) -> bool:
+    """Binaryen -O3 on a memory32 compiler. Does not change hashed s2/s3 bytes."""
+    wasm_opt = shutil.which("wasm-opt")
+    if not wasm_opt:
+        return False
+    result = subprocess.run(
+        [
+            wasm_opt,
+            "-O3",
+            "--enable-bulk-memory",
+            "--enable-sign-ext",
+            "--enable-mutable-globals",
+            "--enable-nontrapping-float-to-int",
+            "--enable-reference-types",
+            "--enable-gc",
+            "--enable-multivalue",
+            str(src),
+            "-o",
+            str(dst),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0 and dst.is_file() and dst.stat().st_size > 0
+
+
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Prepare a stage-3 runtime compiler from s2 (heap-grow + memory64).
+    """Prepare a stage-3 runtime compiler from s2 (opt + heap-grow + memory64).
 
     Stage-2 wasm32 modules often omit ``memory.grow``; the patcher injects grow
     sites, then ``wasm32to64`` widens the module.  Address canonization in the
     converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
     leaves non-negative addresses (including past 4GiB) as full i64 (#730).
+
+    ``wasm-opt -O3`` runs on the memory32 module only. Hashed s2/s3 stay raw.
     """
     out = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         if not _reject_invalid_compiler_wasm(out):
             return out
-    return _widen_compiler_wasm_to_memory64(root, compiler_wasm, out)
+    if _wasm_needs_host_linker(compiler_wasm) or _wasm_memory_section_is_memory64(compiler_wasm):
+        return _widen_compiler_wasm_to_memory64(root, compiler_wasm, out)
+    opt32 = compiler_wasm.with_name(compiler_wasm.stem + "-runtime-opt32.wasm")
+    source = compiler_wasm
+    if _wasm_opt_memory32(compiler_wasm, opt32):
+        source = opt32
+    return _widen_compiler_wasm_to_memory64(root, source, out)
 
 
 def _patch_monolithic_typechecker_unify(text: str) -> str:
@@ -3746,17 +3817,65 @@ def _wasm_compile_selfhost_source(
     return result
 
 
+def _ensure_pin_gc_hop_compiler(root: Path, bootstrap: Path) -> Path | None:
+    """Compile current source as wasm32-gc with the pinned host.
+
+    The resulting module still needs host-linker, but its wasm32 emit matches
+    the current compiler. Cached by source fingerprint.
+    """
+    out = _resolve_build_rel(root, S2_GC_HOP_WASM_REL)
+    marker = out.with_suffix(out.suffix + ".source-hash.txt")
+    fingerprint = _selfhost_source_fingerprint(root)
+    if out.is_file() and marker.is_file():
+        try:
+            if marker.read_text(encoding="utf-8").strip() == fingerprint:
+                return out
+        except OSError:
+            pass
+    wasmtime = _find_wasmtime()
+    if not wasmtime:
+        return None
+    result = _wasm_compile_selfhost_source(
+        wasmtime,
+        bootstrap,
+        S2_GC_HOP_WASM_REL,
+        root,
+        target=PIN_HOP_EMIT_TARGET,
+        wasi_version=PIN_HOP_EMIT_WASI_VERSION,
+    )
+    if result.returncode != 0 or not out.is_file():
+        return None
+    try:
+        marker.write_text(fingerprint, encoding="utf-8")
+    except OSError:
+        pass
+    return out
+
+
 def _compile_selfhost_bootstrap_chain(
     wasmtime: str,
     root: Path,
     out_rel: str,
     bootstrap: Path,
 ) -> subprocess.CompletedProcess:
-    """Try pinned bootstrap, then hop bootstrap (a56+unify), for stage-2 builds."""
-    compilers: list[Path] = [bootstrap]
-    hop = _ensure_hop_bootstrap_compiler_wasm(root, bootstrap)
-    if hop is not None:
-        compilers.append(hop)
+    """Build official wasm32 s2. Prefer a wasm32 runtime; else pin→gc hop.
+
+    Do not let the pinned wasm32-gc host emit official wasm32 s2: that binary
+    is not a fixpoint against a current-compiler successor.
+    """
+    compilers: list[Path] = []
+    existing_runtime = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
+    if existing_runtime.is_file() and not _wasm_needs_host_linker(existing_runtime):
+        compilers.append(existing_runtime)
+    elif (gc_hop := _ensure_pin_gc_hop_compiler(root, bootstrap)) is not None:
+        compilers.append(gc_hop)
+    if not compilers:
+        return subprocess.CompletedProcess(
+            [],
+            returncode=1,
+            stdout="",
+            stderr="error: no wasm32-capable host for official s2 (need s2-runtime or pin gc hop)",
+        )
     last: subprocess.CompletedProcess | None = None
     for compiler in compilers:
         last = _wasm_compile_selfhost_source(
@@ -4168,17 +4287,12 @@ def _rebuild_current_s2_locked(
         ), time.time() - started
 
     out_rel = str(out.relative_to(root))
-    # Drop stale outputs so a failed rebuild cannot leave a half-written s2.
-    for stale in (out, build_dir / "arukellt-s2-runtime.wasm"):
+    # Keep s2-runtime.wasm / .cwasm as the wasm32 host. Deleting them first
+    # forces pin→gc hop (~8 min) on every build-compiler. Replace runtime
+    # only after the new s2 is written (_ensure_runtime_compiler_wasm).
+    if out.is_file():
         try:
-            if stale.is_file():
-                stale.unlink()
-        except OSError:
-            pass
-    # Invalidate AOT cache for the previous s2 binary.
-    for cwasm in build_dir.glob("arukellt-s2*.cwasm"):
-        try:
-            cwasm.unlink()
+            out.unlink()
         except OSError:
             pass
 

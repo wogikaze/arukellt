@@ -1,8 +1,7 @@
 //! Run user Wasm modules with WASI Preview 1 and conditional WIT-shaped HTTP/sockets imports.
 
-use arukellt_host_linker::{run_wasm, RuntimeCaps};
+use arukellt_host_linker::{run_wasm_path, RuntimeCaps};
 use std::env;
-use std::fs;
 use std::path::PathBuf;
 use std::process;
 
@@ -56,14 +55,6 @@ fn main() {
         }
     };
 
-    let wasm_bytes = match fs::read(&wasm_path) {
-        Ok(b) => b,
-        Err(e) => {
-            eprintln!("arukellt-host-run: failed to read {}: {}", wasm_path.display(), e);
-            process::exit(1);
-        }
-    };
-
     // Match wasmtime + env::args() skip of argv[0]:
     // WASI = [prog, placeholder, ...user] so after skipping prog, parse_args sees
     // argv[0]=placeholder and argv[1]=command (legacy index-1 command slot).
@@ -84,7 +75,7 @@ fn main() {
     };
 
     let caps = RuntimeCaps::from_cli_with_args(&dirs, &guest_args);
-    if let Err(e) = run_wasm(&wasm_bytes, &caps) {
+    if let Err(e) = run_wasm_path(&wasm_path, &caps) {
         if !e.is_empty() {
             eprintln!("{}", e);
             process::exit(1);

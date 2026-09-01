@@ -1,10 +1,80 @@
+// Resource emit is in this file so the pinned overlay host keeps the callees.
+// `resource::try_emit_*` does not get a FunctionId after flatten, so the
+// wrapper became drop+unreachable and returned i32 as Vec (`expected ref`).
+
+use component::component_base
+use component::constants_sections_linkage
+use component::export_function_view
+use component::export_sections
+use component::export_sections_entries
+use component::naming
+use component::type_section_entries
+use component::types_wit_compound
+use component::types_wit_func
+use component::writer_core
+use mir::module_functions
 use component::emit_flags as flags
-use component::emit_resource as resource
 
 fn try_emit_tier3_roundtrip_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    let resource_component = resource::try_emit_resource_roundtrip_component(clone(core_wasm), mir)
+    let resource_component = tier3_try_emit_resource_roundtrip(clone(core_wasm), mir)
     if len(resource_component) > 0 {
         return resource_component
     }
     flags::try_emit_flags_roundtrip_component(core_wasm, mir)
+}
+
+fn tier3_resource_roundtrip_export_name(mir: MirModule) -> String {
+    let mut i = 0
+    while i < module_functions::MirModule_function_count(mir) {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if naming::comp_should_export_func(export_function_view::export_function_name(f)) &&
+        eq(export_function_view::export_function_name(f), "pass_handle") &&
+        export_function_view::export_function_param_count(f) == 1 &&
+        eq(export_function_view::export_function_return_type_name(f), "i32") &&
+        eq(export_function_view::export_function_param_type_name(f, 0), "i32") {
+            return export_function_view::export_function_name(f)
+        }
+        i = i + 1
+    }
+    String_new()
+}
+
+fn tier3_try_emit_resource_roundtrip(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
+    let export_name = tier3_resource_roundtrip_export_name(mir)
+    if len(export_name) > 0 {
+        return tier3_emit_resource_roundtrip(core_wasm, export_name)
+    }
+    Vec::new<i32>()
+}
+
+fn tier3_emit_resource_roundtrip(core_wasm: Vec<i32>, export_name: String) -> Vec<i32> {
+    let out = component_base::comp_new_component_writer()
+    component_base::comp_emit_wasi_and_core_instance_sections(out, core_wasm)
+    let alias_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(alias_sec, 1)
+    export_sections_entries::emit_core_func_alias_entry(alias_sec, 1, clone(export_name))
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_ALIAS(), alias_sec)
+    type_section_entries::emit_two_type_section(
+        out,
+        types_wit_compound::comp_wit_resource_type(),
+        types_wit_compound::comp_wit_own_type(0)
+    )
+    type_section_entries::emit_single_type_export_section(out, "handle", 0)
+    let func_type_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_type_sec, 1)
+    let params = Vec::new<i32>()
+    push(params, 1)
+    let results = Vec::new<i32>()
+    push(results, 1)
+    writer_core::comp_emit_bytes(func_type_sec, types_wit_func::comp_component_func_type(params, results))
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_TYPE(), func_type_sec)
+    let canon_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(canon_sec, 1)
+    export_sections_entries::emit_canon_lift_no_options_entry(canon_sec, 0, 1)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_CANON(), canon_sec)
+    let func_export_sec = writer_core::ComponentWriter_new()
+    writer_core::comp_emit_leb128_u(func_export_sec, 1)
+    export_sections::emit_generic_func_export_entry(func_export_sec, naming::comp_export_name(export_name), 0, 1)
+    writer_core::comp_emit_section(out, constants_sections_linkage::COMP_SEC_EXPORT(), func_export_sec)
+    writer_core::comp_writer_bytes(out)
 }

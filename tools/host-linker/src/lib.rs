@@ -13,6 +13,8 @@ pub use debug_runner::{run_smoke, run_until_breakpoint, DebugPause, LiveLocal};
 pub use source_map::{parse_source_map, SourceMapEntry};
 pub use wasm_debug_patch::prepare_debug_wasm;
 
+use std::fs;
+use std::path::Path;
 use wasmtime::*;
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
@@ -69,24 +71,69 @@ impl DirGrant {
     }
 }
 
-pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+fn make_run_engine() -> Result<Engine, String> {
     let mut config = Config::new();
-    config.cranelift_opt_level(OptLevel::None);
+    // Selfhost compile is minutes of guest work. OptLevel::None made every
+    // phase 4–20× slower than wasmtime CLI (default Speed) on the same wasm.
+    // Debug runner keeps None so breakpoint modules stay cheap to compile.
+    config.cranelift_opt_level(OptLevel::Speed);
     config.wasm_bulk_memory(true);
     config.wasm_reference_types(true);
     config.wasm_function_references(true);
     config.wasm_gc(true);
+    // Compiled-module cache only — not AST / s3 / overlay source cache.
+    // First run pays Cranelift; later runs deserialize the same engine key.
+    if let Ok(cache) = Cache::new(CacheConfig::new()) {
+        config.cache(Some(cache));
+    }
+    Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))
+}
 
-    let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
+fn serialized_module_path(wasm_path: &Path) -> std::path::PathBuf {
+    wasm_path.with_extension("cwasm")
+}
+
+fn load_module(engine: &Engine, wasm_path: &Path) -> Result<Module, String> {
+    let cwasm = serialized_module_path(wasm_path);
+    if let (Ok(cw), Ok(w)) = (cwasm.metadata(), wasm_path.metadata()) {
+        if cw.modified().ok() >= w.modified().ok() {
+            // Engine config in make_run_engine must stay aligned with serialize.
+            match unsafe { Module::deserialize_file(engine, &cwasm) } {
+                Ok(module) => return Ok(module),
+                Err(_) => {}
+            }
+        }
+    }
+    let wasm_bytes = fs::read(wasm_path)
+        .map_err(|e| format!("failed to read {}: {}", wasm_path.display(), e))?;
+    let module = Module::new(engine, &wasm_bytes)
+        .map_err(|e| format!("wasm compile error: {:?}", e))?;
+    if let Ok(bytes) = module.serialize() {
+        let _ = fs::write(&cwasm, bytes);
+    }
+    Ok(module)
+}
+
+pub fn run_wasm_path(wasm_path: &Path, caps: &RuntimeCaps) -> Result<(), String> {
+    let engine = make_run_engine()?;
+    let module = load_module(&engine, wasm_path)?;
+    run_compiled_module(&engine, &module, caps)
+}
+
+pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+    let engine = make_run_engine()?;
     let module = Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
+    run_compiled_module(&engine, &module, caps)
+}
 
+fn run_compiled_module(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(), String> {
     let uses_p2 = module.imports().any(|imp| imp.module().starts_with("wasi:"));
     if uses_p2 {
-        return run_wasm_p2(&engine, &module, caps);
+        return run_wasm_p2(engine, module, caps);
     }
 
-    let mut linker = Linker::<WasiP1Ctx>::new(&engine);
+    let mut linker = Linker::<WasiP1Ctx>::new(engine);
     wasmtime_wasi::p1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
     linker.allow_shadowing(true);
@@ -122,9 +169,9 @@ pub fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
             .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
     }
     let wasi_ctx = builder.build_p1();
-    let mut store = Store::new(&engine, wasi_ctx);
+    let mut store = Store::new(engine, wasi_ctx);
     let instance = linker
-        .instantiate(&mut store, &module)
+        .instantiate(&mut store, module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
     let start = instance
         .get_typed_func::<(), ()>(&mut store, "_start")

@@ -53,6 +53,7 @@
 | [ADR-049-native-c99-selfhost-executor.md](ADR-049-native-c99-selfhost-executor.md) | ADR-049: Native C99 Selfhost Executor（セルフホスト native executor） | 廃止: ADR-045 |
 | [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 | [ADR-051-formal-verification-hard-gates.md](ADR-051-formal-verification-hard-gates.md) | ADR-051: Formal verification hard gates | Arukellt uses a hybrid verification architecture. Proof-facing syntax may live in the language, but semantics, verification-condition generation, solver execution, translation validation, and receipt checking remain independently executable boundaries. |
+| [ADR-053-selfhost-compiler-core-rewrite.md](ADR-053-selfhost-compiler-core-rewrite.md) | ADR-053: セルフホストコンパイラ中核の再構築（gc-host overlay） | 実行正本: docs/plans/selfhost-compiler-core-rewrite.md |
 
 ## 提案
 

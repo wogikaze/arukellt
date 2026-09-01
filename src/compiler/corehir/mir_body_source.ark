@@ -1,6 +1,4 @@
-use corehir::body
-use corehir::expr_factory
-use corehir::expr_raw
+use corehir::body_table
 
 struct CoreHirMirBodySource {
     exprs: Vec<CoreHirExpr>,
@@ -8,59 +6,24 @@ struct CoreHirMirBodySource {
     method_body_roots: Vec<i32>,
 }
 
-fn mir_body_source_copy_expr(expr: CoreHirExpr) -> CoreHirExpr {
-    let children = Vec::new<i32>()
-    let child_count = expr_raw::corehir_expr_child_count(expr)
-    let mut child_index = 0
-    while child_index < child_count {
-        push(children, expr_raw::corehir_expr_child(expr, child_index))
-        child_index = child_index + 1
+fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
+    // Share the frozen expr table. A deep copy here cloned every text/type_name
+    // and doubled the CoreHIR live set for the whole lower. Renderers that need
+    // a snapshot use corehir_body_table_exprs. After the view is built the
+    // program table is emptied so only the view roots the forest.
+    let source = CoreHirMirBodySource {
+        exprs: body_table::corehir_body_table_exprs_ref(table),
+        fn_body_roots: body_table::corehir_body_table_fn_body_roots_ref(table),
+        method_body_roots: body_table::corehir_body_table_method_body_roots_ref(table)
     }
-    expr_factory::CoreHirExpr_new(
-        expr_raw::corehir_expr_kind(expr),
-        expr_raw::corehir_expr_text(expr),
-        expr_raw::corehir_expr_int_val(expr),
-        expr_raw::corehir_expr_float_val(expr),
-        expr_raw::corehir_expr_val_type(expr),
-        expr_raw::corehir_expr_type_name(expr),
-        expr_raw::corehir_expr_span_start(expr),
-        children
-    )
+    body_table::corehir_body_table_release_bodies(table)
+    source
 }
 
-fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
-    let exprs = Vec::new<CoreHirExpr>()
-    let mut expr_index = 0
-    while expr_index < body::corehir_body_expr_count(table) {
-        push(
-            exprs,
-            mir_body_source_copy_expr(body::corehir_body_expr_at(table, expr_index))
-        )
-        expr_index = expr_index + 1
-    }
-
-    let fn_body_roots = Vec::new<i32>()
-    let mut fn_index = 0
-    while fn_index < body::corehir_fn_body_root_count(table) {
-        push(fn_body_roots, body::corehir_fn_body_root_at(table, fn_index))
-        fn_index = fn_index + 1
-    }
-
-    let method_body_roots = Vec::new<i32>()
-    let mut method_index = 0
-    while method_index < body::corehir_method_body_root_count(table) {
-        push(
-            method_body_roots,
-            body::corehir_method_body_root_at(table, method_index)
-        )
-        method_index = method_index + 1
-    }
-
-    CoreHirMirBodySource {
-        exprs: exprs,
-        fn_body_roots: fn_body_roots,
-        method_body_roots: method_body_roots,
-    }
+fn mir_body_source_release(source: CoreHirMirBodySource) {
+    source.exprs = Vec::new<CoreHirExpr>()
+    source.fn_body_roots = Vec::new<i32>()
+    source.method_body_roots = Vec::new<i32>()
 }
 
 fn mir_body_source_exprs(source: CoreHirMirBodySource) -> Vec<CoreHirExpr> {

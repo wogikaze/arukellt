@@ -8,6 +8,9 @@ pub struct LowerCtx {
     cur_block: i32,
     local_names: Vec<String>,
     local_indices: Vec<i32>,
+    // Open-addressed local name → index. Last push wins (same as scan-from-end).
+    // Vec fields on LowerCtx so probe does not copy a NameIndex.
+    local_name_buckets: Vec<i32>,
     fn_names: Vec<String>,
     fn_name_lengths: Vec<i32>,
     fn_name_index: NameIndex,
@@ -46,6 +49,9 @@ pub struct LowerCtx {
     mono_call_span_sources: Vec<String>,
     mono_call_span_targets: Vec<String>,
     mono_call_span_used: Vec<i32>,
+    // Chains of rewrite indices (1-based) keyed by span_start % capacity.
+    mono_span_buckets: Vec<i32>,
+    mono_span_next: Vec<i32>,
     mono_call_sources: Vec<String>,
     mono_call_name_targets: Vec<String>,
     mono_call_used: Vec<i32>,
@@ -64,6 +70,14 @@ pub struct LowerCtx {
     mono_type_param_names: Vec<String>,
     mono_type_param_types: Vec<String>,
     mono_instances: Vec<MonoInstance>,
+    // Open-addressed safe-mangled → instance slot. Vec fields on LowerCtx
+    // (handle); probe inlines against these fields so the table is not copied.
+    mono_inst_keys: Vec<String>,
+    mono_inst_vals: Vec<i32>,
+    mono_inst_buckets: Vec<i32>,
     source_text: String,
     fn_source_locations: Vec<SourceLocation>,
+    // Callee names that are not in fn_name_index (HashMap aliases, etc.).
+    // Must not go into MirModule.string_constants — the emitter dumps those.
+    edge_names: Vec<String>,
 }

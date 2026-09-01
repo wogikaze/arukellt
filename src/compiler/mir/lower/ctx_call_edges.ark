@@ -1,0 +1,177 @@
+use mir::inst_accessors_shape
+use mir::inst_accessors_literals
+use mir::inst_record
+use mir::opcodes
+use mir::core_op_call
+use mir::lower::ctx_current_storage
+use mir::lower::ctx_fn_index
+use mir::module_spine
+use corehir::function_id
+use corehir::signature_registry
+use wasm::hash_aliases
+
+// Unused LowerCtx.fn_indices / gc_type_base hold CALL edges. Adding a field
+// to MirFunction makes wasm32 KEEP_CLOCK self-emit trap in NameIndex_new.
+// Official 10s path is stub clocks; edge_names is only extra LowerCtx storage.
+fn ctx_edge_stack_slots() -> i32 {
+    8
+}
+
+fn ctx_edge_header_len() -> i32 {
+    2 + ctx_edge_stack_slots()
+}
+
+fn ctx_edge_map_mark() -> i32 {
+    0 - 8
+}
+
+fn ctx_edge_intern_bias() -> i32 {
+    1000000
+}
+
+fn ctx_edge_name_tag(name_index: i32) -> i32 {
+    0 - (name_index + 10)
+}
+
+fn ctx_edge_table(ctx: LowerCtx) -> Vec<i32> {
+    ctx.fn_indices
+}
+
+fn ctx_edge_fn_names(ctx: LowerCtx) -> Vec<String> {
+    ctx.fn_names
+}
+
+fn ctx_edge_overflow_names(ctx: LowerCtx) -> Vec<String> {
+    ctx.edge_names
+}
+
+fn ctx_edge_ensure_header(ctx: LowerCtx) {
+    if len(ctx.fn_indices) > 0 {
+        return
+    }
+    push(ctx.fn_indices, 0)
+    push(ctx.fn_indices, 0)
+    let slots = ctx_edge_stack_slots()
+    let mut i = 0
+    while i < slots {
+        push(ctx.fn_indices, 0)
+        i = i + 1
+    }
+}
+
+fn ctx_edge_begin_function(ctx: LowerCtx) {
+    ctx_edge_ensure_header(ctx)
+    let depth = get_unchecked(ctx.fn_indices, 0)
+    if depth >= 0 && depth < ctx_edge_stack_slots() {
+        set(ctx.fn_indices, 2 + depth, ctx.gc_type_base)
+        set(ctx.fn_indices, 0, depth + 1)
+    }
+    let next_id = get_unchecked(ctx.fn_indices, 1) + 1
+    set(ctx.fn_indices, 1, next_id)
+    ctx.gc_type_base = next_id
+}
+
+fn ctx_edge_restore_parent(ctx: LowerCtx) {
+    if len(ctx.fn_indices) < ctx_edge_header_len() {
+        return
+    }
+    let child_frame = ctx.gc_type_base
+    push(ctx.fn_indices, ctx_edge_map_mark())
+    push(ctx.fn_indices, child_frame)
+    let depth = get_unchecked(ctx.fn_indices, 0)
+    if depth > 0 {
+        ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
+        set(ctx.fn_indices, 0, depth - 1)
+    }
+}
+
+fn ctx_edge_pop_frame(ctx: LowerCtx) {
+    let depth = get_unchecked(ctx.fn_indices, 0)
+    if depth > 0 {
+        ctx.gc_type_base = get_unchecked(ctx.fn_indices, 1 + depth)
+        set(ctx.fn_indices, 0, depth - 1)
+    }
+}
+
+fn ctx_edge_finish_current_map(ctx: LowerCtx, mir_index: i32) {
+    ctx_edge_ensure_header(ctx)
+    push(ctx.fn_indices, ctx_edge_map_mark())
+    push(ctx.fn_indices, ctx.gc_type_base)
+    push(ctx.fn_indices, mir_index)
+    ctx_edge_pop_frame(ctx)
+}
+
+fn ctx_edge_complete_pending_map(ctx: LowerCtx, mir_index: i32) {
+    push(ctx.fn_indices, mir_index)
+}
+
+fn ctx_edge_pending_map_open(ctx: LowerCtx) -> bool {
+    let n = len(ctx.fn_indices)
+    if n < ctx_edge_header_len() + 2 {
+        return false
+    }
+    get_unchecked(ctx.fn_indices, n - 2) == ctx_edge_map_mark()
+}
+
+fn ctx_edge_record_callee(ctx: LowerCtx, payload: i32) {
+    ctx_edge_ensure_header(ctx)
+    push(ctx.fn_indices, ctx.gc_type_base)
+    push(ctx.fn_indices, payload)
+}
+
+fn ctx_edge_record_name(ctx: LowerCtx, name: String) {
+    if len(name) == 0 {
+        return
+    }
+    let ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(name))
+    if ni >= 0 {
+        ctx_edge_record_callee(ctx, ctx_edge_name_tag(ni))
+        return
+    }
+    let alias = hash_aliases::hashmap_builtin_alias(clone(name))
+    if !eq(clone(alias), clone(name)) {
+        let alias_ni = ctx_fn_index::ctx_fn_index_find(ctx, clone(alias))
+        if alias_ni >= 0 {
+            ctx_edge_record_callee(ctx, ctx_edge_name_tag(alias_ni))
+            return
+        }
+        let overflow = len(ctx.edge_names)
+        push(ctx.edge_names, alias)
+        ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
+        return
+    }
+    let overflow = len(ctx.edge_names)
+    push(ctx.edge_names, name)
+    ctx_edge_record_callee(ctx, ctx_edge_name_tag(overflow + ctx_edge_intern_bias()))
+}
+
+fn ctx_edge_record_inst(ctx: LowerCtx, inst: MirInst) {
+    let op = inst_accessors_shape::MirInst_op(inst)
+    if op != opcodes::MIR_CALL() && op != opcodes::MIR_REF_FUNC() {
+        return
+    }
+    let fid = inst_record::mir_inst_func_id_raw(inst)
+    if fid >= 0 {
+        ctx_edge_record_callee(ctx, fid)
+    }
+    ctx_edge_record_name(ctx, inst_accessors_literals::MirInst_str_val(inst))
+    if op != opcodes::MIR_CALL() {
+        return
+    }
+    if eq(clone(ctx.lower_target), String_from("wasm32-gc")) {
+        return
+    }
+    let m = ctx_current_storage::ctx_current_module_value(ctx)
+    let fallback = core_op_call::mir_call_normal_fallback_symbol(m, inst)
+    if len(fallback) == 0 {
+        return
+    }
+    if module_spine::MirModule_signature_spine_populated(m) {
+        let registry = module_spine::MirModule_signature_registry(m)
+        let fb_fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fallback))
+        if function_id::function_id_is_valid(fb_fid) {
+            ctx_edge_record_callee(ctx, function_id::FunctionId_raw(fb_fid))
+        }
+    }
+    ctx_edge_record_name(ctx, fallback)
+}

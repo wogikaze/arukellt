@@ -2,10 +2,12 @@ use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_function_frame
 use mir::lower::ctx_api_local_frame
 use mir::lower::ctx_api_module
+use mir::lower::ctx_current_storage
 use mir::lower::ctx_mono_type_params
 use mir::lower::ctx_types
 use mir::lower::mono_param_subst
 use mir::function_factory
+use mir::function_param_view
 use mir::lower::entry_body_result
 use mir::lower::entry_params
 use mir::lower::entry_view
@@ -41,7 +43,13 @@ fn mir_emit_top_level_fn_body(
     trace::mir_lower_trace_ctx(mir_tr, ctx, 2)
     let _entry = ctx_api_emit::ctx_enter_new_block(ctx)
     trace::mir_lower_trace_ctx(mir_tr, ctx, 3)
-    entry_body_result::mir_emit_entry_body_result(ctx, body_input)
+    // Emit already replaces unsubstituted generics with unreachable. Skip the
+    // body so those functions never allocate MIR that GC would have to scan.
+    if !function_param_view::MirFunction_has_unsubstituted_generic_param(
+        ctx_current_storage::ctx_current_func_value(ctx)
+    ) {
+        entry_body_result::mir_emit_entry_body_result(ctx, body_input)
+    }
     trace::mir_lower_trace_ctx(mir_tr, ctx, 4)
     ctx_mono_type_params::ctx_clear_mono_type_params(ctx)
     ctx_api_module::ctx_push_current_function(ctx)

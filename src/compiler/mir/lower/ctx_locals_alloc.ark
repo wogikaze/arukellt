@@ -11,6 +11,9 @@ fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
 }
 
 fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
+    // Hash probe can map a param name onto a later temp (snap/decls swap)
+    // and then GC local types fail to validate. Scan from the end so the
+    // newest binding wins, matching the pre-hash contract.
     let count = ctx_local_index_storage::ctx_local_index_count(ctx)
     let mut i = count - 1
     while i >= 0 {

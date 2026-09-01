@@ -1,13 +1,38 @@
-use std::wit::names
+// WIT export/type kebab mangling. Same-file implementation: host DCE drops
+// `std::wit::names::kebab_name` edges in a full compiler compile.
+
+use std::text
 
 fn wit_kebab_name(name: String) -> String {
-    names::kebab_name(name)
+    let mut out = String_from("")
+    let n = len(name)
+    let mut i = 0
+    while i < n {
+        let ch = char_at(name, i)
+        if ch == 95 {
+            out = text::builder_append(out, String_from("-"))
+        } else if ch >= 65 && ch <= 90 {
+            if len(out) > 0 {
+                let prev = char_at(out, len(out) - 1)
+                if prev != 45 {
+                    out = text::builder_append(out, String_from("-"))
+                }
+            }
+            out = text::builder_append(out, char_to_string(ch + 32))
+        } else if ch == 45 {
+            out = text::builder_append(out, String_from("-"))
+        } else {
+            out = text::builder_append(out, substring(name, i, i + 1))
+        }
+        i = i + 1
+    }
+    out
 }
 
 fn wit_export_name(name: String) -> String {
-    names::kebab_name(name)
+    wit_kebab_name(name)
 }
 
 fn wit_type_name(name: String) -> String {
-    names::kebab_name(name)
+    wit_kebab_name(name)
 }

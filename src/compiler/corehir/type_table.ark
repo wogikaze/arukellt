@@ -83,7 +83,9 @@ fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_para
     let mut i = 0
     while i < count {
         let entry = get_unchecked(table.entries, i)
-        if entry.kind == kind && eq(clone(entry.name), clone(name)) && type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
+        if entry.kind == kind &&
+        eq(clone(entry.name), clone(name)) &&
+        type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
             return entry.id
         }
         i = i + 1
@@ -108,5 +110,10 @@ fn TypeTable_lookup(table: TypeTable, id: TypeId) -> TypeEntry {
     if raw >= 0 && raw < len(table.entries) {
         return get_unchecked(table.entries, raw)
     }
-    TypeEntry { id: TYPE_ID_INVALID(), kind: kinds::TYPE_KIND_PRIMITIVE(), name: String_new(), type_param_ids: Vec::new<TypeId>() }
+    TypeEntry {
+        id: TYPE_ID_INVALID(),
+        kind: kinds::TYPE_KIND_PRIMITIVE(),
+        name: String_new(),
+        type_param_ids: Vec::new<TypeId>()
+    }
 }

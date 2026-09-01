@@ -18,6 +18,7 @@ CORE_OPS = ROOT / "data" / "core-ops.toml"
 OUT = ROOT / "src" / "compiler" / "corehir" / "core_op_binding_generated.ark"
 
 sys.path.insert(0, str(GEN_DIR))
+from ark_fnv_index import emit_lookup_fn  # noqa: E402
 from core_op_mapping_common import normalize_key  # noqa: E402
 
 
@@ -146,18 +147,15 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
     lines.append("")
 
     lines.extend(
+        emit_lookup_fn(
+            "core_op_binding_lookup_callee",
+            "core_op_binding_callee_at",
+            "core_op_binding_bucket_at",
+            callees,
+        )
+    )
+    lines.extend(
         [
-            "fn core_op_binding_lookup_callee(callee: String) -> i32 {",
-            "    let count = core_op_binding_count()",
-            "    let mut i = 0",
-            "    while i < count {",
-            "        if eq(clone(callee), core_op_binding_callee_at(i)) {",
-            "            return i",
-            "        }",
-            "        i = i + 1",
-            "    }",
-            "    return 0 - 1",
-            "}",
             "",
             # Exact-only API: keep historical meaning for Wasm effective lowering.
             "fn core_op_binding_core_op_id_for_callee_exact(callee: String) -> String {",

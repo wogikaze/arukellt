@@ -1,6 +1,5 @@
 use mir::function_param_view
 use mir::function_locals_view
-use mir::local_access
 use wasm::opcodes
 use wasm::ctx_scratch
 use wasm::ctx_vec_locals
@@ -26,110 +25,53 @@ fn emit_function_body(
     )
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
-    code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
+    // wasm32 locals are i32/i64 widths only. The #829 producer/ref cache is
+    // for GC type inference and is unread on this target; skip the extra
+    // body walks (otherwise emit pays ~7 scans of every function).
+    emit_body_gc_local_cache_begin(ctx, f)
     code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
-    if is_generic_function(f) {
+    if function_param_view::MirFunction_has_unsubstituted_generic_param(f) {
         // Unspecialized generic functions have concrete-type bodies that
         // cannot validate against the generic signature. Emit unreachable.
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
-        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+        emit_body_gc_local_cache_end(ctx)
         return body
     }
     if host_intrinsic_adapter::host_intrinsic_should_emit_gc_adapter_body(f, ctx) {
         if host_intrinsic_gc_body::try_emit_host_intrinsic_gc_adapter_body(body, f, ctx) {
             writer_core::emit_byte(body, opcodes::OP_END())
-            code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+            emit_body_gc_local_cache_end(ctx)
             return body
         }
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
-        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+        emit_body_gc_local_cache_end(ctx)
         return body
     }
     if host_intrinsic_adapter::host_intrinsic_should_emit_unreachable_gc_stub(f, ctx) {
         writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
         writer_core::emit_byte(body, opcodes::OP_END())
-        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+        emit_body_gc_local_cache_end(ctx)
         return body
     }
     code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
 
     writer_core::emit_byte(body, opcodes::OP_END())
-    code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
+    emit_body_gc_local_cache_end(ctx)
     body
 }
 
-fn is_generic_function(f: MirFunction) -> bool {
-    // Functions with generic type-variable params (type name starts with "?")
-    // have bodies that cannot validate against the generic signature on GC
-    // targets. This applies to both unspecialized and specialized mono
-    // functions whose param type names haven't been substituted yet.
-    // Concrete "?Option:String" / "?Result:..." forms are normalized elsewhere;
-    // treat residual concrete wrappers as non-generic so match bodies emit.
-    let pc = function_param_view::MirFunction_param_count(f)
-    let mut j = 0
-    while j < pc {
-        let p = function_param_view::MirFunction_param_at(f, j)
-        let tn = local_access::MirLocal_type_name(p)
-        if starts_with(clone(tn), "?") && !is_concrete_option_result_wrapper(clone(tn)) {
-            return true
-        }
-        j = j + 1
+fn emit_body_gc_local_cache_begin(ctx: SelfEmitCtx, f: MirFunction) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        code_ref_locals_fn_cache::begin_function_local_gc_cache(ctx, f)
     }
-    false
 }
 
-fn is_concrete_option_result_wrapper(type_name: String) -> bool {
-    if starts_with(clone(type_name), "?Option:") {
-        let inner = substring(type_name, 8, len(type_name))
-        return len(inner) > 0 && !is_generic_type_var_name(inner)
+fn emit_body_gc_local_cache_end(ctx: SelfEmitCtx) {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        code_ref_locals_fn_cache::end_function_local_gc_cache(ctx)
     }
-    if starts_with(clone(type_name), "?Result:") {
-        let inner = substring(type_name, 8, len(type_name))
-        if len(inner) == 0 {
-            return false
-        }
-        // "?Result:T:E" — first segment before ':' is the Ok type var.
-        let mut i = 0
-        while i < len(inner) {
-            if char_at(inner, i) == 58 {
-                return !is_generic_type_var_name(substring(inner, 0, i))
-            }
-            i = i + 1
-        }
-        return !is_generic_type_var_name(inner)
-    }
-    false
-}
-
-fn is_generic_type_var_name(name: String) -> bool {
-    if len(name) == 0 {
-        return false
-    }
-    if starts_with(clone(name), "?") {
-        return is_generic_type_var_name(substring(name, 1, len(name)))
-    }
-    if len(name) == 1 {
-        let c = char_at(name, 0)
-        return c >= 65 && c <= 90
-    }
-    let c0 = char_at(name, 0)
-    if c0 == 116 || c0 == 84 {
-        let mut i = 1
-        let mut all_digit = i < len(name)
-        while i < len(name) {
-            let c = char_at(name, i)
-            if c < 48 || c > 57 {
-                all_digit = false
-            }
-            i = i + 1
-        }
-        if all_digit {
-            return true
-        }
-    }
-    false
 }

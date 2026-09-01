@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-08-14T14:07:16Z",
+  "generated_at": "2026-09-01T11:09:09Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -576,6 +576,27 @@
       }
     },
     {
+      "id": "851",
+      "path": "851-selfhost-compiler-core-rewrite.md",
+      "title": "851 — セルフホストコンパイラ中核再構築（wasm32-gc overlay）",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "827"
+      ],
+      "blocks_issue_ids": [
+        "850"
+      ],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 10
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": 827
+      }
+    },
+    {
       "id": "682",
       "path": "682-component-wit-product-claim-audit.md",
       "title": "682 — Component / WIT product-claim verification audit",
@@ -635,7 +656,7 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "686"
+        "upstream_notes": 686
       }
     },
     {
@@ -722,7 +743,7 @@
       },
       "orchestration": {
         "class": "blocked",
-        "upstream_notes": "715"
+        "upstream_notes": 715
       }
     },
     {
@@ -742,6 +763,25 @@
       "orchestration": {
         "class": "ready",
         "upstream_notes": "None"
+      }
+    },
+    {
+      "id": "850",
+      "path": "850-compiler-phase-arena.md",
+      "title": "850 — Compiler phase-arena implementation (wasm32-gc host overlay)",
+      "track": "selfhost-infra",
+      "status": "open",
+      "depends_on": [
+        "851"
+      ],
+      "blocks_issue_ids": [],
+      "acceptance": {
+        "checked": 0,
+        "unchecked": 7
+      },
+      "orchestration": {
+        "class": "architecture-implementation",
+        "upstream_notes": 851
       }
     },
     {

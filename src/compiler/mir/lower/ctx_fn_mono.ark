@@ -25,27 +25,28 @@ fn ctx_register_fn_signature(ctx: LowerCtx, name: String, return_vt: i32, return
 }
 
 fn ctx_mono_lookup_call(ctx: LowerCtx, span_start: i32, source: String) -> String {
-    let count = ctx_mono_rewrites::ctx_mono_span_rewrite_count(ctx)
     let mut first_match = 0 - 1
-    let mut i = 0
-    while i < count {
-        let candidate_source = ctx_mono_rewrites::ctx_mono_span_rewrite_source_at(ctx, i)
-        let candidate_target = ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, i)
-        if ctx_mono_rewrites::ctx_mono_span_rewrite_start_at(ctx, i) == span_start &&
-        mono_sources_match(clone(candidate_source), clone(source)) &&
-        mono_target_matches_source(clone(candidate_target), clone(source)) {
-            if first_match < 0 {
-                first_match = i
-            }
-            if get_unchecked(ctx.mono_call_span_used, i) == 0 {
-                ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
-                return candidate_target
+    let mut cursor = ctx_mono_rewrites::ctx_mono_span_hash_head(ctx, span_start)
+    while cursor > 0 {
+        let i = cursor - 1
+        if get_unchecked(ctx.mono_call_starts, i) == span_start {
+            let candidate_source = get_unchecked(ctx.mono_call_span_sources, i)
+            let candidate_target = get_unchecked(ctx.mono_call_span_targets, i)
+            if mono_sources_match(candidate_source, clone(source)) &&
+            mono_target_matches_source(clone(candidate_target), clone(source)) {
+                if first_match < 0 {
+                    first_match = i
+                }
+                if get_unchecked(ctx.mono_call_span_used, i) == 0 {
+                    ctx_mono_rewrites::ctx_mono_mark_span_rewrite_used(ctx, i)
+                    return candidate_target
+                }
             }
         }
-        i = i + 1
+        cursor = get_unchecked(ctx.mono_span_next, i)
     }
     if first_match >= 0 {
-        return ctx_mono_rewrites::ctx_mono_span_rewrite_target_at(ctx, first_match)
+        return get_unchecked(ctx.mono_call_span_targets, first_match)
     }
     ""
 }
