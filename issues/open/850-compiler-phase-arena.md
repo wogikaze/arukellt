@@ -316,6 +316,29 @@ that emit reads as scalars. Do
 retry #824 skip-unreachable
 (overlay omits ~4% insts; peak is
 the survivors).
+Tick 171 tried cut (1): name-keyed
+CALL reloc + new-object shell +
+stream bodies on `MirModule` at
+`ctx_push_*`. Hello **2312B**
+(new sha256 `ebb7391e…`, valid).
+Three overlays all trapped in
+`mir_module_append_stream_body`
+(**204s / 175s / 195s**, RSS
+**4.15GB**). One-fn `SelfEmitCtx`
+and skipping per-fn
+`CalleePropCache` did not move
+the ceiling. Same 159/169 class:
+shell + `set_function_at` did not
+unroot fat insts, and stream
+bodies grew the heap beside them.
+Do **not** retry emit-during-lower
+that keeps fat MIR live while
+appending all wasm bodies onto
+`MirModule`, or rebuilds
+`SelfEmitCtx` per function.
+Remaining product cut is the
+acceptance i32 handle table emit
+reads as scalars.
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1505,6 +1528,7 @@ reconstruct or leftover-column hybrids.
 | tick 168 flush GC types once after view, before bodies | **248.00s** | yes | **1.77GB** | emit 6.91MB (245.96s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `c6ae35ef…` (6908305); s3 valid; wash vs 239s; RSS wash; no second flush; kept |
 | tick 169 pack MIR after push, clear, restore at emit | **217.11s** | — | **4.15GB** | emit 6.92MB (251.28s) validated; hello sha256 `1dbf14ca…` (2312B); overlay trap in `mir_module_pack_inst`; no s3; RSS 4272432 KB; 159 class (log + fat); `set_function_at` after empty blocks did not drop peak; reverted |
 | tick 170 emit-during-lower design lock | — | — | — | no product; mapped blockers: name-keyed CALL reloc, import count not in lower, type-plan shift vs hello 2312B, new-object shell; do not retry 169 / 127 / #824 |
+| tick 171 emit-during-lower + new-object shell + CALL reloc | **195.45s** | — | **4.15GB** | emit 6.94MB (280–290s) validated; hello **2312B** sha256 `ebb7391e…` (new, valid); three overlays trapped in `mir_module_append_stream_body` (204.17s / 175.10s / 195.45s; RSS 4270096 / 4273416 / 4274904 KB); no s3; 159/169 class; shell did not unroot fat; reverted |
 
 ## Non-goals
 
