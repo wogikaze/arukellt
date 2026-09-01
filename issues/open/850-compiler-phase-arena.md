@@ -576,6 +576,42 @@ hand-edit `*_generated.ark`. Do
 is table-shaped generated lookups,
 not more leftover CALL scalars.
 
+**Tick 189 (unlanded).** Chunk
+generated `_at` / bucket tables
+into ≤32-arm functions + a tiny
+dispatcher (`TABLE_CHUNK=32` in
+`scripts/gen/ark_fnv_index.py`).
+Do **not** rebuild a `Vec` on every
+`_at`. Do **not** hand-edit
+`*_generated.ark`. Emit 237s /
+6.96MB via tick77; hello **2312B**
+`1dbf14ca…`. Official overlay
+**348.24s finished**, RSS
+**2184864 KB (~2.08GB)**, s3
+**valid**, **s2≠s3** (one-hop).
+320s remasure died at
+`try_emit_simd_scalar_comparison`
+idx 9734/10478 (744 fns short).
+`core_op_binding_*` / `registry_*`
+giants gone from `slow_fn`. Emit
+buckets: 0–2048 **18s**, 2048–4096
+**24s** (was 75s), 4096–6144 34s,
+6144–8192 13s, 8192–10240 **64s**,
+code total **159s**. New tail:
+`native_c_emit_core_call` 3791
+insts / **5510ms**;
+`native_c_emit_local_declarations`
+2197 / 1884ms;
+`native_c_core_capability_status_detail`
+2165 / 1160ms. lower **155s**
+(propagate 75s, body_emit 72s).
+Do **not** treat 348s as the 10s
+path. Do **not** flip
+`BOOTSTRAP_EMIT_*`. Do **not**
+remasure 175–188 at 480s. Next hop
+is the native-c if-chains, not
+more leftover CALL scalars.
+
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
 vec) plus column walks for async scan, in-place resolve, propagate producers,
@@ -1782,6 +1818,7 @@ reconstruct or leftover-column hybrids.
 | tick 186 leftover op-first + gc-struct scalar | **320.14s** timeout | — | **1.47GB** | emit 6.96MB / 260s validated; hello **2312B** `1dbf14ca…`; RSS 1536272 KB; no s3; `PHASE_LAST=emit.code_fn 4096/10287 92760ms`; 0–2048 18s, 2048–4096 **75s**; later fns dominate |
 | tick 187 emit.slow_fn ≥50ms cap 32 | **320.14s** timeout | — | **1.60GB** | emit 6.96MB / 261s validated; hello **2312B** `1dbf14ca…`; RSS 1674140 KB; no s3; reached 6144/10289 in 116s; cap filled by idx 1140; parse_option_args 360inst/342ms |
 | tick 188 emit.slow_fn ≥200ms cap 64 | **320.13s** timeout | — | **1.52GB** | emit 6.96MB / 251s validated; hello **2312B** `1dbf14ca…`; RSS 1590628 KB; no s3; middle-band spike is generated `if index==N` tables: binding_* 8s×3, registry_* 3s×8 ≈48s |
+| tick 189 chunk generated `_at` tables (≤32) | **348.24s** | **s2≠s3** | **2.08GB** | emit 6.96MB / 237s validated; hello **2312B** `1dbf14ca…`; s3 valid 6958828B; RSS 2184864 KB; 320s died at 9734/10478; 2048–4096 **24s** (was 75s); `native_c_emit_core_call` 5.5s tail; one-hop from tick77 |
 
 ## Non-goals
 
