@@ -222,12 +222,23 @@ return-name register in
 (try / match / `call_type_vec`). Do
 **not** flush twice. Do **not** land
 the late-name eprintln. Do **not**
-treat 163/164 as a seal. Next cut is
-hoist those 3 tuples + 3 payload
-variants into `mir_register_view_layouts`
-(scan fn signatures / TypeTable), or
-add an append-only flush cursor, then
-function-at-a-time drop — or a real
+treat 163/164 as a seal.
+Do **not** pre-register `Option::Some`
+for every `Vec` / Option / Result in
+the signature walk (tick 165:
+**273.47s** wash, **s2≠s3**, s3 valid,
+RSS **1.77GB**). Hello matched. Overlay
+seal struct 239→240, enum 77→77.
+View grew 234→239 structs and 24→77
+enums; bodies still add 1 struct.
+Enums sealed only by adding ~50 extra
+payload variants. Do **not** land that
+scan. Next cut is a **narrow** hoist
+of the measured 3 tuples + 3 payloads
+(no Vec-wide `Option::Some`), then
+name the remaining +1 body struct —
+or an append-only flush cursor — then
+function-at-a-time drop, or a real
 i32 handle table (acceptance). Layout
 today binds struct slots only after
 `ctx_flush_gc_structs` (post-body).
@@ -1416,6 +1427,7 @@ reconstruct or leftover-column hybrids.
 | tick 162 GET/SET columns + scalar walks, leftover reconstruct | **301.47s** | yes | **1.76GB** | emit 6.91MB (275.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `27e7eb8f…` (6914100); s3 valid; worse than 239s; RSS wash; no-fat-birth + scalar accessors did not cut the 1.7GB; reverted |
 | tick 163 gc-struct-seal count before/after body emit | **268.50s** | yes | **1.76GB** | emit 6.90MB (247.29s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal struct 0→0 enum 13→13; overlay seal struct 234→237 enum 24→27; s2=s3 `7d3719e1…` (6904049); s3 valid; wash vs 239s; RSS wash; bodies still add 3 structs + 3 enum variants after view layouts; function-at-a-time flush-before-bodies blocked; reverted |
 | tick 164 gc-late struct/enum names after body emit | **254.86s** | yes | **1.76GB** | emit 6.90MB (245.21s) validated; hello sha256 `1dbf14ca…` (2312B); hello no late names; overlay late structs `tuple:String,String` / `tuple:i32,i32` / `tuple:String,i32`; late enums `Result::Ok` ref14, `Option::Some` ref14, `Option::Some` ref25; s2=s3 `093463da…` (6904614); s3 valid; wash vs 239s; RSS wash; reverted |
+| tick 165 hoist inferred GC types from signatures | **273.47s** | **no** | **1.77GB** | emit 6.91MB (250.32s) validated; hello sha256 `1dbf14ca…` (2312B); hello seal 0→0 / 13→13; overlay seal struct 239→240 enum 77→77; s2 `6f0afb79…` (6910779) ≠ s3 `facdf52e…` (6911311); s3 valid; worse than 239s; RSS wash; Vec/Option/Result scan added ~50 extra enum payloads; 1 body struct remains; reverted |
 
 ## Non-goals
 
