@@ -180,22 +180,29 @@ scan `inst_at`s the same block (cast /
 infer). 160's 1.34GB was a killed-before-peak
 read; a finished run stays ~1.76GB. Do
 **not** retry scratch-fill `inst_at`.
-Next cut is **not** another dest=-1 /
-encode-on-consumer and **not** another
-function-scoped inst pack that rematerializes
-and **not** GET/SET columns with leftover
-reconstruct or scratch alias. It is either
-(1) GET/SET columns that emit **and** leftover
-walks read as **scalars** with **no** `inst_at`
-of GET/SET at all (not 64–76 / 108–118 /
-159 / 160 / 161), or
-(2) function-at-a-time lower→propagate→emit→drop
-after GC layout can be sealed from the view
-(`mir_register_view_layouts` + flush) **before**
-bodies. Layout today binds struct slots only
-after `ctx_flush_gc_structs` (post-body).
-Do **not** drop insts only after wasm emit
-(127: peak is already past).
+Do **not** store GET/SET as `MirBlock` seq
+columns with scalar accessors and leftover
+`inst_at` reconstruct only (tick 162:
+**301.47s** worse, s2=s3, s3 valid, RSS
+**1.76GB**). Hello matched. Birth skipped
+fat GET/SET (`ctx_emit_local_*` + intercept);
+hot walks used `inst_op` / dest / arg*.
+RSS did not move. Either leftover reconstruct
+/ create-then-drop still sit until Copying
+GC, or GET/SET objects are not the remaining
+peak after 155–158. Do **not** retry GET/SET
+seq columns (160 / 161 / 162). Next cut is
+**not** another dest=-1 / encode-on-consumer
+and **not** another function-scoped inst pack
+that rematerializes. It is function-at-a-time
+lower→propagate→emit→drop after GC layout
+can be sealed from the view
+(`mir_register_view_layouts` + flush)
+**before** bodies, or a real i32 handle
+table (acceptance). Layout today binds
+struct slots only after `ctx_flush_gc_structs`
+(post-body). Do **not** drop insts only
+after wasm emit (127: peak is already past).
 
 **Do not reconstruct a fat `MirInst` on every `MirBlock_inst_at`.** Ticks 64–65
 did that and timed out. Tick 66 used a handle `MirInst` (`hid` + 1-element host
@@ -1376,6 +1383,7 @@ reconstruct or leftover-column hybrids.
 | tick 159 function-scoped MirInst column pack | **221.88s** | yes | **4.15GB** | emit 6.92MB (240.00s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `b2059f70…` (6919630); s3 valid; first emit trapped on `Vec<f64>` `get_unchecked`; hold-record float then overlay finished; wall noise vs 239s; RSS 1.76→4.15GB (columns + fat records; prune leak class); reverted |
 | tick 160 GET/SET seq columns on MirBlock | timeout 320s | — | **1.34GB** | emit 6.91MB (274.11s) validated; hello sha256 `1dbf14ca…` (2312B); overlay no s3; `ru_maxrss` 1406868 KB; leftover `inst_at` alloc reconstruct timed out; 1.34GB is killed-before-peak (see 161); reverted |
 | tick 161 GET/SET columns + per-block scratch inst_at | **300.51s** | **no** | **1.75GB** | emit 6.91MB (275.29s) validated; hello sha256 `1dbf14ca…` (2312B); s2 `7b50e9f8…` (6907810) ≠ s3 `41e2d00c…` (6912188); s3 **invalid wasm** func 44 expected i32 found ref; worse than 239s; RSS wash — 160 1.34GB was pre-peak; scratch aliased under nested `inst_at`; reverted |
+| tick 162 GET/SET columns + scalar walks, leftover reconstruct | **301.47s** | yes | **1.76GB** | emit 6.91MB (275.97s) validated; hello sha256 `1dbf14ca…` (2312B); s2=s3 `27e7eb8f…` (6914100); s3 valid; worse than 239s; RSS wash; no-fat-birth + scalar accessors did not cut the 1.7GB; reverted |
 
 ## Non-goals
 
