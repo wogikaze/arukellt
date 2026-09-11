@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/gate/pre-commit-verify.sh — Pre-commit gate: staged .ark fmt + lint,
-# repo structure check + quick verification + markdownlint (staged files only).
+# repo structure check + quick verification + mado (staged files only).
 #
 # Content-hash result cache: if the staged index, selfhost wasm, and check
 # scripts have not changed since the last run, the entire gate is skipped and
@@ -220,9 +220,9 @@ else
   FAIL=1
 fi
 
-# ── 3. markdownlint (staged .md only) ───────────────────────────────────────
-banner "markdownlint (staged .md only)"
-if command -v npx >/dev/null 2>&1; then
+# ── 3. mado (staged .md only) ────────────────────────────────────────────────
+banner "mado (staged .md only)"
+if command -v mado >/dev/null 2>&1; then
   mapfile -d '' MD_FILES < <(
     staged_files | while IFS= read -r -d '' path; do
       case "$path" in
@@ -239,15 +239,16 @@ if command -v npx >/dev/null 2>&1; then
   if [ "${#MD_FILES[@]}" -eq 0 ]; then
     step "No staged markdown files"
   else
-    if npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc "${MD_FILES[@]}"; then
+    if mado --config mado.toml check "${MD_FILES[@]}"; then
       step "OK"
     else
-      echo "FAIL: markdownlint found issues in staged markdown files. Run 'npx markdownlint-cli2 \"**/*.md\" --fix' or fix them manually." >&2
+      echo "FAIL: mado found issues in staged markdown files." >&2
+      echo "Run 'mado --config mado.toml check ${MD_FILES[*]}' or fix them manually." >&2
       FAIL=1
     fi
   fi
 else
-  echo "SKIP: npx not found, skipping markdownlint" >&2
+  echo "SKIP: mado not found, skipping Markdown lint" >&2
 fi
 
 # ── result + cache write ─────────────────────────────────────────────────────

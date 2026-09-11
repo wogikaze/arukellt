@@ -1,0 +1,40 @@
+# Rules not listed here are intentionally disabled for this repository.
+[lint]
+respect-ignore = true
+respect-gitignore = true
+output-format = "concise"
+quiet = false
+exclude = []
+rules = [
+    "MD002",
+    "MD003",
+    "MD004",
+    "MD005",
+    "MD006",
+    "MD007",
+    "MD009",
+    "MD010",
+    "MD012",
+    "MD014",
+    "MD018",
+    "MD019",
+    "MD020",
+    "MD021",
+    "MD022",
+    "MD023",
+    "MD026",
+    "MD027",
+    "MD029",
+    "MD030",
+    "MD031",
+    "MD034",
+    "MD035",
+    "MD037",
+    "MD038",
+    "MD039",
+    "MD046",
+    "MD047",
+]
+
+[lint.md007]
+indent = 2

@@ -1,6 +1,5 @@
 .vscode/**
 .github/**
-.markdownlintignore
 .gitignore
 .vscode-test.mjs
 .vscode-test.vsix.mjs
