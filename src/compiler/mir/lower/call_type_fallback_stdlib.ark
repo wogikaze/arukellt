@@ -90,36 +90,6 @@ fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32)
     false
 }
 
-// Host sockets return Result — override premature enum:open so match
-// binds Ok(Vec)/Err(String) with the correct GC payload slots (#726 connect_read_write).
-fn mark_host_sockets_result_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {
-    let cn = mir_strip_module_prefix(clone(callee_name))
-    let is_sockets = contains(clone(callee_name), String_from("sockets")) || starts_with(clone(cn), String_from("sockets_")) || starts_with(clone(cn), String_from("__runtime_sockets"))
-    if !is_sockets {
-        return false
-    }
-    if eq(clone(cn), "read") || eq(clone(cn), "sockets_read") || eq(clone(cn), "__runtime_abi_sockets_read") {
-        set_stdlib_result_type(ctx, dest, String_from("result:vec:i32:String"))
-        return true
-    }
-    if eq(clone(cn), "connect") ||
-    eq(clone(cn), "sockets_connect") ||
-    eq(clone(cn), "__runtime_abi_sockets_connect") ||
-    eq(clone(cn), "write") ||
-    eq(clone(cn), "sockets_write") ||
-    eq(clone(cn), "__runtime_abi_sockets_write") ||
-    eq(clone(cn), "listen") ||
-    eq(clone(cn), "sockets_listen") ||
-    eq(clone(cn), "__runtime_abi_sockets_listen") ||
-    eq(clone(cn), "accept") ||
-    eq(clone(cn), "sockets_accept") ||
-    eq(clone(cn), "__runtime_abi_sockets_accept") {
-        set_stdlib_result_type(ctx, dest, String_from("result:i32:String"))
-        return true
-    }
-    false
-}
-
 fn mir_strip_module_prefix(name: String) -> String {
     let n = len(name)
     let mut i = n - 1

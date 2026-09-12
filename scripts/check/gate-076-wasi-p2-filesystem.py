@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Close gate for #076: P2 filesystem is a real component-runtime path."""
+"""Check that filesystem access uses the official WASI P2 surface."""
 from __future__ import annotations
 
 import os
@@ -79,29 +79,24 @@ def main() -> int:
         return fail("P2 import function missing")
     p2_end = imports.find("\nfn ", p2_start + 1)
     p2_block = imports[p2_start:] if p2_end < 0 else imports[p2_start:p2_end]
-    if "arukellt:fs@0.1.0" in p2_block:
-        return fail("P2 still imports the legacy arukellt:fs bridge")
-    if "arukellt:runtime/host@0.1.0" not in imports:
-        return fail("versioned runtime host module missing")
-    for marker in ("runtime_fs_open_at", "runtime_fs_read", "runtime_fs_write", "runtime_fs_close"):
+    if "arukellt:" in p2_block or "runtime/host" in p2_block:
+        return fail("P2 still imports a repository-specific runtime module")
+    for marker in (
+        'p2_module_name("filesystem/types")',
+        "descriptor.open-at",
+        "descriptor.read",
+        "descriptor.write",
+        "descriptor_drop",
+    ):
         if marker not in p2_block:
-            return fail(f"P2 runtime filesystem import missing: {marker}")
-
-    adapter = (ROOT / "runtime/wasi-p2-adapter/src/lib.rs").read_text(encoding="utf-8")
-    for marker in ("fs::read(", "fs::write(", "fs::read_dir(", "fs::metadata("):
-        if marker not in adapter:
-            return fail(f"WASI adapter filesystem implementation missing: {marker}")
-
-    bridge = (ROOT / "runtime/wasi-p2-bridge/src/lib.rs").read_text(encoding="utf-8")
-    if "runtime_fs_write" not in bridge or "host_fs_write_bytes" not in bridge:
-        return fail("core compatibility bridge does not route disk writes")
+            return fail(f"official WASI filesystem import missing: {marker}")
 
     launcher = (ROOT / "scripts/run/arukellt-selfhost.sh").read_text(encoding="utf-8")
-    if "plug_runtime_adapter_in_place" not in launcher or "wac plug --plug" not in launcher:
-        return fail("compiled P2 components are not linked with the checked runtime adapter")
+    if "wasmtime" not in launcher:
+        return fail("selfhost launcher does not execute through Wasmtime")
 
     if os.environ.get("ARUKELLT_REQUIRE_RUNTIME_E2E") == "1":
-        for tool in ("wasmtime", "wac"):
+        for tool in ("wasmtime", "wasm-tools"):
             if shutil.which(tool) is None:
                 return fail(f"required E2E tool missing: {tool}")
         OUT.unlink(missing_ok=True)

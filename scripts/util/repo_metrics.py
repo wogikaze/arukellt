@@ -3,7 +3,7 @@
 
 Measures lines, characters, bytes by file extension, source area, and content
 kind across a repository. Supports git-tracked files or filesystem walk,
-with special classification for Rust (.rs), Nepl (.nepl), and Markdown files.
+with special classification for Nepl (.nepl) and Markdown files.
 
 Usage:
     python3 scripts/repo_metrics.py [options]
@@ -41,7 +41,7 @@ TOP_LEVEL_DOC_TEST_DIRS = frozenset({"tests", "tutorials", "doc", "examples"})
 
 SOURCE_EXTS = frozenset({
     ".c", ".cpp", ".css", ".h", ".hpp", ".html", ".java", ".js", ".jsx",
-    ".mjs", ".mts", ".nepl", ".py", ".rb", ".rs", ".sh", ".sql", ".ts",
+    ".mjs", ".mts", ".nepl", ".py", ".rb", ".sh", ".sql", ".ts",
     ".tsx", ".wat", ".wast", ".wasm", ".yaml", ".yml",
 })
 
@@ -59,14 +59,6 @@ DOCTEST_FENCE_CLOSE_RE = re.compile(r"^\s*```\s*$")
 
 # Nepl doc comment
 NEPL_DOC_RE = re.compile(r"^\s*\/\/:(\|)?\s?(.*)$")
-
-# Rust patterns
-RUST_DOC_RE = re.compile(r"^\s*(///|//!)")
-RUST_COMMENT_RE = re.compile(r"^\s*//")
-RUST_CFG_TEST_RE = re.compile(r"^\s*#\[\s*cfg\s*\(\s*test\s*\)\s*\]")
-RUST_TEST_ATTR_RE = re.compile(r"^\s*#\[(?:test|tokio::test|wasm_bindgen_test)\b")
-RUST_FN_RE = re.compile(r"^\s*(?:pub\s+)?(?:async\s+)?fn\b")
-
 
 # ── data types ─────────────────────────────────────────────────────────────────
 
@@ -353,70 +345,6 @@ def _classify_nepl(rel_path: str, lines: list[TextLine]) -> FileStats:
     return stats
 
 
-def _classify_rust(rel_path: str, lines: list[TextLine]) -> FileStats:
-    stats = FileStats()
-    test_file = _is_test_path(rel_path)
-    brace_depth = 0
-    test_region_ends: list[int] = []
-    pending_cfg_test = False
-    pending_test_attr = False
-
-    for line in lines:
-        stripped = line.text.rstrip("\r\n")
-        logical = stripped.strip()
-        in_test_region = test_file or len(test_region_ends) > 0
-        is_cfg_test = bool(RUST_CFG_TEST_RE.match(stripped))
-        is_test_attr = bool(RUST_TEST_ATTR_RE.match(stripped))
-        is_doc = bool(RUST_DOC_RE.match(stripped))
-
-        if logical == "":
-            _add_line(stats, "other", line)
-        elif is_cfg_test or is_test_attr:
-            _add_line(stats, "test", line)
-            if is_cfg_test:
-                pending_cfg_test = True
-            if is_test_attr:
-                pending_test_attr = True
-                stats.test_cases += 1
-        elif is_doc:
-            _add_line(stats, "doc_comment", line)
-        elif pending_cfg_test or pending_test_attr or in_test_region:
-            _add_line(stats, "test", line)
-        elif RUST_COMMENT_RE.match(stripped):
-            _add_line(stats, "comment", line)
-        else:
-            _add_line(stats, "source", line)
-
-        depth_before = brace_depth
-        opens = stripped.count("{")
-        closes = stripped.count("}")
-
-        # Track cfg(test) blocks
-        if pending_cfg_test and logical != "" and not is_cfg_test:
-            if "{" in stripped:
-                test_region_ends.append(depth_before)
-                pending_cfg_test = False
-            elif stripped.rstrip().endswith(";"):
-                pending_cfg_test = False
-
-        # Track #[test] functions
-        if pending_test_attr and logical != "" and not is_test_attr:
-            if RUST_FN_RE.match(stripped) and "{" in stripped:
-                test_region_ends.append(depth_before)
-                pending_test_attr = False
-            elif not stripped.startswith("#[") and "{" in stripped:
-                test_region_ends.append(depth_before)
-                pending_test_attr = False
-            elif stripped.rstrip().endswith(";"):
-                pending_test_attr = False
-
-        brace_depth += opens - closes
-        while test_region_ends and brace_depth <= test_region_ends[-1]:
-            test_region_ends.pop()
-
-    return stats
-
-
 def _classify_generic(rel_path: str, lines: list[TextLine]) -> FileStats:
     stats = FileStats()
     ext_key = _ext_key(rel_path, "all")
@@ -451,8 +379,6 @@ def _measure_file(rel_path: str, abs_path: str, max_bytes: int | None) -> FileSt
         return _classify_markdown(lines)
     if suffix == ".nepl":
         return _classify_nepl(rel_path, lines)
-    if suffix == ".rs":
-        return _classify_rust(rel_path, lines)
     return _classify_generic(rel_path, lines)
 
 

@@ -108,12 +108,6 @@ FIXTURE_OVERRIDES: dict[str, dict[str, object]] = {
         "expected_signal": "SIGABRT",
         "expected_stderr_pattern": "bounds error",
     },
-    "stdlib_io/fs_error_message_utf8.ark": {
-        "expected_compile": True,
-        "expected_run_kind": "trap",
-        "expected_signal": "SIGABRT",
-        "expected_stderr_pattern": "null reference",
-    },
     # Currently traps on wasm and native (bounds); treat abort as expected until fixed.
     "stdlib_collections_ordered/btree_keys.ark": {
         "expected_compile": True,

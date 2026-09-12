@@ -3,7 +3,7 @@
 
 Proves:
 1. In-tree `--emit component` validates
-2. Artifact imports wasi:cli/stderr + get-stderr (bridged path)
+2. Artifact imports wasi:cli/stderr + get-stderr through the official component contract
 3. wasmtime run prints expected text on stderr (not only stdout)
 4. Existing hello stdout path still green
 """
@@ -77,13 +77,26 @@ def _validate(path: Path) -> tuple[int, str]:
 
 
 def _assert_stderr_import_shape(path: Path) -> tuple[int, str]:
+    wit = subprocess.run(
+        ["wasm-tools", "component", "wit", str(path)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if wit.returncode != 0:
+        return 1, (wit.stderr or wit.stdout)[-800:]
+    text = wit.stdout
+    for marker in (
+        "import wasi:cli/stderr@0.2.0",
+        "get-stderr: func() -> output-stream",
+        "import wasi:cli/stdout@0.2.0",
+    ):
+        if marker not in text:
+            return 1, f"component WIT missing official stderr contract: {marker}"
     data = path.read_bytes()
-    if b"wasi:cli/stderr@0.2.0" not in data:
-        return 1, "artifact missing wasi:cli/stderr@0.2.0"
-    if b"get-stderr" not in data:
-        return 1, "artifact missing get-stderr"
-    if b"wasi:cli/stdout@0.2.0" not in data:
-        return 1, "artifact missing wasi:cli/stdout@0.2.0"
+    for marker in (b"wasi_snapshot_preview1", b"arukellt:"):
+        if marker in data:
+            return 1, f"artifact contains retired compatibility marker {marker!r}"
     return 0, ""
 
 

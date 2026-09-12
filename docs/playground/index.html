@@ -204,9 +204,6 @@
       cursor: not-allowed;
     }
 
-    .ark-run-output-panel {
-      flex-shrink: 0;
-    }
   </style>
 </head>
 <body>
@@ -247,10 +244,7 @@
       <button id="build-button" class="playground-action-button" type="button" disabled>
         Build
       </button>
-      <button id="run-button" class="playground-action-button" type="button" disabled>
-        Run
-      </button>
-      <span id="build-run-status" class="playground-share-status" aria-live="polite"></span>
+      <span id="build-status" class="playground-share-status" aria-live="polite"></span>
     </div>
   </section>
   <div id="playground"></div>
@@ -292,8 +286,7 @@
     const shareStatus = document.getElementById('share-status');
     const formatButton = document.getElementById('format-button');
     const buildButton = document.getElementById('build-button');
-    const runButton = document.getElementById('run-button');
-    const buildRunStatus = document.getElementById('build-run-status');
+    const buildStatus = document.getElementById('build-status');
 
     const examples = getExampleList();
     for (const example of examples) {
@@ -390,9 +383,6 @@
       app.editor.setValue(example.source);
       app.parse();
       setExampleSelection(example.id);
-      if (typeof app.setStdin === 'function') {
-        app.setStdin(example.stdin ?? '');
-      }
       scheduleShareUrlUpdate();
       setShareStatus(`Loaded example: ${example.name}`);
 
@@ -474,10 +464,7 @@
     try {
       const { createPlayground } = await import('./dist/index.js');
 
-      const pg = await createPlayground(
-        './dist/index.js',
-        { wasmUrl: './dist/index.js' },
-      );
+      const pg = await createPlayground({ wasmUrl: './dist/index.js' });
       parseFn = (source) => pg.parse(source);
       tokenizeFn = (source) => pg.tokenize(source);
       formatFn = (source) => pg.format(source);
@@ -562,15 +549,15 @@
       });
     });
 
-    function setBuildRunStatus(message, isError = false) {
-      if (!buildRunStatus) return;
-      buildRunStatus.textContent = message;
-      buildRunStatus.classList.toggle('error', isError);
+    function setBuildStatus(message, isError = false) {
+      if (!buildStatus) return;
+      buildStatus.textContent = message;
+      buildStatus.classList.toggle('error', isError);
     }
 
     async function initCompilerRuntime() {
       if (typeof WebAssembly === 'undefined') {
-        setBuildRunStatus('Build/Run unavailable: WebAssembly is not supported here.', true);
+        setBuildStatus('Build unavailable: WebAssembly is not supported here.', true);
         return;
       }
 
@@ -582,16 +569,18 @@
         app?.setCompilerClient(compilerClient);
         const availability = await compilerClient.checkAvailability();
         if (!availability.compilerAssetPresent) {
-          setBuildRunStatus(
+          setBuildStatus(
             availability.reason ?? 'Compiler asset missing. Run `npm run build:app`.',
             true,
           );
           return;
         }
         buildButton.disabled = false;
-        setBuildRunStatus('Build/Run ready (compiler Wasm + T2 runner).');
+        setBuildStatus(
+          'Build ready (compiler Wasm). Run the resulting artifact with official WASI tooling.',
+        );
       } catch (err) {
-        setBuildRunStatus(
+        setBuildStatus(
           err instanceof Error ? err.message : 'Unable to initialise compiler worker.',
           true,
         );
@@ -601,48 +590,23 @@
     buildButton.addEventListener('click', async () => {
       if (!app) return;
       buildButton.disabled = true;
-      runButton.disabled = true;
-      setBuildRunStatus('Building…');
+      setBuildStatus('Building…');
 
       try {
         const result = await app.build();
         if (!result) {
-          setBuildRunStatus('Build unavailable.', true);
+          setBuildStatus('Build unavailable.', true);
           return;
         }
-        runButton.disabled = !app.canRun;
-        const panelStatus = app.runOutputPanel?.element.querySelector('.ark-run-output-status');
-        setBuildRunStatus(panelStatus?.textContent ?? '', panelStatus?.classList.contains('error'));
+        const panelStatus = app.outputPanel?.element.querySelector('.ark-output-status');
+        setBuildStatus(panelStatus?.textContent ?? '', panelStatus?.classList.contains('error'));
       } catch (err) {
-        setBuildRunStatus(
+        setBuildStatus(
           err instanceof Error ? err.message : 'Build failed.',
           true,
         );
       } finally {
         buildButton.disabled = false;
-      }
-    });
-
-    runButton.addEventListener('click', async () => {
-      if (!app) return;
-      runButton.disabled = true;
-      setBuildRunStatus('Running…');
-
-      try {
-        const result = await app.run();
-        if (!result) {
-          setBuildRunStatus('Run unavailable.', true);
-          return;
-        }
-        const panelStatus = app.runOutputPanel?.element.querySelector('.ark-run-output-status');
-        setBuildRunStatus(panelStatus?.textContent ?? '', panelStatus?.classList.contains('error'));
-      } catch (err) {
-        setBuildRunStatus(
-          err instanceof Error ? err.message : 'Run failed.',
-          true,
-        );
-      } finally {
-        runButton.disabled = !app.canRun;
       }
     });
 

@@ -265,10 +265,10 @@ let fields = csv_split_line("name,age,city")
                 "`std::host::fs` is the primary host filesystem module: whole-file reads, string "
                 "and byte writes, an `exists` read probe / readable-file check (not path existence), "
                 "and experimental fd helpers, all backed "
-                "by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped "
-                "bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — "
-                "useful when you want a compact API, with the understanding that it tracks only a "
-                "subset of the evolving `std::host::fs` rollout. Neither module is a complete "
+                "by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module "
+                "over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when "
+                "you want a minimal API, with the understanding that it exposes only a subset of "
+                "the `std::host::fs` operations. Neither module is a complete "
                 "filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). "
                 "Pure path manipulation lives in `std::path`; for the full host family overview, "
                 "see [io.md](io.md)."
@@ -691,94 +691,9 @@ let name = wit_type_name(t)   // "u32"
 ```""",
         },
     },
-    {
-        "path": "modules/http.md",
-        "title": "std::host::http",
-        "description": "Source-backed docs for HTTP client operations.",
-        "modules": ["std::host::http"],
-        "overview": {
-            "summary": (
-                "The `std::host::http` module defines HTTP/1.1 client helpers "
-                "(provisional). It is **not user-reachable** on the current "
-                "selfhost compile path — host bindings are tracked by "
-                "[#446](../../../issues/done/446-std-host-http-implementation.md) and "
-                "native WASI P2 HTTP by "
-                "[#077](../../../issues/done/077-wasi-p2-http.md). "
-                "When implemented, only plain `http://` URLs are supported — "
-                "**HTTPS is not available**."
-            ),
-            "highlights": [
-                ("`request(method, url, body)`", "Send an HTTP request with an explicit method, URL, and body."),
-                ("`get(url)`", "Send an HTTP GET request and return the response body as a string."),
-            ],
-            "typical_usage": """\
-```ark
-import std::host::http
-
-let body = http::get("http://example.com")
-match body {
-    Ok(s)  => println(s),
-    Err(e) => eprintln("error: " + e),
-}
-```""",
-        },
-    },
-    {
-        "path": "modules/sockets.md",
-        "title": "std::host::sockets",
-        "description": "Source-backed docs for TCP socket operations.",
-        "modules": ["std::host::sockets"],
-        "overview": {
-            "summary": (
-                "The `std::host::sockets` module defines TCP socket helpers "
-                "(provisional). It is **not user-reachable** on the current "
-                "selfhost compile path — host bindings are tracked by "
-                "[#447](../../../issues/done/447-std-host-sockets-implementation.md) and "
-                "native WASI P2 sockets by "
-                "[#139](../../../issues/done/139-std-wasi-sockets-p2.md). "
-                "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500."
-            ),
-            "highlights": [
-                ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
-            ],
-            "typical_usage": """\
-```ark
-import std::host::sockets
-
-let sock = sockets::connect("localhost", 8080)
-match sock {
-    Ok(fd)  => println("Connected: " + i32_to_string(fd)),
-    Err(e)  => eprintln("Connection failed: " + e),
-}
-```""",
-        },
-    },
 ]
 
-HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {
-    "std::host::http": [
-        "Host HTTP client helpers (provisional). **Not user-reachable** on the",
-        "current selfhost compile path — see",
-        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #446 / #077.",
-        "",
-        "When implemented, only plaintext HTTP/1.1 over TCP is in scope;",
-        "**HTTPS is not supported**.",
-    ],
-    "std::host::sockets": [
-        "Host TCP socket helpers (provisional). **Not user-reachable** on the",
-        "current selfhost compile path — see",
-        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
-        "",
-        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
-    ],
-    "std::host::udp": [
-        "Host UDP datagram helpers (provisional). **Not user-reachable** on the",
-        "current selfhost compile path — see",
-        "[Capability surface](../../platform/target-runtime-and-surfaces.md#capability-surface) and issues #447 / #139.",
-        "",
-        "Importing this module on `wasm32` (legacy alias `wasm32-wasi-p1`) emits E0500.",
-    ],
-}
+HOST_MODULE_SOURCE_DOC_OVERRIDES: dict[str, list[str]] = {}
 
 STDLIB_ALIAS_PAGES = [
     {
@@ -1150,7 +1065,7 @@ def collect_examples(state: dict) -> list[dict]:
                 "title": humanize_slug(path.stem),
                 "expected": "yes" if expected_path.exists() else "no",
                 "baseline": "yes" if path.name in baseline_cases else "no",
-                "run": f"`target/release/arukellt run docs/examples/{path.name}`",
+                "run": f"`bash scripts/run/arukellt-selfhost.sh run docs/examples/{path.name}`",
             }
         )
     return entries
@@ -2601,14 +2516,14 @@ def render_playground_readme(
         "| Privacy / telemetry guardrail | ✅ | `playground/src/telemetry.ts` — `TELEMETRY_DISABLED=true`; `reportError`/`reportWasmLoadError`/`reportCompilerPanic` log locally only. Policy: [`privacy-telemetry-policy.md`](privacy-telemetry-policy.md) (issue 438) |",
         "| Type-checking (compiler-backed engine) | ✅ | [#472](../../issues/done/472-playground-type-checker-product-claim.md) — `playground/src/engine.ts` and `playground.ts` expose compiler-backed `typecheck()` |",
         "<!-- target-state: rows below are not yet repo-proved in the browser entrypoint -->",
-        "| Type-checking in browser index.html parse path | ❌ repo-proof missing | `index.html` does not pass compiler wasm to `createPlayground`; parse stays parse-only until wired (Build/Run uses a separate compiler client) |",
+        "| Type-checking in browser index.html parse path | ❌ repo-proof missing | `index.html` does not pass compiler wasm to `createPlayground`; parse stays parse-only. Compiler-backed build is compile-only; official WASI packaging/execution remains a CLI/toolchain concern (ADR-055) |",
         "",
         "### Architecture status",
         "",
         "The current browser-side engine is the TypeScript playground engine plus",
         "TypeScript UI components. The browser entrypoint `docs/playground/index.html` provides an",
         "editor shell with parse + diagnostics, a Format toolbar action, and tokenize-driven syntax",
-        "highlighting. The docs site navigation links to it. See",
+        "highlighting. Compiler-backed build output is shown as compiler output only; the browser does not run user artifacts. The docs site navigation links to it. See",
         "[ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and",
         "[issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)",
         "for the current audit status.",
@@ -2648,6 +2563,7 @@ def render_playground_readme(
         "| ADR | Topic |",
         "|-----|-------|",
         "| [ADR-017](../adr/ADR-017-playground-execution-model.md) | Execution model and v1/v2 product contract |",
+        "| [ADR-055](../adr/ADR-055-playground-compile-boundary.md) | Browser compile-only boundary; no custom user-program runner |",
         "| [ADR-021](../adr/ADR-021-playground-share-url-format.md) | Share URL format (fragment-based) |",
         "| [ADR-022](../adr/ADR-022-playground-deployment-and-caching.md) | Deployment strategy and asset caching |",
     ])
@@ -3153,7 +3069,7 @@ def render_examples_readme(section: dict, examples: list[dict], state: dict) -> 
         "## Run",
         "",
         "```bash",
-        "target/release/arukellt run docs/examples/hello.ark",
+        "bash scripts/run/arukellt-selfhost.sh run docs/examples/hello.ark",
         "```",
         "",
         "## Examples",
@@ -3250,7 +3166,7 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
         ]
     if snapshot == "playground":
         return [
-            "- ADR-017 defines a client-side browser execution model for playground work.",
+            "- ADR-017 defines a client-side browser model for playground work; ADR-055 fixes the current compile-only user-program boundary.",
             "- Current repo proof: `playground/src/engine.ts` exports parse, format, tokenize, typecheck, and version functions.",
             "- Current repo proof: `playground/src/**` contains editor / diagnostics / share / examples components.",
             "- Current repo proof: `docs/playground/index.html` provides parse + diagnostics, a Format toolbar action, and tokenize-driven highlighting.",

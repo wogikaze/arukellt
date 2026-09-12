@@ -1630,7 +1630,7 @@ canonical compilation targets are:
 
 | Target | Tier | Notes |
 |--------|------|-------|
-| `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-008). |
+| `wasm32-gc` | **primary** | Wasm GC value representation. Default host profile = WASI P2. Component emit (ADR-054). |
 | `wasm32` | supported | Same language semantics, linear-memory lowering. AtCoder / non-GC compatibility. |
 | `native-cpp` | scaffold | Experimental selfhost executor design accepted in ADR-049; C99 lowering remains unimplemented. |
 | `native-llvm` | scaffold | Experimental. ABI and semantics remain undecided. |
@@ -1653,7 +1653,7 @@ are defined in ADR-007; implementation migration status is in `docs/current-stat
 | ADR-003 | Limited monomorphisation for generics |
 | ADR-006 | Public ABI categories: compiler-private / stable WIT-canonical / experimental raw Wasm / reserved native |
 | ADR-007 | Canonical targets `wasm32` / `wasm32-gc` / `native-*` (T1–T5 retired) |
-| ADR-008 | `--emit component` is in-tree; `wasm-tools` is auxiliary only |
+| ADR-054 | compiler emits standard WASI P2 core/WIT inputs; official `wasm-tools` packages components; bridge and legacy ABI paths are deleted |
 | ADR-009 | `use` for source imports; `import` reserved for WIT |
 | ADR-011 | Host-bound APIs in `std::host::*`; pure APIs in `std::*` |
 | ADR-013 | Primary target = `wasm32-gc` (default host WASI P2) |

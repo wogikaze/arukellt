@@ -1,9 +1,21 @@
 #!/usr/bin/env python3
-"""Close gate for #673: every Tier-2 export shape is supported, rejected, or explicitly deferred."""
+"""Verify the post-encoder component export boundary.
+
+Aggregate export adapters used to be emitted by a large in-tree component
+encoder. Official WASI P2 tooling now owns canonical ABI lowering, so the
+compiler keeps the WIT/contract checks and rejects unsupported shapes before it
+hands a standard core module to the launcher.
+"""
+
 from __future__ import annotations
+
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 on supported development hosts
+    import tomli as tomllib  # type: ignore[no-redef]
 from pathlib import Path
+
 
 ROOT = Path(__file__).resolve().parents[2]
 MATRIX = ROOT / "docs/data/component-export-tier2.toml"
@@ -20,22 +32,39 @@ def main() -> int:
     rows = data.get("shape", [])
     ids = {row.get("id") for row in rows}
     if ids != EXPECTED:
-        print(f"gate-673: FAIL: matrix mismatch missing={EXPECTED-ids} extra={ids-EXPECTED}", file=sys.stderr)
+        print(f"gate-673: FAIL: matrix mismatch missing={EXPECTED - ids} extra={ids - EXPECTED}", file=sys.stderr)
         return 1
     for row in rows:
         if row.get("status") not in {"supported", "deferred", "rejected"} or not row.get("reason"):
             print(f"gate-673: FAIL: incomplete row {row!r}", file=sys.stderr)
             return 1
-    emit = (ROOT / "src/compiler/component/emit.ark").read_text(encoding="utf-8")
-    if emit.index("emit_specialized::emit_specialized_component") > emit.index("comp_emit_wasi_and_core_instance_sections"):
-        print("gate-673: FAIL: specialized adapters are still bypassed", file=sys.stderr)
-        return 1
+
+    retired = (
+        "src/compiler/component/emit.ark",
+        "src/compiler/component/emit_specialized.ark",
+        "src/compiler/component/export_plan.ark",
+        "src/compiler/wasm/library_component_emit.ark",
+    )
+    for rel in retired:
+        if (ROOT / rel).exists():
+            print(f"gate-673: FAIL: retired aggregate encoder remains: {rel}", file=sys.stderr)
+            return 1
+
     contract = (ROOT / "src/compiler/component/contract_validation.ark").read_text(encoding="utf-8")
     if "E0401" not in contract:
-        print("gate-673: FAIL: recursive/unsupported export rejection contract missing", file=sys.stderr)
+        print("gate-673: FAIL: unsupported export rejection contract missing", file=sys.stderr)
         return 1
-    print("gate-673-component-export-aggregate-expansion: PASS")
+    wrapper = (ROOT / "scripts/run/arukellt-selfhost.sh").read_text(encoding="utf-8")
+    if "component embed" not in wrapper or "component new" not in wrapper:
+        print("gate-673: FAIL: official component packaging is not launcher-owned", file=sys.stderr)
+        return 1
+    if "--adapt" in wrapper:
+        print("gate-673: FAIL: Preview 1 adapter compatibility path remains", file=sys.stderr)
+        return 1
+
+    print("gate-673-component-export-aggregate-expansion: PASS (contract boundary + official packaging)")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

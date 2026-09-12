@@ -63,11 +63,11 @@ def _validate_golden(golden, rel):
     if "package arukellt:app;" not in text:
         f.append("missing package arukellt:app")
     if "command" in rel:
-        for m in ("world command {", "import wasi:cli/stdin@0.2.0", "export run: func();"):
-            if m not in text:
-                f.append(f"missing {m!r}")
-    elif "proxy" in rel:
-        for m in ("world proxy {", "import wasi:http/types@0.2.0", "export wasi:http/incoming-handler@0.2.0"):
+        for m in (
+            "world command {",
+            "import wasi:cli/stdin@0.2.0",
+            "export wasi:cli/run@0.2.0;",
+        ):
             if m not in text:
                 f.append(f"missing {m!r}")
     return f
@@ -84,7 +84,7 @@ def main():
             print(f"FAIL {rel}: golden {msg}", file=sys.stderr); failures += 1
         else:
             print(f"pass: {rel} golden structure")
-        world = "wasi:cli/command" if "command" in rel else "wasi:http/proxy"
+        world = "wasi:cli/command"
         out = REPO_ROOT / f".build/component-world-{Path(rel).stem}.wit"
         rc, msg = _compile(["compile", f"tests/fixtures/{rel}", "--target", "wasm32-gc", "--emit", "wit", "--world", world, "-o", str(out.relative_to(REPO_ROOT))])
         if rc != 0:

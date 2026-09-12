@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Gate for #668 args/env slice — P2 environment bridge + GC assembly.
+"""Gate for #668 args/env slice — official WASI P2 environment interfaces.
 
 Proves:
-1. Artifact imports wasi:cli/environment + get-arguments / get-environment
-2. Guest exports args-sizes/arguments/environ-* (bridged P1-shaped ABI)
+1. The component imports wasi:cli/environment with the canonical functions
+2. The artifact contains no P1-shaped or repository-specific compatibility ABI
 3. wasmtime run with CLI args prints user args (excluding argv[0])
 4. wasmtime --env delivers env::var values
 """
@@ -77,17 +77,26 @@ def _validate(path: Path) -> tuple[int, str]:
 
 
 def _assert_environment_import_shape(path: Path) -> tuple[int, str]:
+    wit = subprocess.run(
+        ["wasm-tools", "component", "wit", str(path)],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if wit.returncode != 0:
+        return 1, (wit.stderr or wit.stdout)[-800:]
+    text = wit.stdout
+    for marker in (
+        "import wasi:cli/environment@0.2.0",
+        "get-arguments: func() -> list<string>",
+        "get-environment: func() -> list<tuple<string, string>>",
+    ):
+        if marker not in text:
+            return 1, f"component WIT missing official environment contract: {marker}"
     data = path.read_bytes()
-    if b"wasi:cli/environment@0.2.0" not in data:
-        return 1, "artifact missing wasi:cli/environment@0.2.0"
-    if b"get-arguments" not in data:
-        return 1, "artifact missing get-arguments"
-    if b"get-environment" not in data:
-        return 1, "artifact missing get-environment"
-    if b"args-sizes" not in data:
-        return 1, "artifact missing args-sizes bridge export"
-    if b"environ-get" not in data:
-        return 1, "artifact missing environ-get bridge export"
+    for marker in (b"wasi_snapshot_preview1", b"args-sizes", b"environ-get", b"arukellt:"):
+        if marker in data:
+            return 1, f"artifact contains retired compatibility marker {marker!r}"
     return 0, ""
 
 

@@ -221,18 +221,6 @@ alias = "__runtime_abi_fs_write_file"
 core_op_id = "runtime.write_string"
 
 [[legacy_bindings]]
-alias = "__runtime_abi_http_get"
-core_op_id = "runtime.get"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_http_request"
-core_op_id = "runtime.request"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_http_serve"
-core_op_id = "runtime.serve"
-
-[[legacy_bindings]]
 alias = "__intrinsic_i32_to_string"
 core_op_id = "text.to_string"
 
@@ -275,26 +263,6 @@ core_op_id = "runtime.process.exit"
 [[legacy_bindings]]
 alias = "__runtime_abi_random_i32"
 core_op_id = "runtime.random_i32"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_sockets_accept"
-core_op_id = "runtime.accept"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_sockets_connect"
-core_op_id = "runtime.connect"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_sockets_listen"
-core_op_id = "runtime.listen"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_sockets_read"
-core_op_id = "runtime.read"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_sockets_write"
-core_op_id = "runtime.write"
 
 [[legacy_bindings]]
 alias = "__intrinsic_starts_with"
@@ -1321,30 +1289,6 @@ alias = "host::process::exit"
 core_op_id = "runtime.process.exit"
 
 [[legacy_bindings]]
-alias = "http::get"
-core_op_id = "runtime.get"
-
-[[legacy_bindings]]
-alias = "http::request"
-core_op_id = "runtime.request"
-
-[[legacy_bindings]]
-alias = "http::serve"
-core_op_id = "runtime.serve"
-
-[[legacy_bindings]]
-alias = "http_get"
-core_op_id = "runtime.get"
-
-[[legacy_bindings]]
-alias = "http_request"
-core_op_id = "runtime.request"
-
-[[legacy_bindings]]
-alias = "http_serve"
-core_op_id = "runtime.serve"
-
-[[legacy_bindings]]
 alias = "i16_to_i32"
 core_op_id = "runtime.i8_to_i32"
 
@@ -1647,46 +1591,6 @@ alias = "slice"
 core_op_id = "string.slice"
 
 [[legacy_bindings]]
-alias = "sockets::accept"
-core_op_id = "runtime.accept"
-
-[[legacy_bindings]]
-alias = "sockets::connect"
-core_op_id = "runtime.connect"
-
-[[legacy_bindings]]
-alias = "sockets::listen"
-core_op_id = "runtime.listen"
-
-[[legacy_bindings]]
-alias = "sockets::read"
-core_op_id = "runtime.read"
-
-[[legacy_bindings]]
-alias = "sockets::write"
-core_op_id = "runtime.write"
-
-[[legacy_bindings]]
-alias = "sockets_accept"
-core_op_id = "runtime.accept"
-
-[[legacy_bindings]]
-alias = "sockets_connect"
-core_op_id = "runtime.connect"
-
-[[legacy_bindings]]
-alias = "sockets_listen"
-core_op_id = "runtime.listen"
-
-[[legacy_bindings]]
-alias = "sockets_read"
-core_op_id = "runtime.read"
-
-[[legacy_bindings]]
-alias = "sockets_write"
-core_op_id = "runtime.write"
-
-[[legacy_bindings]]
 alias = "sort_f64"
 core_op_id = "seq.sort_f64"
 
@@ -1709,38 +1613,6 @@ core_op_id = "math.sqrt"
 [[legacy_bindings]]
 alias = "starts_with"
 core_op_id = "string.starts_with"
-
-[[legacy_bindings]]
-alias = "std::host::http::get"
-core_op_id = "runtime.get"
-
-[[legacy_bindings]]
-alias = "std::host::http::request"
-core_op_id = "runtime.request"
-
-[[legacy_bindings]]
-alias = "std::host::http::serve"
-core_op_id = "runtime.serve"
-
-[[legacy_bindings]]
-alias = "std::host::sockets::accept"
-core_op_id = "runtime.accept"
-
-[[legacy_bindings]]
-alias = "std::host::sockets::connect"
-core_op_id = "runtime.connect"
-
-[[legacy_bindings]]
-alias = "std::host::sockets::listen"
-core_op_id = "runtime.listen"
-
-[[legacy_bindings]]
-alias = "std::host::sockets::read"
-core_op_id = "runtime.read"
-
-[[legacy_bindings]]
-alias = "std::host::sockets::write"
-core_op_id = "runtime.write"
 
 [[legacy_bindings]]
 alias = "std::text::builder_append"
@@ -3685,45 +3557,6 @@ operation = "memory_fill"
 required = false
 
 [[operations]]
-id = "runtime.accept"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::accept (aliases: 4; sockets_accept, __runtime_abi_sockets_accept, sockets::accept, std::host::sockets::accept)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:sockets"
-interface = "tcp"
-function = "accept"
-version = "0.2.0"
-[operations.fallback]
-required = false
-
-[[operations]]
 id = "runtime.arg_at"
 visibility = "public"
 classification = { layer = "runtime" }
@@ -4094,45 +3927,6 @@ abi_version = "0.1"
 required = false
 
 [[operations]]
-id = "runtime.connect"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::connect (aliases: 4; sockets_connect, __runtime_abi_sockets_connect, sockets::connect, std::host::sockets::connect)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:sockets"
-interface = "tcp"
-function = "start-connect"
-version = "0.2.0"
-[operations.fallback]
-required = false
-
-[[operations]]
 id = "runtime.eprintln"
 visibility = "public"
 classification = { layer = "runtime" }
@@ -4277,45 +4071,6 @@ kind = "runtime_call"
 kind = "internal"
 symbol = "fs_read_to_string"
 abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.get"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::get (aliases: 4; http_get, __runtime_abi_http_get, http::get, std::host::http::get)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:http"
-interface = "outgoing-handler"
-function = "handle"
-version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -4653,45 +4408,6 @@ abi_version = "0.1"
 required = false
 
 [[operations]]
-id = "runtime.listen"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::listen (aliases: 4; sockets_listen, __runtime_abi_sockets_listen, sockets::listen, std::host::sockets::listen)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:sockets"
-interface = "tcp"
-function = "start-listen"
-version = "0.2.0"
-[operations.fallback]
-required = false
-
-[[operations]]
 id = "runtime.print"
 visibility = "public"
 classification = { layer = "runtime" }
@@ -4877,45 +4593,6 @@ abi_version = "0.1"
 required = false
 
 [[operations]]
-id = "runtime.read"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::read (aliases: 4; sockets_read, __runtime_abi_sockets_read, sockets::read, std::host::sockets::read)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:io"
-interface = "streams"
-function = "[method]input-stream.read"
-version = "0.2.0"
-[operations.fallback]
-required = false
-
-[[operations]]
 id = "runtime.read_stdin"
 visibility = "public"
 classification = { layer = "runtime" }
@@ -4949,84 +4626,6 @@ kind = "runtime_call"
 kind = "internal"
 symbol = "stdio_read_stdin"
 abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.request"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → http::request (aliases: 4; http_request, __runtime_abi_http_request, http::request, std::host::http::request)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:http"
-interface = "outgoing-handler"
-function = "handle"
-version = "0.2.0"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.serve"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Guest export contract wasi:http/incoming-handler::handle (legacy http::serve aliases: http_serve, __runtime_abi_http_serve, http::serve, std::host::http::serve)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:http"
-interface = "incoming-handler"
-function = "handle"
-version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -5212,45 +4811,6 @@ kind = "runtime_call"
 kind = "internal"
 symbol = "env_var_or_default"
 abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.write"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "legacy dispatch migration", tracking_issue = "798" }
-description = "Legacy handler branch → sockets::write (aliases: 4; sockets_write, __runtime_abi_sockets_write, sockets::write, std::host::sockets::write)"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "wit"
-package = "wasi:io"
-interface = "streams"
-function = "[method]output-stream.write"
-version = "0.2.0"
 [operations.fallback]
 required = false
 
@@ -13461,249 +13021,3 @@ kind = "normal_call"
 [operations.fallback]
 implementation_symbol = "__core_vec_set_impl"
 required = true
-
-[[legacy_bindings]]
-alias = "__runtime_abi_fs_read_dir"
-core_op_id = "runtime.fs_read_dir"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_fs_metadata"
-core_op_id = "runtime.fs_metadata"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_fs_remove_file"
-core_op_id = "runtime.fs_remove_file"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_fs_create_dir_all"
-core_op_id = "runtime.fs_create_dir_all"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_env_vars"
-core_op_id = "runtime.env_vars"
-
-[[legacy_bindings]]
-alias = "__runtime_abi_env_current_dir"
-core_op_id = "runtime.env_current_dir"
-
-[[operations]]
-id = "runtime.fs_read_dir"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation fs_read_dir"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "fs_read_dir"
-abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.fs_metadata"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation fs_metadata"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "fs_metadata"
-abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.fs_remove_file"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation fs_remove_file"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "fs_remove_file"
-abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.fs_create_dir_all"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation fs_create_dir_all"
-[operations.signature]
-inputs = [{ name = "arg0", type = { kind = "primitive", name = "i32" } }]
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "fs_create_dir_all"
-abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.env_vars"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation env_vars"
-[operations.signature]
-inputs = []
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "env_vars"
-abi_version = "0.1"
-[operations.fallback]
-required = false
-
-[[operations]]
-id = "runtime.env_current_dir"
-visibility = "public"
-classification = { layer = "runtime" }
-binding = { policy = "optional", reason = "WASI runtime ABI production", tracking_issue = "676" }
-description = "Versioned runtime ABI operation env_current_dir"
-[operations.signature]
-inputs = []
-outputs = [{ type = { kind = "primitive", name = "i32" } }]
-generic_params = []
-constraints = []
-[operations.semantics]
-const_evaluable = false
-overflow = "none"
-nan = "none"
-trap = "none"
-equivalence = "exact_bitwise"
-[operations.effect]
-memory = "none"
-allocates = false
-may_trap = false
-noreturn = false
-external_io = false
-nondeterminism = "deterministic"
-atomic = false
-volatile = false
-[operations.inline]
-policy = "never"
-[operations.lowering]
-kind = "runtime_call"
-[operations.lowering.runtime]
-kind = "internal"
-symbol = "env_current_dir"
-abi_version = "0.1"
-[operations.fallback]
-required = false

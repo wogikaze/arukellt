@@ -113,17 +113,10 @@ function getCandidatePaths(configuredPath) {
     return candidates
   }
   // 2. Repo-local entrypoints when running the extension from a source checkout.
-  const exeName = process.platform === 'win32' ? 'arukellt.exe' : 'arukellt'
   const repoRoot = path.resolve(__dirname, '..', '..', '..')
   const selfhostWrapper = path.join(repoRoot, 'scripts', 'run', 'arukellt-selfhost.sh')
   if (fs.existsSync(selfhostWrapper)) {
     candidates.push({ path: selfhostWrapper, source: 'repo selfhost wrapper: scripts/run/arukellt-selfhost.sh' })
-  }
-  for (const rel of [
-    path.join('target', 'debug', exeName),
-    path.join('target', 'release', exeName),
-  ]) {
-    candidates.push({ path: path.join(repoRoot, rel), source: `repo build: ${rel}` })
   }
   // 3. PATH lookup (default name)
   candidates.push({ path: 'arukellt', source: 'PATH' })
@@ -131,7 +124,6 @@ function getCandidatePaths(configuredPath) {
   const homeDir = os.homedir()
   const defaultPaths = [
     path.join(homeDir, '.ark', 'bin', 'arukellt'),
-    path.join(homeDir, '.cargo', 'bin', 'arukellt'),
     '/usr/local/bin/arukellt',
   ]
   for (const p of defaultPaths) {
@@ -186,7 +178,7 @@ function discoverBinary(configuredPath) {
   }
   appendLanguageServerOutputLine('[binary discovery] arukellt binary not found in any location')
   appendLanguageServerOutputLine('[binary discovery] install guide: https://github.com/arukellt/arukellt#installation')
-  return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
+  return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install the selfhost CLI or set arukellt.server.path.' } }
 }
 
 function serverSpawnOptions(command) {
@@ -223,17 +215,6 @@ function startLanguageServer(context, options = {}) {
     return
   }
 
-  // Warn if selfhost backend is requested but not yet available.
-  const useSelfHostBackend = config.get('useSelfHostBackend', false)
-  if (useSelfHostBackend) {
-    if (outputChannel) {
-      outputChannel.appendLine(
-        '[arukellt] WARNING: arukellt.useSelfHostBackend=true but selfhost backend requires ' +
-        'Stage 2 fixpoint (Issue 459). Continuing with the Rust backend.'
-      )
-    }
-  }
-
   const serverOptions = {
     run: {
       command,
@@ -264,7 +245,6 @@ function startLanguageServer(context, options = {}) {
       // arkTarget: null means auto-detect; non-null value is forwarded as project_target.
       arkTarget: config.get('target', null),
       diagnosticsReportLevel: config.get('diagnostics.reportLevel', 'all'),
-      useSelfHostBackend: config.get('useSelfHostBackend', false),
       checkOnSave: config.get('check.onSave', true),
     },
     errorHandler: {
@@ -308,13 +288,6 @@ function startLanguageServer(context, options = {}) {
       vscode.workspace.onDidChangeConfiguration(e => {
         if (!e.affectsConfiguration('arukellt')) return
         const cfg = getConfiguration()
-        const newUseSelfHost = cfg.get('useSelfHostBackend', false)
-        if (newUseSelfHost && outputChannel) {
-          outputChannel.appendLine(
-            '[arukellt] WARNING: arukellt.useSelfHostBackend=true but selfhost backend requires ' +
-            'Stage 2 fixpoint (Issue 459). Continuing with the Rust backend.'
-          )
-        }
         if (client && client.isRunning()) {
           client.sendNotification('workspace/didChangeConfiguration', {
             settings: {
@@ -323,7 +296,6 @@ function startLanguageServer(context, options = {}) {
                 hoverDetailLevel: cfg.get('hoverDetailLevel', 'full'),
                 arkTarget: cfg.get('target', null),
                 diagnosticsReportLevel: cfg.get('diagnostics.reportLevel', 'all'),
-                useSelfHostBackend: cfg.get('useSelfHostBackend', false),
                 checkOnSave: cfg.get('check.onSave', true),
               },
             },

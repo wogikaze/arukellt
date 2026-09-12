@@ -31,7 +31,7 @@ const repoRoot = resolve(here, "../../..");
 
 async function loadCompilerBytes(): Promise<Uint8Array> {
   const candidates = [
-    resolve(repoRoot, ".build/selfhost/arukellt-s2-runtime.wasm"),
+    resolve(repoRoot, "bootstrap/arukellt-selfhost.wasm"),
     resolve(repoRoot, ".build/selfhost/arukellt-s2.wasm"),
     resolve(repoRoot, ".build/selfhost/arukellt-s3.wasm"),
   ];

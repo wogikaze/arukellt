@@ -7,12 +7,6 @@ const vscode = require("vscode");
 const path = require("path");
 
 const repoRoot = path.resolve(__dirname, "..", "..", "..", "..");
-const repoDebugBinary = path.join(
-  repoRoot,
-  "target",
-  "debug",
-  process.platform === "win32" ? "arukellt.exe" : "arukellt"
-);
 const repoSelfhostWrapper = path.join(
   repoRoot,
   "scripts",
@@ -20,7 +14,7 @@ const repoSelfhostWrapper = path.join(
   "arukellt-selfhost.sh"
 );
 
-/** Prefer selfhost wrapper; fall back to legacy Rust debug binary. */
+/** Resolve the repository's selfhost CLI wrapper. */
 function resolveRepoArukelltBinary() {
   if (fs.existsSync(repoSelfhostWrapper)) {
     try {
@@ -30,22 +24,7 @@ function resolveRepoArukelltBinary() {
       /* not executable */
     }
   }
-  if (fs.existsSync(repoDebugBinary)) {
-    return repoDebugBinary;
-  }
   return null;
-}
-
-function isExtensionE2eFixture(binaryPath) {
-  if (!binaryPath || !fs.existsSync(binaryPath)) {
-    return false;
-  }
-  try {
-    const head = fs.readFileSync(binaryPath, "utf8").slice(0, 400);
-    return head.includes("extension-e2e") || head.startsWith("#!/usr/bin/env node");
-  } catch (_) {
-    return false;
-  }
 }
 
 function ensureBootstrapSelfhostWasmEnv() {
@@ -55,11 +34,8 @@ function ensureBootstrapSelfhostWasmEnv() {
   }
 }
 
-/** Raw JSON-RPC LSP pipe tests prefer the committed extension E2E fixture when present. */
+/** Raw JSON-RPC LSP pipe tests use the selfhost wrapper when present. */
 function resolveRepoArukelltLspBinary() {
-  if (isExtensionE2eFixture(repoDebugBinary)) {
-    return repoDebugBinary;
-  }
   ensureBootstrapSelfhostWasmEnv();
   return resolveRepoArukelltBinary();
 }
@@ -312,8 +288,8 @@ function lspCompletionItems(raw) {
 /**
  * Minimal JSON-RPC/LSP over stdio (Content-Length framing), same protocol as
  * the selfhost `arukellt lsp` server (`src/compiler/lsp.ark`). The previous
- * Rust `crates/ark-lsp/tests/lsp_e2e.rs` harness was retired with the crate
- * in #572. Used here because `vscode.executeDefinitionProvider` and
+ * The previous native LSP harness was retired. Used here because
+ * `vscode.executeDefinitionProvider` and
  * vscode-languageclient `sendRequest` can stall under @vscode/test-electron
  * when the server uses TextDocumentSyncKind.Full.
  */
@@ -898,10 +874,7 @@ suite("Task execution and test discovery (#622)", () => {
     const cfg = vscode.workspace.getConfiguration("arukellt");
     savedPath = cfg.get("server.path");
     savedArgs = cfg.get("server.args");
-    const repoBinary = repoDebugBinary;
-    stub = isExtensionE2eFixture(repoBinary)
-      ? { dir: path.dirname(repoBinary), scriptPath: repoBinary }
-      : createArukelltStub();
+    stub = createArukelltStub();
     logPath = path.join(stub.dir, "calls.jsonl");
     try {
       fs.unlinkSync(logPath);
@@ -1052,7 +1025,7 @@ suite("Test Controller (#274)", () => {
 // ============================================================
 // #453 — Go to Definition E2E (verifies #450 identifier-only span)
 // JSON-RPC to `arukellt lsp` (selfhost LSP at `src/compiler/lsp.ark`; the
-// Rust `crates/ark-lsp` E2E harness was retired in #572). VS Code API
+// The previous native LSP E2E harness was retired in #572. VS Code API
 // `vscode.executeDefinitionProvider` stalls under @vscode/test-electron here.
 // Placed before stub LSP suite so the subprocess is not affected by stub config.
 // ============================================================

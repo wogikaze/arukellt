@@ -255,8 +255,8 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
 
 ### ツールチェーン（update script が用意する）
 
-- `wasmtime`（`.tool-versions` = 46.0.1）、`wasm-tools`、`cargo-binstall` は update script で導入し、`/usr/local/bin` に symlink 済み。`wasmtime` が無いと `scripts/run/arukellt-selfhost.sh` は exit 127 で全実行が失敗する。
-- Rust/cargo・Python3・Node・`clang`（18）はベースイメージに存在（追加 pip 依存なし）。
+- `wasmtime`（`.tool-versions` = 46.0.1）と `wasm-tools` は update script で導入し、`/usr/local/bin` に symlink 済み。`wasmtime` が無いと `scripts/run/arukellt-selfhost.sh` は exit 127 で全実行が失敗する。
+- Python3・Node・`clang`（18）はベースイメージに存在（追加 pip 依存なし）。
 - `wasmtime` は GC / function-references / memory64 を要求するため、旧版では動かない（wrapper が `--wasm gc --wasm function-references -W memory64=y` を付与）。
 
 ### 実行の非自明な落とし穴
@@ -265,7 +265,7 @@ AI agent（Devin / Cursor）のログ分析から、作業時間の多くがツ�
   - `scripts/run/arukellt-selfhost.sh compile --target wasm32-gc --emit component -o out.component.wasm prog.ark`
   - `wasmtime run --wasm gc --wasm function-references --dir=. out.component.wasm`
   - `run --emit component` を wrapper 経由で使う場合は、出力パス検出のため `-o <path>` を明示すること（未指定だと "component compile produced no output path" になる）。
-- HTTP/sockets や `std::host::fs` を伴う wasm は `scripts/run/arukellt-run-hosted.sh`（host-linker, cargo build 自動）経由になる。
+- filesystem や公式 WASI HTTP/TCP WIT を伴う component は、明示した公式 WIT import と `wasmtime run` の権限（`--dir` など）で実行する。専用 host runner や Rust linker は存在しない。
 - ファイルパスは wrapper が repo root を `--dir` で preopen するため、**リポジトリルート相対**で渡す（絶対パスは "file open error" になりうる）。
 
 ### 検証ゲートの所要時間・前提

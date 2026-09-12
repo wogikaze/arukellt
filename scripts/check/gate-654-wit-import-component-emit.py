@@ -40,10 +40,6 @@ def _compiler() -> list[str] | None:
 
 
 def _find_tool(name: str) -> str | None:
-    if name == "wasm-tools":
-        cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-        if cargo.is_file():
-            return str(cargo)
     return shutil.which(name)
 
 
@@ -68,8 +64,10 @@ def _static_evidence() -> tuple[int, str]:
     if "stub until WIT lowering" in call_wit:
         return 1, "call_wit.ark still marked stub"
     imports = (REPO_ROOT / "src/compiler/wasm/sections_wit_imports.ark").read_text(encoding="utf-8")
-    if "wit_import_binding_interface_id" not in imports:
-        return 1, "sections_wit_imports.ark still stubbed"
+    if "emit_target::is_p2_wasi" not in imports:
+        return 1, "sections_wit_imports.ark does not select the P2 import ABI"
+    if "wit_import_binding_component_interface_id" not in imports:
+        return 1, "sections_wit_imports.ark does not emit standard32 component IDs"
     flags = (REPO_ROOT / "tests/fixtures/wit_import/main.flags").read_text(encoding="utf-8")
     if "--wit" not in flags or "host_math.wit" not in flags:
         return 1, "wit_import/main.flags missing --wit host_math.wit"
@@ -176,13 +174,6 @@ def main() -> int:
         if rc == 2:
             print(f"gate-654-wit-import-component-emit: SKIP (dynamic compile: {msg})")
         elif rc != 0:
-            static_rc, _ = _static_evidence()
-            overlay_rc, _ = _overlay_evidence()
-            if static_rc == 0 and overlay_rc == 0:
-                print(
-                    "gate-654-wit-import-component-emit: PASS (static+overlay; dynamic compile skipped)"
-                )
-                return 0
             failures.append(f"component compile: {msg}")
         else:
             for name, fn in (

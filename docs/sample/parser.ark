@@ -7,7 +7,7 @@
 // - Math   ($…$ / $$…$$) — KaTeX math
 // - Lint   — parser warnings collected in warnings as Warning values
 //
-// NOTE: This is a v0 arukellt transliteration of parser.rs.
+// NOTE: This is a v0 Ark parser example.
 // It demonstrates the language's expressiveness and limitations.
 fn str_find(s: String, needle: String) -> Option<i32> {
     let n = len(needle)

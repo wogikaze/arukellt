@@ -1,7 +1,7 @@
 """Selfhost domain check runners — pure Python, no shell script calls.
 
 Per ADR-029 (#585) the four selfhost gates run entirely against the
-selfhost compiler under wasmtime and never consult ``target/debug/arukellt``.
+selfhost compiler under wasmtime and never consult a native compiler binary.
 
 The trusted base is the committed pinned-reference wasm at
 ``bootstrap/arukellt-selfhost.wasm`` (see ``bootstrap/PROVENANCE.md``).
@@ -158,9 +158,9 @@ def _remove_tree(path: Path) -> None:
         raise OSError(f"failed to remove directory tree: {path}")
 
 
-# Bootstrap overlay (``MONOLITHIC_OVERLAY_*``) remains for stage-0→s2 builds when
-# modular ``src/compiler/**/mod.ark`` trees need a flat workspace.  Runtime gates
-# use s2 (or heap-patched s2-runtime) once built; pinned wasm is stage-0 only.
+# The pinned compiler is a normal direct-Wasmtime stage-0 executable. The source
+# overlay remains only for source-layout compatibility checks; it never supplies
+# a runtime or host implementation.
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 
@@ -168,16 +168,6 @@ PINNED_WASM_REL = "bootstrap/arukellt-selfhost.wasm"
 BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-pinned-bootstrap.wasm"
 S2_RUNTIME_WASM_REL = ".build/selfhost/arukellt-s2-runtime.wasm"
 CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
-HOP_BOOTSTRAP_WASM_REL = ".build/selfhost/arukellt-hop-bootstrap.wasm"
-HOP_BOOTSTRAP_COMMIT = "a56d6d53"
-HOP_BOOTSTRAP_PATCH_REV = 2
-# Pin is wasm32-gc / wasi-p2. Its wasm32 emit of current source is not a
-# fixpoint (pin s2 ≠ s2-from-current). Hop through a current-source gc
-# compiler first, then emit official wasm32 s2.
-S2_GC_HOP_WASM_REL = ".build/selfhost/arukellt-s2-gc-hop.wasm"
-PIN_HOP_EMIT_TARGET = "wasm32-gc"
-PIN_HOP_EMIT_WASI_VERSION = "wasi-p2"
-PATCHER_DIR_REL = "scripts/bootstrap/wasm-heap-grow-patcher"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
 # Memory64 GC full-compiler compiles (stage-2/3 fixpoint) regularly exceed
@@ -189,9 +179,8 @@ SELFHOST_COMPILE_TIMEOUT = int(os.environ.get("ARUKELLT_SELFHOST_COMPILE_TIMEOUT
 SELFHOST_TARGET = "wasm32-gc"
 SELFHOST_WASI_VERSION = "wasi-p2"
 # Stage-2 must match stage-3 emit target so fixpoint (sha256(s2)==sha256(s3)) holds.
-# Pinned bootstrap remains memory32 wasm32-gc / wasi-p2 (#834) and is only the
-# trust-base host. Official s2/s3 emit wasm32 / wasi-p1 so the successor can
-# AOT without host-linker and stay on the ≤10s overlay path.
+# The pinned bootstrap and all successor stages use direct WASI P1 execution;
+# P2 is emitted as a Component Model artifact and is run by stock Wasmtime.
 BOOTSTRAP_EMIT_TARGET = "wasm32"
 BOOTSTRAP_EMIT_WASI_VERSION = "wasi-p1"
 # KEEP_CLOCK path: handle ABI requires wasm32 emit; host skips GC ref.cast (#823).
@@ -238,8 +227,6 @@ BOOTSTRAP_EXCLUDED_OVERLAY_PREFIXES = (
     "wasm/wat_function_body.ark",
     "wasm/wat_types.ark",
     "lexer/chars.ark",
-    "component_emit.ark",
-    "component_emitter.ark",
     "emit_wat.ark",
     "emitter.ark",
     "parser.ark",
@@ -273,80 +260,26 @@ pub fn optimize_module(m: MirModule, opt_level: i32, target: String) -> MirModul
 }
 """
 
-BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — library exports delegate to flattened component modules.
-use component_component_base
+BOOTSTRAP_COMPONENT_STUB = """// Bootstrap overlay stub — WIT text and contract validation only.
 use component_contract
 use component_contract_preflight
-use component_emit
-use component_export_plan
+use component_wit_bindings
 use component_wit_text
-use component_world_spec
 
-fn bootstrap_mir_has_library_exports(mir: MirModule) -> bool {
-    let fn_count = mir_module_functions::MirModule_function_count(mir)
-    if fn_count < 2 {
-        return false
-    }
-    let mut exportish = 0
-    let mut mi = 0
-    while mi < fn_count {
-        let f = mir_module_functions::MirModule_function_at(mir, mi)
-        let name = mir_function_identity::MirFunction_name(f)
-        if eq(clone(name), String_from("main")) || eq(clone(name), String_from("_start")) {
-            mi = mi + 1
-            continue
-        }
-        if eq(clone(name), String_from("print")) || eq(clone(name), String_from("println")) || eq(clone(name), String_from("eprintln")) {
-            mi = mi + 1
-            continue
-        }
-        if eq(clone(name), String_from("read_stdin")) || eq(clone(name), String_from("read_stdin_line")) {
-            mi = mi + 1
-            continue
-        }
-        if contains(clone(name), String_from("::")) {
-            mi = mi + 1
-            continue
-        }
-        let nlen = len(name)
-        if nlen > 2 && char_at(name, 0) == 95 && char_at(name, 1) == 95 {
-            mi = mi + 1
-            continue
-        }
-        exportish = exportish + 1
-        mi = mi + 1
-    }
-    exportish > 0
-}
-
-pub fn emit_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    // Inline the #730-safe generic export path. A cross-module call to
-    // `component_emit__emit_component` does not receive a FunctionId under the
-    // flat bootstrap overlay (native-cpp ICE). Keep the same control flow as
-    // component/emit.ark: P2 command wrapper or generic library exports.
-    let _target = target
-    if component_world_spec::world_spec_uses_p2_command_component(clone(world), clone(wasi_version)) {
-        return wasm::emit_p2_command_component(core_wasm)
-    }
-    let out = component_component_base::comp_new_component_writer()
-    let plan = component_export_plan::collect_component_exports(mir)
-    emit_component_generic_exports(out, core_wasm, plan, mir)
-}
-
-pub fn mir_has_library_exports(mir: MirModule) -> bool {
-    bootstrap_mir_has_library_exports(mir)
-}
-
-fn bootstrap_emit_wit_with_world(decls: Vec<AstNode>, world: String) -> String {
-    component_wit_text::bootstrap_emit_wit_from_decls_with_world(decls, world)
+fn bootstrap_emit_wit_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
+    component_wit_text::bootstrap_emit_wit_from_decls_with_world(decls, world, wit_paths)
 }
 
 pub fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
-    bootstrap_emit_wit_with_world(decls, String_new())
+    bootstrap_emit_wit_with_world(decls, String_new(), Vec::new<String>())
 }
 
-pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
-    bootstrap_emit_wit_with_world(decls, world)
+pub fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
+    bootstrap_emit_wit_with_world(decls, world, wit_paths)
+}
+
+pub fn emit_wit_bindings_text(source: String) -> String {
+    component_wit_bindings::emit_wit_bindings_text(source)
 }
 
 pub fn collect_export_roots(decls: Vec<AstNode>) -> Vec<String> {
@@ -368,9 +301,6 @@ pub fn validate_wit_import_surface(paths: Vec<String>) -> String {
 }
 
 pub fn validate_export_surface(decls: Vec<AstNode>) -> String {
-    // Keep canonical ABI export validation alive through the bootstrap facade.
-    // Flat-overlay dedupe renames the real helpers; bootstrap_* bridges are
-    // patched in after rename (see _patch_bootstrap_component_contract_delegate).
     component_contract::bootstrap_validate_export_surface(decls)
 }
 
@@ -387,15 +317,9 @@ pub fn component_world_spec__world_target_error(world: String, target: String, e
 }
 """
 
-BOOTSTRAP_EMIT_LIBRARY_PATCH = """
-pub fn bootstrap_emit_library_component(core_wasm: Vec<i32>, mir: MirModule, target: String, wasi_version: String, world: String) -> Vec<i32> {
-    component_emit__emit_library_component(core_wasm, mir, target, wasi_version, world)
-}
-"""
-
 BOOTSTRAP_WIT_EMIT_PATCH = """
-pub fn bootstrap_emit_wit_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
-    component_wit_text__emit_wit_text_from_decls_with_world(decls, world)
+pub fn bootstrap_emit_wit_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
+    component_wit_text__emit_wit_text_from_decls_with_world(decls, world, wit_paths)
 }
 
 pub fn bootstrap_collect_wit_export_roots(decls: Vec<AstNode>) -> Vec<String> {
@@ -465,9 +389,7 @@ WORKTREE_LEGACY_FACADE_FILES: dict[str, tuple[str, ...]] = {
     "mir": ("mir_dump.ark",),
     "wasm": ("emitter.ark", "emit_wat.ark"),
 }
-MONOLITHIC_OVERLAY_EXTRA_FILES = (
-    "component_emitter.ark",
-)
+MONOLITHIC_OVERLAY_EXTRA_FILES = ()
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -479,7 +401,7 @@ def _find_wasmtime() -> str | None:
 def _wasm_tools_is_bytecodealliance(tool: str) -> bool:
     """True when ``tool`` is the bytecodealliance CLI (supports ``validate``).
 
-    Login shells often put ``~/.local/bin`` ahead of ``~/.cargo/bin``. A
+    Login shells may put multiple ``wasm-tools`` installations ahead of one another. A
     different Python ``wasm-tools`` objdump utility can then shadow the real
     validator and make ``validate --features ...`` fail with "unrecognized
     arguments", which must not be treated as an invalid module.
@@ -501,9 +423,6 @@ def _wasm_tools_is_bytecodealliance(tool: str) -> bool:
 def _find_wasm_tools() -> str | None:
     """Return path to bytecodealliance ``wasm-tools``, or None."""
     candidates: list[str] = []
-    cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-    if cargo.is_file():
-        candidates.append(str(cargo))
     which = shutil.which("wasm-tools")
     if which and which not in candidates:
         candidates.append(which)
@@ -722,55 +641,6 @@ def _fixpoint_cache_try_write(
     _fixpoint_cache_write(root, entry)
 
 
-def _wasm_section_payload(data: bytes, section_id: int) -> bytes | None:
-    """Return the first section payload with ``section_id``, or None."""
-    if len(data) < 8 or data[0:4] != b"\x00asm":
-        return None
-    offset = 8
-    while offset < len(data):
-        sid = data[offset]
-        offset += 1
-        size, offset = _read_leb_u32(data, offset)
-        end = offset + size
-        if end > len(data):
-            return None
-        if sid == section_id:
-            return data[offset:end]
-        offset = end
-    return None
-
-
-def _wasm_needs_host_linker(wasm_path: Path) -> bool:
-    """True when guest *imports* need tools/host-linker (bridged HTTP/TCP/P2 ABI).
-
-    Scan only the import section. Data-section string literals such as
-    ``wasi:cli/`` in a wasm32/p1 compiler module used to false-trigger this
-    and skip Memory64 widen, then the 4GiB heap faulted.
-    """
-    try:
-        data = wasm_path.read_bytes()
-    except OSError:
-        return False
-    imports = _wasm_section_payload(data, 2)
-    hay = imports if imports is not None else b""
-    # Legacy module name (pre-#727), WIT-shaped bridged guest ABI (#727),
-    # or core wasi-p2 imports that plain wasmtime cannot link (#834).
-    return (
-        b"arukellt_host" in hay
-        or b"wasi:http/outgoing-handler@" in hay
-        or b"wasi:http/incoming-handler@" in hay
-        or b"wasi:sockets/tcp@" in hay
-        or b"wasi:cli/" in hay
-        or b"wasi:filesystem/" in hay
-        or b"arukellt:fs@" in hay
-        or b"sockets_connect" in hay
-        or b"sockets_listen" in hay
-        or b"http_get" in hay
-        or b"http_request" in hay
-        or b"http_serve" in hay
-    )
-
-
 def _ensure_aot_cwasm(wasm_path: Path) -> Path:
     """Return a precompiled .cwasm for ``wasm_path``, creating it if needed.
 
@@ -809,14 +679,7 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
 def _wasm_run_cmd(
     wasmtime: str, compiler_wasm: Path, root: Path, args: list[str]
 ) -> list[str]:
-    """Build a run command for ``compiler_wasm``, using AOT .cwasm when available.
-
-    wasi-p2 / host-linker guests skip AOT and route through
-    ``arukellt-run-hosted.sh`` (plain wasmtime cannot link ``wasi:cli/*``; #834).
-    """
-    if _wasm_needs_host_linker(compiler_wasm):
-        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
-        return ["bash", str(hosted), f"--dir={root}", str(compiler_wasm), "--", *args]
+    """Build a direct stock-Wasmtime command for ``compiler_wasm``."""
     cwasm = _ensure_aot_cwasm(compiler_wasm)
     if cwasm.suffix == ".cwasm":
         return [wasmtime, "run", "--allow-precompiled",
@@ -829,11 +692,7 @@ def _wasm_run_cmd(
 
 
 def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
-    """Return argv to execute user wasm, using host-linker when imports need it."""
-    if _wasm_needs_host_linker(wasm_path):
-        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
-        if hosted.is_file():
-            return ["bash", str(hosted), f"--dir={root}", str(wasm_path)]
+    """Return argv to execute user wasm directly with stock Wasmtime."""
     wasmtime = _find_wasmtime()
     return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
             "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
@@ -884,8 +743,8 @@ def _wasm_compile(
     Uses AOT precompiled .cwasm when available to skip ~5s of JIT overhead.
     Passes --cache-dir to enable per-module parse caching (only for selfhost
     compilers that support the flag; skipped for pinned bootstrap).
-    wasi-p2 compilers route through host-linker (plain wasmtime cannot link
-    ``wasi:cli/*`` core imports; #834).
+    The compiler itself always runs directly under stock Wasmtime. A P2 output
+    is a component and is handled by the caller after compilation.
     """
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
@@ -910,37 +769,28 @@ def _wasm_compile(
         "compile", src, "--target", emit_target, "--wasi-version", emit_wasi,
         "-o", guest_out, *cache_args, *(extra_args or []),
     ]
-    if _wasm_needs_host_linker(compiler_wasm):
-        hosted = root / "scripts" / "run" / "arukellt-run-hosted.sh"
-        host_dirs = [f"--dir={p}" for p in preopen_paths]
-        result = _run(
-            ["bash", str(hosted), *host_dirs, str(compiler_wasm), "--", *guest_argv],
-            root,
-            timeout=timeout,
-        )
+    dirs: list[str] = []
+    for p in preopen_paths:
+        dirs.extend(["--dir", p])
+    # Use AOT precompiled .cwasm when available for faster startup
+    run_wasm = _ensure_aot_cwasm(compiler_wasm)
+    run_flags: list[str]
+    if run_wasm.suffix == ".cwasm":
+        run_flags = [
+            "--allow-precompiled",
+            *WASMTIME_SELFHOST_WASM_FLAGS,
+            "--wasm", "max-wasm-stack=16777216",
+        ]
     else:
-        dirs: list[str] = []
-        for p in preopen_paths:
-            dirs.extend(["--dir", p])
-        # Use AOT precompiled .cwasm when available for faster startup
-        run_wasm = _ensure_aot_cwasm(compiler_wasm)
-        run_flags: list[str]
-        if run_wasm.suffix == ".cwasm":
-            run_flags = [
-                "--allow-precompiled",
-                *WASMTIME_SELFHOST_WASM_FLAGS,
-                "--wasm", "max-wasm-stack=16777216",
-            ]
-        else:
-            run_flags = [
-                *WASMTIME_SELFHOST_WASM_FLAGS,
-                "--wasm", "max-wasm-stack=16777216",
-            ]
-        result = _run(
-            [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
-            root,
-            timeout=timeout,
-        )
+        run_flags = [
+            *WASMTIME_SELFHOST_WASM_FLAGS,
+            "--wasm", "max-wasm-stack=16777216",
+        ]
+    result = _run(
+        [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
+        root,
+        timeout=timeout,
+    )
     if workspace_root is not None:
         staged = workspace_root / guest_out
         stderr = result.stderr or ""
@@ -1462,20 +1312,6 @@ def _reapply_global_overlay_dedupe(compiler_out: Path, write_order: list[str]) -
 
 
 _COMPONENT_STUB_REL = "component.ark"
-_WIT_BRIDGE_PROMOTE_MODULES = (
-    "component_wit_text.ark",
-    "component_wit_type_defs.ark",
-    "component_wit_decl.ark",
-    "component_wit_names.ark",
-    "component_wit_types.ark",
-    "component_ast_node.ark",
-    "component_world_spec.ark",
-    "component_type_node.ark",
-    "component_naming.ark",
-    "parser_kinds.ark",
-)
-
-
 def _reapply_post_stub_overlay_dedupe(compiler_out: Path, write_order: list[str]) -> None:
     """Re-dedupe after component stub write so driver-facing symbols stay on stub."""
     entries: list[tuple[str, str]] = []
@@ -1588,11 +1424,12 @@ def _patch_bootstrap_component_contract_delegate(compiler_out: Path) -> None:
 
     stub_text = stub_path.read_text(encoding="utf-8")
     if "use component_contract\n" not in stub_text:
-        stub_text = _replace_required(
-            stub_text,
-            "use component_component_base\n",
-            "use component_component_base\nuse component_contract\nuse component_contract_preflight\n",
-            "add contract imports to component stub",
+        raise BootstrapOverlayError(
+            "component.ark stub must import component_contract"
+        )
+    if "use component_contract_preflight\n" not in stub_text:
+        raise BootstrapOverlayError(
+            "component.ark stub must import component_contract_preflight"
         )
     if "bootstrap_validate_export_surface" not in stub_text:
         raise BootstrapOverlayError(
@@ -1606,7 +1443,7 @@ def _patch_bootstrap_component_contract_delegate(compiler_out: Path) -> None:
 
 
 def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
-    """Route --emit wit through wit_text bridge so DCE keeps the implementation."""
+    """Route --emit wit through the flattened WIT implementation."""
     path = compiler_out / "driver_emit.ark"
     if not path.is_file():
         return
@@ -1631,36 +1468,7 @@ def _patch_bootstrap_driver_wit_delegate(compiler_out: Path) -> None:
             text,
             old,
             new,
-            "route emit_wit_text through component_wit_text bridge in driver_emit",
-        )
-        path.write_text(text, encoding="utf-8")
-
-
-def _patch_bootstrap_driver_component_delegate(compiler_out: Path) -> None:
-    """Route library --emit component through wasm scalar emitter; stub keeps P2 command."""
-    path = compiler_out / "driver_emit.ark"
-    if not path.is_file():
-        return
-    text = path.read_text(encoding="utf-8")
-    old = (
-        "    let comp_bytes = component::emit_component(core_wasm, mir_module, "
-        "driver_config_record::config_target(config), driver_config_record::config_wasi_version(config), "
-        "driver_config_record::config_world(config))"
-    )
-    new = (
-        "    let comp_bytes = if component::mir_has_library_exports(mir_module) {\n"
-        "        wasm::emit_library_component(core_wasm, mir_module)\n"
-        "    } else {\n"
-        "        component::emit_component(core_wasm, mir_module, driver_config_record::config_target(config), "
-        "driver_config_record::config_wasi_version(config), driver_config_record::config_world(config))\n"
-        "    }"
-    )
-    if old in text and "emit_library_component" not in text:
-        text = _replace_required(
-            text,
-            old,
-            new,
-            "route library component emit through wasm::emit_library_component in driver_emit",
+            "route emit_wit_text through component_wit_text in driver_emit",
         )
         path.write_text(text, encoding="utf-8")
 
@@ -2104,66 +1912,6 @@ def _patch_bootstrap_wasm_mod_stub_emit_wat(text: str) -> str:
     return _replace_required(text, old_emit, new_emit, "stub emit_wat to empty string for bootstrap")
 
 
-def _patch_bootstrap_component_wit_bridge(compiler_out: Path) -> None:
-    """Promote overlay modules used by bootstrap library/WIT helpers."""
-    for rel_name in _WIT_BRIDGE_PROMOTE_MODULES:
-        module_path = compiler_out / rel_name
-        if not module_path.is_file():
-            continue
-        text = module_path.read_text(encoding="utf-8")
-        text = _promote_top_level_fns_public(text)
-        module_path.write_text(text, encoding="utf-8")
-    emit_path = compiler_out / "component_emit.ark"
-    if emit_path.is_file():
-        emit_text = emit_path.read_text(encoding="utf-8")
-        if "bootstrap_emit_library_component" not in emit_text:
-            if emit_text and not emit_text.endswith("\n"):
-                emit_text = emit_text + "\n"
-            emit_text = _promote_top_level_fns_public(emit_text) + BOOTSTRAP_EMIT_LIBRARY_PATCH
-            emit_path.write_text(emit_text, encoding="utf-8")
-
-
-def _patch_bootstrap_wasm_mod_p2_emit(text: str) -> str:
-    """Ensure flat wasm facade keeps P2 component emit after overlay dedupe."""
-    if "emit_p2_command_component" in text:
-        text = _patch_bootstrap_wasm_mod_library_emit(text)
-        return text
-    stub = """
-pub fn emit_p2_command_component(core_wasm: Vec<i32>) -> Vec<i32> {
-    wasm_component_p2_emit::emit_p2_command_component(core_wasm)
-}
-
-pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    wasm_library_component_emit::emit_library_component(core_wasm, mir)
-}
-"""
-    if text and not text.endswith("\n"):
-        text = text + "\n"
-    return text + stub
-
-
-def _patch_bootstrap_wasm_mod_library_emit(text: str) -> str:
-    if "emit_library_component" in text:
-        return text
-    stub = """
-pub fn emit_library_component(core_wasm: Vec<i32>, mir: MirModule) -> Vec<i32> {
-    wasm_library_component_emit::emit_library_component(core_wasm, mir)
-}
-"""
-    if text and not text.endswith("\n"):
-        text = text + "\n"
-    return text + stub
-
-
-def _patch_bootstrap_wasm_ark_p2_emit(compiler_out: Path) -> None:
-    wasm_path = compiler_out / "wasm.ark"
-    if wasm_path.is_file():
-        wasm_path.write_text(
-            _patch_bootstrap_wasm_mod_p2_emit(wasm_path.read_text(encoding="utf-8")),
-            encoding="utf-8",
-        )
-
-
 def _git_compiler_file(root: Path, rev: str, rel_name: str) -> str | None:
     result = subprocess.run(
         ["git", "show", f"{rev}:src/compiler/{rel_name}"],
@@ -2233,7 +1981,6 @@ def _write_worktree_namespace_overlay(
             text = source_path.read_text(encoding="utf-8")
         if rel_name == "wasm/mod.ark":
             text = _patch_bootstrap_wasm_mod_stub_emit_wat(text)
-            text = _patch_bootstrap_wasm_mod_p2_emit(text)
         # Pinned bootstrap lacks clock intrinsics; stub timing to 0 by default.
         # ARUKELLT_OVERLAY_KEEP_CLOCK=1 keeps real i32-ms clocks (all timing
         # groups by default) — compile that overlay with s2-runtime (#823).
@@ -2323,13 +2070,6 @@ def _should_skip_flat_overlay_source(source_root: Path, rel: Path) -> bool:
     return nested_mod.is_file()
 
 
-# Pinned selfhost wasm: `lower_to_mir` passes prune=1 into `lower_to_mir_impl`.
-# That strips most of the wasm emitter when compiling the compiler to stage-2 (~345KiB
-# broken s2). `lower_to_mir_no_prune` uses the same call with prune=0.
-_LOWER_TO_MIR_PRUNE_FLAG_ON = bytes((0x20, 0x00, 0x20, 0x01, 0x41, 0x01))
-_LOWER_TO_MIR_PRUNE_FLAG_OFF = bytes((0x20, 0x00, 0x20, 0x01, 0x41, 0x00))
-
-
 def _read_leb_u32(data: bytes, offset: int) -> tuple[int, int]:
     result = 0
     shift = 0
@@ -2414,121 +2154,26 @@ def _dedupe_wasm_export_section_raw(wasm_path: Path) -> bool:
     return True
 
 
-def _ensure_wasm_patcher_binary(root: Path) -> Path | None:
-    """Build the walrus heap/export patcher when sources are newer than the binary."""
-    patcher_dir = root / PATCHER_DIR_REL
-    patcher_src = patcher_dir / "src" / "main.rs"
-    patcher_to64 = patcher_dir / "src" / "wasm32to64.rs"
-    # Prefer repo-root target (workspace .cargo config) then crate-local target.
-    candidates = [
-        root / "target" / "release" / "wasm-heap-grow-patcher",
-        patcher_dir / "target" / "release" / "wasm-heap-grow-patcher",
-    ]
-    if not patcher_src.is_file():
-        return None
-    mtimes = [
-        patcher_src.stat().st_mtime,
-        patcher_dir.joinpath("Cargo.toml").stat().st_mtime,
-        Path(__file__).stat().st_mtime,
-    ]
-    if patcher_to64.is_file():
-        mtimes.append(patcher_to64.stat().st_mtime)
-    source_mtime = max(mtimes)
-    patcher_bin = next((p for p in candidates if p.is_file()), candidates[0])
-    if not patcher_bin.is_file() or patcher_bin.stat().st_mtime < source_mtime:
-        build = subprocess.run(
-            ["cargo", "build", "--release", "--quiet"],
-            cwd=str(patcher_dir),
-            capture_output=True,
-            text=True,
-        )
-        if build.returncode != 0:
-            return None
-        patcher_bin = next((p for p in candidates if p.is_file()), None)
-        if patcher_bin is None:
-            return None
-    return patcher_bin
 
 
 def _dedupe_selfhost_wasm_exports(wasm_path: Path, root: Path) -> bool:
     """Drop duplicate exports without GC (preserves functions needed for self-compile)."""
-    if _dedupe_wasm_export_section_raw(wasm_path):
-        return True
-    patcher_bin = _ensure_wasm_patcher_binary(root)
-    if patcher_bin is not None:
-        staged = wasm_path.with_suffix(".dedupe.wasm")
-        cmd = [str(patcher_bin), str(wasm_path), str(staged), "--dedupe-exports"]
-        patch = subprocess.run(
-            cmd,
-            cwd=str(root),
-            capture_output=True,
-            text=True,
-        )
-        if patch.returncode == 0 and staged.is_file():
-            shutil.copyfile(staged, wasm_path)
-            staged.unlink(missing_ok=True)
-            return True
-    return False
-
-
-def _patch_bootstrap_disable_selfhost_mir_prune(wasm_path: Path) -> bool:
-    """Flip pinned `lower_to_mir` to the no-prune path so stage-2 keeps emitters."""
-    data = bytearray(wasm_path.read_bytes())
-    # The modular pipeline (identified by its lower_entry_input_to_mir export)
-    # hardcodes the no-prune path; the legacy byte pattern is generic enough to
-    # false-match and corrupt an unrelated function, so skip it entirely.
-    if b"lower_entry_input_to_mir" in data:
-        return True
-    idx = data.find(_LOWER_TO_MIR_PRUNE_FLAG_ON)
-    if idx < 0:
-        return data.find(_LOWER_TO_MIR_PRUNE_FLAG_OFF) >= 0
-    data[idx : idx + len(_LOWER_TO_MIR_PRUNE_FLAG_ON)] = _LOWER_TO_MIR_PRUNE_FLAG_OFF
-    wasm_path.write_bytes(data)
-    return True
+    return _dedupe_wasm_export_section_raw(wasm_path)
 
 
 def _ensure_bootstrap_compiler_wasm(root: Path, pinned: Path) -> Path | None:
-    """Return a runnable copy of the pinned bootstrap compiler.
-
-    memory32 ``wasm32-gc`` / ``wasi-p2`` pins (host-linker imports) must not be
-    widened with ``--to-memory64`` — that corrupts GC type sections (#834).
-    Legacy wasm32 pins still get heap-grow + Memory64 widening.
-    """
+    """Return a validated direct-Wasmtime copy of the pinned compiler."""
     out = _resolve_build_rel(root, BOOTSTRAP_WASM_REL)
-    patcher_bin = _ensure_wasm_patcher_binary(root)
-    if patcher_bin is None:
-        return None
-    source_mtime = max(
-        pinned.stat().st_mtime,
-        patcher_bin.stat().st_mtime,
-        Path(__file__).stat().st_mtime,
-    )
+    source_mtime = max(pinned.stat().st_mtime, Path(__file__).stat().st_mtime)
     if out.is_file() and out.stat().st_mtime >= source_mtime:
-        return out
+        return None if _reject_invalid_compiler_wasm(out) else out
     out.parent.mkdir(parents=True, exist_ok=True)
-    # GC wasi-p2 memory32: copy as-is for host-linker (#834).
-    if _wasm_needs_host_linker(pinned) and not _wasm_memory_section_is_memory64(pinned):
-        shutil.copyfile(pinned, out)
-        if not _patch_bootstrap_disable_selfhost_mir_prune(out):
-            return None
-        if _reject_invalid_compiler_wasm(out):
-            return None
-        return out
-    patch = subprocess.run(
-        [str(patcher_bin), str(pinned), str(out), "--to-memory64"],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if patch.returncode != 0 or not out.is_file():
-        return None
-    if not _patch_bootstrap_disable_selfhost_mir_prune(out):
-        return None
-    return out
+    shutil.copyfile(pinned, out)
+    return None if _reject_invalid_compiler_wasm(out) else out
 
 
 def _postprocess_selfhost_compiler_wasm(wasm_path: Path, root: Path) -> None:
-    """Normalize stage-2/3 selfhost wasm (duplicate exports without MIR prune)."""
+    """Normalize stage-2/3 selfhost wasm by removing duplicate exports."""
     _dedupe_selfhost_wasm_exports(wasm_path, root)
 
 
@@ -2626,12 +2271,7 @@ def _widen_compiler_wasm_to_memory64(
     compiler_wasm: Path,
     out: Path,
 ) -> Path | None:
-    """Widen a wasm32 compiler module to Memory64 at ``out`` (validate on success).
-
-    Native Memory64 inputs are copied. memory32 ``wasm32-gc`` / ``wasi-p2``
-    modules (host-linker imports) are copied without ``--to-memory64`` — the
-    patcher does not preserve GC type sections (#834).
-    """
+    """Copy a Memory64 compiler to ``out``; conversion tools are not runtime deps."""
     out.parent.mkdir(parents=True, exist_ok=True)
     if _wasm_memory_section_is_memory64(compiler_wasm):
         if compiler_wasm.resolve() != out.resolve():
@@ -2639,34 +2279,7 @@ def _widen_compiler_wasm_to_memory64(
         if _reject_invalid_compiler_wasm(out):
             return None
         return out
-    # GC wasi-p2 memory32: host-linker runs the module as-is (#834).
-    if _wasm_needs_host_linker(compiler_wasm):
-        if compiler_wasm.resolve() != out.resolve():
-            shutil.copyfile(compiler_wasm, out)
-        if _reject_invalid_compiler_wasm(out):
-            return None
-        return out
-    patcher_bin = _ensure_wasm_patcher_binary(root)
-    if patcher_bin is None:
-        return None
-    # Full selfhost / native-cpp C generation exceeds the historical 4GiB-1
-    # Memory64 initial heap; reserve more pages so the bump allocator does not
-    # depend on the i32-shaped grow helper past the wasm32 ceiling.
-    initial_pages = os.environ.get("ARUKELLT_WASM_INITIAL_PAGES", "131072").strip()
-    patch_cmd = [str(patcher_bin), str(compiler_wasm), str(out), "--to-memory64"]
-    if initial_pages and initial_pages != "0":
-        patch_cmd.append(f"--initial-pages={initial_pages}")
-    patch = subprocess.run(
-        patch_cmd,
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if patch.returncode != 0 or not out.is_file():
-        return None
-    if _reject_invalid_compiler_wasm(out):
-        return None
-    return out
+    return None
 
 
 def _wasm_opt_memory32(src: Path, dst: Path) -> bool:
@@ -2696,26 +2309,18 @@ def _wasm_opt_memory32(src: Path, dst: Path) -> bool:
 
 
 def _ensure_runtime_compiler_wasm(root: Path, compiler_wasm: Path) -> Path | None:
-    """Prepare a stage-3 runtime compiler from s2 (opt + heap-grow + memory64).
+    """Return a validated direct-execution compiler artifact.
 
-    Stage-2 wasm32 modules often omit ``memory.grow``; the patcher injects grow
-    sites, then ``wasm32to64`` widens the module.  Address canonization in the
-    converter keeps sign-extended heap pointers in ``[2GiB, 4GiB)`` valid and
-    leaves non-negative addresses (including past 4GiB) as full i64 (#730).
-
-    ``wasm-opt -O3`` runs on the memory32 module only. Hashed s2/s3 stay raw.
+    Memory width is selected by the Ark emitter. No post-link heap or memory
+    rewrite is performed here.
     """
     out = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
     if out.is_file() and out.stat().st_mtime >= compiler_wasm.stat().st_mtime:
         if not _reject_invalid_compiler_wasm(out):
             return out
-    if _wasm_needs_host_linker(compiler_wasm) or _wasm_memory_section_is_memory64(compiler_wasm):
+    if _wasm_memory_section_is_memory64(compiler_wasm):
         return _widen_compiler_wasm_to_memory64(root, compiler_wasm, out)
-    opt32 = compiler_wasm.with_name(compiler_wasm.stem + "-runtime-opt32.wasm")
-    source = compiler_wasm
-    if _wasm_opt_memory32(compiler_wasm, opt32):
-        source = opt32
-    return _widen_compiler_wasm_to_memory64(root, source, out)
+    return compiler_wasm if not _reject_invalid_compiler_wasm(compiler_wasm) else None
 
 
 def _patch_monolithic_typechecker_unify(text: str) -> str:
@@ -2911,10 +2516,10 @@ def _patch_monolithic_typechecker(text: str) -> str:
 
 
 def _needs_flat_bootstrap_overlay(root: Path) -> bool:
-    compiler = root / "src" / "compiler"
-    if not compiler.is_dir():
-        return False
-    return any(compiler.rglob("mod.ark"))
+    # The pinned compiler understands the current module layout only through
+    # this generated source-layout overlay.  It changes file placement and
+    # visibility; it does not add a runtime adapter or compatibility ABI.
+    return True
 
 
 def _should_try_flat_overlay(stderr: str) -> bool:
@@ -2925,74 +2530,6 @@ def _should_try_flat_overlay(stderr: str) -> bool:
     if "wasm trap" in stderr:
         return True
     return False
-
-
-def _ensure_hop_bootstrap_compiler_wasm(root: Path, bootstrap: Path) -> Path | None:
-    """Build a hop compiler (pinned -> a56+unify) for oversized modular sources."""
-    out = _resolve_build_rel(root, HOP_BOOTSTRAP_WASM_REL)
-    patcher_bin = _ensure_wasm_patcher_binary(root)
-    patch_marker = _selfhost_dir(root) / f"hop-bootstrap-patch-rev{HOP_BOOTSTRAP_PATCH_REV}"
-    if (
-        out.is_file()
-        and out.stat().st_mtime >= bootstrap.stat().st_mtime
-        and patch_marker.is_file()
-        and patcher_bin is not None
-        and out.stat().st_mtime >= patcher_bin.stat().st_mtime
-    ):
-        return out
-    wasmtime = _find_wasmtime()
-    if not wasmtime or patcher_bin is None:
-        return None
-    work_dir = _build_dir(root) / "hop-bootstrap-work"
-    if work_dir.exists():
-        _remove_tree(work_dir)
-    work_dir.mkdir(parents=True, exist_ok=True)
-    src_dir = work_dir / "src" / "compiler"
-    archive = subprocess.run(
-        ["git", "archive", HOP_BOOTSTRAP_COMMIT, "src/compiler"],
-        cwd=str(root),
-        capture_output=True,
-    )
-    if archive.returncode != 0:
-        return None
-    extract = subprocess.run(
-        ["tar", "-x", "-C", str(work_dir)],
-        input=archive.stdout,
-        capture_output=True,
-    )
-    if extract.returncode != 0:
-        return None
-    tc_path = src_dir / "typechecker.ark"
-    if not tc_path.is_file():
-        return None
-    tc_path.write_text(
-        _patch_monolithic_typechecker(tc_path.read_text(encoding="utf-8")),
-        encoding="utf-8",
-    )
-    shutil.copyfile(bootstrap, work_dir / "hop-compiler.wasm")
-    hop_s2 = work_dir / "hop-s2.wasm"
-    compile = subprocess.run(
-        [wasmtime, "run", *WASMTIME_SELFHOST_WASM_FLAGS, "--dir", ".", "hop-compiler.wasm", "--",
-         "compile", "src/compiler/main.ark", "--target", BOOTSTRAP_EMIT_TARGET, "--wasi-version", BOOTSTRAP_EMIT_WASI_VERSION, "-o", "hop-s2.wasm"],
-        cwd=str(work_dir),
-        capture_output=True,
-        text=True,
-        timeout=SELFHOST_COMPILE_TIMEOUT,
-    )
-    if compile.returncode != 0 or not hop_s2.is_file():
-        return None
-    out.parent.mkdir(parents=True, exist_ok=True)
-    patch = subprocess.run(
-        [str(patcher_bin), str(hop_s2), str(out), "--to-memory64"],
-        cwd=str(root),
-        capture_output=True,
-        text=True,
-    )
-    if patch.returncode != 0 or not out.is_file():
-        return None
-    patch_marker.parent.mkdir(parents=True, exist_ok=True)
-    patch_marker.write_text(str(HOP_BOOTSTRAP_PATCH_REV), encoding="utf-8")
-    return out
 
 
 def _flatten_compiler_imports(text: str) -> str:
@@ -3446,18 +2983,13 @@ def _prepare_flattened_selfhost_source_locked(
                 f"bootstrap overlay omitted required MIR optimization source: {required_rel}"
             )
     _reapply_global_overlay_dedupe(compiler_out, write_order)
-    _patch_bootstrap_mir_host_call_delegates(compiler_out)
-    _patch_bootstrap_mir_module_host_needs(compiler_out)
     _patch_bootstrap_stub_static_dispatch(compiler_out)
     _patch_bootstrap_skip_mir_verify(compiler_out)
     (compiler_out / "component.ark").write_text(BOOTSTRAP_COMPONENT_STUB, encoding="utf-8")
-    _patch_bootstrap_component_wit_bridge(compiler_out)
     _reapply_post_stub_overlay_dedupe(compiler_out, write_order)
     _patch_bootstrap_component_wit_stub_calls(compiler_out)
     _patch_bootstrap_component_contract_delegate(compiler_out)
     _patch_bootstrap_driver_wit_delegate(compiler_out)
-    _patch_bootstrap_driver_component_delegate(compiler_out)
-    _patch_bootstrap_wasm_ark_p2_emit(compiler_out)
     _write_bootstrap_namespace_facades(compiler_out)
     _patch_bootstrap_main_host_to_prelude(compiler_out)
     ark_toml = source_root / "ark.toml"
@@ -3560,191 +3092,6 @@ def _patch_bootstrap_main_host_to_prelude(compiler_out: Path) -> None:
         text, "stdio::println(", "println(", "main stdio::println -> println"
     )
     main_path.write_text(text, encoding="utf-8")
-
-
-def _patch_bootstrap_mir_host_call_delegates(compiler_out: Path) -> None:
-    """Drop mir host-call facades that recurse after overlay symbol renaming."""
-    fn_path = compiler_out / "mir_module_functions.ark"
-    host_path = compiler_out / "mir_module_host_calls.ark"
-    if not fn_path.is_file() or not host_path.is_file():
-        return
-    host_text = host_path.read_text(encoding="utf-8")
-    text = fn_path.read_text(encoding="utf-8")
-    for symbol in ("mir_call_is_runtime_host", "mir_call_is_wasi_http_outgoing"):
-        renamed = f"mir_module_host_calls__{symbol}"
-        if re.search(
-            rf"pub fn {re.escape(renamed)}\(callee: String\) -> bool",
-            host_text,
-        ):
-            callee_name = renamed
-        elif re.search(
-            rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool",
-            host_text,
-        ):
-            callee_name = f"mir_module_host_calls::{symbol}"
-        else:
-            continue
-        # Facades may already be stripped as thin overlay delegates.
-        text = _sub_optional(
-            text,
-            rf"pub fn {re.escape(symbol)}\(callee: String\) -> bool \{{[^}}]+\}}\n+",
-            "",
-            f"drop recursive host-call facade {symbol} from mir_module_functions",
-            count=1,
-        )
-        # Flat-overlay publish renames host helpers to mir_module_host_calls__*.
-        # Rewrite both bare and module-qualified call sites to the published name.
-        if callee_name.startswith("mir_module_host_calls__"):
-            text = text.replace(
-                f"mir_module_host_calls::{symbol}(",
-                f"{callee_name}(",
-            )
-        text = re.sub(
-            rf"(?<![:_]){re.escape(symbol)}\(",
-            f"{callee_name}(",
-            text,
-        )
-    if "use mir_module_host_calls" not in text and "mir_module_host_calls::" in text:
-        text = _replace_required(
-            text,
-            "use mir_opcodes\n",
-            "use mir_opcodes\nuse mir_module_host_calls\n",
-            "add use mir_module_host_calls import after mir_opcodes",
-        )
-    fn_path.write_text(text, encoding="utf-8")
-
-
-def _patch_bootstrap_mir_module_host_needs(compiler_out: Path) -> None:
-    """Replace host-import needs scans with an overlay-safe inline version (#727).
-
-    The live tree scans via ``mir_module_host_calls::*`` helpers, but after
-    flat-module symbol renaming those call paths still trap during bootstrap
-    emission. Keep the scan local to ``mir_module_functions`` with direct
-    string compares so WIT-shaped HTTP/sockets imports are emitted.
-    """
-    path = compiler_out / "mir_module_functions.ark"
-    if not path.is_file():
-        return
-    text = path.read_text(encoding="utf-8")
-    inline_match = """
-fn _overlay_callee_needs_network_host(callee: String) -> bool {
-    if eq(clone(callee), String_from("http_get")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_http_get")) { return true }
-    if eq(clone(callee), String_from("http::get")) { return true }
-    if eq(clone(callee), String_from("std::host::http::get")) { return true }
-    if eq(clone(callee), String_from("runtime.get")) { return true }
-    if eq(clone(callee), String_from("http_request")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_http_request")) { return true }
-    if eq(clone(callee), String_from("http::request")) { return true }
-    if eq(clone(callee), String_from("std::host::http::request")) { return true }
-    if eq(clone(callee), String_from("runtime.request")) { return true }
-    if eq(clone(callee), String_from("http_serve")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_http_serve")) { return true }
-    if eq(clone(callee), String_from("http::serve")) { return true }
-    if eq(clone(callee), String_from("std::host::http::serve")) { return true }
-    if eq(clone(callee), String_from("runtime.serve")) { return true }
-    if eq(clone(callee), String_from("sockets_connect")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_sockets_connect")) { return true }
-    if eq(clone(callee), String_from("sockets::connect")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::connect")) { return true }
-    if eq(clone(callee), String_from("runtime.connect")) { return true }
-    if eq(clone(callee), String_from("sockets_read")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_sockets_read")) { return true }
-    if eq(clone(callee), String_from("sockets::read")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::read")) { return true }
-    if eq(clone(callee), String_from("runtime.read")) { return true }
-    if eq(clone(callee), String_from("sockets_write")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_sockets_write")) { return true }
-    if eq(clone(callee), String_from("sockets::write")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::write")) { return true }
-    if eq(clone(callee), String_from("runtime.write")) { return true }
-    if eq(clone(callee), String_from("sockets_listen")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_sockets_listen")) { return true }
-    if eq(clone(callee), String_from("sockets::listen")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::listen")) { return true }
-    if eq(clone(callee), String_from("runtime.listen")) { return true }
-    if eq(clone(callee), String_from("sockets_accept")) { return true }
-    if eq(clone(callee), String_from("__runtime_abi_sockets_accept")) { return true }
-    if eq(clone(callee), String_from("sockets::accept")) { return true }
-    if eq(clone(callee), String_from("std::host::sockets::accept")) { return true }
-    if eq(clone(callee), String_from("runtime.accept")) { return true }
-    false
-}
-""".lstrip()
-    scan_body = """
-    let fn_count = MirModule_function_count(mir)
-    let mut fi = 0
-    while fi < fn_count {
-        let f = MirModule_function_at(mir, fi)
-        let block_count = mir_function_block_queries::MirFunction_block_count(f)
-        let mut bi = 0
-        while bi < block_count {
-            let block = mir_function_block_queries::MirFunction_block_at(f, bi)
-            let inst_count = mir_block_inst_access::MirBlock_inst_count(block)
-            let mut ii = 0
-            while ii < inst_count {
-                let inst = mir_block_inst_access::MirBlock_inst_at(block, ii)
-                if mir_inst_accessors_shape::MirInst_op(inst) == mir_opcodes::MIR_CALL() {
-                    let callee = mir_inst_accessors_literals::MirInst_str_val(inst)
-                    if _overlay_callee_needs_network_host(clone(callee)) {
-                        return 1
-                    }
-                }
-                ii = ii + 1
-            }
-            bi = bi + 1
-        }
-        fi = fi + 1
-    }
-    0
-""".rstrip()
-    http_only_body = scan_body.replace(
-        "_overlay_callee_needs_network_host(clone(callee))",
-        "("
-        + "eq(clone(callee), String_from(\"http_get\")) || "
-        + "eq(clone(callee), String_from(\"__runtime_abi_http_get\")) || "
-        + "eq(clone(callee), String_from(\"http::get\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::get\")) || "
-        + "eq(clone(callee), String_from(\"runtime.get\")) || "
-        + "eq(clone(callee), String_from(\"http_request\")) || "
-        + "eq(clone(callee), String_from(\"__runtime_abi_http_request\")) || "
-        + "eq(clone(callee), String_from(\"http::request\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::request\")) || "
-        + "eq(clone(callee), String_from(\"runtime.request\")) || "
-        + "eq(clone(callee), String_from(\"http_serve\")) || "
-        + "eq(clone(callee), String_from(\"__runtime_abi_http_serve\")) || "
-        + "eq(clone(callee), String_from(\"http::serve\")) || "
-        + "eq(clone(callee), String_from(\"std::host::http::serve\")) || "
-        + "eq(clone(callee), String_from(\"runtime.serve\"))"
-        + ")",
-    )
-    if "_overlay_callee_needs_network_host" not in text:
-        # Insert helper before the first needs_* function.
-        text = _replace_required(
-            text,
-            "pub fn mir_module_needs_wasi_http_outgoing_if_p2",
-            inline_match + "\npub fn mir_module_needs_wasi_http_outgoing_if_p2",
-            "insert overlay-safe network callee matcher",
-        )
-    text = _sub_required(
-        text,
-        r"pub fn mir_module_needs_runtime_host\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_runtime_host(mir: MirModule) -> i32 {"
-        + scan_body
-        + "\n}",
-        "inline overlay-safe mir_module_needs_runtime_host scan",
-        count=1,
-    )
-    text = _sub_required(
-        text,
-        r"pub fn mir_module_needs_wasi_http_outgoing\(mir: MirModule\) -> i32 \{[\s\S]*?\n\}",
-        "pub fn mir_module_needs_wasi_http_outgoing(mir: MirModule) -> i32 {"
-        + http_only_body
-        + "\n}",
-        "inline overlay-safe mir_module_needs_wasi_http_outgoing scan",
-        count=1,
-    )
-    path.write_text(text, encoding="utf-8")
 
 
 def _prepare_bootstrap_workspace(root: Path) -> Path:
@@ -3853,7 +3200,7 @@ def _wasm_compile_selfhost_source(
     wasi_version: str | None = None,
     extra_args: list[str] | None = None,
 ) -> subprocess.CompletedProcess:
-    """Compile current selfhost source, falling back to a flat bootstrap overlay.
+    """Compile the current selfhost source with the bootstrap source overlay.
 
     When use_s3_cache is True, try the s3 compilation cache first:
     1. Run compiler with --fingerprint-only (fast, skips backend)
@@ -3863,8 +3210,7 @@ def _wasm_compile_selfhost_source(
     compile_timeout = SELFHOST_COMPILE_TIMEOUT if timeout is None else timeout
     emit_target = target if target is not None else SELFHOST_TARGET
     emit_wasi = wasi_version if wasi_version is not None else SELFHOST_WASI_VERSION
-    needs_overlay = _needs_flat_bootstrap_overlay(root)
-    workspace = _prepare_bootstrap_workspace(root) if needs_overlay else None
+    workspace = _prepare_bootstrap_workspace(root)
 
     if use_s3_cache:
         if _try_s3_cache(wasmtime, compiler_wasm, out_rel, root, workspace):
@@ -3876,35 +3222,6 @@ def _wasm_compile_selfhost_source(
         prev_emit = os.environ.get("ARUKELLT_OVERLAY_EMIT_TARGET")
         os.environ["ARUKELLT_OVERLAY_EMIT_TARGET"] = emit_target
         try:
-            if needs_overlay:
-                return _wasm_compile(
-                    wasmtime,
-                    compiler_wasm,
-                    SELFHOST_SOURCE_REL,
-                    out_rel,
-                    root,
-                    timeout=compile_timeout,
-                    workspace_root=workspace,
-                    target=emit_target,
-                    wasi_version=emit_wasi,
-                    extra_args=extra_args,
-                )
-            result = _wasm_compile(
-                wasmtime,
-                compiler_wasm,
-                SELFHOST_SOURCE_REL,
-                out_rel,
-                root,
-                timeout=compile_timeout,
-                target=emit_target,
-                wasi_version=emit_wasi,
-                extra_args=extra_args,
-            )
-            if result.returncode == 0:
-                return result
-            if not _should_try_flat_overlay(result.stderr or ""):
-                return result
-            ws = _prepare_bootstrap_workspace(root)
             return _wasm_compile(
                 wasmtime,
                 compiler_wasm,
@@ -3912,7 +3229,7 @@ def _wasm_compile_selfhost_source(
                 out_rel,
                 root,
                 timeout=compile_timeout,
-                workspace_root=ws,
+                workspace_root=workspace,
                 target=emit_target,
                 wasi_version=emit_wasi,
                 extra_args=extra_args,
@@ -3929,64 +3246,25 @@ def _wasm_compile_selfhost_source(
     return result
 
 
-def _ensure_pin_gc_hop_compiler(root: Path, bootstrap: Path) -> Path | None:
-    """Compile current source as wasm32-gc with the pinned host.
-
-    The resulting module still needs host-linker, but its wasm32 emit matches
-    the current compiler. Cached by source fingerprint.
-    """
-    out = _resolve_build_rel(root, S2_GC_HOP_WASM_REL)
-    marker = out.with_suffix(out.suffix + ".source-hash.txt")
-    fingerprint = _selfhost_source_fingerprint(root)
-    if out.is_file() and marker.is_file():
-        try:
-            if marker.read_text(encoding="utf-8").strip() == fingerprint:
-                return out
-        except OSError:
-            pass
-    wasmtime = _find_wasmtime()
-    if not wasmtime:
-        return None
-    result = _wasm_compile_selfhost_source(
-        wasmtime,
-        bootstrap,
-        S2_GC_HOP_WASM_REL,
-        root,
-        target=PIN_HOP_EMIT_TARGET,
-        wasi_version=PIN_HOP_EMIT_WASI_VERSION,
-    )
-    if result.returncode != 0 or not out.is_file():
-        return None
-    try:
-        marker.write_text(fingerprint, encoding="utf-8")
-    except OSError:
-        pass
-    return out
-
-
 def _compile_selfhost_bootstrap_chain(
     wasmtime: str,
     root: Path,
     out_rel: str,
     bootstrap: Path,
 ) -> subprocess.CompletedProcess:
-    """Build official wasm32 s2. Prefer a wasm32 runtime; else pin→gc hop.
-
-    Do not let the pinned wasm32-gc host emit official wasm32 s2: that binary
-    is not a fixpoint against a current-compiler successor.
-    """
+    """Build the next selfhost compiler directly with the pinned compiler."""
     compilers: list[Path] = []
     existing_runtime = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
-    if existing_runtime.is_file() and not _wasm_needs_host_linker(existing_runtime):
+    if existing_runtime.is_file():
         compilers.append(existing_runtime)
-    elif (gc_hop := _ensure_pin_gc_hop_compiler(root, bootstrap)) is not None:
-        compilers.append(gc_hop)
+    else:
+        compilers.append(bootstrap)
     if not compilers:
         return subprocess.CompletedProcess(
             [],
             returncode=1,
             stdout="",
-            stderr="error: no wasm32-capable host for official s2 (need s2-runtime or pin gc hop)",
+            stderr="error: no direct selfhost compiler available",
         )
     last: subprocess.CompletedProcess | None = None
     for compiler in compilers:
@@ -4575,8 +3853,8 @@ def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[
 # ── Fixture parity skip list ─────────────────────────────────────────────────
 
 # Fixtures with known parity differences that are not semantic errors.
-# Pre-585 these tracked Rust-vs-selfhost differences. Post-585 (ADR-029)
-# these track pinned-vs-current selfhost differences with the same root
+# Earlier versions tracked external-compiler-vs-selfhost differences. These
+# now track pinned-vs-current selfhost differences with the same root
 # causes — kept verbatim because the underlying selfhost-emitter
 # limitations have not changed.
 #

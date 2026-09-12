@@ -7,7 +7,7 @@ Worker support.
 
 This package provides a typed JavaScript/TypeScript browser engine for
 playground parsing, formatting, tokenization, and diagnostics. It offers two
-execution modes:
+execution contexts:
 
 | Mode | Import | API | Thread |
 |------|--------|-----|--------|
@@ -35,10 +35,9 @@ npm install @arukellt/playground
 ```ts
 import { createPlayground } from "@arukellt/playground";
 
-const pg = await createPlayground(
-  "/assets/playground-engine",
-  { wasmUrl: "/assets/playground-engine" },
-);
+const pg = await createPlayground({
+  wasmUrl: "/assets/playground-engine",
+});
 
 const result = pg.parse("fn main() {}");
 console.log(result.ok);             // true
@@ -49,7 +48,7 @@ console.log(result.module?.items);  // [{ kind: "fn", name: "main", ... }]
 ### Worker-based (non-blocking)
 
 For editor-like UIs where responsiveness matters, use the worker-based API.
-Playground execution happens off the main thread.
+Playground parsing and diagnostics happen off the main thread.
 
 ```ts
 import { createWorkerPlayground } from "@arukellt/playground";
@@ -68,14 +67,13 @@ pg.destroy();
 
 ## API reference
 
-### `createPlayground(wasmModulePath, opts): Promise<Playground>`
+### `createPlayground(opts): Promise<Playground>`
 
 Create a main-thread playground instance.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `wasmModulePath` | `string` | Compatibility placeholder; the engine is bundled |
-| `opts.wasmUrl` | `string \| URL` | Compatibility placeholder; not fetched |
+| `opts.wasmUrl` | `string \| URL` | URL of the compiler Wasm module |
 
 Returns a `Playground` with synchronous methods.
 
@@ -85,10 +83,14 @@ Create a worker-based playground instance.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `opts.wasmUrl` | `string \| URL` | Compatibility placeholder; not fetched |
+| `opts.wasmUrl` | `string \| URL` | URL of the compiler Wasm module |
 | `opts.workerUrl` | `string \| URL` | *(optional)* URL to the worker script |
 
 Returns a `WorkerPlayground` with async (Promise-based) methods.
+
+The browser API does not run user-generated Wasm. Compiler-backed builds, when
+the compiler asset is available, return core Wasm and compiler diagnostics;
+package and execute the result with the CLI's official WASI/component toolchain.
 
 ### Response types
 
@@ -228,7 +230,7 @@ npm test
 └─────────────────────────────────────────────────────┘
 ```
 
-The package provides two execution paths:
+The package provides two API paths:
 
 1. **Direct mode** — The engine runs on the main thread. Simple and
    low-latency, but blocks the UI during parsing.
@@ -240,7 +242,7 @@ The package provides two execution paths:
 
 - [ADR-017: Playground execution model](../docs/adr/ADR-017-playground-execution-model.md)
   — v1 scope: client-side parse/format/check only, no server execution
-  — v2 scope: browser compile + run (see ADR-017 §v2)
+  — current browser compile-only boundary: see ADR-055
 
 ## v1 scope
 
@@ -252,8 +254,9 @@ This package implements the **v1 playground surface** as defined in ADR-017:
 | Format | ✅ |
 | Tokenize | ✅ |
 | Diagnostics | ✅ |
-| Full compile/run | ❌ v2 |
-| Server-side execution | ❌ v2+ |
+| Compiler-backed core compile | ✅ when a compiler asset is supplied |
+| Browser user-program execution | ❌; use official WASI/component tooling |
+| Server-side execution | ❌ |
 
 ## License
 

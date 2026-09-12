@@ -133,12 +133,8 @@ def test_lowering_size_scan_only_runs_when_timing_is_requested() -> None:
 def test_body_store_host_feature_checks_use_serialized_calls() -> None:
     module_functions = _read("src/compiler/mir/module_functions.ark")
 
-    needs_http = module_functions.index("fn mir_module_needs_wasi_http_outgoing")
-    needs_runtime = module_functions.index("fn mir_module_needs_runtime_host")
-    assert "MirModule_function_body_at" not in module_functions[needs_http:]
-    assert "MirModule_function_body_at" not in module_functions[needs_runtime:]
-    assert "MirModule_body_store_has_wasi_http_outgoing" in module_functions[needs_http:]
-    assert "MirModule_body_store_has_runtime_host_call" in module_functions[needs_runtime:]
+    assert "fn mir_module_needs_wasi_http_outgoing" not in module_functions
+    assert "fn mir_module_needs_runtime_host" not in module_functions
 
 
 def test_non_compact_passes_read_full_functions_from_the_module() -> None:

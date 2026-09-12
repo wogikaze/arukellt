@@ -58,6 +58,114 @@ fn build_function_type_sig(uf: MirFunction, target: String, wasi_version: String
     text::builder_build(sig)
 }
 
+fn p2_is_string_type_name(type_name: String) -> bool {
+    eq(clone(type_name), String_from("string")) ||
+    eq(clone(type_name), String_from("String"))
+}
+
+fn p2_is_supported_scalar_type(value_type: i32) -> bool {
+    value_type == value_types::VT_I32() ||
+    value_type == value_types::VT_I64() ||
+    value_type == value_types::VT_F32() ||
+    value_type == value_types::VT_F64()
+}
+
+fn p2_scalar_type_sig(value_type: i32) -> String {
+    if value_type == value_types::VT_I32() {
+        return String_from("i32")
+    }
+    if value_type == value_types::VT_I64() {
+        return String_from("i64")
+    }
+    if value_type == value_types::VT_F32() {
+        return String_from("f32")
+    }
+    if value_type == value_types::VT_F64() {
+        return String_from("f64")
+    }
+    String_new()
+}
+
+// The raw GC ABI is private to the core module. A P2 library export needs a
+// core-module wrapper when a public WIT string crosses that boundary. The
+// wrapper is deliberately limited to scalar values plus strings until each
+// compound WIT layout has a direct canonical lowering.
+fn p2_function_needs_string_wrapper(f: MirFunction, target: String, wasi_version: String) -> bool {
+    if !emit_target::is_gc_target(clone(target)) || !emit_target::is_p2_wasi(clone(wasi_version)) {
+        return false
+    }
+    let mut has_string = false
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        let param = function_param_view::MirFunction_param_at(f, pi)
+        let type_name = local_access::MirLocal_type_name(param)
+        if p2_is_string_type_name(clone(type_name)) {
+            has_string = true
+        } else if !p2_is_supported_scalar_type(local_access::MirLocal_val_type(param)) {
+            return false
+        }
+        pi = pi + 1
+    }
+    let return_type = function_return_view::MirFunction_return_type(f)
+    let return_type_name = function_return_view::MirFunction_return_type_name(f)
+    if return_type == value_types::VT_VOID() {
+        return has_string
+    }
+    if p2_is_string_type_name(clone(return_type_name)) {
+        return true
+    }
+    if !p2_is_supported_scalar_type(return_type) {
+        return false
+    }
+    has_string
+}
+
+fn p2_canonical_function_type_sig(f: MirFunction) -> String {
+    let mut sig = String_new()
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut pi = 0
+    while pi < param_count {
+        let param = function_param_view::MirFunction_param_at(f, pi)
+        let type_name = local_access::MirLocal_type_name(param)
+        if p2_is_string_type_name(clone(type_name)) {
+            sig = concat(clone(sig), "i32_i32_")
+        } else {
+            sig = concat(clone(sig), concat(p2_scalar_type_sig(local_access::MirLocal_val_type(param)), "_"))
+        }
+        pi = pi + 1
+    }
+    let return_type = function_return_view::MirFunction_return_type(f)
+    if return_type == value_types::VT_VOID() {
+        return concat(clone(sig), "0")
+    }
+    let return_type_name = function_return_view::MirFunction_return_type_name(f)
+    if p2_is_string_type_name(clone(return_type_name)) {
+        return concat(clone(sig), "1i32")
+    }
+    concat(clone(sig), concat("1", p2_scalar_type_sig(return_type)))
+}
+
+fn p2_post_type_sig_for_function(f: MirFunction, function_sig: String) -> String {
+    let return_type_name = function_return_view::MirFunction_return_type_name(f)
+    if p2_is_string_type_name(clone(return_type_name)) {
+        return String_from("i32_0")
+    }
+    let mut result_start = 0
+    let mut i = 0
+    while i < len(function_sig) {
+        if char_at(function_sig, i) == 95 {
+            result_start = i + 1
+        }
+        i = i + 1
+    }
+    let result_sig = substring(function_sig, result_start, len(function_sig))
+    if eq(clone(result_sig), "0") {
+        return "0"
+    }
+    concat(substring(clone(result_sig), 1, len(result_sig)), "_0")
+}
+
 fn build_return_type_sig(
     uf: MirFunction,
     return_type: i32,

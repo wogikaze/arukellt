@@ -43,8 +43,6 @@ fn SelfEmitCtx_apply_call_relocs(
                     fn_idx,
                     ctx_record::SelfEmitCtx_target(ctx),
                     ctx_record::SelfEmitCtx_wasi_version(ctx),
-                    ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-                    ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
                     wit_import_count
                 )
             )

@@ -44,6 +44,36 @@ fn wit_strip_version_txt(pkg: String) -> String {
     substring(pkg, 0, at)
 }
 
+fn wit_extract_package_version(text: String) -> String {
+    let mark = index_of(text, "package ")
+    if mark < 0 {
+        return String_new()
+    }
+    let semi = wit_find_char_from(text, 59, mark + 8)
+    if semi < 0 {
+        return String_new()
+    }
+    let package = wit_trim_txt(substring(text, mark + 8, semi))
+    let at = wit_find_char_from(package, 64, 0)
+    if at < 0 {
+        return String_new()
+    }
+    let version = substring(package, at + 1, len(package))
+    version
+}
+
+fn wit_component_version_txt(version: String) -> String {
+    let major_minor_end = wit_find_char_from(version, 46, 0)
+    if major_minor_end < 0 {
+        return version
+    }
+    let patch_end = wit_find_char_from(version, 46, major_minor_end + 1)
+    if patch_end < 0 {
+        return version
+    }
+    substring(version, 0, patch_end)
+}
+
 fn wit_before_colon_txt(s: String) -> String {
     let colon = wit_find_char_from(s, 58, 0)
     if colon < 0 {

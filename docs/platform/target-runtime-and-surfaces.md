@@ -112,7 +112,7 @@ python3 docs/research/wat-probes/run-probes.py
 
 ### `wasm32` — WASI P2以降・未対応Wasm機能
 
-- **WASI P2以降の機能**（HTTP、sockets 等）を使用しようとした場合:
+- **WASI P2以降の機能**（Component Model や公式の HTTP / sockets interface 等）を使用しようとした場合:
   **コンパイルエラー**。
 - **default emit 禁止の Wasm 機能**（GC、Component Model、Memory64、tail-call、
   relaxed SIMD、multiple memories、EH 等 — 上表）を使用しようとした場合:
@@ -132,12 +132,9 @@ python3 docs/research/wat-probes/run-probes.py
   **コンパイルエラー**（または明示の opt-in プロファイル。default では出さない）。
 
 > **旧 T2（`wasm32-freestanding`）からの変更**:
-> 旧 T2 では stdio は `arukellt_io` ホスト経由で動作し、clock/random/env/fs/http/sockets は
-> `unreachable` 命令で trap する半動的ゲートだった。新設計では `arukellt_io` を廃止し、
-> 全てのホスト関数を WASI P2/P3 imports 経由に統一する。ブラウザ向けは jco transpile が
-> WASI imports を JS glue に変換するため、WASI 非依存モードは不要となる。
-> これにより `unreachable` 分岐（`intrinsic_clock.ark`, `intrinsic_random.ark` 等）と
-> `process::exit` のターゲット分岐不足バグも解消する。
+> 旧 T2 の経路は廃止済みであり、現行の公開ターゲットは `wasm32` と `wasm32-gc` のみを
+> 使用する。`wasm32-gc` の host profile は公式 WASI P2/P3 import と Component Model
+> tooling に限定され、リポジトリ独自の host module や runtime bridge は生成しない。
 
 ### `native-cpp` / `native-llvm`
 
@@ -172,7 +169,7 @@ python3 docs/research/wat-probes/run-probes.py
 | `wasm32` | `wat` | `<input>.wat` | |
 | `wasm32-gc` | `core-wasm` (default) | `<input>.wasm` | |
 | `wasm32-gc` | `wat` | `<input>.wat` | |
-| `wasm32-gc` | `component` | `<input>.component.wasm` | public contract: in-tree (ADR-008); living path may still use helpers |
+| `wasm32-gc` | `component` | `<input>.component.wasm` | compiler が core Wasm/WIT を出力し、公式 `wasm-tools` が packaging を担当（ADR-054） |
 | `wasm32-gc` | `wit` | `<input>.wit` | WIT export surface |
 | `wasm32-gc` | `all` | `<input>.wasm` + `<input>.component.wasm` | core + component |
 
@@ -209,8 +206,9 @@ python3 docs/research/wat-probes/run-probes.py
 ### ブラウザ向けパッケージング（jco）
 
 `--emit component` で得た `.component.wasm` をブラウザで動かす場合、ユーザーまたは
-ツールチェーンが `jco transpile` で ESM + JS glue を生成する。これはコンパイラ外の
-手順であり、ADR-008 の in-tree component 生成とは別段である。
+ツールチェーンが `jco transpile` で ESM + JS glue を生成する。これは公式 component
+toolchain の手順であり、compiler 内の独自 runner や host bridge ではない。Playground
+自身は compile-only で、ブラウザ内のユーザープログラム実行は提供しない（ADR-055）。
 
 ```
 arukellt compile --target wasm32-gc --emit component input.ark -o app.component.wasm
@@ -234,12 +232,12 @@ transpile 自体は GC 型を処理できる。scalar `pub fn` の E2E 検証は
 |-----------|----------|-------------|------------|-------|
 | `core-wasm` | Yes | Yes | — | 既定の core Wasm |
 | `wat` | Yes | Yes | — | WAT テキスト |
-| `component` | No | Yes | — | **Public contract (ADR-008):** in-tree. **Implementation:** living path may still use `wasm-tools` / Python helpers — see `current-state.md` |
+| `component` | No | Yes | — | **Public contract (ADR-054):** compiler core/WIT output plus official `wasm-tools` packaging |
 | `wit` | No | Yes | — | WIT export surface |
 | `all` | No | Yes | — | core + component（契約はコンパイラ内; 実装ギャップは current-state） |
 | native emits | — | — | scaffold | native-cppのC99設計はADR-049/RFC-008。現行実装はscaffold |
 
-複数コンポーネントのリンクは ADR-034（`wac plug`）。ブラウザ向けは上記 jco。
+複数コンポーネントのリンクは ADR-034（`wac plug`）。ブラウザ向け packaging は上記 jco。
 
 検証の現行 tier（guaranteed / smoke 等）と fixture 状況は `docs/current-state.md` を正本とする。
 
@@ -310,7 +308,7 @@ transpile 自体は GC 型を処理できる。scalar `pub fn` の E2E 検証は
 | typecheck | guaranteed | shared frontend |
 | compile (core Wasm) | guaranteed | `t3-run` + `t3-compile` fixtures |
 | run (wasmtime) | guaranteed | `t3-run` fixtures with stdout comparison |
-| emit component | smoke | in-tree P2 command (`gate_074` / #714 / #668 guest-native stdio); `component-compile` fixtures |
+| emit component | smoke | 標準 WASI P2 core import を公式 `wasm-tools` で package（ADR-054）; `component-compile` fixtures |
 | emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
 | host capabilities | guaranteed | WASI imports conditionally emitted per reachability |
 | determinism | smoke | baselines spot-checked |
@@ -341,7 +339,10 @@ Status: **scaffold** — asm stub only.
 
 ## Capability surface
 
-全ホスト相互作用は `std::host::*` namespace 経由。
+標準のホスト相互作用は `std::host::*` namespace 経由。HTTP/TCP/UDP の
+旧 facade と専用 linker は公開面から削除し、ネットワーク機能が必要な
+component は公式 WASI `wasi:http` / `wasi:sockets` の WIT を明示的に
+compose する。
 
 ### Host modules
 
@@ -351,11 +352,8 @@ Status: **scaffold** — asm stub only.
 | `std::host::clock` | 1 | available | all |
 | `std::host::random` | 3 | available | all |
 | `std::host::env` | 5 | available | all (partial `wasm32`) |
-| `std::host::fs` | 3 | available | all |
+| `std::host::fs` | 10 | available | all |
 | `std::host::process` | 2 | available | all |
-| `std::host::http` | 2 | not user-reachable | — |
-| `std::host::sockets` | 1 | not user-reachable | — |
-| `std::host::udp` | 1 | not user-reachable | — |
 
 ### Target compatibility matrix
 
@@ -378,9 +376,6 @@ Status: **scaffold** — asm stub only.
 | `fs::write_bytes` | ✓ | ✓ |
 | `process::exit` | ✓ | ✓ |
 | `process::abort` | ✓ | ✓ |
-| `http::request` | — | — |
-| `http::get` | — | — |
-| `sockets::connect` | E0500 | — |
 
 `env::var` は現在の `wasm32` **実装**では未対応である。WASI Preview 1 自体は
 `environ_get` / `environ_sizes_get` を定義している。未対応の理由（emitter・harness・
@@ -402,12 +397,11 @@ Deny-flag SSOT: [`../data/capabilities.toml`](../data/capabilities.toml) / [`../
 ### Known limitations
 
 1. `env::var` は現在の `wasm32` 実装で未対応（WASI P1 に `environ_get` はある。実装ギャップは current-state）
-2. HTTP/sockets/UDP not user-reachable (#633)
-3. No `--deny-stdio` flag
-4. No per-function capability deny (module-level only)
-5. Filesystem deny-by-default but not compile-time scan (runtime failure without `--dir`)
-6. Node.js 実行時の stdin 非対応（`node:wasi` の制限）
-7. `--deny-clock` / `--deny-random` absent from selfhost CLI; diag-parity fixtures skipped (#459)
+2. No `--deny-stdio` flag
+3. No per-function capability deny (module-level only)
+4. Filesystem deny-by-default but not compile-time scan (runtime failure without `--dir`)
+5. Node.js 実行時の stdin 非対応（`node:wasi` の制限）
+6. `--deny-clock` / `--deny-random` absent from selfhost CLI; diag-parity fixtures skipped (#459)
 
 ---
 

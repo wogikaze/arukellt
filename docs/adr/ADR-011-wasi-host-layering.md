@@ -1,9 +1,12 @@
 # ADR-011: host-bound stdlib API は `std::host::*` に隔離する
 
-ステータス: **ACCEPTED** — host-boundなstdlib APIは`std::host::*`に隔離
+ステータス: **SUPERSEDED** — ADR-054 により、HTTP/TCP の stdlib facade と独自 host runtime は削除
 
 決定日: 2026-03-29
 改訂日: 2026-07-11 — ADR-007/013 整合（`wasm32` / `wasm32-gc` ターゲット名）
+
+> この ADR は旧 host-bound API の設計履歴として保持する。現行の拘束力ある判断は
+> [ADR-054](ADR-054-host-linker-and-rust-runtime-retirement.md) を参照すること。
 
 ---
 

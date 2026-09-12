@@ -1,3 +1,4 @@
+// Core type tags used while rendering source declarations as WIT.
 fn WIT_VAL_BOOL() -> i32 { 0x7f }
 fn WIT_VAL_CHAR() -> i32 { 0x74 }
 fn WIT_VAL_STRING() -> i32 { 0x73 }
@@ -14,15 +15,3 @@ fn WIT_VAL_U64() -> i32 { 0x77 }
 
 fn WIT_VAL_FLOAT32() -> i32 { 0x76 }
 fn WIT_VAL_FLOAT64() -> i32 { 0x75 }
-
-fn WIT_TAG_LIST() -> i32 { 0x70 }
-fn WIT_TAG_OPTION() -> i32 { 0x6b }
-fn WIT_TAG_RESULT() -> i32 { 0x6a }
-fn WIT_TAG_RECORD() -> i32 { 0x72 }
-fn WIT_TAG_VARIANT() -> i32 { 0x71 }
-fn WIT_TAG_FLAGS() -> i32 { 0x6e }
-fn WIT_TAG_TUPLE() -> i32 { 0x6f }
-fn WIT_TAG_ENUM() -> i32 { 0x6d }
-fn WIT_TAG_OWN() -> i32 { 0x69 }
-fn WIT_TAG_BORROW() -> i32 { 0x68 }
-fn WIT_TAG_RESOURCE() -> i32 { 0x6c }

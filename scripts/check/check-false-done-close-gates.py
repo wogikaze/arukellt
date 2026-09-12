@@ -77,7 +77,7 @@ ISSUE_ID_RE = re.compile(r"^(\d{3})")
 
 # issue_id -> list of human-readable gate names (for error messages)
 TRACKED: dict[str, list[str]] = {
-    "074": ["P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
+    "074": ["official WASI P2 component validate + wasmtime run (wasi_p2_native/hello.ark)"],
     "076": ["real-WASI P2 filesystem production gate (gate-076-wasi-p2-filesystem.py)"],
     "510": ["P2 component wasm-tools validate"],
     "472": ["playground typecheck distinguishes parse vs type errors"],
@@ -86,17 +86,9 @@ TRACKED: dict[str, list[str]] = {
     "648": ["general canonical ABI umbrella (gate-648-component-export-general-abi.py)"],
     "123": ["Layer C import string syntax component fixture"],
     "641": ["native-cpp C99 constant-return slice and native-llvm scaffold"],
-    "639": ["HTTP registry fixtures + gate-639-registry-http.py"],
+    "639": ["registry fixtures + gate-639-registry-http.py"],
     "643": ["Grain benchmark hook (compare-benchmarks --compare-lang grain)"],
-    "657": ["TCP connect/read/write host-linker smoke (gate-657-sockets-connect-read-write.py)"],
-    "658": ["TCP listen/accept host-linker smoke (gate-658-sockets-listen-accept.py)"],
-    "139": ["WASI P2 sockets umbrella (gate-139-wasi-p2-sockets-umbrella.py)"],
-    "655": ["HTTP outgoing client gate-655-http-outgoing.py"],
-    "727": ["arukellt_host absence / WIT-bridged HTTP+sockets (gate-727-arukellt-host-absence.py)"],
-    "656": ["HTTP incoming server gate-656-http-incoming.py"],
-    "077": ["WASI P2 HTTP umbrella (gate-077-wasi-p2-http-umbrella.py)"],
-    "138": ["std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
-    "136": ["ADR-011 std::host rollout consistency (gate-136-std-host-rollout.py)"],
+    "138": ["remaining std::host six-module T1/T3 smoke matrix (gate-138-shared-capabilities-t1-t3.py)"],
     "652": ["WIT import parser grammar gate-652-wit-import-parser.py"],
     "653": ["WIT import resolver MIR gate-653-wit-import-resolver-mir.py"],
     "654": ["WIT import component emit gate-654-wit-import-component-emit.py"],
@@ -272,8 +264,6 @@ def _gate_prefixes(issue_id: str) -> tuple[str, ...]:
     # The gate script is auto-included via _gate_cache_key (inspect.getsource).
     base = ("src/compiler", "std", "scripts/selfhost", "scripts/run", "bootstrap")
     script_prefix = f"scripts/check/gate-{issue_id}-"
-    if issue_id in {"077", "655", "656", "139", "657", "658"}:
-        return base + ("scripts/check", "tools/host-linker", "std/host", "tests/fixtures/host", "tests/fixtures/wasi_http_p2.ark")
     if issue_id == "654":
         return base + (script_prefix, "scripts/check", "tests/fixtures/wit_import", "tests/fixtures/manifest.txt")
     if issue_id == "651":
@@ -294,7 +284,7 @@ def _gate_prefixes(issue_id: str) -> tuple[str, ...]:
         return base + (script_prefix, "scripts/check", "tests/fixtures", "tests/fixtures/manifest.txt")
     if issue_id in {"472", "500"}:
         return (script_prefix, "scripts/check", "playground")
-    if issue_id in {"679", "136"}:
+    if issue_id == "679":
         return (script_prefix, "scripts/check", "scripts/gen", "docs", "issues", "README.md", "AGENTS.md")
     if issue_id in {"051", "138", "648", "639", "641", "643"}:
         return base + (script_prefix, "scripts/check", "tests", "docs", "tools")
@@ -394,24 +384,14 @@ def _run_gate(issue_id: str) -> tuple[str, list[str], int, str]:
 
 
 def _find_tool(name: str) -> str | None:
-    if name == "wasm-tools":
-        cargo = Path.home() / ".cargo" / "bin" / "wasm-tools"
-        if cargo.is_file():
-            return str(cargo)
     return shutil.which(name)
 
 
 def _compiler() -> Path | None:
-    """Prefer selfhost wrapper (ADR-029); fall back to legacy Rust binary if present."""
+    """Return the direct Wasmtime selfhost entrypoint."""
     wrapper = REPO_ROOT / "scripts" / "run" / "arukellt-selfhost.sh"
     if wrapper.is_file():
         return wrapper
-    release = REPO_ROOT / "target" / "release" / "arukellt"
-    if release.is_file():
-        return release
-    debug = REPO_ROOT / "target" / "debug" / "arukellt"
-    if debug.is_file():
-        return debug
     return None
 
 
@@ -440,7 +420,7 @@ def _manifest_contains(entry: str) -> bool:
 
 
 def _compile_p2_component(fixture_rel: str, out: Path) -> tuple[int, str]:
-    """In-tree `--emit component` for gate 074/076 (bridged WASI P2 path, #714)."""
+    """In-tree `--emit component` for the official WASI P2 gates."""
     return _compile_p2_component_direct(fixture_rel, out)
 
 
@@ -571,11 +551,7 @@ def _gate_076_locked() -> tuple[int, str]:
 
 
 def _gate_076_body() -> tuple[int, str]:
-    """Compile+validate P2 fs fixture on the in-tree bridged emitter (#714).
-
-    Runtime file I/O proof remains #076: the bridged path still stubs
-    wasi:filesystem until an in-tree fs bridge lands (wrap scripts removed).
-    """
+    """Compile and validate the P2 filesystem fixture without a post-linker."""
     last_rc = 1
     last_msg = ""
     for attempt in range(3):
@@ -621,7 +597,7 @@ def _gate_074_locked() -> tuple[int, str]:
     return mod.with_selfhost_runtime_lock(_gate_074_body, root=REPO_ROOT)
 
 
-def _assert_p2_bridged_import_shape(path: Path) -> tuple[int, str]:
+def _assert_p2_official_import_shape(path: Path) -> tuple[int, str]:
     data = path.read_bytes()
     if b"wasi:cli/stdout@0.2.0::write" in data:
         return 1, "artifact contains pseudo import wasi:cli/stdout@0.2.0::write"
@@ -651,7 +627,7 @@ def _gate_074_body() -> tuple[int, str]:
             last_rc, last_msg = _wasm_tools_validate(out)
             if last_rc != 0:
                 continue
-            last_rc, last_msg = _assert_p2_bridged_import_shape(out)
+            last_rc, last_msg = _assert_p2_official_import_shape(out)
             if last_rc != 0:
                 continue
             last_rc, last_msg = _wasmtime_run(out, "hello p2")
@@ -743,40 +719,6 @@ def gate_648() -> tuple[int, str]:
         capture_output=True,
         text=True,
         timeout=60,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_139() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-139-wasi-p2-sockets-umbrella.py"
-    if not script.is_file():
-        return 1, "missing scripts/check/gate-139-wasi-p2-sockets-umbrella.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_077() -> tuple[int, str]:
-    if _issue_in_done("655") and _issue_in_done("656"):
-        return 0, ""
-    script = REPO_ROOT / "scripts" / "check" / "gate-077-wasi-p2-http-umbrella.py"
-    if not script.is_file():
-        return 1, "missing scripts/check/gate-077-wasi-p2-http-umbrella.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=180,
     )
     if result.returncode != 0:
         return 1, (result.stdout + result.stderr)[-800:]
@@ -1077,86 +1019,6 @@ def gate_034() -> tuple[int, str]:
     return 0, ""
 
 
-def gate_727() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-727-arukellt-host-absence.py"
-    if not script.is_file():
-        return 1, "missing gate-727-arukellt-host-absence.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=300,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_655() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-655-http-outgoing.py"
-    if not script.is_file():
-        return 1, "missing gate-655-http-outgoing.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_656() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-656-http-incoming.py"
-    if not script.is_file():
-        return 1, "missing gate-656-http-incoming.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_657() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-657-sockets-connect-read-write.py"
-    if not script.is_file():
-        return 1, "missing scripts/check/gate-657-sockets-connect-read-write.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=300,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_658() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-658-sockets-listen-accept.py"
-    if not script.is_file():
-        return 1, "missing scripts/check/gate-658-sockets-listen-accept.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
 def gate_138() -> tuple[int, str]:
     script = REPO_ROOT / "scripts" / "check" / "gate-138-shared-capabilities-t1-t3.py"
     if not script.is_file():
@@ -1167,22 +1029,6 @@ def gate_138() -> tuple[int, str]:
         capture_output=True,
         text=True,
         timeout=60,
-    )
-    if result.returncode != 0:
-        return 1, (result.stdout + result.stderr)[-800:]
-    return 0, ""
-
-
-def gate_136() -> tuple[int, str]:
-    script = REPO_ROOT / "scripts" / "check" / "gate-136-std-host-rollout.py"
-    if not script.is_file():
-        return 1, "missing scripts/check/gate-136-std-host-rollout.py"
-    result = subprocess.run(
-        [sys.executable, str(script)],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=120,
     )
     if result.returncode != 0:
         return 1, (result.stdout + result.stderr)[-800:]
@@ -1220,15 +1066,7 @@ GATES: dict[str, callable[[], tuple[int, str]]] = {
     "639": gate_639,
     "641": gate_641,
     "643": gate_643,
-    "657": gate_657,
-    "658": gate_658,
-    "139": gate_139,
-    "655": gate_655,
-    "656": gate_656,
-    "727": gate_727,
-    "077": gate_077,
     "138": gate_138,
-    "136": gate_136,
     "652": gate_652,
     "653": gate_653,
     "654": gate_654,

@@ -21,6 +21,7 @@ fn emit_clock_now(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
 
 fn emit_clock_now_ms(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
         helpers_core::emit_call(w, constants::P2_IMPORT_WALL_NOW())
         helpers_clock_p2::emit_wall_datetime_to_ms(w, ctx)
         return true

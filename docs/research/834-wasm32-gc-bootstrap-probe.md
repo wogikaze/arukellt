@@ -1,5 +1,10 @@
 # #834 Probe: wasm32-gc self-emit on 23GiB host (2026-07-26)
 
+> **Historical evidence:** The host-linker phase below was superseded by
+> ADR-054 on 2026-09-12. Current selfhost execution uses direct Wasmtime and
+> official WASI P2 component packaging; the old host-linker commands are not
+> supported.
+
 ## Host
 
 - MemTotal ≈ 23 GiB, Swap 6 GiB (WSL2)

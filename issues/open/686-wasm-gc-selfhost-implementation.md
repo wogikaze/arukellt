@@ -160,10 +160,12 @@ ADR-035's phased plan.
 
     ```
     ARUKELLT_SELFHOST_WASM=.build/selfhost/arukellt-s2.wasm \
-      scripts/run/arukellt-selfhost.sh compile --target wasm32-wasi-p2 \
-      tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.wasm
-    wasm-tools validate --features gc /tmp/enum_gc.wasm
-    tools/host-linker/target/release/arukellt-host-run /tmp/enum_gc.wasm
+      scripts/run/arukellt-selfhost.sh compile --target wasm32-gc \
+      --wasi-version wasi-p2 --emit component \
+      tests/fixtures/enums/exhaustive_match.ark -o /tmp/enum_gc.component.wasm
+    wasm-tools validate --features gc /tmp/enum_gc.component.wasm
+    wasmtime run --wasm gc --wasm function-references --dir=. \
+      /tmp/enum_gc.component.wasm
     ```
 
   - 期待: validate OK、`stop` / `caution` / `go` が順に出力される

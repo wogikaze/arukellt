@@ -288,14 +288,14 @@ The runner compiles `fib.grain` to `fib_grain.wasm` and, when `hyperfine` is ava
 
 ## Reference Implementations
 
-C and Rust reference implementations are provided for cross-language comparison.
+C reference implementations are provided for cross-language comparison.
 Use `--compare-lang` with `bash scripts/compare-benchmarks.sh` (or `python scripts/manager.py perf benchmarks`) to compile
 and time them automatically.
 
-| Benchmark | C ref | Rust ref | Notes |
-|-----------|-------|----------|-------|
-| fib | `fib.c` | `fib.rs` | Iterative; identical algorithm to `.ark` |
-| binary_tree | `binary_tree.c` | `binary_tree.rs` | Recursive; identical algorithm to `.ark` |
+| Benchmark | C ref | Notes |
+|-----------|-------|-------|
+| fib | `fib.c` | Iterative; identical algorithm to `.ark` |
+| binary_tree | `binary_tree.c` | Recursive; identical algorithm to `.ark` |
 
 ### Building reference implementations manually
 
@@ -304,24 +304,21 @@ and time them automatically.
 cc -O2 -o /tmp/fib        benchmarks/fib.c
 cc -O2 -o /tmp/btree      benchmarks/binary_tree.c
 
-# Rust
-rustc -O -o /tmp/fib_rs   benchmarks/fib.rs
-rustc -O -o /tmp/btree_rs benchmarks/binary_tree.rs
 ```
 
 ### Cross-language comparison via the runner
 
 ```bash
-# Compare Ark (Wasm/wasmtime) vs C and Rust native binaries (3-run median)
+# Compare Ark (Wasm/wasmtime) vs C native binaries (3-run median)
 bash scripts/compare-benchmarks.sh
 
 # Full benchmark run (more iterations)
 python scripts/manager.py perf benchmarks --no-quick
 ```
 
-The comparison table prints `ark(ms)`, one column per reference language, and a
+The comparison table prints `ark(ms)`, one column for the C reference, and a
 `ratio(best)` column showing how many times slower Ark is relative to the
-fastest native reference.
+native reference.
 
 ### Linear memory vs Wasm GC cross-runtime comparison
 
@@ -411,14 +408,14 @@ for tracking and trend analysis only.  The CI gate always compares against
 Run `python scripts/manager.py perf benchmarks` to generate current measurements.
 The JSON output lands in `benchmarks/results/`.
 
-| Benchmark | ark compile (ms) | ark run (ms) | c run (ms) | rust run (ms) | ark/c ratio | ark/rust ratio |
-|-----------|:----------------:|:------------:|:----------:|:-------------:|:-----------:|:--------------:|
-| fib | — | — | — | — | — | — |
-| binary_tree | — | — | — | — | — | — |
-| vec_ops | — | — | N/A | N/A | — | — |
-| string_concat | — | — | N/A | N/A | — | — |
-| vec_push_pop | — | — | N/A | N/A | — | — |
-| json_parse | — | — | N/A | N/A | — | — |
+| Benchmark | ark compile (ms) | ark run (ms) | c run (ms) | ark/c ratio |
+|-----------|:----------------:|:------------:|:----------:|:-----------:|
+| fib | — | — | — | — |
+| binary_tree | — | — | — | — |
+| vec_ops | — | — | N/A | — |
+| string_concat | — | — | N/A | — |
+| vec_push_pop | — | — | N/A | — |
+| json_parse | — | — | N/A | — |
 
 *Populated by running `python3 scripts/util/benchmark_runner.py --mode full` or `python scripts/manager.py perf benchmarks --no-quick`.  
 Baseline stored in `tests/baselines/perf/baselines.json`.*
@@ -570,4 +567,4 @@ Benchmarks that read checked-in files may declare extra wasmtime args in `script
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARUKELLT` | `target/release/arukellt` | Legacy variable. Prefer `python3 scripts/util/benchmark_runner.py --mode full`, or pass `--arukellt` to `scripts/util/benchmark_runner.py`. |
+| `ARUKELLT` | `scripts/run/arukellt-selfhost.sh` | Compiler command. Prefer `python3 scripts/util/benchmark_runner.py --mode full`, or pass `--arukellt` to `scripts/util/benchmark_runner.py`. |

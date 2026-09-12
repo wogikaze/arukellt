@@ -83,8 +83,8 @@ Last updated: 2026-09-12
       [`10-run summary`](../research/receipts/851-gc-overlay-goal-gate-10.json)。
       現ソースの cacheless flat compile は wall median 8.982s / p95 9.077s、
       RSS 最大 989,992 KiB、10/10 exit 0、出力 SHA-256 は一致し validate 済み。
-      10 回計測時の host-linker はセルフホスト compiler source の compile だけ 462 MiB の GC heap を先行確保した。
-      その後、既定値を 450 MiB に下げた CoreHIR frontend AST 境界修正と host-linker の selfhost-only pregrow についても
+      10 回計測時の直接 Wasmtime 実行はセルフホスト compiler source の compile だけ 462 MiB の GC heap を先行確保した。
+      その後、既定値を 450 MiB に下げた CoreHIR frontend AST 境界修正と直接実行の selfhost-only pregrow についても
       3 回再測定し、wall 8.961–9.076s、RSS 964,916–965,208 KiB、3/3 exit 0、同一 SHA-256、
       validate 通過を [`latest_source_recheck`](../research/receipts/851-gc-overlay-goal-gate-10.json) に記録した。
       ユーザー目標の 10 秒 / 1 GB は満たすが、計画の内部 gate（median 7s / RSS 512 MiB）と

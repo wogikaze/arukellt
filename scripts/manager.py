@@ -319,8 +319,6 @@ def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
         return base + ("tests/fixtures/component", "scripts/check/check-component-world.py")
     if "component WIT parse" in text:
         return base + ("tests/fixtures", "scripts/check/check-component-wit-parse.py")
-    if "host_stub compile" in text:
-        return base + ("tests/fixtures/host", "std/host", "scripts/check/check-host-stub-gate.py")
     if "WASI P1 syscall" in text:
         return base + ("scripts/check/check-wasi-p1-surface.py", "std/host")
     if "Wasm micro features" in text:
@@ -349,8 +347,6 @@ def _bg_check_prefixes(label: str, cmd_str: str) -> tuple[str, ...]:
         return ("issues/done",)
     if "asset naming" in text:
         return ("assets", "docs", "scripts/check/check-asset-naming.sh")
-    if "panic" in text or "unwrap" in text:
-        return ("crates", "scripts/check/check-panic-audit.sh")
     if "orphan" in text:
         return ("scripts/check/check-orphan-inventory.sh", "docs", "issues")
     if "artifact size" in text:
@@ -4442,9 +4438,6 @@ def cmd_verify_lane(args: argparse.Namespace) -> int:
             h.check_pass(label)
         else:
             env = {**os.environ}
-            cargo_bin = str(Path.home() / ".cargo" / "bin")
-            if cargo_bin not in env.get("PATH", ""):
-                env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
             result = subprocess.run(
                 ["bash", "-lc", cmd_str],
                 cwd=str(root),
@@ -4587,9 +4580,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         if dry_run:
             return (0, f"DRY-RUN: {cmd_str}")
         env = {**os.environ}
-        cargo_bin = str(Path.home() / ".cargo" / "bin")
-        if cargo_bin not in env.get("PATH", ""):
-            env["PATH"] = f"{cargo_bin}{os.pathsep}{env.get('PATH', '')}"
         result = subprocess.run(
             ["bash", "-lc", cmd_str],
             cwd=str(root),
@@ -4664,10 +4654,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
             'printf \'%s\\n\' "$files"; exit 1; fi',
         ),
         (
-            "no panic/unwrap in user-facing crates",
-            "bash scripts/check/check-panic-audit.sh",
-        ),
-        (
             "asset naming convention (snake_case)",
             "bash scripts/check/check-asset-naming.sh",
         ),
@@ -4702,10 +4688,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         (
             "selfhost DAP lifecycle gate (#571)",
             "python3 scripts/check/check-dap-lifecycle.py",
-        ),
-        (
-            "runtime Wasm debug smoke gate (#638)",
-            "python3 scripts/check/check-wasm-debug-smoke.py",
         ),
         (
             "GC array smoke gate",
@@ -4794,10 +4776,6 @@ def cmd_verify_quick(args: argparse.Namespace) -> int:
         ),
         # Advisory inventories (orphan / infile-test / artifact-size) stay out of
         # verify quick — run via quality report / dedicated scripts when needed.
-        (
-            "host_stub compile gate (#292)",
-            "python3 scripts/check/check-host-stub-gate.py",
-        ),
         (
             "WASI P1 syscall registry (#073)",
             "python3 scripts/check/check-wasi-p1-surface.py",

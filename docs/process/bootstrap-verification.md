@@ -24,7 +24,8 @@ python3 scripts/manager.py selfhost diag-parity
 | Status table | [`../state/compiler.md`](../state/compiler.md) |
 | Entrypoint | [`../../scripts/run/arukellt-selfhost.sh`](../../scripts/run/arukellt-selfhost.sh) |
 
-## Retired
+## Historical material
 
-- `scripts/run/verify-bootstrap.sh` as the current attainment gate (Rust-era).
-  Archive: [`../history/reports/bootstrap-rust-era-verification.md`](../history/reports/bootstrap-rust-era-verification.md).
+Rust-era bootstrap walkthroughs are archived under
+[`../history/reports/`](../history/reports/). They are not executable current
+contracts and are not referenced by the selfhost entrypoint.

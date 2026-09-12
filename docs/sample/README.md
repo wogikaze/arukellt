@@ -14,4 +14,3 @@
 |------|-------|
 | [README.md](README.md) | Sample artifact |
 | [parser.ark](parser.ark) | Sample artifact |
-| [parser.rs](parser.rs) | Sample artifact |

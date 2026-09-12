@@ -5,6 +5,8 @@
 
 | Job ID | Notes |
 |--------|-------|
+| `ark-changes` | See workflow definition. |
+| `quality-shard` | See workflow definition. |
 | `quality-format` | Canonical Ark formatter check through manager.py. |
 | `quality-lint` | Ark correctness lint and lint-contract smoke through manager.py. |
 | `verify-quick` | PR-required quick verification, including quality quick. |
@@ -15,7 +17,6 @@
 | `extension-tests` | VS Code extension activation and live CLI E2E. |
 | `release-tag` | Tag-only: project-state.toml version vs git tag. |
 | `verify` | Aggregator / final required-gate summary over blocking jobs. |
-| `ci-category-summary` | Always-published category-to-job result summary. |
 
 ## Category mapping (informal)
 

@@ -589,7 +589,7 @@ fn main() {
 
 ## I/O — 標準入出力
 
-> ⚠️ **Target constraint**: `std::host::stdio` は **wasm32-wasi** ターゲットが必要です。
+> ⚠️ **Target constraint**: `std::host::stdio` は `wasm32` または `wasm32-gc` ターゲットが必要です。
 
 ### println / eprintln
 
@@ -610,7 +610,7 @@ fn main() {
 
 ## I/O — Filesystem
 
-> ⚠️ **Target constraint**: `std::host::fs` は **wasm32-wasi** ターゲットが必要です。
+> ⚠️ **Target constraint**: `std::host::fs` は `wasm32` または `wasm32-gc` ターゲットが必要です。
 
 ### read_to_string / write_string
 
@@ -624,12 +624,12 @@ fn main() {
     let w = fs::write_string("test_output.txt", "hello from arukellt")
     match w {
         Result::Ok(_) => stdio::println(String_from("write ok")),
-        Result::Err(e) => stdio::println(fs::fs_error_message(e)),
+        Result::Err(e) => stdio::println(e),
     }
     let r = fs::read_to_string("test_output.txt")
     match r {
         Result::Ok(content) => stdio::println(content),
-        Result::Err(e) => stdio::println(fs::fs_error_message(e)),
+        Result::Err(e) => stdio::println(e),
     }
 }
 ```
@@ -655,7 +655,7 @@ fn main() {
 
 ## I/O — Environment / Process
 
-> ⚠️ **Target constraint**: `std::host::env` と `std::host::process` は **wasm32-wasi** ターゲットが必要です。
+> ⚠️ **Target constraint**: `std::host::env` と `std::host::process` は `wasm32` または `wasm32-gc` ターゲットが必要です。
 
 ### コマンドライン引数
 
@@ -713,7 +713,7 @@ fn main() {
 
 ## I/O — Clock / Random
 
-> ⚠️ **Target constraint**: `std::host::clock` と `std::host::random` は **wasm32-wasi** ターゲットが必要です。
+> ⚠️ **Target constraint**: `std::host::clock` と `std::host::random` は `wasm32` または `wasm32-gc` ターゲットが必要です。
 > 📎 Fixture: [`tests/fixtures/stdlib_io/clock_random.ark`](../../tests/fixtures/stdlib_io/clock_random.ark)
 
 <!-- skip-doc-check reason="doc example not fixture-backed yet" owner="#683" kind="non-runnable" expires="2026-10-31" -->

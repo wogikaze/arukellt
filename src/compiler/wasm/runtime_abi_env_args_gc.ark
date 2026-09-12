@@ -1,9 +1,11 @@
-// GC target: build Vec<String> from WASI args-sizes / arguments (P1-shaped ABI).
+// GC target: build Vec<String> from the canonical WASI P2 `list<string>`.
 // Skips argv[0] so the result matches env::arg_count / linear-memory args().
 
 use wasm::constants
 use wasm::ctx_gc_type
+use wasm::ctx_record
 use wasm::ctx_scratch
+use wasm::emit_target
 use wasm::host_intrinsic_adapter
 use wasm::import_indices
 use wasm::intrinsics::helpers_control
@@ -62,7 +64,11 @@ fn emit_env_args_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     helpers_core::emit_local_get(w, s_argc)
     helpers_numeric_i32::emit_i32_ge_s(w)
     helpers_control::emit_br_if(w, 1)
-    emit_env_args_gc_store_one(w, s_argv, s_li, s_cstr, s_slen, s_slot, s_k, s_arr, s_str, arr_type, string_type)
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        emit_env_args_gc_store_one_p2(w, s_argv, s_li, s_cstr, s_slen, s_slot, s_k, s_arr, s_str, arr_type, string_type)
+    } else {
+        emit_env_args_gc_store_one(w, s_argv, s_li, s_cstr, s_slen, s_slot, s_k, s_arr, s_str, arr_type, string_type)
+    }
     helpers_core::emit_local_get(w, s_li)
     helpers_numeric_i32::emit_i32_const(w, 1)
     helpers_numeric_i32::emit_i32_add(w)
@@ -87,6 +93,10 @@ fn emit_env_args_gc_fetch(
     s_argv_buf: i32,
     s_bufsize: i32
 ) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        emit_env_args_gc_fetch_p2(w, ctx, s_argc, s_argv)
+        return
+    }
     host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGC())
     host_intrinsic_adapter::emit_canonical_memory32_static_address(w, constants::SCRATCH_ARGV_SIZE())
     helpers_core::emit_call(w, import_indices::args_sizes_import_idx(ctx))
@@ -118,6 +128,73 @@ fn emit_env_args_gc_fetch(
     helpers_io_layout::emit_wasi_i32_from_local(w, s_argv_buf)
     helpers_core::emit_call(w, import_indices::arguments_import_idx(ctx))
     helpers_core::emit_drop(w)
+}
+
+fn emit_env_args_gc_fetch_p2(w: WasmWriter, ctx: SelfEmitCtx, s_argc: i32, s_argv: i32) {
+    // `get-arguments` returns a canonical list through the result pointer:
+    // pointer at +0 and element count at +4. Each element is a `(ptr, len)`
+    // pair, so no NUL-terminated compatibility buffer is needed.
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGC())
+    helpers_core::emit_call(w, import_indices::arguments_import_idx(ctx))
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_argv)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC() + 4)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_argc)
+}
+
+fn emit_env_args_gc_store_one_p2(
+    w: WasmWriter,
+    s_argv: i32,
+    s_li: i32,
+    s_cstr: i32,
+    s_slen: i32,
+    s_slot: i32,
+    s_k: i32,
+    s_arr: i32,
+    s_str: i32,
+    arr_type: i32,
+    string_type: i32
+) {
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_set(w, s_slot)
+
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_cstr)
+    helpers_core::emit_local_get(w, s_cstr)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_cstr)
+    helpers_core::emit_local_get(w, s_argv)
+    helpers_core::emit_local_get(w, s_li)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_slen)
+
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_slot)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, s_slen)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    writer_gc::emit_gc_array_set(w, arr_type)
+
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_slot)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    writer_gc::emit_gc_array_get(w, arr_type)
+    writer_gc::emit_gc_ref_cast(w, string_type)
+    helpers_core::emit_local_set(w, s_str)
+    emit_env_args_gc_copy_bytes(w, s_cstr, s_slen, s_str, s_k, string_type)
 }
 
 fn emit_env_args_gc_store_one(

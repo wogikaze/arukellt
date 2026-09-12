@@ -78,22 +78,6 @@ fn sig_reg_host_return_mvt(table: TypeTable, name: String) -> MirValueType {
         let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_OPTION(), "Option<String>", Vec::new<TypeId>())
         return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
     }
-    if sig_reg_host_returns_result_i32(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<i32, String>", Vec::new<TypeId>())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    }
-    if eq(clone(name), String_from("read")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<Vec<i32>, String>", Vec::new<TypeId>())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    }
-    if sig_reg_host_returns_result_string(clone(name)) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<String, String>", Vec::new<TypeId>())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    }
-    if eq(clone(name), String_from("serve")) {
-        let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_RESULT(), "Result<(), String>", Vec::new<TypeId>())
-        return mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
-    }
     // var_or_default / read_stdin and remaining string returns
     let id = type_table::TypeTable_intern(table, kinds::TYPE_KIND_STRING(), "String", Vec::new<TypeId>())
     mir_value_type::MirValueType_new(id, kinds::VALUE_REPR_GC_REF(), kinds::NULLABILITY_NULLABLE())
@@ -110,18 +94,6 @@ fn sig_reg_host_returns_option_string(name: String) -> bool {
     eq(clone(name), String_from("arg_at")) ||
     eq(clone(name), String_from("var")) ||
     eq(clone(name), String_from("get_var"))
-}
-
-fn sig_reg_host_returns_result_i32(name: String) -> bool {
-    eq(clone(name), String_from("connect")) ||
-    eq(clone(name), String_from("listen")) ||
-    eq(clone(name), String_from("accept")) ||
-    eq(clone(name), String_from("write"))
-}
-
-fn sig_reg_host_returns_result_string(name: String) -> bool {
-    eq(clone(name), String_from("get")) ||
-    eq(clone(name), String_from("request"))
 }
 
 fn sig_reg_log_stub_diff(registry: SignatureRegistry, stub_count: i32) {

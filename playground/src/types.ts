@@ -10,11 +10,9 @@
 import type {
   CompileOptions,
   CompileResult,
-  RunOptions,
-  RunResult,
 } from "./compiler-types.js";
 
-export type { CompileOptions, CompileResult, RunOptions, RunResult };
+export type { CompileOptions, CompileResult };
 
 // ---------------------------------------------------------------------------
 // Diagnostic types
@@ -162,8 +160,7 @@ export interface TypecheckResponse {
 /** Options for initialising the playground. */
 export interface PlaygroundOptions {
   /**
-   * Deprecated compatibility field retained for callers of the former
-   * Wasm-backed API. The browser-native engine does not fetch this URL.
+   * URL of the compiler Wasm module used for compiler-backed type checking.
    *
    * @example "/assets/playground-engine"
    */
@@ -198,14 +195,6 @@ export interface Playground {
   typecheck(source: string): TypecheckResponse;
   /** Compile Arukellt source to wasm32 Wasm (requires compiler asset). */
   compile(source: string, options?: CompileOptions): Promise<CompileResult>;
-  /** Run compiled wasm32 Wasm through the `arukellt_io` host. */
-  run(wasmBytes: Uint8Array, options?: RunOptions): Promise<RunResult>;
-  /** Compile then run when compilation succeeds. */
-  runSource(
-    source: string,
-    compileOptions?: CompileOptions,
-    runOptions?: RunOptions,
-  ): Promise<{ compile: CompileResult; run: RunResult | null }>;
   /** Return the playground engine version. */
   version(): string;
   /** Release playground resources. */

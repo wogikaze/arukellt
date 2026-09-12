@@ -1,9 +1,7 @@
 //
 // Maps host intrinsic names to HostIntrinsicSpec entries and provides
-// ABI-aware classification for GC targets. LinearMemoryPtr stubs that
-// have GC emitters are synthesized in `host_intrinsic_gc_body.ark`
-// (i32 / linear boundary → GC ref). Remaining network/HTTP stubs still
-// emit unreachable until #819 / #727 land runtime ABI bodies.
+// ABI-aware classification for GC targets. LinearMemoryPtr stubs with GC
+// emitters are synthesized in `host_intrinsic_gc_body.ark`.
 
 use corehir::kinds
 use corehir::host_intrinsic_spec
@@ -68,37 +66,6 @@ fn host_intrinsic_needs_gc_adapter(name: String) -> bool {
         return true
     }
     if eq(clone(name), String_from("read_stdin")) {
-        return true
-    }
-    if host_intrinsic_is_network_adapter_name(clone(name)) {
-        return true
-    }
-    false
-}
-
-fn host_intrinsic_is_network_adapter_name(name: String) -> bool {
-    if eq(clone(name), String_from("connect")) {
-        return true
-    }
-    if eq(clone(name), String_from("read")) {
-        return true
-    }
-    if eq(clone(name), String_from("write")) {
-        return true
-    }
-    if eq(clone(name), String_from("listen")) {
-        return true
-    }
-    if eq(clone(name), String_from("accept")) {
-        return true
-    }
-    if eq(clone(name), String_from("get")) {
-        return true
-    }
-    if eq(clone(name), String_from("request")) {
-        return true
-    }
-    if eq(clone(name), String_from("serve")) {
         return true
     }
     false

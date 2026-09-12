@@ -24,8 +24,6 @@ import type {
   CheckResult,
   CompileOptions,
   CompileResult,
-  RunOptions,
-  RunResult,
 } from "./compiler-types.js";
 import {
   checkWithCompilerWasm,
@@ -33,7 +31,6 @@ import {
   compileWithCompilerWasm,
   formatWithCompilerWasmSync,
 } from "./compiler-host.js";
-import { runT2Wasm } from "./t2-runner.js";
 
 const VERSION = "selfhost-playground-ts-v1";
 
@@ -518,28 +515,6 @@ export async function compileSource(
     return compileUnavailableResult(source);
   }
   return compileWithCompilerWasm(configuredCompilerBytes, source, options);
-}
-
-/** Run compiled wasm32 Wasm through the ADR-017 `arukellt_io` host bridge. */
-export async function runWasm(
-  wasmBytes: Uint8Array,
-  options: RunOptions = {},
-): Promise<RunResult> {
-  return runT2Wasm(wasmBytes, options);
-}
-
-/** Compile then run when compilation succeeds. */
-export async function runSource(
-  source: string,
-  compileOptions: CompileOptions = {},
-  runOptions: RunOptions = {},
-): Promise<{ compile: CompileResult; run: RunResult | null }> {
-  const compile = await compileSource(source, compileOptions);
-  if (!compile.ok || !compile.wasmBytes) {
-    return { compile, run: null };
-  }
-  const run = await runWasm(compile.wasmBytes, runOptions);
-  return { compile, run };
 }
 
 function typecheckResponseFromCheckResult(

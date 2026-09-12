@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Gate for #668 — P2 native component size / no P1 adapter blob.
+"""Gate for #668 — official P2 component size and ABI hygiene.
 
 Proves hello.component.wasm stays under a checked-in ceiling and does not
-embed WASI P1 adapter markers. Savings vs the historical ~97KB adapter path
-are recorded in docs/data/p2-native-component-size-baseline.toml.
+embed WASI P1 or repository-specific compatibility markers.
 """
 
 from __future__ import annotations
@@ -32,12 +31,7 @@ FORBIDDEN = (
 def _load_baseline() -> dict[str, object]:
     text = BASELINE.read_text(encoding="utf-8")
     out: dict[str, object] = {}
-    for key in (
-        "fixture",
-        "max_bytes",
-        "adapter_reference_bytes",
-        "min_savings_vs_adapter_bytes",
-    ):
+    for key in ("fixture", "max_bytes"):
         match = re.search(rf"^{key}\s*=\s*(.+)$", text, re.M)
         if not match:
             raise SystemExit(f"missing {key} in {BASELINE}")
@@ -102,8 +96,6 @@ def main() -> int:
     baseline = _load_baseline()
     fixture = str(baseline["fixture"])
     max_bytes = int(baseline["max_bytes"])
-    adapter_ref = int(baseline["adapter_reference_bytes"])
-    min_savings = int(baseline["min_savings_vs_adapter_bytes"])
 
     out_dir = Path(tempfile.mkdtemp(prefix="gate-668-size-", dir=REPO_ROOT / ".build"))
     failures: list[str] = []
@@ -116,12 +108,6 @@ def main() -> int:
             size = out.stat().st_size
             if size > max_bytes:
                 failures.append(f"size {size} > max_bytes {max_bytes}")
-            savings = adapter_ref - size
-            if savings < min_savings:
-                failures.append(
-                    f"savings vs adapter {savings} < min {min_savings} "
-                    f"(size={size}, adapter_ref={adapter_ref})"
-                )
             data = out.read_bytes()
             for marker in FORBIDDEN:
                 if marker in data:
@@ -130,6 +116,9 @@ def main() -> int:
                 failures.append("artifact contains @0.2.6 version string")
             if b"wasi:cli/run@0.2.0" not in data:
                 failures.append("artifact missing wasi:cli/run@0.2.0")
+            for marker in (b"arukellt:", b"runtime/host"):
+                if marker in data:
+                    failures.append(f"artifact contains repository-specific marker {marker!r}")
     finally:
         shutil.rmtree(out_dir, ignore_errors=True)
 

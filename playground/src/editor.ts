@@ -133,7 +133,7 @@ export interface ArkEditor {
  * ```ts
  * import { createPlayground, createEditor } from "@arukellt/playground";
  *
- * const pg = await createPlayground(wasmModulePath, { wasmUrl });
+ * const pg = await createPlayground({ wasmUrl });
  * const editor = createEditor(document.getElementById("editor")!, {
  *   initialValue: "fn main() {\n    let x = 42\n}\n",
  *   tokenize: (src) => pg.tokenize(src),

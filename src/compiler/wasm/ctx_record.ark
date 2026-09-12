@@ -23,9 +23,7 @@ pub struct SelfEmitCtx {
     vec_locals: Vec<i32>,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
     gc_hint_offsets: Vec<i32>,
-    needs_wasi_http_outgoing: i32,
     source_file: String,
     code_section_offsets: Vec<i32>,
     gc_type_base: i32,
@@ -98,8 +96,6 @@ fn SelfEmitCtx_new(
     false_str_idx: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     source_file: String
 ) -> SelfEmitCtx {
     let fn_count = len(functions)
@@ -147,9 +143,7 @@ fn SelfEmitCtx_new(
         vec_locals: empty_i32,
         target: target,
         wasi_version: wasi_version,
-        needs_runtime_host: needs_runtime_host,
         gc_hint_offsets: empty_i32_b,
-        needs_wasi_http_outgoing: needs_wasi_http_outgoing,
         source_file: source_file,
         code_section_offsets: Vec::new<i32>(),
         gc_type_base: 0,
@@ -278,14 +272,6 @@ fn SelfEmitCtx_local_write_index(ctx: SelfEmitCtx) -> LocalWriteIndex {
 
 fn SelfEmitCtx_set_local_write_index(ctx: SelfEmitCtx, index: LocalWriteIndex) {
     ctx.local_write_index = index
-}
-
-fn SelfEmitCtx_needs_runtime_host(ctx: SelfEmitCtx) -> i32 {
-    ctx.needs_runtime_host
-}
-
-fn SelfEmitCtx_needs_wasi_http_outgoing(ctx: SelfEmitCtx) -> i32 {
-    ctx.needs_wasi_http_outgoing
 }
 
 fn SelfEmitCtx_target(ctx: SelfEmitCtx) -> String {

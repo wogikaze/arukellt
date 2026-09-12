@@ -1,6 +1,11 @@
 # #727 — Retire arukellt_host custom host bridge クローズ計画
 
-ステータス: **完了（bridged close、verified 2026-07-26）** — `#714` 同型。真の WASI method ABI / bare wasmtime / `host_*` 削除は [`#841`](../../issues/open/841-wit-network-real-wasi-abi.md)。  
+> **Superseded (2026-09-12):** The bridged implementation described here is
+> retired by ADR-054. The repository now deletes the network APIs and runs
+> standard WASI P2 components through `wasm-tools`; do not restore the
+> host-linker or the compatibility shims described below.
+
+ステータス: **完了（最終退役 2026-09-13）** — 旧 bridged close の記録は ADR-054 により superseded。host-linker、旧 network API、互換経路を削除し、公式 WASI P2 Component packaging を現行境界とした。
 親 issue: [#727](../../issues/done/727-arukellt-host-bridge-retirement.md)  
 関連計画: [arukellt-host-bridge-retirement.md](arukellt-host-bridge-retirement.md)  
 前提: #714 done  

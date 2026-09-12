@@ -8,6 +8,7 @@ use wasm::sections_type_plan
 use wasm::sections_types_gc
 use wasm::sections_types_emit
 use wasm::sections_types_sigs
+use wasm::sections_exports
 use wasm::writer_core
 use wasm::writer_sections
 
@@ -21,12 +22,10 @@ fn emit_type_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     gc_layout: GcLayoutTable
 ) -> TypeSectionPlan {
-    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing)
+    let num_host_types = emit_target::host_type_count(clone(target), clone(wasi_version))
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut gc_fixed_count = 0
     let mut enum_variant_count = 0
@@ -37,10 +36,30 @@ fn emit_type_section(
         gc_struct_count = module_gc_struct::MirModule_gc_struct_sig_count(mir)
     }
     let gc_type_count = gc_fixed_count + enum_variant_count + gc_struct_count
-    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, bindings)
+    let p2_library_post_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        sections_exports::p2_library_export_count(mir, fn_count)
+    } else {
+        0
+    }
+    let p2_library_wrapper_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        sections_exports::p2_library_wrapper_count(mir, fn_count, clone(target), clone(wasi_version))
+    } else {
+        0
+    }
+    let type_sigs = build_type_sigs(mir, functions, fn_count, needs_wrapper, clone(target), clone(wasi_version), bindings)
     let canon_plan = canonicalize_type_sigs(type_sigs)
     let canon_types = TypeCanonPlan_canon_types(canon_plan)
     let type_map = TypeCanonPlan_type_map(canon_plan)
+    let p2_realloc_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        get_unchecked(type_map, len(type_map) - 2)
+    } else {
+        0 - 1
+    }
+    let p2_initialize_type_idx = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        get_unchecked(type_map, len(type_map) - 1)
+    } else {
+        0 - 1
+    }
     let gc_type_base = first_gc_type_index(canon_types)
     // Named GC structs are emitted before enum variants so Option/Result
     // payloads can reference them via gcsref without forward type indices
@@ -66,7 +85,12 @@ fn emit_type_section(
         gc_enum_variant_base,
         gc_enum_variant_type_map,
         gc_struct_base,
-        gc_struct_type_map
+        gc_struct_type_map,
+        emit_target::is_p2_wasi(clone(wasi_version)),
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        p2_realloc_type_idx,
+        p2_initialize_type_idx
     )
     if emit_target::is_gc_target(clone(target)) {
         gc_layout_table_build::populate_gc_layout_table_for_emit(
@@ -127,12 +151,10 @@ fn build_type_sigs(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
 ) -> Vec<String> {
     let type_sigs = Vec::new<String>()
-    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing)
+    sections_types_sigs::append_wasi_type_sigs(type_sigs, clone(wasi_version))
     sections_types_sigs::append_wit_type_sigs(type_sigs, bindings)
     if emit_target::is_gc_target(clone(target)) {
         sections_types_gc::append_gc_type_sigs(type_sigs)
@@ -148,7 +170,25 @@ fn build_type_sigs(
         clone(wasi_version),
         mir
     )
-    sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper)
+    sections_types_sigs::append_wrapper_type_sig(type_sigs, needs_wrapper, clone(wasi_version))
+    if emit_target::is_p2_wasi(clone(wasi_version)) {
+        sections_types_sigs::append_p2_library_post_type_sigs(
+            type_sigs,
+            functions,
+            fn_count,
+            clone(target),
+            clone(wasi_version),
+            mir
+        )
+        sections_types_sigs::append_p2_library_wrapper_type_sigs(
+            type_sigs,
+            functions,
+            fn_count,
+            clone(target),
+            clone(wasi_version)
+        )
+    }
+    sections_types_sigs::append_p2_runtime_type_sigs(type_sigs, clone(wasi_version))
     type_sigs
 }
 

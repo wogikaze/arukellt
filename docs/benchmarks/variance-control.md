@@ -69,7 +69,7 @@ The **default reproducibility profile** applies to `full`, `compare`, `ci`, and
 | Total iterations | ≥ 5 | Enough samples to compute a meaningful median |
 | Warmup (discarded) | 2 | Eliminates cold-cache and JIT-warmup effects |
 | Reported statistic | Median | Robust to outliers (see §2) |
-| Environment metadata | Recorded | CPU, kernel, rustc, wasmtime, opt-level captured per run |
+| Environment metadata | Recorded | CPU, kernel, wasmtime, and opt-level captured per run |
 
 ### Workflow
 

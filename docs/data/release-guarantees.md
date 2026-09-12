@@ -17,7 +17,6 @@
 | `run_wasmtime` | `guaranteed` | `every-pr` | arukellt run executes via wasmtime | `tests/fixtures/hello_world.ark`, `default-target`, `wasmtime` | ✅ pass | ⏰ stale | smoke | `a80b4181` | — |
 | `fixture_harness` | `guaranteed` | `every-pr` | Fixture harness passes for the current observed harness snapshot | `tests/fixtures/manifest.txt`, `registered-harness-cases` | ❌ fail | ⏰ stale | fixture-set | `982f3102` | See fixture accounting: observed harness ≠ full manifest expansion |
 | `determinism` | `guaranteed` | `every-pr` | Same input → identical Wasm bytes | `scripts/check/check-release-determinism.sh::declared-corpus` | ✅ pass | ⏰ stale | smoke | `a80b4181` | — |
-| `no_panic_user_paths` | `guaranteed` | `every-pr` | No panic on user-reachable CLI paths | `scripts/check/check-panic-audit.sh::user-reachable-scan` | ✅ pass | ⏰ stale | static-scan | `a80b4181` | — |
 | `cli_check` | `guaranteed` | `every-pr` | The check command rejects an invalid source without producing Wasm | `tests/fixtures/diagnostics/type_mismatch.ark`, `diagnostic-exit-status` | ✅ pass | ⏰ stale | smoke | `a80b4181` | Guarantee is command behavior, not acceptance of every valid program |
 | `cli_init` | `guaranteed` | `every-pr` | The init command generates every supported project template | `minimal`, `cli`, `with-tests`, `wasi-host` | ✅ pass | ⏰ stale | smoke | `a80b4181` | Template checks validate generated project structure and smoke behavior |
 | `cli_doc` | `guaranteed` | `every-pr` | The doc command resolves manifest symbols and generates HTML reference | `std/manifest.toml`, `symbol-lookup`, `html-generation` | ✅ pass | ⏰ stale | smoke | `a80b4181` | Guarantee covers manifest lookup and generator contract |
@@ -49,7 +48,6 @@ incidents, not by individual checks.
 | `check_run_wasmtime` | `run_wasmtime` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` |
 | `check_fixture_harness` | `fixture_harness` | 🔴 yes | ✓ | — | ❌ fail | ⏰ stale | `fixture-set` | 1089 | `incident_fixture_parity_1089` | `982f3102` | `python3 scripts/manager.py verify fixtures` |
 | `check_determinism` | `determinism` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `bash scripts/check/check-release-determinism.sh` |
-| `check_no_panic` | `no_panic_user_paths` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `static-scan` | — | — | `a80b4181` | `bash scripts/check/check-panic-audit.sh` |
 | `check_cli_check` | `cli_check` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-cli-guarantees.py check` |
 | `check_cli_init` | `cli_init` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-init-templates.py` |
 | `check_cli_doc` | `cli_doc` | 🔴 yes | ✓ | — | ✅ pass | ⏰ stale | `smoke` | — | — | `a80b4181` | `python3 scripts/check/check-manifest-doc.py` |
@@ -82,7 +80,6 @@ Each stale check records the reason and threshold for mechanical verification.
 | `check_run_wasmtime` | 2026-07-11 | 30 | — |
 | `check_fixture_harness` | 2026-07-15 | 30 | — |
 | `check_determinism` | 2026-07-11 | 30 | — |
-| `check_no_panic` | 2026-07-11 | 30 | — |
 | `check_cli_check` | 2026-07-11 | 30 | — |
 | `check_cli_init` | 2026-07-11 | 30 | — |
 | `check_cli_doc` | 2026-07-11 | 30 | — |

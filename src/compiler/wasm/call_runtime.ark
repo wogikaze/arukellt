@@ -1,7 +1,6 @@
 use wasm::call_runtime_assert
 use wasm::call_runtime_convert
 use wasm::call_runtime_io
-use wasm::call_runtime_network
 use wasm::call_runtime_time
 fn try_emit_host_call(
     w: WasmWriter,
@@ -18,9 +17,6 @@ fn try_emit_host_call(
     next2_op: i32
 ) -> bool {
     if call_runtime_time::try_emit_clock_random_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
-        return true
-    }
-    if call_runtime_network::try_emit_network_call(w, handler_id, inst, ctx, next_op, next_arg0, next_arg1, next2_op) {
         return true
     }
     if call_runtime_io::try_emit_stdio_call(w, handler_id, inst, ctx, prev_op, prev_arg0, prev_arg1, prev_handler_id, next_op, next_arg0, next_arg1, next2_op) {

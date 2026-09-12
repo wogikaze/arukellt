@@ -1,3 +1,0 @@
-[dependencies]
-"wasi:cli" = { path = "../deps/wasi-cli-0.2.0/wit" }
-"wasi:io" = { path = "../deps/wasi-cli-0.2.0/wit/deps/io" }

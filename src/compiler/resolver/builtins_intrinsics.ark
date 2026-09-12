@@ -99,9 +99,6 @@ fn push_intrinsic_io_env_process(names: Vec<String>) {
     push(names, String_from("__runtime_abi_fs_read_file"))
     push(names, String_from("__runtime_abi_fs_write_bytes"))
     push(names, String_from("__runtime_abi_fs_write_file"))
-    push(names, String_from("__runtime_abi_http_get"))
-    push(names, String_from("__runtime_abi_http_request"))
-    push(names, String_from("__runtime_abi_http_serve"))
     push(names, String_from("__intrinsic_panic"))
     push(names, String_from("__intrinsic_print"))
     push(names, String_from("__intrinsic_println"))
@@ -109,15 +106,6 @@ fn push_intrinsic_io_env_process(names: Vec<String>) {
     push(names, String_from("__runtime_abi_process_exit"))
     push(names, String_from("__runtime_abi_random_i32"))
     push(names, String_from("__runtime_abi_random_next_f64"))
-    push(names, String_from("__runtime_abi_sockets_accept"))
-    push(names, String_from("__runtime_abi_sockets_connect"))
-    push(names, String_from("__runtime_abi_sockets_listen"))
-    push(names, String_from("__runtime_abi_sockets_read"))
-    push(names, String_from("__runtime_abi_sockets_write"))
-    push(names, String_from("__intrinsic_stream_flush"))
-    push(names, String_from("__intrinsic_stream_read"))
-    push(names, String_from("__intrinsic_stream_write"))
-    push(names, String_from("__intrinsic_udp_send"))
 }
 
 fn push_intrinsic_prelude_wrappers(names: Vec<String>) {

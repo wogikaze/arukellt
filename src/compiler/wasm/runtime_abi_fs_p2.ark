@@ -1,0 +1,65 @@
+use wasm::constants
+use wasm::ctx_record
+use wasm::import_indices
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_io_const
+use wasm::intrinsics::helpers_io_layout
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_const
+
+// Open a path relative to the first official WASI preopened directory.
+// Returns zero for success and one for a canonical result error, leaving the
+// descriptor handle in SCRATCH_FS_FD on success.
+fn emit_p2_open_status(w: WasmWriter, ctx: SelfEmitCtx, open_flags: i32, descriptor_flags: i32) {
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_core::emit_call(w, import_indices::get_directories_import_idx(ctx))
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT() + 4)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_i32(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_control::emit_else(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory::emit_i32_store_default(w)
+    helpers_io_const::emit_i32_const(w, constants::P2_PATH_FLAGS_NONE())
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHPTR())
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_PATHLEN())
+    helpers_io_const::emit_i32_const(w, open_flags)
+    helpers_io_const::emit_i32_const(w, descriptor_flags)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_core::emit_call(w, import_indices::path_open_import_idx(ctx))
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_eqz(w)
+    helpers_control::emit_if_i32(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT() + 4)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_FD())
+    helpers_memory::emit_i32_store_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_control::emit_else(w)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
+fn emit_p2_close(w: WasmWriter, ctx: SelfEmitCtx) {
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
+    helpers_core::emit_call(w, import_indices::fd_close_import_idx(ctx))
+}
+
+fn emit_p2_write_status(w: WasmWriter, ctx: SelfEmitCtx, data_ptr_local: i32, data_len_local: i32) {
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
+    helpers_io_layout::emit_wasi_i32_from_local(w, data_ptr_local)
+    helpers_io_layout::emit_wasi_i32_from_local(w, data_len_local)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_core::emit_call(w, import_indices::fd_write_import_idx(ctx))
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_memory::emit_i32_load_default(w)
+}

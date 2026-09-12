@@ -9,6 +9,9 @@ use wasm::writer_string
 use wasm::function_indices
 use wasm::start_names
 use mir::module_functions
+use wasm::emit_target
+use wasm::sections_types_sigs_detail
+use component::wit_names
 
 struct ExportSectionPlan {
     export_count: i32,
@@ -34,18 +37,42 @@ fn emit_export_section(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
     let export_sec = writer_core::WasmWriter_new()
-    let plan = build_export_section_plan(mir, fn_count)
+    let plan = build_export_section_plan(mir, fn_count, clone(wasi_version))
     let export_count = ExportSectionPlan_export_count(plan)
     let main_idx = ExportSectionPlan_main_idx(plan)
+    let p2_library_post_count = p2_library_export_count(mir, fn_count)
+    let p2_library_wrapper_count = p2_library_wrapper_count(
+        mir,
+        fn_count,
+        clone(target),
+        clone(wasi_version)
+    )
     writer_core::emit_leb128_u(export_sec, export_count)
-    emit_memory_export_entry(export_sec)
-    emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
-    emit_function_export_entries(export_sec, mir, fn_count, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+    emit_memory_export_entry(export_sec, clone(wasi_version))
+    emit_p2_runtime_export_entries(
+        export_sec,
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        clone(target),
+        clone(wasi_version),
+        wit_import_count
+    )
+    emit_start_export_entry(export_sec, main_idx, fn_count, needs_wrapper, clone(target), clone(wasi_version), wit_import_count)
+    emit_function_export_entries(
+        export_sec,
+        mir,
+        fn_count,
+        needs_wrapper,
+        clone(target),
+        clone(wasi_version),
+        wit_import_count,
+        p2_library_post_count
+    )
     writer_sections::emit_section(out, opcodes::SEC_EXPORT(), export_sec)
 }
 
@@ -128,32 +155,75 @@ fn export_name_seen_bump(counts: ExportNameCounts, name: String) -> i32 {
     0
 }
 
-fn build_export_section_plan(mir: MirModule, fn_count: i32) -> ExportSectionPlan {
+fn build_export_section_plan(mir: MirModule, fn_count: i32, wasi_version: String) -> ExportSectionPlan {
     let mut export_count = 1
+    if emit_target::is_p2_wasi(clone(wasi_version)) {
+        export_count = export_count + 2
+    }
     let mut main_idx = 0 - 1
+    let library_export_count = p2_library_export_count(mir, fn_count)
     let mut mi = 0
     while mi < fn_count {
         let f = module_functions::MirModule_function_at(mir, mi)
         let fname = function_identity::MirFunction_name(f)
         if start_names::is_wasm_start_function_name(clone(fname)) {
             main_idx = mi
-        } else {
-            if !is_internal_export_name(clone(fname)) {
-                if !is_generic_function(f) {
-                    export_count = export_count + 1
-                }
+        } else if emit_target::is_p2_wasi(clone(wasi_version)) {
+            if is_p2_library_export_function(f) {
+                export_count = export_count + 2
+            }
+        } else if !is_internal_export_name(clone(fname)) {
+            if !is_generic_function(f) {
+                export_count = export_count + 1
             }
         }
         mi = mi + 1
     }
     if main_idx >= 0 {
-        export_count = export_count + 1
+        if emit_target::is_p2_wasi(clone(wasi_version)) {
+            if library_export_count == 0 {
+                export_count = export_count + 2
+            }
+        } else {
+            export_count = export_count + 1
+        }
     }
     ExportSectionPlan_new(export_count, main_idx)
 }
 
-fn emit_memory_export_entry(export_sec: WasmWriter) {
-    writer_string::emit_string(export_sec, "memory")
+fn emit_p2_runtime_export_entries(
+    export_sec: WasmWriter,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    target: String,
+    wasi_version: String,
+    wit_import_count: i32
+) {
+    if !emit_target::is_p2_wasi(clone(wasi_version)) {
+        return
+    }
+    let realloc_idx = function_indices::p2_runtime_realloc_function_index(
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        clone(target),
+        clone(wasi_version),
+        wit_import_count
+    )
+    writer_string::emit_string(export_sec, "cm32p2_realloc")
+    writer_core::emit_byte(export_sec, 0)
+    writer_core::emit_leb128_u(export_sec, realloc_idx)
+    writer_string::emit_string(export_sec, "cm32p2_initialize")
+    writer_core::emit_byte(export_sec, 0)
+    writer_core::emit_leb128_u(export_sec, realloc_idx + 1)
+}
+
+fn emit_memory_export_entry(export_sec: WasmWriter, wasi_version: String) {
+    let name = if emit_target::is_p2_wasi(clone(wasi_version)) { "cm32p2_memory" } else { "memory" }
+    writer_string::emit_string(export_sec, name)
     writer_core::emit_byte(export_sec, 2)
     writer_core::emit_leb128_u(export_sec, 0)
 }
@@ -165,17 +235,27 @@ fn emit_start_export_entry(
     needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
     wit_import_count: i32
 ) {
     if main_idx >= 0 {
+        if emit_target::is_p2_wasi(clone(wasi_version)) {
+            if needs_wrapper == 0 {
+                return
+            }
+            writer_string::emit_string(export_sec, "cm32p2|wasi:cli/run@0.2|run")
+            writer_core::emit_byte(export_sec, 0)
+            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), wit_import_count))
+            writer_string::emit_string(export_sec, "cm32p2|wasi:cli/run@0.2|run_post")
+            writer_core::emit_byte(export_sec, 0)
+            writer_core::emit_leb128_u(export_sec, function_indices::p2_post_function_index(fn_count, clone(target), clone(wasi_version), wit_import_count))
+            return
+        }
         writer_string::emit_string(export_sec, "_start")
         writer_core::emit_byte(export_sec, 0)
         if needs_wrapper == 1 {
-            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_wrapper_export_index(fn_count, clone(target), clone(wasi_version), wit_import_count))
         } else {
-            writer_core::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count))
+            writer_core::emit_leb128_u(export_sec, wasm_function_export_index(main_idx, clone(target), clone(wasi_version), wit_import_count))
         }
     }
 }
@@ -184,32 +264,184 @@ fn emit_function_export_entries(
     export_sec: WasmWriter,
     mir: MirModule,
     fn_count: i32,
+    needs_wrapper: i32,
     target: String,
     wasi_version: String,
-    needs_runtime_host: i32,
-    needs_wasi_http_outgoing: i32,
-    wit_import_count: i32
+    wit_import_count: i32,
+    p2_library_post_count: i32
 ) {
     let functions = module_functions::MirModule_functions(mir)
     let seen_short_names = ExportNameCounts_new(fn_count)
+    let mut library_ordinal = 0
     let mut exi = 0
     while exi < fn_count {
         let ef = module_functions::MirModule_function_at(mir, exi)
         let ef_name = function_identity::MirFunction_name(ef)
         if start_names::is_wasm_start_function_name(clone(ef_name)) {
-        } else {
-            if !is_internal_export_name(clone(ef_name)) {
-                if !is_generic_function(ef) {
-                    let seen = export_name_seen_bump(seen_short_names, clone(ef_name))
-                    let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
-                    writer_string::emit_string(export_sec, export_name)
-                    writer_core::emit_byte(export_sec, 0)
-                    writer_core::emit_leb128_u(export_sec, wasm_function_export_index(exi, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count))
-                }
+        } else if emit_target::is_p2_wasi(clone(wasi_version)) {
+            if is_p2_library_export_function(ef) {
+                let seen = export_name_seen_bump(seen_short_names, clone(ef_name))
+                let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
+                emit_p2_library_function_exports(
+                    export_sec,
+                    clone(export_name),
+                    exi,
+                    fn_count,
+                    needs_wrapper,
+                    library_ordinal,
+                    clone(target),
+                    clone(wasi_version),
+                    wit_import_count,
+                    p2_library_post_count,
+                    p2_library_wrapper_ordinal(
+                        mir,
+                        fn_count,
+                        exi,
+                        clone(target),
+                        clone(wasi_version)
+                    )
+                )
+                library_ordinal = library_ordinal + 1
+            }
+        } else if !is_internal_export_name(clone(ef_name)) {
+            if !is_generic_function(ef) {
+                let seen = export_name_seen_bump(seen_short_names, clone(ef_name))
+                let export_name = call_resolve::mir_collision_export_name(functions, exi, clone(ef_name), seen)
+                writer_string::emit_string(export_sec, export_name)
+                writer_core::emit_byte(export_sec, 0)
+                writer_core::emit_leb128_u(
+                    export_sec,
+                    wasm_function_export_index(exi, clone(target), clone(wasi_version), wit_import_count)
+                )
             }
         }
         exi = exi + 1
     }
+}
+
+fn emit_p2_library_function_exports(
+    export_sec: WasmWriter,
+    export_name: String,
+    function_idx: i32,
+    fn_count: i32,
+    needs_wrapper: i32,
+    library_ordinal: i32,
+    target: String,
+    wasi_version: String,
+    wit_import_count: i32,
+    p2_library_post_count: i32,
+    wrapper_ordinal: i32
+) {
+    let wit_name = wit_names::wit_export_name(clone(export_name))
+    let function_export_idx = if wrapper_ordinal >= 0 {
+        function_indices::p2_library_wrapper_function_index(
+            fn_count,
+            needs_wrapper,
+            p2_library_post_count,
+            wrapper_ordinal,
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    } else {
+        wasm_function_export_index(function_idx, clone(target), clone(wasi_version), wit_import_count)
+    }
+    writer_string::emit_string(export_sec, concat("cm32p2||", clone(wit_name)))
+    writer_core::emit_byte(export_sec, 0)
+    writer_core::emit_leb128_u(export_sec, function_export_idx)
+    writer_string::emit_string(export_sec, concat("cm32p2||", concat(clone(wit_name), "_post")))
+    writer_core::emit_byte(export_sec, 0)
+    writer_core::emit_leb128_u(
+        export_sec,
+        function_indices::p2_library_post_function_index(
+            fn_count,
+            needs_wrapper,
+            library_ordinal,
+            clone(target),
+            clone(wasi_version),
+            wit_import_count
+        )
+    )
+}
+
+fn p2_library_export_count(mir: MirModule, fn_count: i32) -> i32 {
+    let mut count = 0
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if is_p2_library_export_function(f) {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn p2_library_wrapper_count(mir: MirModule, fn_count: i32, target: String, wasi_version: String) -> i32 {
+    let mut count = 0
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if is_p2_library_export_function(f) &&
+        sections_types_sigs_detail::p2_function_needs_string_wrapper(
+            f,
+            clone(target),
+            clone(wasi_version)
+        ) {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn p2_library_wrapper_ordinal(
+    mir: MirModule,
+    fn_count: i32,
+    function_idx: i32,
+    target: String,
+    wasi_version: String
+) -> i32 {
+    let mut ordinal = 0
+    let mut i = 0
+    while i < fn_count {
+        let f = module_functions::MirModule_function_at(mir, i)
+        if is_p2_library_export_function(f) &&
+        sections_types_sigs_detail::p2_function_needs_string_wrapper(
+            f,
+            clone(target),
+            clone(wasi_version)
+        ) {
+            if i == function_idx {
+                return ordinal
+            }
+            ordinal = ordinal + 1
+        }
+        i = i + 1
+    }
+    0 - 1
+}
+
+fn is_p2_library_export_function(f: MirFunction) -> bool {
+    let name = function_identity::MirFunction_name(f)
+    !start_names::is_wasm_start_function_name(clone(name)) &&
+    !is_internal_export_name(clone(name)) &&
+    !is_p2_std_helper_name(clone(name)) &&
+    !contains(clone(name), "::") &&
+    !is_generic_function(f)
+}
+
+fn is_p2_std_helper_name(name: String) -> bool {
+    if eq(clone(name), "print") || eq(clone(name), "println") || eq(clone(name), "eprintln") {
+        return true
+    }
+    if eq(clone(name), "var") || eq(clone(name), "get_var") {
+        return true
+    }
+    if eq(clone(name), "var_or_default") || eq(clone(name), "args") {
+        return true
+    }
+    eq(clone(name), "arg_count") || eq(clone(name), "arg_at")
 }
 
 fn is_internal_export_name(name: String) -> bool {
@@ -246,10 +478,10 @@ fn is_generic_function(f: MirFunction) -> bool {
     false
 }
 
-fn wasm_function_export_index(function_idx: i32, target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    function_indices::defined_function_index(function_idx, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+fn wasm_function_export_index(function_idx: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
+    function_indices::defined_function_index(function_idx, clone(target), clone(wasi_version), wit_import_count)
 }
 
-fn wasm_wrapper_export_index(fn_count: i32, target: String, wasi_version: String, needs_runtime_host: i32, needs_wasi_http_outgoing: i32, wit_import_count: i32) -> i32 {
-    function_indices::wrapper_function_index(fn_count, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+fn wasm_wrapper_export_index(fn_count: i32, target: String, wasi_version: String, wit_import_count: i32) -> i32 {
+    function_indices::wrapper_function_index(fn_count, clone(target), clone(wasi_version), wit_import_count)
 }

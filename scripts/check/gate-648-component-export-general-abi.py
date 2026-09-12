@@ -16,7 +16,7 @@ E0401_FIXTURES = (
     "export_unsupported_string_multi_mixed.ark",
 )
 
-GENERAL_ADAPTER_SOURCES = (
+RETIRED_COMPONENT_ENCODER_SOURCES = (
     "src/compiler/component/export_shapes_f32_general.ark",
     "src/compiler/component/adapters_f32_general.ark",
     "src/compiler/component/export_shapes_string_general.ark",
@@ -43,9 +43,12 @@ def main() -> int:
         if entry not in manifest:
             failures.append(f"manifest missing {entry}")
 
-    for rel in GENERAL_ADAPTER_SOURCES:
-        if not (REPO_ROOT / rel).is_file():
-            failures.append(f"missing {rel}")
+    for rel in RETIRED_COMPONENT_ENCODER_SOURCES:
+        if (REPO_ROOT / rel).is_file():
+            failures.append(f"retired component encoder remains: {rel}")
+
+    if not (REPO_ROOT / "src/compiler/wasm/p2_canonical.ark").is_file():
+        failures.append("missing src/compiler/wasm/p2_canonical.ark")
 
     current_state = (REPO_ROOT / "docs" / "current-state.md").read_text(encoding="utf-8")
     for needle in (

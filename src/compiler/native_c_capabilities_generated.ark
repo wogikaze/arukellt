@@ -468,29 +468,28 @@ fn native_c_capability_is_supported(op: i32) -> bool {
 fn native_c_core_capability_status_row_off_hex_chunk(chunk: i32) -> String {
     if chunk == 0 { return "0000000009000000120000001b000000240000002d000000360000003f00000048000000510000005a000000630000006c000000750000007e0000008d000000" }
     if chunk == 1 { return "9c000000a5000000ae000000b7000000c0000000cf000000d8000000e1000000ea000000f9000000080100001701000026010000350100003e01000047010000" }
-    if chunk == 2 { return "5001000059010000620100007101000080010000c0010000cf010000d8010000e1010000ea010000f3010000fc010000050200000e0200001702000020020000" }
-    if chunk == 3 { return "60020000ca020000340300003d0300004c03000055030000bf03000029040000930400009c040000060500004605000055050000640500006d05000076050000" }
-    if chunk == 4 { return "7f05000088050000910500009a050000a3050000e3050000ec050000f5050000040600000d0600005906000099060000a2060000e2060000220700002b070000" }
-    if chunk == 5 { return "340700003d0700004c0700005b0700009b070000a4070000ad070000b6070000bf070000ce070000dd070000ec070000fb07000004080000130800001c080000" }
-    if chunk == 6 { return "250800002e0800003708000046080000550800008a080000bf080000f4080000290900005e09000093090000c8090000fd090000320a0000670a00009c0a0000" }
-    if chunk == 7 { return "d10a0000060b00003b0b0000700b0000a50b0000da0b00000f0c0000440c0000790c0000ae0c0000e30c0000180d00004d0d0000820d0000b70d0000ec0d0000" }
-    if chunk == 8 { return "210e0000560e00008b0e0000c00e0000f50e00002a0f00005f0f0000940f0000c90f0000fe0f000033100000681000009d100000d2100000071100003c110000" }
-    if chunk == 9 { return "71110000a6110000db11000010120000451200007a120000af120000e4120000191300004e13000083130000b8130000ed13000022140000571400008c140000" }
-    if chunk == 10 { return "c1140000f61400002b1500006015000095150000ca150000ff15000034160000691600009e160000d3160000081700003d17000072170000a7170000dc170000" }
-    if chunk == 11 { return "11180000461800007b180000b0180000e51800001a1900004f19000084190000b9190000ee190000231a0000581a00008d1a0000c21a0000f71a00002c1b0000" }
-    if chunk == 12 { return "611b0000961b0000cb1b0000001c0000351c00006a1c00009f1c0000d41c0000091d00003e1d0000731d0000a81d0000dd1d0000121e0000471e00007c1e0000" }
-    if chunk == 13 { return "b11e0000e61e00001b1f0000501f0000851f0000ba1f0000ef1f000024200000592000008e200000c3200000f82000002d2100006221000097210000cc210000" }
-    if chunk == 14 { return "01220000362200006b220000a0220000d52200000a2300003f23000074230000a9230000de23000013240000482400007d240000b2240000e72400001c250000" }
-    if chunk == 15 { return "5125000086250000bb250000f0250000252600005a2600008f260000c4260000f92600002e2700006327000098270000cd27000002280000372800006c280000" }
-    if chunk == 16 { return "a1280000d6280000df280000e8280000f1280000fa280000032900000c290000152900001e290000272900003029000039290000422900004b29000054290000" }
-    if chunk == 17 { return "5d290000662900006f29000078290000812900008a290000932900009c290000a5290000ae290000b7290000c0290000c9290000d8290000e1290000ea290000" }
-    if chunk == 18 { return "f3290000fc290000052a00000e2a0000172a0000202a0000292a0000322a00003b2a0000442a00004d2a0000562a00005f2a0000682a0000712a00007a2a0000" }
-    if chunk == 19 { return "832a00008c2a0000952a00009e2a0000a72a0000dc2a0000" }
+    if chunk == 2 { return "50010000590100006201000071010000800100008f01000098010000a1010000aa010000b3010000bc010000c5010000ce010000d7010000e0010000e9010000" }
+    if chunk == 3 { return "f8010000010200000a0200001902000028020000310200003a020000430200004c020000550200005e0200006702000070020000790200008802000091020000" }
+    if chunk == 4 { return "dd020000e6020000ef020000f802000001030000100300001f03000028030000310300003a030000430300005203000061030000700300007f03000088030000" }
+    if chunk == 5 { return "97030000a0030000a9030000b2030000bb030000ca030000d90300000e0400004304000078040000ad040000e2040000170500004c05000081050000b6050000" }
+    if chunk == 6 { return "eb05000020060000550600008a060000bf060000f4060000290700005e07000093070000c8070000fd07000032080000670800009c080000d108000006090000" }
+    if chunk == 7 { return "3b09000070090000a5090000da0900000f0a0000440a0000790a0000ae0a0000e30a0000180b00004d0b0000820b0000b70b0000ec0b0000210c0000560c0000" }
+    if chunk == 8 { return "8b0c0000c00c0000f50c00002a0d00005f0d0000940d0000c90d0000fe0d0000330e0000680e00009d0e0000d20e0000070f00003c0f0000710f0000a60f0000" }
+    if chunk == 9 { return "db0f000010100000451000007a100000af100000e4100000191100004e11000083110000b8110000ed11000022120000571200008c120000c1120000f6120000" }
+    if chunk == 10 { return "2b1300006013000095130000ca130000ff13000034140000691400009e140000d3140000081500003d15000072150000a7150000dc1500001116000046160000" }
+    if chunk == 11 { return "7b160000b0160000e51600001a1700004f17000084170000b9170000ee17000023180000581800008d180000c2180000f71800002c1900006119000096190000" }
+    if chunk == 12 { return "cb190000001a0000351a00006a1a00009f1a0000d41a0000091b00003e1b0000731b0000a81b0000dd1b0000121c0000471c00007c1c0000b11c0000e61c0000" }
+    if chunk == 13 { return "1b1d0000501d0000851d0000ba1d0000ef1d0000241e0000591e00008e1e0000c31e0000f81e00002d1f0000621f0000971f0000cc1f00000120000036200000" }
+    if chunk == 14 { return "6b200000a0200000d52000000a2100003f21000074210000a9210000de21000013220000482200007d220000b2220000e72200001c2300005123000086230000" }
+    if chunk == 15 { return "bb230000f0230000252400005a240000632400006c240000752400007e240000872400009024000099240000a2240000ab240000b4240000bd240000c6240000" }
+    if chunk == 16 { return "cf240000d8240000e1240000ea240000f3240000fc240000052500000e250000172500002025000029250000322500003b250000442500004d2500005c250000" }
+    if chunk == 17 { return "652500006e250000772500008025000089250000922500009b250000a4250000ad250000b6250000bf250000c8250000d1250000da250000e3250000ec250000" }
+    if chunk == 18 { return "f5250000fe250000072600001026000019260000222600002b26000060260000" }
     return String_new()
 }
 
 fn native_c_core_capability_status_row_off_at(index: i32) -> i32 {
-    if index < 0 || index >= 310 {
+    if index < 0 || index >= 296 {
         return 0
     }
     let chunk = index / 16
@@ -503,145 +502,130 @@ fn native_c_core_capability_status_row_data_chunk(chunk: i32) -> String {
     if chunk == 1 { return "dsupportedsupportedsupportedsupportedsupportedplanned phase 2planned phase 2supp" }
     if chunk == 2 { return "ortedsupportedsupportedsupportedplanned phase 2supportedsupportedsupportedplanne" }
     if chunk == 3 { return "d phase 2planned phase 2planned phase 2planned phase 2planned phase 2supportedsu" }
-    if chunk == 4 { return "pportedsupportedsupportedsupportedplanned phase 2planned phase 2unsupported: net" }
-    if chunk == 5 { return "work runtime is outside the native-cpp MVP scopeplanned phase 4supportedsupporte" }
-    if chunk == 6 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedunsupported: net" }
-    if chunk == 7 { return "work runtime is outside the native-cpp MVP scopeunsupported: WASI P2 runtime ada" }
-    if chunk == 8 { return "pter operation; native-cpp support is outside this productionization sliceunsupp" }
-    if chunk == 9 { return "orted: WASI P2 runtime adapter operation; native-cpp support is outside this pro" }
-    if chunk == 10 { return "ductionization slicesupportedplanned phase 4supportedunsupported: WASI P2 runtim" }
-    if chunk == 11 { return "e adapter operation; native-cpp support is outside this productionization sliceu" }
-    if chunk == 12 { return "nsupported: WASI P2 runtime adapter operation; native-cpp support is outside thi" }
-    if chunk == 13 { return "s productionization sliceunsupported: WASI P2 runtime adapter operation; native-" }
-    if chunk == 14 { return "cpp support is outside this productionization slicesupportedunsupported: WASI P2" }
-    if chunk == 15 { return " runtime adapter operation; native-cpp support is outside this productionization" }
-    if chunk == 16 { return " sliceunsupported: network runtime is outside the native-cpp MVP scopeplanned ph" }
-    if chunk == 17 { return "ase 4planned phase 4supportedsupportedsupportedsupportedsupportedsupportedsuppor" }
-    if chunk == 18 { return "tedunsupported: network runtime is outside the native-cpp MVP scopesupportedsupp" }
-    if chunk == 19 { return "ortedplanned phase 4supportedunsupported: host random is outside the native-cpp " }
-    if chunk == 20 { return "executor runtime boundaryunsupported: network runtime is outside the native-cpp " }
-    if chunk == 21 { return "MVP scopesupportedunsupported: network runtime is outside the native-cpp MVP sco" }
-    if chunk == 22 { return "peunsupported: network runtime is outside the native-cpp MVP scopesupportedsuppo" }
-    if chunk == 23 { return "rtedsupportedplanned phase 4planned phase 4unsupported: network runtime is outsi" }
-    if chunk == 24 { return "de the native-cpp MVP scopesupportedsupportedsupportedsupportedplanned phase 2pl" }
-    if chunk == 25 { return "anned phase 2planned phase 2planned phase 2supportedplanned phase 2supportedsupp" }
-    if chunk == 26 { return "ortedsupportedsupportedplanned phase 2planned phase 2unsupported: SIMD is outsid" }
-    if chunk == 27 { return "e the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeu" }
-    if chunk == 28 { return "nsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside" }
-    if chunk == 29 { return " the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeun" }
-    if chunk == 30 { return "supported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside " }
-    if chunk == 31 { return "the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeuns" }
-    if chunk == 32 { return "upported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside t" }
-    if chunk == 33 { return "he native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsu" }
-    if chunk == 34 { return "pported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside th" }
-    if chunk == 35 { return "e native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsup" }
-    if chunk == 36 { return "ported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the" }
-    if chunk == 37 { return " native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupp" }
-    if chunk == 38 { return "orted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the " }
-    if chunk == 39 { return "native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppo" }
-    if chunk == 40 { return "rted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the n" }
-    if chunk == 41 { return "ative-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppor" }
-    if chunk == 42 { return "ted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the na" }
-    if chunk == 43 { return "tive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupport" }
-    if chunk == 44 { return "ed: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nat" }
-    if chunk == 45 { return "ive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupporte" }
-    if chunk == 46 { return "d: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nati" }
-    if chunk == 47 { return "ve-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported" }
-    if chunk == 48 { return ": SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nativ" }
-    if chunk == 49 { return "e-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported:" }
-    if chunk == 50 { return " SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native" }
-    if chunk == 51 { return "-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: " }
-    if chunk == 52 { return "SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-" }
-    if chunk == 53 { return "cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: S" }
-    if chunk == 54 { return "IMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-c" }
-    if chunk == 55 { return "pp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SI" }
-    if chunk == 56 { return "MD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cp" }
-    if chunk == 57 { return "p MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIM" }
-    if chunk == 58 { return "D is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp" }
-    if chunk == 59 { return " MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD" }
-    if chunk == 60 { return " is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp " }
-    if chunk == 61 { return "MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD " }
-    if chunk == 62 { return "is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp M" }
-    if chunk == 63 { return "VP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD i" }
-    if chunk == 64 { return "s outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MV" }
-    if chunk == 65 { return "P scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is" }
-    if chunk == 66 { return " outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP" }
-    if chunk == 67 { return " scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is " }
-    if chunk == 68 { return "outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP " }
-    if chunk == 69 { return "scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is o" }
-    if chunk == 70 { return "utside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP s" }
-    if chunk == 71 { return "copeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is ou" }
-    if chunk == 72 { return "tside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sc" }
-    if chunk == 73 { return "opeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is out" }
-    if chunk == 74 { return "side the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sco" }
-    if chunk == 75 { return "peunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outs" }
-    if chunk == 76 { return "ide the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scop" }
-    if chunk == 77 { return "eunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsi" }
-    if chunk == 78 { return "de the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scope" }
-    if chunk == 79 { return "unsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsid" }
-    if chunk == 80 { return "e the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeu" }
-    if chunk == 81 { return "nsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside" }
-    if chunk == 82 { return " the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeun" }
-    if chunk == 83 { return "supported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside " }
-    if chunk == 84 { return "the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeuns" }
-    if chunk == 85 { return "upported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside t" }
-    if chunk == 86 { return "he native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsu" }
-    if chunk == 87 { return "pported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside th" }
-    if chunk == 88 { return "e native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsup" }
-    if chunk == 89 { return "ported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the" }
-    if chunk == 90 { return " native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupp" }
-    if chunk == 91 { return "orted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the " }
-    if chunk == 92 { return "native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppo" }
-    if chunk == 93 { return "rted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the n" }
-    if chunk == 94 { return "ative-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppor" }
-    if chunk == 95 { return "ted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the na" }
-    if chunk == 96 { return "tive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupport" }
-    if chunk == 97 { return "ed: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nat" }
-    if chunk == 98 { return "ive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupporte" }
-    if chunk == 99 { return "d: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nati" }
-    if chunk == 100 { return "ve-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported" }
-    if chunk == 101 { return ": SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nativ" }
-    if chunk == 102 { return "e-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported:" }
-    if chunk == 103 { return " SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native" }
-    if chunk == 104 { return "-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: " }
-    if chunk == 105 { return "SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-" }
-    if chunk == 106 { return "cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: S" }
-    if chunk == 107 { return "IMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-c" }
-    if chunk == 108 { return "pp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SI" }
-    if chunk == 109 { return "MD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cp" }
-    if chunk == 110 { return "p MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIM" }
-    if chunk == 111 { return "D is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp" }
-    if chunk == 112 { return " MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD" }
-    if chunk == 113 { return " is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp " }
-    if chunk == 114 { return "MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD " }
-    if chunk == 115 { return "is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp M" }
-    if chunk == 116 { return "VP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD i" }
-    if chunk == 117 { return "s outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MV" }
-    if chunk == 118 { return "P scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is" }
-    if chunk == 119 { return " outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP" }
-    if chunk == 120 { return " scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is " }
-    if chunk == 121 { return "outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP " }
-    if chunk == 122 { return "scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is o" }
-    if chunk == 123 { return "utside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP s" }
-    if chunk == 124 { return "copeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is ou" }
-    if chunk == 125 { return "tside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sc" }
-    if chunk == 126 { return "opeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is out" }
-    if chunk == 127 { return "side the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sco" }
-    if chunk == 128 { return "peunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outs" }
-    if chunk == 129 { return "ide the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scop" }
-    if chunk == 130 { return "eunsupported: SIMD is outside the native-cpp MVP scopesupportedsupportedsupporte" }
-    if chunk == 131 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupport" }
-    if chunk == 132 { return "edsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsuppor" }
-    if chunk == 133 { return "tedsupportedsupportedsupportedsupportedsupportedsupportedplanned phase 2supporte" }
-    if chunk == 134 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupport" }
-    if chunk == 135 { return "edsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsuppor" }
-    if chunk == 136 { return "tedsupportedsupportedsupportedsupportedunsupported: SIMD is outside the native-c" }
-    if chunk == 137 { return "pp MVP scope" }
+    if chunk == 4 { return "pportedsupportedsupportedsupportedplanned phase 2planned phase 2planned phase 4s" }
+    if chunk == 5 { return "upportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupported" }
+    if chunk == 6 { return "supportedplanned phase 4supportedsupportedplanned phase 4planned phase 4supporte" }
+    if chunk == 7 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedplanned" }
+    if chunk == 8 { return " phase 4supportedunsupported: host random is outside the native-cpp executor run" }
+    if chunk == 9 { return "time boundarysupportedsupportedsupportedsupportedplanned phase 4planned phase 4s" }
+    if chunk == 10 { return "upportedsupportedsupportedsupportedplanned phase 2planned phase 2planned phase 2" }
+    if chunk == 11 { return "planned phase 2supportedplanned phase 2supportedsupportedsupportedsupportedplann" }
+    if chunk == 12 { return "ed phase 2planned phase 2unsupported: SIMD is outside the native-cpp MVP scopeun" }
+    if chunk == 13 { return "supported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside " }
+    if chunk == 14 { return "the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeuns" }
+    if chunk == 15 { return "upported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside t" }
+    if chunk == 16 { return "he native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsu" }
+    if chunk == 17 { return "pported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside th" }
+    if chunk == 18 { return "e native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsup" }
+    if chunk == 19 { return "ported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the" }
+    if chunk == 20 { return " native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupp" }
+    if chunk == 21 { return "orted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the " }
+    if chunk == 22 { return "native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppo" }
+    if chunk == 23 { return "rted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the n" }
+    if chunk == 24 { return "ative-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppor" }
+    if chunk == 25 { return "ted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the na" }
+    if chunk == 26 { return "tive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupport" }
+    if chunk == 27 { return "ed: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nat" }
+    if chunk == 28 { return "ive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupporte" }
+    if chunk == 29 { return "d: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nati" }
+    if chunk == 30 { return "ve-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported" }
+    if chunk == 31 { return ": SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nativ" }
+    if chunk == 32 { return "e-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported:" }
+    if chunk == 33 { return " SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native" }
+    if chunk == 34 { return "-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: " }
+    if chunk == 35 { return "SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-" }
+    if chunk == 36 { return "cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: S" }
+    if chunk == 37 { return "IMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-c" }
+    if chunk == 38 { return "pp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SI" }
+    if chunk == 39 { return "MD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cp" }
+    if chunk == 40 { return "p MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIM" }
+    if chunk == 41 { return "D is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp" }
+    if chunk == 42 { return " MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD" }
+    if chunk == 43 { return " is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp " }
+    if chunk == 44 { return "MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD " }
+    if chunk == 45 { return "is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp M" }
+    if chunk == 46 { return "VP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD i" }
+    if chunk == 47 { return "s outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MV" }
+    if chunk == 48 { return "P scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is" }
+    if chunk == 49 { return " outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP" }
+    if chunk == 50 { return " scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is " }
+    if chunk == 51 { return "outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP " }
+    if chunk == 52 { return "scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is o" }
+    if chunk == 53 { return "utside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP s" }
+    if chunk == 54 { return "copeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is ou" }
+    if chunk == 55 { return "tside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sc" }
+    if chunk == 56 { return "opeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is out" }
+    if chunk == 57 { return "side the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sco" }
+    if chunk == 58 { return "peunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outs" }
+    if chunk == 59 { return "ide the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scop" }
+    if chunk == 60 { return "eunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsi" }
+    if chunk == 61 { return "de the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scope" }
+    if chunk == 62 { return "unsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsid" }
+    if chunk == 63 { return "e the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeu" }
+    if chunk == 64 { return "nsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside" }
+    if chunk == 65 { return " the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeun" }
+    if chunk == 66 { return "supported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside " }
+    if chunk == 67 { return "the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeuns" }
+    if chunk == 68 { return "upported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside t" }
+    if chunk == 69 { return "he native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsu" }
+    if chunk == 70 { return "pported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside th" }
+    if chunk == 71 { return "e native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsup" }
+    if chunk == 72 { return "ported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the" }
+    if chunk == 73 { return " native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupp" }
+    if chunk == 74 { return "orted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the " }
+    if chunk == 75 { return "native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppo" }
+    if chunk == 76 { return "rted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the n" }
+    if chunk == 77 { return "ative-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsuppor" }
+    if chunk == 78 { return "ted: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the na" }
+    if chunk == 79 { return "tive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupport" }
+    if chunk == 80 { return "ed: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nat" }
+    if chunk == 81 { return "ive-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupporte" }
+    if chunk == 82 { return "d: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nati" }
+    if chunk == 83 { return "ve-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported" }
+    if chunk == 84 { return ": SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the nativ" }
+    if chunk == 85 { return "e-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported:" }
+    if chunk == 86 { return " SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native" }
+    if chunk == 87 { return "-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: " }
+    if chunk == 88 { return "SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-" }
+    if chunk == 89 { return "cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: S" }
+    if chunk == 90 { return "IMD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-c" }
+    if chunk == 91 { return "pp MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SI" }
+    if chunk == 92 { return "MD is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cp" }
+    if chunk == 93 { return "p MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIM" }
+    if chunk == 94 { return "D is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp" }
+    if chunk == 95 { return " MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD" }
+    if chunk == 96 { return " is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp " }
+    if chunk == 97 { return "MVP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD " }
+    if chunk == 98 { return "is outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp M" }
+    if chunk == 99 { return "VP scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD i" }
+    if chunk == 100 { return "s outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MV" }
+    if chunk == 101 { return "P scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is" }
+    if chunk == 102 { return " outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP" }
+    if chunk == 103 { return " scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is " }
+    if chunk == 104 { return "outside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP " }
+    if chunk == 105 { return "scopeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is o" }
+    if chunk == 106 { return "utside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP s" }
+    if chunk == 107 { return "copeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is ou" }
+    if chunk == 108 { return "tside the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sc" }
+    if chunk == 109 { return "opeunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is out" }
+    if chunk == 110 { return "side the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP sco" }
+    if chunk == 111 { return "peunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outs" }
+    if chunk == 112 { return "ide the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scop" }
+    if chunk == 113 { return "eunsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsi" }
+    if chunk == 114 { return "de the native-cpp MVP scopeunsupported: SIMD is outside the native-cpp MVP scope" }
+    if chunk == 115 { return "unsupported: SIMD is outside the native-cpp MVP scopeunsupported: SIMD is outsid" }
+    if chunk == 116 { return "e the native-cpp MVP scopesupportedsupportedsupportedsupportedsupportedsupported" }
+    if chunk == 117 { return "supportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupporte" }
+    if chunk == 118 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupport" }
+    if chunk == 119 { return "edsupportedsupportedsupportedplanned phase 2supportedsupportedsupportedsupported" }
+    if chunk == 120 { return "supportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupporte" }
+    if chunk == 121 { return "dsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupportedsupport" }
+    if chunk == 122 { return "edsupportedunsupported: SIMD is outside the native-cpp MVP scope" }
     return String_new()
 }
 
 fn native_c_core_capability_status_row_at(index: i32) -> String {
-    if index < 0 || index >= 309 {
+    if index < 0 || index >= 295 {
         return String_new()
     }
     let start = native_c_core_capability_status_row_off_at(index)
@@ -678,11 +662,11 @@ fn native_c_core_capability_status_row_at(index: i32) -> String {
 fn native_c_core_capability_supported_flag_hex_chunk(chunk: i32) -> String {
     if chunk == 0 { return "01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000000000000000000" }
     if chunk == 1 { return "01000000010000000100000001000000000000000100000001000000010000000000000000000000000000000000000000000000010000000100000001000000" }
-    if chunk == 2 { return "01000000010000000000000000000000000000000000000001000000010000000100000001000000010000000100000001000000010000000100000000000000" }
-    if chunk == 3 { return "00000000000000000100000000000000010000000000000000000000000000000100000000000000000000000000000000000000010000000100000001000000" }
-    if chunk == 4 { return "01000000010000000100000001000000000000000100000001000000000000000100000000000000000000000100000000000000000000000100000001000000" }
-    if chunk == 5 { return "01000000000000000000000000000000010000000100000001000000010000000000000000000000000000000000000001000000000000000100000001000000" }
-    if chunk == 6 { return "01000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 2 { return "01000000010000000000000000000000000000000100000001000000010000000100000001000000010000000100000001000000010000000100000000000000" }
+    if chunk == 3 { return "01000000010000000000000000000000010000000100000001000000010000000100000001000000010000000100000001000000000000000100000000000000" }
+    if chunk == 4 { return "01000000010000000100000001000000000000000000000001000000010000000100000001000000000000000000000000000000000000000100000000000000" }
+    if chunk == 5 { return "01000000010000000100000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
+    if chunk == 6 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 7 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 8 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 9 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
@@ -691,16 +675,15 @@ fn native_c_core_capability_supported_flag_hex_chunk(chunk: i32) -> String {
     if chunk == 12 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 13 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
     if chunk == 14 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 15 { return "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" }
-    if chunk == 16 { return "00000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
-    if chunk == 17 { return "01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000000000000010000000100000001000000" }
-    if chunk == 18 { return "01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
-    if chunk == 19 { return "0100000001000000010000000100000000000000" }
+    if chunk == 15 { return "00000000000000000000000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
+    if chunk == 16 { return "01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000000000001000000" }
+    if chunk == 17 { return "01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000" }
+    if chunk == 18 { return "01000000010000000100000001000000010000000100000000000000" }
     return String_new()
 }
 
 fn native_c_core_capability_supported_flag_at(index: i32) -> i32 {
-    if index < 0 || index >= 309 {
+    if index < 0 || index >= 295 {
         return 0
     }
     let chunk = index / 16
@@ -709,7 +692,7 @@ fn native_c_core_capability_supported_flag_at(index: i32) -> i32 {
 }
 
 fn native_c_core_capability_status_detail(index: i32) -> String {
-    if index < 0 || index >= 309 {
+    if index < 0 || index >= 295 {
         return String_from("unknown capability")
     }
     return native_c_core_capability_status_row_at(index)

@@ -24,13 +24,15 @@
 | `std::wit` | expansion | WIT type constants. Active development. |
 | `std::component` | expansion | Component model ABI helpers. Active development. |
 | `std::host::stdio` | maintenance | Console I/O. Stable surface. |
-| `std::host::fs` | expansion | File system operations. Accepts path/metadata additions. |
+| `std::host::fs` | expansion | File system operations backed by official WASI interfaces. New operations require an explicit interface binding. |
 | `std::host::env` | expansion | Environment variable access. Accepts new env operations. |
 | `std::host::process` | maintenance | Process exit. Minimal surface. |
 | `std::host::clock` | maintenance | Clock/time access. Stable surface. |
 | `std::host::random` | maintenance | OS random source. Minimal surface. |
-| `std::host::http` | expansion | HTTP client. WASI P2 dependent. Experimental. |
-| `std::host::sockets` | expansion | TCP/UDP sockets. WASI P2 dependent. Experimental. |
+
+HTTP/TCP/UDP are intentionally not represented by Arukellt stdlib facades.
+Applications that need those capabilities must import and compose the official
+WASI interfaces at the component boundary.
 
 ## Label Definitions
 

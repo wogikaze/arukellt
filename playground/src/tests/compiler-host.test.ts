@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import { compileWithCompilerWasm } from "../compiler-host.js";
-import { isRunnableT2Output } from "../compiler-client.js";
 import { createWasiHost } from "../wasi/minimal-host.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -39,7 +38,7 @@ test("createWasiHost satisfies selfhost compiler WASI imports", async () => {
   assert.ok(instance.exports.memory);
 });
 
-test("compileWithCompilerWasm compiles T2 stdio fixture through WASI host", async () => {
+test("compileWithCompilerWasm returns compiler metadata", async () => {
   const compilerBytes = await loadCompilerBytes();
   const source = [
     "fn main() {",
@@ -59,9 +58,8 @@ test("compileWithCompilerWasm compiles T2 stdio fixture through WASI host", asyn
   if (result.ok) {
     assert.ok(result.wasmBytes);
     assert.ok(result.wasmBytes!.byteLength > 0);
-    assert.ok(isRunnableT2Output(result.wasmBytes));
   } else {
-    // Pinned bootstrap may not yet lower stdio to arukellt_io; host contract still returns metadata.
+    // A stale or unavailable bootstrap still has to return structured metadata.
     assert.ok(result.error);
   }
 });

@@ -1,6 +1,6 @@
 {
   "schema": "arukellt-issue-index-meta-v1",
-  "generated_at": "2026-09-01T11:09:09Z",
+  "generated_at": "2026-09-12T19:51:33Z",
   "generator": "scripts/gen/generate-issue-index.py",
   "open_issues": [
     {
@@ -41,25 +41,6 @@
       },
       "orchestration": {
         "class": "design-ready",
-        "upstream_notes": "None"
-      }
-    },
-    {
-      "id": "675",
-      "path": "675-host-capability-reachability-flags.md",
-      "title": "675 — Host capability user-reachability and runtime permission flags",
-      "track": "capability",
-      "status": "open",
-      "depends_on": [
-        "841"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 11
-      },
-      "orchestration": {
-        "class": "implementation-ready",
         "upstream_notes": "None"
       }
     },
@@ -537,25 +518,6 @@
       "orchestration": {
         "class": "implementation",
         "upstream_notes": null
-      }
-    },
-    {
-      "id": "830",
-      "path": "830-wasm-heap-grow-patcher-retirement.md",
-      "title": "830 — Retire `wasm-heap-grow-patcher` (walrus) from selfhost bootstrap",
-      "track": "selfhost-infra",
-      "status": "open",
-      "depends_on": [
-        "730"
-      ],
-      "blocks_issue_ids": [],
-      "acceptance": {
-        "checked": 0,
-        "unchecked": 5
-      },
-      "orchestration": {
-        "class": "architecture-implementation",
-        "upstream_notes": "None"
       }
     },
     {

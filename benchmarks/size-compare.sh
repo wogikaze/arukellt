@@ -2,7 +2,7 @@
 # Compare Wasm output sizes between T1 and T3.
 set -euo pipefail
 
-ARUKELLT="${ARUKELLT:-target/release/arukellt}"
+ARUKELLT="${ARUKELLT:-scripts/run/arukellt-selfhost.sh}"
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
 

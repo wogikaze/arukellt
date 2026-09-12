@@ -7,7 +7,7 @@ Source-backed docs for explicit host filesystem operations.
 
 > **Overview vs Reference:** This section is curated prose — it explains when and how to use this module family. The sections below are exhaustive generated reference tables sourced directly from `std/manifest.toml` and source doc comments.
 
-`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller stable-shaped bridge over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a compact API, with the understanding that it tracks only a subset of the evolving `std::host::fs` rollout. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
+`std::host::fs` is the primary host filesystem module: whole-file reads, string and byte writes, an `exists` read probe / readable-file check (not path existence), and experimental fd helpers, all backed by the current WASI filesystem intrinsics. `std::fs` is a smaller compact module over the same intrinsics (`read_string` / `write_string` / `exists`) — useful when you want a minimal API, with the understanding that it exposes only a subset of the `std::host::fs` operations. Neither module is a complete filesystem facade (no directory listing, metadata, or streaming I/O in-tree yet). Pure path manipulation lives in `std::path`; for the full host family overview, see [io.md](io.md).
 
 **Recommended API highlights:**
 
@@ -39,35 +39,25 @@ write_string("output.txt", "hello")
 ## Module `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 13
-- Stability: deprecated 1, experimental 3, provisional 8, stable 1
+- Manifest-backed functions: 10
+- Stability: deprecated 1, experimental 3, provisional 5, stable 1
 
-> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 4/13 APIs have limited or placeholder semantics
+> ⚠️ **Availability:** mixed — see individual symbols · ⚠️ **Status:** partial — 2/10 APIs have limited or placeholder semantics
 
-Host filesystem helpers backed by the versioned runtime ABI.
+Host filesystem helpers backed directly by WASI file-descriptor calls.
 
-Whole-file I/O, directory listing, metadata and basic mutation all lower
-through runtime CoreOps. On `wasm32-gc` / WASI P2 the component runtime
-adapter implements those operations with real WASI filesystem facilities.
-Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
-
-### `std::host::fs` — Public Types
-
-| Name | Kind | Summary |
-|------|------|---------|
-| `FsError` | `enum` | - |
-| `FsMetadata` | `struct` | - |
+The module exposes whole-file operations and read probes. Directory
+metadata, directory iteration, and mutation APIs were removed with the
+repository-specific host runtime; use an official WASI filesystem WIT
+import when those capabilities are required.
 
 ### `std::host::fs` — Public API
 
 | Name | Signature | Stability | Implementation | Summary |
 |------|-----------|-----------|----------------|---------|
-| `fs_error_message` | `(FsError) -> String` | `provisional` | ✅ functional | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `provisional` | ✅ functional | - |
 | `write_string` | `(String, String) -> Result<(), String>` | `provisional` | ✅ functional | - |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `provisional` | ✅ functional | - |
-| `metadata` | `(String) -> Result<FsMetadata, FsError>` | `provisional` | ⚠️ limited semantics | - |
-| `read_dir` | `(String) -> Result<Vec<String>, FsError>` | `provisional` | ⚠️ limited semantics | - |
 | ~~`exists`~~ ⚠️ Deprecated → `is_readable_file` | `(String) -> bool` | `deprecated` | ✅ functional | - |
 | `is_readable_file` | `(String) -> bool` | `stable` | ✅ functional | - |
 | `is_file` | `(String) -> bool` | `provisional` | ⚠️ limited semantics | - |
@@ -75,10 +65,6 @@ Runtime directory authority still comes from Wasmtime (`--dir`, `--mapdir`).
 | `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_tell` | `(i32) -> i64` | `experimental` | ✅ functional | - |
 | `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ functional | - |
-
-#### `std::host::fs::fs_error_message`
-
-Format an FsError for display (used by read_dir/metadata and future typed fs APIs).
 
 #### `std::host::fs::read_to_string`
 
@@ -110,22 +96,6 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 **Availability:** Requires the --dir capability flag at runtime.
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
-
-#### `std::host::fs::metadata`
-
-Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed.
-
-**Availability:** Honest rejection until backend support lands.
-
-**Errors:** Err(FsError::IoError) with message 'metadata not yet supported: <path>'.
-
-#### `std::host::fs::read_dir`
-
-Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer.
-
-**Availability:** Honest rejection until backend support lands.
-
-**Errors:** Err(FsError::IoError) with message 'directory listing not yet supported: <path>'.
 
 #### `std::host::fs::exists`
 
@@ -177,15 +147,12 @@ Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
 - Manifest-backed functions: 8
 - Stability: provisional 4, stable 4
 
-Small host-backed file helpers — a **partial bridge**, not a full filesystem API.
+Small host-backed file helpers — a compact filesystem API.
 
-`std::fs` tracks a narrow, stable-shaped subset of the same WASI filesystem
-intrinsics behind `std::host::fs` (`read_string` / `write_string` plus
-`is_readable_file` and `exists` read probes). Prefer `std::host::fs` for the
-full host rollout surface (`read_to_string`, `write_bytes`, `FsError` error
-type, experimental fd helpers, and future additions).  This namespace exists
-so call sites can depend on a compact API while `std::host::*` continues to
-evolve.
+`std::fs` exposes a narrow, stable-shaped subset of the same official WASI
+filesystem intrinsics as `std::host::fs` (`read_string` / `write_string`
+plus `is_readable_file` and `exists` read probes). Prefer `std::host::fs`
+when the whole-file byte API or experimental fd helpers are needed.
 
 There is no in-tree directory listing, metadata API, or streaming I/O yet; do
 not treat this as a complete POSIX-style facade. Broader

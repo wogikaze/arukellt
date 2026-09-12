@@ -19,10 +19,8 @@ Before changing behavior, read:
 ## Quick Start
 
 ```bash
-# Make the selfhost CLI wrapper available
-mkdir -p target/release
-cp scripts/run/arukellt-selfhost.sh target/release/arukellt
-chmod +x target/release/arukellt
+# Use the selfhost CLI wrapper directly
+chmod +x scripts/run/arukellt-selfhost.sh
 
 # Run the fast local verification gate
 python3 scripts/manager.py verify
@@ -31,7 +29,7 @@ python3 scripts/manager.py verify
 python3 scripts/manager.py verify full
 
 # Run a sample program
-./target/release/arukellt run docs/examples/hello.ark
+scripts/run/arukellt-selfhost.sh run docs/examples/hello.ark
 ```
 
 ## Common Commands

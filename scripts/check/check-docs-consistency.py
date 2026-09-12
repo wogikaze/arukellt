@@ -2,7 +2,7 @@
 """Extended docs consistency checker.
 
 Beyond generated-docs freshness, this script validates:
-- Bootstrap state: docs match verify-bootstrap.sh output
+- Bootstrap state: docs match the pinned selfhost contract
 - Capability state: docs match std/manifest.toml kind metadata
 - Component state: docs match implementation support
 - Stale detection: concrete diffs on mismatch
@@ -684,7 +684,7 @@ def _find_reference_row(
     Returns the full line or None.  Handles both normal and deprecated display
     forms.  When *module* is given, the Module column (3rd pipe-field) must
     contain it to disambiguate functions that share a name (e.g. prelude
-    ``get`` vs ``std::host::http`` ``get``).
+    ``get`` vs ``std::path`` ``get``).
     """
     normal_pattern = f"| `{fn_name}` |"
     deprecated_pattern = f"| ~~`{fn_name}`~~"
@@ -936,7 +936,7 @@ def check_host_stub_fixture_coverage() -> int:
         # Derive search terms: function name and module short name
         search_terms = [name]
         if "::" in module:
-            # e.g. "std::host::sockets" → "sockets"
+            # e.g. "std::collections::hash" → "hash"
             short_module = module.rsplit("::", 1)[-1]
             search_terms.append(short_module)
 
@@ -1459,7 +1459,7 @@ def check_manifest_availability_consistency() -> int:
     Functions that only list ``target = ["wasm32-wasi-p2"]`` and carry an
     ``[availability]`` block with ``t1 = true`` but no ``note`` are likely a
     data-entry mistake — ``t1`` should be ``false`` unless a ``note`` explains
-    the T1 support path (e.g. via Wasmtime linker bridge).
+    the T1 support path (e.g. via the target's direct WASI runtime).
     """
     if not MANIFEST.exists():
         return 0
@@ -1475,7 +1475,7 @@ def check_manifest_availability_consistency() -> int:
         if target == ["wasm32-wasi-p2"] and avail is not None:
             # If t1 = true but no note is provided, this is a probable data error.
             # When a note is present, the author has explicitly documented the T1
-            # support path (e.g. "T1 via Wasmtime linker"), which is a valid case.
+            # support path (for example, direct execution through a WASI runtime).
             if avail.get("t1", True) is True and not avail.get("note"):
                 bad.append(name)
 
@@ -1786,16 +1786,6 @@ def check_docs_runtime_contract() -> int:
             errors.append(
                 "target-contract.md should mention skip-on-CI or skip for smoke-tier component"
             )
-
-    if capability_surface.is_file():
-        cap_text = capability_surface.read_text(encoding="utf-8")
-        host_reachable = contract.get("host_http_user_reachable")
-        if host_reachable is False:
-            if "std::host::http" not in cap_text or "not user-reachable" not in cap_text.lower():
-                errors.append(
-                    "capability-surface.md should mark std::host::http not user-reachable "
-                    "when contract_audit.host_http_user_reachable=false"
-                )
 
     return 1 if errors else 0
 

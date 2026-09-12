@@ -130,10 +130,6 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
         return
     }
-    if call_type_fallback_stdlib::mark_host_sockets_result_type(ctx, clone(callee_name), dest) {
-        set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
-        return
-    }
     // Re-apply known stdlib Result types when unset or demoted away from
     // Result/Option encodings (#834 cmd_init: write_main was i32).
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)

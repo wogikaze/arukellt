@@ -1,4 +1,0 @@
-// T2 freestanding stdio fixture — must import arukellt_io and validate as core Wasm.
-fn main() {
-    print("hello")
-}

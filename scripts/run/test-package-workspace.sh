@@ -12,7 +12,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/debug/arukellt}"
+ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/scripts/run/arukellt-selfhost.sh}"
 FIXTURE_DIR="$REPO_ROOT/tests/package-workspace"
 
 RED='\033[0;31m'

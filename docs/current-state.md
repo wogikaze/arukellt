@@ -21,11 +21,11 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 - **corehir** (only path): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - Component path (v2):
-  - **ADR-008 契約**: `--emit component` は in-tree（`wasm-tools component new` への恒久依存なし）
-  - **P2 command（#714 / #668）**: in-tree emit（`component_p2_emit.ark`）。component は
-    `wasi:cli/stdout` + `wasi:io/streams` + `wasi:cli/stderr` を import し、guest は
-    `get-stdout` / `get-stderr` + `blocking-write-and-flush` を直接呼ぶ（疑似 `::write`
-    bridge なし）。`p2_component_wrap.py` は削除済み。environment は P1 形 bridge 経由。
+  - **ADR-054 契約**: compiler は component 用の core Wasm と WIT を出力し、公式
+    `wasm-tools component embed/new` が Component Model packaging を担当する。
+  - **WASI P2 command**: compiler の core import は公式 WASI P2 の WIT 名／関数だけを使う。
+    launcher は `wasi:cli/command` world で package し、bridge・repository-specific ABI・
+    旧形式互換層は持たない。
 - Shared orchestration entry point: selfhost driver (`src/compiler/driver/mod.ark` via `driver.ark` facade).
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
@@ -35,7 +35,7 @@ The **corehir** path is the only pipeline for all CLI commands (`compile`, `buil
 
 | 項目 | ADR / research | 現行 |
 |------|----------------|------|
-| Component emit | ADR-008: in-tree | P2 command は guest-native in-tree（#714 / #668）。library / 一部 packaging は移行中 |
+| Component emit | ADR-054: official tooling | compiler は標準 WASI P2 core import と WIT を出力し、公式 `wasm-tools` が packaging を担当 |
 | Wasm GC layout | ADR-035: TypeSectionPlan owner、value/storage 分離、typed aggregate | 固定 offset・名前推測・linear enum payload が残る → **移行中** |
 | Default Wasm feature emit | ADR-007 §5.1: ターゲット別 allow/deny（iwasm / wasmtime∩Node∩Browser∩jco） | emitter が機能単位で完全強制していない → **段階的ゲート** |
 | jco browser / Node | research: Browser core Wasm プローブ済み。jco component Chrome HTTP E2E は別 | #037 transpile ブロッカーは解消（jco≥1.25.2）。`verify component-interop` wasmtime スイートは通過（#810）。Node.js jco E2E は `ARUKELLT_TEST_JCO=1`（`tests/component-interop/jco/`）。library GC Option/Result/List/Record/Tuple adapters は実装済み；browser Chrome HTTP E2E は別 |
@@ -97,11 +97,8 @@ Default Wasm feature emit（[ADR-007 §5.1](adr/ADR-007-targets.md#default-wasm-
 運用表: [platform/target-runtime-and-surfaces.md](platform/target-runtime-and-surfaces.md#default-wasm-feature-emit)。
 
 **Memory64（living）:** `wasm32-gc` の default emit は Memory64（memory limits flag + i64 heap /
-アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。ピン済み bootstrap 本体は
-`wasm32-gc` / `wasi-p2` の guest memory32（`(memory 8192)`）であり、`--to-memory64` を当てない
-（[#834](../issues/done/834-wasm32-gc-bootstrap-pin.md)）。legacy / 非 GC runtime 経路のみ
-`wasm-heap-grow-patcher --to-memory64` と wasmtime `-W memory64=y` で 4GiB 上限を外す
-（[#730](../issues/done/730-bootstrap-wasm-4gb-memory-limit.md)）。
+アドレス幅 widen）を出す。`wasm32` は Memory64 を出さない。Memory width は compiler emitter
+が決め、post-link heap patcher や旧 runtime rewrite は行わない。
 
 ### `wasm32-freestanding`（実装ギャップ・公開契約ではない）
 
@@ -117,9 +114,9 @@ CLI boundary はこの名前を hard error とし、compiler 内部へ伝播さ�
 
 - Unit tests: selfhost verification is tracked by `python3 scripts/manager.py verify`
 - Fixture harness (observed snapshot): 57 passed, 1089 failed, 442 skipped (observed harness: 1588)
-- Fixture registry: 2875 manifest entries (distinct unit from harness outcomes)
-- Not in last harness snapshot: 1287 registry entries (not proof they fail)
-- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2875 is tests/fixtures/manifest.txt registry size. The 1287 remainder were not part of that run (not proof they fail).
+- Fixture registry: 2871 manifest entries (distinct unit from harness outcomes)
+- Not in last harness snapshot: 1283 registry entries (not proof they fail)
+- Accounting note: 57+1089+442=1588 outcomes from the 2026-07-15 selfhost fixture-parity run at 982f3102; 2871 is tests/fixtures/manifest.txt registry size after retiring legacy host-network and typed filesystem fixtures. The 1283 remainder were not part of that run (not proof they fail).
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `python3 scripts/manager.py verify quick` — **166/166 checks pass**
 
@@ -131,7 +128,7 @@ Generated from `data/release-guarantees.toml` (checks with `release_blocking = t
 |----|-------|----------|---------:|----------|-----------------|---------|-------|-------|------------|---------------|-----------|
 | `check_fixture_harness` | `full` | `fixture` | 1089 | `incident_fixture_parity_1089` | Failures in observed harness snapshot. Same incident as selfhost fixture-parity — not double-counted. See project-state.toml for current registry count. | `python3 scripts/manager.py verify fixtures` | compiler/runtime | #807 | `89eb5eb4` | `982f3102` | `stale` |
 | `check_selfhost_cli_parity` | `full` | `bootstrap` | 2 | `incident_selfhost_cli_parity` | CLI parity drifts for --help and compose --validate | `python3 scripts/manager.py selfhost parity --mode --cli` | selfhost CLI | #811 | `a80b4181` | `2cd10f16` | `stale` |
-| `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from Rust host compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `stale` |
+| `check_selfhost_diag_parity` | `full` | `bootstrap` | 3 | `incident_selfhost_diag_parity` | Selfhost diagnostic parity differs from the pinned bootstrap compiler | `python3 scripts/manager.py selfhost diag-parity` | selfhost diagnostics | #812 | `a80b4181` | `2cd10f16` | `stale` |
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ### Docs and CI hygiene gates
@@ -298,7 +295,7 @@ Looks up stdlib manifest metadata and displays:
 
 Flags: `--json` (machine-readable output), `--target <TARGET>` (show availability warning for specific target), `--html -o <output.html>` (generate a static stdlib reference page).
 
-Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths (e.g. `std::host::http`) list all functions in the module.
+Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths (e.g. `std::host::fs`) list all functions in the module.
 
 `arukellt doc --html -o docs/docs/std/index.html` generates the GitHub Pages
 stdlib reference served at `/arukellt/docs/std/`. The Pages workflow builds
@@ -310,9 +307,9 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 - No `--dir` flag means no filesystem access (module contract: [stdlib/modules/fs.md](stdlib/modules/fs.md))
 - `native-cpp` is a **scaffold / partial / experimental** target with **`run_supported=true`** (not production-ready; `support_tier` remains scaffold): public `arukellt run --target native-cpp` is offered on Linux x86-64 with clang 14+ for the supported subset (ADR-050). Guaranteed public corpus: 16/16 (`docs/data/native-cpp-public-coverage-receipt.json`). **General backend readiness (measure v2) is COMPLETE** for the documented gates: positive compile ≥80.5%, compiled-positive semantic ≥95%, in-scope expected-negative diagnostic match 100% (14 fixtures listed in `docs/data/native-cpp-expected-negative-limitations.toml`), ICE 0, unexpected crash 0 (`docs/data/native-cpp-fixture-coverage-receipt.json`, baseline `docs/data/native-cpp-fixture-coverage-baseline.json`). Plan: [native-cpp-general-backend-readiness.md](plans/native-cpp-general-backend-readiness.md). The **internal** C99 selfhost executor lane remains **experimental**: production root clears, arena/GC dual mode, S2/S3 equality+determinism, and strict wall/RSS dual gate without `--allow-high-rss` (CI rejects that flag). Latest strict 3× evidence: warm wall 238–249 s, peak RSS ≤ 2.345 GiB (`docs/data/native-cpp-executor-promotion-receipt.json`). `native-llvm` retains its fixed GNU assembler scaffold. See [ADR-049](adr/ADR-049-native-c99-selfhost-executor.md), [ADR-050](adr/ADR-050-experimental-public-native-c99-run.md), and [RFC-008](rfcs/008-native-cpp-c99-backend-runtime-abi.md).
 - some historical docs remain archived / historical and should not override current-state
-- **Host module target-gating and reachability**: `std::host::http`, `std::host::sockets`, and `std::host::udp` are not user-reachable on the current selfhost compile path (see [Capability surface](platform/target-runtime-and-surfaces.md#capability-surface) and #633). Importing `std::host::sockets` or `std::host::udp` on `wasm32` still produces E0500 (issue 448). `std::host::http` is HTTP/1.1 only when implemented; HTTPS is not supported.
-- **Bootstrap vs s2 library exports (#666)**: the pinned bootstrap selfhost wasm (`bootstrap/arukellt-selfhost.wasm`) uses a memory-bounded component overlay stub and returns empty WIT / non-invokable components for library-style `pub fn` exports. Build or point `ARUKELLT_SELFHOST_WASM` at `.build/selfhost/arukellt-s2.wasm` for library `--emit wit` and scalar library `--emit component` (`add`/`mul`, `wasm-tools component wit`, `wasmtime --invoke`). CI gates treat empty library WIT as a failure when the active selfhost wasm is s2.
-- **Library vs command component worlds (#666)**: on `wasm32-gc` with default WASI P2 host profile, modules that export component-compatible `pub fn` surfaces compile through the **library export** path (generic or specialized canonical ABI adapters). Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** wrapper (`wasi:cli/run`). When both `pub fn` exports and `fn main` are present, exports take precedence: the artifact is a library component with callable exports; `main` remains in core wasm but is not exported as `wasi:cli/run`. For a command-only program, omit exportable `pub fn` declarations or pass `--world wasi:cli/command`.
+- **Removed legacy host networking**: the Arukellt `std::host::http`, `std::host::sockets`, `std::host::streams`, and `std::host::udp` facades, their compiler intrinsics, and their compatibility fixtures were deleted. Programs needing networking must use an explicit official WASI interface/component; this repository does not provide a bridge or a legacy alias.
+- **Bootstrap vs s2 library exports (#666)**: library-style `pub fn` exports use the compiler's WIT/core output and the official Component Model tooling. The launcher does not insert a repository-specific adapter or compatibility layer.
+- **Library vs command component worlds (#666)**: on `wasm32-gc` with default WASI P2 host profile, modules that export component-compatible `pub fn` surfaces use the **library export** path. Modules with no exportable `pub fn` and no explicit `--world` use the **P2 command** world (`wasi:cli/command`). When both `pub fn` exports and `fn main` are present, exports take precedence; for a command-only program, use `--world wasi:cli/command`.
 
 ## API Baseline Notes
 
@@ -327,13 +324,12 @@ this file through the selfhost CLI entrypoint instead of a Python doc generator.
 
 ## Component Model Status
 
-要約: command component は pinned compiler で利用可能、library component は s2 compiler が必要、WIT emit は partial。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
+要約: command component は公式 WASI P2 packaging 経路、library component は compiler の WIT/core 出力と公式 component tooling の組み合わせである。正確な軸別状態は [`data/component-availability.md`](data/component-availability.md) を参照。
 詳細・制限・fixture 列挙は [`docs/state/component-model.md`](state/component-model.md)。
 
-P2 command component は guest-native in-tree emit で `wasm-tools validate` + `wasmtime run` が緑
-（`hello p2`、`gate-714-p2-emitter-native.py`、`gate-668-p2-native-polish.py`）。WASI P2 経路では
-Memory64 を切り、i32 linear memory を host canon lower と共有する。guest は `get-stdout` /
-`get-stderr` + `blocking-write-and-flush` を直接 import する。
+P2 command component は compiler が出した standard core module を公式 WASI CLI WIT へ
+`wasm-tools component embed/new` で package し、`wasm-tools validate` + `wasmtime run` で検証する。
+P2 経路に repository-specific bridge、手書き adapter、旧 P1-style ABI は存在しない。
 
 Export boundary (summary; full tiers in `state/component-model.md`): unsupported shapes
 such as non-`Color` enums, non-`Shape` payload variants, and non-`Point` records

@@ -1,7 +1,14 @@
 # \#675 — Host capability user-reachability and runtime permission flags 実装計画
 
-ステータス: **確定** — option 1 採用（ADR-007 準拠、#727 先実装）
-親 issue: [`#675`](../../issues/open/675-host-capability-reachability-flags.md)
+> **Superseded (2026-09-12):** ADR-054 retires `host-linker`, the Rust host
+> runtime, and the old HTTP/TCP/UDP/stream surfaces. This document remains a
+> historical plan; its host-linker phases and Cargo verification commands are
+> not actionable. New capability work must use an official WASI Component
+> interface at the component boundary.
+
+ステータス: **廃止（2026-09-13）** — ADR-054 により旧 host-capability surface と
+host-linker を削除。以下は旧 permission-flag 設計の履歴であり、現行実装計画ではない。
+親 issue: [`#675`](../../issues/done/675-host-capability-reachability-flags.md)
 関連: [`#727` `arukellt_host` bridge 退役計画](arukellt-host-bridge-retirement.md)
 
 ## 1. 決定事項
@@ -39,7 +46,7 @@
 ### Phase 0 — ドキュメント整備
 
 - `docs/plans/675-host-capability-reachability-flags.md` 更新（本ファイル）。
-- `issues/open/675-host-capability-reachability-flags.md` frontmatter:
+- `issues/done/675-host-capability-reachability-flags.md` frontmatter:
   - `Depends on: "727"`
   - `Plan: docs/plans/675-host-capability-reachability-flags.md`
   - Decision note 追加（`arukellt_host` reject、#727 first）。

@@ -1,17 +1,15 @@
 /**
- * Dedicated Web Worker for playground compile/run orchestration (ADR-017).
+ * Dedicated Web Worker for playground compiler orchestration (ADR-017).
  *
  * @module
  */
 
 import { compileWithCompilerWasm } from "./compiler-host.js";
-import { runT2Wasm } from "./t2-runner.js";
-import type { CompileOptions, CompileResult, RunOptions, RunResult } from "./compiler-types.js";
+import type { CompileOptions, CompileResult } from "./compiler-types.js";
 
 export type CompilerWorkerRequest =
   | { id: number; cmd: "init"; compilerUrl: string }
-  | { id: number; cmd: "compile"; source: string; options?: CompileOptions }
-  | { id: number; cmd: "run"; wasmBytes: Uint8Array; options?: RunOptions };
+  | { id: number; cmd: "compile"; source: string; options?: CompileOptions };
 
 export type CompilerWorkerResponse =
   | { id: number; ok: true; result: unknown }
@@ -39,11 +37,6 @@ async function handleMessage(msg: CompilerWorkerRequest): Promise<CompilerWorker
     if (cmd === "compile") {
       const result = await compileWithCompilerWasm(compilerBytes, msg.source, msg.options);
       return { id, ok: true, result: serialiseCompileResult(result) };
-    }
-
-    if (cmd === "run") {
-      const result = await runT2Wasm(msg.wasmBytes, msg.options);
-      return { id, ok: true, result: result satisfies RunResult };
     }
 
     return { id, ok: false, error: `unknown command: ${(msg as CompilerWorkerRequest).cmd}` };

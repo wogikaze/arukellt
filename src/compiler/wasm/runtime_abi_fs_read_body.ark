@@ -4,12 +4,16 @@ use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
 use wasm::import_indices
+use wasm::runtime_abi_fs_p2
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_io_const
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i64_arith
+use wasm::intrinsics::helpers_numeric_i64_const
+use wasm::intrinsics::helpers_numeric_i64_convert
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_gc
@@ -49,6 +53,10 @@ fn emit_fs_read_open_error_message(w: WasmWriter) {
 }
 
 fn emit_fs_read_loop(w: WasmWriter, ctx: SelfEmitCtx) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        emit_fs_read_loop_p2(w, ctx)
+        return
+    }
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
     helpers_core::emit_heap_get(w)
     helpers_memory::emit_i32_store_default(w)
@@ -83,6 +91,59 @@ fn emit_fs_read_loop(w: WasmWriter, ctx: SelfEmitCtx) {
     helpers_control::emit_end(w)
 }
 
+fn emit_fs_read_loop_p2(w: WasmWriter, ctx: SelfEmitCtx) {
+    let s_offset = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
+    let s_chunk = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
+    let s_eof = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 11)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_core::emit_heap_get(w)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+    helpers_numeric_i64_const::emit_i64_const(w, 0i64)
+    helpers_core::emit_local_set(w, s_offset)
+    helpers_control::emit_block_loop_header(w)
+    helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
+    helpers_numeric_i64_const::emit_i64_const(w, 4096i64)
+    helpers_core::emit_local_get(w, s_offset)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_core::emit_call(w, import_indices::fd_read_import_idx(ctx))
+    // P2 canonical result is written to the result pointer; the import itself
+    // has no return value.
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_ne(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT() + 8)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_chunk)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT() + 4)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_get(w, s_chunk)
+    helpers_memory::emit_memory_copy(w)
+    helpers_core::emit_heap_get(w)
+    helpers_core::emit_local_get(w, s_chunk)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_heap_set(w)
+    helpers_core::emit_local_get(w, s_offset)
+    helpers_core::emit_local_get(w, s_chunk)
+    helpers_numeric_i64_convert::emit_i64_extend_i32_u(w)
+    helpers_numeric_i64_arith::emit_i64_add(w)
+    helpers_core::emit_local_set(w, s_offset)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_CLOCK_RESULT() + 12)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, s_eof)
+    helpers_core::emit_local_get(w, s_eof)
+    helpers_control::emit_br_if(w, 1)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
+}
+
 fn emit_fs_read_success(w: WasmWriter, ctx: SelfEmitCtx) {
     emit_fs_read_success_len_header(w)
     emit_fs_read_success_close_fd(w, ctx)
@@ -103,6 +164,10 @@ fn emit_fs_read_success_len_header(w: WasmWriter) {
 }
 
 fn emit_fs_read_success_close_fd(w: WasmWriter, ctx: SelfEmitCtx) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        runtime_abi_fs_p2::emit_p2_close(w, ctx)
+        return
+    }
     helpers_io_layout::emit_load_scratch_wasi_i32(w, constants::SCRATCH_FS_FD())
     helpers_core::emit_call(w, import_indices::fd_close_import_idx(ctx))
     helpers_core::emit_drop(w)

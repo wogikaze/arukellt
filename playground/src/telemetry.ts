@@ -67,7 +67,7 @@ export function reportError(context: string, error: unknown): void {
  * Example:
  * ```ts
  * try {
- *   await createPlayground(engineUrl, opts);
+ *   await createPlayground(opts);
  * } catch (err) {
  *   const msg = reportWasmLoadError(err);
  *   showErrorBanner(msg);

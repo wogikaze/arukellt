@@ -2,7 +2,7 @@
 # Parity check: verify T1 and T3 produce identical output.
 set -euo pipefail
 
-ARUKELLT="${ARUKELLT:-target/release/arukellt}"
+ARUKELLT="${ARUKELLT:-scripts/run/arukellt-selfhost.sh}"
 PASS=0
 FAIL=0
 

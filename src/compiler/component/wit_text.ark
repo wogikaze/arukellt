@@ -5,21 +5,39 @@ use component::wit_names
 use component::wit_type_defs
 use component::wit_types
 use component::world_spec
+use resolver::wit_import_bind
 
 fn emit_wit_text_from_decls(decls: Vec<AstNode>) -> String {
-    emit_wit_text_from_decls_with_world(decls, String_new())
+    emit_wit_text_from_decls_with_world(decls, String_new(), Vec::new<String>())
 }
 
-fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String) -> String {
+fn emit_wit_text_from_decls_with_world(decls: Vec<AstNode>, world: String, wit_paths: Vec<String>) -> String {
     let package_name = if len(clone(world)) > 0 { "arukellt:app" } else { "arukellt:generated" }
     let world_name = world_spec::world_spec_world_name(clone(world))
     let mut out = concat("package ", concat(package_name, ";\n\nworld "))
     out = text::builder_append(out, world_name)
     out = text::builder_append(out, " {\n")
     out = text::builder_append(out, world_spec::world_spec_emit_use_block(clone(world)))
+    out = text::builder_append(out, emit_wit_imports(wit_paths, decls))
     out = text::builder_append(out, wit_type_defs::emit_wit_type_defs(decls))
     out = text::builder_append(out, emit_wit_func_exports_with_world(decls, clone(world)))
     return concat(out, "}\n")
+}
+
+fn emit_wit_imports(wit_paths: Vec<String>, decls: Vec<AstNode>) -> String {
+    let bindings = wit_import_bind::wit_collect_bindings(wit_paths, decls)
+    let mut out = String_new()
+    for i in 0..len(bindings) {
+        let binding = get_unchecked(bindings, i)
+        let import_id = wit_import_bind::wit_import_binding_wit_import_id(binding)
+        if len(import_id) > 0 {
+            let line = concat("    import ", concat(import_id, ";\n"))
+            if !contains(clone(out), clone(line)) {
+                out = text::builder_append(out, line)
+            }
+        }
+    }
+    out
 }
 
 fn emit_wit_text_from_decls_legacy(decls: Vec<AstNode>) -> String {
@@ -37,13 +55,20 @@ fn emit_wit_func_exports_with_world(decls: Vec<AstNode>, world: String) -> Strin
         if wit_decl::wit_decl_is_func(decl) {
             let f = wit_decl::wit_func_from_node(get_unchecked(decls, i))
             let fname = wit_decl::wit_func_name(f)
-            if wit_decl::wit_func_is_export(f) || eq(clone(fname), "main") || eq(clone(fname), "_start") {
-                let export_name = world_spec::world_spec_wit_export_name(fname, clone(world))
-                let export_key = concat("export ", concat(wit_names::wit_export_name(export_name), ":"))
+            if eq(clone(fname), "main") || eq(clone(fname), "_start") {
+                let export_key = "    export wasi:cli/run@0.2.0;\n"
                 if !contains(clone(out), clone(export_key)) {
-                    out = text::builder_append(out, "    export ")
-                    out = text::builder_append(out, wit_names::wit_export_name(export_name))
-                    out = text::builder_append(out, ": func();\n")
+                    out = text::builder_append(out, export_key)
+                }
+            } else {
+                if wit_decl::wit_func_is_export(f) {
+                    let export_name = wit_names::wit_export_name(fname)
+                    let export_key = concat("export ", concat(clone(export_name), ":"))
+                    if !contains(clone(out), clone(export_key)) {
+                        out = text::builder_append(out, "    export ")
+                        out = text::builder_append(out, export_name)
+                        out = text::builder_append(out, ": func();\n")
+                    }
                 }
             }
         }

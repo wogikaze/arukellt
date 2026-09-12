@@ -2,20 +2,156 @@ use wasm::constants
 use wasm::ctx_record
 use wasm::ctx_scratch
 use wasm::emit_target
+use wasm::import_indices
 use wasm::runtime_abi_env_var_result
 use wasm::runtime_abi_env_var_scan
+use wasm::runtime_abi_env_arg_list_populate
+use wasm::runtime_abi_env_var_option
 use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_io_layout
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_env_var_lookup(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32) {
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        emit_env_var_lookup_p2(w, ctx, name_ptr)
+        return
+    }
     runtime_abi_env_var_result::emit_env_var_clear_result(w)
     let name_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
     emit_env_var_read_name_len(w, name_ptr, name_len)
     emit_env_var_fetch_environ(w, ctx)
     runtime_abi_env_var_scan::emit_env_var_scan_entries(w, ctx, name_ptr, name_len)
     runtime_abi_env_var_result::emit_env_var_load_or_none(w, ctx)
+}
+
+fn emit_env_var_lookup_p2(w: WasmWriter, ctx: SelfEmitCtx, name_ptr: i32) {
+    runtime_abi_env_var_result::emit_env_var_clear_result(w)
+    let name_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    emit_env_var_read_name_len(w, name_ptr, name_len)
+    let env_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let env_count = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_ARGC())
+    helpers_core::emit_call(w, import_indices::environment_import_idx(ctx))
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, env_ptr)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_ARGC() + 4)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, env_count)
+    emit_env_var_scan_p2(w, ctx, name_ptr, name_len, env_ptr, env_count)
+    runtime_abi_env_var_result::emit_env_var_load_or_none(w, ctx)
+}
+
+fn emit_env_var_scan_p2(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    name_ptr: i32,
+    name_len: i32,
+    env_ptr: i32,
+    env_count: i32
+) {
+    let loop_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
+    let found = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, found)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, loop_i)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, found)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_core::emit_local_get(w, env_count)
+    helpers_numeric_i32::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    emit_env_var_scan_p2_entry(w, ctx, name_ptr, name_len, env_ptr, loop_i, found)
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, loop_i)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}
+
+fn emit_env_var_scan_p2_entry(
+    w: WasmWriter,
+    ctx: SelfEmitCtx,
+    name_ptr: i32,
+    name_len: i32,
+    env_ptr: i32,
+    loop_i: i32,
+    found: i32
+) {
+    let entry_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
+    let key_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
+    let key_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    helpers_core::emit_local_get(w, env_ptr)
+    helpers_core::emit_local_get(w, loop_i)
+    helpers_numeric_i32::emit_i32_const(w, 16)
+    helpers_numeric_i32::emit_i32_mul(w)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, entry_ptr)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, key_ptr)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, key_len)
+    helpers_core::emit_local_get(w, key_len)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    let cmp_j = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_core::emit_local_set(w, cmp_j)
+    helpers_control::emit_block_loop_header(w)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, key_ptr)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_core::emit_local_get(w, name_ptr)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    helpers_numeric_i32::emit_i32_ne(w)
+    helpers_control::emit_br_if(w, 1)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, cmp_j)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+    helpers_core::emit_local_get(w, cmp_j)
+    helpers_core::emit_local_get(w, name_len)
+    helpers_numeric_i32::emit_i32_eq(w)
+    helpers_control::emit_if_empty(w)
+    let value_ptr = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
+    let value_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 10)
+    let value_str = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 11)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_numeric_i32::emit_i32_const(w, 8)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, value_ptr)
+    helpers_core::emit_local_get(w, entry_ptr)
+    helpers_numeric_i32::emit_i32_const(w, 12)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_local_set(w, value_len)
+    runtime_abi_env_arg_list_populate::emit_env_args_copy_cstr_to_string(w, ctx, value_ptr, value_len, value_str)
+    runtime_abi_env_var_option::emit_env_var_option_some(w, ctx, value_str)
+    runtime_abi_env_var_result::emit_env_var_store_result(w, ctx)
+    helpers_numeric_i32::emit_i32_const(w, 1)
+    helpers_core::emit_local_set(w, found)
+    helpers_control::emit_end(w)
+    helpers_control::emit_end(w)
 }
 
 fn emit_env_var_read_name_len(w: WasmWriter, name_ptr: i32, name_len: i32) {
@@ -27,16 +163,10 @@ fn emit_env_var_read_name_len(w: WasmWriter, name_ptr: i32, name_len: i32) {
 }
 
 fn environ_sizes_import_index(ctx: SelfEmitCtx) -> i32 {
-    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        return constants::P2_IMPORT_ENVIRON_SIZES()
-    }
     constants::WASI_IMPORT_ENVIRON_SIZES_GET()
 }
 
 fn environ_get_import_index(ctx: SelfEmitCtx) -> i32 {
-    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
-        return constants::P2_IMPORT_ENVIRON_GET()
-    }
     constants::WASI_IMPORT_ENVIRON_GET()
 }
 

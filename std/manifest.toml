@@ -495,7 +495,8 @@ prelude = true
 stability = "stable"
 doc_category = "conversion"
 
-# NOTE: f32_to_string has a FnSig in checker.rs but is NOT in PRELUDE_FUNCTIONS (resolve.rs).
+# NOTE: f32_to_string has a function signature in the typechecker but is NOT
+# in the prelude function registry.
 [[functions]]
 name = "f32_to_string"
 kind = "builtin"
@@ -567,7 +568,8 @@ doc_category = "control"
 
 # ── Vec constructors ─────────────────────────
 
-# NOTE: Vec_with_capacity_* are in PRELUDE_FUNCTIONS but lack FnSig in checker.rs.
+# NOTE: Vec_with_capacity_* are in the prelude function registry but lack a
+# typechecker function signature.
 [[functions]]
 name = "Vec_with_capacity_i32"
 kind = "builtin"
@@ -650,7 +652,8 @@ prelude = true
 stability = "stable"
 doc_category = "collections"
 
-# NOTE: clear is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: clear is in the prelude function registry but lacks a typechecker
+# function signature.
 [[functions]]
 name = "clear"
 kind = "builtin"
@@ -660,7 +663,7 @@ prelude = true
 stability = "stable"
 doc_category = "collections"
 
-# NOTE: as_slice is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: as_slice is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "as_slice"
 kind = "builtin"
@@ -928,7 +931,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: unwrap_or_else is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: unwrap_or_else is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "unwrap_or_else"
 kind = "builtin"
@@ -956,7 +959,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: is_ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: is_ok is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "is_ok"
 kind = "builtin"
@@ -966,7 +969,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: is_err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: is_err is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "is_err"
 kind = "builtin"
@@ -976,7 +979,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: ok_or is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: ok_or is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "ok_or"
 kind = "builtin"
@@ -986,7 +989,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: ok is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "ok"
 kind = "builtin"
@@ -996,7 +999,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: err is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "err"
 kind = "builtin"
@@ -1006,7 +1009,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: expect is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: expect is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "expect"
 kind = "builtin"
@@ -1026,7 +1029,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "map_option_String_String"
 kind = "builtin"
@@ -1036,7 +1039,7 @@ prelude = true
 stability = "stable"
 doc_category = "option_result"
 
-# NOTE: map_result_i32_i32 is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+# NOTE: map_result_i32_i32 is in PRELUDE_FUNCTIONS but lacks a direct typechecker signature.
 [[functions]]
 name = "map_result_i32_i32"
 kind = "builtin"
@@ -1304,7 +1307,7 @@ doc_category = "collections"
 
 # ── Intrinsics (no public wrapper) ───────────
 # __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no
-# prelude.ark wrapper or FnSig in checker.rs. Listed for completeness.
+# prelude.ark wrapper or a direct typechecker signature. Listed for completeness.
 
 [[functions]]
 name = "__intrinsic_string_is_empty"
@@ -2206,7 +2209,7 @@ availability = { t1 = true, t3 = true, note = "Honest rejection." }
 name = "std::host::fs"
 stability = "stable"
 family = "host"
-doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are stable whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir always false; read_dir/metadata return honest Err until directory/metadata intrinsics land. fd_* helpers are experimental `wasm32`-only."
+doc = "Host filesystem helpers backed by current WASI filesystem intrinsics. read_to_string, write_string, write_bytes are whole-file I/O. is_readable_file/exists are read-probes (NOT path-existence). is_dir is an explicit unsupported stub. fd_* helpers are experimental `wasm32`-only."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
@@ -2286,37 +2289,6 @@ returns = "bool"
 doc_category = "host_fs"
 doc = "Always false on current targets — directory-type detection requires path_filestat_get-style intrinsics not yet exposed."
 availability = { t1 = true, t3 = true, note = "Honest stub: no directory metadata intrinsic yet." }
-
-[[functions]]
-name = "read_dir"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String"]
-returns = "Result<Vec<String>, FsError>"
-doc_category = "host_fs"
-doc = "Directory listing API contract. Always returns Err(IoError) on current targets because WASI directory iteration is not yet exposed in the intrinsic layer."
-errors = "Err(FsError::IoError) with message 'directory listing not yet supported: <path>'."
-availability = { t1 = true, t3 = true, note = "Honest rejection until backend support lands." }
-
-[[functions]]
-name = "metadata"
-module = "std::host::fs"
-stability = "provisional"
-params = ["String"]
-returns = "Result<FsMetadata, FsError>"
-doc_category = "host_fs"
-doc = "Structured metadata API contract. Always returns Err(IoError) on current targets because path_filestat_get is not yet exposed."
-errors = "Err(FsError::IoError) with message 'metadata not yet supported: <path>'."
-availability = { t1 = true, t3 = true, note = "Honest rejection until backend support lands." }
-
-[[functions]]
-name = "fs_error_message"
-module = "std::host::fs"
-stability = "provisional"
-params = ["FsError"]
-returns = "String"
-doc_category = "host_fs"
-doc = "Format an FsError for display (used by read_dir/metadata and future typed fs APIs)."
 
 [[functions]]
 name = "fd_seek"
@@ -2488,264 +2460,6 @@ stability = "stable"
 family = "host"
 doc = "Host random helpers backed by the current entropy intrinsic. next_f64 returns a value in [0.0, 1.0); random_i32 returns a full i32."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
-
-# === std::host::http ===
-
-[[modules]]
-name = "std::host::http"
-target = ["wasm32-gc"]
-stability = "provisional"
-family = "expansion"
-capability_id = "host.http"
-doc = "HTTP client helpers (provisional). `wasm32-gc` bridged path imports `wasi:http/outgoing-handler@0.2.0` (simplified guest ABI; host-linker). Not user-reachable on the current selfhost compile path (call_runtime_io.ark dispatches env/fs/process/stdio only). See capability `host.http`. HTTP/1.1 over TCP only; HTTPS is not supported. Real WASI method ABI: #841."
-
-[[functions]]
-name = "request"
-module = "std::host::http"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_http_request"
-params = ["String", "String", "String"]
-returns = "Result<String, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
-implementation_status = "unreachable"
-errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` WIT-bridged outgoing-handler import (host-linker). HTTPS not supported. Real ABI: #841." }
-examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
-
-[[functions]]
-name = "get"
-module = "std::host::http"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_http_get"
-params = ["String"]
-returns = "Result<String, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Not user-reachable on the current selfhost compile path."
-implementation_status = "unreachable"
-errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "Capability `host.http`: `wasm32-gc` WIT-bridged outgoing-handler import (host-linker). HTTPS not supported. Real ABI: #841." }
-examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
-
-[[functions]]
-name = "serve"
-module = "std::host::http"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_http_serve"
-params = ["i32", "String"]
-returns = "Result<(), String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-doc = "Serve one HTTP GET on loopback at `port`, responding with `body` (HTTP/1.1 200). Maps to capability `host.http.incoming` through the incoming-handler proxy-world bridge."
-implementation_status = "unreachable"
-errors = "Err on bind failure, accept timeout, or I/O error while serving the single request."
-availability = { t1 = false, t3 = true, note = "Capability `host.http.incoming`: `wasm32-gc` WIT-bridged incoming-handler import (host-linker). Real ABI: #841." }
-examples = [{code = "match http::serve(8080, \"hello\") {\n  Ok(()) => println(\"served\")\n  Err(e) => eprintln(e)\n}", description = "Handle one GET on port 8080"}]
-
-
-
-[[functions]]
-name = "request_with_headers"
-module = "std::host::http"
-kind = "builtin"
-params = ["String", "String", "Vec<String>", "Vec<String>", "String"]
-returns = "Result<HttpResponse, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-doc = "Send HTTP with header vectors (provisional; headers not forwarded to bridge yet)."
-implementation_status = "unreachable"
-availability = { t1 = false, t3 = true, note = "Whole-body bridge; header forwarding deferred." }
-
-[[functions]]
-name = "read_body"
-module = "std::host::http"
-kind = "builtin"
-params = ["HttpResponse"]
-returns = "String"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-implementation_status = "unreachable"
-availability = { t1 = false, t3 = true, note = "Accessor for HttpResponse.body." }
-
-[[functions]]
-name = "response_status"
-module = "std::host::http"
-kind = "builtin"
-params = ["HttpResponse"]
-returns = "i32"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_http"
-implementation_status = "unreachable"
-availability = { t1 = false, t3 = true, note = "Provisional status (200 on bridge Ok)." }
-
-# === std::host::sockets ===
-
-[[modules]]
-name = "std::host::sockets"
-target = ["wasm32-gc"]
-stability = "provisional"
-family = "expansion"
-capability_id = "host.sockets.tcp"
-doc = "TCP socket helpers (provisional). `wasm32-gc` bridged path imports `wasi:sockets/tcp@0.2.0` (+ streams) via host-linker. See capability `host.sockets.tcp`. Real WASI method ABI: #841."
-
-[[functions]]
-name = "connect"
-module = "std::host::sockets"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_sockets_connect"
-params = ["String", "i32"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_sockets"
-doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
-implementation_status = "unreachable"
-errors = "Err on DNS resolution failure, connection refused, or network unreachable."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
-examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
-
-[[functions]]
-name = "read"
-module = "std::host::sockets"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_sockets_read"
-params = ["i32", "i32"]
-returns = "Result<Vec<i32>, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_sockets"
-doc = "Read up to max_len bytes from an open socket fd."
-implementation_status = "unreachable"
-errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
-
-[[functions]]
-name = "write"
-module = "std::host::sockets"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_sockets_write"
-params = ["i32", "Vec<i32>"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_sockets"
-doc = "Write byte values from a Vec to an open socket fd."
-implementation_status = "unreachable"
-errors = "Err on invalid fd or I/O failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
-
-[[functions]]
-name = "listen"
-module = "std::host::sockets"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_sockets_listen"
-params = ["String", "i32"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_sockets"
-doc = "Bind a TCP listener on the given hostname and port. Returns a listener fd on success."
-implementation_status = "unreachable"
-errors = "Err on bind failure or invalid port."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
-
-[[functions]]
-name = "accept"
-module = "std::host::sockets"
-kind = "intrinsic_wrapper"
-intrinsic = "__runtime_abi_sockets_accept"
-params = ["i32"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_sockets"
-doc = "Accept one inbound TCP connection on a listener fd. Returns connected socket fd."
-implementation_status = "unreachable"
-errors = "Err on invalid listener fd or accept failure."
-availability = { t1 = false, t3 = true, note = "Capability `host.sockets.tcp`: `wasm32-gc` WIT-bridged tcp imports (host-linker). Importing on `wasm32` emits E0500. Real ABI: #841." }
-
-[[modules]]
-name = "std::host::udp"
-target = ["wasm32-gc"]
-stability = "provisional"
-family = "expansion"
-capability_id = "host.sockets.udp"
-doc = "UDP datagram helpers (provisional). Capability `host.sockets.udp` is not user-reachable on the current selfhost compile path."
-
-[[functions]]
-name = "send"
-module = "std::host::udp"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_udp_send"
-params = ["String", "i32", "String"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_udp"
-doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
-implementation_status = "unreachable"
-errors = "Err on DNS resolution failure, invalid port, or network unreachable."
-availability = { t1 = false, t3 = false, note = "Capability `host.sockets.udp` is not user-reachable on the selfhost path. Importing on `wasm32` emits E0500." }
-
-# === std::host::streams ===
-
-[[modules]]
-name = "std::host::streams"
-target = ["wasm32-gc"]
-stability = "provisional"
-family = "expansion"
-capability_id = "host.streams"
-doc = "WASI Preview 2 stream I/O helpers (provisional). Capability `host.streams` provides read/write/flush on input/output stream handles via the host linker."
-
-[[functions]]
-name = "read"
-module = "std::host::streams"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_stream_read"
-params = ["i32", "i32"]
-returns = "Result<Vec<i32>, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_streams"
-doc = "Read up to max_len bytes from an input stream handle."
-errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
-
-[[functions]]
-name = "write"
-module = "std::host::streams"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_stream_write"
-params = ["i32", "Vec<i32>"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_streams"
-doc = "Write byte values to an output stream handle."
-errors = "Err on stream error or closed stream."
-availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
-
-[[functions]]
-name = "flush"
-module = "std::host::streams"
-kind = "intrinsic_wrapper"
-intrinsic = "__intrinsic_stream_flush"
-params = ["i32"]
-returns = "Result<i32, String>"
-target = ["wasm32-gc"]
-stability = "provisional"
-doc_category = "host_streams"
-doc = "Flush an output stream handle."
-errors = "Err on stream error."
-availability = { t1 = false, t3 = true, note = "Capability `host.streams`: `wasm32-gc` host-linker streams. Importing on `wasm32` emits E0500." }
 
 # === std::bytes ===
 
@@ -7282,25 +6996,3 @@ returns = "Result<i32, String>"
 doc_category = "host_process"
 doc = "Return a stable Err on WASI 0.2 because the portable process model does not expose a POSIX-style process identifier."
 availability = { t1 = true, t3 = true }
-
-[[functions]]
-name = "vars_snapshot"
-module = "std::host::env"
-stability = "stable"
-params = []
-returns = "Result<String, String>"
-doc_category = "host_env"
-intrinsic = "__runtime_abi_env_vars"
-doc = "Return a stable NUL-delimited snapshot of KEY=VALUE environment records through the versioned runtime ABI."
-availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }
-
-[[functions]]
-name = "current_dir"
-module = "std::host::env"
-stability = "stable"
-params = []
-returns = "Result<String, String>"
-doc_category = "host_env"
-intrinsic = "__runtime_abi_env_current_dir"
-doc = "Return the runtime current directory as UTF-8 through the versioned runtime ABI."
-availability = { t1 = false, t3 = true, note = "WASI Preview 2 runtime ABI." }

@@ -21,10 +21,8 @@
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ADR-002 により Wasm GC を採用した。generics の実装戦略を決定する。 |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI 境界の分類 | 公開 ABI を無秩序に増やすと保守コストが増大する。一方で raw Wasm の GC 型表現 （String / Vec の (ref $…) layout）を stable に固定すると、内部表現の進化 （inline string、rope、capacity layout、nullable 最適化、recursive type group 等）を |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | 複数ランタイム向けにコードを生成するため、ターゲットを 表現モデル × 製品 profile で固定する。旧 T1–T5 表記は廃止する。 native-cpp の内部セルフホストexecutor契約は ADR-049が、公開 experimental run 契約は |
-| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Component Model 対応にあたり、core Wasm モジュールを .component.wasm に変換する 方法を決める必要がある。 |
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Arukellt には 2 種類の「モジュール参照」が混在している。 |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | WebAssembly Extended Const 提案により、定数式の中で i32.add, i32.sub, i32.mul (および i64 版) が使用可能になった。これにより、グローバル変数の 初期値・データセグメントのオフセット・要素セグメントのオフセットで算術演算を 記述できる。 |
-| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | Arukellt は少なくとも 2 つの実用ターゲットを持つ。 |
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: wasm32-gc をプライマリターゲットとする | ADR-007 は canonical ターゲットを wasm32 / wasm32-gc / native- に再構成した。 出荷品質・CI ゲート・言語意味論の基準を 1 本に絞る必要がある。 |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: 言語仕様と Stdlib API の安定性ラベル | Arukellt の言語仕様と stdlib は拡大している。ユーザーは、本番コードで頼ってよい機能と 変更されうる機能を知る必要がある。明示的な安定性保証がなければ、採用リスクを判断できない。 |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: ユーザー到達パスの No-Panic 品質基準 | 範囲: CLI, LSP, extension, manifest parsing |
@@ -37,7 +35,6 @@
 | [ADR-024-selfhost-mir-explicit-cfg-before-ssa.md](ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) | ADR-024: Selfhost MIR は SSA 形成前に明示的 CFG を採用する | 範囲: selfhost MIR, SSA formation, lowering, codegen boundary |
 | [ADR-029-selfhost-native-verification-contract.md](ADR-029-selfhost-native-verification-contract.md) | ADR-029: セルフホストネイティブ検証契約 | Issue: #585 解除する依存: #583, #560, #561, #562, #563, #564（Phase 5 Rust 退役） |
 | [ADR-031-import-syntax-wit-unification.md](ADR-031-import-syntax-wit-unification.md) | ADR-031: import 構文と WIT パッケージ識別子の統合 | トラック: language-design Issue: #123 |
-| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | 関連 issue: #632 |
 | [ADR-033-call-ref-hof-migration.md](ADR-033-call-ref-hof-migration.md) | ADR-033: クロージャ呼び出しを call_ref に移行 | トラック: wasm-feature Issue: #069 廃止: なし（issue #019, #025 の GC-native クロージャ記述を精緻化） |
 | [ADR-034-component-composition-linking.md](ADR-034-component-composition-linking.md) | ADR-034: Component 合成を wac plug に委譲 | Issue #443 は複数の Wasm Component を 1 つの実行単位に合成する linking モデルを求める。 前提として #442（WIT interop）と #476（wac plug / wasm-tools compose smoke）がある。 |
 | [ADR-035-wasm-gc-implementation.md](ADR-035-wasm-gc-implementation.md) | ADR-035: Wasm GC 内部レイアウト方針 | 提案日: 2026-06-17 |
@@ -71,8 +68,11 @@
 |----------|----------|------|
 | [ADR-004-method-syntax-evaluation.md](ADR-004-method-syntax-evaluation.md) | ADR-004: メソッド構文の評価（旧 P4） | 後継: ADR-044-trait-method-syntax-adopted.md |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | 後継: ADR-049-native-c99-selfhost-executor.md |
+| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | 後継: ADR-054-host-linker-and-rust-runtime-retirement.md |
+| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | この ADR は旧 host-bound API の設計履歴として保持する。現行の拘束力ある判断は ADR-054 を参照すること。 |
 | [ADR-025-use-paths-vs-wit-package-identifiers.md](ADR-025-use-paths-vs-wit-package-identifiers.md) | ADR-025: ソースモジュールパスと WIT パッケージ識別子 — 衝突ポリシーと構文探索 | トラック: language-design（issue #123） 後継: ADR-031-import-syntax-wit-unification.md |
 | [ADR-026-import-vs-wit-package-syntax.md](ADR-026-import-vs-wit-package-syntax.md) | ADR-026: ソース import と WIT パッケージ構文 — 決定記録 | 後継: ADR-031-import-syntax-wit-unification.md |
+| [ADR-032-playground-compiler-wasm-runner.md](ADR-032-playground-compiler-wasm-runner.md) | ADR-032: Playground v2 ブラウザ Compile + Run | 後継: ADR-055-playground-compile-boundary.md |
 | [ADR-045-llvm-scope-withdrawn.md](ADR-045-llvm-scope-withdrawn.md) | ADR-045: 旧 LLVM 役割方針を撤回し、再開まで保留する | 廃止: ADR-005-llvm-scope.md 後継: ADR-049-native-c99-selfhost-executor.md |
 
 ## その他

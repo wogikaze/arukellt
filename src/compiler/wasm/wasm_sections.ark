@@ -18,6 +18,7 @@ use mir::module_wit_imports
 use mir::module_gc_struct
 use mir::module_gc_enum
 use mir::module_spine
+use wasm::sections_exports
 
 fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
     let t_end = clock::monotonic_now()
@@ -59,14 +60,25 @@ fn emit_wasm_module_sections(
     let mut t_phase = clock::monotonic_now()
     let fn_count = module_functions::MirModule_function_count(mir)
     let functions = module_functions::MirModule_functions(mir)
+    let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
+    let library_export_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        sections_exports::p2_library_export_count(mir, fn_count)
+    } else {
+        0
+    }
+    let library_wrapper_count = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        sections_exports::p2_library_wrapper_count(mir, fn_count, clone(target), clone(wasi_version))
+    } else {
+        0
+    }
     let strings = strings::prepare_string_table(mir)
     t_phase = emit_section_note(report_timing, "strings", t_phase)
-    // Legacy name kept while bootstrap overlay matches this symbol; means
-    // "emit WIT-shaped HTTP/TCP guest imports" (not the retired arukellt_host module).
-    let needs_runtime_host = if emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { module_functions::mir_module_needs_runtime_host(mir) }
-    let needs_wasi_http_outgoing = module_functions::mir_module_needs_wasi_http_outgoing_if_p2(mir, clone(wasi_version))
     let gc_layout = gc_layout_table::GcLayoutTable_new()
-    let needs_wrapper = wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
+    let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
+        if main_idx >= 0 && library_export_count == 0 { 1 } else { 0 }
+    } else {
+        wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
+    }
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let type_plan = wasm_sections_facade::emit_type_section(
         out,
@@ -76,8 +88,6 @@ fn emit_wasm_module_sections(
         needs_wrapper,
         clone(target),
         clone(wasi_version),
-        needs_runtime_host,
-        needs_wasi_http_outgoing,
         bindings,
         gc_layout
     )
@@ -87,8 +97,6 @@ fn emit_wasm_module_sections(
         strings,
         clone(target),
         clone(wasi_version),
-        needs_runtime_host,
-        needs_wasi_http_outgoing,
         clone(source_file)
     )
     wasm_context::emit_wasm_context_set_gc_type_base(ctx, wasm_sections_facade::type_plan_gc_type_base(type_plan))
@@ -118,12 +126,21 @@ fn emit_wasm_module_sections(
         wasm_sections_facade::type_plan_host_type_map(type_plan),
         clone(target),
         clone(wasi_version),
-        needs_runtime_host,
-        needs_wasi_http_outgoing,
         bindings,
         wasm_sections_facade::type_plan_wit_type_map(type_plan)
     )
-    wasm_sections_facade::emit_function_section(out, fn_count, wasm_sections_facade::type_plan_fn_type_map(type_plan), needs_wrapper, wasm_sections_facade::type_plan_wrapper_type_idx(type_plan))
+    wasm_sections_facade::emit_function_section(
+        out,
+        fn_count,
+        wasm_sections_facade::type_plan_fn_type_map(type_plan),
+        needs_wrapper,
+        wasm_sections_facade::type_plan_wrapper_type_idx(type_plan),
+        wasm_sections_facade::type_plan_p2_post_type_idx(type_plan),
+        wasm_sections_facade::type_plan_p2_library_post_type_map(type_plan),
+        wasm_sections_facade::type_plan_p2_library_wrapper_type_map(type_plan),
+        wasm_sections_facade::type_plan_p2_realloc_type_idx(type_plan),
+        wasm_sections_facade::type_plan_p2_initialize_type_idx(type_plan)
+    )
     wasm_sections_facade::emit_table_section(out, mir)
     wasm_sections_facade::emit_memory_section(out, clone(target))
     wasm_sections_facade::emit_global_section(
@@ -131,13 +148,25 @@ fn emit_wasm_module_sections(
         strings::EmitStringTablePlan_data_offset(strings),
         string_literal_cache_global(ctx, strings)
     )
-    let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
-    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
-    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+    wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), wit_import_count)
+    wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), wit_import_count)
     t_phase = emit_section_note(report_timing, "pre_code", t_phase)
-    code::emit_code_section(out, mir, functions, fn_count, needs_wrapper, main_idx, ctx, bindings, report_timing)
+    code::emit_code_section(
+        out,
+        mir,
+        functions,
+        fn_count,
+        needs_wrapper,
+        main_idx,
+        library_export_count,
+        library_wrapper_count,
+        if wasm_sections_facade::type_plan_p2_realloc_type_idx(type_plan) >= 0 { 2 } else { 0 },
+        ctx,
+        bindings,
+        report_timing
+    )
     t_phase = emit_section_note(report_timing, "code", t_phase)
-    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
+    let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), wit_import_count)
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug, source_file)
     emit_section_note(report_timing, "tail", t_phase)
     registry_return_audit::registry_audit_print_summary(ctx)

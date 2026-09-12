@@ -33,8 +33,11 @@ composition.
 - `IoError` enum (`UnexpectedEof`, `Other`).
 - Functions: `reader_from_bytes`, `reader_read_byte`, `writer_write_bytes`,
   `buffered_writer`, etc. — all concrete, none generic.
-- `std::host::fs` / `std::host::sockets` / `std::host::streams` are separate
-  concrete surfaces with no shared trait.
+- `std::host::fs` remains a concrete filesystem surface with no shared trait.
+- The former `std::host::sockets` and `std::host::streams` modules were deleted by
+  ADR-054 together with the repository-owned network runtime. Future network IO
+  must be designed against official WASI Component interfaces; this issue must not
+  reintroduce those module names as compatibility aliases.
 
 ## Required work
 
@@ -46,8 +49,8 @@ composition.
       buffer, or keep layout and add trait impls).
 - [ ] Implement `impl Read for std::host::fs::File` and
       `impl Write for std::host::fs::File`.
-- [ ] Implement `impl Read` / `impl Write` for `std::host::sockets` /
-      `std::host::streams`.
+- [ ] If network IO is added in the future, define its trait integration at the
+      official WASI Component boundary rather than restoring the deleted modules.
 - [ ] Implement `io::copy<R: Read, W: Write>` generically.
 - [ ] Implement `BufReader<R: Read>` / `BufWriter<W: Write>` as generic
       adapters (replacing the current concrete `BufReader`/`BufWriter`).
@@ -69,6 +72,6 @@ composition.
 ## References
 
 - Depends on: #688 (trait dispatch), #692 (`AsRef`/`Into` for buffer slices)
-- `std/io/mod.ark`, `std/host/fs.ark`, `std/host/sockets.ark`,
-  `std/host/streams.ark`
+- `std/io/mod.ark`, `std/host/fs.ark`; the deleted network modules are historical
+  context only.
 - Rust `std::io`: <https://doc.rust-lang.org/std/io/index.html>

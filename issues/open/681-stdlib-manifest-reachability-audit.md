@@ -18,20 +18,23 @@ Child tracks: 675, 676
 ## Summary
 
 README は「Stdlib manifest-backed public API: 619 functions」と読者に **公開 API 存在**
-を約束する。`docs/capability-surface.md` と `std/manifest.toml` は
-`std::host::http` / `sockets` / `udp` を **not user-reachable** と明記している。
-「API はあるが selfhost から呼べない」モジュールが reference / cookbook で
-利用可能に見えるギャップを監査する。
+を約束する。この監査の起票時点では、`docs/capability-surface.md` と
+`std/manifest.toml` が `std::host::http` / `sockets` / `udp` を
+**not user-reachable** と明記していた一方、compiler/runtime 側に旧 surface が
+残っていた。ADR-054 により、その HTTP/TCP/UDP/stream facade、compiler intrinsic、
+互換 fixture、Rust host runtime は削除済みである。残る監査対象は、削除済み API を
+公開 API として再掲載しないことと、現行の公式 WASI Component boundary の記述を
+manifest・reference・cookbook で一致させることである。
 
 ## Audit checklist (section 4)
 
 | チェック | 現状 (2026-06-17) | 起票/追跡 |
 |----------|-------------------|-----------|
-| manifest 掲載だが selfhost user-reachable でない | http/sockets/udp（#633 方針） | **#675** |
+| 旧 manifest 掲載だが selfhost user-reachable でない | http/sockets/udp（ADR-054 で削除済み） | **#675 done** |
 | source-backed module docs が reachability を十分伝えない | generated `docs/stdlib/reference.md` に警告バッジあり、一覧弱い | 本 issue |
-| `--deny-*` と `--allow-*` / default policy の一致 | deny-clock/random のみ強い；http/net deny 未実装 | **#675** |
+| `--deny-*` と `--allow-*` / default policy の一致 | 旧 network permission flag は追加せず、公式 Component boundary を使用 | **#675 done** |
 | T1/T3 availability が reference に十分 | 要 scoreboard 横断 | 本 issue |
-| host_http runtime dispatch なし（docs 上） | `call_host_network.ark` 存在 vs manifest 文言矛盾 | **#675**, **#679** |
+| 旧 network runtime dispatch なし（docs 上） | 旧 `call_host_network.ark` と network facade を削除済み | **#675 done**, **#679** |
 | fs/env/process が docs 期待より狭い | `read_dir`/`metadata` stub | **#676** |
 | error type が signature と一致 | 要 spot-check gate | 本 issue |
 
@@ -51,4 +54,4 @@ README は「Stdlib manifest-backed public API: 619 functions」と読者に **�
 - `std/manifest.toml`
 - `docs/capability-surface.md`
 - `issues/done/633-host-capability-surface-honesty-vs-selfhost-runtime.md`
-- `issues/open/675-host-capability-reachability-flags.md`
+- `issues/done/675-host-capability-reachability-flags.md`

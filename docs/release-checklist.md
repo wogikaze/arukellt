@@ -23,7 +23,6 @@ not individual checks.
 - [ ] **CI `check_run_wasmtime`** — `scripts/run/arukellt-selfhost.sh run tests/fixtures/hello_world.ark` (job: `verification`)
 - [ ] **CI `check_fixture_harness`** [FAIL] — `python3 scripts/manager.py verify fixtures` (job: `verification`)
 - [ ] **CI `check_determinism`** — `bash scripts/check/check-release-determinism.sh` (job: `verification`)
-- [ ] **CI `check_no_panic`** — `bash scripts/check/check-panic-audit.sh` (job: `verification`)
 - [ ] **CI `check_cli_check`** — `python3 scripts/check/check-cli-guarantees.py check` (job: `verification`)
 - [ ] **CI `check_cli_init`** — `python3 scripts/check/check-init-templates.py` (job: `verification`)
 - [ ] **CI `check_cli_doc`** — `python3 scripts/check/check-manifest-doc.py` (job: `verification`)

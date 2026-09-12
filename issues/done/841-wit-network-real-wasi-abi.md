@@ -1,7 +1,8 @@
 ---
 Status: done
+Status note: Superseded by ADR-054 final retirement; the legacy network facades and host-linker were deleted, with official WASI Components as the supported boundary.
 Created: 2026-07-26
-Updated: 2026-08-14
+Updated: 2026-09-13
 ID: 841
 Track: wasi-feature
 Parent: 727
@@ -15,6 +16,12 @@ Source: Split from #727 bridged close — real WASI HTTP/sockets ABI remains aft
 ---
 
 # 841 — Lower HTTP/sockets guest ABI to real WASI methods; delete host bridge shims
+
+> This issue records the former real-ABI follow-up. ADR-054 completed the
+> repository-wide breaking change by deleting the old HTTP/TCP/UDP/stream
+> facades, compiler intrinsics, bridge/runtime, and Rust workspace. The
+> historical implementation details and acceptance evidence below must not be
+> read as a request to restore those surfaces.
 
 ## Summary
 
@@ -75,4 +82,3 @@ absent.
 - `python3 scripts/manager.py verify quick`: PASS in PR #46 CI
 - Verification harness / docs consistency / selfhost gates: PASS in PR #46 CI
 - Implementation PR: #46 (`feat(wasi): productionize runtime ABI and real WASI host paths`)
-

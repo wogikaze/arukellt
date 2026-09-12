@@ -1,13 +1,9 @@
 use std::host::stdio
 use mir::function_core_record
 use mir::module_record
-use mir::types
 use mir::function_block_queries
 use mir::function_locals_view
 use mir::block_inst_access
-use mir::inst_accessors_shape
-use mir::inst_accessors_literals
-use mir::opcodes
 
 fn MirModule_functions(m: MirModule) -> Vec<MirFunction> {
     m.functions
@@ -96,75 +92,4 @@ pub fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
             )
         )
     )
-}
-
-fn mir_call_is_runtime_host(callee: String) -> bool {
-    return mir::module_host_calls::mir_call_is_runtime_host(clone(callee))
-}
-
-fn mir_call_is_wasi_http_outgoing(callee: String) -> bool {
-    return mir::module_host_calls::mir_call_is_wasi_http_outgoing(clone(callee))
-}
-
-fn mir_module_needs_wasi_http_outgoing_if_p2(mir: MirModule, wasi_version: String) -> i32 {
-    if eq(clone(wasi_version), "wasi-p2") {
-        return mir_module_needs_wasi_http_outgoing(mir)
-    }
-    0
-}
-
-fn mir_module_needs_wasi_http_outgoing(mir: MirModule) -> i32 {
-    let fn_count = MirModule_function_count(mir)
-    let mut fi = 0
-    while fi < fn_count {
-        let f = MirModule_function_at(mir, fi)
-        let block_count = function_block_queries::MirFunction_block_count(f)
-        let mut bi = 0
-        while bi < block_count {
-            let block = function_block_queries::MirFunction_block_at(f, bi)
-            let inst_count = block_inst_access::MirBlock_inst_count(block)
-            let mut ii = 0
-            while ii < inst_count {
-                let inst = block_inst_access::MirBlock_inst_at(block, ii)
-                if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-                    let callee = inst_accessors_literals::MirInst_str_val(inst)
-                    if mir_call_is_wasi_http_outgoing(clone(callee)) {
-                        return 1
-                    }
-                }
-                ii = ii + 1
-            }
-            bi = bi + 1
-        }
-        fi = fi + 1
-    }
-    0
-}
-
-fn mir_module_needs_runtime_host(mir: MirModule) -> i32 {
-    let fn_count = MirModule_function_count(mir)
-    let mut fi = 0
-    while fi < fn_count {
-        let f = MirModule_function_at(mir, fi)
-        let block_count = function_block_queries::MirFunction_block_count(f)
-        let mut bi = 0
-        while bi < block_count {
-            let block = function_block_queries::MirFunction_block_at(f, bi)
-            let inst_count = block_inst_access::MirBlock_inst_count(block)
-            let mut ii = 0
-            while ii < inst_count {
-                let inst = block_inst_access::MirBlock_inst_at(block, ii)
-                if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() {
-                    let callee = inst_accessors_literals::MirInst_str_val(inst)
-                    if mir_call_is_runtime_host(clone(callee)) {
-                        return 1
-                    }
-                }
-                ii = ii + 1
-            }
-            bi = bi + 1
-        }
-        fi = fi + 1
-    }
-    0
 }

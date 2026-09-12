@@ -113,7 +113,7 @@ tests/baselines/perf/current.json     ← generated each run, not committed
 ## 4. Cross-Language Comparison (`compare` mode details)
 
 The `compare` mode is primarily used for **cross-commit** comparison within the
-Arukellt compiler.  It is **not** a cross-language (Rust/C/Go) comparison tool.
+Arukellt compiler.  It is **not** a cross-language comparison tool.
 Use it to answer: "Did this PR make things faster or slower?"
 
 Workflow:
@@ -121,12 +121,12 @@ Workflow:
 ```bash
 # 1. On the base commit, record the baseline
 git checkout <base-sha>
-cargo build --release
+python3 scripts/manager.py selfhost --version
 python3 scripts/util/benchmark_runner.py --mode update-baseline
 
 # 2. On the head commit, compare
 git checkout <head-sha>
-cargo build --release
+python3 scripts/manager.py selfhost --version
 python3 scripts/util/benchmark_runner.py --mode compare
 ```
 

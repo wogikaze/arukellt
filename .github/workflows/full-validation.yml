@@ -26,12 +26,6 @@ jobs:
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-      - name: Build host-linker
-        run: cargo build --release --quiet
-        working-directory: tools/host-linker
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
       - name: Check canonical formatting
@@ -49,9 +43,6 @@ jobs:
         run: |
           curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v46.0.1
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
       - name: Check canonical lint contract
@@ -73,18 +64,13 @@ jobs:
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
       - name: Install wasm-tools
         run: |
+          version=1.252.0
+          mkdir -p "$HOME/.local/bin"
           curl -L --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-tools
-          cargo binstall --no-confirm cargo-component
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-      - name: Build host-linker
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
+            "https://github.com/bytecodealliance/wasm-tools/releases/download/v${version}/wasm-tools-${version}-x86_64-linux.tar.gz" \
+            | tar -xz -O "wasm-tools-${version}-x86_64-linux/wasm-tools" > "$HOME/.local/bin/wasm-tools"
+          chmod +x "$HOME/.local/bin/wasm-tools"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost fixpoint --build
       - name: Register arukellt selfhost wrapper in PATH
@@ -110,15 +96,13 @@ jobs:
           echo "$HOME/.wasmtime/bin" >> "$GITHUB_PATH"
       - name: Install wasm-tools
         run: |
+          version=1.252.0
+          mkdir -p "$HOME/.local/bin"
           curl -L --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          cargo binstall --no-confirm wasm-tools
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
-      - name: Build host-linker
-        run: cargo build --release --quiet
-        working-directory: tools/host-linker
+            "https://github.com/bytecodealliance/wasm-tools/releases/download/v${version}/wasm-tools-${version}-x86_64-linux.tar.gz" \
+            | tar -xz -O "wasm-tools-${version}-x86_64-linux/wasm-tools" > "$HOME/.local/bin/wasm-tools"
+          chmod +x "$HOME/.local/bin/wasm-tools"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Fixpoint
         run: python3 scripts/manager.py selfhost fixpoint
       - name: Fixture parity
@@ -144,9 +128,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang
-      - name: Build wasm-heap-grow-patcher
-        run: cargo build --release --quiet
-        working-directory: scripts/bootstrap/wasm-heap-grow-patcher
       - name: Build current selfhost compiler
         run: python3 scripts/manager.py selfhost build-compiler
       - name: Native capability / safepoint / CI contract / C99 -Werror
@@ -177,7 +158,6 @@ jobs:
   docs:
     name: "full / Docs consistency"
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check/check-docs-consistency.py

@@ -41,13 +41,11 @@ These modules exist in `std/manifest.toml` and require `use` to access:
 | Module | Count | Examples |
 |---|---|---|
 | `std::host::stdio` | 3 | `println`, `print`, `eprintln` |
-| `std::host::fs` | 3 | `read_file`, `write_file`, `file_exists` |
-| `std::host::env` | 5 | `var`, `set_var`, `vars`, `remove_var`, `has_var` |
+| `std::host::fs` | 10 | `read_to_string`, `write_string`, `write_bytes`, `is_readable_file` |
+| `std::host::env` | 5 | `args`, `arg_count`, `arg_at`, `var`, `has_flag` |
 | `std::host::clock` | 1 | `now_ms` |
 | `std::host::random` | 3 | `random_i32`, `random_f64`, `random_bool` |
 | `std::host::process` | 2 | `exit`, `abort` |
-| `std::host::http` | 2 | `get`, `request` (stub) |
-| `std::host::sockets` | 1 | `connect` (stub) |
 | `std::path` | 6 | `join`, `basename`, `dirname` |
 | `std::time` | 3 | `format_timestamp`, `parse_timestamp` |
 | `std::json` | 6 | `stringify`, `parse` |

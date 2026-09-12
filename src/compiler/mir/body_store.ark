@@ -16,7 +16,6 @@ use mir::function_core_record
 use mir::function_locals_view
 use mir::inst_table
 use mir::local_access
-use mir::module_host_calls
 use mir::module_strings
 use mir::opcodes
 use mir::phi_factory
@@ -141,14 +140,6 @@ pub fn MirModule_body_store_has_resolvable_call(m: MirModule, idx: i32) -> bool 
     false
 }
 
-pub fn MirModule_body_store_has_wasi_http_outgoing(m: MirModule, idx: i32) -> bool {
-    mir_body_store_has_host_call(m, idx, true)
-}
-
-pub fn MirModule_body_store_has_runtime_host_call(m: MirModule, idx: i32) -> bool {
-    mir_body_store_has_host_call(m, idx, false)
-}
-
 pub fn MirModule_body_store_sole_call_target(m: MirModule, idx: i32) -> String {
     if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
         return String_new()
@@ -238,53 +229,6 @@ fn mir_body_is_forwarder_computation(op: i32) -> bool {
     op == opcodes::MIR_SHR() ||
     op == opcodes::MIR_AND() ||
     op == opcodes::MIR_OR()
-}
-
-fn mir_body_store_has_host_call(m: MirModule, idx: i32, only_http: bool) -> bool {
-    if !m.body_store_enabled || idx < 0 || idx >= len(m.body_store_starts) {
-        return false
-    }
-    let reader = MirBodyReader_new(
-        m.body_store_bytes,
-        get_unchecked(m.body_store_starts, idx),
-        get_unchecked(m.body_store_lengths, idx),
-        m.body_store_float_values,
-        get_unchecked(m.body_store_float_starts, idx)
-    )
-    if mir_body_read_i32(reader) != mir_body_schema_magic() ||
-    mir_body_read_i32(reader) != mir_body_schema_version() {
-        return false
-    }
-    mir_body_read_i32(reader)
-    let table_count = mir_body_read_i32(reader)
-    let strings = module_strings::MirModule_inst_string_pool(m)
-    let mut hid = 0
-    while hid < table_count {
-        let op = mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        mir_body_skip_float(reader)
-        let string_id = mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        mir_body_read_i32(reader)
-        let result_count = mir_body_read_i32(reader)
-        mir_body_skip_result_types(reader, result_count)
-        if op == opcodes::MIR_CALL() && string_id >= 0 && string_id < len(strings) {
-            let callee = clone(get_unchecked(strings, string_id))
-            let is_match = if only_http {
-                module_host_calls::mir_call_is_wasi_http_outgoing(clone(callee))
-            } else {
-                module_host_calls::mir_call_is_runtime_host(clone(callee))
-            }
-            if is_match {
-                return true
-            }
-        }
-        hid = hid + 1
-    }
-    false
 }
 
 fn MirModule_body_store_has_invalid_local_operand(

@@ -1,0 +1,339 @@
+use mir::function_param_view
+use mir::function_return_view
+use mir::local_access
+use wasm::ctx_gc_type
+use wasm::ctx_record
+use wasm::function_indices
+use wasm::intrinsics::helpers_control
+use wasm::intrinsics::helpers_memory
+use wasm::intrinsics::helpers_numeric_i32_arith
+use wasm::intrinsics::helpers_numeric_i32_compare
+use wasm::intrinsics::helpers_numeric_i32_const
+use wasm::opcodes
+use wasm::sections_types_sigs_detail
+use wasm::writer_core
+use wasm::writer_gc
+
+// Convert the compiler's private GC string representation to standard32
+// canonical ABI values at a core-module export boundary. The component linker
+// consumes these exports directly; no component adapter module is involved.
+fn emit_library_wrapper_body(
+    w: WasmWriter,
+    f: MirFunction,
+    function_idx: i32,
+    realloc_idx: i32,
+    ctx: SelfEmitCtx,
+    wit_import_count: i32
+) {
+    let input_string_count = string_param_count(f)
+    let canonical_count = canonical_param_count(f)
+    let has_string_return = function_return_is_string(f)
+    let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let mut result_array_local = 0 - 1
+    let mut result_ptr_local = 0 - 1
+    let mut loop_local = canonical_count + input_string_count
+    if has_string_return {
+        result_array_local = canonical_count + input_string_count
+        result_ptr_local = result_array_local + 1
+        loop_local = result_ptr_local + 1
+    }
+    emit_wrapper_local_decls(
+        w,
+        canonical_count,
+        input_string_count,
+        has_string_return,
+        string_type
+    )
+    emit_string_param_conversions(
+        w,
+        f,
+        canonical_count,
+        string_type,
+        loop_local
+    )
+    emit_raw_function_call(
+        w,
+        f,
+        function_idx,
+        canonical_count,
+        ctx,
+        wit_import_count
+    )
+    if has_string_return {
+        emit_string_result_conversion(
+            w,
+            result_array_local,
+            result_ptr_local,
+            loop_local,
+            string_type,
+            realloc_idx
+        )
+    }
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_wrapper_local_decls(
+    w: WasmWriter,
+    canonical_param_count: i32,
+    string_param_count: i32,
+    has_string_return: bool,
+    string_type: i32
+) {
+    let mut ref_local_count = string_param_count
+    if has_string_return {
+        ref_local_count = ref_local_count + 1
+    }
+    let mut scalar_local_count = 1
+    if has_string_return {
+        scalar_local_count = 2
+    }
+    let mut group_count = 1
+    if ref_local_count > 0 {
+        group_count = 2
+    }
+    writer_core::emit_leb128_u(w, group_count)
+    if ref_local_count > 0 {
+        writer_core::emit_leb128_u(w, ref_local_count)
+        writer_core::emit_byte(w, 99)
+        writer_core::emit_leb128_s(w, string_type)
+    }
+    writer_core::emit_leb128_u(w, scalar_local_count)
+    writer_core::emit_byte(w, 127)
+    let local_refs = Vec::new<i32>()
+    append_ref_markers(local_refs, canonical_param_count, 0 - 1)
+    append_ref_markers(local_refs, ref_local_count, string_type)
+    append_ref_markers(local_refs, scalar_local_count, 0 - 1)
+    writer_core::writer_begin_function_locals(w, local_refs)
+}
+
+fn append_ref_markers(local_refs: Vec<i32>, count: i32, value: i32) {
+    let mut i = 0
+    while i < count {
+        push(local_refs, value)
+        i = i + 1
+    }
+}
+
+fn emit_string_param_conversions(
+    w: WasmWriter,
+    f: MirFunction,
+    canonical_param_count: i32,
+    string_type: i32,
+    loop_local: i32
+) {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut canonical_idx = 0
+    let mut string_idx = 0
+    let mut pi = 0
+    while pi < param_count {
+        let param = function_param_view::MirFunction_param_at(f, pi)
+        let type_name = local_access::MirLocal_type_name(param)
+        if sections_types_sigs_detail::p2_is_string_type_name(clone(type_name)) {
+            let string_local = canonical_param_count + string_idx
+            emit_string_input_copy(
+                w,
+                canonical_idx,
+                canonical_idx + 1,
+                string_local,
+                loop_local,
+                string_type
+            )
+            canonical_idx = canonical_idx + 2
+            string_idx = string_idx + 1
+        } else {
+            canonical_idx = canonical_idx + 1
+        }
+        pi = pi + 1
+    }
+}
+
+fn emit_string_input_copy(
+    w: WasmWriter,
+    pointer_local: i32,
+    length_local: i32,
+    string_local: i32,
+    loop_local: i32,
+    string_type: i32
+) {
+    writer_core::emit_local_get(w, length_local)
+    writer_gc::emit_gc_array_new(w, string_type)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, string_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, loop_local)
+    helpers_control::emit_block_loop_header(w)
+    writer_core::emit_local_get(w, loop_local)
+    writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_compare::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    writer_core::emit_local_get(w, string_local)
+    writer_core::emit_local_get(w, loop_local)
+    writer_core::emit_local_get(w, pointer_local)
+    writer_core::emit_local_get(w, loop_local)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory::emit_i32_load8_u_default(w)
+    writer_gc::emit_gc_array_set_i32(w, string_type)
+    writer_core::emit_local_get(w, loop_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, loop_local)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}
+
+fn emit_raw_function_call(
+    w: WasmWriter,
+    f: MirFunction,
+    function_idx: i32,
+    canonical_param_count: i32,
+    ctx: SelfEmitCtx,
+    wit_import_count: i32
+) {
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut canonical_idx = 0
+    let mut string_idx = 0
+    let mut pi = 0
+    while pi < param_count {
+        let param = function_param_view::MirFunction_param_at(f, pi)
+        let type_name = local_access::MirLocal_type_name(param)
+        if sections_types_sigs_detail::p2_is_string_type_name(clone(type_name)) {
+            writer_core::emit_local_get(w, canonical_param_count + string_idx)
+            canonical_idx = canonical_idx + 2
+            string_idx = string_idx + 1
+        } else {
+            writer_core::emit_local_get(w, canonical_idx)
+            canonical_idx = canonical_idx + 1
+        }
+        pi = pi + 1
+    }
+    writer_core::emit_byte(w, opcodes::OP_CALL())
+    writer_core::emit_leb128_u(
+        w,
+        function_indices::defined_function_index(
+            function_idx,
+            ctx_record::SelfEmitCtx_target(ctx),
+            ctx_record::SelfEmitCtx_wasi_version(ctx),
+            wit_import_count
+        )
+    )
+}
+
+fn emit_string_result_conversion(
+    w: WasmWriter,
+    result_array_local: i32,
+    result_ptr_local: i32,
+    loop_local: i32,
+    string_type: i32,
+    realloc_idx: i32
+) {
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, result_array_local)
+    writer_core::emit_local_get(w, result_array_local)
+    writer_gc::emit_gc_array_len(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, loop_local)
+    emit_string_result_alloc(w, result_ptr_local, loop_local, realloc_idx)
+    emit_string_result_header(w, result_ptr_local, loop_local)
+    emit_string_result_bytes(w, result_ptr_local, loop_local, result_array_local, string_type)
+    writer_core::emit_local_get(w, result_ptr_local)
+}
+
+fn emit_string_result_alloc(w: WasmWriter, result_ptr_local: i32, length_local: i32, realloc_idx: i32) {
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_CALL())
+    writer_core::emit_leb128_u(w, realloc_idx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, result_ptr_local)
+}
+
+fn emit_string_result_header(w: WasmWriter, result_ptr_local: i32, length_local: i32) {
+    writer_core::emit_local_get(w, result_ptr_local)
+    writer_core::emit_local_get(w, result_ptr_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory::emit_i32_store_default(w)
+    writer_core::emit_local_get(w, result_ptr_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_local_get(w, length_local)
+    helpers_memory::emit_i32_store_default(w)
+}
+
+fn emit_string_result_bytes(
+    w: WasmWriter,
+    result_ptr_local: i32,
+    length_local: i32,
+    result_array_local: i32,
+    string_type: i32
+) {
+    helpers_numeric_i32_const::emit_i32_const(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, length_local)
+    helpers_control::emit_block_loop_header(w)
+    writer_core::emit_local_get(w, length_local)
+    writer_core::emit_local_get(w, result_ptr_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 4)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32_compare::emit_i32_ge_u(w)
+    helpers_control::emit_br_if(w, 1)
+    writer_core::emit_local_get(w, result_ptr_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 8)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_local_get(w, result_array_local)
+    writer_core::emit_local_get(w, length_local)
+    writer_gc::emit_gc_array_get_u(w, string_type)
+    helpers_memory::emit_i32_store8_default(w)
+    writer_core::emit_local_get(w, length_local)
+    helpers_numeric_i32_const::emit_i32_const(w, 1)
+    helpers_numeric_i32_arith::emit_i32_add(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, length_local)
+    helpers_control::emit_br(w, 0)
+    helpers_control::emit_block_loop_footer(w)
+}
+
+fn string_param_count(f: MirFunction) -> i32 {
+    let mut count = 0
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut i = 0
+    while i < param_count {
+        let param = function_param_view::MirFunction_param_at(f, i)
+        if sections_types_sigs_detail::p2_is_string_type_name(local_access::MirLocal_type_name(param)) {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn canonical_param_count(f: MirFunction) -> i32 {
+    let mut count = 0
+    let param_count = function_param_view::MirFunction_param_count(f)
+    let mut i = 0
+    while i < param_count {
+        let param = function_param_view::MirFunction_param_at(f, i)
+        if sections_types_sigs_detail::p2_is_string_type_name(local_access::MirLocal_type_name(param)) {
+            count = count + 2
+        } else {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn function_return_is_string(f: MirFunction) -> bool {
+    sections_types_sigs_detail::p2_is_string_type_name(
+        function_return_view::MirFunction_return_type_name(f)
+    )
+}

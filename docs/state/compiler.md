@@ -48,8 +48,8 @@ MIR に永続化済み。残作業は #724。
 2. `python3 scripts/manager.py selfhost fixture-parity` / `parity --mode --cli` / `diag-parity` が緑
 
 詳細は [`../compiler/bootstrap.md`](../compiler/bootstrap.md)。
-`scripts/run/verify-bootstrap.sh` の Rust Stage 0 経路は **退役**（履歴:
-[`../history/reports/bootstrap-rust-era-verification.md`](../history/reports/bootstrap-rust-era-verification.md)）。
+Rust-era bootstrap scripts are historical only; the current contract uses the
+pinned selfhost wasm and `scripts/manager.py selfhost` commands.
 
 | Stage | Description | Status |
 |-------|-------------|--------|
@@ -76,7 +76,7 @@ RSS **~1.77GB**（同一 binary）。公式受入は
 詳細は [`../compiler/bootstrap.md`](../compiler/bootstrap.md) の “Which command?” と
 [`../research/selfhost-compile-latency-root-cause.md`](../research/selfhost-compile-latency-root-cause.md)。
 
-信頼ベースは pinned selfhost wasm。Rust CLI フォールバックは廃止（#583）。
+信頼ベースは pinned selfhost wasm。Rust CLI フォールバックは存在しない。
 
 CI gates（いずれも selfhost-native; job id = `selfhost`）:
 

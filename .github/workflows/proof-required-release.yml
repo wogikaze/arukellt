@@ -60,12 +60,6 @@ jobs:
           sudo apt-get install -y z3
           z3 --version
 
-      - name: Build host linker
-        run: |
-          cargo build --release --quiet
-          cargo test --lib --no-run --quiet
-        working-directory: tools/host-linker
-
       - name: Prove and authorize release payload
         run: bash scripts/run/proof-required-release.sh
 

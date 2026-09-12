@@ -158,7 +158,9 @@ python3 scripts/manager.py selfhost diag-parity     # PASS
 python3 scripts/manager.py selfhost parity --mode --cli  # PASS
 ```
 
-`cargo build --workspace --exclude ark-llvm` ビルドは依然成功 — 本スライスは Rust crate を削除しない。
+旧 ADR が参照していた `cargo build --workspace --exclude ark-llvm` は、ADR-054 による Rust
+workspace の退役に伴って検証対象から外れた。現在の検証は pinned wasm と直接の
+Wasmtime / 公式 WASI Preview 2 packaging を用いる。
 
 ## 関連文書
 

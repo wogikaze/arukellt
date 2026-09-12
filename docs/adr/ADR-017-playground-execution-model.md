@@ -3,7 +3,7 @@
 ステータス: **ACCEPTED** — client-side hybrid（v1 にサーバー側 executor なし）
 作成日: 2026-03-31
 決定日: 2026-03-31
-改訂日: 2026-07-11 — v2 アーキテクチャを ADR-032 へ再分離
+改訂日: 2026-09-12 — browser user-program runner の現行境界を ADR-055 へ移管
 範囲: Playground (web) v1
 
 ---
@@ -14,7 +14,9 @@ Arukellt の web playground は、実装前に製品契約が必要である。
 v1 でサーバー側 executor を出すと運用コスト・悪用面・遅延が増え、
 主価値（即時フィードバック）はより軽いクライアント側ツールで得られる。
 
-ブラウザでの **compile + run（v2）** は独立に変更しうるため [ADR-032](ADR-032-playground-compiler-wasm-runner.md) に分離する。
+ブラウザでの **compile + run（v2）** は独立に検討したが、現行製品経路には含めない。
+旧検討は [ADR-032](ADR-032-playground-compiler-wasm-runner.md)、現行境界は
+[ADR-055](ADR-055-playground-compile-boundary.md) に記録する。
 本 ADR は v1 のみを固定する。
 
 Issue 378 は下流作業（379, 428）の前にこの判断を強制するために開かれた。
@@ -43,7 +45,7 @@ Issue 378 は下流作業（379, 428）の前にこの判断を強制するた�
 | Format / Parse / Check / Diagnostics | browser（frontend component） | ✅ |
 | Examples | static / browser | ✅ |
 | Share / permalink | browser + static host | ✅ |
-| Full compile / Run | — | ❌ v2（ADR-032） |
+| Full compile / Run | — | ❌ Playground 外の公式 WASI toolchain |
 
 ### v1 スコープ
 
@@ -65,7 +67,7 @@ selfhost frontend へ置換しても、上記理想契約が変わらなけれ�
 ## 帰結
 
 1. Issue 379 は frontend component 契約向けに進めてよい。
-2. freestanding 待ちは不要（ADR-007 廃止）。v2 は ADR-032。
+2. freestanding 待ちは不要（ADR-007 廃止）。browser user-program execution は ADR-055 の範囲外。
 3. share/permalink は静的ホストで足り、実行バックエンドは不要（詳細は ADR-021 / RFC-001）。
 
 ---
@@ -91,7 +93,8 @@ selfhost frontend へ置換しても、上記理想契約が変わらなけれ�
 
 ## 関連
 
-- [ADR-032](ADR-032-playground-compiler-wasm-runner.md) — v2 browser compile/run
+- [ADR-032](ADR-032-playground-compiler-wasm-runner.md) — superseded browser compile/run proposal
+- [ADR-055](ADR-055-playground-compile-boundary.md) — current browser compile boundary
 - [ADR-021](ADR-021-playground-share-url-format.md) / [RFC-001](../rfcs/001-playground-share-url-format.md)
 - [ADR-007](ADR-007-targets.md)、[ADR-013](ADR-013-primary-target.md)
 - `docs/current-state.md`

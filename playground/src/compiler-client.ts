@@ -8,15 +8,11 @@ import type {
   CompileOptions,
   CompileResult,
   CompilerRuntimeAvailability,
-  RunOptions,
-  RunResult,
 } from "./compiler-types.js";
 import type {
   CompilerWorkerRequest,
   CompilerWorkerResponse,
 } from "./compiler-worker.js";
-import { moduleImportsArukelltIo } from "./t2-runner.js";
-
 export interface CompilerClientOptions {
   compilerUrl: string | URL;
   workerUrl?: string | URL;
@@ -24,12 +20,6 @@ export interface CompilerClientOptions {
 
 export interface CompilerClient {
   compile(source: string, options?: CompileOptions): Promise<CompileResult>;
-  run(wasmBytes: Uint8Array, options?: RunOptions): Promise<RunResult>;
-  compileAndRun(
-    source: string,
-    compileOptions?: CompileOptions,
-    runOptions?: RunOptions,
-  ): Promise<{ compile: CompileResult; run: RunResult | null }>;
   checkAvailability(): Promise<CompilerRuntimeAvailability>;
   destroy(): void;
 }
@@ -94,31 +84,8 @@ export async function createCompilerClient(
     return send<CompileResult>({ id: 0, cmd: "compile", source, options });
   }
 
-  async function runRequest(
-    wasmBytes: Uint8Array,
-    options?: RunOptions,
-  ): Promise<RunResult> {
-    if (destroyed) throw new Error("Compiler client destroyed");
-    return send<RunResult>({ id: 0, cmd: "run", wasmBytes, options });
-  }
-
   return {
     compile: compileRequest,
-
-    run: runRequest,
-
-    async compileAndRun(
-      source: string,
-      compileOptions?: CompileOptions,
-      runOptions?: RunOptions,
-    ): Promise<{ compile: CompileResult; run: RunResult | null }> {
-      const compile = await compileRequest(source, compileOptions);
-      if (!compile.ok || !compile.wasmBytes) {
-        return { compile, run: null };
-      }
-      const run = await runRequest(compile.wasmBytes, runOptions);
-      return { compile, run };
-    },
 
     async checkAvailability(): Promise<CompilerRuntimeAvailability> {
       const wasmSupported = typeof WebAssembly !== "undefined";
@@ -126,7 +93,6 @@ export async function createCompilerClient(
         return {
           compilerAssetPresent: false,
           wasmSupported: false,
-          runSupported: false,
           reason: "WebAssembly is not available in this browser.",
         };
       }
@@ -137,23 +103,20 @@ export async function createCompilerClient(
           return {
             compilerAssetPresent: false,
             wasmSupported: true,
-            runSupported: false,
             reason: "Compiler Wasm asset is missing. Run `npm run build:app` in playground/.",
           };
         }
         const bytes = new Uint8Array(await response.arrayBuffer());
-        const hasT2Compiler = bytes.byteLength > 0;
+        const hasCompilerAsset = bytes.byteLength > 0 && WebAssembly.validate(bytes);
         return {
-          compilerAssetPresent: hasT2Compiler,
+          compilerAssetPresent: hasCompilerAsset,
           wasmSupported: true,
-          runSupported: hasT2Compiler,
-          reason: null,
+          reason: hasCompilerAsset ? null : "Compiler Wasm asset is invalid.",
         };
       } catch {
         return {
           compilerAssetPresent: false,
           wasmSupported: true,
-          runSupported: false,
           reason: "Unable to fetch the compiler Wasm asset.",
         };
       }
@@ -167,9 +130,4 @@ export async function createCompilerClient(
       pending.clear();
     },
   };
-}
-
-/** Whether compiled output looks runnable by the wasm32 runner. */
-export function isRunnableT2Output(wasmBytes: Uint8Array | null): boolean {
-  return wasmBytes !== null && moduleImportsArukelltIo(wasmBytes);
 }

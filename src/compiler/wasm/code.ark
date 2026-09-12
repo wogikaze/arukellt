@@ -3,7 +3,9 @@ use std::host::stdio
 use mir::block_inst_access
 use mir::function_block_queries
 use mir::function_identity
+use mir::function_return_view
 use mir::module_block_pool
+use mir::module_functions
 use mir::module_wit_imports
 use wasm::code_body
 use wasm::ctx_record
@@ -11,6 +13,12 @@ use wasm::function_indices
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
+use wasm::emit_target
+use wasm::sections_exports
+use wasm::sections_types_sigs_detail
+use wasm::p2_canonical
+use wasm::intrinsics::helpers_core_heap
+use wasm::intrinsics::helpers_memory
 
 fn emit_function_inst_count(f: MirFunction) -> i32 {
     let block_count = function_block_queries::MirFunction_block_count(f)
@@ -62,12 +70,24 @@ fn emit_code_section(
     fn_count: i32,
     needs_wrapper: i32,
     main_idx: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    p2_runtime_function_count: i32,
     ctx: SelfEmitCtx,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
     report_timing: i32
 ) {
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
-    writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
+    let p2_command_extra = if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) && needs_wrapper == 1 {
+        1
+    } else {
+        0
+    }
+    writer_core::emit_leb128_u(
+        code_sec,
+        fn_count + needs_wrapper + p2_command_extra + p2_library_post_count + p2_runtime_function_count
+        + p2_library_wrapper_count
+    )
     let offsets = Vec::new<i32>()
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
@@ -91,11 +111,145 @@ fn emit_code_section(
     }
     if needs_wrapper == 1 {
         let size_off = emit_sized_code_body_begin(code_sec)
-        emit_start_wrapper_body(code_sec, main_idx, ctx, wit_import_count)
+        emit_start_wrapper_body(code_sec, main_idx, mir, ctx, wit_import_count)
         emit_sized_code_body_end(code_sec, size_off)
+    }
+    if p2_command_extra == 1 {
+        let size_off = emit_sized_code_body_begin(code_sec)
+        emit_p2_post_return_body(code_sec)
+        emit_sized_code_body_end(code_sec, size_off)
+    }
+    let mut library_post_idx = 0
+    while library_post_idx < p2_library_post_count {
+        let size_off = emit_sized_code_body_begin(code_sec)
+        emit_p2_post_return_body(code_sec)
+        emit_sized_code_body_end(code_sec, size_off)
+        library_post_idx = library_post_idx + 1
+    }
+    emit_p2_library_wrapper_bodies(
+        code_sec,
+        mir,
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        ctx,
+        wit_import_count
+    )
+    if p2_runtime_function_count == 2 {
+        let realloc_size_off = emit_sized_code_body_begin(code_sec)
+        emit_p2_realloc_body(code_sec)
+        emit_sized_code_body_end(code_sec, realloc_size_off)
+        let initialize_size_off = emit_sized_code_body_begin(code_sec)
+        emit_p2_initialize_body(code_sec)
+        emit_sized_code_body_end(code_sec, initialize_size_off)
     }
     ctx_record::SelfEmitCtx_set_code_section_offsets(ctx, offsets)
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
+}
+
+fn emit_p2_library_wrapper_bodies(
+    code_sec: WasmWriter,
+    mir: MirModule,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    ctx: SelfEmitCtx,
+    wit_import_count: i32
+) {
+    if p2_library_wrapper_count <= 0 {
+        return
+    }
+    let target = ctx_record::SelfEmitCtx_target(ctx)
+    let wasi_version = ctx_record::SelfEmitCtx_wasi_version(ctx)
+    let realloc_idx = function_indices::p2_runtime_realloc_function_index(
+        fn_count,
+        needs_wrapper,
+        p2_library_post_count,
+        p2_library_wrapper_count,
+        clone(target),
+        clone(wasi_version),
+        wit_import_count
+    )
+    let mut function_idx = 0
+    while function_idx < fn_count {
+        let f = module_functions::MirModule_function_at(mir, function_idx)
+        if sections_exports::is_p2_library_export_function(f) &&
+        sections_types_sigs_detail::p2_function_needs_string_wrapper(
+            f,
+            clone(target),
+            clone(wasi_version)
+        ) {
+            let size_off = emit_sized_code_body_begin(code_sec)
+            p2_canonical::emit_library_wrapper_body(
+                code_sec,
+                f,
+                function_idx,
+                realloc_idx,
+                ctx,
+                wit_import_count
+            )
+            emit_sized_code_body_end(code_sec, size_off)
+        }
+        function_idx = function_idx + 1
+    }
+}
+
+fn emit_p2_realloc_body(w: WasmWriter) {
+    // `cabi_realloc` is part of the official standard32 core ABI. It owns a
+    // bump-pointer region, grows linear memory on demand, and preserves the
+    // requested prefix when the canonical ABI asks for a resize.
+    writer_core::emit_leb128_u(w, 1)
+    writer_core::emit_leb128_u(w, 2)
+    writer_core::emit_byte(w, 127)
+    emit_p2_realloc_align(w)
+    emit_p2_realloc_end(w)
+    writer_core::emit_local_get(w, 5)
+    helpers_core_heap::emit_heap_set(w)
+    emit_p2_realloc_copy(w)
+    writer_core::emit_local_get(w, 4)
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_p2_realloc_align(w: WasmWriter) {
+    writer_core::emit_byte(w, opcodes::OP_GLOBAL_GET())
+    writer_core::emit_leb128_u(w, 0)
+    writer_core::emit_local_get(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_local_get(w, 2)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0 - 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_XOR())
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, 4)
+}
+
+fn emit_p2_realloc_end(w: WasmWriter) {
+    writer_core::emit_local_get(w, 4)
+    writer_core::emit_local_get(w, 3)
+    writer_core::emit_byte(w, opcodes::OP_I32_ADD())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, 5)
+}
+
+fn emit_p2_realloc_copy(w: WasmWriter) {
+    writer_core::emit_local_get(w, 4)
+    writer_core::emit_local_get(w, 0)
+    writer_core::emit_local_get(w, 1)
+    helpers_memory::emit_memory_copy(w)
+}
+
+fn emit_p2_initialize_body(w: WasmWriter) {
+    writer_core::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_END())
 }
 
 fn emit_sized_code_body_begin(code_sec: WasmWriter) -> i32 {
@@ -116,6 +270,7 @@ fn emit_sized_code_body_end(code_sec: WasmWriter, size_off: i32) {
 fn emit_start_wrapper_body(
     w: WasmWriter,
     main_idx: i32,
+    mir: MirModule,
     ctx: SelfEmitCtx,
     wit_import_count: i32
 ) {
@@ -127,11 +282,22 @@ fn emit_start_wrapper_body(
             main_idx,
             ctx_record::SelfEmitCtx_target(ctx),
             ctx_record::SelfEmitCtx_wasi_version(ctx),
-            ctx_record::SelfEmitCtx_needs_runtime_host(ctx),
-            ctx_record::SelfEmitCtx_needs_wasi_http_outgoing(ctx),
             wit_import_count
         )
     )
-    writer_core::emit_byte(w, opcodes::OP_DROP())
+    let main = module_functions::MirModule_function_at(mir, main_idx)
+    if function_return_view::MirFunction_return_type(main) != 0 {
+        writer_core::emit_byte(w, opcodes::OP_DROP())
+    }
+    if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
+        writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+        writer_core::emit_leb128_s(w, 0)
+    }
+    writer_core::emit_byte(w, opcodes::OP_END())
+}
+
+fn emit_p2_post_return_body(w: WasmWriter) {
+    // Scalar P2 exports need no allocation cleanup after their result is lifted.
+    writer_core::emit_leb128_u(w, 0)
     writer_core::emit_byte(w, opcodes::OP_END())
 }

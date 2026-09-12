@@ -2,6 +2,11 @@ pub struct TypeSectionPlan {
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
     wrapper_type_idx: i32,
+    p2_post_type_idx: i32,
+    p2_library_post_type_map: Vec<i32>,
+    p2_library_wrapper_type_map: Vec<i32>,
+    p2_realloc_type_idx: i32,
+    p2_initialize_type_idx: i32,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
     gc_type_base: i32,
@@ -72,6 +77,11 @@ fn TypeSectionPlan_new(
     host_type_map: Vec<i32>,
     fn_type_map: Vec<i32>,
     wrapper_type_idx: i32,
+    p2_post_type_idx: i32,
+    p2_library_post_type_map: Vec<i32>,
+    p2_library_wrapper_type_map: Vec<i32>,
+    p2_realloc_type_idx: i32,
+    p2_initialize_type_idx: i32,
     wit_type_map: Vec<i32>,
     wit_import_count: i32,
     gc_type_base: i32,
@@ -84,6 +94,11 @@ fn TypeSectionPlan_new(
         host_type_map: host_type_map,
         fn_type_map: fn_type_map,
         wrapper_type_idx: wrapper_type_idx,
+        p2_post_type_idx: p2_post_type_idx,
+        p2_library_post_type_map: p2_library_post_type_map,
+        p2_library_wrapper_type_map: p2_library_wrapper_type_map,
+        p2_realloc_type_idx: p2_realloc_type_idx,
+        p2_initialize_type_idx: p2_initialize_type_idx,
         wit_type_map: wit_type_map,
         wit_import_count: wit_import_count,
         gc_type_base: gc_type_base,
@@ -123,6 +138,26 @@ fn TypeSectionPlan_wrapper_type_idx(plan: TypeSectionPlan) -> i32 {
     plan.wrapper_type_idx
 }
 
+fn TypeSectionPlan_p2_post_type_idx(plan: TypeSectionPlan) -> i32 {
+    plan.p2_post_type_idx
+}
+
+fn TypeSectionPlan_p2_library_post_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.p2_library_post_type_map
+}
+
+fn TypeSectionPlan_p2_library_wrapper_type_map(plan: TypeSectionPlan) -> Vec<i32> {
+    plan.p2_library_wrapper_type_map
+}
+
+fn TypeSectionPlan_p2_realloc_type_idx(plan: TypeSectionPlan) -> i32 {
+    plan.p2_realloc_type_idx
+}
+
+fn TypeSectionPlan_p2_initialize_type_idx(plan: TypeSectionPlan) -> i32 {
+    plan.p2_initialize_type_idx
+}
+
 fn TypeSectionPlan_gc_type_base(plan: TypeSectionPlan) -> i32 {
     plan.gc_type_base
 }
@@ -154,13 +189,106 @@ fn build_type_section_plan(
     gc_enum_variant_base: i32,
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_base: i32,
-    gc_struct_type_map: Vec<i32>
+    gc_struct_type_map: Vec<i32>,
+    p2_enabled: bool,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32,
+    p2_realloc_type_idx: i32,
+    p2_initialize_type_idx: i32
 ) -> TypeSectionPlan {
     let host_type_map = build_host_type_map(type_map, num_host_types)
     let wit_type_map = build_wit_type_map(type_map, num_host_types, wit_import_count)
     let fn_type_map = build_function_type_map(type_map, num_host_types, wit_import_count, gc_type_count, fn_count)
     let wrapper_type_idx = wrapper_type_index(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper)
-    TypeSectionPlan_new(host_type_map, fn_type_map, wrapper_type_idx, wit_type_map, wit_import_count, gc_type_base, gc_enum_variant_base, gc_enum_variant_type_map, gc_struct_base, gc_struct_type_map)
+    let p2_post_type_idx = p2_post_type_index(type_map, num_host_types, wit_import_count, gc_type_count, fn_count, needs_wrapper, p2_enabled)
+    let p2_library_post_type_map = build_p2_library_post_type_map(
+        type_map,
+        num_host_types,
+        wit_import_count,
+        gc_type_count,
+        fn_count,
+        needs_wrapper,
+        p2_enabled,
+        p2_library_post_count
+    )
+    let p2_library_wrapper_type_map = build_p2_library_wrapper_type_map(
+        type_map,
+        num_host_types,
+        wit_import_count,
+        gc_type_count,
+        fn_count,
+        needs_wrapper,
+        p2_enabled,
+        p2_library_post_count,
+        p2_library_wrapper_count
+    )
+    TypeSectionPlan_new(
+        host_type_map,
+        fn_type_map,
+        wrapper_type_idx,
+        p2_post_type_idx,
+        p2_library_post_type_map,
+        p2_library_wrapper_type_map,
+        p2_realloc_type_idx,
+        p2_initialize_type_idx,
+        wit_type_map,
+        wit_import_count,
+        gc_type_base,
+        gc_enum_variant_base,
+        gc_enum_variant_type_map,
+        gc_struct_base,
+        gc_struct_type_map
+    )
+}
+
+fn build_p2_library_wrapper_type_map(
+    type_map: Vec<i32>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_type_count: i32,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_enabled: bool,
+    p2_library_post_count: i32,
+    p2_library_wrapper_count: i32
+) -> Vec<i32> {
+    let wrapper_map = Vec::new<i32>()
+    if !p2_enabled {
+        return wrapper_map
+    }
+    let command_extra = if needs_wrapper == 1 { 2 } else { 0 }
+    let start = num_host_types + wit_import_count + gc_type_count + fn_count +
+    command_extra + p2_library_post_count
+    let mut i = 0
+    while i < p2_library_wrapper_count {
+        push(wrapper_map, get_unchecked(type_map, start + i))
+        i = i + 1
+    }
+    wrapper_map
+}
+
+fn build_p2_library_post_type_map(
+    type_map: Vec<i32>,
+    num_host_types: i32,
+    wit_import_count: i32,
+    gc_type_count: i32,
+    fn_count: i32,
+    needs_wrapper: i32,
+    p2_enabled: bool,
+    p2_library_post_count: i32
+) -> Vec<i32> {
+    let post_map = Vec::new<i32>()
+    if !p2_enabled {
+        return post_map
+    }
+    let command_extra = if needs_wrapper == 1 { 2 } else { 0 }
+    let start = num_host_types + wit_import_count + gc_type_count + fn_count + command_extra
+    let mut i = 0
+    while i < p2_library_post_count {
+        push(post_map, get_unchecked(type_map, start + i))
+        i = i + 1
+    }
+    post_map
 }
 
 fn build_host_type_map(type_map: Vec<i32>, num_host_types: i32) -> Vec<i32> {
@@ -198,6 +326,15 @@ fn wrapper_type_index(type_map: Vec<i32>, num_host_types: i32, wit_import_count:
         return get_unchecked(type_map, num_host_types + wit_import_count + gc_type_count + fn_count)
     }
     0 - 1
+}
+
+fn p2_post_type_index(type_map: Vec<i32>, num_host_types: i32, wit_import_count: i32, gc_type_count: i32, fn_count: i32, needs_wrapper: i32, p2_enabled: bool) -> i32 {
+    if needs_wrapper == 0 || !p2_enabled {
+        return 0 - 1
+    }
+    // The P2 post-return signature follows the command wrapper signature in
+    // the type-signature list.
+    get_unchecked(type_map, num_host_types + wit_import_count + gc_type_count + fn_count + 1)
 }
 
 fn type_sig_param_segments(csig: String) -> Vec<String> {
