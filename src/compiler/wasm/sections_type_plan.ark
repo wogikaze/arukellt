@@ -9,6 +9,63 @@ pub struct TypeSectionPlan {
     gc_enum_variant_type_map: Vec<i32>,
     gc_struct_base: i32,
     gc_struct_type_map: Vec<i32>,
+    fn_type_refs: FuncTypeRefs,
+}
+
+// For every type-section entry, the `(ref null T)` type index of each param
+// and of the result (-1 when not a concrete nullable ref). Filled while the
+// type section is emitted so body emission knows the static type of param
+// locals and call results without re-deriving the signature heuristics.
+pub struct FuncTypeRefs {
+    // param_starts[type_idx] .. param_starts[type_idx + 1] index into param_refs.
+    param_starts: Vec<i32>,
+    param_refs: Vec<i32>,
+    // One entry per type index.
+    result_refs: Vec<i32>,
+}
+
+fn FuncTypeRefs_new() -> FuncTypeRefs {
+    FuncTypeRefs {
+        param_starts: Vec::new<i32>(),
+        param_refs: Vec::new<i32>(),
+        result_refs: Vec::new<i32>()
+    }
+}
+
+fn FuncTypeRefs_begin_entry(table: FuncTypeRefs) {
+    push(table.param_starts, len(table.param_refs))
+    push(table.result_refs, 0 - 1)
+}
+
+fn FuncTypeRefs_push_param(table: FuncTypeRefs, ref_type_idx: i32) {
+    push(table.param_refs, ref_type_idx)
+}
+
+fn FuncTypeRefs_set_result(table: FuncTypeRefs, ref_type_idx: i32) {
+    set(table.result_refs, len(table.result_refs) - 1, ref_type_idx)
+}
+
+fn FuncTypeRefs_finish(table: FuncTypeRefs) {
+    push(table.param_starts, len(table.param_refs))
+}
+
+fn FuncTypeRefs_result_ref_type(table: FuncTypeRefs, type_idx: i32) -> i32 {
+    if type_idx < 0 || type_idx >= len(table.result_refs) {
+        return 0 - 1
+    }
+    get_unchecked(table.result_refs, type_idx)
+}
+
+fn FuncTypeRefs_param_ref_type(table: FuncTypeRefs, type_idx: i32, param_idx: i32) -> i32 {
+    if type_idx < 0 || type_idx + 1 >= len(table.param_starts) {
+        return 0 - 1
+    }
+    let start = get_unchecked(table.param_starts, type_idx)
+    let end = get_unchecked(table.param_starts, type_idx + 1)
+    if start + param_idx >= end {
+        return 0 - 1
+    }
+    get_unchecked(table.param_refs, start + param_idx)
 }
 
 fn TypeSectionPlan_new(
@@ -33,8 +90,17 @@ fn TypeSectionPlan_new(
         gc_enum_variant_base: gc_enum_variant_base,
         gc_enum_variant_type_map: gc_enum_variant_type_map,
         gc_struct_base: gc_struct_base,
-        gc_struct_type_map: gc_struct_type_map
+        gc_struct_type_map: gc_struct_type_map,
+        fn_type_refs: FuncTypeRefs_new()
     }
+}
+
+fn TypeSectionPlan_fn_type_refs(plan: TypeSectionPlan) -> FuncTypeRefs {
+    plan.fn_type_refs
+}
+
+fn TypeSectionPlan_set_fn_type_refs(plan: TypeSectionPlan, table: FuncTypeRefs) {
+    plan.fn_type_refs = table
 }
 
 fn TypeSectionPlan_host_type_map(plan: TypeSectionPlan) -> Vec<i32> {

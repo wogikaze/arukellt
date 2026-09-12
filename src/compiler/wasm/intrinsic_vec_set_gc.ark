@@ -46,8 +46,7 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     writer_core::emit_leb128_u(w, s_vec)
 
     // Step 2: Get data array from the saved vec_ref
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_vec)
+    writer_core::emit_local_get(w, s_vec)
     // scratch_gc_vec_local is typed structref; cast to the concrete Vec type.
     writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get(w, vec_type, 0)
@@ -55,11 +54,9 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     // Step 3: array.set data[idx] = value
     // Memory64 keeps idx as i64; GC array.set wants a true i32 index.
     // i32-backed elements also need the value narrowed; ref/i64/f64 do not.
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_idx)
+    writer_core::emit_local_get(w, s_idx)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_val)
+    writer_core::emit_local_get(w, s_val)
     if is_vec_sref || is_vec_string || is_vec_i64 || is_vec_f64 {
         writer_gc::emit_gc_array_set(w, array_type)
     } else {
@@ -70,8 +67,7 @@ fn emit_vec_set_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, is_void_set: 
     if is_void_set {
         return false
     }
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_vec)
+    writer_core::emit_local_get(w, s_vec)
     writer_gc::emit_gc_ref_cast(w, vec_type)
     return true
 }

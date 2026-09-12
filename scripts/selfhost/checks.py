@@ -206,6 +206,11 @@ WASMTIME_SELFHOST_WASM_FLAGS = [
     "-W", "memory64=y",
     "-W", "max-memory-size=17179869184",  # 16 GiB
 ]
+# Keep AOT artifacts compatible with the default runtime collector.  Without
+# this, a host-level Wasmtime config can produce deferred-RC cwasm files that
+# the normal copying-collector run path cannot load.
+WASMTIME_SELFHOST_AOT_FLAGS = ["-C", "collector=copying"]
+WASMTIME_SELFHOST_AOT_CACHE_TAG = "collector=copying"
 CLI_VERSION_GOLDEN_REL = "tests/snapshots/selfhost/cli-version.txt"
 CLI_HELP_GOLDEN_REL = "tests/snapshots/selfhost/cli-help.txt"
 
@@ -773,19 +778,31 @@ def _ensure_aot_cwasm(wasm_path: Path) -> Path:
     on each subsequent run.  The .cwasm is cached next to the .wasm and
     invalidated by mtime.
     """
-    cwasm = wasm_path.with_suffix(".cwasm")
+    # Keep collector-specific artifacts separate. Another Wasmtime invocation
+    # can overwrite the generic .cwasm while leaving its flags sidecar stale.
+    cwasm = wasm_path.with_suffix(".collector-copying.cwasm")
+    cache_tag = cwasm.with_suffix(cwasm.suffix + ".flags")
     if cwasm.is_file() and cwasm.stat().st_mtime >= wasm_path.stat().st_mtime:
-        return cwasm
+        try:
+            if cache_tag.read_text(encoding="utf-8").strip() == WASMTIME_SELFHOST_AOT_CACHE_TAG:
+                return cwasm
+        except OSError:
+            pass
     wasmtime = _find_wasmtime()
     if not wasmtime:
         return wasm_path
     r = subprocess.run(
         [wasmtime, "compile", *WASMTIME_SELFHOST_WASM_FLAGS,
+         *WASMTIME_SELFHOST_AOT_FLAGS,
          "-o", str(cwasm), str(wasm_path)],
         capture_output=True, text=True,
     )
     if r.returncode != 0 or not cwasm.is_file():
         return wasm_path
+    try:
+        cache_tag.write_text(WASMTIME_SELFHOST_AOT_CACHE_TAG, encoding="utf-8")
+    except OSError:
+        pass
     return cwasm
 
 
@@ -909,9 +926,16 @@ def _wasm_compile(
         run_wasm = _ensure_aot_cwasm(compiler_wasm)
         run_flags: list[str]
         if run_wasm.suffix == ".cwasm":
-            run_flags = ["--allow-precompiled", *WASMTIME_SELFHOST_WASM_FLAGS]
+            run_flags = [
+                "--allow-precompiled",
+                *WASMTIME_SELFHOST_WASM_FLAGS,
+                "--wasm", "max-wasm-stack=16777216",
+            ]
         else:
-            run_flags = list(WASMTIME_SELFHOST_WASM_FLAGS)
+            run_flags = [
+                *WASMTIME_SELFHOST_WASM_FLAGS,
+                "--wasm", "max-wasm-stack=16777216",
+            ]
         result = _run(
             [wasmtime, "run", *run_flags, *dirs, str(run_wasm), "--", *guest_argv],
             root,
@@ -1701,10 +1725,25 @@ def _patch_bootstrap_driver_timing_clock(text: str, *, keep_clock: bool) -> str:
             "i64_to_i32(diff)",
             "driver_timing: keep_clock phase_timing_ms already ms",
         )
-        return text
-    return _replace_optional(
-        text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now"
+    else:
+        text = _replace_optional(
+            text, "clock::monotonic_now()", "0", "driver_timing: stub clock::monotonic_now"
+        )
+    phase_calls = (
+        (
+            'debug::note_phase_if_enabled(config, "driver.lex", t0, t_lex)',
+            'debug::note_phase_if_enabled(config, "driver.lex", i32_to_i64(t0), i32_to_i64(t_lex))',
+            "driver_timing: lex phase timestamps i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.parse", t_lex, t_parse)',
+            'debug::note_phase_if_enabled(config, "driver.parse", i32_to_i64(t_lex), i32_to_i64(t_parse))',
+            "driver_timing: parse phase timestamps i32_to_i64 wrapping",
+        ),
     )
+    for old, new, description in phase_calls:
+        text = _replace_optional(text, old, new, description)
+    return text
 
 
 def _patch_bootstrap_driver_timing_i32_zeros(text: str) -> str:
@@ -1839,6 +1878,35 @@ def _patch_bootstrap_driver_timing_sigs(text: str) -> str:
 
 def _patch_bootstrap_driver_timing_backend(text: str) -> str:
     """Group 4: backend call sites that widen i32 timestamps to i64."""
+    phase_calls = (
+        (
+            'debug::note_phase_if_enabled(config, "driver.resolve", t_parse, t_resolve)',
+            'debug::note_phase_if_enabled(config, "driver.resolve", t_parse, i32_to_i64(t_resolve))',
+            "driver_timing: resolve phase end i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.typecheck", t_resolve, t_typecheck)',
+            'debug::note_phase_if_enabled(config, "driver.typecheck", i32_to_i64(t_resolve), i32_to_i64(t_typecheck))',
+            "driver_timing: typecheck phase timestamps i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.lower", t_typecheck, t_lower)',
+            'debug::note_phase_if_enabled(config, "driver.lower", i32_to_i64(t_typecheck), i32_to_i64(t_lower))',
+            "driver_timing: lower phase timestamps i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.mir_opt", t_lower, t_mir_opt)',
+            'debug::note_phase_if_enabled(config, "driver.mir_opt", i32_to_i64(t_lower), i32_to_i64(t_mir_opt))',
+            "driver_timing: mir_opt phase timestamps i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.mir_verify", t_mir_opt, t_mir_verify)',
+            'debug::note_phase_if_enabled(config, "driver.mir_verify", i32_to_i64(t_mir_opt), i32_to_i64(t_mir_verify))',
+            "driver_timing: mir_verify phase timestamps i32_to_i64 wrapping",
+        ),
+    )
+    for old, new, description in phase_calls:
+        text = _replace_optional(text, old, new, description)
     text = _replace_optional(
         text,
         "run_backend(source, config, pipeline_frontend::frontend_result_decls(frontend), pipeline_frontend::frontend_result_t0(frontend), pipeline_frontend::frontend_result_t_lex(frontend), pipeline_frontend::frontend_result_t_parse(frontend))",
@@ -1863,11 +1931,55 @@ def _patch_bootstrap_driver_timing_backend(text: str) -> str:
         "i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)), i32_to_i64(backend_typecheck::typecheck_result_t_typecheck(checked))",
         "driver_timing: backend_resolve/typecheck i32_to_i64 wrapping",
     )
+    text = _replace_optional(
+        text,
+        """emit::emit_output(
+        mir_module,
+        config,
+        t0,
+        t_lex,
+        t_parse,
+        backend_resolve::resolve_result_t_resolve(resolved),
+        t_typecheck,
+        t_lower,
+        t_mir_opt,
+        t_mir_verify,
+        wit_decls
+    )""",
+        """emit::emit_output(
+        mir_module,
+        config,
+        t0,
+        t_lex,
+        t_parse,
+        i32_to_i64(backend_resolve::resolve_result_t_resolve(resolved)),
+        i32_to_i64(t_typecheck),
+        i32_to_i64(t_lower),
+        i32_to_i64(t_mir_opt),
+        i32_to_i64(t_mir_verify),
+        wit_decls
+    )""",
+        "driver_timing: current emit_output timestamps i32_to_i64 wrapping",
+    )
     return text
 
 
 def _patch_bootstrap_driver_timing_emit(text: str, *, keep_clock: bool) -> str:
     """Group 5: emit_phase_timing / emit_output final i32_to_i64 wraps."""
+    phase_calls = (
+        (
+            'debug::note_phase_if_enabled(config, "driver.emit.enter", t_mir_verify, t_emit_enter)',
+            'debug::note_phase_if_enabled(config, "driver.emit.enter", t_mir_verify, i32_to_i64(t_emit_enter))',
+            "driver_timing: emit-enter phase end i32_to_i64 wrapping",
+        ),
+        (
+            'debug::note_phase_if_enabled(config, "driver.emit.wit_bind", t_emit_enter, t_bind)',
+            'debug::note_phase_if_enabled(config, "driver.emit.wit_bind", i32_to_i64(t_emit_enter), i32_to_i64(t_bind))',
+            "driver_timing: wit-bind phase timestamps i32_to_i64 wrapping",
+        ),
+    )
+    for old, new, description in phase_calls:
+        text = _replace_optional(text, old, new, description)
     # Split backend timestamps (lower / mir_opt / mir_verify) before emit (#823).
     text = _replace_optional(
         text,
@@ -3949,6 +4061,8 @@ class SelfhostFixpointResult:
 
 # ── Runtime lock helper ──────────────────────────────────────────────────────
 
+_RUNTIME_LOCK_ROOTS: set[str] = set()
+
 def _with_runtime_lock(fn, root: Path):
     """Serialize selfhost compile/parity operations per worktree/build dir.
 
@@ -3957,6 +4071,10 @@ def _with_runtime_lock(fn, root: Path):
     agents in the same tree cannot overwrite s2/s3 artifacts. Separate worktrees
     (or distinct ARUKELLT_BUILD_DIR values) use distinct locks.
     """
+    lock_root = str(root.resolve())
+    if lock_root in _RUNTIME_LOCK_ROOTS:
+        return fn()
+
     import importlib.util
 
     spec = importlib.util.spec_from_file_location(
@@ -3967,7 +4085,11 @@ def _with_runtime_lock(fn, root: Path):
         raise RuntimeError("missing scripts/selfhost/runtime_lock.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.with_selfhost_runtime_lock(fn, root=root)
+    _RUNTIME_LOCK_ROOTS.add(lock_root)
+    try:
+        return mod.with_selfhost_runtime_lock(fn, root=root)
+    finally:
+        _RUNTIME_LOCK_ROOTS.remove(lock_root)
 
 
 # ── run_fixpoint ──────────────────────────────────────────────────────────────
@@ -4485,7 +4607,11 @@ def _normalize_fixture_parity_output(out: str) -> str:
 
 # ── run_fixture_parity ────────────────────────────────────────────────────────
 
-def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
+def run_fixture_parity(
+    root: Path,
+    dry_run: bool,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     Serialized via runtime_lock to prevent concurrent agents from
@@ -4494,10 +4620,16 @@ def run_fixture_parity(root: Path, dry_run: bool) -> tuple[int, str]:
     if dry_run:
         print("DRY-RUN: run_fixture_parity()")
         return (0, "")
-    return _with_runtime_lock(lambda: _run_fixture_parity_locked(root), root)
+    return _with_runtime_lock(
+        lambda: _run_fixture_parity_locked(root, filter_dirs=filter_dirs),
+        root,
+    )
 
 
-def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
+def _run_fixture_parity_locked(
+    root: Path,
+    filter_dirs: list[str] | None = None,
+) -> tuple[int, str]:
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     For each ``run:`` fixture in the manifest:
@@ -4526,7 +4658,21 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
         return (1, err + "\n")
 
     if len(fixtures) < 10:
-        return (1, f"{RED}error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found){NC}\n")
+        if not filter_dirs:
+            return (1, f"{RED}error: fewer than 10 run: fixtures in manifest ({len(fixtures)} found){NC}\n")
+
+    if filter_dirs:
+        prefixes = tuple(
+            str(Path(item).as_posix()).strip("/") + "/"
+            for item in filter_dirs
+            if str(item).strip("/")
+        )
+        fixtures = [
+            fixture for fixture in fixtures
+            if fixture.startswith(prefixes)
+        ]
+        if not fixtures:
+            return (1, f"{RED}error: no run: fixtures matched --filter-dir ({', '.join(filter_dirs)}){NC}\n")
 
     pinned_sha = _sha256(pinned)
     current_sha = _sha256(current)
@@ -4708,7 +4854,7 @@ def _run_fixture_parity_locked(root: Path) -> tuple[int, str]:
         )
         return (0, "\n".join(lines) + "\n")
 
-    if pass_count < 10:
+    if not filter_dirs and pass_count < 10:
         lines.append(
             f"{RED}✗ fixture parity: only {pass_count} fixtures passed (need >= 10 per #585 floor){NC}"
         )

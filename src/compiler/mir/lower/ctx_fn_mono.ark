@@ -72,23 +72,11 @@ fn mono_sources_match(candidate: String, requested: String) -> bool {
     if eq(clone(candidate), clone(requested)) {
         return true
     }
-    eq(mono_bare_source(candidate), mono_bare_source(requested))
-}
-
-fn mono_bare_source(source: String) -> String {
-    let source_len = len(source)
-    let mut index = source_len - 1
-    while index >= 0 {
-        if char_at(source, index) == 58 {
-            return substring(source, index + 1, source_len)
-        }
-        index = index - 1
-    }
-    source
+    eq(ctx_mono_rewrites::mono_bare_source(candidate), ctx_mono_rewrites::mono_bare_source(requested))
 }
 
 fn mono_target_matches_source(target: String, source: String) -> bool {
-    let bare_source = mono_bare_source(source)
+    let bare_source = ctx_mono_rewrites::mono_bare_source(source)
     let prefix = concat(clone(bare_source), "__")
     if starts_with(clone(target), clone(prefix)) {
         let rest = substring(target, len(prefix), len(target))
@@ -117,34 +105,28 @@ fn ctx_mono_source_rewrite_count(ctx: LowerCtx) -> i32 {
     ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
 }
 
+// Candidates are exactly the rewrites sharing the bare source: an exact
+// source match implies a bare match, so the chain loses nothing.
 fn ctx_resolve_unused_mono_by_name(ctx: LowerCtx, source: String) -> String {
-    let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
-    let mut i = 0
-    while i < count {
-        let candidate_source = ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i)
-        let candidate_target = ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
+    let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, clone(source))
+    while i >= 0 {
         if ctx_mono_rewrites::ctx_mono_name_rewrite_used_at(ctx, i) == 0 &&
-        mono_sources_match(candidate_source, clone(source)) &&
-        mono_target_matches_source(clone(candidate_target), clone(source)) {
+        mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), clone(source)) {
             ctx_mono_rewrites::ctx_mono_mark_name_rewrite_used(ctx, i)
-            return candidate_target
+            return ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
         }
-        i = i + 1
+        i = ctx_mono_rewrites::ctx_mono_name_rewrite_next_same_source(ctx, i)
     }
     ""
 }
 
 fn ctx_mono_lookup_name_rewrite(ctx: LowerCtx, source: String) -> String {
-    let count = ctx_mono_rewrites::ctx_mono_name_rewrite_count(ctx)
-    let mut i = 0
-    while i < count {
-        let candidate_source = ctx_mono_rewrites::ctx_mono_name_rewrite_source_at(ctx, i)
-        let candidate_target = ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
-        if mono_sources_match(candidate_source, clone(source)) &&
-        mono_target_matches_source(clone(candidate_target), clone(source)) {
-            return candidate_target
+    let mut i = ctx_mono_rewrites::ctx_mono_name_rewrite_first_for_source(ctx, clone(source))
+    while i >= 0 {
+        if mono_target_matches_source(ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i), clone(source)) {
+            return ctx_mono_rewrites::ctx_mono_name_rewrite_target_at(ctx, i)
         }
-        i = i + 1
+        i = ctx_mono_rewrites::ctx_mono_name_rewrite_next_same_source(ctx, i)
     }
     ""
 }

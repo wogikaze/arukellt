@@ -142,8 +142,7 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, prev_op, prev_arg0, byte_offset, inst_accessors_operands::MirInst_arg1(inst))
         let field_idx = compute_field_idx_get(inst, byte_offset)
         if prev_op == mir::opcodes::MIR_STRUCT_SET() {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, prev_arg0)
+            writer_core::emit_local_get(w, prev_arg0)
         } else if ((prev_op == mir::opcodes::MIR_STRUCT_GET() ||
             prev_op == mir::opcodes::MIR_GC_STRUCT_GET() ||
             prev_op == mir::opcodes::MIR_CALL() ||
@@ -155,8 +154,7 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
     } else if prev_op != mir::opcodes::MIR_LOCAL_GET() {
         let base_local = inst_accessors_operands::MirInst_arg0(inst)
         if base_local >= 0 {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, base_local)
+            writer_core::emit_local_get(w, base_local)
         }
     }
     writer_gc::emit_gc_ref_cast(w, gc_type_idx)
@@ -177,8 +175,7 @@ fn emit_struct_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op: i32,
 let base_local = inst_accessors_operands::MirInst_arg0(inst)
 if base_local >= 0 {
     if prev_op != mir::opcodes::MIR_LOCAL_GET() || prev_arg0 != base_local {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, base_local)
+        writer_core::emit_local_get(w, base_local)
     }
 }
 if inst_accessors_literals::MirInst_int_val(inst) > 0 {
@@ -216,14 +213,12 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let gc_type_idx = resolve_gc_struct_type_idx(inst, ctx, 0 - 1, 0 - 1, byte_offset, inst_accessors_operands::MirInst_dest(inst))
         let field_idx = compute_field_idx_set(inst, byte_offset)
         let base_local = inst_accessors_operands::MirInst_arg0(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, base_local)
+        writer_core::emit_local_get(w, base_local)
         writer_gc::emit_gc_ref_cast(w, gc_type_idx)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, base_local)
         let value_local = inst_accessors_operands::MirInst_arg1(inst)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, value_local)
+        writer_core::emit_local_get(w, value_local)
         let val_type = inst_accessors_shape::MirInst_val_type(inst)
         if memory64_gc_struct_get_uses_i32(w, ctx, gc_type_idx, field_idx, val_type, value_local) {
             writer_gc::emit_gc_struct_set_i32(w, gc_type_idx, field_idx)
@@ -249,15 +244,13 @@ fn emit_struct_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 }
 
 fn emit_struct_store_value(w: WasmWriter, inst: MirInst, value_local: i32, store_opcode: i32, align: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
     if inst_accessors_literals::MirInst_int_val(inst) > 0 {
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
         writer_core::emit_byte(w, opcodes::OP_I32_ADD())
     }
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, value_local)
+    writer_core::emit_local_get(w, value_local)
     writer_core::emit_byte(w, store_opcode)
     writer_core::emit_byte(w, align)
     writer_core::emit_byte(w, 0)

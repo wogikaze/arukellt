@@ -1,13 +1,15 @@
+use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::inst_const_i32
+use mir::inst_draft
 use mir::opcodes
 use mir::types
 use mir_opt::translation_validation
 
 fn loop_unroll_translation_valid(
     before: Vec<MirInst>,
-    after: Vec<MirInst>,
+    after: Vec<MirInstDraft>,
     start: i32,
     end: i32,
     body_start: i32,
@@ -25,7 +27,7 @@ fn loop_unroll_translation_valid(
     let mut after_i = 0
     while before_i < start {
         if after_i >= len(after) ||
-        !translation_validation::mir_translation_inst_equal(
+        !translation_validation::mir_translation_inst_equals_draft(
             get_unchecked(before, before_i),
             get_unchecked(after, after_i)
         ) {
@@ -47,10 +49,10 @@ fn loop_unroll_translation_valid(
                     inst_accessors_operands::MirInst_dest(original)
                 )
             } else {
-                original
+                block_inst_access::MirInst_as_draft(original)
             }
             if after_i >= len(after) ||
-            !translation_validation::mir_translation_inst_equal(
+            !translation_validation::mir_translation_draft_equal(
                 expected,
                 get_unchecked(after, after_i)
             ) {
@@ -65,7 +67,7 @@ fn loop_unroll_translation_valid(
     before_i = end + 1
     while before_i < len(before) {
         if after_i >= len(after) ||
-        !translation_validation::mir_translation_inst_equal(
+        !translation_validation::mir_translation_inst_equals_draft(
             get_unchecked(before, before_i),
             get_unchecked(after, after_i)
         ) {

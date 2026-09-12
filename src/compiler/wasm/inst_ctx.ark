@@ -41,6 +41,21 @@ fn strip_module_prefix(name: String) -> String {
     clone(name)
 }
 
+fn resolve_fn_index_for_call(ctx: SelfEmitCtx, name: String, func_id_raw: i32) -> i32 {
+    if func_id_raw >= 0 {
+        let mapped = ctx_record::SelfEmitCtx_mir_index_for_func_id(ctx, func_id_raw)
+        if mapped >= 0 {
+            return call_resolve::mir_resolve_self_delegate_collision(
+                ctx_record::SelfEmitCtx_functions(ctx),
+                ctx.function_name_counts,
+                mapped,
+                clone(name)
+            )
+        }
+    }
+    resolve_fn_index(ctx, name)
+}
+
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
     let functions = ctx_record::SelfEmitCtx_functions(ctx)
     let exact_idx = resolve_fn_index_by_name(ctx, clone(name))

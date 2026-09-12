@@ -26,8 +26,8 @@ fn mir_dump_trivial_fixture_new(name: String) -> MirDumpTrivialFixture {
     function_param_mutation::MirFunction_push_param(f, local_factory::MirLocal_new("p", value_types::VT_I32(), "i32"))
     function_return_mutation::MirFunction_set_return_type(f, value_types::VT_I32())
     let bb0 = block_alloc::alloc_block(f)
-    function_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(42, t))
-    function_inst::emit_inst(f, bb0, inst_return::MirInst_return_value(t))
+    function_emit_inst::emit_inst(f, bb0, inst_const_i32::MirInst_const_i32(42, t))
+    function_emit_inst::emit_inst(f, bb0, inst_return::MirInst_return_value(t))
     MirDumpTrivialFixture { module: m, function: f, param_p: p, local_t: t }
 }
 

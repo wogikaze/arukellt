@@ -18,6 +18,13 @@ fn WASM_EXTERNREF() -> i32 { 111 }
 fn WASM_MUTABLE() -> i32 { 1 }
 fn WASM_IMMUTABLE() -> i32 { 0 }
 
+// Module globals. Global 0 is the linear-memory heap pointer on every target.
+// On GC targets global 1 holds the string-literal cache: one `(array (ref null
+// $string))` slot per string-table entry, filled lazily by CONST_STRING so a
+// literal is materialized at most once per instance (GC strings are immutable).
+fn GLOBAL_HEAP_POINTER() -> i32 { 0 }
+fn GLOBAL_GC_STRING_LITERAL_CACHE() -> i32 { 1 }
+
 // Emitter scratch layout constants.
 fn FS_BUF_SIZE() -> i32 { 4096 }
 fn NUM_WASI_IMPORTS_BASE() -> i32 { 15 }

@@ -14,6 +14,8 @@ from typing import NamedTuple
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "scripts" / "gen"))
+from ark_table_blob import emit_i32_table, emit_string_table  # noqa: E402
 MIR_OPCODE_PATTERN = re.compile(r"\bfn\s+(MIR_[A-Z0-9_]+)\s*\(\s*\)\s*->\s*i32")
 ALLOWED_STATUSES = {"supported", "planned", "unsupported"}
 REQUIRED_FIELDS = {
@@ -164,7 +166,9 @@ def render_generated_ark(
     lines = [
         "// Generated from data/native-cpp-capabilities.toml.",
         "// Run scripts/check/check-native-cpp-capabilities.py --write-generated.",
+        "// Compact table + index for CoreOp capabilities. Do not edit by hand.",
         "",
+        "use corehir::table_blob",
         "use mir::opcodes",
         "",
         "fn native_c_capability_opcode_name(op: i32) -> String {",
@@ -182,27 +186,30 @@ def render_generated_ark(
         lines.append(f"    op == opcodes::{identifier}()" + (" ||" if index < len(supported) - 1 else ""))
     if not supported:
         lines.append("    false")
-    lines.extend(["}", "", "fn native_c_core_capability_status_detail(index: i32) -> String {"])
-    core_by_id = {str(entry["id"]): entry for entry in core_entries}
-    for index, identifier in enumerate(sorted(core_by_id)):
-        lines.extend(
-            [
-                f"    if index == {index} {{",
-                f"        return String_from({json.dumps(_status_detail(core_by_id[identifier]))})",
-                "    }",
-            ]
-        )
-    lines.extend(['    String_from("unknown capability")', "}", "", "fn native_c_core_capability_is_supported(index: i32) -> bool {"])
-    supported_core = [
-        index
-        for index, identifier in enumerate(sorted(core_by_id))
-        if core_by_id[identifier]["status"] == "supported"
-    ]
-    for offset, index in enumerate(supported_core):
-        lines.append(f"    index == {index}" + (" ||" if offset < len(supported_core) - 1 else ""))
-    if not supported_core:
-        lines.append("    false")
     lines.extend(["}", ""])
+    core_by_id = {str(entry["id"]): entry for entry in core_entries}
+    identifiers = sorted(core_by_id)
+    details = [_status_detail(core_by_id[identifier]) for identifier in identifiers]
+    supported_flags = [
+        1 if core_by_id[identifier]["status"] == "supported" else 0 for identifier in identifiers
+    ]
+    lines.extend(emit_string_table("native_c_core_capability_status_row", details))
+    lines.extend(emit_i32_table("native_c_core_capability_supported_flag", supported_flags, default=0))
+    lines.extend(
+        [
+            "fn native_c_core_capability_status_detail(index: i32) -> String {",
+            f"    if index < 0 || index >= {len(identifiers)} {{",
+            '        return String_from("unknown capability")',
+            "    }",
+            "    return native_c_core_capability_status_row_at(index)",
+            "}",
+            "",
+            "fn native_c_core_capability_is_supported(index: i32) -> bool {",
+            "    return native_c_core_capability_supported_flag_at(index) != 0",
+            "}",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 

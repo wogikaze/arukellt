@@ -1,4 +1,5 @@
 use corehir::body_table
+use corehir::body
 
 struct CoreHirMirBodySource {
     exprs: Vec<CoreHirExpr>,
@@ -18,6 +19,15 @@ fn mir_body_source_from_table(table: CoreHirBodyTable) -> CoreHirMirBodySource {
     }
     body_table::corehir_body_table_release_bodies(table)
     source
+}
+
+pub fn mir_body_source_build_ast_body_into(table: CoreHirBodyTable, node: AstNode) -> i32 {
+    body_table::corehir_body_table_reset_body(table)
+    body::corehir_build_expr(table, node)
+}
+
+pub fn mir_body_source_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {
+    body_table::corehir_body_table_exprs_ref(table)
 }
 
 fn mir_body_source_release(source: CoreHirMirBodySource) {

@@ -218,6 +218,23 @@ fn ctx_register_tuple_gc_struct_from_keys(ctx: LowerCtx, keys: String) -> i32 {
     1
 }
 
+fn ctx_register_tuple_gc_struct_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>) -> i32 {
+    let field_count = len(field_vts)
+    if field_count == 0 {
+        return 0
+    }
+    let mut keys = String_new()
+    let mut i = 0
+    while i < field_count {
+        if i > 0 {
+            keys = concat(keys, ",")
+        }
+        keys = concat(keys, tuple_field_mono_key(get_unchecked(field_vts, i)))
+        i = i + 1
+    }
+    ctx_register_tuple_gc_struct_from_keys(ctx, keys)
+}
+
 fn tuple_gc_sig_from_type_keys(keys: String) -> String {
     let mut sig = "GS"
     let key_count = tuple_key_count(keys)

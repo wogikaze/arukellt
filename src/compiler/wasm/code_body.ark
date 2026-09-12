@@ -10,58 +10,60 @@ use wasm::writer_core
 use wasm::code_locals
 use wasm::code_body_helpers
 use wasm::code_ref_locals_fn_cache
+use wasm::ctx_call_reloc
 use wasm::emit_target
+use mir::module_wit_imports
 
 fn emit_function_body(
+    w: WasmWriter,
     f: MirFunction,
     ctx: SelfEmitCtx,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>
-) -> WasmWriter {
-    let body = writer_core::WasmWriter_with_memory64(
-        emit_target::uses_memory64(
-            ctx_record::SelfEmitCtx_target(ctx),
-            ctx_record::SelfEmitCtx_wasi_version(ctx)
-        )
-    )
+) {
     let local_count = function_locals_view::MirFunction_local_count(f)
     let param_count = function_param_view::MirFunction_param_count(f)
     // wasm32 locals are i32/i64 widths only. The #829 producer/ref cache is
     // for GC type inference and is unread on this target; skip the extra
     // body walks (otherwise emit pays ~7 scans of every function).
+    ctx.call_reloc_used = 0
     emit_body_gc_local_cache_begin(ctx, f)
-    code_locals::emit_local_decls(body, f, local_count, param_count, ctx)
+    code_locals::emit_local_decls(w, f, local_count, param_count, ctx)
     ctx_scratch::SelfEmitCtx_set_scratch_base(ctx, local_count)
     ctx_vec_locals::SelfEmitCtx_reset_vec_locals(ctx)
     if function_param_view::MirFunction_has_unsubstituted_generic_param(f) {
         // Unspecialized generic functions have concrete-type bodies that
         // cannot validate against the generic signature. Emit unreachable.
-        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
-        writer_core::emit_byte(body, opcodes::OP_END())
+        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(w, opcodes::OP_END())
         emit_body_gc_local_cache_end(ctx)
-        return body
+        return
     }
     if host_intrinsic_adapter::host_intrinsic_should_emit_gc_adapter_body(f, ctx) {
-        if host_intrinsic_gc_body::try_emit_host_intrinsic_gc_adapter_body(body, f, ctx) {
-            writer_core::emit_byte(body, opcodes::OP_END())
+        if host_intrinsic_gc_body::try_emit_host_intrinsic_gc_adapter_body(w, f, ctx) {
+            writer_core::emit_byte(w, opcodes::OP_END())
             emit_body_gc_local_cache_end(ctx)
-            return body
+            return
         }
-        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
-        writer_core::emit_byte(body, opcodes::OP_END())
+        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(w, opcodes::OP_END())
         emit_body_gc_local_cache_end(ctx)
-        return body
+        return
     }
     if host_intrinsic_adapter::host_intrinsic_should_emit_unreachable_gc_stub(f, ctx) {
-        writer_core::emit_byte(body, opcodes::OP_UNREACHABLE())
-        writer_core::emit_byte(body, opcodes::OP_END())
+        writer_core::emit_byte(w, opcodes::OP_UNREACHABLE())
+        writer_core::emit_byte(w, opcodes::OP_END())
         emit_body_gc_local_cache_end(ctx)
-        return body
+        return
     }
-    code_body_helpers::emit_function_instructions(body, f, ctx, bindings)
+    code_body_helpers::emit_function_instructions(w, f, ctx, bindings)
+    ctx_call_reloc::SelfEmitCtx_apply_call_relocs(
+        ctx,
+        w,
+        module_wit_imports::wit_import_count(bindings)
+    )
 
-    writer_core::emit_byte(body, opcodes::OP_END())
+    writer_core::emit_byte(w, opcodes::OP_END())
     emit_body_gc_local_cache_end(ctx)
-    body
 }
 
 fn emit_body_gc_local_cache_begin(ctx: SelfEmitCtx, f: MirFunction) {

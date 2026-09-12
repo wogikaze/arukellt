@@ -1,3 +1,5 @@
+use corehir::body_table
+
 struct CoreHirRawProgram {
     decl_infos: Vec<CoreHirDeclInfo>,
     fn_infos: Vec<CoreHirFnInfo>,
@@ -47,3 +49,7 @@ fn raw_program_modules(program: CoreHirRawProgram) -> Vec<CoreHirModuleInfo> { p
 fn raw_program_resolved_calls(program: CoreHirRawProgram) -> Vec<CoreHirResolvedCall> { program.resolved_calls }
 fn raw_program_typed_locals(program: CoreHirRawProgram) -> Vec<CoreHirTypedLocal> { program.typed_locals }
 fn raw_program_export_surface(program: CoreHirRawProgram) -> CoreHirExportSurface { program.export_surface }
+
+fn corehir_raw_program_release_body_table(program: CoreHirRawProgram) {
+    body_table::corehir_body_table_release(program.body_table)
+}

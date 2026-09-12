@@ -152,10 +152,18 @@ fn gc_enum_variant_is_vec_container(normalized: String) -> bool {
     eq(clone(bare), "Array") || eq(clone(bare), "Table") || eq(clone(bare), "Object")
 }
 
+fn ctx_gc_enum_variant_count(ctx: LowerCtx) -> i32 {
+    len(ctx.gc_enum_variant_names)
+}
+
 fn ctx_flush_gc_enum_variants(ctx: LowerCtx) {
+    ctx_flush_gc_enum_variants_from(ctx, 0)
+}
+
+fn ctx_flush_gc_enum_variants_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_enum_variant_names)
-    let mut i = 0
+    let mut i = start
     while i < count {
         module_gc_enum::MirModule_push_gc_enum_variant(m, clone(get_unchecked(ctx.gc_enum_variant_names, i)), clone(get_unchecked(ctx.gc_enum_variant_sigs, i)))
         i = i + 1

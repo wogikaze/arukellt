@@ -1,8 +1,8 @@
-use mir::block_alloc
 use mir::lower::ctx_call_edges
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_local_index_storage
 use mir::lower::ctx_local_type_storage
+use mir::lower::ctx_locals_emit
 
 struct LowerCtxLocalFrame {
     func: MirFunction,
@@ -39,9 +39,7 @@ fn ctx_begin_function_frame(ctx: LowerCtx, func: MirFunction) -> i32 {
     ctx_current_storage::ctx_set_current_func_value(ctx, func)
     ctx_local_index_storage::ctx_local_index_reset_for_function(ctx)
     ctx_local_type_storage::ctx_local_type_reset_for_function(ctx)
-    let mut f = ctx_current_storage::ctx_current_func_value(ctx)
-    let entry = block_alloc::alloc_block(f)
-    ctx_current_storage::ctx_set_current_func_value(ctx, f)
+    let entry = ctx_locals_emit::ctx_alloc_block(ctx)
     ctx_current_storage::ctx_set_current_block_value(ctx, entry)
     entry
 }

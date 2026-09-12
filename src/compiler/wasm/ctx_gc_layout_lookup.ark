@@ -19,12 +19,11 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_type_id(ctx: SelfEmitCtx, tid: TypeId) -> i
         return 0 - 1
     }
     let layout = ctx_record::SelfEmitCtx_gc_layout_table(ctx)
-    let lid = gc_layout_table::gc_layout_table_find_by_type_id(layout, tid)
-    if !gc_layout_table::gc_layout_id_is_valid(lid) {
+    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
+    if !gc_layout_table::gc_layout_id_is_valid(entry.id) {
         return 0 - 1
     }
     gc_layout_table::gc_layout_table_observe_typed_lookup(layout)
-    let entry = gc_layout_table::gc_layout_table_entry_by_type_id(layout, tid)
     let ref_type = gc_layout_table::gc_layout_entry_wasm_ref_type(entry)
     gc_layout_table::wasm_ref_type_idx(ref_type)
 }

@@ -23,8 +23,7 @@ fn try_emit_future_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_op:
 
 fn emit_future_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let src = inst_accessors_operands::MirInst_arg0(inst)
-    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, src)
+    writer_core::emit_local_get(w, src)
     let dest = inst_accessors_shape::MirInst_dest(inst)
     writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)
@@ -32,8 +31,7 @@ fn emit_future_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
 
 fn emit_await(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let src = inst_accessors_operands::MirInst_arg0(inst)
-    writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, src)
+    writer_core::emit_local_get(w, src)
     let dest = inst_accessors_shape::MirInst_dest(inst)
     writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, dest)

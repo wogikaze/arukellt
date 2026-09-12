@@ -1,6 +1,9 @@
 use mir::lower::entry_body_source
+use mir::lower::entry_body_input
+use mir::lower::entry_core_body
 use mir::lower::entry_methods_mono
 use mir::lower::entry_view_method
+use corehir::mod as corehir_mod
 
 fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex) {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
@@ -18,6 +21,12 @@ fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, im
         }
         let body_input = entry_body_source::mir_entry_body_source_method_input(body_source, impl_decl_index, mi, method_info_index, m_body_idx)
         entry_methods_mono::mir_emit_method_mono_bodies(ctx, body_input, struct_name, mangled, method_param_count, entry_view, method_info_index, midx)
+        let core_body = entry_body_input::mir_entry_body_input_core(body_input)
+        corehir_mod::release_body_expr_subtree(
+            entry_core_body::mir_entry_core_body_exprs(core_body),
+            entry_core_body::mir_entry_core_body_root(core_body)
+        )
+        entry_body_source::mir_entry_body_source_release_method(body_source, impl_decl_index, mi, m_body_idx)
         mi = mi + 1
     }
 }

@@ -1,3 +1,4 @@
+use mir::inst_draft
 use mir::function_locals_view
 use mir::local_access
 use mir::local_mutation
@@ -5,6 +6,7 @@ use mir::lower::ctx_current_storage
 use mir::function_local_mutation
 use mir::spine_lookup
 use mir::typed_mir_compat
+use mir::value_types
 
 fn ctx_sync_local_value_type(ctx: LowerCtx, local_idx: i32) {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
@@ -43,7 +45,27 @@ fn ctx_local_mvt(ctx: LowerCtx, local_idx: i32) -> MirValueType {
     local_access::MirLocal_value_type(loc)
 }
 
-fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInst) -> MirInst {
+fn ctx_enrich_inst_result_types(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
-    spine_lookup::enrich_inst_result_types(m, inst)
+    if !spine_lookup::spine_populated(m) {
+        return inst
+    }
+    let mvts = spine_lookup::call_return_mvts_from_fid(
+        m,
+        inst_draft::MirInstDraft_op(inst),
+        inst_draft::MirInstDraft_func_id_raw(inst)
+    )
+    if len(mvts) > 0 {
+        inst_draft::MirInstDraft_set_result_types(inst, mvts)
+        return inst
+    }
+    let vt = inst_draft::MirInstDraft_val_type(inst)
+    if vt != value_types::VT_VOID() {
+        inst_draft::MirInstDraft_set_result_types(
+            inst,
+            typed_mir_compat::result_types_from_legacy_vt(vt)
+        )
+        return inst
+    }
+    inst
 }

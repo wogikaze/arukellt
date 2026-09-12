@@ -275,12 +275,11 @@ fn mir_enqueue_call_edges_from_insts(
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
-        let insts = block_inst_access::MirBlock_instructions(block)
-        let inst_count = len(insts)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
         let mut ii = 0
         while ii < inst_count {
-            let inst = get_unchecked(insts, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
+            let op = block_inst_access::MirBlock_inst_op(block, ii)
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
             if op == call_op || op == ref_op {
                 mir_enqueue_inst_callee(m, index, functions, reachable, queue, inst, clone(target))
             }

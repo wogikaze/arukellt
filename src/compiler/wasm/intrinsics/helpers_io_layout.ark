@@ -27,8 +27,7 @@ fn emit_load_scratch_wasi_i32(w: WasmWriter, offset: i32) {
 
 // Narrow a Memory64-widened local to a true i32 WASI operand.
 fn emit_wasi_i32_from_local(w: WasmWriter, local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, local)
+    writer_core::emit_local_get(w, local)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
 }
 
@@ -48,7 +47,6 @@ fn emit_string_len_from_stack(w: WasmWriter) {
 }
 
 fn emit_wasi_ptr_from_heap_local(w: WasmWriter, local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, local)
+    writer_core::emit_local_get(w, local)
     helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
 }

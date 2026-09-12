@@ -31,23 +31,19 @@ fn emit_gc_ref_struct_get_store(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, 
         writer_core::emit_leb128_u(w, dest)
         // Stack-consuming followers still need the value on the stack.
         if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if (next_op == opcodes::MIR_CALL() || next_op == opcodes::MIR_WIT_CALL()) && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if next_op == opcodes::MIR_RETURN() && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         if next_op == opcodes::MIR_STRUCT_GET() && next_arg0 < 0 {
-            writer_core::emit_byte(w, wasm_opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, dest)
+            writer_core::emit_local_get(w, dest)
             return
         }
         return

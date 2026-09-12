@@ -1,7 +1,9 @@
+use std::host::stdio
 use mir::function_core_record
 use mir::module_record
 use mir::types
 use mir::function_block_queries
+use mir::function_locals_view
 use mir::block_inst_access
 use mir::inst_accessors_shape
 use mir::inst_accessors_literals
@@ -61,6 +63,39 @@ fn MirModule_inst_count(m: MirModule) -> i32 {
         fi = fi + 1
     }
     total
+}
+
+fn MirModule_local_count(m: MirModule) -> i32 {
+    let fn_count = MirModule_function_count(m)
+    let mut total = 0
+    let mut fi = 0
+    while fi < fn_count {
+        let f = MirModule_function_at(m, fi)
+        total = total + function_locals_view::MirFunction_local_count(f)
+        fi = fi + 1
+    }
+    total
+}
+
+pub fn mir_note_receipt_counts(m: MirModule, enabled: i32) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            "[arukellt] mir.counts: functions=",
+            concat(
+                to_string(MirModule_function_count(m)),
+                concat(
+                    " locals=",
+                    concat(
+                        to_string(MirModule_local_count(m)),
+                        concat(" insts=", to_string(MirModule_inst_count(m)))
+                    )
+                )
+            )
+        )
+    )
 }
 
 fn mir_call_is_runtime_host(callee: String) -> bool {

@@ -20,6 +20,7 @@ OUT = ROOT / "src" / "compiler" / "corehir" / "core_op_registry_generated.ark"
 
 sys.path.insert(0, str(GEN_DIR))
 from ark_fnv_index import emit_lookup_fn  # noqa: E402
+from ark_table_blob import emit_i32_table, emit_string_table  # noqa: E402
 
 LOWERING_KIND_TO_INT = {
     "normal_call": 1,
@@ -51,11 +52,6 @@ INLINE_POLICY_TO_INT = {
 }
 
 
-def _ark_string(s: str) -> str:
-    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
-
-
 def _handler_symbol(op_id: str) -> str:
     return "core_op_handler_" + re.sub(r"[^a-zA-Z0-9]+", "_", op_id).strip("_")
 
@@ -63,47 +59,15 @@ def _handler_symbol(op_id: str) -> str:
 def render(ops: list[dict]) -> str:
     lines = [
         "// Generated from data/core-ops.toml by scripts/gen/generate-core-ops-registry.py.",
-        "// Do not edit by hand.",
+        "// Compact table + index. Do not edit by hand.",
+        "",
+        "use corehir::table_blob",
         "",
         f"fn core_op_registry_entry_count() -> i32 {{",
         f"    {len(ops)}",
         f"}}",
         "",
     ]
-
-    def emit_string_table(name: str, values: list[str]) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> String {{")
-        for i, value in enumerate(values):
-            lines.append(f"    if index == {i} {{ return {_ark_string(value)} }}")
-        lines.append("    return String_new()")
-        lines.append("}")
-        lines.append("")
-
-    def emit_i32_table(name: str, values: list[int]) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> i32 {{")
-        for i, value in enumerate(values):
-            lines.append(f"    if index == {i} {{ return {value} }}")
-        lines.append("    return 0 - 1")
-        lines.append("}")
-        lines.append("")
-
-    def emit_sparse_i32_table(name: str, values: list[int], default: int) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> i32 {{")
-        for i, value in enumerate(values):
-            if value != default:
-                lines.append(f"    if index == {i} {{ return {value} }}")
-        lines.append(f"    return {default}")
-        lines.append("}")
-        lines.append("")
-
-    def emit_sparse_string_table(name: str, values: list[str]) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> String {{")
-        for i, value in enumerate(values):
-            if value:
-                lines.append(f"    if index == {i} {{ return {_ark_string(value)} }}")
-        lines.append("    return String_new()")
-        lines.append("}")
-        lines.append("")
 
     ids = [op["id"] for op in ops]
     lowering = [
@@ -170,20 +134,20 @@ def render(ops: list[dict]) -> str:
             legacy_handler_ids.append("")
         fallback_symbols.append(op.get("fallback", {}).get("implementation_symbol", ""))
 
-    emit_string_table("core_op_registry_canonical_id", ids)
-    emit_i32_table("core_op_registry_lowering_kind", lowering)
-    emit_i32_table("core_op_registry_layer", layers)
-    emit_sparse_i32_table("core_op_registry_inline_policy", inline_policies, 0)
-    emit_string_table("core_op_registry_target_id", target_ids)
-    emit_sparse_i32_table("core_op_registry_runtime_kind", runtime_kinds, 0)
-    emit_string_table("core_op_registry_runtime_symbol", runtime_symbols)
-    emit_sparse_string_table("core_op_registry_wit_package", wit_packages)
-    emit_sparse_string_table("core_op_registry_wit_interface", wit_interfaces)
-    emit_sparse_string_table("core_op_registry_wit_function", wit_functions)
-    emit_sparse_string_table("core_op_registry_wit_version", wit_versions)
-    emit_string_table("core_op_registry_mir_operation", mir_ops)
-    emit_string_table("core_op_registry_legacy_handler_id", legacy_handler_ids)
-    emit_sparse_string_table("core_op_registry_fallback_symbol", fallback_symbols)
+    lines.extend(emit_string_table("core_op_registry_canonical_id", ids))
+    lines.extend(emit_i32_table("core_op_registry_lowering_kind", lowering))
+    lines.extend(emit_i32_table("core_op_registry_layer", layers))
+    lines.extend(emit_i32_table("core_op_registry_inline_policy", inline_policies, default=0))
+    lines.extend(emit_string_table("core_op_registry_target_id", target_ids))
+    lines.extend(emit_i32_table("core_op_registry_runtime_kind", runtime_kinds, default=0))
+    lines.extend(emit_string_table("core_op_registry_runtime_symbol", runtime_symbols))
+    lines.extend(emit_string_table("core_op_registry_wit_package", wit_packages))
+    lines.extend(emit_string_table("core_op_registry_wit_interface", wit_interfaces))
+    lines.extend(emit_string_table("core_op_registry_wit_function", wit_functions))
+    lines.extend(emit_string_table("core_op_registry_wit_version", wit_versions))
+    lines.extend(emit_string_table("core_op_registry_mir_operation", mir_ops))
+    lines.extend(emit_string_table("core_op_registry_legacy_handler_id", legacy_handler_ids))
+    lines.extend(emit_string_table("core_op_registry_fallback_symbol", fallback_symbols))
     lines.extend(
         [
             "fn core_op_registry_has_fallback_symbol(symbol: String) -> bool {",

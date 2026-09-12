@@ -19,6 +19,10 @@ use wasmtime::*;
 use wasmtime_wasi::p1::WasiP1Ctx;
 use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
 
+// Keeps the selfhost compiler below the 1,000,000 KiB RSS gate while avoiding
+// the repeated GC growth pauses seen with the default empty reservation.
+const COMPILER_GC_HEAP_PREGROW_BYTES: u32 = 450 * 1024 * 1024;
+
 pub struct DirGrant {
     pub host_path: String,
     pub guest_path: String,
@@ -71,8 +75,110 @@ impl DirGrant {
     }
 }
 
+/// `ARUKELLT_HOST_PROFILE=perfmap|jitdump` registers JIT symbols with `perf`
+/// so selfhost overlay hot functions can be attributed by wasm function name.
+/// Unset (the default) keeps the plain engine.
+fn host_profiling_strategy() -> Result<Option<ProfilingStrategy>, String> {
+    match std::env::var("ARUKELLT_HOST_PROFILE") {
+        Err(_) => Ok(None),
+        Ok(value) if value.is_empty() => Ok(None),
+        Ok(value) if value == "perfmap" => Ok(Some(ProfilingStrategy::PerfMap)),
+        Ok(value) if value == "jitdump" => Ok(Some(ProfilingStrategy::JitDump)),
+        Ok(value) => Err(format!(
+            "ARUKELLT_HOST_PROFILE={value}: expected perfmap or jitdump"
+        )),
+    }
+}
+
+/// `ARUKELLT_HOST_COLLECTOR=auto|drc|null|copying` picks the GC collector and
+/// `ARUKELLT_HOST_GC_HEAP_RESERVATION=<bytes>` its reservation. Diagnostics
+/// only: the null collector shows the compute floor without collection work.
+/// Unset keeps wasmtime's defaults.
+fn host_collector() -> Result<Option<Collector>, String> {
+    match std::env::var("ARUKELLT_HOST_COLLECTOR") {
+        Err(_) => Ok(None),
+        Ok(value) if value.is_empty() => Ok(None),
+        Ok(value) if value == "auto" => Ok(Some(Collector::Auto)),
+        Ok(value) if value == "drc" => Ok(Some(Collector::DeferredReferenceCounting)),
+        Ok(value) if value == "null" => Ok(Some(Collector::Null)),
+        Ok(value) if value == "copying" => Ok(Some(Collector::Copying)),
+        Ok(value) => Err(format!(
+            "ARUKELLT_HOST_COLLECTOR={value}: expected auto, drc, null or copying"
+        )),
+    }
+}
+
+fn host_gc_heap_reservation() -> Result<Option<u64>, String> {
+    match std::env::var("ARUKELLT_HOST_GC_HEAP_RESERVATION") {
+        Err(_) => Ok(None),
+        Ok(value) if value.is_empty() => Ok(None),
+        Ok(value) => value.parse::<u64>().map(Some).map_err(|e| {
+            format!("ARUKELLT_HOST_GC_HEAP_RESERVATION={value}: expected bytes ({e})")
+        }),
+    }
+}
+
+/// `ARUKELLT_HOST_GC_HEAP_PREGROW=<bytes>` allocates and immediately drops one
+/// byte array of that size before `_start`. Wasmtime grows the GC heap only
+/// when an allocation does not fit after a collection, so a growing live set
+/// otherwise collects every few MB; pre-growing sizes the semi-spaces up front.
+/// Selfhost compiler invocations use the measured default below; the
+/// environment value is an explicit override for diagnostics and tuning.
+fn host_gc_heap_pregrow() -> Result<Option<u32>, String> {
+    match std::env::var("ARUKELLT_HOST_GC_HEAP_PREGROW") {
+        Err(_) => Ok(None),
+        Ok(value) if value.is_empty() => Ok(None),
+        Ok(value) => value.parse::<u32>().map(Some).map_err(|e| {
+            format!("ARUKELLT_HOST_GC_HEAP_PREGROW={value}: expected bytes < 4GiB ({e})")
+        }),
+    }
+}
+
+fn pregrow_gc_heap<T>(store: &mut Store<T>, caps: &RuntimeCaps) -> Result<(), String> {
+    let configured = host_gc_heap_pregrow()?;
+    let is_selfhost_compile = caps.args.iter().any(|arg| {
+        arg == "src/compiler/main.ark"
+            || arg.ends_with("/src/compiler/main.ark")
+    });
+    let bytes = match configured {
+        Some(value) => Some(value),
+        None if is_selfhost_compile && caps.args.iter().any(|arg| arg == "compile") => {
+            Some(COMPILER_GC_HEAP_PREGROW_BYTES)
+        }
+        None => None,
+    };
+    let Some(bytes) = bytes else {
+        return Ok(());
+    };
+    // Wasmtime initializes array elements one `Val` at a time, so use the
+    // widest scalar element to keep the pre-grow itself cheap.
+    let i64_array = ArrayType::new(
+        store.engine(),
+        FieldType::new(Mutability::Const, StorageType::ValType(ValType::I64)),
+    );
+    let pre = ArrayRefPre::new(&mut *store, i64_array);
+    let mut scope = RootScope::new(&mut *store);
+    ArrayRef::new(&mut scope, &pre, &Val::I64(0), bytes / 8)
+        .map_err(|e| format!("gc heap pregrow of {bytes} bytes failed: {e}"))?;
+    Ok(())
+}
+
+/// True when any diagnostics knob changes engine config, so the shared
+/// `.cwasm` (built with the plain config) must not be reused or overwritten.
+fn host_engine_is_customized() -> Result<bool, String> {
+    Ok(host_profiling_strategy()?.is_some()
+        || host_collector()?.is_some()
+        || host_gc_heap_reservation()?.is_some())
+}
+
 fn make_run_engine() -> Result<Engine, String> {
     let mut config = Config::new();
+    if let Some(collector) = host_collector()? {
+        config.collector(collector);
+    }
+    if let Some(bytes) = host_gc_heap_reservation()? {
+        config.gc_heap_reservation(bytes);
+    }
     // Selfhost compile is minutes of guest work. OptLevel::None made every
     // phase 4–20× slower than wasmtime CLI (default Speed) on the same wasm.
     // Debug runner keeps None so breakpoint modules stay cheap to compile.
@@ -81,6 +187,9 @@ fn make_run_engine() -> Result<Engine, String> {
     config.wasm_reference_types(true);
     config.wasm_function_references(true);
     config.wasm_gc(true);
+    if let Some(strategy) = host_profiling_strategy()? {
+        config.profiler(strategy);
+    }
     // Compiled-module cache only — not AST / s3 / overlay source cache.
     // First run pays Cranelift; later runs deserialize the same engine key.
     if let Ok(cache) = Cache::new(CacheConfig::new()) {
@@ -95,12 +204,17 @@ fn serialized_module_path(wasm_path: &Path) -> std::path::PathBuf {
 
 fn load_module(engine: &Engine, wasm_path: &Path) -> Result<Module, String> {
     let cwasm = serialized_module_path(wasm_path);
-    if let (Ok(cw), Ok(w)) = (cwasm.metadata(), wasm_path.metadata()) {
-        if cw.modified().ok() >= w.modified().ok() {
-            // Engine config in make_run_engine must stay aligned with serialize.
-            match unsafe { Module::deserialize_file(engine, &cwasm) } {
-                Ok(module) => return Ok(module),
-                Err(_) => {}
+    // A customized engine (profiler, collector) has a different compile key; it
+    // must neither reuse nor overwrite the `.cwasm` that plain runs deserialize.
+    let customized = host_engine_is_customized()?;
+    if !customized {
+        if let (Ok(cw), Ok(w)) = (cwasm.metadata(), wasm_path.metadata()) {
+            if cw.modified().ok() >= w.modified().ok() {
+                // Engine config in make_run_engine must stay aligned with serialize.
+                match unsafe { Module::deserialize_file(engine, &cwasm) } {
+                    Ok(module) => return Ok(module),
+                    Err(_) => {}
+                }
             }
         }
     }
@@ -108,8 +222,10 @@ fn load_module(engine: &Engine, wasm_path: &Path) -> Result<Module, String> {
         .map_err(|e| format!("failed to read {}: {}", wasm_path.display(), e))?;
     let module = Module::new(engine, &wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
-    if let Ok(bytes) = module.serialize() {
-        let _ = fs::write(&cwasm, bytes);
+    if !customized {
+        if let Ok(bytes) = module.serialize() {
+            let _ = fs::write(&cwasm, bytes);
+        }
     }
     Ok(module)
 }
@@ -170,6 +286,7 @@ fn run_compiled_module(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> 
     }
     let wasi_ctx = builder.build_p1();
     let mut store = Store::new(engine, wasi_ctx);
+    pregrow_gc_heap(&mut store, caps)?;
     let instance = linker
         .instantiate(&mut store, module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
@@ -198,6 +315,7 @@ fn run_wasm_p2(engine: &Engine, module: &Module, caps: &RuntimeCaps) -> Result<(
 
     let state = std::sync::Arc::new(std::sync::Mutex::new(p2_host::P2HostState::from_caps(caps)));
     let mut store = Store::new(engine, state);
+    pregrow_gc_heap(&mut store, caps)?;
     let instance = linker
         .instantiate(&mut store, module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;

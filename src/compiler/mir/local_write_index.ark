@@ -1,0 +1,175 @@
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
+use mir::opcodes
+
+// Per-function CSR list of the instructions that write each local: a dest
+// producer or a LOCAL_SET targeting the local. `offsets` has local_count + 1
+// entries; write k of a local occupies `entries[2k]` = block index and
+// `entries[2k + 1]` = instruction index, in body order. Questions such as
+// "which variant slots reach this local" walk only that local's writes instead
+// of the whole body once per local, which made those passes quadratic.
+// STRUCT_SET / GC_STRUCT_SET dests name the written aggregate, not a value
+// flowing into the local, so they are skipped.
+pub struct LocalWriteIndex {
+    offsets: Vec<i32>,
+    entries: Vec<i32>,
+}
+
+fn LocalWriteIndex_empty() -> LocalWriteIndex {
+    LocalWriteIndex {
+        offsets: Vec::new<i32>(),
+        entries: Vec::new<i32>(),
+    }
+}
+
+fn LocalWriteIndex_build(f: MirFunction, local_count: i32) -> LocalWriteIndex {
+    let counts = Vec::new<i32>()
+    let mut ci = 0
+    while ci < local_count {
+        push(counts, 0)
+        ci = ci + 1
+    }
+    write_index_count_writes(f, counts, local_count)
+    let offsets = Vec::new<i32>()
+    let mut running = 0
+    let mut oi = 0
+    while oi < local_count {
+        push(offsets, running)
+        running = running + get_unchecked(counts, oi)
+        oi = oi + 1
+    }
+    push(offsets, running)
+    let entries = Vec::new<i32>()
+    let mut ei = 0
+    while ei < running * 2 {
+        push(entries, 0)
+        ei = ei + 1
+    }
+    let cursors = Vec::new<i32>()
+    let mut ki = 0
+    while ki < local_count {
+        push(cursors, get_unchecked(offsets, ki))
+        ki = ki + 1
+    }
+    write_index_fill_entries(f, entries, cursors, local_count)
+    LocalWriteIndex {
+        offsets: offsets,
+        entries: entries,
+    }
+}
+
+fn local_write_index_is_active(index: LocalWriteIndex) -> bool {
+    len(index.offsets) > 1
+}
+
+fn local_write_index_begin(index: LocalWriteIndex, local_idx: i32) -> i32 {
+    if local_idx < 0 || local_idx + 1 >= len(index.offsets) {
+        return 0
+    }
+    get_unchecked(index.offsets, local_idx)
+}
+
+fn local_write_index_end(index: LocalWriteIndex, local_idx: i32) -> i32 {
+    if local_idx < 0 || local_idx + 1 >= len(index.offsets) {
+        return 0
+    }
+    get_unchecked(index.offsets, local_idx + 1)
+}
+
+fn local_write_index_block_at(index: LocalWriteIndex, write: i32) -> i32 {
+    get_unchecked(index.entries, write * 2)
+}
+
+fn local_write_index_inst_at(index: LocalWriteIndex, write: i32) -> i32 {
+    get_unchecked(index.entries, write * 2 + 1)
+}
+
+fn write_index_count_writes(f: MirFunction, counts: Vec<i32>, local_count: i32) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            let indexed_dest = write_index_should_record_dest(op, dest, local_count)
+            if indexed_dest {
+                set(counts, dest, get_unchecked(counts, dest) + 1)
+            }
+            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+            if write_index_should_record_local_set(op, arg0, dest, local_count, indexed_dest) {
+                set(counts, arg0, get_unchecked(counts, arg0) + 1)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+}
+
+fn write_index_fill_entries(f: MirFunction, entries: Vec<i32>, cursors: Vec<i32>, local_count: i32) {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut bi = 0
+    while bi < block_count {
+        let block = function_block_queries::MirFunction_block_at(f, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            let dest = inst_accessors_operands::MirInst_dest(inst)
+            let indexed_dest = write_index_should_record_dest(op, dest, local_count)
+            if indexed_dest {
+                write_index_append_site(entries, cursors, dest, bi, ii)
+            }
+            let arg0 = inst_accessors_operands::MirInst_arg0(inst)
+            if write_index_should_record_local_set(op, arg0, dest, local_count, indexed_dest) {
+                write_index_append_site(entries, cursors, arg0, bi, ii)
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+}
+
+fn write_index_should_record_dest(op: i32, dest: i32, local_count: i32) -> bool {
+    if dest < 0 || dest >= local_count {
+        return false
+    }
+    if op == opcodes::MIR_GC_STRUCT_SET() || op == opcodes::MIR_STRUCT_SET() {
+        return false
+    }
+    true
+}
+
+fn write_index_should_record_local_set(
+    op: i32,
+    arg0: i32,
+    dest: i32,
+    local_count: i32,
+    indexed_dest: bool
+) -> bool {
+    if op != opcodes::MIR_LOCAL_SET() {
+        return false
+    }
+    if arg0 < 0 || arg0 >= local_count {
+        return false
+    }
+    // Same instruction already recorded via dest for this local.
+    if indexed_dest && dest == arg0 {
+        return false
+    }
+    true
+}
+
+fn write_index_append_site(entries: Vec<i32>, cursors: Vec<i32>, local_idx: i32, bi: i32, ii: i32) {
+    let slot = get_unchecked(cursors, local_idx)
+    let base = slot * 2
+    set(entries, base, bi)
+    set(entries, base + 1, ii)
+    set(cursors, local_idx, slot + 1)
+}

@@ -100,7 +100,7 @@ fn licm_optimize_function(f: MirFunction) -> OptimizationSummary {
         let block = function_block_queries::MirFunction_block_at(f, bi)
         let insts = block_inst_access::MirBlock_instructions(block)
         let result = licm_optimize_block_insts(insts)
-        block_inst_mutation::MirBlock_set_instructions(block, result.instructions)
+        block_inst_mutation::MirBlock_set_from_refs(block, result.instructions)
         total_hoisted = total_hoisted + result.hoisted
         validation_failures = validation_failures + result.validation_failures
         push(updated_blocks, block)

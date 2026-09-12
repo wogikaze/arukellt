@@ -19,12 +19,8 @@ OUT = ROOT / "src" / "compiler" / "corehir" / "core_op_binding_generated.ark"
 
 sys.path.insert(0, str(GEN_DIR))
 from ark_fnv_index import emit_lookup_fn  # noqa: E402
+from ark_table_blob import emit_bool_table, emit_string_table  # noqa: E402
 from core_op_mapping_common import normalize_key  # noqa: E402
-
-
-def _ark_string(s: str) -> str:
-    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
 
 
 def collect_bindings() -> dict[str, str]:
@@ -113,7 +109,9 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
     lines = [
         "// Generated from data/core-ops.toml legacy_bindings +",
         "// legacy_binding_patterns + std/manifest.toml.",
-        "// Do not edit by hand.",
+        "// Compact table + index. Do not edit by hand.",
+        "",
+        "use corehir::table_blob",
         "",
         "fn core_op_binding_count() -> i32 {",
         f"    {len(callees)}",
@@ -125,26 +123,22 @@ def render(alias_map: dict[str, str], patterns: list[dict[str, object]]) -> str:
         "",
     ]
 
-    def emit_string_table(name: str, values: list[str]) -> None:
-        lines.append(f"fn {name}_at(index: i32) -> String {{")
-        for i, value in enumerate(values):
-            lines.append(f"    if index == {i} {{ return {_ark_string(value)} }}")
-        lines.append("    return String_new()")
-        lines.append("}")
-        lines.append("")
-
-    emit_string_table("core_op_binding_callee", callees)
-    emit_string_table("core_op_binding_core_op_id", op_ids)
-    emit_string_table("core_op_binding_pattern", [str(p["pattern"]) for p in patterns])
-    emit_string_table("core_op_binding_pattern_core_op_id", [str(p["core_op_id"]) for p in patterns])
-
-    lines.append("fn core_op_binding_pattern_requires_nonempty_suffix_at(index: i32) -> bool {")
-    for i, pattern in enumerate(patterns):
-        flag = "true" if pattern["require_nonempty_suffix"] else "false"
-        lines.append(f"    if index == {i} {{ return {flag} }}")
-    lines.append("    return true")
-    lines.append("}")
-    lines.append("")
+    lines.extend(emit_string_table("core_op_binding_callee", callees))
+    lines.extend(emit_string_table("core_op_binding_core_op_id", op_ids))
+    lines.extend(emit_string_table("core_op_binding_pattern", [str(p["pattern"]) for p in patterns]))
+    lines.extend(
+        emit_string_table(
+            "core_op_binding_pattern_core_op_id",
+            [str(p["core_op_id"]) for p in patterns],
+        )
+    )
+    lines.extend(
+        emit_bool_table(
+            "core_op_binding_pattern_requires_nonempty_suffix",
+            [bool(p["require_nonempty_suffix"]) for p in patterns],
+            default=True,
+        )
+    )
 
     lines.extend(
         emit_lookup_fn(

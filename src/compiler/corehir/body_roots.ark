@@ -71,6 +71,10 @@ fn build_body_table(decls: Vec<AstNode>) -> CoreHirBodyTable {
     body_builder::corehir_body_builder_finish(builder)
 }
 
+pub fn empty_body_table() -> CoreHirBodyTable {
+    body::CoreHirBodyTable_new()
+}
+
 fn fn_body_root(table: CoreHirBodyTable, fn_info_index: i32) -> i32 {
     if fn_info_index >= 0 && fn_info_index < corehir_fn_body_root_count(table) {
         return corehir_fn_body_root_at(table, fn_info_index)

@@ -67,8 +67,7 @@ fn emit_hm_meta_set_gc_type(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, fiel
     writer_core::emit_leb128_u(w, s_val)
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         writer_gc::emit_gc_ref_cast(w, hm_type)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, s_val)
+        writer_core::emit_local_get(w, s_val)
         writer_gc::emit_gc_struct_set_i32(w, hm_type, field_idx)
     } else {
         let s_map = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)

@@ -1,5 +1,6 @@
 use corehir::type_id
 use corehir::kinds
+use collections::name_index
 
 fn type_id_is_valid(id: TypeId) -> bool {
     type_id::type_id_is_valid(id)
@@ -24,13 +25,23 @@ struct TypeEntry {
     type_param_ids: Vec<TypeId>,
 }
 
+// Entries sharing a name are chained through `next_same_name` from
+// `name_head` so intern never rescans the whole table; (kind, name, params)
+// is unique, so chain order does not affect which entry matches.
 struct TypeTable {
     entries: Vec<TypeEntry>,
     next_id: i32,
+    name_head: NameIndex,
+    next_same_name: Vec<i32>,
 }
 
 fn TypeTable_new() -> TypeTable {
-    TypeTable { entries: Vec::new<TypeEntry>(), next_id: 0 }
+    TypeTable {
+        entries: Vec::new<TypeEntry>(),
+        next_id: 0,
+        name_head: name_index::NameIndex_empty(),
+        next_same_name: Vec::new<i32>(),
+    }
 }
 
 fn TypeTable_entry_count(table: TypeTable) -> i32 {
@@ -79,16 +90,13 @@ fn type_table_type_param_ids_equal(a: Vec<TypeId>, b: Vec<TypeId>) -> bool {
 }
 
 fn type_table_find_existing(table: TypeTable, kind: i32, name: String, type_param_ids: Vec<TypeId>) -> TypeId {
-    let count = len(table.entries)
-    let mut i = 0
-    while i < count {
+    let mut i = name_index::name_index_get(table.name_head, name)
+    while i >= 0 {
         let entry = get_unchecked(table.entries, i)
-        if entry.kind == kind &&
-        eq(clone(entry.name), clone(name)) &&
-        type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
+        if entry.kind == kind && type_table_type_param_ids_equal(entry.type_param_ids, type_param_ids) {
             return entry.id
         }
-        i = i + 1
+        i = get_unchecked(table.next_same_name, i)
     }
     TYPE_ID_INVALID()
 }
@@ -100,6 +108,9 @@ fn TypeTable_intern(table: TypeTable, kind: i32, name: String, type_param_ids: V
     }
     let id = TypeId_new(table.next_id)
     table.next_id = table.next_id + 1
+    let entry_index = len(table.entries)
+    push(table.next_same_name, name_index::name_index_get(table.name_head, clone(name)))
+    name_index::name_index_set(table.name_head, clone(name), entry_index)
     let entry = TypeEntry { id: id, kind: kind, name: name, type_param_ids: type_param_ids }
     push(table.entries, entry)
     id

@@ -32,15 +32,7 @@ fn ctx_struct_field_byte_size(field_type: String) -> i32 {
 }
 
 fn ctx_is_registered_struct_type(ctx: LowerCtx, struct_name: String) -> bool {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(struct_name)) {
-            return true
-        }
-        si = si + 1
-    }
-    false
+    ctx_struct_storage::ctx_struct_layout_first_index(ctx, struct_name) >= 0
 }
 
 fn ctx_maybe_enum_return_type_name(ctx: LowerCtx, type_name: String) -> String {
@@ -224,10 +216,22 @@ fn ctx_find_layout_name(ctx: LowerCtx, candidate: String) -> String {
     candidate
 }
 
+// Every CALL lowering resolves its return type name here; the uncached
+// resolution walks the whole layout registry up to six times.
 fn ctx_resolve_struct_layout_name(ctx: LowerCtx, type_name: String) -> String {
     if len(type_name) == 0 {
         return type_name
     }
+    let memo_slot = ctx_struct_storage::ctx_struct_layout_name_memo_slot(ctx, clone(type_name))
+    if memo_slot >= 0 {
+        return ctx_struct_storage::ctx_struct_layout_name_memo_value_at(ctx, memo_slot)
+    }
+    let resolved = resolve_struct_layout_name_uncached(ctx, clone(type_name))
+    ctx_struct_storage::ctx_struct_layout_name_memo_put(ctx, type_name, clone(resolved))
+    resolved
+}
+
+fn resolve_struct_layout_name_uncached(ctx: LowerCtx, type_name: String) -> String {
     let candidate = ctx_struct_semantic_type_name(type_name)
     if ctx_is_registered_struct_type(ctx, clone(candidate)) || ctx_is_registered_enum_type(ctx, clone(candidate)) {
         return candidate
@@ -245,25 +249,12 @@ fn ctx_resolve_struct_layout_name(ctx: LowerCtx, type_name: String) -> String {
     candidate
 }
 
+// A registered enum is a single-field layout whose only field is `_tag`.
 fn ctx_is_registered_enum_type(ctx: LowerCtx, enum_name: String) -> bool {
-    let sc = ctx_struct_storage::ctx_struct_layout_count(ctx)
-    let mut si = 0
-    while si < sc {
-        if eq(ctx_struct_storage::ctx_struct_layout_name_at(ctx, si), clone(enum_name)) {
-            if ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) == 1 {
-                let mut off = 0
-                let mut li = 0
-                while li < si {
-                    off = off + ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, li)
-                    li = li + 1
-                }
-                if eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag") {
-                    return true
-                }
-            }
-            return false
-        }
-        si = si + 1
+    let si = ctx_struct_storage::ctx_struct_layout_first_index(ctx, enum_name)
+    if si < 0 || ctx_struct_storage::ctx_struct_layout_field_count_at(ctx, si) != 1 {
+        return false
     }
-    false
+    let off = ctx_struct_storage::ctx_struct_layout_field_offset_at(ctx, si)
+    eq(ctx_struct_storage::ctx_struct_field_name_at_offset(ctx, off), "_tag")
 }

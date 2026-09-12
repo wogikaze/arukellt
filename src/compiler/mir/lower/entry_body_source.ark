@@ -1,16 +1,36 @@
 use mir::lower::entry_body_core_source
+use mir::lower::entry_core_body
 use mir::lower::entry_fallback_body
 use mir::lower::entry_body_input
 use mir::lower::entry_view
 use mir::lower::fallback_source
+use corehir::decl_children
+use corehir::decl_member_collections
+use corehir::frontend_ast_node
+use corehir::mir_body_source
 
 struct MirLowerEntryBodySource {
     entry_view: MirLowerEntryView,
     fallback_source: MirLowerFallbackSource,
+    decl_nodes: Vec<AstNode>,
+    lazy_body: bool,
+    lazy_table: CoreHirBodyTable,
 }
 
-fn mir_entry_body_source_new(entry_view: MirLowerEntryView, fallback_source: MirLowerFallbackSource) -> MirLowerEntryBodySource {
-    MirLowerEntryBodySource { entry_view: entry_view, fallback_source: fallback_source }
+fn mir_entry_body_source_new(
+    entry_view: MirLowerEntryView,
+    fallback_source: MirLowerFallbackSource,
+    decl_nodes: Vec<AstNode>,
+    lazy_body: bool,
+    lazy_table: CoreHirBodyTable
+) -> MirLowerEntryBodySource {
+    MirLowerEntryBodySource {
+        entry_view: entry_view,
+        fallback_source: fallback_source,
+        decl_nodes: decl_nodes,
+        lazy_body: lazy_body,
+        lazy_table: lazy_table,
+    }
 }
 
 fn mir_entry_body_source_view_from_core(view: CoreHirMirView) -> MirLowerEntryView {
@@ -23,7 +43,11 @@ fn mir_entry_body_source_view(source: MirLowerEntryBodySource) -> MirLowerEntryV
 
 fn mir_entry_body_source_fn_input(source: MirLowerEntryBodySource, decl_index: i32, fn_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
     let entry_view = mir_entry_body_source_view(source)
-    let core_body = entry_body_core_source::mir_entry_body_core_fn(entry_view, fn_info_index)
+    let core_body = if source.lazy_body {
+        mir_entry_body_source_lazy_fn_core(source, decl_index, body_idx)
+    } else {
+        entry_body_core_source::mir_entry_body_core_fn(entry_view, fn_info_index)
+    }
     let fallback_source = source.fallback_source
     let fallback = fallback_source::mir_fallback_source_fn_body(fallback_source, decl_index, body_idx)
     let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
@@ -32,9 +56,91 @@ fn mir_entry_body_source_fn_input(source: MirLowerEntryBodySource, decl_index: i
 
 fn mir_entry_body_source_method_input(source: MirLowerEntryBodySource, impl_decl_index: i32, method_index: i32, method_info_index: i32, body_idx: i32) -> MirLowerEntryBodyInput {
     let entry_view = mir_entry_body_source_view(source)
-    let core_body = entry_body_core_source::mir_entry_body_core_method(entry_view, method_info_index)
+    let core_body = if source.lazy_body {
+        mir_entry_body_source_lazy_method_core(source, impl_decl_index, method_index, body_idx)
+    } else {
+        entry_body_core_source::mir_entry_body_core_method(entry_view, method_info_index)
+    }
     let fallback_source = source.fallback_source
     let fallback = fallback_source::mir_fallback_source_method_body(fallback_source, impl_decl_index, method_index, body_idx)
     let fallback_has_body = entry_fallback_body::mir_entry_fallback_body_has_body(clone(fallback))
     entry_body_input::mir_entry_body_input_new(fallback, fallback_has_body, core_body)
+}
+
+fn mir_entry_body_source_release_fn(source: MirLowerEntryBodySource, decl_index: i32, body_idx: i32) {
+    fallback_source::mir_fallback_source_release_fn_body(source.fallback_source, decl_index, body_idx)
+}
+
+fn mir_entry_body_source_release_method(source: MirLowerEntryBodySource, impl_decl_index: i32, method_index: i32, body_idx: i32) {
+    fallback_source::mir_fallback_source_release_method_body(
+        source.fallback_source,
+        impl_decl_index,
+        method_index,
+        body_idx
+    )
+}
+
+fn mir_entry_body_source_lazy_fn_core(
+    source: MirLowerEntryBodySource,
+    decl_index: i32,
+    body_idx: i32
+) -> MirLowerEntryCoreBody {
+    let node = mir_entry_body_source_fn_body_node(source, decl_index, body_idx)
+    mir_entry_body_source_core_from_node(source, node)
+}
+
+fn mir_entry_body_source_lazy_method_core(
+    source: MirLowerEntryBodySource,
+    impl_decl_index: i32,
+    method_index: i32,
+    body_idx: i32
+) -> MirLowerEntryCoreBody {
+    let node = mir_entry_body_source_method_body_node(source, impl_decl_index, method_index, body_idx)
+    mir_entry_body_source_core_from_node(source, node)
+}
+
+fn mir_entry_body_source_core_from_node(
+    entry_source: MirLowerEntryBodySource,
+    node: AstNode
+) -> MirLowerEntryCoreBody {
+    let root = mir_body_source::mir_body_source_build_ast_body_into(entry_source.lazy_table, node)
+    entry_core_body::mir_entry_core_body_new(
+        mir_body_source::mir_body_source_table_exprs(entry_source.lazy_table),
+        root
+    )
+}
+
+fn mir_entry_body_source_fn_body_node(
+    source: MirLowerEntryBodySource,
+    decl_index: i32,
+    body_idx: i32
+) -> AstNode {
+    if decl_index < 0 || decl_index >= len(source.decl_nodes) || body_idx < 0 {
+        return frontend_ast_node::corehir_empty_ast_node()
+    }
+    let decl = get_unchecked(source.decl_nodes, decl_index)
+    if body_idx >= decl_children::decl_child_count(decl) {
+        return frontend_ast_node::corehir_empty_ast_node()
+    }
+    decl_children::decl_child_at(decl, body_idx)
+}
+
+fn mir_entry_body_source_method_body_node(
+    source: MirLowerEntryBodySource,
+    impl_decl_index: i32,
+    method_index: i32,
+    body_idx: i32
+) -> AstNode {
+    if impl_decl_index < 0 || impl_decl_index >= len(source.decl_nodes) {
+        return frontend_ast_node::corehir_empty_ast_node()
+    }
+    let impl_decl = get_unchecked(source.decl_nodes, impl_decl_index)
+    if method_index < 0 || method_index >= decl_member_collections::decl_method_count(impl_decl) {
+        return frontend_ast_node::corehir_empty_ast_node()
+    }
+    let method = decl_member_collections::decl_method_at(impl_decl, method_index)
+    if body_idx < 0 || body_idx >= decl_children::decl_child_count(method) {
+        return frontend_ast_node::corehir_empty_ast_node()
+    }
+    decl_children::decl_child_at(method, body_idx)
 }

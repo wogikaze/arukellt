@@ -5,6 +5,7 @@ use mir::function_local_mutation
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::local_access
+use mir::local_write_index
 use mir::opcodes
 use mir::post_pass_stack_scan
 use mir::typed_mir_sync_module
@@ -13,9 +14,12 @@ use mir::typed_mir_sync_module
 // (enum_open) matches stores without ref.cast to a specific variant.
 fn mir_function_normalize_multi_variant_locals(f: MirFunction, table: TypeTable) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)
+    // normalize_local_to_open_enum only retypes locals; it adds no writes, so
+    // one index serves every local of this function.
+    let writes = local_write_index::LocalWriteIndex_build(f, local_count)
     let mut li = 0
     while li < local_count {
-        if local_receives_multiple_variant_slots(f, li) {
+        if local_receives_multiple_variant_slots(f, writes, li) {
             normalize_local_to_open_enum(f, li, table)
         }
         li = li + 1
@@ -91,10 +95,19 @@ fn is_open_enum_container_type_name(type_name: String) -> bool {
     }
     false
 }
-fn local_receives_multiple_variant_slots(f: MirFunction, local_idx: i32) -> bool {
-    collect_variant_slots_for_local(f, local_idx, 0, 0 - 1) == 0 - 2
+fn local_receives_multiple_variant_slots(f: MirFunction, writes: LocalWriteIndex, local_idx: i32) -> bool {
+    collect_variant_slots_for_local(f, writes, local_idx, 0, 0 - 1) == 0 - 2
 }
-fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, first_slot: i32) -> i32 {
+// Merged variant slot state over every write into `local_idx`: -1 = none seen,
+// -2 = conflicting slots, otherwise the single slot. Follows LOCAL_SET sources
+// transitively (bounded depth) through the same write index.
+fn collect_variant_slots_for_local(
+    f: MirFunction,
+    writes: LocalWriteIndex,
+    local_idx: i32,
+    depth: i32,
+    first_slot: i32
+) -> i32 {
     if depth > 8 {
         return first_slot
     }
@@ -102,36 +115,46 @@ fn collect_variant_slots_for_local(f: MirFunction, local_idx: i32, depth: i32, f
         return first_slot
     }
     let mut slot_state = first_slot
-    let block_count = function_block_queries::MirFunction_block_count(f)
-    let mut bi = 0
-    while bi < block_count {
-        let block = function_block_queries::MirFunction_block_at(f, bi)
-        let inst_count = block_inst_access::MirBlock_inst_count(block)
-        let mut ii = 0
-        while ii < inst_count {
-            let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
-            if op == opcodes::MIR_GC_STRUCT_NEW() {
-                if inst_accessors_operands::MirInst_dest(inst) == local_idx {
-                    slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(inst))
-                    if slot_state == 0 - 2 {
-                        return 0 - 2
-                    }
-                }
-            }
-            if op == opcodes::MIR_LOCAL_SET() {
-                slot_state = process_local_set_variant_slot(f, local_idx, inst, block, inst_count, ii, depth, slot_state)
+    let end = local_write_index::local_write_index_end(writes, local_idx)
+    let mut wi = local_write_index::local_write_index_begin(writes, local_idx)
+    while wi < end {
+        let block = function_block_queries::MirFunction_block_at(
+            f,
+            local_write_index::local_write_index_block_at(writes, wi)
+        )
+        let ii = local_write_index::local_write_index_inst_at(writes, wi)
+        let inst = block_inst_access::MirBlock_inst_at(block, ii)
+        let op = inst_accessors_shape::MirInst_op(inst)
+        if op == opcodes::MIR_GC_STRUCT_NEW() {
+            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                slot_state = merge_variant_slot(slot_state, inst_accessors_operands::MirInst_arg0(inst))
                 if slot_state == 0 - 2 {
                     return 0 - 2
                 }
             }
-            ii = ii + 1
         }
-        bi = bi + 1
+        if op == opcodes::MIR_LOCAL_SET() {
+            let inst_count = block_inst_access::MirBlock_inst_count(block)
+            slot_state = process_local_set_variant_slot(f, writes, local_idx, inst, block, inst_count, ii, depth, slot_state)
+            if slot_state == 0 - 2 {
+                return 0 - 2
+            }
+        }
+        wi = wi + 1
     }
     slot_state
 }
-fn process_local_set_variant_slot(f: MirFunction, local_idx: i32, inst: MirInst, block: MirBlock, inst_count: i32, ii: i32, depth: i32, first_slot: i32) -> i32 {
+fn process_local_set_variant_slot(
+    f: MirFunction,
+    writes: LocalWriteIndex,
+    local_idx: i32,
+    inst: MirInst,
+    block: MirBlock,
+    inst_count: i32,
+    ii: i32,
+    depth: i32,
+    first_slot: i32
+) -> i32 {
     let set_dest = inst_accessors_operands::MirInst_arg0(inst)
     let source = inst_accessors_operands::MirInst_arg1(inst)
     if set_dest != local_idx {
@@ -147,7 +170,7 @@ fn process_local_set_variant_slot(f: MirFunction, local_idx: i32, inst: MirInst,
                 return 0 - 2
             }
         }
-        slot_state = collect_variant_slots_for_local(f, source, depth + 1, slot_state)
+        slot_state = collect_variant_slots_for_local(f, writes, source, depth + 1, slot_state)
         if slot_state == 0 - 2 {
             return 0 - 2
         }
@@ -163,7 +186,7 @@ fn process_local_set_variant_slot(f: MirFunction, local_idx: i32, inst: MirInst,
             }
             let src_dest = inst_accessors_operands::MirInst_dest(src_inst)
             if src_dest >= 0 && src_dest != local_idx {
-                slot_state = collect_variant_slots_for_local(f, src_dest, depth + 1, slot_state)
+                slot_state = collect_variant_slots_for_local(f, writes, src_dest, depth + 1, slot_state)
                 if slot_state == 0 - 2 {
                     return 0 - 2
                 }

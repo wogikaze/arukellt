@@ -50,21 +50,6 @@ fn TypeEnv_new() -> TypeEnv {
     }
 }
 
-fn i32_vec_set(values: Vec<i32>, at: i32, value: i32) -> Vec<i32> {
-    let out = Vec::new<i32>()
-    let count = len(values)
-    let mut i = 0
-    while i < count {
-        if i == at {
-            push(out, value)
-        } else {
-            push(out, get_unchecked(values, i))
-        }
-        i = i + 1
-    }
-    out
-}
-
 fn type_env_track_binding(env: TypeEnv, name: String, span_start: i32, span_end: i32) {
     push(env.tracked_binding_names, name)
     push(env.tracked_binding_spans_start, span_start)
@@ -77,11 +62,18 @@ fn type_env_mark_binding_used(env: TypeEnv, name: String) {
     let mut i = 0
     while i < count {
         if eq(get_unchecked(env.tracked_binding_names, i), clone(name)) {
-            env.tracked_binding_used = i32_vec_set(env.tracked_binding_used, i, 1)
+            set(env.tracked_binding_used, i, 1)
             return
         }
         i = i + 1
     }
+}
+
+fn type_env_release_tracked_bindings(env: TypeEnv) {
+    env.tracked_binding_names = Vec::new<String>()
+    env.tracked_binding_spans_start = Vec::new<i32>()
+    env.tracked_binding_spans_end = Vec::new<i32>()
+    env.tracked_binding_used = Vec::new<i32>()
 }
 
 fn type_env_finalize_unused_bindings(env: TypeEnv) {
@@ -99,4 +91,5 @@ fn type_env_finalize_unused_bindings(env: TypeEnv) {
         }
         i = i + 1
     }
+    type_env_release_tracked_bindings(env)
 }

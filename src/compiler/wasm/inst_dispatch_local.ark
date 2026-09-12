@@ -22,8 +22,7 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
     if inst_accessors_operands::MirInst_arg1(inst) < 0 {
         let reload = local_set_reload_base_after_struct_set(prev_op, prev_arg0, prev_arg1)
         if reload >= 0 {
-            writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, reload)
+            writer_core::emit_local_get(w, reload)
             inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
             if next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
                 writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
@@ -40,8 +39,7 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
         return true
     }
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
-        writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
+        writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg1(inst))
         inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))

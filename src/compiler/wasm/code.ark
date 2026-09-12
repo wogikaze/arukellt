@@ -1,50 +1,128 @@
+use std::host::clock
+use std::host::stdio
+use mir::block_inst_access
+use mir::function_block_queries
+use mir::function_identity
+use mir::module_block_pool
 use mir::module_wit_imports
 use wasm::code_body
 use wasm::ctx_record
-use wasm::emit_target
 use wasm::function_indices
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
 
-fn emit_code_section(out: WasmWriter, functions: Vec<MirFunction>, fn_count: i32, needs_wrapper: i32, main_idx: i32, ctx: SelfEmitCtx, bindings: Vec<resolver::wit_import_bind::WitImportBinding>) {
+fn emit_function_inst_count(f: MirFunction) -> i32 {
+    let block_count = function_block_queries::MirFunction_block_count(f)
+    let mut total = 0
+    let mut bi = 0
+    while bi < block_count {
+        total = total + block_inst_access::MirBlock_inst_count(
+            function_block_queries::MirFunction_block_at(f, bi)
+        )
+        bi = bi + 1
+    }
+    total
+}
+
+fn emit_slow_fn_note(enabled: i32, idx: i32, f: MirFunction, t_start: i64) -> bool {
+    if enabled == 0 {
+        return false
+    }
+    let diff = clock::monotonic_now() - t_start
+    let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
+    if ms < 200 {
+        return false
+    }
+    stdio::eprintln(
+        concat(
+            "[arukellt] emit.slow_fn: idx=",
+            concat(
+                to_string(idx),
+                concat(
+                    " insts=",
+                    concat(
+                        to_string(emit_function_inst_count(f)),
+                        concat(
+                            " ms=",
+                            concat(to_string(ms), concat(" ", function_identity::MirFunction_name(f)))
+                        )
+                    )
+                )
+            )
+        )
+    )
+    true
+}
+
+fn emit_code_section(
+    out: WasmWriter,
+    mir: MirModule,
+    functions: Vec<MirFunction>,
+    fn_count: i32,
+    needs_wrapper: i32,
+    main_idx: i32,
+    ctx: SelfEmitCtx,
+    bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
+    report_timing: i32
+) {
     let code_sec = writer_core::WasmWriter_with_memory64(writer_core::writer_memory64(out))
     writer_core::emit_leb128_u(code_sec, fn_count + needs_wrapper)
     let offsets = Vec::new<i32>()
     let wit_import_count = module_wit_imports::wit_import_count(bindings)
     let mut ci = 0
+    let mut slow_notes = 0
     while ci < fn_count {
         let f = get_unchecked(functions, ci)
         ctx_record::SelfEmitCtx_set_current_func_idx(ctx, ci)
-        let body = code_body::emit_function_body(f, ctx, bindings)
+        let t_fn = clock::monotonic_now()
         push(offsets, writer_core::writer_size(code_sec))
-        emit_code_body_entry(code_sec, body)
+        let size_off = emit_sized_code_body_begin(code_sec)
+        code_body::emit_function_body(code_sec, f, ctx, bindings)
+        writer_core::writer_begin_function_locals(code_sec, Vec::new<i32>())
+        emit_sized_code_body_end(code_sec, size_off)
+        if slow_notes < 32 {
+            if emit_slow_fn_note(report_timing, ci, f, t_fn) {
+                slow_notes = slow_notes + 1
+            }
+        }
+        module_block_pool::mir_function_detach_blocks(f, mir)
         ci = ci + 1
     }
     if needs_wrapper == 1 {
-        let wrapper_body = emit_start_wrapper_body(main_idx, ctx, wit_import_count)
-        emit_code_body_entry(code_sec, wrapper_body)
+        let size_off = emit_sized_code_body_begin(code_sec)
+        emit_start_wrapper_body(code_sec, main_idx, ctx, wit_import_count)
+        emit_sized_code_body_end(code_sec, size_off)
     }
     ctx_record::SelfEmitCtx_set_code_section_offsets(ctx, offsets)
     writer_sections::emit_section(out, opcodes::SEC_CODE(), code_sec)
 }
 
-fn emit_code_body_entry(code_sec: WasmWriter, body: WasmWriter) {
-    writer_core::emit_leb128_u(code_sec, writer_core::writer_size(body))
-    writer_core::emit_bytes(code_sec, writer_core::writer_bytes(body))
+fn emit_sized_code_body_begin(code_sec: WasmWriter) -> i32 {
+    let size_off = writer_core::writer_size(code_sec)
+    writer_core::emit_leb128_u_fixed(code_sec, 0)
+    size_off
 }
 
-fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i32) -> WasmWriter {
-    let wrapper_body = writer_core::WasmWriter_with_memory64(
-        emit_target::uses_memory64(
-            ctx_record::SelfEmitCtx_target(ctx),
-            ctx_record::SelfEmitCtx_wasi_version(ctx)
-        )
+fn emit_sized_code_body_end(code_sec: WasmWriter, size_off: i32) {
+    let width = writer_core::leb128_u_fixed_width()
+    writer_core::patch_leb128_u_fixed(
+        code_sec,
+        size_off,
+        writer_core::writer_size(code_sec) - size_off - width
     )
-    writer_core::emit_leb128_u(wrapper_body, 0)
-    writer_core::emit_byte(wrapper_body, opcodes::OP_CALL())
+}
+
+fn emit_start_wrapper_body(
+    w: WasmWriter,
+    main_idx: i32,
+    ctx: SelfEmitCtx,
+    wit_import_count: i32
+) {
+    writer_core::emit_leb128_u(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_CALL())
     writer_core::emit_leb128_u(
-        wrapper_body,
+        w,
         function_indices::defined_function_index(
             main_idx,
             ctx_record::SelfEmitCtx_target(ctx),
@@ -54,7 +132,6 @@ fn emit_start_wrapper_body(main_idx: i32, ctx: SelfEmitCtx, wit_import_count: i3
             wit_import_count
         )
     )
-    writer_core::emit_byte(wrapper_body, opcodes::OP_DROP())
-    writer_core::emit_byte(wrapper_body, opcodes::OP_END())
-    wrapper_body
+    writer_core::emit_byte(w, opcodes::OP_DROP())
+    writer_core::emit_byte(w, opcodes::OP_END())
 }

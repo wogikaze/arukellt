@@ -45,6 +45,15 @@ fn corehir_expr_type_name(expr: CoreHirExpr) -> String {
     clone(expr.type_name)
 }
 
+// Lowering consumes each body exactly once. Clear the payload after its final
+// monomorphized copy so large source strings and child vectors do not remain
+// live while later MIR bodies are emitted.
+fn corehir_expr_release_payload(expr: CoreHirExpr) {
+    expr.text = String_new()
+    expr.type_name = String_new()
+    expr.children = Vec::new<i32>()
+}
+
 fn corehir_expr_span_start(expr: CoreHirExpr) -> i32 {
     expr.span_start
 }

@@ -224,6 +224,30 @@ fn mir_resolve_self_delegate_collision(
     candidate_idx
 }
 
+fn call_resolve_remap_colliding_short_names(
+    functions: Vec<MirFunction>,
+    function_name_index: NameIndex,
+    function_name_counts: NameIndex
+) {
+    let count = len(functions)
+    let mut i = 0
+    while i < count {
+        let fname = function_identity::MirFunction_name(get_unchecked(functions, i))
+        let short_name = resolver::use_module_short_name(clone(fname))
+        if mir_count_functions_named(function_name_counts, clone(short_name)) > 1 {
+            let resolved = mir_resolve_duplicate_call_target(
+                functions,
+                function_name_counts,
+                clone(short_name)
+            )
+            if resolved >= 0 {
+                name_index::name_index_set(function_name_index, short_name, resolved)
+            }
+        }
+        i = i + 1
+    }
+}
+
 fn mir_collision_export_name(functions: Vec<MirFunction>, fn_idx: i32, short_name: String, seen_count: i32) -> String {
     if seen_count <= 0 {
         return clone(short_name)

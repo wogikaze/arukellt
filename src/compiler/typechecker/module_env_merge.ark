@@ -51,10 +51,6 @@ fn merge_type_env(dst: TypeEnv, src: TypeEnv) {
     }
     vec_extend::Vec_extend_Diagnostic(dst.diagnostics, src.diagnostics)
     vec_extend::Vec_extend_Diagnostic(dst.warnings, src.warnings)
-    vec_extend::Vec_extend_String_clone(dst.tracked_binding_names, src.tracked_binding_names)
-    vec_extend::Vec_extend_i32(dst.tracked_binding_spans_start, src.tracked_binding_spans_start)
-    vec_extend::Vec_extend_i32(dst.tracked_binding_spans_end, src.tracked_binding_spans_end)
-    vec_extend::Vec_extend_i32(dst.tracked_binding_used, src.tracked_binding_used)
     merge_mono_instances(dst, src)
     vec_extend::Vec_extend_MonoCallSite(dst.mono_call_sites, src.mono_call_sites)
 }

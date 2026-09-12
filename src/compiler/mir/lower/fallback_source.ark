@@ -29,3 +29,19 @@ fn mir_fallback_source_method_body(source: MirLowerFallbackSource, impl_decl_ind
     }
     entry_fallback_body::mir_entry_fallback_body_new(legacy_decl::mir_legacy_decl_self_body(method), false)
 }
+
+fn mir_fallback_source_release_fn_body(source: MirLowerFallbackSource, decl_index: i32, body_idx: i32) {
+    if decl_index < 0 || decl_index >= len(source.decls) {
+        return
+    }
+    let decl = get_unchecked(source.decls, decl_index)
+    legacy_decl::mir_legacy_decl_release_body(decl, body_idx)
+}
+
+fn mir_fallback_source_release_method_body(source: MirLowerFallbackSource, impl_decl_index: i32, method_index: i32, body_idx: i32) {
+    if impl_decl_index < 0 || impl_decl_index >= len(source.decls) {
+        return
+    }
+    let decl = get_unchecked(source.decls, impl_decl_index)
+    legacy_decl::mir_legacy_decl_release_method_body(decl, method_index, body_idx)
+}

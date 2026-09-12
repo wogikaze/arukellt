@@ -3,14 +3,14 @@ use corehir::core_op_registry_generated
 use corehir::function_id
 use corehir::signature_entry
 use corehir::signature_registry
+use mir::inst_draft
 use mir::inst_record
 use mir::module_spine
 
-fn mir_call_core_op_index(m: MirModule, inst: MirInst) -> i32 {
+fn mir_call_core_op_index_from_fid(m: MirModule, fid_raw: i32) -> i32 {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return 0 - 1
     }
-    let fid_raw = inst_record::mir_inst_func_id_raw(inst)
     if fid_raw < 0 {
         return 0 - 1
     }
@@ -22,8 +22,15 @@ fn mir_call_core_op_index(m: MirModule, inst: MirInst) -> i32 {
     core_op_id::CoreOpId_raw(signature_entry::signature_entry_core_op_id(entry))
 }
 
-fn mir_call_normal_fallback_symbol(m: MirModule, inst: MirInst) -> String {
-    let index = mir_call_core_op_index(m, inst)
+fn mir_call_core_op_index(m: MirModule, inst: MirInst) -> i32 {
+    mir_call_core_op_index_from_fid(m, inst_record::mir_inst_func_id_raw(inst))
+}
+
+fn mir_call_core_op_index_draft(m: MirModule, inst: MirInstDraft) -> i32 {
+    mir_call_core_op_index_from_fid(m, inst_draft::MirInstDraft_func_id_raw(inst))
+}
+
+fn mir_call_normal_fallback_from_index(index: i32) -> String {
     if index < 0 {
         return String_new()
     }
@@ -34,6 +41,14 @@ fn mir_call_normal_fallback_symbol(m: MirModule, inst: MirInst) -> String {
         return String_new()
     }
     core_op_registry_generated::core_op_registry_fallback_symbol_at(index)
+}
+
+fn mir_call_normal_fallback_symbol(m: MirModule, inst: MirInst) -> String {
+    mir_call_normal_fallback_from_index(mir_call_core_op_index(m, inst))
+}
+
+fn mir_call_normal_fallback_symbol_draft(m: MirModule, inst: MirInstDraft) -> String {
+    mir_call_normal_fallback_from_index(mir_call_core_op_index_draft(m, inst))
 }
 
 fn mir_call_inline_fallback_symbol(m: MirModule, inst: MirInst) -> String {

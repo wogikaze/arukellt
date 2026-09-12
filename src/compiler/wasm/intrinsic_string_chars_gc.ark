@@ -41,13 +41,11 @@ fn emit_text_chars_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     // Step 3: Store char at data[0]
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 0)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_src)
+    writer_core::emit_local_get(w, s_src)
     writer_gc::emit_gc_array_set(w, i32_array_type)
 
     // Step 4: Create Vec struct (data_array, len=1)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, arr_tmp)
+    writer_core::emit_local_get(w, arr_tmp)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)
     writer_gc::emit_gc_struct_new(w, vec_type)

@@ -10,12 +10,14 @@ fn emit_gc_struct_new(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_NEW())
     writer_core::emit_leb128_u(w, type_idx)
+    writer_core::writer_note_ref_top(w, type_idx)
 }
 
 fn emit_gc_struct_new_default(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_STRUCT_NEW_DEFAULT())
     writer_core::emit_leb128_u(w, type_idx)
+    writer_core::writer_note_ref_top(w, type_idx)
 }
 
 fn emit_gc_struct_get(w: WasmWriter, type_idx: i32, field_idx: i32) {
@@ -61,6 +63,7 @@ fn emit_gc_array_new(w: WasmWriter, type_idx: i32) {
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_ARRAY_NEW_DEFAULT())
     writer_core::emit_leb128_u(w, type_idx)
+    writer_core::writer_note_ref_top(w, type_idx)
 }
 
 fn emit_gc_array_new_from_widened(w: WasmWriter, type_idx: i32) {
@@ -138,10 +141,17 @@ fn emit_gc_ref_test(w: WasmWriter, type_idx: i32) {
     emit_gc_heap_type_idx(w, type_idx)
 }
 
+// Omitted when the writer knows the stack top is already `(ref null type_idx)`
+// (a `local.get` of a local declared with that type, or the same cast just
+// emitted): the cast could only succeed and Wasmtime does not elide it itself.
 fn emit_gc_ref_cast(w: WasmWriter, type_idx: i32) {
+    if writer_core::writer_ref_top_is(w, type_idx) {
+        return
+    }
     emit_gc_prefix(w)
     writer_core::emit_leb128_u(w, opcodes::GC_REF_CAST())
     emit_gc_heap_type_idx(w, type_idx)
+    writer_core::writer_note_ref_top(w, type_idx)
 }
 
 fn emit_gc_ref_as_non_null(w: WasmWriter) {

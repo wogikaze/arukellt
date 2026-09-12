@@ -3,7 +3,7 @@
 Status: active — Phase 0 NEXT  
 Owner: overlay / #851 / ADR-053  
 Created: 2026-09-01  
-Last updated: 2026-09-01
+Last updated: 2026-09-12
 
 決定: [`docs/adr/ADR-053-selfhost-compiler-core-rewrite.md`](../adr/ADR-053-selfhost-compiler-core-rewrite.md)  
 追跡: [`issues/open/851-selfhost-compiler-core-rewrite.md`](../../issues/open/851-selfhost-compiler-core-rewrite.md)
@@ -65,7 +65,30 @@ Last updated: 2026-09-01
       reachability / MIR optimize / wasm types / wasm bodies / finalize / GC
 - [ ] 総 allocation、phase 境界 live bytes、MirInst / MirLocal / MirFunction 個数、
       最大 32 関数の wall
-- [ ] 同一条件 3 回の baseline receipt を `docs/research/receipts/` に残す
+- [x] 同一条件 3 回の baseline receipt を `docs/research/receipts/` に残す
+      （2026-09-12: [`851-gc-overlay-baseline-run-1`](../research/receipts/851-gc-overlay-baseline-run-1.json)、
+      [`run-2`](../research/receipts/851-gc-overlay-baseline-run-2.json)、
+      [`run-3`](../research/receipts/851-gc-overlay-baseline-run-3.json)。
+      exploratory clock candidate のため、s2==s3 は未確認）
+- [x] O(1) `TypeId → GC layout entry` lookup の 3 回 receipt を残す
+      （2026-09-12: [`851-gc-layout-cache-run-1`](../research/receipts/851-gc-layout-cache-run-1.json)、
+      [`run-2`](../research/receipts/851-gc-layout-cache-run-2.json)、
+      [`run-3`](../research/receipts/851-gc-layout-cache-run-3.json)。
+      phase total 37.139–38.029s、wall 38.18–39.44s、RSS 2,545,780–2,709,012 KiB。
+      出力 validate は通過したが、s2==s3 は未確認であり、10 秒 / 1GB の受入条件は未達）
+- [x] ユーザー目標の gc-host 候補を 3 回および 10 回測定する
+      （2026-09-12: [`goal-run-1`](../research/receipts/851-gc-overlay-goal-run-1.json)、
+      [`run-2`](../research/receipts/851-gc-overlay-goal-run-2.json)、
+      [`run-3`](../research/receipts/851-gc-overlay-goal-run-3.json)、
+      [`10-run summary`](../research/receipts/851-gc-overlay-goal-gate-10.json)。
+      現ソースの cacheless flat compile は wall median 8.982s / p95 9.077s、
+      RSS 最大 989,992 KiB、10/10 exit 0、出力 SHA-256 は一致し validate 済み。
+      10 回計測時の host-linker はセルフホスト compiler source の compile だけ 462 MiB の GC heap を先行確保した。
+      その後、既定値を 450 MiB に下げた CoreHIR frontend AST 境界修正と host-linker の selfhost-only pregrow についても
+      3 回再測定し、wall 8.961–9.076s、RSS 964,916–965,208 KiB、3/3 exit 0、同一 SHA-256、
+      validate 通過を [`latest_source_recheck`](../research/receipts/851-gc-overlay-goal-gate-10.json) に記録した。
+      ユーザー目標の 10 秒 / 1 GB は満たすが、計画の内部 gate（median 7s / RSS 512 MiB）と
+      canonical s2 build/fixpoint は未達・未確認）
 - [ ] 208s と 239s の差を、同一 binary ノイズか負荷差か切り分ける
 
 schema: [`docs/data/selfhost-overlay-receipt.schema.json`](../data/selfhost-overlay-receipt.schema.json)  

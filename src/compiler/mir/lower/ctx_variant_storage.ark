@@ -1,3 +1,5 @@
+use collections::name_index
+
 fn ctx_variant_count(ctx: LowerCtx) -> i32 {
     len(ctx.variant_names)
 }
@@ -11,8 +13,56 @@ fn ctx_variant_tag_at(ctx: LowerCtx, index: i32) -> i32 {
 }
 
 fn ctx_variant_push_tag(ctx: LowerCtx, name: String, tag: i32) {
+    let index = len(ctx.variant_names)
+    name_index::name_index_insert_first(ctx.variant_name_first, clone(name), index)
+    let key = variant_enum_variant_key(clone(name))
+    let best = name_index::name_index_get(ctx.variant_key_best, clone(key))
+    if best < 0 || len(name) > len(get_unchecked(ctx.variant_names, best)) {
+        name_index::name_index_set(ctx.variant_key_best, key, index)
+    }
     push(ctx.variant_names, name)
     push(ctx.variant_tags, tag)
+}
+
+// Exact-name index, else the tag of the longest registered name sharing the
+// `Enum::Variant` key (module-aliased `types::WitType::Bool` -> `WitType::Bool`).
+fn ctx_variant_name_index(ctx: LowerCtx, name: String) -> i32 {
+    let first = name_index::name_index_get(ctx.variant_name_first, clone(name))
+    if first >= 0 {
+        return first
+    }
+    let best = name_index::name_index_get(ctx.variant_key_best, variant_enum_variant_key(name))
+    if best < 0 {
+        return 0 - 1
+    }
+    get_unchecked(ctx.variant_tags, best)
+}
+
+/// Last two `::`-separated segments (`Enum::Variant`), or the whole name.
+///
+/// Lets `types::WitType::Bool` and `WitType::Bool` share one lookup key without
+/// treating bare `Bool` as an alias for every `*::Bool` variant.
+fn variant_enum_variant_key(name: String) -> String {
+    let n = len(name)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(name, i) == 58 && char_at(name, i + 1) == 58 {
+            prev_sep = last_sep
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 {
+        return name
+    }
+    if prev_sep < 0 {
+        return name
+    }
+    substring(name, prev_sep + 2, n)
 }
 
 fn ctx_payload_variant_count(ctx: LowerCtx) -> i32 {

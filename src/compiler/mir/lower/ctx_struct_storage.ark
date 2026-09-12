@@ -1,3 +1,5 @@
+use collections::name_index
+
 fn ctx_struct_layout_count(ctx: LowerCtx) -> i32 {
     len(ctx.struct_names)
 }
@@ -19,11 +21,49 @@ fn ctx_struct_field_type_at_offset(ctx: LowerCtx, offset: i32) -> String {
 }
 
 fn ctx_struct_push_layout(ctx: LowerCtx, struct_name: String, field_count: i32) {
+    let index = len(ctx.struct_names)
+    let field_offset = if index == 0 {
+        0
+    } else {
+        get_unchecked(ctx.struct_layout_field_offsets, index - 1) + get_unchecked(ctx.struct_field_counts, index - 1)
+    }
+    name_index::name_index_insert_first(ctx.struct_layout_first_index, clone(struct_name), index)
+    push(ctx.struct_layout_field_offsets, field_offset)
     push(ctx.struct_names, struct_name)
     push(ctx.struct_field_counts, field_count)
+    ctx_struct_layout_name_memo_reset(ctx)
+}
+
+// Index of the first layout named `struct_name`, or -1.
+fn ctx_struct_layout_first_index(ctx: LowerCtx, struct_name: String) -> i32 {
+    name_index::name_index_get(ctx.struct_layout_first_index, struct_name)
+}
+
+// Offset of layout `index`'s first field in struct_all_fields / struct_field_types.
+fn ctx_struct_layout_field_offset_at(ctx: LowerCtx, index: i32) -> i32 {
+    get_unchecked(ctx.struct_layout_field_offsets, index)
+}
+
+fn ctx_struct_layout_name_memo_reset(ctx: LowerCtx) {
+    ctx.struct_layout_name_memo = name_index::NameIndex_new(0)
+    ctx.struct_layout_name_memo_values = Vec::new<String>()
+}
+
+fn ctx_struct_layout_name_memo_slot(ctx: LowerCtx, type_name: String) -> i32 {
+    name_index::name_index_get(ctx.struct_layout_name_memo, type_name)
+}
+
+fn ctx_struct_layout_name_memo_value_at(ctx: LowerCtx, slot: i32) -> String {
+    clone(get_unchecked(ctx.struct_layout_name_memo_values, slot))
+}
+
+fn ctx_struct_layout_name_memo_put(ctx: LowerCtx, type_name: String, resolved: String) {
+    name_index::name_index_set(ctx.struct_layout_name_memo, type_name, len(ctx.struct_layout_name_memo_values))
+    push(ctx.struct_layout_name_memo_values, resolved)
 }
 
 fn ctx_struct_push_field(ctx: LowerCtx, field_name: String, field_type: String) {
     push(ctx.struct_all_fields, field_name)
     push(ctx.struct_field_types, field_type)
+    ctx_struct_layout_name_memo_reset(ctx)
 }

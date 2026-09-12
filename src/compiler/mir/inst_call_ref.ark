@@ -1,8 +1,9 @@
+use mir::inst_draft
 use mir::inst_factory
 use mir::opcodes
 use mir::value_types
 
-fn MirInst_call_ref(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32, return_vt: i32) -> MirInst {
+fn MirInst_call_ref(callee_local: i32, type_idx: i32, arg_count: i32, dest: i32, return_vt: i32) -> MirInstDraft {
     inst_factory::MirInst_full(opcodes::MIR_CALL_REF(), dest, callee_local, type_idx, arg_count, 0.0, String_new(), return_vt)
 }
 
@@ -15,7 +16,7 @@ fn MirInst_call_ref_with_arg0_vt(
     dest: i32,
     return_vt: i32,
     first_arg_vt: i32
-) -> MirInst {
+) -> MirInstDraft {
     let hint = if first_arg_vt >= 0 {
         i32_to_string(first_arg_vt)
     } else {

@@ -48,8 +48,7 @@ fn emit_array_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             writer_core::emit_leb128_u(w, s_idx)
             writer_gc::emit_gc_ref_cast(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx))
             writer_gc::emit_gc_struct_get(w, ctx_gc_type::SelfEmitCtx_vec_v128_type(ctx), 0)
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, s_idx)
+            writer_core::emit_local_get(w, s_idx)
             writer_gc::emit_gc_array_get(w, ctx_gc_type::SelfEmitCtx_v128_array_type(ctx))
             return
         }
@@ -90,27 +89,23 @@ fn emit_array_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         let val_tmp = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, val_tmp)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
         // GC array index is a true i32; element value may be Memory64-widened.
         writer_core::emit_byte(w, opcodes::OP_I32_CONST())
         writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst))
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, val_tmp)
+        writer_core::emit_local_get(w, val_tmp)
         writer_gc::emit_gc_array_set_i32(w, gc_type_idx)
     } else {
         let arr_val = inst_accessors_operands::MirInst_arg1(inst)
         writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
         writer_core::emit_leb128_u(w, arr_val)
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+        writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
         if inst_accessors_literals::MirInst_int_val(inst) > 0 {
             writer_core::emit_byte(w, opcodes::OP_I32_CONST())
             writer_core::emit_leb128_s(w, inst_accessors_literals::MirInst_int_val(inst) * 4)
             writer_core::emit_byte(w, opcodes::OP_I32_ADD())
         }
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, arr_val)
+        writer_core::emit_local_get(w, arr_val)
         writer_core::emit_byte(w, opcodes::OP_I32_STORE())
         writer_core::emit_byte(w, 2)
         writer_core::emit_byte(w, 0)

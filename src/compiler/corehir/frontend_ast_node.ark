@@ -3,6 +3,19 @@ use corehir::frontend_ast_identity
 use corehir::frontend_ast_literals
 use corehir::frontend_ast_span
 use corehir::frontend_ast_type_ann
+use parser::ast_node_record
+use parser::ast_span_record
+
+fn corehir_empty_ast_node() -> AstNode {
+    ast_node_record::AstNode_new(0, ast_span_record::Span_empty())
+}
+
+fn corehir_node_release_child(node: AstNode, idx: i32) {
+    if idx < 0 || idx >= len(node.children) {
+        return
+    }
+    set(node.children, idx, corehir_empty_ast_node())
+}
 
 fn corehir_node_kind(node: AstNode) -> i32 {
     frontend_ast_identity::corehir_node_kind(node)

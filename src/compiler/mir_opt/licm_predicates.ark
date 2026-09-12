@@ -1,3 +1,4 @@
+use mir::block_inst_access
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
 use mir::opcodes
@@ -108,12 +109,12 @@ fn licm_inst_defines_local(inst: MirInst) -> i32 {
 }
 
 fn licm_block_defs_local(block: MirBlock, local: i32) -> bool {
-    let insts = block.instructions
-    let n = len(insts)
+    let n = block_inst_access::MirBlock_inst_count(block)
     let mut i = 0
     while i < n {
-        let inst = get_unchecked(insts, i)
-        if licm_inst_defines_local(inst) == local { return true }
+        if block_inst_access::MirBlock_inst_dest(block, i) == local {
+            return true
+        }
         i = i + 1
     }
     false

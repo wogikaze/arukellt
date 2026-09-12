@@ -1,4 +1,5 @@
 use mir::inst_accessors_shape
+use mir::inst_draft
 use mir::opcodes
 use mir::types
 
@@ -40,6 +41,31 @@ fn mir_opt_collect_loop_regions(insts: Vec<MirInst>) -> Vec<LoopRegion> {
         if op == opcodes::MIR_END() {
             if len(stack) > 0 {
                 // pop returns Option<i32>; unwrap before the i32 LoopRegion fields.
+                let start = pop(stack).unwrap()
+                let depth = pop(depths).unwrap()
+                push(regions, LoopRegion_new(start, i, depth))
+            }
+        }
+        i = i + 1
+    }
+    regions
+}
+
+fn mir_opt_collect_loop_regions_draft(insts: Vec<MirInstDraft>) -> Vec<LoopRegion> {
+    let regions = Vec::new<LoopRegion>()
+    let stack = Vec::new<i32>()
+    let depths = Vec::new<i32>()
+    let count = len(insts)
+    let mut i = 0
+    while i < count {
+        let inst = get_unchecked(insts, i)
+        let op = inst_draft::MirInstDraft_op(inst)
+        if op == opcodes::MIR_LOOP() {
+            push(stack, i)
+            push(depths, len(stack))
+        }
+        if op == opcodes::MIR_END() {
+            if len(stack) > 0 {
                 let start = pop(stack).unwrap()
                 let depth = pop(depths).unwrap()
                 push(regions, LoopRegion_new(start, i, depth))

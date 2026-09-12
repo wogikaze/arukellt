@@ -1,0 +1,545 @@
+use corehir::mir_value_type
+use corehir::type_id
+
+// Column store for MirInst. Handles are (table, hid). Floats are kept as
+// IEEE-754 bits so compiler-source records do not carry nested f64 fields.
+pub struct MirFloatBits {
+    lo: i32,
+    hi: i32,
+}
+
+pub fn MirFloatBits_new(value: f64) -> MirFloatBits {
+    MirFloatBits {
+        lo: f64_bits_lo(value),
+        hi: f64_bits_hi(value),
+    }
+}
+
+pub fn MirFloatBits_from_parts(lo: i32, hi: i32) -> MirFloatBits {
+    MirFloatBits { lo: lo, hi: hi }
+}
+
+pub fn mir_float_bits_lo(bits: MirFloatBits) -> i32 {
+    bits.lo
+}
+
+pub fn mir_float_bits_hi(bits: MirFloatBits) -> i32 {
+    bits.hi
+}
+
+fn mir_float_bits_byte_to_f64(value: i32) -> f64 {
+    let mut remaining = value
+    let mut bit = 1.0
+    let mut result = 0.0
+    let mut i = 0
+    while i < 8 {
+        if (remaining & 1) == 1 {
+            result = result + bit
+        }
+        remaining = u32_shr(remaining, 1)
+        bit = bit + bit
+        i = i + 1
+    }
+    result
+}
+
+fn mir_float_bits_unsigned_i32_to_f64(value: i32) -> f64 {
+    let byte0 = value & 255
+    let byte1 = u32_shr(value, 8) & 255
+    let byte2 = u32_shr(value, 16) & 255
+    let byte3 = u32_shr(value, 24) & 255
+    mir_float_bits_byte_to_f64(byte0) +
+    mir_float_bits_byte_to_f64(byte1) * 256.0 +
+    mir_float_bits_byte_to_f64(byte2) * 65536.0 +
+    mir_float_bits_byte_to_f64(byte3) * 16777216.0
+}
+
+fn mir_float_bits_pow2(exponent: i32) -> f64 {
+    let mut remaining = if exponent < 0 { 0 - exponent } else { exponent }
+    let mut factor = if exponent < 0 { 0.5 } else { 2.0 }
+    let mut result = 1.0
+    while remaining > 0 {
+        if (remaining & 1) == 1 {
+            result = result * factor
+        }
+        factor = factor * factor
+        remaining = u32_shr(remaining, 1)
+    }
+    result
+}
+
+pub fn mir_float_bits_value(bits: MirFloatBits) -> f64 {
+    let sign = if bits.hi < 0 { 0.0 - 1.0 } else { 1.0 }
+    let exponent = u32_shr(bits.hi & 2147483647, 20) & 2047
+    let mantissa_hi = bits.hi & 1048575
+    let mantissa = mir_float_bits_unsigned_i32_to_f64(mantissa_hi) * 4294967296.0 +
+    mir_float_bits_unsigned_i32_to_f64(bits.lo)
+    if exponent == 2047 {
+        if mantissa == 0.0 {
+            return sign * (1.0 / 0.0)
+        }
+        return 0.0 / 0.0
+    }
+    if exponent == 0 {
+        return sign * (mantissa / 4503599627370496.0) * mir_float_bits_pow2(-1022)
+    }
+    let unbiased_exponent = exponent - 1023
+    sign * (1.0 + mantissa / 4503599627370496.0) * mir_float_bits_pow2(unbiased_exponent)
+}
+
+pub struct MirInstTable {
+    op: Vec<i32>,
+    dest: Vec<i32>,
+    arg0: Vec<i32>,
+    arg1: Vec<i32>,
+    int_val: Vec<i32>,
+    // Interleaved IEEE-754 lo/hi pairs; Vec<struct> is not supported by the
+    // legacy GC emitter used to bootstrap this compiler.
+    float_val: Vec<i32>,
+    string_pool: Vec<String>,
+    metadata: Vec<i32>,
+    result_type_starts: Vec<i32>,
+    result_type_counts: Vec<i32>,
+    // Result types are scalar columns. Reconstruct a MirValueType only at an
+    // API boundary; keeping GC records in the instruction table made every
+    // result-bearing instruction retain a nested object.
+    result_type_ids: Vec<i32>,
+    result_type_reprs: Vec<i32>,
+    result_type_nullabilities: Vec<i32>,
+}
+
+pub fn MirInstTable_new() -> MirInstTable {
+    MirInstTable_new_with_string_pool(Vec::new<String>())
+}
+
+pub fn MirInstTable_new_with_string_pool(string_pool: Vec<String>) -> MirInstTable {
+    MirInstTable {
+        op: Vec::new<i32>(),
+        dest: Vec::new<i32>(),
+        arg0: Vec::new<i32>(),
+        arg1: Vec::new<i32>(),
+        int_val: Vec::new<i32>(),
+        float_val: Vec::new<i32>(),
+        string_pool: string_pool,
+        metadata: Vec::new<i32>(),
+        result_type_starts: Vec::new<i32>(),
+        result_type_counts: Vec::new<i32>(),
+        result_type_ids: Vec::new<i32>(),
+        result_type_reprs: Vec::new<i32>(),
+        result_type_nullabilities: Vec::new<i32>(),
+    }
+}
+
+fn mir_inst_table_intern(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    str_val: String,
+    val_type: i32,
+    func_id_raw: i32,
+    result_types: Vec<MirValueType>
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float(table.float_val, float_val)
+    let string_id = mir_inst_table_string_id(table, str_val)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_result_types(table, result_types)
+    hid
+}
+
+pub fn mir_inst_table_intern_with_str_id(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    string_id: i32,
+    val_type: i32,
+    func_id_raw: i32,
+    result_types: Vec<MirValueType>
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float(table.float_val, float_val)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_result_types(table, result_types)
+    hid
+}
+
+fn mir_inst_table_append_float(values: Vec<i32>, value: f64) {
+    let bits = MirFloatBits_new(value)
+    mir_inst_table_append_float_bits(values, bits)
+}
+
+fn mir_inst_table_append_float_bits(values: Vec<i32>, bits: MirFloatBits) {
+    push(values, mir_float_bits_lo(bits))
+    push(values, mir_float_bits_hi(bits))
+}
+
+fn mir_inst_table_append_result_types(table: MirInstTable, result_types: Vec<MirValueType>) {
+    push(table.result_type_starts, len(table.result_type_ids))
+    push(table.result_type_counts, len(result_types))
+    let mut i = 0
+    while i < len(result_types) {
+        let value_type = get_unchecked(result_types, i)
+        push(table.result_type_ids, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
+        push(table.result_type_reprs, mir_value_type::mir_value_type_repr(value_type))
+        push(table.result_type_nullabilities, mir_value_type::mir_value_type_nullability(value_type))
+        i = i + 1
+    }
+}
+
+pub fn mir_inst_table_intern_with_scalar_result(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    str_val: String,
+    val_type: i32,
+    func_id_raw: i32,
+    result_type_count: i32,
+    result_type_id_raw: i32,
+    result_type_repr: i32,
+    result_type_nullability: i32
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float(table.float_val, float_val)
+    let string_id = mir_inst_table_string_id(table, str_val)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_scalar_result_type(
+        table,
+        result_type_count,
+        result_type_id_raw,
+        result_type_repr,
+        result_type_nullability
+    )
+    hid
+}
+
+pub fn mir_inst_table_intern_with_str_id_scalar_result(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    string_id: i32,
+    val_type: i32,
+    func_id_raw: i32,
+    result_type_count: i32,
+    result_type_id_raw: i32,
+    result_type_repr: i32,
+    result_type_nullability: i32
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float(table.float_val, float_val)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_scalar_result_type(
+        table,
+        result_type_count,
+        result_type_id_raw,
+        result_type_repr,
+        result_type_nullability
+    )
+    hid
+}
+
+pub fn mir_inst_table_intern_with_str_id_scalar_result_bits(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_bits: MirFloatBits,
+    string_id: i32,
+    val_type: i32,
+    func_id_raw: i32,
+    result_type_count: i32,
+    result_type_id_raw: i32,
+    result_type_repr: i32,
+    result_type_nullability: i32
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float_bits(table.float_val, float_bits)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_scalar_result_type(
+        table,
+        result_type_count,
+        result_type_id_raw,
+        result_type_repr,
+        result_type_nullability
+    )
+    hid
+}
+
+pub fn mir_inst_table_intern_with_str_id_bits(
+    table: MirInstTable,
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_bits: MirFloatBits,
+    string_id: i32,
+    val_type: i32,
+    func_id_raw: i32,
+    result_types: Vec<MirValueType>
+) -> i32 {
+    let hid = len(table.op)
+    push(table.op, op)
+    push(table.dest, dest)
+    push(table.arg0, arg0)
+    push(table.arg1, arg1)
+    push(table.int_val, int_val)
+    mir_inst_table_append_float_bits(table.float_val, float_bits)
+    push(table.metadata, string_id)
+    push(table.metadata, val_type)
+    push(table.metadata, func_id_raw)
+    mir_inst_table_append_result_types(table, result_types)
+    hid
+}
+
+fn mir_inst_table_append_scalar_result_type(
+    table: MirInstTable,
+    result_type_count: i32,
+    result_type_id_raw: i32,
+    result_type_repr: i32,
+    result_type_nullability: i32
+) {
+    push(table.result_type_starts, len(table.result_type_ids))
+    push(table.result_type_counts, result_type_count)
+    if result_type_count <= 0 {
+        return
+    }
+    push(table.result_type_ids, result_type_id_raw)
+    push(table.result_type_reprs, result_type_repr)
+    push(table.result_type_nullabilities, result_type_nullability)
+}
+
+pub fn mir_inst_table_op(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.op, hid)
+}
+
+pub fn mir_inst_table_dest(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.dest, hid)
+}
+
+pub fn mir_inst_table_arg0(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.arg0, hid)
+}
+
+pub fn mir_inst_table_arg1(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.arg1, hid)
+}
+
+pub fn mir_inst_table_int_val(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.int_val, hid)
+}
+
+pub fn mir_inst_table_float_val(table: MirInstTable, hid: i32) -> f64 {
+    let offset = hid * 2
+    let bits = MirFloatBits_from_parts(
+        get_unchecked(table.float_val, offset),
+        get_unchecked(table.float_val, offset + 1)
+    )
+    mir_float_bits_value(bits)
+}
+
+pub fn mir_inst_table_count(table: MirInstTable) -> i32 {
+    len(table.op)
+}
+
+// Reuse one decoded table across function-at-a-time emission. Truncating the
+// columns keeps their capacity while releasing the previous function's
+// handles and scalar values before the next body is decoded.
+pub fn mir_inst_table_reset(table: MirInstTable) {
+    while len(table.op) > 0 { pop(table.op) }
+    while len(table.dest) > 0 { pop(table.dest) }
+    while len(table.arg0) > 0 { pop(table.arg0) }
+    while len(table.arg1) > 0 { pop(table.arg1) }
+    while len(table.int_val) > 0 { pop(table.int_val) }
+    while len(table.float_val) > 0 { pop(table.float_val) }
+    while len(table.metadata) > 0 { pop(table.metadata) }
+    while len(table.result_type_starts) > 0 { pop(table.result_type_starts) }
+    while len(table.result_type_counts) > 0 { pop(table.result_type_counts) }
+    while len(table.result_type_ids) > 0 { pop(table.result_type_ids) }
+    while len(table.result_type_reprs) > 0 { pop(table.result_type_reprs) }
+    while len(table.result_type_nullabilities) > 0 { pop(table.result_type_nullabilities) }
+}
+
+pub fn mir_inst_table_set_string_pool(table: MirInstTable, string_pool: Vec<String>) {
+    table.string_pool = string_pool
+}
+
+pub fn mir_inst_table_str_val(table: MirInstTable, hid: i32) -> String {
+    let string_id = get_unchecked(table.metadata, hid * 3)
+    if string_id < 0 || string_id >= len(table.string_pool) {
+        return String_new()
+    }
+    clone(get_unchecked(table.string_pool, string_id))
+}
+
+pub fn mir_inst_table_str_id(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.metadata, hid * 3)
+}
+
+pub fn mir_inst_table_val_type(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.metadata, hid * 3 + 1)
+}
+
+pub fn mir_inst_table_func_id_raw(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.metadata, hid * 3 + 2)
+}
+
+fn mir_inst_table_result_types(table: MirInstTable, hid: i32) -> Vec<MirValueType> {
+    let result = Vec::new<MirValueType>()
+    let start = get_unchecked(table.result_type_starts, hid)
+    let count = get_unchecked(table.result_type_counts, hid)
+    let mut i = 0
+    while i < count {
+        push(
+            result,
+            MirValueType_new_from_columns(
+                get_unchecked(table.result_type_ids, start + i),
+                get_unchecked(table.result_type_reprs, start + i),
+                get_unchecked(table.result_type_nullabilities, start + i)
+            )
+        )
+        i = i + 1
+    }
+    result
+}
+
+pub fn mir_inst_table_result_type_count(table: MirInstTable, hid: i32) -> i32 {
+    get_unchecked(table.result_type_counts, hid)
+}
+
+pub fn mir_inst_table_result_type_at(table: MirInstTable, hid: i32, index: i32) -> MirValueType {
+    let start = get_unchecked(table.result_type_starts, hid)
+    MirValueType_new_from_columns(
+        get_unchecked(table.result_type_ids, start + index),
+        get_unchecked(table.result_type_reprs, start + index),
+        get_unchecked(table.result_type_nullabilities, start + index)
+    )
+}
+
+fn MirValueType_new_from_columns(type_id_raw: i32, repr: i32, nullability: i32) -> MirValueType {
+    mir_value_type::MirValueType_new(type_id::TypeId_new(type_id_raw), repr, nullability)
+}
+
+fn mir_inst_table_set_dest(table: MirInstTable, hid: i32, dest: i32) {
+    set(table.dest, hid, dest)
+}
+
+fn mir_inst_table_set_arg0(table: MirInstTable, hid: i32, arg0: i32) {
+    set(table.arg0, hid, arg0)
+}
+
+fn mir_inst_table_set_arg1(table: MirInstTable, hid: i32, arg1: i32) {
+    set(table.arg1, hid, arg1)
+}
+
+fn mir_inst_table_set_str_val(table: MirInstTable, hid: i32, str_val: String) {
+    let string_id = mir_inst_table_string_id(table, str_val)
+    set(table.metadata, hid * 3, string_id)
+}
+
+fn mir_inst_table_set_str_id(table: MirInstTable, hid: i32, string_id: i32) {
+    set(table.metadata, hid * 3, string_id)
+}
+
+fn mir_inst_table_string_id(table: MirInstTable, value: String) -> i32 {
+    if len(value) == 0 {
+        return 0 - 1
+    }
+    let mut i = 0
+    while i < len(table.string_pool) {
+        if eq(clone(get_unchecked(table.string_pool, i)), clone(value)) {
+            return i
+        }
+        i = i + 1
+    }
+    let string_id = len(table.string_pool)
+    push(table.string_pool, value)
+    string_id
+}
+
+fn mir_inst_table_set_func_id_raw(table: MirInstTable, hid: i32, func_id_raw: i32) {
+    set(table.metadata, hid * 3 + 2, func_id_raw)
+}
+
+fn mir_inst_table_set_result_types(table: MirInstTable, hid: i32, result_types: Vec<MirValueType>) {
+    let old_start = get_unchecked(table.result_type_starts, hid)
+    let old_count = get_unchecked(table.result_type_counts, hid)
+    let new_count = len(result_types)
+    if old_count == new_count {
+        let mut i = 0
+        while i < new_count {
+            let value_type = get_unchecked(result_types, i)
+            set(table.result_type_ids, old_start + i, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
+            set(table.result_type_reprs, old_start + i, mir_value_type::mir_value_type_repr(value_type))
+            set(table.result_type_nullabilities, old_start + i, mir_value_type::mir_value_type_nullability(value_type))
+            i = i + 1
+        }
+        return
+    }
+    set(table.result_type_starts, hid, len(table.result_type_ids))
+    set(table.result_type_counts, hid, new_count)
+    let mut i = 0
+    while i < new_count {
+        let value_type = get_unchecked(result_types, i)
+        push(table.result_type_ids, type_id::TypeId_raw(mir_value_type::mir_value_type_type_id(value_type)))
+        push(table.result_type_reprs, mir_value_type::mir_value_type_repr(value_type))
+        push(table.result_type_nullabilities, mir_value_type::mir_value_type_nullability(value_type))
+        i = i + 1
+    }
+}
+
+fn mir_inst_table_set_val_type(table: MirInstTable, hid: i32, val_type: i32) {
+    set(table.metadata, hid * 3 + 1, val_type)
+}

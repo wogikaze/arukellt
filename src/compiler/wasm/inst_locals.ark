@@ -16,14 +16,12 @@ use wasm::code_ref_locals_block_scan
 use mir::value_types
 
 fn emit_local_get(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
+    writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg0(inst))
 }
 
 fn emit_local_set(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst_accessors_operands::MirInst_arg1(inst) >= 0 {
-        writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-        writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg1(inst))
+        writer_core::emit_local_get(w, inst_accessors_operands::MirInst_arg1(inst))
     }
     emit_gc_ref_cast_to_local(w, inst, ctx)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())

@@ -1,0 +1,60 @@
+use collections::name_index
+use corehir::frontend_ast_children
+use corehir::frontend_ast_identity
+use corehir::frontend_expr_kind
+
+fn mir_prefilter_mark(index: NameIndex, name: String) {
+    if len(name) == 0 {
+        return
+    }
+    if name_index::name_index_get(index, clone(name)) >= 0 {
+        return
+    }
+    name_index::name_index_insert_first(index, name, 1)
+}
+
+fn mir_prefilter_mark_calls(node: AstNode, index: NameIndex) {
+    let kind = frontend_ast_identity::corehir_node_kind(node)
+    // Call/method node text is often empty; the callee is an ident/path child.
+    if frontend_expr_kind::corehir_kind_is_expr_ident(kind) ||
+    frontend_expr_kind::corehir_kind_is_expr_path(kind) ||
+    frontend_expr_kind::corehir_kind_is_expr_call(kind) ||
+    frontend_expr_kind::corehir_kind_is_expr_method_call(kind) {
+        mir_prefilter_mark(index, frontend_ast_identity::corehir_node_text(node))
+    }
+    let child_count = frontend_ast_children::corehir_node_child_count(node)
+    let mut ci = 0
+    while ci < child_count {
+        mir_prefilter_mark_calls(frontend_ast_children::corehir_node_child_at(node, ci), index)
+        ci = ci + 1
+    }
+}
+
+fn mir_prefilter_build(decl_nodes: Vec<AstNode>, export_roots: Vec<String>, enabled: bool) -> NameIndex {
+    let index = name_index::NameIndex_new(len(decl_nodes) + 8)
+    if !enabled {
+        return index
+    }
+    mir_prefilter_mark(index, String_from("main"))
+    mir_prefilter_mark(index, String_from("_start"))
+    let n = len(export_roots)
+    let mut i = 0
+    while i < n {
+        mir_prefilter_mark(index, clone(get_unchecked(export_roots, i)))
+        i = i + 1
+    }
+    let decl_count = len(decl_nodes)
+    let mut di = 0
+    while di < decl_count {
+        mir_prefilter_mark_calls(get_unchecked(decl_nodes, di), index)
+        di = di + 1
+    }
+    index
+}
+
+fn mir_prefilter_named(index: NameIndex, enabled: bool, name: String) -> bool {
+    if !enabled {
+        return true
+    }
+    name_index::name_index_get(index, name) >= 0
+}

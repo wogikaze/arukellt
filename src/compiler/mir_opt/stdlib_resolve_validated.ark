@@ -36,7 +36,7 @@ fn stdlib_resolve_normal_calls_validated(m: MirModule) -> i32 {
             ) {
                 total = total + resolved
             } else {
-                block_inst_mutation::MirBlock_set_instructions(block, before)
+                block_inst_mutation::MirBlock_set_from_refs(block, before)
                 failures = failures + 1
             }
             block_index = block_index + 1

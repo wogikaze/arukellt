@@ -1,11 +1,39 @@
 use mir::opcodes
 use mir::phi_record
-use mir::inst_record
+
+pub struct MirFloatBox {
+    value: f64,
+}
+
+fn MirFloatBox_new(value: f64) -> MirFloatBox {
+    MirFloatBox { value: value }
+}
+
+fn mir_float_box_value(cell: MirFloatBox) -> f64 {
+    cell.value
+}
+
+fn mir_float_box_set_value(cell: MirFloatBox, value: f64) {
+    cell.value = value
+}
 
 pub struct MirBlock {
     id: i32,
     phis: Vec<MirPhi>,
-    instructions: Vec<MirInst>,
+    inst_count: i32,
+    ops: Vec<i32>,
+    dests: Vec<i32>,
+    arg0s: Vec<i32>,
+    arg1s: Vec<i32>,
+    int_vals: Vec<i32>,
+    float_vals: Vec<MirFloatBox>,
+    str_ids: Vec<i32>,
+    val_types: Vec<i32>,
+    func_ids: Vec<i32>,
+    type_ids: Vec<i32>,
+    type_reprs: Vec<i32>,
+    type_nulls: Vec<i32>,
+    str_pool: Vec<String>,
     terminator: i32,
     succ0: i32,
     succ1: i32,
@@ -19,13 +47,26 @@ fn MirBlock_new(id: i32) -> MirBlock {
     MirBlock {
         id: id,
         phis: Vec::new<MirPhi>(),
-        instructions: Vec::new<MirInst>(),
+        inst_count: 0,
+        ops: Vec::new<i32>(),
+        dests: Vec::new<i32>(),
+        arg0s: Vec::new<i32>(),
+        arg1s: Vec::new<i32>(),
+        int_vals: Vec::new<i32>(),
+        float_vals: Vec::new<MirFloatBox>(),
+        str_ids: Vec::new<i32>(),
+        val_types: Vec::new<i32>(),
+        func_ids: Vec::new<i32>(),
+        type_ids: Vec::new<i32>(),
+        type_reprs: Vec::new<i32>(),
+        type_nulls: Vec::new<i32>(),
+        str_pool: Vec::new<String>(),
         terminator: opcodes::MIR_RETURN(),
         succ0: 0 - 1,
         succ1: 0 - 1,
         preds: Vec::new<i32>(),
         idom: 0 - 1,
         dom_set: Vec::new<i32>(),
-        dom_frontier: Vec::new<i32>()
+        dom_frontier: Vec::new<i32>(),
     }
 }

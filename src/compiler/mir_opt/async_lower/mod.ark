@@ -1,8 +1,8 @@
 use mir::block_inst_access
 use mir::block_inst_mutation
 use mir::function_block_queries
-use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_draft
 use mir::inst_factory
 use mir::module_functions
 use mir::opcodes
@@ -51,20 +51,20 @@ fn lower_async_ops(f: MirFunction) -> MirFunction {
     let mut bi = 0
     while bi < block_count {
         let block = function_block_queries::MirFunction_block_at(f, bi)
-        let before = block_inst_access::MirBlock_instructions(block)
-        let filtered = Vec::new<MirInst>()
+        let before = block_inst_access::MirBlock_export_drafts(block)
+        let filtered = Vec::new<MirInstDraft>()
         let mut ii = 0
         while ii < len(before) {
             let inst = get_unchecked(before, ii)
-            let op = inst_accessors_shape::MirInst_op(inst)
+            let op = inst_draft::MirInstDraft_op(inst)
             if op == opcodes::MIR_AWAIT() || op == opcodes::MIR_FUTURE_NEW() {
                 push(
                     filtered,
                     inst_factory::MirInst_full(
                         opcodes::MIR_LOCAL_SET(),
                         0 - 1,
-                        inst_accessors_operands::MirInst_dest(inst),
-                        inst_accessors_operands::MirInst_arg0(inst),
+                        inst_draft::MirInstDraft_dest(inst),
+                        inst_draft::MirInstDraft_arg0(inst),
                         0,
                         0.0,
                         String_new(),

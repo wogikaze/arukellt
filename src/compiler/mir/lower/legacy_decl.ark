@@ -1,4 +1,5 @@
 use corehir::decl_entry_shape
+use corehir::frontend_ast_node
 use mir::lower::legacy_body
 
 struct MirLowerLegacyDecl {
@@ -19,4 +20,16 @@ fn mir_legacy_decl_self_body(decl: MirLowerLegacyDecl) -> MirLowerLegacyBody {
 
 fn mir_legacy_decl_method_at(decl: MirLowerLegacyDecl, method_index: i32) -> MirLowerLegacyDecl {
     mir_legacy_decl_from_node(decl_entry_shape::decl_entry_impl_method_at(decl.node, method_index))
+}
+
+fn mir_legacy_decl_release_body(decl: MirLowerLegacyDecl, body_idx: i32) {
+    frontend_ast_node::corehir_node_release_child(decl.node, body_idx)
+}
+
+fn mir_legacy_decl_release_method_body(decl: MirLowerLegacyDecl, method_index: i32, body_idx: i32) {
+    if method_index < 0 || method_index >= frontend_ast_node::corehir_node_child_count(decl.node) {
+        return
+    }
+    let method = decl_entry_shape::decl_entry_impl_method_at(decl.node, method_index)
+    mir_legacy_decl_release_body(mir_legacy_decl_from_node(method), body_idx)
 }

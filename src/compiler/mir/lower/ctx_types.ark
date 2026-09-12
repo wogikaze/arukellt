@@ -31,10 +31,21 @@ pub struct LowerCtx {
     struct_field_counts: Vec<i32>,
     struct_all_fields: Vec<String>,
     struct_field_types: Vec<String>,
+    // struct_names[i] -> i for the first layout with that name, and the
+    // field offset (prefix sum of struct_field_counts) of every layout.
+    struct_layout_first_index: NameIndex,
+    struct_layout_field_offsets: Vec<i32>,
+    // type_name -> resolved layout name memo (ctx_struct_layout); reset on
+    // every ctx_struct_push_layout because registration can change the answer.
+    struct_layout_name_memo: NameIndex,
+    struct_layout_name_memo_values: Vec<String>,
     local_types: Vec<String>,
     local_type_indices: Vec<i32>,
     variant_names: Vec<String>,
     variant_tags: Vec<i32>,
+    // name -> first variant index; Enum::Variant key -> longest registered name's index.
+    variant_name_first: NameIndex,
+    variant_key_best: NameIndex,
     payload_variants: Vec<String>,
     closure_counter: i32,
     closure_last_synth: String,
@@ -55,6 +66,13 @@ pub struct LowerCtx {
     mono_call_sources: Vec<String>,
     mono_call_name_targets: Vec<String>,
     mono_call_used: Vec<i32>,
+    // Name rewrites sharing one bare source (`mono_bare_source`) form a
+    // forward chain: head/tail indexed by bare source, next per rewrite.
+    // Every CALL lowering asks "unused rewrite for this source?", which was a
+    // linear scan over every rewrite with a substring per candidate.
+    mono_call_bare_head: NameIndex,
+    mono_call_bare_tail: NameIndex,
+    mono_call_bare_next: Vec<i32>,
     wit_call_names: Vec<String>,
     wit_call_iface_ids: Vec<String>,
     wit_call_func_names: Vec<String>,

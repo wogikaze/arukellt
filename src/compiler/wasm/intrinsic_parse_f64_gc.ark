@@ -32,8 +32,7 @@ fn emit_parse_f64_gc_init_state(w: WasmWriter, s_str: i32, s_len_local: i32) {
     // Same layout as LM emit_parse_f64_source: data ptr on stack, length at ptr-4.
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_str)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_str)
+    writer_core::emit_local_get(w, s_str)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 4)
     writer_core::emit_byte(w, opcodes::OP_I32_SUB())
@@ -76,8 +75,7 @@ fn emit_parse_f64_gc_store_i32_flag(w: WasmWriter, addr: i32, value: i32) {
 }
 
 fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i32) {
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_len_local)
+    writer_core::emit_local_get(w, s_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
@@ -91,8 +89,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
     writer_core::emit_byte(w, opcodes::OP_I32_EQZ())
     writer_core::emit_byte(w, opcodes::OP_IF())
     writer_core::emit_byte(w, 64)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_str)
+    writer_core::emit_local_get(w, s_str)
     writer_core::emit_byte(w, opcodes::OP_I32_LOAD8_U())
     writer_core::emit_byte(w, 0)
     writer_core::emit_byte(w, 0)
@@ -103,8 +100,7 @@ fn emit_parse_f64_gc_prefix_validation(w: WasmWriter, s_str: i32, s_len_local: i
     writer_core::emit_byte(w, 64)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_NEG(), 1)
     emit_parse_f64_gc_store_i32_flag(w, constants::SCRATCH_P_I(), 1)
-    writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-    writer_core::emit_leb128_u(w, s_len_local)
+    writer_core::emit_local_get(w, s_len_local)
     writer_core::emit_byte(w, opcodes::OP_I32_CONST())
     writer_core::emit_leb128_s(w, 1)
     writer_core::emit_byte(w, opcodes::OP_I32_LE_U())

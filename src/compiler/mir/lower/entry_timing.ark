@@ -36,6 +36,30 @@ fn mir_lower_phase_note(enabled: i32, label: String, t_start: i64, t_end: i64) {
     )
 }
 
+fn mir_lower_gc_late_note(enabled: i32, late_structs: i32, late_enums: i32) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            "[arukellt] lower.gc_late: structs=",
+            concat(to_string(late_structs), concat(" enums=", to_string(late_enums)))
+        )
+    )
+}
+
+fn mir_lower_prefilter_note(enabled: i32, keep: i32, skip: i32) {
+    if enabled == 0 {
+        return
+    }
+    stdio::eprintln(
+        concat(
+            "[arukellt] lower.prefilter: would_keep=",
+            concat(to_string(keep), concat(" would_skip=", to_string(skip)))
+        )
+    )
+}
+
 fn mir_lower_phase_fns(enabled: i32, before: i32, after: i32) {
     if enabled == 0 {
         return

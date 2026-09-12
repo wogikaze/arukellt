@@ -25,8 +25,7 @@ fn emit_return_with_prev(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, prev_op
     if ret_local >= 0 {
         let already_on_stack = prev_op == mir_opcodes::MIR_LOCAL_GET() && prev_arg0 == ret_local
         if !already_on_stack {
-            writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-            writer_core::emit_leb128_u(w, ret_local)
+            writer_core::emit_local_get(w, ret_local)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
         } else {
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, ret_local)
@@ -104,8 +103,7 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 writer_core::emit_leb128_u(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I64_CONST())
                 writer_core::emit_leb128_s(w, 0)
-                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-                writer_core::emit_leb128_u(w, scratch)
+                writer_core::emit_local_get(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I64_SUB())
             } else {
                 let scratch = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -113,8 +111,7 @@ fn emit_neg(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 writer_core::emit_leb128_u(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I32_CONST())
                 writer_core::emit_leb128_s(w, 0)
-                writer_core::emit_byte(w, opcodes::OP_LOCAL_GET())
-                writer_core::emit_leb128_u(w, scratch)
+                writer_core::emit_local_get(w, scratch)
                 writer_core::emit_byte(w, opcodes::OP_I32_SUB())
             }
         }

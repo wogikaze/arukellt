@@ -1,5 +1,6 @@
 use corehir::signature_registry
 use corehir::type_table
+use mir::block_record
 use mir::function_core_record
 use mir::gc_layout_plan
 use mir::lower::mono_instance_table
@@ -17,6 +18,9 @@ pub struct MirModule {
     type_table: TypeTable,
     signature_registry: SignatureRegistry,
     mono_instance_table: MonoInstanceTable,
+    // Live count into block_pool. Walk 0..used only. No pop of Vec<MirBlock>.
+    block_pool: Vec<MirBlock>,
+    block_pool_used: i32,
 }
 
 fn MirModule_new() -> MirModule {
@@ -32,6 +36,8 @@ fn MirModule_new() -> MirModule {
         spine_populated: false,
         type_table: type_table::TypeTable_new(),
         signature_registry: signature_registry::SignatureRegistry_new(),
-        mono_instance_table: mono_instance_table::MonoInstanceTable_new()
+        mono_instance_table: mono_instance_table::MonoInstanceTable_new(),
+        block_pool: Vec::new<MirBlock>(),
+        block_pool_used: 0
     }
 }

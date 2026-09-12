@@ -1,5 +1,7 @@
 """FNV-1a + open addressing that matches the Ark NameIndex probe."""
 
+from ark_table_blob import emit_i32_table
+
 
 def ark_i32(n: int) -> int:
     n &= 0xFFFFFFFF
@@ -47,17 +49,10 @@ def build_buckets(keys: list[str]) -> list[int]:
 def emit_lookup_fn(fn_name: str, key_at_fn: str, bucket_fn: str, keys: list[str]) -> list[str]:
     buckets = build_buckets(keys)
     capacity = len(buckets)
-    lines = [
-        f"fn {bucket_fn}(slot: i32) -> i32 {{",
-    ]
-    for slot, index in enumerate(buckets):
-        if index >= 0:
-            lines.append(f"    if slot == {slot} {{ return {index} }}")
+    table_name = bucket_fn[:-3] if bucket_fn.endswith("_at") else bucket_fn
+    lines = emit_i32_table(table_name, buckets, default=-1)
     lines.extend(
         [
-            "    return 0 - 1",
-            "}",
-            "",
             f"fn {fn_name}(name: String) -> i32 {{",
             f"    let capacity = {capacity}",
             "    let fnv_offset = 216613626",

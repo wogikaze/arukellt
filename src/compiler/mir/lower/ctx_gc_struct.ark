@@ -96,10 +96,18 @@ fn ctx_gc_struct_slot(ctx: LowerCtx, struct_name: String) -> i32 {
     }
     0 - 1
 }
+fn ctx_gc_struct_count(ctx: LowerCtx) -> i32 {
+    len(ctx.gc_struct_names)
+}
+
 fn ctx_flush_gc_structs(ctx: LowerCtx) {
+    ctx_flush_gc_structs_from(ctx, 0)
+}
+
+fn ctx_flush_gc_structs_from(ctx: LowerCtx, start: i32) {
     let m = ctx.module
     let count = len(ctx.gc_struct_names)
-    let mut i = 0
+    let mut i = start
     while i < count {
         module_gc_struct::MirModule_push_gc_struct(m, clone(get_unchecked(ctx.gc_struct_names, i)), clone(get_unchecked(ctx.gc_struct_sigs, i)))
         i = i + 1

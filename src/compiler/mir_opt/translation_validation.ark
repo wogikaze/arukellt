@@ -1,8 +1,10 @@
 use corehir::mir_value_type
 use corehir::type_id
+use mir::block_inst_access
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
 use mir::inst_accessors_shape
+use mir::inst_draft
 use mir::inst_record
 use mir::types
 
@@ -12,6 +14,31 @@ fn mir_translation_value_type_equal(a: MirValueType, b: MirValueType) -> bool {
     mir_value_type::mir_value_type_repr(a) == mir_value_type::mir_value_type_repr(b) &&
     mir_value_type::mir_value_type_nullability(a) ==
     mir_value_type::mir_value_type_nullability(b)
+}
+
+fn mir_translation_draft_equal(a: MirInstDraft, b: MirInstDraft) -> bool {
+    if inst_draft::MirInstDraft_op(a) != inst_draft::MirInstDraft_op(b) {
+        return false
+    }
+    if inst_draft::MirInstDraft_dest(a) != inst_draft::MirInstDraft_dest(b) ||
+    inst_draft::MirInstDraft_arg0(a) != inst_draft::MirInstDraft_arg0(b) ||
+    inst_draft::MirInstDraft_arg1(a) != inst_draft::MirInstDraft_arg1(b) {
+        return false
+    }
+    if inst_draft::MirInstDraft_int_val(a) != inst_draft::MirInstDraft_int_val(b) ||
+    inst_draft::MirInstDraft_float_val(a) != inst_draft::MirInstDraft_float_val(b) ||
+    !eq(inst_draft::MirInstDraft_str_val(a), inst_draft::MirInstDraft_str_val(b)) {
+        return false
+    }
+    if inst_draft::MirInstDraft_val_type(a) != inst_draft::MirInstDraft_val_type(b) ||
+    inst_draft::MirInstDraft_func_id_raw(a) != inst_draft::MirInstDraft_func_id_raw(b) {
+        return false
+    }
+    true
+}
+
+fn mir_translation_inst_equals_draft(a: MirInst, b: MirInstDraft) -> bool {
+    mir_translation_draft_equal(block_inst_access::MirInst_as_draft(a), b)
 }
 
 fn mir_translation_inst_equal(a: MirInst, b: MirInst) -> bool {

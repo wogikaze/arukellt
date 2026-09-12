@@ -1,5 +1,10 @@
+use std::host::clock
+use std::host::stdio
 use wasm::code
+use wasm::ctx_gc_type
+use wasm::ctx_record
 use wasm::emit_target
+use wasm::sections_memory
 use wasm::wasm_context
 use wasm::wasm_start
 use wasm::strings
@@ -14,6 +19,32 @@ use mir::module_gc_struct
 use mir::module_gc_enum
 use mir::module_spine
 
+fn emit_section_note(enabled: i32, label: String, t_start: i64) -> i64 {
+    let t_end = clock::monotonic_now()
+    if enabled == 0 {
+        return t_end
+    }
+    let diff = t_end - t_start
+    let ms = if diff < 0i64 { 0 } else { i64_to_i32(diff / 1000000i64) }
+    stdio::eprintln(
+        concat(
+            "[arukellt] emit.",
+            concat(clone(label), concat(": ", concat(to_string(ms), "ms")))
+        )
+    )
+    t_end
+}
+
+fn string_literal_cache_global(ctx: SelfEmitCtx, strings: EmitStringTablePlan) -> GcStringLiteralCacheGlobal {
+    if !emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return sections_memory::gc_string_literal_cache_none()
+    }
+    sections_memory::gc_string_literal_cache(
+        ctx_gc_type::SelfEmitCtx_string_array_type(ctx),
+        len(strings::EmitStringTablePlan_offsets(strings))
+    )
+}
+
 fn emit_wasm_module_sections(
     out: WasmWriter,
     mir: MirModule,
@@ -22,11 +53,14 @@ fn emit_wasm_module_sections(
     opt_level: i32,
     strip_debug: bool,
     bindings: Vec<resolver::wit_import_bind::WitImportBinding>,
-    source_file: String
+    source_file: String,
+    report_timing: i32
 ) {
+    let mut t_phase = clock::monotonic_now()
     let fn_count = module_functions::MirModule_function_count(mir)
     let functions = module_functions::MirModule_functions(mir)
     let strings = strings::prepare_string_table(mir)
+    t_phase = emit_section_note(report_timing, "strings", t_phase)
     // Legacy name kept while bootstrap overlay matches this symbol; means
     // "emit WIT-shaped HTTP/TCP guest imports" (not the retired arukellt_host module).
     let needs_runtime_host = if emit_target::is_p2_wasi(clone(wasi_version)) { 1 } else { module_functions::mir_module_needs_runtime_host(mir) }
@@ -47,6 +81,7 @@ fn emit_wasm_module_sections(
         bindings,
         gc_layout
     )
+    t_phase = emit_section_note(report_timing, "types", t_phase)
     let mut ctx = wasm_context::emit_wasm_context_new(
         functions,
         strings,
@@ -66,6 +101,10 @@ fn emit_wasm_module_sections(
     wasm_context::emit_wasm_context_set_gc_struct_names(ctx, module_gc_struct::MirModule_gc_struct_names(mir))
     wasm_context::emit_wasm_context_set_gc_struct_sigs(ctx, module_gc_struct::MirModule_gc_struct_sigs(mir))
     wasm_context::emit_wasm_context_set_fn_type_map(ctx, wasm_sections_facade::type_plan_fn_type_map(type_plan))
+    wasm_context::emit_wasm_context_set_fn_type_refs(
+        ctx,
+        wasm_sections_facade::type_plan_fn_type_refs(type_plan)
+    )
     wasm_context::emit_wasm_context_set_signature_spine(
         ctx,
         module_spine::MirModule_signature_registry(mir),
@@ -87,13 +126,20 @@ fn emit_wasm_module_sections(
     wasm_sections_facade::emit_function_section(out, fn_count, wasm_sections_facade::type_plan_fn_type_map(type_plan), needs_wrapper, wasm_sections_facade::type_plan_wrapper_type_idx(type_plan))
     wasm_sections_facade::emit_table_section(out, mir)
     wasm_sections_facade::emit_memory_section(out, clone(target))
-    wasm_sections_facade::emit_global_section(out, strings::EmitStringTablePlan_data_offset(strings))
+    wasm_sections_facade::emit_global_section(
+        out,
+        strings::EmitStringTablePlan_data_offset(strings),
+        string_literal_cache_global(ctx, strings)
+    )
     let main_idx = wasm_start::wasm_module_start_function_index(mir, fn_count)
     wasm_sections_facade::emit_export_section(out, mir, fn_count, needs_wrapper, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
     wasm_sections_facade::emit_element_section(out, mir, clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
-    code::emit_code_section(out, functions, fn_count, needs_wrapper, main_idx, ctx, bindings)
+    t_phase = emit_section_note(report_timing, "pre_code", t_phase)
+    code::emit_code_section(out, mir, functions, fn_count, needs_wrapper, main_idx, ctx, bindings, report_timing)
+    t_phase = emit_section_note(report_timing, "code", t_phase)
     let import_count = emit_target::total_import_count(clone(target), clone(wasi_version), needs_runtime_host, needs_wasi_http_outgoing, wit_import_count)
     wasm_sections_facade::emit_tail_sections(out, ctx, strings, opt_level, import_count, strip_debug, source_file)
+    emit_section_note(report_timing, "tail", t_phase)
     registry_return_audit::registry_audit_print_summary(ctx)
     core_op_shadow::core_op_shadow_print_summary(ctx)
     gc_layout_audit::gc_layout_audit_print_summary(ctx)

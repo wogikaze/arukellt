@@ -2,14 +2,12 @@ use corehir::function_id
 use corehir::signature_registry
 use corehir::core_op_binding
 use corehir::core_op_id
-use mir::inst_record
-use mir::inst_accessors_literals
-use mir::inst_accessors_shape
+use mir::inst_draft
 use mir::opcodes
 use mir::lower::ctx_current_storage
 use mir::module_spine
 
-fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: String) -> MirInst {
+fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInstDraft, symbol: String) -> MirInstDraft {
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     if !module_spine::MirModule_signature_spine_populated(m) {
         return inst
@@ -29,15 +27,15 @@ fn mir_inst_attach_func_id_for_symbol(ctx: LowerCtx, inst: MirInst, symbol: Stri
         }
     }
     if function_id::function_id_is_valid(fid) {
-        return inst_record::mir_inst_with_func_id_raw(inst, function_id::FunctionId_raw(fid))
+        return inst_draft::MirInstDraft_with_func_id_raw(inst, function_id::FunctionId_raw(fid))
     }
     inst
 }
 
-fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, inst: MirInst) -> MirInst {
-    let op = inst_accessors_shape::MirInst_op(inst)
+fn mir_inst_attach_func_id_if_call(ctx: LowerCtx, inst: MirInstDraft) -> MirInstDraft {
+    let op = inst_draft::MirInstDraft_op(inst)
     if op != opcodes::MIR_CALL() && op != opcodes::MIR_REF_FUNC() {
         return inst
     }
-    mir_inst_attach_func_id_for_symbol(ctx, inst, inst_accessors_literals::MirInst_str_val(inst))
+    mir_inst_attach_func_id_for_symbol(ctx, inst, inst_draft::MirInstDraft_str_val(inst))
 }

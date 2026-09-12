@@ -45,6 +45,26 @@ fn corehir_body_table_release_bodies(table: CoreHirBodyTable) {
     table.method_body_roots = Vec::new<i32>()
 }
 
+fn corehir_body_table_release(table: CoreHirBodyTable) {
+    table.schema_version = 0
+    table.exprs = Vec::new<CoreHirExpr>()
+    table.fn_body_roots = Vec::new<i32>()
+    table.method_body_roots = Vec::new<i32>()
+    table.fn_contract_starts = Vec::new<i32>()
+    table.fn_contract_counts = Vec::new<i32>()
+    table.contract_roots = Vec::new<i32>()
+    table.contract_kinds = Vec::new<String>()
+    table.contract_result_names = Vec::new<String>()
+}
+
+// The lazy lowering scratch table never stores contracts. Keep those empty
+// vectors allocated across bodies and reset only the expression forest.
+fn corehir_body_table_reset_body(table: CoreHirBodyTable) {
+    table.exprs = Vec::new<CoreHirExpr>()
+    table.fn_body_roots = Vec::new<i32>()
+    table.method_body_roots = Vec::new<i32>()
+}
+
 // Compatibility for proof renderers. This is not an alias to frozen storage:
 // every expression and every children vector is reconstructed into a new Vec.
 fn corehir_body_table_exprs(table: CoreHirBodyTable) -> Vec<CoreHirExpr> {

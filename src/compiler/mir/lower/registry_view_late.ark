@@ -1,6 +1,10 @@
+use corehir::expr_access_children
+use corehir::expr_access_types
+use corehir::mir_body_source
 use corehir::mir_type_source
 use corehir::type_contracts
 use mir::lower::aggregate_tuple
+use mir::lower::core_expr_shape_aggregate
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_gc_enum_sig
@@ -23,13 +27,46 @@ fn mir_register_view_late_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
     let ts = corehir_mod::view_type_source(view)
     register_typed_fn_late_gc_types(ctx, ts)
     register_mono_late_gc_types(ctx, ts)
+    register_body_tuple_gc_types(ctx, view)
     // Body tuple literals are not in signatures. Tick 166 left
-    // tuple:String,String late. Only fill it when this view already
-    // registered some other tuple (hello has none).
-    register_body_only_string_string_tuple(ctx)
+    // tuple:String,String late. Only fill known leftovers when this
+    // view already registered some other tuple (hello has none).
+    register_body_only_known_tuples(ctx)
 }
 
-fn register_body_only_string_string_tuple(ctx: LowerCtx) {
+fn register_body_tuple_gc_types(ctx: LowerCtx, view: CoreHirMirView) {
+    let body = corehir_mod::view_body_source(view)
+    let exprs = mir_body_source::mir_body_source_exprs(body)
+    let expr_count = len(exprs)
+    let mut ei = 0
+    while ei < expr_count {
+        let expr = get_unchecked(exprs, ei)
+        if core_expr_shape_aggregate::mir_core_expr_is_tuple(expr) {
+            register_one_body_tuple(ctx, exprs, expr)
+        }
+        ei = ei + 1
+    }
+}
+
+fn register_one_body_tuple(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) {
+    let child_count = expr_access_children::expr_child_count(expr)
+    if child_count <= 0 {
+        return
+    }
+    let field_vts = Vec::new<i32>()
+    let mut ci = 0
+    while ci < child_count {
+        let child_idx = expr_access_children::expr_child(expr, ci)
+        if child_idx < 0 || child_idx >= len(exprs) {
+            return
+        }
+        push(field_vts, expr_access_types::expr_val_type(get_unchecked(exprs, child_idx)))
+        ci = ci + 1
+    }
+    aggregate_tuple::ctx_register_tuple_gc_struct_from_field_vts(ctx, field_vts)
+}
+
+fn register_body_only_known_tuples(ctx: LowerCtx) {
     let count = len(ctx.gc_struct_names)
     let mut i = 0
     let mut has_tuple = false
@@ -44,6 +81,8 @@ fn register_body_only_string_string_tuple(ctx: LowerCtx) {
         return
     }
     aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(ctx, "String,String")
+    aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(ctx, "i32,i32")
+    aggregate_tuple::ctx_register_tuple_gc_struct_from_keys(ctx, "String,i32")
 }
 
 fn register_typed_fn_late_gc_types(ctx: LowerCtx, ts: CoreHirMirTypeSource) {

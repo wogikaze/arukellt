@@ -106,12 +106,12 @@ fn emit_string_from_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     }
     string_gc_helpers::emit_gc_local_set(w, s_vec)
     string_gc_helpers::emit_gc_local_get(w, s_vec)
-    string_gc_helpers::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     string_gc_helpers::emit_gc_struct_get(w, vec_type, 0)
     string_gc_helpers::emit_gc_local_set(w, s_data)
     // Use Vec logical length, not backing-array capacity (array.new size).
     string_gc_helpers::emit_gc_local_get(w, s_vec)
-    string_gc_helpers::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
     writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
     helpers_core::emit_local_set(w, s_len)
     helpers_core::emit_local_get(w, s_len)
