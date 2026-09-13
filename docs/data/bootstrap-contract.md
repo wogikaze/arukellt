@@ -19,8 +19,8 @@
 
 | ID | Name | Description | Artifact | Command | Comparison |
 |----|------|-------------|----------|---------|------------|
-| `0` | `trust_base` | Pinned selfhost wasm is the trust base | `bootstrap/arukellt-selfhost.wasm` | — | `n/a` |
-| `build_s2` | `current_selfhost` | Pinned compiles src/compiler/main.ark → s2 (stage-2 only; use for emitter refresh) | `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost build-compiler` | `build succeeds` |
+| `0` | `trust_base` | Pinned direct wasm32/wasi-p1 selfhost wasm is the trust base with 16384 memory32 pages (1 GiB) | `bootstrap/arukellt-selfhost.wasm` | — | `n/a` |
+| `build_s2` | `current_selfhost` | Pinned compiles src/compiler/main.ark → s2 under the 16384-page memory32 contract (stage-2 only; use for emitter refresh) | `.build/selfhost/arukellt-s2.wasm` | `python3 scripts/manager.py selfhost build-compiler` | `build succeeds` |
 | `fixpoint` | `s2_equals_s3` | sha256(s2) == sha256(s3) (ADR-029 gate; not for routine s2 refresh) | `.build/selfhost/arukellt-s3.wasm` | `python3 scripts/manager.py selfhost fixpoint` | `sha256` |
 
 ## Gates

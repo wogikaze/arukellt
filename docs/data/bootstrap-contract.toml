@@ -19,14 +19,14 @@ wasm_resolution_order = [
 [[stages]]
 id = "0"
 name = "trust_base"
-description = "Pinned selfhost wasm is the trust base"
+description = "Pinned direct wasm32/wasi-p1 selfhost wasm is the trust base with 16384 memory32 pages (1 GiB)"
 artifact = "bootstrap/arukellt-selfhost.wasm"
 comparison = "n/a"
 
 [[stages]]
 id = "build_s2"
 name = "current_selfhost"
-description = "Pinned compiles src/compiler/main.ark → s2 (stage-2 only; use for emitter refresh)"
+description = "Pinned compiles src/compiler/main.ark → s2 under the 16384-page memory32 contract (stage-2 only; use for emitter refresh)"
 artifact = ".build/selfhost/arukellt-s2.wasm"
 command = "python3 scripts/manager.py selfhost build-compiler"
 comparison = "build succeeds"

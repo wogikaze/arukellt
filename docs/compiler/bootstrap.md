@@ -8,6 +8,13 @@ Normative decision: [`../adr/ADR-029-selfhost-native-verification-contract.md`](
 Status summary: [`../state/compiler.md`](../state/compiler.md).  
 Structured SSOT: [`../data/bootstrap-contract.toml`](../data/bootstrap-contract.toml).
 
+The pinned bootstrap and the generated stage-2/stage-3 selfhost compiler
+artifacts are direct `wasm32` / `wasi-p1` core modules with memory32 initial
+pages set to `16384` (1 GiB). This reservation is part of the bootstrap
+contract: the compiler's own data and working set must fit when it emits the
+next compiler under stock Wasmtime. User-facing `wasm32-gc` / `wasi-p2` output
+is still packaged as an official WASI component with the checked-in WIT world.
+
 ## Which command?
 
 Agents and humans confuse these two. Use the table:

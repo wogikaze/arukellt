@@ -51,6 +51,8 @@
 | [ADR-050-experimental-public-native-c99-run.md](ADR-050-experimental-public-native-c99-run.md) | ADR-050: Experimental Public Native C99 Run（公開 experimental native 実行） | ADR-049 は native-cpp を 内部 selfhost executor として採択し、一般ユーザー向け native 製品を非目標とした。その後、内部 executor lane は experimental まで到達した（root clear、strict wall/RSS dual gate、 |
 | [ADR-051-formal-verification-hard-gates.md](ADR-051-formal-verification-hard-gates.md) | ADR-051: Formal verification hard gates | Arukellt uses a hybrid verification architecture. Proof-facing syntax may live in the language, but semantics, verification-condition generation, solver execution, translation validation, and receipt checking remain independently executable boundaries. |
 | [ADR-053-selfhost-compiler-core-rewrite.md](ADR-053-selfhost-compiler-core-rewrite.md) | ADR-053: セルフホストコンパイラ中核の再構築（gc-host overlay） | 実行正本: docs/plans/selfhost-compiler-core-rewrite.md |
+| [ADR-054-host-linker-and-rust-runtime-retirement.md](ADR-054-host-linker-and-rust-runtime-retirement.md) | ADR-054: host-linker とリポジトリ内 Rust runtime の退役 | selfhost compiler の実行には、Rust 製の host-linker、heap patcher、WASI P2 adapter、 および旧来の HTTP/TCP bridge が介在している。 |
+| [ADR-055-playground-compile-boundary.md](ADR-055-playground-compile-boundary.md) | ADR-055: Playground の compile 境界 | Playground には、core Wasm の import 名 arukellt_io を直接実装する TypeScript runner が残っていた。 |
 
 ## 提案
 

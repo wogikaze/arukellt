@@ -170,6 +170,7 @@ S2_RUNTIME_WASM_REL = ".build/selfhost/arukellt-s2-runtime.wasm"
 CLOCK_S2_WASM_REL = ".build/selfhost/arukellt-s2-clock.wasm"
 SELFHOST_SOURCE_REL = "src/compiler/main.ark"
 BOOTSTRAP_WORKSPACE_REL = ".build/selfhost/bootstrap-workspace"
+WASI_P2_WIT_REL = Path("scripts/selfhost/wit/deps/wasi-cli-0.2.0/wit")
 # Memory64 GC full-compiler compiles (stage-2/3 fixpoint) regularly exceed
 # 30 minutes on loaded hosts; keep a higher ceiling so transient load is not
 # misreported as a permanent fixpoint skip. Override with
@@ -692,10 +693,75 @@ def _wasm_run_cmd(
 
 
 def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
-    """Return argv to execute user wasm directly with stock Wasmtime."""
+    """Return argv to execute a core module or component with stock Wasmtime."""
     wasmtime = _find_wasmtime()
     return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
             "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
+
+
+def _package_p2_core_for_execution(
+    root: Path,
+    core_path: Path,
+    package_dir: Path,
+    label: str,
+) -> tuple[Path | None, str]:
+    """Package a standard P2 core with the checked-in official WASI world."""
+    wasm_tools = _find_wasm_tools()
+    if wasm_tools is None:
+        return None, "bytecodealliance wasm-tools not found"
+    wit_dir = root / WASI_P2_WIT_REL
+    if not wit_dir.is_dir():
+        return None, f"official WASI P2 WIT directory not found: {wit_dir}"
+
+    package_dir.mkdir(parents=True, exist_ok=True)
+    embedded = package_dir / f"{label}.embedded.wasm"
+    component = package_dir / f"{label}.component.wasm"
+    embed = _run(
+        [
+            wasm_tools,
+            "component",
+            "embed",
+            str(wit_dir),
+            "--world",
+            "command",
+            str(core_path.resolve()),
+            "-o",
+            str(embedded),
+        ],
+        root,
+        timeout=60,
+    )
+    if embed.returncode != 0 or not embedded.is_file():
+        detail = (embed.stderr or embed.stdout or "component embed failed").strip()
+        return None, detail[-400:]
+
+    new_component = _run(
+        [
+            wasm_tools,
+            "component",
+            "new",
+            str(embedded),
+            "--reject-legacy-names",
+            "--realloc-via-memory-grow",
+            "-o",
+            str(component),
+        ],
+        root,
+        timeout=60,
+    )
+    if new_component.returncode != 0 or not component.is_file():
+        detail = (new_component.stderr or new_component.stdout or "component new failed").strip()
+        return None, detail[-400:]
+
+    validated = _run(
+        [wasm_tools, "validate", str(component.resolve())],
+        root,
+        timeout=60,
+    )
+    if validated.returncode != 0:
+        detail = (validated.stderr or validated.stdout or "component validation failed").strip()
+        return None, detail[-400:]
+    return component, ""
 
 
 def _run(cmd: list[str], root: Path, capture: bool = True, timeout: int | None = None) -> subprocess.CompletedProcess:
@@ -3252,37 +3318,26 @@ def _compile_selfhost_bootstrap_chain(
     out_rel: str,
     bootstrap: Path,
 ) -> subprocess.CompletedProcess:
-    """Build the next selfhost compiler directly with the pinned compiler."""
-    compilers: list[Path] = []
-    existing_runtime = _resolve_build_rel(root, S2_RUNTIME_WASM_REL)
-    if existing_runtime.is_file():
-        compilers.append(existing_runtime)
-    else:
-        compilers.append(bootstrap)
-    if not compilers:
-        return subprocess.CompletedProcess(
-            [],
-            returncode=1,
-            stdout="",
-            stderr="error: no direct selfhost compiler available",
-        )
-    last: subprocess.CompletedProcess | None = None
-    for compiler in compilers:
-        last = _wasm_compile_selfhost_source(
-            wasmtime,
-            compiler,
-            out_rel,
-            root,
-            target=BOOTSTRAP_EMIT_TARGET,
-            wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
-        )
-        if last.returncode == 0:
-            out = root / out_rel
-            if out.is_file():
-                _postprocess_selfhost_compiler_wasm(out, root)
-            return last
-    assert last is not None
-    return last
+    """Build the next selfhost compiler from the validated bootstrap artifact.
+
+    A previously generated runtime is not a trust base: it can represent an
+    older source tree and can also carry a different memory contract. Reusing
+    it here makes ``build-compiler`` dependent on ambient build artifacts and
+    can hide a broken pinned-to-s2 bootstrap path.
+    """
+    result = _wasm_compile_selfhost_source(
+        wasmtime,
+        bootstrap,
+        out_rel,
+        root,
+        target=BOOTSTRAP_EMIT_TARGET,
+        wasi_version=BOOTSTRAP_EMIT_WASI_VERSION,
+    )
+    if result.returncode == 0:
+        out = root / out_rel
+        if out.is_file():
+            _postprocess_selfhost_compiler_wasm(out, root)
+    return result
 
 
 def _wasm_fmt(
@@ -4027,11 +4082,33 @@ def _run_fixture_parity_locked(
                 lines.append(f"  note: {fixture} (pinned wasm invalid, current OK — improvement!)")
 
             # ── Execution ─────────────────────────────────────────────────
-            r_p = _run(_wasm_run_argv(root, out_pinned), root, timeout=15)
+            # P2 output is a core module carrying the standard cm32p2 import
+            # metadata. Package it into a command component before execution;
+            # direct core execution cannot resolve interface imports.
+            package_label = fixture.replace("/", "_").replace(".", "_")
+            pinned_run, pinned_package_error = _package_p2_core_for_execution(
+                root,
+                out_pinned,
+                Path(tmpdir) / "pinned",
+                f"pinned-{package_label}",
+            )
+            current_run, current_package_error = _package_p2_core_for_execution(
+                root,
+                out_current,
+                Path(tmpdir) / "current",
+                f"current-{package_label}",
+            )
+            if pinned_run is None or current_run is None:
+                detail = pinned_package_error or current_package_error
+                lines.append(f"  FAIL: {fixture} (official P2 component packaging failed: {detail})")
+                fail_count += 1
+                continue
+
+            r_p = _run(_wasm_run_argv(root, pinned_run), root, timeout=15)
             p_out = (r_p.stdout + r_p.stderr).strip()
             p_code = r_p.returncode
 
-            r_c = _run(_wasm_run_argv(root, out_current), root, timeout=15)
+            r_c = _run(_wasm_run_argv(root, current_run), root, timeout=15)
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
 

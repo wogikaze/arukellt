@@ -13,11 +13,11 @@ Cargo workspace, host-linker, or repository-specific runtime is involved.
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 4 870 797 bytes (≈ 4.65 MiB) |
-| sha256 | `df6b20ab640435c3686cb05249028654a3c0ba3e5f3d38f4e922770811544e64` |
-| Built from commit | Selfhost compiler source at `4e746666` plus the host-linker/Rust retirement changes in this worktree |
-| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 8192)` **memory32**) |
-| Producer | Direct Wasmtime selfhost compile using the validated Memory64 bootstrap candidate; no host-linker, bridge, adapter, or Rust code |
+| Size | 5 052 261 bytes (≈ 4.82 MiB) |
+| sha256 | `97aeed6aaf87e0cb93aab58e6315bbbea6e81101f3e02b6e78ac1e2cd0d033d5` |
+| Built from commit | Selfhost compiler source at `b6936b2cb` plus the 1 GiB bootstrap-contract change in this refresh |
+| Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 16384)`, 1 GiB **memory32**) |
+| Producer | Direct Wasmtime selfhost compile from the pinned 1 GiB memory32 bootstrap; no host-linker, bridge, adapter, or Rust code |
 
 ## Reproducibility recipe
 
@@ -37,9 +37,9 @@ scripts/run/arukellt-selfhost.sh compile program.ark \
 wasm-tools validate .build/program.component.wasm
 ```
 
-The `selfhost fixpoint` gate remains the stricter source-refresh check when a
-current stage-2 build is available; it is not required to execute the direct
-pinned bootstrap or the official component packaging path above.
+The `selfhost fixpoint` and fixture-parity gates are required when refreshing
+the pinned artifact. They also verify that the direct bootstrap and official
+component packaging paths remain reproducible from a fresh clone.
 
 ## Refresh policy
 
@@ -67,10 +67,11 @@ behavioural drift in its body.
 ### Direct bootstrap and WASI P2 packaging
 
 Pinned bootstrap is direct `wasm32` / `wasi-p1` with guest memory32
-(`(memory 8192)`). The compiler emits standard `wasm32-gc` / `wasi-p2` core
-modules for component work. `scripts/run/arukellt-selfhost.sh` packages those
-modules with the official WASI P2 WIT and `wasm-tools component embed/new`.
-There is no host-linker or compatibility adapter in either path.
+(`(memory 16384)`, 1 GiB). The compiler emits standard `wasm32-gc` /
+`wasi-p2` core modules for component work. `scripts/run/arukellt-selfhost.sh`
+and the fixture gate package those modules with the official WASI P2 WIT and
+`wasm-tools component embed/new`. There is no host-linker or compatibility
+adapter in either path.
 
 ## Why this artifact is committed
 
