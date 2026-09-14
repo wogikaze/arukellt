@@ -30,6 +30,8 @@ fn ctx_release_lowering_scratch(ctx: LowerCtx) {
     ctx.struct_field_types = Vec::new<String>()
     ctx.local_types = Vec::new<String>()
     ctx.local_type_indices = Vec::new<i32>()
+    ctx.match_result_indices = Vec::new<i32>()
+    ctx.match_result_states = Vec::new<i32>()
     ctx.variant_names = Vec::new<String>()
     ctx.variant_tags = Vec::new<i32>()
     ctx.payload_variants = Vec::new<String>()
@@ -37,10 +39,12 @@ fn ctx_release_lowering_scratch(ctx: LowerCtx) {
     ctx.closure_last_synth = String_new()
     ctx.closure_last_caps = String_new()
     ctx.closure_last_extra = 0
+    ctx.closure_last_identity = false
     ctx.closure_bind_names = Vec::new<String>()
     ctx.closure_bind_synth = Vec::new<String>()
     ctx.closure_bind_caps = Vec::new<String>()
     ctx.closure_bind_extra = Vec::new<i32>()
+    ctx.closure_bind_identity = Vec::new<bool>()
     ctx.local_type_start = 0
     ctx.mono_call_starts = Vec::new<i32>()
     ctx.mono_call_span_sources = Vec::new<String>()

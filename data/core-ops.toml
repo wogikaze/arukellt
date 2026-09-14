@@ -1711,6 +1711,22 @@ alias = "text::format_i64"
 core_op_id = "text.format_i64"
 
 [[legacy_bindings]]
+alias = "fmt::format_bool"
+core_op_id = "text.format_bool"
+
+[[legacy_bindings]]
+alias = "fmt::format_f64"
+core_op_id = "text.format_f64"
+
+[[legacy_bindings]]
+alias = "fmt::format_i32"
+core_op_id = "text.to_string"
+
+[[legacy_bindings]]
+alias = "fmt::format_i64"
+core_op_id = "text.format_i64"
+
+[[legacy_bindings]]
 alias = "text::index_of"
 core_op_id = "string.index_of"
 

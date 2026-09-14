@@ -5,10 +5,16 @@ use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_memory
 use wasm::intrinsics::helpers_numeric_i32
 
-fn emit_pad_read_args_and_len(w: WasmWriter, s_str: i32, s_width: i32, s_fill: i32, s_slen: i32) {
-    helpers_core::emit_local_set(w, s_fill)
+fn emit_pad_read_args_and_len(w: WasmWriter, s_str: i32, s_width: i32, s_fill: i32, s_slen: i32, arg_count: i32, default_fill: i32) {
+    if arg_count >= 3 {
+        helpers_core::emit_local_set(w, s_fill)
+    }
     helpers_core::emit_local_set(w, s_width)
     helpers_core::emit_local_set(w, s_str)
+    if arg_count < 3 {
+        helpers_numeric_i32::emit_i32_const(w, default_fill)
+        helpers_core::emit_local_set(w, s_fill)
+    }
     helpers_core::emit_local_get(w, s_str)
     helpers_memory::emit_string_len_from_stack(w)
     helpers_core::emit_local_set(w, s_slen)

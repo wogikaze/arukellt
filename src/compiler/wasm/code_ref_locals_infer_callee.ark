@@ -8,6 +8,7 @@ use corehir::signature_registry
 use corehir::type_id
 use corehir::type_table
 use mir::function_return_view
+use mir::function_identity
 use mir::post_pass_callee_lookup
 use mir::value_types
 use wasm::ctx_record
@@ -18,8 +19,42 @@ use wasm::code_ref_locals_types
 use wasm::inst_ctx
 
 // Fallback: infer GC type from the called function's return type signature.
+fn resolve_fn_index_for_inference(ctx: SelfEmitCtx, callee: String) -> i32 {
+    let indexed = inst_ctx::resolve_fn_index(ctx, clone(callee))
+    if indexed >= 0 {
+        let indexed_name = function_identity::MirFunction_name(
+            ctx_record::SelfEmitCtx_function_at(ctx, indexed)
+        )
+        if eq(clone(indexed_name), clone(callee)) {
+            return indexed
+        }
+    }
+    let short_name = inst_ctx::strip_module_prefix(clone(callee))
+    let function_count = ctx_record::SelfEmitCtx_function_count(ctx)
+    let mut matched_index = 0 - 1
+    let mut match_count = 0
+    let mut function_index = 0
+    while function_index < function_count {
+        let function = ctx_record::SelfEmitCtx_function_at(ctx, function_index)
+        let function_name = function_identity::MirFunction_name(function)
+        if eq(clone(function_name), clone(callee)) ||
+        eq(clone(function_name), clone(short_name)) {
+            matched_index = function_index
+            match_count = match_count + 1
+        }
+        function_index = function_index + 1
+    }
+    if match_count == 1 {
+        return matched_index
+    }
+    if indexed >= 0 {
+        return indexed
+    }
+    0 - 1
+}
+
 fn infer_call_result_gc_type_from_fn(ctx: SelfEmitCtx, callee: String) -> Option<i32> {
-    let fn_idx = inst_ctx::resolve_fn_index(ctx, clone(callee))
+    let fn_idx = resolve_fn_index_for_inference(ctx, clone(callee))
     if fn_idx < 0 {
         return Option::None
     }

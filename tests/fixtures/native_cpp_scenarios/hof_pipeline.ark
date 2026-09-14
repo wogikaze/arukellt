@@ -9,7 +9,7 @@ fn is_positive(x: i32) -> bool {
 }
 
 fn main() {
-    let mut xs = Vec_new_i32()
+    let mut xs = Vec::new<i32>()
     push(xs, 0 - 1)
     push(xs, 2)
     push(xs, 3)

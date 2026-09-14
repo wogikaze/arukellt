@@ -1,4 +1,5 @@
 use corehir::core_op_id
+use corehir::core_op_binding
 use corehir::core_op_registry_generated
 use corehir::function_id
 use corehir::signature_entry
@@ -23,10 +24,20 @@ fn mir_call_core_op_index_from_fid(m: MirModule, fid_raw: i32) -> i32 {
 }
 
 fn mir_call_core_op_index(m: MirModule, inst: MirInst) -> i32 {
+    let callee = inst_record::mir_inst_str_val(inst)
+    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee))
+    if !core_op_id::core_op_id_is_some(exact_coid) {
+        return 0 - 1
+    }
     mir_call_core_op_index_from_fid(m, inst_record::mir_inst_func_id_raw(inst))
 }
 
 fn mir_call_core_op_index_draft(m: MirModule, inst: MirInstDraft) -> i32 {
+    let callee = inst_draft::MirInstDraft_str_val(inst)
+    let exact_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(callee))
+    if !core_op_id::core_op_id_is_some(exact_coid) {
+        return 0 - 1
+    }
     mir_call_core_op_index_from_fid(m, inst_draft::MirInstDraft_func_id_raw(inst))
 }
 

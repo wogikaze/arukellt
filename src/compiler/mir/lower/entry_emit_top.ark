@@ -39,7 +39,8 @@ fn mir_emit_top_level_fn_body(
     // Re-substitute type-variable param locals with concrete mono types (#707).
     mono_param_subst::mir_substitute_mono_param_types(ctx)
     ctx_api_function_frame::ctx_apply_fn_return_type_for_rt_tag(ctx, rt_tag)
-    ctx_api_function_frame::ctx_set_current_return_type_name(ctx, ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, rt_type_name))
+    let normalized_rt_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(rt_type_name))
+    ctx_api_function_frame::ctx_set_current_return_type_name(ctx, normalized_rt_type_name)
     trace::mir_lower_trace_ctx(mir_tr, ctx, 2)
     let _entry = ctx_api_emit::ctx_enter_new_block(ctx)
     trace::mir_lower_trace_ctx(mir_tr, ctx, 3)

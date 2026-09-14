@@ -11,10 +11,27 @@ fn emit_let_initializer_store(ctx: LowerCtx, node: AstNode, vt: i32, local_idx: 
     if val_idx < 0 {
         return
     }
-    let actual_val_idx = sync_let_local_value_type(ctx, vt, local_idx, val_idx)
+    let mut binding_vt = vt
+    if ta_count == 0 {
+        let initializer_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        if initializer_vt == value_types::VT_F64() ||
+        initializer_vt == value_types::VT_I64() ||
+        initializer_vt == value_types::VT_GC_REF() {
+            binding_vt = initializer_vt
+            ctx_api_local_types::ctx_set_local_vt(ctx, local_idx, initializer_vt)
+        }
+    }
+    let actual_val_idx = sync_let_local_value_type(ctx, binding_vt, local_idx, val_idx)
     if actual_val_idx != local_idx {
         ctx_api_emit::ctx_emit(ctx, inst_local_set::MirInst_local_set_from(local_idx, actual_val_idx))
     }
+    // Keep the initializer's concrete storage type across the let binding;
+    // display names such as `List` and `String` are not nominally unique.
+    ctx_api_local_types::ctx_set_local_mvt(
+        ctx,
+        local_idx,
+        ctx_api_local_types::ctx_local_mvt(ctx, actual_val_idx)
+    )
     sync_let_local_type_name(ctx, local_idx, actual_val_idx, pre_init_kind, ta_count)
 }
 
@@ -69,7 +86,11 @@ fn sync_let_local_type_name(ctx: LowerCtx, local_idx: i32, val_idx: i32, pre_ini
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, init_type)
     }
     if ta_count == 0 && len(ctx_api_local_types::ctx_get_local_type(ctx, local_idx)) == 0 {
-        let literal_type_name = expr_types::mir_literal_kind_type_name(pre_init_kind)
+        let mut literal_type_name = expr_types::mir_literal_kind_type_name(pre_init_kind)
+        let initializer_vt = ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        if initializer_vt == value_types::VT_I64() {
+            literal_type_name = "i64"
+        }
         if len(literal_type_name) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, local_idx, literal_type_name)
         }

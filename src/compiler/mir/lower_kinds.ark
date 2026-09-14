@@ -89,6 +89,9 @@ fn TY_STRING() -> i32 { 5 }
 fn TY_UNIT() -> i32 { 7 }
 fn TY_CHAR() -> i32 { 6 }
 fn TY_VEC() -> i32 { 10 }
+fn TY_OPTION() -> i32 { 11 }
+fn TY_RESULT() -> i32 { 12 }
+fn TY_HASHMAP() -> i32 { 13 }
 fn TY_STRUCT() -> i32 { 21 }
 fn TY_ENUM() -> i32 { 22 }
 fn TY_TUPLE() -> i32 { 23 }

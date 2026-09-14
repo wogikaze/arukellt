@@ -26,6 +26,25 @@ fn resolve_array_type_for_new_dest(ctx: SelfEmitCtx, dest_local: i32) -> i32 {
     intrinsic_vec_type_new::resolve_array_type_for_new_dest(ctx, dest_local)
 }
 
+fn resolve_array_type_for_local(ctx: SelfEmitCtx, local_idx: i32) -> i32 {
+    let local_name = local_type_name(ctx, local_idx)
+    let mut tname = sections_types_gc_phase7::gc_normalize_vec_type_name(clone(local_name))
+    if starts_with(clone(local_name), String_from("array:")) {
+        // Array literals use a separate marker because their value is the
+        // backing array itself, unlike Vec<T>'s one-field header.
+        tname = concat(String_from("vec:"), substring(local_name, 6, len(local_name)))
+    }
+    let resolved = array_type_from_type_name(ctx, clone(tname))
+    if resolved >= 0 {
+        return resolved
+    }
+    ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+}
+
+fn local_is_raw_array(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    starts_with(local_type_name(ctx, local_idx), String_from("array:"))
+}
+
 fn is_string_byte_vec_push_context(ctx: SelfEmitCtx) -> bool {
     let func_idx = ctx_record::SelfEmitCtx_current_func_idx(ctx)
     let f = ctx_record::SelfEmitCtx_function_at(ctx, func_idx)
@@ -64,7 +83,10 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
         return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
     let src_local = find_call_source_local(ctx, callee, inst)
-    let tname = local_type_name(ctx, src_local)
+    return resolve_array_type_for_local(ctx, src_local)
+}
+
+fn array_type_from_type_name(ctx: SelfEmitCtx, tname: String) -> i32 {
     if eq(clone(tname), String_from("vec:String")) || eq(clone(tname), String_from("vec:string")) {
         return ctx_gc_type::SelfEmitCtx_string_array_type(ctx)
     }
@@ -93,7 +115,7 @@ fn resolve_array_type_for_call(ctx: SelfEmitCtx, callee: String, inst: MirInst) 
         }
         return ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
     }
-    ctx_gc_type::SelfEmitCtx_array_type_for_vec(ctx)
+    0 - 1
 }
 
 fn vec_type_from_callee_name(ctx: SelfEmitCtx, callee: String) -> i32 {
@@ -121,7 +143,10 @@ fn vec_element_type_name_for_call(ctx: SelfEmitCtx, callee: String, inst: MirIns
         return String_from("i32")
     }
     let src_local = find_call_source_local(ctx, clone(callee), inst)
-    let tname = local_type_name(ctx, src_local)
+    let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, src_local))
+    if starts_with(clone(tname), String_from("array:")) {
+        return substring(tname, 6, len(tname))
+    }
     if !starts_with(clone(tname), String_from("vec:")) {
         return String_new()
     }
@@ -150,8 +175,10 @@ fn find_vec_local_from_call_args(ctx: SelfEmitCtx, block: MirBlock, ii: i32, cur
     let mut ai = len(arg_srcs) - 1
     while ai >= 0 {
         let src = get_unchecked(arg_srcs, ai)
-        let tname = local_type_name(ctx, src)
-        if starts_with(clone(tname), String_from("vec:")) || starts_with(clone(tname), String_from("Vec_")) {
+        let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, src))
+        if starts_with(clone(tname), String_from("vec:")) ||
+        starts_with(clone(tname), String_from("Vec_")) ||
+        starts_with(clone(tname), String_from("array:")) {
             found = src
             ai = 0 - 1
         } else {
@@ -219,8 +246,10 @@ fn find_call_source_local(ctx: SelfEmitCtx, callee: String, inst: MirInst) -> i3
 // LOCAL_GET of the temp, the only LOCAL_GET nearby is the struct base / other
 // arg — typed as Parser, not vec:T — so resolve fell back to Vec<i32> (#834).
 fn local_type_is_vec(ctx: SelfEmitCtx, local_idx: i32) -> bool {
-    let tname = local_type_name(ctx, local_idx)
-    starts_with(clone(tname), String_from("vec:")) || starts_with(clone(tname), String_from("Vec_"))
+    let tname = sections_types_gc_phase7::gc_normalize_vec_type_name(local_type_name(ctx, local_idx))
+    starts_with(clone(tname), String_from("vec:")) ||
+    starts_with(clone(tname), String_from("Vec_")) ||
+    starts_with(clone(tname), String_from("array:"))
 }
 
 fn vec_source_local_from_prev_inst(ctx: SelfEmitCtx, block: MirBlock, call_ii: i32) -> i32 {

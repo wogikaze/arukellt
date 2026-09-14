@@ -1,4 +1,6 @@
 use mir::function_emit_inst
+use mir::block_inst_access
+use mir::function_block_queries
 use mir::inst_draft
 use mir::function_block_mutation
 use mir::lower::ctx_call_edges
@@ -6,6 +8,7 @@ use mir::lower::ctx_current_storage
 use mir::lower::ctx_typed_mir_sync
 use mir::lower::call_func_id
 use mir::module_block_pool
+use mir::opcodes
 
 fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
     let identified = call_func_id::mir_inst_attach_func_id_if_call(ctx, inst)
@@ -14,6 +17,20 @@ fn ctx_emit(ctx: LowerCtx, inst: MirInstDraft) {
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     function_emit_inst::emit_inst(f, ctx_current_storage::ctx_current_block_value(ctx), enriched)
     ctx_current_storage::ctx_set_current_func_value(ctx, f)
+}
+
+fn ctx_current_block_ends_with_control_return(ctx: LowerCtx) -> bool {
+    let f = ctx_current_storage::ctx_current_func_value(ctx)
+    let block = function_block_queries::MirFunction_block_at(
+        f,
+        ctx_current_storage::ctx_current_block_value(ctx)
+    )
+    let count = block_inst_access::MirBlock_inst_count(block)
+    if count <= 0 {
+        return false
+    }
+    let op = block_inst_access::MirBlock_inst_op(block, count - 1)
+    op == opcodes::MIR_RETURN() || op == opcodes::MIR_UNREACHABLE()
 }
 
 fn ctx_alloc_block(ctx: LowerCtx) -> i32 {

@@ -28,9 +28,9 @@ fn apply_op(stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
     if len(stack) < 2 { print_error(String_from("stack underflow")); stack }
     else {
         let b: i32 = get_unchecked(stack, len(stack) - 1)
-        let _ = pop(stack)
+        let _: Option<i32> = pop(stack)
         let a: i32 = get_unchecked(stack, len(stack) - 1)
-        let _ = pop(stack)
+        let _: Option<i32> = pop(stack)
         push(stack, apply_op_values(op, a, b))
         stack
     }
@@ -62,31 +62,31 @@ fn finish_line(stack: Vec<i32>, input_trimmed: String) {
         println((val).to_string())
         print_result(val)
     } else { if sp > 1 { println(input_trimmed); print_stack_count_error(sp) } }
-}
-
-fn eval_line(line: String) {
-    let mut stack: Vec<i32> = Vec::new<i32>()
-    let input_trimmed: String = trim(line)
-    let line_len: i32 = len(input_trimmed)
-    let mut i: i32 = 0
-    while i < line_len {
-        if is_ascii_ws(char_at(input_trimmed, i)) { i = i + 1 }
-        else {
-            let start: i32 = i
-            let end: i32 = token_end(input_trimmed, start, line_len)
-            stack = process_token(stack, substring(input_trimmed, start, end))
-            i = end
-        }
     }
-    finish_line(stack, input_trimmed)
-}
 
-fn main() {
-    println("RPN REPL")
-    println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
-    println("")
-    print("> ")
-    eval_line(DEMO_INPUT())
-    print("> ")
-    println("bye")
-}
+    fn eval_line(line: String) {
+        let mut stack: Vec<i32> = Vec::new<i32>()
+        let input_trimmed: String = trim(line)
+        let line_len: i32 = len(input_trimmed)
+        let mut i: i32 = 0
+        while i < line_len {
+            if is_ascii_ws(char_at(input_trimmed, i)) { i = i + 1 }
+            else {
+                let start: i32 = i
+                let end: i32 = token_end(input_trimmed, start, line_len)
+                stack = process_token(stack, substring(input_trimmed, start, end))
+                i = end
+            }
+        }
+        finish_line(stack, input_trimmed)
+    }
+
+    fn main() {
+        println("RPN REPL")
+        println("enter space-separated tokens (e.g. 3 4 +). Ctrl+Z to exit.")
+        println("")
+        print("> ")
+        eval_line(DEMO_INPUT())
+        print("> ")
+        println("bye")
+    }

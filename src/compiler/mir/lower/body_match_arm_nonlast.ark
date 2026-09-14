@@ -1,17 +1,25 @@
 use mir::lower::ast_node
+use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_emit
 use mir::lower::ctx_api_nesting
 use mir::lower::ctx_types
 use mir::lower_kinds
+use mir::inst_const_i32
+use mir::inst_local_get
+use mir::inst_local_set
 use mir::inst_structured_control
 use mir::lower::body_match_compare_or
 use mir::lower::body_match_compare_single
 use mir::lower::match
+use mir::value_types
 
 fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i32, pat: AstNode, body: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32) -> i32 {
     let mut depth = if_depth
     let is_catchall = match::mir_match_is_catchall(ctx, pat)
     let has_guard = match::mir_match_arm_has_guard(arm_child_count)
+    if has_guard {
+        return lower_guarded_nonlast_match_arm(ctx, arm_node, pat, payload_info, scrut_idx, result, if_depth, is_catchall)
+    }
     if is_catchall {
         depth = lower_catchall_match_arm_prefix(ctx, arm_node, pat, scrut_idx, has_guard, depth)
     } else {
@@ -21,6 +29,45 @@ fn lower_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, arm_child_count: i3
     match::mir_store_match_arm_result(ctx, result, arm_result)
     ctx_emit(ctx, inst_structured_control::MirInst_else())
     depth
+}
+
+fn lower_guarded_nonlast_match_arm(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, payload_info: MirMatchPayloadInfo, scrut_idx: i32, result: i32, if_depth: i32, is_catchall: bool) -> i32 {
+    let matched = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_I32())
+    ctx_emit(ctx, inst_const_i32::MirInst_const_i32(0, matched))
+    ctx_emit(ctx, inst_local_set::MirInst_local_set(matched))
+    if is_catchall {
+        if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_IDENT()) {
+            match::mir_emit_match_ident_bind(ctx, pat, scrut_idx)
+        }
+        let guard_expr = ast_node::node_child_at(arm_node, 1)
+        let guard_idx = lower_expr(ctx, guard_expr)
+        ctx_emit(ctx, inst_local_set::MirInst_local_set_from(matched, guard_idx))
+    } else {
+        let pattern_matches = lower_guarded_pattern_condition(ctx, pat, payload_info)
+        ctx_emit(ctx, inst_local_get::MirInst_local_get(pattern_matches))
+        ctx_emit(ctx, inst_structured_control::MirInst_if())
+        let _guard_pattern_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
+        match::mir_emit_payload_variant_binds_if_needed(ctx, payload_info, pat, scrut_idx)
+        let guard_expr = ast_node::node_child_at(arm_node, 1)
+        let guard_idx = lower_expr(ctx, guard_expr)
+        ctx_emit(ctx, inst_local_set::MirInst_local_set_from(matched, guard_idx))
+        ctx_emit(ctx, inst_structured_control::MirInst_end())
+        let _guard_pattern_nesting_depth_after = ctx_api_nesting::ctx_pop_nesting(ctx)
+    }
+    ctx_emit(ctx, inst_local_get::MirInst_local_get(matched))
+    ctx_emit(ctx, inst_structured_control::MirInst_if())
+    let _guard_body_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
+    let arm_result = lower_expr(ctx, ast_node::node_child_at(arm_node, ast_node::node_child_count(arm_node) - 1))
+    match::mir_store_match_arm_result(ctx, result, arm_result)
+    ctx_emit(ctx, inst_structured_control::MirInst_else())
+    if_depth + 1
+}
+
+fn lower_guarded_pattern_condition(ctx: LowerCtx, pat: AstNode, payload_info: MirMatchPayloadInfo) -> i32 {
+    if ast_node::node_kind_is(pat, lower_kinds::NK_PAT_OR()) {
+        return body_match_compare_or::lower_or_match_compare_condition(ctx, pat, payload_info)
+    }
+    body_match_compare_single::lower_single_match_compare_condition(ctx, pat, payload_info)
 }
 
 fn lower_catchall_match_arm_prefix(ctx: LowerCtx, arm_node: AstNode, pat: AstNode, scrut_idx: i32, has_guard: bool, if_depth: i32) -> i32 {

@@ -32,9 +32,9 @@ fn apply_op(stack: Vec<i32>, op: RpnOp) -> Vec<i32> {
     if len(stack) < 2 { print_error(String_from("stack underflow")); stack }
     else {
         let b: i32 = get_unchecked(stack, len(stack) - 1)
-        let _ = pop(stack)
+        let _: Option<i32> = pop(stack)
         let a: i32 = get_unchecked(stack, len(stack) - 1)
-        let _ = pop(stack)
+        let _: Option<i32> = pop(stack)
         push(stack, apply_op_values(op, a, b))
         stack
     }

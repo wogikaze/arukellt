@@ -15,9 +15,14 @@ use wasm::ctx_record
 use wasm::emit_target
 
 fn emit_gc_vec_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    let callee = inst_accessors_literals::MirInst_str_val(inst)
+    let source = intrinsic_vec_type::find_call_source_local(ctx, clone(callee), inst)
+    if intrinsic_vec_type::local_is_raw_array(ctx, source) {
+        writer_gc::emit_gc_array_len(w)
+        return true
+    }
     // GC Vec: struct.get vec_type 1 (len field)
     // Determine the correct vec type from the source local when possible.
-    let callee = inst_accessors_literals::MirInst_str_val(inst)
     let vec_gc_type = intrinsic_vec_type::resolve_vec_type_for_call(ctx, callee, inst)
     writer_gc::emit_gc_ref_cast(w, vec_gc_type)
     writer_gc::emit_gc_struct_get_i32(w, vec_gc_type, 1)

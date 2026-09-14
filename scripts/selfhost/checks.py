@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -692,11 +693,49 @@ def _wasm_run_cmd(
             "--dir", str(root), str(compiler_wasm), "--", *args]
 
 
-def _wasm_run_argv(root: Path, wasm_path: Path) -> list[str]:
+def _wasm_run_argv(
+    root: Path,
+    wasm_path: Path,
+    *,
+    runtime_args: list[str] | None = None,
+    read_only: bool = False,
+) -> list[str]:
     """Return argv to execute a core module or component with stock Wasmtime."""
     wasmtime = _find_wasmtime()
-    return [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
-            "--wasm", "max-wasm-stack=16777216", f"--dir={root}", str(wasm_path)]
+    run_argv = [wasmtime or "wasmtime", "run", *WASMTIME_SELFHOST_WASM_FLAGS,
+                "--wasm", "max-wasm-stack=16777216"]
+    run_argv.extend(runtime_args if runtime_args is not None else [f"--dir={root}"])
+    run_argv.append(str(wasm_path))
+    if not read_only:
+        return run_argv
+
+    bwrap = shutil.which("bwrap")
+    if bwrap is None:
+        return run_argv
+
+    # Wasmtime 46 exposes preopens but not a read-only --dir mode.  Run the
+    # official component under a read-only bind mount so the fixture's
+    # ``:ro`` contract remains enforced by the host filesystem.
+    home = Path.home()
+    sandbox = [
+        bwrap,
+        "--ro-bind", "/usr", "/usr",
+        "--ro-bind", "/bin", "/bin",
+        "--ro-bind", "/lib", "/lib",
+        "--ro-bind", "/lib64", "/lib64",
+        "--ro-bind", "/etc", "/etc",
+        "--ro-bind", "/tmp", "/tmp",
+    ]
+    if home.is_dir():
+        sandbox.extend(["--ro-bind", str(home), str(home)])
+    sandbox.extend([
+        "--proc", "/proc",
+        "--dev-bind", "/dev", "/dev",
+        "--chdir", str(root),
+        "--",
+        *run_argv,
+    ])
+    return sandbox
 
 
 def _package_p2_core_for_execution(
@@ -2755,7 +2794,54 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == mir_lower_kinds::TY_STRING() { return String_from("String") }
     if tag == mir_lower_kinds::TY_CHAR() { return String_from("char") }
     if tag == mir_lower_kinds::TY_UNIT() { return String_from("()") }
-    if tag == mir_lower_kinds::TY_VEC() { return String_from("Vec") }
+    if tag == 23 && mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty) == 0 {
+        return String_from("unit")
+    }
+    if tag == mir_lower_kinds::TY_VEC() {
+        let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+        if count <= 0 {
+            return String_from("Vec")
+        }
+        let elem = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
+        let elem_tag = mir_type_contracts::mir_type_contracts__TypeInfo_tag(elem)
+        if elem_tag == mir_lower_kinds::TY_I32() { return String_from("vec:i32") }
+        if elem_tag == mir_lower_kinds::TY_I64() { return String_from("vec:i64") }
+        if elem_tag == mir_lower_kinds::TY_F64() { return String_from("vec:f64") }
+        if elem_tag == mir_lower_kinds::TY_STRING() { return String_from("vec:String") }
+        if elem_tag == mir_lower_kinds::TY_VEC() { return String_from("vec:Vec") }
+        let elem_name = mir_type_contracts::mir_type_contracts__TypeInfo_name(elem)
+        if len(elem_name) > 0 {
+            return concat(String_from("vec:"), elem_name)
+        }
+        return String_from("vec:i32")
+    }
+    if tag == mir_lower_kinds::TY_OPTION() {
+        let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+        if count <= 0 {
+            return String_from("option:")
+        }
+        let inner = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
+        return concat(String_from("option:"), mir_type_info_to_mono_key(inner))
+    }
+    if tag == mir_lower_kinds::TY_RESULT() {
+        let count = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_count(ty)
+        if count >= 2 {
+            let ok = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
+            let err = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 1)
+            return concat(
+                String_from("Result_"),
+                concat(
+                    mir_type_info_to_mono_key(ok),
+                    concat(String_from("_"), mir_type_info_to_mono_key(err))
+                )
+            )
+        }
+        if count == 1 {
+            let ok = mir_type_contracts::mir_type_contracts__TypeInfo_type_arg_at(ty, 0)
+            return concat(String_from("Result_"), mir_type_info_to_mono_key(ok))
+        }
+        return String_from("Result")
+    }
     if tag == mir_lower_kinds::TY_STRUCT() || tag == mir_lower_kinds::TY_ENUM() {
         return mir_type_contracts::mir_type_contracts__TypeInfo_name(ty)
     }
@@ -3373,13 +3459,51 @@ def _wasm_check(
     )
 
 
-def _diag_fixture_flags(root: Path, fixture: str) -> list[str]:
-    """Return extra CLI args from a sibling ``.flags`` file, one token per line."""
+def _fixture_cli_flags(root: Path, fixture: str) -> list[str]:
+    """Read a fixture's whitespace-separated CLI flags from its sidecar."""
     flags_path = root / "tests" / "fixtures" / (fixture[:-4] + ".flags")
     if not flags_path.is_file():
         return []
-    lines = flags_path.read_text(encoding="utf-8").splitlines()
-    return [line.strip() for line in lines if line.strip()]
+    return shlex.split(flags_path.read_text(encoding="utf-8"), comments=True)
+
+
+def _diag_fixture_flags(root: Path, fixture: str) -> list[str]:
+    """Return compiler flags from a diagnostic fixture's sidecar."""
+    return _fixture_cli_flags(root, fixture)
+
+
+def _fixture_runtime_args(root: Path, fixture: str) -> tuple[list[str], bool]:
+    """Translate fixture capability flags into official Wasmtime arguments."""
+    flags = _fixture_cli_flags(root, fixture)
+    if "--deny-fs" in flags:
+        return [], False
+
+    dirs: list[str] = []
+    read_only = False
+    index = 0
+    while index < len(flags):
+        flag = flags[index]
+        value: str | None = None
+        if flag == "--dir" and index + 1 < len(flags):
+            value = flags[index + 1]
+            index += 1
+        elif flag.startswith("--dir="):
+            value = flag[len("--dir="):]
+        if value is not None:
+            if value.endswith(":ro"):
+                read_only = True
+            elif value.endswith(":rw"):
+                value = value[:-3]
+            dirs.extend(["--dir", value])
+        index += 1
+
+    if not dirs:
+        return [f"--dir={root}"], False
+    if read_only:
+        # Wasmtime does not understand the project's `:ro` suffix.  The
+        # caller wraps execution in a read-only bind sandbox instead.
+        dirs = [f"--dir={root}"]
+    return dirs, read_only
 
 
 # ── SelfhostFixpointResult ────────────────────────────────────────────────────
@@ -3907,24 +4031,18 @@ def _build_clock_capable_s2_locked(root: Path, *, force: bool = False) -> tuple[
 
 # ── Fixture parity skip list ─────────────────────────────────────────────────
 
-# Fixtures with known parity differences that are not semantic errors.
-# Earlier versions tracked external-compiler-vs-selfhost differences. These
-# now track pinned-vs-current selfhost differences with the same root
-# causes — kept verbatim because the underlying selfhost-emitter
-# limitations have not changed.
-#
-# Format: "category/fixture.ark"  # reason
-FIXTURE_PARITY_SKIP: set[str] = {
-    "stdlib_sort/sort_f64.ark",  # GC push handler (emit_push_gc) does not support
-                                 # Vec<f64>: uses i32 scratch for f64 value and i32
-                                 # array type for f64 elements.  The f64_to_string
-                                 # precision issue itself is fixed (shortest round-trip),
-                                 # but the fixture cannot compile due to this separate
-                                 # push lowering bug on GC targets.
-    "simd_conformance/i32x4_basic.ark",   # SIMD extract_lane lane index not passed as
-                                          # immediate; native emitter reads arg1=-1
-    "simd_lowering/t1_scalar_expansion.ark",  # same extract_lane lane index issue
-    "simd_gc_storage/v128_struct_field.ark",  # same extract_lane lane index issue
+# Keep this set empty while every manifest run fixture is required to compile,
+# validate, and execute through the same pinned/current parity path.
+FIXTURE_PARITY_SKIP: set[str] = set()
+
+# A small number of run fixtures intentionally exercise the process-level
+# trap contract.  They are not skipped: the current component must still
+# validate, run, and terminate with the expected trap status.
+FIXTURE_PARITY_EXPECTED_TRAPS: set[str] = {
+    "host/process/abort.ark",
+    "native_cpp_public/trap_div_zero.ark",
+    "stdlib_text/slice_bytes_invalid.ark",
+    "test_assert/assert_fail.ark",
 }
 
 
@@ -3934,7 +4052,7 @@ def _normalize_fixture_parity_output(out: str) -> str:
     out = re.sub(r"(?<![0-9a-zA-Z.])0x[0-9a-fA-F]+", "0x<addr>", out)
     # Strip wasmtime error wrapper for proc_exit with invalid exit codes
     # (exit 134/127 produce wasmtime error text after the program output)
-    out = re.sub(r"\nError: failed to run main module.*", "", out, flags=re.DOTALL)
+    out = re.sub(r"(?:^|\n)Error: failed to run main module.*", "", out, flags=re.DOTALL)
     return out
 
 
@@ -3966,9 +4084,9 @@ def _run_fixture_parity_locked(
     """Pinned-vs-current selfhost execution-output parity gate (ADR-029).
 
     For each ``run:`` fixture in the manifest:
-        - compile with pinned wasm and with current selfhost wasm
-        - validate both wasms with ``wasm-tools validate``
-        - execute both wasms; require stdout/stderr/exit-code equal
+        - compile with pinned wasm when available and with current selfhost wasm
+        - require the current wasm to pass ``wasm-tools validate``
+        - execute the current wasm; compare with pinned output when available
         - if a ``.expected`` golden exists, assert output matches it
     """
     lines: list[str] = []
@@ -4029,8 +4147,8 @@ def _run_fixture_parity_locked(
 
             ark_file = root / "tests" / "fixtures" / fixture
             if not ark_file.is_file():
-                lines.append(f"  skip: {fixture} (not found on disk)")
-                skip_count += 1
+                lines.append(f"  FAIL: {fixture} (not found on disk)")
+                fail_count += 1
                 continue
 
             src_rel = str(Path("tests") / "fixtures" / fixture)
@@ -4041,40 +4159,39 @@ def _run_fixture_parity_locked(
             out_pinned = root / out_pinned_rel
             out_current = root / out_current_rel
 
-            # Compile with pinned compiler
+            # Compile with pinned compiler.  The pinned compiler is an oracle
+            # for parity, not a prerequisite for the current compiler: it is
+            # allowed to fail on a fixture that the current compiler fixes.
+            pinned_compile_ok = False
             r = _wasm_compile(wasmtime, pinned, src_rel, out_pinned_rel, root, timeout=30)
-            if r.returncode != 0:
-                lines.append(f"  skip: {fixture} (pinned compile failed/timeout)")
-                skip_count += 1
-                continue
+            if r.returncode == 0:
+                pinned_compile_ok = True
+            else:
+                lines.append(f"  note: {fixture} (pinned compile failed/timeout)")
 
             # Compile with current selfhost compiler
             r = _wasm_compile(wasmtime, current, src_rel, out_current_rel, root, timeout=30)
             if r.returncode != 0:
-                lines.append(f"  skip: {fixture} (current selfhost compile failed/timeout)")
-                skip_count += 1
+                lines.append(f"  FAIL: {fixture} (current selfhost compile failed/timeout)")
+                fail_count += 1
                 continue
 
             # ── WASM validation step ──────────────────────────────────────
             # Validate both wasms with wasm-tools validate.
-            # - If the *current* wasm is invalid but pinned is valid → FAIL
-            #   (the current compiler introduced a new regression).
-            # - If *both* are invalid → skip (pre-existing emitter limitation
-            #   shared by pinned and current; tracked separately).
-            # - If *pinned* is invalid but current is valid → note it
-            #   (current fixed a pre-existing bug), continue to execution.
-            p_val_rc, p_val_msg = _wasm_tools_validate(out_pinned)
+            # The current wasm is the deliverable and must always validate.
+            # A pinned validation failure only means that parity has no
+            # second executable to compare; it never justifies skipping the
+            # current fixture.
+            if pinned_compile_ok:
+                p_val_rc, p_val_msg = _wasm_tools_validate(out_pinned)
+            else:
+                p_val_rc, p_val_msg = 1, "pinned compile failed/timeout"
             c_val_rc, c_val_msg = _wasm_tools_validate(out_current)
 
-            if c_val_rc != 0 and p_val_rc == 0:
-                lines.append(f"  FAIL: {fixture} (current wasm invalid, pinned OK: {c_val_msg[:120]})")
+            if c_val_rc != 0:
+                pinned_status = "pinned OK" if p_val_rc == 0 else "pinned unavailable/invalid"
+                lines.append(f"  FAIL: {fixture} (current wasm invalid, {pinned_status}: {c_val_msg[:120]})")
                 fail_count += 1
-                wasm_invalid_count += 1
-                continue
-
-            if c_val_rc != 0 and p_val_rc != 0:
-                lines.append(f"  skip: {fixture} (both wasms invalid — pre-existing emitter bug)")
-                skip_count += 1
                 wasm_invalid_count += 1
                 continue
 
@@ -4086,57 +4203,72 @@ def _run_fixture_parity_locked(
             # metadata. Package it into a command component before execution;
             # direct core execution cannot resolve interface imports.
             package_label = fixture.replace("/", "_").replace(".", "_")
-            pinned_run, pinned_package_error = _package_p2_core_for_execution(
-                root,
-                out_pinned,
-                Path(tmpdir) / "pinned",
-                f"pinned-{package_label}",
-            )
+            pinned_run: Path | None = None
+            pinned_package_error = ""
+            if p_val_rc == 0:
+                pinned_run, pinned_package_error = _package_p2_core_for_execution(
+                    root,
+                    out_pinned,
+                    Path(tmpdir) / "pinned",
+                    f"pinned-{package_label}",
+                )
             current_run, current_package_error = _package_p2_core_for_execution(
                 root,
                 out_current,
                 Path(tmpdir) / "current",
                 f"current-{package_label}",
             )
-            if pinned_run is None or current_run is None:
-                detail = pinned_package_error or current_package_error
+            if current_run is None or (p_val_rc == 0 and pinned_run is None):
+                detail = current_package_error if current_run is None else pinned_package_error
                 lines.append(f"  FAIL: {fixture} (official P2 component packaging failed: {detail})")
                 fail_count += 1
                 continue
 
-            r_p = _run(_wasm_run_argv(root, pinned_run), root, timeout=15)
-            p_out = (r_p.stdout + r_p.stderr).strip()
-            p_code = r_p.returncode
+            runtime_args, read_only = _fixture_runtime_args(root, fixture)
+            if pinned_run is None:
+                p_out = ""
+                p_code = 1
+            else:
+                r_p = _run(
+                    _wasm_run_argv(
+                        root,
+                        pinned_run,
+                        runtime_args=runtime_args,
+                        read_only=read_only,
+                    ),
+                    root,
+                    timeout=15,
+                )
+                p_out = (r_p.stdout + r_p.stderr).strip()
+                p_code = r_p.returncode
 
-            r_c = _run(_wasm_run_argv(root, current_run), root, timeout=15)
+            r_c = _run(
+                _wasm_run_argv(
+                    root,
+                    current_run,
+                    runtime_args=runtime_args,
+                    read_only=read_only,
+                ),
+                root,
+                timeout=15,
+            )
             c_out = (r_c.stdout + r_c.stderr).strip()
             c_code = r_c.returncode
 
             # A trap (exit 134) after successful wasm validation indicates a
-            # runtime crash.
-            # - If only current traps → FAIL (new regression).
-            # - If both trap → skip (pre-existing runtime bug in both).
-            # - If only pinned traps → note (current improved).
+            # runtime crash.  Only fixtures with an explicit process-level
+            # trap contract may pass with this status.
             def _is_trap(code: int) -> bool:
                 return code == 134
 
             p_trapped = _is_trap(p_code)
             c_trapped = _is_trap(c_code)
-            p_was_invalid = p_val_rc != 0
-
-            if c_trapped and not p_trapped and not p_was_invalid:
-                lines.append(f"  FAIL: {fixture} (current wasm trap at runtime, pinned OK)")
+            if c_trapped:
+                if fixture in FIXTURE_PARITY_EXPECTED_TRAPS:
+                    pass_count += 1
+                    continue
+                lines.append(f"  FAIL: {fixture} (current wasm trap at runtime)")
                 fail_count += 1
-                continue
-
-            if c_trapped and not p_trapped and p_was_invalid:
-                lines.append(f"  note: {fixture} (pinned wasm invalid, current traps — improvement from invalid)")
-                skip_count += 1
-                continue
-
-            if c_trapped and p_trapped:
-                lines.append(f"  skip: {fixture} (both wasms trap — pre-existing runtime bug)")
-                skip_count += 1
                 continue
 
             if p_trapped and not c_trapped:
@@ -4199,15 +4331,12 @@ def _run_fixture_parity_locked(
     lines.append(f"{YELLOW}fixture-parity: PASS={pass_count} FAIL={fail_count} SKIP={skip_count}"
                  f" (wasm-invalid={wasm_invalid_count}){NC}")
 
-    if fail_count > 0:
-        # Pre-existing fixture mismatches are tracked in #807.
-        # Report as warning but don't block CI, since the mismatch count
-        # varies depending on which compiler wasm is available.
+    if fail_count > 0 or skip_count > 0:
         lines.append(
-            f"{YELLOW}⚠ fixture parity: {fail_count} fixture(s) failed — "
-            f"pre-existing mismatches tracked in #807{NC}"
+            f"{RED}✗ fixture parity: {fail_count} failed, {skip_count} skipped; "
+            f"every run fixture must validate and execute{NC}"
         )
-        return (0, "\n".join(lines) + "\n")
+        return (1, "\n".join(lines) + "\n")
 
     if not filter_dirs and pass_count < 10:
         lines.append(

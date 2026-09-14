@@ -11,7 +11,7 @@ struct Holder {
 }
 
 fn main() {
-    let mut h = Holder { items: Vec_new_Cell() }
+    let mut h = Holder { items: Vec::new<Cell>() }
     h = Holder { items: push(h.items, Cell::Num(7)) }
     h = Holder { items: push(h.items, Cell::Text(String_from("ok"))) }
     let a = get_unchecked(h.items, 0)

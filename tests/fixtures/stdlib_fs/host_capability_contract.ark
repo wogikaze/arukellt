@@ -25,7 +25,7 @@ fn main() {
 
     // ── whole-file read returns the fixture contents ──
     match fs::read_to_string("tests/fixtures/stdlib_fs/present.txt") {
-        Result::Ok(contents) => stdio::println(contents),
+        Result::Ok(contents) => stdio::println(trim(contents)),
         Result::Err(_) => stdio::println("read-unexpected-error"),
     }
 

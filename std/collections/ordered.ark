@@ -112,8 +112,8 @@ pub fn btree_remove(m: Vec<i32>, key: i32) {
                 set(m, 1 + i * 2 + 1, get_unchecked(m, 1 + i + 1 * 2 + 1))
                 i = i + 1
             }
-            pop(m)
-            pop(m)
+            let _: Option<i32> = pop(m)
+            let _: Option<i32> = pop(m)
             set(m, 0, count - 1)
         }
     }

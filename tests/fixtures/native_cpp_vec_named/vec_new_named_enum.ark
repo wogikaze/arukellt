@@ -7,7 +7,7 @@ enum Cell {
 }
 
 fn main() {
-    let mut items = Vec_new_Cell()
+    let mut items = Vec::new<Cell>()
     items = push(items, Cell::Num(7))
     items = push(items, Cell::Text(String_from("ok")))
     let a = get_unchecked(items, 0)

@@ -18,6 +18,10 @@ fn mir_emit_array_set(ctx: LowerCtx, dest: i32, val_idx: i32, elem_index: i32) {
     aggregate_array::mir_emit_array_set(ctx, dest, val_idx, elem_index)
 }
 
+fn mir_set_array_type_from_value(ctx: LowerCtx, dest: i32, val_idx: i32) {
+    aggregate_array::mir_set_array_type_from_value(ctx, dest, val_idx)
+}
+
 fn mir_emit_local_get_ref(ctx: LowerCtx, local_idx: i32) -> i32 {
     aggregate_array::mir_emit_local_get_ref(ctx, local_idx)
 }

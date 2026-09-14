@@ -5,6 +5,7 @@ use mir::inst_accessors_operands
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_types
+use mir::lower::core_call_arg_names
 use mir::value_types
 
 fn mir_mark_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
@@ -64,8 +65,13 @@ fn mark_string_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
 }
 
 fn mir_callee_returns_string(callee_name: String) -> bool {
+    if core_call_arg_names::mir_core_call_string_result_name(clone(callee_name)) {
+        return true
+    }
     if eq(clone(callee_name), "String_from") ||
     eq(clone(callee_name), "concat") ||
+    eq(clone(callee_name), "String::concat") ||
+    eq(clone(callee_name), "std::text::String::concat") ||
     eq(clone(callee_name), "__intrinsic_concat") ||
     eq(clone(callee_name), "text::concat") ||
     eq(clone(callee_name), "text::builder_append") ||

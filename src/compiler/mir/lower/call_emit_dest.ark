@@ -3,6 +3,7 @@ use mir::lower::ctx_api_local_alloc
 use mir::lower::ctx_api_local_types
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_types
+use mir::lower::call_rewrite_vec
 use mir::value_types
 
 fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
@@ -27,7 +28,23 @@ fn mir_prepare_direct_call_dest(ctx: LowerCtx, callee_name: String, first_arg_id
     if eq(clone(callee_name), "vec_get_unchecked_f64") {
         dest_vt = value_types::VT_F64()
     }
+    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) && first_arg_idx >= 0 {
+        dest_vt = mir_vec_receiver_vt(ctx, first_arg_idx)
+    }
     ctx_api_local_alloc::ctx_fresh_local(ctx, dest_vt)
+}
+
+fn mir_vec_receiver_vt(ctx: LowerCtx, receiver_idx: i32) -> i32 {
+    let receiver_vt = ctx_api_local_types::ctx_local_vt(ctx, receiver_idx)
+    if receiver_vt == value_types::VT_GC_REF() ||
+    receiver_vt == value_types::VT_REF() ||
+    receiver_vt == value_types::VT_FUNCREF() {
+        return receiver_vt
+    }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_REF()
 }
 
 fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> i32 {
@@ -41,10 +58,11 @@ fn mir_vec_call_dest_vt(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) 
         return value_types::VT_VOID()
     }
     let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if !starts_with(clone(vec_type), "vec:") {
+    if !starts_with(clone(vec_type), "vec:") && !starts_with(clone(vec_type), "array:") {
         return value_types::VT_VOID()
     }
-    let elem_type = substring(vec_type, 4, len(vec_type))
+    let elem_start = if starts_with(clone(vec_type), "array:") { 6 } else { 4 }
+    let elem_type = substring(vec_type, elem_start, len(vec_type))
     if eq(clone(elem_type), "i64") || eq(clone(elem_type), "I64") {
         return value_types::VT_I64()
     }

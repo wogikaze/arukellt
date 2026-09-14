@@ -4,8 +4,8 @@ use std::host::stdio
 
 struct Point { x: i32, y: i32 }
 
-fn describe(pt) -> String | pt.x > 0 = "right"
-fn describe(pt) -> String | pt.x < 0 = "left"
+fn describe(pt: Point) -> String | pt.x > 0 = "right"
+fn describe(pt: Point) -> String | pt.x < 0 = "left"
 fn describe(_) -> String = "center"
 
 fn main() {

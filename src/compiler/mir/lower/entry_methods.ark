@@ -4,7 +4,6 @@ use mir::lower::entry_core_body
 use mir::lower::entry_methods_mono
 use mir::lower::entry_view_method
 use corehir::mod as corehir_mod
-
 fn mir_emit_impl_methods(ctx: LowerCtx, body_source: MirLowerEntryBodySource, impl_decl_index: i32, struct_name: String, midx: MonoIndex) {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let method_count = entry_view_method::mir_entry_method_count_for_impl(entry_view, impl_decl_index)

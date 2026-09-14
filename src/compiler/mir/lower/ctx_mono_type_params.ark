@@ -29,6 +29,11 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
     if tag == lower_kinds::TY_STRING() { return "String" }
     if tag == lower_kinds::TY_CHAR() { return "char" }
     if tag == lower_kinds::TY_UNIT() { return "()" }
+    // The parser represents `()` as an empty tuple TypeInfo. It is the unit
+    // payload when it appears inside Result/Option, not an open type.
+    if tag == lower_kinds::TY_TUPLE() && type_contracts::TypeInfo_type_arg_count(ty) == 0 {
+        return "unit"
+    }
     if tag == lower_kinds::TY_VEC() {
         let vec_name = return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
         if len(vec_name) > 0 {
@@ -36,8 +41,21 @@ fn mir_type_info_to_mono_key(ty: TypeInfo) -> String {
         }
         return "vec:i32"
     }
+    if tag == lower_kinds::TY_OPTION() {
+        return return_typeinfo_names::mir_option_return_type_name_from_type_info(ty)
+    }
+    if tag == lower_kinds::TY_RESULT() {
+        return return_typeinfo_names::mir_result_return_type_name_from_type_info(ty)
+    }
     if tag == lower_kinds::TY_STRUCT() || tag == lower_kinds::TY_ENUM() {
-        return type_contracts::TypeInfo_name(ty)
+        let name = type_contracts::TypeInfo_name(ty)
+        // Built-in Vec is represented as a generic struct by the type
+        // checker. Preserve its element type when it appears inside a
+        // compound return such as `(Vec<T>, i32)`.
+        if eq(clone(name), "Vec") && type_contracts::TypeInfo_type_arg_count(ty) > 0 {
+            return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
+        }
+        return name
     }
     let name = type_contracts::TypeInfo_name(ty)
     if len(name) > 0 {

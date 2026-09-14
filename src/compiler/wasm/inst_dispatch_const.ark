@@ -1,4 +1,5 @@
 use wasm::inst_accessors_facade
+use mir::inst_accessors_operands
 use mir::function_identity
 use mir::value_types
 use wasm::ctx_record
@@ -119,6 +120,12 @@ fn try_emit_local_get_inst(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, next_
         return false
     }
     if next_op == opcodes::MIR_STRUCT_SET() {
+        return true
+    }
+    // GC_STRUCT_GET reloads its base from arg1.  A preceding LOCAL_GET of the
+    // same local is therefore redundant and leaves an extra ref on the stack.
+    if next_op == opcodes::MIR_GC_STRUCT_GET() &&
+    next_arg1 == inst_accessors_operands::MirInst_arg0(inst) {
         return true
     }
     inst_locals::emit_local_get(w, inst, ctx)

@@ -23,9 +23,9 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         return dest
     }
     let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_GC_REF())
-    let struct_name = tuple_struct_name_from_field_vts(ctx, field_vts, child_count, total_bytes)
+    let struct_name = tuple_struct_name_from_locals(ctx, field_locals, field_vts, child_count, total_bytes)
     if len(struct_name) > 0 {
-        let sig = tuple_gc_sig_from_field_vts(field_vts, child_count)
+        let sig = tuple_gc_sig_from_type_keys(substring(struct_name, 6, len(struct_name)))
         ctx_gc_struct::ctx_register_gc_struct(ctx, clone(struct_name), sig)
         ctx_api_emit::ctx_emit(ctx, inst_struct_new::MirInst_struct_new_named(dest, clone(struct_name), total_bytes))
     } else {
@@ -65,6 +65,53 @@ fn mir_emit_tuple_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: 
         ctx_api_local_types::ctx_set_local_type(ctx, dest, type_name)
     }
     dest
+}
+
+fn tuple_struct_name_from_locals(ctx: LowerCtx, field_locals: Vec<i32>, field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
+    if !tuple_field_vts_need_named_gc_struct(ctx, field_vts, field_count) {
+        return String_new()
+    }
+    let mut name = String_from("tuple:")
+    let mut i = 0
+    while i < field_count {
+        if i > 0 {
+            name = concat(name, String_from(","))
+        }
+        let local_type = ctx_api_local_types::ctx_get_local_type(ctx, get_unchecked(field_locals, i))
+        let key = tuple_key_from_local_type(local_type, get_unchecked(field_vts, i))
+        name = concat(name, key)
+        i = i + 1
+    }
+    let _ = total_bytes
+    name
+}
+
+fn tuple_key_from_local_type(type_name: String, field_vt: i32) -> String {
+    if len(type_name) == 0 {
+        return tuple_field_mono_key(field_vt)
+    }
+    if starts_with(clone(type_name), String_from("enum:")) {
+        return substring(type_name, 5, len(type_name))
+    }
+    if starts_with(clone(type_name), String_from("struct:")) {
+        let n = len(type_name)
+        let mut first = 0 - 1
+        let mut last = 0 - 1
+        let mut i = 0
+        while i < n {
+            if char_at(type_name, i) == 58 {
+                if first < 0 {
+                    first = i
+                }
+                last = i
+            }
+            i = i + 1
+        }
+        if first >= 0 && last > first {
+            return substring(type_name, first + 1, last)
+        }
+    }
+    type_name
 }
 
 fn tuple_struct_name_from_field_vts(ctx: LowerCtx, field_vts: Vec<i32>, field_count: i32, total_bytes: i32) -> String {
@@ -286,15 +333,85 @@ fn tuple_gc_field_sig_for_key(key: String, field_idx: i32) -> String {
     if eq(clone(key), "f64") || eq(clone(key), "F64") {
         return concat(prefix, "_f64")
     }
-    if eq(clone(key), "i64") || eq(clone(key), "I64") {
+    if eq(clone(key), "i64") || eq(clone(key), "I64") || eq(clone(key), "u64") {
         return concat(prefix, "_i64")
     }
-    if eq(clone(key), "String") ||
-    eq(clone(key), "string") ||
-    starts_with(clone(key), "vec:") ||
-    starts_with(clone(key), "option:") ||
-    starts_with(clone(key), "Option:") {
+    if eq(clone(key), "f32") || eq(clone(key), "F32") {
+        return concat(prefix, "_f32")
+    }
+    if eq(clone(key), "i32") || eq(clone(key), "I32") ||
+    eq(clone(key), "bool") || eq(clone(key), "char") ||
+    eq(clone(key), "u8") || eq(clone(key), "u16") ||
+    eq(clone(key), "u32") || eq(clone(key), "i16") ||
+    eq(clone(key), "unit") || eq(clone(key), "()") {
+        return concat(prefix, "_i32")
+    }
+    if eq(clone(key), "String") || eq(clone(key), "string") {
         return concat(prefix, "_ref0")
     }
-    concat(prefix, "_i32")
+    if starts_with(clone(key), "vec:") ||
+    starts_with(clone(key), "Vec<") ||
+    starts_with(clone(key), "Vec_") {
+        return concat(prefix, tuple_gc_vec_field_ref_suffix(clone(key)))
+    }
+    if starts_with(clone(key), "option:") ||
+    starts_with(clone(key), "Option:") ||
+    starts_with(clone(key), "Option_") ||
+    starts_with(clone(key), "result:") ||
+    starts_with(clone(key), "Result:") ||
+    starts_with(clone(key), "Result_") {
+        return concat(prefix, "_ref14")
+    }
+    if len(key) == 1 {
+        let ch = char_at(key, 0)
+        if ch >= 65 && ch <= 90 {
+            return concat(prefix, "_i32")
+        }
+    }
+    // Named structs and enums share the open GC base type. This keeps tuple
+    // signatures independent of declaration order while preserving a GC ref
+    // slot for values such as WitType and Point.
+    concat(prefix, "_ref14")
+}
+
+fn tuple_gc_vec_field_ref_suffix(type_name: String) -> String {
+    let elem = if starts_with(clone(type_name), "vec:") {
+        substring(type_name, 4, len(type_name))
+    } else if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
+        substring(type_name, 4, len(type_name) - 1)
+    } else if starts_with(clone(type_name), "Vec_") {
+        substring(type_name, 4, len(type_name))
+    } else {
+        String_new()
+    }
+    if eq(clone(elem), "String") || eq(clone(elem), "string") {
+        return "_ref19"
+    }
+    if eq(clone(elem), "i64") || eq(clone(elem), "I64") {
+        return "_ref22"
+    }
+    if eq(clone(elem), "f64") || eq(clone(elem), "F64") {
+        return "_ref23"
+    }
+    if eq(clone(elem), "v128") || eq(clone(elem), "V128") {
+        return "_ref21"
+    }
+    if eq(clone(elem), "fnref") || eq(clone(elem), "fn") || starts_with(clone(elem), "fn(") {
+        return "_ref27"
+    }
+    if starts_with(clone(elem), "Option") ||
+    starts_with(clone(elem), "option:") ||
+    starts_with(clone(elem), "Result") ||
+    starts_with(clone(elem), "result:") ||
+    starts_with(clone(elem), "enum:") {
+        return "_ref29"
+    }
+    if eq(clone(elem), "i32") || eq(clone(elem), "I32") ||
+    eq(clone(elem), "bool") || eq(clone(elem), "char") ||
+    eq(clone(elem), "u8") || eq(clone(elem), "u16") ||
+    eq(clone(elem), "u32") || eq(clone(elem), "u64") ||
+    eq(clone(elem), "i16") {
+        return "_ref10"
+    }
+    "_ref25"
 }

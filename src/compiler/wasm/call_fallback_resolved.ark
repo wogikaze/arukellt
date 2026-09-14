@@ -118,7 +118,7 @@ fn try_emit_resolved_fallback_call(
         )
     }
     if !registry_return_audit::registry_switch_call_has_void_return(ctx, inst, fn_ret_vt) {
-        if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0, next_arg1) {
+        if inst_accessors_operands::MirInst_dest(inst) >= 0 && should_force_call_dest_store(next_op, next_arg0) {
             let dest = inst_accessors_operands::MirInst_dest(inst)
             inst_locals::emit_gc_ref_cast_to_dest(w, ctx, dest)
             writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -174,10 +174,11 @@ fn call_param_type_is_enum_like(ctx: SelfEmitCtx, param_type_name: String) -> bo
     false
 }
 
-fn should_force_call_dest_store(next_op: i32, next_arg0: i32, next_arg1: i32) -> bool {
-    if next_op == 11 && next_arg1 >= 0 {  // MIR_LOCAL_SET
-        return true
-    }
+fn should_force_call_dest_store(next_op: i32, next_arg0: i32) -> bool {
+    // An explicit local-to-local copy is often the staging of a later call
+    // argument.  The call result may still be the left operand of a following
+    // comparison, so let inst_store_policy choose SET versus TEE instead of
+    // consuming the stack value unconditionally.
     if next_op == 40 && next_arg0 >= 0 {  // MIR_CALL
         return true
     }

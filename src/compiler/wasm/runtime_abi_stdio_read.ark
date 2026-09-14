@@ -22,7 +22,23 @@ fn emit_read_stdin_to_string(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> 
 }
 
 fn emit_finish_stdin_string_buffer(w: WasmWriter) {
-    runtime_abi_stdio_read_buffer::emit_finalize_stdin_string_buffer(w)
+    // The P2 stream reports EOF as a closed result. Finalize from the heap
+    // cursor so both closed and successful reads record the real byte length.
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_core::emit_heap_get(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_memory::emit_i32_store_default(w)
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
+    helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_BUFSTART())
+    helpers_memory::emit_i32_load_default(w)
+    helpers_numeric_i32::emit_i32_const(w, 4)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_memory::emit_i32_store_default(w)
     helpers_numeric_i32::emit_i32_const(w, constants::SCRATCH_FS_STRPTR())
     helpers_memory::emit_i32_load_default(w)
 }

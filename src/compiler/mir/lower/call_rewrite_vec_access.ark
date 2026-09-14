@@ -15,15 +15,11 @@ fn mir_rewrite_vec_get(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -
 fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     if first_arg_idx >= 0 {
         let arg_type_get = vec_access_receiver_type(ctx, clone(callee_name), first_arg_idx)
-        // Typed i64/f64 helpers remain for direct call sites; other Vec receivers
-        // go through sealed raw so element type comes from the source local (#822).
-        if eq(clone(arg_type_get), "vec:i64") {
-            return String_from("vec_get_unchecked_i64")
-        }
-        if eq(clone(arg_type_get), "vec:f64") {
-            return String_from("vec_get_unchecked_f64")
-        }
-        if starts_with(clone(arg_type_get), "vec:") {
+        // Keep one entry point for every Vec element type. The emitter uses
+        // the source local's storage layout to distinguish a raw array from a
+        // Vec struct, so i64/f64 cannot be selected by a stale mono suffix.
+        if starts_with(clone(arg_type_get), "vec:") ||
+        starts_with(clone(arg_type_get), "array:") {
             return String_from("raw_array_get_unchecked")
         }
     }
@@ -32,7 +28,8 @@ fn mir_rewrite_vec_get_unchecked(ctx: LowerCtx, callee_name: String, first_arg_i
 
 fn vec_access_receiver_type(ctx: LowerCtx, callee_name: String, first_arg_idx: i32) -> String {
     let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-    if starts_with(clone(receiver_type), String_from("vec:")) {
+    if starts_with(clone(receiver_type), String_from("vec:")) ||
+    starts_with(clone(receiver_type), String_from("array:")) {
         return receiver_type
     }
     let mono_suffix = mono_suffix_parse::extract_mono_suffix(callee_name)

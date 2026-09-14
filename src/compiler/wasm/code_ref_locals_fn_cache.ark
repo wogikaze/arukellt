@@ -43,7 +43,8 @@ fn begin_function_local_gc_cache(ctx: SelfEmitCtx, f: MirFunction) {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
             let op = inst_accessors_shape::MirInst_op(inst)
             let dest = inst_accessors_operands::MirInst_dest(inst)
-            if op == opcodes::MIR_GC_STRUCT_NEW() {
+            if op == opcodes::MIR_GC_STRUCT_NEW() ||
+            op == opcodes::MIR_STRUCT_NEW() {
                 if dest >= 0 && dest < local_count {
                     set(struct_new, dest, 1)
                 }

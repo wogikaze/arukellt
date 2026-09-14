@@ -1,5 +1,6 @@
 use wasm::opcodes
 use wasm::ctx_scratch
+use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_pow_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_base = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
@@ -48,6 +49,30 @@ fn emit_gcd(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_leb128_u(w, s_b)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_a)
+    // gcd is defined over absolute values; the loop below only performs the
+    // Euclidean step and otherwise preserves the sign of a negative input.
+    writer_core::emit_local_get(w, s_a)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    writer_core::emit_local_get(w, s_a)
+    helpers_numeric_i32::emit_i32_sub(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_a)
+    writer_core::emit_byte(w, opcodes::OP_END())
+    writer_core::emit_local_get(w, s_b)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    helpers_numeric_i32::emit_i32_lt_s(w)
+    writer_core::emit_byte(w, opcodes::OP_IF())
+    writer_core::emit_byte(w, 64)
+    helpers_numeric_i32::emit_i32_const(w, 0)
+    writer_core::emit_local_get(w, s_b)
+    helpers_numeric_i32::emit_i32_sub(w)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_b)
+    writer_core::emit_byte(w, opcodes::OP_END())
     writer_core::emit_byte(w, opcodes::OP_BLOCK())
     writer_core::emit_byte(w, 64)
     writer_core::emit_byte(w, opcodes::OP_LOOP())

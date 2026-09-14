@@ -1,7 +1,14 @@
 use mir::lower::ast_node
 use mir::lower_kinds
 use mir::lower::ctx_api_variants
+use mir::lower::ctx_api_emit
+use mir::lower::ctx_api_local_alloc
+use mir::lower::ctx_api_local_types
+use mir::lower::ctx_fn_index
+use mir::lower::core_names
 use mir::lower::ctx_types
+use mir::inst_ref_func
+use mir::value_types
 use mir::lower::variants
 
 fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
@@ -17,9 +24,35 @@ fn lower_atomic_path_variant(ctx: LowerCtx, node: AstNode) -> i32 {
         if tag >= 0 {
             return variants::lower_variant_value(ctx, variant_name, tag)
         }
+        let fn_name = ast_node::node_text(node)
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+        if fn_idx >= 0 {
+            return lower_function_value(ctx, fn_name)
+        }
         return 0 - 1
     }
     0 - 2
+}
+
+fn lower_atomic_function(ctx: LowerCtx, node: AstNode) -> i32 {
+    if !ast_node::node_kind_is(node, lower_kinds::NK_IDENT()) {
+        return 0 - 2
+    }
+    let fn_name = ast_node::node_text(node)
+    if ctx_fn_index::ctx_is_const_name(ctx, clone(fn_name)) {
+        return 0 - 2
+    }
+    if ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name)) < 0 {
+        return 0 - 2
+    }
+    lower_function_value(ctx, fn_name)
+}
+
+fn lower_function_value(ctx: LowerCtx, fn_name: String) -> i32 {
+    let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
+    ctx_api_local_types::ctx_set_local_type(ctx, dest, core_names::mir_fnref_type_name_for_function(ctx, clone(fn_name)))
+    ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
+    dest
 }
 
 fn lower_atomic_ident_variant(ctx: LowerCtx, node: AstNode) -> i32 {

@@ -13,18 +13,19 @@ fn mono_index_count(idx: MonoIndex, fn_name: String) -> i32 {
 }
 
 fn mono_index_mangled_at(idx: MonoIndex, fn_name: String, ordinal: i32) -> String {
-    let count = mono_index_types::mono_index_name_count(idx)
-    let mut name_start = 0
+    if ordinal < 0 {
+        return ""
+    }
+    let entry_count = mono_index_types::mono_index_mangled_count(idx)
+    let mut found = 0
     let mut i = 0
-    while i < count {
-        if eq(mono_index_types::mono_index_name_at(idx, i), clone(fn_name)) {
-            let idx_count = mono_index_types::mono_index_count_at(idx, i)
-            if ordinal < idx_count {
-                return mono_index_types::mono_index_mangled_at_offset(idx, name_start + ordinal)
+    while i < entry_count {
+        if eq(mono_index_types::mono_index_mangled_base_at(idx, i), clone(fn_name)) {
+            if found == ordinal {
+                return mono_index_types::mono_index_mangled_at_offset(idx, i)
             }
-            return ""
+            found = found + 1
         }
-        name_start = name_start + mono_index_types::mono_index_count_at(idx, i)
         i = i + 1
     }
     ""

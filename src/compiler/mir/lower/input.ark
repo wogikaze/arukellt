@@ -1,7 +1,5 @@
 use mir::lower::entry_body_source
-use corehir::mir_body_source
 use corehir::body
-use corehir::mod as corehir_mod
 
 struct MirLowerInput {
     view: CoreHirMirView,
@@ -26,12 +24,12 @@ fn mir_lower_input_new(
     if len(effective_target) == 0 {
         effective_target = "wasm32-gc"
     }
-    let lazy_body = eq(clone(effective_target), String_from("wasm32-gc"))
-    let body_source_decls = if lazy_body {
-        decl_nodes
-    } else {
-        Vec::new<AstNode>()
-    }
+    // Module ASTs are released after type checking and before MIR lowering.
+    // The frozen CoreHIR body artifact is therefore the only valid source for
+    // GC lowering as well; rereading `decl_nodes` here can observe allocator
+    // reuse and bind a method to a different body's expression tree.
+    let lazy_body = false
+    let body_source_decls = Vec::new<AstNode>()
     let body_source = entry_body_source::mir_entry_body_source_new(
         entry_body_source::mir_entry_body_source_view_from_core(view),
         fallback_source,
@@ -39,9 +37,6 @@ fn mir_lower_input_new(
         lazy_body,
         body::CoreHirBodyTable_new()
     )
-    if lazy_body {
-        mir_body_source::mir_body_source_release(corehir_mod::view_body_source(view))
-    }
     MirLowerInput {
         view: view,
         body_source: body_source,

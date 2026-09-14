@@ -1,11 +1,47 @@
 use mir::local_access
+use mir::block_inst_access
+use mir::function_block_queries
 use mir::module_functions
 use mir::function_param_view
+use mir::inst_accessors_shape
 use wasm::constants
 use wasm::function_indices
 use wasm::opcodes
 use wasm::writer_core
 use wasm::writer_sections
+
+fn module_has_funcref_values(mir: MirModule) -> bool {
+    if module_has_funcref_params(mir) {
+        return true
+    }
+    let fn_count = module_functions::MirModule_function_count(mir)
+    let functions = module_functions::MirModule_functions(mir)
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(functions, i)
+        let block_count = function_block_queries::MirFunction_block_count(f)
+        let mut bi = 0
+        while bi < block_count {
+            let block = function_block_queries::MirFunction_block_at(f, bi)
+            let instruction_count = block_inst_access::MirBlock_inst_count(block)
+            let mut ii = 0
+            while ii < instruction_count {
+                let op = inst_accessors_shape::MirInst_op(
+                    block_inst_access::MirBlock_inst_at(block, ii)
+                )
+                if op == opcodes::MIR_REF_FUNC() ||
+                op == opcodes::MIR_CALL_REF() ||
+                op == opcodes::MIR_CALL_INDIRECT() {
+                    return true
+                }
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+        i = i + 1
+    }
+    false
+}
 
 fn module_has_funcref_params(mir: MirModule) -> bool {
     let fn_count = module_functions::MirModule_function_count(mir)
@@ -29,7 +65,7 @@ fn module_has_funcref_params(mir: MirModule) -> bool {
 }
 
 fn emit_table_section(out: WasmWriter, mir: MirModule) {
-    if !module_has_funcref_params(mir) {
+    if !module_has_funcref_values(mir) {
         return
     }
     let table_sec = writer_core::WasmWriter_new()
@@ -42,7 +78,7 @@ fn emit_table_section(out: WasmWriter, mir: MirModule) {
 }
 
 fn emit_element_section(out: WasmWriter, mir: MirModule, target: String, wasi_version: String, wit_import_count: i32) {
-    if !module_has_funcref_params(mir) {
+    if !module_has_funcref_values(mir) {
         return
     }
     let fn_count = module_functions::MirModule_function_count(mir)

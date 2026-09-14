@@ -2,6 +2,7 @@ use wasm::call_text_core
 use wasm::call_text_extra
 use wasm::inst_store
 use wasm::intrinsic_string_collection
+use wasm::intrinsic_string_lines
 use wasm::intrinsic_string_format
 use wasm::call_text_mir_view
 use mir::inst_accessors_operands
@@ -59,6 +60,13 @@ fn try_emit_text_collection_view_call(w: WasmWriter, handler_id: i32, inst: MirI
         let _result_on_stack = intrinsic_string_collection::emit_text_chars(w, inst, ctx)
         inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
         return true
+    }
+    if handler_id == corehir::core_op_registry_generated::core_op_handler_string_lines() {
+        if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+            let _result_on_stack = intrinsic_string_lines::emit_lines(w, inst, ctx)
+            inst_store::emit_store_result_if_needed(w, inst, next_op, next_arg0, next_arg1, next2_op, _result_on_stack)
+            return true
+        }
     }
     false
 }

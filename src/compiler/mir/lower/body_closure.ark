@@ -10,6 +10,7 @@ use mir::lower::body_closure_context
 use mir::lower::body_closure_params
 use mir::lower::body_closure_return
 use mir::lower::closure_return_type
+use mir::lower_kinds
 use mir::value_types
 
 fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<String>) -> MirFunction {
@@ -31,6 +32,12 @@ fn mir_emit_closure_fn(ctx: LowerCtx, synth: String, clos: AstNode, caps: Vec<St
 }
 
 fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    if is_identity_closure(node) {
+        // One monomorphic funcref cannot represent `|x| x` at both scalar and
+        // GC-reference call sites. Keep this pure identity closure in the
+        // registry and inline each call at its concrete argument type.
+        return closure_registry::closure_register_identity(ctx)
+    }
     let caps = Vec::new<String>()
     let cap_child_count = ast_node::node_child_count(node)
     if cap_child_count > 0 {
@@ -42,4 +49,18 @@ fn lower_closure_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     let synth = closure_registry::closure_next_synth_name(ctx)
     let mf = mir_emit_closure_fn(ctx, synth, node, caps)
     closure_registry::closure_register_synth_fn(ctx, mf, packed, extra)
+}
+
+fn is_identity_closure(node: AstNode) -> bool {
+    let child_count = ast_node::node_child_count(node)
+    if child_count != 2 {
+        return false
+    }
+    let param = ast_node::node_child_at(node, 0)
+    let body = ast_node::node_child_at(node, 1)
+    if !ast_node::node_kind_is(param, lower_kinds::NK_IDENT()) ||
+    !ast_node::node_kind_is(body, lower_kinds::NK_IDENT()) {
+        return false
+    }
+    eq(ast_node::node_text(param), ast_node::node_text(body))
 }

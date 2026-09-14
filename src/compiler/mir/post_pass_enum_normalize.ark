@@ -39,6 +39,15 @@ fn is_ref_container_type_name(type_name: String) -> bool {
     }
     false
 }
+
+// A payload local can temporarily inherit the generated struct name of an
+// enum variant (for example `struct:TomlValue::String:8`).  That is the
+// variant object layout, not the payload's storage type.  Keep this shape
+// distinguishable from ordinary container names so LOCAL_SET propagation can
+// replace it with the producer's concrete type.
+fn is_enum_variant_struct_type_name(type_name: String) -> bool {
+    starts_with(clone(type_name), "struct:") && contains(clone(type_name), "::")
+}
 // vec:/hashmap:/struct: locals must not keep enum variant_slot metadata.
 fn mir_function_clear_container_variant_slots(f: MirFunction) -> MirFunction {
     let local_count = function_locals_view::MirFunction_local_count(f)

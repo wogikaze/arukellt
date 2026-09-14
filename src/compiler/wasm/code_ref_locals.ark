@@ -72,6 +72,10 @@ fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_scalar_producer(f, local_idx)
 }
 
+fn local_scalar_producer_vt(f: MirFunction, local_idx: i32) -> i32 {
+    code_ref_locals_scan::local_scalar_producer_vt(f, local_idx)
+}
+
 fn local_has_strong_ref_producer(f: MirFunction, local_idx: i32) -> bool {
     code_ref_locals_scan::local_has_strong_ref_producer(f, local_idx)
 }

@@ -93,6 +93,29 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_FUNCREF())
         return
     }
+    // Built-in names are also valid enum-variant basenames (for example
+    // `WitType::String`). Keep the semantic built-in type before consulting
+    // the layout registry, whose basename lookup cannot distinguish them.
+    if eq(clone(cleaned), "String") ||
+    eq(clone(cleaned), "string") ||
+    eq(clone(cleaned), "bool") ||
+    eq(clone(cleaned), "char") ||
+    eq(clone(cleaned), "i32") ||
+    eq(clone(cleaned), "i64") ||
+    eq(clone(cleaned), "f32") ||
+    eq(clone(cleaned), "f64") ||
+    eq(clone(cleaned), "u8") ||
+    eq(clone(cleaned), "u16") ||
+    eq(clone(cleaned), "u32") ||
+    eq(clone(cleaned), "u64") ||
+    eq(clone(cleaned), "i16") ||
+    eq(clone(cleaned), "unit") ||
+    eq(clone(cleaned), "()") ||
+    eq(clone(cleaned), "v128") {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(cleaned))
+        set_vt_for_resolved_type_name(ctx, dest, clone(cleaned))
+        return
+    }
     // Result/Option/Vec/HashMap encodings must not go through layout
     // basename resolve: `vec:Diagnostic` would become `Diagnostic`.
     if is_option_or_result_type_name(clone(cleaned)) ||
@@ -125,6 +148,14 @@ fn mark_call_result_from_return_type_name(ctx: LowerCtx, dest: i32, type_name: S
 }
 
 fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32) {
+    // Box is a zero-cost recursive container in the current value model. The
+    // generic type argument is carried by the operand; use the open GC/ref
+    // representation for the result so a Box<WitType> can fill an enum field.
+    if is_box_identity_callee(clone(callee_name)) {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, String_from("enum:open"))
+        set_vt_for_resolved_type_name(ctx, dest, String_from("enum:open"))
+        return
+    }
     // Hard overrides must win over premature enum:open (#726 toml Result<Vec>).
     if call_type_fallback_stdlib::mark_toml_result_vec_call_type(ctx, clone(callee_name), dest) {
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
@@ -133,17 +164,18 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     // Re-apply known stdlib Result types when unset or demoted away from
     // Result/Option encodings (#834 cmd_init: write_main was i32).
     let existing = ctx_api_local_types::ctx_get_local_type(ctx, dest)
-    let needs_stdlib_result = len(existing) == 0 ||
+    let existing_is_weak = len(existing) == 0 || eq(clone(existing), "enum:open")
+    let needs_stdlib_result = existing_is_weak ||
     !is_option_or_result_type_name(clone(existing))
     if needs_stdlib_result &&
     call_type_fallback_stdlib::mark_known_stdlib_result_type(ctx, clone(callee_name), dest) {
         set_vt_for_resolved_type_name(ctx, dest, ctx_api_local_types::ctx_get_local_type(ctx, dest))
         return
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+    if existing_is_weak && len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         mark_struct_constructor_result_type(ctx, callee_name, dest)
     }
-    if len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
+    if existing_is_weak && len(ctx_api_local_types::ctx_get_local_type(ctx, dest)) == 0 {
         let rtn = ctx_fn_return_type::ctx_fn_return_type_name(ctx, clone(callee_name))
         // For monomorphized calls, resolve concrete return type name
         // by substituting type vars from MonoInstance (e.g. "option:T"
@@ -173,6 +205,14 @@ fn mark_fallback_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32)
     // Sync MirLocal.value_type from MonoInstanceTable so emit spine lookup
     // matches SignatureRegistry (tuple mono returns; replaces body-scan infer).
     apply_mono_return_mvt_to_dest(ctx, clone(callee_name), dest)
+}
+
+fn is_box_identity_callee(callee_name: String) -> bool {
+    let bare = call_type_fallback_stdlib::mir_strip_module_prefix(clone(callee_name))
+    eq(clone(bare), String_from("Box_new")) ||
+    starts_with(clone(bare), String_from("Box_new__")) ||
+    eq(clone(bare), String_from("unbox")) ||
+    starts_with(clone(bare), String_from("unbox__"))
 }
 
 fn apply_mono_return_mvt_to_dest(ctx: LowerCtx, callee_name: String, dest: i32) {
@@ -211,6 +251,10 @@ fn set_vt_for_resolved_type_name(ctx: LowerCtx, dest: i32, type_name: String) {
     }
     if eq(clone(type_name), "f32") || eq(clone(type_name), "F32") {
         ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_F32())
+        return
+    }
+    if eq(clone(type_name), "v128") || eq(clone(type_name), "V128") {
+        ctx_api_local_types::ctx_set_local_vt(ctx, dest, value_types::VT_V128())
         return
     }
     set_ref_vt_for_type_name(ctx, dest, type_name)

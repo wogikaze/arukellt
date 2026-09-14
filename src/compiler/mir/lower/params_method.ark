@@ -41,9 +41,21 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
         starts_with(clone(local_type_name), "Result_") {
             pvt = value_types::VT_GC_REF()
         } else {
-            if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
+            if ctx_struct_layout::ctx_is_registered_enum_type(ctx, clone(local_type_name)) {
+                pvt = value_types::VT_GC_REF()
+                mir_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+                sig_type_name = clone(mir_type_name)
+            } else if ctx_struct_layout::ctx_is_registered_struct_type(ctx, clone(local_type_name)) {
                 pvt = value_types::VT_GC_REF()
                 sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(local_type_name))
+            } else {
+                let bare = mir_method_strip_module_prefix(clone(local_type_name))
+                let named = mir_method_resolve_named_user_type(clone(bare))
+                if len(named) > 0 {
+                    pvt = value_types::VT_GC_REF()
+                    mir_type_name = clone(named)
+                    sig_type_name = clone(named)
+                }
             }
         }
     } else {
@@ -59,8 +71,10 @@ fn mir_bind_method_param(ctx: LowerCtx, struct_name: String, param: CoreHirParam
             pvt = value_types::VT_GC_REF()
             sig_type_name = ctx_struct_layout::ctx_maybe_enum_return_type_name(ctx, clone(p_type_name))
         } else {
-            if !binary_type_names::mir_is_builtin_type_name(clone(p_type_name)) && len(p_type_name) > 0 {
-                mir_type_name = concat("?", clone(p_type_name))
+            let named = mir_method_resolve_named_user_type(clone(p_type_name))
+            if len(named) > 0 {
+                pvt = value_types::VT_GC_REF()
+                mir_type_name = concat("?", clone(named))
                 sig_type_name = clone(mir_type_name)
             }
         }
@@ -128,9 +142,24 @@ fn mir_apply_param_mvt_override(ctx: LowerCtx, param_local: i32) {
     let func_name = function_identity::MirFunction_name(func)
     let m = ctx_current_storage::ctx_current_module_value(ctx)
     let table = module_spine::MirModule_type_table(m)
-    let param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    let mut param_mvt = spine_lookup::function_param_mvt(m, func_name, param_local)
+    let current_type = ctx_api_local_types::ctx_get_local_type(ctx, param_local)
+    if mir_method_param_type_name_is_concrete(clone(current_type)) {
+        param_mvt = type_info_to_mir_value::vt_to_mir_value(
+            table,
+            ctx_api_local_types::ctx_local_vt(ctx, param_local),
+            clone(current_type)
+        )
+    }
     if typed_mir_compat::mvt_is_invalid(param_mvt) {
         return
+    }
+    if starts_with(clone(current_type), String_from("enum:")) {
+        param_mvt = type_info_to_mir_value::vt_to_mir_value(
+            table,
+            value_types::VT_GC_REF(),
+            clone(current_type)
+        )
     }
     ctx_api_local_types::ctx_set_local_mvt(ctx, param_local, param_mvt)
     let alias = type_info_to_mir_value::mvt_gc_layout_alias(table, param_mvt)
@@ -145,4 +174,38 @@ fn mir_apply_param_mvt_override(ctx: LowerCtx, param_local: i32) {
     ctx_api_local_types::ctx_set_local_vt(ctx, param_local, mvt_vt)
     ctx_api_local_types::ctx_set_local_type(ctx, param_local, clone(alias))
     ctx_api_function_frame::ctx_set_func_param_type(ctx, param_local, mvt_vt, clone(alias))
+}
+
+fn mir_method_param_type_name_is_concrete(type_name: String) -> bool {
+    if len(type_name) == 0 || starts_with(clone(type_name), String_from("?")) {
+        return false
+    }
+    if len(type_name) == 1 {
+        let ch = char_at(type_name, 0)
+        if ch >= 65 && ch <= 90 {
+            return false
+        }
+    }
+    true
+}
+
+fn mir_method_resolve_named_user_type(bare: String) -> String {
+    if !binary_type_names::mir_is_builtin_type_name(clone(bare)) &&
+    len(bare) > 0 &&
+    mir_method_param_type_name_is_concrete(clone(bare)) {
+        return bare
+    }
+    String_new()
+}
+
+fn mir_method_strip_module_prefix(name: String) -> String {
+    let n = len(name)
+    let mut i = n - 1
+    while i >= 0 {
+        if char_at(name, i) == 58 {
+            return substring(name, i + 1, n)
+        }
+        i = i - 1
+    }
+    clone(name)
 }

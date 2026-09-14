@@ -5,7 +5,6 @@ use mir::lower::entry_fns_mono
 use mir::lower::entry_view_fn
 use mir::lower::stdlib_body_defer
 use corehir::mod as corehir_mod
-
 fn mir_emit_top_level_fn_decl(ctx: LowerCtx, body_source: MirLowerEntryBodySource, decl_index: i32, decl_name: String, fn_idx: i32, entry_main_decl_index: i32, midx: MonoIndex, mir_tr: i32) -> i32 {
     let entry_view = entry_body_source::mir_entry_body_source_view(body_source)
     let fn_info_index = entry_view_fn::mir_entry_fn_info_index_for_decl(entry_view, decl_index)
@@ -47,5 +46,6 @@ fn mir_defer_body_for_decl(
             return stdlib_body_defer::mir_should_defer_stdlib_body_with_param0(clone(decl_name), param0)
         }
     }
-    stdlib_body_defer::mir_should_defer_stdlib_body(decl_name)
+    let qualified_name = entry_view_fn::mir_entry_fn_qualified_name_at(entry_view, fn_info_index, String_new())
+    stdlib_body_defer::mir_should_defer_stdlib_body_for_qualified(decl_name, qualified_name)
 }

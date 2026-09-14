@@ -20,7 +20,7 @@ fn main() {
     let res: Result<i32, io::IoError> = io::copy_bytes(src, dst)
     match res {
         Result::Ok(n) => stdio::println((n).to_string()),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let out: Vec<i32> = io::writer_to_bytes(dst)
     stdio::println(bytes::string_from_bytes(out))

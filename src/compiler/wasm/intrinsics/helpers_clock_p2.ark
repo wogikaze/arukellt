@@ -11,7 +11,7 @@ use wasm::writer_core
 fn emit_wall_datetime_to_ms(w: WasmWriter, ctx: SelfEmitCtx) {
     // `wall-clock.now` returns datetime through the canonical result pointer:
     // seconds at offset 0 and nanoseconds at offset 8.
-    let seconds_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 14)
+    let seconds_local = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 15)
     helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_CLOCK_RESULT())
     emit_i64_load_default(w)
     helpers_core::emit_local_set(w, seconds_local)

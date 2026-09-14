@@ -1,13 +1,26 @@
 use lexer::tokens
+use parser::core_api_cursor
 use parser::core_api_expect
 use parser::token_state
 
 fn parse_first_use_segment(p: Parser) -> String {
-    let first_seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let first_seg = expect_use_path_segment(p)
     token_state::Token_text(first_seg)
 }
 
 fn parse_next_use_segment(p: Parser, path: String) -> String {
-    let seg = core_api_expect::expect_token(p, tokens::TK_IDENT())
+    let seg = expect_use_path_segment(p)
     concat(path, concat("::", token_state::Token_text(seg)))
+}
+
+// `match` is a keyword in expression position but is also the name of the
+// compiler's match-lowering module. Keep path parsing contextual so
+// `use mir::lower::match` remains a valid module import.
+fn expect_use_path_segment(p: Parser) -> Token {
+    let current = core_api_cursor::cur(p)
+    if token_state::Token_kind(current) == tokens::TK_MATCH() {
+        p.pos = p.pos + 1
+        return current
+    }
+    core_api_expect::expect_token(p, tokens::TK_IDENT())
 }

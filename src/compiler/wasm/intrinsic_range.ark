@@ -1,8 +1,17 @@
 use wasm::opcodes
+use wasm::writer_core
+use wasm::writer_gc
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
 use wasm::ctx_scratch
 use wasm::intrinsics::helpers_core
 
 fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_range_new_gc(w, ctx)
+        return true
+    }
     let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -35,7 +44,24 @@ fn emit_range_new(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+fn emit_range_new_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let s_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_end = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let range_type = range_gc_type(ctx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_end)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_start)
+    writer_core::emit_local_get(w, s_start)
+    writer_core::emit_local_get(w, s_end)
+    writer_gc::emit_gc_struct_new(w, range_type)
+}
+
 fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_range_contains_gc(w, ctx)
+        return true
+    }
     let s_range = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
@@ -61,7 +87,32 @@ fn emit_range_contains(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     return true
 }
 
+fn emit_range_contains_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    let s_val = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let range_type = range_gc_type(ctx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_val)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_range)
+    writer_core::emit_local_get(w, s_val)
+    writer_core::emit_local_get(w, s_range)
+    writer_gc::emit_gc_ref_cast(w, range_type)
+    writer_gc::emit_gc_struct_get_i32(w, range_type, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GE_S())
+    writer_core::emit_local_get(w, s_val)
+    writer_core::emit_local_get(w, s_range)
+    writer_gc::emit_gc_ref_cast(w, range_type)
+    writer_gc::emit_gc_struct_get_i32(w, range_type, 1)
+    writer_core::emit_byte(w, opcodes::OP_I32_LT_S())
+    writer_core::emit_byte(w, opcodes::OP_I32_AND())
+}
+
 fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        emit_range_len_gc(w, ctx)
+        return true
+    }
     let s_range = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
     writer_core::emit_leb128_u(w, s_range)
@@ -87,4 +138,37 @@ fn emit_range_len(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
     writer_core::emit_byte(w, opcodes::OP_SELECT())
     return true
+}
+
+fn emit_range_len_gc(w: WasmWriter, ctx: SelfEmitCtx) {
+    let s_range = ctx_scratch::SelfEmitCtx_scratch_gc_struct_ref_val_local(ctx, 0)
+    let s_diff = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let range_type = range_gc_type(ctx)
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_SET())
+    writer_core::emit_leb128_u(w, s_range)
+    writer_core::emit_local_get(w, s_range)
+    writer_gc::emit_gc_ref_cast(w, range_type)
+    writer_gc::emit_gc_struct_get_i32(w, range_type, 1)
+    writer_core::emit_local_get(w, s_range)
+    writer_gc::emit_gc_ref_cast(w, range_type)
+    writer_gc::emit_gc_struct_get_i32(w, range_type, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_SUB())
+    writer_core::emit_byte(w, opcodes::OP_LOCAL_TEE())
+    writer_core::emit_leb128_u(w, s_diff)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    writer_core::emit_local_get(w, s_diff)
+    writer_core::emit_byte(w, opcodes::OP_I32_CONST())
+    writer_core::emit_leb128_s(w, 0)
+    writer_core::emit_byte(w, opcodes::OP_I32_GT_S())
+    writer_core::emit_byte(w, opcodes::OP_SELECT())
+}
+
+fn range_gc_type(ctx: SelfEmitCtx) -> i32 {
+    let named = ctx_gc_type::SelfEmitCtx_struct_type_by_name(ctx, String_from("Range"))
+    if named >= 0 {
+        return named
+    }
+    // Range is the two-i32 fallback struct used by the GC prelude.
+    ctx_gc_type::SelfEmitCtx_struct_type(ctx, 8)
 }

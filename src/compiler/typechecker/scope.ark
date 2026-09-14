@@ -1,6 +1,10 @@
 use typechecker::kinds
 use typechecker::contract_scope
 use typechecker::contract_type_constructors
+use typechecker::contract_type_access
+use typechecker::instantiate
+use typechecker::unify
+use typechecker::ast_access
 
 fn unknown_type() -> TypeInfo {
     contract_type_constructors::TypeInfo_simple(commands::TY_UNKNOWN())
@@ -16,7 +20,23 @@ fn scope_child(parent: LocalScope) -> LocalScope {
     let mut i = 0
     while i < count {
         let binding = contract_scope::LocalScope_binding_at(parent, i)
-        contract_scope::LocalScope_push_binding(child, contract_scope::VarBinding_new(contract_scope::VarBinding_name(binding), contract_scope::VarBinding_type(binding)))
+        if contract_scope::VarBinding_is_generalized(binding) {
+            contract_scope::LocalScope_push_binding(
+                child,
+                contract_scope::VarBinding_new_scheme(
+                    contract_scope::VarBinding_name(binding),
+                    contract_scope::VarBinding_scheme(binding)
+                )
+            )
+        } else {
+            contract_scope::LocalScope_push_binding(
+                child,
+                contract_scope::VarBinding_new(
+                    contract_scope::VarBinding_name(binding),
+                    contract_scope::VarBinding_type(binding)
+                )
+            )
+        }
         i = i + 1
     }
     child
@@ -24,6 +44,10 @@ fn scope_child(parent: LocalScope) -> LocalScope {
 
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
     contract_scope::LocalScope_push_binding(scope, contract_scope::VarBinding_new(name, ty))
+}
+
+fn scope_define_scheme(scope: LocalScope, name: String, scheme: TypeScheme) {
+    contract_scope::LocalScope_push_binding(scope, contract_scope::VarBinding_new_scheme(name, scheme))
 }
 
 fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
@@ -38,4 +62,94 @@ fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
         i = i + 1
     }
     found
+}
+
+fn scope_lookup_instantiated(env: TypeEnv, scope: LocalScope, name: String) -> TypeInfo {
+    let count = contract_scope::LocalScope_binding_count(scope)
+    let mut found = unknown_type()
+    let mut i = 0
+    while i < count {
+        let binding = contract_scope::LocalScope_binding_at(scope, i)
+        if eq(contract_scope::VarBinding_name(binding), clone(name)) {
+            if contract_scope::VarBinding_is_generalized(binding) {
+                found = instantiate_scheme(env, contract_scope::VarBinding_scheme(binding))
+            } else {
+                found = contract_scope::VarBinding_type(binding)
+            }
+        }
+        i = i + 1
+    }
+    found
+}
+
+fn instantiate_scheme(env: TypeEnv, scheme: TypeScheme) -> TypeInfo {
+    let var_count = len(scheme.vars)
+    if var_count == 0 {
+        return scheme.body
+    }
+    let var_types = Vec::new<TypeInfo>()
+    let mut i = 0
+    while i < var_count {
+        push(var_types, unify::fresh_var(env))
+        i = i + 1
+    }
+    instantiate::instantiate_type(scheme.body, scheme.vars, var_types)
+}
+
+fn type_name_is_present(names: Vec<String>, name: String) -> bool {
+    let mut i = 0
+    while i < len(names) {
+        if eq(get_unchecked(names, i), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn collect_free_type_var_names(env: TypeEnv, ty: TypeInfo) -> Vec<String> {
+    let names = Vec::new<String>()
+    let resolved = unify::resolve_type(env, ty)
+    if contract_type_access::TypeInfo_tag(resolved) == commands::TY_TYPE_VAR() {
+        let name = contract_type_access::TypeInfo_name(resolved)
+        if len(name) > 0 {
+            push(names, name)
+        }
+        return names
+    }
+    let arg_count = contract_type_access::TypeInfo_type_arg_count(resolved)
+    let mut i = 0
+    while i < arg_count {
+        let nested = collect_free_type_var_names(
+            env,
+            contract_type_access::TypeInfo_type_arg_at(resolved, i)
+        )
+        let mut j = 0
+        while j < len(nested) {
+            let name = get_unchecked(nested, j)
+            if !type_name_is_present(names, clone(name)) {
+                push(names, clone(name))
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    names
+}
+
+fn generalize(env: TypeEnv, ty: TypeInfo) -> TypeScheme {
+    TypeScheme {
+        vars: collect_free_type_var_names(env, ty),
+        body: ty
+    }
+}
+
+fn is_syntactic_value(node: AstNode) -> bool {
+    let kind = ast_access::node_kind(node)
+    if kind == kinds::NK_INT_LIT() || kind == kinds::NK_FLOAT_LIT() ||
+    kind == kinds::NK_STRING_LIT() || kind == kinds::NK_BOOL_LIT() ||
+    kind == kinds::NK_CLOSURE() || kind == kinds::NK_IDENT() {
+        return true
+    }
+    false
 }

@@ -4,16 +4,10 @@ use std::test
 fn main() {
     match json::parse("xyz") {
         Result::Ok(_) => panic("expected error for xyz"),
-        Result::Err(e) => match e {
-            json::JsonParseError::UnexpectedCharacter(_) => {},
-            _ => panic("expected UnexpectedCharacter error"),
-        },
+        Result::Err(e) => test::assert_eq_string(json::parse_error_message(e), "unexpected character"),
     }
     match json::parse("@") {
         Result::Ok(_) => panic("expected error for @"),
-        Result::Err(e) => match e {
-            json::JsonParseError::UnexpectedCharacter(_) => {},
-            _ => panic("expected UnexpectedCharacter error"),
-        },
+        Result::Err(e) => test::assert_eq_string(json::parse_error_message(e), "unexpected character"),
     }
 }

@@ -4,11 +4,14 @@ use corehir::signature_entry
 use corehir::signature_registry
 use corehir::type_info_to_mir_value
 use mir::lower::fn_index_method_return_type
+use mir::lower::fn_index_mono
 use mir::lower::fn_index_source
 use mir::lower::mono_instance_build
+use mir::lower::return_typeinfo
 use mir::lower::signature_registry_entry
 use mir::mono
 use corehir::core_op_id
+use corehir::type_contracts
 
 fn sig_reg_index_mono_variants(
     table: TypeTable,
@@ -65,23 +68,26 @@ fn sig_reg_register_mono_fn(
     let returns = Vec::new<MirValueType>()
     let mut return_vt = fn_index_source::mir_fn_index_source_typed_return_vt(source, typed_index)
     let mut return_type_name = fn_index_source::mir_fn_index_source_typed_return_type_name(source, typed_index)
-    // Substitute mangled keys for type-var / empty returns into MonoInstance
-    // so call-time need not reverse-parse mangled names (#843). Empty typed
-    // names are also used for bool/i32; apply only when the mangled key is a
-    // concrete non-type-var return (float, String, or nominal struct).
-    let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+    let generic_return_ty = fn_index_source::mir_fn_index_source_typed_return_type(source, typed_index)
+    let concrete_ret = fn_index_mono::mir_mono_concrete_return_type(
+        mono_instances,
         clone(mangled),
-        clone(return_type_name)
+        generic_return_ty
     )
-    let apply_concrete = fn_index_method_return_type::method_return_type_name_is_type_var(clone(return_type_name)) ||
-    (
-        len(return_type_name) == 0 &&
-        len(concrete) > 0 &&
-        !fn_index_method_return_type::method_return_type_name_is_type_var(clone(concrete))
-    )
-    if apply_concrete && len(concrete) > 0 {
-        return_type_name = concrete
-        return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+    if type_contracts::TypeInfo_tag(concrete_ret) != 0 {
+        return_vt = return_typeinfo::mir_return_vt_from_type_info(concrete_ret)
+        return_type_name = return_typeinfo::mir_return_type_name_from_type_info(concrete_ret)
+    } else {
+        // Keep a build-time fallback for incomplete type facts. Call-time
+        // lowering still receives only the registered concrete result.
+        let concrete = fn_index_method_return_type::method_concrete_return_from_mono_fn_name(
+            clone(mangled),
+            clone(return_type_name)
+        )
+        if len(concrete) > 0 {
+            return_type_name = concrete
+            return_vt = fn_index_method_return_type::method_return_vt_from_type_name(clone(return_type_name))
+        }
     }
     push(
         returns,

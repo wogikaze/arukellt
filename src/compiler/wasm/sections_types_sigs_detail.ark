@@ -70,6 +70,21 @@ fn p2_is_supported_scalar_type(value_type: i32) -> bool {
     value_type == value_types::VT_F64()
 }
 
+fn p2_return_type_is_compound(type_name: String) -> bool {
+    starts_with(clone(type_name), String_from("tuple:")) ||
+    starts_with(clone(type_name), String_from("struct:")) ||
+    starts_with(clone(type_name), String_from("vec:")) ||
+    starts_with(clone(type_name), String_from("hashmap:")) ||
+    starts_with(clone(type_name), String_from("HashMap")) ||
+    starts_with(clone(type_name), String_from("HashSet")) ||
+    starts_with(clone(type_name), String_from("Option")) ||
+    starts_with(clone(type_name), String_from("option:")) ||
+    starts_with(clone(type_name), String_from("Result")) ||
+    starts_with(clone(type_name), String_from("result:")) ||
+    starts_with(clone(type_name), String_from("enum:")) ||
+    contains(clone(type_name), String_from(","))
+}
+
 fn p2_scalar_type_sig(value_type: i32) -> String {
     if value_type == value_types::VT_I32() {
         return String_from("i32")
@@ -114,6 +129,13 @@ fn p2_function_needs_string_wrapper(f: MirFunction, target: String, wasi_version
     }
     if p2_is_string_type_name(clone(return_type_name)) {
         return true
+    }
+    // A generic return can retain a scalar MIR tag even after its concrete
+    // monomorphized GC layout is known.  Do not generate a scalar/string
+    // canonical wrapper for a compound return: it would call a GC-ref
+    // function through an i32 result signature and make the core invalid.
+    if p2_return_type_is_compound(clone(return_type_name)) {
+        return false
     }
     if !p2_is_supported_scalar_type(return_type) {
         return false

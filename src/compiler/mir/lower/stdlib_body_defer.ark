@@ -14,6 +14,18 @@ fn mir_should_defer_stdlib_body(decl_name: String) -> bool {
     mir_is_unbound_prelude_intrinsic_shim(decl_name)
 }
 
+// `convert::parse_f64` is an Option adapter around the Result-producing
+// prelude primitive. Both declarations flatten to `parse_f64`, but only the
+// prelude declaration is the CoreOp shim. Keep the adapter body live so its
+// match can construct the public Option result.
+fn mir_should_defer_stdlib_body_for_qualified(decl_name: String, qualified_name: String) -> bool {
+    if eq(clone(decl_name), String_from("parse_f64")) &&
+    ends_with(clone(qualified_name), String_from("convert::parse_f64")) {
+        return false
+    }
+    mir_should_defer_stdlib_body(decl_name)
+}
+
 /// Like `mir_should_defer_stdlib_body`, but discriminates overloaded names
 /// using the first parameter type when needed.
 fn mir_should_defer_stdlib_body_with_param0(decl_name: String, param0: CoreHirParam) -> bool {

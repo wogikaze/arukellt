@@ -45,7 +45,15 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
         return true
     }
-    if inst_accessors_operands::MirInst_arg1(inst) < 0 && next_op == opcodes::MIR_LOCAL_SET() {
+    if inst_accessors_operands::MirInst_arg1(inst) < 0 &&
+    next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
+        if previous_result_is_aggregate_read(prev_op) {
+            // The aggregate read deliberately left its value for this
+            // LOCAL_SET.  A following staged copy does not consume it, so a
+            // TEE here would leak one value onto the Wasm stack.
+            inst_locals::emit_local_set(w, inst, ctx)
+            return true
+        }
         inst_locals::emit_gc_ref_cast_to_local(w, inst, ctx)
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, inst_accessors_operands::MirInst_arg0(inst))
@@ -62,6 +70,10 @@ fn try_emit_local_set_peephole(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, p
         return true
     }
     false
+}
+
+fn previous_result_is_aggregate_read(prev_op: i32) -> bool {
+    prev_op == opcodes::MIR_STRUCT_GET() || prev_op == opcodes::MIR_ARRAY_GET()
 }
 
 fn local_set_reload_base_after_struct_set(prev_op: i32, prev_arg0: i32, prev_arg1: i32) -> i32 {

@@ -23,7 +23,7 @@ fn mir_core_lookup_local(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
 }
 
-fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
+pub fn mir_fnref_type_name_for_function(ctx: LowerCtx, fn_name: String) -> String {
     let parameter_count = mir_function_parameter_count(ctx, clone(fn_name))
     // Binary fold callbacks need fnref2 so ref.func type matches call param (#807).
     if parameter_count >= 2 {
@@ -56,12 +56,12 @@ fn mir_function_parameter_count(ctx: LowerCtx, fn_name: String) -> i32 {
 
 fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
     if core_expr_shape_atoms::mir_core_expr_is_ident(expr) {
-        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, core_expr_shape_accessors::mir_core_expr_text(expr))
+        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let idx = ctx_api_local_alloc::ctx_lookup_local(ctx, clone(raw_name))
         if idx >= 0 {
             ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get_to(idx, idx))
             return idx
         }
-        let raw_name = core_expr_shape_accessors::mir_core_expr_text(expr)
         let canon = ctx_api_variants::ctx_canonical_variant_name(ctx, clone(raw_name))
         let variant_name = if len(canon) > 0 {
             canon
@@ -104,6 +104,14 @@ fn lower_core_name_value(ctx: LowerCtx, expr: CoreHirExpr) -> i32 {
         let tag = ctx_api_variants::ctx_variant_tag(ctx, clone(variant_name))
         if tag >= 0 {
             return variants::lower_variant_value(ctx, variant_name, tag)
+        }
+        let fn_name = core_expr_shape_accessors::mir_core_expr_text(expr)
+        let fn_idx = ctx_fn_index::ctx_fn_index_find(ctx, clone(fn_name))
+        if fn_idx >= 0 {
+            let dest = ctx_api_local_alloc::ctx_fresh_local(ctx, value_types::VT_FUNCREF())
+            ctx_api_local_types::ctx_set_local_type(ctx, dest, mir_fnref_type_name_for_function(ctx, clone(fn_name)))
+            ctx_api_emit::ctx_emit(ctx, inst_ref_func::MirInst_ref_func(fn_name, dest))
+            return dest
         }
         return 0 - 1
     }

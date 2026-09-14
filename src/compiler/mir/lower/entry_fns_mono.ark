@@ -9,7 +9,6 @@ use mir::lower_kinds
 use mir::mono
 use mir::type_contracts
 use mir::typeinfo_shape
-
 fn mir_emit_top_level_fn_mono_bodies(
     ctx: LowerCtx,
     body_input: MirLowerEntryBodyInput,

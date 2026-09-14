@@ -2,6 +2,7 @@ use mir::lower::ctx_fn_mono
 use mir::lower::ctx_api_init
 use mir::lower::ctx_api_module
 use mir::lower::ctx_types
+use mir::lower::ctx_fn_index
 use mir::lower::wit_ctx_init
 use mir::lower::entry_trace
 use mir::lower::fn_index
@@ -29,6 +30,7 @@ fn mir_prepare_lower_ctx(
         fn_index::mir_fn_index_qualified_return_vts(fn_index_info),
         fn_index::mir_fn_index_qualified_return_type_names(fn_index_info)
     )
+    ctx_fn_index::ctx_set_const_names(ctx, decls)
     mono_calls::mir_register_mono_rewrites(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     ctx_api_module::ctx_set_mono_instances(ctx, mono_view::mir_lower_mono_view_instances(mono_view))
     wit_ctx_init::mir_init_wit_bindings(ctx, wit_paths, decls)

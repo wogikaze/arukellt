@@ -18,10 +18,21 @@ fn lower_core_closure_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHir
     let synth = closure_registry::ctx_closure_synth_at(ctx, clo_ix)
     let packed = closure_registry::ctx_closure_caps_at(ctx, clo_ix)
     let extra = closure_registry::ctx_closure_extra_at(ctx, clo_ix)
+    let is_identity = closure_registry::ctx_closure_is_identity(ctx, clo_ix)
+    let mut first_arg = 0 - 1
     let mut ca = 1
     while ca < child_count {
-        let _ai = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, ca))
+        let arg_idx = lower_core_expr(ctx, exprs, core_expr_shape_accessors::mir_core_expr_child(expr, ca))
+        if ca == 1 {
+            first_arg = arg_idx
+        }
         ca = ca + 1
+    }
+    if is_identity {
+        if child_count == 2 {
+            return first_arg
+        }
+        return 0 - 1
     }
     closure_capture_args::closure_emit_captured_args(ctx, packed)
     let dest_vt = ctx_fn_return_vt::ctx_fn_return_vt(ctx, clone(synth))

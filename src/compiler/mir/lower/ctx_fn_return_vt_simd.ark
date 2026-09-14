@@ -15,12 +15,6 @@ fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
         if ends_with(clone(bare_name), "_extract_lane") {
             return false
         }
-        if ends_with(clone(bare_name), "_convert_low_i32x4_s") {
-            return false
-        }
-        if ends_with(clone(bare_name), "_convert_low_i32x4_u") {
-            return false
-        }
         return true
     }
     if simd_i32x4_is_v128(clone(bare_name)) {
@@ -39,6 +33,24 @@ fn ctx_is_v128_returning_simd_intrinsic(bare_name: String) -> bool {
         return true
     }
     false
+}
+
+fn ctx_is_f32_returning_simd_intrinsic(bare_name: String) -> bool {
+    eq(clone(bare_name), "__simd_f32x4_extract_lane")
+}
+
+fn ctx_is_f64_returning_simd_intrinsic(bare_name: String) -> bool {
+    eq(clone(bare_name), "__simd_f64x2_extract_lane")
+}
+
+fn ctx_is_i64_returning_simd_intrinsic(bare_name: String) -> bool {
+    eq(clone(bare_name), "__simd_i64x2_extract_lane")
+}
+
+fn ctx_is_v128_returning_wasm_intrinsic(bare_name: String) -> bool {
+    eq(clone(bare_name), "__wasm_v128_load") ||
+    eq(clone(bare_name), "__wasm_v128_load_splat") ||
+    eq(clone(bare_name), "__wasm_v128_load_lane")
 }
 
 fn simd_i32x4_is_v128(bare_name: String) -> bool {

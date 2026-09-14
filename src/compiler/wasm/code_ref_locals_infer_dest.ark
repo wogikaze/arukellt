@@ -16,7 +16,9 @@ use mir::function_identity
 use mir::local_access
 use mir::post_pass_callee_lookup
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::call_indirect
 use wasm::code_ref_locals_fn_cache
 use wasm::ctx_record
 use wasm::emit_target
@@ -104,6 +106,20 @@ fn infer_get_unchecked_elem_from_vec_arg(f: MirFunction, inst: MirInst, ctx: Sel
     let mut vec_local = inst_accessors_operands::MirInst_arg0(inst)
     if vec_local < 0 || vec_local >= function_locals_view::MirFunction_local_count(f) {
         return Option::None
+    }
+    // A LOCAL_SET copy can lose the source's diagnostic type_name while the
+    // typed-MIR layout still identifies a Vec<fn>.  Recover the element's
+    // concrete funcref type from that layout before falling back to names.
+    let receiver_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, vec_local)
+    if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
+        let fnref_type = call_indirect::resolve_indirect_type_idx(
+            ctx,
+            0 - 1,
+            1,
+            value_types::VT_I32(),
+            value_types::VT_I32()
+        )
+        return Option::Some(fnref_type)
     }
     let vec_tn = local_access::MirLocal_type_name(function_locals_view::MirFunction_local_at(f, vec_local))
     let mut elem = String_new()
@@ -425,6 +441,12 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
         starts_with(clone(base_tn), "enum:") {
             return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
         }
+        // A named user struct may have a GC type index that also appears in
+        // the enum-variant table. Its declared field ABI is authoritative;
+        // only nameless bases need the open-enum fallback below.
+        if len(base_tn) > 0 {
+            return Option::None
+        }
         let base_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base)
         let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
         if base_gc == open || ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, base_gc) {
@@ -468,9 +490,6 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                 dest_tn = local_access::MirLocal_type_name(loc)
                 dest_vt = local_access::MirLocal_val_type(loc)
             }
-            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
-                return Option::None
-            }
             // Prefer the vec receiver's element type over a poisoned String dest
             // (get_unchecked__String mono / sticky type_name) (#730).
             let from_vec = infer_get_unchecked_elem_from_vec_arg(f, inst, ctx)
@@ -479,6 +498,9 @@ fn infer_ref_local_from_producer(f: MirFunction, inst: MirInst, op: i32, ctx: Se
                     return from_vec
                 }
                 Option::None => {}
+            }
+            if is_scalar_get_unchecked_result(clone(dest_tn), dest_vt) {
+                return Option::None
             }
             let from_use = infer_get_unchecked_elem_from_dest_uses(f, dest_local, ctx)
             match from_use {

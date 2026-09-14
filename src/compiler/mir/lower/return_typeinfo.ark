@@ -94,6 +94,9 @@ fn mir_return_type_name_from_type_info(ty: TypeInfo) -> String {
         13 => return_typeinfo_names::mir_hashmap_return_type_name_from_type_info(ty),
         21 => {
             let name = typeinfo_shape::mir_type_info_name(ty)
+            if eq(clone(name), "Vec") && typeinfo_shape::mir_type_info_type_arg_count(ty) > 0 {
+                return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
+            }
             if eq(clone(name), "HashSet") {
                 return return_typeinfo_names::mir_vec_return_type_name_from_type_info(ty)
             }
@@ -120,5 +123,7 @@ fn mir_return_type_name_is_fnref(type_name: String) -> bool {
 // fall back to "enum:Name".
 
 fn mir_return_type_name_from_typed_fn(tf: TypedFn) -> String {
-    mir_return_type_name_from_type_info(typeinfo_shape::mir_typed_fn_return_type(tf))
+    let return_ty = typeinfo_shape::mir_typed_fn_return_type(tf)
+    let result = mir_return_type_name_from_type_info(return_ty)
+    result
 }

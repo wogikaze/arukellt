@@ -1,6 +1,7 @@
 use wasm::ctx_scratch
 use wasm::ctx_record
 use wasm::ctx_gc_type
+use wasm::ctx_string_view
 use wasm::emit_target
 use wasm::writer_gc
 use wasm::string_gc_helpers
@@ -8,6 +9,8 @@ use wasm::intrinsic_string_pad_helpers
 use wasm::intrinsics::helpers_control
 use wasm::intrinsics::helpers_core
 use wasm::intrinsics::helpers_numeric_i32
+use wasm::intrinsics::helpers_numeric_i32_convert
+use mir::inst_accessors_literals
 
 // Handler for: pad_left, text::pad_left
 fn emit_pad_left(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
@@ -23,7 +26,9 @@ fn emit_pad_left(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_pad = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
-    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen)
+    let arg_count = inst_accessors_literals::MirInst_int_val(inst)
+    let default_fill = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, " ")
+    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count, default_fill)
     helpers_core::emit_local_get(w, s_slen)
     helpers_core::emit_local_get(w, s_width)
     helpers_numeric_i32::emit_i32_ge_s(w)
@@ -52,7 +57,9 @@ fn emit_pad_right(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s_pad = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
     let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
-    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen)
+    let arg_count = inst_accessors_literals::MirInst_int_val(inst)
+    let default_fill = ctx_string_view::SelfEmitCtx_string_offset_for_value(ctx, " ")
+    intrinsic_string_pad_helpers::emit_pad_read_args_and_len(w, s_str, s_width, s_fill, s_slen, arg_count, default_fill)
     helpers_core::emit_local_get(w, s_slen)
     helpers_core::emit_local_get(w, s_width)
     helpers_numeric_i32::emit_i32_ge_s(w)
@@ -76,19 +83,38 @@ fn emit_pad_left_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let g_result = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 3)
     let s_pad = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
-    let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_fill_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_fill_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let arg_count = inst_accessors_literals::MirInst_int_val(inst)
 
-    // Stack: [string_ref, width_i32, fill_ref]
-    helpers_core::emit_local_set(w, g_fill)
+    // String methods have [string_ref, width_i32]; text::pad_left also has a
+    // fill argument. Supply the method's documented single-space default.
+    if arg_count >= 3 {
+        helpers_core::emit_local_set(w, g_fill)
+    }
     helpers_core::emit_local_set(w, s_width)
     helpers_core::emit_local_set(w, g_str)
+    if arg_count < 3 {
+        emit_pad_gc_default_fill(w, ctx, g_fill, string_type)
+    }
 
-    // s_slen = len(string)
     helpers_core::emit_local_get(w, g_str)
     writer_gc::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_slen)
+    helpers_core::emit_local_get(w, g_fill)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_fill_len)
 
+    // An empty fill cannot produce padding. Keep the original string rather
+    // than taking a modulo-by-zero while selecting a fill byte.
+    helpers_core::emit_local_get(w, s_fill_len)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, g_str)
+    helpers_core::emit_local_set(w, g_result)
+    string_gc_helpers::emit_gc_else(w)
     // if s_slen >= s_width: result = g_str
     // else: allocate, fill, copy
     helpers_core::emit_local_get(w, s_slen)
@@ -103,19 +129,24 @@ fn emit_pad_left_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, s_slen)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_pad)
-    // s_fb = fill[0]
-    helpers_core::emit_local_get(w, g_fill)
-    helpers_numeric_i32::emit_i32_const(w, 0)
-    writer_gc::emit_gc_array_get_u(w, string_type)
-    helpers_core::emit_local_set(w, s_fb)
+    // Left padding is the end-aligned prefix of a repeated fill string.
+    helpers_core::emit_local_get(w, s_pad)
+    helpers_core::emit_local_get(w, s_fill_len)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    helpers_core::emit_local_set(w, s_fill_start)
+    helpers_core::emit_local_get(w, s_fill_len)
+    helpers_core::emit_local_get(w, s_fill_start)
+    helpers_numeric_i32::emit_i32_sub(w)
+    helpers_core::emit_local_get(w, s_fill_len)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    helpers_core::emit_local_set(w, s_fill_start)
     // Allocate new array of size s_width
     helpers_core::emit_local_get(w, s_width)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, g_result)
-    // Fill first s_pad bytes with s_fb
-    emit_pad_gc_fill_loop(w, g_result, s_pad, s_i, s_fb, string_type)
-    // Copy original string to dest at offset s_pad
-    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_pad, string_type)
+    emit_pad_gc_fill_loop(w, g_result, s_pad, s_i, g_fill, s_fill_len, s_fill_start, string_type)
+    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_pad, s_i, string_type)
+    string_gc_helpers::emit_gc_end(w)
     string_gc_helpers::emit_gc_end(w)
 
     // Result on stack
@@ -131,19 +162,38 @@ fn emit_pad_right_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     let g_result = ctx_scratch::SelfEmitCtx_scratch_gc_local(ctx, 3)
     let s_pad = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     let s_i = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 6)
-    let s_fb = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 7)
+    let s_fill_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 8)
+    let s_fill_start = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 9)
     let string_type = ctx_gc_type::SelfEmitCtx_string_type(ctx)
+    let arg_count = inst_accessors_literals::MirInst_int_val(inst)
 
-    // Stack: [string_ref, width_i32, fill_ref]
-    helpers_core::emit_local_set(w, g_fill)
+    // String methods have [string_ref, width_i32]; text::pad_right also has a
+    // fill argument. Supply the method's documented single-space default.
+    if arg_count >= 3 {
+        helpers_core::emit_local_set(w, g_fill)
+    }
     helpers_core::emit_local_set(w, s_width)
     helpers_core::emit_local_set(w, g_str)
+    if arg_count < 3 {
+        emit_pad_gc_default_fill(w, ctx, g_fill, string_type)
+    }
 
-    // s_slen = len(string)
     helpers_core::emit_local_get(w, g_str)
     writer_gc::emit_gc_array_len(w)
     helpers_core::emit_local_set(w, s_slen)
+    helpers_core::emit_local_get(w, g_fill)
+    writer_gc::emit_gc_array_len(w)
+    helpers_core::emit_local_set(w, s_fill_len)
 
+    // An empty fill cannot produce padding. Keep the original string rather
+    // than taking a modulo-by-zero while selecting a fill byte.
+    helpers_core::emit_local_get(w, s_fill_len)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    string_gc_helpers::emit_gc_i32_eq(w)
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, g_str)
+    helpers_core::emit_local_set(w, g_result)
+    string_gc_helpers::emit_gc_else(w)
     // if s_slen >= s_width: result = g_str
     // else: allocate, copy, fill
     helpers_core::emit_local_get(w, s_slen)
@@ -158,26 +208,34 @@ fn emit_pad_right_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     helpers_core::emit_local_get(w, s_slen)
     helpers_numeric_i32::emit_i32_sub(w)
     helpers_core::emit_local_set(w, s_pad)
-    // s_fb = fill[0]
-    helpers_core::emit_local_get(w, g_fill)
     helpers_numeric_i32::emit_i32_const(w, 0)
-    writer_gc::emit_gc_array_get_u(w, string_type)
-    helpers_core::emit_local_set(w, s_fb)
+    helpers_core::emit_local_set(w, s_fill_start)
     // Allocate new array of size s_width
     helpers_core::emit_local_get(w, s_width)
     string_gc_helpers::emit_gc_array_new(w, string_type)
     helpers_core::emit_local_set(w, g_result)
     // Copy original string to dest at offset 0
-    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_pad, string_type)
-    // Fill from s_slen to s_width with s_fb
-    emit_pad_gc_fill_loop_offset(w, g_result, s_slen, s_pad, s_i, s_fb, string_type)
+    emit_pad_gc_copy_source(w, g_result, g_str, s_slen, s_fill_start, s_i, string_type)
+    emit_pad_gc_fill_loop_offset(w, g_result, s_slen, s_pad, s_i, g_fill, s_fill_len, s_fill_start, string_type)
+    string_gc_helpers::emit_gc_end(w)
     string_gc_helpers::emit_gc_end(w)
 
     // Result on stack
     helpers_core::emit_local_get(w, g_result)
 }
 
-fn emit_pad_gc_fill_loop(w: WasmWriter, g_result: i32, s_pad: i32, s_i: i32, s_fb: i32, string_type: i32) {
+fn emit_pad_gc_default_fill(w: WasmWriter, _ctx: SelfEmitCtx, g_fill: i32, string_type: i32) {
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    string_gc_helpers::emit_gc_array_new(w, string_type)
+    helpers_core::emit_local_set(w, g_fill)
+    helpers_core::emit_local_get(w, g_fill)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_numeric_i32::emit_narrow_i64_operand(w)
+    string_gc_helpers::emit_gc_i32_const(w, 32)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+}
+
+fn emit_pad_gc_fill_loop(w: WasmWriter, g_result: i32, s_pad: i32, s_i: i32, g_fill: i32, s_fill_len: i32, s_fill_start: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_block_loop(w)
@@ -185,10 +243,17 @@ fn emit_pad_gc_fill_loop(w: WasmWriter, g_result: i32, s_pad: i32, s_i: i32, s_f
     helpers_core::emit_local_get(w, s_pad)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    // dest[i] = fill_byte
+    // dest[i] = fill[(fill_start + i) % fill_len]
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_i)
-    helpers_core::emit_local_get(w, s_fb)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, g_fill)
+    helpers_core::emit_local_get(w, s_fill_start)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_fill_len)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    writer_gc::emit_gc_array_get_u(w, string_type)
     string_gc_helpers::emit_gc_array_set(w, string_type)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -198,7 +263,7 @@ fn emit_pad_gc_fill_loop(w: WasmWriter, g_result: i32, s_pad: i32, s_i: i32, s_f
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
-fn emit_pad_gc_fill_loop_offset(w: WasmWriter, g_result: i32, s_offset: i32, s_pad: i32, s_i: i32, s_fb: i32, string_type: i32) {
+fn emit_pad_gc_fill_loop_offset(w: WasmWriter, g_result: i32, s_offset: i32, s_pad: i32, s_i: i32, g_fill: i32, s_fill_len: i32, s_fill_start: i32, string_type: i32) {
     string_gc_helpers::emit_gc_i32_const(w, 0)
     helpers_core::emit_local_set(w, s_i)
     string_gc_helpers::emit_gc_block_loop(w)
@@ -206,12 +271,19 @@ fn emit_pad_gc_fill_loop_offset(w: WasmWriter, g_result: i32, s_offset: i32, s_p
     helpers_core::emit_local_get(w, s_pad)
     string_gc_helpers::emit_gc_i32_ge_s(w)
     string_gc_helpers::emit_gc_br_if(w, 1)
-    // dest[s_offset + i] = fill_byte
+    // dest[s_offset + i] = fill[(fill_start + i) % fill_len]
     helpers_core::emit_local_get(w, g_result)
     helpers_core::emit_local_get(w, s_offset)
     helpers_core::emit_local_get(w, s_i)
     helpers_numeric_i32::emit_i32_add(w)
-    helpers_core::emit_local_get(w, s_fb)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, g_fill)
+    helpers_core::emit_local_get(w, s_fill_start)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_get(w, s_fill_len)
+    helpers_numeric_i32::emit_i32_rem_u(w)
+    writer_gc::emit_gc_array_get_u(w, string_type)
     string_gc_helpers::emit_gc_array_set(w, string_type)
     helpers_core::emit_local_get(w, s_i)
     string_gc_helpers::emit_gc_i32_const(w, 1)
@@ -221,12 +293,29 @@ fn emit_pad_gc_fill_loop_offset(w: WasmWriter, g_result: i32, s_offset: i32, s_p
     string_gc_helpers::emit_gc_block_loop_end(w)
 }
 
-fn emit_pad_gc_copy_source(w: WasmWriter, g_result: i32, g_str: i32, s_slen: i32, s_offset: i32, string_type: i32) {
-    // array.copy: [dst_ref, dst_offset, src_ref, src_offset, n]
-    helpers_core::emit_local_get(w, g_result)
-    helpers_core::emit_local_get(w, s_offset)
-    helpers_core::emit_local_get(w, g_str)
-    helpers_numeric_i32::emit_i32_const(w, 0)
+fn emit_pad_gc_copy_source(w: WasmWriter, g_result: i32, g_str: i32, s_slen: i32, s_offset: i32, s_i: i32, string_type: i32) {
+    // Copy one byte at a time so destination and source offsets use the same
+    // contract on every GC backend.
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_i)
     helpers_core::emit_local_get(w, s_slen)
-    writer_gc::emit_gc_array_copy(w, string_type, string_type)
+    string_gc_helpers::emit_gc_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, g_result)
+    helpers_core::emit_local_get(w, s_offset)
+    helpers_core::emit_local_get(w, s_i)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_numeric_i32_convert::emit_narrow_i64_operand(w)
+    helpers_core::emit_local_get(w, g_str)
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_array_get_u(w, string_type)
+    string_gc_helpers::emit_gc_array_set(w, string_type)
+    helpers_core::emit_local_get(w, s_i)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_i)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
 }

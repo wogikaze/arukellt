@@ -26,6 +26,17 @@ fn lower_core_let(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: CoreHirExpr) -> 
         vt = value_types::VT_I32()
     }
     let local_idx = ctx_api_local_alloc::ctx_alloc_local(ctx, clone(binding_name), vt)
+    // The initializer is the authoritative storage type for an unannotated
+    // binding.  CoreHIR's let node can retain its default i32 value type even
+    // when its child was widened (for example, `100i64`), so repair the newly
+    // allocated local from the lowered value before emitting local.set.
+    if len(type_name) == 0 && child_count >= 1 && val_idx >= 0 {
+        ctx_api_local_types::ctx_set_local_vt(
+            ctx,
+            local_idx,
+            ctx_api_local_types::ctx_local_vt(ctx, val_idx)
+        )
+    }
     if len(type_name) > 0 {
         ctx_api_local_types::ctx_set_local_type(ctx, local_idx, clone(type_name))
     }

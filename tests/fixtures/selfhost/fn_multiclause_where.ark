@@ -4,8 +4,8 @@ use std::host::stdio
 
 struct Point { x: i32, y: i32 }
 
-fn describe(pt) -> String | m == 0 = "origin"
-fn describe(pt) -> String | m < 10 = "near"
+fn describe(pt: Point) -> String | m == 0 = "origin"
+fn describe(pt: Point) -> String | m < 10 = "near"
 fn describe(_) -> String = "far"
 where
     m = pt.x * pt.x + pt.y * pt.y

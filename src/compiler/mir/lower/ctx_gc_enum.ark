@@ -86,6 +86,33 @@ fn ctx_gc_enum_bare_variant_name(variant_name: String) -> String {
     normalized
 }
 
+// A constructed enum variant is a subtype of its enum base. Preserve that
+// semantic type on the result local so a later aggregate can choose the enum
+// reference field instead of treating the value as a String reference.
+fn ctx_gc_enum_type_name_from_variant(variant_name: String) -> String {
+    let normalized = ctx_gc_enum_normalize_variant_name(clone(variant_name))
+    let n = len(normalized)
+    let mut last_sep = 0 - 1
+    let mut prev_sep = 0 - 1
+    let mut i = 0
+    while i + 1 < n {
+        if char_at(normalized, i) == 58 && char_at(normalized, i + 1) == 58 {
+            prev_sep = last_sep
+            last_sep = i
+            i = i + 2
+            continue
+        }
+        i = i + 1
+    }
+    if last_sep < 0 {
+        return String_new()
+    }
+    if prev_sep < 0 {
+        return substring(normalized, 0, last_sep)
+    }
+    substring(normalized, prev_sep + 2, last_sep)
+}
+
 fn ctx_gc_enum_variant_names_match(a: String, b: String) -> bool {
     if eq(clone(a), clone(b)) {
         return true

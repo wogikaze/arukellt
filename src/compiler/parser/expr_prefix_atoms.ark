@@ -1,12 +1,24 @@
 use lexer::tokens
 use parser::core_types
+use parser::core_api_cursor
 use parser::expr_prefix
+use parser::state_record
 use parser::token_state
 
 pub fn is_atom_prefix(kind: i32) -> bool {
     kind == tokens::TK_IDENT()
     || kind == tokens::TK_LPAREN()
     || kind == tokens::TK_LBRACKET()
+}
+
+pub fn is_keyword_path_prefix(p: Parser, kind: i32) -> bool {
+    let next_index = state_record::parser_position(p) + 1
+    kind == tokens::TK_MATCH()
+    && core_api_cursor::peek_kind_at_index(p, next_index) == tokens::TK_COLONCOLON()
+}
+
+pub fn parse_keyword_path_prefix(p: Parser, t: Token) -> AstNode {
+    expr_prefix::parse_ident_or_struct_lit(p, t)
 }
 
 pub fn parse_atom_prefix(p: Parser, t: Token) -> AstNode {

@@ -2,7 +2,7 @@ use std::host::stdio
 
 enum List {
     Nil,
-    Cons(i32, Box<List>),
+    Cons(i32, List),
 }
 
 fn list_new() -> List {
@@ -10,14 +10,14 @@ fn list_new() -> List {
 }
 
 fn prepend(list: List, val: i32) -> List {
-    List::Cons(val, Box_new(list))
+    List::Cons(val, list)
 }
 
 fn list_to_string(list: List) -> String {
     match list {
         List::Nil => String_from("nil"),
         List::Cons(head, tail) => {
-            concat(concat((head).to_string(), String_from(" -> ")), list_to_string(unbox(tail)))
+            concat(concat((head).to_string(), String_from(" -> ")), list_to_string(tail))
         },
     }
 }
@@ -25,7 +25,7 @@ fn list_to_string(list: List) -> String {
 fn list_sum(list: List) -> i32 {
     match list {
         List::Nil => 0,
-        List::Cons(head, tail) => head + list_sum(unbox(tail)),
+        List::Cons(head, tail) => head + list_sum(tail),
     }
 }
 

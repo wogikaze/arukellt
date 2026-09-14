@@ -3,7 +3,7 @@
 use std::host::stdio
 
 fn main() {
-    let id = fn(x) { x }
+    let id = |x| x
     let a: i32 = id(42)
     stdio::println(to_string(a))
     let b: bool = id(true)
@@ -14,7 +14,7 @@ fn main() {
     stdio::println(s)
     stdio::println(String_from("poly let OK"))
 }
-// let id = fn(x) { x } → generalized (closure is a syntactic value)
+// let id = |x| x → generalized (closure is a syntactic value)
 // id(42) → creates fresh type variable, unifies with i32 → a: i32
 // id(true) → creates fresh type variable, unifies with bool → b: bool
 // id("hello") → creates fresh type variable, unifies with String → s: String

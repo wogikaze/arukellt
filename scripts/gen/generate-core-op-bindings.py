@@ -37,6 +37,26 @@ def collect_bindings() -> dict[str, str]:
                 raise ValueError(f"conflicting legacy binding for {alias}: {previous} vs {core_op_id}")
             alias_map[alias] = core_op_id
 
+    # Fallback implementation symbols are compiler-visible callees too.  They
+    # must carry the same CoreOp identity as their public operation so a
+    # fallback call reaches the semantic handler instead of an empty body.
+    for operation in core_ops.get("operations", []):
+        if not isinstance(operation, dict):
+            continue
+        fallback = operation.get("fallback", {})
+        if not isinstance(fallback, dict):
+            continue
+        symbol = fallback.get("implementation_symbol")
+        core_op_id = operation.get("id")
+        if not isinstance(symbol, str) or not symbol:
+            continue
+        if not isinstance(core_op_id, str) or not core_op_id:
+            continue
+        previous = alias_map.get(symbol)
+        if previous is not None and previous != core_op_id:
+            raise ValueError(f"conflicting fallback binding for {symbol}: {previous} vs {core_op_id}")
+        alias_map[symbol] = core_op_id
+
     manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
     for fn in manifest.get("functions", []):
         if not isinstance(fn, dict):

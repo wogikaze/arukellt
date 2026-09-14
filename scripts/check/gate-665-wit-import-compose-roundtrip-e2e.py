@@ -195,16 +195,22 @@ def _compose_validate(provider: Path, consumer: Path, out: Path) -> tuple[int, s
     compiler = _compiler()
     if compiler is None:
         return 2, "compiler wrapper not found"
+    # The selfhost compiler runs with the repository root as its WASI preopen.
+    # Pass repository-relative paths so its filesystem API can resolve the
+    # provider and consumer components consistently with other selfhost gates.
+    provider_arg = str(provider.relative_to(REPO_ROOT))
+    consumer_arg = str(consumer.relative_to(REPO_ROOT))
+    output_arg = str(out.relative_to(REPO_ROOT))
     result = subprocess.run(
         [
             *compiler,
             "compose",
             "--validate",
             "--plug",
-            str(provider),
-            str(consumer),
+            provider_arg,
+            consumer_arg,
             "-o",
-            str(out),
+            output_arg,
         ],
         cwd=REPO_ROOT,
         capture_output=True,

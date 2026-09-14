@@ -10,7 +10,7 @@ use wasm::writer_gc
 use wasm::string_gc_helpers
 
 // Handler for: reverse_String
-fn emit_reverse_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
+fn emit_reverse_String(w: WasmWriter, _inst: MirInst, ctx: SelfEmitCtx) -> bool {
     if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
         return emit_reverse_String_gc(w, ctx)
     }
@@ -21,7 +21,7 @@ fn emit_reverse_String(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> bool {
     let s4 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 4)
     emit_reverse_setup(w, s0, s1, s2, s3)
     emit_reverse_swap_loop(w, s1, s2, s3, s4)
-    return true
+    return false
 }
 
 // GC target: in-place reverse of Vec<String> data array (swap lo/hi moving inward).
@@ -37,7 +37,7 @@ fn emit_reverse_String_gc(w: WasmWriter, ctx: SelfEmitCtx) -> bool {
     let arr_type = ctx_gc_type::SelfEmitCtx_string_ref_array_type(ctx)
     emit_reverse_String_gc_setup(w, s_vec, s_arr, s_len, s_lo, s_hi, vec_type)
     emit_reverse_String_gc_swap_loop(w, s_arr, s_lo, s_hi, s_tmp, arr_type)
-    return true
+    return false
 }
 
 fn emit_reverse_String_gc_setup(w: WasmWriter, s_vec: i32, s_arr: i32, s_len: i32, s_lo: i32, s_hi: i32, vec_type: i32) {

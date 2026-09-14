@@ -74,9 +74,11 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
         runtime_abi_fs_p2::emit_p2_close(w, ctx)
         runtime_abi_fs_write_result::emit_fs_write_error_message(w)
         runtime_abi_fs_write_result::emit_fs_write_error_result(w, ctx)
+        helpers_core::emit_local_set(w, s_res)
         string_gc_helpers::emit_gc_else(w)
         runtime_abi_fs_p2::emit_p2_close(w, ctx)
         runtime_abi_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
+        helpers_core::emit_local_set(w, s_res)
         string_gc_helpers::emit_gc_end(w)
     } else {
         emit_fs_write_bytes_iov(w, s_bbuf, s_bcount)
@@ -86,8 +88,8 @@ fn emit_fs_write_bytes_gc(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) -> boo
         helpers_io_layout::emit_scratch_addr_wasi(w, constants::SCRATCH_NWRITTEN())
         runtime_abi_fs_write_result::emit_fs_write_success_writev_and_close(w, ctx)
         runtime_abi_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
+        helpers_core::emit_local_set(w, s_res)
     }
-    helpers_core::emit_local_set(w, s_res)
     string_gc_helpers::emit_gc_end(w)
     helpers_core::emit_local_get(w, s_res)
     true

@@ -10,9 +10,12 @@ fn infer_unknown_ident_call(env: TypeEnv, scope: LocalScope, callee: AstNode) ->
     if contract_type_access::TypeInfo_tag(builtin_ret) != commands::TY_UNKNOWN() {
         return builtin_ret
     }
-    let loc_ty = scope::scope_lookup(scope, callee_name)
+    let loc_ty = scope::scope_lookup_instantiated(env, scope, callee_name)
     if contract_type_access::TypeInfo_tag(loc_ty) == commands::TY_FN() {
-        return TypeInfo_simple(commands::TY_I32())
+        let type_arg_count = contract_type_access::TypeInfo_type_arg_count(loc_ty)
+        if type_arg_count > 0 {
+            return contract_type_access::TypeInfo_type_arg_at(loc_ty, type_arg_count - 1)
+        }
     }
     TypeInfo_simple(commands::TY_UNKNOWN())
 }

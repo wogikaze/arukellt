@@ -5,8 +5,8 @@ fn main() {
     // Convert ASCII string to bytes
     let bytes = text::to_utf8_bytes("Hi")
     test::assert_eq_i32(len(bytes), 2)
-    test::assert_eq_i32(get(bytes, 0), 72)
-    test::assert_eq_i32(get(bytes, 1), 105)
+    test::assert_eq_i32(get_unchecked(bytes, 0), 72)
+    test::assert_eq_i32(get_unchecked(bytes, 1), 105)
 
     // Empty string
     let bytes2 = text::to_utf8_bytes("")
@@ -15,5 +15,5 @@ fn main() {
     // Single char
     let bytes3 = text::to_utf8_bytes("A")
     test::assert_eq_i32(len(bytes3), 1)
-    test::assert_eq_i32(get(bytes3, 0), 65)
+    test::assert_eq_i32(get_unchecked(bytes3, 0), 65)
 }

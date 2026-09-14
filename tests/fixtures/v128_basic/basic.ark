@@ -1,7 +1,8 @@
 use std::host::stdio
+use std::simd::v128
 
 fn make_v128() -> v128 {
-    v128_const(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    v128::zero()
 }
 
 fn main() {

@@ -451,7 +451,7 @@ fn try_emit_local_set_peephole_fields(
         writer_core::emit_leb128_u(w, arg0)
         return true
     }
-    if arg1 < 0 && next_op == opcodes::MIR_LOCAL_SET() {
+    if arg1 < 0 && next_op == opcodes::MIR_LOCAL_SET() && next_arg1 < 0 {
         inst_locals::emit_gc_ref_cast_to_dest(w, ctx, arg0)
         writer_core::emit_byte(w, local_opcodes::WASM_OP_LOCAL_TEE())
         writer_core::emit_leb128_u(w, arg0)

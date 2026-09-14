@@ -2,8 +2,11 @@ use mir::function_return_view
 use mir::function_return_mutation
 use mir::function_param_mutation
 use mir::function_param_view
+use mir::function_locals_view
+use mir::function_local_mutation
 use mir::lower::ctx_current_storage
 use mir::lower::ctx_gc_enum
+use mir::local_mutation
 use mir::value_types
 
 fn ctx_push_func_param(ctx: LowerCtx, ml: MirLocal) {
@@ -16,6 +19,16 @@ fn ctx_set_func_param_type(ctx: LowerCtx, param_ordinal: i32, pvt: i32, type_nam
     let mut f = ctx_current_storage::ctx_current_func_value(ctx)
     if param_ordinal >= 0 && param_ordinal < function_param_view::MirFunction_param_count(f) {
         function_param_mutation::MirFunction_set_param_type(f, param_ordinal, pvt, type_name)
+        // Parameter locals are allocated in the same ordinal order as the
+        // function signature. Keep the local-side type in sync too; staged
+        // call arguments read that local record rather than the parameter
+        // record, so a later enum/container promotion must update both.
+        if param_ordinal < function_locals_view::MirFunction_local_count(f) {
+            let local = function_locals_view::MirFunction_local_at(f, param_ordinal)
+            let typed = local_mutation::MirLocal_copy_with_val_type(local, pvt)
+            let updated = local_mutation::MirLocal_copy_with_type_name(typed, clone(type_name))
+            function_local_mutation::MirFunction_set_local(f, param_ordinal, updated)
+        }
         ctx_current_storage::ctx_set_current_func_value(ctx, f)
     }
 }

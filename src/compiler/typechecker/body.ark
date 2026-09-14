@@ -1,5 +1,6 @@
 use typechecker::kinds
 use typechecker::ast_access
+use typechecker::ast_decl_predicates
 use typechecker::body_params
 use typechecker::body_returns
 use typechecker::contract_env_record
@@ -11,7 +12,15 @@ use typechecker::scope
 use typechecker::sigs
 
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, enum_defs: Vec<EnumInfo>, fn_node: AstNode) {
-    let sig = sigs::lookup_fn_sig(env, fn_sigs, ast_access::node_text(fn_node))
+    // Imported modules may contain the same short function name as the
+    // prelude (for example `std::simd::i32x4::abs`). The flat signature index
+    // is for call lookup, but a declaration must always be checked against
+    // its own parameter and return annotations.
+    let sig = if ast_decl_predicates::node_is_const_decl(fn_node) {
+        sigs::fn_sig_from_const_decl(fn_node)
+    } else {
+        sigs::fn_sig_from_fn_decl(fn_node)
+    }
     check_fn_body_with_sig(env, fn_sigs, enum_defs, fn_node, sig)
 }
 

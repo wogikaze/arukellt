@@ -7,7 +7,7 @@ fn main() {
     let r: Result<i32, io::IoError> = io::writer_write_str(w, "stdout line\n")
     match r {
         Result::Ok(_) => (),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let b: Vec<i32> = io::writer_to_bytes(w)
     stdio::println((bytes::bytes_len(b)).to_string())
@@ -17,7 +17,7 @@ fn main() {
     let r2: Result<i32, io::IoError> = io::writer_write_str(w2, "buffered")
     match r2 {
         Result::Ok(_) => stdio::println("write ok"),
-        Result::Err(e) => stdio::println(e),
+        Result::Err(e) => stdio::println(io::io_error_message(e)),
     }
     let b2: Vec<i32> = io::writer_to_bytes(w2)
     stdio::println(bytes::string_from_bytes(b2))

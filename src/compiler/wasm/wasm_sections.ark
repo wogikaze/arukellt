@@ -75,7 +75,7 @@ fn emit_wasm_module_sections(
     t_phase = emit_section_note(report_timing, "strings", t_phase)
     let gc_layout = gc_layout_table::GcLayoutTable_new()
     let needs_wrapper = if emit_target::is_p2_wasi(clone(wasi_version)) {
-        if main_idx >= 0 && library_export_count == 0 { 1 } else { 0 }
+        if main_idx >= 0 { 1 } else { 0 }
     } else {
         wasm_start::wasm_module_needs_start_wrapper(mir, fn_count)
     }

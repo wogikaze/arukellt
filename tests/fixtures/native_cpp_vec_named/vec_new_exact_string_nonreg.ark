@@ -1,8 +1,8 @@
-// Exact alias Vec_new_String must keep working beside family patterns.
+// The generic constructor keeps working for an exact String element type.
 use std::host::stdio
 
 fn main() {
-    let mut items = Vec_new_String()
+    let mut items = Vec::new<String>()
     items = push(items, String_from("exact"))
     stdio::println(get_unchecked(items, 0))
 }

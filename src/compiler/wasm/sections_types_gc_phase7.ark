@@ -91,6 +91,12 @@ fn gc_vec_elem_name_is_struct_ref(elem: String) -> bool {
 }
 
 fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
+    // `mono_safe_name` encodes Option<T> as `?_T_` because the type tag for
+    // Option is currently `?`.  Normalize-aware callers usually decode this
+    // first, but keep the raw spelling classified correctly at this boundary.
+    if starts_with(clone(elem), "?_") {
+        return true
+    }
     if eq(clone(elem), "Option") || eq(clone(elem), "Result") {
         return true
     }
@@ -112,6 +118,40 @@ fn gc_vec_elem_name_is_enum_like(elem: String) -> bool {
         return true
     }
     false
+}
+
+// Decode the small amount of punctuation that mono_safe_name leaves in
+// generic Vec element names.  The wasm layout code needs semantic names such
+// as `String` and `Option_i32`, while call names may still contain
+// `Vec_String_` or `?_i32_`.
+fn gc_normalize_vec_element_name(elem: String) -> String {
+    let mut normalized = clone(elem)
+    while len(normalized) > 0 && char_at(normalized, len(normalized) - 1) == 95 {
+        normalized = substring(normalized, 0, len(normalized) - 1)
+    }
+    if starts_with(clone(normalized), "?_") {
+        return concat("Option_", substring(normalized, 2, len(normalized)))
+    }
+    normalized
+}
+
+fn gc_normalize_vec_type_name(type_name: String) -> String {
+    if starts_with(clone(type_name), "vec:") {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        return concat("vec:", gc_normalize_vec_element_name(elem))
+    }
+    if starts_with(clone(type_name), "Vec<") && ends_with(clone(type_name), ">") {
+        let elem = substring(clone(type_name), 4, len(type_name) - 1)
+        return concat("vec:", gc_normalize_vec_element_name(elem))
+    }
+    if starts_with(clone(type_name), "Vec_") {
+        let elem = substring(clone(type_name), 4, len(type_name))
+        return concat("vec:", gc_normalize_vec_element_name(elem))
+    }
+    if eq(clone(type_name), "Vec") {
+        return "vec:i32"
+    }
+    type_name
 }
 
 fn gc_vec_elem_name_is_type_param(elem: String) -> bool {

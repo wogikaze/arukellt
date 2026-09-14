@@ -4,6 +4,7 @@ use corehir::signature_registry
 use corehir::type_table
 use corehir::core_op_binding
 use corehir::core_op_id
+use corehir::signature_entry
 use mir::lower::decl_source
 use mir::lower::fn_index_source
 use mir::lower::mono_instance_table
@@ -48,6 +49,11 @@ fn signature_registry_apply_core_op_bindings(registry: SignatureRegistry) {
     let count = signature_registry::signature_registry_entry_count(registry)
     let mut i = 0
     while i < count {
+        let entry = signature_registry::signature_registry_entry_at(registry, i)
+        if core_op_id::core_op_id_is_some(signature_entry::signature_entry_core_op_id(entry)) {
+            i = i + 1
+            continue
+        }
         let mangled = signature_registry::signature_registry_mangled_at(registry, i)
         let coid = core_op_binding::core_op_binding_lookup_for_mangled(clone(mangled))
         if core_op_id::core_op_id_is_some(coid) {
@@ -88,9 +94,49 @@ fn sig_reg_index_top_level_fn(
     // string.join(Vec,…) stays CoreOp-only; registering it as bare `join`
     // overwrites path::join(String,String) and yields invalid wasm (#807).
     if !skip_shadow && !sig_reg_skip_join_vec_overload(sig_source, fn_info_index, clone(decl_name)) {
-        signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
+        let registered = signature_registry_entry::sig_reg_register_fn(table, registry, source, sig_source, fn_info_index, typed_index, clone(decl_name), decl_index, 0 - 1, kinds::ABI_KIND_NORMAL())
+        let qualified_name = fn_index_source::mir_fn_index_source_fn_qualified_name_at(source, fn_info_index)
+        if len(qualified_name) > 0 {
+            signature_registry::signature_registry_register_alias(registry, clone(qualified_name), registered)
+            let import_name = sig_reg_import_facing_qualified_name(qualified_name)
+            let qualified_coid = core_op_binding::core_op_binding_lookup_for_callee(clone(qualified_name))
+            if core_op_id::core_op_id_is_some(qualified_coid) {
+                signature_registry::signature_registry_set_core_op_id_at(
+                    registry,
+                    FunctionId_raw(registered),
+                    qualified_coid
+                )
+            }
+            if len(import_name) > 0 {
+                signature_registry::signature_registry_register_alias(registry, import_name, registered)
+            }
+        }
         signature_registry_build_mono::sig_reg_index_mono_variants(table, registry, mono_table, source, sig_source, midx, clone(decl_name), typed_index, fn_info_index, decl_index)
     }
+}
+
+// Imported stdlib modules are addressed as `path::join`/`stdio::println` in
+// source, while the flattened declaration keeps the `std::`/`std::host::`
+// prefixes. Keep both names on the same registry entry so qualified calls use
+// the declaration's signature and FunctionId.
+fn sig_reg_import_facing_qualified_name(qualified_name: String) -> String {
+    let n = len(qualified_name)
+    let mut last = 0 - 1
+    let mut previous = 0 - 1
+    let mut i = 0
+    while i < n - 1 {
+        if char_at(qualified_name, i) == 58 && char_at(qualified_name, i + 1) == 58 {
+            previous = last
+            last = i
+            i = i + 2
+        } else {
+            i = i + 1
+        }
+    }
+    if previous < 0 {
+        return String_new()
+    }
+    substring(qualified_name, previous + 2, n)
 }
 
 fn sig_reg_skip_join_vec_overload(sig_source: CoreHirMirSignatureSource, fn_info_index: i32, decl_name: String) -> bool {

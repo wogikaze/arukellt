@@ -5,10 +5,16 @@ use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_struct_layout
 use mir::lower::call_type_fallback
+use mir::lower::call_rewrite_vec
 use mir::value_types
+use wasm::sections_types_gc_phase7
 
 fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, first_arg_idx: i32) {
     let mut effective = clone(callee_name)
+    if call_rewrite_vec::is_vec_push_callee(clone(callee_name)) {
+        mark_vec_push_result_type(ctx, dest, first_arg_idx)
+        return
+    }
     // Bare Vec::new may still lack a mono suffix on the MIR callee text;
     // prefer the registered turbofish rewrite so locals stay vec:Elem (#845).
     if eq(clone(effective), String_from("Vec::new")) ||
@@ -29,6 +35,7 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
         let last_sep = last_index_of_double_underscore(clone(effective))
         if last_sep >= 0 {
             let elem = substring(effective, last_sep + 2, len(effective))
+            let elem = sections_types_gc_phase7::gc_normalize_vec_element_name(elem)
             let mut set_ty = concat(String_from("vec:"), elem)
             if eq(clone(elem), String_from("Vec_String")) || eq(clone(elem), String_from("Vec_string")) {
                 set_ty = String_from("vec:Vec_String")
@@ -113,6 +120,30 @@ fn mark_vec_call_result_type(ctx: LowerCtx, callee_name: String, dest: i32, firs
     }
 }
 
+fn mark_vec_push_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
+    if dest < 0 || first_arg_idx < 0 {
+        return
+    }
+    let receiver_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
+    if len(receiver_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, dest, clone(receiver_type))
+    }
+    ctx_api_local_types::ctx_set_local_vt(ctx, dest, mir_vec_receiver_vt(ctx, first_arg_idx))
+}
+
+fn mir_vec_receiver_vt(ctx: LowerCtx, receiver_idx: i32) -> i32 {
+    let receiver_vt = ctx_api_local_types::ctx_local_vt(ctx, receiver_idx)
+    if receiver_vt == value_types::VT_GC_REF() ||
+    receiver_vt == value_types::VT_REF() ||
+    receiver_vt == value_types::VT_FUNCREF() {
+        return receiver_vt
+    }
+    if ctx_gc_enum::ctx_is_gc_target(ctx) {
+        return value_types::VT_GC_REF()
+    }
+    value_types::VT_REF()
+}
+
 fn is_get_unchecked_callee(callee_name: String) -> bool {
     if eq(clone(callee_name), "vec_get_unchecked") ||
     eq(clone(callee_name), "get_unchecked") ||
@@ -146,9 +177,12 @@ fn strip_module_prefix_elem_name(elem_ty: String) -> String {
 fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(vec_type), "vec:") {
-            let raw_elem = substring(vec_type, 4, len(vec_type))
-            let elem_ty = strip_module_prefix_elem_name(clone(raw_elem))
+        if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
+            let elem_start = if starts_with(clone(vec_type), "array:") { 6 } else { 4 }
+            let raw_elem = substring(vec_type, elem_start, len(vec_type))
+            let elem_ty = sections_types_gc_phase7::gc_normalize_vec_element_name(
+                strip_module_prefix_elem_name(clone(raw_elem))
+            )
             // Normalize mono names: Vec_String → vec:String so emitter casts
             // structref elems to the string-vec GC type (#726 csv_perf).
             let mut set_ty = clone(elem_ty)
@@ -172,8 +206,9 @@ fn mark_vec_get_unchecked_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i
 fn mark_vec_get_result_type(ctx: LowerCtx, dest: i32, first_arg_idx: i32) {
     if first_arg_idx >= 0 {
         let vec_type = ctx_api_local_types::ctx_get_local_type(ctx, first_arg_idx)
-        if starts_with(clone(vec_type), "vec:") {
-            let elem_ty = substring(vec_type, 4, len(vec_type))
+        if starts_with(clone(vec_type), "vec:") || starts_with(clone(vec_type), "array:") {
+            let elem_start = if starts_with(clone(vec_type), "array:") { 6 } else { 4 }
+            let elem_ty = substring(vec_type, elem_start, len(vec_type))
             // dest is Option<T> (the container), not T — always a GC ref.
             // set_ref_vt_for_elem_type would wrongly set VT_I32 for option:i32.
             let opt_ty = concat(String_from("option:"), elem_ty)

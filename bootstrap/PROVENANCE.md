@@ -13,9 +13,9 @@ Cargo workspace, host-linker, or repository-specific runtime is involved.
 | Field | Value |
 |-------|-------|
 | Path | `bootstrap/arukellt-selfhost.wasm` |
-| Size | 5 052 261 bytes (≈ 4.82 MiB) |
-| sha256 | `97aeed6aaf87e0cb93aab58e6315bbbea6e81101f3e02b6e78ac1e2cd0d033d5` |
-| Built from commit | Selfhost compiler source at `b6936b2cb` plus the 1 GiB bootstrap-contract change in this refresh |
+| Size | 5 159 050 bytes (≈ 4.92 MiB) |
+| sha256 | `85bfa02404a71df0895c12d37d58ae1f2acfca573d69ded58386bb2cb4438950` |
+| Built from commit | Selfhost compiler source at `fe4a280c2115` plus the 1 GiB bootstrap-contract change in this refresh |
 | Build target | `wasm32` / `wasi-p1` direct core (guest `(memory 16384)`, 1 GiB **memory32**) |
 | Producer | Direct Wasmtime selfhost compile from the pinned 1 GiB memory32 bootstrap; no host-linker, bridge, adapter, or Rust code |
 

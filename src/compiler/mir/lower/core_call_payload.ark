@@ -34,6 +34,13 @@ fn lower_core_payload_variant_call(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr:
         if len(src_type) > 0 {
             ctx_api_local_types::ctx_set_local_type(ctx, save_local, clone(src_type))
         }
+        // Keep the exact producer storage type.  Re-resolving a named enum
+        // from its display name can select the wrong nominal GC type.
+        ctx_api_local_types::ctx_set_local_mvt(
+            ctx,
+            save_local,
+            ctx_api_local_types::ctx_local_mvt(ctx, p_idx)
+        )
         // Never inherit the producer variant slot onto payload saves; the
         // payload value is the field contents, not the enum variant itself.
         ctx_api_local_types::ctx_set_local_variant_slot(ctx, save_local, 0 - 1)

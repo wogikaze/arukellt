@@ -27,6 +27,6 @@ fn lower_or_match_compare_prefix(ctx: LowerCtx, pat: AstNode, payload_info: MirM
         or_oi = or_oi + 1
     }
     ctx_emit(ctx, inst_structured_control::MirInst_if())
-    ctx_api_nesting::ctx_push_nesting(ctx)
+    let _or_nesting_depth = ctx_api_nesting::ctx_push_nesting(ctx)
     if_depth + 1
 }

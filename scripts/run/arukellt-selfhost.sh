@@ -194,6 +194,16 @@ has_library_exports() {
   grep -Eq '\(export "cm32p2\|\|[^\"]+"' <<<"$printed"
 }
 
+has_p2_command_exports() {
+  local artifact="$1"
+  local printed
+  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+    return 1
+  fi
+  printed="$($WASM_TOOLS_BIN print "$artifact" 2>/dev/null)" || return 1
+  grep -Eq '\(export "cm32p2\|wasi:cli/run@0\.2\|run"' <<<"$printed"
+}
+
 prepare_selfhost_artifact() {
   local input="$1"
   local version
@@ -665,7 +675,7 @@ compile_component_artifact() {
   local component_wit="$work_dir/component.wit"
   local compiler_world="wasi:cli/command"
   local wit_world="command"
-  if has_library_exports "$core_path"; then
+  if has_library_exports "$core_path" && ! has_p2_command_exports "$core_path"; then
     compiler_world=""
     wit_world="arukellt"
   fi
@@ -722,7 +732,7 @@ compile_all_artifact() {
   local component_wit="$work_dir/component.wit"
   local compiler_world="wasi:cli/command"
   local wit_world="command"
-  if has_library_exports "$component_core_path"; then
+  if has_library_exports "$component_core_path" && ! has_p2_command_exports "$component_core_path"; then
     compiler_world=""
     wit_world="arukellt"
   fi

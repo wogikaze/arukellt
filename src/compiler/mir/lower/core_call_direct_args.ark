@@ -44,7 +44,22 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
     let mut second_arg_idx = 0 - 1
     let mut lane_immediate = 0 - 1
     let mut receiver_writeback = 0 - 1
+    let mut call_result = 0 - 1
     let mut a = 1
+    if child_count == 1 {
+        call_result = call_emit::mir_emit_direct_call(
+            ctx,
+            callee_name,
+            0,
+            first_arg_idx,
+            second_arg_idx,
+            staged_arg_locals,
+            stage_call_args,
+            core_expr_shape_accessors::mir_core_expr_span_start(expr),
+            lane_immediate,
+            receiver_writeback
+        )
+    }
     while a < child_count {
         let arg_expr = get_unchecked(exprs, core_expr_shape_accessors::mir_core_expr_child(expr, a))
         let mut arg_idx = 0 - 1
@@ -52,14 +67,40 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
         let is_lane_immediate = a == 2 && call_emit::mir_is_simd_lane_immediate_callee(clone(callee_name)) && core_expr_shape_atoms::mir_core_expr_is_int(arg_expr)
         if is_lane_immediate {
             lane_immediate = core_expr_shape_accessors::mir_core_expr_int_val(arg_expr)
-            a = a + 1
+            if a + 1 == child_count {
+                call_result = call_emit::mir_emit_direct_call(
+                    ctx,
+                    callee_name,
+                    child_count - 1,
+                    first_arg_idx,
+                    second_arg_idx,
+                    staged_arg_locals,
+                    stage_call_args,
+                    core_expr_shape_accessors::mir_core_expr_span_start(expr),
+                    lane_immediate,
+                    receiver_writeback
+                )
+                a = child_count
+            } else {
+                a = a + 1
+            }
             continue
         }
         let needs_print_convert = is_println &&
         a == 1 &&
         core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) &&
         core_call_args::mir_core_print_arg_needs_string_conversion(ctx, arg_expr, core_names::mir_core_lookup_local(ctx, arg_expr))
-        if needs_print_convert {
+        let staged_ident_local = if stage_call_args && core_expr_shape_atoms::mir_core_expr_is_ident(arg_expr) {
+            core_names::mir_core_lookup_local(ctx, arg_expr)
+        } else {
+            0 - 1
+        }
+        if staged_ident_local >= 0 {
+            // Staging already copies a local with local.set.  Avoid an
+            // intermediate local.get, which composes multiple arguments on
+            // the value stack in the wrong order.
+            arg_idx = staged_ident_local
+        } else if needs_print_convert {
             arg_idx = core_names::mir_core_lookup_local(ctx, arg_expr)
         } else if core_expr_shape_atoms::mir_core_expr_is_int(arg_expr) && call_arg_i64::mir_should_force_int_lit_i64(ctx, clone(callee_name), param_idx) {
             arg_idx = core_literals::lower_core_int_literal_forced_i64(ctx, arg_expr)
@@ -91,18 +132,23 @@ fn lower_core_direct_call_args(ctx: LowerCtx, exprs: Vec<CoreHirExpr>, expr: Cor
             if a == 2 {
                 second_arg_idx = arg_idx
             }
-            a = a + 1
+            if a + 1 == child_count {
+                call_result = call_emit::mir_emit_direct_call(
+                    ctx,
+                    callee_name,
+                    child_count - 1,
+                    first_arg_idx,
+                    second_arg_idx,
+                    staged_arg_locals,
+                    stage_call_args,
+                    core_expr_shape_accessors::mir_core_expr_span_start(expr),
+                    lane_immediate,
+                    receiver_writeback
+                )
+                a = child_count
+            } else {
+                a = a + 1
+            }
         }
-        call_emit::mir_emit_direct_call(
-            ctx,
-            callee_name,
-            child_count - 1,
-            first_arg_idx,
-            second_arg_idx,
-            staged_arg_locals,
-            stage_call_args,
-            core_expr_shape_accessors::mir_core_expr_span_start(expr),
-            lane_immediate,
-            receiver_writeback
-        )
+        call_result
     }

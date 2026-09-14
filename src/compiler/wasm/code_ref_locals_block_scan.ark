@@ -10,18 +10,22 @@ use mir::block_inst_access
 use mir::function_locals_view
 use mir::inst_accessors_literals
 use mir::inst_accessors_operands
+use mir::inst_accessors_result_types
 use mir::inst_accessors_shape
 use mir::local_access
 use mir::local_write_index
 use mir::opcodes
 use mir::value_types
 use wasm::ctx_gc_type
+use wasm::ctx_gc_type_vec_ref
 use wasm::ctx_gc_layout_lookup
+use wasm::call_indirect
 use wasm::ctx_record
 use wasm::code_ref_locals_fn_cache
 use wasm::code_ref_locals_infer_callee
 use wasm::code_ref_locals_infer_dest
 use wasm::sections_types_gc
+use wasm::intrinsic_vec_type
 
 fn gc_struct_get_field_ref_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
     let type_slot = inst_accessors_operands::MirInst_arg0(inst)
@@ -64,6 +68,14 @@ fn struct_get_result_payload_open_type(f: MirFunction, inst: MirInst, ctx: SelfE
         return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
     }
     let base_gc = ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, base)
+    // A named user struct can share a GC type index with the enum-variant
+    // registry in the current layout plan. Its field access still has the
+    // declared field ABI; treating every such index as an open-enum payload
+    // makes `WitFunc.name` become WitType. Only use this fallback when the
+    // base has no semantic type name at all.
+    if len(base_tn) > 0 {
+        return Option::None
+    }
     let open = ctx_gc_type::SelfEmitCtx_enum_open_type(ctx)
     if base_gc == open || ctx_gc_layout_lookup::SelfEmitCtx_wasm_type_is_enum_variant(ctx, base_gc) {
         return Option::Some(open)
@@ -136,6 +148,13 @@ fn local_vec_access_storage_type(
         !is_vec_access_callee(inst_accessors_literals::MirInst_str_val(inst)) {
             continue
         }
+        let result_storage = vec_access_result_storage_type(inst, ctx)
+        match result_storage {
+            Option::Some(_storage_type) => {
+                return result_storage
+            }
+            Option::None => {}
+        }
         let inferred =
         code_ref_locals_infer_dest::infer_ref_local_from_producer(
             f,
@@ -151,11 +170,11 @@ fn local_vec_access_storage_type(
         }
         let receiver =
         vec_access_receiver_local(block, inst_index, inst)
-        let from_type_id =
-        vec_element_storage_type_from_receiver(f, receiver, ctx)
-        match from_type_id {
+        let from_receiver =
+        vec_element_storage_type_from_receiver(f, local_idx, receiver, ctx)
+        match from_receiver {
             Option::Some(_storage_type) => {
-                return from_type_id
+                return from_receiver
             }
             Option::None => {}
         }
@@ -167,6 +186,7 @@ fn local_vec_access_storage_type(
 // from parsing a `vec:` type name in the backend.
 fn vec_element_storage_type_from_receiver(
     f: MirFunction,
+    dest: i32,
     receiver: i32,
     ctx: SelfEmitCtx
 ) -> Option<i32> {
@@ -174,10 +194,80 @@ fn vec_element_storage_type_from_receiver(
         return Option::None
     }
     let receiver_local = function_locals_view::MirFunction_local_at(f, receiver)
+    let receiver_gc =
+    ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, receiver)
+    if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_enum_ref_type(ctx) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
+        return Option::Some(call_indirect::resolve_indirect_type_idx(
+                ctx,
+                0 - 1,
+                1,
+                value_types::VT_I32(),
+                value_types::VT_I32()
+            ))
+    }
+    if receiver_gc == ctx_gc_type_vec_ref::SelfEmitCtx_vec_struct_ref_type(ctx) {
+        let nested = nested_vec_element_storage_type(f, dest, ctx)
+        match nested {
+            Option::Some(_storage_type) => {
+                return nested
+            }
+            Option::None => {}
+        }
+    }
     let vec_tid = mir_value_type::mir_value_type_type_id(
         local_access::MirLocal_value_type(receiver_local)
     )
     if !type_id::type_id_is_valid(vec_tid) {
+        let receiver_tn = local_access::MirLocal_type_name(receiver_local)
+        let receiver_elem = vec_element_name(clone(receiver_tn))
+        if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(receiver_elem)) {
+            return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+        }
+        if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(receiver_elem)) {
+            return Option::Some(call_indirect::resolve_indirect_type_idx(
+                    ctx,
+                    0 - 1,
+                    1,
+                    value_types::VT_I32(),
+                    value_types::VT_I32()
+                ))
+        }
+        if is_nested_vec_element_name(clone(receiver_elem)) {
+            let nested = nested_vec_element_storage_type(f, dest, ctx)
+            match nested {
+                Option::Some(_storage_type) => {
+                    return nested
+                }
+                Option::None => {}
+            }
+        }
+        if starts_with(clone(receiver_tn), String_from("vec:fn")) {
+            return Option::Some(call_indirect::resolve_indirect_type_idx(
+                    ctx,
+                    0 - 1,
+                    1,
+                    value_types::VT_I32(),
+                    value_types::VT_I32()
+                ))
+        }
+        let copied_storage = copied_storage_type_from_source(f, receiver, ctx, 0)
+        match copied_storage {
+            Option::Some(copied_type) => {
+                if copied_type == ctx_gc_type_vec_ref::SelfEmitCtx_vec_fnref_type(ctx) {
+                    return Option::Some(call_indirect::resolve_indirect_type_idx(
+                            ctx,
+                            0 - 1,
+                            1,
+                            value_types::VT_I32(),
+                            value_types::VT_I32()
+                        ))
+                }
+            }
+            Option::None => {}
+        }
         return Option::None
     }
     let table = ctx_record::SelfEmitCtx_type_table(ctx)
@@ -196,6 +286,71 @@ fn vec_element_storage_type_from_receiver(
         return Option::None
     }
     Option::Some(storage_type)
+}
+
+fn vec_access_result_storage_type(inst: MirInst, ctx: SelfEmitCtx) -> Option<i32> {
+    if inst_accessors_result_types::MirInst_result_type_count(inst) <= 0 {
+        return Option::None
+    }
+    let result_type = inst_accessors_result_types::MirInst_result_type_at(inst, 0)
+    let storage_type =
+    ctx_gc_layout_lookup::SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(
+        ctx,
+        result_type
+    )
+    if storage_type < 0 {
+        return Option::None
+    }
+    Option::Some(storage_type)
+}
+
+fn vec_element_name(type_name: String) -> String {
+    if starts_with(clone(type_name), String_from("vec:")) {
+        return substring(type_name, 4, len(type_name))
+    }
+    if starts_with(clone(type_name), String_from("Vec_")) {
+        return substring(type_name, 4, len(type_name))
+    }
+    String_new()
+}
+
+fn is_nested_vec_element_name(elem: String) -> bool {
+    starts_with(clone(elem), String_from("Vec")) ||
+    starts_with(clone(elem), String_from("vec:"))
+}
+
+fn nested_vec_element_storage_type(
+    f: MirFunction,
+    dest: i32,
+    ctx: SelfEmitCtx
+) -> Option<i32> {
+    if dest < 0 || dest >= function_locals_view::MirFunction_local_count(f) {
+        return Option::None
+    }
+    let dest_name = local_access::MirLocal_type_name(
+        function_locals_view::MirFunction_local_at(f, dest)
+    )
+    let elem_name = vec_element_name(clone(dest_name))
+    if len(elem_name) == 0 {
+        return Option::None
+    }
+    if sections_types_gc_phase7::gc_vec_elem_name_is_enum_like(clone(elem_name)) {
+        return Option::Some(ctx_gc_type::SelfEmitCtx_enum_open_type(ctx))
+    }
+    if sections_types_gc_phase7::gc_vec_elem_name_is_fnref(clone(elem_name)) {
+        return Option::Some(call_indirect::resolve_indirect_type_idx(
+                ctx,
+                0 - 1,
+                1,
+                value_types::VT_I32(),
+                value_types::VT_I32()
+            ))
+    }
+    if starts_with(clone(dest_name), String_from("vec:")) ||
+    starts_with(clone(dest_name), String_from("Vec_")) {
+        return Option::Some(intrinsic_vec_type::resolve_vec_type_for_new_dest(ctx, dest))
+    }
+    Option::None
 }
 
 fn vec_access_receiver_local(
@@ -285,6 +440,16 @@ fn copied_non_string_storage_type(
 // typed spine, named gc struct on the source type_name, Vec element access,
 // direct producer, then the source's own copies (bounded by `depth`).
 fn copied_storage_type_from_source(f: MirFunction, source: i32, ctx: SelfEmitCtx, depth: i32) -> Option<i32> {
+    if source >= 0 && source < function_locals_view::MirFunction_local_count(f) {
+        let source_local = function_locals_view::MirFunction_local_at(f, source)
+        let source_vt = local_access::MirLocal_val_type(source_local)
+        if source_vt == value_types::VT_I64() ||
+        source_vt == value_types::VT_F64() ||
+        source_vt == value_types::VT_F32() ||
+        source_vt == value_types::VT_V128() {
+            return Option::None
+        }
+    }
     let source_type =
     ctx_gc_layout_lookup::SelfEmitCtx_wasm_ref_type_idx_for_local(ctx, source)
     if source_type >= 0 &&

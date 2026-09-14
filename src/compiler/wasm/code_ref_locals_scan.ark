@@ -94,7 +94,8 @@ fn local_is_direct_gc_struct_new_dest(f: MirFunction, local_idx: i32, ctx: SelfE
         let mut ii = 0
         while ii < inst_count {
             let inst = block_inst_access::MirBlock_inst_at(block, ii)
-            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() {
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_GC_STRUCT_NEW() ||
+            inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_STRUCT_NEW() {
                 if inst_accessors_operands::MirInst_dest(inst) == local_idx {
                     return true
                 }
@@ -266,6 +267,66 @@ fn local_has_scalar_producer(f: MirFunction, local_idx: i32) -> bool {
     local_has_scalar_producer_depth(f, local_idx, 0)
 }
 
+// Return the concrete scalar value type produced for a local, or -1 when the
+// body does not provide one.  Local metadata can retain a GC type after a
+// temporary is reused, so the declaration pass needs the producer's actual
+// type before consulting names or GC layout spines.
+fn local_scalar_producer_vt(f: MirFunction, local_idx: i32) -> i32 {
+    local_scalar_producer_vt_depth(f, local_idx, 0)
+}
+
+fn local_scalar_producer_vt_depth(f: MirFunction, local_idx: i32, depth: i32) -> i32 {
+    if depth > 8 {
+        return 0 - 1
+    }
+    // A staged call argument can copy a scalar parameter into a temporary
+    // local before the call. Treat the parameter as the source of its declared
+    // scalar type; otherwise the GC layout scan sees only the temporary's
+    // stale reference metadata and declares it as a ref local.
+    let param_count = function_param_view::MirFunction_param_count(f)
+    if local_idx >= 0 && local_idx < param_count {
+        let param_vt = function_param_view::MirFunction_param_val_type(f, local_idx)
+        if param_vt == value_types::VT_I32() ||
+        param_vt == value_types::VT_I64() ||
+        param_vt == value_types::VT_F64() ||
+        param_vt == value_types::VT_F32() ||
+        param_vt == value_types::VT_V128() {
+            return param_vt
+        }
+        return 0 - 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            let op = inst_accessors_shape::MirInst_op(inst)
+            if inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                let producer_vt = inst_scalar_producer_vt(op, inst)
+                if producer_vt >= 0 {
+                    return producer_vt
+                }
+            }
+            if op == opcodes::MIR_LOCAL_SET() &&
+            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source = inst_accessors_operands::MirInst_arg1(inst)
+                if source >= 0 {
+                    let source_vt = local_scalar_producer_vt_depth(f, source, depth + 1)
+                    if source_vt >= 0 {
+                        return source_vt
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
+}
+
 fn local_has_scalar_producer_depth(f: MirFunction, local_idx: i32, depth: i32) -> bool {
     if depth > 3 {
         return false
@@ -365,12 +426,9 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
     op == opcodes::MIR_EQZ() {
         return true
     }
-    // MIR_ARRAY_GET always produces a scalar i32 (default i32-backed arrays,
-    // widened to i64 on Memory64). The instruction val_type may be stale
-    // (VT_GC_REF from local reuse) so do not rely on it.
-    if op == opcodes::MIR_ARRAY_GET() {
-        return true
-    }
+    // MIR_ARRAY_GET is intentionally not inferred here. Its MIR value type is
+    // not reliable for GC arrays, and treating a struct element as i32 changes
+    // the local declaration before the array element type is resolved.
     // MIR_STRUCT_GET and MIR_GC_STRUCT_GET produce scalar values when the
     // result val_type is VT_I32 (i32 field, widened to i64 on Memory64).
     // Ref field results have val_type VT_GC_REF and are not scalar.
@@ -394,6 +452,46 @@ fn inst_op_is_scalar_producer(op: i32, inst: MirInst) -> bool {
         }
     }
     false
+}
+
+fn inst_scalar_producer_vt(op: i32, inst: MirInst) -> i32 {
+    if op == opcodes::MIR_CONST_I32() || op == opcodes::MIR_CONST_BOOL() {
+        return value_types::VT_I32()
+    }
+    if op == opcodes::MIR_CONST_I64() {
+        return value_types::VT_I64()
+    }
+    if op == opcodes::MIR_CONST_F64() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_F32() {
+            return vt
+        }
+        return value_types::VT_F64()
+    }
+    if op == opcodes::MIR_EQ() || op == opcodes::MIR_NEQ() ||
+    op == opcodes::MIR_LT() || op == opcodes::MIR_LTEQ() ||
+    op == opcodes::MIR_GT() || op == opcodes::MIR_GTEQ() ||
+    op == opcodes::MIR_AND() || op == opcodes::MIR_OR() ||
+    op == opcodes::MIR_NOT() || op == opcodes::MIR_EQZ() {
+        return value_types::VT_I32()
+    }
+    if op == opcodes::MIR_STRUCT_GET() || op == opcodes::MIR_GC_STRUCT_GET() ||
+    op == opcodes::MIR_CALL() {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+            return vt
+        }
+        return 0 - 1
+    }
+    if inst_op_is_scalar_producer(op, inst) {
+        let vt = inst_accessors_shape::MirInst_val_type(inst)
+        if vt == value_types::VT_I32() || vt == value_types::VT_I64() ||
+        vt == value_types::VT_F64() || vt == value_types::VT_F32() {
+            return vt
+        }
+    }
+    0 - 1
 }
 
 // --- Open-enum → i64 local demotion (assert/loop temps with stale type_name) ---
@@ -690,9 +788,14 @@ fn local_set_receives_scalar_i64(
 ) -> bool {
     let inst = block_inst_access::MirBlock_inst_at(block, ii)
     let set_src = inst_accessors_operands::MirInst_arg1(inst)
-    if set_src >= 0 && set_src < len(scalar_def_block_stamp) &&
-    get_unchecked(scalar_def_block_stamp, set_src) == block_stamp {
-        return true
+    if set_src >= 0 {
+        if set_src < len(scalar_def_block_stamp) &&
+        get_unchecked(scalar_def_block_stamp, set_src) == block_stamp {
+            return true
+        }
+        // An explicit source local is the value consumed by LOCAL_SET. The
+        // previous MIR instruction is unrelated stack state in this form.
+        return false
     }
     if ii <= 0 {
         return false

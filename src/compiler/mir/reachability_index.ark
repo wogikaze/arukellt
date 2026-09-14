@@ -16,12 +16,50 @@ struct MirReachabilityIndex {
 // Nested else-less `if` around `set(Vec, …)` was lowered with a Vec block
 // result into an i64 local (s3 validate: expected i64, found ref). Early
 // returns keep each guard as a statement with no merge value.
-fn mir_reachability_index_bind_fid(m: MirModule, fid_to_mir: Vec<i32>, fname: String, fi: i32) {
+fn mir_reachability_function_ordinal(functions: Vec<MirFunction>, fname: String, fi: i32) -> i32 {
+    let mut ordinal = 0
+    let mut i = 0
+    while i < fi {
+        if eq(function_identity::MirFunction_name(get_unchecked(functions, i)), clone(fname)) {
+            ordinal = ordinal + 1
+        }
+        i = i + 1
+    }
+    ordinal
+}
+
+fn mir_reachability_registry_id_for_ordinal(
+    registry: SignatureRegistry,
+    fname: String,
+    ordinal: i32
+) -> FunctionId {
+    let mut seen = 0
+    let mut i = 0
+    while i < signature_registry::signature_registry_entry_count(registry) {
+        if eq(signature_registry::signature_registry_mangled_at(registry, i), clone(fname)) {
+            if seen == ordinal {
+                return function_id::FunctionId_new(i)
+            }
+            seen = seen + 1
+        }
+        i = i + 1
+    }
+    function_id::FUNCTION_ID_INVALID()
+}
+
+fn mir_reachability_index_bind_fid(
+    m: MirModule,
+    fid_to_mir: Vec<i32>,
+    functions: Vec<MirFunction>,
+    fname: String,
+    fi: i32
+) {
     if !module_spine::MirModule_signature_spine_populated(m) {
         return
     }
     let registry = module_spine::MirModule_signature_registry(m)
-    let fid = signature_registry::signature_registry_lookup_by_mangled(registry, clone(fname))
+    let ordinal = mir_reachability_function_ordinal(functions, clone(fname), fi)
+    let fid = mir_reachability_registry_id_for_ordinal(registry, clone(fname), ordinal)
     if !function_id::function_id_is_valid(fid) {
         return
     }
@@ -64,7 +102,7 @@ fn mir_reachability_index_build(m: MirModule, functions: Vec<MirFunction>) -> Mi
         let f = get_unchecked(functions, fi)
         let fname = function_identity::MirFunction_name(f)
         mir_reachability_index_bind_name(name_to_mir, clone(fname), fi)
-        mir_reachability_index_bind_fid(m, fid_to_mir, fname, fi)
+        mir_reachability_index_bind_fid(m, fid_to_mir, functions, fname, fi)
         fi = fi + 1
     }
     MirReachabilityIndex { name_to_mir: name_to_mir, fid_to_mir: fid_to_mir }

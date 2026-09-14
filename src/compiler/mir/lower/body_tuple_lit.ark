@@ -18,6 +18,15 @@ fn lower_tuple_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let child_idx = lower_expr(ctx, child)
         let child_vt = ctx_local_vt(ctx, child_idx)
         let save_local = ctx_fresh_local(ctx, child_vt)
+        let child_type = ctx_api_local_types::ctx_get_local_type(ctx, child_idx)
+        if len(child_type) > 0 {
+            ctx_api_local_types::ctx_set_local_type(ctx, save_local, child_type)
+        }
+        ctx_api_local_types::ctx_set_local_mvt(
+            ctx,
+            save_local,
+            ctx_api_local_types::ctx_local_mvt(ctx, child_idx)
+        )
         ctx_emit(ctx, inst_local_set::MirInst_local_set_from(save_local, child_idx))
         push(field_locals, save_local)
         push(field_vts, child_vt)

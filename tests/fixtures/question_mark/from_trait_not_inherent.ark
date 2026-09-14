@@ -1,7 +1,8 @@
 use std::host::stdio
 
 // Inherent `AppError::from` must not be selected by `?` (ADR-039 D2).
-// If lookup fell back to mangled `::from`, the Err path would hit assert(false).
+// The source and target error types are identical, so ? must propagate the
+// Err identity; a name-based fallback would still hit assert(false).
 
 enum AppError {
     Io(String),
@@ -15,11 +16,11 @@ impl AppError {
     }
 }
 
-fn read_line(s: String) -> Result<String, String> {
+fn read_line(s: String) -> Result<String, AppError> {
     if eq(s, "ok") {
         Ok(String_from("data"))
     } else {
-        Err(String_from("read failed"))
+        Err(AppError::Io(String_from("read failed")))
     }
 }
 

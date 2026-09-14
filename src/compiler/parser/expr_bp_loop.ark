@@ -10,8 +10,16 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
     core_api_cursor::skip_newlines(p)
     let mut lhs = expr_prefix_dispatch::parse_prefix(p)
     while true {
+        let starts_after_newline = core_api_cursor::peek_kind(p) == tokens::TK_NEWLINE()
         core_api_cursor::skip_only_newlines(p)
         let k = core_api_cursor::peek_kind(p)
+        // A parenthesized expression at the start of the next line is a new
+        // statement, not an implicit call on the previous expression. Keep
+        // newline-separated tuple returns such as `let (x, _) = f()` and
+        // `(value, next)` structurally separate.
+        if starts_after_newline && k == tokens::TK_LPAREN() {
+            break
+        }
         if pratt::is_expr_stop_token(k) {
             break
         }

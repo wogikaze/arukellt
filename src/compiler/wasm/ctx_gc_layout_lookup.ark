@@ -42,6 +42,14 @@ fn SelfEmitCtx_wasm_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirVa
 // representation may remain LINEAR_PTR for target-independent String while the
 // wasm32-gc storage binding is a GC array.
 fn SelfEmitCtx_wasm_storage_ref_type_idx_for_mir_value_type(ctx: SelfEmitCtx, mvt: MirValueType) -> i32 {
+    let repr = mir_value_type::mir_value_type_repr(mvt)
+    if repr != kinds::VALUE_REPR_GC_REF() &&
+    repr != kinds::VALUE_REPR_LINEAR_PTR() {
+        // Scalar TypeIds can be present in the shared layout table, but they
+        // never describe a GC local. Returning their incidental table entry
+        // makes f64/i64 temporaries become unrelated `(ref null ...)` locals.
+        return 0 - 1
+    }
     SelfEmitCtx_wasm_ref_type_idx_for_type_id(
         ctx,
         mir_value_type::mir_value_type_type_id(mvt)

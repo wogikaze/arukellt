@@ -30,23 +30,14 @@ fn build_mono_index(instances: Vec<MonoInstance>) -> MonoIndex {
 }
 
 fn mono_index_has_mangled(idx: MonoIndex, fn_name: String, mangled: String) -> bool {
-    let found_at = mono_index_types::mono_index_find_name(idx, clone(fn_name))
-    if found_at < 0 {
-        return false
-    }
-    let count = mono_index_types::mono_index_count_at(idx, found_at)
-    let mut name_start = 0
+    let count = mono_index_types::mono_index_mangled_count(idx)
     let mut i = 0
-    while i < found_at {
-        name_start = name_start + mono_index_types::mono_index_count_at(idx, i)
-        i = i + 1
-    }
-    let mut ordinal = 0
-    while ordinal < count {
-        if eq(mono_index_types::mono_index_mangled_at_offset(idx, name_start + ordinal), clone(mangled)) {
+    while i < count {
+        if eq(mono_index_types::mono_index_mangled_base_at(idx, i), clone(fn_name)) &&
+        eq(mono_index_types::mono_index_mangled_at_offset(idx, i), clone(mangled)) {
             return true
         }
-        ordinal = ordinal + 1
+        i = i + 1
     }
     false
 }

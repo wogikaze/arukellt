@@ -13,6 +13,10 @@ fn mir_entry_fn_body_index_at(view: MirLowerEntryView, info_index: i32, fallback
     signature_fn::mir_signature_fn_body_index_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
 }
 
+fn mir_entry_fn_qualified_name_at(view: MirLowerEntryView, info_index: i32, fallback: String) -> String {
+    signature_fn::mir_signature_fn_qualified_name_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
+}
+
 fn mir_entry_fn_param_count_at(view: MirLowerEntryView, info_index: i32, fallback: i32) -> i32 {
     signature_fn::mir_signature_fn_param_count_at(entry_view_record::entry_view_signature_source(view), info_index, fallback)
 }

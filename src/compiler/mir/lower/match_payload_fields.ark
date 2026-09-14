@@ -7,6 +7,7 @@ use mir::inst_local_set
 use mir::lower::ctx_gc_enum
 use mir::lower::ctx_gc_enum_payload
 use mir::lower::ctx_struct_layout
+use mir::lower_kinds
 use mir::lower::match_payload_bind_types
 use mir::lower::match_payload_bind_gc_resolve
 use mir::lower::match_payload_field_type
@@ -32,6 +33,10 @@ fn mir_emit_payload_variant_binds(ctx: LowerCtx, pat: AstNode, scrut_idx: i32, s
     let mut bi = 0
     while bi < ast_node::node_child_count(pat) {
         let bind_pat = ast_node::node_child_at(pat, bi)
+        if ast_node::node_kind_is(bind_pat, lower_kinds::NK_PAT_WILDCARD()) {
+            bi = bi + 1
+            continue
+        }
         let hint_for_field = if bi == 0 {
             clone(payload_hint)
         } else {

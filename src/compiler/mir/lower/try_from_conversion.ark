@@ -75,6 +75,84 @@ fn try_emit_err_from_conversion(ctx: LowerCtx, res_ptr: i32, from_fn_name: Strin
     ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
 }
 
+// Identity propagation still needs a new Result value when the Ok payload
+// type changes.  A GC Result<String, E> is not castable to Result<i32, E>,
+// even when the active variant is Err and the E payload is identical.
+fn try_emit_err_identity_result(ctx: LowerCtx, res_ptr: i32, inner_idx: i32) {
+    if !ctx_gc_enum::ctx_is_gc_target(ctx) {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
+        ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+        return
+    }
+    let source_result_type = ctx_api_local_types::ctx_get_local_type(ctx, inner_idx)
+    let target_result_type = function_return_view::MirFunction_return_type_name(
+        ctx_current_storage::ctx_current_func_value(ctx)
+    )
+    if !try_identity_result_needs_rebuild(clone(source_result_type), clone(target_result_type)) {
+        ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(res_ptr))
+        ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+        return
+    }
+    try_emit_err_identity_result_gc(ctx, res_ptr, inner_idx)
+}
+
+fn try_identity_result_needs_rebuild(source_result_type: String, target_result_type: String) -> bool {
+    if !try_is_result_type(clone(source_result_type)) || !try_is_result_type(clone(target_result_type)) {
+        return false
+    }
+    if eq(clone(source_result_type), clone(target_result_type)) {
+        return false
+    }
+    let source_err_type = try_extract_err_payload_type(clone(source_result_type))
+    let target_err_type = try_extract_err_payload_type(clone(target_result_type))
+    len(source_err_type) > 0 && eq(clone(source_err_type), clone(target_err_type))
+}
+
+fn try_is_result_type(type_name: String) -> bool {
+    starts_with(clone(type_name), "Result_") || starts_with(clone(type_name), "result:")
+}
+
+fn try_emit_err_identity_result_gc(ctx: LowerCtx, res_ptr: i32, inner_idx: i32) {
+    let source_err_type = try_extract_err_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))
+    let source_vt = try_err_payload_vt_gc(clone(source_err_type))
+    let err_local = ctx_api_local_alloc::ctx_fresh_local(ctx, source_vt)
+    if len(source_err_type) > 0 {
+        ctx_api_local_types::ctx_set_local_type(ctx, err_local, clone(source_err_type))
+    }
+    let source_payload_vts = Vec::new<i32>()
+    push(source_payload_vts, source_vt)
+    let mut err_slot = ctx_gc_enum_payload::ctx_ensure_gc_enum_payload_variant_typed(
+        ctx,
+        String_from("Err"),
+        source_payload_vts,
+        clone(source_err_type)
+    )
+    if err_slot < 0 {
+        err_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, String_from("Err"))
+    }
+    let mut field_vt = value_types::VT_VOID()
+    if source_vt == value_types::VT_F64() {
+        field_vt = value_types::VT_F64()
+    } else if source_vt == value_types::VT_I64() {
+        field_vt = value_types::VT_I64()
+    }
+    ctx_api_emit::ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(err_local, res_ptr, err_slot, 1, field_vt))
+    let out_locals = Vec::new<i32>()
+    push(out_locals, err_local)
+    let out_vts = Vec::new<i32>()
+    push(out_vts, source_vt)
+    let dest = variant_payload::lower_payload_variant_from_locals(
+        ctx,
+        1,
+        out_locals,
+        out_vts,
+        8,
+        String_from("Err")
+    )
+    ctx_api_emit::ctx_emit(ctx, inst_local_get::MirInst_local_get(dest))
+    ctx_api_emit::ctx_emit(ctx, inst_return::MirInst_return_void())
+}
+
 // GC Err rewrite: extract typed Err payload → From::from → new Result::Err.
 fn try_emit_err_from_conversion_gc(ctx: LowerCtx, res_ptr: i32, from_fn_name: String, inner_idx: i32) {
     let source_err_type = try_extract_err_payload_type(ctx_api_local_types::ctx_get_local_type(ctx, inner_idx))

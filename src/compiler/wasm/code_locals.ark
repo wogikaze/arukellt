@@ -16,10 +16,17 @@ use wasm::sections_type_plan
 use mir::function_identity
 use mir::function_locals_view
 use mir::function_return_view
+use mir::block_inst_access
+use mir::inst_accessors_literals
+use mir::inst_accessors_operands
+use mir::inst_accessors_shape
 use mir::local_access
+use mir::opcodes
 use mir::value_types
 use wasm::writer_core
 use wasm::sections_types_gc_phase7
+use wasm::intrinsic_vec_type
+use wasm::inst_ctx
 
 fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
     // Binary fold callbacks: fn(i32, i32) -> i32 → type index for (i32,i32)->i32.
@@ -27,6 +34,69 @@ fn resolve_fnref_local_type_idx(ctx: SelfEmitCtx, type_name: String) -> i32 {
         return call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 2, value_types::VT_I32(), value_types::VT_I32())
     }
     call_indirect::resolve_indirect_type_idx(ctx, 0 - 1, 1, value_types::VT_I32(), value_types::VT_I32())
+}
+
+fn resolve_fnref_local_type_idx_for_local(
+    ctx: SelfEmitCtx,
+    f: MirFunction,
+    local_idx: i32,
+    type_name: String
+) -> i32 {
+    let producer_type_idx = find_fnref_producer_type_idx(ctx, f, local_idx, 0)
+    if producer_type_idx >= 0 {
+        return producer_type_idx
+    }
+    resolve_fnref_local_type_idx(ctx, type_name)
+}
+
+fn find_fnref_producer_type_idx(
+    ctx: SelfEmitCtx,
+    f: MirFunction,
+    local_idx: i32,
+    depth: i32
+) -> i32 {
+    if depth > 8 {
+        return 0 - 1
+    }
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_REF_FUNC() &&
+            inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                let fn_idx = inst_ctx::resolve_fn_index(
+                    ctx,
+                    inst_accessors_literals::MirInst_str_val(inst)
+                )
+                let exact_type_idx = ctx_record::SelfEmitCtx_fn_type_index(ctx, fn_idx)
+                if exact_type_idx >= 0 {
+                    return exact_type_idx
+                }
+            }
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_LOCAL_SET() &&
+            inst_accessors_operands::MirInst_arg0(inst) == local_idx {
+                let source_idx = inst_accessors_operands::MirInst_arg1(inst)
+                if source_idx >= 0 {
+                    let source_type_idx = find_fnref_producer_type_idx(
+                        ctx,
+                        f,
+                        source_idx,
+                        depth + 1
+                    )
+                    if source_type_idx >= 0 {
+                        return source_type_idx
+                    }
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    0 - 1
 }
 
 fn is_string_byte_vec_fn(f: MirFunction) -> bool {
@@ -83,11 +153,38 @@ fn emit_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32
         ))
 }
 
-// GC-target local val type emission. Returns true if emitted as a GC ref.
+// GC-target local val type emission. Returns true if this function emitted the
+// declaration, including the scalar override for stale GC metadata.
 fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: i32, ctx: SelfEmitCtx) -> bool {
     let loc = function_locals_view::MirFunction_local_at(f, local_idx)
-    let type_name = local_access::MirLocal_type_name(loc)
+    let type_name = sections_types_gc_phase7::gc_normalize_vec_type_name(
+        local_access::MirLocal_type_name(loc)
+    )
     let variant_slot = local_access::MirLocal_variant_slot(loc)
+    let scalar_vt = code_ref_locals::local_scalar_producer_vt(f, local_idx)
+    if scalar_vt >= 0 && !code_ref_locals::local_has_strong_ref_producer(f, local_idx) {
+        writer_core::emit_byte(body, code_locals_val_type::val_type_to_wasm_width(
+                scalar_vt,
+                writer_core::writer_memory64(body)
+            ))
+        return true
+    }
+    if starts_with(clone(type_name), String_from("array:")) {
+        // Array literals hold the backing GC array directly. They use an
+        // `array:` marker so the same element metadata cannot be mistaken for
+        // a Vec header by local declaration emission.
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(
+            body,
+            intrinsic_vec_type::resolve_array_type_for_local(ctx, local_idx)
+        )
+        return true
+    }
+    if local_is_vec_constructor_dest(f, local_idx) {
+        writer_core::emit_byte(body, constants::WASM_REF_NULL())
+        writer_core::emit_leb128_s(body, intrinsic_vec_type::resolve_vec_type_for_new_dest(ctx, local_idx))
+        return true
+    }
     // #835 / #843: Result/Option payload extract field ABI wins over sticky
     // String type_name. Uses STRUCT_GET / GC_STRUCT_GET field typing — not
     // body-scan infer. i32 tag fields return None here.
@@ -122,6 +219,16 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         }
         Option::None => {}
     }
+    let direct_producer_storage =
+    code_ref_locals_block_scan::local_direct_producer_storage_type(f, local_idx, ctx)
+    match direct_producer_storage {
+        Option::Some(direct_type) => {
+            writer_core::emit_byte(body, constants::WASM_REF_NULL())
+            writer_core::emit_leb128_s(body, direct_type)
+            return true
+        }
+        Option::None => {}
+    }
     // Typed funcref locals: non-null `(ref $callback)` — unary map/filter or
     // binary fold from the local's fn(...) type name (#807).
     if vt == value_types::VT_FUNCREF() ||
@@ -129,7 +236,7 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
     eq(clone(type_name), String_from("fnref2")) ||
     starts_with(clone(type_name), String_from("fnref")) ||
     starts_with(clone(type_name), String_from("fn(")) {
-        let type_idx = resolve_fnref_local_type_idx(ctx, clone(type_name))
+        let type_idx = resolve_fnref_local_type_idx_for_local(ctx, f, local_idx, clone(type_name))
         writer_core::emit_byte(body, constants::WASM_REF())
         writer_core::emit_leb128_s(body, type_idx)
         return true
@@ -274,6 +381,40 @@ fn emit_gc_local_val_type(body: WasmWriter, f: MirFunction, local_idx: i32, vt: 
         }
     }
     false
+}
+
+fn local_is_vec_constructor_dest(f: MirFunction, local_idx: i32) -> bool {
+    let block_count = len(f.blocks)
+    let mut bi = 0
+    while bi < block_count {
+        let block = get_unchecked(f.blocks, bi)
+        let inst_count = block_inst_access::MirBlock_inst_count(block)
+        let mut ii = 0
+        while ii < inst_count {
+            let inst = block_inst_access::MirBlock_inst_at(block, ii)
+            if inst_accessors_shape::MirInst_op(inst) == opcodes::MIR_CALL() &&
+            inst_accessors_operands::MirInst_dest(inst) == local_idx {
+                let callee = inst_accessors_literals::MirInst_str_val(inst)
+                if is_vec_constructor_name(callee) {
+                    return true
+                }
+            }
+            ii = ii + 1
+        }
+        bi = bi + 1
+    }
+    false
+}
+
+fn is_vec_constructor_name(callee: String) -> bool {
+    eq(clone(callee), String_from("Vec::new")) ||
+    eq(clone(callee), String_from("Vec__new")) ||
+    eq(clone(callee), String_from("Vec::with_capacity")) ||
+    eq(clone(callee), String_from("Vec__with_capacity")) ||
+    starts_with(clone(callee), String_from("Vec::new__")) ||
+    starts_with(clone(callee), String_from("Vec__new__")) ||
+    starts_with(clone(callee), String_from("Vec::with_capacity__")) ||
+    starts_with(clone(callee), String_from("Vec__with_capacity__"))
 }
 
 fn vec_elem_is_nested_container_name(elem_name: String) -> bool {

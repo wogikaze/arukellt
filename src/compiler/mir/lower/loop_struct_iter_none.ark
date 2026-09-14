@@ -13,20 +13,10 @@ use mir::value_types
 
 fn mir_emit_struct_iterator_none_break(ctx: LowerCtx, opt_local: i32, tag_local: i32, none_tag: i32, cmp_dest: i32) {
     if ctx_gc_enum::ctx_is_gc_target(ctx) {
-        // Tag lives on the enum open type (field 0); any variant slot works
-        // for the cast because all variants share the open supertype layout
-        // for field 0. Prefer Option::None / None unit slot when present.
-        let mut type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::None")
-        if type_slot < 0 {
-            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "None")
-        }
-        if type_slot < 0 {
-            type_slot = ctx_gc_enum::ctx_gc_enum_variant_slot(ctx, "Option::Some")
-        }
-        if type_slot < 0 {
-            type_slot = 0
-        }
-        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, opt_local, type_slot, 0, value_types::VT_I32()))
+        // The tag is field 0 of the common enum-open type. A concrete variant
+        // cast is invalid here because Some and None are sibling subtypes.
+        let enum_open_slot = 0 - 1
+        ctx_emit(ctx, inst_gc_struct::MirInst_gc_struct_get(tag_local, opt_local, enum_open_slot, 0, value_types::VT_I32()))
     } else {
         ctx_emit(ctx, inst_local_get::MirInst_local_get(opt_local))
         ctx_emit(ctx, inst_struct_get::MirInst_struct_get_to(0, value_types::VT_I32(), tag_local))

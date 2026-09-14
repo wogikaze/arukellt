@@ -37,7 +37,9 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         set_stdlib_result_type(ctx, dest, String_from("result:String:String"))
         return true
     }
-    if eq(clone(cn), "write_string") || eq(clone(cn), "fs_write_file") || eq(clone(cn), "__runtime_abi_fs_write_file") || ends_with(clone(callee_name), String_from("::write_string")) {
+    if is_host_fs_write_string_callee(clone(callee_name)) ||
+    eq(clone(cn), "fs_write_file") ||
+    eq(clone(cn), "__runtime_abi_fs_write_file") {
         set_stdlib_result_type(ctx, dest, String_from("result:unit:String"))
         return true
     }
@@ -62,6 +64,13 @@ fn mark_known_stdlib_result_type(ctx: LowerCtx, callee_name: String, dest: i32) 
         return true
     }
     false
+}
+
+fn is_host_fs_write_string_callee(callee_name: String) -> bool {
+    eq(clone(callee_name), String_from("fs::write_string")) ||
+    eq(clone(callee_name), String_from("std::fs::write_string")) ||
+    eq(clone(callee_name), String_from("host::fs::write_string")) ||
+    eq(clone(callee_name), String_from("std::host::fs::write_string"))
 }
 
 fn mark_toml_result_vec_call_type(ctx: LowerCtx, callee_name: String, dest: i32) -> bool {

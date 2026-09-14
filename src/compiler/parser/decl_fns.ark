@@ -46,6 +46,10 @@ fn parse_fn_members_until_rbrace(p: Parser, node: AstNode) {
         let member = parse_fn_decl(p)
         core_ast_children::AstNode_push_child(node, member)
         core_api_cursor::skip_newlines(p)
+        if core_api_cursor::peek_kind(p) == tokens::TK_COMMA() {
+            p.pos = p.pos + 1
+            core_api_cursor::skip_newlines(p)
+        }
     }
     core_api_expect::expect_token(p, tokens::TK_RBRACE())
 }

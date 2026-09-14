@@ -854,7 +854,7 @@ fn main() {
 }
 ```
 
-### 連結リスト — Enum + Box + 再帰
+### 連結リスト — Enum + 再帰
 
 > 📎 Fixture: [`tests/fixtures/integration/linked_list.ark`](../../tests/fixtures/integration/linked_list.ark)
 
@@ -863,17 +863,17 @@ fn main() {
 use std::host::stdio
 enum List {
     Nil,
-    Cons(i32, Box<List>),
+    Cons(i32, List),
 }
 
 fn prepend(list: List, val: i32) -> List {
-    List::Cons(val, Box_new(list))
+    List::Cons(val, list)
 }
 
 fn list_sum(list: List) -> i32 {
     match list {
         List::Nil => 0,
-        List::Cons(head, tail) => head + list_sum(unbox(tail)),
+        List::Cons(head, tail) => head + list_sum(tail),
     }
 }
 

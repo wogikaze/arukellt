@@ -1,7 +1,17 @@
 use wasm::ctx_scratch
 use wasm::opcodes
+use wasm::ctx_record
+use wasm::ctx_gc_type
+use wasm::emit_target
+use wasm::writer_gc
+use wasm::string_gc_helpers
+use wasm::intrinsics::helpers_core
+use wasm::intrinsics::helpers_numeric_i32
 
 fn emit_seq_extremum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, choose_max: bool) -> bool {
+    if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
+        return emit_seq_extremum_i32_gc(w, ctx, choose_max)
+    }
     let s0 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
     let s1 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
     let s2 = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
@@ -11,6 +21,63 @@ fn emit_seq_extremum_i32(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx, choose_
     emit_seq_extremum_setup(w, s0, s1, s2, s3, s4)
     emit_seq_extremum_loop(w, s1, s2, s3, s4, s5, choose_max)
     writer_core::emit_local_get(w, s1)
+    return true
+}
+
+// GC target: choose the minimum or maximum from the Vec's live prefix.
+fn emit_seq_extremum_i32_gc(w: WasmWriter, ctx: SelfEmitCtx, choose_max: bool) -> bool {
+    let s_vec = ctx_scratch::SelfEmitCtx_scratch_gc_vec_local(ctx, 0)
+    let s_arr = ctx_scratch::SelfEmitCtx_scratch_gc_i32_array_local(ctx, 0)
+    let s_best = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 0)
+    let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 1)
+    let s_index = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 2)
+    let s_candidate = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 3)
+    let vec_type = ctx_gc_type::SelfEmitCtx_vec_type(ctx)
+    let arr_type = ctx_gc_type::SelfEmitCtx_i32_array_type(ctx)
+
+    helpers_core::emit_local_set(w, s_vec)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get(w, vec_type, 0)
+    helpers_core::emit_local_set(w, s_arr)
+    helpers_core::emit_local_get(w, s_vec)
+    writer_gc::emit_gc_ref_cast(w, vec_type)
+    writer_gc::emit_gc_struct_get_i32(w, vec_type, 1)
+    helpers_core::emit_local_set(w, s_len)
+    helpers_core::emit_local_get(w, s_arr)
+    string_gc_helpers::emit_gc_i32_const(w, 0)
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
+    helpers_core::emit_local_set(w, s_best)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_core::emit_local_set(w, s_index)
+
+    string_gc_helpers::emit_gc_block_loop(w)
+    helpers_core::emit_local_get(w, s_index)
+    helpers_core::emit_local_get(w, s_len)
+    helpers_numeric_i32::emit_i32_ge_s(w)
+    string_gc_helpers::emit_gc_br_if(w, 1)
+    helpers_core::emit_local_get(w, s_arr)
+    helpers_core::emit_local_get(w, s_index)
+    writer_gc::emit_gc_array_get_i32(w, arr_type)
+    helpers_core::emit_local_tee(w, s_candidate)
+    helpers_core::emit_local_get(w, s_best)
+    if choose_max {
+        helpers_numeric_i32::emit_i32_gt_s(w)
+    } else {
+        helpers_numeric_i32::emit_i32_lt_s(w)
+    }
+    string_gc_helpers::emit_gc_if_void(w)
+    helpers_core::emit_local_get(w, s_candidate)
+    helpers_core::emit_local_set(w, s_best)
+    string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_index)
+    string_gc_helpers::emit_gc_i32_const(w, 1)
+    helpers_numeric_i32::emit_i32_add(w)
+    helpers_core::emit_local_set(w, s_index)
+    string_gc_helpers::emit_gc_br(w, 0)
+    string_gc_helpers::emit_gc_block_loop_end(w)
+
+    helpers_core::emit_local_get(w, s_best)
     return true
 }
 

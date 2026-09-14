@@ -2,10 +2,16 @@ pub struct MonoIndex {
     names: Vec<String>,
     counts: Vec<i32>,
     mangled_names: Vec<String>,
+    mangled_bases: Vec<String>,
 }
 
 fn mono_index_new() -> MonoIndex {
-    MonoIndex { names: Vec::new<String>(), counts: Vec::new<i32>(), mangled_names: Vec::new<String>() }
+    MonoIndex {
+        names: Vec::new<String>(),
+        counts: Vec::new<i32>(),
+        mangled_names: Vec::new<String>(),
+        mangled_bases: Vec::new<String>()
+    }
 }
 
 fn mono_index_name_count(idx: MonoIndex) -> i32 {
@@ -20,20 +26,30 @@ fn mono_index_count_at(idx: MonoIndex, index: i32) -> i32 {
     get_unchecked(idx.counts, index)
 }
 
+fn mono_index_mangled_count(idx: MonoIndex) -> i32 {
+    len(idx.mangled_names)
+}
+
 fn mono_index_mangled_at_offset(idx: MonoIndex, offset: i32) -> String {
     clone(get_unchecked(idx.mangled_names, offset))
+}
+
+fn mono_index_mangled_base_at(idx: MonoIndex, offset: i32) -> String {
+    clone(get_unchecked(idx.mangled_bases, offset))
 }
 
 fn mono_index_push_name(idx: MonoIndex, fn_name: String, mangled_name: String) {
     push(idx.names, fn_name)
     push(idx.counts, 1)
-    push(idx.mangled_names, mangled_name)
+    push(idx.mangled_names, clone(mangled_name))
+    push(idx.mangled_bases, fn_name)
 }
 
 fn mono_index_increment_name(idx: MonoIndex, index: i32, mangled_name: String) {
     let cur = mono_index_count_at(idx, index)
     set(idx.counts, index, cur + 1)
-    push(idx.mangled_names, mangled_name)
+    push(idx.mangled_names, clone(mangled_name))
+    push(idx.mangled_bases, clone(mono_index_name_at(idx, index)))
 }
 
 fn mono_index_find_name(idx: MonoIndex, fn_name: String) -> i32 {

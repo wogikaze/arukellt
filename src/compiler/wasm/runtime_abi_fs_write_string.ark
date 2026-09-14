@@ -96,7 +96,8 @@ fn emit_write_error_result(w: WasmWriter, ctx: SelfEmitCtx) {
 fn emit_write_success_result(w: WasmWriter, s_content: i32, ctx: SelfEmitCtx) {
     if emit_target::is_p2_wasi(ctx_record::SelfEmitCtx_wasi_version(ctx)) {
         if emit_target::is_gc_target(ctx_record::SelfEmitCtx_target(ctx)) {
-            emit_p2_write_result_gc(w, s_content, ctx)
+            let s_res = ctx_scratch::SelfEmitCtx_scratch_gc_enum_local(ctx, 0)
+            emit_p2_write_result_gc(w, s_content, ctx, s_res)
         } else {
             emit_p2_write_result_linear(w, s_content, ctx)
         }
@@ -130,7 +131,7 @@ fn emit_p2_write_result_linear(w: WasmWriter, s_content: i32, ctx: SelfEmitCtx) 
     helpers_control::emit_end(w)
 }
 
-fn emit_p2_write_result_gc(w: WasmWriter, s_content: i32, ctx: SelfEmitCtx) {
+fn emit_p2_write_result_gc(w: WasmWriter, s_content: i32, ctx: SelfEmitCtx, s_res: i32) {
     let s_len = ctx_scratch::SelfEmitCtx_scratch_local(ctx, 5)
     helpers_core::emit_local_get(w, s_content)
     helpers_numeric_i32::emit_i32_const(w, 4)
@@ -143,10 +144,13 @@ fn emit_p2_write_result_gc(w: WasmWriter, s_content: i32, ctx: SelfEmitCtx) {
     string_gc_helpers::emit_gc_if_void(w)
     runtime_abi_fs_p2::emit_p2_close(w, ctx)
     emit_write_error_result(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
     string_gc_helpers::emit_gc_else(w)
     runtime_abi_fs_p2::emit_p2_close(w, ctx)
     runtime_abi_fs_write_result::emit_fs_write_success_unit_result(w, ctx)
+    helpers_core::emit_local_set(w, s_res)
     string_gc_helpers::emit_gc_end(w)
+    helpers_core::emit_local_get(w, s_res)
 }
 
 fn emit_fs_write_string_iov(w: WasmWriter, content_local: i32) {

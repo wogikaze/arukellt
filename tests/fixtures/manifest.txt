@@ -2881,7 +2881,7 @@ run:native_cpp_public/fs_roundtrip.ark
 run:native_cpp_public/fs_write_missing_parent.ark
 run:native_cpp_public/hello_main.ark
 run:native_cpp_public/hof_named_callback.ark
-run:native_cpp_public/main_with_param.ark
+compile-error:native_cpp_public/main_with_param.ark
 run:native_cpp_public/option_result.ark
 run:native_cpp_public/panic_message.ark
 run:native_cpp_public/phi_if_join_i32.ark

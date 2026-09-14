@@ -1,0 +1,28 @@
+// Match result classification is lowering control-flow metadata.  Keep it
+// separate from MirLocal type metadata: sentinel type names can change the
+// Wasm value type that the emitter assigns to the result local.
+fn ctx_match_result_state_none() -> i32 { 0 }
+fn ctx_match_result_state_all_terminating() -> i32 { 1 }
+fn ctx_match_result_state_has_nonterminating_arm() -> i32 { 2 }
+fn ctx_match_result_state_has_value() -> i32 { 3 }
+
+fn ctx_match_result_state_get(ctx: LowerCtx, result: i32) -> i32 {
+    let i = len(ctx.match_result_indices) - 1
+    while i >= 0 {
+        if get_unchecked(ctx.match_result_indices, i) == result {
+            return get_unchecked(ctx.match_result_states, i)
+        }
+        i = i - 1
+    }
+    ctx_match_result_state_none()
+}
+
+fn ctx_match_result_state_set(ctx: LowerCtx, result: i32, state: i32) {
+    push(ctx.match_result_indices, result)
+    push(ctx.match_result_states, state)
+}
+
+fn ctx_match_result_state_reset(ctx: LowerCtx) {
+    ctx.match_result_indices = Vec::new<i32>()
+    ctx.match_result_states = Vec::new<i32>()
+}
