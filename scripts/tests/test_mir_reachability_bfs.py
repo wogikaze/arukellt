@@ -6,10 +6,16 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 CALL_FIXTURE = "tests/fixtures/reachability/call_export_roots.ark"
 REF_FIXTURE = "tests/fixtures/reachability/ref_func_only_target.ark"
 RECEIPT_PATH = ROOT / ".build" / "selfhost" / "reachability-bfs-receipt.json"
@@ -46,7 +52,7 @@ def _mir_has_fn(mir_text: str, name: str) -> bool:
 
 
 def _wasm_tools() -> str | None:
-    return shutil.which("wasm-tools")
+    return find_wasm_tools()
 
 
 class MirReachabilityBfsTests(unittest.TestCase):

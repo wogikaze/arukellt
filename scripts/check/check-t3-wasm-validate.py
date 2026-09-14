@@ -29,6 +29,11 @@ import tempfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools as find_compatible_wasm_tools
+
 # ── Constants ────────────────────────────────────────────────────────────────
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -127,7 +132,7 @@ def find_wasmtime() -> str | None:
 
 
 def find_wasm_tools() -> str | None:
-    return shutil.which("wasm-tools")
+    return find_compatible_wasm_tools()
 
 
 def _compile_cmd(

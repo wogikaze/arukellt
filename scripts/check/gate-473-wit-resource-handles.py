@@ -12,6 +12,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 from lib.wit_tools import parse_wit_package
+from lib.tooling import find_wasm_tools
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,7 +36,7 @@ def main() -> int:
         print("gate-473: FAIL: WIT own<handle> emission helper missing", file=sys.stderr)
         return 1
 
-    tool = shutil.which("wasm-tools")
+    tool = find_wasm_tools()
     if tool is not None:
         lock = ROOT / ".build" / "wasm-tools-component.lock"
         for rel in (

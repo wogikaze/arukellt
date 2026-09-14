@@ -11,6 +11,11 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 COMPOSE_CMD = REPO_ROOT / "src/compiler/main/compose_cmd.ark"
 SELFHOST_WRAPPER = REPO_ROOT / "scripts/run/arukellt-selfhost.sh"
 ADR = REPO_ROOT / "docs/adr/ADR-034-component-composition-linking.md"
@@ -60,7 +65,7 @@ def _static_evidence() -> tuple[int, str]:
 
 
 def _package_dummy(wit: Path, world: str, out_dir: Path, name: str) -> tuple[int, str, Path | None]:
-    wasm_tools = shutil.which("wasm-tools")
+    wasm_tools = find_wasm_tools()
     if wasm_tools is None:
         return 2, "wasm-tools not in PATH", None
     core = out_dir / f"{name}.core.wasm"
@@ -116,7 +121,10 @@ def _compose(provider: Path, socket: Path, out: Path, validate_only: bool) -> tu
     ]
     if validate_only:
         command.append("--validate")
-    command.extend(["--plug", str(provider), str(socket), "-o", str(out)])
+    provider_arg = str(provider.relative_to(REPO_ROOT))
+    socket_arg = str(socket.relative_to(REPO_ROOT))
+    output_arg = str(out.relative_to(REPO_ROOT))
+    command.extend(["--plug", provider_arg, socket_arg, "-o", output_arg])
     result = subprocess.run(
         command,
         cwd=REPO_ROOT,
@@ -138,7 +146,7 @@ def main() -> int:
     if static_rc != 0:
         print(f"gate-443: FAIL: static evidence: {static_msg}", file=sys.stderr)
         return 1
-    if shutil.which("wasm-tools") is None:
+    if find_wasm_tools() is None:
         print("gate-443-component-composition-phase3: PASS (static; wasm-tools unavailable)")
         return 0
 
@@ -169,7 +177,7 @@ def main() -> int:
             if rc != 0:
                 print(f"gate-443: FAIL: wac plug delegation: {msg}", file=sys.stderr)
                 return 1
-            wasm_tools = shutil.which("wasm-tools")
+            wasm_tools = find_wasm_tools()
             assert wasm_tools is not None
             result = subprocess.run(
                 [wasm_tools, "validate", str(composed)],

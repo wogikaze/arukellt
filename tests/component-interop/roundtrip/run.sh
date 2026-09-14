@@ -11,7 +11,19 @@ if [[ -n "${ARUKELLT_BIN:-}" ]]; then
 else
     ARUKELLT="$REPO_ROOT/scripts/run/arukellt-selfhost.sh"
 fi
-WASM_TOOLS="${WASM_TOOLS_BIN:-$(command -v wasm-tools 2>/dev/null || true)}"
+WASM_TOOLS="${WASM_TOOLS_BIN:-${ARUKELLT_WASM_TOOLS_BIN:-}}"
+if [[ -z "$WASM_TOOLS" ]]; then
+    IFS=: read -r -a path_entries <<< "${PATH:-}"
+    for path_entry in "${path_entries[@]}"; do
+        [[ -n "$path_entry" ]] || continue
+        candidate="$path_entry/wasm-tools"
+        [[ -x "$candidate" ]] || continue
+        if "$candidate" validate --help 2>&1 | grep -Fq -- "--features"; then
+            WASM_TOOLS="$candidate"
+            break
+        fi
+    done
+fi
 
 if [[ ! -f "$ARUKELLT" && ! -x "$ARUKELLT" ]]; then
     echo "SKIP: arukellt selfhost wrapper missing"

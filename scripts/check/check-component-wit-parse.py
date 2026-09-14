@@ -22,6 +22,7 @@ _SCRIPTS_DIR = REPO_ROOT / "scripts"
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 from lib.wit_tools import parse_wit_package
+from lib.tooling import find_wasm_tools
 
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
 _WASM_TOOLS_LOCK = REPO_ROOT / ".build" / "wasm-tools-component.lock"
@@ -37,6 +38,8 @@ REQUIRED_MARKERS = (
 
 
 def _find_tool(name: str) -> str | None:
+    if name == "wasm-tools":
+        return find_wasm_tools()
     return shutil.which(name)
 
 

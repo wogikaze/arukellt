@@ -11,6 +11,11 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 FIXTURE = REPO_ROOT / "tests/fixtures/wit_import/compose_roundtrip"
 MAIN_ARK = FIXTURE / "main.ark"
 PROVIDER_WIT = FIXTURE / "provider.wit"
@@ -41,6 +46,8 @@ def _compiler() -> list[str] | None:
 
 
 def _find_tool(name: str) -> str | None:
+    if name == "wasm-tools":
+        return find_wasm_tools()
     return shutil.which(name)
 
 

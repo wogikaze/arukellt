@@ -29,6 +29,11 @@ from pathlib import Path
 from typing import TypeVar
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = REPO_ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+from lib.tooling import find_wasm_tools
+
 OPEN_DIR = REPO_ROOT / "issues" / "open"
 DONE_DIR = REPO_ROOT / "issues" / "done"
 MANIFEST = REPO_ROOT / "tests" / "fixtures" / "manifest.txt"
@@ -384,6 +389,8 @@ def _run_gate(issue_id: str) -> tuple[str, list[str], int, str]:
 
 
 def _find_tool(name: str) -> str | None:
+    if name == "wasm-tools":
+        return find_wasm_tools()
     return shutil.which(name)
 
 
@@ -396,13 +403,13 @@ def _compiler() -> Path | None:
 
 
 def _selfhost_compile_env() -> dict[str, str]:
-    """Prefer s2-runtime selfhost wasm over stale pinned bootstrap."""
+    """Prefer the current-source s2 wasm over stale runtime artifacts."""
     env = dict(os.environ)
     if "ARUKELLT_SELFHOST_WASM" in env:
         return env
     for candidate in (
-        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
         REPO_ROOT / ".build" / "selfhost" / "arukellt-s2.wasm",
+        REPO_ROOT / ".build" / "selfhost" / "arukellt-s2-runtime.wasm",
         REPO_ROOT / ".build" / "selfhost" / "arukellt-s3.wasm",
         REPO_ROOT / ".build" / "selfhost" / "arukellt-pinned-bootstrap.wasm",
         REPO_ROOT / "bootstrap" / "arukellt-selfhost.wasm",

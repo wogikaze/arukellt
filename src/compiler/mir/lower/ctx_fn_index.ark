@@ -1,6 +1,6 @@
 use collections::name_index
+use corehir::frontend_decl_kind
 use corehir::frontend_ast_node
-use parser::kinds
 
 fn ctx_fn_index_count(ctx: LowerCtx) -> i32 {
     len(ctx.fn_names)
@@ -81,7 +81,7 @@ fn ctx_set_const_names(ctx: LowerCtx, decls: Vec<AstNode>) {
     let mut i = 0
     while i < len(decls) {
         let decl = get_unchecked(decls, i)
-        if frontend_ast_node::corehir_node_kind(decl) == kinds::NK_CONST_DECL() {
+        if frontend_decl_kind::corehir_kind_is_decl_const(frontend_ast_node::corehir_node_kind(decl)) {
             push(ctx.const_names, frontend_ast_node::corehir_node_text(decl))
         }
         i = i + 1

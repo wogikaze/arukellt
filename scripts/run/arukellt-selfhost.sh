@@ -145,7 +145,43 @@ if [[ "${1:-}" == "run" ]] && [[ -z "${ARUKELLT_NATIVE_CPP_INTERNAL_COMPILE:-}" 
   exec python3 "$REPO_ROOT/scripts/run/native-cpp-runner.py" "$@"
 fi
 
-WASM_TOOLS_BIN="${ARUKELLT_WASM_TOOLS_BIN:-wasm-tools}"
+wasm_tools_is_compatible() {
+  local candidate="$1"
+  [[ -x "$candidate" ]] || return 1
+  "$candidate" validate --help 2>&1 | grep -Fq -- "--features"
+}
+
+resolve_wasm_tools_bin() {
+  local requested="${ARUKELLT_WASM_TOOLS_BIN:-}"
+  local candidate entry
+  if [[ -n "$requested" && "$requested" == */* ]]; then
+    if wasm_tools_is_compatible "$requested"; then
+      printf '%s\n' "$requested"
+      return 0
+    fi
+    return 1
+  fi
+  if [[ -n "$requested" ]]; then
+    candidate="$(command -v "$requested" 2>/dev/null || true)"
+    if [[ -n "$candidate" ]] && wasm_tools_is_compatible "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  fi
+  local -a path_entries=()
+  IFS=: read -r -a path_entries <<< "${PATH:-}"
+  for entry in "${path_entries[@]}"; do
+    [[ -n "$entry" ]] || continue
+    candidate="$entry/wasm-tools"
+    if wasm_tools_is_compatible "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+WASM_TOOLS_BIN="$(resolve_wasm_tools_bin || true)"
 WASI_P2_WIT_DIR="${ARUKELLT_WASI_P2_WIT_DIR:-$REPO_ROOT/scripts/selfhost/wit/deps/wasi-cli-0.2.0/wit}"
 
 wasm_artifact_version() {
@@ -155,7 +191,7 @@ wasm_artifact_version() {
 has_retired_abi() {
   local artifact="$1"
   local printed
-  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+  if [[ -z "$WASM_TOOLS_BIN" ]]; then
     return 1
   fi
   printed="$($WASM_TOOLS_BIN print "$artifact" 2>/dev/null)" || return 1
@@ -174,7 +210,7 @@ has_core_import_module() {
   local artifact="$1"
   local module="$2"
   local printed
-  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+  if [[ -z "$WASM_TOOLS_BIN" ]]; then
     return 1
   fi
   printed="$($WASM_TOOLS_BIN print "$artifact" 2>/dev/null)" || return 1
@@ -184,7 +220,7 @@ has_core_import_module() {
 has_library_exports() {
   local artifact="$1"
   local printed
-  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+  if [[ -z "$WASM_TOOLS_BIN" ]]; then
     return 1
   fi
   printed="$($WASM_TOOLS_BIN print "$artifact" 2>/dev/null)" || return 1
@@ -197,7 +233,7 @@ has_library_exports() {
 has_p2_command_exports() {
   local artifact="$1"
   local printed
-  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+  if [[ -z "$WASM_TOOLS_BIN" ]]; then
     return 1
   fi
   printed="$($WASM_TOOLS_BIN print "$artifact" 2>/dev/null)" || return 1
@@ -485,7 +521,7 @@ prepare_all_args() {
 }
 
 require_wasm_tools() {
-  if ! command -v "$WASM_TOOLS_BIN" >/dev/null 2>&1; then
+  if [[ -z "$WASM_TOOLS_BIN" ]]; then
     echo "arukellt-selfhost: error — wasm-tools is required for official WASI P2 component packaging" >&2
     return 1
   fi
