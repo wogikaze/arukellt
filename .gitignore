@@ -24,6 +24,7 @@ tests/component-interop/**/jco-out/
 # wasm build/test artifacts
 *.wasm
 *.cwasm
+*.cwasm.flags
 # Playground static assets (built in CI for Pages; run `npm run build:app` locally)
 docs/playground/dist/
 docs/playground/wasm/
@@ -36,6 +37,8 @@ docs/playground/wasm/
 /*.ark
 /*.py
 /*.sh
+/native_cpp_public_fs_roundtrip.txt
+/native_cpp_scenario_transform.txt
 /_test_*.ark
 /archive.zip
 /check_layout
@@ -63,6 +66,7 @@ docs/spec/spec-*/
 
 # local selfhost / tooling scratch outputs
 .build/
+/.tmp-fixture-debug-*/
 
 # Node.js
 **/node_modules/
